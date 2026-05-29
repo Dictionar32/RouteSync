@@ -5,26 +5,35 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@routesync/core": "workspace:*",
+    "@routesync/core": "^1.0.0",
     "axios": "^1.6.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
     "tsup": "^8.0.0"
   },
-  "license": "MIT",
   "peerDependencies": {
     "zod": "^3.22.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
-    "zod": {
-      "optional": true
-    }
+    "zod": { "optional": true }
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
   }
 }

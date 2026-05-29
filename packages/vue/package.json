@@ -5,22 +5,33 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --watch",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "@routesync/core": "^1.0.0",
+    "@routesync/sdk": "^1.0.0"
+  },
   "peerDependencies": {
     "vue": ">=3.0.0",
     "@tanstack/vue-query": ">=5.0.0"
-  },
-  "dependencies": {
-    "@routesync/sdk": "workspace:*",
-    "@routesync/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
     "tsup": "^8.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }

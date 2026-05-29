@@ -29,8 +29,10 @@ npm install @routesync/sdk
 ### 2. Define your API
 
 ```ts
-import { defineApi } from '@routesync/sdk'
+import { defineApi, resource } from '@routesync/sdk'
 
+// CartSchema, CartMapper, CheckoutSchema, and CheckoutMapper are your own
+// endpoint-level contracts.
 export const api = defineApi(
   {
     auth: {
@@ -44,6 +46,39 @@ export const api = defineApi(
     cart: {
       addItem:    { method: 'POST',   path: '/cart/items', auth: true },
       removeItem: { method: 'DELETE', path: '/cart/items/:produkItemId', auth: true }
+    },
+    cartItems: resource({
+      path: '/cart/items',
+      endpoints: {
+        list: {
+          method: 'GET',
+          schema: CartSchema.list,
+          mapper: CartMapper.list
+        },
+        show: {
+          method: 'GET',
+          path: '/:id',
+          schema: CartSchema.show,
+          mapper: CartMapper.show
+        },
+        create: {
+          method: 'POST',
+          schema: CartSchema.create,
+          mapper: CartMapper.create
+        },
+        update: {
+          method: 'PATCH',
+          path: '/:id',
+          schema: CartSchema.update,
+          mapper: CartMapper.update
+        },
+        checkout: {
+          method: 'POST',
+          path: '/checkout',
+          schema: CheckoutSchema.create,
+          mapper: CheckoutMapper.create
+        }
+      }
     }
   },
   {

@@ -19,5 +19,17 @@ export { ErrorHandler } from './errors/ErrorHandler'
 // Types
 export type { ServiceConfig, RetryConfig, AuthConfig } from './types/config'
 export type { ApiResponse, PaginationMeta } from './types/response'
-export type { HttpMethod, RequestOptions, RouteDefinition, ApiDefinition } from './types/request'
+export type {
+  HttpMethod,
+  RequestOptions,
+  RouteDefinition,
+  ApiDefinition,
+  RouteMapper,
+  RouteSchema,
+  RouteSchemaMap,
+  RouteSchemaValue,
+  RouteParserSchema,
+  RouteTransform,
+  RouteTransformMap
+} from './types/request'
 export type { RouteManifest, ParsedRoute } from './types/route'

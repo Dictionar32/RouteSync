@@ -2,6 +2,7 @@ import { HttpClient } from '@routesync/core'
 import { PathResolver } from '@routesync/core'
 import { ApiDefinition, RouteDefinition } from '@routesync/core'
 import { ServiceConfig } from '@routesync/core'
+import { SchemaLike, parseWithSchema } from './mappers/schema'
 
 type CallOptions<R extends RouteDefinition> = {
   params?: Record<string, any>
@@ -52,11 +53,25 @@ export function defineApi<T extends ApiDefinition>(
 
       groupProxy[action] = async (options?: CallOptions<typeof route>) => {
         const client = getClient()
+        const params = applyMapper(
+          route,
+          'params',
+          parseRouteSchema(route, 'params', options?.params)
+        ) as Record<string, any> | undefined
+        const query = applyMapper(
+          route,
+          'query',
+          parseRouteSchema(route, 'query', options?.query)
+        ) as Record<string, any> | undefined
+        const body = applyMapper(
+          route,
+          'body',
+          parseRouteSchema(route, 'body', options?.body)
+        )
 
-        // Resolve path params
         const resolvedPath = PathResolver.resolve(
           route.path,
-          options?.params
+          params
         )
 
         const method = route.method.toLowerCase() as
@@ -66,13 +81,24 @@ export function defineApi<T extends ApiDefinition>(
           | 'patch'
           | 'delete'
 
-        if (method === 'get' || method === 'delete') {
-          return client[method](resolvedPath, {
-            params: options?.query
-          })
+        const requestConfig = {
+          params: query,
+          headers: route.headers
         }
 
-        return client[method](resolvedPath, options?.body)
+        let response: unknown
+
+        if (method === 'get' || method === 'delete') {
+          response = await client[method](resolvedPath, requestConfig)
+        } else {
+          response = await client[method](resolvedPath, body, requestConfig)
+        }
+
+        return applyMapper(
+          route,
+          'response',
+          parseRouteSchema(route, 'response', response)
+        )
       }
     }
 
@@ -80,4 +106,59 @@ export function defineApi<T extends ApiDefinition>(
   }
 
   return proxy
+}
+
+type RouteSchemaPart = 'params' | 'query' | 'body' | 'response'
+
+const routeSchemaKeys = ['params', 'query', 'body', 'request', 'response']
+
+function parseRouteSchema(
+  route: RouteDefinition,
+  part: RouteSchemaPart,
+  value: unknown
+): unknown {
+  if (value === undefined) return undefined
+
+  const schema = pickRouteSchema(route, part)
+  return parseWithSchema(schema as SchemaLike<unknown> | undefined, value)
+}
+
+function pickRouteSchema(route: RouteDefinition, part: RouteSchemaPart): unknown {
+  const schema = route.schema
+  if (!schema) return undefined
+
+  if (hasRouteSchemaKeys(schema)) {
+    return schema[part] ?? (part === 'body' ? schema.request : undefined)
+  }
+
+  return defaultSchemaPart(route.method) === part ? schema : undefined
+}
+
+function hasRouteSchemaKeys(value: unknown): value is Record<string, unknown> {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      routeSchemaKeys.some((key) => key in value)
+  )
+}
+
+function defaultSchemaPart(method: RouteDefinition['method']): RouteSchemaPart {
+  return method === 'GET' || method === 'DELETE' ? 'response' : 'body'
+}
+
+function applyMapper(
+  route: RouteDefinition,
+  part: RouteSchemaPart,
+  value: unknown
+): unknown {
+  if (value === undefined || !route.mapper) return value
+
+  if (typeof route.mapper === 'function') {
+    return part === 'response' ? route.mapper(value) : value
+  }
+
+  const mapper =
+    route.mapper[part] ?? (part === 'body' ? route.mapper.request : undefined)
+
+  return mapper ? mapper(value) : value
 }

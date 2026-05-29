@@ -24,7 +24,7 @@ export class HttpClient {
   private setupInterceptors() {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => response,
-      (error) => {
+      (error: any) => {
         const message =
           error.response?.data?.message ??
           error.message ??
@@ -58,18 +58,18 @@ export class HttpClient {
     return response.data
   }
 
-  async put<T>(url: string, body?: any): Promise<T> {
-    const response = await this.client.put<T>(url, body)
+  async put<T>(url: string, body?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.put<T>(url, body, config)
     return response.data
   }
 
-  async patch<T>(url: string, body?: any): Promise<T> {
-    const response = await this.client.patch<T>(url, body)
+  async patch<T>(url: string, body?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.patch<T>(url, body, config)
     return response.data
   }
 
-  async delete<T>(url: string): Promise<T> {
-    const response = await this.client.delete<T>(url)
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<T>(url, config)
     return response.data
   }
 

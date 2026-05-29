@@ -1,5 +1,11 @@
 export { defineApi, createClient } from './defineApi'
 export {
+  resource,
+  type ResourceConfig,
+  type ResourceDefinition,
+  type ResourceEndpointDefinition
+} from './resource'
+export {
   createService,
   GenericService,
   type GenericServiceOptions,
@@ -33,6 +39,13 @@ export type {
   ServiceConfig,
   ApiResponse,
   HttpMethod,
+  RouteMapper,
+  RouteSchema,
+  RouteSchemaMap,
+  RouteSchemaValue,
+  RouteParserSchema,
+  RouteTransform,
+  RouteTransformMap,
   RouteDefinition,
   ApiDefinition
 } from '@routesync/core'

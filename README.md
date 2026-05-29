@@ -1,133 +1,20 @@
 # RouteSync
 
-> Laravel routes to typed frontend SDKs.
+> Stop writing API clients by hand.
 
-Modern API SDK ecosystem for Laravel and PHP with typed clients, hooks, route syncing, and code generation.
-
----
-
-## Packages
-
-| Package | Description |
-|---|---|
-| `@routesync/core` | HTTP client engine, auth, routing, error handling |
-| `@routesync/sdk` | Developer-facing API: `defineApi`, `createService` |
-| `@routesync/cli` | CLI: scan routes, generate SDK, types, hooks |
-| `@routesync/react` | React Query hooks factory |
-| `@routesync/vue` | Vue Query composables factory |
+RouteSync syncs your Laravel (or PHP) routes to a fully-typed frontend SDK — complete with TypeScript types, a camelCase mapper, and React/Vue Query hooks. One command. Zero boilerplate.
 
 ---
 
-## Quick Start
+## Why
 
-### 1. Install
+You've been there. The backend ships a new endpoint. You update the route, write a fetch wrapper, add the TypeScript type, hook it into React Query, map `snake_case` to `camelCase`, and fifteen minutes later you're still not done.
 
-```bash
-npm install @routesync/sdk
-```
-
-### 2. Define your API
-
-```ts
-import { defineApi, resource } from '@routesync/sdk'
-
-// CartSchema, CartMapper, CheckoutSchema, and CheckoutMapper are your own
-// endpoint-level contracts.
-export const api = defineApi(
-  {
-    auth: {
-      login:  { method: 'POST', path: '/login' },
-      logout: { method: 'POST', path: '/logout', auth: true }
-    },
-    produk: {
-      list:   { method: 'GET',  path: '/produk' },
-      detail: { method: 'GET',  path: '/produk/:id' }
-    },
-    cart: {
-      addItem:    { method: 'POST',   path: '/cart/items', auth: true },
-      removeItem: { method: 'DELETE', path: '/cart/items/:produkItemId', auth: true }
-    },
-    cartItems: resource({
-      path: '/cart/items',
-      endpoints: {
-        list: {
-          method: 'GET',
-          schema: CartSchema.list,
-          mapper: CartMapper.list
-        },
-        show: {
-          method: 'GET',
-          path: '/:id',
-          schema: CartSchema.show,
-          mapper: CartMapper.show
-        },
-        create: {
-          method: 'POST',
-          schema: CartSchema.create,
-          mapper: CartMapper.create
-        },
-        update: {
-          method: 'PATCH',
-          path: '/:id',
-          schema: CartSchema.update,
-          mapper: CartMapper.update
-        },
-        checkout: {
-          method: 'POST',
-          path: '/checkout',
-          schema: CheckoutSchema.create,
-          mapper: CheckoutMapper.create
-        }
-      }
-    }
-  },
-  {
-    baseURL: 'http://localhost:8000/api'
-  }
-)
-```
-
-### 3. Use it
-
-```ts
-// Login
-await api.auth.login({ body: { email, password } })
-
-// Get product list
-await api.produk.list({ query: { page: 1, search: 'kaos' } })
-
-// Get product detail (auto path param)
-await api.produk.detail({ params: { id: 10 } })
-// → GET /produk/10
-
-// Add to cart
-await api.cart.addItem({ body: { produk_id: 1, qty: 2 } })
-
-// Remove from cart
-await api.cart.removeItem({ params: { produkItemId: 5 } })
-// → DELETE /cart/items/5
-```
-
----
-
-## CLI: Auto-generate from Laravel Routes
-
-### Install CLI
+RouteSync does all of that. You point it at `routes/api.php` and it generates the whole thing.
 
 ```bash
-npm install -g @routesync/cli
+npx routesync sync --input routes/api.php --output src/api --baseURL https://api.myapp.com/api
 ```
-
-### Sync in one command
-
-```bash
-npx routesync sync \
-  --input routes/api.php \
-  --output src/api \
-  --baseURL https://api.myapp.com/api
-```
-
-Output:
 
 ```
   routesync sync
@@ -137,101 +24,114 @@ Output:
   ✔ Generating SDK
   ✔ Generating hooks
 
-  Sync complete!
-
-  Output: src/api
+  Sync complete! → src/api
 ```
 
-Generated files:
+That's it. Your frontend has a typed client, response types, and ready-to-use hooks — and you didn't write any of it.
+
+---
+
+## Packages
+
+| Package | What it does |
+|---|---|
+| `@routesync/sdk` | The core developer API. `defineApi`, `createService`, `resource`. |
+| `@routesync/core` | HTTP client engine, auth, path resolution, error handling. |
+| `@routesync/cli` | Scans routes, generates types + SDK + hooks. |
+| `@routesync/react` | React Query hooks factory built on `createService`. |
+| `@routesync/vue` | Vue Query composables, same idea. |
+
+---
+
+## Install
+
+```bash
+# SDK only (manual route definitions)
+npm install @routesync/sdk
+
+# With React hooks
+npm install @routesync/react @tanstack/react-query
+
+# With Vue composables
+npm install @routesync/vue @tanstack/vue-query
+
+# CLI (route scanner + code generator)
+npm install -g @routesync/cli
+```
+
+---
+
+## Usage
+
+### Option A — Define routes manually
+
+Good if you don't have a Laravel backend, or want full control.
+
+```ts
+import { defineApi } from '@routesync/sdk'
+
+export const api = defineApi(
+  {
+    auth: {
+      login:  { method: 'POST', path: '/login' },
+      logout: { method: 'POST', path: '/logout', auth: true },
+    },
+    products: {
+      list:   { method: 'GET',  path: '/products' },
+      detail: { method: 'GET',  path: '/products/:id' },
+      create: { method: 'POST', path: '/products', auth: true },
+    },
+  },
+  { baseURL: 'https://api.myapp.com/api' }
+)
+```
+
+Then call it:
+
+```ts
+// GET /products?page=1&search=kaos
+await api.products.list({ query: { page: 1, search: 'kaos' } })
+
+// GET /products/42
+await api.products.detail({ params: { id: 42 } })
+
+// POST /products
+await api.products.create({ body: { name: 'Kaos Polos', price: 89000 } })
+```
+
+Path params resolve automatically. `:id` → the value you pass. No string concatenation, no manual URL building.
+
+---
+
+### Option B — Auto-generate from Laravel
+
+Point the CLI at your routes file and let it generate everything.
+
+```bash
+npx routesync sync \
+  --input ../laravel-backend/routes/api.php \
+  --output src/api \
+  --baseURL https://api.myapp.com/api
+```
+
+Generated output:
 
 ```
 src/api/
-├── api.ts       ← Typed API client
-├── types.ts     ← Response/request types
-└── hooks.ts     ← React Query hooks
+├── api.ts      ← typed API client
+├── types.ts    ← TypeScript interfaces
+└── hooks.ts    ← React Query hooks
 ```
 
-### Available Commands
+To keep it in sync during development:
 
 ```bash
-npx routesync scan      # Scan routes → manifest JSON
-npx routesync generate  # Generate SDK from manifest
-npx routesync sync      # Scan + generate in one step
-npx routesync watch     # Watch and auto-sync on changes
+npx routesync watch --input routes/api.php --output src/api
 ```
 
 ---
 
-## React Query Hooks
-
-```bash
-npm install @routesync/react
-```
-
-```ts
-import { z } from 'zod'
-import { createHooks } from '@routesync/react'
-import { createService } from '@routesync/sdk'
-import type { CamelCasedPropertiesDeep } from '@routesync/sdk'
-
-type BackendProduct = {
-  id: number
-  product_name: string
-  created_at: string
-}
-
-type Product = CamelCasedPropertiesDeep<BackendProduct>
-
-type ProductInput = {
-  productName: string
-}
-
-const backendProductSchema = z.object({
-  id: z.number(),
-  product_name: z.string(),
-  created_at: z.string()
-})
-
-const productInputSchema = z.object({
-  productName: z.string().min(1)
-})
-
-const productService = createService<Product, ProductInput>(client, '/produk', {
-  entitySchema: backendProductSchema,
-  listSchema: z.array(backendProductSchema),
-  createSchema: productInputSchema
-})
-
-const { useList, useDetail, useCreate } = createHooks(productService, 'produk')
-
-// In component:
-const { data, isLoading } = useList({ page: 1 })
-const mutation = useCreate()
-
-// Frontend camelCase payload is validated with Zod, then sent as snake_case.
-mutation.mutate({ productName: 'Product Baru' })
-
-// Backend snake_case response becomes frontend camelCase.
-data?.[0].productName
-```
-
----
-
-## Vue Query Composables
-
-```bash
-npm install @routesync/vue
-```
-
-```ts
-import { createVueComposables } from '@routesync/vue'
-
-const { useList, useCreate } = createVueComposables(productService, 'produk')
-```
-
----
-
-## Authorization
+### Authentication
 
 ```ts
 import { createClient } from '@routesync/sdk'
@@ -243,46 +143,193 @@ const { setToken, clearToken } = createClient({
 // After login:
 setToken(response.data.token)
 
-// After logout:
+// On logout:
 clearToken()
 ```
 
-Routes with `auth: true` automatically get `Authorization: Bearer TOKEN` injected.
+Any route with `auth: true` in its definition automatically gets `Authorization: Bearer TOKEN` injected. You don't think about it again.
 
 ---
 
-## Multi-Backend Support
+### React Query Hooks
 
 ```ts
-// Laravel
-const laravel = defineApi(routes, { baseURL: 'https://laravel-app.com/api' })
+import { createService } from '@routesync/sdk'
+import { createHooks } from '@routesync/react'
+import { z } from 'zod'
 
-// CodeIgniter
-const ci = defineApi(routes, { baseURL: 'https://ci-app.com/api' })
+const productSchema = z.object({
+  id: z.number(),
+  product_name: z.string(),
+  price: z.number(),
+})
 
-// Native PHP
-const php = defineApi(routes, { baseURL: 'https://native-php.com/api' })
+const productService = createService(client, '/products', {
+  entitySchema: productSchema,
+  listSchema: z.array(productSchema),
+})
+
+const { useList, useDetail, useCreate } = createHooks(productService, 'products')
+```
+
+In your component:
+
+```tsx
+function ProductList() {
+  const { data, isLoading } = useList({ page: 1 })
+  const mutation = useCreate()
+
+  return (
+    <>
+      {data?.map(p => <div key={p.id}>{p.productName}</div>)}
+      <button onClick={() => mutation.mutate({ productName: 'Kaos Baru' })}>
+        Add Product
+      </button>
+    </>
+  )
+}
+```
+
+Backend returns `product_name`. Your component sees `productName`. The mapper runs automatically in both directions — request payload goes snake_case before it hits the server, response comes back camelCase before it hits your component.
+
+---
+
+### Vue Composables
+
+```ts
+import { createVueComposables } from '@routesync/vue'
+
+const { useList, useCreate } = createVueComposables(productService, 'products')
+```
+
+Same API, Vue-native.
+
+---
+
+### Resource groups
+
+When you have multiple endpoints on the same resource, `resource()` lets you set shared defaults (auth, headers) once:
+
+```ts
+import { defineApi, resource } from '@routesync/sdk'
+
+const api = defineApi({
+  cart: resource({
+    auth: true,  // applies to all endpoints below
+    endpoints: {
+      list:     { method: 'GET',    path: '/cart/items' },
+      show:     { method: 'GET',    path: '/cart/items/:id' },
+      add:      { method: 'POST',   path: '/cart/items' },
+      update:   { method: 'PATCH',  path: '/cart/items/:id' },
+      remove:   { method: 'DELETE', path: '/cart/items/:id' },
+      checkout: { method: 'POST',   path: '/cart/checkout' },
+    }
+  })
+}, config)
 ```
 
 ---
 
-## Ecosystem Flow
+### Schema validation + custom mapping
 
-```
-Laravel Backend
-      ↓
-npx routesync sync
-      ↓
-Route Manifest (JSON)
-      ↓
-SDK Generator
-      ↓
-Typed Client  +  Types  +  Hooks
-      ↓
-React / Vue / Next.js / Mobile / AI Agent
+You can attach Zod schemas to any endpoint for validation, and a mapper for custom transformations:
+
+```ts
+import { z } from 'zod'
+
+const api = defineApi({
+  products: {
+    list: {
+      method: 'GET',
+      path: '/products',
+      schema: z.array(productSchema),
+      mapper: (data) => data.map(normalizeProduct),
+    }
+  }
+}, config)
 ```
 
 ---
+
+### Auto-generate TanStack hooks from defineApi
+
+If you're using `defineApi` (instead of `createService`), you can generate hooks for the whole API at once:
+
+```ts
+import { defineApi } from '@routesync/sdk'
+import { generateHooks } from '@routesync/sdk'
+
+const api = defineApi({ products: { list: ..., create: ... } }, config)
+const { useProductsList, useProductsCreate } = generateHooks(api)
+```
+
+Hook names are derived from group + action: `products.list` → `useProductsList`. GET/DELETE become `useQuery`, everything else becomes `useMutation`. Mutations auto-invalidate their group's queries on success.
+
+---
+
+### Multiple backends
+
+RouteSync isn't Laravel-only. Anything with a REST API works:
+
+```ts
+const laravel = defineApi(routes, { baseURL: 'https://laravel.myapp.com/api' })
+const express = defineApi(routes, { baseURL: 'https://express.myapp.com/api' })
+const php     = defineApi(routes, { baseURL: 'https://php.myapp.com/api' })
+```
+
+The CLI also supports OpenAPI and native PHP alongside Laravel.
+
+---
+
+## CLI reference
+
+```bash
+# Scan routes → route manifest JSON
+npx routesync scan --input routes/api.php
+
+# Generate SDK from manifest
+npx routesync generate --manifest routesync.json --output src/api
+
+# Scan + generate in one step
+npx routesync sync --input routes/api.php --output src/api --baseURL http://localhost/api
+
+# Watch mode — auto-syncs on file change
+npx routesync watch --input routes/api.php --output src/api
+```
+
+---
+
+## How it works
+
+```
+Laravel routes/api.php
+        ↓
+   routesync sync
+        ↓
+  Route manifest (JSON)
+        ↓  
+  SDK + types + hooks
+        ↓
+  React / Vue / Next.js / anywhere
+```
+
+The CLI parses your route file, builds a language-agnostic manifest, then feeds it to the generators. Each generator is independent — you can swap them out or write your own on top of the manifest format.
+
+---
+
+## Roadmap
+
+- [ ] OpenAPI export from the manifest
+- [ ] SWR adapter alongside React Query
+- [ ] Solid.js composables
+- [ ] First-class Next.js Server Actions integration
+- [ ] VSCode extension — IntelliSense on `api.` without importing
+
+---
+
+## Requirements
+
+- Node.js >= 18
 
 ## License
 

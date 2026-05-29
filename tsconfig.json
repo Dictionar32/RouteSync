@@ -9,22 +9,21 @@
     "strict": true,
     "declaration": true,
     "esModuleInterop": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "paths": {
       "@routesync/core": [
-        "packages/core/src"
+        "./packages/core/src"
       ],
       "@routesync/sdk": [
-        "packages/sdk/src"
+        "./packages/sdk/src"
       ],
       "@routesync/react": [
-        "packages/react/src"
+        "./packages/react/src"
       ],
       "@routesync/vue": [
-        "packages/vue/src"
+        "./packages/vue/src"
       ]
     },
     "types": [

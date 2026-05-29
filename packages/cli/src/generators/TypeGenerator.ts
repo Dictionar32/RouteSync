@@ -1,6 +1,7 @@
 import { RouteManifest } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
+import { toTypeName } from './names'
 
 export class TypeGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -36,7 +37,7 @@ export class TypeGenerator {
     )
 
     for (const resource of resources) {
-      const typeName = TypeGenerator.toTypeName(resource ?? '')
+      const typeName = toTypeName(resource ?? '')
       lines.push(`export interface ${typeName} {`)
       lines.push(`  id: number`)
       lines.push(`  // TODO: Add ${resource} fields`)
@@ -47,13 +48,5 @@ export class TypeGenerator {
     }
 
     await fs.writeFile(path.join(outputDir, 'types.ts'), lines.join('\n'))
-  }
-
-  private static toTypeName(resource: string): string {
-    return resource
-      .replace(/-_/g, ' ')
-      .split(/[-_]/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join('')
   }
 }

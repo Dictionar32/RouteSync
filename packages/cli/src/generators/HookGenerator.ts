@@ -1,6 +1,7 @@
 import { RouteManifest, ParsedRoute } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
+import { buildGeneratedRoutes, toTypeName } from './names'
 
 export class HookGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -12,21 +13,20 @@ export class HookGenerator {
     lines.push(`import { api } from './api'`)
     lines.push(``)
 
-    const grouped = HookGenerator.groupByResource(manifest.routes)
+    
+    const grouped = buildGeneratedRoutes(manifest.routes)
 
     for (const [group, routes] of Object.entries(grouped)) {
-      const typeName = HookGenerator.toTypeName(group)
-
       for (const route of routes) {
         const method = route.method.toUpperCase()
-        const hookName = HookGenerator.toHookName(group, route)
-        const queryKey = `['${group}']`
+        const hookName = HookGenerator.toHookName(group, route.actionName)
+        const queryKey = `['${group}', '${route.actionName}']`
 
         if (method === 'GET') {
           lines.push(`export function ${hookName}(params?: Record<string, any>) {`)
           lines.push(`  return useQuery({`)
           lines.push(`    queryKey: ${queryKey},`)
-          lines.push(`    queryFn: () => api.${group}.${HookGenerator.toActionName(route)}({ query: params })`)
+          lines.push(`    queryFn: () => api.${group}.${route.actionName}({ query: params })`)
           lines.push(`  })`)
           lines.push(`}`)
           lines.push(``)
@@ -34,9 +34,9 @@ export class HookGenerator {
           lines.push(`export function ${hookName}() {`)
           lines.push(`  const queryClient = useQueryClient()`)
           lines.push(`  return useMutation({`)
-          lines.push(`    mutationFn: (data: any) => api.${group}.${HookGenerator.toActionName(route)}({ body: data }),`)
+          lines.push(`    mutationFn: (data: any) => api.${group}.${route.actionName}({ body: data }),`)
           lines.push(`    onSuccess: () => {`)
-          lines.push(`      queryClient.invalidateQueries({ queryKey: ${queryKey} })`)
+          lines.push(`      queryClient.invalidateQueries({ queryKey: ['${group}'] })`)
           lines.push(`    }`)
           lines.push(`  })`)
           lines.push(`}`)
@@ -48,44 +48,7 @@ export class HookGenerator {
     await fs.writeFile(path.join(outputDir, 'hooks.ts'), lines.join('\n'))
   }
 
-  private static groupByResource(routes: ParsedRoute[]): Record<string, ParsedRoute[]> {
-    const groups: Record<string, ParsedRoute[]> = {}
-    for (const route of routes) {
-      const group = route.path.replace(/^\//, '').split('/')[0]?.replace(/-/g, '_') ?? 'root'
-      if (!groups[group]) groups[group] = []
-      groups[group].push(route)
-    }
-    return groups
-  }
-
-  private static toHookName(group: string, route: ParsedRoute): string {
-    const method = route.method.toUpperCase()
-    const name = HookGenerator.toTypeName(group)
-    const hasId = route.path.includes('{')
-
-    if (method === 'GET' && !hasId) return `use${name}List`
-    if (method === 'GET' && hasId) return `use${name}Detail`
-    if (method === 'POST') return `useCreate${name}`
-    if (method === 'PUT' || method === 'PATCH') return `useUpdate${name}`
-    if (method === 'DELETE') return `useDelete${name}`
-    return `use${name}Action`
-  }
-
-  private static toActionName(route: ParsedRoute): string {
-    const method = route.method.toLowerCase()
-    const hasId = route.path.includes('{')
-    if (method === 'get' && !hasId) return 'index'
-    if (method === 'get' && hasId) return 'show'
-    if (method === 'post') return 'store'
-    if (method === 'put' || method === 'patch') return 'update'
-    if (method === 'delete') return 'destroy'
-    return 'action'
-  }
-
-  private static toTypeName(resource: string): string {
-    return resource
-      .split(/[-_]/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join('')
+  private static toHookName(group: string, actionName: string): string {
+    return `use${toTypeName(group)}${toTypeName(actionName)}`
   }
 }

@@ -1,24 +1,74 @@
 {
   "name": "routesync",
   "version": "1.0.0",
-  "private": true,
   "description": "Laravel routes to typed frontend SDKs.",
+  "main": "./dist/sdk.js",
+  "module": "./dist/sdk.mjs",
+  "types": "./dist/sdk.d.ts",
+  "bin": {
+    "routesync": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/sdk.d.ts",
+      "import": "./dist/sdk.mjs",
+      "require": "./dist/sdk.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.js"
+    },
+    "./vue": {
+      "types": "./dist/vue.d.ts",
+      "import": "./dist/vue.mjs",
+      "require": "./dist/vue.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "require": "./dist/cli.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "clean": "turbo run clean"
+    "clean": "tsup --clean"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "fs-extra": "^11.2.0",
+    "ora": "^8.0.0"
   },
   "devDependencies": {
-    "turbo": "^2.9.16",
-    "typescript": "^5.4.0",
+    "@types/fs-extra": "^11.0.0",
     "@types/node": "^20.0.0",
-    "tsup": "^8.0.0"
+    "tsup": "^8.0.0",
+    "turbo": "^2.9.16",
+    "typescript": "^5.4.0"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "license": "MIT",
-  "packageManager": "pnpm@10.28.1"
+  "packageManager": "npm@10.8.2",
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -2,22 +2,9 @@
   "name": "@routesync/core",
   "version": "1.0.0",
   "description": "Core HTTP client engine for RouteSync",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": ["dist"],
-  "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --watch",
-    "clean": "rm -rf dist"
-  },
+  "main": "../../dist/core.js",
+  "module": "../../dist/core.mjs",
+  "types": "../../dist/core.d.ts",
   "dependencies": {
     "axios": "^1.6.0"
   },

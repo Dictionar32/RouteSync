@@ -1,9 +1,5 @@
-src/
-examples/
-docs/
-*.test.ts
-*.spec.ts
-tsconfig.json
-turbo.json
-pnpm-workspace.yaml
-.env*
+*
+!dist/**
+!README.md
+!LICENSE
+!package.json

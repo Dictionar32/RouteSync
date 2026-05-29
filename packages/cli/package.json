@@ -3,15 +3,10 @@
   "version": "1.0.0",
   "description": "CLI tool for scanning Laravel/PHP routes and generating typed SDKs",
   "bin": {
-    "routesync": "./dist/index.js"
+    "routesync": "../../dist/cli.js"
   },
-  "main": "dist/index.js",
-  "files": ["dist"],
-  "scripts": {
-    "build": "tsup src/index.ts --format cjs --dts",
-    "dev": "tsup src/index.ts --watch",
-    "clean": "rm -rf dist"
-  },
+  "main": "../../dist/cli.js",
+  "types": "../../dist/cli.d.ts",
   "dependencies": {
     "@routesync/core": "^1.0.0",
     "commander": "^12.0.0",

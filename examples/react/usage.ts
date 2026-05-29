@@ -1,75 +1,80 @@
 /**
- * Example: Using RouteSync in a React/Next.js app
- * after running: npx routesync sync
+ * RouteSync — endpoint-centric usage
  */
+import { defineApi, endpoint, resource, generateHooks } from '@routesync/sdk'
+import { useApiQuery, useApiMutation, createHooks } from '@routesync/react'
 
-import { defineApi } from '@routesync/sdk'
-
-// Option 1: Manual defineApi (without CLI)
+// ----------------------------------------------------------------
+// 1. Define API
+// ----------------------------------------------------------------
 export const api = defineApi(
   {
     auth: {
-      register: { method: 'POST', path: '/register' },
-      login: { method: 'POST', path: '/login' },
-      logout: { method: 'POST', path: '/logout', auth: true }
+      login:  endpoint({ method: 'POST', path: '/login' }),
+      logout: endpoint({ method: 'POST', path: '/logout', auth: true }),
     },
-
     produk: {
-      list: { method: 'GET', path: '/produk' },
-      detail: { method: 'GET', path: '/produk/:id' },
-      reviews: { method: 'GET', path: '/produk/:id/reviews' },
-      createReview: { method: 'POST', path: '/produk/:id/reviews', auth: true }
+      list:   endpoint({ method: 'GET', path: '/produk' }),
+      detail: endpoint({ method: 'GET', path: '/produk/:id' }),
     },
-
     cart: {
-      addItem: { method: 'POST', path: '/cart/items', auth: true },
-      updateItem: { method: 'PATCH', path: '/cart/items/:produkItemId', auth: true },
-      removeItem: { method: 'DELETE', path: '/cart/items/:produkItemId', auth: true },
-      clear: { method: 'DELETE', path: '/cart', auth: true }
+      list:       endpoint({ method: 'GET',    path: '/cart/items',         auth: true }),
+      addItem:    endpoint({ method: 'POST',   path: '/cart/items',         auth: true }),
+      updateItem: endpoint({ method: 'PATCH',  path: '/cart/items/:itemId', auth: true }),
+      removeItem: endpoint({ method: 'DELETE', path: '/cart/items/:itemId', auth: true }),
     },
-
     orders: {
-      index: { method: 'GET', path: '/orders', auth: true },
-      show: { method: 'GET', path: '/orders/:id', auth: true },
-      checkout: { method: 'POST', path: '/checkout', auth: true }
+      index:    endpoint({ method: 'GET',  path: '/orders',   auth: true }),
+      checkout: endpoint({ method: 'POST', path: '/checkout', auth: true }),
     },
-
-    wishlist: {
-      index: { method: 'GET', path: '/wishlist', auth: true },
-      store: { method: 'POST', path: '/wishlist', auth: true },
-      destroy: { method: 'DELETE', path: '/wishlist/:produkItemId', auth: true }
-    }
   },
-  {
-    baseURL: 'http://localhost:8000/api'
-  }
+  { baseURL: 'http://localhost:8000/api' }
 )
 
-// Usage examples:
+// ----------------------------------------------------------------
+// 2. Direct hook usage — endpoint passed directly, no extra args
+// ----------------------------------------------------------------
 
-async function examples() {
-  // Login
-  const loginResult = await api.auth.login({
-    body: { email: 'user@example.com', password: 'secret' }
-  })
+// GET → useApiQuery
+const { data: products, isLoading } = useApiQuery(api.produk.list)
+const { data: product } = useApiQuery(api.produk.detail, { params: { id: 10 } })
+const { data: cartItems } = useApiQuery(api.cart.list)
 
-  // Get product list with query params
-  const products = await api.produk.list({
-    query: { page: 1, limit: 10, search: 'kaos' }
-  })
+// POST/PATCH/DELETE → useApiMutation
+const addItem = useApiMutation(api.cart.addItem)
+addItem.mutate({ body: { produk_id: 1, qty: 2 } })
 
-  // Get product detail (path param)
-  const product = await api.produk.detail({
-    params: { id: 10 }
-  })
+// Checkout — auto-invalidate cart + orders on success
+const checkout = useApiMutation(api.orders.checkout, {
+  invalidate: [api.cart.list, api.orders.index],
+})
+checkout.mutate({ body: { address_id: 3 } })
 
-  // Add to cart
-  const cartResult = await api.cart.addItem({
-    body: { produk_id: 1, qty: 2 }
-  })
+// ----------------------------------------------------------------
+// 3. createHooks — generate hooks for a whole group
+// ----------------------------------------------------------------
+const cartHooks = createHooks(api.cart)
 
-  // Remove from cart
-  await api.cart.removeItem({
-    params: { produkItemId: 5 }
-  })
-}
+const { data: cart } = cartHooks.useList()
+const addToCart = cartHooks.useAddItem()
+addToCart.mutate({ body: { produk_id: 2, qty: 1 } })
+
+// ----------------------------------------------------------------
+// 4. generateHooks — generate all hooks from entire api
+// ----------------------------------------------------------------
+const hooks = generateHooks(api)
+
+const { data: orderList } = hooks.useOrdersIndex()
+const checkoutMutation = hooks.useOrdersCheckout()
+
+// ----------------------------------------------------------------
+// 5. resource() — grouping with shared defaults
+// ----------------------------------------------------------------
+export const wishlist = resource({
+  auth: true,
+  endpoints: {
+    index:   { method: 'GET',    path: '/wishlist' },
+    store:   { method: 'POST',   path: '/wishlist' },
+    destroy: { method: 'DELETE', path: '/wishlist/:itemId' },
+  },
+})

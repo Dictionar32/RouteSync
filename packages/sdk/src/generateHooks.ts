@@ -1,19 +1,20 @@
+import { EndpointCallable } from './defineApi'
+
 type HookMap = Record<string, (...args: any[]) => any>
 
 /**
- * generateHooks
+ * generateHooks — auto-generate TanStack hooks from a full defineApi result.
  *
- * Wraps a defineApi result and generates React Query-compatible
- * hook functions dynamically at runtime.
+ * Reads method from endpoint.$def.method — no heuristics, no string matching.
  *
  * Usage:
+ *   const api = defineApi({ cart: { list: endpoint({...}), create: endpoint({...}) } })
  *   const hooks = generateHooks(api)
- *   const { useProdukList, useProdukDetail } = hooks
+ *   const { useCartList, useCartCreate } = hooks
  */
 export function generateHooks(
-  api: Record<string, Record<string, (options?: any) => Promise<any>>>
+  api: Record<string, Record<string, EndpointCallable>>
 ): HookMap {
-  // Dynamic import to keep @routesync/react as optional peer dependency
   let useQuery: any
   let useMutation: any
   let useQueryClient: any
@@ -26,32 +27,37 @@ export function generateHooks(
   } catch {
     throw new Error(
       '@tanstack/react-query is required to use generateHooks. ' +
-      'Install it with: npm install @tanstack/react-query'
+        'Install it with: npm install @tanstack/react-query'
     )
   }
 
   const hooks: HookMap = {}
 
   for (const [group, actions] of Object.entries(api)) {
-    for (const [action, fn] of Object.entries(actions)) {
+    for (const [action, endpoint] of Object.entries(actions)) {
+      const method = endpoint.$def.method
       const hookName = toHookName(group, action)
 
-      // GET → useQuery
-      if (isQueryAction(action)) {
-        hooks[hookName] = (options?: any) =>
+      if (method === 'GET' || method === 'DELETE') {
+        hooks[hookName] = (options?: any, queryOptions?: any) =>
           useQuery({
-            queryKey: [group, action, options],
-            queryFn: () => fn(options)
+            queryKey: options ? [...endpoint.$key, options] : endpoint.$key,
+            queryFn: () => endpoint(options),
+            ...queryOptions,
           })
       } else {
-        // POST/PUT/PATCH/DELETE → useMutation
-        hooks[hookName] = () => {
+        hooks[hookName] = (mutationOptions?: any) => {
           const qc = useQueryClient()
           return useMutation({
-            mutationFn: (options: any) => fn(options),
-            onSuccess: () => {
+            ...mutationOptions,
+            mutationFn: (options: any) => endpoint(options),
+            onSuccess: (...args: any[]) => {
               qc.invalidateQueries({ queryKey: [group] })
-            }
+              mutationOptions?.invalidate?.forEach((ep: EndpointCallable) => {
+                qc.invalidateQueries({ queryKey: ep.$key })
+              })
+              mutationOptions?.onSuccess?.(...args)
+            },
           })
         }
       }
@@ -61,16 +67,8 @@ export function generateHooks(
   return hooks
 }
 
-function isQueryAction(action: string): boolean {
-  return ['index', 'list', 'show', 'detail', 'get', 'find'].some((k) =>
-    action.toLowerCase().includes(k)
-  )
-}
-
 function toHookName(group: string, action: string): string {
   const g = group.charAt(0).toUpperCase() + group.slice(1)
   const a = action.charAt(0).toUpperCase() + action.slice(1)
-
-  if (isQueryAction(action)) return `use${g}${a}`
   return `use${g}${a}`
 }

@@ -1,16 +1,16 @@
-export { defineApi, createClient } from './defineApi'
+export { defineApi, createClient, type EndpointCallable, type CallOptions } from './defineApi'
+export { endpoint, type EndpointDefinition } from './endpoint'
 export {
   resource,
   type ResourceConfig,
   type ResourceDefinition,
-  type ResourceEndpointDefinition
 } from './resource'
 export {
   createService,
   GenericService,
   type GenericServiceOptions,
   type Id,
-  type QueryParams
+  type QueryParams,
 } from './createService'
 export { createClient as createHttpClient } from './createClient'
 export { generateHooks } from './generateHooks'
@@ -25,16 +25,16 @@ export {
   type SnakeToCamel,
   type CamelToSnake,
   type CamelCasedPropertiesDeep,
-  type SnakeCasedPropertiesDeep
+  type SnakeCasedPropertiesDeep,
 } from './mappers/case'
 export {
   parseWithSchema,
   type ParseResult,
   type ParserSchema,
-  type SchemaLike
+  type SchemaLike,
 } from './mappers/schema'
 
-// Re-export core types for convenience
+// Re-export core types
 export type {
   ServiceConfig,
   ApiResponse,
@@ -47,5 +47,5 @@ export type {
   RouteTransform,
   RouteTransformMap,
   RouteDefinition,
-  ApiDefinition
+  ApiDefinition,
 } from '@routesync/core'

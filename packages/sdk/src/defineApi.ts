@@ -4,27 +4,47 @@ import { ApiDefinition, RouteDefinition } from '@routesync/core'
 import { ServiceConfig } from '@routesync/core'
 import { SchemaLike, parseWithSchema } from './mappers/schema'
 
-type CallOptions<R extends RouteDefinition> = {
+// ----------------------------------------------------------------
+// Call options
+// ----------------------------------------------------------------
+export type CallOptions = {
   params?: Record<string, any>
   query?: Record<string, any>
   body?: Record<string, any>
 }
 
+// ----------------------------------------------------------------
+// EndpointCallable — a callable function that also carries metadata
+// so hooks can read method, path, queryKey without extra arguments.
+//
+//   api.cart.list({ query: { page: 1 } })   ← call
+//   api.cart.list.$def                       ← RouteDefinition
+//   api.cart.list.$key                       ← ['cart', 'list']
+// ----------------------------------------------------------------
+export interface EndpointCallable {
+  (options?: CallOptions): Promise<any>
+  /** Original RouteDefinition — used by useApiQuery / useApiMutation */
+  $def: RouteDefinition
+  /** Stable TanStack query key: [group, action] */
+  $key: string[]
+}
+
 type ApiGroupProxy<G extends Record<string, RouteDefinition>> = {
-  [K in keyof G]: (options?: CallOptions<G[K]>) => Promise<any>
+  [K in keyof G]: EndpointCallable
 }
 
 type ApiProxy<T extends ApiDefinition> = {
   [G in keyof T]: ApiGroupProxy<T[G]>
 }
 
+// ----------------------------------------------------------------
+// Singleton HTTP client
+// ----------------------------------------------------------------
 let _client: HttpClient | null = null
 
 function getClient(): HttpClient {
   if (!_client) {
-    throw new Error(
-      'RouteSync not initialized. Call createClient() first.'
-    )
+    throw new Error('RouteSync not initialized. Call createClient() first.')
   }
   return _client
 }
@@ -34,6 +54,9 @@ export function createClient(config: ServiceConfig) {
   return _client
 }
 
+// ----------------------------------------------------------------
+// defineApi
+// ----------------------------------------------------------------
 export function defineApi<T extends ApiDefinition>(
   definition: T,
   config?: ServiceConfig
@@ -51,40 +74,30 @@ export function defineApi<T extends ApiDefinition>(
     for (const action in groupDef) {
       const route = groupDef[action]
 
-      groupProxy[action] = async (options?: CallOptions<typeof route>) => {
+      const callable = async (options?: CallOptions) => {
         const client = getClient()
+
         const params = applyMapper(
-          route,
-          'params',
+          route, 'params',
           parseRouteSchema(route, 'params', options?.params)
         ) as Record<string, any> | undefined
+
         const query = applyMapper(
-          route,
-          'query',
+          route, 'query',
           parseRouteSchema(route, 'query', options?.query)
         ) as Record<string, any> | undefined
+
         const body = applyMapper(
-          route,
-          'body',
+          route, 'body',
           parseRouteSchema(route, 'body', options?.body)
         )
 
-        const resolvedPath = PathResolver.resolve(
-          route.path,
-          params
-        )
+        const resolvedPath = PathResolver.resolve(route.path, params)
 
         const method = route.method.toLowerCase() as
-          | 'get'
-          | 'post'
-          | 'put'
-          | 'patch'
-          | 'delete'
+          | 'get' | 'post' | 'put' | 'patch' | 'delete'
 
-        const requestConfig = {
-          params: query,
-          headers: route.headers
-        }
+        const requestConfig = { params: query, headers: route.headers }
 
         let response: unknown
 
@@ -95,11 +108,16 @@ export function defineApi<T extends ApiDefinition>(
         }
 
         return applyMapper(
-          route,
-          'response',
+          route, 'response',
           parseRouteSchema(route, 'response', response)
         )
       }
+
+      // Attach metadata to the callable
+      ;(callable as EndpointCallable).$def = route
+      ;(callable as EndpointCallable).$key = [group, action]
+
+      groupProxy[action] = callable as EndpointCallable
     }
 
     ;(proxy as any)[group] = groupProxy
@@ -108,6 +126,9 @@ export function defineApi<T extends ApiDefinition>(
   return proxy
 }
 
+// ----------------------------------------------------------------
+// Internal helpers
+// ----------------------------------------------------------------
 type RouteSchemaPart = 'params' | 'query' | 'body' | 'response'
 
 const routeSchemaKeys = ['params', 'query', 'body', 'request', 'response']
@@ -118,7 +139,6 @@ function parseRouteSchema(
   value: unknown
 ): unknown {
   if (value === undefined) return undefined
-
   const schema = pickRouteSchema(route, part)
   return parseWithSchema(schema as SchemaLike<unknown> | undefined, value)
 }

@@ -1,84 +1,43 @@
 // @ts-ignore TanStack Query is a peer dependency provided by consumers.
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { GenericService, Id, QueryParams } from '@routesync/sdk'
+import { useQueryClient } from '@tanstack/react-query'
+import { EndpointCallable } from '@routesync/sdk'
+import { useApiQuery } from './useQuery'
+import { useApiMutation } from './useMutation'
 
-export interface ServiceHookOptions {
-  query?: Record<string, any>
-  mutation?: Record<string, any>
-}
-
-export function createHooks<
-  TEntity = any,
-  TCreateInput = Partial<TEntity>,
-  TUpdateInput = Partial<TCreateInput>
->(
-  service: GenericService<TEntity, TCreateInput, TUpdateInput>,
-  resourceKey: string
+/**
+ * createHooks — generate typed hooks from an api group.
+ *
+ * Usage:
+ *   const cartHooks = createHooks(api.cart)
+ *   const { useList, useAddItem } = cartHooks
+ *
+ *   // In component:
+ *   const { data } = useList()
+ *   const mutation = useAddItem()
+ */
+export function createHooks<T extends Record<string, EndpointCallable>>(
+  group: T
 ) {
-  return {
-    useList: (params?: QueryParams, options?: Record<string, any>) =>
-      useQuery({
-        queryKey: [resourceKey, 'list', params],
-        queryFn: () => service.findAll(params),
-        ...options
-      }),
+  const hooks: Record<string, (...args: any[]) => any> = {}
 
-    useDetail: (id: Id, options?: Record<string, any>) =>
-      useQuery({
-        queryKey: [resourceKey, 'detail', id],
-        queryFn: () => service.findById(id),
-        enabled: !!id,
-        ...options
-      }),
+  for (const [action, endpoint] of Object.entries(group)) {
+    const method = endpoint.$def.method
+    const hookName = `use${action.charAt(0).toUpperCase()}${action.slice(1)}`
 
-    useCreate: (options?: Record<string, any>) => {
-      const qc = useQueryClient()
-      return useMutation({
-        ...options,
-        mutationFn: (data: TCreateInput) => service.create(data),
-        onSuccess: (...args: any[]) => {
-          qc.invalidateQueries({ queryKey: [resourceKey] })
-          options?.onSuccess?.(...args)
-        }
-      })
-    },
-
-    useUpdate: (options?: Record<string, any>) => {
-      const qc = useQueryClient()
-      return useMutation({
-        ...options,
-        mutationFn: ({ id, data }: { id: Id; data: TUpdateInput }) =>
-          service.update(id, data),
-        onSuccess: (...args: any[]) => {
-          qc.invalidateQueries({ queryKey: [resourceKey] })
-          options?.onSuccess?.(...args)
-        }
-      })
-    },
-
-    usePatch: (options?: Record<string, any>) => {
-      const qc = useQueryClient()
-      return useMutation({
-        ...options,
-        mutationFn: ({ id, data }: { id: Id; data: TUpdateInput }) =>
-          service.patch(id, data),
-        onSuccess: (...args: any[]) => {
-          qc.invalidateQueries({ queryKey: [resourceKey] })
-          options?.onSuccess?.(...args)
-        }
-      })
-    },
-
-    useDelete: (options?: Record<string, any>) => {
-      const qc = useQueryClient()
-      return useMutation({
-        ...options,
-        mutationFn: (id: Id) => service.delete(id),
-        onSuccess: (...args: any[]) => {
-          qc.invalidateQueries({ queryKey: [resourceKey] })
-          options?.onSuccess?.(...args)
-        }
-      })
+    if (method === 'GET' || method === 'DELETE') {
+      hooks[hookName] = (options?: any, queryOptions?: any) =>
+        useApiQuery(endpoint, options, queryOptions)
+    } else {
+      hooks[hookName] = (mutationOptions?: any) =>
+        useApiMutation(endpoint, mutationOptions)
     }
+  }
+
+  return hooks as {
+    [K in keyof T as `use${Capitalize<string & K>}`]: T[K] extends EndpointCallable
+      ? T[K]['$def']['method'] extends 'GET' | 'DELETE'
+        ? (options?: any, queryOptions?: any) => ReturnType<typeof useApiQuery>
+        : (options?: any) => ReturnType<typeof useApiMutation>
+      : never
   }
 }

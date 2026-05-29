@@ -2,12 +2,36 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "lib": ["ES2020", "DOM"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "strict": true,
     "declaration": true,
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "skipLibCheck": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@routesync/core": [
+        "packages/core/src"
+      ],
+      "@routesync/sdk": [
+        "packages/sdk/src"
+      ],
+      "@routesync/react": [
+        "packages/react/src"
+      ],
+      "@routesync/vue": [
+        "packages/vue/src"
+      ]
+    },
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "packages/**/*.ts"
+  ]
 }

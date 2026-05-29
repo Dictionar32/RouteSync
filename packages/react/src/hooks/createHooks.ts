@@ -1,43 +1,83 @@
+// @ts-ignore TanStack Query is a peer dependency provided by consumers.
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { GenericService } from '@routesync/sdk'
+import { GenericService, Id, QueryParams } from '@routesync/sdk'
 
-export function createHooks(service: GenericService, resourceKey: string) {
+export interface ServiceHookOptions {
+  query?: Record<string, any>
+  mutation?: Record<string, any>
+}
+
+export function createHooks<
+  TEntity = any,
+  TCreateInput = Partial<TEntity>,
+  TUpdateInput = Partial<TCreateInput>
+>(
+  service: GenericService<TEntity, TCreateInput, TUpdateInput>,
+  resourceKey: string
+) {
   return {
-    useList: (params?: Record<string, any>) =>
+    useList: (params?: QueryParams, options?: Record<string, any>) =>
       useQuery({
-        queryKey: [resourceKey, params],
-        queryFn: () => service.findAll(params)
+        queryKey: [resourceKey, 'list', params],
+        queryFn: () => service.findAll(params),
+        ...options
       }),
 
-    useDetail: (id: string | number) =>
+    useDetail: (id: Id, options?: Record<string, any>) =>
       useQuery({
-        queryKey: [resourceKey, id],
+        queryKey: [resourceKey, 'detail', id],
         queryFn: () => service.findById(id),
-        enabled: !!id
+        enabled: !!id,
+        ...options
       }),
 
-    useCreate: () => {
+    useCreate: (options?: Record<string, any>) => {
       const qc = useQueryClient()
       return useMutation({
-        mutationFn: (data: any) => service.create(data),
-        onSuccess: () => qc.invalidateQueries({ queryKey: [resourceKey] })
+        ...options,
+        mutationFn: (data: TCreateInput) => service.create(data),
+        onSuccess: (...args: any[]) => {
+          qc.invalidateQueries({ queryKey: [resourceKey] })
+          options?.onSuccess?.(...args)
+        }
       })
     },
 
-    useUpdate: () => {
+    useUpdate: (options?: Record<string, any>) => {
       const qc = useQueryClient()
       return useMutation({
-        mutationFn: ({ id, data }: { id: string | number; data: any }) =>
+        ...options,
+        mutationFn: ({ id, data }: { id: Id; data: TUpdateInput }) =>
           service.update(id, data),
-        onSuccess: () => qc.invalidateQueries({ queryKey: [resourceKey] })
+        onSuccess: (...args: any[]) => {
+          qc.invalidateQueries({ queryKey: [resourceKey] })
+          options?.onSuccess?.(...args)
+        }
       })
     },
 
-    useDelete: () => {
+    usePatch: (options?: Record<string, any>) => {
       const qc = useQueryClient()
       return useMutation({
-        mutationFn: (id: string | number) => service.delete(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: [resourceKey] })
+        ...options,
+        mutationFn: ({ id, data }: { id: Id; data: TUpdateInput }) =>
+          service.patch(id, data),
+        onSuccess: (...args: any[]) => {
+          qc.invalidateQueries({ queryKey: [resourceKey] })
+          options?.onSuccess?.(...args)
+        }
+      })
+    },
+
+    useDelete: (options?: Record<string, any>) => {
+      const qc = useQueryClient()
+      return useMutation({
+        ...options,
+        mutationFn: (id: Id) => service.delete(id),
+        onSuccess: (...args: any[]) => {
+          qc.invalidateQueries({ queryKey: [resourceKey] })
+          options?.onSuccess?.(...args)
+        }
       })
     }
   }

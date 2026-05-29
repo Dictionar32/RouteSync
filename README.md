@@ -134,16 +134,50 @@ npm install @routesync/react
 ```
 
 ```ts
+import { z } from 'zod'
 import { createHooks } from '@routesync/react'
 import { createService } from '@routesync/sdk'
+import type { CamelCasedPropertiesDeep } from '@routesync/sdk'
 
-const productService = createService(client, '/produk')
+type BackendProduct = {
+  id: number
+  product_name: string
+  created_at: string
+}
+
+type Product = CamelCasedPropertiesDeep<BackendProduct>
+
+type ProductInput = {
+  productName: string
+}
+
+const backendProductSchema = z.object({
+  id: z.number(),
+  product_name: z.string(),
+  created_at: z.string()
+})
+
+const productInputSchema = z.object({
+  productName: z.string().min(1)
+})
+
+const productService = createService<Product, ProductInput>(client, '/produk', {
+  entitySchema: backendProductSchema,
+  listSchema: z.array(backendProductSchema),
+  createSchema: productInputSchema
+})
+
 const { useList, useDetail, useCreate } = createHooks(productService, 'produk')
 
 // In component:
 const { data, isLoading } = useList({ page: 1 })
 const mutation = useCreate()
-mutation.mutate({ name: 'Product Baru' })
+
+// Frontend camelCase payload is validated with Zod, then sent as snake_case.
+mutation.mutate({ productName: 'Product Baru' })
+
+// Backend snake_case response becomes frontend camelCase.
+data?.[0].productName
 ```
 
 ---

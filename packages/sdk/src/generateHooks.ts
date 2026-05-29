@@ -1,6 +1,4 @@
-import { ApiDefinition } from '@routesync/core'
-
-type HookMap = Record<string, Record<string, (...args: any[]) => any>>
+type HookMap = Record<string, (...args: any[]) => any>
 
 /**
  * generateHooks

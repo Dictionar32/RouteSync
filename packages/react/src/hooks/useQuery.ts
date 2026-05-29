@@ -1,3 +1,4 @@
+// @ts-ignore TanStack Query is a peer dependency provided by consumers.
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 
 export function useApiQuery<T>(

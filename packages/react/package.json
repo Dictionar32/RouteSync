@@ -1,0 +1,26 @@
+{
+  "name": "@routesync/react",
+  "version": "1.0.0",
+  "description": "React Query hooks for RouteSync",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --watch",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "@tanstack/react-query": ">=5.0.0"
+  },
+  "dependencies": {
+    "@routesync/sdk": "workspace:*",
+    "@routesync/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsup": "^8.0.0"
+  },
+  "license": "MIT"
+}

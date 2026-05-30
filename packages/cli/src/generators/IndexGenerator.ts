@@ -1,0 +1,22 @@
+import { RouteManifest } from '@routesync/core'
+import path from 'path'
+import fs from 'fs-extra'
+import { buildGeneratedRoutes } from './names'
+
+export class IndexGenerator {
+  static async generate(manifest: RouteManifest, outputDir: string, options: any): Promise<void> {
+    const grouped = buildGeneratedRoutes(manifest.routes)
+    
+    // Group-level index is skipped to prevent overwriting user's SOT index.ts
+
+    // Generate root index.ts
+    const rootLines: string[] = []
+    rootLines.push(`// Auto-generated. Do not edit.`)
+    rootLines.push(`export { api } from './api'`)
+    rootLines.push(`export * from './types'`)
+    if (options.hooks !== false) rootLines.push(`export * from './hooks'`)
+    if (options.nextActions) rootLines.push(`export * from './actions'`)
+    
+    await fs.writeFile(path.join(outputDir, 'index.ts'), rootLines.join('\n'))
+  }
+}

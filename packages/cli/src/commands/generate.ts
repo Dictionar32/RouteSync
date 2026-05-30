@@ -7,9 +7,11 @@ import { HookGenerator } from '../generators/HookGenerator'
 import { NextActionGenerator } from '../generators/NextActionGenerator'
 import { MswGenerator } from '../generators/MswGenerator'
 import { EchoGenerator } from '../generators/EchoGenerator'
+import { IndexGenerator } from '../generators/IndexGenerator'
 import path from 'path'
 import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
+import { ModelGenerator } from '../generators/ModelGenerator'
 
 export const generateCommand = new Command('generate')
   .description('Generate typed SDK, types, and hooks from route manifest')
@@ -58,6 +60,14 @@ export const generateCommand = new Command('generate')
         await EchoGenerator.generate(manifest.channels, options.output)
       }
 
+      if (manifest.models) {
+        spinner.text = 'Generating DB Models...'
+        await ModelGenerator.generate(manifest, options.output)
+      }
+
+      spinner.text = 'Generating Index Files...'
+      await IndexGenerator.generate(manifest, options.output, options)
+
       spinner.succeed(chalk.green(`SDK generated → ${options.output}`))
       console.log(`  ${chalk.cyan('api.ts')}     Typed API client`)
       console.log(`  ${chalk.cyan('types.ts')}   Response/request types`)
@@ -72,6 +82,9 @@ export const generateCommand = new Command('generate')
       }
       if (options.echo && manifest.channels) {
         console.log(`  ${chalk.cyan('echo.ts')}    Laravel Echo Hooks`)
+      }
+      if (manifest.models && manifest.models.length > 0) {
+        console.log(`  ${chalk.cyan('models.ts')}  Eloquent Database Models`)
       }
     } catch (err: any) {
       spinner.fail(chalk.red(`Generate failed: ${err.message}`))

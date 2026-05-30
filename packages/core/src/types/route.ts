@@ -3,6 +3,7 @@ export interface RouteManifest {
   baseURL: string
   routes: ParsedRoute[]
   channels?: ParsedChannel[]
+  models?: ParsedModel[]
   generatedAt: string
 }
 
@@ -21,4 +22,19 @@ export interface ParsedRoute {
   schema?: Record<string, any>
   group?: string
   action?: string
+}
+
+export interface ParsedColumn {
+  name: string
+  type: string // SQL type like varchar, int, bigint, etc.
+  nullable: boolean
+}
+
+export interface ParsedModel {
+  name: string // Model class name (e.g. User)
+  table: string
+  columns: ParsedColumn[]
+  hidden?: string[]
+  appends?: string[]
+  casts?: Record<string, string>
 }

@@ -10,6 +10,8 @@ import { NextActionGenerator } from '../generators/NextActionGenerator'
 import { MswGenerator } from '../generators/MswGenerator'
 import { LaravelChannelParser } from '../parsers/LaravelChannelParser'
 import { EchoGenerator } from '../generators/EchoGenerator'
+import { IndexGenerator } from '../generators/IndexGenerator'
+import { ModelGenerator } from '../generators/ModelGenerator'
 import fs from 'fs-extra'
 
 export const syncCommand = new Command('sync')
@@ -21,6 +23,7 @@ export const syncCommand = new Command('sync')
   .option('--next-actions', 'Generate Next.js Server Actions')
   .option('--msw', 'Generate MSW Mock Handlers')
   .option('--echo', 'Generate Laravel Echo Hooks')
+  .option('--models', 'Extract Database Schema via Eloquent Models')
   .action(async (options) => {
     console.log(chalk.bold.blue('\n  routesync sync\n'))
 
@@ -37,11 +40,12 @@ export const syncCommand = new Command('sync')
     try {
       // Step 1: Scan
       const parser = new LaravelRouteParser()
-      const routes = await parser.parse(options.input)
+      const { routes, models } = await parser.parse(options.input, { extractModels: options.models })
       const channelParser = new LaravelChannelParser()
       const channels = options.echo ? await channelParser.parse('routes/channels.php') : []
       const manifest = ManifestGenerator.generate(routes, options.baseURL, channels)
-      spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes, ${channels.length} channels)`))
+      if (options.models) manifest.models = models
+      spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes, ${channels.length} channels, ${models.length} models)`))
 
       await fs.ensureDir(options.output)
 
@@ -82,6 +86,18 @@ export const syncCommand = new Command('sync')
         await EchoGenerator.generate(manifest.channels, options.output)
         spinner.succeed(chalk.green(`✔ Generating Echo Hooks`))
       }
+
+      // Step 7.5: Models
+      if (options.models && manifest.models) {
+        spinner.start('Generating DB Models')
+        await ModelGenerator.generate(manifest, options.output)
+        spinner.succeed(chalk.green(`✔ Generating DB Models`))
+      }
+
+      // Step 8: Index Files
+      spinner.start('Generating Index Files')
+      await IndexGenerator.generate(manifest, options.output, options)
+      spinner.succeed(chalk.green(`✔ Generating Index Files`))
 
       console.log(chalk.bold.green('\n  Sync complete!\n'))
       console.log(`  Output: ${chalk.cyan(options.output)}`)

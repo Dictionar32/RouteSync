@@ -11,7 +11,7 @@ export class LaravelChannelParser {
     const channels: ParsedChannel[] = []
 
     // regex to find Broadcast::channel('channel-name', function() { ... })
-    const regex = /Broadcast::channel\\(\\s*['"]([^'"]+)['"]/g
+    const regex = new RegExp(`Broadcast::channel\\(\\s*['"]([^'"]+)['"]`, 'g')
     let match
 
     while ((match = regex.exec(content)) !== null) {

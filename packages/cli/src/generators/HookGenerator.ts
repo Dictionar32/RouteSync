@@ -34,7 +34,7 @@ export class HookGenerator {
           lines.push(`export function ${hookName}() {`)
           lines.push(`  const queryClient = useQueryClient()`)
           lines.push(`  return useMutation({`)
-          lines.push(`    mutationFn: (data: unknown) => api.${group}.${route.actionName}({ body: data }),`)
+          lines.push(`    mutationFn: (data: Record<string, unknown>) => api.${group}.${route.actionName}({ body: data }),`)
           lines.push(`    onSuccess: () => {`)
           lines.push(`      queryClient.invalidateQueries({ queryKey: ['${group}'] })`)
           lines.push(`    }`)

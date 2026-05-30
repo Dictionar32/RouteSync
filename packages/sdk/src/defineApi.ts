@@ -11,6 +11,7 @@ export type CallOptions = {
   params?: Record<string, any>
   query?: Record<string, any>
   body?: Record<string, any>
+  headers?: Record<string, string>
 }
 
 // ----------------------------------------------------------------
@@ -97,7 +98,7 @@ export function defineApi<T extends ApiDefinition>(
         const method = route.method.toLowerCase() as
           | 'get' | 'post' | 'put' | 'patch' | 'delete'
 
-        const requestConfig = { params: query, headers: route.headers }
+        const requestConfig = { params: query, headers: { ...route.headers, ...options?.headers } }
 
         let response: unknown
 

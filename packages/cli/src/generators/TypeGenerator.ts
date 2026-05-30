@@ -101,7 +101,7 @@ export class TypeGenerator {
       }
     }
 
-    await fs.writeFile(path.join(outputDir, 'types.ts'), lines.join('\\n'))
+    await fs.writeFile(path.join(outputDir, 'types.ts'), lines.join('\n'))
   }
 }
 

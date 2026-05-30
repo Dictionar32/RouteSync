@@ -16,7 +16,7 @@ export class TypeGenerator {
       lines.push(``)
     }
 
-    lines.push(`export interface ApiResponse<T = any> {`)
+    lines.push(`export interface ApiResponse<T = unknown> {`)
     lines.push(`  success: boolean`)
     lines.push(`  message?: string`)
     lines.push(`  data: T`)
@@ -71,7 +71,7 @@ export class TypeGenerator {
             } else if (ruleStr.includes('boolean')) {
               zodRule = 'z.boolean()'
             } else if (ruleStr.includes('array')) {
-              zodRule = 'z.array(z.any())'
+              zodRule = 'z.array(z.unknown())'
             }
             
             if (ruleStr.includes('email')) zodRule += '.email()'

@@ -30,11 +30,11 @@ export class EchoGenerator {
       
       const runtimeChannelName = channel.name.replace(/\\{([^}]+)\\}/g, '${$1}')
 
-      lines.push('export function ' + hookName + '(' + paramArgs + 'eventName: string, callback: (event: any) => void) {')
+      lines.push('export function ' + hookName + '(' + paramArgs + 'eventName: string, callback: (event: unknown) => void) {')
       lines.push(`  useEffect(() => {`)
-      lines.push(`    if (typeof window === 'undefined' || !(window as any).Echo) return`)
+      lines.push(`    if (typeof window === 'undefined' || !(window as unknown as { Echo?: Echo }).Echo) return`)
       lines.push(`    `)
-      lines.push(`    const echo: Echo = (window as any).Echo`)
+      lines.push(`    const echo: Echo = (window as unknown as { Echo: Echo }).Echo`)
       
       const channelMethod = channel.isPrivate ? 'private' : 'channel'
       lines.push('    const channelInstance = echo.' + channelMethod + '(`' + runtimeChannelName + '`)')

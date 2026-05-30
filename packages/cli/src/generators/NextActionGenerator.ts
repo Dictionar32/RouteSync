@@ -24,7 +24,7 @@ export class NextActionGenerator {
 
     for (const route of manifest.routes) {
       const actionName = toMethodName(route)
-      lines.push(`export async function ${actionName}Action(payload?: any) {`)
+      lines.push(`export async function ${actionName}Action(payload?: unknown) {`)
       
       const args: string[] = []
       if (route.method === 'GET') {
@@ -42,8 +42,8 @@ export class NextActionGenerator {
       lines.push(`  try {`)
       lines.push(`    const response = ${apiCall}`)
       lines.push(`    return { success: true, data: response.data }`)
-      lines.push(`  } catch (error: any) {`)
-      lines.push(`    return { success: false, error: error.message }`)
+      lines.push(`  } catch (error: unknown) {`)
+      lines.push(`    return { success: false, error: error instanceof Error ? error.message : String(error) }`)
       lines.push(`  }`)
       lines.push(`}`)
       lines.push(``)

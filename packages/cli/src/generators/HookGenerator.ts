@@ -23,7 +23,7 @@ export class HookGenerator {
         const queryKey = `['${group}', '${route.actionName}']`
 
         if (method === 'GET') {
-          lines.push(`export function ${hookName}(params?: Record<string, any>) {`)
+          lines.push(`export function ${hookName}(params?: Record<string, unknown>) {`)
           lines.push(`  return useQuery({`)
           lines.push(`    queryKey: ${queryKey},`)
           lines.push(`    queryFn: () => api.${group}.${route.actionName}({ query: params })`)
@@ -34,7 +34,7 @@ export class HookGenerator {
           lines.push(`export function ${hookName}() {`)
           lines.push(`  const queryClient = useQueryClient()`)
           lines.push(`  return useMutation({`)
-          lines.push(`    mutationFn: (data: any) => api.${group}.${route.actionName}({ body: data }),`)
+          lines.push(`    mutationFn: (data: unknown) => api.${group}.${route.actionName}({ body: data }),`)
           lines.push(`    onSuccess: () => {`)
           lines.push(`      queryClient.invalidateQueries({ queryKey: ['${group}'] })`)
           lines.push(`    }`)

@@ -4,7 +4,7 @@ import fs from 'fs-extra'
 import { buildGeneratedRoutes } from './names'
 
 export class IndexGenerator {
-  static async generate(manifest: RouteManifest, outputDir: string, options: any): Promise<void> {
+  static async generate(manifest: RouteManifest, outputDir: string, options: Record<string, unknown>): Promise<void> {
     const grouped = buildGeneratedRoutes(manifest.routes)
     
     // Group-level index is skipped to prevent overwriting user's SOT index.ts

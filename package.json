@@ -1,6 +1,6 @@
 {
   "name": "routesync",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Laravel routes to typed frontend SDKs.",
   "main": "./dist/sdk.js",
   "module": "./dist/sdk.mjs",

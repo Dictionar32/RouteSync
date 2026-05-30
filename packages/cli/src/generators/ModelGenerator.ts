@@ -10,7 +10,6 @@ export class ModelGenerator {
     await fs.ensureDir(coreDir)
 
     const lines: string[] = []
-    lines.push(`/* eslint-disable */`)
     lines.push(`// Auto-generated. Do not edit.`)
     lines.push(``)
 
@@ -42,7 +41,7 @@ export class ModelGenerator {
       // 2. Appended Attributes
       const appends = Array.isArray(model.appends) ? model.appends : []
       for (const append of appends) {
-        lines.push(`  ${append}: any // appended attribute`)
+        lines.push(`  ${append}: unknown // appended attribute`)
       }
       
       lines.push(`}`)
@@ -64,7 +63,7 @@ export class ModelGenerator {
     }
     
     if (type.includes('json')) {
-      return 'any'
+      return 'Record<string, unknown>'
     }
     
     // Parse MySQL enum: enum('admin','user')
@@ -89,7 +88,7 @@ export class ModelGenerator {
       return 'boolean'
     }
     if (type.includes('array') || type.includes('json') || type.includes('collection') || type.includes('object')) {
-      return 'any'
+      return 'Record<string, unknown>'
     }
     if (type.includes('date') || type.includes('datetime') || type.includes('string')) {
       return 'string'

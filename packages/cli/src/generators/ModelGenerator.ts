@@ -66,6 +66,16 @@ export class ModelGenerator {
       return 'any'
     }
     
+    // Parse MySQL enum: enum('admin','user')
+    const enumMatch = type.match(/^enum\((.*)\)$/);
+    if (enumMatch && enumMatch[1]) {
+      // enumMatch[1] is "'admin','user'"
+      // Split by comma, but be careful with spaces, although MySQL usually doesn't have spaces inside enum values unless specified
+      const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""));
+      // map to union type string: 'admin' | 'user'
+      return values.map(v => `'${v}'`).join(' | ');
+    }
+    
     return 'string'
   }
 

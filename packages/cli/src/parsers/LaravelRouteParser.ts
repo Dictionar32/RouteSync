@@ -103,7 +103,7 @@ if ($extractModels) {
                     foreach ($columns as $col) {
                         $parsedColumns[] = [
                             'name' => $col['name'],
-                            'type' => $col['type_name'],
+                            'type' => $col['type'], // Use 'type' which contains the raw type like enum('a','b') instead of 'type_name'
                             'nullable' => $col['nullable']
                         ];
                     }

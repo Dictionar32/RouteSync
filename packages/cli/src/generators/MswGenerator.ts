@@ -23,7 +23,7 @@ export class MswGenerator {
       const mswPath = manifest.baseURL + route.path.replace(/\{([^}]+)\}/g, ':$1')
       const actionName = toMethodName(route)
 
-      lines.push('  http.' + mswMethod + '(\'' + mswPath + '\', async ({ request: _request, params: _params }) => {')
+      lines.push('  http.' + mswMethod + '(\'' + mswPath + '\', async () => {')
       lines.push(`    await delay(300) // Simulated network latency`)
       lines.push(`    return HttpResponse.json({`)
       lines.push(`      success: true,`)

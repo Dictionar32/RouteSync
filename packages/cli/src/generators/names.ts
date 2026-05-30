@@ -90,3 +90,11 @@ function uniquify(baseName: string, used: Set<string>): string {
   used.add(name)
   return name
 }
+
+export function toMethodName(route: ParsedRoute): string {
+  if (route.name) {
+    const parts = route.name.split('.')
+    return toIdentifier(parts.join(' '))
+  }
+  return toIdentifier(route.method + ' ' + route.path)
+}

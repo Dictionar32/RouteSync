@@ -1,12 +1,13 @@
-import { ParsedRoute, RouteManifest } from '@routesync/core'
+import { ParsedRoute, RouteManifest, ParsedChannel } from '@routesync/core'
 import fs from 'fs-extra'
 
 export class ManifestGenerator {
-  static generate(routes: ParsedRoute[], baseURL: string): RouteManifest {
+  static generate(routes: ParsedRoute[], baseURL: string, channels?: ParsedChannel[]): RouteManifest {
     return {
       version: '1.0.0',
       baseURL,
       routes,
+      channels: channels || [],
       generatedAt: new Date().toISOString()
     }
   }

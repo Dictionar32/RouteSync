@@ -1,86 +1,106 @@
 import fs from 'fs-extra'
 import { ParsedRoute } from '@routesync/core'
+import { execSync } from 'child_process'
+import path from 'path'
+import os from 'os'
 
 export class LaravelRouteParser {
   async parse(filePath: string): Promise<ParsedRoute[]> {
-    const content = await fs.readFile(filePath, 'utf-8')
-    return this.parseContent(content)
-  }
+    // filePath is typically something like "routes/api.php" or absolute path.
+    // We need the Laravel project root. We assume the parent of "routes" is the root.
+    const projectRoot = path.resolve(path.dirname(filePath), '..')
+    
+    // We embed the PHP extraction script as a string to avoid bundling issues.
+    const phpScript = `<?php
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$kernel = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
+$kernel->bootstrap();
 
-  parseContent(content: string): ParsedRoute[] {
-    const routes: ParsedRoute[] = []
-    const lines = content.split('\n')
+$routes = app('router')->getRoutes();
+$output = [];
 
-    let currentAuth = false
-    let currentMiddleware: string[] = []
-    let insideAuthGroup = false
-    let insideAdminGroup = false
-    let braceDepth = 0
-    let groupBraceDepth = 0
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-
-      // Detect middleware groups
-      if (trimmed.includes("middleware('auth:sanctum')")) {
-        insideAuthGroup = true
-        currentAuth = true
-        groupBraceDepth = braceDepth
-      }
-      if (trimmed.includes("middleware(['auth:sanctum', 'admin'])")) {
-        insideAdminGroup = true
-        currentMiddleware = ['auth:sanctum', 'admin']
-        groupBraceDepth = braceDepth
-      }
-
-      // Track brace depth
-      braceDepth += (trimmed.match(/{/g) ?? []).length
-      braceDepth -= (trimmed.match(/}/g) ?? []).length
-
-      if (braceDepth <= groupBraceDepth && insideAuthGroup) {
-        insideAuthGroup = false
-        currentAuth = false
-      }
-      if (braceDepth <= groupBraceDepth && insideAdminGroup) {
-        insideAdminGroup = false
-        currentMiddleware = []
-      }
-
-      // Match Route:: lines
-      const routeMatch = trimmed.match(
-        /Route::(get|post|put|patch|delete|match)\(['"]([^'"]+)['"]/i
-      )
-
-      if (routeMatch) {
-        const method = routeMatch[1].toUpperCase()
-        const path = routeMatch[2]
-
-        routes.push({
-          name: this.inferName(method, path),
-          method,
-          path,
-          auth: insideAuthGroup || insideAdminGroup,
-          middleware: insideAdminGroup ? ['admin'] : []
-        })
-      }
+foreach ($routes as $route) {
+    if (!str_starts_with($route->uri(), 'api/')) continue;
+    
+    $methods = array_diff($route->methods(), ['HEAD']);
+    $middlewares = $route->gatherMiddleware();
+    
+    $auth = false;
+    foreach ($middlewares as $mw) {
+        if (is_string($mw) && (str_contains($mw, 'auth') || str_contains($mw, 'sanctum'))) {
+            $auth = true;
+        }
     }
 
-    return routes
-  }
-
-  private inferName(method: string, path: string): string {
-    const parts = path.replace(/^\//, '').split('/')
-    const resource = parts[0] ?? 'resource'
-    const hasId = parts.some((p) => p.startsWith('{'))
-
-    const map: Record<string, string> = {
-      GET: hasId ? `${resource}.show` : `${resource}.index`,
-      POST: `${resource}.store`,
-      PUT: `${resource}.update`,
-      PATCH: `${resource}.update`,
-      DELETE: `${resource}.destroy`
+    $schema = [];
+    $action = $route->getAction();
+    if (isset($action['uses']) && is_string($action['uses']) && str_contains($action['uses'], '@')) {
+        list($controller, $method) = explode('@', $action['uses']);
+        if (class_exists($controller)) {
+            try {
+                $reflector = new ReflectionMethod($controller, $method);
+                foreach ($reflector->getParameters() as $param) {
+                    $type = $param->getType();
+                    if ($type && !$type->isBuiltin()) {
+                        $className = $type->getName();
+                        if (is_subclass_of($className, 'Illuminate\\Foundation\\Http\\FormRequest')) {
+                            // Instantiate the request and get rules
+                            $request = new $className();
+                            if (method_exists($request, 'rules')) {
+                                $schema = $request->rules();
+                            }
+                        }
+                    }
+                }
+            } catch (\\Exception $e) {
+                // Ignore reflection errors
+            }
+        }
     }
 
-    return map[method] ?? `${resource}.action`
+    foreach ($methods as $method) {
+        $nameParts = explode('/', preg_replace('/^api\\//', '', $route->uri()));
+        $resource = preg_replace('/\\{.*\\}/', '', $nameParts[0]);
+        if (empty($resource)) $resource = 'api';
+        
+        $name = $resource . '.' . strtolower($method);
+        
+        $output[] = [
+            'name' => $route->getName() ?: $name,
+            'method' => $method,
+            'path' => '/' . preg_replace('/^api\\//', '', $route->uri()),
+            'auth' => $auth,
+            'middleware' => $middlewares,
+            'schema' => $schema
+        ];
+    }
+}
+
+echo json_encode($output);
+`;
+
+    const tempPhpFile = path.join(os.tmpdir(), `routesync_extractor_${Date.now()}.php`)
+    
+    try {
+      // Write the script to the laravel root so it can resolve vendor/autoload.php
+      const scriptPath = path.join(projectRoot, 'routesync-extractor-temp.php')
+      await fs.writeFile(scriptPath, phpScript)
+      
+      const stdout = execSync(`php routesync-extractor-temp.php`, {
+        cwd: projectRoot,
+        encoding: 'utf-8',
+        maxBuffer: 1024 * 1024 * 10
+      })
+      
+      await fs.remove(scriptPath)
+      
+      const parsed = JSON.parse(stdout)
+      return parsed as ParsedRoute[]
+    } catch (err) {
+      console.error("Failed to parse Laravel routes via PHP script:", err)
+      return []
+    }
   }
 }
+

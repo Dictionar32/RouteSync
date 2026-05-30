@@ -6,6 +6,10 @@ import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { SDKGenerator } from '../generators/SDKGenerator'
 import { TypeGenerator } from '../generators/TypeGenerator'
 import { HookGenerator } from '../generators/HookGenerator'
+import { NextActionGenerator } from '../generators/NextActionGenerator'
+import { MswGenerator } from '../generators/MswGenerator'
+import { LaravelChannelParser } from '../parsers/LaravelChannelParser'
+import { EchoGenerator } from '../generators/EchoGenerator'
 import fs from 'fs-extra'
 
 export const syncCommand = new Command('sync')
@@ -14,6 +18,9 @@ export const syncCommand = new Command('sync')
   .option('-o, --output <path>', 'Output directory', 'src/api')
   .option('-b, --baseURL <url>', 'API base URL', 'http://localhost/api')
   .option('--no-hooks', 'Skip generating React hooks')
+  .option('--next-actions', 'Generate Next.js Server Actions')
+  .option('--msw', 'Generate MSW Mock Handlers')
+  .option('--echo', 'Generate Laravel Echo Hooks')
   .action(async (options) => {
     console.log(chalk.bold.blue('\n  routesync sync\n'))
 
@@ -21,7 +28,8 @@ export const syncCommand = new Command('sync')
       { text: 'Scanning Laravel routes' },
       { text: 'Generating types' },
       { text: 'Generating SDK' },
-      { text: 'Generating hooks' }
+      { text: 'Generating hooks' },
+      { text: 'Generating Server Actions' }
     ]
 
     const spinner = ora(steps[0].text).start()
@@ -30,8 +38,10 @@ export const syncCommand = new Command('sync')
       // Step 1: Scan
       const parser = new LaravelRouteParser()
       const routes = await parser.parse(options.input)
-      const manifest = ManifestGenerator.generate(routes, options.baseURL)
-      spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes)`))
+      const channelParser = new LaravelChannelParser()
+      const channels = options.echo ? await channelParser.parse('routes/channels.php') : []
+      const manifest = ManifestGenerator.generate(routes, options.baseURL, channels)
+      spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes, ${channels.length} channels)`))
 
       await fs.ensureDir(options.output)
 
@@ -51,6 +61,27 @@ export const syncCommand = new Command('sync')
         await HookGenerator.generate(manifest, options.output)
         spinner.succeed(chalk.green(`✔ ${steps[3].text}`))
       }
+      
+      // Step 5: Server Actions
+      if (options.nextActions) {
+        spinner.start(steps[4].text)
+        await NextActionGenerator.generate(manifest, options.output)
+        spinner.succeed(chalk.green(`✔ ${steps[4].text}`))
+      }
+
+      // Step 6: MSW
+      if (options.msw) {
+        spinner.start('Generating MSW Mocks')
+        await MswGenerator.generate(manifest, options.output)
+        spinner.succeed(chalk.green(`✔ Generating MSW Mocks`))
+      }
+
+      // Step 7: Echo
+      if (options.echo && manifest.channels) {
+        spinner.start('Generating Echo Hooks')
+        await EchoGenerator.generate(manifest.channels, options.output)
+        spinner.succeed(chalk.green(`✔ Generating Echo Hooks`))
+      }
 
       console.log(chalk.bold.green('\n  Sync complete!\n'))
       console.log(`  Output: ${chalk.cyan(options.output)}`)
@@ -59,3 +90,4 @@ export const syncCommand = new Command('sync')
       process.exit(1)
     }
   })
+

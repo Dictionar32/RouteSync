@@ -1,0 +1,54 @@
+import { RouteManifest } from '@routesync/core'
+import path from 'path'
+import fs from 'fs-extra'
+import { toMethodName } from './names'
+
+export class NextActionGenerator {
+  static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
+    const lines: string[] = []
+
+    lines.push(`// Auto-generated Next.js Server Actions. Do not edit manually.`)
+    lines.push(`"use server";`)
+    lines.push(``)
+    lines.push(`import { api } from './api'`)
+    lines.push(`import { cookies } from 'next/headers'`)
+    lines.push(``)
+    
+    lines.push(`// Helper to auto-inject token from cookies if available`)
+    lines.push(`async function getAuthHeaders() {`)
+    lines.push(`  const cookieStore = await cookies()`)
+    lines.push(`  const token = cookieStore.get('token')?.value`)
+    lines.push(`  return token ? { Authorization: \`Bearer \${token}\` } : {}`)
+    lines.push(`}`)
+    lines.push(``)
+
+    for (const route of manifest.routes) {
+      const actionName = toMethodName(route)
+      lines.push(`export async function ${actionName}Action(payload?: any) {`)
+      
+      const args: string[] = []
+      if (route.method === 'GET') {
+        args.push(`query: payload`)
+      } else {
+        args.push(`body: payload`)
+      }
+      
+      if (route.auth) {
+        args.push(`headers: await getAuthHeaders()`)
+      }
+      
+      const apiCall = `await api.${route.name.split('.')[0]}.${route.name.split('.')[1] || 'action'}({ ${args.join(', ')} })`
+      
+      lines.push(`  try {`)
+      lines.push(`    const response = ${apiCall}`)
+      lines.push(`    return { success: true, data: response.data }`)
+      lines.push(`  } catch (error: any) {`)
+      lines.push(`    return { success: false, error: error.message }`)
+      lines.push(`  }`)
+      lines.push(`}`)
+      lines.push(``)
+    }
+
+    await fs.writeFile(path.join(outputDir, 'actions.ts'), lines.join('\n'))
+  }
+}

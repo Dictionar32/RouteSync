@@ -10,6 +10,7 @@ export class ModelGenerator {
     await fs.ensureDir(coreDir)
 
     const lines: string[] = []
+    lines.push(`/* eslint-disable */`)
     lines.push(`// Auto-generated. Do not edit.`)
     lines.push(``)
 

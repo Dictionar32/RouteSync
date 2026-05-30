@@ -15,10 +15,10 @@ export class NextActionGenerator {
     lines.push(``)
     
     lines.push(`// Helper to auto-inject token from cookies if available`)
-    lines.push(`async function getAuthHeaders() {`)
+    lines.push(`async function getAuthHeaders(): Promise<Record<string, string> | undefined> {`)
     lines.push(`  const cookieStore = await cookies()`)
     lines.push(`  const token = cookieStore.get('token')?.value`)
-    lines.push(`  return token ? { Authorization: \`Bearer \${token}\` } : {}`)
+    lines.push(`  return token ? { Authorization: \`Bearer \${token}\` } : undefined`)
     lines.push(`}`)
     lines.push(``)
 

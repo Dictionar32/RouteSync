@@ -38,28 +38,36 @@ export class NextActionGenerator {
         const hasBody = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(route.method)
           && route.schema?.rules
           && Object.keys(route.schema.rules).length > 0
-        const hasQuery = route.method === 'GET'
+        const hasQuery = route.method === 'GET' || route.method === 'DELETE'
 
         // Build function signature parts
+        // - params: always required (non-optional) when present
+        // - body: required (non-optional) to match EndpointCallableOptions<TParams, TBody>
+        //   where TBody is non-unknown, body is required in the SDK type
+        // - query: always optional
         const sigParts: string[] = []
         if (hasParams) sigParts.push(`params: ${ContractName}['request']['params']`)
         if (hasQuery) sigParts.push(`query?: ${ContractName}['request']['query']`)
-        if (hasBody) sigParts.push(`body?: ${ContractName}['request']['body']`)
+        if (hasBody) sigParts.push(`body: ${ContractName}['request']['body']`)
 
         // Only import contract if it's actually used in the signature
         const needsContract = sigParts.length > 0
         if (needsContract) usedContracts.add(ContractName)
 
-        // payload param — required if has path params, optional otherwise
+        // payload param:
+        // - required (no ?) if has path params OR has body (both require explicit values)
+        // - optional if only has query
+        const payloadRequired = hasParams || hasBody
         const fnParam = sigParts.length > 0
-          ? `payload${hasParams ? '' : '?'}: { ${sigParts.join(', ')} }`
+          ? `payload${payloadRequired ? '' : '?'}: { ${sigParts.join(', ')} }`
           : ''
 
         // Build api call args
+        // Use payload.x (not payload?.x) for required fields to satisfy SDK types
         const callArgs: string[] = []
         if (hasParams) callArgs.push(`params: payload.params`)
         if (hasQuery) callArgs.push(`query: payload?.query`)
-        if (hasBody) callArgs.push(`body: payload?.body`)
+        if (hasBody) callArgs.push(`body: payload.body`)
         if (route.auth) callArgs.push(`headers: await getAuthHeaders()`)
 
         // If the only arg is headers (auth-only, no params/body/query),

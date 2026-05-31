@@ -24,8 +24,15 @@ export type EndpointCallableOptions<TParams, TBody> =
   (unknown extends TBody ? { body?: unknown } : { body: TBody }) & 
   { query?: Record<string, any>; headers?: Record<string, string> }
 
-// A helper to make the options argument optional if all required keys are missing or optional
-export type OptionalIfEmpty<T> = keyof Omit<T, 'query' | 'headers'> extends never ? [options?: T] : [options: T]
+// Extract only the required keys from T
+type RequiredKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? never : K
+}[keyof T]
+
+// Make the options argument optional if there are no required keys (excluding query/headers)
+export type OptionalIfEmpty<T> = RequiredKeys<Omit<T, 'query' | 'headers'>> extends never
+  ? [options?: T]
+  : [options: T]
 
 export interface ApiError {
   message: string
@@ -35,12 +42,18 @@ export interface ApiError {
 
 export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody = unknown> {
   (...args: OptionalIfEmpty<EndpointCallableOptions<TParams, TBody>>): Promise<TResponse>
+  // Overload that accepts undefined explicitly — used internally by hooks
+  // when options may or may not be present depending on endpoint shape
+  (options: EndpointCallableOptions<TParams, TBody> | undefined): Promise<TResponse>
+  // Overload that accepts plain CallOptions — used by useApiInfiniteQuery
+  // where query is merged with pageParam at runtime
+  (options: CallOptions<TParams, TBody>): Promise<TResponse>
   /** Original RouteDefinition — used by useApiQuery / useApiMutation */
   $def: RouteDefinition<TResponse, TParams, TBody>
   /** Stable TanStack query key: [group, action] */
   $key: string[]
   /** Consistent query key builder that incorporates params/query if provided */
-  $queryKey: (...args: OptionalIfEmpty<EndpointCallableOptions<TParams, TBody>>) => unknown[]
+  $queryKey: (options?: EndpointCallableOptions<TParams, TBody>) => unknown[]
 }
 
 type ApiGroupProxy<G extends Record<string, RouteDefinition<any, any, any>>> = {
@@ -141,7 +154,6 @@ export function defineApi<T extends ApiDefinition>(
             throw error
           }
         } else if (client.config.validateResponse) {
-          // If no response schema, fallback to route.schema.response if it exists
           response = parseRouteSchema(route, 'response', response)
         }
 
@@ -154,7 +166,7 @@ export function defineApi<T extends ApiDefinition>(
       // Attach metadata to the callable
       ;(callable as any).$def = route
       ;(callable as any).$key = [group, action]
-      ;(callable as any).$queryKey = (options?: any) => {
+      ;(callable as any).$queryKey = (options?: EndpointCallableOptions<unknown, unknown>) => {
         return options ? [group, action, options] : [group, action]
       }
 

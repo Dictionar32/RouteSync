@@ -20,13 +20,11 @@ export class HookGenerator {
       for (const route of routes) {
         const method = route.method.toUpperCase()
         const hookName = HookGenerator.toHookName(group, route.actionName)
-        const queryKey = `['${group}', '${route.actionName}']`
         
         const contractName = `${toTypeName(group)}${toTypeName(route.actionName)}Contract`
         const hasParams = route.path.includes(':') || route.path.includes('{')
-        const hasQuery = route.schema?.query || route.method.toUpperCase() === 'GET'
         const hasBody = route.schema?.body
-        const requiresOptions = hasParams || hasBody || (hasQuery && route.method.toUpperCase() !== 'GET')
+        const requiresOptions = hasParams || hasBody
 
         if (method === 'GET') {
           lines.push(`/**`)
@@ -34,7 +32,9 @@ export class HookGenerator {
           lines.push(` * Prefer \`useApiQuery(api.${group}.${route.actionName}, ...args)\` for future compatibility.`)
           lines.push(` */`)
           lines.push(`export function ${hookName}(...args: [options${requiresOptions ? '' : '?'}: import('./api').${contractName}['request'], queryOptions?: import('routesync/react').ApiQueryOptions<import('./api').${contractName}['response'], import('./types').ApiError>]) {`)
-          lines.push(`  return useApiQuery<import('./api').${contractName}['response'], import('./api').${contractName}['request']['params'], import('./api').${contractName}['request']['body'], import('./types').ApiError>(api.${group}.${route.actionName}, ...args)`)
+          // Destructure args explicitly so TS doesn't spread undefined into useApiQuery
+          lines.push(`  const [options, queryOptions] = args`)
+          lines.push(`  return useApiQuery<import('./api').${contractName}['response'], import('./api').${contractName}['request']['params'], import('./api').${contractName}['request']['body'], import('./types').ApiError>(api.${group}.${route.actionName}, options, queryOptions)`)
           lines.push(`}`)
           lines.push(``)
         } else {

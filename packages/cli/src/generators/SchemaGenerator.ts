@@ -62,11 +62,7 @@ export class SchemaGenerator {
           
           for (const [field, rules] of Object.entries(route.schema.rules)) {
             const ruleStr = Array.isArray(rules) ? rules.join('|') : String(rules)
-            let zodRule = 'z.unknown()'
-            if (ruleStr.includes('string')) zodRule = 'z.string()'
-            if (ruleStr.includes('numeric') || ruleStr.includes('integer') || ruleStr.includes('int')) zodRule = 'z.number()'
-            if (ruleStr.includes('boolean') || ruleStr.includes('bool')) zodRule = 'z.boolean()'
-            if (ruleStr.includes('array')) zodRule = 'z.array(z.unknown())'
+            let zodRule = this.mapRulesToZod(ruleStr)
             
             if (!ruleStr.includes('required')) {
               zodRule += '.optional()'
@@ -88,6 +84,17 @@ export class SchemaGenerator {
     await fs.writeFile(path.join(outputDir, 'schemas.ts'), lines.join('\n'))
   }
 
+  /**
+   * Map a Laravel validation rule string to a Zod type.
+   * Default is z.string() — HTTP inputs are strings unless explicitly typed.
+   */
+  private static mapRulesToZod(ruleStr: string): string {
+    if (ruleStr.includes('array')) return 'z.array(z.unknown())'
+    if (ruleStr.includes('integer') || ruleStr.includes('numeric') || ruleStr.includes('digits')) return 'z.number()'
+    if (ruleStr.includes('boolean') || ruleStr.includes('bool')) return 'z.boolean()'
+    return 'z.string()'
+  }
+
   private static mapSqlTypeToZod(sqlType: string): string {
     const type = sqlType.toLowerCase()
     if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
@@ -99,9 +106,9 @@ export class SchemaGenerator {
     if (type.includes('json')) {
       return 'z.record(z.string(), z.unknown())'
     }
-    const enumMatch = type.match(/^enum\((.*)\)$/);
+    const enumMatch = type.match(/^enum\((.*)\)$/)
     if (enumMatch && enumMatch[1]) {
-      const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""));
+      const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ''))
       return `z.union([${values.map(v => `z.literal('${v}')`).join(', ')}])`
     }
     return 'z.string()'

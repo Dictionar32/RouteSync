@@ -24,6 +24,7 @@ export const syncCommand = new Command('sync')
   .option('--msw', 'Generate MSW Mock Handlers')
   .option('--echo', 'Generate Laravel Echo Hooks')
   .option('--models', 'Extract Database Schema via Eloquent Models')
+  .option('--zod', 'Generate Zod Schemas for request validation')
   .action(async (options) => {
     console.log(chalk.bold.blue('\n  routesync sync\n'))
 
@@ -56,7 +57,7 @@ export const syncCommand = new Command('sync')
 
       // Step 3: SDK
       spinner.start(steps[2].text)
-      await SDKGenerator.generate(manifest, options.output)
+      await SDKGenerator.generate(manifest, options.output, options)
       spinner.succeed(chalk.green(`✔ ${steps[2].text}`))
 
       // Step 4: Hooks

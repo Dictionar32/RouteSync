@@ -11,30 +11,46 @@ export class HookGenerator {
     lines.push(``)
     lines.push(`import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'`)
     lines.push(`import { api } from './api'`)
+    lines.push(`import * as Types from './types'`)
     lines.push(``)
 
-    
     const grouped = buildGeneratedRoutes(manifest.routes)
+    const modelNames = (manifest.models || []).map(m => m.name)
 
     for (const [group, routes] of Object.entries(grouped)) {
       for (const route of routes) {
         const method = route.method.toUpperCase()
         const hookName = HookGenerator.toHookName(group, route.actionName)
         const queryKey = `['${group}', '${route.actionName}']`
+        
+        // Heuristic to find corresponding model
+        const possibleModel = HookGenerator.findMatchingModel(group, modelNames)
+        let responseType = 'unknown'
+        if (possibleModel) {
+          // If the action name implies getting a list vs single
+          if (route.actionName === 'get' || route.actionName === 'index' || (!route.runtimePath.includes(':') && method === 'GET')) {
+            responseType = `Types.${possibleModel}[]`
+          } else {
+            responseType = `Types.${possibleModel}`
+          }
+        }
+        
+        // Wrap in ApiResponse wrapper if possibleModel exists, else fallback to unknown
+        const returnType = possibleModel ? `Types.ApiResponse<${responseType}>` : `unknown`
 
         if (method === 'GET') {
-          lines.push(`export function ${hookName}(params?: Record<string, unknown>) {`)
-          lines.push(`  return useQuery({`)
+          lines.push(`export function ${hookName}<TData = ${returnType}>(params?: Record<string, unknown>) {`)
+          lines.push(`  return useQuery<TData>({`)
           lines.push(`    queryKey: ${queryKey},`)
-          lines.push(`    queryFn: () => api.${group}.${route.actionName}({ query: params })`)
+          lines.push(`    queryFn: () => api.${group}.${route.actionName}({ query: params }) as Promise<TData>`)
           lines.push(`  })`)
           lines.push(`}`)
           lines.push(``)
         } else {
-          lines.push(`export function ${hookName}() {`)
+          lines.push(`export function ${hookName}<TData = ${returnType}>() {`)
           lines.push(`  const queryClient = useQueryClient()`)
-          lines.push(`  return useMutation({`)
-          lines.push(`    mutationFn: (data: Record<string, unknown>) => api.${group}.${route.actionName}({ body: data }),`)
+          lines.push(`  return useMutation<TData, Error, Record<string, unknown>>({`)
+          lines.push(`    mutationFn: (data: Record<string, unknown>) => api.${group}.${route.actionName}({ body: data }) as Promise<TData>,`)
           lines.push(`    onSuccess: () => {`)
           lines.push(`      queryClient.invalidateQueries({ queryKey: ['${group}'] })`)
           lines.push(`    }`)
@@ -50,5 +66,22 @@ export class HookGenerator {
 
   private static toHookName(group: string, actionName: string): string {
     return `use${toTypeName(group)}${toTypeName(actionName)}`
+  }
+
+  private static findMatchingModel(group: string, modelNames: string[]): string | undefined {
+    // 1. exact match
+    const exact = modelNames.find(m => m.toLowerCase() === group.toLowerCase())
+    if (exact) return exact
+
+    // 2. singular match (e.g. categories -> category)
+    const singularGroup = group.toLowerCase().replace(/ies$/, 'y').replace(/s$/, '')
+    const singularMatch = modelNames.find(m => m.toLowerCase() === singularGroup)
+    if (singularMatch) return singularMatch
+    
+    // 3. prefix match (e.g. produk -> ProdukItem)
+    const prefixMatch = modelNames.find(m => m.toLowerCase().startsWith(group.toLowerCase()) || m.toLowerCase().startsWith(singularGroup))
+    if (prefixMatch) return prefixMatch
+
+    return undefined
   }
 }

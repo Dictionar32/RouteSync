@@ -21,6 +21,7 @@ export const generateCommand = new Command('generate')
   .option('--next-actions', 'Generate Next.js Server Actions')
   .option('--msw', 'Generate MSW Mock Handlers')
   .option('--echo', 'Generate Laravel Echo Hooks')
+  .option('--zod', 'Generate Zod schemas for validation')
   .action(async (options) => {
     const spinner = ora('Generating SDK...').start()
 
@@ -38,7 +39,7 @@ export const generateCommand = new Command('generate')
       await TypeGenerator.generate(manifest, options.output)
 
       spinner.text = 'Generating SDK...'
-      await SDKGenerator.generate(manifest, options.output)
+      await SDKGenerator.generate(manifest, options.output, options)
 
       if (options.hooks !== false) {
         spinner.text = 'Generating hooks...'

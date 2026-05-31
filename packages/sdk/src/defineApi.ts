@@ -23,7 +23,7 @@ export type CallOptions = {
 //   api.cart.list.$key                       ← ['cart', 'list']
 // ----------------------------------------------------------------
 export interface EndpointCallable {
-  (options?: CallOptions): Promise<any>
+  <TResponse = unknown>(options?: CallOptions): Promise<TResponse>
   /** Original RouteDefinition — used by useApiQuery / useApiMutation */
   $def: RouteDefinition
   /** Stable TanStack query key: [group, action] */

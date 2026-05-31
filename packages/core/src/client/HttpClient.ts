@@ -10,6 +10,7 @@ export class HttpClient {
       timeout: config.timeout ?? 10000,
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...(config.headers ?? {})
       }
     })

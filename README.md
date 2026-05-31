@@ -249,6 +249,20 @@ const api = defineApi({
 }, config)
 ```
 
+> **Note on Laravel Auto-generation:** When using `routesync sync` or `routesync scan` with the `--zod` flag, RouteSync uses PHP Reflection to automatically generate Zod schemas based on your backend validation rules. 
+> 
+> **Important:** To ensure your schemas are detected automatically, you **must use Laravel `FormRequest` classes**. Inline `$request->validate([...])` calls inside Controller methods cannot be reliably extracted.
+> 
+> ```php
+> // ✅ DO THIS: RouteSync will generate Zod schemas automatically
+> public function store(StoreProductRequest $request)
+> 
+> // ❌ AVOID THIS: Validation rules will be ignored
+> public function store(Request $request) {
+>     $request->validate([...]);
+> }
+> ```
+
 ---
 
 ### Auto-generate TanStack hooks from defineApi

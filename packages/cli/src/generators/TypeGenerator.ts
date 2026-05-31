@@ -38,37 +38,57 @@ export class TypeGenerator {
     lines.push(`}`)
     lines.push(``)
 
-    // Generate placeholder types per resource
-    const resources = new Set(
-      manifest.routes.map((r) => r.path.replace(/^\//, '').split('/')[0])
-    )
+    // Generate explicit models if they exist
+    if (manifest.models && manifest.models.length > 0) {
+      for (const model of manifest.models) {
+        lines.push(`export interface ${model.name} {`)
+        for (const col of model.columns) {
+          if (model.hidden && model.hidden.includes(col.name)) continue;
+          const tsType = this.mapSqlTypeToTs(col.type);
+          const isOptional = col.nullable ? '?' : '';
+          lines.push(`  ${col.name}${isOptional}: ${tsType}`)
+        }
+        if (model.appends && model.appends.length > 0) {
+          for (const append of model.appends) {
+            lines.push(`  ${append}?: unknown`)
+          }
+        }
+        lines.push(`}`)
+        lines.push(``)
+      }
+    } else {
+      // Generate placeholder types per resource if no models extracted
+      const resources = new Set(
+        manifest.routes.map((r) => r.path.replace(/^\//, '').split('/')[0])
+      )
 
-    for (const resource of resources) {
-      const typeName = toTypeName(resource ?? '')
-      lines.push(`export interface ${typeName} {`)
-      lines.push(`  id: number`)
-      lines.push(`  // TODO: Add ${resource} fields`)
-      lines.push(`  created_at?: string`)
-      lines.push(`  updated_at?: string`)
-      lines.push(`}`)
-      lines.push(``)
+      for (const resource of resources) {
+        const typeName = toTypeName(resource ?? '')
+        lines.push(`export interface ${typeName} {`)
+        lines.push(`  id: number`)
+        lines.push(`  // TODO: Add ${resource} fields`)
+        lines.push(`  created_at?: string`)
+        lines.push(`  updated_at?: string`)
+        lines.push(`}`)
+        lines.push(``)
+      }
     }
     
     // Generate Zod schemas
     if (hasSchemas) {
       for (const route of manifest.routes) {
-        if (route.schema && Object.keys(route.schema).length > 0) {
+        if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
           const actionName = toMethodName(route)
           const schemaName = actionName + 'Schema'
           lines.push(`export const ${schemaName} = z.object({`)
           
-          for (const [field, rules] of Object.entries(route.schema)) {
+          for (const [field, rules] of Object.entries(route.schema.rules)) {
             const ruleStr = Array.isArray(rules) ? rules.join('|') : String(rules)
             let zodRule = 'z.string()' // Default
             
-            if (ruleStr.includes('numeric') || ruleStr.includes('integer')) {
+            if (ruleStr.includes('numeric') || ruleStr.includes('integer') || ruleStr.includes('int')) {
               zodRule = 'z.number()'
-            } else if (ruleStr.includes('boolean')) {
+            } else if (ruleStr.includes('boolean') || ruleStr.includes('bool')) {
               zodRule = 'z.boolean()'
             } else if (ruleStr.includes('array')) {
               zodRule = 'z.array(z.unknown())'
@@ -77,10 +97,10 @@ export class TypeGenerator {
             if (ruleStr.includes('email')) zodRule += '.email()'
             if (ruleStr.includes('url')) zodRule += '.url()'
             
-            const matchMin = ruleStr.match(/min:(\\d+)/)
+            const matchMin = ruleStr.match(/min:(\d+)/)
             if (matchMin) zodRule += '.min(' + matchMin[1] + ')'
             
-            const matchMax = ruleStr.match(/max:(\\d+)/)
+            const matchMax = ruleStr.match(/max:(\d+)/)
             if (matchMax) zodRule += '.max(' + matchMax[1] + ')'
             
             if (!ruleStr.includes('required')) {
@@ -103,5 +123,12 @@ export class TypeGenerator {
 
     await fs.writeFile(path.join(outputDir, 'types.ts'), lines.join('\n'))
   }
-}
 
+  private static mapSqlTypeToTs(sqlType: string): string {
+    const type = sqlType.toLowerCase();
+    if (type.includes('int') || type.includes('decimal') || type.includes('float') || type.includes('double')) return 'number';
+    if (type.includes('bool') || type.includes('tinyint(1)')) return 'boolean';
+    if (type.includes('json')) return 'unknown'; // Use unknown for JSON to enforce type-checking
+    return 'string';
+  }
+}

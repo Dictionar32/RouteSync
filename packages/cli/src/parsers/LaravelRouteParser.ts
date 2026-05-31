@@ -58,6 +58,31 @@ foreach ($routes as $route) {
                         }
                     }
                 }
+                
+                // Fallback: Try to parse $request->validate([...]) from source code
+                if (empty($schema)) {
+                    $fileName = $reflector->getFileName();
+                    $startLine = $reflector->getStartLine();
+                    $endLine = $reflector->getEndLine();
+                    
+                    if ($fileName && $startLine !== false && $endLine !== false) {
+                        $lines = file($fileName);
+                        // startLine is 1-indexed
+                        $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
+                        
+                        // Look for $request->validate([ ... ])
+                        if (preg_match('/\\\\$request->validate\\\\s*\\\\(\\\\s*\\\\[(.*?)\\\\]\\\\s*\\\\)/s', $methodSource, $matches)) {
+                            $rulesString = $matches[1];
+                            // Match 'field' => 'rules'
+                            preg_match_all('~[\\\'"]([a-zA-Z0-9_.*]+)[\\\'"]\\\\s*=>\\\\s*[\\\'"](.*?)[\\\'"]~', $rulesString, $ruleMatches);
+                            if (!empty($ruleMatches[1])) {
+                                foreach ($ruleMatches[1] as $index => $field) {
+                                    $schema[$field] = $ruleMatches[2][$index];
+                                }
+                            }
+                        }
+                    }
+                }
             } catch (\\Exception $e) {}
         }
     }

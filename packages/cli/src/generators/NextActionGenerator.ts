@@ -30,6 +30,10 @@ export class NextActionGenerator {
         lines.push(`export async function ${actionName}Action(payload?: Record<string, unknown>) {`)
         
         const args: string[] = []
+        if (route.path.includes(':')) {
+          args.push(`params: payload as any`)
+        }
+        
         if (route.method === 'GET') {
           args.push(`query: payload`)
         } else {

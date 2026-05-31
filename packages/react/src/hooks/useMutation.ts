@@ -1,6 +1,6 @@
 // @ts-ignore TanStack Query is a peer dependency provided by consumers.
 import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query'
-import { EndpointCallable, CallOptions } from '@routesync/sdk'
+import { EndpointCallable, EndpointCallableOptions, ApiError } from '@routesync/sdk'
 
 /**
  * useApiMutation — accepts an endpoint callable directly.
@@ -15,22 +15,28 @@ import { EndpointCallable, CallOptions } from '@routesync/sdk'
  *     invalidate: [api.cart.list, api.orders.index],
  *   })
  */
-export interface ApiMutationOptions<TData, TVariables>
-  extends Omit<UseMutationOptions<TData, unknown, TVariables>, 'mutationFn'> {
+export interface ApiMutationOptions<TData, TError, TVariables, TContext = unknown>
+  extends Omit<UseMutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'> {
   /** Extra endpoints to invalidate on success (in addition to the auto group invalidation). */
-  invalidate?: EndpointCallable[]
+  invalidate?: EndpointCallable<any, any, any>[]
 }
 
-export function useApiMutation<TData = any, TVariables extends CallOptions = CallOptions>(
-  endpoint: EndpointCallable,
-  options?: ApiMutationOptions<TData, TVariables>
+export function useApiMutation<
+  TResponse = unknown, 
+  TParams = unknown, 
+  TBody = unknown,
+  TError = ApiError,
+  TContext = unknown
+>(
+  endpoint: EndpointCallable<TResponse, TParams, TBody>,
+  options?: ApiMutationOptions<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>
 ) {
   const queryClient = useQueryClient()
   const [group] = endpoint.$key
 
-  return useMutation<TData, unknown, TVariables>({
+  return useMutation<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>({
     ...options,
-    mutationFn: (variables: TVariables) => endpoint(variables) as Promise<TData>,
+    mutationFn: (variables: EndpointCallableOptions<TParams, TBody>) => endpoint(variables as any),
     onSuccess: (...args) => {
       // Auto-invalidate the endpoint's own group
       queryClient.invalidateQueries({ queryKey: [group] })

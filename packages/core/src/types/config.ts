@@ -5,6 +5,17 @@ export interface ServiceConfig {
   timeout?: number
   retry?: RetryConfig
   cache?: boolean
+  validateResponse?: boolean
+  onValidationError?: (
+    error: unknown,
+    context: {
+      endpoint: string
+      method: string
+      path: string
+      request: unknown
+      response: unknown
+    }
+  ) => void
 }
 
 export interface RetryConfig {

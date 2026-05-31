@@ -3,6 +3,7 @@ import ora from 'ora'
 import chalk from 'chalk'
 import { SDKGenerator } from '../generators/SDKGenerator'
 import { TypeGenerator } from '../generators/TypeGenerator'
+import { SchemaGenerator } from '../generators/SchemaGenerator'
 import { HookGenerator } from '../generators/HookGenerator'
 import { NextActionGenerator } from '../generators/NextActionGenerator'
 import { MswGenerator } from '../generators/MswGenerator'
@@ -37,6 +38,9 @@ export const generateCommand = new Command('generate')
 
       spinner.text = 'Generating types...'
       await TypeGenerator.generate(manifest, options.output)
+      if (options.zod) {
+        await SchemaGenerator.generate(manifest, options.output)
+      }
 
       spinner.text = 'Generating SDK...'
       await SDKGenerator.generate(manifest, options.output, options)

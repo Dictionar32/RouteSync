@@ -1,3 +1,6 @@
+// Utils
+export { camelCase, camelCaseKeys, snakeCase, snakeCaseKeys } from './utils'
+
 // Client
 export { HttpClient } from './client/HttpClient'
 export { Request } from './client/Request'
@@ -30,6 +33,7 @@ export type {
   RouteSchemaValue,
   RouteParserSchema,
   RouteTransform,
-  RouteTransformMap
+  RouteTransformMap,
+  ResponseSchema
 } from './types/request'
 export type { RouteManifest, ParsedRoute, ParsedChannel, ParsedModel, ParsedColumn } from './types/route'

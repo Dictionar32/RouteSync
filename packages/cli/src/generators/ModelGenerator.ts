@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { RouteManifest, ParsedModel } from '@routesync/core'
+import { RouteManifest, ParsedModel, camelCase } from '@routesync/core'
 
 export class ModelGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -35,13 +35,13 @@ export class ModelGenerator {
         
         const nullable = col.nullable ? ' | null' : ''
         
-        lines.push(`  ${col.name}${isOptional}: ${tsType}${nullable}`)
+        lines.push(`  ${camelCase(col.name)}${isOptional}: ${tsType}${nullable}`)
       }
 
       // 2. Appended Attributes
       const appends = Array.isArray(model.appends) ? model.appends : []
       for (const append of appends) {
-        lines.push(`  ${append}: unknown // appended attribute`)
+        lines.push(`  ${camelCase(append)}: unknown // appended attribute`)
       }
       
       lines.push(`}`)

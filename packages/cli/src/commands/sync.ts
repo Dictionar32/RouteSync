@@ -5,6 +5,7 @@ import { LaravelRouteParser } from '../parsers/LaravelRouteParser'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { SDKGenerator } from '../generators/SDKGenerator'
 import { TypeGenerator } from '../generators/TypeGenerator'
+import { SchemaGenerator } from '../generators/SchemaGenerator'
 import { HookGenerator } from '../generators/HookGenerator'
 import { NextActionGenerator } from '../generators/NextActionGenerator'
 import { MswGenerator } from '../generators/MswGenerator'
@@ -53,6 +54,10 @@ export const syncCommand = new Command('sync')
       // Step 2: Types
       spinner.start(steps[1].text)
       await TypeGenerator.generate(manifest, options.output)
+      
+      if (options.zod) {
+        await SchemaGenerator.generate(manifest, options.output)
+      }
       spinner.succeed(chalk.green(`✔ ${steps[1].text}`))
 
       // Step 3: SDK
@@ -65,6 +70,7 @@ export const syncCommand = new Command('sync')
         spinner.start(steps[3].text)
         await HookGenerator.generate(manifest, options.output)
         spinner.succeed(chalk.green(`✔ ${steps[3].text}`))
+        console.warn(chalk.yellow('\n  [DEPRECATED] Hook generation will be disabled by default in v2. Please migrate to useApiQuery().\n'))
       }
       
       // Step 5: Server Actions

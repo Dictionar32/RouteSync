@@ -36,11 +36,16 @@ export interface RequestOptions {
   signal?: AbortSignal
 }
 
-export interface RouteDefinition {
+export interface ResponseSchema<T> {
+  parse(input: unknown): T
+}
+
+export interface RouteDefinition<TResponse = unknown, TParams = unknown, TBody = unknown> {
   method: HttpMethod
   path: string
   auth?: boolean
   schema?: RouteSchema
+  responseSchema?: ResponseSchema<TResponse>
   mapper?: RouteMapper
   headers?: Record<string, string>
   cache?: unknown
@@ -48,10 +53,13 @@ export interface RouteDefinition {
   body?: Record<string, any>
   params?: Record<string, any>
   query?: Record<string, any>
+  _typeResponse?: TResponse // Phantom type for inference
+  _typeParams?: TParams     // Phantom type for inference
+  _typeBody?: TBody         // Phantom type for inference
 }
 
 export interface ApiDefinition {
   [group: string]: {
-    [action: string]: RouteDefinition
+    [action: string]: RouteDefinition<any, any, any>
   }
 }

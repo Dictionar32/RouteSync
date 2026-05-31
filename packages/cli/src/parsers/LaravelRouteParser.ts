@@ -59,26 +59,109 @@ foreach ($routes as $route) {
                     }
                 }
                 
-                // Fallback: Try to parse $request->validate([...]) from source code
-                if (empty($schema)) {
-                    $fileName = $reflector->getFileName();
-                    $startLine = $reflector->getStartLine();
-                    $endLine = $reflector->getEndLine();
+                // Parse PHP 8 Attributes for Response Metadata
+                $responseMetadata = null;
+                $attributes = $reflector->getAttributes();
+                foreach ($attributes as $attr) {
+                    $attrName = $attr->getName();
+                    $shortName = class_basename($attrName);
                     
-                    if ($fileName && $startLine !== false && $endLine !== false) {
-                        $lines = file($fileName);
-                        // startLine is 1-indexed
-                        $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
+                    if (in_array($shortName, ['Response', 'RouteSyncResponse'])) {
+                        $args = $attr->getArguments();
                         
-                        // Look for $request->validate([ ... ])
-                        if (preg_match('/\\\\$request->validate\\\\s*\\\\(\\\\s*\\\\[(.*?)\\\\]\\\\s*\\\\)/s', $methodSource, $matches)) {
-                            $rulesString = $matches[1];
-                            // Match 'field' => 'rules'
-                            preg_match_all('~[\\\'"]([a-zA-Z0-9_.*]+)[\\\'"]\\\\s*=>\\\\s*[\\\'"](.*?)[\\\'"]~', $rulesString, $ruleMatches);
-                            if (!empty($ruleMatches[1])) {
-                                foreach ($ruleMatches[1] as $index => $field) {
-                                    $schema[$field] = $ruleMatches[2][$index];
+                        $type = null;
+                        if (isset($args[0])) {
+                            $type = $args[0];
+                        } elseif (isset($args['type'])) {
+                            $type = $args['type'];
+                        } elseif (isset($args['model'])) {
+                            $type = $args['model'];
+                        } elseif (isset($args['response'])) {
+                            $type = $args['response'];
+                        }
+                        
+                        $collection = false;
+                        if (isset($args[1])) {
+                            $collection = (bool) $args[1];
+                        } elseif (isset($args['collection'])) {
+                            $collection = (bool) $args['collection'];
+                        }
+                        
+                        if ($type) {
+                            $responseMetadata = [
+                                'type' => class_basename($type),
+                                'collection' => $collection
+                            ];
+                            break;
+                        }
+                    }
+                }
+                
+                
+                $fileName = $reflector->getFileName();
+                $startLine = $reflector->getStartLine();
+                $endLine = $reflector->getEndLine();
+                $methodSource = null;
+
+                if ($fileName && $startLine !== false && $endLine !== false) {
+                    $lines = file($fileName);
+                    $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
+                }
+
+                // Resource Discovery
+                if (!$responseMetadata && $methodSource) {
+                    $resourceName = null;
+                    $collection = false;
+                    
+                    if (preg_match('/return\\s+new\\s+([a-zA-Z0-9_]+Resource)/', $methodSource, $matches)) {
+                        $resourceName = $matches[1];
+                    } elseif (preg_match('/return\\s+([a-zA-Z0-9_]+Resource)::collection/', $methodSource, $matches)) {
+                        $resourceName = $matches[1];
+                        $collection = true;
+                    }
+                    
+                    if ($resourceName) {
+                        $resourceClass = 'App\\\\Http\\\\Resources\\\\' . $resourceName;
+                        if (class_exists($resourceClass)) {
+                            $resReflector = new ReflectionClass($resourceClass);
+                            $resAttrs = $resReflector->getAttributes();
+                            foreach ($resAttrs as $attr) {
+                                $shortName = class_basename($attr->getName());
+                                if (in_array($shortName, ['Response', 'RouteSyncResponse'])) {
+                                    $args = $attr->getArguments();
+                                    $type = $args[0] ?? $args['type'] ?? $args['model'] ?? $args['response'] ?? null;
+                                    if ($type) {
+                                        $responseMetadata = [
+                                            'type' => class_basename($type),
+                                            'collection' => $collection
+                                        ];
+                                    }
                                 }
+                            }
+                            
+                            if (!$responseMetadata) {
+                                $docComment = $resReflector->getDocComment();
+                                if ($docComment && preg_match('/@mixin\\s+([\\\\\\\\a-zA-Z0-9_]+)/', $docComment, $mixinMatches)) {
+                                    $responseMetadata = [
+                                        'type' => class_basename($mixinMatches[1]),
+                                        'collection' => $collection
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback: Try to parse $request->validate([...]) from source code
+                if (empty($schema) && $methodSource) {
+                    // Look for $request->validate([ ... ])
+                    if (preg_match('/\\\\$request->validate\\\\s*\\\\(\\\\s*\\\\[(.*?)\\\\]\\\\s*\\\\)/s', $methodSource, $matches)) {
+                        $rulesString = $matches[1];
+                        // Match 'field' => 'rules'
+                        preg_match_all('~[\\\'"]([a-zA-Z0-9_.*]+)[\\\'"]\\\\s*=>\\\\s*[\\\'"](.*?)[\\\'"]~', $rulesString, $ruleMatches);
+                        if (!empty($ruleMatches[1])) {
+                            foreach ($ruleMatches[1] as $index => $field) {
+                                $schema[$field] = $ruleMatches[2][$index];
                             }
                         }
                     }
@@ -100,7 +183,8 @@ foreach ($routes as $route) {
             'path' => '/' . preg_replace('/^api\\//', '', $route->uri()),
             'auth' => $auth,
             'middleware' => $middlewares,
-            'schema' => empty($schema) ? null : ['rules' => $schema]
+            'schema' => empty($schema) ? null : ['rules' => $schema],
+            'response' => $responseMetadata
         ];
     }
 }

@@ -7,10 +7,10 @@ import { SchemaLike, parseWithSchema } from './mappers/schema'
 // ----------------------------------------------------------------
 // Call options
 // ----------------------------------------------------------------
-export type CallOptions = {
-  params?: Record<string, any>
+export type CallOptions<TParams = unknown, TBody = unknown> = {
+  params?: TParams
   query?: Record<string, any>
-  body?: Record<string, any>
+  body?: TBody
   headers?: Record<string, string>
 }
 
@@ -19,19 +19,36 @@ export type CallOptions = {
 // so hooks can read method, path, queryKey without extra arguments.
 //
 //   api.cart.list({ query: { page: 1 } })   ← call
-//   api.cart.list.$def                       ← RouteDefinition
-//   api.cart.list.$key                       ← ['cart', 'list']
-// ----------------------------------------------------------------
-export interface EndpointCallable {
-  <TResponse = unknown>(options?: CallOptions): Promise<TResponse>
-  /** Original RouteDefinition — used by useApiQuery / useApiMutation */
-  $def: RouteDefinition
-  /** Stable TanStack query key: [group, action] */
-  $key: string[]
+export type EndpointCallableOptions<TParams, TBody> = 
+  (unknown extends TParams ? {} : { params: TParams }) & 
+  (unknown extends TBody ? { body?: unknown } : { body: TBody }) & 
+  { query?: Record<string, any>; headers?: Record<string, string> }
+
+// A helper to make the options argument optional if all required keys are missing or optional
+export type OptionalIfEmpty<T> = keyof Omit<T, 'query' | 'headers'> extends never ? [options?: T] : [options: T]
+
+export interface ApiError {
+  message: string
+  status?: number
+  errors?: Record<string, string[]>
 }
 
-type ApiGroupProxy<G extends Record<string, RouteDefinition>> = {
-  [K in keyof G]: EndpointCallable
+export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody = unknown> {
+  (...args: OptionalIfEmpty<EndpointCallableOptions<TParams, TBody>>): Promise<TResponse>
+  /** Original RouteDefinition — used by useApiQuery / useApiMutation */
+  $def: RouteDefinition<TResponse, TParams, TBody>
+  /** Stable TanStack query key: [group, action] */
+  $key: string[]
+  /** Consistent query key builder that incorporates params/query if provided */
+  $queryKey: (...args: OptionalIfEmpty<EndpointCallableOptions<TParams, TBody>>) => unknown[]
+}
+
+type ApiGroupProxy<G extends Record<string, RouteDefinition<any, any, any>>> = {
+  [K in keyof G]: EndpointCallable<
+    G[K] extends RouteDefinition<infer R, any, any> ? R : unknown,
+    G[K] extends RouteDefinition<any, infer P, any> ? P : unknown,
+    G[K] extends RouteDefinition<any, any, infer B> ? B : unknown
+  >
 }
 
 type ApiProxy<T extends ApiDefinition> = {
@@ -108,17 +125,40 @@ export function defineApi<T extends ApiDefinition>(
           response = await client[method](resolvedPath, body, requestConfig)
         }
 
+        if (client.config.validateResponse && route.responseSchema) {
+          try {
+            response = route.responseSchema.parse(response)
+          } catch (error) {
+            if (client.config.onValidationError) {
+              client.config.onValidationError(error, {
+                endpoint: action,
+                method: route.method,
+                path: resolvedPath,
+                request: { params, query, body, headers: requestConfig.headers },
+                response
+              })
+            }
+            throw error
+          }
+        } else if (client.config.validateResponse) {
+          // If no response schema, fallback to route.schema.response if it exists
+          response = parseRouteSchema(route, 'response', response)
+        }
+
         return applyMapper(
           route, 'response',
-          parseRouteSchema(route, 'response', response)
+          response
         )
       }
 
       // Attach metadata to the callable
-      ;(callable as EndpointCallable).$def = route
-      ;(callable as EndpointCallable).$key = [group, action]
+      ;(callable as any).$def = route
+      ;(callable as any).$key = [group, action]
+      ;(callable as any).$queryKey = (options?: any) => {
+        return options ? [group, action, options] : [group, action]
+      }
 
-      groupProxy[action] = callable as EndpointCallable
+      groupProxy[action] = callable as any
     }
 
     ;(proxy as any)[group] = groupProxy

@@ -22,6 +22,10 @@ export interface ParsedRoute {
   schema?: Record<string, any>
   group?: string
   action?: string
+  response?: {
+    type: string
+    collection: boolean
+  }
 }
 
 export interface ParsedColumn {

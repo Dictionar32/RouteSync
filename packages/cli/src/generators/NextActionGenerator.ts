@@ -23,32 +23,52 @@ export class NextActionGenerator {
     lines.push(``)
 
     const grouped = buildGeneratedRoutes(manifest.routes)
+    const usedContracts = new Set<string>()
 
     for (const [groupName, routes] of Object.entries(grouped)) {
       for (const route of routes) {
         const actionName = `${groupName}${toTypeName(route.actionName)}`
-        lines.push(`export async function ${actionName}Action(payload?: Record<string, unknown>) {`)
+        const TitleCaseGroup = groupName.charAt(0).toUpperCase() + groupName.slice(1)
+        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
+        const ContractName = `${TitleCaseGroup}${TitleCaseAction}Contract`
         
+        const hasBody = route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0
+        const hasQuery = route.method === 'GET'
+        const hasParams = route.path.includes('{')
+        
+        const count = (hasBody ? 1 : 0) + (hasQuery ? 1 : 0) + (hasParams ? 1 : 0)
+        
+        let payloadParam = ''
         const args: string[] = []
-        if (route.path.includes(':')) {
-          args.push(`params: payload as any`)
-        }
-        
-        if (route.method === 'GET') {
-          args.push(`query: payload`)
+
+        if (count > 1) {
+          usedContracts.add(ContractName)
+          const props: string[] = []
+          if (hasParams) { props.push(`params: ${ContractName}['request']['params']`); args.push(`params: payload.params`) }
+          if (hasQuery) { props.push(`query?: ${ContractName}['request']['query']`); args.push(`query: payload.query`) }
+          if (hasBody) { props.push(`body: ${ContractName}['request']['body']`); args.push(`body: payload.body`) }
+          payloadParam = `payload: { ${props.join(', ')} }`
+        } else if (count === 1) {
+          usedContracts.add(ContractName)
+          if (hasParams) { payloadParam = `payload: ${ContractName}['request']['params']`; args.push(`params: payload`) }
+          if (hasQuery) { payloadParam = `payload?: ${ContractName}['request']['query']`; args.push(`query: payload`) }
+          if (hasBody) { payloadParam = `payload: ${ContractName}['request']['body']`; args.push(`body: payload`) }
         } else {
-          args.push(`body: payload`)
+          payloadParam = ''
         }
+
+        lines.push(`export async function ${actionName}Action(${payloadParam}) {`)
         
         if (route.auth) {
           args.push(`headers: await getAuthHeaders()`)
         }
         
-        const apiCall = `await api.${groupName}.${route.actionName}({ ${args.join(', ')} })`
+        const argsString = args.length > 0 ? `{ ${args.join(', ')} }` : ''
+        const apiCall = `await api.${groupName}.${route.actionName}(${argsString})`
         
         lines.push(`  try {`)
         lines.push(`    const response = ${apiCall}`)
-        lines.push(`    return { success: true, data: response.data }`)
+        lines.push(`    return { success: true, data: response }`)
         lines.push(`  } catch (error: unknown) {`)
         lines.push(`    return { success: false, error: error instanceof Error ? error.message : String(error) }`)
         lines.push(`  }`)
@@ -56,6 +76,13 @@ export class NextActionGenerator {
         lines.push(``)
       }
     }
+
+    // Add import for contracts at the top
+    const contractsToImport = Array.from(usedContracts)
+    const importStr = contractsToImport.length > 0 
+      ? `import { api, type ${contractsToImport.join(', type ')} } from './api'` 
+      : `import { api } from './api'`
+    lines.splice(3, 1, importStr)
 
     await fs.writeFile(path.join(outputDir, 'actions.ts'), lines.join('\n'))
   }

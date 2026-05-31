@@ -1,10 +1,13 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ServiceConfig } from '../types/config'
+import { snakeCaseKeys, camelCaseKeys } from '../utils'
 
 export class HttpClient {
   private client: AxiosInstance
+  public readonly config: ServiceConfig
 
   constructor(config: ServiceConfig) {
+    this.config = config
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout ?? 10000,
@@ -23,8 +26,25 @@ export class HttpClient {
   }
 
   private setupInterceptors() {
+    this.client.interceptors.request.use(
+      (config) => {
+        if (config.data && !(config.data instanceof FormData)) {
+          config.data = snakeCaseKeys(config.data)
+        }
+        if (config.params) {
+          config.params = snakeCaseKeys(config.params)
+        }
+        return config
+      }
+    )
+
     this.client.interceptors.response.use(
-      (response: AxiosResponse) => response,
+      (response: AxiosResponse) => {
+        if (response.data) {
+          response.data = camelCaseKeys(response.data)
+        }
+        return response
+      },
       (error: any) => {
         const message =
           error.response?.data?.message ??
@@ -94,11 +114,16 @@ export class HttpClient {
   }
 
   private prepareRequest(body?: any, config?: AxiosRequestConfig): { processedBody: any, processedConfig: AxiosRequestConfig | undefined } {
-    if (!body || !this.hasFiles(body)) {
-      return { processedBody: body, processedConfig: config }
+    let finalBody = body;
+    if (finalBody && typeof finalBody === 'object' && !(finalBody instanceof FormData)) {
+      finalBody = snakeCaseKeys(finalBody);
     }
 
-    const formData = this.toFormData(body)
+    if (!finalBody || !this.hasFiles(finalBody)) {
+      return { processedBody: finalBody, processedConfig: config }
+    }
+
+    const formData = this.toFormData(finalBody)
     const newConfig = { ...config }
     
     if (!newConfig.headers) {

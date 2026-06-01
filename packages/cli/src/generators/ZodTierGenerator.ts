@@ -76,6 +76,7 @@ export class ZodTierGenerator {
       lines.push(``)
       
       lines.push(`export type ${model.name}ApiResponse = z.infer<typeof ${model.name}Schema>`)
+      lines.push(`export const validate${model.name} = (payload: unknown): ${model.name}ApiResponse => ${model.name}Schema.parse(payload)`)
       lines.push(``)
     }
 
@@ -106,23 +107,48 @@ export class ZodTierGenerator {
       lines.push(`}))`)
       lines.push(``)
       lines.push(`export type ${resource.name}Response = z.infer<typeof ${resource.name}Schema>`)
+      lines.push(`export const validate${resource.name} = (payload: unknown): ${resource.name}Response => ${resource.name}Schema.parse(payload)`)
       lines.push(``)
     }
 
 
-    // Routes -> ActionPayloads in snake_case
+    // Routes -> ActionPayloads and Response Validators
     for (const route of routes) {
+      const nameParts = route.path.replace(/^\//, '').split('/')
+      const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
+      const TitleCaseResource = toTypeName(resource)
+      const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
+      const KeyName = TitleCaseResource + TitleCaseAction
+
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
         hasExports = true
-        const nameParts = route.path.replace(/^\//, '').split('/')
-        const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-        const TitleCaseResource = toTypeName(resource)
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = TitleCaseResource + TitleCaseAction
-
         const ruleTree = this.buildRuleTree(route.schema.rules)
         const rootNode = { children: ruleTree, rules: 'required' }
-        lines.push(`export type ${KeyName}Payload = ${this.generateTSRecursive(rootNode, 'root')}`)
+        lines.push(`export const ${KeyName}PayloadSchema = ${this.generateZodRecursive(rootNode, 'root')}`)
+        lines.push(`export type ${KeyName}Payload = z.infer<typeof ${KeyName}PayloadSchema>`)
+        lines.push(`export const validate${KeyName}Payload = (payload: unknown): ${KeyName}Payload => ${KeyName}PayloadSchema.parse(payload)`)
+        lines.push(``)
+      }
+
+      if (route.response) {
+        hasExports = true
+        let zType = 'z.unknown()'
+        
+        if (route.response.kind === 'resource' || route.response.kind === 'model') {
+           const schemaRef = route.response.kind === 'resource' ? `${route.response.resource}Schema` : `${route.response.model}Schema`
+           
+           if (route.response.paginated) {
+              zType = `z.object({ data: z.array(${schemaRef}), current_page: z.number().optional(), total: z.number().optional() })`
+           } else if (route.response.collection) {
+              zType = `z.array(${schemaRef})`
+           } else {
+              zType = schemaRef
+           }
+        }
+        
+        lines.push(`export const ${KeyName}ResponseSchema = ${zType}`)
+        lines.push(`export type ${KeyName}Response = z.infer<typeof ${KeyName}ResponseSchema>`)
+        lines.push(`export const validate${KeyName}Response = (payload: unknown): ${KeyName}Response => ${KeyName}ResponseSchema.parse(payload)`)
         lines.push(``)
       }
     }

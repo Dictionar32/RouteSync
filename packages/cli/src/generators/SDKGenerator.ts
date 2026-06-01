@@ -1,37 +1,20 @@
-import { RouteManifest, ParsedRoute } from '@routesync/core'
+import { RouteManifest } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { buildGeneratedRoutes } from './names'
 
 export class SDKGenerator {
-  static async generate(manifest: RouteManifest, outputDir: string, options: any = {}): Promise<void> {
+  static async generate(manifest: RouteManifest, outputDir: string, options: Record<string, unknown> = {}): Promise<void> {
     const grouped = buildGeneratedRoutes(manifest.routes)
     const lines: string[] = []
 
     let usesZod = false
     let usesTypes = false
-    const zodRoutes = new Set<string>()
 
-    if (options.zod) {
-      for (const [group, routes] of Object.entries(grouped)) {
-        for (const route of routes) {
-          if (route.schema?.rules) {
-            usesZod = true
-            zodRoutes.add(`${group}.${route.actionName}`)
-          }
-          if (route.response) {
-            usesTypes = true
-          }
-        }
-      }
-    } else {
-      // Even if no zod, check for types
-      for (const [group, routes] of Object.entries(grouped)) {
-        for (const route of routes) {
-          if (route.response) {
-            usesTypes = true
-          }
-        }
+    for (const routes of Object.values(grouped)) {
+      for (const route of routes) {
+        if (options.zod && route.schema?.rules) usesZod = true
+        if (route.response) usesTypes = true
       }
     }
 
@@ -50,22 +33,22 @@ export class SDKGenerator {
     lines.push(``)
 
     // Generate Contracts
-    for (const [group, routes] of Object.entries(grouped)) {
+    for (const [groupName, routes] of Object.entries(grouped)) {
       for (const route of routes) {
-        const TitleCaseGroup = group.charAt(0).toUpperCase() + group.slice(1)
+        const TitleCaseGroup = groupName.charAt(0).toUpperCase() + groupName.slice(1)
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const ContractName = `${TitleCaseGroup}${TitleCaseAction}Contract`
-        
+        const SchemaName = `${TitleCaseGroup}${TitleCaseAction}Schema`
+
         const pathParams = Array.from(route.runtimePath.matchAll(/:([a-zA-Z0-9_]+)/g)).map(m => m[1])
         const paramsType = pathParams.length > 0
           ? `{ ${pathParams.map(p => `${p}: string`).join(', ')} }`
           : `unknown`
-        
-        const methodActionName = TitleCaseGroup + TitleCaseAction // Same logic as toMethodName typically, wait let's use the explicit one if imported, but we don't have toMethodName imported here yet. Wait, we can just use TitleCaseGroup + TitleCaseAction since toMethodName does exactly that.
+
         const bodyType = route.schema?.rules && usesZod
-          ? `z.infer<typeof Schemas.${methodActionName}Schema>`
+          ? `z.infer<typeof Schemas.${SchemaName}>`
           : `unknown`
-          
+
         const responseType = route.response
           ? `Types.${route.response.type}${route.response.collection ? '[]' : ''}`
           : `unknown`
@@ -82,27 +65,28 @@ export class SDKGenerator {
     }
     lines.push(``)
 
+    // Generate api object
     lines.push(`export const api = defineApi({`)
 
-    for (const [group, routes] of Object.entries(grouped)) {
-      lines.push(`  ${group}: {`)
+    for (const [groupName, routes] of Object.entries(grouped)) {
+      lines.push(`  ${groupName}: {`)
 
       for (const route of routes) {
-        const TitleCaseGroup = group.charAt(0).toUpperCase() + group.slice(1)
+        const TitleCaseGroup = groupName.charAt(0).toUpperCase() + groupName.slice(1)
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const ContractName = `${TitleCaseGroup}${TitleCaseAction}Contract`
+        const SchemaName = `${TitleCaseGroup}${TitleCaseAction}Schema`
 
         lines.push(`    ${route.actionName}: endpoint<${ContractName}['response'], ${ContractName}['request']['params'], ${ContractName}['request']['body']>({`)
         lines.push(`      method: '${route.method}',`)
         lines.push(`      path: '${route.runtimePath}',`)
         if (route.auth) lines.push(`      auth: true,`)
         if (options.zod && route.schema?.rules) {
-          lines.push(`      schema: {`)
-          lines.push(`        body: Schemas.${ContractName.replace('Contract', 'Schema')}`)
-          lines.push(`      },`)
+          lines.push(`      schema: { body: Schemas.${SchemaName} },`)
         }
-        if (options.zod && route.response && options.models) {
-          lines.push(`      responseSchema: Schemas.${route.response.type}Schema${route.response.collection ? '.array()' : ''},`)
+        if (options.zod && options.models && route.response) {
+          const responseSchema = `Schemas.${route.response.type}Schema${route.response.collection ? '.array()' : ''}`
+          lines.push(`      responseSchema: ${responseSchema},`)
         }
         lines.push(`    }),`)
       }
@@ -116,6 +100,4 @@ export class SDKGenerator {
 
     await fs.writeFile(path.join(outputDir, 'api.ts'), lines.join('\n'))
   }
-
-
 }

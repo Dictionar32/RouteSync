@@ -20,9 +20,17 @@ export type CallOptions<TParams = unknown, TBody = unknown> = {
 //
 //   api.cart.list({ query: { page: 1 } })   ← call
 export type EndpointCallableOptions<TParams, TBody> = 
-  (unknown extends TParams ? {} : { params: TParams }) & 
-  (unknown extends TBody ? { body?: unknown } : { body: TBody }) & 
+  (unknown extends TParams ? { params?: never } : { params: TParams }) & 
+  (unknown extends TBody ? { body?: TBody } : { body: TBody }) & 
   { query?: Record<string, any>; headers?: Record<string, string> }
+
+// Loose shape for generated hooks — superset of EndpointCallableOptions<unknown, unknown>
+export type LooseEndpointOptions = {
+  params?: unknown
+  query?: Record<string, unknown>
+  body?: unknown
+  headers?: Record<string, string>
+}
 
 // Extract only the required keys from T
 type RequiredKeys<T> = {
@@ -42,11 +50,9 @@ export interface ApiError {
 
 export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody = unknown> {
   (...args: OptionalIfEmpty<EndpointCallableOptions<TParams, TBody>>): Promise<TResponse>
-  // Overload that accepts undefined explicitly — used internally by hooks
-  // when options may or may not be present depending on endpoint shape
-  (options: EndpointCallableOptions<TParams, TBody> | undefined): Promise<TResponse>
+  // Overload for generated hooks — options may be undefined or loosely typed
+  (options: LooseEndpointOptions | undefined): Promise<TResponse>
   // Overload that accepts plain CallOptions — used by useApiInfiniteQuery
-  // where query is merged with pageParam at runtime
   (options: CallOptions<TParams, TBody>): Promise<TResponse>
   /** Original RouteDefinition — used by useApiQuery / useApiMutation */
   $def: RouteDefinition<TResponse, TParams, TBody>

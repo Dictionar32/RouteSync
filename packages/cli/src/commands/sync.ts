@@ -5,7 +5,7 @@ import { LaravelRouteParser } from '../parsers/LaravelRouteParser'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { SDKGenerator } from '../generators/SDKGenerator'
 import { TypeGenerator } from '../generators/TypeGenerator'
-import { SchemaGenerator } from '../generators/SchemaGenerator'
+import { ZodTierGenerator } from '../generators/ZodTierGenerator'
 import { HookGenerator } from '../generators/HookGenerator'
 import { NextActionGenerator } from '../generators/NextActionGenerator'
 import { MswGenerator } from '../generators/MswGenerator'
@@ -56,7 +56,7 @@ export const syncCommand = new Command('sync')
       await TypeGenerator.generate(manifest, options.output)
       
       if (options.zod) {
-        await SchemaGenerator.generate(manifest, options.output)
+        await ZodTierGenerator.generate(manifest, options.output)
       }
       spinner.succeed(chalk.green(`✔ ${steps[1].text}`))
 

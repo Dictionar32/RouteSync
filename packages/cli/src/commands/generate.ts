@@ -70,6 +70,10 @@ export const generateCommand = new Command('generate')
         await ModelGenerator.generate(manifest, options.output)
       }
 
+      spinner.text = 'Generating Zod Tier (Contract, Types, Mappers)...'
+      const { ZodTierGenerator } = require('../generators/ZodTierGenerator')
+      await ZodTierGenerator.generate(manifest, options.output)
+
       spinner.text = 'Generating Index Files...'
       await IndexGenerator.generate(manifest, options.output, options)
 

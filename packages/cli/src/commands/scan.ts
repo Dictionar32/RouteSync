@@ -26,9 +26,15 @@ export const scanCommand = new Command('scan')
       )
 
       routes.forEach((r) => {
-        console.log(
-          `  ${chalk.cyan(r.method.padEnd(7))} ${chalk.white(r.path)} ${r.auth ? chalk.yellow('[auth]') : ''}`
-        )
+        const routeStr = `  ${chalk.cyan(r.method.padEnd(7))} ${chalk.white(r.path)} ${r.auth ? chalk.yellow('[auth]') : ''}`
+        
+        if (!r.response) {
+          console.log(routeStr)
+          console.log(chalk.yellow(`    [RouteSync Warning] Response type could not be inferred.`))
+          console.log(chalk.yellow(`    Use: #[Response(...)] or return a JsonResource.`))
+        } else {
+          console.log(routeStr)
+        }
       })
     } catch (err: any) {
       spinner.fail(chalk.red(`Scan failed: ${err.message}`))

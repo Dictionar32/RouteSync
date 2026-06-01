@@ -4,6 +4,7 @@ export interface RouteManifest {
   routes: ParsedRoute[]
   channels?: ParsedChannel[]
   models?: ParsedModel[]
+  resources?: ParsedResource[]
   generatedAt: string
 }
 
@@ -12,6 +13,24 @@ export interface ParsedChannel {
   isPrivate: boolean
   isPresence: boolean
 }
+
+export type ResourceFieldKind = 
+  | { kind: 'primitive'; type: string }
+  | { kind: 'model'; model: string; collection: boolean }
+  | { kind: 'resource'; resource: string; collection: boolean }
+  | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
+  | { kind: 'unknown' }
+
+export interface ParsedResource {
+  name: string // e.g., UserResource
+  fields: Record<string, ResourceFieldKind>
+}
+
+export type ResponseMetadata =
+  | { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
+  | { kind: 'resource'; resource: string; collection: boolean; paginated?: boolean }
+  | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }> }
+  | { kind: 'unknown' }
 
 export interface ParsedRoute {
   name: string
@@ -22,10 +41,7 @@ export interface ParsedRoute {
   schema?: Record<string, any>
   group?: string
   action?: string
-  response?: {
-    type: string
-    collection: boolean
-  }
+  response?: ResponseMetadata
 }
 
 export interface ParsedColumn {

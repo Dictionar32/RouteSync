@@ -26,6 +26,7 @@ export class SDKGenerator {
       lines.push(`import { z } from 'zod'`)
       lines.push(`import * as Schemas from './schemas'`)
       lines.push(`export * as Schemas from './schemas'`)
+      lines.push(`import * as Contract from './contract/api-contract'`)
     }
     if (usesTypes) {
       lines.push(`import * as Types from './types'`)
@@ -49,9 +50,27 @@ export class SDKGenerator {
           ? `z.infer<typeof Schemas.${SchemaName}>`
           : `unknown`
 
-        const responseType = route.response
-          ? `Types.${route.response.type}${route.response.collection ? '[]' : ''}`
-          : `unknown`
+        const buildResponseType = (meta: any): string => {
+          if (!meta || meta.kind === 'unknown') return 'unknown'
+          let baseType = 'unknown'
+          if (meta.kind === 'model') baseType = `Types.${meta.model}`
+          else if (meta.kind === 'resource') baseType = usesZod ? `Contract.${meta.resource}Response` : `Types.${meta.resource}Transformed`
+          else if (meta.kind === 'primitive') baseType = meta.type || 'unknown'
+          else if (meta.kind === 'object') {
+            const fields = Object.entries(meta.fields).map(([k, v]) => `${k}: ${buildResponseType(v)}`).join(', ')
+            return `{ ${fields} }`
+          }
+
+          if (meta.collection) {
+            if (meta.paginated) {
+               return `Types.PaginatedResponse<${baseType}>`
+            }
+            return `${baseType}[]`
+          }
+          return `${baseType}`
+        }
+
+        const responseType = buildResponseType(route.response)
 
         lines.push(`export type ${ContractName} = {`)
         lines.push(`  request: {`)
@@ -84,8 +103,8 @@ export class SDKGenerator {
         if (options.zod && route.schema?.rules) {
           lines.push(`      schema: { body: Schemas.${SchemaName} },`)
         }
-        if (options.zod && options.models && route.response) {
-          const responseSchema = `Schemas.${route.response.type}Schema${route.response.collection ? '.array()' : ''}`
+        if (options.zod && options.models && route.response && route.response.kind === 'model') {
+          const responseSchema = `Schemas.${route.response.model}Schema${route.response.collection ? '.array()' : ''}`
           lines.push(`      responseSchema: ${responseSchema},`)
         }
         lines.push(`    }),`)

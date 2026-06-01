@@ -36,4 +36,4 @@ export type {
   RouteTransformMap,
   ResponseSchema
 } from './types/request'
-export type { RouteManifest, ParsedRoute, ParsedChannel, ParsedModel, ParsedColumn } from './types/route'
+export type { RouteManifest, ParsedRoute, ParsedChannel, ParsedModel, ParsedColumn, ResponseMetadata } from './types/route'

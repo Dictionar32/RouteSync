@@ -126,7 +126,7 @@ foreach ($routes as $route) {
         $docComment = $resReflector->getDocComment();
         $modelClass = null;
 
-        if ($docComment && preg_match('/@mixin\\s+([\\\\a-zA-Z0-9_]+)/', $docComment, $mixinMatch)) {
+        if ($docComment && preg_match('/@mixin\\s+(\\S+)/', $docComment, $mixinMatch)) {
             $modelClass = class_basename(trim($mixinMatch[1], '\\\\'));
         }
 

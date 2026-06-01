@@ -19,9 +19,18 @@ export class TypeGenerator {
     lines.push(``)
     lines.push(`export interface PaginationMeta {`)
     lines.push(`  current_page: number`)
+    lines.push(`  from: number`)
     lines.push(`  last_page: number`)
+    lines.push(`  path: string`)
     lines.push(`  per_page: number`)
+    lines.push(`  to: number`)
     lines.push(`  total: number`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`export interface PaginatedResponse<T> {`)
+    lines.push(`  data: T[]`)
+    lines.push(`  links: { first: string, last: string, prev: string | null, next: string | null }`)
+    lines.push(`  meta: PaginationMeta`)
     lines.push(`}`)
     lines.push(``)
     lines.push(`export interface ApiError {`)
@@ -39,13 +48,13 @@ export class TypeGenerator {
           if (model.hidden?.includes(col.name)) continue
           const tsType = this.mapSqlTypeToTs(col.type)
           const finalTsType = col.nullable ? `${tsType} | null` : tsType
-          const key = camelCase(col.name)
+          const key = col.name
           const safeName = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
           lines.push(`  ${safeName}: ${finalTsType}`)
         }
         if (model.appends && model.appends.length > 0) {
           for (const append of model.appends) {
-            const key = camelCase(append)
+            const key = append
             const safeAppend = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
             lines.push(`  ${safeAppend}?: unknown`)
           }
@@ -70,7 +79,8 @@ export class TypeGenerator {
       }
     }
 
-    await fs.writeFile(path.join(outputDir, 'types.ts'), lines.join('\n'))
+    await fs.ensureDir(path.join(outputDir, 'types'))
+    await fs.writeFile(path.join(outputDir, 'types', 'index.ts'), lines.join('\n'))
   }
 
   private static mapSqlTypeToTs(sqlType: string): string {

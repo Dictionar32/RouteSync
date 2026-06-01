@@ -132,20 +132,8 @@ export class ZodTierGenerator {
 
       if (route.response) {
         hasExports = true
-        let zType = 'z.unknown()'
-        
-        if (route.response.kind === 'resource' || route.response.kind === 'model') {
-           const schemaRef = route.response.kind === 'resource' ? `${route.response.resource}Schema` : `${route.response.model}Schema`
-           
-           if (route.response.paginated) {
-              zType = `z.object({ data: z.array(${schemaRef}), current_page: z.number().optional(), total: z.number().optional() })`
-           } else if (route.response.collection) {
-              zType = `z.array(${schemaRef})`
-           } else {
-              zType = schemaRef
-           }
-        }
-        
+        let zType = this.buildResponseZodType(route.response)
+
         lines.push(`export const ${KeyName}ResponseSchema = ${zType}`)
         lines.push(`export type ${KeyName}Response = z.infer<typeof ${KeyName}ResponseSchema>`)
         lines.push(`export const validate${KeyName}Response = (payload: unknown): ${KeyName}Response => ${KeyName}ResponseSchema.parse(payload)`)
@@ -156,6 +144,36 @@ export class ZodTierGenerator {
     if (hasExports) {
       await fs.writeFile(path.join(dir, 'api-contract.ts'), lines.join('\n'))
     }
+  }
+
+  private static buildResponseZodType(meta: any): string {
+    if (!meta || meta.kind === 'unknown') return 'z.unknown()'
+    
+    let baseZod = 'z.unknown()'
+    if (meta.kind === 'model') {
+      baseZod = `${meta.model}Schema`
+    } else if (meta.kind === 'resource') {
+      baseZod = `${meta.resource}Schema`
+    } else if (meta.kind === 'primitive') {
+      if (meta.type === 'number') baseZod = 'z.number()'
+      else if (meta.type === 'string') baseZod = 'z.string()'
+      else if (meta.type === 'boolean') baseZod = 'z.boolean()'
+    } else if (meta.kind === 'object') {
+      if (!meta.fields || Object.keys(meta.fields).length === 0) {
+        baseZod = 'z.record(z.string(), z.unknown())'
+      } else {
+        const fields = Object.entries(meta.fields).map(([k, v]) => `${k}: ${this.buildResponseZodType(v)}`).join(', ')
+        baseZod = `z.object({ ${fields} })`
+      }
+    }
+
+    if (meta.collection) {
+      if (meta.paginated) {
+         return `z.object({ data: z.array(${baseZod}), current_page: z.number().optional(), total: z.number().optional() })`
+      }
+      return `z.array(${baseZod})`
+    }
+    return baseZod
   }
 
   // 2. api-schema.ts (Frontend Forms - Camel Case)

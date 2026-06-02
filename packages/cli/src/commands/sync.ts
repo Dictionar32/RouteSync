@@ -42,11 +42,11 @@ export const syncCommand = new Command('sync')
     try {
       // Step 1: Scan
       const parser = new LaravelRouteParser()
-      const { routes, models } = await parser.parse(options.input, { extractModels: options.models })
+      const { routes, models, resources } = await parser.parse(options.input, { extractModels: options.models })
       const channelParser = new LaravelChannelParser()
       const channels = options.echo ? await channelParser.parse('routes/channels.php') : []
       const manifest = ManifestGenerator.generate(routes, options.baseURL, channels)
-      if (options.models) manifest.models = models
+      if (options.models) { manifest.models = models; manifest.resources = resources; }
       spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes, ${channels.length} channels, ${models.length} models)`))
 
       await fs.ensureDir(options.output)

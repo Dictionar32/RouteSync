@@ -72,6 +72,21 @@ export class ZodTierGenerator {
         const safeAppend = append.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? append : `"${append}"`
         lines.push(`  ${safeAppend}: z.unknown().optional(), // appended`)
       }
+
+      if (model.accessors) {
+        for (const [key, accessor] of Object.entries(model.accessors)) {
+          if (hidden.includes(key)) continue
+          const safeName = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
+          const expr = (accessor as any)?.expression
+          let zType = 'z.unknown()'
+          if (expr && expr.type) {
+            if (expr.type === 'number') zType = 'z.number()'
+            else if (expr.type === 'boolean') zType = 'z.boolean()'
+            else if (expr.type === 'string') zType = 'z.string()'
+          }
+          lines.push(`  ${safeName}: ${zType}.optional(), // accessor attribute`)
+        }
+      }
       lines.push(`})`)
       lines.push(``)
       

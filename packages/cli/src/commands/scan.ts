@@ -6,23 +6,33 @@ import { ManifestGenerator } from '../generators/ManifestGenerator'
 
 export const scanCommand = new Command('scan')
   .description('Scan Laravel/PHP routes and output a route manifest')
-  .option('-i, --input <path>', 'Path to routes/api.php', 'routes/api.php')
+  .argument('[projectDir]', 'Path to Laravel project root')
+  .option('-i, --input <path>', 'Path to routes/api.php (relative to projectDir or absolute)', 'routes/api.php')
   .option('-o, --output <path>', 'Output manifest path', 'routesync.manifest.json')
   .option('-b, --baseURL <url>', 'API base URL', 'http://localhost/api')
   .option('--models', 'Extract Database Schema via Eloquent Models')
-  .action(async (options) => {
+  .action(async (projectDir, options) => {
     const spinner = ora('Scanning routes...').start()
+
+    // Resolve paths
+    const path = require('path')
+    const targetDir = projectDir ? path.resolve(process.cwd(), projectDir) : process.cwd()
+    const inputPath = path.isAbsolute(options.input) ? options.input : path.resolve(targetDir, options.input)
+    const outputPath = path.isAbsolute(options.output) ? options.output : path.resolve(targetDir, options.output)
 
     try {
       const parser = new LaravelRouteParser()
-      const { routes, models } = await parser.parse(options.input, { extractModels: options.models })
+      const { routes, models, resources } = await parser.parse(inputPath, { extractModels: options.models })
 
       const manifest = ManifestGenerator.generate(routes, options.baseURL)
-      if (options.models) manifest.models = models
-      await ManifestGenerator.save(manifest, options.output)
+      if (options.models) {
+        manifest.models = models
+        manifest.resources = resources
+      }
+      await ManifestGenerator.save(manifest, outputPath)
 
       spinner.succeed(
-        chalk.green(`Found ${routes.length} routes, ${models.length} models → ${options.output}`)
+        chalk.green(`Found ${routes.length} routes, ${models?.length || 0} models, ${resources?.length || 0} resources → ${outputPath}`)
       )
 
       routes.forEach((r) => {

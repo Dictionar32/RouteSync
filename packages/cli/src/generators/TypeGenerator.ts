@@ -59,6 +59,20 @@ export class TypeGenerator {
             lines.push(`  ${safeAppend}?: unknown`)
           }
         }
+        if (model.accessors) {
+          for (const [key, accessor] of Object.entries(model.accessors)) {
+            if (model.hidden?.includes(key)) continue
+            const safeName = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
+            const expr = (accessor as any)?.expression
+            let tsType = 'unknown'
+            if (expr && expr.type) {
+              if (expr.type === 'number') tsType = 'number'
+              else if (expr.type === 'boolean') tsType = 'boolean'
+              else if (expr.type === 'string') tsType = 'string'
+            }
+            lines.push(`  ${safeName}?: ${tsType}`)
+          }
+        }
         lines.push(`}`)
         lines.push(``)
       }

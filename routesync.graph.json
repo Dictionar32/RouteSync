@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "baseURL": "http://localhost/api",
+  "routes": [],
+  "channels": [],
+  "generatedAt": "2026-06-02T11:24:41.400Z",
+  "models": []
+}

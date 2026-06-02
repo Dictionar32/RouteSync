@@ -44,6 +44,21 @@ export class SchemaGenerator {
           lines.push(`  ${safeAppend}: z.unknown().optional(), // appended attribute`)
         }
 
+        if (model.accessors) {
+          for (const [key, accessor] of Object.entries(model.accessors)) {
+            if (hidden.includes(key)) continue
+            const safeName = camelCase(key).match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCase(key) : `"${camelCase(key)}"`
+            const expr = (accessor as any)?.expression
+            let zType = 'z.unknown()'
+            if (expr && expr.type) {
+              if (expr.type === 'number') zType = 'z.number()'
+              else if (expr.type === 'boolean') zType = 'z.boolean()'
+              else if (expr.type === 'string') zType = 'z.string()'
+            }
+            lines.push(`  ${safeName}: ${zType}.optional(), // accessor attribute`)
+          }
+        }
+
         lines.push(`})`)
         lines.push(``)
       }

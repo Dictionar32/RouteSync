@@ -29,7 +29,14 @@ export const scanCommand = new Command('scan')
         manifest.models = models
         manifest.resources = resources
       }
-      await ManifestGenerator.save(manifest, outputPath)
+      
+      const { SemanticResolutionKernel } = await import('../resolvers/SemanticResolutionKernel')
+      const kernel = new SemanticResolutionKernel()
+      const resolvedManifest = kernel.resolve(manifest)
+
+      await ManifestGenerator.save(resolvedManifest, outputPath)
+      const fs = require('fs')
+      fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.graph.json'), JSON.stringify(resolvedManifest, null, 2))
 
       spinner.succeed(
         chalk.green(`Found ${routes.length} routes, ${models?.length || 0} models, ${resources?.length || 0} resources → ${outputPath}`)

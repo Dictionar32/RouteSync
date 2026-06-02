@@ -32,7 +32,43 @@ export const scanCommand = new Command('scan')
       
       const { SemanticResolutionKernel } = await import('../resolvers/SemanticResolutionKernel')
       const kernel = new SemanticResolutionKernel()
-      const resolvedManifest = kernel.resolve(manifest)
+      kernel.models = models || []
+      kernel.resources = resources || []
+      
+      const resolvedManifest = JSON.parse(JSON.stringify(manifest))
+
+      if (resolvedManifest.resources) {
+        resolvedManifest.resources.forEach((res: any) => {
+          if (res.fields) {
+            for (const key in res.fields) {
+              const result = kernel.resolve(res.fields[key], res)
+              if (result && result.status !== 'unresolved') {
+                res.fields[key] = result
+              }
+            }
+          }
+        })
+      }
+
+      if (resolvedManifest.routes) {
+        resolvedManifest.routes.forEach((route: any) => {
+          if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
+             const result = kernel.resolve(route.response)
+             if (result && result.status !== 'unresolved') {
+                route.response = result
+             }
+          } else if (route.response && route.response.kind === 'object' && route.response.fields) {
+             for (const key in route.response.fields) {
+                if (route.response.fields[key].kind && route.response.fields[key].kind !== 'primitive') {
+                   const result = kernel.resolve(route.response.fields[key])
+                   if (result && result.status !== 'unresolved') {
+                      route.response.fields[key] = result
+                   }
+                }
+             }
+          }
+        })
+      }
 
       await ManifestGenerator.save(resolvedManifest, outputPath)
       const fs = require('fs')

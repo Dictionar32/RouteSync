@@ -31,20 +31,45 @@ export const scanCommand = new Command('scan')
       }
       
       const { SemanticResolutionKernel } = await import('../resolvers/SemanticResolutionKernel')
+      const { PhpCodeParser } = await import('../parsers/PhpCodeParser')
       const kernel = new SemanticResolutionKernel()
       kernel.models = models || []
       kernel.resources = resources || []
       
       const resolvedManifest = JSON.parse(JSON.stringify(manifest))
 
+      const resolveField = (field: any, contextModel: any) => {
+        if (!field) return field;
+        
+        // 1. PHP extraction gave us raw_code
+        // 2. Parse Layer (PhpCodeParser) -> ast_unresolved
+        let astToResolve = field;
+        if (field.kind === 'raw_code' && field.code) {
+           const parsedAst = PhpCodeParser.parseExpression(field.code, field.hints);
+           // We can attach the parsed AST so SDK generators can see the structure if kernel fails
+           field.parsed_ast = parsedAst;
+           astToResolve = parsedAst;
+        }
+
+        // 3. Resolve Layer (SemanticResolutionKernel) -> ast_resolved
+        const resolved = kernel.resolve(astToResolve, contextModel);
+        if (resolved && resolved.status !== 'unresolved') {
+           field.resolved = resolved;
+        }
+
+        return field;
+      }
+
       if (resolvedManifest.resources) {
         resolvedManifest.resources.forEach((res: any) => {
+          let contextModel = kernel.models.find((m: any) => m.name === res.model);
+          if (!contextModel && res.name.endsWith('Resource')) {
+              contextModel = kernel.models.find((m: any) => m.name === res.name.replace('Resource', ''));
+          }
+
           if (res.fields) {
             for (const key in res.fields) {
-              const result = kernel.resolve(res.fields[key], res)
-              if (result && result.status !== 'unresolved') {
-                res.fields[key] = result
-              }
+              res.fields[key] = resolveField(res.fields[key], contextModel || res)
             }
           }
         })
@@ -53,17 +78,11 @@ export const scanCommand = new Command('scan')
       if (resolvedManifest.routes) {
         resolvedManifest.routes.forEach((route: any) => {
           if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
-             const result = kernel.resolve(route.response)
-             if (result && result.status !== 'unresolved') {
-                route.response = result
-             }
+             route.response = resolveField(route.response, null)
           } else if (route.response && route.response.kind === 'object' && route.response.fields) {
              for (const key in route.response.fields) {
                 if (route.response.fields[key].kind && route.response.fields[key].kind !== 'primitive') {
-                   const result = kernel.resolve(route.response.fields[key])
-                   if (result && result.status !== 'unresolved') {
-                      route.response.fields[key] = result
-                   }
+                   route.response.fields[key] = resolveField(route.response.fields[key], null)
                 }
              }
           }

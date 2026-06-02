@@ -2,11 +2,20 @@ import { ResolverPlugin, ResolutionContext, ResolutionResult, EvidenceNode } fro
 
 export class ExpressionResolver implements ResolverPlugin {
   canResolve(meta: any): boolean {
-    return meta && (meta.kind === 'literal' || meta.kind === 'type_cast' || meta.kind === 'property_access' || meta.kind === 'binary_operation');
+    return meta && (meta.kind === 'literal' || meta.kind === 'type_cast' || meta.kind === 'property_access' || meta.kind === 'binary_operation' || meta.kind === 'variable');
   }
 
   resolve(meta: any, context: ResolutionContext): ResolutionResult {
     const currentModel = context.contextModel;
+
+    if (meta.kind === 'variable') {
+      if (meta.name === 'this') {
+        if (currentModel && currentModel.name) {
+           return { status: 'resolved', type: currentModel.name, confidence: 100, evidence: [{ kind: 'variable', name: 'this', detail: `Resolves to current context model: ${currentModel.name}` }] };
+        }
+      }
+      return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: [{ kind: 'variable', name: meta.name, detail: 'Unknown variable' }], unresolvedReason: `Unknown variable: ${meta.name}` };
+    }
 
     if (meta.kind === 'literal') {
       const t = meta.type === 'number' ? 'number' : meta.type === 'boolean' ? 'boolean' : 'string';

@@ -11,7 +11,13 @@ export class PhpCodeParser {
     },
   });
 
-  public static parseExpression(code: string): any {
+  public static parseExpression(code: string, hints?: any): any {
+    if (hints && hints.pattern) {
+        if (hints.pattern === 'variable' && code.match(/^\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/)) {
+            return { kind: 'variable', name: code.substring(1) };
+        }
+    }
+
     try {
       const ast = this.parser.parseCode(`<?php $val = ${code};`, 'eval');
       if (ast && ast.children && ast.children.length > 0) {

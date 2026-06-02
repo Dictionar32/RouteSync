@@ -134,7 +134,17 @@ if (!function_exists('parseArrayTokens')) {
                 } elseif (preg_match('/^[\\\\\\'\\\\\\"].*[\\\\\\'\\\\\\"]$/s', $code)) {
                     $fields[$currentKey] = ['kind' => 'primitive', 'type' => 'string'];
                 } else {
-                    $fields[$currentKey] = ['kind' => 'raw_code', 'code' => $code];
+                    $hints = [];
+                    if (str_contains($code, '?->')) {
+                        $hints['pattern'] = 'nullsafe_property_access';
+                    } elseif (str_contains($code, '::')) {
+                        $hints['pattern'] = 'static_method_call';
+                    } elseif (str_contains($code, '->')) {
+                        $hints['pattern'] = str_contains($code, '()') ? 'method_call' : 'property_access';
+                    } elseif (str_starts_with($code, '$')) {
+                        $hints['pattern'] = 'variable';
+                    }
+                    $fields[$currentKey] = ['kind' => 'raw_code', 'code' => $code, 'hints' => (object)$hints];
                 }
                 $currentKey = null;
             }

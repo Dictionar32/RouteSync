@@ -296,6 +296,39 @@ export class SemanticKernelV2 {
                  ]
               };
            }
+           if (['count', 'sum', 'avg', 'min', 'max'].includes(normalizedAst.name || '')) {
+              return {
+                 status: 'resolved',
+                 type: 'number',
+                 confidence: Math.min(resolvedTarget.confidence, 100),
+                 provenance: [
+                    ...resolvedTarget.provenance,
+                    { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'number', rule: 'Aggregate query method' }
+                 ]
+              };
+           }
+           if (['exists', 'doesntExist'].includes(normalizedAst.name || '')) {
+              return {
+                 status: 'resolved',
+                 type: 'boolean',
+                 confidence: Math.min(resolvedTarget.confidence, 100),
+                 provenance: [
+                    ...resolvedTarget.provenance,
+                    { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'boolean', rule: 'Boolean query method' }
+                 ]
+              };
+           }
+           if (['pluck', 'toArray', 'jsonSerialize'].includes(normalizedAst.name || '')) {
+              return {
+                 status: 'resolved',
+                 type: 'array',
+                 confidence: Math.min(resolvedTarget.confidence, 90),
+                 provenance: [
+                    ...resolvedTarget.provenance,
+                    { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'array', rule: 'Conversion query method' }
+                 ]
+              };
+           }
         }
 
        if (['createToken'].includes(normalizedAst.name || '')) {
@@ -317,9 +350,30 @@ export class SemanticKernelV2 {
           };
        }
 
-       if (resolvedTarget.status === 'resolved') {
-          return resolvedTarget;
-       }
+        if (['validated', 'safe'].includes(normalizedAst.name || '')) {
+           return {
+              status: 'resolved',
+              type: 'object' as any,
+              confidence: 100,
+              provenance: [
+                 { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'object', rule: 'Request validation method' }
+              ]
+           };
+        }
+
+        const builderMethods = [
+          'where', 'whereIn', 'whereNotIn', 'whereNull', 'whereNotNull',
+          'whereBetween', 'whereNotBetween', 'whereDate', 'whereMonth', 'whereDay',
+          'whereYear', 'whereTime', 'whereColumn', 'orWhere', 'orWhereIn',
+          'orderBy', 'orderByDesc', 'latest', 'oldest', 'inRandomOrder',
+          'select', 'addSelect', 'distinct', 'join', 'leftJoin', 'rightJoin',
+          'crossJoin', 'groupBy', 'having', 'havingRaw', 'skip', 'offset',
+          'limit', 'take', 'with', 'withCount', 'load', 'loadCount', 'has', 'whereHas',
+          'query'
+        ];
+        if (resolvedTarget.status === 'resolved' && resolvedTarget.type === 'model' && builderMethods.includes(normalizedAst.name || '')) {
+           return resolvedTarget;
+        }
     }
 
     if ((normalizedAst.kind === 'property_access' || normalizedAst.kind === 'nullsafe_property_access') && normalizedAst.target) {

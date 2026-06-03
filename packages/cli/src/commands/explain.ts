@@ -101,12 +101,16 @@ export const explainCommand = new Command('explain')
       console.log(res.confidence)
       console.log('')
 
-      console.log(chalk.bold('Evidence Chain:'))
-      if (res.evidence && res.evidence.length > 0) {
-        res.evidence.forEach((ev: any, idx: number) => {
+      console.log(chalk.bold('Trace Chain:'))
+      if (res.trace && res.trace.length > 0) {
+        res.trace.forEach((node: any, idx: number) => {
           const prefix = idx === 0 ? '✓' : '└─'
           const indent = '  '.repeat(idx)
-          console.log(`${indent}${prefix} [${ev.kind}] ${ev.name} ${ev.detail ? chalk.gray(`(${ev.detail})`) : ''}`)
+          const details = []
+          if (node.input) details.push(`in: ${node.input}`)
+          if (node.output) details.push(`out: ${node.output}`)
+          const detailStr = details.length > 0 ? ` (${details.join(', ')})` : ''
+          console.log(`${indent}${prefix} [${node.source}] ${node.rule}${chalk.gray(detailStr)}`)
         })
       } else {
         console.log(chalk.yellow('None (Fallback)'))
@@ -114,11 +118,12 @@ export const explainCommand = new Command('explain')
       console.log('')
 
       console.log(chalk.bold('Reason:'))
-      if (res.type === 'unknown') {
+      if (res.status === 'unknown') {
         console.log(chalk.red('Unresolved'))
-        console.log(chalk.gray(`Reason: ${res.unresolvedReason || 'No evidence found'}`))
+        const lastTrace = res.trace && res.trace.length > 0 ? res.trace[res.trace.length - 1] : null
+        console.log(chalk.gray(`Reason: ${lastTrace?.rule || 'No trace found'}`))
       } else {
-        console.log(chalk.green('Resolved successfully based on evidence.'))
+        console.log(chalk.green('Resolved successfully based on trace.'))
       }
     } catch (err: any) {
       console.error(chalk.red(`Error: ${err.message}`))

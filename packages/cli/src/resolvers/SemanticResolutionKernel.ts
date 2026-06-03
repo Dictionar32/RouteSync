@@ -1,5 +1,5 @@
 import { SemanticResolution } from '@routesync/core';
-import { ResolverPlugin, ResolutionResult, CycleDetector, SemanticResolutionKernelContract } from './types';
+import { ResolverPlugin, CycleDetector, SemanticResolutionKernelContract } from './types';
 import { PrimitiveResolver } from './plugins/PrimitiveResolver';
 import { ModelColumnResolver } from './plugins/ModelColumnResolver';
 import { AccessorResolver } from './plugins/AccessorResolver';

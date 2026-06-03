@@ -145,7 +145,7 @@ export const scanCommand = new Command('scan')
                 }
 
                 // Fallback to signature/reflection-extracted type if AST resolution is unknown/unresolved
-                if ((!resolved || resolved.status === 'unknown' || resolved.status === 'unresolved') && accessor.type && accessor.type !== 'mixed') {
+                if ((!resolved || resolved.status === 'unknown') && accessor.type && accessor.type !== 'mixed') {
                   resolved = {
                     status: 'resolved',
                     type: accessor.type,

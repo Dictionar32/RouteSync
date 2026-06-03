@@ -82,7 +82,7 @@ export class ZodTierGenerator {
           } else {
             const meta = field.resolved || field.semantic;
             const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
-            if ((!meta || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
+            if ((!meta || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
               const resolved = kernel.resolve(ast, context)
               if (resolved && resolved.status !== 'unknown') {
                 field.resolved = resolved
@@ -130,7 +130,7 @@ export class ZodTierGenerator {
               const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
               if (ast) {
                   const resolved = kernel.resolve(ast, context)
-                  if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+                  if (resolved && resolved.status !== 'unknown') {
                     field.resolved = resolved
                   }
               }
@@ -417,8 +417,8 @@ export class ZodTierGenerator {
           }
         }
       } else {
-        if (meta.evidence && meta.evidence.length > 0 && meta.evidence[0].kind === 'model') {
-          const resourceName = `${meta.evidence[0].name}Resource`
+        if (meta.model) {
+          const resourceName = `${meta.model}Resource`
           if (knownResourceNames.has(resourceName)) {
             refs.add(resourceName)
           }
@@ -456,7 +456,7 @@ export class ZodTierGenerator {
 
     // Attempt on-the-fly resolution if we have a kernel and an AST
     let astToResolve = node?.parsed_ast || payload?.parsed_ast || (payload?.kind ? payload : null);
-    if (kernel && (!meta || !meta.status || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') && astToResolve) {
+    if (kernel && (!meta || !meta.status || meta.status === 'unknown' || meta.type === 'unknown') && astToResolve) {
        const resolved = kernel.resolve(astToResolve, context || { layer: 'route', modelMap: {}, relationMap: {} });
        if (resolved.status === 'resolved' || resolved.status === 'partial') {
           meta = resolved;
@@ -464,7 +464,7 @@ export class ZodTierGenerator {
        }
     }
     
-    if (!meta || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') return 'z.unknown()'
+    if (!meta || meta.status === 'unknown' || meta.type === 'unknown') return 'z.unknown()'
     
     let baseZod = 'z.unknown()'
     let isCollection = !!meta.collection
@@ -506,9 +506,9 @@ export class ZodTierGenerator {
       let isModel = false
       let modelName = meta.type
       
-      if (meta.evidence && meta.evidence.length > 0 && meta.evidence[0].kind === 'model') {
+      if (meta.type === 'model' && meta.model) {
         isModel = true
-        modelName = meta.evidence[0].name
+        modelName = meta.model
       }
       
       if (node && node.kind === 'literal' && typeof node.code === 'string' && node.code.includes('"kind":"model"')) {

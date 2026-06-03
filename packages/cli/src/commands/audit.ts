@@ -55,19 +55,21 @@ export const auditCommand = new Command('audit')
         if (res.status === 'resolved') {
             resolvedCount++
         } else {
-            // Categorize based on unresolvedReason or fallback to 'Other Unresolved'
-            const reason = res.unresolvedReason || 'Unknown Reason';
+            // Categorize based on trace rules or fallback to 'Other Unresolved'
+            const lastTrace = res.trace && res.trace.length > 0 ? res.trace[res.trace.length - 1] : null;
+            const reasonRule = lastTrace?.rule || 'Unknown Reason';
+            const reasonSource = lastTrace?.source || '';
             
-            if (reason.includes('Missing MethodReturn Resolver')) {
+            if (reasonRule.includes('MethodReturn') || reasonSource.includes('MethodReturnResolver')) {
                 unresolvedBreakdown['Missing MethodReturn Resolver'].push(fieldPath)
-            } else if (reason.includes('FrameworkResolver')) {
+            } else if (reasonRule.includes('FrameworkResolver') || reasonSource.includes('FrameworkRegistryResolver')) {
                 unresolvedBreakdown['Missing Framework Registry'].push(fieldPath)
-            } else if (reason.includes('Model')) {
+            } else if (reasonRule.includes('Model') || reasonSource.includes('ModelColumnResolver')) {
                 unresolvedBreakdown['Missing Relation Resolver'].push(fieldPath)
-            } else if (reason.includes('Accessor')) {
+            } else if (reasonRule.includes('Accessor') || reasonSource.includes('AccessorResolver')) {
                 unresolvedBreakdown['Missing Accessor Resolver'].push(fieldPath)
             } else {
-                unresolvedBreakdown['Other Unresolved'].push(`${fieldPath} (${reason})`)
+                unresolvedBreakdown['Other Unresolved'].push(`${fieldPath} (${reasonRule})`)
             }
         }
       }

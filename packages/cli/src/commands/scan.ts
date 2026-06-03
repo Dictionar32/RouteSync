@@ -87,12 +87,12 @@ export const scanCommand = new Command('scan')
       
       const resolvedManifest = JSON.parse(JSON.stringify(manifest))
  
-      const resolveField = (field: any, contextModel: any, assignments?: any): any => {
+      const resolveField = (field: any, contextModel: any, assignments?: any, resolvedAssignments?: any): any => {
         if (!field) return field;
         
         if (field.kind === 'object' && field.fields) {
           for (const key in field.fields) {
-            field.fields[key] = resolveField(field.fields[key], contextModel, assignments);
+            field.fields[key] = resolveField(field.fields[key], contextModel, assignments, resolvedAssignments);
           }
           return field;
         }
@@ -109,7 +109,8 @@ export const scanCommand = new Command('scan')
           relationMap: {},
           layer: 'resource' as any,
           fileName: contextModel ? `${contextModel.name}Resource` : undefined,
-          assignments: assignments || {}
+          assignments: assignments || {},
+          resolvedAssignments: resolvedAssignments || {}
         };
 
         const resolved = kernel.resolve(astToResolve, context);
@@ -185,18 +186,33 @@ export const scanCommand = new Command('scan')
               contextModel = models ? models.find((m: any) => m.name === res.name.replace('Resource', '')) : null;
           }
 
-          // Pre-parse assignments for data-flow tracking
+          // Pre-parse and resolve assignments sequentially
           const parsedAssignments: Record<string, any> = {};
+          const resolvedAssignments: Record<string, any> = {};
+          const contextForAssignments = {
+            modelMap: {},
+            relationMap: {},
+            layer: 'resource' as any,
+            fileName: contextModel ? `${contextModel.name}Resource` : (res.name.endsWith('Resource') ? res.name : `${res.name}Resource`),
+            assignments: parsedAssignments,
+            resolvedAssignments: resolvedAssignments
+          };
+
           if (res.assignments) {
             for (const varName in res.assignments) {
               const code = res.assignments[varName];
-              parsedAssignments[varName] = PhpCodeParser.parseExpression(code, {});
+              const ast = PhpCodeParser.parseExpression(code, {});
+              parsedAssignments[varName] = ast;
+              const resolved = kernel.resolve(ast, contextForAssignments);
+              if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+                resolvedAssignments[varName] = resolved;
+              }
             }
           }
 
           if (res.fields) {
             for (const key in res.fields) {
-              res.fields[key] = resolveField(res.fields[key], contextModel || res, parsedAssignments)
+              res.fields[key] = resolveField(res.fields[key], contextModel || res, parsedAssignments, resolvedAssignments)
             }
           }
         })
@@ -205,19 +221,34 @@ export const scanCommand = new Command('scan')
       if (resolvedManifest.routes) {
         resolvedManifest.routes.forEach((route: any) => {
           const parsedAssignments: Record<string, any> = {};
+          const resolvedAssignments: Record<string, any> = {};
+          const contextForAssignments = {
+            modelMap: {},
+            relationMap: {},
+            layer: 'route' as any,
+            fileName: route.name,
+            assignments: parsedAssignments,
+            resolvedAssignments: resolvedAssignments
+          };
+
           if (route.assignments) {
             for (const varName in route.assignments) {
               const code = route.assignments[varName];
-              parsedAssignments[varName] = PhpCodeParser.parseExpression(code, {});
+              const ast = PhpCodeParser.parseExpression(code, {});
+              parsedAssignments[varName] = ast;
+              const resolved = kernel.resolve(ast, contextForAssignments);
+              if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+                resolvedAssignments[varName] = resolved;
+              }
             }
           }
 
           if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
-             route.response = resolveField(route.response, null, parsedAssignments)
+             route.response = resolveField(route.response, null, parsedAssignments, resolvedAssignments)
           } else if (route.response && route.response.kind === 'object' && route.response.fields) {
              for (const key in route.response.fields) {
                 if (route.response.fields[key].kind && route.response.fields[key].kind !== 'primitive') {
-                   route.response.fields[key] = resolveField(route.response.fields[key], null, parsedAssignments)
+                   route.response.fields[key] = resolveField(route.response.fields[key], null, parsedAssignments, resolvedAssignments)
                 }
               }
           }

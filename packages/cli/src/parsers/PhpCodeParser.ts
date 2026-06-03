@@ -51,6 +51,14 @@ export class PhpCodeParser {
       }
     }
 
+    if (node.kind === 'offsetlookup') {
+      const target = this.mapNode(node.what);
+      const property = node.offset?.value || node.offset?.name || (node.offset?.kind === 'identifier' ? node.offset.name : null);
+      if (property) {
+        return { kind: 'property_access', target, property };
+      }
+    }
+
     if (node.kind === 'bin') {
       return {
         kind: 'binary_expression',

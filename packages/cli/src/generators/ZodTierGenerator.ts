@@ -51,12 +51,27 @@ export class ZodTierGenerator {
       manifest.resources.forEach(res => {
         const modelName = res.name.replace(/Resource$/, '')
         
-        // Pre-parse assignments
+        // Pre-parse and resolve assignments sequentially
         const parsedAssignments: Record<string, any> = {};
+        const resolvedAssignments: Record<string, any> = {};
+        const context = {
+          layer: 'resource',
+          fileName: res.name,
+          modelMap: {},
+          relationMap: {},
+          assignments: parsedAssignments,
+          resolvedAssignments: resolvedAssignments
+        } as any;
+
         if (res.assignments) {
           for (const varName in res.assignments) {
             const code = res.assignments[varName];
-            parsedAssignments[varName] = PhpCodeParser.parseExpression(code, {});
+            const ast = PhpCodeParser.parseExpression(code, {});
+            parsedAssignments[varName] = ast;
+            const resolved = kernel.resolve(ast, context);
+            if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+              resolvedAssignments[varName] = resolved;
+            }
           }
         }
 
@@ -68,7 +83,6 @@ export class ZodTierGenerator {
             const meta = field.resolved || field.semantic;
             const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
             if ((!meta || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
-              const context = { layer: 'resource', fileName: res.name, modelMap: {}, relationMap: {}, assignments: parsedAssignments } as any
               const resolved = kernel.resolve(ast, context)
               if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
                 field.resolved = resolved
@@ -86,13 +100,35 @@ export class ZodTierGenerator {
     // Patch routes with Kernel
     if (manifest.routes) {
       manifest.routes.forEach(route => {
+        const parsedAssignments: Record<string, any> = {};
+        const resolvedAssignments: Record<string, any> = {};
+        const context = {
+          layer: 'route',
+          fileName: route.name,
+          modelMap: {},
+          relationMap: {},
+          assignments: parsedAssignments,
+          resolvedAssignments: resolvedAssignments
+        } as any;
+
+        if (route.assignments) {
+          for (const varName in route.assignments) {
+            const code = route.assignments[varName];
+            const ast = PhpCodeParser.parseExpression(code, {});
+            parsedAssignments[varName] = ast;
+            const resolved = kernel.resolve(ast, context);
+            if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+              resolvedAssignments[varName] = resolved;
+            }
+          }
+        }
+
         const resolveResponse = (meta: any) => {
           if (!meta) return;
           if (meta.kind === 'object' && meta.fields) {
             Object.values(meta.fields).forEach((field: any) => {
               const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
               if (ast) {
-                  const context = { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {} } as any
                   const resolved = kernel.resolve(ast, context)
                   if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
                     field.resolved = resolved

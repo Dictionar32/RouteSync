@@ -518,6 +518,10 @@ export class SemanticKernelV2 {
       }
     }
 
+    if (context && (context as any).resolvedAssignments && (context as any).resolvedAssignments[name]) {
+      return (context as any).resolvedAssignments[name];
+    }
+
     if (context && (context as any).assignments && (context as any).assignments[name]) {
       const assignedNode = (context as any).assignments[name];
       return this.resolve(assignedNode, context);

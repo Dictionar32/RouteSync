@@ -109,6 +109,21 @@ export class PhpCodeParser {
       let name = null;
       if (node.what && (node.what.kind === 'identifier' || node.what.kind === 'name')) {
         name = node.what.name;
+      } else if (node.what && node.what.kind === 'staticlookup') {
+        const className = node.what.what?.name;
+        const methodName = node.what.offset?.name || (node.what.offset?.kind === 'identifier' ? node.what.offset.name : null);
+        const args = Array.isArray(node.arguments) ? node.arguments.map((arg: any) => this.mapNode(arg)) : [];
+        if (className && methodName) {
+          if (methodName === 'collection') {
+            return { kind: 'resource', resource: className, collection: true };
+          }
+          return {
+            kind: 'static_method_call',
+            target: { kind: 'model', model: className },
+            name: methodName,
+            arguments: args
+          };
+        }
       } else {
         if (node.what && (node.what.kind === 'propertylookup' || node.what.kind === 'nullsafepropertylookup')) {
           target = this.mapNode(node.what.what);

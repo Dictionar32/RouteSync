@@ -150,7 +150,7 @@ export const scanCommand = new Command('scan')
                     status: 'resolved',
                     type: accessor.type,
                     confidence: 100,
-                    provenance: [{ step: 'reflection_signature', input: key, output: accessor.type, rule: 'Reflection return type signature' }]
+                    trace: [{ source: 'ReflectionScanner', input: key, output: accessor.type, rule: 'Reflection return type signature' }]
                   };
                 }
 
@@ -159,7 +159,7 @@ export const scanCommand = new Command('scan')
                     status: 'unknown',
                     type: 'unknown',
                     confidence: 0,
-                    provenance: []
+                    trace: []
                   };
                 }
 

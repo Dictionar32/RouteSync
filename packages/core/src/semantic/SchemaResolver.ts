@@ -41,9 +41,9 @@ export class SchemaResolver {
               type: fieldType as any,
               nullable: isNullable,
               confidence: varName === 'this' ? 100 : 90,
-              provenance: [
+              trace: [
                  { 
-                    step: 'kernel_resolve', 
+                    source: 'SchemaResolver', 
                     input: propertyName, 
                     output: fieldType, 
                     rule: `Strict lookup from Schema Model ${targetModelName}.${propertyName}` 
@@ -61,9 +61,9 @@ export class SchemaResolver {
        status: 'unknown',
        type: 'unknown',
        confidence: 0,
-       provenance: [
+       trace: [
           { 
-             step: 'kernel_resolve', 
+             source: 'SchemaResolver', 
              input: propertyName, 
              output: 'unknown', 
              rule: `No evidence found in Schema Model ${targetModelName || 'Unknown'}` 

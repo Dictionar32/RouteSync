@@ -21,7 +21,7 @@ export class SemanticKernelV2 {
         status: 'resolved',
         type: normalizedAst.type as any,
         confidence: 100,
-        provenance: []
+        trace: []
       };
     }
 
@@ -33,7 +33,7 @@ export class SemanticKernelV2 {
         resource: normalizedAst.target.resource,
         collection: !!normalizedAst.target.collection,
         confidence: 100,
-        provenance: []
+        trace: []
       };
     }
 
@@ -44,7 +44,7 @@ export class SemanticKernelV2 {
         resource: normalizedAst.target.resource,
         collection: false,
         confidence: 100,
-        provenance: []
+        trace: []
       };
     }
 
@@ -57,7 +57,7 @@ export class SemanticKernelV2 {
            resource: normalizedAst.resource,
            collection: normalizedAst.collection || true,
            confidence: 100,
-           provenance: []
+           trace: []
         };
       }
     }
@@ -73,7 +73,7 @@ export class SemanticKernelV2 {
                resource: resourceName,
                collection: false,
                confidence: 90,
-               provenance: []
+               trace: []
             };
          }
       }
@@ -92,7 +92,7 @@ export class SemanticKernelV2 {
         resource: normalizedAst.resource,
         collection: !!normalizedAst.collection,
         confidence: 100,
-        provenance: []
+        trace: []
       };
     }
 
@@ -102,16 +102,25 @@ export class SemanticKernelV2 {
         type: 'model',
         model: normalizedAst.model,
         confidence: 100,
-        provenance: []
+        trace: []
       };
     }
 
     if (normalizedAst.kind === 'static_method_call') {
-      const target = normalizedAst.target ? this.resolve(normalizedAst.target, context) : { status: 'unknown', type: 'unknown', confidence: 0, provenance: [] } as SemanticNode;
+      const target = normalizedAst.target ? this.resolve(normalizedAst.target, context) : { status: 'unknown', type: 'unknown', confidence: 0, trace: [] } as SemanticNode;
       const methodName = normalizedAst.name;
       if (target.status === 'resolved' && target.type === 'model') {
         const isCollection = ['all', 'get', 'paginate', 'cursorPaginate'].includes(methodName);
         const isPaginated = ['paginate', 'cursorPaginate'].includes(methodName);
+        const trace = [
+          ...target.trace,
+          {
+            source: 'SemanticKernelV2',
+            input: methodName,
+            output: `model ${target.model}`,
+            rule: `Static method call ${target.model}::${methodName}`
+          }
+        ];
         return {
           status: 'resolved',
           type: 'model',
@@ -119,15 +128,7 @@ export class SemanticKernelV2 {
           collection: isCollection,
           paginated: isPaginated,
           confidence: 90,
-          provenance: [
-            ...target.provenance,
-            {
-              step: 'kernel_resolve',
-              input: methodName,
-              output: `model ${target.model}`,
-              rule: `Static method call ${target.model}::${methodName}`
-            }
-          ]
+          trace
         };
       }
     }
@@ -143,7 +144,7 @@ export class SemanticKernelV2 {
         status: 'resolved',
         type: castedType,
         confidence: 100,
-        provenance: []
+        trace: []
       };
     }
 
@@ -166,15 +167,15 @@ export class SemanticKernelV2 {
           status: 'resolved',
           type: 'number',
           confidence: Math.max(leftNode.confidence, rightNode.confidence),
-          provenance: []
+          trace: []
         };
       }
     }
 
     // G. TERNARY EXPRESSIONS
     if (normalizedAst.kind === 'ternary') {
-      const truthyNode = normalizedAst.truthy ? this.resolve(normalizedAst.truthy, context) : { status: 'unknown', type: 'unknown', confidence: 0, provenance: [] } as SemanticNode;
-      const falsyNode = normalizedAst.falsy ? this.resolve(normalizedAst.falsy, context) : { status: 'unknown', type: 'unknown', confidence: 0, provenance: [] } as SemanticNode;
+      const truthyNode = normalizedAst.truthy ? this.resolve(normalizedAst.truthy, context) : { status: 'unknown', type: 'unknown', confidence: 0, trace: [] } as SemanticNode;
+      const falsyNode = normalizedAst.falsy ? this.resolve(normalizedAst.falsy, context) : { status: 'unknown', type: 'unknown', confidence: 0, trace: [] } as SemanticNode;
       
       if (truthyNode.status === 'resolved' && truthyNode.type !== 'unknown') {
         return truthyNode as any;
@@ -191,7 +192,7 @@ export class SemanticKernelV2 {
           status: 'resolved',
           type: 'string',
           confidence: 100,
-          provenance: []
+          trace: []
         };
       }
       if (['intval', 'floatval', 'doubleval', 'count'].includes(normalizedAst.name)) {
@@ -199,7 +200,7 @@ export class SemanticKernelV2 {
           status: 'resolved',
           type: 'number',
           confidence: 100,
-          provenance: []
+          trace: []
         };
       }
       if (['boolval'].includes(normalizedAst.name)) {
@@ -207,7 +208,7 @@ export class SemanticKernelV2 {
           status: 'resolved',
           type: 'boolean',
           confidence: 100,
-          provenance: []
+          trace: []
         };
       }
     }
@@ -227,139 +228,147 @@ export class SemanticKernelV2 {
                    const modelNode = this.graph.models[resolvedThis.model];
                    if (modelNode && (modelNode as any).relations && (modelNode as any).relations[relationName]) {
                       const relation = (modelNode as any).relations[relationName];
-                      return {
-                         status: 'resolved',
-                         type: 'model',
-                         model: relation.model,
-                         collection: ['hasMany', 'belongsToMany', 'morphMany', 'morphToMany', 'morphedByMany'].includes(relation.type),
-                         confidence: 100,
-                         provenance: []
-                      };
-                   }
-                }
-             }
-          } else { // when / mergeWhen
-             if (args.length >= 2) {
-                return this.resolve(args[1], context);
-             }
-          }
-       }
-
-       // 2. Fallback to target resolution
-       const resolvedTarget = this.resolve(normalizedAst.target, context);
-       if (['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(normalizedAst.name || '')) {
-          return {
-             status: 'resolved',
-             type: 'string',
-             confidence: resolvedTarget.confidence,
-             provenance: [
-                ...resolvedTarget.provenance,
-                {
-                   step: 'kernel_resolve',
-                   input: normalizedAst.name || '',
-                   output: 'string',
-                   rule: `Carbon date method call`
-                }
-             ]
-          };
-       }
-
-        if (resolvedTarget.status === 'resolved' && resolvedTarget.type === 'model') {
-           if (['all', 'get', 'paginate', 'cursorPaginate'].includes(normalizedAst.name || '')) {
-              return {
-                 ...resolvedTarget,
-                 collection: true,
-                 paginated: ['paginate', 'cursorPaginate'].includes(normalizedAst.name || ''),
-                 provenance: [
-                    ...resolvedTarget.provenance,
-                    {
-                       step: 'kernel_resolve',
-                       input: normalizedAst.name || '',
-                       output: resolvedTarget.model || 'unknown',
-                       rule: `Eloquent query collection method ${normalizedAst.name}`
+                       return {
+                          status: 'resolved',
+                          type: 'model',
+                          model: relation.model,
+                          collection: ['hasMany', 'belongsToMany', 'morphMany', 'morphToMany', 'morphedByMany'].includes(relation.type),
+                          confidence: 100,
+                          trace: []
+                       };
                     }
-                 ]
-              };
-           }
-           if (['find', 'findOrFail', 'first', 'firstOrFail', 'create'].includes(normalizedAst.name || '')) {
-              return {
-                 ...resolvedTarget,
-                 collection: false,
-                 provenance: [
-                    ...resolvedTarget.provenance,
-                    {
-                       step: 'kernel_resolve',
-                       input: normalizedAst.name || '',
-                       output: resolvedTarget.model || 'unknown',
-                       rule: `Eloquent query single instance method ${normalizedAst.name}`
-                    }
-                 ]
-              };
-           }
-           if (['count', 'sum', 'avg', 'min', 'max'].includes(normalizedAst.name || '')) {
-              return {
-                 status: 'resolved',
-                 type: 'number',
-                 confidence: Math.min(resolvedTarget.confidence, 100),
-                 provenance: [
-                    ...resolvedTarget.provenance,
-                    { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'number', rule: 'Aggregate query method' }
-                 ]
-              };
-           }
-           if (['exists', 'doesntExist'].includes(normalizedAst.name || '')) {
-              return {
-                 status: 'resolved',
-                 type: 'boolean',
-                 confidence: Math.min(resolvedTarget.confidence, 100),
-                 provenance: [
-                    ...resolvedTarget.provenance,
-                    { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'boolean', rule: 'Boolean query method' }
-                 ]
-              };
-           }
-           if (['pluck', 'toArray', 'jsonSerialize'].includes(normalizedAst.name || '')) {
-              return {
-                 status: 'resolved',
-                 type: 'array',
-                 confidence: Math.min(resolvedTarget.confidence, 90),
-                 provenance: [
-                    ...resolvedTarget.provenance,
-                    { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'array', rule: 'Conversion query method' }
-                 ]
-              };
+                 }
+              }
+           } else { // when / mergeWhen
+              if (args.length >= 2) {
+                 return this.resolve(args[1], context);
+              }
            }
         }
-
-       if (['createToken'].includes(normalizedAst.name || '')) {
-          return {
-             status: 'resolved',
-             type: 'object' as any,
-             fields: {
-                plainTextToken: 'string'
-             },
-             confidence: 100,
-             provenance: [
-                {
-                   step: 'kernel_resolve',
-                   input: 'createToken',
-                   output: 'object',
-                   rule: `Sanctum createToken method call`
-                }
-             ]
-          };
-       }
-
-        if (['validated', 'safe'].includes(normalizedAst.name || '')) {
+ 
+        // 2. Fallback to target resolution
+        const resolvedTarget = this.resolve(normalizedAst.target, context);
+        if (['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(normalizedAst.name || '')) {
+           const trace = [
+              ...resolvedTarget.trace,
+              {
+                 source: 'SemanticKernelV2',
+                 input: normalizedAst.name || '',
+                 output: 'string',
+                 rule: `Carbon date method call`
+              }
+           ];
+           return {
+              status: 'resolved',
+              type: 'string',
+              confidence: resolvedTarget.confidence,
+              trace
+           };
+        }
+ 
+         if (resolvedTarget.status === 'resolved' && resolvedTarget.type === 'model') {
+            if (['all', 'get', 'paginate', 'cursorPaginate'].includes(normalizedAst.name || '')) {
+               const trace = [
+                  ...resolvedTarget.trace,
+                  {
+                     source: 'SemanticKernelV2',
+                     input: normalizedAst.name || '',
+                     output: resolvedTarget.model || 'unknown',
+                     rule: `Eloquent query collection method ${normalizedAst.name}`
+                  }
+               ];
+               return {
+                  ...resolvedTarget,
+                  collection: true,
+                  paginated: ['paginate', 'cursorPaginate'].includes(normalizedAst.name || ''),
+                  trace
+               };
+            }
+            if (['find', 'findOrFail', 'first', 'firstOrFail', 'create'].includes(normalizedAst.name || '')) {
+               const trace = [
+                  ...resolvedTarget.trace,
+                  {
+                     source: 'SemanticKernelV2',
+                     input: normalizedAst.name || '',
+                     output: resolvedTarget.model || 'unknown',
+                     rule: `Eloquent query single instance method ${normalizedAst.name}`
+                  }
+               ];
+               return {
+                  ...resolvedTarget,
+                  collection: false,
+                  trace
+               };
+            }
+            if (['count', 'sum', 'avg', 'min', 'max'].includes(normalizedAst.name || '')) {
+               const trace = [
+                  ...resolvedTarget.trace,
+                  { source: 'SemanticKernelV2', input: normalizedAst.name || '', output: 'number', rule: 'Aggregate query method' }
+               ];
+               return {
+                  status: 'resolved',
+                  type: 'number',
+                  confidence: Math.min(resolvedTarget.confidence, 100),
+                  trace
+               };
+            }
+            if (['exists', 'doesntExist'].includes(normalizedAst.name || '')) {
+               const trace = [
+                  ...resolvedTarget.trace,
+                  { source: 'SemanticKernelV2', input: normalizedAst.name || '', output: 'boolean', rule: 'Boolean query method' }
+               ];
+               return {
+                  status: 'resolved',
+                  type: 'boolean',
+                  confidence: Math.min(resolvedTarget.confidence, 100),
+                  trace
+               };
+            }
+            if (['pluck', 'toArray', 'jsonSerialize'].includes(normalizedAst.name || '')) {
+               const trace = [
+                  ...resolvedTarget.trace,
+                  { source: 'SemanticKernelV2', input: normalizedAst.name || '', output: 'array', rule: 'Conversion query method' }
+               ];
+               return {
+                  status: 'resolved',
+                  type: 'array',
+                  confidence: Math.min(resolvedTarget.confidence, 90),
+                  trace
+               };
+            }
+         }
+ 
+        if (['createToken'].includes(normalizedAst.name || '')) {
+           const trace = [
+              {
+                 source: 'SemanticKernelV2',
+                 input: 'createToken',
+                 output: 'object',
+                 rule: `Sanctum createToken method call`
+              }
+           ];
            return {
               status: 'resolved',
               type: 'object' as any,
+              fields: {
+                 plainTextToken: 'string'
+              },
               confidence: 100,
-              provenance: [
-                 { step: 'kernel_resolve', input: normalizedAst.name || '', output: 'object', rule: 'Request validation method' }
-              ]
+              trace
            };
         }
+ 
+         if (['validated', 'safe'].includes(normalizedAst.name || '')) {
+            const trace = [
+               { source: 'SemanticKernelV2', input: normalizedAst.name || '', output: 'object', rule: 'Request validation method' }
+            ];
+            return {
+               status: 'resolved',
+               type: 'object' as any,
+               confidence: 100,
+               trace
+            };
+         }
 
         const builderMethods = [
           'where', 'whereIn', 'whereNotIn', 'whereNull', 'whereNotNull',
@@ -384,22 +393,24 @@ export class SemanticKernelV2 {
           const fieldVal = resolvedTarget.fields[propertyName];
           const fieldType = typeof fieldVal === 'object' && fieldVal ? (fieldVal as any).type : fieldVal;
           const isNullable = typeof fieldVal === 'object' && fieldVal ? !!(fieldVal as any).nullable : false;
+          const trace = [
+             ...resolvedTarget.trace,
+             {
+                source: 'SemanticKernelV2',
+                input: propertyName,
+                output: fieldType,
+                rule: `Field lookup from resolved object type fields.${propertyName}`
+             }
+          ];
           return {
              status: 'resolved',
              type: fieldType as any,
              nullable: isNullable,
              confidence: Math.min(resolvedTarget.confidence, 100),
-             provenance: [
-                {
-                   step: 'kernel_resolve',
-                   input: propertyName,
-                   output: fieldType,
-                   rule: `Field lookup from resolved object type fields.${propertyName}`
-                }
-             ]
+             trace
           };
        }
-
+ 
        if (resolvedTarget.status === 'resolved' && resolvedTarget.type === 'model' && resolvedTarget.model && this.graph && this.graph.models) {
           const modelNode = this.graph.models[resolvedTarget.model];
           if (modelNode) {
@@ -408,38 +419,42 @@ export class SemanticKernelV2 {
                 const fieldVal = modelNode.fields[propertyName];
                 const fieldType = typeof fieldVal === 'object' && fieldVal ? (fieldVal as any).type : fieldVal;
                 const isNullable = typeof fieldVal === 'object' && fieldVal ? !!(fieldVal as any).nullable : false;
+                const trace = [
+                   ...resolvedTarget.trace,
+                   {
+                      source: 'SemanticKernelV2',
+                      input: propertyName,
+                      output: fieldType,
+                      rule: `Field lookup from Schema Model ${resolvedTarget.model}.${propertyName}`
+                   }
+                ];
                 return {
                    status: 'resolved',
                    type: fieldType as any,
                    nullable: isNullable,
                    confidence: Math.min(resolvedTarget.confidence, 100),
-                   provenance: [
-                      {
-                         step: 'kernel_resolve',
-                         input: propertyName,
-                         output: fieldType,
-                         rule: `Field lookup from Schema Model ${resolvedTarget.model}.${propertyName}`
-                      }
-                   ]
+                   trace
                 };
              }
              // 2. Check model relations
              if ((modelNode as any).relations && (modelNode as any).relations[propertyName]) {
                 const relation = (modelNode as any).relations[propertyName];
+                const trace = [
+                   ...resolvedTarget.trace,
+                   {
+                      source: 'SemanticKernelV2',
+                      input: `${resolvedTarget.model}.${propertyName}`,
+                      output: relation.model,
+                      rule: `Relation lookup`
+                   }
+                ];
                 return {
                    status: 'resolved',
                    type: 'model',
                    model: relation.model,
                    collection: ['hasMany', 'belongsToMany', 'morphMany', 'morphToMany', 'morphedByMany'].includes(relation.type),
                    confidence: Math.min(resolvedTarget.confidence, 100),
-                   provenance: [
-                      {
-                         step: 'kernel_resolve',
-                         input: propertyName,
-                         output: relation.model,
-                         rule: `Relation lookup from Schema Model ${resolvedTarget.model}.${propertyName}`
-                      }
-                   ]
+                   trace
                 };
              }
              // 3. Check model accessors
@@ -450,20 +465,22 @@ export class SemanticKernelV2 {
                 if (accessor) {
                    const expr = accessor.expression || accessor;
                    if (expr && expr.status === 'resolved') {
+                      const trace = [
+                         ...resolvedTarget.trace,
+                         {
+                            source: 'SemanticKernelV2',
+                            input: propertyName,
+                            output: expr.type,
+                            rule: `Accessor lookup from Schema Model ${resolvedTarget.model}.${propertyName}`
+                         }
+                      ];
                       return {
                          status: 'resolved',
                          type: expr.type as any,
                          model: expr.model,
                          collection: !!expr.collection,
                          confidence: Math.min(resolvedTarget.confidence, 100),
-                         provenance: [
-                            {
-                               step: 'kernel_resolve',
-                               input: propertyName,
-                               output: expr.type,
-                               rule: `Accessor lookup from Schema Model ${resolvedTarget.model}.${propertyName}`
-                            }
-                         ]
+                         trace
                       };
                    }
                 }
@@ -471,29 +488,32 @@ export class SemanticKernelV2 {
           }
        }
        
+       const trace = [
+          ...resolvedTarget.trace,
+          {
+             source: 'SemanticKernelV2',
+             input: propertyName,
+             output: 'unknown',
+             rule: `Property not found in Schema Model ${resolvedTarget.model || 'Unknown'}`
+          }
+       ];
        return {
           status: 'unknown',
           type: 'unknown',
           confidence: 0,
-          provenance: [
-             {
-                step: 'kernel_resolve',
-                input: propertyName,
-                output: 'unknown',
-                rule: `Property not found in Schema Model ${resolvedTarget.model || 'Unknown'}`
-             }
-          ]
+          trace
        };
     }
 
     // Default: Unresolved (STRICT)
+    const trace = [
+      { source: 'SemanticKernelV2', input: normalizedAst.kind, output: 'unknown', rule: `Unsupported AST kind: ${normalizedAst.kind}` }
+    ];
     return {
       status: 'unknown',
       type: 'unknown',
       confidence: 0,
-      provenance: [
-        { step: 'fallback', input: normalizedAst.kind, output: 'unknown', rule: `Unsupported AST kind: ${normalizedAst.kind}` }
-      ]
+      trace
     };
   }
 
@@ -513,7 +533,7 @@ export class SemanticKernelV2 {
           type: 'model',
           model: contextModelName,
           confidence: 100,
-          provenance: []
+          trace: []
         };
       }
     }
@@ -535,7 +555,7 @@ export class SemanticKernelV2 {
           type: 'model',
           model: exactMatch,
           confidence: 80,
-          provenance: []
+          trace: []
         };
       }
       const capName = name.charAt(0).toUpperCase() + name.slice(1);
@@ -545,7 +565,7 @@ export class SemanticKernelV2 {
           type: 'model',
           model: capName,
           confidence: 70,
-          provenance: []
+          trace: []
         };
       }
     }
@@ -554,7 +574,7 @@ export class SemanticKernelV2 {
       status: 'unknown',
       type: 'unknown',
       confidence: 0,
-      provenance: []
+      trace: []
     };
   }
 }

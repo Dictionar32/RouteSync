@@ -1,3 +1,5 @@
+import { TraceNode, SemanticResolution } from './contract';
+
 /* =========================================================
  *  ROUTESYNC COMPILER CORE — IR v2 SPEC
  * ========================================================= */
@@ -201,40 +203,10 @@ export type SemanticType =
   | "nullable"
   | "unknown";
 
-export interface SemanticNode {
-  status: "resolved" | "partial" | "unknown";
-
+export interface SemanticNode extends SemanticResolution {
   type: SemanticType;
 
-  model?: string;
-
-  resource?: string;
-
-  collection?: boolean;
-
-  paginated?: boolean;
-
-  nullable?: boolean;
-
-  confidence: number; // 0 - 100
-
-  provenance: ProvenanceTrace[];
-
   fields?: Record<string, any>;
-}
-
-/* =========================
- *  7. PROVENANCE (DEBUG + AUDIT LAYER)
- * ========================= */
-
-export interface ProvenanceTrace {
-  step: "php_extract" | "ts_parse" | "kernel_resolve" | "fallback";
-
-  input: string;
-
-  output: string;
-
-  rule?: string;
 }
 
 /* =========================

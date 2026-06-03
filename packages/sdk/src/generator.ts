@@ -82,7 +82,7 @@ export class SdkGenerator {
     let responseContract: ResponseContract = {
        type: 'primitive',
        schema: { kind: "zod_unknown" },
-       semantic: { status: 'unknown', type: 'unknown', confidence: 0, provenance: [] },
+       semantic: { status: 'unknown', type: 'unknown', confidence: 0, trace: [] },
        confidence: 0
     };
     

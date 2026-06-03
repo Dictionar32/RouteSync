@@ -475,3 +475,5 @@ export interface ReactQueryHooks {
 
   enabled?: boolean;
 }
+
+export * from './contract';

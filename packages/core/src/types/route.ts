@@ -43,6 +43,7 @@ export interface ParsedRoute {
   group?: string
   action?: string
   response?: ResponseMetadata
+  assignments?: Record<string, string>
 }
 
 export interface ParsedColumn {

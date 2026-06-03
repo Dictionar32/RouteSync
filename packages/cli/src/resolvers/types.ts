@@ -36,8 +36,10 @@ export interface ResolutionResult {
   paginated?: boolean;
 }
 
+import { SemanticResolution } from '@routesync/core';
+
 export interface SemanticResolutionKernelContract {
-  resolve(meta: any, contextModel?: any): ResolutionResult;
+  resolve(meta: any, contextModel?: any): SemanticResolution;
   mapSqlTypeToTs(sqlType: string): string;
   mapCastToTs(castType: string, baseType: string): string;
 }

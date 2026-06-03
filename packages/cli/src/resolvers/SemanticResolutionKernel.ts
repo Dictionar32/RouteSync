@@ -1,3 +1,4 @@
+import { SemanticResolution } from '@routesync/core';
 import { ResolverPlugin, ResolutionResult, CycleDetector, SemanticResolutionKernelContract } from './types';
 import { PrimitiveResolver } from './plugins/PrimitiveResolver';
 import { ModelColumnResolver } from './plugins/ModelColumnResolver';
@@ -34,9 +35,9 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
     ];
   }
 
-  public resolve(meta: any, contextModel?: any): ResolutionResult {
+  public resolve(meta: any, contextModel?: any): SemanticResolution {
     if (!meta || meta.kind === 'unknown') {
-      return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: [], unresolvedReason: 'No metadata available' };
+      return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: [], unresolvedReason: 'No metadata available' } as any;
     }
 
     const context = {

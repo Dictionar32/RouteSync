@@ -239,7 +239,7 @@ export class ZodTierGenerator {
           if (hidden.includes(key)) continue
           
           // Skip if key is already output as an appended field (case-insensitive and camel/snake normalized)
-          const isAppended = appends.some(a => a.toLowerCase() === key.toLowerCase() || camelCase(a) === camelCase(key))
+          const isAppended = appends.some((a: string) => a.toLowerCase() === key.toLowerCase() || camelCase(a) === camelCase(key))
           if (isAppended) continue
 
           const safeName = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`

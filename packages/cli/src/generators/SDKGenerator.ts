@@ -33,6 +33,9 @@ export class SDKGenerator {
     }
     lines.push(``)
 
+    const knownModels = new Set(manifest.models?.map(m => m.name) || [])
+    const knownResources = new Set(manifest.resources?.map(r => r.name) || [])
+
     // Generate Contracts
     for (const [groupName, routes] of Object.entries(grouped)) {
       for (const route of routes) {
@@ -53,9 +56,18 @@ export class SDKGenerator {
         const buildResponseType = (meta: any): string => {
           if (!meta || meta.kind === 'unknown') return 'unknown'
           let baseType = 'unknown'
-          if (meta.kind === 'model') baseType = `Types.${meta.model}`
-          else if (meta.kind === 'resource') baseType = usesZod ? `Contract.${meta.resource}Response` : `Types.${meta.resource}Transformed`
-          else if (meta.kind === 'primitive') baseType = meta.type || 'unknown'
+          if (meta.kind === 'model') {
+            const resourceName = `${meta.model}Resource`
+            if (knownResources.has(resourceName)) {
+              baseType = usesZod ? `Contract.${resourceName}Response` : `Types.${resourceName}Transformed`
+            } else {
+              baseType = knownModels.has(meta.model) ? `Types.${meta.model}` : 'unknown'
+            }
+          } else if (meta.kind === 'resource') {
+            baseType = knownResources.has(meta.resource)
+              ? (usesZod ? `Contract.${meta.resource}Response` : `Types.${meta.resource}Transformed`)
+              : 'unknown'
+          } else if (meta.kind === 'primitive') baseType = meta.type || 'unknown'
           else if (meta.kind === 'object') {
             const fields = Object.entries(meta.fields).map(([k, v]) => `${k}: ${buildResponseType(v)}`).join(', ')
             return `{ ${fields} }`
@@ -103,7 +115,7 @@ export class SDKGenerator {
         if (options.zod && route.schema?.rules) {
           lines.push(`      schema: { body: Schemas.${SchemaName} },`)
         }
-        if (options.zod && options.models && route.response && route.response.kind === 'model') {
+        if (options.zod && options.models && route.response && route.response.kind === 'model' && knownModels.has(route.response.model)) {
           const responseSchema = `Schemas.${route.response.model}Schema${route.response.collection ? '.array()' : ''}`
           lines.push(`      responseSchema: ${responseSchema},`)
         }

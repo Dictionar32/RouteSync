@@ -20,7 +20,7 @@ export interface ExpressionNode {
 }
 
 export interface EvidenceNode {
-  kind: 'accessor' | 'relation' | 'column' | 'function' | 'method_call' | 'resource_mapping' | 'primitive' | 'model' | 'fallback';
+  kind: 'accessor' | 'relation' | 'column' | 'function' | 'method_call' | 'resource_mapping' | 'primitive' | 'model' | 'fallback' | 'variable' | 'property_access';
   name: string;
   detail?: string;
 }

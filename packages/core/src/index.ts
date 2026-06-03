@@ -37,3 +37,6 @@ export type {
   ResponseSchema
 } from './types/request'
 export type { RouteManifest, ParsedRoute, ParsedChannel, ParsedModel, ParsedColumn, ResponseMetadata, ParsedResource } from './types/route'
+export { SemanticKernelV2 as SemanticKernelV2Impl } from './semantic/SemanticKernelV2'
+export * from './types/semantic'
+export * from './types/emit'

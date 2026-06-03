@@ -69,12 +69,13 @@ export class ExpressionResolver implements ResolverPlugin {
                   return { status: 'resolved', type: 'string', confidence: 90, evidence: ev };
               }
               
-              // The type might be a Model name, e.g. 'User' or 'Payment'
-              const tm = context.models.find((m: any) => m.name === targetRes.type || m.name.toLowerCase() === targetRes.type.toLowerCase());
+              const targetType = targetRes.type;
+              const typeLower = targetType?.toLowerCase();
+              const tm = targetType && typeLower ? context.models.find((m: any) => m.name === targetType || m.name.toLowerCase() === typeLower) : undefined;
               if (tm) {
                   targetModel = tm;
               } else {
-                  return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: ev, unresolvedReason: `Target type ${targetRes.type} is not a known model` };
+                  return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: ev, unresolvedReason: `Target type ${targetType || 'unknown'} is not a known model` };
               }
           } else if (meta.target.kind === 'model') {
               const tm = context.models.find((m: any) => m.name === meta.target.model);

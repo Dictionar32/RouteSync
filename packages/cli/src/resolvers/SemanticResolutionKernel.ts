@@ -58,8 +58,9 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
 
   public mapSqlTypeToTs(sqlType: string): string {
     const s = sqlType.toLowerCase()
-    if (s.includes('int') || s.includes('decimal') || s.includes('float') || s.includes('double') || s.includes('numeric')) return 'number'
+    if (s === 'mixed' || s === 'unknown') return 'unknown'
     if (s.includes('bool') || s.includes('tinyint(1)')) return 'boolean'
+    if (s.includes('int') || s.includes('decimal') || s.includes('float') || s.includes('double') || s.includes('numeric')) return 'number'
     return 'string'
   }
 

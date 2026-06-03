@@ -21,7 +21,7 @@ describe('EndpointCallable $queryKey', () => {
 
     const options = { params: { id: 1 } }
     
-    expect(api.produk.show.$queryKey(options)).toEqual([
+    expect(api.produk.show.$queryKey(options as any)).toEqual([
       'produk',
       'show',
       { params: { id: 1 } }

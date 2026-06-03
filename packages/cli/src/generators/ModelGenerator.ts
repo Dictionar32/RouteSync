@@ -54,12 +54,16 @@ export class ModelGenerator {
   private static mapSqlTypeToTs(sqlType: string): string {
     const type = sqlType.toLowerCase()
     
-    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
-      return 'number'
+    if (type === 'mixed' || type === 'unknown') {
+      return 'unknown'
     }
     
     if (type.includes('bool') || type.includes('tinyint(1)')) {
       return 'boolean'
+    }
+    
+    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
+      return 'number'
     }
     
     if (type.includes('json')) {

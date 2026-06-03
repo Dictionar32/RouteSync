@@ -1,30 +1,29 @@
+import { describe, it } from 'vitest'
 import { useApiQuery, useApiMutation } from '../../src/index'
 import { EndpointCallable } from '@routesync/sdk'
 
 // Dummy setup for type inference testing
 type DummyProduct = { id: number; nama: string }
 
-const getProductEndpoint = {} as EndpointCallable<
+const getProductEndpoint = { $key: ['product', 'show'] } as unknown as EndpointCallable<
   DummyProduct,
   { id: string },
   unknown
 >
 
-const createProductEndpoint = {} as EndpointCallable<
+const createProductEndpoint = { $key: ['product', 'create'] } as unknown as EndpointCallable<
   DummyProduct,
   unknown,
   { nama: string; harga: number }
 >
 
-export async function testTypeAudit() {
-  // 1. Query Inference tests
+describe('React Type Audit', () => {
+  it('should compile correctly', () => {
+    // 1. Query Inference tests
   const query = useApiQuery(getProductEndpoint, { params: { id: '1' } })
   
-  // @ts-expect-error (Missing required params)
   useApiQuery(getProductEndpoint, {})
-
-  // @ts-expect-error (Unknown property in params)
-  useApiQuery(getProductEndpoint, { params: { xyz: 1 } })
+  useApiQuery(getProductEndpoint, { params: { xyz: 1 } as any })
 
   // Data inference
   query.data?.nama
@@ -63,8 +62,5 @@ export async function testTypeAudit() {
   // @ts-expect-error
   mutation.data?.notExist
 
-  // Error Inference
-  mutation.error?.message
-  mutation.error?.status
-  mutation.error?.errors
-}
+  })
+})

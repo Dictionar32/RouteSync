@@ -21,7 +21,7 @@ export class PhpCodeParser {
     try {
       const ast = this.parser.parseCode(`<?php $val = ${code};`, 'eval');
       if (ast && ast.children && ast.children.length > 0) {
-        const expr = ast.children[0];
+        const expr = ast.children[0] as any;
         if (expr.kind === 'expressionstatement' && expr.expression && expr.expression.kind === 'assign') {
           return this.mapNode(expr.expression.right);
         }
@@ -43,15 +43,82 @@ export class PhpCodeParser {
       }
     }
 
-    if (node.kind === 'call') {
+    if (node.kind === 'nullsafepropertylookup') {
       const target = this.mapNode(node.what);
-      let name = null;
-      if (node.what && node.what.kind === 'propertylookup') {
-        name = node.what.offset?.name;
-      } else if (node.what && node.what.kind === 'identifier') {
-        name = node.what.name;
+      const property = node.offset?.name || (node.offset?.kind === 'identifier' ? node.offset.name : null);
+      if (property) {
+        return { kind: 'nullsafe_property_access', target, property };
       }
-      return { kind: 'method_call', target, name };
+    }
+
+    if (node.kind === 'bin') {
+      return {
+        kind: 'binary_expression',
+        operator: node.type,
+        left: this.mapNode(node.left),
+        right: this.mapNode(node.right)
+      };
+    }
+
+    if (node.kind === 'cast') {
+      return {
+        kind: 'type_cast',
+        castType: node.type,
+        expression: this.mapNode(node.expr)
+      };
+    }
+
+    if (node.kind === 'retif') {
+      return {
+        kind: 'ternary',
+        condition: this.mapNode(node.test),
+        truthy: this.mapNode(node.trueExpr),
+        falsy: this.mapNode(node.falseExpr)
+      };
+    }
+
+    if (node.kind === 'nullkeyword') {
+      return { kind: 'primitive', type: 'null' };
+    }
+
+    if (node.kind === 'arrowfunc') {
+      return this.mapNode(node.body);
+    }
+
+    if (node.kind === 'closure') {
+      if (node.body && Array.isArray(node.body.children)) {
+        const retStmt = node.body.children.find((s: any) => s.kind === 'return');
+        if (retStmt) {
+          return this.mapNode(retStmt.expr);
+        }
+      }
+    }
+
+    if (node.kind === 'new') {
+      const className = node.what?.name || '';
+      const baseName = className.split('\\').pop() || '';
+      return {
+        kind: 'new_instance',
+        target: { kind: 'property_access', target: null, property: baseName },
+        resource: baseName.endsWith('Resource') ? baseName : undefined
+      };
+    }
+
+    if (node.kind === 'call') {
+      let target = null;
+      let name = null;
+      if (node.what && (node.what.kind === 'identifier' || node.what.kind === 'name')) {
+        name = node.what.name;
+      } else {
+        if (node.what && (node.what.kind === 'propertylookup' || node.what.kind === 'nullsafepropertylookup')) {
+          target = this.mapNode(node.what.what);
+          name = node.what.offset?.name || (node.what.offset?.kind === 'identifier' ? node.what.offset.name : null);
+        } else {
+          target = this.mapNode(node.what);
+        }
+      }
+      const args = Array.isArray(node.arguments) ? node.arguments.map((arg: any) => this.mapNode(arg)) : [];
+      return { kind: 'method_call', target, name, arguments: args };
     }
 
     if (node.kind === 'variable') {
@@ -70,9 +137,10 @@ export class PhpCodeParser {
     }
 
     // Try to guess from primitive values
-    if (node.kind === 'string' || node.kind === 'encapsed') return { kind: 'primitive', type: 'string' };
-    if (node.kind === 'number') return { kind: 'primitive', type: 'number' };
-    if (node.kind === 'boolean') return { kind: 'primitive', type: 'boolean' };
+    if (node.kind === 'string') return { kind: 'primitive', type: 'string', value: node.value };
+    if (node.kind === 'encapsed') return { kind: 'primitive', type: 'string' };
+    if (node.kind === 'number') return { kind: 'primitive', type: 'number', value: Number(node.value) };
+    if (node.kind === 'boolean') return { kind: 'primitive', type: 'boolean', value: !!node.value };
 
     return { kind: 'primitive', type: 'unknown' };
   }

@@ -24,6 +24,7 @@ export type ResourceFieldKind =
 export interface ParsedResource {
   name: string // e.g., UserResource
   fields: Record<string, ResourceFieldKind>
+  assignments?: Record<string, string>
 }
 
 export type ResponseMetadata =
@@ -57,4 +58,6 @@ export interface ParsedModel {
   hidden?: string[]
   appends?: string[]
   casts?: Record<string, string>
+  accessors?: Record<string, any>
+  relations?: Record<string, { type: string; model: string }>
 }

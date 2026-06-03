@@ -1,10 +1,111 @@
-import { RouteManifest, camelCase, RouteMetadata } from '@routesync/core'
+import { RouteManifest, camelCase } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
-import { buildGeneratedRoutes, toTypeName } from './names'
+import { buildGeneratedRoutes, toTypeName, GeneratedRoute } from './names'
 
 export class ZodTierGenerator {
+  private static knownSchemas = new Set<string>()
+
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
+    this.knownSchemas.clear()
+    if (manifest.models) {
+      manifest.models.forEach(m => this.knownSchemas.add(`${m.name}Schema`))
+    }
+    if (manifest.resources) {
+      manifest.resources.forEach(r => this.knownSchemas.add(`${r.name}Schema`))
+    }
+
+    const { SemanticKernelV2 } = require('@routesync/core/src/semantic/SemanticKernelV2')
+    const { ServiceGraphBuilder } = require('@routesync/core/src/graph/ServiceGraphBuilder')
+    const { PhpCodeParser } = require('../parsers/PhpCodeParser')
+
+    const kernel = new SemanticKernelV2()
+    const graphBuilder = new ServiceGraphBuilder()
+    
+    // Build a simple graph of models
+    if (manifest.models) {
+      manifest.models.forEach(m => {
+        const modelNode = graphBuilder.buildModelNode(m.name)
+        const fields: Record<string, any> = {}
+        m.columns.forEach(col => {
+          let type = 'string'
+          const lower = col.type.toLowerCase()
+          if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
+          else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+          fields[col.name] = { type, nullable: !!col.nullable }
+        })
+        modelNode.fields = fields as any
+        if (m.relations) {
+          (modelNode as any).relations = m.relations
+        }
+        if (m.accessors) {
+          (modelNode as any).accessors = m.accessors
+        }
+        graphBuilder.getGraph().models[m.name] = modelNode
+      })
+    }
+    kernel.loadGraph(graphBuilder.getGraph())
+
+    // Patch resources with Kernel
+    if (manifest.resources) {
+      manifest.resources.forEach(res => {
+        const modelName = res.name.replace(/Resource$/, '')
+        
+        // Pre-parse assignments
+        const parsedAssignments: Record<string, any> = {};
+        if (res.assignments) {
+          for (const varName in res.assignments) {
+            const code = res.assignments[varName];
+            parsedAssignments[varName] = PhpCodeParser.parseExpression(code, {});
+          }
+        }
+
+        const patchField = (field: any) => {
+          if (!field) return;
+          if (field.kind === 'object' && field.fields) {
+            Object.values(field.fields).forEach(f => patchField(f));
+          } else {
+            const meta = field.resolved || field.semantic;
+            const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
+            if ((!meta || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
+              const context = { layer: 'resource', fileName: res.name, modelMap: {}, relationMap: {}, assignments: parsedAssignments } as any
+              const resolved = kernel.resolve(ast, context)
+              if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+                field.resolved = resolved
+              }
+            }
+          }
+        }
+
+        Object.values(res.fields).forEach((field: any) => {
+          patchField(field);
+        })
+      })
+    }
+
+    // Patch routes with Kernel
+    if (manifest.routes) {
+      manifest.routes.forEach(route => {
+        const resolveResponse = (meta: any) => {
+          if (!meta) return;
+          if (meta.kind === 'object' && meta.fields) {
+            Object.values(meta.fields).forEach((field: any) => {
+              const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
+              if (ast) {
+                  const context = { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {} } as any
+                  const resolved = kernel.resolve(ast, context)
+                  if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+                    field.resolved = resolved
+                  }
+              }
+              resolveResponse(field);
+            });
+          }
+        };
+        resolveResponse(route.response);
+      });
+    }
+
     const groupedRoutes = buildGeneratedRoutes(manifest.routes)
     const allRoutes: any[] = []
     for (const group of Object.values(groupedRoutes)) {
@@ -18,7 +119,7 @@ export class ZodTierGenerator {
     await fs.ensureDir(contractDir)
       
     // Write the 3 unified files directly to contractDir
-    await this.generateContract(contractDir, allRoutes, allModels, allResources)
+    await this.generateContract(contractDir, allRoutes, allModels, allResources, kernel)
     await this.generateSchema(contractDir, allRoutes, allModels)
     await this.generateField(contractDir, allRoutes, allModels)
 
@@ -38,7 +139,7 @@ export class ZodTierGenerator {
   }
 
   // 1. api-contract.ts (Backend Responses - Snake Case)
-  private static async generateContract(dir: string, routes: RouteMetadata[], models: any[], resources: any[]): Promise<void> {
+  private static async generateContract(dir: string, routes: GeneratedRoute[], models: any[], resources: any[], kernel?: any): Promise<void> {
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
     lines.push(`import { z } from 'zod'`)
@@ -67,23 +168,46 @@ export class ZodTierGenerator {
         lines.push(`  ${safeName}: ${zType},`)
       }
       
+      const getZodTypeFromAccessor = (accessor: any): string => {
+        const expr = accessor?.expression
+        if (!expr) return 'z.unknown()'
+        if (expr.type === 'number') return 'z.number()'
+        if (expr.type === 'boolean') return 'z.boolean()'
+        if (expr.type === 'string') return 'z.string()'
+        if (expr.type === 'model' && expr.model) {
+          const schemaName = `${expr.model}Schema`
+          return this.knownSchemas.has(schemaName) ? schemaName : 'z.unknown()'
+        }
+        if (expr.type === 'resource' && expr.resource) {
+          const schemaName = `${expr.resource}Schema`
+          return this.knownSchemas.has(schemaName) ? schemaName : 'z.unknown()'
+        }
+        return 'z.unknown()'
+      }
+
       const appends = Array.isArray(model.appends) ? model.appends : []
       for (const append of appends) {
         const safeAppend = append.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? append : `"${append}"`
-        lines.push(`  ${safeAppend}: z.unknown().optional(), // appended`)
+        let zType = 'z.unknown()'
+        if (model.accessors) {
+          const accessor = model.accessors[append] || model.accessors[camelCase(append)]
+          if (accessor) {
+            zType = getZodTypeFromAccessor(accessor)
+          }
+        }
+        lines.push(`  ${safeAppend}: ${zType}.optional(), // appended`)
       }
 
       if (model.accessors) {
         for (const [key, accessor] of Object.entries(model.accessors)) {
           if (hidden.includes(key)) continue
+          
+          // Skip if key is already output as an appended field (case-insensitive and camel/snake normalized)
+          const isAppended = appends.some(a => a.toLowerCase() === key.toLowerCase() || camelCase(a) === camelCase(key))
+          if (isAppended) continue
+
           const safeName = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
-          const expr = (accessor as any)?.expression
-          let zType = 'z.unknown()'
-          if (expr && expr.type) {
-            if (expr.type === 'number') zType = 'z.number()'
-            else if (expr.type === 'boolean') zType = 'z.boolean()'
-            else if (expr.type === 'string') zType = 'z.string()'
-          }
+          const zType = getZodTypeFromAccessor(accessor)
           lines.push(`  ${safeName}: ${zType}.optional(), // accessor attribute`)
         }
       }
@@ -96,30 +220,93 @@ export class ZodTierGenerator {
     }
 
     // Resources -> Zod Schemas
-    for (const resource of resources) {
-      hasExports = true
-      lines.push(`export const ${resource.name}Schema: z.ZodType<any> = z.lazy(() => z.object({`)
-      
-      for (const [fieldName, fieldDef] of Object.entries(resource.fields)) {
-        const safeName = fieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? fieldName : `"${fieldName}"`
-        let zType = 'z.unknown()'
-        
-        if (fieldDef.kind === 'primitive') {
-          if (fieldDef.type === 'number') zType = 'z.number()'
-          else if (fieldDef.type === 'string') zType = 'z.string()'
-          else if (fieldDef.type === 'boolean') zType = 'z.boolean()'
-          else if (fieldDef.type === 'null') zType = 'z.null()'
-        } else if (fieldDef.kind === 'model') {
-          zType = fieldDef.collection ? `z.array(${fieldDef.model}Schema)` : `${fieldDef.model}Schema`
-        } else if (fieldDef.kind === 'resource') {
-          zType = fieldDef.collection ? `z.array(${fieldDef.resource}Schema)` : `${fieldDef.resource}Schema`
-        } else if (fieldDef.kind === 'object') {
-          zType = 'z.record(z.string(), z.unknown())' // simplified for now
+    // Build dependency map
+    const depMap = new Map<string, Set<string>>()
+    const knownResourceNames = new Set(resources.map(r => r.name))
+    for (const r of resources) {
+      const deps = new Set<string>()
+      if (r.fields) {
+        for (const fieldDef of Object.values(r.fields)) {
+          const fieldRefs = this.getReferencedResources(fieldDef, knownResourceNames)
+          for (const ref of fieldRefs) {
+            deps.add(ref)
+          }
         }
-        
+      }
+      depMap.set(r.name, deps)
+    }
+
+    const visited = new Set<string>()
+    const recStack = new Set<string>()
+    const circularResources = new Set<string>()
+    const sortedList: string[] = []
+
+    const dfs = (node: string) => {
+      visited.add(node)
+      recStack.add(node)
+
+      const neighbors = depMap.get(node) || new Set<string>()
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor)) {
+          dfs(neighbor)
+        } else if (recStack.has(neighbor)) {
+          circularResources.add(node)
+          circularResources.add(neighbor)
+          for (const s of recStack) {
+            circularResources.add(s)
+          }
+        }
+      }
+
+      recStack.delete(node)
+      sortedList.push(node)
+    }
+
+    for (const r of resources) {
+      if (!visited.has(r.name)) {
+        dfs(r.name)
+      }
+    }
+
+    const resourceMap = new Map<string, any>()
+    for (const r of resources) {
+      resourceMap.set(r.name, r)
+    }
+
+    for (const rName of sortedList) {
+      const resource = resourceMap.get(rName)
+      if (!resource) continue
+      hasExports = true
+
+      const isCircular = circularResources.has(rName)
+      if (isCircular) {
+        lines.push(`export const ${resource.name}Schema = z.lazy(() => z.object({`)
+      } else {
+        lines.push(`export const ${resource.name}Schema = z.object({`)
+      }
+      
+      const parsedAssignments: Record<string, any> = {};
+      if (resource.assignments) {
+        const { PhpCodeParser } = require('../parsers/PhpCodeParser')
+        for (const varName in resource.assignments) {
+          const code = resource.assignments[varName];
+          parsedAssignments[varName] = PhpCodeParser.parseExpression(code, {});
+        }
+      }
+
+      for (const [fieldName, fieldDefRaw] of Object.entries(resource.fields as Record<string, any>)) {
+        const fieldDef = fieldDefRaw as any
+        const safeName = fieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? fieldName : `"${fieldName}"`
+        const context = { layer: 'resource', fileName: resource.name, modelMap: {}, relationMap: {}, assignments: parsedAssignments };
+        let zType = this.buildResponseZodType(fieldDef, kernel, context, fieldName)
         lines.push(`  ${safeName}: ${zType},`)
       }
-      lines.push(`}))`)
+      
+      if (isCircular) {
+        lines.push(`}))`)
+      } else {
+        lines.push(`})`)
+      }
       lines.push(``)
       lines.push(`export type ${resource.name}Response = z.infer<typeof ${resource.name}Schema>`)
       lines.push(`export const validate${resource.name} = (payload: unknown): ${resource.name}Response => ${resource.name}Schema.parse(payload)`)
@@ -139,7 +326,7 @@ export class ZodTierGenerator {
         hasExports = true
         const ruleTree = this.buildRuleTree(route.schema.rules)
         const rootNode = { children: ruleTree, rules: 'required' }
-        lines.push(`export const ${KeyName}PayloadSchema = ${this.generateZodRecursive(rootNode, 'root')}`)
+        lines.push(`export const ${KeyName}PayloadSchema = ${this.generateZodRecursive(rootNode, 'root', false)}`)
         lines.push(`export type ${KeyName}Payload = z.infer<typeof ${KeyName}PayloadSchema>`)
         lines.push(`export const validate${KeyName}Payload = (payload: unknown): ${KeyName}Payload => ${KeyName}PayloadSchema.parse(payload)`)
         lines.push(``)
@@ -147,7 +334,7 @@ export class ZodTierGenerator {
 
       if (route.response) {
         hasExports = true
-        let zType = this.buildResponseZodType(route.response)
+        let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {} })
 
         lines.push(`export const ${KeyName}ResponseSchema = ${zType}`)
         lines.push(`export type ${KeyName}Response = z.infer<typeof ${KeyName}ResponseSchema>`)
@@ -161,38 +348,172 @@ export class ZodTierGenerator {
     }
   }
 
-  private static buildResponseZodType(meta: any): string {
-    if (!meta || meta.kind === 'unknown') return 'z.unknown()'
+  private static getReferencedResources(field: any, knownResourceNames: Set<string>): Set<string> {
+    const refs = new Set<string>()
+    if (!field) return refs
+
+    const walk = (node: any) => {
+      if (!node) return
+      
+      if (node.kind === 'literal' && typeof node.code === 'string' && node.code.startsWith('{"kind":')) {
+        try {
+          const parsed = JSON.parse(node.code)
+          walk(parsed)
+          return
+        } catch (e) {}
+      }
+
+      let meta = node.resolved || node.semantic || node
+      
+      if (meta.type === 'model' || meta.kind === 'model') {
+        const resourceName = `${meta.model}Resource`
+        if (knownResourceNames.has(resourceName)) {
+          refs.add(resourceName)
+        }
+      } else if (meta.type === 'resource' || meta.kind === 'resource') {
+        if (knownResourceNames.has(meta.resource)) {
+          refs.add(meta.resource)
+        }
+      } else if (meta.type === 'object' || meta.kind === 'object') {
+        if (meta.fields) {
+          for (const val of Object.values(meta.fields)) {
+            walk(val)
+          }
+        }
+      } else {
+        if (meta.evidence && meta.evidence.length > 0 && meta.evidence[0].kind === 'model') {
+          const resourceName = `${meta.evidence[0].name}Resource`
+          if (knownResourceNames.has(resourceName)) {
+            refs.add(resourceName)
+          }
+        }
+      }
+    }
+
+    walk(field)
+    return refs
+  }
+
+  private static buildResponseZodType(payload: any, kernel?: any, context?: any, propertyName?: string): string {
+    if (!payload) return 'z.unknown()'
+    
+    // Check if it's already a string like "number", "string", "array" from a simple type map
+    if (typeof payload === 'string') {
+      if (payload === 'integer' || payload === 'number') return 'z.number()'
+      if (payload === 'string') return 'z.string()'
+      if (payload === 'boolean') return 'z.boolean()'
+      if (payload === 'array') return 'z.array(z.unknown())'
+      if (payload === 'object') return 'z.record(z.string(), z.unknown())'
+      return 'z.unknown()'
+    }
+
+    let meta = payload.resolved || payload.semantic || payload
+    
+    // Fast path for inline JSON ASTs from PHP extractor
+    const node = payload.node || payload;
+    if (node && node.kind === 'literal' && typeof node.code === 'string' && node.code.startsWith('{"kind":')) {
+      try {
+        const parsed = JSON.parse(node.code);
+        return this.buildResponseZodType(parsed, kernel, context, propertyName);
+      } catch (e) {}
+    }
+
+    // Attempt on-the-fly resolution if we have a kernel and an AST
+    let astToResolve = node?.parsed_ast || payload?.parsed_ast || (payload?.kind ? payload : null);
+    if (kernel && (!meta || !meta.status || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') && astToResolve) {
+       const resolved = kernel.resolve(astToResolve, context || { layer: 'route', modelMap: {}, relationMap: {} });
+       if (resolved.status === 'resolved' || resolved.status === 'partial') {
+          meta = resolved;
+          payload.resolved = resolved; // cache it!
+       }
+    }
+    
+    if (!meta || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') return 'z.unknown()'
     
     let baseZod = 'z.unknown()'
-    if (meta.kind === 'model') {
-      baseZod = `${meta.model}Schema`
-    } else if (meta.kind === 'resource') {
-      baseZod = `${meta.resource}Schema`
-    } else if (meta.kind === 'primitive') {
-      if (meta.type === 'number') baseZod = 'z.number()'
-      else if (meta.type === 'string') baseZod = 'z.string()'
-      else if (meta.type === 'boolean') baseZod = 'z.boolean()'
-    } else if (meta.kind === 'object') {
+    let isCollection = !!meta.collection
+    let isPaginated = !!meta.paginated
+
+    if (meta.type === 'model' || meta.kind === 'model') {
+      const resourceName = `${meta.model}Resource`
+      if (this.knownSchemas.has(`${resourceName}Schema`)) {
+        baseZod = `${resourceName}Schema`
+      } else {
+        const schemaName = `${meta.model}Schema`
+        baseZod = this.knownSchemas.has(schemaName) ? schemaName : 'z.unknown()'
+      }
+    } else if (meta.type === 'resource' || meta.kind === 'resource') {
+      const schemaName = `${meta.resource}Schema`
+      baseZod = this.knownSchemas.has(schemaName) ? schemaName : 'z.unknown()'
+    } else if (meta.type === 'number') {
+      baseZod = 'z.number()'
+    } else if (meta.type === 'string') {
+      baseZod = 'z.string()'
+    } else if (meta.type === 'boolean') {
+      baseZod = 'z.boolean()'
+    } else if (meta.type === 'null') {
+      baseZod = 'z.null()'
+    } else if (meta.type === 'any') {
+      baseZod = 'z.any()'
+    } else if (meta.type === 'object' || meta.kind === 'object') {
       if (!meta.fields || Object.keys(meta.fields).length === 0) {
         baseZod = 'z.record(z.string(), z.unknown())'
       } else {
-        const fields = Object.entries(meta.fields).map(([k, v]) => `${k}: ${this.buildResponseZodType(v)}`).join(', ')
+        const fields = Object.entries(meta.fields).map(([k, v]) => `${k}: ${this.buildResponseZodType(v, kernel, context, k)}`).join(', ')
         baseZod = `z.object({ ${fields} })`
+      }
+    } else if (meta.type === 'array' || meta.type === 'any[]' || meta.kind === 'array') {
+      baseZod = 'z.unknown()'
+      isCollection = true
+    } else {
+      // Check PHP Extractor fields (e.g. #[Response(Order::class)])
+      let isModel = false
+      let modelName = meta.type
+      
+      if (meta.evidence && meta.evidence.length > 0 && meta.evidence[0].kind === 'model') {
+        isModel = true
+        modelName = meta.evidence[0].name
+      }
+      
+      if (node && node.kind === 'literal' && typeof node.code === 'string' && node.code.includes('"kind":"model"')) {
+        isModel = true
+        if (node.code.includes('"collection":true')) isCollection = true
+        if (node.code.includes('"paginated":true')) isPaginated = true
+      }
+      
+      if (isModel) {
+        const schemaName = `${modelName}Schema`
+        if (this.knownSchemas.has(schemaName)) {
+          baseZod = schemaName
+        } else {
+          baseZod = 'z.unknown()'
+        }
+      } else if (typeof meta.type === 'string' && meta.type !== 'unknown') {
+        const schemaName = `${meta.type}Schema`
+        if (this.knownSchemas.has(schemaName)) {
+           baseZod = schemaName
+        } else {
+           baseZod = 'z.unknown()'
+        }
       }
     }
 
-    if (meta.collection) {
-      if (meta.paginated) {
-         return `z.object({ data: z.array(${baseZod}), current_page: z.number().optional(), total: z.number().optional() })`
+    let result = baseZod
+    if (isCollection) {
+      if (isPaginated) {
+         result = `z.object({ data: z.array(${baseZod}), current_page: z.number().optional(), total: z.number().optional() })`
+      } else {
+         result = `z.array(${baseZod})`
       }
-      return `z.array(${baseZod})`
     }
-    return baseZod
+    if (meta && meta.nullable === true) {
+      result = `${result}.nullable()`
+    }
+    return result
   }
 
   // 2. api-schema.ts (Frontend Forms - Camel Case)
-  private static async generateSchema(dir: string, routes: RouteMetadata[], models: any[]): Promise<void> {
+  private static async generateSchema(dir: string, routes: GeneratedRoute[], models: any[]): Promise<void> {
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
     lines.push(`import { z } from 'zod'`)
@@ -247,7 +568,7 @@ export class ZodTierGenerator {
   }
 
   // 3. api-field.ts (Mappers)
-  private static async generateField(dir: string, routes: RouteMetadata[], models: any[]): Promise<void> {
+  private static async generateField(dir: string, routes: GeneratedRoute[], models: any[]): Promise<void> {
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
     lines.push(``)
@@ -313,11 +634,14 @@ export class ZodTierGenerator {
 
   private static mapSqlTypeToZod(sqlType: string): string {
     const type = sqlType.toLowerCase()
-    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
-      return 'z.number()'
+    if (type === 'mixed' || type === 'unknown') {
+      return 'z.unknown()'
     }
     if (type.includes('bool') || type.includes('tinyint(1)')) {
       return 'z.boolean()'
+    }
+    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
+      return 'z.number()'
     }
     if (type.includes('json')) {
       return 'z.record(z.string(), z.unknown())'
@@ -368,11 +692,34 @@ export class ZodTierGenerator {
         lines.push(`  ${safeName}: ${tsType}`)
       }
       
+      const getTsTypeFromAccessor = (accessor: any): string => {
+        const expr = accessor?.expression
+        if (!expr) return 'unknown'
+        if (expr.type === 'number') return 'number'
+        if (expr.type === 'boolean') return 'boolean'
+        if (expr.type === 'string') return 'string'
+        if (expr.type === 'model' && expr.model) {
+          return `${expr.model}Transformed`
+        }
+        if (expr.type === 'resource' && expr.resource) {
+          return `${expr.resource}Transformed`
+        }
+        return 'unknown'
+      }
+
       const appends = Array.isArray(model.appends) ? model.appends : []
       for (const append of appends) {
         const camelAppend = camelCase(append)
         const safeAppend = camelAppend.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelAppend : `"${camelAppend}"`
-        lines.push(`  ${safeAppend}?: unknown // appended`)
+        
+        let tsType = 'unknown'
+        if (model.accessors) {
+          const accessor = model.accessors[append] || model.accessors[camelCase(append)]
+          if (accessor) {
+            tsType = getTsTypeFromAccessor(accessor)
+          }
+        }
+        lines.push(`  ${safeAppend}?: ${tsType} // appended`)
       }
       lines.push(`}`)
       lines.push(``)
@@ -387,26 +734,17 @@ export class ZodTierGenerator {
       hasExports = true
       lines.push(`export interface ${resource.name}Transformed {`)
       
-      for (const [fieldName, fieldDef] of Object.entries(resource.fields)) {
+      for (const [fieldName, fieldDefRaw] of Object.entries(resource.fields as Record<string, any>)) {
+        const fieldDef = fieldDefRaw as any
         const camelCol = camelCase(fieldName)
         const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
-        let tsType = 'unknown'
         
-        if (fieldDef.kind === 'primitive') {
-          if (fieldDef.type === 'number') tsType = 'number'
-          else if (fieldDef.type === 'string') tsType = 'string'
-          else if (fieldDef.type === 'boolean') tsType = 'boolean'
-          else if (fieldDef.type === 'null') tsType = 'null'
-        } else if (fieldDef.kind === 'model') {
-          tsType = fieldDef.collection ? `${fieldDef.model}Transformed[]` : `${fieldDef.model}Transformed`
-        } else if (fieldDef.kind === 'resource') {
-          tsType = fieldDef.collection ? `${fieldDef.resource}Transformed[]` : `${fieldDef.resource}Transformed`
-        } else if (fieldDef.kind === 'object') {
-          tsType = 'Record<string, unknown>'
-        }
+        const meta = fieldDef.resolved || fieldDef.semantic || fieldDef
+        let tsType = this.mapResolvedToTsType(meta)
         
         let optional = ''
-        if (fieldDef.kind === 'model' || fieldDef.kind === 'resource') {
+        const resolvedType = meta.type || meta.kind
+        if (resolvedType === 'model' || resolvedType === 'resource') {
            optional = '?'
         }
         lines.push(`  ${safeName}${optional}: ${tsType}`)
@@ -425,7 +763,7 @@ export class ZodTierGenerator {
   }
 
   // 5. api-form.ts (Frontend Forms Pure TS - Camel Case)
-  private static async generateForm(dir: string, routes: RouteMetadata[]): Promise<void> {
+  private static async generateForm(dir: string, routes: GeneratedRoute[]): Promise<void> {
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
     lines.push(``)
@@ -484,11 +822,14 @@ export class ZodTierGenerator {
 
   private static mapSqlTypeToTs(sqlType: string): string {
     const type = sqlType.toLowerCase()
-    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
-      return 'number'
+    if (type === 'mixed' || type === 'unknown') {
+      return 'unknown'
     }
     if (type.includes('bool') || type.includes('tinyint(1)')) {
       return 'boolean'
+    }
+    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
+      return 'number'
     }
     if (type.includes('json')) {
       return 'Record<string, unknown>'
@@ -511,7 +852,7 @@ export class ZodTierGenerator {
   }
 
   // 6. api-mapper.ts (Auto-Mapper from contract <-> read/form)
-  private static async generateMapper(dir: string, routes: RouteMetadata[], models: any[], resources: any[]): Promise<void> {
+  private static async generateMapper(dir: string, routes: GeneratedRoute[], models: any[], resources: any[]): Promise<void> {
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
     lines.push(``)
@@ -601,7 +942,8 @@ export class ZodTierGenerator {
       hasExports = true
       lines.push(`export const to${resource.name}Read = (api: ${resource.name}Response): ${resource.name}Transformed => ({`)
       
-      for (const [fieldName, fieldDef] of Object.entries(resource.fields)) {
+      for (const [fieldName, fieldDefRaw] of Object.entries(resource.fields as Record<string, any>)) {
+        const fieldDef = fieldDefRaw as any
         const camelCol = camelCase(fieldName)
         const safeCamel = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
         const safeOriginal = fieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `api.${fieldName}` : `api["${fieldName}"]`
@@ -670,9 +1012,9 @@ export class ZodTierGenerator {
     return tree
   }
 
-  private static generateZodRecursive(node: any, name: string): string {
+  private static generateZodRecursive(node: any, name: string, camelCaseKeys: boolean = true): string {
     if (node.children && node.children['*']) {
-      let innerType = this.generateZodRecursive(node.children['*'], '*')
+      let innerType = this.generateZodRecursive(node.children['*'], '*', camelCaseKeys)
       let zodRule = `z.array(${innerType})`
       if (name !== '*' && !node.rules.includes('required')) zodRule += '.optional()'
       if (node.rules.includes('nullable')) zodRule += '.nullable()'
@@ -682,9 +1024,9 @@ export class ZodTierGenerator {
     if (node.children && Object.keys(node.children).length > 0) {
       const props: string[] = []
       for (const [childName, childNode] of Object.entries(node.children)) {
-        const camelChild = camelCase(childName)
-        const safeName = camelChild.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelChild : `"${camelChild}"`
-        props.push(`    ${safeName}: ${this.generateZodRecursive(childNode, childName)},`)
+        const keyName = camelCaseKeys ? camelCase(childName) : childName
+        const safeName = keyName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? keyName : `"${keyName}"`
+        props.push(`    ${safeName}: ${this.generateZodRecursive(childNode, childName, camelCaseKeys)},`)
       }
       let zodRule = `z.object({\n${props.join('\n')}\n  })`
       if (name !== '*' && !node.rules.includes('required') && !node.rules.includes('array')) zodRule += '.optional()'
@@ -752,5 +1094,66 @@ export class ZodTierGenerator {
       }
     }
     return props.join('\n')
+  }
+
+  private static mapResolvedToTsType(meta: any): string {
+    if (!meta) return 'unknown'
+    
+    const type = meta.type || meta.kind
+    const model = meta.model
+    const resource = meta.resource
+    const collection = !!meta.collection
+    const nullable = !!meta.nullable
+    
+    let typeStr = 'unknown'
+
+    if (type === 'model') {
+      typeStr = model ? `${model}Transformed` : 'unknown'
+    } else if (type === 'resource') {
+      typeStr = resource ? `${resource}Transformed` : 'unknown'
+    } else if (type === 'number') {
+      typeStr = 'number'
+    } else if (type === 'string') {
+      typeStr = 'string'
+    } else if (type === 'boolean') {
+      typeStr = 'boolean'
+    } else if (type === 'null') {
+      typeStr = 'null'
+    } else if (type === 'any') {
+      typeStr = 'any'
+    } else if (type === 'object') {
+      if (!meta.fields || Object.keys(meta.fields).length === 0) {
+        typeStr = 'Record<string, unknown>'
+      } else {
+        const fields = Object.entries(meta.fields).map(([k, v]) => {
+          const subMeta = (v as any).resolved || (v as any).semantic || v
+          const camelK = camelCase(k)
+          const safeK = camelK.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelK : `"${camelK}"`
+          return `${safeK}: ${this.mapResolvedToTsType(subMeta)}`
+        }).join('; ')
+        typeStr = `{ ${fields} }`
+      }
+    } else if (type === 'array' || type === 'any[]') {
+      typeStr = 'unknown'
+    } else if (meta.kind === 'primitive') {
+      if (meta.type === 'number') typeStr = 'number'
+      else if (meta.type === 'string') typeStr = 'string'
+      else if (meta.type === 'boolean') typeStr = 'boolean'
+      else if (meta.type === 'null') typeStr = 'null'
+    }
+
+    if (collection) {
+      if (meta.paginated) {
+        typeStr = `{ data: ${typeStr}[]; currentPage?: number; total?: number }`
+      } else {
+        typeStr = `${typeStr}[]`
+      }
+    }
+
+    if (nullable && type !== 'null') {
+      typeStr = `(${typeStr}) | null`
+    }
+
+    return typeStr
   }
 }

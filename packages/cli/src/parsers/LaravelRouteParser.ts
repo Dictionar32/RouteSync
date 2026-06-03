@@ -238,6 +238,18 @@ foreach ($routes as $route) {
                     $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
                 }
 
+                $assignments = [];
+                if ($methodSource) {
+                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([^;]+);/s', $methodSource, $assignMatches)) {
+                        foreach ($assignMatches[1] as $idx => $varName) {
+                            if ($varName === 'request' || $varName === 'this') continue;
+                            $expr = trim($assignMatches[2][$idx]);
+                            if (str_contains($expr, 'return')) continue;
+                            $assignments[$varName] = $expr;
+                        }
+                    }
+                }
+
                 // Resource Discovery
                 if (!$responseMetadata && $methodSource) {
                     $resourceName = null;
@@ -289,19 +301,19 @@ foreach ($routes as $route) {
                     $symbolTable = [];
                     
                     // Level 90: Single instance assignments
-                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[a-zA-Z0-9_>\\\\(\\\\)\\\\s\\\'\\"-]*(?:find|findOrFail|create|first|firstOrFail|update|latest))/s', $methodSource, $matches)) {
+                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[^;]*?->)?(?:find|findOrFail|create|first|firstOrFail|update|latest)\\\\s*\\\\(/s', $methodSource, $matches)) {
                         foreach ($matches[1] as $idx => $var) {
                             $symbolTable[$var] = ['kind' => 'model', 'model' => $matches[2][$idx], 'collection' => false];
                         }
                     }
                     
                     // Level 80: Collection assignments
-                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[a-zA-Z0-9_>\\\\(\\\\)\\\\s\\\'\\"-]*(?:all|get))/s', $methodSource, $matches)) {
+                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[^;]*?->)?(?:all|get)\\\\s*\\\\(/s', $methodSource, $matches)) {
                         foreach ($matches[1] as $idx => $var) {
                             $symbolTable[$var] = ['kind' => 'model', 'model' => $matches[2][$idx], 'collection' => true];
                         }
                     }
-                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[a-zA-Z0-9_>\\\\(\\\\)\\\\s\\\'\\"-]*(?:paginate|cursorPaginate))/s', $methodSource, $matches)) {
+                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[^;]*?->)?(?:paginate|cursorPaginate)\\\\s*\\\\(/s', $methodSource, $matches)) {
                         foreach ($matches[1] as $idx => $var) {
                             $symbolTable[$var] = ['kind' => 'model', 'model' => $matches[2][$idx], 'collection' => true, 'paginated' => true];
                         }
@@ -373,7 +385,8 @@ foreach ($routes as $route) {
             'auth' => $auth,
             'middleware' => $middlewares,
             'schema' => empty($schema) ? null : ['rules' => $schema],
-            'response' => $responseMetadata
+            'response' => $responseMetadata,
+            'assignments' => empty($assignments) ? null : $assignments
         ];
     }
 }
@@ -406,15 +419,176 @@ if ($extractModels) {
                         ];
                     }
 
+                    $relations = [];
+                    $accessors = [];
+
+                    $docComment = $reflection->getDocComment();
+                    if ($docComment) {
+                        preg_match_all('/@property(?:-read)?\\s+([a-zA-Z0-9_|\\\\\\\\\\[\\]]+)\\s+\\$([a-zA-Z0-9_]+)/', $docComment, $docMatches);
+                        if (!empty($docMatches[2])) {
+                            foreach ($docMatches[2] as $idx => $propName) {
+                                $docType = strtolower($docMatches[1][$idx]);
+                                $typeStr = 'mixed';
+                                if (str_contains($docType, 'int') || str_contains($docType, 'float') || str_contains($docType, 'double')) {
+                                    $typeStr = 'number';
+                                } elseif (str_contains($docType, 'bool')) {
+                                    $typeStr = 'boolean';
+                                } elseif (str_contains($docType, 'string')) {
+                                    $typeStr = 'string';
+                                } elseif (str_contains($docType, 'array')) {
+                                    $typeStr = 'array';
+                                } else {
+                                    $typeStr = class_basename($docMatches[1][$idx]);
+                                }
+                                $accessors[$propName] = [
+                                    'expression' => null,
+                                    'type' => $typeStr
+                                ];
+                            }
+                        }
+                    }
+                    $fileName = $reflection->getFileName();
+                    $lines = ($fileName && is_file($fileName)) ? file($fileName) : [];
+                    if (is_array($lines) && !empty($lines)) {
+                        foreach ($reflection->getMethods() as $method) {
+                            if ($method->getDeclaringClass()->getName() !== $class) continue;
+
+                            $mStart = $method->getStartLine();
+                            $mEnd = $method->getEndLine();
+                            if ($mStart !== false && $mEnd !== false) {
+                                $mLines = array_slice($lines, $mStart - 1, $mEnd - $mStart + 1);
+                                $mSource = implode("", $mLines);
+                                
+                                // 1. Parse relationship
+                                if ($method->getNumberOfParameters() === 0 && preg_match('/\\$this->(belongsTo|hasMany|hasOne|belongsToMany|morphTo|morphMany|morphOne|morphToMany|morphedByMany)\\s*\\(\\s*([a-zA-Z0-9_\\\\\\\\]+)::class/i', $mSource, $relMatches)) {
+                                    $relModel = class_basename($relMatches[2]);
+                                    $relations[$method->getName()] = [
+                                        'type' => $relMatches[1],
+                                        'model' => $relModel
+                                    ];
+                                }
+                                
+                                // 2. Parse accessor (Attribute return type or Attribute::make call in body)
+                                if (preg_match('/Attribute::make\\s*\\(\\s*(?:get:\\s*)?fn\\s*\\(\\s*\\)\\s*=>\\s*(.+)\\s*\\)\\s*;/s', $mSource, $attrMatches)) {
+                                    $accessors[$method->getName()] = [
+                                        'expression' => trim($attrMatches[1])
+                                    ];
+                                } else if (preg_match('/Attribute::make\\s*\\(\\s*(?:get:\\s*)?function\\s*\\(\\s*\\)\\s*\\{.*?return\\s*(.+?);\\s*\\}/s', $mSource, $attrMatches)) {
+                                    $accessors[$method->getName()] = [
+                                        'expression' => trim($attrMatches[1])
+                                    ];
+                                } else if (preg_match('/^get([A-Za-z0-9_]+)Attribute$/', $method->getName(), $accessorMatches)) {
+                                    $attrName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $accessorMatches[1]));
+                                    $typeStr = 'mixed';
+                                    $returnType = $method->getReturnType();
+                                    if ($returnType && $returnType instanceof ReflectionNamedType) {
+                                        $rName = $returnType->getName();
+                                        if ($rName === 'bool') $typeStr = 'boolean';
+                                        elseif ($rName === 'int' || $rName === 'float') $typeStr = 'number';
+                                        elseif ($rName === 'string') $typeStr = 'string';
+                                        elseif ($rName === 'array') $typeStr = 'array';
+                                        else $typeStr = class_basename($rName);
+                                    } else {
+                                        $doc = $method->getDocComment();
+                                        if ($doc && preg_match('/@return\\s+([a-zA-Z0-9_|\\\\\\\\\\[\\]]+)/', $doc, $docMatches)) {
+                                            $docType = strtolower($docMatches[1]);
+                                            if (str_contains($docType, 'int') || str_contains($docType, 'float') || str_contains($docType, 'double')) {
+                                                $typeStr = 'number';
+                                            } elseif (str_contains($docType, 'bool')) {
+                                                $typeStr = 'boolean';
+                                            } elseif (str_contains($docType, 'string')) {
+                                                $typeStr = 'string';
+                                            } elseif (str_contains($docType, 'array')) {
+                                                $typeStr = 'array';
+                                            }
+                                        }
+                                    }
+                                    $exprStr = null;
+                                    if (preg_match('/return\\s+(.+?);/s', $mSource, $retMatches)) {
+                                        $exprStr = trim($retMatches[1]);
+                                    }
+                                    $accessors[$attrName] = [
+                                        'expression' => $exprStr,
+                                        'type' => $typeStr
+                                    ];
+                                }
+                            }
+                        }
+                    }
+
                     $result['models'][] = [
                         'name' => class_basename($class),
                         'table' => $table,
                         'columns' => $parsedColumns,
                         'hidden' => $model->getHidden(),
                         'appends' => $model->getAppends(),
-                        'casts' => $model->getCasts()
+                        'casts' => $model->getCasts(),
+                        'relations' => $relations,
+                        'accessors' => $accessors
                     ];
-                } catch (\\Exception $e) {}
+                } catch (\\Throwable $e) {
+                    file_put_contents(__DIR__ . '/routesync-error.log', "Error on class " . $class . ": " . $e->getMessage() . " on line " . $e->getLine() . "\\n", FILE_APPEND);
+                }
+            }
+        }
+    }
+
+    $dtosPath = app_path('Http/DTOs');
+    if (is_dir($dtosPath)) {
+        $files = \\Illuminate\\Support\\Facades\\File::allFiles($dtosPath);
+        foreach ($files as $file) {
+            $class = 'App\\\\Http\\\\DTOs\\\\' . str_replace('/', '\\\\', $file->getRelativePathname());
+            $class = preg_replace('/\\.php$/', '', $class);
+
+            if (class_exists($class)) {
+                try {
+                    $reflection = new ReflectionClass($class);
+                    if ($reflection->isAbstract()) continue;
+
+                    $parsedColumns = [];
+                    foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
+                        $typeStr = 'mixed';
+                        $nullable = true;
+                        if ($prop->hasType()) {
+                            $refType = $prop->getType();
+                            $nullable = $refType->allowsNull();
+                            if ($refType instanceof ReflectionNamedType) {
+                                $name = $refType->getName();
+                                if ($name === 'bool') {
+                                    $typeStr = 'boolean';
+                                } elseif ($name === 'int' || $name === 'float') {
+                                    $typeStr = 'number';
+                                } elseif ($name === 'string') {
+                                    $typeStr = 'string';
+                                } elseif ($name === 'array') {
+                                    $typeStr = 'array';
+                                } elseif ($name === 'mixed') {
+                                    $typeStr = 'mixed';
+                                } else {
+                                    $typeStr = class_basename($name);
+                                }
+                            }
+                        }
+                        $parsedColumns[] = [
+                            'name' => $prop->getName(),
+                            'type' => $typeStr,
+                            'nullable' => $nullable
+                        ];
+                    }
+
+                    $result['models'][] = [
+                        'name' => class_basename($class),
+                        'table' => null,
+                        'columns' => $parsedColumns,
+                        'hidden' => [],
+                        'appends' => [],
+                        'casts' => [],
+                        'relations' => [],
+                        'accessors' => []
+                    ];
+                } catch (\\Throwable $e) {
+                    file_put_contents(__DIR__ . '/routesync-error.log', "Error on DTO " . $class . ": " . $e->getMessage() . "\\n", FILE_APPEND);
+                }
             }
         }
     }
@@ -450,9 +624,20 @@ if ($extractModels) {
                             $idx = 0;
                             $fields = parseArrayTokens($tokens, $idx, []);
                             
+                            $assignments = [];
+                            if (preg_match_all('/\\$([a-zA-Z0-9_]+)\\s*=\\s*([^;]+);/s', $methodSource, $assignMatches)) {
+                                foreach ($assignMatches[1] as $idx => $varName) {
+                                    if ($varName === 'request' || $varName === 'this') continue;
+                                    $expr = trim($assignMatches[2][$idx]);
+                                    if (str_contains($expr, 'return')) continue;
+                                    $assignments[$varName] = $expr;
+                                }
+                            }
+                            
                             $result['resources'][] = [
                                 'name' => class_basename($class),
-                                'fields' => $fields
+                                'fields' => $fields,
+                                'assignments' => $assignments
                             ];
                         }
                     }

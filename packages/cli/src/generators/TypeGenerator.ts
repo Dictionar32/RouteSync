@@ -52,13 +52,7 @@ export class TypeGenerator {
           const safeName = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
           lines.push(`  ${safeName}: ${finalTsType}`)
         }
-        if (model.appends && model.appends.length > 0) {
-          for (const append of model.appends) {
-            const key = append
-            const safeAppend = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
-            lines.push(`  ${safeAppend}?: unknown`)
-          }
-        }
+        const extraFields = new Set<string>()
         if (model.accessors) {
           for (const [key, accessor] of Object.entries(model.accessors)) {
             if (model.hidden?.includes(key)) continue
@@ -71,6 +65,16 @@ export class TypeGenerator {
               else if (expr.type === 'string') tsType = 'string'
             }
             lines.push(`  ${safeName}?: ${tsType}`)
+            extraFields.add(key)
+          }
+        }
+        if (model.appends && model.appends.length > 0) {
+          for (const append of model.appends) {
+            if (extraFields.has(append)) continue
+            const key = append
+            const safeAppend = key.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? key : `"${key}"`
+            lines.push(`  ${safeAppend}?: unknown`)
+            extraFields.add(append)
           }
         }
         lines.push(`}`)

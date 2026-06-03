@@ -1,18 +1,24 @@
-import { ResolverPlugin, ResolutionContext, ResolutionResult } from '../types';
+import { SemanticResolution } from '@routesync/core';
+import { ResolverPlugin, ResolutionContext } from '../types';
 
 export class ResourceGraphResolver implements ResolverPlugin {
   canResolve(meta: any): boolean {
     return meta && meta.kind === 'resource';
   }
 
-  resolve(meta: any, context: ResolutionContext): ResolutionResult {
-    // We are no longer resolving directly to a schema!
-    // We keep it as a Transformed class but we could potentially link to the Resource directly.
+  resolve(meta: any, context: ResolutionContext): SemanticResolution {
     return {
       status: 'resolved',
-      type: `${meta.resource}Transformed`,
+      type: 'resource',
+      resource: meta.resource,
+      collection: meta.collection || undefined,
       confidence: 100,
-      evidence: [{ kind: 'resource_mapping', name: meta.resource }]
+      trace: [{
+        source: 'ResourceGraphResolver',
+        rule: 'Resource graph mapping',
+        input: meta.resource,
+        output: `resource: ${meta.resource}`
+      }]
     };
   }
 }

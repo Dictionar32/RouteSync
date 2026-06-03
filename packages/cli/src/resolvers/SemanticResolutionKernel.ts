@@ -27,9 +27,10 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
         canResolve: (meta) => meta && meta.kind === 'model',
         resolve: (meta) => ({
           status: 'resolved',
-          type: meta.model,
+          type: 'model',
+          model: meta.model,
           confidence: 100,
-          evidence: [{ kind: 'model', name: meta.model }]
+          trace: [{ source: 'FallbackResolver', rule: 'Fallback model mapping', input: meta.model, output: `model: ${meta.model}` }]
         })
       }
     ];
@@ -37,7 +38,12 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
 
   public resolve(meta: any, contextModel?: any): SemanticResolution {
     if (!meta || meta.kind === 'unknown') {
-      return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: [], unresolvedReason: 'No metadata available' } as any;
+      return {
+        status: 'unknown',
+        type: 'unknown',
+        confidence: 0,
+        trace: [{ source: 'SemanticResolutionKernel', rule: 'No metadata available' }]
+      };
     }
 
     const context = {
@@ -54,7 +60,12 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       }
     }
 
-    return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: [], unresolvedReason: `Unsupported kind: ${meta.kind}` };
+    return {
+      status: 'unknown',
+      type: 'unknown',
+      confidence: 0,
+      trace: [{ source: 'SemanticResolutionKernel', rule: `Unsupported kind: ${meta.kind}` }]
+    };
   }
 
   public mapSqlTypeToTs(sqlType: string): string {

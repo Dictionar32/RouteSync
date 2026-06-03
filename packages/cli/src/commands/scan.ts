@@ -204,7 +204,7 @@ export const scanCommand = new Command('scan')
               const ast = PhpCodeParser.parseExpression(code, {});
               parsedAssignments[varName] = ast;
               const resolved = kernel.resolve(ast, contextForAssignments);
-              if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+              if (resolved && resolved.status !== 'unknown') {
                 resolvedAssignments[varName] = resolved;
               }
             }
@@ -237,7 +237,7 @@ export const scanCommand = new Command('scan')
               const ast = PhpCodeParser.parseExpression(code, {});
               parsedAssignments[varName] = ast;
               const resolved = kernel.resolve(ast, contextForAssignments);
-              if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+              if (resolved && resolved.status !== 'unknown') {
                 resolvedAssignments[varName] = resolved;
               }
             }

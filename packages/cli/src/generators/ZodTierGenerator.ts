@@ -69,7 +69,7 @@ export class ZodTierGenerator {
             const ast = PhpCodeParser.parseExpression(code, {});
             parsedAssignments[varName] = ast;
             const resolved = kernel.resolve(ast, context);
-            if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+            if (resolved && resolved.status !== 'unknown') {
               resolvedAssignments[varName] = resolved;
             }
           }
@@ -84,7 +84,7 @@ export class ZodTierGenerator {
             const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
             if ((!meta || meta.status === 'unresolved' || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
               const resolved = kernel.resolve(ast, context)
-              if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+              if (resolved && resolved.status !== 'unknown') {
                 field.resolved = resolved
               }
             }
@@ -117,7 +117,7 @@ export class ZodTierGenerator {
             const ast = PhpCodeParser.parseExpression(code, {});
             parsedAssignments[varName] = ast;
             const resolved = kernel.resolve(ast, context);
-            if (resolved && resolved.status !== 'unknown' && resolved.status !== 'unresolved') {
+            if (resolved && resolved.status !== 'unknown') {
               resolvedAssignments[varName] = resolved;
             }
           }

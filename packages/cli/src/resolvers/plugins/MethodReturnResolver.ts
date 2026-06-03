@@ -1,17 +1,25 @@
-import { ResolverPlugin, ResolutionContext, ResolutionResult } from '../types';
+import { SemanticResolution } from '@routesync/core';
+import { ResolverPlugin, ResolutionContext } from '../types';
 
 export class MethodReturnResolver implements ResolverPlugin {
   canResolve(meta: any): boolean {
     return meta && (meta.kind === 'resolved_method' || meta.kind === 'method_call');
   }
 
-  resolve(meta: any, context: ResolutionContext): ResolutionResult {
+  resolve(meta: any, context: ResolutionContext): SemanticResolution {
     if (meta.kind === 'resolved_method') {
+      const isModel = context.models.some((m: any) => m.name === meta.type);
       return {
         status: 'resolved',
-        type: meta.type,
+        type: isModel ? 'model' : meta.type,
+        model: isModel ? meta.type : undefined,
         confidence: meta.confidence,
-        evidence: [{ kind: 'method_call', name: meta.type, detail: meta.source }]
+        trace: [{
+          source: 'MethodReturnResolver',
+          rule: 'Resolved method type',
+          input: meta.source,
+          output: meta.type
+        }]
       };
     }
 
@@ -24,10 +32,31 @@ export class MethodReturnResolver implements ResolverPlugin {
 
       if (typeof v === 'string') {
           if (v === 'request' && m === 'user') {
-            return { status: 'resolved', type: 'User', confidence: 90, evidence: [{ kind: 'method_call', name: 'request->user()', detail: 'Resolves to User model' }] };
+            return {
+              status: 'resolved',
+              type: 'model',
+              model: 'User',
+              confidence: 90,
+              trace: [{
+                source: 'MethodReturnResolver',
+                rule: 'Request user helper method',
+                input: 'request->user()',
+                output: 'model: User'
+              }]
+            };
           }
           if (v === 'pdf' && m === 'download') {
-            return { status: 'resolved', type: 'BinaryFile', confidence: 80, evidence: [{ kind: 'method_call', name: 'pdf->download()', detail: 'Resolves to BinaryFile' }] };
+            return {
+              status: 'resolved',
+              type: 'BinaryFile',
+              confidence: 80,
+              trace: [{
+                source: 'MethodReturnResolver',
+                rule: 'PDF download helper method',
+                input: 'pdf->download()',
+                output: 'BinaryFile'
+              }]
+            };
           }
           if (v === 'this' && context.contextModel) {
             targetModelName = context.contextModel.name;
@@ -39,9 +68,12 @@ export class MethodReturnResolver implements ResolverPlugin {
           }
       } else if (typeof v === 'object' && v !== null) {
           const varRes = context.kernel.resolve(v, context.contextModel);
-          if (varRes.status === 'resolved' && varRes.type && varRes.type !== 'unknown') {
-              // The property access resolves to a type (like a relation to 'Order')
-              targetModelName = varRes.type;
+          if (varRes.status === 'resolved') {
+              if (varRes.type === 'model' && varRes.model) {
+                  targetModelName = varRes.model;
+              } else if (varRes.type && varRes.type !== 'unknown') {
+                  targetModelName = varRes.type;
+              }
               if (v.kind === 'property_access') {
                   varStr = `$this->${v.property}`;
               }
@@ -56,48 +88,88 @@ export class MethodReturnResolver implements ResolverPlugin {
         if (modelReturnMethods.includes(m)) {
           return {
             status: 'resolved',
-            type: targetModelName,
+            type: 'model',
+            model: targetModelName,
             collection: false,
             confidence: 90,
-            evidence: [{ kind: 'method_call', name: `${varStr}->${m}()`, detail: `Returns Model ${targetModelName}` }]
+            trace: [{
+              source: 'MethodReturnResolver',
+              rule: 'Query returns model instance',
+              input: `${varStr}->${m}()`,
+              output: `model: ${targetModelName}`
+            }]
           };
         }
         
         if (collectionReturnMethods.includes(m)) {
           return {
             status: 'resolved',
-            type: targetModelName,
+            type: 'model',
+            model: targetModelName,
             collection: true,
             confidence: 90,
-            evidence: [{ kind: 'method_call', name: `${varStr}->${m}()`, detail: `Returns Collection of ${targetModelName}` }]
+            trace: [{
+              source: 'MethodReturnResolver',
+              rule: 'Query returns collection of model',
+              input: `${varStr}->${m}()`,
+              output: `Collection of model: ${targetModelName}`
+            }]
           };
         }
 
         if (paginatedReturnMethods.includes(m)) {
           return {
             status: 'resolved',
-            type: targetModelName,
+            type: 'model',
+            model: targetModelName,
             collection: true,
             paginated: true,
             confidence: 90,
-            evidence: [{ kind: 'method_call', name: `${varStr}->${m}()`, detail: `Returns Paginated Collection of ${targetModelName}` }]
+            trace: [{
+              source: 'MethodReturnResolver',
+              rule: 'Query returns paginated collection of model',
+              input: `${varStr}->${m}()`,
+              output: `Paginated Collection of model: ${targetModelName}`
+            }]
           };
         }
       }
 
       if (m === 'createToken') {
-        return { status: 'resolved', type: 'NewAccessToken', confidence: 80, evidence: [{ kind: 'method_call', name: `${varStr}->createToken()`, detail: 'Returns NewAccessToken' }] };
+        return {
+          status: 'resolved',
+          type: 'NewAccessToken',
+          confidence: 80,
+          trace: [{
+            source: 'MethodReturnResolver',
+            rule: 'Laravel Sanctum createToken helper',
+            input: `${varStr}->createToken()`,
+            output: 'NewAccessToken'
+          }]
+        };
       }
 
       return {
-        status: 'unresolved',
+        status: 'unknown',
         type: 'unknown',
         confidence: meta.confidence || 0,
-        evidence: [{ kind: 'method_call', name: `${meta.variable}->${meta.method}()`, detail: meta.source || 'Unknown source' }],
-        unresolvedReason: `Cannot resolve method return for ${meta.variable}->${meta.method}()`
+        trace: [{
+          source: 'MethodReturnResolver',
+          rule: 'Method return fallback',
+          input: `${meta.variable}->${meta.method}()`,
+          output: 'unknown'
+        }]
       };
     }
 
-    return { status: 'unresolved', type: 'unknown', confidence: 0, evidence: [], unresolvedReason: 'Unsupported method meta' };
+    return {
+      status: 'unknown',
+      type: 'unknown',
+      confidence: 0,
+      trace: [{
+        source: 'MethodReturnResolver',
+        rule: 'Unsupported method kind'
+      }]
+    };
   }
 }

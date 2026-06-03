@@ -54,5 +54,5 @@ export interface ResolutionContext {
 
 export interface ResolverPlugin {
   canResolve(meta: any): boolean;
-  resolve(meta: any, context: ResolutionContext): ResolutionResult;
+  resolve(meta: any, context: ResolutionContext): SemanticResolution;
 }

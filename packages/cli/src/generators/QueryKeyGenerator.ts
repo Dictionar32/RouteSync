@@ -57,31 +57,23 @@ export class QueryKeyGenerator {
       backwardExports.push(`export const ${groupName}Keys = QueryKey.${groupName}`)
 
       lines.push(`  /* ===== ${Title.toUpperCase()} ===== */`)
+      const actionKeyLines = resource.all.map(route => {
+        if (route.hasParams) {
+          return `    ${route.actionName}: (params?: string | number | Record<string, unknown>) => [Entity.${KEY}, "${route.actionName}", params ?? {}] as const,`
+        }
+        return `    ${route.actionName}: () => [Entity.${KEY}, "${route.actionName}"] as const,`
+      })
 
       if (isCrud) {
         lines.push(`  ${groupName}: {`)
         lines.push(`    ...createBaseQueryKey(Entity.${KEY}),`)
-
-        // Sub-resource custom GET routes within this group
-        const customGets = resource.all.filter(
-          r => r.method === 'GET' && r.crudRole === 'custom'
-        )
-        for (const route of customGets) {
-          // The action name is already disambiguated and deterministic
-          lines.push(`    ${route.actionName}: (id: string | number) => [Entity.${KEY}, "${route.actionName}", id] as const,`)
-        }
-
+        lines.push(...actionKeyLines)
         lines.push(`  },`)
       } else {
         // Singleton / action-based resource (e.g. cart, profile, auth)
         lines.push(`  ${groupName}: {`)
         lines.push(`    all: () => [Entity.${KEY}] as const,`)
-
-        const getRoutes = resource.all.filter(r => r.method === 'GET')
-        for (const route of getRoutes) {
-          lines.push(`    ${route.actionName}: () => [Entity.${KEY}, "${route.actionName}"] as const,`)
-        }
-
+        lines.push(...actionKeyLines)
         lines.push(`  },`)
       }
 

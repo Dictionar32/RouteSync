@@ -14,7 +14,6 @@ export class IndexGenerator {
     rootLines.push(`// Auto-generated. Do not edit.`)
     rootLines.push(`export * from './api'`)
     rootLines.push(`export * from './types'`)
-    rootLines.push(`export * from './core/models'`)
     if (options.zod) {
       rootLines.push(`export * from './contract/api-contract'`)
       rootLines.push(`export * from './contract/api-schema'`)

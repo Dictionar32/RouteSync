@@ -44,60 +44,109 @@ export class HookGenerator {
 
     const importedTypes = new Set<string>()
     const configBlocks: string[] = []
+    const hasResource = (name: string): boolean => resources.has(name)
 
     for (const [groupName, resource] of resources) {
       const TitleGroup = toTypeName(groupName)
+      const formName = `${TitleGroup}Form`
+
+      const capitalize = (value: string): string =>
+        value.charAt(0).toUpperCase() + value.slice(1)
+
+      const hasSchema = (route?: any): boolean =>
+        !!(route?.raw.schema?.rules && Object.keys(route.raw.schema.rules).length > 0)
+
+      const resolveFormType = (route?: any): string | null => {
+        if (!route || !hasSchema(route)) return null
+        importedTypes.add(formName)
+        return `${formName}['${capitalize(route.actionName)}']`
+      }
+
+      const resolveResponseInfo = (rawMeta: any): { baseName: string; collection: boolean } | null => {
+        if (!rawMeta) return null
+        const meta = {
+          ...(rawMeta.resolved || rawMeta.semantic || rawMeta),
+          collection: rawMeta.collection ?? rawMeta.resolved?.collection ?? rawMeta.semantic?.collection,
+          fields: rawMeta.fields ?? rawMeta.resolved?.fields ?? rawMeta.semantic?.fields,
+        }
+        if (meta.kind === 'unknown') return null
+
+        const resolvedKind = meta.kind || meta.type
+        if (resolvedKind === 'model') {
+          const modelName = meta.model
+          const resourceName = `${meta.model}Resource`
+          const baseName = knownResources.has(resourceName)
+            ? resourceName
+            : knownModels.has(modelName)
+              ? modelName
+              : modelName
+          return { baseName, collection: !!meta.collection }
+        }
+        if (resolvedKind === 'resource' && meta.resource) {
+          return { baseName: meta.resource, collection: !!meta.collection }
+        }
+        if (resolvedKind === 'object' && meta.fields) {
+          if (meta.fields.data) return resolveResponseInfo(meta.fields.data)
+          const values = Object.values(meta.fields)
+          if (values.length === 1) return resolveResponseInfo(values[0])
+        }
+
+        return null
+      }
+
+      const resolveResponseType = (route?: any): string => {
+        if (!route) return 'never'
+
+        const responseInfo = resolveResponseInfo(route.raw.response)
+        if (!responseInfo) {
+          return route.raw.response ? 'unknown' : 'never'
+        }
+
+        const responseType = responseInfo.collection ? `${responseInfo.baseName}Index` : `${responseInfo.baseName}Show`
+        importedTypes.add(responseType)
+        return responseType
+      }
+
+      const pushUnique = (items: string[], item: string): void => {
+        if (!items.includes(item)) items.push(item)
+      }
+
+      const addCrossResourceInvalidations = (actionName: string, invs: string[]): void => {
+        if (['cartItems', 'cart', 'cartPromo', 'checkout', 'buyNow'].includes(groupName)) {
+          if (hasResource('keranjang')) pushUnique(invs, `          QueryKey.keranjang.list,`)
+          if (hasResource('orders')) pushUnique(invs, `          QueryKey.orders.lists,`)
+        }
+        if (groupName === 'payment') {
+          if (hasResource('orders')) pushUnique(invs, `          QueryKey.orders.lists,`)
+          if (hasResource('keranjang')) pushUnique(invs, `          QueryKey.keranjang.list,`)
+        }
+        if (groupName === 'produkReviews' && actionName === 'post') {
+          pushUnique(invs, `          QueryKey.produkReviews.get,`)
+        }
+      }
 
       // 1. Resolve list (index) type
       let listType = 'never'
       if (resource.index) {
-        const baseName = resolveBaseResponseName(resource.index.raw.response)
-        if (baseName) {
-          listType = `${baseName}Index`
-          importedTypes.add(listType)
-        } else {
-          listType = 'unknown'
-        }
+        listType = resolveResponseType(resource.index)
       }
 
       // 2. Resolve detail (show) type
       let detailType = 'never'
       if (resource.show) {
-        const baseName = resolveBaseResponseName(resource.show.raw.response)
-        if (baseName) {
-          detailType = `${baseName}Show`
-          importedTypes.add(detailType)
-        } else {
-          detailType = 'unknown'
-        }
+        detailType = resolveResponseType(resource.show)
       }
 
       // 3. Resolve create type
       let createType = 'never'
       if (resource.create) {
-        const hasSchema = resource.create.raw.schema?.rules && Object.keys(resource.create.raw.schema.rules).length > 0
-        if (hasSchema) {
-          const formName = `${TitleGroup}Form`
-          const actionCapitalized = resource.create.actionName.charAt(0).toUpperCase() + resource.create.actionName.slice(1)
-          createType = `${formName}['${actionCapitalized}']`
-          importedTypes.add(formName)
-        } else {
-          createType = 'any'
-        }
+        createType = resolveFormType(resource.create) || 'any'
       }
 
       // 4. Resolve update type
       let updateType = 'never'
       if (resource.update) {
-        const hasSchema = resource.update.raw.schema?.rules && Object.keys(resource.update.raw.schema.rules).length > 0
-        if (hasSchema) {
-          const formName = `${TitleGroup}Form`
-          const actionCapitalized = resource.update.actionName.charAt(0).toUpperCase() + resource.update.actionName.slice(1)
-          updateType = `${formName}['${actionCapitalized}']`
-          importedTypes.add(formName)
-        } else {
-          updateType = 'any'
-        }
+        updateType = resolveFormType(resource.update) || 'any'
       }
 
       const blockLines: string[] = []
@@ -110,6 +159,13 @@ export class HookGenerator {
       blockLines.push(`    },`)
       blockLines.push(``)
       blockLines.push(`    queryKey: QueryKey.${groupName},`)
+      const actionKeyLines = resource.all
+        .map(route => `      ${route.actionName}: QueryKey.${groupName}.${route.actionName},`)
+      if (actionKeyLines.length > 0) {
+        blockLines.push(`    actionKeys: {`)
+        blockLines.push(actionKeyLines.join('\n'))
+        blockLines.push(`    },`)
+      }
       blockLines.push(`    endpoint: api.${groupName},`)
 
       const isCrudKey = !!(resource.index && resource.show)
@@ -127,7 +183,7 @@ export class HookGenerator {
         const invs: string[] = []
         if (resource.index) {
           const listKeyFn = isCrudKey ? 'lists' : 'list'
-          invs.push(`          QueryKey.${groupName}.${listKeyFn},`)
+          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         
         if (invs.length > 0) {
@@ -146,11 +202,11 @@ export class HookGenerator {
         const invs: string[] = []
         if (resource.index) {
           const listKeyFn = isCrudKey ? 'lists' : 'list'
-          invs.push(`          QueryKey.${groupName}.${listKeyFn},`)
+          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         if (resource.show) {
           const detailKeyFn = isCrudKey ? 'detail' : resource.show.actionName
-          invs.push(`          QueryKey.${groupName}.${detailKeyFn},`)
+          pushUnique(invs, `          QueryKey.${groupName}.${detailKeyFn},`)
         }
         
         if (invs.length > 0) {
@@ -171,7 +227,7 @@ export class HookGenerator {
         const invs: string[] = []
         if (resource.index) {
           const listKeyFn = isCrudKey ? 'lists' : 'list'
-          invs.push(`          QueryKey.${groupName}.${listKeyFn},`)
+          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         
         if (invs.length > 0) {
@@ -185,6 +241,34 @@ export class HookGenerator {
           cacheLines.push(`        invalidate: [],`)
           cacheLines.push(`      },`)
         }
+      }
+
+      for (const route of resource.all) {
+        if (route.method === 'GET') continue
+        if (['create', 'update', 'remove'].includes(route.actionName)) continue
+        if (cacheLines.some(line => line.trim() === `${route.actionName}: {`)) continue
+
+        const invs: string[] = []
+        if (resource.index) {
+          const listKeyFn = isCrudKey ? 'lists' : 'list'
+          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
+        }
+        const customGets = resource.all.filter(r => r.method === 'GET')
+        for (const getRoute of customGets) {
+          const hasKey = !isCrudKey || getRoute.crudRole === 'custom'
+          if (hasKey) {
+            pushUnique(invs, `          QueryKey.${groupName}.${getRoute.actionName},`)
+          }
+        }
+        addCrossResourceInvalidations(route.actionName, invs)
+
+        cacheLines.push(`      ${route.actionName}: {`)
+        cacheLines.push(`        invalidate: [`)
+        if (invs.length > 0) {
+          cacheLines.push(invs.join('\n'))
+        }
+        cacheLines.push(`        ],`)
+        cacheLines.push(`      },`)
       }
 
       if (cacheLines.length > 0) {
@@ -211,7 +295,7 @@ export class HookGenerator {
       for (const t of Array.from(importedTypes).sort()) {
         lines.push(`  ${t},`)
       }
-      lines.push(`} from './types'`)
+      lines.push(`} from './types/index'`)
     }
 
     lines.push(``)

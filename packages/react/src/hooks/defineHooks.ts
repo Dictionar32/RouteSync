@@ -1,4 +1,4 @@
-import { useQuery, useMutation, UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { EndpointCallable, EndpointCallableOptions, ApiError, RouteDefinition } from '@routesync/sdk'
 import { createCrudHooks } from './createCrudHooks'
 import { useApiQuery, ApiQueryOptions } from './useQuery'
@@ -90,6 +90,7 @@ export interface HookConfig {
     update?: any;
   };
   queryKey: any;
+  actionKeys?: Record<string, (...args: any[]) => readonly unknown[]>;
   endpoint: any;
   cache?: {
     list?: () => readonly unknown[];
@@ -103,6 +104,7 @@ export interface HookConfig {
     delete?: {
       invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
     };
+    [action: string]: unknown;
   };
 }
 
@@ -152,6 +154,17 @@ export function defineHooks<
 
     // Merge custom hooks
     const customHooks = {} as any
+    const actionQueryKey = (action: string, options?: any) => {
+      const actionKey = groupConfig.actionKeys?.[action] ?? groupQueryKeys?.[action]
+      if (typeof actionKey !== 'function') {
+        return options ? [groupName, action, options] : [groupName, action]
+      }
+
+      if (options?.params !== undefined) return actionKey(options.params)
+      if (options?.query !== undefined) return actionKey(options.query)
+      return actionKey()
+    }
+
     for (const action in group) {
       const endpoint = group[action]
       if (typeof endpoint !== 'function' || !endpoint.$def) continue
@@ -161,10 +174,32 @@ export function defineHooks<
 
       if (method === 'GET') {
         customHooks[hookName] = (options?: unknown, queryOptions?: unknown) =>
-          useApiQuery(endpoint as EndpointCallable, options as never, queryOptions as never)
+          useQuery({
+            ...(queryOptions as any),
+            queryKey: actionQueryKey(action, options),
+            queryFn: () => (endpoint as EndpointCallable)(options as never),
+          })
       } else {
-        customHooks[hookName] = (mutationOptions?: unknown) =>
-          useApiMutation(endpoint as EndpointCallable, mutationOptions as never)
+        customHooks[hookName] = (mutationOptions?: any) => {
+          const queryClient = useQueryClient()
+          const actionCache = groupConfig.cache?.[action] as
+            | { invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]> }
+            | undefined
+
+          return useApiMutation(endpoint as EndpointCallable, {
+            ...mutationOptions,
+            onSuccess: (data: unknown, variables: unknown, onMutateResult: unknown, context: unknown) => {
+              queryClient.invalidateQueries({ queryKey: actionQueryKey(action, variables) })
+
+              actionCache?.invalidate?.forEach(inv => {
+                const key = typeof inv === 'function' ? inv(variables) : inv
+                queryClient.invalidateQueries({ queryKey: key })
+              })
+
+              mutationOptions?.onSuccess?.(data, variables, onMutateResult, context)
+            },
+          } as never)
+        }
       }
     }
 

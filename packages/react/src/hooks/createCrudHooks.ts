@@ -75,11 +75,12 @@ export const createCrudHooks = <
     if (!service.show) {
       throw new Error('Show is not supported for this resource')
     }
-    const validId = requireValidId(id);
+    const validId = Number(id);
+    const enabled = Number.isInteger(validId) && validId > 0;
     return useQuery({
       queryKey: queryKey.detail(validId),
-      enabled: Number.isFinite(id),
-      queryFn: () => callShow(service.show, validId),
+      enabled,
+      queryFn: () => callShow(service.show, requireValidId(validId)),
     });
   };
 

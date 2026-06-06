@@ -140,12 +140,12 @@ export function defineHooks<
         }
       },
       service: {
-        index: indexService as any,
-        show: showService as any,
-        create: createService as any,
-        update: updateService as any,
-        delete: deleteService as any,
-      },
+        index:  indexService,
+        show:   showService,
+        create: createService,
+        update: updateService,
+        delete: deleteService,
+      } as any,
       cache: groupConfig.cache
     })
 
@@ -172,4 +172,3 @@ export function defineHooks<
 
   return hooks
 }
-

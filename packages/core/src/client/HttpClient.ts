@@ -40,9 +40,6 @@ export class HttpClient {
 
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        if (response.data) {
-          response.data = camelCaseKeys(response.data)
-        }
         return response
       },
       (error: any) => {

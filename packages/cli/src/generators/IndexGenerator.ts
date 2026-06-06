@@ -14,12 +14,14 @@ export class IndexGenerator {
     rootLines.push(`// Auto-generated. Do not edit.`)
     rootLines.push(`export * from './api'`)
     rootLines.push(`export * from './types'`)
+    rootLines.push(`export * from './core/models'`)
     if (options.zod) {
       rootLines.push(`export * from './contract/api-contract'`)
       rootLines.push(`export * from './contract/api-schema'`)
       rootLines.push(`export * from './contract/api-field'`)
       rootLines.push(`export * from './types/api-read'`)
       rootLines.push(`export * from './types/api-form'`)
+      rootLines.push(`export * from './mappers/api-mapper'`)
     }
     if (options.hooks !== false) {
       rootLines.push(`export * from './hooks'`)

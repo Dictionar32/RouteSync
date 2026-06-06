@@ -9,6 +9,25 @@ const requireValidId = (id: unknown): number => {
   return parsed
 }
 
+// Detect endpoint callable from api.ts ($def metadata present)
+// and adapt call signature accordingly
+const isEndpoint = (fn: any): boolean => typeof fn === 'function' && !!fn.$def
+
+const callIndex = (svc: any): Promise<any> =>
+  isEndpoint(svc) ? svc() : svc()
+
+const callShow = (svc: any, id: number): Promise<any> =>
+  isEndpoint(svc) ? svc({ params: { id } }) : svc(id)
+
+const callCreate = (svc: any, data: any): Promise<any> =>
+  isEndpoint(svc) ? svc({ body: data }) : svc(data)
+
+const callUpdate = (svc: any, id: number, data: any): Promise<any> =>
+  isEndpoint(svc) ? svc({ params: { id }, body: data }) : svc(id, data)
+
+const callDelete = (svc: any, id: number): Promise<any> =>
+  isEndpoint(svc) ? svc({ params: { id } }) : svc(id)
+
 export const createCrudHooks = <
   ReadIndex,
   ReadShow,
@@ -44,7 +63,7 @@ export const createCrudHooks = <
   const useIndex = () => {
     return useQuery({
       queryKey: queryKey.list(),
-      queryFn: service.index,
+      queryFn: () => callIndex(service.index),
     });
   };
 
@@ -54,7 +73,7 @@ export const createCrudHooks = <
     return useQuery({
       queryKey: queryKey.detail(validId),
       enabled: Number.isFinite(id),
-      queryFn: () => service.show(validId),
+      queryFn: () => callShow(service.show, validId),
     });
   };
 
@@ -68,7 +87,7 @@ export const createCrudHooks = <
     const qc = useQueryClient();
 
     return useMutation({
-      mutationFn: createService,
+      mutationFn: (data: CreateForm) => callCreate(createService, data),
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: queryKey.list() });
         if (config.cache?.create?.invalidate) {
@@ -93,7 +112,7 @@ export const createCrudHooks = <
     return useMutation({
       mutationFn: ({ id, data }: { id: number; data: UpdateForm }) => {
         const validId = requireValidId(id);
-        return updateService(validId, data);
+        return callUpdate(updateService, validId, data);
       },
       onSuccess: (_data: unknown, vars) => {
         qc.invalidateQueries({ queryKey: queryKey.list() });
@@ -120,7 +139,7 @@ export const createCrudHooks = <
     return useMutation({
       mutationFn: (id: number) => {
         const validId = requireValidId(id);
-        return deleteService(validId);
+        return callDelete(deleteService, validId);
       },
       onSuccess: (_data: unknown, id: number) => {
         qc.invalidateQueries({ queryKey: queryKey.list() });

@@ -70,7 +70,8 @@ export function useApiInfiniteQuery<
 
   return useInfiniteQuery<TResponse, TError, TData, readonly unknown[], TPageParam>({
     queryKey,
-    queryFn: ({ pageParam }) => {
+    queryFn: (context) => {
+      const pageParam = context.pageParam as TPageParam
       const callOptions: CallOptions<TParams, TBody> = {
         params: options?.params as TParams,
         body: options?.body as TBody,

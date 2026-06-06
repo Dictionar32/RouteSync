@@ -29,7 +29,7 @@ const callDelete = (svc: any, id: number): Promise<any> =>
   isEndpoint(svc) ? svc({ params: { id } }) : svc(id)
 
 export const createCrudHooks = <
-  ReadIndex,
+  ReadIndexList,
   ReadShow,
   CreateForm,
   UpdateForm
@@ -39,7 +39,7 @@ export const createCrudHooks = <
     detail: (id: number) => readonly unknown[];
   };
   service: {
-    index?: () => Promise<ReadIndex[]>;
+    index?: () => Promise<ReadIndexList>;
     show?: (id: number) => Promise<ReadShow>;
     create?: (data: CreateForm) => Promise<ReadShow>;
     update?: (id: number, data: UpdateForm) => Promise<ReadShow>;

@@ -37,7 +37,7 @@ export function useApiMutation<
   return useMutation<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>({
     ...options,
     mutationFn: (variables: EndpointCallableOptions<TParams, TBody>) => endpoint(variables as never),
-    onSuccess: (...args) => {
+    onSuccess: (data: TResponse, variables: EndpointCallableOptions<TParams, TBody>, onMutateResult: TContext, context) => {
       // Auto-invalidate the endpoint's own group
       queryClient.invalidateQueries({ queryKey: [group] })
 
@@ -46,7 +46,7 @@ export function useApiMutation<
         queryClient.invalidateQueries({ queryKey: ep.$key })
       })
 
-      options?.onSuccess?.(...args)
+      options?.onSuccess?.(data, variables, onMutateResult, context)
     },
   })
 }

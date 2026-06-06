@@ -39,8 +39,8 @@ export const createCrudHooks = <
     detail: (id: number) => readonly unknown[];
   };
   service: {
-    index: () => Promise<ReadIndex[]>;
-    show: (id: number) => Promise<ReadShow>;
+    index?: () => Promise<ReadIndex[]>;
+    show?: (id: number) => Promise<ReadShow>;
     create?: (data: CreateForm) => Promise<ReadShow>;
     update?: (id: number, data: UpdateForm) => Promise<ReadShow>;
     delete?: (id: number) => Promise<void>;
@@ -61,6 +61,9 @@ export const createCrudHooks = <
 
   // Enterprise pattern: useIndex() - no params needed
   const useIndex = () => {
+     if (!service.index) {
+      throw new Error('Index is not supported for this resource')
+    }
     return useQuery({
       queryKey: queryKey.list(),
       queryFn: () => callIndex(service.index),
@@ -69,6 +72,9 @@ export const createCrudHooks = <
 
   // Enterprise pattern: useShow(id)
   const useShow = (id: number) => {
+    if (!service.show) {
+      throw new Error('Show is not supported for this resource')
+    }
     const validId = requireValidId(id);
     return useQuery({
       queryKey: queryKey.detail(validId),

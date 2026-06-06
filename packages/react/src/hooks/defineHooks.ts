@@ -3,6 +3,7 @@ import { EndpointCallable, EndpointCallableOptions, ApiError, RouteDefinition } 
 import { createCrudHooks } from './createCrudHooks'
 import { useApiQuery, ApiQueryOptions } from './useQuery'
 import { useApiMutation, ApiMutationOptions } from './useMutation'
+import { toIndexFn, toShowFn } from './endpointAdapters'
 
 type CrudHooksForGroup<TTypes, TEndpoint> = {
   index: [TTypes] extends [{ list: infer L }]
@@ -140,12 +141,12 @@ export function defineHooks<
         }
       },
       service: {
-        index:  indexService,
-        show:   showService,
+        index: indexService ? toIndexFn(indexService) : undefined,
+        show: showService ? toShowFn(showService) : undefined,
         create: createService,
         update: updateService,
         delete: deleteService,
-      } as any,
+      },
       cache: groupConfig.cache
     })
 

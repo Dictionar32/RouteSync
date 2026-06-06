@@ -439,38 +439,142 @@ Any endpoint with `auth: true` automatically gets `Authorization: Bearer TOKEN` 
 
 ## React Query Hooks
 
-### Auto-generated hooks (from CLI)
+RouteSync generates a highly organized, declarative hook system built on top of TanStack Query. Instead of writing wrapper components or calling `useQuery` manually, RouteSync generates a centralized hook registry configured via a declarative Domain Specific Language (DSL).
 
-```ts
-import { useApiQuery, useApiMutation } from 'routesync/react'
-import { api } from '@/api/api'
+### Auto-generated `hooks.ts` Structure
 
-// GET
-const { data, isLoading } = useApiQuery(api.orders.get)
+When you run `npx routesync generate`, RouteSync outputs `src/api/hooks.ts` containing:
 
-// GET with params
-const { data } = useApiQuery(api.orders.getId, { params: { id: '1' } })
+```typescript
+import { defineHooks } from 'routesync/react'
+import { api } from './api'
+import { QueryKey } from './query-key'
+import type {
+  ProdukItemResourceIndex,
+  ProdukItemResourceShow,
+  AdminProdukForm,
+} from './types'
 
-// Mutation
-const mutation = useApiMutation(api.cart.postItems)
-mutation.mutate({ body: { produk_item_id: '5', qty: 1 } })
+export const typeOf = <T>() => ({} as T)
+
+export const hooks = defineHooks({
+  produk: {
+    // 1. Compile-Time Resource Schema Metadata (Type Registry)
+    types: {
+      list: typeOf<ProdukItemResourceIndex>(),
+      detail: typeOf<ProdukItemResourceShow>(),
+      create: typeOf<never>(),
+      update: typeOf<never>(),
+    },
+    queryKey: QueryKey.produk,
+    endpoint: api.produk,
+  },
+  adminProduk: {
+    types: {
+      list: typeOf<never>(),
+      detail: typeOf<never>(),
+      create: typeOf<AdminProdukForm['Create']>(),
+      update: typeOf<never>(),
+    },
+    queryKey: QueryKey.adminProduk,
+    endpoint: api.adminProduk,
+  }
+})
+
+// Unified hook exports per domain resource group
+export const useProduk = hooks.produk
+export const useAdminProduk = hooks.adminProduk
 ```
 
-### Generate hooks for entire api at once
+### Using Hooks in Components
 
-```ts
-import { generateHooks } from 'routesync'
+For standard REST/CRUD actions, you call the unified resource hooks directly. All payload and return types are fully inferred from the metadata registry:
 
-const { useOrdersGet, useCartPostItems } = generateHooks(api)
-// GET/DELETE → useQuery, everything else → useMutation
+```tsx
+import { useProduk } from '@/api/hooks'
+
+function ProductCatalog() {
+  // 1. GET (Index) — List all products (inferred as ProdukItemResourceIndex)
+  const { data: products, isLoading } = useProduk.index()
+
+  // 2. GET (Show) — View specific product details (inferred as ProdukItemResourceShow)
+  const { data: detail } = useProduk.show(42)
+
+  if (isLoading) return <p>Loading...</p>
+
+  return (
+    <div>
+      <h1>{detail?.nama}</h1>
+      <ul>
+        {products?.map(p => <li key={p.id}>{p.nama}</li>)}
+      </ul>
+    </div>
+  )
+}
 ```
 
-### createHooks — per group
+For actions that require mutations, call the hook and use the mutation helpers:
+
+```tsx
+import { useAdminProduk } from '@/api/hooks'
+
+function CreateProductForm() {
+  const createMutation = useAdminProduk.create()
+
+  const handleSubmit = (formData: any) => {
+    // Payload type (AdminProdukForm['Create']) is automatically enforced here
+    createMutation.mutate(formData, {
+      onSuccess: () => console.log('Product created!')
+    })
+  }
+
+  return <button onClick={() => handleSubmit({ nama: 'Kaos', ... })}>Create</button>
+}
+```
+
+### Custom Non-CRUD Action Hooks
+
+Endpoints that do not fit into the standard CRUD pattern (e.g. `POST /login`, `PATCH /profile`) are automatically exposed on the same resource hook namespace as custom hooks:
 
 ```ts
-import { createHooks } from 'routesync/react'
+import { useLogin, useProfile } from '@/api/hooks'
 
-const { usePostItems, usePatchItemsProdukItemId } = createHooks(api.cart)
+// Login mutation (POST /login)
+const login = useLogin.useCreate()
+login.mutate({ email, password })
+
+// Profile update (PATCH /profile)
+const updateProfile = useProfile.usePatch()
+updateProfile.mutate({ name, email })
+```
+
+### Declarative Cache Invalidation
+
+You can define custom, cross-resource query cache invalidation rules using the `cache` metadata property. This ensures that when a mutation succeeds, related queries are automatically refreshed:
+
+```typescript
+export const hooks = defineHooks({
+  orders: {
+    types: {
+      list: typeOf<OrderResourceIndex>(),
+      detail: typeOf<OrderResourceShow>(),
+      create: typeOf<OrderForm['Create']>(),
+      update: typeOf<never>(),
+    },
+    queryKey: QueryKey.orders,
+    endpoint: api.orders,
+
+    // Cache metadata defines runtime invalidation strategies
+    cache: {
+      create: {
+        invalidate: [
+          QueryKey.orders.lists,  // Refreshes the orders history list
+          QueryKey.cart.summary,  // Refreshes the shopping cart summary query
+        ]
+      }
+    }
+  }
+})
 ```
 
 ---

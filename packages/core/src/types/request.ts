@@ -1,6 +1,6 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-export type RouteTransform = (value: unknown) => unknown
+export type RouteTransform = (value: any) => any
 
 export interface RouteTransformMap {
   params?: RouteTransform
@@ -40,12 +40,16 @@ export interface ResponseSchema<T> {
   parse(input: unknown): T
 }
 
-export interface RouteDefinition<TResponse = unknown, TParams = unknown, TBody = unknown> {
-  method: HttpMethod
-  path: string
+export interface RouteDefinition<TResponse = unknown, TParams = unknown, TBody = unknown, TMethod extends HttpMethod = HttpMethod> {
+  method: TMethod
+  path: string | Function
   auth?: boolean
   schema?: RouteSchema
-  responseSchema?: ResponseSchema<TResponse>
+  responseSchema?: ResponseSchema<any>
+  contract?: {
+    body?: (payload: unknown) => any
+    response?: ResponseSchema<any> | ((payload: unknown) => any)
+  }
   mapper?: RouteMapper
   headers?: Record<string, string>
   cache?: unknown

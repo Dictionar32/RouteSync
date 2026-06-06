@@ -354,7 +354,7 @@ export class ZodTierGenerator {
     for (const route of routes) {
       const nameParts = route.path.replace(/^\//, '').split('/')
       const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-      const TitleCaseResource = toTypeName(resource)
+      const TitleCaseResource = toTypeName(route.groupName || resource)
       const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
       const KeyName = TitleCaseResource + TitleCaseAction
 
@@ -569,7 +569,7 @@ export class ZodTierGenerator {
         const nameParts = route.path.replace(/^\//, '').split('/')
         const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
         
-        const TitleCaseResource = toTypeName(resource)
+        const TitleCaseResource = toTypeName(route.groupName || resource)
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const KeyName = TitleCaseResource + TitleCaseAction
         
@@ -780,7 +780,7 @@ export class ZodTierGenerator {
         
         let optional = ''
         const resolvedType = meta.type || meta.kind
-        if (resolvedType === 'model' || resolvedType === 'resource') {
+        if (resolvedType === 'model' || resolvedType === 'resource' || resolvedType === 'object') {
            optional = '?'
         }
         lines.push(`  ${safeName}${optional}: ${tsType}`)
@@ -815,7 +815,7 @@ export class ZodTierGenerator {
         const nameParts = route.path.replace(/^\//, '').split('/')
         const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
         
-        const TitleCaseResource = toTypeName(resource)
+        const TitleCaseResource = toTypeName(route.groupName || resource)
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         
         if (!resourceForms[TitleCaseResource]) {
@@ -909,18 +909,33 @@ export class ZodTierGenerator {
       readImports.push(`${resource.name}Transformed`)
     }
 
-    const payloadImports: string[] = []
+      const payloadImports: string[] = []
     const schemaActions: string[] = []
 
     for (const route of routes) {
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
-        const nameParts = route.path.replace(/^\//, '').split('/')
-        const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-        const TitleCaseResource = toTypeName(resource)
+        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const KeyName = TitleCaseResource + TitleCaseAction
         payloadImports.push(`${KeyName}Payload`)
         schemaActions.push(KeyName)
+      }
+      
+      if (route.response) {
+        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
+        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
+        const KeyName = TitleCaseResource + TitleCaseAction
+
+        const meta = {
+          ...(route.response.resolved || route.response.semantic || route.response),
+          collection: route.response.collection ?? route.response.resolved?.collection ?? route.response.semantic?.collection,
+          paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
+        }
+        const kind = meta.kind || meta.type
+
+        if (kind === 'object' && this.hasModelOrResource(route.response)) {
+          modelImports.push(`${KeyName}Response`)
+        }
       }
     }
 
@@ -971,6 +986,8 @@ export class ZodTierGenerator {
 
       lines.push(`})`)
       lines.push(``)
+      lines.push(`export const to${model.name}ReadList = (api: ${model.name}ApiResponse[]): ${model.name}Transformed[] => api.map(to${model.name}Read)`)
+      lines.push(``)
     }
 
     // Resources -> Read Transformed
@@ -984,33 +1001,45 @@ export class ZodTierGenerator {
         const safeCamel = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
         const safeOriginal = fieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `api.${fieldName}` : `api["${fieldName}"]`
         
-        if (fieldDef.kind === 'model') {
-          if (fieldDef.collection) {
-            lines.push(`  ${safeCamel}: ${safeOriginal}?.map((item) => to${fieldDef.model}Read(item)) ?? [],`)
-          } else {
-            lines.push(`  ${safeCamel}: ${safeOriginal} ? to${fieldDef.model}Read(${safeOriginal}) : undefined,`)
-          }
-        } else if (fieldDef.kind === 'resource') {
-          if (fieldDef.collection) {
-            lines.push(`  ${safeCamel}: ${safeOriginal}?.map((item) => to${fieldDef.resource}Read(item)) ?? [],`)
-          } else {
-            lines.push(`  ${safeCamel}: ${safeOriginal} ? to${fieldDef.resource}Read(${safeOriginal}) : undefined,`)
-          }
-        } else {
-          lines.push(`  ${safeCamel}: ${safeOriginal},`)
-        }
+        const mappedValue = this.generateObjectReadMapper(fieldDef, safeOriginal)
+        lines.push(`  ${safeCamel}: ${mappedValue},`)
       }
       lines.push(`})`)
       lines.push(``)
+      lines.push(`export const to${resource.name}ReadList = (api: ${resource.name}Response[]): ${resource.name}Transformed[] => api.map(to${resource.name}Read)`)
+      lines.push(``)
+    }
+
+    // Route Responses -> Read Transformed
+    for (const route of routes) {
+      if (route.response) {
+        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
+        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
+        const KeyName = TitleCaseResource + TitleCaseAction
+
+        const meta = {
+          ...(route.response.resolved || route.response.semantic || route.response),
+          collection: route.response.collection ?? route.response.resolved?.collection ?? route.response.semantic?.collection,
+          paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
+        }
+        const kind = meta.kind || meta.type
+
+        if (kind === 'object' && this.hasModelOrResource(route.response)) {
+          hasExports = true
+          modelImports.push(`${KeyName}Response`)
+          const transformedType = this.mapResolvedToTsType(meta)
+          const mappedValue = this.generateObjectReadMapper(route.response, 'api')
+          lines.push(`export const to${KeyName}ResponseRead = (api: ${KeyName}Response): ${transformedType} => (${mappedValue}) as unknown as ${transformedType}`)
+          lines.push(``)
+        }
+      }
     }
 
     // Forms -> Action Payloads
     for (const route of routes) {
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
         hasExports = true
-        const nameParts = route.path.replace(/^\//, '').split('/')
-        const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-        const TitleCaseResource = toTypeName(resource)
+        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const KeyName = TitleCaseResource + TitleCaseAction
 
@@ -1191,5 +1220,62 @@ export class ZodTierGenerator {
     }
 
     return typeStr
+  }
+
+  private static generateObjectReadMapper(fieldDef: any, parentAccessor: string): string {
+    const meta = {
+      ...(fieldDef.resolved || fieldDef.semantic || fieldDef),
+      collection: fieldDef.collection ?? fieldDef.resolved?.collection ?? fieldDef.semantic?.collection,
+      paginated: fieldDef.paginated ?? fieldDef.resolved?.paginated ?? fieldDef.semantic?.paginated
+    }
+    const kind = meta.kind || meta.type
+    const isCollection = !!meta.collection
+    const isPaginated = !!meta.paginated
+
+    if (kind === 'model') {
+      const modelName = meta.model
+      if (isCollection) {
+        if (isPaginated) {
+          return `${parentAccessor} ? { ...${parentAccessor}, data: ${parentAccessor}.data?.map((item) => to${modelName}Read(item)) ?? [], currentPage: ${parentAccessor}.current_page, total: ${parentAccessor}.total } : undefined`
+        }
+        return `${parentAccessor}?.map((item) => to${modelName}Read(item)) ?? []`
+      } else {
+        return `${parentAccessor} ? to${modelName}Read(${parentAccessor}) : undefined`
+      }
+    } else if (kind === 'resource') {
+      const resourceName = meta.resource
+      if (isCollection) {
+        if (isPaginated) {
+          return `${parentAccessor} ? { ...${parentAccessor}, data: ${parentAccessor}.data?.map((item) => to${resourceName}Read(item)) ?? [], currentPage: ${parentAccessor}.current_page, total: ${parentAccessor}.total } : undefined`
+        }
+        return `${parentAccessor}?.map((item) => to${resourceName}Read(item)) ?? []`
+      } else {
+        return `${parentAccessor} ? to${resourceName}Read(${parentAccessor}) : undefined`
+      }
+    } else if (kind === 'object' && meta.fields) {
+      const props: string[] = []
+      for (const [subName, subDefRaw] of Object.entries(meta.fields)) {
+        const subDef = subDefRaw as any
+        const subCamel = camelCase(subName)
+        const safeSubCamel = subCamel.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? subCamel : `"${subCamel}"`
+        const safeSubOriginal = subName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `${parentAccessor}.${subName}` : `${parentAccessor}["${subName}"]`
+        const mappedVal = this.generateObjectReadMapper(subDef, safeSubOriginal)
+        props.push(`    ${safeSubCamel}: ${mappedVal},`)
+      }
+      return `${parentAccessor} ? {\n${props.join('\n')}\n  } : undefined`
+    } else {
+      return parentAccessor
+    }
+  }
+
+  private static hasModelOrResource(rawMeta: any): boolean {
+    if (!rawMeta) return false
+    const meta = rawMeta.resolved || rawMeta.semantic || rawMeta
+    const kind = meta.kind || meta.type
+    if (kind === 'model' || kind === 'resource') return true
+    if (kind === 'object' && meta.fields) {
+      return Object.values(meta.fields).some(f => this.hasModelOrResource(f))
+    }
+    return false
   }
 }

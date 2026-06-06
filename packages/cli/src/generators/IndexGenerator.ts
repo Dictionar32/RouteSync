@@ -12,7 +12,7 @@ export class IndexGenerator {
     // Generate root index.ts
     const rootLines: string[] = []
     rootLines.push(`// Auto-generated. Do not edit.`)
-    rootLines.push(`export { api } from './api'`)
+    rootLines.push(`export * from './api'`)
     rootLines.push(`export * from './types'`)
     if (options.zod) {
       rootLines.push(`export * from './contract/api-contract'`)
@@ -21,7 +21,10 @@ export class IndexGenerator {
       rootLines.push(`export * from './types/api-read'`)
       rootLines.push(`export * from './types/api-form'`)
     }
-    if (options.hooks !== false) rootLines.push(`export * from './hooks'`)
+    if (options.hooks !== false) {
+      rootLines.push(`export * from './hooks'`)
+      rootLines.push(`export * from './query-key'`)
+    }
     if (options.nextActions) rootLines.push(`export * from './actions'`)
     
     await fs.writeFile(path.join(outputDir, 'index.ts'), rootLines.join('\n'))

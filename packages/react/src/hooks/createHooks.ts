@@ -1,8 +1,6 @@
-// @ts-ignore TanStack Query is a peer dependency provided by consumers.
-import { useQueryClient } from '@tanstack/react-query'
-import { EndpointCallable } from '@routesync/sdk'
-import { useApiQuery } from './useQuery'
-import { useApiMutation } from './useMutation'
+import { EndpointCallable, EndpointCallableOptions, OptionalIfEmpty, ApiError, RouteDefinition } from '@routesync/sdk'
+import { useApiQuery, ApiQueryOptions } from './useQuery'
+import { useApiMutation, ApiMutationOptions } from './useMutation'
 
 /**
  * createHooks — generate typed hooks from an api group.
@@ -15,29 +13,33 @@ import { useApiMutation } from './useMutation'
  *   const { data } = useList()
  *   const mutation = useAddItem()
  */
-export function createHooks<T extends Record<string, EndpointCallable>>(
+export function createHooks<T extends Record<string, unknown>>(
   group: T
 ) {
-  const hooks: Record<string, (...args: any[]) => any> = {}
+  const hooks: Record<string, (...args: never) => unknown> = {}
 
   for (const [action, endpoint] of Object.entries(group)) {
-    const method = endpoint.$def.method
+    const method = (endpoint as EndpointCallable).$def.method
     const hookName = `use${action.charAt(0).toUpperCase()}${action.slice(1)}`
 
-    if (method === 'GET' || method === 'DELETE') {
-      hooks[hookName] = (options?: any, queryOptions?: any) =>
-        useApiQuery(endpoint, options, queryOptions)
+    if (method === 'GET') {
+      hooks[hookName] = (options?: unknown, queryOptions?: unknown) =>
+        useApiQuery(endpoint as EndpointCallable, options as never, queryOptions as never)
     } else {
-      hooks[hookName] = (mutationOptions?: any) =>
-        useApiMutation(endpoint, mutationOptions)
+      hooks[hookName] = (mutationOptions?: unknown) =>
+        useApiMutation(endpoint as EndpointCallable, mutationOptions as never)
     }
   }
 
   return hooks as {
-    [K in keyof T as `use${Capitalize<string & K>}`]: T[K] extends EndpointCallable
-      ? T[K]['$def']['method'] extends 'GET' | 'DELETE'
-        ? (options?: any, queryOptions?: any) => ReturnType<typeof useApiQuery>
-        : (options?: any) => ReturnType<typeof useApiMutation>
+    [K in keyof T as `use${Capitalize<string & K>}`]: T[K] extends {
+      $def: RouteDefinition<infer R, infer P, infer B, infer M>
+    }
+      ? M extends 'GET'
+        ? T[K] extends (...args: never[]) => unknown
+          ? (...args: [...args: Parameters<T[K]>, queryOptions?: ApiQueryOptions<R>]) => ReturnType<typeof useApiQuery<R, P, B>>
+          : never
+        : (options?: ApiMutationOptions<R, ApiError, EndpointCallableOptions<P, B>>) => ReturnType<typeof useApiMutation<R, P, B>>
       : never
   }
 }

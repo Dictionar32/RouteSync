@@ -9,6 +9,8 @@ import { NextActionGenerator } from '../generators/NextActionGenerator'
 import { MswGenerator } from '../generators/MswGenerator'
 import { EchoGenerator } from '../generators/EchoGenerator'
 import { IndexGenerator } from '../generators/IndexGenerator'
+import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
+import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import path from 'path'
 import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
@@ -46,6 +48,8 @@ export const generateCommand = new Command('generate')
       await SDKGenerator.generate(manifest, options.output, options)
 
       if (options.hooks !== false) {
+        spinner.text = 'Generating query keys...'
+        await QueryKeyGenerator.generate(manifest, options.output)
         spinner.text = 'Generating hooks...'
         await HookGenerator.generate(manifest, options.output)
       }

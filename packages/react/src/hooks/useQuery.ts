@@ -62,13 +62,13 @@ export function useApiInfiniteQuery<
 >(
   endpoint: EndpointCallable<TResponse, TParams, TBody>,
   options: LooseEndpointOptions | undefined,
-  queryOptions: Omit<UseInfiniteQueryOptions<TResponse, TError, TData, any, TPageParam>, 'queryKey' | 'queryFn'> & {
-    getNextPageParam: UseInfiniteQueryOptions<TResponse, TError, TData, any, TPageParam>['getNextPageParam']
+  queryOptions: Omit<UseInfiniteQueryOptions<TResponse, TError, TData, readonly unknown[], TPageParam>, 'queryKey' | 'queryFn'> & {
+    getNextPageParam: UseInfiniteQueryOptions<TResponse, TError, TData, readonly unknown[], TPageParam>['getNextPageParam']
   }
 ) {
   const queryKey = options ? [...endpoint.$key, options] : endpoint.$key
 
-  return useInfiniteQuery<TResponse, TError, TData, any, TPageParam>({
+  return useInfiniteQuery<TResponse, TError, TData, readonly unknown[], TPageParam>({
     queryKey,
     queryFn: ({ pageParam }) => {
       const callOptions: CallOptions<TParams, TBody> = {

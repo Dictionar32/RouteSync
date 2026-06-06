@@ -1,6 +1,6 @@
 import { HttpClient } from '@routesync/core'
 import { PathResolver } from '@routesync/core'
-import { ApiDefinition, RouteDefinition } from '@routesync/core'
+import { ApiDefinition, RouteDefinition, HttpMethod } from '@routesync/core'
 import { ServiceConfig } from '@routesync/core'
 import { SchemaLike, parseWithSchema } from './mappers/schema'
 
@@ -48,25 +48,26 @@ export interface ApiError {
   errors?: Record<string, string[]>
 }
 
-export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody = unknown> {
+export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody = unknown, TMethod extends HttpMethod = HttpMethod> {
   (...args: OptionalIfEmpty<EndpointCallableOptions<TParams, TBody>>): Promise<TResponse>
   // Overload for generated hooks — options may be undefined or loosely typed
   (options: LooseEndpointOptions | undefined): Promise<TResponse>
   // Overload that accepts plain CallOptions — used by useApiInfiniteQuery
   (options: CallOptions<TParams, TBody>): Promise<TResponse>
   /** Original RouteDefinition — used by useApiQuery / useApiMutation */
-  $def: RouteDefinition<TResponse, TParams, TBody>
+  $def: RouteDefinition<TResponse, TParams, TBody, TMethod>
   /** Stable TanStack query key: [group, action] */
   $key: string[]
   /** Consistent query key builder that incorporates params/query if provided */
   $queryKey: (options?: EndpointCallableOptions<TParams, TBody>) => unknown[]
 }
 
-type ApiGroupProxy<G extends Record<string, RouteDefinition<any, any, any>>> = {
+type ApiGroupProxy<G extends Record<string, RouteDefinition<any, any, any, any>>> = {
   [K in keyof G]: EndpointCallable<
-    G[K] extends RouteDefinition<infer R, any, any> ? R : unknown,
-    G[K] extends RouteDefinition<any, infer P, any> ? P : unknown,
-    G[K] extends RouteDefinition<any, any, infer B> ? B : unknown
+    G[K] extends RouteDefinition<infer R, any, any, any> ? R : unknown,
+    G[K] extends RouteDefinition<any, infer P, any, any> ? P : unknown,
+    G[K] extends RouteDefinition<any, any, infer B, any> ? B : unknown,
+    G[K] extends RouteDefinition<any, any, any, infer M> ? (M extends HttpMethod ? M : HttpMethod) : HttpMethod
   >
 }
 
@@ -124,10 +125,13 @@ export function defineApi<T extends ApiDefinition>(
           parseRouteSchema(route, 'query', options?.query)
         ) as Record<string, any> | undefined
 
-        const body = applyMapper(
+        let body = applyMapper(
           route, 'body',
           parseRouteSchema(route, 'body', options?.body)
         )
+        if (route.contract?.body && body !== undefined) {
+          body = route.contract.body(body)
+        }
 
         const resolvedPath = PathResolver.resolve(route.path, params)
 
@@ -144,9 +148,14 @@ export function defineApi<T extends ApiDefinition>(
           response = await client[method](resolvedPath, body, requestConfig)
         }
 
-        if (client.config.validateResponse && route.responseSchema) {
+        const responseSchema = route.contract?.response ?? route.responseSchema
+        if (client.config.validateResponse && responseSchema) {
           try {
-            response = route.responseSchema.parse(response)
+            if (typeof responseSchema === 'function') {
+              response = (responseSchema as any)(response)
+            } else {
+              response = responseSchema.parse(response)
+            }
           } catch (error) {
             if (client.config.onValidationError) {
               client.config.onValidationError(error, {

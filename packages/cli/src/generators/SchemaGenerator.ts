@@ -38,16 +38,26 @@ export class SchemaGenerator {
           lines.push(`  ${safeName}: ${zType},`)
         }
         
+        const extraFields = new Set<string>()
+        for (const col of model.columns) {
+          extraFields.add(camelCase(col.name))
+        }
+
         const appends = Array.isArray(model.appends) ? model.appends : []
         for (const append of appends) {
-          const safeAppend = camelCase(append).match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCase(append) : `"${camelCase(append)}"`
+          const camelAppend = camelCase(append)
+          if (extraFields.has(camelAppend)) continue
+          const safeAppend = camelAppend.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelAppend : `"${camelAppend}"`
           lines.push(`  ${safeAppend}: z.unknown().optional(), // appended attribute`)
+          extraFields.add(camelAppend)
         }
 
         if (model.accessors) {
           for (const [key, accessor] of Object.entries(model.accessors)) {
             if (hidden.includes(key)) continue
-            const safeName = camelCase(key).match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCase(key) : `"${camelCase(key)}"`
+            const camelKey = camelCase(key)
+            if (extraFields.has(camelKey)) continue
+            const safeName = camelKey.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelKey : `"${camelKey}"`
             const expr = (accessor as any)?.expression
             let zType = 'z.unknown()'
             if (expr && expr.type) {
@@ -56,6 +66,7 @@ export class SchemaGenerator {
               else if (expr.type === 'string') zType = 'z.string()'
             }
             lines.push(`  ${safeName}: ${zType}.optional(), // accessor attribute`)
+            extraFields.add(camelKey)
           }
         }
 

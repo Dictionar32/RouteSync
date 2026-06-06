@@ -1,4 +1,5 @@
 import { ParsedRoute } from '@routesync/core'
+import { classifyRoutes } from './route-classifier'
 
 export type GeneratedRoute = ParsedRoute & {
   groupName: string
@@ -7,23 +8,16 @@ export type GeneratedRoute = ParsedRoute & {
 }
 
 export function buildGeneratedRoutes(routes: ParsedRoute[]): Record<string, GeneratedRoute[]> {
+  const classified = classifyRoutes(routes)
   const grouped: Record<string, GeneratedRoute[]> = {}
-  const usedActions: Record<string, Set<string>> = {}
 
-  for (const route of routes) {
-    const segments = getPathSegments(route.path)
-    const groupName = toIdentifier(segments[0] ?? 'root')
-    const baseActionName = toActionName(route, segments.slice(1))
-
-    usedActions[groupName] ??= new Set()
-    const actionName = uniquify(baseActionName, usedActions[groupName])
-
-    grouped[groupName] ??= []
-    grouped[groupName].push({
-      ...route,
-      groupName,
-      actionName,
-      runtimePath: toRuntimePath(route.path)
+  for (const route of classified) {
+    grouped[route.groupName] ??= []
+    grouped[route.groupName].push({
+      ...route.raw,
+      groupName: route.groupName,
+      actionName: route.actionName,
+      runtimePath: route.runtimePath
     })
   }
 

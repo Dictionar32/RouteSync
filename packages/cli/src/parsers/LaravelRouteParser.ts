@@ -170,6 +170,8 @@ foreach ($routes as $route) {
     }
 
     $schema = [];
+    $responseMetadata = null;
+    $assignments = [];
     $action = $route->getAction();
     if (isset($action['uses']) && is_string($action['uses']) && str_contains($action['uses'], '@')) {
         list($controller, $method) = explode('@', $action['uses']);
@@ -373,10 +375,13 @@ foreach ($routes as $route) {
 
     foreach ($methods as $method) {
         $nameParts = explode('/', preg_replace('/^api\\//', '', $route->uri()));
-        $resource = preg_replace('/\\{.*\\}/', '', $nameParts[0]);
-        if (empty($resource)) $resource = 'api';
-
-        $name = $resource . '.' . strtolower($method);
+        $slugParts = array_map(
+            fn($s) => preg_replace('/\\{([^}]*)\\}/', '$1', $s),
+            $nameParts
+        );
+        $pathSlug = implode('_', array_filter($slugParts, fn($s) => $s !== ''));
+        if (empty($pathSlug)) $pathSlug = 'api';
+        $name = $pathSlug . '.' . strtolower($method);
 
         $result['routes'][] = [
             'name' => $route->getName() ?: $name,

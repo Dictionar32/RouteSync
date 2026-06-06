@@ -1,6 +1,6 @@
 import { ApiError } from '@routesync/sdk'
 
-export interface UseFormSetError<TFieldValues extends Record<string, any>> {
+export interface UseFormSetError<TFieldValues extends Record<string, unknown>> {
   (name: keyof TFieldValues | string, error: { type: string; message?: string }): void
 }
 
@@ -11,7 +11,7 @@ export interface UseFormSetError<TFieldValues extends Record<string, any>> {
  * @param error - The error thrown by a RouteSync mutation
  * @param setError - The `setError` function destructured from `useForm()`
  */
-export function setFormErrors<TFieldValues extends Record<string, any>>(
+export function setFormErrors<TFieldValues extends Record<string, unknown>>(
   error: unknown,
   setError: UseFormSetError<TFieldValues>
 ) {

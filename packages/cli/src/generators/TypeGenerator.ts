@@ -97,6 +97,10 @@ export class TypeGenerator {
       }
     }
 
+    lines.push(``)
+    lines.push(`export * from './api-read'`)
+    lines.push(`export * from './api-form'`)
+
     await fs.ensureDir(path.join(outputDir, 'types'))
     await fs.writeFile(path.join(outputDir, 'types', 'index.ts'), lines.join('\n'))
   }

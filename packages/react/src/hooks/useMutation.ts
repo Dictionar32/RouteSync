@@ -18,7 +18,7 @@ import { EndpointCallable, EndpointCallableOptions, ApiError } from '@routesync/
 export interface ApiMutationOptions<TData, TError, TVariables, TContext = unknown>
   extends Omit<UseMutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'> {
   /** Extra endpoints to invalidate on success (in addition to the auto group invalidation). */
-  invalidate?: EndpointCallable<any, any, any>[]
+  invalidate?: EndpointCallable[]
 }
 
 export function useApiMutation<
@@ -36,7 +36,7 @@ export function useApiMutation<
 
   return useMutation<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>({
     ...options,
-    mutationFn: (variables: EndpointCallableOptions<TParams, TBody>) => endpoint(variables as any),
+    mutationFn: (variables: EndpointCallableOptions<TParams, TBody>) => endpoint(variables as never),
     onSuccess: (...args) => {
       // Auto-invalidate the endpoint's own group
       queryClient.invalidateQueries({ queryKey: [group] })

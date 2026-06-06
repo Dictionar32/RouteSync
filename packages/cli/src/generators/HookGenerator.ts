@@ -2,7 +2,7 @@ import { RouteManifest } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
-import { classifyRoutes, buildResourceMap } from './route-classifier'
+import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-classifier'
 
 export class HookGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -159,8 +159,13 @@ export class HookGenerator {
       blockLines.push(`    },`)
       blockLines.push(``)
       blockLines.push(`    queryKey: QueryKey.${groupName},`)
+      const toNormalizedActionKey = (route: ClassifiedRoute): string => {
+        if (route.crudRole === 'update') return 'update'
+        if (route.crudRole === 'delete') return 'remove'
+        return route.actionName
+      }
       const actionKeyLines = resource.all
-        .map(route => `      ${route.actionName}: QueryKey.${groupName}.${route.actionName},`)
+        .map(route => `      ${toNormalizedActionKey(route)}: QueryKey.${groupName}.${route.actionName},`)
       if (actionKeyLines.length > 0) {
         blockLines.push(`    actionKeys: {`)
         blockLines.push(actionKeyLines.join('\n'))
@@ -185,16 +190,13 @@ export class HookGenerator {
           const listKeyFn = isCrudKey ? 'lists' : 'list'
           pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
-        
+        addCrossResourceInvalidations('create', invs)
+
         if (invs.length > 0) {
           cacheLines.push(`      create: {`)
           cacheLines.push(`        invalidate: [`)
           cacheLines.push(invs.join('\n'))
           cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-        } else {
-          cacheLines.push(`      create: {`)
-          cacheLines.push(`        invalidate: [],`)
           cacheLines.push(`      },`)
         }
       }
@@ -208,16 +210,13 @@ export class HookGenerator {
           const detailKeyFn = isCrudKey ? 'detail' : resource.show.actionName
           pushUnique(invs, `          QueryKey.${groupName}.${detailKeyFn},`)
         }
-        
+        addCrossResourceInvalidations('update', invs)
+
         if (invs.length > 0) {
           cacheLines.push(`      update: {`)
           cacheLines.push(`        invalidate: [`)
           cacheLines.push(invs.join('\n'))
           cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-        } else {
-          cacheLines.push(`      update: {`)
-          cacheLines.push(`        invalidate: [],`)
           cacheLines.push(`      },`)
         }
       }
@@ -229,16 +228,13 @@ export class HookGenerator {
           const listKeyFn = isCrudKey ? 'lists' : 'list'
           pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
-        
+        addCrossResourceInvalidations('delete', invs)
+
         if (invs.length > 0) {
           cacheLines.push(`      delete: {`)
           cacheLines.push(`        invalidate: [`)
           cacheLines.push(invs.join('\n'))
           cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-        } else {
-          cacheLines.push(`      delete: {`)
-          cacheLines.push(`        invalidate: [],`)
           cacheLines.push(`      },`)
         }
       }
@@ -246,6 +242,9 @@ export class HookGenerator {
       for (const route of resource.all) {
         if (route.method === 'GET') continue
         if (['create', 'update', 'remove'].includes(route.actionName)) continue
+        // updateSelf / deleteSelf sudah di-handle oleh defineHooks via put/patch/delete no-param
+        if (['put', 'patch'].includes(route.actionName) && route.crudRole === 'update') continue
+        if (route.actionName === 'delete' && route.crudRole === 'delete' && !route.hasTrailingParam) continue
         if (cacheLines.some(line => line.trim() === `${route.actionName}: {`)) continue
 
         const invs: string[] = []

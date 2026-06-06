@@ -9,8 +9,6 @@ const requireValidId = (id: unknown): number => {
   return parsed
 }
 
-// Detect endpoint callable from api.ts ($def metadata present)
-// and adapt call signature accordingly
 const isEndpoint = (fn: any): boolean => typeof fn === 'function' && !!fn.$def
 
 const callIndex = (svc: any): Promise<any> =>
@@ -25,8 +23,29 @@ const callCreate = (svc: any, data: any): Promise<any> =>
 const callUpdate = (svc: any, id: number, data: any): Promise<any> =>
   isEndpoint(svc) ? svc({ params: { id }, body: data }) : svc(id, data)
 
+// update tanpa id param — untuk PUT/PATCH ke /resource (bukan /resource/:id)
+const callUpdateNoParam = (svc: any, data: any): Promise<any> =>
+  isEndpoint(svc) ? svc({ body: data }) : svc(data)
+
 const callDelete = (svc: any, id: number): Promise<any> =>
   isEndpoint(svc) ? svc({ params: { id } }) : svc(id)
+
+// delete tanpa id param — untuk DELETE ke /resource
+const callDeleteNoParam = (svc: any): Promise<any> =>
+  isEndpoint(svc) ? svc() : svc()
+
+type InvalidateList = Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>
+
+type ExtraEndpoint = {
+  /** endpoint callable atau service fn */
+  service: any
+  /** 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' — auto-detect dari $def kalau tidak diisi */
+  method?: string
+  /** query key fn dari actionKeys — dipakai sebagai queryKey untuk GET dan invalidasi mutation */
+  queryKey?: (...args: any[]) => readonly unknown[]
+  /** cache invalidation keys setelah mutation sukses */
+  invalidate?: InvalidateList
+}
 
 export const createCrudHooks = <
   ReadIndexList,
@@ -35,148 +54,207 @@ export const createCrudHooks = <
   UpdateForm
 >(config: {
   queryKey: {
-    list: () => readonly unknown[];
-    detail: (id: number) => readonly unknown[];
-  };
+    list: () => readonly unknown[]
+    detail: (id: number) => readonly unknown[]
+  }
   service: {
-    index?: () => Promise<ReadIndexList>;
-    show?: (id: number) => Promise<ReadShow>;
-    create?: (data: CreateForm) => Promise<ReadShow>;
-    update?: (id: number, data: UpdateForm) => Promise<ReadShow>;
-    delete?: (id: number) => Promise<void>;
-  };
+    index?: () => Promise<ReadIndexList>
+    show?: (id: number) => Promise<ReadShow>
+    create?: (data: CreateForm) => Promise<ReadShow>
+    /** PUT/PATCH + :id param */
+    update?: (id: number, data: UpdateForm) => Promise<ReadShow>
+    /** PUT/PATCH tanpa :id — e.g. PATCH /profile */
+    updateSelf?: (data: UpdateForm) => Promise<ReadShow>
+    delete?: (id: number) => Promise<void>
+    /** DELETE tanpa :id — e.g. DELETE /cart */
+    deleteSelf?: () => Promise<void>
+  }
   cache?: {
-    create?: {
-      invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
-    };
-    update?: {
-      invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
-    };
-    delete?: {
-      invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
-    };
-  };
+    create?: { invalidate?: InvalidateList }
+    update?: { invalidate?: InvalidateList }
+    updateSelf?: { invalidate?: InvalidateList }
+    delete?: { invalidate?: InvalidateList }
+    deleteSelf?: { invalidate?: InvalidateList }
+  }
+  /**
+   * Arbitrary non-CRUD endpoints yang diinjek sebagai hook.
+   * Key = nama hook yang diekspos (tanpa prefix "use"), e.g. "post" → usePost
+   */
+  extras?: Record<string, ExtraEndpoint>
 }) => {
-  const { service, queryKey } = config;
+  const { service, queryKey } = config
 
-  // Enterprise pattern: useIndex() - no params needed
+  const resolveInvalidate = (list: InvalidateList | undefined, arg?: any) => {
+    if (!list) return
+    const qc = useQueryClient()
+    list.forEach(inv => {
+      const key = typeof inv === 'function' ? inv(arg) : inv
+      qc.invalidateQueries({ queryKey: key })
+    })
+  }
+
+  // ── useIndex ──────────────────────────────────────────────────────────────
   const useIndex = () => {
-     if (!service.index) {
-      throw new Error('Index is not supported for this resource')
-    }
+    if (!service.index) throw new Error('Index is not supported for this resource')
     return useQuery({
       queryKey: queryKey.list(),
       queryFn: () => callIndex(service.index),
-    });
-  };
+    })
+  }
 
-  // Enterprise pattern: useShow(id)
+  // ── useShow ───────────────────────────────────────────────────────────────
   const useShow = (id: number) => {
-    if (!service.show) {
-      throw new Error('Show is not supported for this resource')
-    }
-    const validId = Number(id);
-    const enabled = Number.isInteger(validId) && validId > 0;
+    if (!service.show) throw new Error('Show is not supported for this resource')
+    const validId = Number(id)
+    const enabled = Number.isInteger(validId) && validId > 0
     return useQuery({
       queryKey: queryKey.detail(validId),
       enabled,
       queryFn: () => callShow(service.show, requireValidId(validId)),
-    });
-  };
+    })
+  }
 
-  // Enterprise pattern: useCreate()
+  // ── useCreate ─────────────────────────────────────────────────────────────
   const useCreate = () => {
-    const createService = service.create;
-    if (!createService) {
-      throw new Error("Create is not supported for this resource");
-    }
-
-    const qc = useQueryClient();
-
+    const svc = service.create
+    if (!svc) throw new Error('Create is not supported for this resource')
+    const qc = useQueryClient()
     return useMutation({
-      mutationFn: (data: CreateForm) => callCreate(createService, data),
+      mutationFn: (data: CreateForm) => callCreate(svc, data),
       onSuccess: () => {
-        qc.invalidateQueries({ queryKey: queryKey.list() });
-        if (config.cache?.create?.invalidate) {
-          config.cache.create.invalidate.forEach(inv => {
-            const key = typeof inv === 'function' ? inv() : inv;
-            qc.invalidateQueries({ queryKey: key });
-          });
-        }
+        qc.invalidateQueries({ queryKey: queryKey.list() })
+        resolveInvalidate(config.cache?.create?.invalidate)
       },
-    });
-  };
+    })
+  }
 
-  // Enterprise pattern: useUpdate()
+  // ── useUpdate — PUT/PATCH + :id ───────────────────────────────────────────
   const useUpdate = () => {
-    const updateService = service.update;
-    if (!updateService) {
-      throw new Error("Update is not supported for this resource");
-    }
-
-    const qc = useQueryClient();
-
+    const svc = service.update
+    if (!svc) throw new Error('Update is not supported for this resource')
+    const qc = useQueryClient()
     return useMutation({
-      mutationFn: ({ id, data }: { id: number; data: UpdateForm }) => {
-        const validId = requireValidId(id);
-        return callUpdate(updateService, validId, data);
+      mutationFn: ({ id, data }: { id: number; data: UpdateForm }) =>
+        callUpdate(svc, requireValidId(id), data),
+      onSuccess: (_data, vars) => {
+        qc.invalidateQueries({ queryKey: queryKey.list() })
+        qc.invalidateQueries({ queryKey: queryKey.detail(vars.id) })
+        resolveInvalidate(config.cache?.update?.invalidate, vars.id)
       },
-      onSuccess: (_data: unknown, vars) => {
-        qc.invalidateQueries({ queryKey: queryKey.list() });
-        qc.invalidateQueries({ queryKey: queryKey.detail(vars.id) });
-        if (config.cache?.update?.invalidate) {
-          config.cache.update.invalidate.forEach(inv => {
-            const key = typeof inv === 'function' ? inv(vars.id) : inv;
-            qc.invalidateQueries({ queryKey: key });
-          });
-        }
-      },
-    });
-  };
+    })
+  }
 
-  // Enterprise pattern: useRemove() (alias for delete)
+  // ── useUpdateSelf — PUT/PATCH tanpa :id (e.g. PATCH /profile) ─────────────
+  const useUpdateSelf = () => {
+    const svc = service.updateSelf
+    if (!svc) throw new Error('UpdateSelf is not supported for this resource')
+    const qc = useQueryClient()
+    return useMutation({
+      mutationFn: (data: UpdateForm) => callUpdateNoParam(svc, data),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: queryKey.list() })
+        resolveInvalidate(config.cache?.updateSelf?.invalidate)
+      },
+    })
+  }
+
+  // ── useRemove — DELETE + :id ──────────────────────────────────────────────
   const useRemove = () => {
-    const deleteService = service.delete;
-    if (!deleteService) {
-      throw new Error("Delete is not supported for this resource");
-    }
-
-    const qc = useQueryClient();
-
+    const svc = service.delete
+    if (!svc) throw new Error('Delete is not supported for this resource')
+    const qc = useQueryClient()
     return useMutation({
-      mutationFn: (id: number) => {
-        const validId = requireValidId(id);
-        return callDelete(deleteService, validId);
+      mutationFn: (id: number) => callDelete(svc, requireValidId(id)),
+      onSuccess: (_data, id) => {
+        qc.invalidateQueries({ queryKey: queryKey.list() })
+        qc.invalidateQueries({ queryKey: queryKey.detail(id) })
+        resolveInvalidate(config.cache?.delete?.invalidate, id)
       },
-      onSuccess: (_data: unknown, id: number) => {
-        qc.invalidateQueries({ queryKey: queryKey.list() });
-        qc.invalidateQueries({ queryKey: queryKey.detail(id) });
-        if (config.cache?.delete?.invalidate) {
-          config.cache.delete.invalidate.forEach(inv => {
-            const key = typeof inv === 'function' ? inv(id) : inv;
-            qc.invalidateQueries({ queryKey: key });
-          });
-        }
-      },
-    });
-  };
+    })
+  }
 
-  // Return hooks object directly - supports useProduk.index()
-  // Also add legacy properties for backward compatibility: useProduk.useIndex()
+  // ── useDeleteSelf — DELETE tanpa :id (e.g. DELETE /cart) ──────────────────
+  const useDeleteSelf = () => {
+    const svc = service.deleteSelf
+    if (!svc) throw new Error('DeleteSelf is not supported for this resource')
+    const qc = useQueryClient()
+    return useMutation({
+      mutationFn: () => callDeleteNoParam(svc),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: queryKey.list() })
+        resolveInvalidate(config.cache?.deleteSelf?.invalidate)
+      },
+    })
+  }
+
+  // ── extras — arbitrary endpoints ───────────────────────────────────────────
+  const extraHooks: Record<string, (...args: any[]) => any> = {}
+
+  if (config.extras) {
+    const qc = useQueryClient()
+
+    for (const [name, extra] of Object.entries(config.extras)) {
+      const hookName = `use${name.charAt(0).toUpperCase()}${name.slice(1)}`
+      const method = extra.method ?? (isEndpoint(extra.service) ? extra.service.$def?.method : 'POST')
+
+      if (method === 'GET') {
+        extraHooks[hookName] = (options?: unknown, queryOptions?: unknown) => {
+          // pakai actionKey kalau ada, fallback ke [groupName, action, options]
+          const resolvedKey = extra.queryKey
+            ? extra.queryKey(options)
+            : [...queryKey.list(), name, options].filter(Boolean)
+          return useQuery({
+            ...(queryOptions as any),
+            queryKey: resolvedKey,
+            queryFn: () => isEndpoint(extra.service) ? extra.service(options as never) : extra.service(options),
+          })
+        }
+      } else {
+        extraHooks[hookName] = (mutationOptions?: any) =>
+          useMutation({
+            ...mutationOptions,
+            mutationFn: (variables: any) =>
+              isEndpoint(extra.service)
+                ? extra.service({ body: variables })
+                : extra.service(variables),
+            onSuccess: (data: unknown, variables: unknown, context: unknown) => {
+              // invalidate via actionKey kalau ada
+              if (extra.queryKey) {
+                qc.invalidateQueries({ queryKey: extra.queryKey(variables) })
+              }
+              // invalidate tambahan dari cache config
+              if (extra.invalidate) {
+                extra.invalidate.forEach(inv => {
+                  const key = typeof inv === 'function' ? inv(variables) : inv
+                  qc.invalidateQueries({ queryKey: key })
+                })
+              }
+              mutationOptions?.onSuccess?.(data, variables, context)
+            },
+          })
+      }
+    }
+  }
+
   return {
-    index: useIndex,
-    show: useShow,
-    create: useCreate,
-    update: useUpdate,
-    remove: useRemove,
-    delete: useRemove, // alias for remove
-    
-    // Legacy patterns
+    // canonical names
     useIndex,
     useShow,
     useCreate,
     useUpdate,
-    useDelete: useRemove,
+    useUpdateSelf,
     useRemove,
-  };
-};
+    useDeleteSelf,
+    // short aliases
+    index: useIndex,
+    show: useShow,
+    create: useCreate,
+    update: useUpdate,
+    updateSelf: useUpdateSelf,
+    remove: useRemove,
+    delete: useRemove,
+    deleteSelf: useDeleteSelf,
+    // extra injected hooks
+    ...extraHooks,
+  }
+}

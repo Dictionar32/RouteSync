@@ -1,120 +1,100 @@
-import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { EndpointCallable, EndpointCallableOptions, ApiError, RouteDefinition } from '@routesync/sdk'
 import { createCrudHooks } from './createCrudHooks'
-import { useApiQuery, ApiQueryOptions } from './useQuery'
-import { useApiMutation, ApiMutationOptions } from './useMutation'
 import { toIndexFn, toShowFn } from './endpointAdapters'
 
-type CrudHooksForGroup<TTypes, TEndpoint> = {
-  index: [TTypes] extends [{ list: infer L }]
-    ? [L] extends [never]
-      ? never
-      : () => UseQueryResult<L, Error>
-    : TEndpoint extends { list: EndpointCallable<infer L, any, any, any> }
-      ? () => UseQueryResult<L, Error>
-      : never
-  useIndex: [TTypes] extends [{ list: infer L }]
-    ? [L] extends [never]
-      ? never
-      : () => UseQueryResult<L, Error>
-    : TEndpoint extends { list: EndpointCallable<infer L, any, any, any> }
-      ? () => UseQueryResult<L, Error>
-      : never
+// ─── Utility types ────────────────────────────────────────────────────────────
 
-  show: [TTypes] extends [{ detail: infer D }]
-    ? [D] extends [never]
-      ? never
-      : (id: number) => UseQueryResult<D, Error>
-    : TEndpoint extends { get: EndpointCallable<infer D, any, any, any> } | { show: EndpointCallable<infer D, any, any, any> }
-      ? (id: number) => UseQueryResult<D, Error>
-      : never
-  useShow: [TTypes] extends [{ detail: infer D }]
-    ? [D] extends [never]
-      ? never
-      : (id: number) => UseQueryResult<D, Error>
-    : TEndpoint extends { get: EndpointCallable<infer D, any, any, any> } | { show: EndpointCallable<infer D, any, any, any> }
-      ? (id: number) => UseQueryResult<D, Error>
-      : never
+type InferResponse<T> = T extends EndpointCallable<infer R, any, any, any> ? R : unknown
+type InferBody<T> = T extends EndpointCallable<any, any, infer B, any> ? B : unknown
+type InferMethod<T> = T extends { $def: RouteDefinition<any, any, any, infer M> } ? M : never
 
-  create: [TTypes] extends [{ create: infer C }]
-    ? [C] extends [never]
-      ? never
-      : () => UseMutationResult<[TTypes] extends [{ detail: infer D }] ? ([D] extends [never] ? unknown : D) : (TEndpoint extends { get: EndpointCallable<infer RD, any, any, any> } | { show: EndpointCallable<infer RD, any, any, any> } ? RD : unknown), Error, C>
-    : TEndpoint extends { create: EndpointCallable<any, any, infer C, any> }
-      ? () => UseMutationResult<TEndpoint extends { get: EndpointCallable<infer D, any, any, any> } | { show: EndpointCallable<infer D, any, any, any> } ? D : unknown, Error, C>
-      : never
-  useCreate: [TTypes] extends [{ create: infer C }]
-    ? [C] extends [never]
-      ? never
-      : () => UseMutationResult<[TTypes] extends [{ detail: infer D }] ? ([D] extends [never] ? unknown : D) : (TEndpoint extends { get: EndpointCallable<infer RD, any, any, any> } | { show: EndpointCallable<infer RD, any, any, any> } ? RD : unknown), Error, C>
-    : TEndpoint extends { create: EndpointCallable<any, any, infer C, any> }
-      ? () => UseMutationResult<TEndpoint extends { get: EndpointCallable<infer D, any, any, any> } | { show: EndpointCallable<infer D, any, any, any> } ? D : unknown, Error, C>
-      : never
+type HookForEndpoint<T> =
+  InferMethod<T> extends 'GET'
+    ? (options?: any) => UseQueryResult<InferResponse<T>, Error>
+    : () => UseMutationResult<InferResponse<T>, Error, InferBody<T>>
 
-  update: [TTypes] extends [{ update: infer U }]
-    ? [U] extends [never]
-      ? never
-      : () => UseMutationResult<[TTypes] extends [{ detail: infer D }] ? ([D] extends [never] ? unknown : D) : (TEndpoint extends { get: EndpointCallable<infer RD, any, any, any> } | { show: EndpointCallable<infer RD, any, any, any> } ? RD : unknown), Error, { id: number; data: U }>
-    : TEndpoint extends { update: EndpointCallable<any, any, infer U, any> }
-      ? () => UseMutationResult<TEndpoint extends { get: EndpointCallable<infer D, any, any, any> } | { show: EndpointCallable<infer D, any, any, any> } ? D : unknown, Error, { id: number; data: U }>
-      : never
-  useUpdate: [TTypes] extends [{ update: infer U }]
-    ? [U] extends [never]
-      ? never
-      : () => UseMutationResult<[TTypes] extends [{ detail: infer D }] ? ([D] extends [never] ? unknown : D) : (TEndpoint extends { get: EndpointCallable<infer RD, any, any, any> } | { show: EndpointCallable<infer RD, any, any, any> } ? RD : unknown), Error, { id: number; data: U }>
-    : TEndpoint extends { update: EndpointCallable<any, any, infer U, any> }
-      ? () => UseMutationResult<TEndpoint extends { get: EndpointCallable<infer D, any, any, any> } | { show: EndpointCallable<infer D, any, any, any> } ? D : unknown, Error, { id: number; data: U }>
-      : never
-
-  remove: TEndpoint extends { delete: any } | { remove: any } ? () => UseMutationResult<void, Error, number> : never
-  useRemove: TEndpoint extends { delete: any } | { remove: any } ? () => UseMutationResult<void, Error, number> : never
-  delete: TEndpoint extends { delete: any } | { remove: any } ? () => UseMutationResult<void, Error, number> : never
-  useDelete: TEndpoint extends { delete: any } | { remove: any } ? () => UseMutationResult<void, Error, number> : never
-} & {
-  [K in keyof TEndpoint as `use${Capitalize<string & K>}`]: TEndpoint[K] extends {
-    $def: RouteDefinition<infer R, infer P, infer B, infer M>
-  }
-    ? M extends 'GET'
-      ? TEndpoint[K] extends (...args: never[]) => unknown
-        ? (...args: [...args: Parameters<TEndpoint[K]>, queryOptions?: ApiQueryOptions<R>]) => ReturnType<typeof useApiQuery<R, P, B>>
-        : never
-      : (options?: ApiMutationOptions<R, ApiError, EndpointCallableOptions<P, B>>) => ReturnType<typeof useApiMutation<R, P, B>>
-    : never
+// Map all endpoint keys to use{Name} hooks
+type EndpointHooks<TEndpoint> = {
+  [K in keyof TEndpoint as `use${Capitalize<string & K>}`]: HookForEndpoint<TEndpoint[K]>
 }
+
+// CRUD convenience hooks — only present when the slot is populated
+type CrudHooks<TTypes, TEndpoint> = {
+  useIndex: [TTypes] extends [{ list: infer L }]
+    ? [L] extends [never] ? never : () => UseQueryResult<L, Error>
+    : TEndpoint extends { list: EndpointCallable<infer L, any, any, any> }
+      ? () => UseQueryResult<L, Error>
+      : never
+
+  useShow: [TTypes] extends [{ detail: infer D }]
+    ? [D] extends [never] ? never : (id: number) => UseQueryResult<D, Error>
+    : never
+
+  useCreate: [TTypes] extends [{ create: infer C }]
+    ? [C] extends [never] ? never : () => UseMutationResult<unknown, Error, C>
+    : never
+
+  useUpdate: [TTypes] extends [{ update: infer U }]
+    ? [U] extends [never] ? never : () => UseMutationResult<unknown, Error, { id: number; data: U }>
+    : never
+
+  useUpdateSelf: [TTypes] extends [{ update: infer U }]
+    ? [U] extends [never] ? never : () => UseMutationResult<unknown, Error, U>
+    : never
+
+  useRemove: TEndpoint extends { delete: any } | { remove: any }
+    ? () => UseMutationResult<void, Error, number>
+    : never
+
+  useDeleteSelf: TEndpoint extends { delete: any }
+    ? () => UseMutationResult<void, Error, void>
+    : never
+
+  // short aliases
+  index: CrudHooks<TTypes, TEndpoint>['useIndex']
+  show: CrudHooks<TTypes, TEndpoint>['useShow']
+  create: CrudHooks<TTypes, TEndpoint>['useCreate']
+  update: CrudHooks<TTypes, TEndpoint>['useUpdate']
+  updateSelf: CrudHooks<TTypes, TEndpoint>['useUpdateSelf']
+  remove: CrudHooks<TTypes, TEndpoint>['useRemove']
+  delete: CrudHooks<TTypes, TEndpoint>['useRemove']
+  deleteSelf: CrudHooks<TTypes, TEndpoint>['useDeleteSelf']
+}
+
+type HooksForGroup<TTypes, TEndpoint> = CrudHooks<TTypes, TEndpoint> & EndpointHooks<TEndpoint>
+
+// ─── HookConfig ───────────────────────────────────────────────────────────────
+
+type InvalidateList = Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>
 
 export interface HookConfig {
   types?: {
-    list?: any;
-    detail?: any;
-    create?: any;
-    update?: any;
-  };
-  queryKey: any;
-  actionKeys?: Record<string, (...args: any[]) => readonly unknown[]>;
-  endpoint: any;
+    list?: any
+    detail?: any
+    create?: any
+    update?: any
+  }
+  queryKey: any
+  actionKeys?: Record<string, (...args: any[]) => readonly unknown[]>
+  endpoint: any
   cache?: {
-    list?: () => readonly unknown[];
-    detail?: (id: number) => readonly unknown[];
-    create?: {
-      invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
-    };
-    update?: {
-      invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
-    };
-    delete?: {
-      invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>;
-    };
-    [action: string]: unknown;
-  };
+    list?: () => readonly unknown[]
+    detail?: (id: number) => readonly unknown[]
+    create?: { invalidate?: InvalidateList }
+    update?: { invalidate?: InvalidateList }
+    updateSelf?: { invalidate?: InvalidateList }
+    delete?: { invalidate?: InvalidateList }
+    deleteSelf?: { invalidate?: InvalidateList }
+    [action: string]: unknown
+  }
 }
 
-export function defineHooks<
-  TConfig extends Record<string, HookConfig>
->(
+// ─── defineHooks ─────────────────────────────────────────────────────────────
+
+export function defineHooks<TConfig extends Record<string, HookConfig>>(
   config: TConfig
-): {
-  [K in keyof TConfig]: CrudHooksForGroup<TConfig[K]['types'], TConfig[K]['endpoint']>
-} {
+): { [K in keyof TConfig]: HooksForGroup<TConfig[K]['types'], TConfig[K]['endpoint']> } {
   const hooks = {} as any
 
   for (const groupName in config) {
@@ -122,88 +102,76 @@ export function defineHooks<
     const group = groupConfig.endpoint
     const groupQueryKeys = groupConfig.queryKey
 
-    const indexService = group.list
-    const showService = group.get
-    const createService = group.create
+    // ── Resolve CRUD standard slots ──────────────────────────────────────────
+    const indexService  = group.list
+    const showService   = group.get ?? group.show
+    // update: param-based (PUT/PATCH + :id) → first-wins
     const updateService = group.update
-    const deleteService = group.delete || group.remove
+    // updateSelf: no-param PUT/PATCH (e.g. PATCH /profile) — put sebelum patch
+    const updateSelfService = !updateService ? (group.put ?? group.patch) : undefined
+    // kalau update tidak ada, put/patch tanpa param masuk ke updateSelf
+    const resolvedUpdateSelf = group.put ?? group.patch
+    const deleteService     = group.remove ?? (group.delete?.$def?.path?.includes(':') ? group.delete : undefined)
+    const deleteSelfService = !deleteService
+      ? (group.delete?.$def && !group.delete?.$def?.path?.includes(':') ? group.delete : undefined)
+      : undefined
 
-    const crudHooks = createCrudHooks({
-      queryKey: {
-        list: () => {
-          if (groupConfig.cache?.list) return groupConfig.cache.list()
-          if (groupQueryKeys?.lists) return groupQueryKeys.lists()
-          if (groupQueryKeys?.list) return groupQueryKeys.list()
-          return [groupName, 'list']
-        },
-        detail: (id: number) => {
-          if (groupConfig.cache?.detail) return groupConfig.cache.detail(id)
-          if (groupQueryKeys?.detail) return groupQueryKeys.detail(id)
-          return [groupName, 'detail', id]
-        }
-      },
-      service: {
-        index: indexService ? toIndexFn(indexService) : undefined,
-        show: showService ? toShowFn(showService) : undefined,
-        create: createService,
-        update: updateService,
-        delete: deleteService,
-      },
-      cache: groupConfig.cache
-    })
-
-    // Merge custom hooks
-    const customHooks = {} as any
-    const actionQueryKey = (action: string, options?: any) => {
-      const actionKey = groupConfig.actionKeys?.[action] ?? groupQueryKeys?.[action]
-      if (typeof actionKey !== 'function') {
-        return options ? [groupName, action, options] : [groupName, action]
-      }
-
-      if (options?.params !== undefined) return actionKey(options.params)
-      if (options?.query !== undefined) return actionKey(options.query)
-      return actionKey()
-    }
+    // ── Resolve extra (non-CRUD) endpoints ───────────────────────────────────
+    const CRUD_KEYS = new Set(['list', 'get', 'show', 'create', 'update', 'put', 'patch', 'delete', 'remove'])
+    const extras: Record<string, { service: any; method?: string; queryKey?: (...args: any[]) => readonly unknown[]; invalidate?: InvalidateList }> = {}
 
     for (const action in group) {
+      if (CRUD_KEYS.has(action)) continue
       const endpoint = group[action]
       if (typeof endpoint !== 'function' || !endpoint.$def) continue
 
-      const method = endpoint.$def.method
-      const hookName = `use${action.charAt(0).toUpperCase()}${action.slice(1)}`
+      const method = endpoint.$def.method as string
+      const actionCache = groupConfig.cache?.[action] as { invalidate?: InvalidateList } | undefined
+      // ambil queryKey dari actionKeys kalau ada — ini yang jadi sumber kebenaran untuk cache
+      const actionKeyFn = groupConfig.actionKeys?.[action] ?? groupQueryKeys?.[action]
 
-      if (method === 'GET') {
-        customHooks[hookName] = (options?: unknown, queryOptions?: unknown) =>
-          useQuery({
-            ...(queryOptions as any),
-            queryKey: actionQueryKey(action, options),
-            queryFn: () => (endpoint as EndpointCallable)(options as never),
-          })
-      } else {
-        customHooks[hookName] = (mutationOptions?: any) => {
-          const queryClient = useQueryClient()
-          const actionCache = groupConfig.cache?.[action] as
-            | { invalidate?: Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]> }
-            | undefined
-
-          return useApiMutation(endpoint as EndpointCallable, {
-            ...mutationOptions,
-            onSuccess: (data: unknown, variables: unknown, onMutateResult: unknown, context: unknown) => {
-              queryClient.invalidateQueries({ queryKey: actionQueryKey(action, variables) })
-
-              actionCache?.invalidate?.forEach(inv => {
-                const key = typeof inv === 'function' ? inv(variables) : inv
-                queryClient.invalidateQueries({ queryKey: key })
-              })
-
-              mutationOptions?.onSuccess?.(data, variables, onMutateResult, context)
-            },
-          } as never)
-        }
+      extras[action] = {
+        service: endpoint,
+        method,
+        queryKey: typeof actionKeyFn === 'function' ? actionKeyFn : undefined,
+        invalidate: actionCache?.invalidate,
       }
     }
 
-    hooks[groupName] = { ...crudHooks, ...customHooks }
+    // ── Build queryKey fns ───────────────────────────────────────────────────
+    const listKey = (): readonly unknown[] => {
+      if (groupConfig.cache?.list) return groupConfig.cache.list()
+      if (groupQueryKeys?.lists) return groupQueryKeys.lists()
+      if (groupQueryKeys?.list) return groupQueryKeys.list()
+      return [groupName, 'list']
+    }
+
+    const detailKey = (id: number): readonly unknown[] => {
+      if (groupConfig.cache?.detail) return groupConfig.cache.detail(id)
+      if (groupQueryKeys?.detail) return groupQueryKeys.detail(id)
+      return [groupName, 'detail', id]
+    }
+
+    hooks[groupName] = createCrudHooks({
+      queryKey: { list: listKey, detail: detailKey },
+      service: {
+        index:      indexService  ? toIndexFn(indexService)  : undefined,
+        show:       showService   ? toShowFn(showService)    : undefined,
+        create:     group.create  ?? undefined,
+        update:     updateService ?? undefined,
+        updateSelf: resolvedUpdateSelf ?? undefined,
+        delete:     deleteService     ?? undefined,
+        deleteSelf: deleteSelfService ?? undefined,
+      },
+      cache: {
+        create:     groupConfig.cache?.create     as any,
+        update:     groupConfig.cache?.update     as any,
+        updateSelf: groupConfig.cache?.updateSelf as any ?? groupConfig.cache?.update as any,
+        delete:     groupConfig.cache?.delete     as any,
+        deleteSelf: groupConfig.cache?.deleteSelf as any ?? groupConfig.cache?.delete as any,
+      },
+      extras,
+    })
   }
 
   return hooks

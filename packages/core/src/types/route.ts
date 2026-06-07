@@ -34,8 +34,12 @@ export type ResponseMetadata = (
   | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }>; collection?: boolean; paginated?: boolean }
   | { kind: 'unknown' }
 ) & {
-  resolved?: SemanticResolution & { kind?: string; fields?: Record<string, any> }
-  semantic?: SemanticResolution & { kind?: string; fields?: Record<string, any> }
+  resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any> }
+  semantic?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any> }
+  /** Runtime-enriched by SemanticKernelV2 — present on all variants via intersection */
+  collection?: boolean
+  paginated?: boolean
+  type?: string
 }
 
 export interface ParsedRoute {

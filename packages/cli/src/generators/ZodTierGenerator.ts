@@ -372,6 +372,11 @@ export class ZodTierGenerator {
         hasExports = true
         let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {} })
 
+        // Index/list routes return a collection — wrap in z.array() if not already detected as one
+        if (route.actionName === 'list' && !zType.startsWith('z.array(') && !zType.includes('data:')) {
+          zType = `z.array(${zType})`
+        }
+
         lines.push(`export const ${KeyName}ResponseSchema = ${zType}`)
         lines.push(`export type ${KeyName}Response = z.infer<typeof ${KeyName}ResponseSchema>`)
         lines.push(`export const validate${KeyName}Response = (payload: unknown): ${KeyName}Response => ${KeyName}ResponseSchema.parse(payload)`)
@@ -1024,12 +1029,13 @@ export class ZodTierGenerator {
         }
         const kind = meta.kind || meta.type
 
-        if (kind === 'object' && this.hasModelOrResource(route.response)) {
+        if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
           hasExports = true
           modelImports.push(`${KeyName}Response`)
           const transformedType = this.mapResolvedToTsType(meta)
           const mappedValue = this.generateObjectReadMapper(route.response, 'api')
-          lines.push(`export const to${KeyName}ResponseRead = (api: ${KeyName}Response): ${transformedType} => (${mappedValue}) as unknown as ${transformedType}`)
+          // Return type is T | undefined because generateObjectReadMapper can return undefined for falsy api
+          lines.push(`export const to${KeyName}ResponseRead = (api: ${KeyName}Response): ${transformedType} | undefined => (${mappedValue})`)
           lines.push(``)
         }
       }
@@ -1275,6 +1281,21 @@ export class ZodTierGenerator {
     if (kind === 'model' || kind === 'resource') return true
     if (kind === 'object' && meta.fields) {
       return Object.values(meta.fields).some(f => this.hasModelOrResource(f))
+    }
+    return false
+  }
+
+  // Returns true when a response object (or any nested object) has snake_case field names
+  // that need to be camelCased — used to decide if a response mapper should be generated
+  private static hasSnakeCaseFields(rawMeta: any): boolean {
+    if (!rawMeta) return false
+    const meta = rawMeta.resolved || rawMeta.semantic || rawMeta
+    const kind = meta.kind || meta.type
+    if (kind === 'object' && meta.fields) {
+      for (const [k, v] of Object.entries(meta.fields as Record<string, any>)) {
+        if (k.includes('_')) return true
+        if (this.hasSnakeCaseFields(v)) return true
+      }
     }
     return false
   }

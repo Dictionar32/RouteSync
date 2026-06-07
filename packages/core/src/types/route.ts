@@ -1,3 +1,4 @@
+import { SemanticResolution } from './contract'
 export interface RouteManifest {
   version: string
   baseURL: string
@@ -27,11 +28,15 @@ export interface ParsedResource {
   assignments?: Record<string, string>
 }
 
-export type ResponseMetadata =
+export type ResponseMetadata = (
   | { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
   | { kind: 'resource'; resource: string; collection: boolean; paginated?: boolean }
-  | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }> }
+  | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }>; collection?: boolean; paginated?: boolean }
   | { kind: 'unknown' }
+) & {
+  resolved?: SemanticResolution & { kind?: string; fields?: Record<string, any> }
+  semantic?: SemanticResolution & { kind?: string; fields?: Record<string, any> }
+}
 
 export interface ParsedRoute {
   name: string

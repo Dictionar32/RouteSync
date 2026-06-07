@@ -101,8 +101,20 @@ export class SDKGenerator {
         
         typeStr = `{ ${fieldsInfo.map(f => `${f.key}: ${f.info.type}`).join(', ')} }`
         
-        // Check if any sub-field has a mapper
-        const hasSubMapper = fieldsInfo.some(f => f.info.mapper !== null)
+        // Check if any sub-field has a mapper, or if any nested field name is snake_case
+        // (the latter means ZodTierGenerator will generate a camelCase mapper for it)
+        const hasNestedSnakeCaseKey = (rawMeta: any): boolean => {
+          if (!rawMeta) return false
+          const m = rawMeta.resolved || rawMeta.semantic || rawMeta
+          if (m.fields) {
+            for (const [k, v] of Object.entries(m.fields as Record<string, any>)) {
+              if (k.includes('_')) return true
+              if (hasNestedSnakeCaseKey(v)) return true
+            }
+          }
+          return false
+        }
+        const hasSubMapper = fieldsInfo.some(f => f.info.mapper !== null) || hasNestedSnakeCaseKey(rawMeta)
         let mapperStr: string | null = null
         if (hasSubMapper) {
           mapperStr = `to${keyName}ResponseRead`

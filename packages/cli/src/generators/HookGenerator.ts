@@ -59,8 +59,18 @@ export class HookGenerator {
 
       const resolveFormType = (route?: any): string | null => {
         if (!route || !hasSchema(route)) return null
-        importedTypes.add(formName)
-        return `${formName}['${capitalize(route.actionName)}']`
+        const actionKey = capitalize(route.actionName)
+        // Standard form actions that are guaranteed to exist in the generated Form type
+        // GET routes with schema generate Form['Get'] key in TypeFormGenerator
+        const standardFormActions = ['Create', 'Update', 'Patch', 'Put', 'Get']
+        if (standardFormActions.includes(actionKey)) {
+          importedTypes.add(formName)
+          return `${formName}['${actionKey}']`
+        }
+        // Non-standard action (e.g. 'post') — fall back to contract payload type
+        const contractType = `${toTypeName(route.groupName)}${actionKey}Payload`
+        contractImportedTypes.add(contractType)
+        return contractType
       }
 
       const resolveResponseInfo = (rawMeta: any): { baseName: string; collection: boolean } | null => {
@@ -149,13 +159,26 @@ export class HookGenerator {
       // 3. Resolve create type
       let createType = 'never'
       if (resource.create) {
-        createType = resolveFormType(resource.create) || 'any'
+        createType = resolveFormType(resource.create) || 'never'
+      } else {
+        // Fallback: custom POST route with schema (e.g. POST /produk/{id}/reviews)
+        const customPost = resource.all.find(
+          r => r.method === 'POST' && r.crudRole === 'custom' && hasSchema(r)
+        )
+        // Fallback: custom GET route with schema (e.g. GET /oauth/{provider}/redirect?redirect_to=)
+        const customGet = resource.all.find(
+          r => r.method === 'GET' && r.crudRole === 'custom' && hasSchema(r)
+        )
+        const fallback = customPost ?? customGet
+        if (fallback) {
+          createType = resolveFormType(fallback) || 'never'
+        }
       }
 
       // 4. Resolve update type
       let updateType = 'never'
       if (resource.update) {
-        updateType = resolveFormType(resource.update) || 'any'
+        updateType = resolveFormType(resource.update) || 'never'
       }
 
       const blockLines: string[] = []

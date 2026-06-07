@@ -670,6 +670,7 @@ export class ZodTierGenerator {
     if (ruleStr.includes('array')) return 'z.array(z.unknown())'
     if (ruleStr.includes('integer') || ruleStr.includes('numeric') || ruleStr.includes('digits')) return 'z.number()'
     if (ruleStr.includes('boolean') || ruleStr.includes('bool')) return 'z.boolean()'
+    if (ruleStr.includes('file') || ruleStr.includes('image') || ruleStr.includes('mimes') || ruleStr.includes('mimetypes')) return 'z.instanceof(File)'
     return 'z.string()'
   }
 
@@ -858,6 +859,7 @@ export class ZodTierGenerator {
     if (ruleStr.includes('array')) return 'unknown[]'
     if (ruleStr.includes('integer') || ruleStr.includes('numeric') || ruleStr.includes('digits')) return 'number'
     if (ruleStr.includes('boolean') || ruleStr.includes('bool')) return 'boolean'
+    if (ruleStr.includes('file') || ruleStr.includes('image') || ruleStr.includes('mimes') || ruleStr.includes('mimetypes')) return 'File'
     return 'string'
   }
 
@@ -938,7 +940,7 @@ export class ZodTierGenerator {
         }
         const kind = meta.kind || meta.type
 
-        if (kind === 'object' && this.hasModelOrResource(route.response)) {
+        if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
           modelImports.push(`${KeyName}Response`)
         }
       }
@@ -1031,7 +1033,6 @@ export class ZodTierGenerator {
 
         if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
           hasExports = true
-          modelImports.push(`${KeyName}Response`)
           const transformedType = this.mapResolvedToTsType(meta)
           const mappedValue = this.generateObjectReadMapper(route.response, 'api')
           // Return type is T | undefined because generateObjectReadMapper can return undefined for falsy api
@@ -1268,7 +1269,8 @@ export class ZodTierGenerator {
         const mappedVal = this.generateObjectReadMapper(subDef, safeSubOriginal)
         props.push(`    ${safeSubCamel}: ${mappedVal},`)
       }
-      return `${parentAccessor} ? {\n${props.join('\n')}\n  } : undefined`
+      // Use non-conditional form so return type matches — nested nullability handled per-field
+      return `(${parentAccessor} ? {\\n${props.join('\\n')}\\n  } : undefined) as any`
     } else {
       return parentAccessor
     }

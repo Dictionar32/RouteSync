@@ -1,7 +1,19 @@
 import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { EndpointCallable, EndpointCallableOptions, ApiError, RouteDefinition } from '@routesync/sdk'
+import { PathResolver } from '@routesync/core'
 import { createCrudHooks } from './createCrudHooks'
 import { toIndexFn, toShowFn } from './endpointAdapters'
+
+// ─── Internal helper: extract first path param name from an endpoint ──────────
+// Needed because PathResolver.resolve for function-based paths uses named lookup
+// (params['produkItemId']), not positional. Without this, callUpdate/callDelete
+// would always pass { id } which resolves to undefined for non-id param names.
+function extractParamKey(endpoint: any): string {
+  const path = endpoint?.$def?.path
+  if (!path) return 'id'
+  const params = PathResolver.extractParams(path)
+  return params[0] ?? 'id'
+}
 
 // ─── Utility types ────────────────────────────────────────────────────────────
 
@@ -152,15 +164,25 @@ export function defineHooks<TConfig extends Record<string, HookConfig>>(
       return [groupName, 'detail', id]
     }
 
+    // Extract actual param key names from path fn signatures so PathResolver
+    // doesn't resolve to undefined when param isn't named 'id' (e.g. produkItemId).
+    const showParamKey   = showService   ? extractParamKey(showService)   : 'id'
+    const updateParamKey = updateService ? extractParamKey(updateService) : 'id'
+    const deleteParamKey = deleteService ? extractParamKey(deleteService) : 'id'
+
     hooks[groupName] = createCrudHooks({
       queryKey: { list: listKey, detail: detailKey },
       service: {
-        index:      indexService  ? toIndexFn(indexService)  : undefined,
-        show:       showService   ? toShowFn(showService)    : undefined,
-        create:     group.create  ?? undefined,
-        update:     updateService ?? undefined,
+        index:      indexService      ? toIndexFn(indexService)                : undefined,
+        show:       showService       ? toShowFn(showService, showParamKey)    : undefined,
+        create:     group.create      ?? undefined,
+        update:     updateService
+          ? (id: number, data: any) => updateService({ params: { [updateParamKey]: id }, body: data })
+          : undefined,
         updateSelf: resolvedUpdateSelf ?? undefined,
-        delete:     deleteService     ?? undefined,
+        delete:     deleteService
+          ? (id: number) => deleteService({ params: { [deleteParamKey]: id } })
+          : undefined,
         deleteSelf: deleteSelfService ?? undefined,
       },
       cache: {

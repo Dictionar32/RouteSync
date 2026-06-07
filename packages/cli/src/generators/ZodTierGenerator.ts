@@ -771,7 +771,7 @@ export class ZodTierGenerator {
       lines.push(``)
     }
 
-    // Resources -> Transformed (Camel Case)
+    // Resources -> Transformed (Camel Case) - with FLATTEN strategy for nested resources
     for (const resource of resources) {
       hasExports = true
       lines.push(`export interface ${resource.name}Transformed {`)
@@ -779,17 +779,67 @@ export class ZodTierGenerator {
       for (const [fieldName, fieldDefRaw] of Object.entries(resource.fields as Record<string, any>)) {
         const fieldDef = fieldDefRaw as any
         const camelCol = camelCase(fieldName)
-        const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
-        
         const meta = fieldDef.resolved || fieldDef.semantic || fieldDef
-        let tsType = this.mapResolvedToTsType(meta)
-        
-        let optional = ''
         const resolvedType = meta.type || meta.kind
-        if (resolvedType === 'model' || resolvedType === 'resource' || resolvedType === 'object') {
-           optional = '?'
+        
+        // FLATTEN STRATEGY: If nested resource/model/object, flatten fields instead of nested type
+        if ((resolvedType === 'resource' || resolvedType === 'model' || resolvedType === 'object') && meta.fields) {
+          // Flatten nested fields with prefix
+          const nestedFields = meta.fields as Record<string, any>
+          for (const [nestedFieldName, nestedFieldDefRaw] of Object.entries(nestedFields)) {
+            const nestedFieldDef = nestedFieldDefRaw as any
+            const nestedMeta = nestedFieldDef.resolved || nestedFieldDef.semantic || nestedFieldDef
+            const nestedCamelName = camelCase(nestedFieldName)
+            
+            // Prefix with parent field name (e.g., produk + id -> produkId)
+            const flatFieldName = camelCol + nestedCamelName.charAt(0).toUpperCase() + nestedCamelName.slice(1)
+            const safeFlatName = flatFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatFieldName : `"${flatFieldName}"`
+            
+            let tsType = this.mapResolvedToTsType(nestedMeta)
+            // Nullable if nested field is nullable
+            const nestedResolvedType = nestedMeta.type || nestedMeta.kind
+            if (nestedFieldDef.nullable || (nestedResolvedType === 'model' || nestedResolvedType === 'resource' || nestedResolvedType === 'object')) {
+              tsType += ' | null | undefined'
+            }
+            lines.push(`  ${safeFlatName}: ${tsType}`)
+          }
+        } else if (resolvedType === 'array') {
+          // Array of items - keep as is but flatten items
+          const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
+          const arrayMeta = meta.items || {}
+          const arrayResolvedType = arrayMeta.type || arrayMeta.kind
+          
+          if ((arrayResolvedType === 'resource' || arrayResolvedType === 'model' || arrayResolvedType === 'object') && arrayMeta.fields) {
+            // Generate inline array item type with flattened fields
+            const itemFields: string[] = []
+            const itemFieldsObj = arrayMeta.fields as Record<string, any>
+            for (const [itemFieldName, itemFieldDefRaw] of Object.entries(itemFieldsObj)) {
+              const itemFieldDef = itemFieldDefRaw as any
+              const itemMeta = itemFieldDef.resolved || itemFieldDef.semantic || itemFieldDef
+              const itemCamelName = camelCase(itemFieldName)
+              const safeFlatItemName = itemCamelName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? itemCamelName : `"${itemCamelName}"`
+              const itemType = this.mapResolvedToTsType(itemMeta)
+              itemFields.push(`    ${safeFlatItemName}: ${itemType}`)
+            }
+            lines.push(`  ${safeName}: Array<{`)
+            lines.push(itemFields.join('\n'))
+            lines.push(`  }>`)
+          } else {
+            // Regular array
+            let tsType = this.mapResolvedToTsType(meta)
+            lines.push(`  ${safeName}: ${tsType}`)
+          }
+        } else {
+          // Regular field (not nested, not array)
+          const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
+          let tsType = this.mapResolvedToTsType(meta)
+          let optional = ''
+          if (resolvedType === 'model' || resolvedType === 'resource' || resolvedType === 'object') {
+            optional = '?'
+          }
+          if (fieldDef.nullable) tsType += ' | null'
+          lines.push(`  ${safeName}${optional}: ${tsType}`)
         }
-        lines.push(`  ${safeName}${optional}: ${tsType}`)
       }
       lines.push(`}`)
       lines.push(``)
@@ -997,7 +1047,7 @@ export class ZodTierGenerator {
       lines.push(``)
     }
 
-    // Resources -> Read Transformed
+    // Resources -> Read Transformed - with FLATTEN strategy
     for (const resource of resources) {
       hasExports = true
       lines.push(`export const to${resource.name}Read = (api: ${resource.name}Response): ${resource.name}Transformed => ({`)
@@ -1008,8 +1058,70 @@ export class ZodTierGenerator {
         const safeCamel = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
         const safeOriginal = fieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `api.${fieldName}` : `api["${fieldName}"]`
         
-        const mappedValue = this.generateObjectReadMapper(fieldDef, safeOriginal)
-        lines.push(`  ${safeCamel}: ${mappedValue},`)
+        const meta = fieldDef.resolved || fieldDef.semantic || fieldDef
+        const resolvedType = meta.type || meta.kind
+        
+        // FLATTEN STRATEGY: If nested resource/model/object, flatten fields with optional chaining
+        if ((resolvedType === 'resource' || resolvedType === 'model' || resolvedType === 'object') && meta.fields) {
+          const nestedFields = meta.fields as Record<string, any>
+          for (const [nestedFieldName, nestedFieldDefRaw] of Object.entries(nestedFields)) {
+            const nestedCamelName = camelCase(nestedFieldName)
+            const flatFieldName = camelCol + nestedCamelName.charAt(0).toUpperCase() + nestedCamelName.slice(1)
+            const safeFlatName = flatFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatFieldName : `"${flatFieldName}"`
+            
+            // Use optional chaining for safety: api.produk?.id
+            const nestedAccessor = safeOriginal.endsWith(']') 
+              ? `${safeOriginal}?.${nestedFieldName}` 
+              : `${safeOriginal}?.${nestedFieldName}`
+            
+            lines.push(`  ${safeFlatName}: ${nestedAccessor},`)
+          }
+        } else if (resolvedType === 'array') {
+          // Array of items - inline mapping with flattened fields
+          const arrayMeta = meta.items || {}
+          const arrayResolvedType = arrayMeta.type || arrayMeta.kind
+          
+          if ((arrayResolvedType === 'resource' || arrayResolvedType === 'model' || arrayResolvedType === 'object') && arrayMeta.fields) {
+            // Generate inline array mapping with flattened item fields
+            const itemFields: string[] = []
+            const itemFieldsObj = arrayMeta.fields as Record<string, any>
+            for (const [itemFieldName, itemFieldDefRaw] of Object.entries(itemFieldsObj)) {
+              const itemCamelName = camelCase(itemFieldName)
+              const safeFlatItemName = itemCamelName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? itemCamelName : `"${itemCamelName}"`
+              
+              // Handle nested fields in array items too
+              const itemMeta = itemFieldDefRaw.resolved || itemFieldDefRaw.semantic || itemFieldDefRaw
+              const itemResolvedType = itemMeta.type || itemMeta.kind
+              
+              if ((itemResolvedType === 'resource' || itemResolvedType === 'model') && itemMeta.fields) {
+                // Nested resource in array item - flatten it
+                const nestedInArrayFields = itemMeta.fields as Record<string, any>
+                for (const [nestedInArrayFieldName, _] of Object.entries(nestedInArrayFields)) {
+                  const nestedInArrayCamelName = camelCase(nestedInArrayFieldName)
+                  const flatArrayItemFieldName = itemCamelName + nestedInArrayCamelName.charAt(0).toUpperCase() + nestedInArrayCamelName.slice(1)
+                  const safeFlatArrayItemFieldName = flatArrayItemFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatArrayItemFieldName : `"${flatArrayItemFieldName}"`
+                  const arrayItemAccessor = `item.${itemFieldName}?.${nestedInArrayFieldName}`
+                  itemFields.push(`            ${safeFlatArrayItemFieldName}: ${arrayItemAccessor},`)
+                }
+              } else {
+                // Regular field in array item
+                itemFields.push(`            ${safeFlatItemName}: item.${itemFieldName},`)
+              }
+            }
+            
+            lines.push(`  ${safeCamel}: ${safeOriginal}.map(item => ({`)
+            lines.push(itemFields.join('\n'))
+            lines.push(`          })),`)
+          } else {
+            // Regular array - just pass through
+            const mappedValue = this.generateObjectReadMapper(fieldDef, safeOriginal)
+            lines.push(`  ${safeCamel}: ${mappedValue},`)
+          }
+        } else {
+          // Regular field
+          const mappedValue = this.generateObjectReadMapper(fieldDef, safeOriginal)
+          lines.push(`  ${safeCamel}: ${mappedValue},`)
+        }
       }
       lines.push(`})`)
       lines.push(``)
@@ -1260,17 +1372,10 @@ export class ZodTierGenerator {
         return `${parentAccessor} ? to${resourceName}Read(${parentAccessor}) : undefined`
       }
     } else if (kind === 'object' && meta.fields) {
-      const props: string[] = []
-      for (const [subName, subDefRaw] of Object.entries(meta.fields)) {
-        const subDef = subDefRaw as any
-        const subCamel = camelCase(subName)
-        const safeSubCamel = subCamel.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? subCamel : `"${subCamel}"`
-        const safeSubOriginal = subName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `${parentAccessor}.${subName}` : `${parentAccessor}["${subName}"]`
-        const mappedVal = this.generateObjectReadMapper(subDef, safeSubOriginal)
-        props.push(`    ${safeSubCamel}: ${mappedVal},`)
-      }
-      // Use non-conditional form so return type matches — nested nullability handled per-field
-      return `(${parentAccessor} ? {\\n${props.join('\\n')}\\n  } : undefined) as any`
+      // Objects with nested fields now handled with FLATTEN strategy in mapper generation
+      // This only returns simple object accessor for backward compatibility
+      // Nested resources/models are flattened at mapper generation level
+      return parentAccessor
     } else {
       return parentAccessor
     }

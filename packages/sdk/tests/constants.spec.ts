@@ -9,26 +9,35 @@ describe('ConstantsGenerator', () => {
     const manifest: RouteManifest = {
       version: '1.0.0',
       baseURL: 'http://localhost/api',
+      generatedAt: new Date().toISOString(),
       routes: [
         {
           method: 'GET',
           path: '/produk',
           name: 'produk.index',
+          auth: false,
+          middleware: [],
         },
         {
           method: 'GET',
           path: '/produk/{id}',
           name: 'produk.show',
+          auth: false,
+          middleware: [],
         },
         {
           method: 'POST',
           path: '/cart/items',
           name: 'cart.items.store',
+          auth: false,
+          middleware: [],
         },
         {
           method: 'DELETE',
           path: '/cart/items/{produkItemId}',
           name: 'cart.items.destroy',
+          auth: false,
+          middleware: [],
         }
       ],
       channels: [],

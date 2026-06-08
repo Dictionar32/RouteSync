@@ -389,7 +389,17 @@ export class ZodTierGenerator {
       }
 
       if (route.response) {
-        let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {} })
+        // Parse route assignments for variable tracking (e.g., $user = $request->user())
+        const routeAssignments: Record<string, any> = {}
+        if ((route as any).assignments) {
+          const rawAssignments = (route as any).assignments
+          for (const [varName, code] of Object.entries(rawAssignments)) {
+            try {
+              routeAssignments[varName] = PhpCodeParser.parseExpression(code as string, {})
+            } catch {}
+          }
+        }
+        let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {}, assignments: routeAssignments })
 
         // Index/list routes return a collection — wrap in z.array() if not already detected as one
         if (route.actionName === 'list' && !zType.startsWith('z.array(') && !zType.includes('data:')) {

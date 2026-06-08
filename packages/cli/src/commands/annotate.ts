@@ -116,23 +116,50 @@ foreach ($routes as $route) {
             }
         }
 
-        if (!$resourceName) continue;
-
-        // Resolve model from Resource @mixin docblock
-        $resourceClass = 'App\\\\Http\\\\Resources\\\\' . $resourceName;
-        if (!class_exists($resourceClass)) continue;
-
-        $resReflector = new ReflectionClass($resourceClass);
-        $docComment = $resReflector->getDocComment();
-        $modelClass = null;
-
-        if ($docComment && preg_match('/@mixin\\s+(\\S+)/', $docComment, $mixinMatch)) {
-            $modelClass = class_basename(trim($mixinMatch[1], '\\\\'));
+        // Fallback: check routesync manifest for resolved response types
+        $modelFromManifest = null;
+        if (!$resourceName) {
+            $manifestPath = getcwd() . '/routesync.manifest.json';
+            if (file_exists($manifestPath)) {
+                $manifest = json_decode(file_get_contents($manifestPath), true);
+                if (isset($manifest['routes'])) {
+                    $routeUri = '/' . preg_replace('/^api\\//', '', $route->uri());
+                    foreach ($manifest['routes'] as $mr) {
+                        $manifestRoutePath = preg_replace('/\\{[^}]+\\}/', '{}', $mr['path']);
+                        $routePath = preg_replace('/\\{[^}]+\\}/', '{}', $routeUri);
+                        if ($manifestRoutePath === $routePath && in_array(strtoupper($mr['method']), $methods)) {
+                            $resolved = $mr['response']['resolved'] ?? $mr['response']['semantic'] ?? null;
+                            if ($resolved && $resolved['status'] === 'resolved' && !empty($resolved['model'])) {
+                                $modelFromManifest = $resolved['model'];
+                                $collection = !empty($resolved['collection']) || !empty($mr['response']['collection']);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        // Fallback: strip Resource suffix
-        if (!$modelClass) {
-            $modelClass = preg_replace('/Resource$/', '', $resourceName);
+        if (!$resourceName && !$modelFromManifest) continue;
+
+        // Resolve model from Resource @mixin docblock or from manifest
+        $modelClass = null;
+        if ($resourceName) {
+            $resourceClass = 'App\\\\Http\\\\Resources\\\\' . $resourceName;
+            if (!class_exists($resourceClass)) continue;
+
+            $resReflector = new ReflectionClass($resourceClass);
+            $docComment = $resReflector->getDocComment();
+
+            if ($docComment && preg_match('/@mixin\\s+(\\S+)/', $docComment, $mixinMatch)) {
+                $modelClass = class_basename(trim($mixinMatch[1], '\\\\'));
+            }
+            // Fallback: strip Resource suffix
+            if (!$modelClass) {
+                $modelClass = preg_replace('/Resource$/', '', $resourceName);
+            }
+        } elseif ($modelFromManifest) {
+            $modelClass = $modelFromManifest;
         }
 
         $ctrlReflector = new ReflectionClass($controllerClass);

@@ -246,7 +246,26 @@ export class SemanticKernelV2 {
            }
         }
  
-        // 2. Fallback to target resolution
+        // 2. Auth user detection: $request->user(), auth()->user(), Auth::user()
+        if (normalizedAst.name === 'user' && normalizedAst.target) {
+          const targetName = (normalizedAst.target as any)?.name || ''
+          if (targetName === 'request' || targetName === 'auth' || targetName === 'Auth') {
+            return {
+              status: 'resolved',
+              type: 'model',
+              model: 'User',
+              collection: false,
+              confidence: 100,
+              trace: [{
+                source: 'SemanticKernelV2',
+                input: `${targetName}->user()`,
+                output: 'model User',
+                rule: 'Auth user method call'
+              }]
+            }
+          }
+        }
+
         const resolvedTarget = this.resolve(normalizedAst.target, context);
         if (['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(normalizedAst.name || '')) {
            const trace = [

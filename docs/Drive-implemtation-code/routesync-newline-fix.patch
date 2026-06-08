@@ -1,0 +1,11 @@
+--- a/packages/cli/src/generators/ZodTierGenerator.ts
++++ b/packages/cli/src/generators/ZodTierGenerator.ts
+@@ -1270,7 +1270,7 @@ export class ZodTierGenerator {
+         props.push(`    ${safeSubCamel}: ${mappedVal},`)
+       }
+       // Use non-conditional form so return type matches — nested nullability handled per-field
+-      return `(${parentAccessor} ? {\\n${props.join('\\n')}\\n  } : undefined) as any`
++      return `(${parentAccessor} ? {\n${props.join('\n')}\n  } : undefined) as any`
+     } else {
+       return parentAccessor
+     }

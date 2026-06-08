@@ -1,12 +1,13 @@
 import { RouteManifest } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
-import { classifyRoutes, buildGroupedRoutes } from './route-classifier'
+import { classifyRoutes, buildGroupedRoutes, deriveGroupName } from './route-classifier'
 import { ConstantsGenerator } from './ConstantsGenerator'
 
 export class SDKGenerator {
   static async generate(manifest: RouteManifest, outputDir: string, options: Record<string, unknown> = {}): Promise<void> {
-    const grouped = buildGroupedRoutes(classifyRoutes(manifest.routes))
+    const classified = classifyRoutes(manifest.routes)
+    const grouped = buildGroupedRoutes(classified)
     const apiBodyLines: string[] = []
 
     let usesZod = false
@@ -16,6 +17,18 @@ export class SDKGenerator {
       for (const route of routes) {
         if (options.zod && route.raw.schema?.rules) usesZod = true
         if (route.raw.response) usesTypes = true
+      }
+    }
+
+    // CRUD mapping + response counting (sama dengan contract)
+    const SDK_ACTION_MAP: Record<string, string> = {
+      post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
+    }
+    const sdkRespCount = new Map<string, number>()
+    for (const route of classified) {
+      if (route.raw.response) {
+        const r = deriveGroupName(route.raw.path)
+        sdkRespCount.set(r, (sdkRespCount.get(r) || 0) + 1)
       }
     }
 
@@ -118,7 +131,6 @@ export class SDKGenerator {
         let mapperStr: string | null = null
         if (hasSubMapper) {
           mapperStr = `to${keyName}ResponseRead`
-          usedMappers.add(mapperStr)
         }
         
         return { type: typeStr, schema: schemaStr, mapper: mapperStr }
@@ -139,10 +151,16 @@ export class SDKGenerator {
 
       for (const route of routes) {
         const TitleCaseGroup = groupName.charAt(0).toUpperCase() + groupName.slice(1)
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = `${TitleCaseGroup}${TitleCaseAction}`
+        const rawAction = SDK_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const KeyName = `${TitleCaseGroup}${rawAction}`
+
+        // Response naming: LoginResponse (single) atau ProfileUpdateResponse (multiple)
+        const resourceGroup = deriveGroupName(route.raw.path)
+        const respCount = sdkRespCount.get(resourceGroup) || 1
+        const respKey = respCount === 1 ? TitleCaseGroup : KeyName
+
         const SchemaName = `${KeyName}PayloadSchema`
-        const respInfo = getResponseInfo(route.raw.response, route.raw, KeyName)
+        const respInfo = getResponseInfo(route.raw.response, route.raw, respKey)
 
         apiBodyLines.push(`    ${route.actionName}: endpoint({`)
         apiBodyLines.push(`      method: '${route.method}',`)

@@ -13,7 +13,6 @@ export class IndexGenerator {
     const rootLines: string[] = []
     rootLines.push(`// Auto-generated. Do not edit.`)
     rootLines.push(`export * from './api'`)
-    rootLines.push(`export * from './types'`)
     if (options.zod) {
       rootLines.push(`export * from './contract/api-contract'`)
       rootLines.push(`export * from './contract/api-schema'`)

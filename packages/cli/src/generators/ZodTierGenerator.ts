@@ -2,6 +2,7 @@ import { RouteManifest, camelCase } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { buildGeneratedRoutes, toTypeName, GeneratedRoute } from './names'
+import { deriveGroupName } from './route-classifier'
 
 export class ZodTierGenerator {
   private static knownSchemas = new Set<string>()
@@ -165,7 +166,7 @@ export class ZodTierGenerator {
 
     // Write the 2 type files directly to typesDir
     await this.generateRead(typesDir, allModels, allResources, allRoutes, manifest.routes || [])
-    await this.generateForm(typesDir, allRoutes)
+    await this.generateForm(typesDir, allRoutes, manifest.routes || [])
 
     // Ensure output directory exists (src/api/mappers)
     const mappersDir = path.join(outputDir, 'mappers')
@@ -351,14 +352,33 @@ export class ZodTierGenerator {
 
 
     // Routes -> ActionPayloads and Response Validators
+    // Hitung response per resource untuk naming (single vs multiple)
+    const contractResponseCount = new Map<string, number>()
     for (const route of routes) {
-      const nameParts = route.path.replace(/^\//, '').split('/')
-      const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-      const TitleCaseResource = toTypeName(route.groupName || resource)
-      const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-      const KeyName = TitleCaseResource + TitleCaseAction
+      if (route.response) {
+        const r = route.groupName || deriveGroupName(route.path)
+        contractResponseCount.set(r, (contractResponseCount.get(r) || 0) + 1)
+      }
+    }
+
+    // Map classifier action → CRUD: post→Create, put/patch→Update, list→List, get→Get, delete→Delete
+    const CONTRACT_ACTION_MAP: Record<string, string> = {
+      post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
+    }
+
+    const generatedRespSchemas = new Set<string>() // dedup (PUT+PATCH → sama)
+
+    for (const route of routes) {
+      const resource = route.groupName || deriveGroupName(route.path)
+      const TitleCaseResource = toTypeName(resource)
+      const rawAction = CONTRACT_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+      const KeyName = TitleCaseResource + rawAction
 
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
+        // Skip payload duplikat (e.g., PUT + PATCH → ProfileUpdatePayload)
+        if (generatedRespSchemas.has(`${KeyName}Payload`)) continue
+        generatedRespSchemas.add(`${KeyName}Payload`)
+
         hasExports = true
         const ruleTree = this.buildRuleTree(route.schema.rules)
         const rootNode = { children: ruleTree, rules: 'required' }
@@ -369,7 +389,6 @@ export class ZodTierGenerator {
       }
 
       if (route.response) {
-        hasExports = true
         let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {} })
 
         // Index/list routes return a collection — wrap in z.array() if not already detected as one
@@ -377,9 +396,19 @@ export class ZodTierGenerator {
           zType = `z.array(${zType})`
         }
 
-        lines.push(`export const ${KeyName}ResponseSchema = ${zType}`)
-        lines.push(`export type ${KeyName}Response = z.infer<typeof ${KeyName}ResponseSchema>`)
-        lines.push(`export const validate${KeyName}Response = (payload: unknown): ${KeyName}Response => ${KeyName}ResponseSchema.parse(payload)`)
+        // Naming: LoginResponse (single), ProfileUpdateResponse (multiple)
+        const count = contractResponseCount.get(resource) || 1
+        const respName = count === 1 ? TitleCaseResource : KeyName
+
+        // Skip jika schema sudah ada (model schema already covers this)
+        const schemaName = `${respName}ResponseSchema`
+        if (generatedRespSchemas.has(schemaName) || this.knownSchemas.has(zType) && zType === schemaName) continue
+        generatedRespSchemas.add(schemaName)
+
+        hasExports = true
+        lines.push(`export const ${schemaName} = ${zType}`)
+        lines.push(`export type ${respName}Response = z.infer<typeof ${schemaName}>`)
+        lines.push(`export const validate${respName}Response = (payload: unknown): ${respName}Response => ${schemaName}.parse(payload)`)
         lines.push(``)
       }
     }
@@ -390,35 +419,42 @@ export class ZodTierGenerator {
   }
 
   // Helper: Flatten nested response types (e.g., { data: { user: { id, name } } } -> { dataUserId, dataUserName })
-  private static flattenResponseType(objDef: any, prefix: string = ''): Array<{ name: string; type: string; path: string }> {
-    const flattened: Array<{ name: string; type: string; path: string }> = []
-    
+  private static flattenResponseType(objDef: any, prefix: string = '', parentPath: string = ''): Array<{ name: string; type: string; path: string; optional?: boolean }> {
+    const flattened: Array<{ name: string; type: string; path: string; optional?: boolean }> = []
+
     if (!objDef || !objDef.fields) return flattened
-    
+
     for (const [fieldName, fieldDefRaw] of Object.entries(objDef.fields)) {
       const fieldDef = fieldDefRaw as any
       const fieldMeta = fieldDef.resolved || fieldDef.semantic || fieldDef
       const fieldCamelName = camelCase(fieldName)
-      const flatFieldName = prefix 
+      const flatFieldName = prefix
         ? `${prefix}${fieldCamelName.charAt(0).toUpperCase()}${fieldCamelName.slice(1)}`
         : fieldCamelName
-      
+      const fullPath = parentPath ? `${parentPath}.${fieldName}` : fieldName
+
       // If nested object, recursively flatten
       if ((fieldMeta.kind === 'object' || fieldMeta.type === 'object') && fieldMeta.fields) {
-        const nestedFlattened = this.flattenResponseType(fieldMeta, flatFieldName)
+        const nestedFlattened = this.flattenResponseType(fieldMeta, flatFieldName, fullPath)
         flattened.push(...nestedFlattened)
+      } else if (fieldMeta.type === 'model' && fieldMeta.collection && fieldMeta.paginated) {
+        // Flatten paginated collection: reviews → reviewsData, reviewsCurrentPage, reviewsTotal
+        const modelType = fieldMeta.model ? `${fieldMeta.model}Transformed` : 'unknown'
+        flattened.push({ name: `${flatFieldName}Data`, type: `${modelType}[]`, path: `${fullPath}.data` })
+        flattened.push({ name: `${flatFieldName}CurrentPage`, type: 'number', path: `${fullPath}.current_page`, optional: true })
+        flattened.push({ name: `${flatFieldName}Total`, type: 'number', path: `${fullPath}.total`, optional: true })
       } else {
         // Regular field
         let tsType = this.mapResolvedToTsType(fieldMeta)
         if (fieldDef.nullable) tsType += ' | null | undefined'
-        flattened.push({ 
-          name: flatFieldName, 
-          type: tsType, 
-          path: fieldName 
+        flattened.push({
+          name: flatFieldName,
+          type: tsType,
+          path: fullPath
         })
       }
     }
-    
+
     return flattened
   }
 
@@ -600,20 +636,32 @@ export class ZodTierGenerator {
 
     const schemasDefined: { [key: string]: string } = {}
 
+    // CRUD mapping (sama dengan generateForm)
+    const SCHEMA_ACTION_MAP: Record<string, string> = {
+      post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
+    }
+    const schemaContents = new Set<string>() // dedup
+
     for (const route of routes) {
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
         hasExports = true
-        // Try to get resource from path
-        const nameParts = route.path.replace(/^\//, '').split('/')
-        const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-        
-        const TitleCaseResource = toTypeName(route.groupName || resource)
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = TitleCaseResource + TitleCaseAction
-        
+        const resource = route.groupName || deriveGroupName(route.path)
+
+        const TitleCaseResource = toTypeName(resource)
+        const rawAction = SCHEMA_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const KeyName = TitleCaseResource + rawAction
+
+        // Skip duplikat (e.g., PUT+PATCH → ProfileUpdate)
+        if (schemaContents.has(KeyName)) continue
+
         const ruleTree = this.buildRuleTree(route.schema.rules)
         const rootNode = { children: ruleTree, rules: 'required' }
-        lines.push(`  ${KeyName}: ${this.generateZodRecursive(rootNode, 'root')},`)
+        const zodStr = this.generateZodRecursive(rootNode, 'root')
+        if (schemaContents.has(`${KeyName}:${zodStr}`)) continue // skip identical content
+        schemaContents.add(KeyName)
+        schemaContents.add(`${KeyName}:${zodStr}`)
+
+        lines.push(`  ${KeyName}: ${zodStr},`)
         schemasDefined[KeyName] = `${typeName}Schema.${KeyName}`
       }
     }
@@ -904,44 +952,38 @@ export class ZodTierGenerator {
       lines.push(``)
     }
 
-    // Routes -> Flattened Response Types (from manifest.routes dengan nested responses)
-    const processedRouteNames = new Set<string>()
-    
+    // Routes -> Response Transformed Types (GET only, satu per resource: {Resource}Transformed/Show/Index)
+    const generatedNames = new Set<string>()
+
     for (const manifestRoute of manifestRoutes) {
       if (!manifestRoute.response || !manifestRoute.response.fields) continue
-      
-      const rawRoute = manifestRoute
-      const groupName = rawRoute.group || 'App'
-      const actionName = rawRoute.method?.toLowerCase() === 'post' ? 'create' : 
-                         rawRoute.method?.toLowerCase() === 'put' ? 'update' :
-                         rawRoute.method?.toLowerCase() === 'delete' ? 'destroy' : 'show'
-      
-      const TitleCaseResource = toTypeName(groupName)
-      const TitleCaseAction = actionName.charAt(0).toUpperCase() + actionName.slice(1)
-      const KeyName = `${TitleCaseResource}${TitleCaseAction}`
-      
-      // Skip jika sudah diproses
-      if (processedRouteNames.has(KeyName)) continue
-      processedRouteNames.add(KeyName)
-      
-      // Extract nested response
+      if (manifestRoute.method?.toUpperCase() !== 'GET') continue
+
       const responseMeta = manifestRoute.response
       const responseKind = responseMeta.kind || responseMeta.type
-      
-      if ((responseKind === 'object' || responseKind === 'literal') && responseMeta.fields) {
-        // Generate flattened interface
-        hasExports = true
-        
-        const flattened = this.flattenResponseType(responseMeta)
-        
-        lines.push(`export interface ${KeyName}Read {`)
-        for (const field of flattened) {
-          const safeName = field.name.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? field.name : `"${field.name}"`
-          lines.push(`  ${safeName}: ${field.type}`)
-        }
-        lines.push(`}`)
-        lines.push(``)
+      if (responseKind !== 'object' && responseKind !== 'literal') continue
+
+      const groupName = deriveGroupName(manifestRoute.path)
+      const baseName = toTypeName(groupName)
+      const typeName = `${baseName}Transformed`
+
+      if (generatedNames.has(typeName)) continue
+      generatedNames.add(typeName)
+
+      hasExports = true
+      const flattened = this.flattenResponseType(responseMeta)
+
+      lines.push(`export interface ${typeName} {`)
+      for (const field of flattened) {
+        const safeName = field.name.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? field.name : `"${field.name}"`
+        const opt = (field as any).optional ? '?' : ''
+        lines.push(`  ${safeName}${opt}: ${field.type}`)
       }
+      lines.push(`}`)
+      lines.push(``)
+      lines.push(`export type ${baseName}Show = ${typeName}`)
+      lines.push(`export type ${baseName}Index = ${typeName}[]`)
+      lines.push(``)
     }
 
     if (hasExports) {
@@ -953,39 +995,49 @@ export class ZodTierGenerator {
   // SKIPPED SECTION - was after this point
   // ============================================
 
-  // 5. api-form.ts (Frontend Forms Pure TS - Camel Case)
-  private static async generateForm(dir: string, routes: GeneratedRoute[]): Promise<void> {
+  // 5. api-form.ts — Input/Request Body saja (Create/Get/Update/Delete)
+  private static async generateForm(dir: string, routes: GeneratedRoute[], _manifestRoutes: any[] = []): Promise<void> {
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
     lines.push(``)
 
     let hasExports = false
-    
-    // Group routes by resource
-    const resourceForms: Record<string, string[]> = {}
+
+    // Map classifier actionName → CRUD key: post→Create, put/patch→Update, delete→Delete
+    const ACTION_TO_CRUD: Record<string, string> = {
+      post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
+    }
+
+    const resourceForms: Record<string, { actions: string[]; contents: Set<string> }> = {}
 
     for (const route of routes) {
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
         hasExports = true
-        const nameParts = route.path.replace(/^\//, '').split('/')
-        const resource = nameParts[0].replace(/\{.*\}/, '') || 'App'
-        
-        const TitleCaseResource = toTypeName(route.groupName || resource)
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        
+        const resource = route.groupName || deriveGroupName(route.path)
+        const TitleCaseResource = toTypeName(resource)
+
+        // Map ke CRUD name: post→Create, put/patch→Update, dll
+        let rawAction = route.actionName
+        let TitleCaseAction = ACTION_TO_CRUD[rawAction] || (rawAction.charAt(0).toUpperCase() + rawAction.slice(1))
+
         if (!resourceForms[TitleCaseResource]) {
-          resourceForms[TitleCaseResource] = []
+          resourceForms[TitleCaseResource] = { actions: [], contents: new Set() }
         }
-        
+
         const ruleTree = this.buildRuleTree(route.schema.rules)
         const rootNode = { children: ruleTree, rules: 'required' }
-        resourceForms[TitleCaseResource].push(`  ${TitleCaseAction}: ${this.generateTSRecursive(rootNode, 'root', true)}`)
+        const actionStr = `  ${TitleCaseAction}: ${this.generateTSRecursive(rootNode, 'root', true)}`
+
+        // Skip jika konten identik (e.g., PUT + PATCH dengan rules yang sama)
+        if (resourceForms[TitleCaseResource].contents.has(actionStr)) continue
+        resourceForms[TitleCaseResource].contents.add(actionStr)
+        resourceForms[TitleCaseResource].actions.push(actionStr)
       }
     }
-    
-    for (const [resource, actions] of Object.entries(resourceForms)) {
+
+    for (const [resource, data] of Object.entries(resourceForms)) {
       lines.push(`export type ${resource}Form = {`)
-      lines.push(actions.join('\n\n'))
+      lines.push(data.actions.join('\n\n'))
       lines.push(`}`)
       lines.push(``)
     }
@@ -1065,22 +1117,42 @@ export class ZodTierGenerator {
       readImports.push(`${resource.name}Transformed`)
     }
 
-      const payloadImports: string[] = []
+    // CRUD mapping (sama dengan contract block)
+    const MAPPER_ACTION_MAP: Record<string, string> = {
+      post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
+    }
+
+    // Count responses per resource (semua = untuk contract naming, GET-only = untuk read type naming)
+    const mapperAllRespCount = new Map<string, number>()
+    const mapperGetOnlyCount = new Map<string, number>()
+    for (const route of routes) {
+      if (route.response) {
+        const r = route.groupName || deriveGroupName(route.path || '')
+        mapperAllRespCount.set(r, (mapperAllRespCount.get(r) || 0) + 1)
+        if (route.method?.toUpperCase() === 'GET') {
+          mapperGetOnlyCount.set(r, (mapperGetOnlyCount.get(r) || 0) + 1)
+        }
+      }
+    }
+
+    const payloadImports: string[] = []
     const schemaActions: string[] = []
 
     for (const route of routes) {
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
-        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = TitleCaseResource + TitleCaseAction
+        const TitleCaseResource = toTypeName(route.groupName || deriveGroupName(route.path || ''))
+        const rawAction = MAPPER_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const KeyName = TitleCaseResource + rawAction
         payloadImports.push(`${KeyName}Payload`)
         schemaActions.push(KeyName)
       }
-      
+
       if (route.response) {
-        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = TitleCaseResource + TitleCaseAction
+        const TitleCaseResource = toTypeName(route.groupName || deriveGroupName(route.path || ''))
+        const rawAction = MAPPER_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const count = mapperAllRespCount.get(route.groupName || deriveGroupName(route.path || '')) || 1
+        // Single response → {Resource}Response, Multiple → {Resource}{Action}Response
+        const respKey = count === 1 ? TitleCaseResource : `${TitleCaseResource}${rawAction}`
 
         const meta = {
           ...(route.response.resolved || route.response.semantic || route.response),
@@ -1090,22 +1162,37 @@ export class ZodTierGenerator {
         const kind = meta.kind || meta.type
 
         if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
-          modelImports.push(`${KeyName}Response`)
+          modelImports.push(`${respKey}Response`)
         }
       }
     }
 
     if (modelImports.length > 0 || payloadImports.length > 0) {
       lines.push(`import type {`)
-      for (const imp of [...modelImports, ...payloadImports]) {
+      const allImports = [...new Set([...modelImports, ...payloadImports])].sort()
+      for (const imp of allImports) {
         lines.push(`  ${imp},`)
       }
       lines.push(`} from '../contract/api-contract'`)
     }
 
+    // Pre-populate readImports dengan GET response types (api-read hanya punya GET)
+    for (const route of routes) {
+      if (route.response && route.method?.toUpperCase() === 'GET') {
+        const kind = (route.response.resolved?.kind || route.response.semantic?.kind || route.response.kind)
+        if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
+          const r = route.groupName || deriveGroupName(route.path || '')
+          const rawAct = MAPPER_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+          const cnt = mapperGetOnlyCount.get(r) || 1
+          const respKey = cnt === 1 ? toTypeName(r) : `${toTypeName(r)}${rawAct}`
+          readImports.push(`${respKey}Transformed`)
+        }
+      }
+    }
+
     if (readImports.length > 0) {
       lines.push(`import type {`)
-      for (const imp of readImports) {
+      for (const imp of [...new Set(readImports)].sort()) {
         lines.push(`  ${imp},`)
       }
       lines.push(`} from '../types/api-read'`)
@@ -1231,12 +1318,21 @@ export class ZodTierGenerator {
       lines.push(``)
     }
 
-    // Route Responses -> Read Transformed
+    // Route Responses -> Read Transformed (GET = Transformed type, mutation = contract type)
+    const generatedMapperFns = new Set<string>()
     for (const route of routes) {
       if (route.response) {
-        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = TitleCaseResource + TitleCaseAction
+        const TitleCaseResource = toTypeName(route.groupName || deriveGroupName(route.path || ''))
+        const rawAction = MAPPER_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const isGet = route.method?.toUpperCase() === 'GET'
+        // Contract key: pakai all-response count (harus match contract naming)
+        const allCount = mapperAllRespCount.get(route.groupName || deriveGroupName(route.path || '')) || 1
+        const contractKey = allCount === 1 ? TitleCaseResource : `${TitleCaseResource}${rawAction}`
+        // Read key: GET-only (match api-read yang cuma punya GET types)
+        const getCount = mapperGetOnlyCount.get(route.groupName || deriveGroupName(route.path || '')) || 1
+        const readKey = getCount === 1 ? TitleCaseResource : `${TitleCaseResource}${rawAction}`
+
+        if (generatedMapperFns.has(`resp:${contractKey}`)) continue
 
         const meta = {
           ...(route.response.resolved || route.response.semantic || route.response),
@@ -1247,27 +1343,37 @@ export class ZodTierGenerator {
 
         if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
           hasExports = true
-          const transformedType = this.mapResolvedToTsType(meta)
-          const mappedValue = this.generateObjectReadMapper(route.response, 'api')
-          // Return type is T | undefined because generateObjectReadMapper can return undefined for falsy api
-          lines.push(`export const to${KeyName}ResponseRead = (api: ${KeyName}Response): ${transformedType} | undefined => (${mappedValue})`)
+          generatedMapperFns.add(`resp:${contractKey}`)
+          if (isGet) {
+            // GET → flattened mapper ke Transformed type dari api-read
+            const readType = `${readKey}Transformed`
+            const mappedValue = this.generateObjectReadMapper(route.response, 'api')
+            lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${readType} => (${mappedValue})`)
+          } else {
+            // Mutation → identity mapper (contract type = return type)
+            lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${contractKey}Response => (api)`)
+          }
           lines.push(``)
         }
       }
     }
 
-    // Forms -> Action Payloads
+    // Forms -> Action Payloads (pakai CRUD mapping + dedup)
+    const generatedFormMapperFns = new Set<string>()
     for (const route of routes) {
       if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {
-        hasExports = true
-        const TitleCaseResource = toTypeName(route.groupName || (route.path || '').replace(/^\//, '').split('/')[0].replace(/\{.*\}/, '') || 'App')
-        const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
-        const KeyName = TitleCaseResource + TitleCaseAction
+        const TitleCaseResource = toTypeName(route.groupName || deriveGroupName(route.path || ''))
+        const rawAction = MAPPER_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const KeyName = TitleCaseResource + rawAction
 
+        if (generatedFormMapperFns.has(KeyName)) continue
+        generatedFormMapperFns.add(KeyName)
+
+        hasExports = true
         lines.push(`export const toApi${KeyName} = (form: ApiFormValues['${KeyName}']): ${KeyName}Payload => ({`)
         const ruleTree = this.buildRuleTree(route.schema.rules)
         lines.push(this.generateMapperRecursive({ children: ruleTree }, 'form'))
-        
+
         lines.push(`})`)
         lines.push(``)
       }
@@ -1457,29 +1563,51 @@ export class ZodTierGenerator {
       const modelName = meta.model
       if (isCollection) {
         if (isPaginated) {
-          return `${parentAccessor} ? { ...${parentAccessor}, data: ${parentAccessor}.data?.map((item: ${modelName}ApiResponse) => to${modelName}Read(item)) ?? [], currentPage: ${parentAccessor}.current_page, total: ${parentAccessor}.total } : undefined`
+          return `{ ...${parentAccessor}, data: ${parentAccessor}.data?.map((item: ${modelName}ApiResponse) => to${modelName}Read(item)) ?? [], currentPage: ${parentAccessor}.current_page, total: ${parentAccessor}.total }`
         }
-        // Approach B: No ? and ?? [] on array (assumes always exists)
         return `${parentAccessor}.map((item: ${modelName}ApiResponse) => to${modelName}Read(item))`
       } else {
-        return `${parentAccessor} ? to${modelName}Read(${parentAccessor}) : undefined`
+        return `to${modelName}Read(${parentAccessor})`
       }
     } else if (kind === 'resource') {
       const resourceName = meta.resource
       if (isCollection) {
         if (isPaginated) {
-          return `${parentAccessor} ? { ...${parentAccessor}, data: ${parentAccessor}.data?.map((item: ${resourceName}Response) => to${resourceName}Read(item)) ?? [], currentPage: ${parentAccessor}.current_page, total: ${parentAccessor}.total } : undefined`
+          return `{ ...${parentAccessor}, data: ${parentAccessor}.data?.map((item: ${resourceName}Response) => to${resourceName}Read(item)) ?? [], currentPage: ${parentAccessor}.current_page, total: ${parentAccessor}.total }`
         }
-        // Approach B: No ? and ?? [] on array (assumes always exists)
         return `${parentAccessor}.map((item: ${resourceName}Response) => to${resourceName}Read(item))`
       } else {
-        return `${parentAccessor} ? to${resourceName}Read(${parentAccessor}) : undefined`
+        return `to${resourceName}Read(${parentAccessor})`
       }
     } else if (kind === 'object' && meta.fields) {
-      // Objects with nested fields now handled with FLATTEN strategy in mapper generation
-      // This only returns simple object accessor for backward compatibility
-      // Nested resources/models are flattened at mapper generation level
-      return parentAccessor
+      // Generate flattened object mapper with camelCase field access
+      const flattened = this.flattenResponseType(fieldDef)
+      if (flattened.length === 0) return parentAccessor
+      const fieldMappings = flattened.map(f => {
+        const pathParts = f.path.split('.')
+        let accessor = parentAccessor
+        for (const part of pathParts) {
+          accessor += `?.${part}`
+        }
+
+        // Cek apakah perlu .map() — array of model/resource
+        const rootField = pathParts[0]
+        const origField = meta.fields?.[rootField]
+        const origMeta = origField?.resolved || origField?.semantic || origField
+
+        // Direct model collection: data: ProductReview[]
+        if ((origMeta?.type === 'model' || origMeta?.type === 'resource') && origMeta?.collection && pathParts.length === 1) {
+          const modelName = origMeta.model || origMeta.resource
+          return `    ${f.name}: ${parentAccessor}?.${rootField}?.map((item: ${modelName}ApiResponse) => to${modelName}Read(item))`
+        }
+        // Paginated model collection: reviews.data → reviewsData
+        if ((origMeta?.type === 'model' || origMeta?.type === 'resource') && origMeta?.collection && origMeta?.paginated && f.name.endsWith('Data')) {
+          const modelName = origMeta.model || origMeta.resource
+          return `    ${f.name}: ${parentAccessor}?.${rootField}?.data?.map((item: ${modelName}ApiResponse) => to${modelName}Read(item))`
+        }
+        return `    ${f.name}: ${accessor}`
+      })
+      return `{\n${fieldMappings.join(',\n')}\n  }`
     } else {
       return parentAccessor
     }

@@ -149,6 +149,23 @@ export class HookGenerator {
         }
       }
 
+      // Build Eloquent relation lookup from manifest models
+      const modelRelations: Record<string, Record<string, { type: string; model: string }>> = {}
+      if (manifest.models) {
+        for (const m of manifest.models) {
+          if (m.relations) modelRelations[m.name] = m.relations
+        }
+      }
+
+      // Reverse index: model name → [groupNames that return this model]
+      const modelToGroups = new Map<string, string[]>()
+      for (const [group, model] of resourceResponseModels) {
+        if (!modelToGroups.has(model)) modelToGroups.set(model, [])
+        if (!modelToGroups.get(model)!.includes(group)) {
+          modelToGroups.get(model)!.push(group)
+        }
+      }
+
       const addCrossResourceInvalidations = (actionName: string, invs: string[]): void => {
         // 1. Self-invalidation: mutasi → invalidate read queries resource sendiri
         const selfRes = resources.get(groupName)
@@ -195,6 +212,48 @@ export class HookGenerator {
             if (!res || !res.index) continue
             const suffix = res.show ? 'lists' : 'list'
             pushUnique(invs, `          QueryKey.${g}.${suffix},`)
+          }
+        }
+
+        // 5. Eloquent relation traversal — belongsTo/hasOne/hasMany
+        //    When mutating a model, invalidate queries that return related models
+        const responseModel = resourceResponseModels.get(groupName)
+        if (responseModel && modelRelations[responseModel]) {
+          const relations = modelRelations[responseModel]
+          for (const [, rel] of Object.entries(relations)) {
+            // belongsTo: this model belongs to Parent → invalidate parent queries
+            // e.g., Payment belongsTo Order → payment.post invalidates orders.*
+            if (rel.type === 'belongsTo' && rel.model !== responseModel) {
+              const parentGroups = modelToGroups.get(rel.model)
+              if (parentGroups) {
+                for (const pg of parentGroups) {
+                  if (pg === groupName) continue
+                  const parentRes = resources.get(pg)
+                  if (parentRes?.index) {
+                    const s = parentRes.show ? 'lists' : 'list'
+                    pushUnique(invs, `          QueryKey.${pg}.${s},`)
+                  }
+                  if (parentRes?.show) {
+                    pushUnique(invs, `          QueryKey.${pg}.detail,`)
+                  }
+                }
+              }
+            }
+            // hasOne / hasMany: this model has children → invalidate child queries
+            // e.g., ProdukItem hasMany Wishlist → adminProduk.create invalidates wishlist.*
+            if ((rel.type === 'hasOne' || rel.type === 'hasMany') && rel.model !== responseModel) {
+              const childGroups = modelToGroups.get(rel.model)
+              if (childGroups) {
+                for (const cg of childGroups) {
+                  if (cg === groupName) continue
+                  const childRes = resources.get(cg)
+                  if (childRes?.index) {
+                    const s = childRes.show ? 'lists' : 'list'
+                    pushUnique(invs, `          QueryKey.${cg}.${s},`)
+                  }
+                }
+              }
+            }
           }
         }
       }

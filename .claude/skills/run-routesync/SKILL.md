@@ -1,6 +1,6 @@
 ---
 name: run-routesync
-description: Build, test, and run RouteSync against the toko-online Laravel project — scan routes, generate typed SDK, validate output
+description: Build, test, and run RouteSync against the toko-online Laravel project — scan routes, generate typed SDK, validate output including FormValues
 ---
 
 All paths below are relative to the repo root unless stated otherwise.
@@ -14,6 +14,85 @@ fully-typed TypeScript frontend SDK. The **driver**
 generates the SDK into the Next.js frontend, runs the test suite, and
 validates library exports.
 
+## Generated output (what `--zod` produces)
+
+With the `--zod` flag, the `ZodTierGenerator` produces a full type-safe
+layer across 4 directories:
+
+```
+frontend/src/api/
+├── api.ts                   ← typed API client (defineApi + endpoint contracts)
+├── hooks.ts                 ← React Query hooks + Eloquent cache invalidation
+├── actions.ts               ← Next.js Server Actions
+├── index.ts                 ← barrel re-export
+├── query-key.ts             ← TanStack QueryKey factory
+├── schemas.ts               ← legacy Zod schemas
+├── contract/
+│   ├── api-contract.ts      ← Zod schemas for models, resources, route responses, payloads
+│   ├── api-schema.ts        ← ApiSchema + ApiFormValues + ApiDefaultValues
+│   └── api-field.ts         ← ApiApiField constants (snake_case backend keys)
+├── types/
+│   ├── api-read.ts          ← camelCase transformed types (flatten strategy)
+│   ├── api-form.ts          ← input/request body types
+│   └── index.ts             ← re-exports
+├── mappers/
+│   └── api-mapper.ts        ← contract↔read transformation functions
+└── core/
+    └── models.ts            ← Eloquent DB model types
+```
+
+### FormValues (api-schema.ts)
+
+`ApiFormValues` and `ApiDefaultValues` are auto-generated from Laravel
+`FormRequest` validation rules. Every route with a typed `FormRequest`
+parameter gets a Zod schema, a type-safe form state type, and a
+ready-to-use empty default value:
+
+```ts
+// Generated:
+export const ApiSchema = {
+  CheckoutCreate: z.object({ items: z.array(...), shippingNama: z.string()... }),
+  AdminProdukCreate: z.object({ nama: z.string(), harga: z.number(), ... }),
+  // ... 15 form schemas in toko-online
+}
+
+export type ApiFormValues = {
+  CheckoutCreate:    z.infer<typeof ApiSchema.CheckoutCreate>
+  AdminProdukCreate: z.infer<typeof ApiSchema.AdminProdukCreate>
+  // ...
+}
+
+export const ApiDefaultValues = {
+  checkoutCreate:    {} as ApiFormValues['CheckoutCreate'],
+  adminProdukCreate: {} as ApiFormValues['AdminProdukCreate'],
+  // ...
+}
+```
+
+Usage in React:
+```tsx
+import { ApiFormValues, ApiDefaultValues } from '@/api/contract/api-schema'
+import { toApiCheckoutCreate } from '@/api/mappers/api-mapper'
+
+const [form, setForm] = useState<ApiFormValues['CheckoutCreate']>(ApiDefaultValues.checkoutCreate)
+// mapper auto-transforms camelCase → snake_case for the API contract
+const payload = toApiCheckoutCreate(form)
+```
+
+### Flatten strategy (api-read.ts)
+
+Nested resource/model responses are flattened with prefix naming:
+- `produk.id` → `produkId`
+- `reviews.data` → `reviewsData`, `reviews.current_page` → `reviewsCurrentPage`
+- All field names are camelCased from snake_case DB columns
+
+### Eloquent cache invalidation (hooks.ts)
+
+The HookGenerator traverses Eloquent model relations (belongsTo,
+hasOne, hasMany) from the scanned manifest to auto-generate
+cross-resource cache invalidation rules. See
+`packages/cli/src/generators/HookGenerator.ts` — strategy 5.
+
 ## Prerequisites
 
 ```bash
@@ -22,8 +101,6 @@ node -v
 
 # PHP >= 8.0 on PATH (for scan --models)
 php -v
-
-# No system packages required
 ```
 
 ## Build
@@ -49,8 +126,15 @@ The driver runs these steps:
    outputs `routesync.manifest.json`. Skip with `--skip-scan`
 4. **Generate SDK** — `routesync generate` from the manifest into
    `C:\Users\User\toko-online\frontend\src\api\` with `--next-actions`
-   and `--zod`. Verifies all generated files and checks for real toko-online
-   endpoints (produk, login, register, cart, orders, wishlist, checkout)
+   and `--zod`. Verifies all 14 generated files:
+   - Core: `api.ts`, `hooks.ts`, `actions.ts`, `index.ts`, `query-key.ts`
+   - Contract tier: `contract/api-contract.ts`, `contract/api-schema.ts`
+     (with `ApiFormValues` + `ApiDefaultValues`), `contract/api-field.ts`
+   - Types: `types/api-read.ts`, `types/api-form.ts`, `types/index.ts`
+   - Mappers: `mappers/api-mapper.ts`
+   - Models: `core/models.ts`
+   - Checks for real toko-online endpoints (produk, login, register, cart,
+     orders, wishlist, checkout)
 5. **CLI help/version** — verifies `--help` and `--version`
 6. **Library imports** — `require()`s the SDK CJS bundle, exercises
    `defineApi()`, `endpoint()`, `toCamelCase()`, `toSnakeCase()`
@@ -66,8 +150,7 @@ The driver runs these steps:
 
 ### Configuring paths
 
-Edit the constants at the top of `driver.mjs` if your toko-online project is
-at a different location:
+Edit the constants at the top of `driver.mjs`:
 
 ```js
 const TOKO_ONLINE = 'C:\\Users\\User\\toko-online'
@@ -77,8 +160,6 @@ const TOKO_BASE_URL = 'http://localhost:8000/api'
 ```
 
 ## Run (human path)
-
-The full workflow from scratch:
 
 ```bash
 # 1. In the toko-online Laravel project:
@@ -92,8 +173,6 @@ node ..\..\routesync\dist\cli.js generate --manifest routesync.manifest.json --o
 
 ## Direct invocation (library)
 
-For PRs that touch the SDK or core packages without changing the CLI:
-
 ```js
 // ESM
 import { defineApi, endpoint, toCamelCase } from './dist/sdk.mjs'
@@ -102,9 +181,7 @@ import { defineApi, endpoint, toCamelCase } from './dist/sdk.mjs'
 const { defineApi, endpoint, toCamelCase } = require('./dist/sdk.js')
 
 const api = defineApi({
-  produk: {
-    list: endpoint({ method: 'GET', path: '/produk' }),
-  },
+  produk: { list: endpoint({ method: 'GET', path: '/produk' }) },
 })
 console.log(toCamelCase({ user_name: 'x' }).userName) // → 'x'
 ```
@@ -129,14 +206,14 @@ npx vitest run     # equivalent
 - **`hooks.ts` uses `defineHooks`, not `useApiQuery`**: The generated file
   exports per-resource hooks (`useProduk`, `useCartItems`, etc.) built on
   the `defineHooks` registry. `useApiQuery` is deprecated but still importable.
-- **`mapKeysDeep` takes a string, not a function**: `mapKeysDeep(obj, 'camel')`
+- **`mapKeysDeep` takes string, not function**: `mapKeysDeep(obj, 'camel')`
   or `mapKeysDeep(obj, 'snake')`. Prefer `toCamelCase()`/`toSnakeCase()`.
 - **`scan --models` requires PHP + database**: The scanner runs a temporary PHP
-  script via Laravel's bootstrap to call `Schema::getColumns()`. If the
-  database is unreachable, `--models` will fail. Routes alone still scan fine
-  without it.
-- **PowerShell backslash continuation**: `\` is a parser error. Use single-line
-  commands or PowerShell here-strings.
+  script via Laravel's bootstrap. Routes alone scan fine without `--models`.
+- **PowerShell backslash**: `\` is a parser error. Use single-line commands.
+- **`schemas.ts` is legacy**: It coexists with the newer `contract/api-schema.ts`.
+  The ZodTierGenerator writes to `contract/`, `types/`, `mappers/`. Old
+  `schemas.ts` is still generated by SchemaGenerator for backward compat.
 
 ## Troubleshooting
 
@@ -145,5 +222,6 @@ npx vitest run     # equivalent
 | `Cannot find module '...dist/cli.js'` | Run `npm run build` |
 | `Manifest not found` | Run `routesync scan` first, or pass absolute path |
 | `vitest: command not found` | Run `npm install` |
-| `scan` shows "Response type could not be inferred" | Expected for endpoints that don't return a JsonResource. Annotate with `#[Response]` to fix. |
+| `scan` shows "Response type could not be inferred" | Expected for endpoints without JsonResource. Annotate with `#[Response]`. |
 | `php: command not found` | Install PHP >= 8.0 and add to PATH |
+| `ApiFormValues` not in generated output | Pass `--zod` flag to `routesync generate` |

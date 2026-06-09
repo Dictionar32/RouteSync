@@ -126,22 +126,31 @@ run(`node "${CLI}" generate --manifest routesync.manifest.json --output ${TOKO_O
 
 const out = (file) => join(TOKO_ONLINE, TOKO_OUTPUT, file)
 
-check(out('api.ts'),       'api.ts — typed API client',         'defineApi')
-check(out('api.ts'),       'api.ts — API_ENDPOINTS constants',  'API_ENDPOINTS')
-check(out('hooks.ts'),     'hooks.ts — defineHooks registry',   'defineHooks')
-check(out('actions.ts'),   'actions.ts — Next.js Server Actions', 'Action')
-check(out('index.ts'),     'index.ts — barrel export',           'export')
-check(out('query-key.ts'), 'query-key.ts — QueryKey factory',    'QueryKey')
+// Core files — always generated
+check(out('api.ts'),       'api.ts — typed API client',              'defineApi')
+check(out('api.ts'),       'api.ts — API_ENDPOINTS constants',       'API_ENDPOINTS')
+check(out('hooks.ts'),     'hooks.ts — defineHooks registry',        'defineHooks')
+check(out('actions.ts'),   'actions.ts — Next.js Server Actions',    'Action')
+check(out('index.ts'),     'index.ts — barrel export',               'export')
+check(out('query-key.ts'), 'query-key.ts — QueryKey factory',        'QueryKey')
 
-// Dynamic files — may or may not exist based on manifest content
+// Contract tier — Zod schemas + FormValues (ZodTierGenerator)
+check(out('contract/api-contract.ts'), 'contract/api-contract.ts — Zod schemas', 'z.object')
+check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiFormValues', 'ApiFormValues')
+check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiDefaultValues', 'ApiDefaultValues')
+check(out('contract/api-field.ts'),    'contract/api-field.ts — ApiApiField constants', 'ApiApiField')
+
+// Types tier — camelCase flattened read types + form types
+check(out('types/api-read.ts'),  'types/api-read.ts — camelCase read types', 'Transformed')
+check(out('types/api-form.ts'),  'types/api-form.ts — input request types',  'Form')
+check(out('types/index.ts'),     'types/index.ts — type re-exports',         'export')
+
+// Mappers — contract ↔ read transformation
+check(out('mappers/api-mapper.ts'), 'mappers/api-mapper.ts — transform functions', 'to')
+
+// Models — Eloquent DB types (only when --models was used during scan)
 if (existsSync(out('core/models.ts'))) {
   log('ok', 'core/models.ts — Eloquent DB types')
-}
-if (existsSync(out('contract/api-contract.ts'))) {
-  log('ok', 'contract/api-contract.ts — Zod validators')
-}
-if (existsSync(out('mappers/api-mapper.ts'))) {
-  log('ok', 'mappers/api-mapper.ts — camelCase response mappers')
 }
 
 // Verify the generated SDK references real toko-online endpoints

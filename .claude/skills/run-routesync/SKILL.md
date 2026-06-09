@@ -114,6 +114,251 @@ before.
 > `contract/api-schema.ts`. It can be deprecated once the new Zod tier
 > fully covers all validation needs.
 
+### Generated file patterns
+
+Each generated file follows a consistent template. These are the actual
+patterns from toko-online (35 routes, 20 models).
+
+#### `api.ts` — typed API client
+
+```ts
+// Constants block
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+export const API_ENDPOINTS = {
+  PRODUK: '/produk',
+  PRODUK_DETAIL: (id: string | number) => `/produk/${id}`,
+  // ... per path
+} as const
+
+export const ROUTES = {
+  HOME: '/',
+  PRODUK: '/produk',
+  // ...
+} as const
+
+// Enum constants from DB columns
+export const ORDER_STATUS = { PENDING: 'pending', PAID: 'paid', CANCELED: 'canceled' } as const
+export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS]
+
+// Endpoint registry
+export const api = defineApi({
+  produk: {
+    list: endpoint({ method: 'GET', path: API_ENDPOINTS.PRODUK,
+      contract: { response: validateProdukListResponse },
+      mapper:   { response: toProdukItemResourceReadList },
+    }),
+    get:  endpoint({ method: 'GET', path: API_ENDPOINTS.PRODUK_DETAIL, ... }),
+  },
+  cartItems: {
+    create: endpoint({ method: 'POST', path: API_ENDPOINTS.CART_ITEMS, auth: true,
+      contract: { body: validateCartItemsCreatePayload, response: validateOrderResource },
+      mapper:   { response: toOrderResourceRead, body: toApiCartItemsCreate },
+    }),
+    // ...
+  },
+  // ... 20 resource groups in toko-online
+})
+```
+
+#### `hooks.ts` — React Query hooks + cache
+
+```ts
+import { defineHooks } from 'routesync/react'
+import { api } from './api'
+import { QueryKey } from './query-key'
+
+export const hooks = defineHooks({
+  produk: {
+    types: {
+      list:   typeOf<ProdukItemResourceIndex>(),
+      detail: typeOf<ProdukItemResourceShow>(),
+      create: typeOf<never>(),
+      update: typeOf<never>(),
+    },
+    queryKey: QueryKey.produk,
+    actionKeys: {
+      list: QueryKey.produk.list,
+      get:  QueryKey.produk.get,
+    },
+    endpoint: api.produk,
+    cache: {
+      list:   QueryKey.produk.lists,
+      detail: QueryKey.produk.detail,
+    },
+  },
+  cartItems: {
+    // ...
+    cache: {
+      create: { invalidate: [QueryKey.orders.lists, QueryKey.keranjang.list] },
+      remove: { invalidate: [QueryKey.orders.lists, QueryKey.keranjang.list] },
+    },
+  },
+  payment: {
+    // Eloquent belongsTo: Payment → Order
+    cache: {
+      post: { invalidate: [QueryKey.orders.lists, QueryKey.orders.detail] },
+    },
+  },
+  logout: {
+    cache: {
+      create: { invalidate: [
+        QueryKey.profile.list, QueryKey.orders.lists,
+        QueryKey.keranjang.list, QueryKey.wishlist.list,
+      ]},
+    },
+  },
+})
+
+export const useProduk = hooks.produk
+export const useCartItems = hooks.cartItems
+// ... per resource
+```
+
+#### `contract/api-contract.ts` — Zod validators (3 categories)
+
+```ts
+import { z } from 'zod'
+
+// 1. Model schemas (from DB columns + casts + accessors)
+export const ProdukItemSchema = z.object({
+  id: z.number(),
+  nama: z.string(),
+  harga: z.number(),
+  createdAt: z.string().nullable(),
+  // ... all columns in camelCase
+})
+export type ProdukItemApiResponse = z.infer<typeof ProdukItemSchema>
+
+// 2. Resource schemas (from JsonResource toArray)
+export const OrderResourceSchema = z.object({
+  id: z.number(),
+  orderNumber: z.string().nullable(),
+  status: z.union([z.literal('pending'), z.literal('paid'), z.literal('canceled')]),
+  // nested: user, details, payment, shipping...
+})
+export type OrderResourceResponse = z.infer<typeof OrderResourceSchema>
+
+// 3. Route payload + response validators
+export const CheckoutCreatePayloadSchema = z.object({
+  items: z.array(z.object({ produkItemId: z.string(), qty: z.number() })).optional(),
+  shippingNama: z.string().optional().nullable(),
+  // ... from FormRequest rules
+})
+export const validateCheckoutCreatePayload = (payload: unknown) =>
+  CheckoutCreatePayloadSchema.parse(payload)
+```
+
+#### `contract/api-schema.ts` — FormState types
+
+```ts
+export const ApiSchema = {
+  RegisterCreate:      z.object({ name: z.string(), email: z.string(), password: z.string() }),
+  CheckoutCreate:      z.object({ items: z.array(...), shippingNama: z.string()... }),
+  AdminProdukCreate:   z.object({ nama: z.string(), harga: z.number(), ... }),
+  // 15 schemas in toko-online
+}
+
+export type ApiFormValues = {
+  RegisterCreate:      z.infer<typeof ApiSchema.RegisterCreate>
+  CheckoutCreate:      z.infer<typeof ApiSchema.CheckoutCreate>
+  // ...
+}
+
+export const ApiDefaultValues = {
+  registerCreate:      {} as ApiFormValues['RegisterCreate'],
+  checkoutCreate:      {} as ApiFormValues['CheckoutCreate'],
+  // ... camelCase keys
+}
+```
+
+#### `contract/api-field.ts` — backend key constants
+
+```ts
+export const ApiApiField = {
+  NAMA: "nama", EMAIL: "email", PRODUK_ITEM_ID: "produk_item_id",
+  SHIPPING_ALAMAT: "shipping_alamat", SHIPPING_KODE_POS: "shipping_kode_pos",
+  // ... all form fields in UPPER_SNAKE → snake_case
+} as const
+```
+
+#### `types/api-read.ts` — camelCase transformed types
+
+```ts
+// DB Model → Transformed (columns + appends, camelCased)
+export interface ProdukItemTransformed {
+  id: number; nama: string; harga: number; createdAt: string | null
+}
+export type ProdukItemShow = ProdukItemTransformed
+export type ProdukItemIndex = ProdukItemTransformed[]
+
+// Resource → Transformed (flattened nested fields)
+export interface OrderResourceTransformed {
+  id: number; orderNumber: string | null; status: "pending" | "paid" | "canceled"
+  // Flattened: user.name → userName, payment.status → paymentStatus
+  userId: number; userName: string | null
+  paymentStatus: string | null; shippingAlamat: string | null
+}
+export type OrderResourceShow = OrderResourceTransformed
+export type OrderResourceIndex = OrderResourceTransformed[]
+
+// Object response → Transformed (GET-only, flattened)
+export interface CategoriesTransformed {
+  categoriesId: number; categoriesNama: string
+}
+```
+
+#### `types/api-form.ts` — request body types
+
+```ts
+// One Form type per resource, with CRUD action keys
+export type ProdukReviewsForm = {
+  Create: { rating: number; title?: string; comment?: string }
+}
+
+export type CheckoutForm = {
+  Create: {
+    items?: Array<{ produkItemId: string; qty: number }>
+    shippingNama?: string; shippingAlamat?: string
+  }
+}
+
+export type AdminProdukForm = {
+  Create: {
+    nama: string; deskripsi?: string; harga: number; stok: number
+    categoryId: string
+  }
+}
+```
+
+#### `mappers/api-mapper.ts` — transformation functions
+
+```ts
+// 1. DB Model mappers (snake_case API response → camelCase Transformed)
+export const toProdukItemRead = (api: ProdukItemApiResponse): ProdukItemTransformed => ({
+  id: api.id, nama: api.nama, harga: api.harga, createdAt: api.created_at,
+})
+export const toProdukItemReadList = (api: ProdukItemApiResponse[]): ProdukItemTransformed[] =>
+  api.map(toProdukItemRead)
+
+// 2. Resource mappers (nested → flattened)
+export const toOrderResourceRead = (api: OrderResourceResponse): OrderResourceTransformed => ({
+  id: api.id, orderNumber: api.order_number, status: api.status,
+  userId: api.user?.id, userName: api.user?.name,              // flatten user.*
+  paymentStatus: api.payment?.status,                           // flatten payment.status
+  // ...
+})
+
+// 3. Route response mappers
+export const toCheckoutResponseRead = (api: CheckoutResponse): CheckoutTransformed => ({...})
+
+// 4. Form → Payload mappers (camelCase → snake_case for API)
+export const toApiCheckoutCreate = (form: ApiFormValues['CheckoutCreate']): CheckoutCreatePayload => ({
+  [ApiApiField.SHIPPING_NAMA]: form.shippingNama,
+  [ApiApiField.SHIPPING_ALAMAT]: form.shippingAlamat,
+  // ... using ApiApiField constants
+})
+```
+
 ### Flatten strategy (api-read.ts)
 
 Nested resource/model responses are flattened with prefix naming:

@@ -79,6 +79,41 @@ const [form, setForm] = useState<ApiFormValues['CheckoutCreate']>(ApiDefaultValu
 const payload = toApiCheckoutCreate(form)
 ```
 
+### Generator mapping — existing vs new files
+
+The Zod tier is **pure additive** — no existing generator output was
+changed or removed. `FormValues` adds 5 new files across `contract/`,
+`types/`, `mappers/` while all original files continue to generate as
+before.
+
+**Files untouched (original generators):**
+
+| File | Generator |
+|------|-----------|
+| `api.ts` | SDKGenerator |
+| `hooks.ts` | HookGenerator (+ Eloquent cache invalidation) |
+| `actions.ts` | NextActionGenerator |
+| `index.ts` | IndexGenerator |
+| `query-key.ts` | QueryKeyGenerator |
+| `schemas.ts` | SchemaGenerator (legacy, 301 lines) |
+
+**Files added by ZodTierGenerator (with `--zod`):**
+
+| File | Generator method |
+|------|-----------------|
+| `contract/api-contract.ts` | `generateContract()` — Zod schemas for models, resources, route responses, payloads |
+| `contract/api-schema.ts` | `generateSchema()` — `ApiSchema` + `ApiFormValues` + `ApiDefaultValues` |
+| `contract/api-field.ts` | `generateField()` — `ApiApiField` snake_case key constants |
+| `types/api-read.ts` | `generateRead()` — camelCase transformed types with flatten |
+| `types/api-form.ts` | `generateForm()` — input request body types |
+| `types/index.ts` | `generateRead()` — re-exports |
+| `mappers/api-mapper.ts` | `generateMapper()` — contract↔read transformation functions |
+| `core/models.ts` | ModelGenerator — Eloquent DB model types |
+
+> **Note:** `schemas.ts` (legacy SchemaGenerator) still coexists with
+> `contract/api-schema.ts`. It can be deprecated once the new Zod tier
+> fully covers all validation needs.
+
 ### Flatten strategy (api-read.ts)
 
 Nested resource/model responses are flattened with prefix naming:

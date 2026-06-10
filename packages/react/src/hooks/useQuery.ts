@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseQuery, useInfiniteQuery, UseQueryOptions, UseSuspenseQueryOptions, UseInfiniteQueryOptions, InfiniteData } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery, useInfiniteQuery, UseQueryOptions, UseSuspenseQueryOptions, UseInfiniteQueryOptions, InfiniteData, type QueryFunctionContext } from '@tanstack/react-query'
 import { EndpointCallable, EndpointCallableOptions, LooseEndpointOptions, ApiError, CallOptions } from '@routesync/sdk'
 
 export type ApiQueryOptions<TResponse, TError = ApiError, TData = TResponse> = Omit<UseQueryOptions<TResponse, TError, TData>, 'queryKey' | 'queryFn'>
@@ -70,7 +70,7 @@ export function useApiInfiniteQuery<
 
   return useInfiniteQuery<TResponse, TError, TData, readonly unknown[], TPageParam>({
     queryKey,
-    queryFn: (context) => {
+    queryFn: (context: QueryFunctionContext<readonly unknown[], TPageParam>) => {
       const pageParam = context.pageParam as TPageParam
       const callOptions: CallOptions<TParams, TBody> = {
         params: options?.params as TParams,

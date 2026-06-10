@@ -1,9 +1,6206 @@
 {
   "version": "1.0.0",
-  "baseURL": "http://localhost/api",
-  "routes": [],
+  "baseURL": "http://localhost:8000/api",
+  "routes": [
+    {
+      "name": "register.post",
+      "method": "POST",
+      "path": "/register",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "name": "required|string|max:255",
+          "email": "required|email|unique:users,email",
+          "password": "required|min:6"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "RegisterResponse",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "RegisterResponse",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": null
+    },
+    {
+      "name": "login.post",
+      "method": "POST",
+      "path": "/login",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "email": "required|email",
+          "password": "required"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "success": {
+            "kind": "primitive",
+            "type": "boolean"
+          },
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "token": {
+                "kind": "raw_code",
+                "code": "$token",
+                "hints": {
+                  "pattern": "variable"
+                },
+                "parsed_ast": {
+                  "kind": "variable",
+                  "name": "token"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "createToken",
+                      "output": "object",
+                      "rule": "Sanctum createToken method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "plainTextToken",
+                      "output": "string",
+                      "rule": "Field lookup from resolved object type fields.plainTextToken"
+                    }
+                  ]
+                }
+              },
+              "user": {
+                "kind": "object",
+                "fields": {
+                  "id": {
+                    "kind": "raw_code",
+                    "code": "$user->id",
+                    "hints": {
+                      "pattern": "property_access"
+                    },
+                    "parsed_ast": {
+                      "kind": "property_access",
+                      "target": {
+                        "kind": "variable",
+                        "name": "user"
+                      },
+                      "property": "id"
+                    },
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "number",
+                      "nullable": false,
+                      "confidence": 90,
+                      "trace": [
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "first",
+                          "output": "User",
+                          "rule": "Eloquent query single instance method first"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "id",
+                          "output": "number",
+                          "rule": "Field lookup from Schema Model User.id"
+                        }
+                      ]
+                    }
+                  },
+                  "name": {
+                    "kind": "raw_code",
+                    "code": "$user->name",
+                    "hints": {
+                      "pattern": "property_access"
+                    },
+                    "parsed_ast": {
+                      "kind": "property_access",
+                      "target": {
+                        "kind": "variable",
+                        "name": "user"
+                      },
+                      "property": "name"
+                    },
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "nullable": false,
+                      "confidence": 90,
+                      "trace": [
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "first",
+                          "output": "User",
+                          "rule": "Eloquent query single instance method first"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "name",
+                          "output": "string",
+                          "rule": "Field lookup from Schema Model User.name"
+                        }
+                      ]
+                    }
+                  },
+                  "email": {
+                    "kind": "raw_code",
+                    "code": "$user->email",
+                    "hints": {
+                      "pattern": "property_access"
+                    },
+                    "parsed_ast": {
+                      "kind": "property_access",
+                      "target": {
+                        "kind": "variable",
+                        "name": "user"
+                      },
+                      "property": "email"
+                    },
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "nullable": false,
+                      "confidence": 90,
+                      "trace": [
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "first",
+                          "output": "User",
+                          "rule": "Eloquent query single instance method first"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "email",
+                          "output": "string",
+                          "rule": "Field lookup from Schema Model User.email"
+                        }
+                      ]
+                    }
+                  },
+                  "role": {
+                    "kind": "raw_code",
+                    "code": "$user->role",
+                    "hints": {
+                      "pattern": "property_access"
+                    },
+                    "parsed_ast": {
+                      "kind": "property_access",
+                      "target": {
+                        "kind": "variable",
+                        "name": "user"
+                      },
+                      "property": "role"
+                    },
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "nullable": false,
+                      "confidence": 90,
+                      "trace": [
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "first",
+                          "output": "User",
+                          "rule": "Eloquent query single instance method first"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "role",
+                          "output": "string",
+                          "rule": "Field lookup from Schema Model User.role"
+                        }
+                      ]
+                    }
+                  },
+                  "created_at": {
+                    "kind": "raw_code",
+                    "code": "$user->created_at?->toISOString()",
+                    "hints": {
+                      "pattern": "nullsafe_property_access"
+                    },
+                    "parsed_ast": {
+                      "kind": "method_call",
+                      "target": {
+                        "kind": "property_access",
+                        "target": {
+                          "kind": "variable",
+                          "name": "user"
+                        },
+                        "property": "created_at"
+                      },
+                      "name": "toISOString",
+                      "arguments": []
+                    },
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 90,
+                      "trace": [
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "first",
+                          "output": "User",
+                          "rule": "Eloquent query single instance method first"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "created_at",
+                          "output": "string",
+                          "rule": "Field lookup from Schema Model User.created_at"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "toISOString",
+                          "output": "string",
+                          "rule": "Carbon date method call"
+                        }
+                      ]
+                    }
+                  },
+                  "updated_at": {
+                    "kind": "raw_code",
+                    "code": "$user->updated_at?->toISOString()",
+                    "hints": {
+                      "pattern": "nullsafe_property_access"
+                    },
+                    "parsed_ast": {
+                      "kind": "method_call",
+                      "target": {
+                        "kind": "property_access",
+                        "target": {
+                          "kind": "variable",
+                          "name": "user"
+                        },
+                        "property": "updated_at"
+                      },
+                      "name": "toISOString",
+                      "arguments": []
+                    },
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 90,
+                      "trace": [
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "first",
+                          "output": "User",
+                          "rule": "Eloquent query single instance method first"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "updated_at",
+                          "output": "string",
+                          "rule": "Field lookup from Schema Model User.updated_at"
+                        },
+                        {
+                          "source": "SemanticKernelV2",
+                          "input": "toISOString",
+                          "output": "string",
+                          "rule": "Carbon date method call"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "User::where('email', $request->email)->first()",
+        "token": "$user->createToken('auth')->plainTextToken"
+      }
+    },
+    {
+      "name": "oauth_provider_redirect.get",
+      "method": "GET",
+      "path": "/oauth/{provider}/redirect",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "redirect_to": "nullable|url|max:2048"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "provider": {
+            "kind": "raw_code",
+            "code": "$provider",
+            "hints": {
+              "pattern": "variable"
+            },
+            "parsed_ast": {
+              "kind": "variable",
+              "name": "provider"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "confidence": 100,
+              "trace": []
+            }
+          },
+          "auth_url": {
+            "kind": "raw_code",
+            "code": "$targetUrl",
+            "hints": {
+              "pattern": "variable"
+            },
+            "parsed_ast": {
+              "kind": "variable",
+              "name": "targetUrl"
+            }
+          }
+        }
+      },
+      "assignments": {
+        "provider": "strtolower($provider)",
+        "driver": "$this->socialiteProvider($provider)",
+        "scopes": "$this->resolveScopes($provider)",
+        "redirectTo": "$request->input('redirect_to') ?: config('services.oauth.frontend_redirect_default')",
+        "targetUrl": "$driver->redirect()->getTargetUrl()"
+      }
+    },
+    {
+      "name": "oauth_provider_callback.get",
+      "method": "GET",
+      "path": "/oauth/{provider}/callback",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "error": {
+            "kind": "raw_code",
+            "code": "$exception->getMessage()",
+            "hints": {
+              "pattern": "method_call"
+            },
+            "parsed_ast": {
+              "kind": "method_call",
+              "target": {
+                "kind": "variable",
+                "name": "exception"
+              },
+              "name": "getMessage",
+              "arguments": []
+            }
+          }
+        }
+      },
+      "assignments": {
+        "provider": "strtolower($provider)",
+        "socialiteUser": "$this->socialiteProvider($provider)->user()",
+        "user": "$this->upsertUserFromSocialite($provider, $socialiteUser)",
+        "token": "$user->createToken('auth')->plainTextToken",
+        "frontendRedirect": "$this->extractFrontendRedirect($request)"
+      }
+    },
+    {
+      "name": "oauth_provider_callback.post",
+      "method": "POST",
+      "path": "/oauth/{provider}/callback",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "error": {
+            "kind": "raw_code",
+            "code": "$exception->getMessage()",
+            "hints": {
+              "pattern": "method_call"
+            },
+            "parsed_ast": {
+              "kind": "method_call",
+              "target": {
+                "kind": "variable",
+                "name": "exception"
+              },
+              "name": "getMessage",
+              "arguments": []
+            }
+          }
+        }
+      },
+      "assignments": {
+        "provider": "strtolower($provider)",
+        "socialiteUser": "$this->socialiteProvider($provider)->user()",
+        "user": "$this->upsertUserFromSocialite($provider, $socialiteUser)",
+        "token": "$user->createToken('auth')->plainTextToken",
+        "frontendRedirect": "$this->extractFrontendRedirect($request)"
+      }
+    },
+    {
+      "name": "social_login.post",
+      "method": "POST",
+      "path": "/social/login",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "provider": "required|in:google,facebook,apple",
+          "provider_user_id": "required|string|max:191",
+          "email": "required|email|max:255",
+          "name": "nullable|string|max:255",
+          "avatar_url": "nullable|url|max:2048"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "token": {
+            "kind": "raw_code",
+            "code": "$token",
+            "hints": {
+              "pattern": "variable"
+            },
+            "parsed_ast": {
+              "kind": "variable",
+              "name": "token"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "nullable": false,
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "createToken",
+                  "output": "object",
+                  "rule": "Sanctum createToken method call"
+                },
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "plainTextToken",
+                  "output": "string",
+                  "rule": "Field lookup from resolved object type fields.plainTextToken"
+                }
+              ]
+            }
+          },
+          "user": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "raw_code",
+                "code": "$user->id",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "id"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "id",
+                      "output": "number",
+                      "rule": "Field lookup from Schema Model User.id"
+                    }
+                  ]
+                }
+              },
+              "name": {
+                "kind": "raw_code",
+                "code": "$user->name",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "name"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "name",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.name"
+                    }
+                  ]
+                }
+              },
+              "email": {
+                "kind": "raw_code",
+                "code": "$user->email",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "email"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "email",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.email"
+                    }
+                  ]
+                }
+              },
+              "role": {
+                "kind": "raw_code",
+                "code": "$user->role",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "role"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "role",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.role"
+                    }
+                  ]
+                }
+              },
+              "created_at": {
+                "kind": "raw_code",
+                "code": "$user->created_at?->toISOString()",
+                "hints": {
+                  "pattern": "nullsafe_property_access"
+                },
+                "parsed_ast": {
+                  "kind": "method_call",
+                  "target": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "user"
+                    },
+                    "property": "created_at"
+                  },
+                  "name": "toISOString",
+                  "arguments": []
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "created_at",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.created_at"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "toISOString",
+                      "output": "string",
+                      "rule": "Carbon date method call"
+                    }
+                  ]
+                }
+              },
+              "updated_at": {
+                "kind": "raw_code",
+                "code": "$user->updated_at?->toISOString()",
+                "hints": {
+                  "pattern": "nullsafe_property_access"
+                },
+                "parsed_ast": {
+                  "kind": "method_call",
+                  "target": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "user"
+                    },
+                    "property": "updated_at"
+                  },
+                  "name": "toISOString",
+                  "arguments": []
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updated_at",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.updated_at"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "toISOString",
+                      "output": "string",
+                      "rule": "Carbon date method call"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "provider": "$request->string('provider')->toString()",
+        "providerUserId": "$request->string('provider_user_id')->toString()",
+        "email": "$request->string('email')->toString()",
+        "user": "User::create([ 'name' => $request->name ?? Str::before($email, '@'), 'email' => $email, 'password' => Hash::make(Str::random(40)), 'role' => 'user', ])",
+        "token": "$user->createToken('auth')->plainTextToken"
+      }
+    },
+    {
+      "name": "forgot-password.post",
+      "method": "POST",
+      "path": "/forgot-password",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "email": "required|email|exists:users,email"
+        }
+      },
+      "response": null,
+      "assignments": {
+        "email": "$request->string('email')->toString()",
+        "token": "Str::random(64)",
+        "response": "[ 'message' => 'Link reset password telah dibuat.', ]"
+      }
+    },
+    {
+      "name": "reset-password.post",
+      "method": "POST",
+      "path": "/reset-password",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "email": "required|email|exists:users,email",
+          "token": "required|string",
+          "password": "required|string|min:6|confirmed"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": {
+        "email": "$request->string('email')->toString()",
+        "reset": "DB::table('password_reset_tokens') ->where('email', $email) ->first()",
+        "createdAt": "$reset->created_at ? Carbon::parse($reset->created_at) : null",
+        "user": "User::where('email', $email)->firstOrFail()"
+      }
+    },
+    {
+      "name": "categories.get",
+      "method": "GET",
+      "path": "/categories",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "data": {
+            "kind": "raw_code",
+            "code": "$categories",
+            "hints": {
+              "pattern": "variable"
+            },
+            "parsed_ast": {
+              "kind": "variable",
+              "name": "categories"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "model",
+              "model": "Category",
+              "collection": true,
+              "paginated": false,
+              "confidence": 90,
+              "trace": [
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "orderBy",
+                  "output": "model Category",
+                  "rule": "Static method call Category::orderBy"
+                },
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "get",
+                  "output": "Category",
+                  "rule": "Eloquent query collection method get"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "categories": "Category::orderBy('nama')->get(['id', 'nama'])"
+      }
+    },
+    {
+      "name": "produk.get",
+      "method": "GET",
+      "path": "/produk",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "query": "ProdukItem::query() ->with(['category', 'frontend']) ->where('stok', '>', 0)",
+        "search": "$request->string('search')->trim()->toString()",
+        "produk": "$query->get()"
+      }
+    },
+    {
+      "name": "produk_id.get",
+      "method": "GET",
+      "path": "/produk/{id}",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "produk": "ProdukItem::with(['category', 'frontend'])->findOrFail($id)"
+      }
+    },
+    {
+      "name": "produk_id_reviews.get",
+      "method": "GET",
+      "path": "/produk/{id}/reviews",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "summary": {
+            "kind": "object",
+            "fields": {
+              "avg_rating": {
+                "kind": "raw_code",
+                "code": "(float) ($summary->avg_rating ?? 0)",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "type_cast",
+                  "castType": "float",
+                  "expression": {
+                    "kind": "binary_expression",
+                    "operator": "??",
+                    "left": {
+                      "kind": "property_access",
+                      "target": {
+                        "kind": "variable",
+                        "name": "summary"
+                      },
+                      "property": "avg_rating"
+                    },
+                    "right": {
+                      "kind": "primitive",
+                      "type": "number",
+                      "value": 0
+                    }
+                  }
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": []
+                }
+              },
+              "total_review": {
+                "kind": "raw_code",
+                "code": "(int) ($summary->total_review ?? 0)",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "type_cast",
+                  "castType": "int",
+                  "expression": {
+                    "kind": "binary_expression",
+                    "operator": "??",
+                    "left": {
+                      "kind": "property_access",
+                      "target": {
+                        "kind": "variable",
+                        "name": "summary"
+                      },
+                      "property": "total_review"
+                    },
+                    "right": {
+                      "kind": "primitive",
+                      "type": "number",
+                      "value": 0
+                    }
+                  }
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": []
+                }
+              }
+            }
+          },
+          "reviews": {
+            "kind": "raw_code",
+            "code": "$reviews",
+            "hints": {
+              "pattern": "variable"
+            },
+            "parsed_ast": {
+              "kind": "variable",
+              "name": "reviews"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "model",
+              "model": "ProductReview",
+              "collection": true,
+              "paginated": true,
+              "confidence": 90,
+              "trace": [
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "where",
+                  "output": "model ProductReview",
+                  "rule": "Static method call ProductReview::where"
+                },
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "paginate",
+                  "output": "ProductReview",
+                  "rule": "Eloquent query collection method paginate"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "perPage": "max(1, min((int) $request->query('per_page', 10), 50))",
+        "summary": "ProductReview::where('produk_item_id', $produkId) ->selectRaw('COALESCE(ROUND(AVG(rating), 2), 0) as avg_rating, COUNT(*) as total_review') ->first()",
+        "reviews": "ProductReview::where('produk_item_id', $produkId) ->with('user:id,name') ->latest() ->paginate($perPage)"
+      }
+    },
+    {
+      "name": "payment_webhook.post",
+      "method": "POST",
+      "path": "/payment/webhook",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": null,
+      "assignments": null
+    },
+    {
+      "name": "profile.get",
+      "method": "GET",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "raw_code",
+            "code": "$user->id",
+            "hints": {
+              "pattern": "property_access"
+            },
+            "parsed_ast": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "user"
+              },
+              "property": "id"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "number",
+              "nullable": false,
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "request->user()",
+                  "output": "model User",
+                  "rule": "Auth user method call"
+                },
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "id",
+                  "output": "number",
+                  "rule": "Field lookup from Schema Model User.id"
+                }
+              ]
+            }
+          },
+          "name": {
+            "kind": "raw_code",
+            "code": "$user->name",
+            "hints": {
+              "pattern": "property_access"
+            },
+            "parsed_ast": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "user"
+              },
+              "property": "name"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "nullable": false,
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "request->user()",
+                  "output": "model User",
+                  "rule": "Auth user method call"
+                },
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "name",
+                  "output": "string",
+                  "rule": "Field lookup from Schema Model User.name"
+                }
+              ]
+            }
+          },
+          "email": {
+            "kind": "raw_code",
+            "code": "$user->email",
+            "hints": {
+              "pattern": "property_access"
+            },
+            "parsed_ast": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "user"
+              },
+              "property": "email"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "nullable": false,
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "request->user()",
+                  "output": "model User",
+                  "rule": "Auth user method call"
+                },
+                {
+                  "source": "SemanticKernelV2",
+                  "input": "email",
+                  "output": "string",
+                  "rule": "Field lookup from Schema Model User.email"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "$request->user()"
+      }
+    },
+    {
+      "name": "profile.put",
+      "method": "PUT",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "name": "sometimes|required|string|max:255",
+          "email": [
+            "sometimes",
+            "required",
+            "email",
+            {}
+          ]
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "raw_code",
+                "code": "$user->id",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "id"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "request->user()",
+                      "output": "model User",
+                      "rule": "Auth user method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "id",
+                      "output": "number",
+                      "rule": "Field lookup from Schema Model User.id"
+                    }
+                  ]
+                }
+              },
+              "name": {
+                "kind": "raw_code",
+                "code": "$user->name",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "name"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "request->user()",
+                      "output": "model User",
+                      "rule": "Auth user method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "name",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.name"
+                    }
+                  ]
+                }
+              },
+              "email": {
+                "kind": "raw_code",
+                "code": "$user->email",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "email"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "request->user()",
+                      "output": "model User",
+                      "rule": "Auth user method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "email",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.email"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "$request->user()"
+      }
+    },
+    {
+      "name": "profile.patch",
+      "method": "PATCH",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "name": "sometimes|required|string|max:255",
+          "email": [
+            "sometimes",
+            "required",
+            "email",
+            {}
+          ]
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "raw_code",
+                "code": "$user->id",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "id"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "request->user()",
+                      "output": "model User",
+                      "rule": "Auth user method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "id",
+                      "output": "number",
+                      "rule": "Field lookup from Schema Model User.id"
+                    }
+                  ]
+                }
+              },
+              "name": {
+                "kind": "raw_code",
+                "code": "$user->name",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "name"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "request->user()",
+                      "output": "model User",
+                      "rule": "Auth user method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "name",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.name"
+                    }
+                  ]
+                }
+              },
+              "email": {
+                "kind": "raw_code",
+                "code": "$user->email",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "user"
+                  },
+                  "property": "email"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": false,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "request->user()",
+                      "output": "model User",
+                      "rule": "Auth user method call"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "email",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model User.email"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "$request->user()"
+      }
+    },
+    {
+      "name": "orders.get",
+      "method": "GET",
+      "path": "/orders",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "orders": "Order::where('user_id', $request->user()->id) ->with(['details.produkItem.frontend', 'payment', 'shipping', 'promotion.promoCode']) ->latest() ->get()"
+      }
+    },
+    {
+      "name": "orders_id.get",
+      "method": "GET",
+      "path": "/orders/{id}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->with(['details.produkItem.frontend', 'payment', 'shipping', 'promotion.promoCode']) ->findOrFail($id)"
+      }
+    },
+    {
+      "name": "cart_items.post",
+      "method": "POST",
+      "path": "/cart/items",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "produk_item_id": "required|exists:produk_items,id",
+          "qty": "required|integer|min:1"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "$this->getOrCreatePendingOrder($request)",
+        "items": "[ ['produk_item_id' => $request->produk_item_id, 'qty' => $request->qty] ]"
+      }
+    },
+    {
+      "name": "cart_items_produkItemId.patch",
+      "method": "PATCH",
+      "path": "/cart/items/{produkItemId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "qty": "required|integer|min:1"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)",
+        "detail": "$order->details()->where('produk_item_id', $produkItemId)->first()",
+        "produk": "ProdukItem::whereKey($produkItemId)->lockForUpdate()->firstOrFail()"
+      }
+    },
+    {
+      "name": "cart_items_produkItemId.delete",
+      "method": "DELETE",
+      "path": "/cart/items/{produkItemId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)",
+        "detail": "$order->details()->where('produk_item_id', $produkItemId)->first()"
+      }
+    },
+    {
+      "name": "cart.delete",
+      "method": "DELETE",
+      "path": "/cart",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)"
+      }
+    },
+    {
+      "name": "cart_promo.post",
+      "method": "POST",
+      "path": "/cart/promo",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "code": "required|string|max:64"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->where('status', 'pending') ->with(['details', 'promotion.promoCode', 'shipping', 'payment']) ->lockForUpdate() ->latest() ->first()",
+        "code": "strtoupper($request->string('code')->toString())",
+        "promo": "PromoCode::where('code', $code)->lockForUpdate()->first()",
+        "subtotal": "(int) $order->details() ->selectRaw('COALESCE(SUM(qty * harga), 0) as subtotal') ->value('subtotal')",
+        "usedCount": "OrderPromotion::where('promo_code_id', $promo->id) ->whereHas('order', function ($query) { $query->where('status', 'paid')",
+        "discount": "$this->calculateDiscount($promo, $subtotal)"
+      }
+    },
+    {
+      "name": "cart_promo.delete",
+      "method": "DELETE",
+      "path": "/cart/promo",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->where('status', 'pending') ->with(['details', 'promotion', 'shipping', 'payment']) ->lockForUpdate() ->latest() ->first()",
+        "subtotal": "(int) $order->details() ->selectRaw('COALESCE(SUM(qty * harga), 0) as subtotal') ->value('subtotal')"
+      }
+    },
+    {
+      "name": "checkout.post",
+      "method": "POST",
+      "path": "/checkout",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "items": "sometimes|array|min:1",
+          "items.*.produk_item_id": "required_with:items|exists:produk_items,id",
+          "items.*.qty": "required_with:items|integer|min:1",
+          "shipping_nama": "nullable|string|max:255",
+          "shipping_telepon": "nullable|string|max:40",
+          "shipping_alamat": "nullable|string",
+          "shipping_kota": "nullable|string|max:255",
+          "shipping_kode_pos": "nullable|string|max:20"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "$this->getOrCreatePendingOrder($request)"
+      }
+    },
+    {
+      "name": "buy-now.post",
+      "method": "POST",
+      "path": "/buy-now",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "produk_item_id": "required|exists:produk_items,id",
+          "qty": "required|integer|min:1",
+          "shipping_nama": "nullable|string|max:255",
+          "shipping_telepon": "nullable|string|max:40",
+          "shipping_alamat": "nullable|string",
+          "shipping_kota": "nullable|string|max:255",
+          "shipping_kode_pos": "nullable|string|max:20"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "$this->getOrCreatePendingOrder($request)",
+        "produk": "ProdukItem::whereKey($request->produk_item_id) ->lockForUpdate() ->firstOrFail()",
+        "shippingData": "$request->safe()->only([ 'shipping_nama', 'shipping_telepon', 'shipping_alamat', 'shipping_kota', 'shipping_kode_pos', ])"
+      }
+    },
+    {
+      "name": "keranjang.get",
+      "method": "GET",
+      "path": "/keranjang",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)"
+      }
+    },
+    {
+      "name": "wishlist.get",
+      "method": "GET",
+      "path": "/wishlist",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "items": "Wishlist::where('user_id', $request->user()->id) ->with('produkItem.category', 'produkItem.frontend') ->latest() ->get() ->pluck('produkItem') ->filter() ->values()"
+      }
+    },
+    {
+      "name": "wishlist.post",
+      "method": "POST",
+      "path": "/wishlist",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "produk_item_id": "required|exists:produk_items,id"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": null
+    },
+    {
+      "name": "wishlist_produkItemId.delete",
+      "method": "DELETE",
+      "path": "/wishlist/{produkItemId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "raw_code",
+            "code": "$deleted\n                ? 'Produk dihapus dari wishlist'\n                : 'Produk tidak ditemukan di wishlist'",
+            "hints": {
+              "pattern": "variable"
+            },
+            "parsed_ast": {
+              "kind": "ternary",
+              "condition": {
+                "kind": "variable",
+                "name": "deleted"
+              },
+              "truthy": {
+                "kind": "primitive",
+                "type": "string",
+                "value": "Produk dihapus dari wishlist"
+              },
+              "falsy": {
+                "kind": "primitive",
+                "type": "string",
+                "value": "Produk tidak ditemukan di wishlist"
+              }
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "confidence": 100,
+              "trace": []
+            }
+          }
+        }
+      },
+      "assignments": {
+        "deleted": "Wishlist::where('user_id', $request->user()->id) ->where('produk_item_id', $produkItemId) ->delete()"
+      }
+    },
+    {
+      "name": "produk_id_reviews.post",
+      "method": "POST",
+      "path": "/produk/{id}/reviews",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "rating": "required|integer|min:1|max:5",
+          "title": "nullable|string|max:255",
+          "comment": "nullable|string"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "raw_code",
+                "code": "$review->id",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "review"
+                  },
+                  "property": "id"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "id",
+                      "output": "number",
+                      "rule": "Field lookup from Schema Model ProductReview.id"
+                    }
+                  ]
+                }
+              },
+              "rating": {
+                "kind": "raw_code",
+                "code": "$review->rating",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "review"
+                  },
+                  "property": "rating"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "rating",
+                      "output": "number",
+                      "rule": "Field lookup from Schema Model ProductReview.rating"
+                    }
+                  ]
+                }
+              },
+              "title": {
+                "kind": "raw_code",
+                "code": "$review->title",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "review"
+                  },
+                  "property": "title"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": true,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "title",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model ProductReview.title"
+                    }
+                  ]
+                }
+              },
+              "comment": {
+                "kind": "raw_code",
+                "code": "$review->comment",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "review"
+                  },
+                  "property": "comment"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": true,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "comment",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model ProductReview.comment"
+                    }
+                  ]
+                }
+              },
+              "is_verified_purchase": {
+                "kind": "raw_code",
+                "code": "$review->is_verified_purchase",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "review"
+                  },
+                  "property": "is_verified_purchase"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "boolean",
+                  "nullable": false,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "is_verified_purchase",
+                      "output": "boolean",
+                      "rule": "Field lookup from Schema Model ProductReview.is_verified_purchase"
+                    }
+                  ]
+                }
+              },
+              "created_at": {
+                "kind": "raw_code",
+                "code": "$review->created_at",
+                "hints": {
+                  "pattern": "property_access"
+                },
+                "parsed_ast": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "review"
+                  },
+                  "property": "created_at"
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": true,
+                  "confidence": 90,
+                  "trace": [
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "SemanticKernelV2",
+                      "input": "created_at",
+                      "output": "string",
+                      "rule": "Field lookup from Schema Model ProductReview.created_at"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "produk": "ProdukItem::findOrFail($produkId)",
+        "verifiedPurchase": "OrderDetail::where('produk_item_id', $produk->id) ->whereHas('order', function ($query) use ($request) { $query->where('user_id', $request->user()->id) ->where('status', 'paid')",
+        "review": "ProductReview::updateOrCreate( [ 'produk_item_id' => $produk->id, 'user_id' => $request->user()->id, ], [ 'rating' => $request->integer('rating'), 'title' => $request->input('title'), 'comment' => $request->input('comment'), 'is_verified_purchase' => $verifiedPurchase, ] )",
+        "summary": "ProductReview::where('produk_item_id', $produk->id) ->selectRaw('COALESCE(ROUND(AVG(rating), 2), 0) as avg_rating, COUNT(*) as total_review') ->first()"
+      }
+    },
+    {
+      "name": "payment_orderId.post",
+      "method": "POST",
+      "path": "/payment/{orderId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "metode": "required|string|max:50",
+          "detail": "nullable|array",
+          "provider": "nullable|string|in:mock,midtrans",
+          "provider_txn_id": "nullable|string|max:100",
+          "idempotency_key": "nullable|string|max:100",
+          "gateway_code": "nullable|string|max:50",
+          "gateway_message": "nullable|string"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Payment",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Payment",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "provider": "strtolower((string) $request->input('provider', 'mock'))",
+        "existing": "Payment::where('idempotency_key', $request->idempotency_key) ->whereHas('order', fn($q) => $q->where('user_id', $request->user()->id)) ->with(['order', 'paymentDetail']) ->first()",
+        "order": "Order::where('id', $orderId) ->where('user_id', $request->user()->id) ->where('status', 'pending') ->with(['details.produkItem', 'payment', 'promotion.promoCode', 'user', 'shipping']) ->firstOrFail()"
+      }
+    },
+    {
+      "name": "orders_id_invoice.get",
+      "method": "GET",
+      "path": "/orders/{id}/invoice",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": null,
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->with(['details.produkItem', 'shipping', 'payment', 'promotion']) ->findOrFail($id)",
+        "invoiceNumber": "$order->order_number ?: ('INV-' . $order->id)",
+        "filename": "strtolower($invoiceNumber) . '.pdf'",
+        "pdf": "Pdf::loadView('pdf.invoice', [ 'order' => $order, 'invoiceNumber' => $invoiceNumber, 'issuedAt' => now()->toDateTimeString(), ])->setPaper('a4')"
+      }
+    },
+    {
+      "name": "logout.post",
+      "method": "POST",
+      "path": "/logout",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": null
+    },
+    {
+      "name": "admin_produk.post",
+      "method": "POST",
+      "path": "/admin/produk",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum",
+        "admin"
+      ],
+      "schema": {
+        "rules": {
+          "nama": "required|string",
+          "deskripsi": "nullable|string",
+          "gambar": "nullable|string",
+          "category_id": "required|exists:categories,id",
+          "harga": "required|integer|min:0",
+          "stok": "required|integer|min:0",
+          "rating": "nullable|numeric|min:0|max:5",
+          "jumlah_review": "nullable|integer|min:0"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": []
+        }
+      },
+      "assignments": {
+        "produk": "ProdukItem::create([ 'nama' => $request->nama, 'deskripsi' => $request->deskripsi, 'category_id' => $request->category_id, 'harga' => $request->harga, 'stok' => $request->stok, ])"
+      }
+    }
+  ],
   "channels": [],
-  "generatedAt": "2026-06-06T08:43:34.747Z",
-  "models": [],
-  "resources": []
+  "generatedAt": "2026-06-10T03:40:17.977Z",
+  "models": [
+    {
+      "name": "Category",
+      "table": "categories",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "nama",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int"
+      },
+      "relations": {
+        "produkItems": {
+          "type": "hasMany",
+          "model": "ProdukItem"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "Order",
+      "table": "orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "total_harga",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "enum('pending','paid','canceled')",
+          "nullable": false
+        },
+        {
+          "name": "order_number",
+          "type": "varchar(32)",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int"
+      },
+      "relations": {
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        },
+        "details": {
+          "type": "hasMany",
+          "model": "OrderDetail"
+        },
+        "payment": {
+          "type": "hasOne",
+          "model": "Payment"
+        },
+        "shipping": {
+          "type": "hasOne",
+          "model": "OrderShipping"
+        },
+        "promotion": {
+          "type": "hasOne",
+          "model": "OrderPromotion"
+        },
+        "amount": {
+          "type": "hasOne",
+          "model": "OrderAmount"
+        },
+        "financial": {
+          "type": "hasOne",
+          "model": "OrderFinancial"
+        },
+        "fulfillment": {
+          "type": "hasOne",
+          "model": "OrderFulfillment"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "OrderAmount",
+      "table": "order_amounts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "subtotal_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "shipping_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "discount_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "tax_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "total_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "order_id": "integer",
+        "subtotal_minor": "integer",
+        "shipping_minor": "integer",
+        "discount_minor": "integer",
+        "tax_minor": "integer",
+        "total_minor": "integer"
+      },
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      },
+      "accessors": {
+        "subtotal": {
+          "expression_code": "$this->subtotal_minor / 100",
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "/",
+            "left": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "subtotal_minor"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "number",
+              "value": 100
+            }
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "shipping": {
+          "expression_code": "$this->shipping_minor / 100",
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "/",
+            "left": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "shipping_minor"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "number",
+              "value": 100
+            }
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "discount": {
+          "expression_code": "$this->discount_minor / 100",
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "/",
+            "left": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "discount_minor"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "number",
+              "value": 100
+            }
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "tax": {
+          "expression_code": "$this->tax_minor / 100",
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "/",
+            "left": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "tax_minor"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "number",
+              "value": 100
+            }
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "total": {
+          "expression_code": "$this->total_minor / 100",
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "/",
+            "left": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "total_minor"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "number",
+              "value": 100
+            }
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        }
+      }
+    },
+    {
+      "name": "OrderDetail",
+      "table": "order_details",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "produk_item_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "qty",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "harga",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "banana",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "potato",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "name": "flying_dog",
+          "type": "tinyint(1)",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "qty": "integer",
+        "harga": "integer"
+      },
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        },
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        }
+      },
+      "accessors": {
+        "foo": {
+          "expression_code": "someCrazyRuntimeValue()",
+          "parsed_ast": {
+            "kind": "method_call",
+            "target": null,
+            "name": "someCrazyRuntimeValue",
+            "arguments": []
+          },
+          "expression": {
+            "status": "unknown",
+            "type": "unknown",
+            "confidence": 0,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "method_call",
+                "output": "unknown",
+                "rule": "Unsupported AST kind: method_call"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "OrderFinancial",
+      "table": "order_financials",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "financial_status",
+          "type": "enum('pending','paid','partially_refunded','refunded','failed','cancelled')",
+          "nullable": false
+        },
+        {
+          "name": "refunded_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "refund_reason",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "order_id": "integer",
+        "financial_status": "string",
+        "refunded_at": "datetime"
+      },
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "OrderFulfillment",
+      "table": "order_fulfillments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "fulfillment_status",
+          "type": "enum('unfulfilled','processing','shipped','completed','cancelled','returned')",
+          "nullable": false
+        },
+        {
+          "name": "processing_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "shipped_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "completed_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "canceled_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "cancel_reason",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "order_id": "integer",
+        "fulfillment_status": "string",
+        "processing_at": "datetime",
+        "shipped_at": "datetime",
+        "completed_at": "datetime",
+        "canceled_at": "datetime"
+      },
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "OrderPromotion",
+      "table": "order_promotions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "promo_code_id",
+          "type": "bigint unsigned",
+          "nullable": true
+        },
+        {
+          "name": "promo_code",
+          "type": "varchar(64)",
+          "nullable": false
+        },
+        {
+          "name": "discount_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "promo_code": "string",
+        "discount_minor": "integer",
+        "metadata": "array"
+      },
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        },
+        "promoCode": {
+          "type": "belongsTo",
+          "model": "PromoCode"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "OrderShipping",
+      "table": "order_shippings",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "nama",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "telepon",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "alamat",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "kota",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "kode_pos",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "estimated_arrival_at": "datetime",
+        "shipped_at": "datetime",
+        "delivered_at": "datetime"
+      },
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "Payment",
+      "table": "payments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "metode",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "type": "enum('pending','success','failed')",
+          "nullable": false
+        },
+        {
+          "name": "paid_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "paid_at": "datetime"
+      },
+      "relations": {
+        "paymentDetail": {
+          "type": "hasOne",
+          "model": "PaymentDetail"
+        },
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        },
+        "paymentAmount": {
+          "type": "hasMany",
+          "model": "PaymentAmount"
+        },
+        "paymentGateways": {
+          "type": "hasMany",
+          "model": "PaymentGateway"
+        }
+      },
+      "accessors": {
+        "gatewayStatus": {
+          "expression_code": "'midtrans'",
+          "parsed_ast": {
+            "kind": "primitive",
+            "type": "string",
+            "value": "midtrans"
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "amountMinor": {
+          "expression_code": "(int) $this->id",
+          "parsed_ast": {
+            "kind": "type_cast",
+            "castType": "int",
+            "expression": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "id"
+            }
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "providerTxnId": {
+          "expression_code": "strtoupper($this->paymentGateways->first()->provider)",
+          "parsed_ast": {
+            "kind": "method_call",
+            "target": null,
+            "name": "strtoupper",
+            "arguments": [
+              {
+                "kind": "property_access",
+                "target": {
+                  "kind": "method_call",
+                  "target": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "this"
+                    },
+                    "property": "paymentGateways"
+                  },
+                  "name": "first",
+                  "arguments": []
+                },
+                "property": "provider"
+              }
+            ]
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "provider": {
+          "expression_code": "$this->paymentGateways->first()->provider",
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "method_call",
+              "target": {
+                "kind": "property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "this"
+                },
+                "property": "paymentGateways"
+              },
+              "name": "first",
+              "arguments": []
+            },
+            "property": "provider"
+          },
+          "expression": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Payment.paymentGateways",
+                "output": "PaymentGateway",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "first",
+                "output": "PaymentGateway",
+                "rule": "Eloquent query single instance method first"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "provider",
+                "output": "string",
+                "rule": "Field lookup from Schema Model PaymentGateway.provider"
+              }
+            ]
+          }
+        },
+        "refundAmountMinor": {
+          "expression_code": "$this->unknownRelation->foo",
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "unknownRelation"
+            },
+            "property": "foo"
+          },
+          "expression": {
+            "status": "unknown",
+            "type": "unknown",
+            "confidence": 0,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "unknownRelation",
+                "output": "unknown",
+                "rule": "Property not found in Schema Model Payment"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "foo",
+                "output": "unknown",
+                "rule": "Property not found in Schema Model Unknown"
+              }
+            ]
+          }
+        },
+        "foo": {
+          "expression_code": "$this->bar",
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "bar"
+          },
+          "expression": {
+            "status": "unknown",
+            "type": "unknown",
+            "confidence": 0,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "bar",
+                "output": "unknown",
+                "rule": "Property not found in Schema Model Payment"
+              }
+            ]
+          }
+        },
+        "bar": {
+          "expression_code": "$this->foo",
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "foo"
+          },
+          "expression": {
+            "status": "unknown",
+            "type": "unknown",
+            "confidence": 0,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "foo",
+                "output": "unknown",
+                "rule": "Property not found in Schema Model Payment"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "PaymentAmount",
+      "table": "payment_amounts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "payment_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "currency_code",
+          "type": "varchar(3)",
+          "nullable": false
+        },
+        {
+          "name": "amount_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "fee_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "net_amount_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "refund_amount_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "currency_code": "string",
+        "amount_minor": "integer",
+        "fee_minor": "integer",
+        "net_amount_minor": "integer",
+        "refund_amount_minor": "integer"
+      },
+      "relations": {
+        "payment": {
+          "type": "belongsTo",
+          "model": "Payment"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "PaymentDetail",
+      "table": "payment_details",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "payment_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "detail",
+          "type": "json",
+          "nullable": true
+        },
+        {
+          "name": "payload_hash",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "payload_received_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "detail": "array",
+        "payload_hash": "string",
+        "payload_received_at": "datetime"
+      },
+      "relations": {
+        "payment": {
+          "type": "belongsTo",
+          "model": "Payment"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "PaymentGateway",
+      "table": "payment_gateways",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "payment_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "provider",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "provider_txn_id",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "idempotency_key",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "gateway_status",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "gateway_code",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "gateway_message",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "authorized_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "captured_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "failed_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "refunded_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "reconciled_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "reconciliation_batch_id",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "authorized_at": "datetime",
+        "captured_at": "datetime",
+        "failed_at": "datetime",
+        "refunded_at": "datetime",
+        "reconciled_at": "datetime"
+      },
+      "relations": {
+        "payment": {
+          "type": "belongsTo",
+          "model": "Payment"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "ProductReview",
+      "table": "product_reviews",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "produk_item_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "rating",
+          "type": "tinyint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "comment",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "is_verified_purchase",
+          "type": "tinyint(1)",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "rating": "integer",
+        "title": "string",
+        "comment": "string",
+        "is_verified_purchase": "boolean"
+      },
+      "relations": {
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        },
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "ProdukItem",
+      "table": "produk_items",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "nama",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "deskripsi",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "category_id",
+          "type": "bigint unsigned",
+          "nullable": true
+        },
+        {
+          "name": "harga",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "stok",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [
+        "image",
+        "image_url",
+        "category_name",
+        "rating",
+        "review_count"
+      ],
+      "casts": {
+        "id": "int",
+        "category_id": "integer",
+        "currency_code": "string",
+        "harga": "integer",
+        "harga_minor": "integer",
+        "stok": "integer"
+      },
+      "relations": {
+        "orderDetails": {
+          "type": "hasMany",
+          "model": "OrderDetail"
+        },
+        "category": {
+          "type": "belongsTo",
+          "model": "Category"
+        },
+        "frontend": {
+          "type": "hasOne",
+          "model": "ProdukItemFrontend"
+        },
+        "wishlists": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "reviews": {
+          "type": "hasMany",
+          "model": "ProductReview"
+        }
+      },
+      "accessors": {
+        "image": {
+          "expression_code": null,
+          "parsed_ast": null,
+          "expression": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "ReflectionScanner",
+                "input": "image",
+                "output": "string",
+                "rule": "Reflection return type signature"
+              }
+            ]
+          }
+        },
+        "image_url": {
+          "expression_code": null,
+          "parsed_ast": null,
+          "expression": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "ReflectionScanner",
+                "input": "image_url",
+                "output": "string",
+                "rule": "Reflection return type signature"
+              }
+            ]
+          }
+        },
+        "category_name": {
+          "expression_code": null,
+          "parsed_ast": null,
+          "expression": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "ReflectionScanner",
+                "input": "category_name",
+                "output": "string",
+                "rule": "Reflection return type signature"
+              }
+            ]
+          }
+        },
+        "rating": {
+          "expression_code": null,
+          "parsed_ast": null,
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "ReflectionScanner",
+                "input": "rating",
+                "output": "number",
+                "rule": "Reflection return type signature"
+              }
+            ]
+          }
+        },
+        "review_count": {
+          "expression_code": null,
+          "parsed_ast": null,
+          "expression": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "ReflectionScanner",
+                "input": "review_count",
+                "output": "number",
+                "rule": "Reflection return type signature"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "ProdukItemFrontend",
+      "table": "produk_item_frontends",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "produk_item_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "gambar",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "rating",
+          "type": "decimal(3,2)",
+          "nullable": false
+        },
+        {
+          "name": "jumlah_review",
+          "type": "int unsigned",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "rating": "float",
+        "jumlah_review": "integer"
+      },
+      "relations": {
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "PromoCode",
+      "table": "promo_codes",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "type": "varchar(64)",
+          "nullable": false
+        },
+        {
+          "name": "discount_type",
+          "type": "enum('fixed_minor','percent')",
+          "nullable": false
+        },
+        {
+          "name": "discount_value",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "max_discount_minor",
+          "type": "bigint unsigned",
+          "nullable": true
+        },
+        {
+          "name": "min_order_minor",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "usage_limit",
+          "type": "int unsigned",
+          "nullable": true
+        },
+        {
+          "name": "used_count",
+          "type": "int unsigned",
+          "nullable": false
+        },
+        {
+          "name": "is_active",
+          "type": "tinyint(1)",
+          "nullable": false
+        },
+        {
+          "name": "starts_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "ends_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int",
+        "code": "string",
+        "discount_type": "string",
+        "discount_value": "integer",
+        "max_discount_minor": "integer",
+        "min_order_minor": "integer",
+        "usage_limit": "integer",
+        "used_count": "integer",
+        "is_active": "boolean",
+        "starts_at": "datetime",
+        "ends_at": "datetime"
+      },
+      "relations": {
+        "orderPromotions": {
+          "type": "hasMany",
+          "model": "OrderPromotion"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "SocialAccount",
+      "table": "social_accounts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "provider",
+          "type": "varchar(32)",
+          "nullable": false
+        },
+        {
+          "name": "provider_user_id",
+          "type": "varchar(191)",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "avatar_url",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int"
+      },
+      "relations": {
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "User",
+      "table": "users",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "password",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "role",
+          "type": "enum('admin','user')",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [
+        "password"
+      ],
+      "appends": [],
+      "casts": {
+        "id": "int"
+      },
+      "relations": {
+        "orders": {
+          "type": "hasMany",
+          "model": "Order"
+        },
+        "wishlists": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "socialAccounts": {
+          "type": "hasMany",
+          "model": "SocialAccount"
+        },
+        "productReviews": {
+          "type": "hasMany",
+          "model": "ProductReview"
+        },
+        "newFactory": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "unreadNotifications": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "tokens": {
+          "type": "hasMany",
+          "model": "Order"
+        }
+      },
+      "accessors": {
+        "use_factory": {
+          "expression_code": null,
+          "parsed_ast": null,
+          "expression": {
+            "status": "unknown",
+            "type": "unknown",
+            "confidence": 0,
+            "trace": []
+          }
+        }
+      }
+    },
+    {
+      "name": "Wishlist",
+      "table": "wishlists",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "produk_item_id",
+          "type": "bigint unsigned",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": {
+        "id": "int"
+      },
+      "relations": {
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        },
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        }
+      },
+      "accessors": []
+    },
+    {
+      "name": "RegisterResponse",
+      "table": null,
+      "columns": [
+        {
+          "name": "success",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "data",
+          "type": "mixed",
+          "nullable": true
+        }
+      ],
+      "hidden": [],
+      "appends": [],
+      "casts": [],
+      "relations": [],
+      "accessors": []
+    }
+  ],
+  "resources": [
+    {
+      "name": "OrderDetailResource",
+      "fields": {
+        "id": {
+          "kind": "raw_code",
+          "code": "$this->id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderDetail.id"
+              }
+            ]
+          }
+        },
+        "produk_item_id": {
+          "kind": "raw_code",
+          "code": "$this->produk_item_id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "produk_item_id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "produk_item_id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderDetail.produk_item_id"
+              }
+            ]
+          }
+        },
+        "produk": {
+          "kind": "object",
+          "fields": {
+            "id": {
+              "kind": "raw_code",
+              "code": "$produk->id",
+              "hints": {
+                "pattern": "property_access"
+              },
+              "parsed_ast": {
+                "kind": "property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "produk"
+                },
+                "property": "id"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "number",
+                "nullable": false,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "OrderDetail.produkItem",
+                    "output": "ProdukItem",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "id",
+                    "output": "number",
+                    "rule": "Field lookup from Schema Model ProdukItem.id"
+                  }
+                ]
+              }
+            },
+            "nama": {
+              "kind": "raw_code",
+              "code": "$produk->nama",
+              "hints": {
+                "pattern": "property_access"
+              },
+              "parsed_ast": {
+                "kind": "property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "produk"
+                },
+                "property": "nama"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": false,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "OrderDetail.produkItem",
+                    "output": "ProdukItem",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "nama",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model ProdukItem.nama"
+                  }
+                ]
+              }
+            },
+            "gambar": {
+              "kind": "raw_code",
+              "code": "$path",
+              "hints": {
+                "pattern": "variable"
+              },
+              "parsed_ast": {
+                "kind": "variable",
+                "name": "path"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": true,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "OrderDetail.produkItem",
+                    "output": "ProdukItem",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "ProdukItem.frontend",
+                    "output": "ProdukItemFrontend",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "gambar",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model ProdukItemFrontend.gambar"
+                  }
+                ]
+              }
+            },
+            "image_url": {
+              "kind": "raw_code",
+              "code": "$imageUrl",
+              "hints": {
+                "pattern": "variable"
+              },
+              "parsed_ast": {
+                "kind": "variable",
+                "name": "imageUrl"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "confidence": 100,
+                "trace": []
+              }
+            }
+          }
+        },
+        "qty": {
+          "kind": "raw_code",
+          "code": "$this->qty",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "qty"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "qty",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderDetail.qty"
+              }
+            ]
+          }
+        },
+        "harga": {
+          "kind": "raw_code",
+          "code": "$this->harga",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "harga"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "harga",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderDetail.harga"
+              }
+            ]
+          }
+        },
+        "subtotal": {
+          "kind": "raw_code",
+          "code": "$this->qty * $this->harga",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "*",
+            "left": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "qty"
+            },
+            "right": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "harga"
+            }
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "banana": {
+          "kind": "raw_code",
+          "code": "$this->banana",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "banana"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "banana",
+                "output": "string",
+                "rule": "Field lookup from Schema Model OrderDetail.banana"
+              }
+            ]
+          }
+        },
+        "potato": {
+          "kind": "raw_code",
+          "code": "$this->potato",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "potato"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "potato",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderDetail.potato"
+              }
+            ]
+          }
+        },
+        "flying_dog": {
+          "kind": "raw_code",
+          "code": "$this->flying_dog",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "flying_dog"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "boolean",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "flying_dog",
+                "output": "boolean",
+                "rule": "Field lookup from Schema Model OrderDetail.flying_dog"
+              }
+            ]
+          }
+        },
+        "foo": {
+          "kind": "raw_code",
+          "code": "$this->foo",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "foo"
+          }
+        }
+      },
+      "assignments": {
+        "produk": "$this->produkItem",
+        "path": "$produk->frontend?->gambar",
+        "imageUrl": "$path ? asset('storage/' . ltrim($path, '/')) : null"
+      }
+    },
+    {
+      "name": "OrderResource",
+      "fields": {
+        "id": {
+          "kind": "raw_code",
+          "code": "$this->id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model Order.id"
+              }
+            ]
+          }
+        },
+        "status": {
+          "kind": "raw_code",
+          "code": "$this->status",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "status"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "status",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Order.status"
+              }
+            ]
+          }
+        },
+        "total_harga": {
+          "kind": "raw_code",
+          "code": "$this->total_harga",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "total_harga"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "total_harga",
+                "output": "number",
+                "rule": "Field lookup from Schema Model Order.total_harga"
+              }
+            ]
+          }
+        },
+        "invoice_number": {
+          "kind": "raw_code",
+          "code": "$this->order_number",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "order_number"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "order_number",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Order.order_number"
+              }
+            ]
+          }
+        },
+        "payment_status": {
+          "kind": "raw_code",
+          "code": "$this->payment?->status ?? 'pending'",
+          "hints": {
+            "pattern": "nullsafe_property_access"
+          },
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "??",
+            "left": {
+              "kind": "nullsafe_property_access",
+              "target": {
+                "kind": "property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "this"
+                },
+                "property": "payment"
+              },
+              "property": "status"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "string",
+              "value": "pending"
+            }
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.payment",
+                "output": "Payment",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "status",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Payment.status"
+              }
+            ]
+          }
+        },
+        "financial_status": {
+          "kind": "raw_code",
+          "code": "$financial?->financial_status ?? 'pending'",
+          "hints": {
+            "pattern": "nullsafe_property_access"
+          },
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "??",
+            "left": {
+              "kind": "nullsafe_property_access",
+              "target": {
+                "kind": "variable",
+                "name": "financial"
+              },
+              "property": "financial_status"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "string",
+              "value": "pending"
+            }
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.financial",
+                "output": "OrderFinancial",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "financial_status",
+                "output": "string",
+                "rule": "Field lookup from Schema Model OrderFinancial.financial_status"
+              }
+            ]
+          }
+        },
+        "fulfillment_status": {
+          "kind": "raw_code",
+          "code": "$fulfillment?->fulfillment_status ?? 'pending'",
+          "hints": {
+            "pattern": "nullsafe_property_access"
+          },
+          "parsed_ast": {
+            "kind": "binary_expression",
+            "operator": "??",
+            "left": {
+              "kind": "nullsafe_property_access",
+              "target": {
+                "kind": "variable",
+                "name": "fulfillment"
+              },
+              "property": "fulfillment_status"
+            },
+            "right": {
+              "kind": "primitive",
+              "type": "string",
+              "value": "pending"
+            }
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.fulfillment",
+                "output": "OrderFulfillment",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "fulfillment_status",
+                "output": "string",
+                "rule": "Field lookup from Schema Model OrderFulfillment.fulfillment_status"
+              }
+            ]
+          }
+        },
+        "subtotal_minor": {
+          "kind": "raw_code",
+          "code": "$subtotalMinor",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "subtotalMinor"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.amount",
+                "output": "OrderAmount",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "subtotal_minor",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderAmount.subtotal_minor"
+              }
+            ]
+          }
+        },
+        "discount_minor": {
+          "kind": "raw_code",
+          "code": "$discountMinor",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "discountMinor"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.amount",
+                "output": "OrderAmount",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "discount_minor",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderAmount.discount_minor"
+              }
+            ]
+          }
+        },
+        "shipping_minor": {
+          "kind": "raw_code",
+          "code": "$shippingMinor",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "shippingMinor"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.amount",
+                "output": "OrderAmount",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "shipping_minor",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderAmount.shipping_minor"
+              }
+            ]
+          }
+        },
+        "tax_minor": {
+          "kind": "raw_code",
+          "code": "$taxMinor",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "taxMinor"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.amount",
+                "output": "OrderAmount",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "tax_minor",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderAmount.tax_minor"
+              }
+            ]
+          }
+        },
+        "total_harga_minor": {
+          "kind": "raw_code",
+          "code": "$totalMinor",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "totalMinor"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Order.amount",
+                "output": "OrderAmount",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "total_minor",
+                "output": "number",
+                "rule": "Field lookup from Schema Model OrderAmount.total_minor"
+              }
+            ]
+          }
+        },
+        "items": {
+          "kind": "raw_code",
+          "code": "OrderDetailResource::collection($this->details)",
+          "hints": {
+            "pattern": "static_method_call"
+          },
+          "parsed_ast": {
+            "kind": "resource",
+            "resource": "OrderDetailResource",
+            "collection": true
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "resource",
+            "resource": "OrderDetailResource",
+            "collection": true,
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "promotion": {
+          "kind": "object",
+          "fields": {
+            "code": {
+              "kind": "raw_code",
+              "code": "$promotion?->promo_code",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "promotion"
+                },
+                "property": "promo_code"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": false,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.promotion",
+                    "output": "OrderPromotion",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "promo_code",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderPromotion.promo_code"
+                  }
+                ]
+              }
+            },
+            "discount_minor": {
+              "kind": "raw_code",
+              "code": "(int) ($promotion?->discount_minor ?? 0)",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "type_cast",
+                "castType": "int",
+                "expression": {
+                  "kind": "binary_expression",
+                  "operator": "??",
+                  "left": {
+                    "kind": "nullsafe_property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "promotion"
+                    },
+                    "property": "discount_minor"
+                  },
+                  "right": {
+                    "kind": "primitive",
+                    "type": "number",
+                    "value": 0
+                  }
+                }
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "number",
+                "confidence": 100,
+                "trace": []
+              }
+            }
+          }
+        },
+        "shipping": {
+          "kind": "object",
+          "fields": {
+            "nama": {
+              "kind": "raw_code",
+              "code": "$shipping?->nama",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "shipping"
+                },
+                "property": "nama"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": true,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.shipping",
+                    "output": "OrderShipping",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "nama",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderShipping.nama"
+                  }
+                ]
+              }
+            },
+            "telepon": {
+              "kind": "raw_code",
+              "code": "$shipping?->telepon",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "shipping"
+                },
+                "property": "telepon"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": true,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.shipping",
+                    "output": "OrderShipping",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "telepon",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderShipping.telepon"
+                  }
+                ]
+              }
+            },
+            "alamat": {
+              "kind": "raw_code",
+              "code": "$shipping?->alamat",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "shipping"
+                },
+                "property": "alamat"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": true,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.shipping",
+                    "output": "OrderShipping",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "alamat",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderShipping.alamat"
+                  }
+                ]
+              }
+            },
+            "kota": {
+              "kind": "raw_code",
+              "code": "$shipping?->kota",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "shipping"
+                },
+                "property": "kota"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": true,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.shipping",
+                    "output": "OrderShipping",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "kota",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderShipping.kota"
+                  }
+                ]
+              }
+            },
+            "kode_pos": {
+              "kind": "raw_code",
+              "code": "$shipping?->kode_pos",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "shipping"
+                },
+                "property": "kode_pos"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": true,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.shipping",
+                    "output": "OrderShipping",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "kode_pos",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderShipping.kode_pos"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "created_at": {
+          "kind": "raw_code",
+          "code": "$this->created_at->toDateTimeString()",
+          "hints": {
+            "pattern": "method_call"
+          },
+          "parsed_ast": {
+            "kind": "method_call",
+            "target": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "created_at"
+            },
+            "name": "toDateTimeString",
+            "arguments": []
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "created_at",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Order.created_at"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "toDateTimeString",
+                "output": "string",
+                "rule": "Carbon date method call"
+              }
+            ]
+          }
+        }
+      },
+      "assignments": {
+        "shipping": "$this->shipping",
+        "promotion": "$this->promotion",
+        "financial": "$this->financial",
+        "fulfillment": "$this->fulfillment",
+        "amount": "$this->amount",
+        "subtotalMinor": "$amount?->subtotal_minor ?? (int) ($this->subtotal_minor ?? $this->total_harga)",
+        "discountMinor": "$amount?->discount_minor ?? (int) ($promotion?->discount_minor ?? 0)",
+        "shippingMinor": "$amount?->shipping_minor ?? (int) ($this->shipping_minor ?? 0)",
+        "taxMinor": "$amount?->tax_minor ?? (int) ($this->tax_minor ?? 0)",
+        "totalMinor": "$amount?->total_minor ?? (int) ($this->total_harga_minor ?? $this->total_harga)"
+      }
+    },
+    {
+      "name": "PaymentResource",
+      "fields": {
+        "id": {
+          "kind": "raw_code",
+          "code": "$this->id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model Payment.id"
+              }
+            ]
+          }
+        },
+        "order_id": {
+          "kind": "raw_code",
+          "code": "$this->order_id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "order_id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "order_id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model Payment.order_id"
+              }
+            ]
+          }
+        },
+        "invoice_number": {
+          "kind": "raw_code",
+          "code": "$invoiceNumber",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "invoiceNumber"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Payment.order",
+                "output": "Order",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "order_number",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Order.order_number"
+              }
+            ]
+          }
+        },
+        "metode": {
+          "kind": "raw_code",
+          "code": "$this->metode",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "metode"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "metode",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Payment.metode"
+              }
+            ]
+          }
+        },
+        "detail": {
+          "kind": "raw_code",
+          "code": "$detail",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "detail"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "any[]",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Payment.paymentDetail",
+                "output": "PaymentDetail",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "detail",
+                "output": "any[]",
+                "rule": "Field lookup from Schema Model PaymentDetail.detail"
+              }
+            ]
+          }
+        },
+        "status": {
+          "kind": "raw_code",
+          "code": "$this->status",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "status"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "status",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Payment.status"
+              }
+            ]
+          }
+        },
+        "paid_at": {
+          "kind": "raw_code",
+          "code": "$this->paid_at",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "paid_at"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "paid_at",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Payment.paid_at"
+              }
+            ]
+          }
+        },
+        "provider": {
+          "kind": "raw_code",
+          "code": "$this->provider",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "provider"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "collection": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "provider",
+                "output": "string",
+                "rule": "Accessor lookup from Schema Model Payment.provider"
+              }
+            ]
+          }
+        },
+        "provider_txn_id": {
+          "kind": "raw_code",
+          "code": "$this->provider_txn_id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "provider_txn_id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "collection": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "provider_txn_id",
+                "output": "string",
+                "rule": "Accessor lookup from Schema Model Payment.provider_txn_id"
+              }
+            ]
+          }
+        },
+        "gateway_status": {
+          "kind": "raw_code",
+          "code": "$this->gateway_status",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "gateway_status"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "collection": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "gateway_status",
+                "output": "string",
+                "rule": "Accessor lookup from Schema Model Payment.gateway_status"
+              }
+            ]
+          }
+        },
+        "amount_minor": {
+          "kind": "raw_code",
+          "code": "$this->amount_minor",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "amount_minor"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "collection": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "amount_minor",
+                "output": "number",
+                "rule": "Accessor lookup from Schema Model Payment.amount_minor"
+              }
+            ]
+          }
+        },
+        "refund_amount_minor": {
+          "kind": "raw_code",
+          "code": "$this->refund_amount_minor",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "refund_amount_minor"
+          }
+        },
+        "items": {
+          "kind": "raw_code",
+          "code": "OrderDetailResource::collection($this->order?->details)",
+          "hints": {
+            "pattern": "nullsafe_property_access"
+          },
+          "parsed_ast": {
+            "kind": "resource",
+            "resource": "OrderDetailResource",
+            "collection": true
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "resource",
+            "resource": "OrderDetailResource",
+            "collection": true,
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "promotion": {
+          "kind": "object",
+          "fields": {
+            "code": {
+              "kind": "raw_code",
+              "code": "$promotion?->promo_code",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "nullsafe_property_access",
+                "target": {
+                  "kind": "variable",
+                  "name": "promotion"
+                },
+                "property": "promo_code"
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "string",
+                "nullable": false,
+                "confidence": 100,
+                "trace": [
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Payment.order",
+                    "output": "Order",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "Order.promotion",
+                    "output": "OrderPromotion",
+                    "rule": "Relation lookup"
+                  },
+                  {
+                    "source": "SemanticKernelV2",
+                    "input": "promo_code",
+                    "output": "string",
+                    "rule": "Field lookup from Schema Model OrderPromotion.promo_code"
+                  }
+                ]
+              }
+            },
+            "discount_minor": {
+              "kind": "raw_code",
+              "code": "(int) ($promotion?->discount_minor ?? 0)",
+              "hints": {
+                "pattern": "nullsafe_property_access"
+              },
+              "parsed_ast": {
+                "kind": "type_cast",
+                "castType": "int",
+                "expression": {
+                  "kind": "binary_expression",
+                  "operator": "??",
+                  "left": {
+                    "kind": "nullsafe_property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "promotion"
+                    },
+                    "property": "discount_minor"
+                  },
+                  "right": {
+                    "kind": "primitive",
+                    "type": "number",
+                    "value": 0
+                  }
+                }
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "number",
+                "confidence": 100,
+                "trace": []
+              }
+            }
+          }
+        },
+        "gateway": {
+          "kind": "object",
+          "fields": {
+            "name": {
+              "kind": "raw_code",
+              "code": "is_array($gateway) ? ($gateway['name'] ?? null) : null",
+              "hints": {},
+              "parsed_ast": {
+                "kind": "ternary",
+                "condition": {
+                  "kind": "method_call",
+                  "target": null,
+                  "name": "is_array",
+                  "arguments": [
+                    {
+                      "kind": "variable",
+                      "name": "gateway"
+                    }
+                  ]
+                },
+                "truthy": {
+                  "kind": "binary_expression",
+                  "operator": "??",
+                  "left": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "gateway"
+                    },
+                    "property": "name"
+                  },
+                  "right": {
+                    "kind": "primitive",
+                    "type": "null"
+                  }
+                },
+                "falsy": {
+                  "kind": "primitive",
+                  "type": "null"
+                }
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "null",
+                "confidence": 100,
+                "trace": []
+              }
+            },
+            "order_id": {
+              "kind": "raw_code",
+              "code": "is_array($gateway) ? ($gateway['order_id'] ?? null) : null",
+              "hints": {},
+              "parsed_ast": {
+                "kind": "ternary",
+                "condition": {
+                  "kind": "method_call",
+                  "target": null,
+                  "name": "is_array",
+                  "arguments": [
+                    {
+                      "kind": "variable",
+                      "name": "gateway"
+                    }
+                  ]
+                },
+                "truthy": {
+                  "kind": "binary_expression",
+                  "operator": "??",
+                  "left": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "gateway"
+                    },
+                    "property": "order_id"
+                  },
+                  "right": {
+                    "kind": "primitive",
+                    "type": "null"
+                  }
+                },
+                "falsy": {
+                  "kind": "primitive",
+                  "type": "null"
+                }
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "null",
+                "confidence": 100,
+                "trace": []
+              }
+            },
+            "token": {
+              "kind": "raw_code",
+              "code": "is_array($gateway) ? ($gateway['token'] ?? null) : null",
+              "hints": {},
+              "parsed_ast": {
+                "kind": "ternary",
+                "condition": {
+                  "kind": "method_call",
+                  "target": null,
+                  "name": "is_array",
+                  "arguments": [
+                    {
+                      "kind": "variable",
+                      "name": "gateway"
+                    }
+                  ]
+                },
+                "truthy": {
+                  "kind": "binary_expression",
+                  "operator": "??",
+                  "left": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "gateway"
+                    },
+                    "property": "token"
+                  },
+                  "right": {
+                    "kind": "primitive",
+                    "type": "null"
+                  }
+                },
+                "falsy": {
+                  "kind": "primitive",
+                  "type": "null"
+                }
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "null",
+                "confidence": 100,
+                "trace": []
+              }
+            },
+            "redirect_url": {
+              "kind": "raw_code",
+              "code": "is_array($gateway) ? ($gateway['redirect_url'] ?? null) : null",
+              "hints": {},
+              "parsed_ast": {
+                "kind": "ternary",
+                "condition": {
+                  "kind": "method_call",
+                  "target": null,
+                  "name": "is_array",
+                  "arguments": [
+                    {
+                      "kind": "variable",
+                      "name": "gateway"
+                    }
+                  ]
+                },
+                "truthy": {
+                  "kind": "binary_expression",
+                  "operator": "??",
+                  "left": {
+                    "kind": "property_access",
+                    "target": {
+                      "kind": "variable",
+                      "name": "gateway"
+                    },
+                    "property": "redirect_url"
+                  },
+                  "right": {
+                    "kind": "primitive",
+                    "type": "null"
+                  }
+                },
+                "falsy": {
+                  "kind": "primitive",
+                  "type": "null"
+                }
+              },
+              "resolved": {
+                "status": "resolved",
+                "type": "null",
+                "confidence": 100,
+                "trace": []
+              }
+            }
+          }
+        },
+        "total_harga": {
+          "kind": "raw_code",
+          "code": "$this->whenLoaded('order', fn () => $this->order->total_harga)",
+          "hints": {
+            "pattern": "method_call"
+          },
+          "parsed_ast": {
+            "kind": "method_call",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "name": "whenLoaded",
+            "arguments": [
+              {
+                "kind": "primitive",
+                "type": "string",
+                "value": "order"
+              },
+              {
+                "kind": "property_access",
+                "target": {
+                  "kind": "property_access",
+                  "target": {
+                    "kind": "variable",
+                    "name": "this"
+                  },
+                  "property": "order"
+                },
+                "property": "total_harga"
+              }
+            ]
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "Payment.order",
+                "output": "Order",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "total_harga",
+                "output": "number",
+                "rule": "Field lookup from Schema Model Order.total_harga"
+              }
+            ]
+          }
+        }
+      },
+      "assignments": {
+        "promotion": "$this->order?->promotion",
+        "detail": "$this->paymentDetail?->detail",
+        "invoiceNumber": "$this->order?->order_number ?? $this->order_id",
+        "gateway": "is_array($detail) ? ($detail['gateway'] ?? null) : null"
+      }
+    },
+    {
+      "name": "ProdukItemResource",
+      "fields": {
+        "id": {
+          "kind": "raw_code",
+          "code": "$this->id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model ProdukItem.id"
+              }
+            ]
+          }
+        },
+        "nama": {
+          "kind": "raw_code",
+          "code": "$this->nama",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "nama"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "nama",
+                "output": "string",
+                "rule": "Field lookup from Schema Model ProdukItem.nama"
+              }
+            ]
+          }
+        },
+        "deskripsi": {
+          "kind": "raw_code",
+          "code": "$this->deskripsi",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "deskripsi"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "deskripsi",
+                "output": "string",
+                "rule": "Field lookup from Schema Model ProdukItem.deskripsi"
+              }
+            ]
+          }
+        },
+        "image": {
+          "kind": "raw_code",
+          "code": "$path",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "path"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "ProdukItem.frontend",
+                "output": "ProdukItemFrontend",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "gambar",
+                "output": "string",
+                "rule": "Field lookup from Schema Model ProdukItemFrontend.gambar"
+              }
+            ]
+          }
+        },
+        "image_url": {
+          "kind": "raw_code",
+          "code": "$imageUrl",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "imageUrl"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "category_id": {
+          "kind": "raw_code",
+          "code": "$this->category_id",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "category_id"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": true,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "category_id",
+                "output": "number",
+                "rule": "Field lookup from Schema Model ProdukItem.category_id"
+              }
+            ]
+          }
+        },
+        "category_name": {
+          "kind": "raw_code",
+          "code": "$this->category?->nama",
+          "hints": {
+            "pattern": "nullsafe_property_access"
+          },
+          "parsed_ast": {
+            "kind": "nullsafe_property_access",
+            "target": {
+              "kind": "property_access",
+              "target": {
+                "kind": "variable",
+                "name": "this"
+              },
+              "property": "category"
+            },
+            "property": "nama"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "string",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "ProdukItem.category",
+                "output": "Category",
+                "rule": "Relation lookup"
+              },
+              {
+                "source": "SemanticKernelV2",
+                "input": "nama",
+                "output": "string",
+                "rule": "Field lookup from Schema Model Category.nama"
+              }
+            ]
+          }
+        },
+        "harga": {
+          "kind": "raw_code",
+          "code": "$this->harga",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "harga"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "harga",
+                "output": "number",
+                "rule": "Field lookup from Schema Model ProdukItem.harga"
+              }
+            ]
+          }
+        },
+        "stok": {
+          "kind": "raw_code",
+          "code": "$this->stok",
+          "hints": {
+            "pattern": "property_access"
+          },
+          "parsed_ast": {
+            "kind": "property_access",
+            "target": {
+              "kind": "variable",
+              "name": "this"
+            },
+            "property": "stok"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "nullable": false,
+            "confidence": 100,
+            "trace": [
+              {
+                "source": "SemanticKernelV2",
+                "input": "stok",
+                "output": "number",
+                "rule": "Field lookup from Schema Model ProdukItem.stok"
+              }
+            ]
+          }
+        },
+        "rating": {
+          "kind": "raw_code",
+          "code": "$rating",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "rating"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        },
+        "review_count": {
+          "kind": "raw_code",
+          "code": "$jumlahReview",
+          "hints": {
+            "pattern": "variable"
+          },
+          "parsed_ast": {
+            "kind": "variable",
+            "name": "jumlahReview"
+          },
+          "resolved": {
+            "status": "resolved",
+            "type": "number",
+            "confidence": 100,
+            "trace": []
+          }
+        }
+      },
+      "assignments": {
+        "path": "$this->frontend?->gambar",
+        "imageUrl": "$path ? asset('storage/' . ltrim($path, '/')) : null",
+        "rating": "(float) ($this->frontend?->rating ?? 0)",
+        "jumlahReview": "(int) ($this->frontend?->jumlah_review ?? 0)"
+      }
+    }
+  ]
 }

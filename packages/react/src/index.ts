@@ -6,3 +6,6 @@ export { createCrudHooks } from './hooks/createCrudHooks'
 export { defineHooks } from './hooks/defineHooks'
 export { setFormErrors } from './utils/form'
 
+// 🆕 useApiForm — form + mutation + error handling in one hook
+export { useApiForm, type UseApiFormConfig, type UseApiFormReturn } from './hooks/useApiForm'
+

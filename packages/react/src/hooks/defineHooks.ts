@@ -74,7 +74,7 @@ type CrudHooks<TTypes, TEndpoint> = {
   deleteSelf: CrudHooks<TTypes, TEndpoint>['useDeleteSelf']
 }
 
-type HooksForGroup<TTypes, TEndpoint> = CrudHooks<TTypes, TEndpoint> & EndpointHooks<TEndpoint>
+type HooksForGroup<TTypes, TEndpoint> = CrudHooks<TTypes, TEndpoint> & EndpointHooks<TEndpoint> & { endpoint: TEndpoint }
 
 // ─── HookConfig ───────────────────────────────────────────────────────────────
 
@@ -194,6 +194,7 @@ export function defineHooks<TConfig extends Record<string, HookConfig>>(
       },
       extras,
     })
+    ;(hooks[groupName] as any).endpoint = group
   }
 
   return hooks

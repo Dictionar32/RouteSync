@@ -11,7 +11,15 @@
   },
   "peerDependencies": {
     "vue": ">=3.0.0",
-    "@tanstack/vue-query": ">=5.0.0"
+    "@tanstack/vue-query": ">=5.0.0",
+    "vee-validate": ">=4.0.0",
+    "@vee-validate/zod": ">=4.0.0",
+    "zod": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vee-validate": { "optional": true },
+    "@vee-validate/zod": { "optional": true },
+    "zod": { "optional": true }
   },
   "devDependencies": {
     "typescript": "^5.4.0",

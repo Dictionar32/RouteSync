@@ -138,6 +138,9 @@ check(out('query-key.ts'), 'query-key.ts — QueryKey factory',        'QueryKey
 check(out('contract/api-contract.ts'), 'contract/api-contract.ts — Zod schemas', 'z.object')
 check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiFormValues', 'ApiFormValues')
 check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiDefaultValues', 'ApiDefaultValues')
+check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiFormIndex', 'ApiFormIndex')
+check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiFormValidators', 'ApiFormValidators')
+check(out('contract/api-schema.ts'),   'contract/api-schema.ts — ApiFormErrors', 'ApiFormErrors')
 check(out('contract/api-field.ts'),    'contract/api-field.ts — ApiApiField constants', 'ApiApiField')
 
 // Types tier — camelCase flattened read types + form types

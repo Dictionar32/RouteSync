@@ -692,6 +692,19 @@ export class ZodTierGenerator {
         lines.push(`  ${camelAction}: {} as ${typeName}FormValues['${action}'],`)
       }
       lines.push(`}`)
+      lines.push(``)
+
+      lines.push(`export type ${typeName}FormIndex = keyof ${typeName}FormValues`)
+      lines.push(``)
+
+      lines.push(`export const ${typeName}FormValidators = {`)
+      for (const action of Object.keys(schemasDefined)) {
+        lines.push(`  validate${action}: (data: unknown): ${typeName}FormValues['${action}'] => ${schemasDefined[action]}.parse(data),`)
+      }
+      lines.push(`}`)
+      lines.push(``)
+
+      lines.push(`export type ${typeName}FormErrors<T extends ${typeName}FormIndex> = Partial<Record<keyof ${typeName}FormValues[T], string>>`)
     }
 
     if (hasExports) {

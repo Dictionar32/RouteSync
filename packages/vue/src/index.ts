@@ -45,3 +45,6 @@ export function createComposables(service: GenericService, resourceKey: string) 
 }
 
 export { createComposables as createVueComposables }
+
+// 🆕 useApiForm — integrates vee-validate + zod + mutation + error handling
+export { useApiForm, type UseApiFormConfig, type UseApiFormReturn } from './composables/useApiForm'

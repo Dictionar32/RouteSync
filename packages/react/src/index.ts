@@ -9,3 +9,5 @@ export { setFormErrors } from './utils/form'
 // 🆕 useApiForm — form + mutation + error handling in one hook
 export { useApiForm, type UseApiFormConfig, type UseApiFormReturn } from './hooks/useApiForm'
 
+export { useAggregateCollectionIntent, type AggregateCollectionConfig, type AggregateCollectionIntentActions } from './hooks/createCrudHooks'
+

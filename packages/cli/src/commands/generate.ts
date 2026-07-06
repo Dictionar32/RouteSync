@@ -15,6 +15,7 @@ import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
 import { ModelGenerator } from '../generators/ModelGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
+import { IntentResolver } from '../resolvers/IntentResolver'
 
 
 export const generateCommand = new Command('generate')
@@ -36,7 +37,8 @@ export const generateCommand = new Command('generate')
         )
       }
 
-      const manifest: RouteManifest = await fs.readJson(options.manifest)
+      let manifest: RouteManifest = await fs.readJson(options.manifest)
+      manifest = IntentResolver.resolve(manifest)
       await fs.ensureDir(options.output)
 
       spinner.text = 'Generating types...'

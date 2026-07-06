@@ -1,7 +1,152 @@
-// @ts-ignore TanStack Query is a peer dependency provided by consumers.
 import { useQuery, useMutation, useQueryClient, QueryClient } from '@tanstack/react-query'
 import { PathResolver } from '@routesync/core'
 import { getClient } from '@routesync/sdk'
+
+export interface AggregateCollectionConfig {
+  itemsField: string
+  itemKey: string
+  qtyField: string
+  groupName: string
+  promoKey: string
+}
+
+export interface AggregateCollectionIntentActions<
+  TCreate,
+  TUpdate,
+  TRemove,
+  TApply,
+  TRemovePromo
+> {
+  items: {
+    changeQty: (idVal: number, delta: number) => Promise<unknown>
+    setQty: (idVal: number, qty: number) => Promise<unknown>
+    remove: (idVal: number) => Promise<unknown>
+    createMut: TCreate
+    updateMut: TUpdate
+    removeMut: TRemove
+  }
+  promotions: {
+    apply: (code: string) => Promise<unknown>
+    remove: () => Promise<unknown>
+    applyMut: TApply
+    removeMut: TRemovePromo
+  }
+}
+
+const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K, unknown> => {
+  return typeof obj === 'object' && obj !== null && key in obj
+}
+
+const getNumberValue = (obj: unknown, key: string): number => {
+  if (hasKey(obj, key)) {
+    const val = obj[key]
+    if (typeof val === 'number') return val
+  }
+  return 0
+}
+
+const callMutate = (mut: unknown, arg: unknown): Promise<unknown> => {
+  if (typeof mut === 'object' && mut !== null && 'mutateAsync' in mut) {
+    const fn = mut.mutateAsync
+    if (typeof fn === 'function') {
+      const res = fn(arg)
+      if (res instanceof Promise) {
+        return res
+      }
+      return Promise.resolve(res)
+    }
+  }
+  return Promise.resolve(null)
+}
+
+export const useAggregateCollectionIntent = <
+  TResult extends object,
+  TCreate,
+  TUpdate,
+  TRemove,
+  TApply,
+  TRemovePromo
+>(
+  result: TResult,
+  mutations: {
+    createItem: TCreate
+    updateItem: TUpdate
+    removeItem: TRemove
+    applyPromo: TApply
+    removePromo: TRemovePromo
+  },
+  config: AggregateCollectionConfig
+): TResult & AggregateCollectionIntentActions<TCreate, TUpdate, TRemove, TApply, TRemovePromo> => {
+  const { createItem, updateItem, removeItem, applyPromo, removePromo } = mutations
+  const { itemsField, itemKey, qtyField, groupName, promoKey } = config
+
+  const getQty = (idVal: number): number => {
+    let cartData: unknown = result
+    if (hasKey(result, groupName)) {
+      cartData = result[groupName]
+    } else if (hasKey(result, 'data')) {
+      cartData = result.data
+    }
+
+    if (hasKey(cartData, itemsField)) {
+      const items = cartData[itemsField]
+      if (Array.isArray(items)) {
+        const item = items.find((i: unknown) => {
+          return hasKey(i, itemKey) && i[itemKey] === idVal
+        })
+        return getNumberValue(item, qtyField)
+      }
+    }
+    return 0
+  }
+
+  const setQty = async (idVal: number, qty: number) => {
+    const currentQty = getQty(idVal)
+    if (qty <= 0) {
+      return callMutate(removeItem, idVal)
+    }
+    if (currentQty === 0) {
+      return callMutate(createItem, { [itemKey]: idVal, [qtyField]: qty })
+    } else {
+      return callMutate(updateItem, { id: idVal, data: { [qtyField]: qty } })
+    }
+  }
+
+  const changeQty = async (idVal: number, delta: number) => {
+    const currentQty = getQty(idVal)
+    const targetQty = currentQty + delta
+    return setQty(idVal, targetQty)
+  }
+
+  const remove = async (idVal: number) => {
+    return callMutate(removeItem, idVal)
+  }
+
+  const applyPromoCode = async (code: string) => {
+    return callMutate(applyPromo, { [promoKey]: code })
+  }
+
+  const removePromoCode = async () => {
+    return callMutate(removePromo, undefined)
+  }
+
+  return Object.assign(result, {
+    items: {
+      changeQty,
+      setQty,
+      remove,
+      createMut: createItem,
+      updateMut: updateItem,
+      removeMut: removeItem,
+    },
+    promotions: {
+      apply: applyPromoCode,
+      remove: removePromoCode,
+      applyMut: applyPromo,
+      removeMut: removePromo,
+    }
+  })
+}
 
 const requireValidId = (id: unknown): number => {
   const parsed = Number(id)

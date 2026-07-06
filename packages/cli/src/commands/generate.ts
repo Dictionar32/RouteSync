@@ -14,6 +14,8 @@ import path from 'path'
 import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
 import { ModelGenerator } from '../generators/ModelGenerator'
+import { RoutesGenerator } from '../generators/RoutesGenerator'
+
 
 export const generateCommand = new Command('generate')
   .description('Generate typed SDK, types, and hooks from route manifest')
@@ -73,8 +75,15 @@ export const generateCommand = new Command('generate')
       const { ZodTierGenerator } = require('../generators/ZodTierGenerator')
       await ZodTierGenerator.generate(manifest, options.output)
 
+      // Generate routes.ts if pages exists in manifest
+      spinner.text = 'Generating Frontend Routes...'
+      const routesGenerated = await RoutesGenerator.generate(manifest, options.output)
+
+      spinner.text = 'Generating Constants and Enums...'
+      await ConstantsGenerator.generate(manifest, options.output)
+
       spinner.text = 'Generating Index Files...'
-      await IndexGenerator.generate(manifest, options.output, options)
+      await IndexGenerator.generate(manifest, options.output, { ...options, routesGenerated })
 
       spinner.succeed(chalk.green(`SDK generated → ${options.output}`))
       console.log(`  ${chalk.cyan('api.ts')}     Typed API client`)

@@ -1,4 +1,4 @@
-export { defineApi, createClient, type EndpointCallable, type CallOptions, type EndpointCallableOptions, type LooseEndpointOptions, type OptionalIfEmpty, type ApiError } from './defineApi'
+export { defineApi, createClient, getClient, type EndpointCallable, type CallOptions, type EndpointCallableOptions, type LooseEndpointOptions, type OptionalIfEmpty, type ApiError } from './defineApi'
 export { endpoint, type EndpointDefinition } from './endpoint'
 export {
   resource,

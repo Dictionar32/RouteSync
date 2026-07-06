@@ -143,7 +143,7 @@ export class ZodTierGenerator {
       });
     }
 
-    const groupedRoutes = buildGeneratedRoutes(manifest.routes)
+    const groupedRoutes = buildGeneratedRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const allRoutes: any[] = []
     for (const group of Object.values(groupedRoutes)) {
       allRoutes.push(...group)

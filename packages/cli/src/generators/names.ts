@@ -7,8 +7,11 @@ export type GeneratedRoute = ParsedRoute & {
   runtimePath: string
 }
 
-export function buildGeneratedRoutes(routes: ParsedRoute[]): Record<string, GeneratedRoute[]> {
-  const classified = classifyRoutes(routes)
+export function buildGeneratedRoutes(
+  routes: ParsedRoute[],
+  groupAliases?: Record<string, string>
+): Record<string, GeneratedRoute[]> {
+  const classified = classifyRoutes(routes, groupAliases)
   const grouped: Record<string, GeneratedRoute[]> = {}
 
   for (const route of classified) {

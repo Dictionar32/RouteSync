@@ -9,7 +9,7 @@ import { SchemaLike, parseWithSchema } from './mappers/schema'
 // ----------------------------------------------------------------
 export type CallOptions<TParams = unknown, TBody = unknown> = {
   params?: TParams
-  query?: Record<string, any>
+  query?: Record<string, unknown>
   body?: TBody
   headers?: Record<string, string>
 }
@@ -20,9 +20,15 @@ export type CallOptions<TParams = unknown, TBody = unknown> = {
 //
 //   api.cart.list({ query: { page: 1 } })   ← call
 export type EndpointCallableOptions<TParams, TBody> = 
-  (unknown extends TParams ? { params?: never } : { params: TParams }) & 
-  (unknown extends TBody ? { body?: TBody } : { body: TBody }) & 
-  { query?: Record<string, any>; headers?: Record<string, string> }
+  (
+    (
+      (unknown extends TParams ? { params?: never } : { params: TParams }) & 
+      (unknown extends TBody ? { body?: TBody } : { body: TBody })
+    ) | (
+      (unknown extends TParams ? {} : TParams) &
+      (unknown extends TBody ? {} : TBody)
+    )
+  ) & { query?: Record<string, unknown>; headers?: Record<string, string> }
 
 // Loose shape for generated hooks — superset of EndpointCallableOptions<unknown, unknown>
 export type LooseEndpointOptions = {
@@ -62,12 +68,12 @@ export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody 
   $queryKey: (options?: EndpointCallableOptions<TParams, TBody>) => unknown[]
 }
 
-type ApiGroupProxy<G extends Record<string, RouteDefinition<any, any, any, any>>> = {
+type ApiGroupProxy<G extends Record<string, RouteDefinition<unknown, unknown, unknown, HttpMethod>>> = {
   [K in keyof G]: EndpointCallable<
-    G[K] extends RouteDefinition<infer R, any, any, any> ? R : unknown,
-    G[K] extends RouteDefinition<any, infer P, any, any> ? P : unknown,
-    G[K] extends RouteDefinition<any, any, infer B, any> ? B : unknown,
-    G[K] extends RouteDefinition<any, any, any, infer M> ? (M extends HttpMethod ? M : HttpMethod) : HttpMethod
+    G[K] extends RouteDefinition<infer R, unknown, unknown, HttpMethod> ? R : unknown,
+    G[K] extends RouteDefinition<unknown, infer P, unknown, HttpMethod> ? P : unknown,
+    G[K] extends RouteDefinition<unknown, unknown, infer B, HttpMethod> ? B : unknown,
+    G[K] extends RouteDefinition<unknown, unknown, unknown, infer M> ? (M extends HttpMethod ? M : HttpMethod) : HttpMethod
   >
 }
 
@@ -80,7 +86,7 @@ type ApiProxy<T extends ApiDefinition> = {
 // ----------------------------------------------------------------
 let _client: HttpClient | null = null
 
-function getClient(): HttpClient {
+export function getClient(): HttpClient {
   if (!_client) {
     throw new Error('RouteSync not initialized. Call createClient() first.')
   }
@@ -112,22 +118,24 @@ export function defineApi<T extends ApiDefinition>(
     for (const action in groupDef) {
       const route = groupDef[action]
 
-      const callable = async (options?: CallOptions) => {
+      const callable = async (options?: unknown) => {
         const client = getClient()
+
+        const resolvedOptions = splitFlatOptions(route, options) as CallOptions | undefined
 
         const params = applyMapper(
           route, 'params',
-          parseRouteSchema(route, 'params', options?.params)
-        ) as Record<string, any> | undefined
+          parseRouteSchema(route, 'params', resolvedOptions?.params)
+        ) as Record<string, unknown> | undefined
 
         const query = applyMapper(
           route, 'query',
-          parseRouteSchema(route, 'query', options?.query)
-        ) as Record<string, any> | undefined
+          parseRouteSchema(route, 'query', resolvedOptions?.query)
+        ) as Record<string, unknown> | undefined
 
         let body = applyMapper(
           route, 'body',
-          parseRouteSchema(route, 'body', options?.body)
+          parseRouteSchema(route, 'body', resolvedOptions?.body)
         )
         if (route.contract?.body && body !== undefined) {
           body = route.contract.body(body)
@@ -138,7 +146,7 @@ export function defineApi<T extends ApiDefinition>(
         const method = route.method.toLowerCase() as
           | 'get' | 'post' | 'put' | 'patch' | 'delete'
 
-        const requestConfig = { params: query, headers: { ...route.headers, ...options?.headers } }
+        const requestConfig = { params: query, headers: { ...route.headers, ...resolvedOptions?.headers } }
 
         let response: unknown
 
@@ -152,7 +160,7 @@ export function defineApi<T extends ApiDefinition>(
         if (client.config.validateResponse && responseSchema) {
           try {
             if (typeof responseSchema === 'function') {
-              response = (responseSchema as any)(response)
+              response = (responseSchema as (val: unknown) => unknown)(response)
             } else {
               response = responseSchema.parse(response)
             }
@@ -179,19 +187,61 @@ export function defineApi<T extends ApiDefinition>(
       }
 
       // Attach metadata to the callable
-      ;(callable as any).$def = route
-      ;(callable as any).$key = [group, action]
-      ;(callable as any).$queryKey = (options?: EndpointCallableOptions<unknown, unknown>) => {
+      const callableObj = callable as unknown as Record<string, unknown>
+      callableObj.$def = route
+      callableObj.$key = [group, action]
+      callableObj.$queryKey = (options?: EndpointCallableOptions<unknown, unknown>) => {
         return options ? [group, action, options] : [group, action]
       }
 
-      groupProxy[action] = callable as any
+      const groupProxyObj = groupProxy as unknown as Record<string, unknown>
+      groupProxyObj[action] = callable
     }
 
-    ;(proxy as any)[group] = groupProxy
+    const proxyObj = proxy as unknown as Record<string, unknown>
+    proxyObj[group] = groupProxy
   }
 
   return proxy
+}
+
+function splitFlatOptions(route: RouteDefinition<unknown, unknown, unknown, HttpMethod>, variables: unknown): unknown {
+  if (!variables || typeof variables !== 'object') {
+    return variables
+  }
+
+  const varObj = variables as Record<string, unknown>
+
+  // If variables is already formatted with params/body/query options, return it as is
+  if ('params' in varObj || 'body' in varObj || 'query' in varObj) {
+    return variables
+  }
+
+  const paramKeys = PathResolver.extractParams(route.path)
+  const method = route.method ?? 'POST'
+
+  if (paramKeys.length === 0) {
+    if (method === 'GET') {
+      return { query: variables }
+    }
+    return { body: variables }
+  }
+
+  const params: Record<string, unknown> = {}
+  const rest: Record<string, unknown> = {}
+
+  for (const key of Object.keys(varObj)) {
+    if (paramKeys.includes(key)) {
+      params[key] = varObj[key]
+    } else {
+      rest[key] = varObj[key]
+    }
+  }
+
+  if (method === 'GET') {
+    return { params, query: rest }
+  }
+  return { params, body: rest }
 }
 
 // ----------------------------------------------------------------

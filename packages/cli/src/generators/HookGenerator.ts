@@ -6,7 +6,7 @@ import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-class
 
 export class HookGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
-    const classified = classifyRoutes(manifest.routes)
+    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const resources  = buildResourceMap(classified)
 
     const knownModels = new Set(manifest.models?.map(m => m.name) || [])
@@ -273,7 +273,7 @@ export class HookGenerator {
       // 3. Resolve create type
       let createType = 'never'
       if (resource.create) {
-        createType = resolveFormType(resource.create) || 'never'
+        createType = resolveFormType(resource.create) || 'void'
       } else {
         // Fallback: custom POST route with schema (e.g. POST /produk/{id}/reviews)
         const customPost = resource.all.find(
@@ -285,14 +285,21 @@ export class HookGenerator {
         )
         const fallback = customPost ?? customGet
         if (fallback) {
-          createType = resolveFormType(fallback) || 'never'
+          createType = resolveFormType(fallback) || 'void'
         }
       }
 
       // 4. Resolve update type
       let updateType = 'never'
       if (resource.update) {
-        updateType = resolveFormType(resource.update) || 'never'
+        updateType = resolveFormType(resource.update) || 'void'
+      } else {
+        const customUpdate = resource.all.find(
+          r => ['PUT', 'PATCH'].includes(r.method) && r.crudRole === 'custom' && hasSchema(r)
+        )
+        if (customUpdate) {
+          updateType = resolveFormType(customUpdate) || 'void'
+        }
       }
 
       const blockLines: string[] = []
@@ -423,6 +430,11 @@ export class HookGenerator {
         blockLines.push(`    },`)
       }
 
+      const domainName = manifest.frontend?.domains?.[groupName]
+      if (domainName) {
+        blockLines.push(`    domain: '${domainName}',`)
+      }
+
       blockLines.push(`  },`)
 
       configBlocks.push(blockLines.join('\n'))
@@ -454,9 +466,135 @@ export class HookGenerator {
     lines.push(``)
     lines.push(`export const typeOf = <T>() => ({} as T)`)
     lines.push(``)
-    lines.push(`export const hooks = defineHooks({`)
+    lines.push(`const baseHooks = defineHooks({`)
     lines.push(configBlocks.join('\n'))
     lines.push(`})`)
+    lines.push(``)
+
+    let cartGroupName: string | null = null
+    for (const [g] of resources) {
+      const domainVal = manifest.frontend?.domains?.[g]
+      const isCartDomain = domainVal === 'cart' || (typeof domainVal === 'object' && domainVal.type === 'cart')
+      if (isCartDomain) {
+        cartGroupName = g
+        break
+      }
+    }
+
+    if (cartGroupName) {
+      // Find the path of the cart group from the manifest routes
+      let cartPath = ''
+      for (const route of manifest.routes) {
+        if (route.group === cartGroupName) {
+          cartPath = route.path
+          break
+        }
+      }
+      if (!cartPath) {
+        cartPath = `/${cartGroupName}`
+      }
+
+      // Default fallbacks
+      let itemsGroupName = `${cartGroupName}Items`
+      let promoGroupName = `${cartGroupName}Promo`
+
+      // Override if explicitly defined in manifest domain config object
+      const domainConfig = manifest.frontend?.domains?.[cartGroupName]
+      if (typeof domainConfig === 'object') {
+        if (domainConfig.items) itemsGroupName = domainConfig.items
+        if (domainConfig.promo) promoGroupName = domainConfig.promo
+      } else {
+        // Dynamically discover children based on route path prefixes in the Laravel graph
+        for (const [, res] of resources) {
+          const resGroupName = res.groupName
+          if (resGroupName === cartGroupName) continue
+
+          let resPath = ''
+          for (const route of manifest.routes) {
+            if (route.group === resGroupName) {
+              resPath = route.path
+              break
+            }
+          }
+
+          if (resPath && resPath.startsWith(cartPath + '/')) {
+            const subPath = resPath.slice(cartPath.length).toLowerCase()
+            if (subPath.includes('item') || subPath.includes('product') || subPath.includes('barang')) {
+              itemsGroupName = resGroupName
+            } else if (subPath.includes('promo') || subPath.includes('coupon') || subPath.includes('discount') || subPath.includes('voucher')) {
+              promoGroupName = resGroupName
+            }
+          }
+        }
+      }
+
+      lines.push(`// Custom Domain Cart Hook Wrapper to enforce Zero-Boilerplate Intent Pattern`)
+      lines.push(`const useCartWrapper = (optionsOrId?: number | { id?: number; list?: boolean }) => {`)
+      lines.push(`  const result = baseHooks.${cartGroupName}(optionsOrId)`)
+      lines.push(`  const createItemMut = baseHooks.${itemsGroupName}.useCreate()`)
+      lines.push(`  const updateItemMut = baseHooks.${itemsGroupName}.useUpdate()`)
+      lines.push(`  const removeItemMut = baseHooks.${itemsGroupName}.useRemove()`)
+      lines.push(`  const applyPromoMut = baseHooks.${promoGroupName}.useCreate()`)
+      lines.push(`  const removePromoMut = baseHooks.${promoGroupName}.useDelete()`)
+      lines.push(``)
+      lines.push(`  const getQty = (produkItemId: number): number => {`)
+      lines.push(`    const cartData = (result as Record<string, unknown>).${cartGroupName} as { items?: Array<{ id?: number; produkItemId?: number; qty?: number; jumlah?: number }> } | undefined`)
+      lines.push(`    if (cartData && Array.isArray(cartData.items)) {`)
+      lines.push(`      const item = cartData.items.find((i) => i.produkItemId === produkItemId || i.id === produkItemId)`)
+      lines.push(`      return item ? item.qty || item.jumlah || 0 : 0`)
+      lines.push(`    }`)
+      lines.push(`    return 0`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  const inc = async (produkItemId: number) => {`)
+      lines.push(`    const currentQty = getQty(produkItemId)`)
+      lines.push(`    if (currentQty === 0) {`)
+      lines.push(`      return createItemMut.mutateAsync({ produkItemId: String(produkItemId), qty: 1 })`)
+      lines.push(`    } else {`)
+      lines.push(`      return updateItemMut.mutateAsync({ id: produkItemId, data: { qty: currentQty + 1 } })`)
+      lines.push(`    }`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  const dec = async (produkItemId: number) => {`)
+      lines.push(`    const currentQty = getQty(produkItemId)`)
+      lines.push(`    if (currentQty <= 1) {`)
+      lines.push(`      return removeItemMut.mutateAsync(produkItemId)`)
+      lines.push(`    } else {`)
+      lines.push(`      return updateItemMut.mutateAsync({ id: produkItemId, data: { qty: currentQty - 1 } })`)
+      lines.push(`    }`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  const remove = async (produkItemId: number) => {`)
+      lines.push(`    return removeItemMut.mutateAsync(produkItemId)`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  const add = async (produkItemId: number, qty = 1) => {`)
+      lines.push(`    const currentQty = getQty(produkItemId)`)
+      lines.push(`    if (currentQty === 0) {`)
+      lines.push(`      return createItemMut.mutateAsync({ produkItemId: String(produkItemId), qty })`)
+      lines.push(`    } else {`)
+      lines.push(`      return updateItemMut.mutateAsync({ id: produkItemId, data: { qty: currentQty + qty } })`)
+      lines.push(`    }`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  const applyPromo = async (code: string) => {`)
+      lines.push(`    return applyPromoMut.mutateAsync({ code })`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  const removePromo = async () => {`)
+      lines.push(`    return removePromoMut.mutateAsync(1)`)
+      lines.push(`  }`)
+      lines.push(``)
+      lines.push(`  return Object.assign(result, { inc, dec, remove, add, applyPromo, removePromo, createItemMut, updateItemMut, removeItemMut, applyPromoMut, removePromoMut })`)
+      lines.push(`}`)
+      lines.push(``)
+      lines.push(`export const hooks = {`)
+      lines.push(`  ...baseHooks,`)
+      lines.push(`  ${cartGroupName}: useCartWrapper,`)
+      lines.push(`}`)
+    } else {
+      lines.push(`export const hooks = baseHooks`)
+    }
     lines.push(``)
 
     for (const [, resource] of resources) {

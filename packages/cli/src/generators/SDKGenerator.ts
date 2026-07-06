@@ -6,7 +6,7 @@ import { ConstantsGenerator } from './ConstantsGenerator'
 
 export class SDKGenerator {
   static async generate(manifest: RouteManifest, outputDir: string, options: Record<string, unknown> = {}): Promise<void> {
-    const classified = classifyRoutes(manifest.routes)
+    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const grouped = buildGroupedRoutes(classified)
     const apiBodyLines: string[] = []
 
@@ -27,7 +27,7 @@ export class SDKGenerator {
     const sdkRespCount = new Map<string, number>()
     for (const route of classified) {
       if (route.raw.response) {
-        const r = deriveGroupName(route.raw.path)
+        const r = route.groupName || deriveGroupName(route.raw.path)
         sdkRespCount.set(r, (sdkRespCount.get(r) || 0) + 1)
       }
     }
@@ -155,7 +155,7 @@ export class SDKGenerator {
         const KeyName = `${TitleCaseGroup}${rawAction}`
 
         // Response naming: LoginResponse (single) atau ProfileUpdateResponse (multiple)
-        const resourceGroup = deriveGroupName(route.raw.path)
+        const resourceGroup = route.groupName || deriveGroupName(route.raw.path)
         const respCount = sdkRespCount.get(resourceGroup) || 1
         const respKey = respCount === 1 ? TitleCaseGroup : KeyName
 
@@ -231,6 +231,7 @@ export class SDKGenerator {
     lines.push(`// Generated at: ${manifest.generatedAt}`)
     lines.push(``)
     lines.push(`import { defineApi, endpoint } from 'routesync'`)
+    lines.push(`import { API_URL, API_ENDPOINTS, ROUTES, Enums } from './constants'`)
 
     if (usedContracts.size > 0) {
       lines.push(`import { ${Array.from(usedContracts).sort().join(', ')} } from './contract/api-contract'`)
@@ -238,11 +239,6 @@ export class SDKGenerator {
     if (usedMappers.size > 0) {
       lines.push(`import { ${Array.from(usedMappers).sort().join(', ')} } from './mappers/api-mapper'`)
     }
-    lines.push(``)
-
-    // Add constants BEFORE api definition to prevent TDZ (Temporal Dead Zone) type errors
-    const constantLines = ConstantsGenerator.getConstantLines(manifest)
-    lines.push(...constantLines)
     lines.push(``)
 
     lines.push(...apiBodyLines)

@@ -123,6 +123,7 @@ if (!function_exists('parseArrayTokens')) {
                     $code .= is_array($vt) ? $vt[1] : $vt;
                 }
                 $code = trim($code);
+                $code = preg_replace('/\\s+/', ' ', $code);
                 
                 $valLower = strtolower($code);
                 if ($valLower === 'true' || $valLower === 'false') {

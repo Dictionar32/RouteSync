@@ -177,31 +177,34 @@ createClient({
 ### 5. Use in components
 
 ```tsx
-import { useApiQuery, useApiMutation } from 'routesync/react'
-import { api } from '@/api/api'
+import { useCart, useProduk } from '@/api'
 
-// GET — fetch data
+// GET — fetch list of products
 function ProdukList() {
-  const { data, isLoading } = useApiQuery(api.produk.get, {
-    query: { page: 1, search: 'kaos' }
-  })
+  const { produk, isLoading } = useProduk() // Unpacks product list directly
 
   if (isLoading) return <p>Loading...</p>
-  return <ul>{data?.map(p => <li key={p.id}>{p.nama}</li>)}</ul>
+  return (
+    <ul>
+      {produk?.map(p => (
+        <li key={p.id}>{p.nama}</li>
+      ))}
+    </ul>
+  )
 }
 
-// GET with path params
-function ProdukDetail({ id }: { id: string }) {
-  const { data } = useApiQuery(api.produk.getId, { params: { id } })
-  return <div>{data?.nama}</div>
+// GET with path params — detail hook
+function ProdukDetail({ id }: { id: number }) {
+  const { produk } = useProduk.show(id)
+  return <div>{produk?.nama}</div>
 }
 
-// POST / mutation
-function AddToCart({ produkItemId }: { produkItemId: string }) {
-  const mutation = useApiMutation(api.cart.postItems)
+// POST / mutation — zero-boilerplate domain actions
+function AddToCart({ produkItemId }: { produkItemId: number }) {
+  const { inc } = useCart()
 
   return (
-    <button onClick={() => mutation.mutate({ body: { produk_item_id: produkItemId, qty: 1 } })}>
+    <button onClick={() => inc(produkItemId)}>
       Tambah ke Keranjang
     </button>
   )
@@ -573,6 +576,67 @@ export const hooks = defineHooks({
         ]
       }
     }
+  }
+})
+```
+
+
+---
+
+## Unified Query Hooks & Zero-Boilerplate Actions
+
+RouteSync supports high-productivity, zero-boilerplate API client and React Query integration options.
+
+### 1. Unified Query Hooks & Direct Property Unpacking
+Instead of manually renaming `data` to reference specific resources, RouteSync hooks expose the resource names directly at the top-level along with standard React Query states:
+
+```tsx
+import { useCart } from '@/api'
+
+function CartComponent() {
+  const { cart, isLoading, error } = useCart() // Unpacks cart state directly
+
+  if (isLoading) return <p>Loading...</p>
+  return <div>Total items: {cart?.items.length}</div>
+}
+```
+
+This works identically on canonical queries:
+```tsx
+const { cart, isLoading } = useCart.index()
+```
+
+### 2. Domain-Oriented Intent Patterns (Cart Actions)
+When mapping specific groups to domain behaviors in `routesync.manifest.json`:
+```json
+"frontend": {
+  "domains": {
+    "cart": "cart"
+  }
+}
+```
+RouteSync CLI automatically generates and attaches zero-boilerplate helper methods directly to the query hook:
+- `cart.inc(produkItemId)` — Increments item quantity
+- `cart.dec(produkItemId)` — Decrements item quantity (removes if < 1)
+- `cart.remove(produkItemId)` — Removes item from cart
+- `cart.add(produkItemId, qty)` — Adds item to cart
+- `cart.applyPromo(code)` — Applies promo code
+- `cart.removePromo()` — Removes promo code
+
+All underlying API payloads, request mappings, and updates vs creations logic are handled behind-the-scenes by the wrapper hook.
+
+### 3. Global Toast Notifications
+Register a global `toast` handler when initializing your client, and RouteSync will automatically display success/error notifications for your mutations (create, update, delete) without importing toast libraries on every page:
+
+```ts
+import { createClient } from 'routesync'
+import { toast } from 'sonner'
+
+createClient({
+  baseURL: '/api',
+  toast: {
+    success: (msg) => toast.success(msg),
+    error: (msg) => toast.error(msg)
   }
 })
 ```

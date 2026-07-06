@@ -16,6 +16,8 @@ import { IndexGenerator } from '../generators/IndexGenerator'
 import { ModelGenerator } from '../generators/ModelGenerator'
 import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
+import { RoutesGenerator } from '../generators/RoutesGenerator'
+
 import fs from 'fs-extra'
 
 
@@ -339,9 +341,22 @@ export const syncCommand = new Command('sync')
         spinner.succeed(chalk.green(`✔ Generating DB Models`))
       }
 
+      // Step 7.8: Frontend Routes
+      spinner.start('Generating Frontend Routes')
+      const routesGenerated = await RoutesGenerator.generate(manifest, options.output)
+      if (routesGenerated) {
+        spinner.succeed(chalk.green(`✔ Generating Frontend Routes`))
+      } else {
+        spinner.info(chalk.yellow(`Skipped Frontend Routes (no pages config in manifest)`))
+      }
+
       // Step 8: Index Files
+      spinner.start('Generating Constants and Enums')
+      await ConstantsGenerator.generate(manifest, options.output)
+      spinner.succeed(chalk.green(`✔ Generating Constants and Enums`))
+
       spinner.start('Generating Index Files')
-      await IndexGenerator.generate(manifest, options.output, options)
+      await IndexGenerator.generate(manifest, options.output, { ...options, routesGenerated })
       spinner.succeed(chalk.green(`✔ Generating Index Files`))
 
       console.log(chalk.bold.green('\n  Sync complete!\n'))

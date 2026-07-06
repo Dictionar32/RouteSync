@@ -76,7 +76,7 @@ export class SchemaGenerator {
     }
 
     // Generate Zod schemas for request body rules
-    const grouped = buildGeneratedRoutes(manifest.routes)
+    const grouped = buildGeneratedRoutes(manifest.routes, manifest.frontend?.groupAliases)
     for (const [group, routes] of Object.entries(grouped)) {
       for (const route of routes) {
         if (route.schema && route.schema.rules && Object.keys(route.schema.rules).length > 0) {

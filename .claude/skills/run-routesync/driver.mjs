@@ -23,10 +23,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(__dirname, '..', '..', '..')
 
 // ═══ Configure these paths for your environment ═══
-const TOKO_ONLINE = 'C:\\Users\\User\\toko-online'
+const TOKO_ONLINE = '/home/annas-zen/Documents/laragon-docker/www/toko-online'
 const TOKO_ROUTES = 'routes/api.php'
 const TOKO_OUTPUT = 'frontend/src/api'
-const TOKO_BASE_URL = 'http://localhost:8000/api'
+const TOKO_BASE_URL = 'http://localhost/api'
 // ═══════════════════════════════════════════════════
 
 const args = new Set(process.argv.slice(2))

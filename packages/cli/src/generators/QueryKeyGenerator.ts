@@ -6,7 +6,7 @@ import { classifyRoutes, buildResourceMap, buildGroupedRoutes } from './route-cl
 
 export class QueryKeyGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
-    const classified = classifyRoutes(manifest.routes)
+    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const resources  = buildResourceMap(classified)
 
     const lines: string[] = []

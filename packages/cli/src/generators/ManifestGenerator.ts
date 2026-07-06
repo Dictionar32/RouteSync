@@ -13,6 +13,18 @@ export class ManifestGenerator {
   }
 
   static async save(manifest: RouteManifest, outputPath: string): Promise<void> {
-    await fs.writeJson(outputPath, manifest, { spaces: 2 })
+    const mergedManifest = { ...manifest }
+    try {
+      if (await fs.pathExists(outputPath)) {
+        const existing = await fs.readJson(outputPath)
+        if (existing && typeof existing === 'object') {
+          if ('frontend' in existing) mergedManifest.frontend = existing.frontend
+          if ('pages' in existing) mergedManifest.pages = existing.pages
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    await fs.writeJson(outputPath, mergedManifest, { spaces: 2 })
   }
 }

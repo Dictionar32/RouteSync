@@ -12,7 +12,7 @@ type ExtractRouteParams<T> =
     : T extends `${string}:${infer Param}`
       ? { [K in Param]: string }
       : T extends (...args: any[]) => any
-        ? Record<string, string | number>
+        ? Record<string, unknown>
         : unknown;
 
 type IsAny<T> = 0 extends (1 & T) ? true : false;

@@ -159,7 +159,10 @@ const ROLE_ACTION: Record<CrudRole, string> = {
  * Classify every route in the manifest.
  * Returns routes in the same order as the input array.
  */
-export function classifyRoutes(routes: ParsedRoute[]): ClassifiedRoute[] {
+export function classifyRoutes(
+  routes: ParsedRoute[],
+  groupAliases?: Record<string, string>
+): ClassifiedRoute[] {
   // Per-group action-name deduplication
   const usedActions = new Map<string, Set<string>>()
 
@@ -170,7 +173,8 @@ export function classifyRoutes(routes: ParsedRoute[]): ClassifiedRoute[] {
     const hasTrailingParam = segments.length > 0 && isDynamic(segments[segments.length - 1])
     const paramCount = segments.filter(isDynamic).length
 
-    const groupName = deriveGroupName(route.path)
+    const derivedGroup = deriveGroupName(route.path)
+    const groupName = groupAliases?.[derivedGroup] ?? derivedGroup
     const role = classifyCrudRole(method, hasTrailingParam, paramCount)
 
     // Build action name: start from role canonical name

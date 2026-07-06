@@ -49,7 +49,6 @@ export class ConstantsGenerator {
     lines.push(``)
 
     // 2. API_ENDPOINTS
-    // deduplicate routes based on path and collect endpoints details
     const uniqueRoutesMap = new Map<string, any>()
     for (const route of manifest.routes) {
       if (!uniqueRoutesMap.has(route.path)) {
@@ -58,17 +57,13 @@ export class ConstantsGenerator {
     }
 
     const uniqueRoutes = Array.from(uniqueRoutesMap.values())
-    
-    // Sort unique routes for consistent ordering
     uniqueRoutes.sort((a, b) => a.path.localeCompare(b.path))
 
-    // Precompute keys and params to keep it DRY
     const routeKeys = uniqueRoutes.map(route => {
       const endpointKey = ConstantsGenerator.getRouteKey(route.path)
       return { route, endpointKey }
     })
 
-    // Write API_ENDPOINTS
     lines.push(`export const API_ENDPOINTS = {`)
     for (const { route, endpointKey } of routeKeys) {
       const params: string[] = []
@@ -101,16 +96,14 @@ export class ConstantsGenerator {
     lines.push(`} as const`)
     lines.push(``)
 
-    // 3. ROUTES (standard frontend navigation routes filtered from main GET routes)
+    // 3. ROUTES
     lines.push(`export const ROUTES = {`)
     lines.push(`  HOME: '/',`)
 
     const addedRoutes = new Set<string>()
     addedRoutes.add('/')
 
-    // We look at all GET routes that don't have dynamic parameters
     const getRoutes = manifest.routes.filter(r => r.method.toUpperCase() === 'GET')
-    
     for (const route of getRoutes) {
       const cleanPath = route.path.replace(/^\/|\/$/g, '')
       if (!cleanPath || addedRoutes.has('/' + cleanPath)) continue
@@ -148,7 +141,23 @@ export class ConstantsGenerator {
     lines.push(`} as const`)
     lines.push(``)
 
-    // 4. Status Enums (Extracted from manifest models columns)
+    // 4. Status Enums (Extracted from manifest models columns & validation rules)
+    const enumGroups: Record<string, Record<string, string[]>> = {}
+
+    const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+    const camelCase = (s: string): string => s.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+
+    const addEnum = (group: string, field: string, values: string[]) => {
+      const cleanGroup = capitalize(camelCase(group))
+      const cleanField = capitalize(camelCase(field))
+      if (!enumGroups[cleanGroup]) {
+        enumGroups[cleanGroup] = {}
+      }
+      const existing = enumGroups[cleanGroup][cleanField] || []
+      const merged = Array.from(new Set([...existing, ...values]))
+      enumGroups[cleanGroup][cleanField] = merged
+    }
+
     if (manifest.models && Array.isArray(manifest.models)) {
       for (const model of manifest.models) {
         if (!model.columns || !Array.isArray(model.columns)) continue
@@ -158,21 +167,53 @@ export class ConstantsGenerator {
           const enumMatch = type.match(/^enum\((.*)\)$/)
           if (enumMatch && enumMatch[1]) {
             const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""))
-            
-            const enumName = `${model.name.toUpperCase()}_${col.name.toUpperCase()}`
-            lines.push(`export const ${enumName} = {`)
-            for (const val of values) {
-              const key = val.toUpperCase().replace(/[^A-Z0-9]/g, '_')
-              lines.push(`  ${key}: '${val}',`)
-            }
-            lines.push(`} as const`)
-            lines.push(``)
-            const typeName = `${model.name}${col.name.charAt(0).toUpperCase() + col.name.slice(1)}`
-            lines.push(`export type ${typeName} = (typeof ${enumName})[keyof typeof ${enumName}]`)
-            lines.push(``)
+            addEnum(model.name, col.name, values)
           }
         }
       }
+    }
+
+    if (manifest.routes && Array.isArray(manifest.routes)) {
+      for (const route of manifest.routes) {
+        if (!route.schema?.rules) continue
+        const rules = route.schema.rules as Record<string, unknown>
+        for (const [field, ruleVal] of Object.entries(rules)) {
+          const ruleStr = String(ruleVal)
+          const match = ruleStr.match(/\bin:([a-zA-Z0-9_,-]+)/)
+          if (match && match[1]) {
+            const values = match[1].split(',').map(v => v.trim())
+            const pathSegments = route.path.replace(/^\/|\/$/g, '').split('/')
+            const group = pathSegments[0] || 'App'
+            addEnum(group, field, values)
+          }
+        }
+      }
+    }
+
+    if (Object.keys(enumGroups).length > 0) {
+      lines.push(`export const Enums = {`)
+      for (const [group, fields] of Object.entries(enumGroups)) {
+        lines.push(`  ${group}: {`)
+        for (const [field, values] of Object.entries(fields)) {
+          lines.push(`    ${field}: {`)
+          for (const val of values) {
+            const key = val.toUpperCase().replace(/[^A-Z0-9]/g, '_')
+            lines.push(`      ${key}: '${val}',`)
+          }
+          lines.push(`    } as const,`)
+        }
+        lines.push(`  },`)
+      }
+      lines.push(`} as const`)
+      lines.push(``)
+
+      for (const [group, fields] of Object.entries(enumGroups)) {
+        for (const [field, values] of Object.entries(fields)) {
+          const typeName = `${group}${field}`
+          lines.push(`export type ${typeName} = (typeof Enums.${group}.${field})[keyof typeof Enums.${group}.${field}]`)
+        }
+      }
+      lines.push(``)
     }
 
     return lines
@@ -182,5 +223,14 @@ export class ConstantsGenerator {
     const lines = ConstantsGenerator.getConstantLines(manifest)
     lines.unshift(`// Auto-generated by routesync. Do not edit manually.`)
     await fs.writeFile(path.join(outputDir, 'constants.ts'), lines.join('\n'))
+
+    // Clean up any legacy enums.js or enums.d.ts inside node_modules if it exists
+    const sdkDir = path.resolve(outputDir, '../../node_modules/routesync')
+    if (fs.existsSync(sdkDir)) {
+      const enumsJs = path.join(sdkDir, 'dist', 'enums.js')
+      const enumsDts = path.join(sdkDir, 'dist', 'enums.d.ts')
+      if (fs.existsSync(enumsJs)) await fs.remove(enumsJs)
+      if (fs.existsSync(enumsDts)) await fs.remove(enumsDts)
+    }
   }
 }

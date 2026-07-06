@@ -31,7 +31,7 @@ export function toIndexFn<TResponse>(
  *   }
  */
 export function toShowFn<TResponse>(
-  endpoint: EndpointCallable<TResponse, Record<string, string | number>, unknown>,
+  endpoint: EndpointCallable<TResponse, Record<string, unknown>, unknown>,
   paramKey: string = 'id'
 ): (id: number) => Promise<TResponse> {
   return (id: number) => endpoint({ params: { [paramKey]: id } })

@@ -32,6 +32,11 @@
     "./cli": {
       "types": "./dist/cli.d.ts",
       "require": "./dist/cli.js"
+    },
+    "./routes": {
+      "types": "./dist/routes.d.ts",
+      "import": "./dist/routes.js",
+      "require": "./dist/routes.js"
     }
   },
   "files": [

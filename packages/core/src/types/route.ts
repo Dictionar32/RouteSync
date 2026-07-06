@@ -7,6 +7,12 @@ export interface RouteManifest {
   models?: ParsedModel[]
   resources?: ParsedResource[]
   generatedAt: string
+  frontend?: {
+    router?: string
+    groupAliases?: Record<string, string>
+    domains?: Record<string, string>
+  }
+  pages?: Record<string, any>
 }
 
 export interface ParsedChannel {

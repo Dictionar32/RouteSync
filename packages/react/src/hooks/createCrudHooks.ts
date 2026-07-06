@@ -1,5 +1,7 @@
 // @ts-ignore TanStack Query is a peer dependency provided by consumers.
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, QueryClient } from '@tanstack/react-query'
+import { PathResolver } from '@routesync/core'
+import { getClient } from '@routesync/sdk'
 
 const requireValidId = (id: unknown): number => {
   const parsed = Number(id)
@@ -9,41 +11,80 @@ const requireValidId = (id: unknown): number => {
   return parsed
 }
 
-const isEndpoint = (fn: any): boolean => typeof fn === 'function' && !!fn.$def
+const isEndpoint = (fn: unknown): boolean => typeof fn === 'function' && !!(fn as { $def?: unknown }).$def
 
-const callIndex = (svc: any): Promise<any> =>
-  isEndpoint(svc) ? svc() : svc()
+const callIndex = (svc: unknown): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as () => Promise<unknown>)()
+    : (svc as () => Promise<unknown>)()
 
-const callShow = (svc: any, id: number): Promise<any> =>
-  isEndpoint(svc) ? svc({ params: { id } }) : svc(id)
+const callShow = (svc: unknown, id: number): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as (opts: unknown) => Promise<unknown>)({ params: { id } })
+    : (svc as (id: number) => Promise<unknown>)(id)
 
-const callCreate = (svc: any, data: any): Promise<any> =>
-  isEndpoint(svc) ? svc({ body: data }) : svc(data)
+const callCreate = (svc: unknown, data: unknown): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as (opts: unknown) => Promise<unknown>)({ body: data })
+    : (svc as (data: unknown) => Promise<unknown>)(data)
 
-const callUpdate = (svc: any, id: number, data: any): Promise<any> =>
-  isEndpoint(svc) ? svc({ params: { id }, body: data }) : svc(id, data)
+const callUpdate = (svc: unknown, id: number, data: unknown): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as (opts: unknown) => Promise<unknown>)({ params: { id }, body: data })
+    : (svc as (id: number, data: unknown) => Promise<unknown>)(id, data)
 
-// update tanpa id param — untuk PUT/PATCH ke /resource (bukan /resource/:id)
-const callUpdateNoParam = (svc: any, data: any): Promise<any> =>
-  isEndpoint(svc) ? svc({ body: data }) : svc(data)
+const callUpdateNoParam = (svc: unknown, data: unknown): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as (opts: unknown) => Promise<unknown>)({ body: data })
+    : (svc as (data: unknown) => Promise<unknown>)(data)
 
-const callDelete = (svc: any, id: number): Promise<any> =>
-  isEndpoint(svc) ? svc({ params: { id } }) : svc(id)
+const callDelete = (svc: unknown, id: number): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as (opts: unknown) => Promise<unknown>)({ params: { id } })
+    : (svc as (id: number) => Promise<unknown>)(id)
 
-// delete tanpa id param — untuk DELETE ke /resource
-const callDeleteNoParam = (svc: any): Promise<any> =>
-  isEndpoint(svc) ? svc() : svc()
+const callDeleteNoParam = (svc: unknown): Promise<unknown> =>
+  isEndpoint(svc)
+    ? (svc as () => Promise<unknown>)()
+    : (svc as () => Promise<unknown>)()
 
-type InvalidateList = Array<((...args: any[]) => readonly unknown[]) | readonly unknown[]>
+const getToastMessage = (action: 'create' | 'update' | 'remove', status: 'success' | 'error', groupName: string): string => {
+  const displayName = groupName.charAt(0).toUpperCase() + groupName.slice(1)
+  if (status === 'success') {
+    if (action === 'create') return `Berhasil menambahkan ${displayName}`
+    if (action === 'update') return `Berhasil memperbarui ${displayName}`
+    if (action === 'remove') return `Berhasil menghapus ${displayName}`
+  } else {
+    if (action === 'create') return `Gagal menambahkan ${displayName}`
+    if (action === 'update') return `Gagal memperbarui ${displayName}`
+    if (action === 'remove') return `Gagal menghapus ${displayName}`
+  }
+  return ''
+}
+
+const getSuccessMessage = (data: unknown, action: 'create' | 'update' | 'remove', groupName: string): string => {
+  if (data && typeof data === 'object' && 'message' in data && typeof (data as { message: unknown }).message === 'string') {
+    return (data as { message: string }).message
+  }
+  return getToastMessage(action, 'success', groupName)
+}
+
+const getErrorMessage = (error: unknown, action: 'create' | 'update' | 'remove', groupName: string): string => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const resData = (error as { response?: { data?: unknown } }).response?.data
+    if (resData && typeof resData === 'object' && 'message' in resData && typeof (resData as { message: unknown }).message === 'string') {
+      return (resData as { message: string }).message
+    }
+  }
+  return getToastMessage(action, 'error', groupName)
+}
+
+type InvalidateList = Array<((...args: never[]) => readonly unknown[]) | readonly unknown[]>
 
 type ExtraEndpoint = {
-  /** endpoint callable atau service fn */
-  service: any
-  /** 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' — auto-detect dari $def kalau tidak diisi */
+  service: unknown
   method?: string
-  /** query key fn dari actionKeys — dipakai sebagai queryKey untuk GET dan invalidasi mutation */
-  queryKey?: (...args: any[]) => readonly unknown[]
-  /** cache invalidation keys setelah mutation sukses */
+  queryKey?: (...args: never[]) => readonly unknown[]
   invalidate?: InvalidateList
 }
 
@@ -53,6 +94,8 @@ export const createCrudHooks = <
   CreateForm,
   UpdateForm
 >(config: {
+  groupName?: string
+  domain?: string
   queryKey: {
     list: () => readonly unknown[]
     detail: (id: number) => readonly unknown[]
@@ -61,12 +104,9 @@ export const createCrudHooks = <
     index?: () => Promise<ReadIndexList>
     show?: (id: number) => Promise<ReadShow>
     create?: (data: CreateForm) => Promise<ReadShow>
-    /** PUT/PATCH + :id param */
     update?: (id: number, data: UpdateForm) => Promise<ReadShow>
-    /** PUT/PATCH tanpa :id — e.g. PATCH /profile */
     updateSelf?: (data: UpdateForm) => Promise<ReadShow>
     delete?: (id: number) => Promise<void>
-    /** DELETE tanpa :id — e.g. DELETE /cart */
     deleteSelf?: () => Promise<void>
   }
   cache?: {
@@ -76,185 +116,328 @@ export const createCrudHooks = <
     delete?: { invalidate?: InvalidateList }
     deleteSelf?: { invalidate?: InvalidateList }
   }
-  /**
-   * Arbitrary non-CRUD endpoints yang diinjek sebagai hook.
-   * Key = nama hook yang diekspos (tanpa prefix "use"), e.g. "post" → usePost
-   */
   extras?: Record<string, ExtraEndpoint>
 }) => {
-  const { service, queryKey } = config
+  const { service, queryKey, groupName } = config
 
-  const resolveInvalidate = (list: InvalidateList | undefined, arg?: any) => {
+  const resolveInvalidate = (qc: QueryClient, list: InvalidateList | undefined, arg?: unknown) => {
     if (!list) return
-    const qc = useQueryClient()
     list.forEach(inv => {
-      const key = typeof inv === 'function' ? inv(arg) : inv
+      const key = typeof inv === 'function' ? (inv as (...args: unknown[]) => readonly unknown[])(arg) : inv
       qc.invalidateQueries({ queryKey: key })
     })
   }
 
   // ── useIndex ──────────────────────────────────────────────────────────────
-  const useIndex = () => {
+  const useIndex = (options?: unknown) => {
     if (!service.index) throw new Error('Index is not supported for this resource')
-    return useQuery({
+    const query = useQuery({
+      ...(options as Record<string, unknown>),
       queryKey: queryKey.list(),
       queryFn: () => callIndex(service.index),
     })
+    return groupName ? Object.assign(query, { [groupName]: query.data }) : query
   }
 
   // ── useShow ───────────────────────────────────────────────────────────────
-  const useShow = (id: number) => {
+  const useShow = (id: number, options?: unknown) => {
     if (!service.show) throw new Error('Show is not supported for this resource')
     const validId = Number(id)
     const enabled = Number.isInteger(validId) && validId > 0
-    return useQuery({
+    const resolvedEnabled = options && typeof options === 'object' && 'enabled' in options ? (options as { enabled?: boolean }).enabled : enabled
+    const query = useQuery({
+      ...(options as Record<string, unknown>),
       queryKey: queryKey.detail(validId),
-      enabled,
+      enabled: enabled && resolvedEnabled,
       queryFn: () => callShow(service.show, requireValidId(validId)),
     })
+    return groupName ? Object.assign(query, { [groupName]: query.data }) : query
   }
 
   // ── useCreate ─────────────────────────────────────────────────────────────
-  const useCreate = () => {
+  const useCreate = (mutationOptions?: unknown) => {
     const svc = service.create
     if (!svc) throw new Error('Create is not supported for this resource')
     const qc = useQueryClient()
+    const options = mutationOptions as Record<string, unknown> | undefined
     return useMutation({
+      ...options,
       mutationFn: (data: CreateForm) => callCreate(svc, data),
-      onSuccess: () => {
+      onSuccess: (data: unknown, variables: CreateForm, context: unknown) => {
         qc.invalidateQueries({ queryKey: queryKey.list() })
-        resolveInvalidate(config.cache?.create?.invalidate)
+        resolveInvalidate(qc, config.cache?.create?.invalidate)
+        
+        try {
+          const client = getClient()
+          const msg = getSuccessMessage(data, 'create', groupName || '')
+          if (msg) client.config.toast?.success?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onSuccess?: (data: unknown, variables: CreateForm, context: unknown) => void } | undefined
+        opt?.onSuccess?.(data, variables, context)
       },
+      onError: (error: unknown, variables: CreateForm, context: unknown) => {
+        try {
+          const client = getClient()
+          const msg = getErrorMessage(error, 'create', groupName || '')
+          if (msg) client.config.toast?.error?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onError?: (error: unknown, variables: CreateForm, context: unknown) => void } | undefined
+        opt?.onError?.(error, variables, context)
+      }
     })
   }
 
-  // ── useUpdate — PUT/PATCH + :id ───────────────────────────────────────────
-  const useUpdate = () => {
+  // ── useUpdate ─────────────────────────────────────────────────────────────
+  const useUpdate = (mutationOptions?: unknown) => {
     const svc = service.update
     if (!svc) throw new Error('Update is not supported for this resource')
     const qc = useQueryClient()
+    const options = mutationOptions as Record<string, unknown> | undefined
     return useMutation({
+      ...options,
       mutationFn: ({ id, data }: { id: number; data: UpdateForm }) =>
         callUpdate(svc, requireValidId(id), data),
-      onSuccess: (_data, vars) => {
+      onSuccess: (data: unknown, vars: { id: number; data: UpdateForm }, context: unknown) => {
         qc.invalidateQueries({ queryKey: queryKey.list() })
         qc.invalidateQueries({ queryKey: queryKey.detail(vars.id) })
-        resolveInvalidate(config.cache?.update?.invalidate, vars.id)
+        resolveInvalidate(qc, config.cache?.update?.invalidate, vars.id)
+
+        try {
+          const client = getClient()
+          const msg = getSuccessMessage(data, 'update', groupName || '')
+          if (msg) client.config.toast?.success?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onSuccess?: (data: unknown, variables: { id: number; data: UpdateForm }, context: unknown) => void } | undefined
+        opt?.onSuccess?.(data, vars, context)
       },
+      onError: (error: unknown, vars: { id: number; data: UpdateForm }, context: unknown) => {
+        try {
+          const client = getClient()
+          const msg = getErrorMessage(error, 'update', groupName || '')
+          if (msg) client.config.toast?.error?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onError?: (error: unknown, variables: { id: number; data: UpdateForm }, context: unknown) => void } | undefined
+        opt?.onError?.(error, vars, context)
+      }
     })
   }
 
-  // ── useUpdateSelf — PUT/PATCH tanpa :id (e.g. PATCH /profile) ─────────────
-  const useUpdateSelf = () => {
+  // ── useUpdateSelf ─────────────────────────────────────────────────────────
+  const useUpdateSelf = (mutationOptions?: unknown) => {
     const svc = service.updateSelf
     if (!svc) throw new Error('UpdateSelf is not supported for this resource')
     const qc = useQueryClient()
+    const options = mutationOptions as Record<string, unknown> | undefined
     return useMutation({
+      ...options,
       mutationFn: (data: UpdateForm) => callUpdateNoParam(svc, data),
-      onSuccess: () => {
+      onSuccess: (data: unknown, variables: UpdateForm, context: unknown) => {
         qc.invalidateQueries({ queryKey: queryKey.list() })
-        resolveInvalidate(config.cache?.updateSelf?.invalidate)
+        resolveInvalidate(qc, config.cache?.updateSelf?.invalidate)
+
+        try {
+          const client = getClient()
+          const msg = getSuccessMessage(data, 'update', groupName || '')
+          if (msg) client.config.toast?.success?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onSuccess?: (data: unknown, variables: UpdateForm, context: unknown) => void } | undefined
+        opt?.onSuccess?.(data, variables, context)
       },
+      onError: (error: unknown, variables: UpdateForm, context: unknown) => {
+        try {
+          const client = getClient()
+          const msg = getErrorMessage(error, 'update', groupName || '')
+          if (msg) client.config.toast?.error?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onError?: (error: unknown, variables: UpdateForm, context: unknown) => void } | undefined
+        opt?.onError?.(error, variables, context)
+      }
     })
   }
 
-  // ── useRemove — DELETE + :id ──────────────────────────────────────────────
-  const useRemove = () => {
-    const svc = service.delete
+  // ── useRemove ─────────────────────────────────────────────────────────────
+  const useRemove = (mutationOptions?: unknown) => {
+    const svc = service.delete ?? service.deleteSelf
     if (!svc) throw new Error('Delete is not supported for this resource')
     const qc = useQueryClient()
+    const options = mutationOptions as Record<string, unknown> | undefined
     return useMutation({
-      mutationFn: (id: number) => callDelete(svc, requireValidId(id)),
-      onSuccess: (_data, id) => {
-        qc.invalidateQueries({ queryKey: queryKey.list() })
-        qc.invalidateQueries({ queryKey: queryKey.detail(id) })
-        resolveInvalidate(config.cache?.delete?.invalidate, id)
+      ...options,
+      mutationFn: (id?: number) => {
+        if (service.delete) {
+          return callDelete(service.delete, requireValidId(id))
+        }
+        return callDeleteNoParam(service.deleteSelf)
       },
+      onSuccess: (data: unknown, id: number | undefined, context: unknown) => {
+        qc.invalidateQueries({ queryKey: queryKey.list() })
+        if (id !== undefined && service.delete) {
+          qc.invalidateQueries({ queryKey: queryKey.detail(id) })
+        }
+        resolveInvalidate(qc, config.cache?.delete?.invalidate ?? config.cache?.deleteSelf?.invalidate, id)
+
+        try {
+          const client = getClient()
+          const msg = getSuccessMessage(data, 'remove', groupName || '')
+          if (msg) client.config.toast?.success?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onSuccess?: (data: unknown, variables: number | undefined, context: unknown) => void } | undefined
+        opt?.onSuccess?.(data, id, context)
+      },
+      onError: (error: unknown, id: number | undefined, context: unknown) => {
+        try {
+          const client = getClient()
+          const msg = getErrorMessage(error, 'remove', groupName || '')
+          if (msg) client.config.toast?.error?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onError?: (error: unknown, variables: number | undefined, context: unknown) => void } | undefined
+        opt?.onError?.(error, id, context)
+      }
     })
   }
 
-  // ── useDeleteSelf — DELETE tanpa :id (e.g. DELETE /cart) ──────────────────
-  const useDeleteSelf = () => {
+  // ── useDeleteSelf ─────────────────────────────────────────────────────────
+  const useDeleteSelf = (mutationOptions?: unknown) => {
     const svc = service.deleteSelf
     if (!svc) throw new Error('DeleteSelf is not supported for this resource')
     const qc = useQueryClient()
+    const options = mutationOptions as Record<string, unknown> | undefined
     return useMutation({
+      ...options,
       mutationFn: () => callDeleteNoParam(svc),
-      onSuccess: () => {
+      onSuccess: (data: unknown, variables: void, context: unknown) => {
         qc.invalidateQueries({ queryKey: queryKey.list() })
-        resolveInvalidate(config.cache?.deleteSelf?.invalidate)
+        resolveInvalidate(qc, config.cache?.deleteSelf?.invalidate)
+
+        try {
+          const client = getClient()
+          const msg = getSuccessMessage(data, 'remove', groupName || '')
+          if (msg) client.config.toast?.success?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onSuccess?: (data: unknown, variables: void, context: unknown) => void } | undefined
+        opt?.onSuccess?.(data, variables, context)
       },
+      onError: (error: unknown, variables: void, context: unknown) => {
+        try {
+          const client = getClient()
+          const msg = getErrorMessage(error, 'remove', groupName || '')
+          if (msg) client.config.toast?.error?.(msg)
+        } catch (e) {}
+
+        const opt = options as { onError?: (error: unknown, variables: void, context: unknown) => void } | undefined
+        opt?.onError?.(error, variables, context)
+      }
     })
   }
 
-  // ── extras — arbitrary endpoints ───────────────────────────────────────────
-  const extraHooks: Record<string, (...args: any[]) => any> = {}
+  // ── extras ─────────────────────────────────────────────────────────────────
+  const extraHooks: Record<string, (...args: unknown[]) => unknown> = {}
 
   if (config.extras) {
-    const qc = useQueryClient()
-
     for (const [name, extra] of Object.entries(config.extras)) {
       const hookName = `use${name.charAt(0).toUpperCase()}${name.slice(1)}`
-      const method = extra.method ?? (isEndpoint(extra.service) ? extra.service.$def?.method : 'POST')
+      const method = extra.method ?? (isEndpoint(extra.service) ? (extra.service as { $def?: { method?: string } }).$def?.method : 'POST')
 
       if (method === 'GET') {
         extraHooks[hookName] = (options?: unknown, queryOptions?: unknown) => {
-          // pakai actionKey kalau ada, fallback ke [groupName, action, options]
           const resolvedKey = extra.queryKey
-            ? extra.queryKey(options)
+            ? (extra.queryKey as (opt?: unknown) => readonly unknown[])(options)
             : [...queryKey.list(), name, options].filter(Boolean)
+          const svc = extra.service as (opts?: unknown) => Promise<unknown>
           return useQuery({
-            ...(queryOptions as any),
+            ...(queryOptions as Record<string, unknown>),
             queryKey: resolvedKey,
-            queryFn: () => isEndpoint(extra.service) ? extra.service(options as never) : extra.service(options),
+            queryFn: () => svc(options),
           })
         }
       } else {
-        extraHooks[hookName] = (mutationOptions?: any) =>
-          useMutation({
-            ...mutationOptions,
-            mutationFn: (variables: any) =>
-              isEndpoint(extra.service)
-                ? extra.service({ body: variables })
-                : extra.service(variables),
+        extraHooks[hookName] = (mutationOptions?: unknown) => {
+          const qc = useQueryClient()
+          const options = mutationOptions as Record<string, unknown> | undefined
+          return useMutation({
+            ...options,
+            mutationFn: (variables: unknown) => {
+              const svc = extra.service as (opts?: unknown) => Promise<unknown>
+              return svc(variables)
+            },
             onSuccess: (data: unknown, variables: unknown, context: unknown) => {
-              // invalidate via actionKey kalau ada
               if (extra.queryKey) {
-                qc.invalidateQueries({ queryKey: extra.queryKey(variables) })
+                qc.invalidateQueries({ queryKey: (extra.queryKey as (opt?: unknown) => readonly unknown[])(variables) })
               }
-              // invalidate tambahan dari cache config
               if (extra.invalidate) {
                 extra.invalidate.forEach(inv => {
-                  const key = typeof inv === 'function' ? inv(variables) : inv
+                  const key = typeof inv === 'function' ? (inv as (...args: unknown[]) => readonly unknown[])(variables) : inv
                   qc.invalidateQueries({ queryKey: key })
                 })
               }
-              mutationOptions?.onSuccess?.(data, variables, context)
+
+              try {
+                const client = getClient()
+                const action: 'create' | 'update' | 'remove' | '' = 
+                  name.startsWith('create') || name.startsWith('add') || name.startsWith('apply') ? 'create' : 
+                  name.startsWith('update') || name.startsWith('set') || name.startsWith('change') ? 'update' : 
+                  name.startsWith('remove') || name.startsWith('delete') || name.startsWith('clear') ? 'remove' : ''
+                if (action) {
+                  const msg = getSuccessMessage(data, action, groupName || '')
+                  if (msg) client.config.toast?.success?.(msg)
+                }
+              } catch (e) {}
+
+              const opt = options as { onSuccess?: (data: unknown, variables: unknown, context: unknown) => void } | undefined
+              opt?.onSuccess?.(data, variables, context)
             },
+            onError: (error: unknown, variables: unknown, context: unknown) => {
+              try {
+                const client = getClient()
+                const action: 'create' | 'update' | 'remove' | '' = 
+                  name.startsWith('create') || name.startsWith('add') || name.startsWith('apply') ? 'create' : 
+                  name.startsWith('update') || name.startsWith('set') || name.startsWith('change') ? 'update' : 
+                  name.startsWith('remove') || name.startsWith('delete') || name.startsWith('clear') ? 'remove' : ''
+                if (action) {
+                  const msg = getErrorMessage(error, action, groupName || '')
+                  if (msg) client.config.toast?.error?.(msg)
+                }
+              } catch (e) {}
+
+              const opt = options as { onError?: (error: unknown, variables: unknown, context: unknown) => void } | undefined
+              opt?.onError?.(error, variables, context)
+            }
           })
+        }
       }
     }
   }
 
   return {
-    // canonical names
     useIndex,
     useShow,
     useCreate,
     useUpdate,
     useUpdateSelf,
+    usePatch: useUpdateSelf,
+    usePut: useUpdateSelf,
     useRemove,
+    useDelete: useRemove,
     useDeleteSelf,
-    // short aliases
     index: useIndex,
     show: useShow,
     create: useCreate,
     update: useUpdate,
     updateSelf: useUpdateSelf,
+    patch: useUpdateSelf,
+    put: useUpdateSelf,
     remove: useRemove,
     delete: useRemove,
     deleteSelf: useDeleteSelf,
-    // extra injected hooks
     ...extraHooks,
   }
 }

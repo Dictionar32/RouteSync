@@ -22,7 +22,7 @@ export class NextActionGenerator {
     lines.push(`}`)
     lines.push(``)
 
-    const classified = classifyRoutes(manifest.routes)
+    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
 
     const grouped: Record<string, typeof classified> = {}
     for (const route of classified) {

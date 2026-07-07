@@ -164,40 +164,111 @@ type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string> = {
   error: Error | null
 }
 
-type ResolveMutationType<TConfig, TOpPath> = 
-  TOpPath extends `${infer TGroup}.${infer TAction}`
-    ? TGroup extends keyof TConfig
-      ? TConfig[TGroup] extends HookConfig
-        ? TAction extends keyof CrudHooks<TConfig[TGroup]['types'], TConfig[TGroup]['endpoint'], TGroup>
-          ? CrudHooks<TConfig[TGroup]['types'], TConfig[TGroup]['endpoint'], TGroup>[TAction] extends (...args: any[]) => any
-            ? ReturnType<CrudHooks<TConfig[TGroup]['types'], TConfig[TGroup]['endpoint'], TGroup>[TAction]>
-            : unknown
+type ResolveActionMutation<TConfig, TRes, TAct> =
+  TRes extends keyof TConfig
+    ? TConfig[TRes] extends HookConfig
+      ? TAct extends keyof CrudHooks<TConfig[TRes]['types'], TConfig[TRes]['endpoint'], TRes & string>
+        ? CrudHooks<TConfig[TRes]['types'], TConfig[TRes]['endpoint'], TRes & string>[TAct] extends (...args: never[]) => unknown
+          ? ReturnType<CrudHooks<TConfig[TRes]['types'], TConfig[TRes]['endpoint'], TRes & string>[TAct]>
           : unknown
         : unknown
       : unknown
     : unknown
 
-type GetIntentActions<TConfig, TConfigK> = TConfigK extends {
-  intent: {
-    operations: {
-      createItem?: infer TCreateKey
-      updateItem?: infer TUpdateKey
-      removeItem?: infer TRemoveKey
-      applyPromo?: infer TApplyKey
-      removePromo?: infer TRemovePromoKey
-    }
-  }
-}
-  ? AggregateCollectionIntentActions<
-      ResolveMutationType<TConfig, TCreateKey>,
-      ResolveMutationType<TConfig, TUpdateKey>,
-      ResolveMutationType<TConfig, TRemoveKey>,
-      ResolveMutationType<TConfig, TApplyKey>,
-      ResolveMutationType<TConfig, TRemovePromoKey>
-    >
-  : unknown
+type ResolveOpPath<TOps, TKey1 extends string, TKey2 extends string = ""> =
+  TOps extends object
+    ? TKey2 extends ""
+      ? TKey1 extends keyof TOps ? TOps[TKey1] : unknown
+      : TKey1 extends keyof TOps
+        ? TOps[TKey1] extends object
+          ? TKey2 extends keyof TOps[TKey1]
+            ? TOps[TKey1][TKey2]
+            : unknown
+          : unknown
+        : unknown
+    : unknown
 
-type HooksForGroup<TConfig, TConfigK extends HookConfig, TGroupName extends string> = ((optionsOrId?: number | { id?: number; list?: boolean }) => UnifiedGroupHookResult<TConfigK['types'], TConfigK['endpoint'], TGroupName> & GetIntentActions<TConfig, TConfigK>) & CrudHooks<TConfigK['types'], TConfigK['endpoint'], TGroupName> & EndpointHooks<TConfigK['endpoint']> & { endpoint: TConfigK['endpoint'] }
+type ResolveMutationType<TConfig, TOp> =
+  TOp extends { operationId: infer TOpId }
+    ? TOpId extends `${infer TGroup}.${infer TAction}`
+      ? ResolveActionMutation<TConfig, TGroup, TAction>
+      : unknown
+    : TOp extends { resource: infer TRes; action: infer TAct }
+      ? ResolveActionMutation<TConfig, TRes, TAct>
+      : TOp extends `${infer TGroup}.${infer TAction}`
+        ? ResolveActionMutation<TConfig, TGroup, TAction>
+        : unknown
+
+type ResolveIntentFromObj<TConfig, TIntent> =
+  TIntent extends { capabilities: infer TCaps }
+    ? TIntent extends { config: infer TCfg }
+      ? ResolveOpPath<TCaps, "items"> extends object
+        ? AggregateCollectionIntentActions<
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "items", "create">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "items", "update">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "items", "remove">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "promotion", "apply">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "promotion", "remove">>,
+            TCfg extends { identityField: infer TIdField } ? (TIdField extends string ? TIdField : "id") : "id",
+            TCfg extends { quantityField: infer TQtyField } ? (TQtyField extends string ? TQtyField : "qty") : "qty"
+          >
+        : AggregateCollectionIntentActions<
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "createItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "updateItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "removeItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "applyPromo">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "removePromo">>,
+            TCfg extends { identityField: infer TIdField } ? (TIdField extends string ? TIdField : "id") : "id",
+            TCfg extends { quantityField: infer TQtyField } ? (TQtyField extends string ? TQtyField : "qty") : "qty"
+          >
+      : ResolveOpPath<TCaps, "items"> extends object
+        ? AggregateCollectionIntentActions<
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "items", "create">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "items", "update">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "items", "remove">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "promotion", "apply">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "promotion", "remove">>
+          >
+        : AggregateCollectionIntentActions<
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "createItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "updateItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "removeItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "applyPromo">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TCaps, "removePromo">>
+          >
+    : TIntent extends { operations: infer TOps }
+      ? TIntent extends { config: infer TCfg }
+        ? AggregateCollectionIntentActions<
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "createItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "updateItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "removeItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "applyPromo">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "removePromo">>,
+            TCfg extends { identityField: infer TIdField } ? (TIdField extends string ? TIdField : "id") : "id",
+            TCfg extends { quantityField: infer TQtyField } ? (TQtyField extends string ? TQtyField : "qty") : "qty"
+          >
+        : AggregateCollectionIntentActions<
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "createItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "updateItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "removeItem">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "applyPromo">>,
+            ResolveMutationType<TConfig, ResolveOpPath<TOps, "removePromo">>
+          >
+      : unknown
+
+type GetIntentActions<TConfig, TConfigK, TGroupName extends string, TManifest = unknown> = TConfigK extends {
+  intent: infer TIntent
+}
+  ? ResolveIntentFromObj<TConfig, TIntent>
+  : TManifest extends {
+      domains: {
+        [K in TGroupName]: infer TDomainEntry
+      }
+    }
+    ? ResolveIntentFromObj<TConfig, TDomainEntry>
+    : unknown
+
+type HooksForGroup<TConfig, TConfigK extends HookConfig, TGroupName extends string, TManifest = unknown> = ((optionsOrId?: number | { id?: number; list?: boolean }) => UnifiedGroupHookResult<TConfigK['types'], TConfigK['endpoint'], TGroupName> & GetIntentActions<TConfig, TConfigK, TGroupName, TManifest>) & CrudHooks<TConfigK['types'], TConfigK['endpoint'], TGroupName> & EndpointHooks<TConfigK['endpoint']> & { endpoint: TConfigK['endpoint'] }
 
 // ─── HookConfig ───────────────────────────────────────────────────────────────
 
@@ -247,9 +318,16 @@ const resolveMutation = (ops: unknown, opKey: string, hooksMap: Record<string, u
     if (typeof val === 'string' && val) {
       const parts = val.split('.')
       if (parts.length === 2) {
-        const group = parts[0]
-        const method = parts[1]
-        return getHookMethodResult(hooksMap[group], method)
+        return getHookMethodResult(hooksMap[parts[0]], parts[1])
+      }
+    } else if (val && typeof val === 'object') {
+      if (hasKey(val, 'operationId') && typeof val.operationId === 'string') {
+        const parts = val.operationId.split('.')
+        if (parts.length === 2) {
+          return getHookMethodResult(hooksMap[parts[0]], parts[1])
+        }
+      } else if (hasKey(val, 'resource') && typeof val.resource === 'string' && hasKey(val, 'action') && typeof val.action === 'string') {
+        return getHookMethodResult(hooksMap[val.resource], val.action)
       }
     }
   }
@@ -258,10 +336,11 @@ const resolveMutation = (ops: unknown, opKey: string, hooksMap: Record<string, u
 
 // ─── defineHooks ─────────────────────────────────────────────────────────────
 
-export function defineHooks<TConfig extends Record<string, HookConfig>>(
-  config: TConfig
-): { [K in keyof TConfig]: HooksForGroup<TConfig, TConfig[K], K & string> } {
-  const hooks = {} as { [K in keyof TConfig]: HooksForGroup<TConfig, TConfig[K], K & string> }
+export function defineHooks<TConfig extends Record<string, HookConfig>, TManifest = unknown>(
+  config: TConfig,
+  runtimeManifest?: TManifest
+): { [K in keyof TConfig]: HooksForGroup<TConfig, TConfig[K], K & string, TManifest> } {
+  const hooks = {} as { [K in keyof TConfig]: HooksForGroup<TConfig, TConfig[K], K & string, TManifest> }
 
   for (const groupName in config) {
     const groupConfig = config[groupName]
@@ -398,27 +477,60 @@ export function defineHooks<TConfig extends Record<string, HookConfig>>(
     let finalHook: unknown = unifiedHook
     const hooksMap = hooks as Record<string, unknown>
 
-    if (groupConfig.intent && typeof groupConfig.intent === 'object') {
-      const intent = groupConfig.intent
+    let intent = groupConfig.intent
+    if (!intent && runtimeManifest && typeof runtimeManifest === 'object') {
+      if (hasKey(runtimeManifest, 'domains') && runtimeManifest.domains && typeof runtimeManifest.domains === 'object') {
+        const domains = runtimeManifest.domains
+        if (hasKey(domains, groupName)) {
+          intent = domains[groupName]
+        }
+      }
+    }
+
+    if (intent && typeof intent === 'object') {
       const intentType = hasKey(intent, 'type') && typeof intent.type === 'string' ? intent.type : ''
       if (intentType === 'AggregateCollection' || intentType === 'cart') {
-        const ops = hasKey(intent, 'operations') && typeof intent.operations === 'object' && intent.operations !== null ? intent.operations : {}
+        const ops = hasKey(intent, 'capabilities') && typeof intent.capabilities === 'object' && intent.capabilities !== null
+          ? intent.capabilities
+          : hasKey(intent, 'operations') && typeof intent.operations === 'object' && intent.operations !== null
+            ? intent.operations
+            : {}
         const cfg = hasKey(intent, 'config') && typeof intent.config === 'object' && intent.config !== null ? intent.config : {}
+
+        const itemsGroup = hasKey(ops, 'items') && typeof ops.items === 'object' && ops.items !== null ? ops.items : {}
+        const promoGroup = hasKey(ops, 'promotion') && typeof ops.promotion === 'object' && ops.promotion !== null ? ops.promotion : {}
 
       const wrappedHook = (optionsOrId?: number | { id?: number; list?: boolean }) => {
         const result = unifiedHook(optionsOrId)
         
-        const createItemMut = resolveMutation(ops, 'createItem', hooksMap)
-        const updateItemMut = resolveMutation(ops, 'updateItem', hooksMap)
-        const removeItemMut = resolveMutation(ops, 'removeItem', hooksMap)
-        const applyPromoMut  = resolveMutation(ops, 'applyPromo', hooksMap)
-        const removePromoMut = resolveMutation(ops, 'removePromo', hooksMap)
+        const createItemMut = resolveMutation(itemsGroup, 'create', hooksMap) || resolveMutation(ops, 'createItem', hooksMap)
+        const updateItemMut = resolveMutation(itemsGroup, 'update', hooksMap) || resolveMutation(ops, 'updateItem', hooksMap)
+        const removeItemMut = resolveMutation(itemsGroup, 'remove', hooksMap) || resolveMutation(ops, 'removeItem', hooksMap)
+        const applyPromoMut  = resolveMutation(promoGroup, 'apply', hooksMap) || resolveMutation(ops, 'applyPromo', hooksMap)
+        const removePromoMut = resolveMutation(promoGroup, 'remove', hooksMap) || resolveMutation(ops, 'removePromo', hooksMap)
 
-        const itemsField = hasKey(cfg, 'itemsField') && typeof cfg.itemsField === 'string' ? cfg.itemsField : ''
-        const itemKey = hasKey(cfg, 'itemKey') && typeof cfg.itemKey === 'string' ? cfg.itemKey : ''
-        const qtyField = hasKey(cfg, 'qtyField') && typeof cfg.qtyField === 'string' ? cfg.qtyField : ''
-        const promoKey = hasKey(cfg, 'promoKey') && typeof cfg.promoKey === 'string' ? cfg.promoKey : ''
-        if (!itemsField || !itemKey || !qtyField || !promoKey) {
+        const collectionField = hasKey(cfg, 'collectionField') && typeof cfg.collectionField === 'string'
+          ? cfg.collectionField
+          : hasKey(cfg, 'itemsField') && typeof cfg.itemsField === 'string'
+            ? cfg.itemsField
+            : ''
+        const identityField = hasKey(cfg, 'identityField') && typeof cfg.identityField === 'string'
+          ? cfg.identityField
+          : hasKey(cfg, 'itemKey') && typeof cfg.itemKey === 'string'
+            ? cfg.itemKey
+            : ''
+        const quantityField = hasKey(cfg, 'quantityField') && typeof cfg.quantityField === 'string'
+          ? cfg.quantityField
+          : hasKey(cfg, 'qtyField') && typeof cfg.qtyField === 'string'
+            ? cfg.qtyField
+            : ''
+        const promotionCodeField = hasKey(cfg, 'promotionCodeField') && typeof cfg.promotionCodeField === 'string'
+          ? cfg.promotionCodeField
+          : hasKey(cfg, 'promoKey') && typeof cfg.promoKey === 'string'
+            ? cfg.promoKey
+            : ''
+
+        if (!collectionField || !identityField || !quantityField || !promotionCodeField) {
           throw new Error(`Missing resolved intent config for domain group ${groupName}`)
         }
 
@@ -429,11 +541,11 @@ export function defineHooks<TConfig extends Record<string, HookConfig>>(
           applyPromo: applyPromoMut,
           removePromo: removePromoMut,
         }, {
-          itemsField,
-          itemKey,
-          qtyField,
+          collectionField,
+          identityField,
+          quantityField,
           groupName,
-          promoKey
+          promotionCodeField
         })
       }
 

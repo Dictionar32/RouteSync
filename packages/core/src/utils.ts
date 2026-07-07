@@ -6,32 +6,30 @@ export function snakeCase(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
-export function camelCaseKeys(obj: any): any {
+export function camelCaseKeys(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map(v => camelCaseKeys(v));
-  } else if (obj !== null && obj.constructor === Object) {
-    return Object.keys(obj).reduce(
-      (result, key) => {
-        result[camelCase(key)] = camelCaseKeys(obj[key]);
-        return result;
-      },
-      {} as any
-    );
+  } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
+    const rawObj = obj as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(rawObj)) {
+      result[camelCase(key)] = camelCaseKeys(value);
+    }
+    return result;
   }
   return obj;
 }
 
-export function snakeCaseKeys(obj: any): any {
+export function snakeCaseKeys(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map(v => snakeCaseKeys(v));
-  } else if (obj !== null && obj.constructor === Object) {
-    return Object.keys(obj).reduce(
-      (result, key) => {
-        result[snakeCase(key)] = snakeCaseKeys(obj[key]);
-        return result;
-      },
-      {} as any
-    );
+  } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
+    const rawObj = obj as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(rawObj)) {
+      result[snakeCase(key)] = snakeCaseKeys(value);
+    }
+    return result;
   }
   return obj;
 }

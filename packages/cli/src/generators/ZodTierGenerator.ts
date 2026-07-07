@@ -1,8 +1,9 @@
-import { RouteManifest, camelCase } from '@routesync/core'
+import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { buildGeneratedRoutes, toTypeName, GeneratedRoute } from './names'
 import { deriveGroupName } from './route-classifier'
+import { PhpCodeParser } from '../parsers/PhpCodeParser'
 
 export class ZodTierGenerator {
   private static knownSchemas = new Set<string>()
@@ -16,11 +17,7 @@ export class ZodTierGenerator {
       manifest.resources.forEach(r => this.knownSchemas.add(`${r.name}Schema`))
     }
 
-    const { SemanticKernelV2 } = require('@routesync/core/src/semantic/SemanticKernelV2')
-    const { ServiceGraphBuilder } = require('@routesync/core/src/graph/ServiceGraphBuilder')
-    const { PhpCodeParser } = require('../parsers/PhpCodeParser')
-
-    const kernel = new SemanticKernelV2()
+    const kernel = new SemanticResolutionKernel()
     const graphBuilder = new ServiceGraphBuilder()
     
     // Build a simple graph of models
@@ -324,7 +321,6 @@ export class ZodTierGenerator {
       
       const parsedAssignments: Record<string, any> = {};
       if (resource.assignments) {
-        const { PhpCodeParser } = require('../parsers/PhpCodeParser')
         for (const varName in resource.assignments) {
           const code = resource.assignments[varName];
           parsedAssignments[varName] = PhpCodeParser.parseExpression(code, {});

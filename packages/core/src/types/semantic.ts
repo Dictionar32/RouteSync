@@ -201,6 +201,8 @@ export type SemanticType =
   | "resource"
   | "collection"
   | "nullable"
+  | "BinaryFile"
+  | "NewAccessToken"
   | "unknown";
 
 export interface SemanticNode extends SemanticResolution {

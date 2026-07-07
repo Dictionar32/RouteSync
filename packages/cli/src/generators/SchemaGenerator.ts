@@ -58,7 +58,8 @@ export class SchemaGenerator {
             const camelKey = camelCase(key)
             if (extraFields.has(camelKey)) continue
             const safeName = camelKey.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelKey : `"${camelKey}"`
-            const expr = (accessor as any)?.expression
+            const acc = accessor as { expression?: { type?: string } } | undefined;
+            const expr = acc?.expression
             let zType = 'z.unknown()'
             if (expr && expr.type) {
               if (expr.type === 'number') zType = 'z.number()'

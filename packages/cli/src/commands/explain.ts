@@ -89,7 +89,7 @@ export const explainCommand = new Command('explain')
       console.log(fieldPath)
       console.log('')
 
-      const { SemanticResolutionKernel } = require('../resolvers/SemanticResolutionKernel')
+      const { SemanticResolutionKernel } = require('@routesync/core')
       const resolver = new SemanticResolutionKernel(graph.models || [], graph.resources || [])
       const res = resolver.resolve(current)
 

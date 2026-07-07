@@ -37,6 +37,9 @@ export type {
   ResponseSchema
 } from './types/request'
 export type { RouteManifest, ParsedRoute, ParsedChannel, ParsedModel, ParsedColumn, ResponseMetadata, ParsedResource } from './types/route'
-export { SemanticKernelV2 as SemanticKernelV2Impl } from './semantic/SemanticKernelV2'
+export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
+export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'
+export type { ModelNode as SemanticModelNode, ResolverMeta, ResolutionContext, ResolverPlugin } from './semantic/types'
 export * from './types/semantic'
 export * from './types/emit'
+export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'

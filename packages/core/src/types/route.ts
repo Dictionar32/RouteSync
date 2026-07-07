@@ -1,4 +1,19 @@
 import { SemanticResolution } from './contract'
+
+/**
+ * Resolved domain intent config, produced by `IntentResolver` and consumed at runtime by
+ * `defineHooks()` (see `@routesync/react`). A domain entry starts life as either a plain string
+ * shorthand (`"cart"`) authored by hand in `routesync.manifest.json`, or gets replaced in-place
+ * by `IntentResolver.resolve()` with the fully-resolved object shape below. The `string` variant
+ * is kept in the union for backward compatibility with hand-authored manifests written before
+ * `IntentResolver` existed.
+ */
+export interface DomainIntentConfig {
+  type: string
+  operations: Record<string, string>
+  config: Record<string, string>
+}
+
 export interface RouteManifest {
   version: string
   baseURL: string
@@ -10,7 +25,7 @@ export interface RouteManifest {
   frontend?: {
     router?: string
     groupAliases?: Record<string, string>
-    domains?: Record<string, string>
+    domains?: Record<string, string | DomainIntentConfig>
   }
   pages?: Record<string, any>
 }
@@ -59,6 +74,7 @@ export interface ParsedRoute {
   action?: string
   response?: ResponseMetadata
   assignments?: Record<string, string>
+  stableHash?: string
 }
 
 export interface ParsedColumn {

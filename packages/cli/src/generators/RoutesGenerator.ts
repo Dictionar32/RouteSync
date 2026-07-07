@@ -47,8 +47,9 @@ export class RoutesGenerator {
         if (typeof value === 'string') {
           pagePath = value
         } else if (value && typeof value === 'object') {
-          pagePath = (value as any).path || ''
-          queryKeys = (value as any).query || []
+          const val = value as Record<string, unknown>
+          pagePath = (val.path as string) || ''
+          queryKeys = (val.query as string[]) || []
         }
 
         const params: string[] = []

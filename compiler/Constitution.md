@@ -6,6 +6,35 @@
 > This is not an aspirational manifesto — every rule below is either enforced by code or
 > explicitly violated by code, and violations are called out rather than hidden.
 
+
+## The Seven Laws of the Compiler
+
+Setiap perubahan kode, refaktorisasi, dan pull request wajib mematuhi tujuh hukum dasar compiler berikut secara mutlak:
+
+### Law 1 — Single Source of Truth
+Aplikasi Laravel adalah satu-satunya sumber kebenaran. Compiler tidak diperkenankan meminta atau memaksa penulisan metadata yang sebenarnya dapat di-inferensi secara langsung dari kode sumber backend.
+
+### Law 2 — Semantic Completeness
+Seluruh resolusi semantik, penentuan relasi model, pemetaan kapabilitas, dan intensi domain harus diselesaikan sepenuhnya pada Middle-end (Pass Manager). Backend generator dilarang keras melakukan inferensi semantik secara mandiri.
+
+### Law 3 — Stable IR
+Perubahan pada target generator (seperti React, Vue, atau Flutter) tidak boleh mengubah atau merusak struktur dari Compiler IR (\`routesync.manifest.json\`). IR adalah kontrak publik yang stabil dan tidak bergantung pada framework frontend.
+
+### Law 4 — Platform Agnostic
+Compiler IR wajib bersih dari istilah-istilah spesifik framework (seperti React, Vue, TanStack Query, Next.js, atau nama method \`useCreate\`). Kontrak hanya boleh memuat konsep abstrak seperti \`operationId\`, \`aggregates\`, \`traits\`, dan \`capabilities\`.
+
+### Law 5 — Zero Generator Intelligence
+Generator bertindak sebagai *dumb renderer* murni. Generator hanya diperbolehkan membaca IR, melakukan pemetaan tipe dasar, dan menulis kode target. Generator dilarang melakukan pencarian relasi database, menebak intensi domain, atau menggunakan heuristik. Jika generator mulai memuat logika domain bersyarat (seperti \`if (cart)\` atau \`if (wishlist)\`), maka resolusi tersebut salah dan harus dipindahkan ke middle-end pass.
+
+### Law 6 — Pass Isolation
+Setiap compiler pass hanya memiliki satu tanggung jawab yang terisolasi. Tidak boleh ada proses validasi di dalam tahap resolusi semantik, dan tidak boleh ada proses optimasi di dalam generator backend.
+
+### Law 7 — Deterministic Compilation
+Input kode sumber yang sama harus selalu menghasilkan output terkompilasi yang identik secara biner. Compiler dilarang menghasilkan UUID acak saat kompilasi, menyertakan timestamp pada berkas output, atau menghasilkan urutan kunci objek (*object key ordering*) yang berubah-ubah demi menjaga kebersihan git diff, keandalan CI/CD, dan efisiensi build caching.
+
+### Law 8 — IR First
+Semua fitur baru harus terlebih dahulu dimodelkan di IR. Jika sebuah fitur tidak dapat direpresentasikan di IR, maka fitur tersebut belum boleh diimplementasikan di backend generator. Framework target tidak boleh menjadi alasan untuk mengubah compiler; compiler hanya berubah karena tuntutan domain aplikasi.
+
 ## 0. What RouteSync Is
 
 RouteSync is a **compiler**, not a code-gen script. It takes a Laravel backend as the single

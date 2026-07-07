@@ -1,13 +1,14 @@
-import { useQuery, useMutation, useQueryClient, QueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, QueryClient, UseMutationResult } from '@tanstack/react-query'
 import { PathResolver } from '@routesync/core'
 import { getClient } from '@routesync/sdk'
+import { useRef, useCallback } from 'react'
 
 export interface AggregateCollectionConfig {
-  itemsField: string
-  itemKey: string
-  qtyField: string
+  collectionField: string
+  identityField: string
+  quantityField: string
   groupName: string
-  promoKey: string
+  promotionCodeField: string
 }
 
 export interface AggregateCollectionIntentActions<
@@ -15,12 +16,44 @@ export interface AggregateCollectionIntentActions<
   TUpdate,
   TRemove,
   TApply,
-  TRemovePromo
+  TRemovePromo,
+  TIdentityField extends string = 'id',
+  TQuantityField extends string = 'qty'
 > {
   items: {
-    changeQty: (idVal: number, delta: number) => Promise<unknown>
-    setQty: (idVal: number, qty: number) => Promise<unknown>
-    remove: (idVal: number) => Promise<unknown>
+    add: (
+      idVal: TCreate extends UseMutationResult<unknown, Error, infer TVar>
+        ? TVar extends { [K in TIdentityField]: infer TId }
+          ? TId
+          : string | number
+        : string | number,
+      qty?: number
+    ) => Promise<unknown>
+    changeQty: (
+      idVal: TCreate extends UseMutationResult<unknown, Error, infer TVar>
+        ? TVar extends { [K in TIdentityField]: infer TId }
+          ? TId
+          : string | number
+        : string | number,
+      delta: number
+    ) => Promise<unknown>
+    setQty: (
+      idVal: TCreate extends UseMutationResult<unknown, Error, infer TVar>
+        ? TVar extends { [K in TIdentityField]: infer TId }
+          ? TId
+          : string | number
+        : string | number,
+      qty: number
+    ) => Promise<unknown>
+    remove: (
+      idVal: TRemove extends UseMutationResult<unknown, Error, infer TVar>
+        ? TVar extends number
+          ? number
+          : TVar extends string
+            ? string
+            : string | number
+        : string | number
+    ) => Promise<unknown>
     createMut: TCreate
     updateMut: TUpdate
     removeMut: TRemove
@@ -31,6 +64,7 @@ export interface AggregateCollectionIntentActions<
     applyMut: TApply
     removeMut: TRemovePromo
   }
+  on: (event: string, callback: (...args: unknown[]) => void) => () => void
 }
 
 const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K, unknown> => {
@@ -78,9 +112,33 @@ export const useAggregateCollectionIntent = <
   config: AggregateCollectionConfig
 ): TResult & AggregateCollectionIntentActions<TCreate, TUpdate, TRemove, TApply, TRemovePromo> => {
   const { createItem, updateItem, removeItem, applyPromo, removePromo } = mutations
-  const { itemsField, itemKey, qtyField, groupName, promoKey } = config
+  const { collectionField, identityField, quantityField, groupName, promotionCodeField } = config
 
-  const getQty = (idVal: number): number => {
+  const listenersRef = useRef(new Map<string, Array<(...args: unknown[]) => void>>())
+
+  const on = useCallback((event: string, cb: (...args: unknown[]) => void) => {
+    const listeners = listenersRef.current
+    if (!listeners.has(event)) listeners.set(event, [])
+    listeners.get(event)!.push(cb)
+    return () => {
+      const list = listeners.get(event)
+      if (list) {
+        const idx = list.indexOf(cb)
+        if (idx !== -1) list.splice(idx, 1)
+      }
+    }
+  }, [])
+
+  const emit = useCallback((event: string, ...args: unknown[]) => {
+    const list = listenersRef.current.get(event)
+    if (list) {
+      list.forEach(cb => {
+        try { cb(...args) } catch (e) {}
+      })
+    }
+  }, [])
+
+  const getQty = (idVal: string | number): number => {
     let cartData: unknown = result
     if (hasKey(result, groupName)) {
       cartData = result[groupName]
@@ -88,50 +146,102 @@ export const useAggregateCollectionIntent = <
       cartData = result.data
     }
 
-    if (hasKey(cartData, itemsField)) {
-      const items = cartData[itemsField]
+    if (hasKey(cartData, collectionField)) {
+      const items = cartData[collectionField]
       if (Array.isArray(items)) {
         const item = items.find((i: unknown) => {
-          return hasKey(i, itemKey) && i[itemKey] === idVal
+          return hasKey(i, identityField) && String(i[identityField]) === String(idVal)
         })
-        return getNumberValue(item, qtyField)
+        return getNumberValue(item, quantityField)
       }
     }
     return 0
   }
 
-  const setQty = async (idVal: number, qty: number) => {
+  const setQty = async (idVal: string | number, qty: number) => {
     const currentQty = getQty(idVal)
     if (qty <= 0) {
-      return callMutate(removeItem, idVal)
+      return remove(idVal)
     }
-    if (currentQty === 0) {
-      return callMutate(createItem, { [itemKey]: idVal, [qtyField]: qty })
-    } else {
-      return callMutate(updateItem, { id: idVal, data: { [qtyField]: qty } })
+    try {
+      let res: unknown
+      if (currentQty === 0) {
+        res = await callMutate(createItem, { [identityField]: String(idVal), [quantityField]: qty })
+      } else {
+        res = await callMutate(updateItem, { id: idVal, data: { [quantityField]: qty } })
+      }
+      emit('add:success', res)
+      emit('added', res)
+      return res
+    } catch (err) {
+      emit('add:error', err)
+      throw err
     }
   }
 
-  const changeQty = async (idVal: number, delta: number) => {
+  const changeQty = async (idVal: string | number, delta: number) => {
     const currentQty = getQty(idVal)
     const targetQty = currentQty + delta
     return setQty(idVal, targetQty)
   }
 
-  const remove = async (idVal: number) => {
-    return callMutate(removeItem, idVal)
+  const add = async (idVal: string | number, qty = 1) => {
+    const currentQty = getQty(idVal)
+    try {
+      let res: unknown
+      if (currentQty === 0) {
+        res = await callMutate(createItem, { [identityField]: String(idVal), [quantityField]: qty })
+      } else {
+        res = await callMutate(updateItem, { id: idVal, data: { [quantityField]: currentQty + qty } })
+      }
+      emit('add:success', res)
+      emit('added', res)
+      return res
+    } catch (err) {
+      emit('add:error', err)
+      throw err
+    }
+  }
+
+  const remove = async (idVal: string | number) => {
+    try {
+      const res = await callMutate(removeItem, idVal)
+      emit('remove:success', res)
+      emit('removed', res)
+      return res
+    } catch (err) {
+      emit('remove:error', err)
+      throw err
+    }
   }
 
   const applyPromoCode = async (code: string) => {
-    return callMutate(applyPromo, { [promoKey]: code })
+    try {
+      const res = await callMutate(applyPromo, { [promotionCodeField]: code })
+      emit('applyPromo:success', res)
+      emit('promoApplied', res)
+      return res
+    } catch (err) {
+      emit('applyPromo:error', err)
+      throw err
+    }
   }
 
   const removePromoCode = async () => {
-    return callMutate(removePromo, undefined)
+    try {
+      const res = await callMutate(removePromo, undefined)
+      emit('removePromo:success', res)
+      emit('promoRemoved', res)
+      return res
+    } catch (err) {
+      emit('removePromo:error', err)
+      throw err
+    }
   }
 
   return Object.assign(result, {
     items: {
+      add,
       changeQty,
       setQty,
       remove,
@@ -144,7 +254,8 @@ export const useAggregateCollectionIntent = <
       remove: removePromoCode,
       applyMut: applyPromo,
       removeMut: removePromo,
-    }
+    },
+    on
   })
 }
 

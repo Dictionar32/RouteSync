@@ -39,6 +39,7 @@ export const generateCommand = new Command('generate')
 
       let manifest: RouteManifest = await fs.readJson(options.manifest)
       manifest = IntentResolver.resolve(manifest)
+      await fs.writeJson(options.manifest, manifest, { spaces: 2 })
       await fs.ensureDir(options.output)
 
       spinner.text = 'Generating types...'
@@ -73,9 +74,15 @@ export const generateCommand = new Command('generate')
         await ModelGenerator.generate(manifest, options.output)
       }
 
-      spinner.text = 'Generating Zod Tier (Contract, Types, Mappers)...'
-      const { ZodTierGenerator } = require('../generators/ZodTierGenerator')
-      await ZodTierGenerator.generate(manifest, options.output)
+      if (options.zod) {
+        spinner.text = 'Generating Zod Tier (Contract, Types, Mappers)...'
+        const { ZodTierGenerator } = require('../generators/ZodTierGenerator')
+        await ZodTierGenerator.generate(manifest, options.output)
+      } else {
+        spinner.text = 'Generating legacy schemas.ts...'
+        const { SchemaGenerator } = require('../generators/SchemaGenerator')
+        await SchemaGenerator.generate(manifest, options.output)
+      }
 
       // Generate routes.ts if pages exists in manifest
       spinner.text = 'Generating Frontend Routes...'

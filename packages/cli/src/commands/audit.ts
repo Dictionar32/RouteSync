@@ -3,12 +3,107 @@ import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 
+interface ScannedRoute {
+  method: string;
+  path: string;
+  auth: boolean;
+  schema?: Record<string, unknown> | null;
+  response?: Record<string, unknown> | null;
+  assignments?: Record<string, string> | null;
+  stableHash?: string;
+  name?: string;
+}
+
+interface ScannedManifest {
+  routes?: ScannedRoute[];
+  models?: Array<Record<string, unknown>>;
+  resources?: Array<Record<string, unknown>>;
+}
+
 export const auditCommand = new Command('audit')
   .description('Audit the manifest for unresolved fields and missing resolvers')
   .option('-g, --graph <path>', 'Path to graph file', 'routesync.graph.json')
+  .option('-m, --manifest <path>', 'Path to manifest file', 'routesync.manifest.json')
+  .option('-i, --input <path>', 'Path to routes/api.php', 'routes/api.php')
+  .option('--check-drift', 'Verify that the manifest matches current routes')
   .option('-v, --verbose', 'Show detailed breakdown of unresolved fields')
   .action(async (options) => {
     try {
+      if (options.checkDrift) {
+        const manifestPath = path.resolve(process.cwd(), options.manifest)
+        if (!fs.existsSync(manifestPath)) {
+          console.error(chalk.red(`Manifest file not found: ${manifestPath}`))
+          process.exit(1)
+        }
+
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as ScannedManifest
+        const { LaravelRouteParser } = require('../parsers/LaravelRouteParser')
+        const parser = new LaravelRouteParser()
+        const { routes } = await parser.parse(options.input, { extractModels: false })
+
+        const freshRoutes = new Map<string, ScannedRoute>()
+        routes.forEach((r: ScannedRoute) => {
+          const replacer = (key: string, value: unknown) => {
+            if (key === 'resolved' || key === 'parsed_ast') return undefined
+            return value
+          }
+          const content = JSON.stringify({
+            method: r.method,
+            path: r.path,
+            auth: r.auth,
+            schema: r.schema || null,
+            response: r.response || null,
+            assignments: r.assignments || null
+          }, replacer)
+          const hash = require('crypto').createHash('sha256').update(content).digest('hex')
+          freshRoutes.set(`${r.method}:${r.path}`, { ...r, stableHash: hash })
+        })
+
+        const manifestRoutes = new Map<string, ScannedRoute>()
+        if (manifest.routes) {
+          manifest.routes.forEach((r: ScannedRoute) => {
+            manifestRoutes.set(`${r.method}:${r.path}`, r)
+          })
+        }
+
+        const added: string[] = []
+        const removed: string[] = []
+        const changed: string[] = []
+
+        for (const [key, freshRoute] of freshRoutes.entries()) {
+          const mRoute = manifestRoutes.get(key)
+          if (!mRoute) {
+            added.push(`  + ${freshRoute.method} ${freshRoute.path}`)
+          } else if (mRoute.stableHash !== freshRoute.stableHash) {
+            changed.push(`  ~ ${freshRoute.method} ${freshRoute.path} (stableHash changed)`)
+          }
+        }
+
+        for (const [key, mRoute] of manifestRoutes.entries()) {
+          if (!freshRoutes.has(key)) {
+            removed.push(`  - ${mRoute.method} ${mRoute.path}`)
+          }
+        }
+
+        if (added.length > 0 || removed.length > 0 || changed.length > 0) {
+          console.error(chalk.red.bold('\n[RouteSync Error] Manifest drift detected!'))
+          if (added.length > 0) {
+            console.error(chalk.green(`\nAdded routes:\n${added.join('\n')}`))
+          }
+          if (removed.length > 0) {
+            console.error(chalk.red(`\nRemoved routes:\n${removed.join('\n')}`))
+          }
+          if (changed.length > 0) {
+            console.error(chalk.yellow(`\nModified routes:\n${changed.join('\n')}`))
+          }
+          console.error(chalk.yellow('\nRun `routesync scan` or `routesync sync` to update the manifest file.\n'))
+          process.exit(1)
+        }
+
+        console.log(chalk.green('\n✔ Manifest matches current Laravel routes. No drift detected.\n'))
+        process.exit(0)
+      }
+
       const graphPath = path.resolve(process.cwd(), options.graph)
       if (!fs.existsSync(graphPath)) {
         console.error(chalk.red(`Graph file not found: ${graphPath}`))
@@ -18,7 +113,7 @@ export const auditCommand = new Command('audit')
 
       const graph = JSON.parse(fs.readFileSync(graphPath, 'utf8'))
 
-      const { SemanticResolutionKernel } = require('../resolvers/SemanticResolutionKernel')
+      const { SemanticResolutionKernel } = require('@routesync/core')
       const resolver = new SemanticResolutionKernel(graph.models || [], graph.resources || [])
 
       let resolvedCount = 0
@@ -35,12 +130,13 @@ export const auditCommand = new Command('audit')
         'Other Unresolved': [],
       }
 
-      function checkField(fieldObj: any, fieldPath: string, contextModel?: any) {
+      function checkField(fieldObj: Record<string, unknown> | undefined | null, fieldPath: string, contextModel?: Record<string, unknown> | null) {
         if (!fieldObj) return
 
         if (fieldObj.kind === 'object' && fieldObj.fields) {
-            for (const [key, val] of Object.entries(fieldObj.fields)) {
-                checkField(val, `${fieldPath}.${key}`, contextModel)
+            const fields = fieldObj.fields as Record<string, unknown>
+            for (const [key, val] of Object.entries(fields)) {
+                checkField(val as Record<string, unknown>, `${fieldPath}.${key}`, contextModel)
             }
             return
         }
@@ -55,10 +151,9 @@ export const auditCommand = new Command('audit')
         if (res.status === 'resolved') {
             resolvedCount++
         } else {
-            // Categorize based on trace rules or fallback to 'Other Unresolved'
-            const lastTrace = res.trace && res.trace.length > 0 ? res.trace[res.trace.length - 1] : null;
-            const reasonRule = lastTrace?.rule || 'Unknown Reason';
-            const reasonSource = lastTrace?.source || '';
+            const lastTrace = res.trace && res.trace.length > 0 ? res.trace[res.trace.length - 1] as Record<string, unknown> : null;
+            const reasonRule = typeof lastTrace?.rule === 'string' ? lastTrace.rule : 'Unknown Reason';
+            const reasonSource = typeof lastTrace?.source === 'string' ? lastTrace.source : '';
             
             if (reasonRule.includes('MethodReturn') || reasonSource.includes('MethodReturnResolver')) {
                 unresolvedBreakdown['Missing MethodReturn Resolver'].push(fieldPath)
@@ -75,18 +170,24 @@ export const auditCommand = new Command('audit')
       }
 
       // Check routes
-      for (const route of graph.routes || []) {
+      const routesList = (graph.routes || []) as Array<Record<string, unknown>>
+      for (const route of routesList) {
           if (route.response) {
-              checkField(route.response, route.name)
+              const nameStr = typeof route.name === 'string' ? route.name : 'UnknownRoute'
+              checkField(route.response as Record<string, unknown>, nameStr)
           }
       }
 
       // Check resources
-      for (const resource of graph.resources || []) {
+      const resourcesList = (graph.resources || []) as Array<Record<string, unknown>>
+      for (const resource of resourcesList) {
           if (resource.fields) {
-              let contextModel = graph.models?.find((m: any) => m.name === resource.name.replace('Resource', ''))
-              for (const [key, val] of Object.entries(resource.fields)) {
-                  checkField(val, `${resource.name}.${key}`, contextModel)
+              const resName = typeof resource.name === 'string' ? resource.name : 'UnknownResource'
+              const modelsList = (graph.models || []) as Array<Record<string, unknown>>
+              const contextModel = modelsList.find((m) => m.name === resName.replace('Resource', ''))
+              const fields = resource.fields as Record<string, unknown>
+              for (const [key, val] of Object.entries(fields)) {
+                  checkField(val as Record<string, unknown>, `${resName}.${key}`, contextModel)
               }
           }
       }
@@ -125,8 +226,9 @@ export const auditCommand = new Command('audit')
           }
       }
 
-    } catch (err: any) {
-      console.error(chalk.red(`Error: ${err.message}`))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(chalk.red(`Error: ${msg}`))
       process.exit(1)
     }
   })

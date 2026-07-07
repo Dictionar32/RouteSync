@@ -7,23 +7,25 @@ export class OpenApiParser {
     return this.parseSpec(spec)
   }
 
-  parseSpec(spec: any): ParsedRoute[] {
+  parseSpec(spec: Record<string, unknown>): ParsedRoute[] {
     const routes: ParsedRoute[] = []
-    const paths = spec.paths ?? {}
+    const paths = (spec.paths as Record<string, unknown>) ?? {}
 
     for (const [path, methods] of Object.entries(paths)) {
-      for (const [method, operation] of Object.entries(methods as any)) {
-        if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
-          const op = operation as any
-          const auth = Object.keys(op.security ?? {}).length > 0
+      if (methods && typeof methods === 'object') {
+        for (const [method, operation] of Object.entries(methods as Record<string, unknown>)) {
+          if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
+            const op = operation as Record<string, unknown>
+            const auth = Object.keys(op.security as Record<string, unknown> ?? {}).length > 0
 
-          routes.push({
-            name: op.operationId ?? `${method}.${path}`,
-            method: method.toUpperCase(),
-            path,
-            auth,
-            middleware: []
-          })
+            routes.push({
+              name: (op.operationId as string) ?? `${method}.${path}`,
+              method: method.toUpperCase(),
+              path,
+              auth,
+              middleware: []
+            })
+          }
         }
       }
     }

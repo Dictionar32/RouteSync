@@ -6,6 +6,7 @@ import {
   ExecutionLayer, 
   ServiceDependency 
 } from '../types/semantic';
+import { RouteManifest } from '../types/route';
 
 export class ServiceGraphBuilder {
   private graph: ServiceGraph = {
@@ -28,16 +29,13 @@ export class ServiceGraphBuilder {
     if (filePath.includes('Models/') || filePath.match(/Model\.php$/)) {
       return 'model';
     }
-    // TODO: Add Repository layer detection if needed
     return 'unknown';
   }
 
   /**
    * Extracts methods and their properties from a parsed Class AST.
-   * This is a stub for future AST traversal.
    */
-  public extractMethods(classAST: any): string[] {
-    // Stub implementation
+  public extractMethods(classAST: unknown): string[] {
     return [];
   }
 
@@ -89,6 +87,85 @@ export class ServiceGraphBuilder {
    * Gets the final assembled graph.
    */
   public getGraph(): ServiceGraph {
+    return this.graph;
+  }
+
+  /**
+   * Builds the graph from a RouteManifest.
+   */
+  public buildFromManifest(manifest: RouteManifest): ServiceGraph {
+    if (manifest.models) {
+      manifest.models.forEach((m) => {
+        const modelNode = this.buildModelNode(m.name);
+        modelNode.table = m.table;
+        if (m.columns) {
+          const fields: Record<string, string> = {};
+          m.columns.forEach((col) => {
+            fields[col.name] = col.type;
+          });
+          modelNode.fields = fields;
+        }
+        if (m.relations) {
+          modelNode.relations = Object.keys(m.relations);
+        }
+        this.graph.models[m.name] = modelNode;
+
+        if (m.relations) {
+          for (const rel of Object.values(m.relations)) {
+            this.linkGraph(m.name, rel.model, 'depends_on_model');
+          }
+        }
+      });
+    }
+
+    if (manifest.resources) {
+      manifest.resources.forEach((res) => {
+        const fieldsList = Object.keys(res.fields || {});
+        const serviceNode = this.buildServiceNode(res.name, fieldsList);
+        this.graph.services[res.name] = serviceNode;
+
+        const potentialModelName = res.name.replace('Resource', '');
+        if (this.graph.models[potentialModelName]) {
+          this.linkGraph(res.name, potentialModelName, 'depends_on_model');
+        }
+      });
+    }
+
+    if (manifest.routes) {
+      manifest.routes.forEach((route) => {
+        const parts = route.name.split('.');
+        const controllerName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + 'Controller' : 'UnknownController';
+        
+        let controller = this.graph.controllers[controllerName];
+        if (!controller) {
+          controller = this.buildControllerNode(controllerName, [], []);
+          this.graph.controllers[controllerName] = controller;
+        }
+
+        if (!controller.routes.includes(route.path)) {
+          controller.routes.push(route.path);
+        }
+        const actionName = route.action || (parts[1] || 'index');
+        if (!controller.actions.some(a => a.name === actionName)) {
+          controller.actions.push({ name: actionName });
+        }
+
+        if (route.response) {
+          const checkResponseModel = (node: unknown) => {
+            if (!node || typeof node !== 'object') return;
+            const obj = node as Record<string, unknown>;
+            if (typeof obj.model === 'string') {
+              this.linkGraph(controllerName, obj.model, 'depends_on_model');
+            }
+            if (obj.kind === 'object' && obj.fields && typeof obj.fields === 'object') {
+              Object.values(obj.fields).forEach(f => checkResponseModel(f));
+            }
+          };
+          checkResponseModel(route.response);
+        }
+      });
+    }
+
     return this.graph;
   }
 }

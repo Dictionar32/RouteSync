@@ -17,9 +17,9 @@ import { ModelGenerator } from '../generators/ModelGenerator'
 import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
+import { ScannedModel } from '../utils/incremental'
 
 import fs from 'fs-extra'
-
 
 export const syncCommand = new Command('sync')
   .description('Scan routes and generate SDK in one step')
@@ -48,7 +48,7 @@ export const syncCommand = new Command('sync')
     try {
       // Step 1: Scan
       const parser = new LaravelRouteParser()
-      const { routes, models, resources } = await parser.parse(options.input, { extractModels: options.models })
+      const { routes, models, resources } = await parser.parse(options.input, { extractModels: !!options.models })
       const channelParser = new LaravelChannelParser()
       const channels = options.echo ? await channelParser.parse('routes/channels.php') : []
       const manifest = ManifestGenerator.generate(routes, options.baseURL, channels)
@@ -57,38 +57,20 @@ export const syncCommand = new Command('sync')
         manifest.resources = resources
       }
 
-      // Semantic Kernel V2 resolution (same as in scan.ts)
+      // Semantic Kernel V2 resolution
       const { SemanticKernelV2Impl } = await import('@routesync/core')
-      const { PhpCodeParser } = await import('../parsers/PhpCodeParser')
       const kernel = new SemanticKernelV2Impl()
 
-      const mapSqlTypeToTs = (sqlType: string): string => {
-        const s = sqlType.toLowerCase()
-        if (s === 'mixed' || s === 'unknown') return 'unknown'
-        if (s.includes('bool') || s.includes('tinyint(1)')) return 'boolean'
-        if (s.includes('int') || s.includes('decimal') || s.includes('float') || s.includes('double') || s.includes('numeric')) return 'number'
-        return 'string'
-      }
-
-      const mapCastToTs = (castType: string, baseType: string): string => {
-        const s = castType.toLowerCase()
-        if (s.includes('int') || s.includes('float') || s.includes('double') || s.includes('decimal')) return 'number'
-        if (s.includes('bool')) return 'boolean'
-        if (s.includes('array') || s.includes('json')) return 'any[]'
-        if (s.includes('date') || s.includes('datetime')) return 'string'
-        return baseType
-      }
-
-      const graphModels: Record<string, any> = {}
+      const graphModels: Record<string, unknown> = {}
       if (models) {
-        models.forEach((m: any) => {
-          const fields: Record<string, any> = {}
+        models.forEach((m) => {
+          const fields: Record<string, unknown> = {}
           if (m.columns) {
-            m.columns.forEach((col: any) => {
-              const baseType = mapSqlTypeToTs(col.type)
+            m.columns.forEach((col) => {
+              const baseType = kernel.mapSqlTypeToTs(col.type)
               let castedType = baseType
               if (m.casts && m.casts[col.name]) {
-                castedType = mapCastToTs(m.casts[col.name], baseType)
+                castedType = kernel.mapCastToTs(m.casts[col.name], baseType)
               }
               fields[col.name] = { type: castedType, nullable: !!col.nullable }
             })
@@ -113,176 +95,13 @@ export const syncCommand = new Command('sync')
         edges: []
       })
       
-      const resolvedManifest = JSON.parse(JSON.stringify(manifest))
- 
-      const resolveField = (field: any, contextModel: any, assignments?: any, resolvedAssignments?: any): any => {
-        if (!field) return field;
-        
-        if (field.kind === 'object' && field.fields) {
-          for (const key in field.fields) {
-            field.fields[key] = resolveField(field.fields[key], contextModel, assignments, resolvedAssignments);
-          }
-          return field;
-        }
-
-        let astToResolve = field;
-        if (field.kind === 'raw_code' && field.code) {
-           const parsedAst = PhpCodeParser.parseExpression(field.code, field.hints);
-           field.parsed_ast = parsedAst;
-           astToResolve = parsedAst;
-        }
- 
-        const context = {
-          modelMap: {},
-          relationMap: {},
-          layer: 'resource' as any,
-          fileName: contextModel ? `${contextModel.name}Resource` : undefined,
-          assignments: assignments || {},
-          resolvedAssignments: resolvedAssignments || {}
-        };
-
-        const resolved = kernel.resolve(astToResolve, context);
-        if (resolved && resolved.status !== 'unknown') {
-           field.resolved = resolved;
-        }
- 
-        return field;
-      }
-
-      // Parse and resolve model accessors
-      if (resolvedManifest.models) {
-        resolvedManifest.models.forEach((model: any) => {
-          if (model.accessors) {
-            for (const key in model.accessors) {
-              const accessor = model.accessors[key];
-              if (accessor) {
-                let resolved: any = null;
-                let parsedAst: any = null;
-                let exprCode = accessor.expression || null;
-
-                if (typeof exprCode === 'string' && exprCode.trim()) {
-                  parsedAst = PhpCodeParser.parseExpression(exprCode);
-                  const context = {
-                    layer: 'model' as any,
-                    fileName: model.name,
-                    modelMap: {},
-                    relationMap: {},
-                    assignments: {}
-                  };
-                  resolved = kernel.resolve(parsedAst, context);
-                }
-
-                if ((!resolved || resolved.status === 'unknown') && accessor.type && accessor.type !== 'mixed') {
-                  resolved = {
-                    status: 'resolved',
-                    type: accessor.type,
-                    confidence: 100,
-                    trace: [{ source: 'ReflectionScanner', input: key, output: accessor.type, rule: 'Reflection return type signature' }]
-                  };
-                }
-
-                if (!resolved) {
-                  resolved = {
-                    status: 'unknown',
-                    type: 'unknown',
-                    confidence: 0,
-                    trace: []
-                  };
-                }
-
-                model.accessors[key] = {
-                  expression_code: exprCode,
-                  parsed_ast: parsedAst,
-                  expression: resolved
-                };
-              }
-            }
-          }
-          const graphModel = graphModels[model.name];
-          if (graphModel) {
-            graphModel.accessors = model.accessors;
-          }
-        });
-      }
- 
-      if (resolvedManifest.resources) {
-        resolvedManifest.resources.forEach((res: any) => {
-          let contextModel = models ? models.find((m: any) => m.name === res.model) : null;
-          if (!contextModel && res.name.endsWith('Resource')) {
-              contextModel = models ? models.find((m: any) => m.name === res.name.replace('Resource', '')) : null;
-          }
-
-          const parsedAssignments: Record<string, any> = {};
-          const resolvedAssignments: Record<string, any> = {};
-          const contextForAssignments = {
-            modelMap: {},
-            relationMap: {},
-            layer: 'resource' as any,
-            fileName: contextModel ? `${contextModel.name}Resource` : (res.name.endsWith('Resource') ? res.name : `${res.name}Resource`),
-            assignments: parsedAssignments,
-            resolvedAssignments: resolvedAssignments
-          };
-
-          if (res.assignments) {
-            for (const varName in res.assignments) {
-              const code = res.assignments[varName];
-              const ast = PhpCodeParser.parseExpression(code, {});
-              parsedAssignments[varName] = ast;
-              const resolved = kernel.resolve(ast, contextForAssignments);
-              if (resolved && resolved.status !== 'unknown') {
-                resolvedAssignments[varName] = resolved;
-              }
-            }
-          }
-
-          if (res.fields) {
-            for (const key in res.fields) {
-              res.fields[key] = resolveField(res.fields[key], contextModel || res, parsedAssignments, resolvedAssignments)
-            }
-          }
-        })
-      }
-
-      if (resolvedManifest.routes) {
-        resolvedManifest.routes.forEach((route: any) => {
-          const parsedAssignments: Record<string, any> = {};
-          const resolvedAssignments: Record<string, any> = {};
-          const contextForAssignments = {
-            modelMap: {},
-            relationMap: {},
-            layer: 'route' as any,
-            fileName: route.name,
-            assignments: parsedAssignments,
-            resolvedAssignments: resolvedAssignments
-          };
-
-          if (route.assignments) {
-            for (const varName in route.assignments) {
-              const code = route.assignments[varName];
-              const ast = PhpCodeParser.parseExpression(code, {});
-              parsedAssignments[varName] = ast;
-              const resolved = kernel.resolve(ast, contextForAssignments);
-              if (resolved && resolved.status !== 'unknown') {
-                resolvedAssignments[varName] = resolved;
-              }
-            }
-          }
-
-          if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
-             route.response = resolveField(route.response, null, parsedAssignments, resolvedAssignments)
-          } else if (route.response && route.response.kind === 'object' && route.response.fields) {
-             for (const key in route.response.fields) {
-                if (route.response.fields[key].kind && route.response.fields[key].kind !== 'primitive') {
-                   route.response.fields[key] = resolveField(route.response.fields[key], null, parsedAssignments, resolvedAssignments)
-                }
-              }
-          }
-        })
-      }
-
-      // Save the resolved manifest locally
       const pathModule = require('path')
       const localManifestPath = pathModule.resolve(process.cwd(), 'routesync.manifest.json')
+
+      const { resolveManifestIncrementally } = await import('../utils/incremental')
+      const resolvedManifest = resolveManifestIncrementally(manifest, localManifestPath, kernel, models as ScannedModel[] | undefined)
+
+      // Save the resolved manifest locally
       await ManifestGenerator.save(resolvedManifest, localManifestPath)
 
       spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes, ${channels.length} channels, ${models ? models.length : 0} models)`))
@@ -295,6 +114,9 @@ export const syncCommand = new Command('sync')
       
       if (options.zod) {
         await ZodTierGenerator.generate(resolvedManifest, options.output)
+      } else {
+        const { SchemaGenerator } = require('../generators/SchemaGenerator')
+        await SchemaGenerator.generate(resolvedManifest, options.output)
       }
       spinner.succeed(chalk.green(`✔ ${steps[1].text}`))
 
@@ -361,9 +183,9 @@ export const syncCommand = new Command('sync')
 
       console.log(chalk.bold.green('\n  Sync complete!\n'))
       console.log(`  Output: ${chalk.cyan(options.output)}`)
-    } catch (err: any) {
-      spinner.fail(chalk.red(`Sync failed: ${err.message}`))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      spinner.fail(chalk.red(`Sync failed: ${msg}`))
       process.exit(1)
     }
   })
-

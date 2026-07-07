@@ -21,9 +21,9 @@ export class PhpCodeParser {
     try {
       const ast = this.parser.parseCode(`<?php $val = ${code};`, 'eval');
       if (ast && ast.children && ast.children.length > 0) {
-        const expr = ast.children[0] as any;
-        if (expr.kind === 'expressionstatement' && expr.expression && expr.expression.kind === 'assign') {
-          return this.mapNode(expr.expression.right);
+        const expr = ast.children[0] as Record<string, unknown>;
+        if (expr && expr.kind === 'expressionstatement' && expr.expression && typeof expr.expression === 'object' && (expr.expression as Record<string, unknown>).kind === 'assign') {
+          return this.mapNode((expr.expression as Record<string, unknown>).right);
         }
       }
     } catch (e) {

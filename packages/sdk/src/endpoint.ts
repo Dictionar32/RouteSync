@@ -11,53 +11,65 @@ type ExtractRouteParams<T> =
     ? { [K in Param | keyof ExtractRouteParams<`/${Rest}`>]: string }
     : T extends `${string}:${infer Param}`
       ? { [K in Param]: string }
-      : T extends (...args: any[]) => any
+      : T extends (...args: unknown[]) => unknown
         ? Record<string, unknown>
         : unknown;
 
 type IsAny<T> = 0 extends (1 & T) ? true : false;
 
 export function endpoint<
-  TContract = any,
-  TResponse = any,
-  TParams = any,
-  TBody = any,
-  TContractResponse = any,
+  TContract = unknown,
+  TResponse = unknown,
+  TParams = unknown,
+  TBody = unknown,
+  TContractResponse = unknown,
   TPath extends string | Function = string | Function,
-  TMethod extends HttpMethod = HttpMethod
+  TMethod extends HttpMethod = HttpMethod,
+  TMapperInput = TResponse
 >(
   def: {
     method: TMethod
     path: TPath
     auth?: boolean
-    schema?: any
+    schema?: unknown
     contract?: {
-      body?: (payload: unknown) => any
+      body?: (payload: unknown) => unknown
       response?: (payload: unknown) => TContractResponse
     }
     mapper?: {
-      response?: (payload: any) => TResponse
-      body?: (payload: TBody) => any
-      params?: (payload: TParams) => any
+      response?: (payload: TMapperInput) => TResponse
+      body?: (payload: TBody) => unknown
+      params?: (payload: TParams) => unknown
     }
     headers?: Record<string, string>
     cache?: unknown
     retry?: unknown
-    body?: Record<string, any>
-    params?: Record<string, any>
-    query?: Record<string, any>
+    body?: Record<string, unknown>
+    params?: Record<string, unknown>
+    query?: Record<string, unknown>
   }
 ): RouteDefinition<
   IsAny<TContract> extends true
-    ? (unknown extends TResponse ? (unknown extends TContractResponse ? any : TContractResponse) : TResponse)
+    ? (unknown extends TResponse ? (unknown extends TContractResponse ? unknown : TContractResponse) : TResponse)
     : ExtractResponse<TContract>,
   IsAny<TContract> extends true
-    ? (any extends TParams ? ExtractRouteParams<TPath> : TParams)
+    ? (IsAny<TParams> extends true ? ExtractRouteParams<TPath> : TParams)
     : ExtractParams<TContract, unknown>,
   IsAny<TContract> extends true
     ? TBody
     : ExtractBody<TContract, unknown>,
   TMethod
 > {
-  return def as any
+  return def as unknown as RouteDefinition<
+    IsAny<TContract> extends true
+      ? (unknown extends TResponse ? (unknown extends TContractResponse ? unknown : TContractResponse) : TResponse)
+      : ExtractResponse<TContract>,
+    IsAny<TContract> extends true
+      ? (IsAny<TParams> extends true ? ExtractRouteParams<TPath> : TParams)
+      : ExtractParams<TContract, unknown>,
+    IsAny<TContract> extends true
+      ? TBody
+      : ExtractBody<TContract, unknown>,
+    TMethod
+  >
 }

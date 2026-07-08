@@ -1,4 +1,4 @@
-import { SemanticResolution } from '../types/contract';
+import { SemanticResolution, AccessKind } from '../types/contract';
 
 export class CycleDetector {
   private visited = new Set<string>()
@@ -21,6 +21,7 @@ export interface ResolverMeta {
   type?: string;
   confidence?: number;
   castType?: string;
+  code?: string;
   expression?: ResolverMeta;
   argument?: ResolverMeta;
   arguments?: ResolverMeta[];
@@ -34,6 +35,7 @@ export interface ResolverMeta {
   falsy?: ResolverMeta;
   target?: ResolverMeta;
   property?: string;
+  accessKind?: AccessKind;
   model?: string;
   column?: string;
   resource?: string;

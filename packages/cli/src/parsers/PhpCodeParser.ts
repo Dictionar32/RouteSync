@@ -39,7 +39,7 @@ export class PhpCodeParser {
       const target = this.mapNode(node.what);
       const property = node.offset?.name || (node.offset?.kind === 'identifier' ? node.offset.name : null);
       if (property) {
-        return { kind: 'property_access', target, property };
+        return { kind: 'property_access', target, property, accessKind: 'property_access' };
       }
     }
 
@@ -47,7 +47,7 @@ export class PhpCodeParser {
       const target = this.mapNode(node.what);
       const property = node.offset?.name || (node.offset?.kind === 'identifier' ? node.offset.name : null);
       if (property) {
-        return { kind: 'nullsafe_property_access', target, property };
+        return { kind: 'nullsafe_property_access', target, property, accessKind: 'optional_access' };
       }
     }
 
@@ -55,7 +55,11 @@ export class PhpCodeParser {
       const target = this.mapNode(node.what);
       const property = node.offset?.value || node.offset?.name || (node.offset?.kind === 'identifier' ? node.offset.name : null);
       if (property) {
-        return { kind: 'property_access', target, property };
+        // Array offset access ($arr['key']) is distinct from ->property access,
+        // even though both currently normalize to the 'property_access' kind for
+        // backward compatibility. accessKind preserves the distinction so JSON
+        // member chains (see ExpressionResolver) can record how each key was reached.
+        return { kind: 'property_access', target, property, accessKind: 'array_access' };
       }
     }
 

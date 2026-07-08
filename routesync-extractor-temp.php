@@ -98,6 +98,7 @@ if (!function_exists('parseArrayTokens')) {
                     $code .= is_array($vt) ? $vt[1] : $vt;
                 }
                 $code = trim($code);
+                $code = preg_replace('/\s+/', ' ', $code);
                 
                 $valLower = strtolower($code);
                 if ($valLower === 'true' || $valLower === 'false') {
@@ -222,6 +223,8 @@ foreach ($routes as $route) {
                             if ($varName === 'request' || $varName === 'this') continue;
                             $expr = trim($assignMatches[2][$idx]);
                             if (str_contains($expr, 'return')) continue;
+                            // Normalize whitespace: collapse newlines and multiple spaces
+                            $expr = preg_replace('/\s+/', ' ', $expr);
                             $assignments[$varName] = $expr;
                         }
                     }

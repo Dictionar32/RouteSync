@@ -1,4 +1,4 @@
-import { SemanticResolution, TraceNode } from '@routesync/core';
+import { SemanticResolution, TraceNode, JsonMemberResolution } from '@routesync/core';
 import { ResolverPlugin, ResolutionContext } from '../types';
 
 export class ExpressionResolver implements ResolverPlugin {
@@ -178,6 +178,31 @@ export class ExpressionResolver implements ResolverPlugin {
           
           if (targetRes.status === 'resolved' && targetRes.type !== 'unknown') {
               // Special framework classes
+              // JSON member access (parity with core/semantic/plugins/ExpressionResolver.ts).
+              // NOTE: this CLI-local resolver is not currently wired into the
+              // `scan` command (which uses SemanticKernelV2Impl from @routesync/core),
+              // so this branch is dead code today. Kept in sync anyway per the
+              // existing plan/table, since deleting it is a separate decision.
+              if (targetRes.type === 'json-object' || targetRes.type === 'json-member') {
+                const accessKind = meta.accessKind || (meta.kind === 'nullsafe_property_access' ? 'optional_access' : 'property_access');
+                trace.push({
+                  source: 'ExpressionResolver',
+                  rule: `JSON member access (${accessKind})`,
+                  input: `${targetRes.type}['${prop}']`,
+                  output: `json-member(${prop})`
+                });
+                return {
+                  status: 'resolved',
+                  type: 'json-member',
+                  parent: targetRes,
+                  key: prop,
+                  accessKind,
+                  nullable: meta.kind === 'nullsafe_property_access' ? true : targetRes.nullable,
+                  confidence: targetRes.confidence,
+                  trace
+                } as JsonMemberResolution;
+              }
+
               if (targetRes.type === 'NewAccessToken' && prop === 'plainTextToken') {
                   trace.push({
                     source: 'ExpressionResolver',

@@ -43,7 +43,8 @@ export class ModelColumnResolver implements ResolverPlugin {
         type: tsType,
         nullable: col.nullable || undefined,
         confidence: 100,
-        trace
+        trace,
+        ...(tsType === 'json-object' ? { sourceModel: model.name, sourceColumn: col.name } : {})
       };
     }
 

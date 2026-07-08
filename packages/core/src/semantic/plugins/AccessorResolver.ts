@@ -1,4 +1,5 @@
-import { SemanticResolution, SemanticType, TraceNode } from '../../types/contract';
+import { SemanticResolution, TraceNode } from '../../types/contract';
+import { SemanticType } from '../../types/semantic';
 import { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode, ModelAccessor } from '../types';
 
 export class AccessorResolver implements ResolverPlugin {

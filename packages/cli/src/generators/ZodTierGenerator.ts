@@ -581,6 +581,17 @@ export class ZodTierGenerator {
     } else if (meta.type === 'array' || meta.type === 'any[]' || meta.kind === 'array') {
       baseZod = 'z.unknown()'
       isCollection = true
+    } else if (meta.type === 'json-object') {
+      // Cast array/json column: shape unknown at compile time, but the value
+      // itself is a structured object (never a scalar), so record() is a
+      // more accurate contract than z.unknown().
+      baseZod = 'z.record(z.string(), z.unknown())'
+    } else if (meta.type === 'json-member') {
+      // A key reached by descending into a json-object. The kernel tracked
+      // the full access chain (see meta.trace), but deliberately leaves the
+      // runtime value type undecided — that's an emitter decision, not a
+      // resolver one.
+      baseZod = 'z.unknown()'
     } else {
       // Check PHP Extractor fields (e.g. #[Response(Order::class)])
       let isModel = false
@@ -1545,6 +1556,10 @@ export class ZodTierGenerator {
         typeStr = `{ ${fields} }`
       }
     } else if (type === 'array' || type === 'any[]') {
+      typeStr = 'unknown'
+    } else if (type === 'json-object') {
+      typeStr = 'Record<string, unknown>'
+    } else if (type === 'json-member') {
       typeStr = 'unknown'
     } else if (meta.kind === 'primitive') {
       if (meta.type === 'number') typeStr = 'number'

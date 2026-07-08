@@ -1,4 +1,5 @@
-import { SemanticResolution, SemanticType, TraceNode } from '../../types/contract';
+import { SemanticResolution, TraceNode, JsonMemberResolution, AccessKind } from '../../types/contract';
+import { SemanticType } from '../../types/semantic';
 import { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode } from '../types';
 
 interface HasFields {
@@ -68,11 +69,21 @@ export class ExpressionResolver implements ResolverPlugin {
       ];
 
       if (meta.operator === '??') {
+        // `$x ?? null` (or any right-hand side that can't resolve past a null
+        // literal) means the left side is reachable-but-possibly-null at
+        // runtime, even if the left resolution itself never set `nullable`.
+        // We wrap rather than mutate leftRes so callers still see the exact
+        // node that produced the value.
+        const rightIsNullish = meta.right?.kind === 'primitive' && meta.right.type === 'null';
+
         if (leftRes.status === 'resolved' && leftRes.type !== 'unknown') {
-          return leftRes;
+          if (rightIsNullish) {
+            return { ...leftRes, nullable: true, trace };
+          }
+          return { ...leftRes, trace };
         }
         if (rightRes.status === 'resolved' && rightRes.type !== 'unknown') {
-          return rightRes;
+          return { ...rightRes, trace };
         }
         return {
           status: 'unknown',
@@ -171,6 +182,36 @@ export class ExpressionResolver implements ResolverPlugin {
                    confidence: targetRes.confidence,
                    trace
                 };
+              }
+
+              // JSON member access: target already resolved to a json-object
+              // (a cast array/json column) or to a previous json-member in the
+              // same chain. Rather than trying to look up a model named
+              // "json-object", keep descending the chain and let TypeEmitter
+              // decide the final TS type — the kernel itself makes no
+              // decision about runtime JSON shape.
+              if (targetRes.type === 'json-object' || targetRes.type === 'json-member') {
+                const accessKind: AccessKind = meta.accessKind
+                  || (meta.kind === 'nullsafe_property_access' ? 'optional_access' : 'property_access');
+
+                trace.push({
+                  source: 'ExpressionResolver',
+                  rule: `JSON member access (${accessKind})`,
+                  input: `${targetRes.type}['${prop}']`,
+                  output: `json-member(${prop})`
+                });
+
+                const memberRes: JsonMemberResolution = {
+                  status: 'resolved',
+                  type: 'json-member',
+                  parent: targetRes,
+                  key: prop,
+                  accessKind,
+                  nullable: meta.kind === 'nullsafe_property_access' ? true : targetRes.nullable,
+                  confidence: targetRes.confidence,
+                  trace
+                };
+                return memberRes;
               }
 
               if (targetRes.type === 'NewAccessToken' && prop === 'plainTextToken') {

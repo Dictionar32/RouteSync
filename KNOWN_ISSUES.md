@@ -5,6 +5,24 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 
 ---
 
+### Issue 9: JSON Member Access Chain — Semantic Resolution Implemented, Runtime Typing Deferred
+**Symptom** → Follow-up to Issue 8. `PaymentResource.gateway.name` (and similar chained access into cast `array`/`json` columns) generated as `unknown` because property/array access on a resolved JSON blob had no handling in `ExpressionResolver` — it fell through to "Property access target model not found".
+**Where** → `packages/core/src/types/contract.ts`, `packages/core/src/semantic/plugins/{ModelColumnResolver,ExpressionResolver}.ts`, `packages/cli/src/parsers/PhpCodeParser.ts`, `packages/cli/src/generators/ZodTierGenerator.ts`.
+**Root cause** → Same as Issue 8: no semantic node existed for "a key inside a JSON blob", so the chain died at the first `['key']`/`->key` access past the cast boundary.
+**Fix** →
+  - Added discriminated `JsonObjectResolution` (`type: 'json-object'`, carries `sourceModel`/`sourceColumn`) and `JsonMemberResolution` (`type: 'json-member'`, carries `parent` (linked-list back to the source), `key`, `accessKind: 'array_access' | 'property_access' | 'optional_access'`) to `contract.ts`.
+  - `mapCastToTs` now maps `array`/`json`/`object`/`collection` casts to `'json-object'` instead of `'any[]'`.
+  - `ModelColumnResolver` attaches `sourceModel`/`sourceColumn` when a column resolves to `json-object`.
+  - `ExpressionResolver.property_access` now special-cases `targetRes.type === 'json-object' | 'json-member'`: instead of trying (and failing) to find a model, it descends the chain and returns a `JsonMemberResolution` with `parent` pointing at the previous node — so `PaymentDetail.detail → gateway → name` is preserved as a full traceable graph, not just a flat `unknown`.
+  - `PhpCodeParser` now tags `accessKind` (`array_access` for `$x['y']`, `property_access` for `$x->y`, `optional_access` for `$x?->y`) on normalized `property_access`/`nullsafe_property_access` nodes, since both AST shapes previously collapsed into the same `kind` with no way to tell them apart.
+  - Null coalescing (`$x ?? null`): when the right-hand side is a `null` literal, the left resolution is now wrapped with `nullable: true` instead of returned as-is (previously `??` also silently dropped the accumulated trace on the resolved branch — fixed as a side effect).
+  - `ZodTierGenerator` (`buildResponseZodType` + `mapResolvedToTsType`): `json-object → Record<string, unknown>` / `z.record(z.string(), z.unknown())`, `json-member → unknown` / `z.unknown()`. This is a deliberate emitter decision — the kernel never decides the TS type, only that the value came from a traceable JSON member access.
+**Status** → Implemented in the live resolution path (`packages/core/src/semantic/**`, used by `scan` via `SemanticKernelV2Impl`). `json-member` still deliberately emits as `unknown` — **runtime JSON member typing itself remains unresolved by design** (see Open Question below), not a bug.
+**Known gap** → `packages/cli/src/resolvers/**` (`SemanticResolutionKernel`, `ModelColumnResolver`, `ExpressionResolver`) is a **second, unused implementation** of the same logic — nothing in `scan.ts` or `generate.ts` imports it. It was kept in sync for this change per the existing plan, but it's dead code and should probably be deleted rather than maintained in parallel going forward.
+**Open question (unchanged from original proposal)** → Should `json-member` emit as `unknown` (current, safest), `string | number | boolean | null` (JSON value union), or be configurable via `routesync.config`?
+
+---
+
 ### Issue 8: JSON/Array Cast Fields Produce `unknown` on Property Access
 **Symptom** → Resource fields whose values are derived from JSON/array cast columns (e.g. `PaymentResource.gateway.name` from `$gateway['name']` where `$gateway` ultimately comes from a `longtext` column cast to `array`) generate as `unknown` in TypeScript.  
 **Where** → `ExpressionResolver.ts`, `VariableResolver.ts` — the resolution chain works correctly up to the point where a property is accessed on a dynamic JSON object.  

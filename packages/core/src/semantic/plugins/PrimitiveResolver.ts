@@ -1,4 +1,5 @@
-import { SemanticResolution, SemanticType } from '../../types/contract';
+import { SemanticResolution } from '../../types/contract';
+import { SemanticType } from '../../types/semantic';
 import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 
 export class PrimitiveResolver implements ResolverPlugin {

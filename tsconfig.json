@@ -16,6 +16,9 @@
       "@routesync/core": [
         "./packages/core/src"
       ],
+      "@routesync/graph-ir": [
+        "./packages/graph-ir/src"
+      ],
       "@routesync/sdk": [
         "./packages/sdk/src"
       ],

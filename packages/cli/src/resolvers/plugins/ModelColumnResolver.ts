@@ -51,6 +51,14 @@ export class ModelColumnResolver implements ResolverPlugin {
       return context.kernel.resolve({ kind: 'model_accessor', model: meta.model, column: meta.column }, model);
     }
 
+    // Accessor fallback: snake_case → camelCase (Laravel accessors are camelCase)
+    if (model.accessors) {
+      const camelName = meta.column.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
+      if (camelName !== meta.column && model.accessors[camelName]) {
+        return context.kernel.resolve({ kind: 'model_accessor', model: meta.model, column: camelName }, model);
+      }
+    }
+
     if (model.relations && model.relations[meta.column]) {
       const rel = model.relations[meta.column];
       if (rel.model) {

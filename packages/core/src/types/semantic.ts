@@ -201,6 +201,8 @@ export type SemanticType =
   | "resource"
   | "collection"
   | "nullable"
+  | "json-object"
+  | "json-member"
   | "BinaryFile"
   | "NewAccessToken"
   | "unknown";

@@ -54,10 +54,10 @@ export function endpoint<
     : ExtractResponse<TContract>,
   IsAny<TContract> extends true
     ? (IsAny<TParams> extends true ? ExtractRouteParams<TPath> : TParams)
-    : ExtractParams<TContract, unknown>,
+    : (unknown extends ExtractParams<TContract, unknown> ? (IsAny<TParams> extends true ? ExtractRouteParams<TPath> : TParams) : ExtractParams<TContract, unknown>),
   IsAny<TContract> extends true
     ? TBody
-    : ExtractBody<TContract, unknown>,
+    : (unknown extends ExtractBody<TContract, unknown> ? TBody : ExtractBody<TContract, unknown>),
   TMethod
 > {
   return def as unknown as RouteDefinition<
@@ -66,10 +66,10 @@ export function endpoint<
       : ExtractResponse<TContract>,
     IsAny<TContract> extends true
       ? (IsAny<TParams> extends true ? ExtractRouteParams<TPath> : TParams)
-      : ExtractParams<TContract, unknown>,
+      : (unknown extends ExtractParams<TContract, unknown> ? (IsAny<TParams> extends true ? ExtractRouteParams<TPath> : TParams) : ExtractParams<TContract, unknown>),
     IsAny<TContract> extends true
       ? TBody
-      : ExtractBody<TContract, unknown>,
+      : (unknown extends ExtractBody<TContract, unknown> ? TBody : ExtractBody<TContract, unknown>),
     TMethod
   >
 }

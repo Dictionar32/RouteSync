@@ -54,7 +54,7 @@ export class FrameworkRegistryResolver implements ResolverPlugin {
     }
 
     // 2. Global targetless helpers
-    if (meta.kind === 'method_call' && !meta.target) {
+    if ((meta.kind === 'method_call' && !meta.target) || meta.kind === 'function_call') {
       if (['asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'strtoupper', 'strtolower'].includes(methodName)) {
         return {
           status: 'resolved',

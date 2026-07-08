@@ -18,3 +18,28 @@ export interface SemanticResolution {
   confidence: number
   trace: TraceNode[]
 }
+
+/**
+ * Resolution for a column with array/json/object cast.
+ * Represents a structured JSON object whose internal schema is unknown
+ * but whose source is traceable.
+ */
+export interface JsonObjectResolution extends SemanticResolution {
+  type: 'json-object'
+  sourceModel: string
+  sourceColumn: string
+}
+
+export type AccessKind = 'array_access' | 'property_access' | 'optional_access'
+
+/**
+ * Resolution for a property/key access on a json-object or another json-member.
+ * Maintains a linked-list chain back to the source JsonObjectResolution,
+ * enabling full path reconstruction (e.g. detail → gateway → name).
+ */
+export interface JsonMemberResolution extends SemanticResolution {
+  type: 'json-member'
+  parent: SemanticResolution
+  key: string
+  accessKind: AccessKind
+}

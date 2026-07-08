@@ -60,7 +60,9 @@ export interface ModelRelation {
 
 export interface ModelAccessor {
   resolvedType?: string;
-  expression?: ResolverMeta;
+  expression_code?: string | null;
+  parsed_ast?: ResolverMeta;
+  expression?: ResolverMeta | SemanticResolution;
 }
 
 export interface ModelNode {

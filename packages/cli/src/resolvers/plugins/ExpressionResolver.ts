@@ -59,7 +59,22 @@ export class ExpressionResolver implements ResolverPlugin {
       // Check raw assignments
       if (currentModel && currentModel.assignments && currentModel.assignments[meta.name]) {
         const assignedExpr = currentModel.assignments[meta.name];
+        const nodeId = `var:${context.fileName || 'global'}:${meta.name}`;
+        if (!context.cycleDetector.enter(nodeId)) {
+          return {
+            status: 'unknown',
+            type: 'unknown',
+            confidence: 0,
+            trace: [{
+              source: 'ExpressionResolver',
+              rule: `Cycle detected at variable ${nodeId}`,
+              input: meta.name,
+              output: 'unknown'
+            }]
+          };
+        }
         const res = context.kernel.resolve(assignedExpr, currentModel);
+        context.cycleDetector.leave(nodeId);
         return {
           ...res,
           trace: [

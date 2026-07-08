@@ -78,7 +78,22 @@ export class VariableResolver implements ResolverPlugin {
     
     if (assignments && assignments[name]) {
       const assignedExpr = assignments[name];
+      const nodeId = `var:${context.fileName || 'global'}:${name}`;
+      if (!context.cycleDetector.enter(nodeId)) {
+        return {
+          status: 'unknown',
+          type: 'unknown',
+          confidence: 0,
+          trace: [{
+            source: 'VariableResolver',
+            rule: `Cycle detected at variable ${nodeId}`,
+            input: name,
+            output: 'unknown'
+          }]
+        };
+      }
       const res = context.kernel.resolve(assignedExpr, currentModel);
+      context.cycleDetector.leave(nodeId);
       return {
         ...res,
         trace: [

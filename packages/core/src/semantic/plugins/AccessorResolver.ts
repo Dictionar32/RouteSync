@@ -62,6 +62,11 @@ export class AccessorResolver implements ResolverPlugin {
   }
 
   private resolveAccessor(acc: ModelAccessor, currentModel: ModelNode, context: ResolutionContext): SemanticResolution {
+    // If expression is already a resolved SemanticResolution, return it directly
+    if (acc.expression && typeof acc.expression === 'object' && 'status' in acc.expression && acc.expression.status === 'resolved') {
+      return acc.expression as SemanticResolution;
+    }
+
     if (acc.resolvedType && acc.resolvedType !== 'unknown') {
       const t: SemanticType = acc.resolvedType === 'integer' || acc.resolvedType === 'number' ? 'number' :
                 acc.resolvedType === 'boolean' ? 'boolean' :
@@ -79,8 +84,13 @@ export class AccessorResolver implements ResolverPlugin {
       };
     }
 
-    if (acc.expression) {
-      return this.evaluateExpression(acc.expression, currentModel, context);
+    // Prefer parsed_ast (the raw AST node) over expression (which may be a resolved result)
+    if (acc.parsed_ast) {
+      return this.evaluateExpression(acc.parsed_ast, currentModel, context);
+    }
+
+    if (acc.expression && typeof acc.expression === 'object' && 'kind' in acc.expression) {
+      return this.evaluateExpression(acc.expression as ResolverMeta, currentModel, context);
     }
 
     return {

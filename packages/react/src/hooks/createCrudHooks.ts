@@ -161,7 +161,7 @@ export const useAggregateCollectionIntent = <
   const setQty = async (idVal: string | number, qty: number) => {
     const currentQty = getQty(idVal)
     if (qty <= 0) {
-      return remove(idVal)
+      return callMutate(removeItem, idVal)
     }
     try {
       let res: unknown

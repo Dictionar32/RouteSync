@@ -59,6 +59,7 @@ interface KernelResolver {
     confidence?: number;
     trace?: Array<Record<string, unknown>>;
   };
+  getModels?(): Record<string, unknown>[];
 }
 
 export function resolveManifestIncrementally(
@@ -134,7 +135,7 @@ export function resolveManifestIncrementally(
           if (accessor) {
             let resolved: Record<string, unknown> | null = null;
             let parsedAst: unknown = null;
-            let exprCode = accessor.expression_code || null;
+            let exprCode = accessor.expression_code || (typeof (accessor as any).expression === 'string' ? (accessor as any).expression : null) || null;
 
             if (typeof exprCode === 'string' && exprCode.trim()) {
               parsedAst = PhpCodeParser.parseExpression(exprCode);
@@ -175,6 +176,19 @@ export function resolveManifestIncrementally(
         }
       }
     });
+
+    // Sync resolved accessors back to the kernel's model graph
+    if (kernel.getModels) {
+      const kernelModels = kernel.getModels();
+      resolvedManifest.models.forEach((model: ScannedModel) => {
+        if (model.accessors) {
+          const target = kernelModels.find((m: Record<string, unknown>) => m.name === model.name);
+          if (target) {
+            target.accessors = model.accessors;
+          }
+        }
+      });
+    }
   }
 
   // Resolve Resources

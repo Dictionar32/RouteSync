@@ -72,13 +72,22 @@ export class ModelColumnResolver implements ResolverPlugin {
         type: tsType,
         nullable: isNullable || undefined,
         confidence: 100,
-        trace
+        trace,
+        ...(tsType === 'json-object' ? { sourceModel: model.name, sourceColumn: colName } : {})
       };
     }
 
     // 2. Accessors
     if (model.accessors && model.accessors[colName]) {
       return context.kernel.resolve({ kind: 'model_accessor', model: model.name, column: colName }, model);
+    }
+
+    // 2b. Accessor fallback: snake_case → camelCase (Laravel accessors are camelCase)
+    if (model.accessors) {
+      const camelName = colName.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
+      if (camelName !== colName && model.accessors[camelName]) {
+        return context.kernel.resolve({ kind: 'model_accessor', model: model.name, column: camelName }, model);
+      }
     }
 
     // 3. Relations

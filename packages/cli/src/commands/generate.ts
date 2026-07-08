@@ -114,6 +114,7 @@ export const generateCommand = new Command('generate')
       }
     } catch (err: any) {
       spinner.fail(chalk.red(`Generate failed: ${err.message}`))
+      console.error(err.stack)
       process.exit(1)
     }
   })

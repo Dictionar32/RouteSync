@@ -14,21 +14,36 @@ const FRAMEWORK_REGISTRY: Record<string, { input: string[], output: string, evid
 
 export class FrameworkRegistryResolver implements ResolverPlugin {
   canResolve(meta: any): boolean {
-    return meta && meta.kind === 'function_call'; // Only functions
+    if (!meta) return false;
+
+    // 1. Function call
+    if (meta.kind === 'function_call') return true;
+
+    // 2. Targetless method calls (global helpers)
+    if (meta.kind === 'method_call' && !meta.target) return true;
+
+    // 3. validated / safe / createToken / format / diffForHumans etc.
+    if (meta.kind === 'method_call' && ['validated', 'safe', 'createToken', 'toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(meta.name || meta.method || '')) return true;
+
+    return false;
   }
 
   resolve(meta: any, context: ResolutionContext): SemanticResolution {
-    const funcDef = FRAMEWORK_REGISTRY[meta.function];
-    if (funcDef) {
+    const methodName = meta.method || meta.name || meta.function || '';
+
+    // 1. Check direct function / targetless method mapping in registry
+    if (methodName && FRAMEWORK_REGISTRY[methodName]) {
+      const funcDef = FRAMEWORK_REGISTRY[methodName];
       const trace: TraceNode[] = [{
         source: 'FrameworkRegistryResolver',
-        rule: `Framework helper function lookup: ${meta.function}`,
-        input: meta.function,
+        rule: `Framework helper function lookup: ${methodName}`,
+        input: methodName,
         output: funcDef.output
       }];
-      if (meta.arguments && meta.arguments.length > 0) {
-          const argRes = context.kernel.resolve(meta.arguments[0], context.contextModel);
-          trace.push(...argRes.trace);
+      const args = meta.arguments || meta.args;
+      if (args && args.length > 0) {
+          const argRes = context.kernel.resolve(args[0], context.contextModel);
+          if (argRes.trace) trace.push(...argRes.trace);
       }
       return {
         status: 'resolved',
@@ -37,14 +52,85 @@ export class FrameworkRegistryResolver implements ResolverPlugin {
         trace
       };
     }
+
+    // 2. Global targetless helpers
+    if ((meta.kind === 'method_call' && !meta.target) || meta.kind === 'function_call') {
+      if (['asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'strtoupper', 'strtolower'].includes(methodName)) {
+        return {
+          status: 'resolved',
+          type: 'string',
+          confidence: 100,
+          trace: [{ source: 'FrameworkRegistryResolver', rule: 'Global string helper', input: methodName, output: 'string' }]
+        };
+      }
+      if (['intval', 'floatval', 'doubleval', 'count'].includes(methodName)) {
+        return {
+          status: 'resolved',
+          type: 'number',
+          confidence: 100,
+          trace: [{ source: 'FrameworkRegistryResolver', rule: 'Global number helper', input: methodName, output: 'number' }]
+        };
+      }
+      if (['boolval'].includes(methodName)) {
+        return {
+          status: 'resolved',
+          type: 'boolean',
+          confidence: 100,
+          trace: [{ source: 'FrameworkRegistryResolver', rule: 'Global boolean helper', input: methodName, output: 'boolean' }]
+        };
+      }
+    }
+
+    // 3. Validated and safe request methods
+    if (['validated', 'safe'].includes(methodName)) {
+      return {
+        status: 'resolved',
+        type: 'object',
+        confidence: 100,
+        trace: [{ source: 'FrameworkRegistryResolver', rule: 'Request validation method', input: methodName, output: 'object' }]
+      };
+    }
+
+    // 4. Carbon date format/helper methods
+    if (['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(methodName)) {
+      const trace: TraceNode[] = [{
+        source: 'FrameworkRegistryResolver',
+        rule: 'Carbon date method call',
+        input: methodName,
+        output: 'string'
+      }];
+      if (meta.target) {
+        const targetRes = context.kernel.resolve(meta.target, context.contextModel);
+        if (targetRes.trace) trace.push(...targetRes.trace);
+      }
+      return {
+        status: 'resolved',
+        type: 'string',
+        confidence: 100,
+        trace
+      };
+    }
+
+    if (methodName === 'createToken') {
+      return {
+        status: 'resolved',
+        type: 'object',
+        fields: {
+           plainTextToken: 'string'
+        },
+        confidence: 100,
+        trace: [{ source: 'FrameworkRegistryResolver', rule: 'Sanctum createToken method call', input: 'createToken', output: 'object' }]
+      };
+    }
+
     return {
       status: 'unknown',
       type: 'unknown',
       confidence: 0,
       trace: [{
         source: 'FrameworkRegistryResolver',
-        rule: `Missing FrameworkResolver for ${meta.function}`,
-        input: meta.function
+        rule: `Missing FrameworkResolver for ${methodName}`,
+        input: methodName
       }]
     };
   }

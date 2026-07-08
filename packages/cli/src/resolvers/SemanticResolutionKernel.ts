@@ -19,9 +19,9 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       new ModelColumnResolver(),
       new AccessorResolver(),
       new ResourceGraphResolver(),
+      new FrameworkRegistryResolver(),
       new MethodReturnResolver(),
       new ExpressionResolver(),
-      new FrameworkRegistryResolver(),
       // Model transform fallback
       {
         canResolve: (meta) => meta && meta.kind === 'model',
@@ -36,6 +36,10 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
     ];
   }
 
+  public getModels(): Record<string, unknown>[] {
+    return this.models;
+  }
+
   public resolve(meta: any, contextModel?: any): SemanticResolution {
     if (!meta || meta.kind === 'unknown') {
       return {
@@ -46,13 +50,26 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       };
     }
 
-    const context = {
+    const context: any = {
       models: this.models,
       resources: this.resources,
       kernel: this,
       cycleDetector: this.cycleDetector,
       contextModel
     };
+
+    if (contextModel && typeof contextModel === 'object') {
+      const obj = contextModel as any;
+      if (typeof obj.fileName === 'string') {
+        context.fileName = obj.fileName;
+      }
+      if (obj.assignments) {
+        context.assignments = obj.assignments;
+      }
+      if (obj.resolvedAssignments) {
+        context.resolvedAssignments = obj.resolvedAssignments;
+      }
+    }
 
     for (const plugin of this.plugins) {
       if (plugin.canResolve(meta)) {
@@ -70,7 +87,8 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
 
   public mapSqlTypeToTs(sqlType: string): string {
     const s = sqlType.toLowerCase()
-    if (s === 'mixed' || s === 'unknown') return 'unknown'
+    if (s === 'number' || s === 'boolean' || s === 'string' || s === 'any' || s === 'unknown' || s === 'void') return s
+    if (s === 'mixed') return 'unknown'
     if (s.includes('bool') || s.includes('tinyint(1)')) return 'boolean'
     if (s.includes('int') || s.includes('decimal') || s.includes('float') || s.includes('double') || s.includes('numeric')) return 'number'
     return 'string'
@@ -80,7 +98,7 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
     const s = castType.toLowerCase()
     if (s.includes('int') || s.includes('float') || s.includes('double') || s.includes('decimal')) return 'number'
     if (s.includes('bool')) return 'boolean'
-    if (s.includes('array') || s.includes('json')) return 'any[]'
+    if (s.includes('array') || s.includes('json') || s.includes('object') || s.includes('collection')) return 'json-object'
     if (s.includes('date') || s.includes('datetime')) return 'string'
     return baseType
   }

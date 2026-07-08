@@ -60,7 +60,13 @@ export class AccessorResolver implements ResolverPlugin {
     };
   }
 
-  private resolveAccessor(acc: any, currentModel: any, context: ResolutionContext): SemanticResolution {
+  private resolveAccessor(acc: Record<string, unknown>, currentModel: Record<string, unknown>, context: ResolutionContext): SemanticResolution {
+    // If expression is already a resolved SemanticResolution, return it directly
+    const expr = acc.expression;
+    if (expr && typeof expr === 'object' && 'status' in (expr as Record<string, unknown>) && (expr as Record<string, unknown>).status === 'resolved') {
+      return expr as SemanticResolution;
+    }
+
     if (acc.resolvedType && acc.resolvedType !== 'unknown') {
       const t = acc.resolvedType === 'integer' || acc.resolvedType === 'number' ? 'number' :
                 acc.resolvedType === 'boolean' ? 'boolean' :
@@ -78,8 +84,13 @@ export class AccessorResolver implements ResolverPlugin {
       };
     }
 
-    if (acc.expression) {
-      return this.evaluateExpression(acc.expression, currentModel, context);
+    // Prefer parsed_ast (the raw AST node) over expression (which may be a resolved result)
+    if (acc.parsed_ast) {
+      return this.evaluateExpression(acc.parsed_ast as Record<string, unknown>, currentModel, context);
+    }
+
+    if (expr && typeof expr === 'object' && 'kind' in (expr as Record<string, unknown>)) {
+      return this.evaluateExpression(expr as Record<string, unknown>, currentModel, context);
     }
 
     return {
@@ -90,7 +101,7 @@ export class AccessorResolver implements ResolverPlugin {
     };
   }
 
-  private evaluateExpression(expr: any, currentModel: any, context: ResolutionContext): SemanticResolution {
+  private evaluateExpression(expr: Record<string, unknown>, currentModel: Record<string, unknown>, context: ResolutionContext): SemanticResolution {
     if (!expr) {
       return {
         status: 'unknown',

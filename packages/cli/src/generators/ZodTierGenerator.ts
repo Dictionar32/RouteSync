@@ -79,7 +79,11 @@ export class ZodTierGenerator {
             Object.values(field.fields).forEach(f => patchField(f));
           } else {
             const meta = field.resolved || field.semantic;
-            const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
+            const ast = field.parsed_ast || (field.node && field.node.parsed_ast)
+              // Phase 2 (FieldNode migration): incremental.ts no longer
+              // wraps a resolved field in a surviving raw_code node with a
+              // nested parsed_ast — the field itself IS the parsed node now.
+              || (field.kind && field.kind !== 'object' && field.kind !== 'raw_code' ? field : null);
             if ((!meta || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
               const resolved = kernel.resolve(ast, context)
               if (resolved && resolved.status !== 'unknown') {
@@ -125,7 +129,11 @@ export class ZodTierGenerator {
           if (!meta) return;
           if (meta.kind === 'object' && meta.fields) {
             Object.values(meta.fields).forEach((field: any) => {
-              const ast = field.parsed_ast || (field.node && field.node.parsed_ast);
+              const ast = field.parsed_ast || (field.node && field.node.parsed_ast)
+              // Phase 2 (FieldNode migration): incremental.ts no longer
+              // wraps a resolved field in a surviving raw_code node with a
+              // nested parsed_ast — the field itself IS the parsed node now.
+              || (field.kind && field.kind !== 'object' && field.kind !== 'raw_code' ? field : null);
               if (ast) {
                   const resolved = kernel.resolve(ast, context)
                   if (resolved && resolved.status !== 'unknown') {

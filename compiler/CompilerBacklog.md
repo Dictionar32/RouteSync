@@ -8,17 +8,27 @@ current user-visible symptom; LOW if it's cleanup with no behavioral effect eith
 
 ## HIGH
 
-### H1. Duplicate semantic kernel with diverging rule tables
-**Files**: `packages/core/src/semantic/SemanticKernelV2.ts` (used by `scan`/`sync` — the code
-path that actually produces the manifest) vs.
-`packages/cli/src/resolvers/SemanticResolutionKernel.ts` (used by `audit`/`explain` only).
-**Impact**: `routesync explain` can report a resolution path that would not have produced the
-type currently in the manifest, because the two kernels implement different framework-helper
-allowlists and different confidence-gating (`SemanticSpecification.md` §5,
-`ZeroBoilerplate.md` §5). This breaks `Constitution.md` §3 ("every resolution must carry
-evidence") specifically in the disagreement case.
-**Blocks**: `CompilerRoadmap.md` Stage 6 (plugin compiler) — can't build one plugin dispatcher
-until there's one kernel to dispatch through.
+### H1. ~~Duplicate semantic kernel with diverging rule tables~~ — RESOLVED
+**Original claim** (inaccurate — corrected here per `Constitution.md`'s evidence-grounding rule):
+this entry named `packages/core/src/semantic/SemanticKernelV2.ts` as the live kernel used by
+`scan`/`sync`. That file was actually a 1-line stub (`// Obsolete file. Code moved to
+SemanticResolutionKernel.ts`) — the real live kernel was already
+`packages/core/src/semantic/SemanticResolutionKernel.ts`, exported from `@routesync/core` as
+both `SemanticKernelV2Impl` and `SemanticResolutionKernel`, and that's what `scan.ts`, `sync.ts`,
+and `audit.ts` all actually import. The claimed second consumer — `audit`/`explain` using
+`packages/cli/src/resolvers/SemanticResolutionKernel.ts` — was also inaccurate: `audit.ts`
+already imported the core kernel (`require('@routesync/core')`), not the CLI-local copy. The
+CLI-local kernel (105 lines, missing `VariableResolver`/`ConditionalWrapperResolver`, looser
+`any[]` typing) had zero importers anywhere in the repo, including its own barrel
+(`packages/cli/src/resolvers/index.ts`), which was itself unimported.
+**Fix applied**: deleted the dead files — `packages/core/src/semantic/SemanticKernelV2.ts`,
+`packages/cli/src/resolvers/SemanticResolutionKernel.ts`, `packages/cli/src/resolvers/types.ts`,
+`packages/cli/src/resolvers/plugins/*` (7 files), `packages/cli/src/resolvers/index.ts`.
+`packages/cli/src/resolvers/IntentResolver.ts` kept as-is (unrelated concern, imported directly
+by `generate.ts`, no dependency on the deleted files). No behavior change: every deleted file
+had zero live importers before deletion.
+**Unblocks**: `CompilerRoadmap.md` Stage 6 (plugin compiler) — there was already exactly one
+kernel to dispatch through; this removed the dead code that made it look otherwise.
 
 ### H2. `cart` domain logic hardcoded into a general-purpose generator
 **Files**: `packages/cli/src/generators/HookGenerator.ts` lines ~430–593.
@@ -30,13 +40,23 @@ project's cart shape, which is boilerplate migrating into the compiler instead o
 copy-pasting the block and re-doing the string-matching.
 **Blocks**: `CompilerRoadmap.md` Stage 5 (domain graph).
 
-### H3. Unused IR wrapper — `stableHash`/`lineage` never computed
-**Files**: `packages/core/src/types/semantic.ts` (`IRMeta`), only ever instantiated with
-`stableHash: ""`, `lineage: []` in `packages/sdk/src/generator.ts:121`.
-**Impact**: every `scan` is a full cold re-extraction; there is no incremental compilation path
-even though the IR spec explicitly reserved fields for it (`ZeroBoilerplate.md` §6). Directly
-blocks `watch` mode from ever being genuinely incremental.
-**Blocks**: `CompilerRoadmap.md` Stage 3.
+### H3. ~~Unused IR wrapper — `stableHash`/`lineage` never computed~~ — RESOLVED (Stage 2)
+**Original files**: `packages/core/src/types/semantic.ts` (`IRMeta`), only ever instantiated with
+`stableHash: ""`, `lineage: []` in `packages/sdk/src/generator.ts:121` — a dead code path
+(`packages/sdk`'s `SdkGenerator`/`ZodEmitter` are never called by `scan`/`sync`).
+**Fix applied**: `packages/core/src/ir/buildIRNode.ts` (new) computes a real `stableHash` (sha256
+of the raw code + resolved semantic outcome) and `lineage` (ancestor id chain). Wired into the
+live path — `packages/cli/src/utils/incremental.ts`'s `resolveField` and model-accessor
+resolution now call this for every resolved route/resource/model field, writing an addressable
+`SemanticIRNode` registry to `routesync.ir.json` (additive — `field.resolved`, the manifest, and
+the graph output are unchanged). Route-level nodes carry real `source.file`/`source.line` from
+`ReflectionMethod` (threaded through `LaravelRouteParser.ts`); same now applies to resource
+`toArray()` methods and model accessors.
+**Still open**: this makes per-field `stableHash` available, but incremental *invalidation* is
+still route-granularity only (`calculateRouteHash` in the same file) — a route is either fully
+cached or fully re-resolved. Making `sync`/`watch` skip re-resolution per-node using this hash is
+Stage 3's job, not done here.
+**Blocks**: `CompilerRoadmap.md` Stage 3 (now unblocked to start).
 
 ### H4. Dead SDK generation backend
 **Files**: `packages/cli/src/generators/CompilerBackendGenerator.ts`,
@@ -76,11 +96,11 @@ inconsistency bug waiting for one of the two paths to be edited without the othe
 output surface a consuming developer has to disambiguate — directly contrary to the
 zero-boilerplate principle applied to the *generated* output, not just the compiler's own code.
 
-### M4. `ServiceGraphBuilder.ts` implemented but unwired
-**Files**: `packages/core/src/graph/ServiceGraphBuilder.ts`.
-**Impact**: no functional impact today (nothing depends on it), but it is exactly the Stage 4
-dependency-graph precursor named in `CompilerRoadmap.md` — leaving it unwired indefinitely means
-re-discovering or re-writing it when Stage 4 work starts (`ContractGraph.md` §5).
+### M4. ~~`ServiceGraphBuilder.ts` implemented but unwired~~ — STALE, already wired
+**Correction**: `scan.ts` (lines ~76-79) already calls `ServiceGraphBuilder` and writes
+`routesync.graph.json` — confirmed by reading the file directly, not by re-running this claim.
+`sync.ts` does not call it (only `scan.ts` does); worth confirming whether that asymmetry is
+intentional before Stage 4 work starts, but it is not "unwired."
 
 ### M5. Manifest inconsistency between `scan` output and `graph.json`
 **Files**: `scan.ts` writes both `routesync.manifest.json` (portable IR) and
@@ -102,10 +122,10 @@ currently pure `routesync audit` exhaust, invisible in the artifact a developer 
 **Files**: `packages/cli/src/generators/ValuesGenerator.ts`.
 **Impact**: none currently observed; flagged for the same deletion-vs-document decision as H4.
 
-### L2. Duplicated `mapSqlTypeToTs`/`mapCastToTs` logic
-**Files**: implemented independently in both semantic kernels (`Constitution.md` §10 item 1).
-Subsumed by H1's fix — once the kernels are unified this duplication disappears with it, so it
-is not separately scheduled in `CompilerRefactorPlan.md`.
+### L2. ~~Duplicated `mapSqlTypeToTs`/`mapCastToTs` logic~~ — RESOLVED by H1's fix
+Was implemented independently in both semantic kernels (`Constitution.md` §10 item 1); the
+duplicate (`packages/cli/src/resolvers/SemanticResolutionKernel.ts`) was deleted as part of H1,
+taking this duplication with it.
 
 ### L3. Emit-backend cleanup once H4 is resolved
 Once a decision is made on `CompilerBackendGenerator`/`SdkGenerator` (delete vs. explicitly mark

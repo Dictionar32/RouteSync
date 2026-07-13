@@ -69,7 +69,7 @@ export const scanCommand = new Command('scan')
       })
       
       const { resolveManifestIncrementally } = await import('../utils/incremental')
-      const resolvedManifest = resolveManifestIncrementally(manifest, outputPath, kernel, models as ScannedModel[] | undefined)
+      const { manifest: resolvedManifest, irRegistry } = resolveManifestIncrementally(manifest, outputPath, kernel, models as ScannedModel[] | undefined)
 
       await ManifestGenerator.save(resolvedManifest, outputPath)
       const fs = require('fs')
@@ -77,6 +77,13 @@ export const scanCommand = new Command('scan')
       const graphBuilder = new ServiceGraphBuilder()
       const serviceGraph = graphBuilder.buildFromManifest(resolvedManifest as unknown as RouteManifest)
       fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.graph.json'), JSON.stringify(serviceGraph, null, 2))
+
+      // Stage 2 (IR v3) output — additive, does not change manifest/graph output above.
+      // Addressable SemanticIRNodes for stages 3-6 (CompilerRoadmap.md) to key off.
+      fs.writeFileSync(
+        path.resolve(path.dirname(outputPath), 'routesync.ir.json'),
+        JSON.stringify({ irVersion: 'ir.v2', nodeCount: irRegistry.size, nodes: irRegistry.toJSON() }, null, 2)
+      )
 
       spinner.succeed(
         chalk.green(`Found ${routes.length} routes, ${models?.length || 0} models, ${resources?.length || 0} resources → ${outputPath}`)

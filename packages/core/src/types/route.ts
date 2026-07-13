@@ -47,6 +47,8 @@ export interface ParsedResource {
   name: string // e.g., UserResource
   fields: Record<string, ResourceFieldKind>
   assignments?: Record<string, string>
+  sourceFile?: string | null
+  sourceLine?: number | null
 }
 
 export type ResponseMetadata = (
@@ -75,6 +77,9 @@ export interface ParsedRoute {
   response?: ResponseMetadata
   assignments?: Record<string, string>
   stableHash?: string
+  /** Real file/line of the controller action, from ReflectionMethod. Null for closures. */
+  sourceFile?: string | null
+  sourceLine?: number | null
 }
 
 export interface ParsedColumn {

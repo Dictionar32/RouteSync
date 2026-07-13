@@ -1,5 +1,4 @@
 import { SemanticResolution, TraceNode } from '../../types/contract';
-import { SemanticType } from '../../types/semantic';
 import { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode, ModelAccessor } from '../types';
 
 export class AccessorResolver implements ResolverPlugin {
@@ -8,8 +7,11 @@ export class AccessorResolver implements ResolverPlugin {
   }
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    const model = context.models.find(m => m.name === meta.model);
-    if (!model) {
+    if (meta.kind !== 'model_accessor') {
+      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+    }
+    const symbol = context.symbolTable.get(meta.model);
+    if (!symbol) {
       return {
         status: 'unknown',
         type: 'unknown',
@@ -19,8 +21,9 @@ export class AccessorResolver implements ResolverPlugin {
     }
 
     const colName = meta.column || '';
-    if (model.accessors && model.accessors[colName]) {
-      const acc = model.accessors[colName];
+    const acc = symbol.accessor(colName);
+    if (acc) {
+      const model = symbol.node;
       const nodeId = `${model.name}.${colName}`;
       if (!context.cycleDetector.enter(nodeId)) {
          return {
@@ -58,40 +61,20 @@ export class AccessorResolver implements ResolverPlugin {
       status: 'unknown',
       type: 'unknown',
       confidence: 0,
-      trace: [{ source: 'AccessorResolver', rule: `Accessor ${colName} not found on model ${model.name}` }]
+      trace: [{ source: 'AccessorResolver', rule: `Accessor ${colName} not found on model ${symbol.name}` }]
     };
   }
 
   private resolveAccessor(acc: ModelAccessor, currentModel: ModelNode, context: ResolutionContext): SemanticResolution {
-    // If expression is already a resolved SemanticResolution, return it directly
-    if (acc.expression && typeof acc.expression === 'object' && 'status' in acc.expression && acc.expression.status === 'resolved') {
-      return acc.expression as SemanticResolution;
+    // Cache: already resolved by a previous scan (incremental.ts always
+    // sets `semantic` to the resolved outcome, never a raw meta — unlike
+    // the old `expression` field, there's no ambiguity to check for here).
+    if (acc.semantic && acc.semantic.status === 'resolved') {
+      return acc.semantic;
     }
 
-    if (acc.resolvedType && acc.resolvedType !== 'unknown') {
-      const t: SemanticType = acc.resolvedType === 'integer' || acc.resolvedType === 'number' ? 'number' :
-                acc.resolvedType === 'boolean' ? 'boolean' :
-                acc.resolvedType === 'array' ? 'array' : 'string';
-      return {
-        status: 'resolved',
-        type: t,
-        confidence: 90,
-        trace: [{
-          source: 'AccessorResolver',
-          rule: 'Resolved type cache lookup',
-          input: acc.resolvedType,
-          output: t
-        }]
-      };
-    }
-
-    // Prefer parsed_ast (the raw AST node) over expression (which may be a resolved result)
-    if (acc.parsed_ast) {
-      return this.evaluateExpression(acc.parsed_ast, currentModel, context);
-    }
-
-    if (acc.expression && typeof acc.expression === 'object' && 'kind' in acc.expression) {
-      return this.evaluateExpression(acc.expression as ResolverMeta, currentModel, context);
+    if (acc.ast) {
+      return context.kernel.resolve(acc.ast, currentModel);
     }
 
     return {
@@ -100,9 +83,5 @@ export class AccessorResolver implements ResolverPlugin {
       confidence: 0,
       trace: [{ source: 'AccessorResolver', rule: 'Accessor has no expression or static resolution' }]
     };
-  }
-
-  private evaluateExpression(expr: ResolverMeta, currentModel: ModelNode, context: ResolutionContext): SemanticResolution {
-    return context.kernel.resolve(expr, currentModel);
   }
 }

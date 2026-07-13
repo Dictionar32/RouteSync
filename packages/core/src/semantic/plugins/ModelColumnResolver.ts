@@ -18,9 +18,13 @@ export class ModelColumnResolver implements ResolverPlugin {
       };
     }
 
+    if (meta.kind !== 'model_column') {
+      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+    }
+
     const modelName = meta.model || '';
-    const model = context.models.find(m => m.name === modelName);
-    if (!model) {
+    const symbol = context.symbolTable.get(modelName);
+    if (!symbol) {
       return {
         status: 'unknown',
         type: 'unknown',
@@ -30,33 +34,20 @@ export class ModelColumnResolver implements ResolverPlugin {
     }
 
     const colName = meta.column || '';
-    let colType: string | null = null;
-    let isNullable = false;
-
-    if (model.columns && Array.isArray(model.columns)) {
-      const col = model.columns.find(c => c.name === colName);
-      if (col) {
-        colType = col.type;
-        isNullable = col.nullable;
-      }
-    } else if (model.fields && typeof model.fields === 'object') {
-      const col = model.fields[colName];
-      if (col) {
-        colType = col.type;
-        isNullable = col.nullable;
-      }
-    }
+    const col = symbol.column(colName);
+    let colType: string | null = col ? col.type : null;
+    let isNullable = col ? col.nullable : false;
 
     if (colType) {
       let tsType = context.kernel.mapSqlTypeToTs(colType);
       const trace: TraceNode[] = [{
         source: 'ModelColumnResolver',
         rule: `Column type lookup from database schema`,
-        input: `${model.name}.${colName}`,
+        input: `${symbol.name}.${colName}`,
         output: tsType
       }];
-      
-      const castType = (model.casts || {})[colName];
+
+      const castType = symbol.cast(colName);
       if (castType) {
           const oldType = tsType;
           tsType = context.kernel.mapCastToTs(castType, tsType);
@@ -73,49 +64,45 @@ export class ModelColumnResolver implements ResolverPlugin {
         nullable: isNullable || undefined,
         confidence: 100,
         trace,
-        ...(tsType === 'json-object' ? { sourceModel: model.name, sourceColumn: colName } : {})
+        ...(tsType === 'json-object' ? { sourceModel: symbol.name, sourceColumn: colName } : {})
       };
     }
 
     // 2. Accessors
-    if (model.accessors && model.accessors[colName]) {
-      return context.kernel.resolve({ kind: 'model_accessor', model: model.name, column: colName }, model);
+    if (symbol.accessor(colName)) {
+      return context.kernel.resolve({ kind: 'model_accessor', model: symbol.name, column: colName }, symbol.node);
     }
 
     // 2b. Accessor fallback: snake_case → camelCase (Laravel accessors are camelCase)
-    if (model.accessors) {
-      const camelName = colName.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
-      if (camelName !== colName && model.accessors[camelName]) {
-        return context.kernel.resolve({ kind: 'model_accessor', model: model.name, column: camelName }, model);
-      }
+    const camelName = colName.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
+    if (camelName !== colName && symbol.accessor(camelName)) {
+      return context.kernel.resolve({ kind: 'model_accessor', model: symbol.name, column: camelName }, symbol.node);
     }
 
     // 3. Relations
-    if (model.relations && model.relations[colName]) {
-      const rel = model.relations[colName];
-      if (rel.model) {
-        const isCollection = rel.type?.includes('many') || rel.type?.includes('Many') || false;
-        return {
-          status: 'resolved',
-          type: 'model',
-          model: rel.model,
-          collection: isCollection || undefined,
-          confidence: 100,
-          trace: [{
-            source: 'ModelColumnResolver',
-            rule: `Relation model lookup`,
-            input: `${model.name}.${colName}`,
-            output: `model: ${rel.model} (type: ${rel.type})`
-          }]
-        };
-      }
+    const rel = symbol.relation(colName);
+    if (rel && rel.model) {
+      const isCollection = rel.type?.includes('many') || rel.type?.includes('Many') || false;
+      return {
+        status: 'resolved',
+        type: 'model',
+        model: rel.model,
+        collection: isCollection || undefined,
+        confidence: 100,
+        trace: [{
+          source: 'ModelColumnResolver',
+          rule: `Relation model lookup`,
+          input: `${symbol.name}.${colName}`,
+          output: `model: ${rel.model} (type: ${rel.type})`
+        }]
+      };
     }
 
     return {
       status: 'unknown',
       type: 'unknown',
       confidence: 0,
-      trace: [{ source: 'ModelColumnResolver', rule: `Property ${colName} not found on model ${model.name}` }]
+      trace: [{ source: 'ModelColumnResolver', rule: `Property ${colName} not found on model ${symbol.name}` }]
     };
   }
 }

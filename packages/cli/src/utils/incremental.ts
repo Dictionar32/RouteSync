@@ -1,6 +1,8 @@
 import fs from 'fs-extra'
+import path from 'path'
 import crypto from 'crypto'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
+import { buildSemanticIRNode, IRNodeRegistry, SemanticIRNode, SemanticNode, SourceRef } from '@routesync/core'
 
 export interface ScannedRoute {
   method: string;
@@ -11,15 +13,23 @@ export interface ScannedRoute {
   assignments?: Record<string, string> | null;
   stableHash?: string;
   name?: string;
+  sourceFile?: string | null;
+  sourceLine?: number | null;
 }
 
 export interface ScannedModel {
   name: string;
   accessors?: Record<string, {
-    expression?: unknown;
+    // input, from the PHP scanner (LaravelRouteParser.ts emits 'expression', not 'expression_code'):
     type?: string;
+    expression?: string | null;
     expression_code?: string | null;
-    parsed_ast?: unknown;
+    sourceFile?: string | null;
+    sourceLine?: number | null;
+    // output, written by resolveManifestIncrementally below:
+    ast?: unknown;
+    semantic?: unknown;
+    source?: { file: string; line?: number };
   }>;
 }
 
@@ -28,6 +38,8 @@ export interface ScannedResource {
   model?: string;
   assignments?: Record<string, string>;
   fields?: Record<string, unknown>;
+  sourceFile?: string | null;
+  sourceLine?: number | null;
 }
 
 export interface ScannedManifest {
@@ -62,12 +74,18 @@ interface KernelResolver {
   getModels?(): Record<string, unknown>[];
 }
 
+export interface ResolveManifestResult {
+  manifest: ScannedManifest
+  /** Stage 2 (IR v3) output — every resolved field as a real, addressable SemanticIRNode. */
+  irRegistry: IRNodeRegistry
+}
+
 export function resolveManifestIncrementally(
   newManifest: ScannedManifest,
   prevManifestPath: string,
   kernel: KernelResolver,
   models: ScannedModel[] | undefined
-): ScannedManifest {
+): ResolveManifestResult {
   let prevManifest: ScannedManifest | null = null
   if (fs.existsSync(prevManifestPath)) {
     try {
@@ -78,6 +96,22 @@ export function resolveManifestIncrementally(
   }
 
   const resolvedManifest = JSON.parse(JSON.stringify(newManifest)) as ScannedManifest
+  const irRegistry = new IRNodeRegistry()
+
+  // Cache-hit routes below skip re-resolution entirely, which means they'd
+  // never call registerIRNode this run. Without this, routesync.ir.json
+  // would shrink on every incremental scan instead of staying complete —
+  // load prior nodes so a cache-hit route keeps the IR nodes it already had.
+  let prevIRNodes: Record<string, SemanticIRNode> = {}
+  const prevIRPath = path.resolve(path.dirname(prevManifestPath), 'routesync.ir.json')
+  if (fs.existsSync(prevIRPath)) {
+    try {
+      const prevIR = fs.readJsonSync(prevIRPath)
+      prevIRNodes = prevIR?.nodes || {}
+    } catch (e) {
+      // ignore JSON parsing errors
+    }
+  }
 
   const prevRouteMap = new Map<string, ScannedRoute>()
   if (prevManifest && prevManifest.routes) {
@@ -86,28 +120,74 @@ export function resolveManifestIncrementally(
     })
   }
 
+  // Registers a resolved field as a real SemanticIRNode. `id` must be a
+  // unique, deterministic path (see call sites) — it is what stages 3-6
+  // (CompilerRoadmap.md) key off, so it has to be stable across scans, not
+  // just unique within one.
+  const registerIRNode = (
+    id: string,
+    source: SourceRef,
+    rawCode: string,
+    resolved: Record<string, unknown>,
+    lineage: string[]
+  ) => {
+    irRegistry.add(
+      buildSemanticIRNode({
+        id,
+        source,
+        rawCode,
+        semantic: resolved as unknown as SemanticNode,
+        lineage,
+      })
+    )
+  }
+
   const resolveField = (
     field: Record<string, unknown> | undefined | null,
     contextModel: ScannedModel | ScannedResource | undefined | null,
-    assignments?: Record<string, unknown>,
-    resolvedAssignments?: Record<string, unknown>
+    assignments: Record<string, unknown> | undefined,
+    resolvedAssignments: Record<string, unknown> | undefined,
+    idPath: string,
+    source: SourceRef,
+    lineage: string[]
   ): Record<string, unknown> | undefined | null => {
     if (!field) return field;
     
     if (field.kind === 'object' && field.fields) {
       const fields = field.fields as Record<string, unknown>;
       for (const key in fields) {
-        fields[key] = resolveField(fields[key] as Record<string, unknown>, contextModel, assignments, resolvedAssignments);
+        fields[key] = resolveField(
+          fields[key] as Record<string, unknown>,
+          contextModel,
+          assignments,
+          resolvedAssignments,
+          `${idPath}.fields.${key}`,
+          source,
+          [...lineage, idPath]
+        );
       }
       return field;
     }
 
-    let astToResolve: unknown = field;
+    let target: Record<string, unknown> = field;
     if (field.kind === 'raw_code' && typeof field.code === 'string') {
-       const parsedAst = PhpCodeParser.parseExpression(field.code, field.hints as Record<string, unknown>);
-       field.parsed_ast = parsedAst;
-       astToResolve = parsedAst;
+       const parsedField = PhpCodeParser.parseExpression(field.code, field.hints as Record<string, unknown>);
+       // The raw_code node is replaced by its parsed form in the tree —
+       // it must not survive as a wrapper holding a nested parsed_ast
+       // (see design review: "RawCodeField should always disappear after
+       // the parser"). ZodTierGenerator's on-the-fly retry resolution was
+       // updated to match — it now falls back to using the field itself
+       // when there's no separate parsed_ast to find.
+       target = parsedField as unknown as Record<string, unknown>;
     }
+    // Every ParsedField carries its own originalCode (field.ts) — falling
+    // back to that instead of only trusting the raw_code branch means the
+    // IR's source expression survives even if a field ever arrives already
+    // parsed (a different producer, a future caller, etc.), not just when
+    // resolveField itself did the parsing.
+    const rawCode = field.kind === 'raw_code' && typeof field.code === 'string'
+      ? field.code
+      : (typeof target.originalCode === 'string' ? target.originalCode : '');
 
     const context = {
       modelMap: {},
@@ -118,12 +198,13 @@ export function resolveManifestIncrementally(
       resolvedAssignments: resolvedAssignments || {}
     };
 
-    const resolved = kernel.resolve(astToResolve, context);
+    const resolved = kernel.resolve(target, context);
     if (resolved && resolved.status !== 'unknown') {
-       field.resolved = resolved as unknown as Record<string, unknown>;
+       target.resolved = resolved as unknown as Record<string, unknown>;
+       registerIRNode(idPath, source, rawCode, resolved, lineage);
     }
 
-    return field;
+    return target;
   }
 
   // Resolve Model Accessors
@@ -135,7 +216,7 @@ export function resolveManifestIncrementally(
           if (accessor) {
             let resolved: Record<string, unknown> | null = null;
             let parsedAst: unknown = null;
-            let exprCode = accessor.expression_code || (typeof (accessor as any).expression === 'string' ? (accessor as any).expression : null) || null;
+            let exprCode = accessor.expression || accessor.expression_code || null;
 
             if (typeof exprCode === 'string' && exprCode.trim()) {
               parsedAst = PhpCodeParser.parseExpression(exprCode);
@@ -168,10 +249,20 @@ export function resolveManifestIncrementally(
             }
 
             model.accessors[key] = {
-              expression_code: exprCode,
-              parsed_ast: parsedAst,
-              expression: resolved
+              source: { file: accessor.sourceFile ?? '', line: accessor.sourceLine ?? undefined },
+              ast: parsedAst,
+              semantic: resolved
             };
+
+            if (resolved.status !== 'unknown') {
+              registerIRNode(
+                `model:${model.name}#accessors.${key}`,
+                { file: accessor.sourceFile ?? '', line: accessor.sourceLine ?? undefined, context: 'model' },
+                typeof exprCode === 'string' ? exprCode : '',
+                resolved,
+                [`model:${model.name}`]
+              );
+            }
           }
         }
       }
@@ -222,9 +313,18 @@ export function resolveManifestIncrementally(
         }
       }
 
+      const resourceSource: SourceRef = { file: res.sourceFile ?? '', line: res.sourceLine ?? undefined, context: 'resource' };
       if (res.fields) {
         for (const key in res.fields) {
-          res.fields[key] = resolveField(res.fields[key] as Record<string, unknown>, contextModel || res, parsedAssignments, resolvedAssignments) as Record<string, unknown>;
+          res.fields[key] = resolveField(
+            res.fields[key] as Record<string, unknown>,
+            contextModel || res,
+            parsedAssignments,
+            resolvedAssignments,
+            `resource:${res.name}#fields.${key}`,
+            resourceSource,
+            [`resource:${res.name}`]
+          ) as Record<string, unknown>;
         }
       }
     })
@@ -240,6 +340,13 @@ export function resolveManifestIncrementally(
       if (cachedRoute && cachedRoute.stableHash === hash) {
         route.response = cachedRoute.response
         route.assignments = cachedRoute.assignments
+
+        const cachedRouteId = `route:${route.method}:${route.path}`
+        for (const [nodeId, node] of Object.entries(prevIRNodes)) {
+          if (nodeId === cachedRouteId || nodeId.startsWith(`${cachedRouteId}#`)) {
+            irRegistry.add(node)
+          }
+        }
         return
       }
 
@@ -266,19 +373,45 @@ export function resolveManifestIncrementally(
         }
       }
 
+      // Real source location from ReflectionMethod (packages/cli/src/parsers/LaravelRouteParser.ts),
+      // not a placeholder — null only when the action genuinely has no
+      // reflectable location (e.g. a route closure).
+      const routeSource: SourceRef = {
+        file: route.sourceFile ?? '',
+        line: route.sourceLine ?? undefined,
+        context: 'route',
+      };
+      const routeId = `route:${route.method}:${route.path}`;
+
       if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
-         route.response = resolveField(route.response as Record<string, unknown>, null, parsedAssignments, resolvedAssignments) as Record<string, unknown>;
+         route.response = resolveField(
+           route.response as Record<string, unknown>,
+           null,
+           parsedAssignments,
+           resolvedAssignments,
+           `${routeId}#response`,
+           routeSource,
+           [routeId]
+         ) as Record<string, unknown>;
       } else if (route.response && route.response.kind === 'object' && route.response.fields) {
          const fields = route.response.fields as Record<string, unknown>;
          for (const key in fields) {
             const field = fields[key] as Record<string, unknown>;
             if (field.kind && field.kind !== 'primitive') {
-               fields[key] = resolveField(field, null, parsedAssignments, resolvedAssignments) as Record<string, unknown>;
+               fields[key] = resolveField(
+                 field,
+                 null,
+                 parsedAssignments,
+                 resolvedAssignments,
+                 `${routeId}#response.fields.${key}`,
+                 routeSource,
+                 [routeId]
+               ) as Record<string, unknown>;
             }
           }
       }
     })
   }
 
-  return resolvedManifest
+  return { manifest: resolvedManifest, irRegistry }
 }

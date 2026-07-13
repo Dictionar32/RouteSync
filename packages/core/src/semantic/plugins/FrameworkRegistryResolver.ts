@@ -1,127 +1,87 @@
 import { SemanticResolution, TraceNode } from '../../types/contract';
-import { SemanticType } from '../../types/semantic';
 import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { lookupGlobalFunction, lookupMethod, lookupVariableMethod, FrameworkMethodRule } from '../FrameworkRegistry';
 
-const FRAMEWORK_REGISTRY: Record<string, { input: string[], output: SemanticType, evidence: string }> = {
-  strtoupper: { input: ['string'], output: 'string', evidence: 'framework:string_function' },
-  strtolower: { input: ['string'], output: 'string', evidence: 'framework:string_function' },
-  ucfirst: { input: ['string'], output: 'string', evidence: 'framework:string_function' },
-  ucwords: { input: ['string'], output: 'string', evidence: 'framework:string_function' },
-  intval: { input: ['any'], output: 'number', evidence: 'framework:number_cast' },
-  floatval: { input: ['any'], output: 'number', evidence: 'framework:number_cast' },
-  boolval: { input: ['any'], output: 'boolean', evidence: 'framework:boolean_cast' },
-  now: { input: [], output: 'string', evidence: 'framework:date_helper' },
+function ruleToResolution(rule: FrameworkMethodRule, trace: TraceNode[]): SemanticResolution {
+  return {
+    status: 'resolved',
+    type: rule.returns,
+    model: rule.model,
+    collection: rule.collection,
+    paginated: rule.paginated,
+    fields: rule.fields,
+    confidence: rule.confidence ?? 100,
+    trace
+  };
 }
 
 export class FrameworkRegistryResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
-    if (!meta) return false;
+    if (!meta || (meta.kind !== 'method_call' && meta.kind !== 'static_method_call')) return false;
 
-    // 1. Function call
-    if (meta.kind === 'function_call') return true;
-
-    // 2. Targetless method calls (global helpers)
-    if (meta.kind === 'method_call' && !meta.target) return true;
-
-    // 3. validated / safe / createToken / format / diffForHumans etc.
-    if (meta.kind === 'method_call' && ['validated', 'safe', 'createToken', 'toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(meta.name || meta.method || '')) return true;
+    if (meta.kind === 'method_call' && !meta.target && lookupGlobalFunction(meta.name)) return true;
+    if (lookupMethod(meta.name)) return true;
+    if (meta.kind === 'method_call' && meta.target?.kind === 'variable' && lookupVariableMethod(meta.target.name, meta.name)) return true;
 
     return false;
   }
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    const methodName = meta.method || meta.name || meta.function || '';
+    if (meta.kind !== 'method_call' && meta.kind !== 'static_method_call') {
+      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+    }
+    const methodName = meta.name;
 
-    // 1. Check direct function / targetless method mapping in registry
-    if (methodName && FRAMEWORK_REGISTRY[methodName]) {
-      const funcDef = FRAMEWORK_REGISTRY[methodName];
-      const trace: TraceNode[] = [{
-        source: 'FrameworkRegistryResolver',
-        rule: `Framework helper function lookup: ${methodName}`,
-        input: methodName,
-        output: funcDef.output
-      }];
-      const args = meta.arguments || meta.args;
-      if (args && args.length > 0) {
-          const argRes = context.kernel.resolve(args[0], context.contextModel);
+    // 1. Variable-keyed helpers (request->user(), pdf->download()) — checked
+    // first since these are the most specific match.
+    if (meta.kind === 'method_call' && meta.target?.kind === 'variable') {
+      const varRule = lookupVariableMethod(meta.target.name, methodName);
+      if (varRule) {
+        return ruleToResolution(varRule, [{
+          source: 'FrameworkRegistryResolver',
+          rule: `Variable-keyed helper: ${meta.target.name}->${methodName}()`,
+          input: `${meta.target.name}->${methodName}()`,
+          output: varRule.returns
+        }]);
+      }
+    }
+
+    // 2. Global targetless helpers — `strtoupper($x)`, bare `now()`. The
+    // parser has no separate function_call kind: both a global helper and
+    // `strtoupper($x)` come through as method_call with target: null.
+    if (meta.kind === 'method_call' && !meta.target) {
+      const globalRule = lookupGlobalFunction(methodName);
+      if (globalRule) {
+        const trace: TraceNode[] = [{
+          source: 'FrameworkRegistryResolver',
+          rule: `Global function lookup: ${methodName}`,
+          input: methodName,
+          output: globalRule.returns
+        }];
+        if (meta.args.length > 0) {
+          const argRes = context.kernel.resolve(meta.args[0], context.contextModel);
           if (argRes.trace) trace.push(...argRes.trace);
-      }
-      return {
-        status: 'resolved',
-        type: funcDef.output,
-        confidence: 100,
-        trace
-      };
-    }
-
-    // 2. Global targetless helpers
-    if ((meta.kind === 'method_call' && !meta.target) || meta.kind === 'function_call') {
-      if (['asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'strtoupper', 'strtolower'].includes(methodName)) {
-        return {
-          status: 'resolved',
-          type: 'string',
-          confidence: 100,
-          trace: [{ source: 'FrameworkRegistryResolver', rule: 'Global string helper', input: methodName, output: 'string' }]
-        };
-      }
-      if (['intval', 'floatval', 'doubleval', 'count'].includes(methodName)) {
-        return {
-          status: 'resolved',
-          type: 'number',
-          confidence: 100,
-          trace: [{ source: 'FrameworkRegistryResolver', rule: 'Global number helper', input: methodName, output: 'number' }]
-        };
-      }
-      if (['boolval'].includes(methodName)) {
-        return {
-          status: 'resolved',
-          type: 'boolean',
-          confidence: 100,
-          trace: [{ source: 'FrameworkRegistryResolver', rule: 'Global boolean helper', input: methodName, output: 'boolean' }]
-        };
+        }
+        return ruleToResolution(globalRule, trace);
       }
     }
 
-    // 3. Validated and safe request methods
-    if (['validated', 'safe'].includes(methodName)) {
-      return {
-        status: 'resolved',
-        type: 'object',
-        confidence: 100,
-        trace: [{ source: 'FrameworkRegistryResolver', rule: 'Request validation method', input: methodName, output: 'object' }]
-      };
-    }
-
-    // 4. Carbon date format/helper methods
-    if (['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime'].includes(methodName)) {
+    // 3. Method-name-only registry (Carbon date methods, validated/safe,
+    // createToken) — see FrameworkRegistry.ts's header for why there's no
+    // `owner` scoping yet.
+    const methodRule = lookupMethod(methodName);
+    if (methodRule) {
       const trace: TraceNode[] = [{
         source: 'FrameworkRegistryResolver',
-        rule: 'Carbon date method call',
+        rule: `Framework method lookup: ${methodName}`,
         input: methodName,
-        output: 'string'
+        output: methodRule.returns
       }];
-      if (meta.target) {
+      if (meta.kind === 'method_call' && meta.target) {
         const targetRes = context.kernel.resolve(meta.target, context.contextModel);
         if (targetRes.trace) trace.push(...targetRes.trace);
       }
-      return {
-        status: 'resolved',
-        type: 'string',
-        confidence: 100,
-        trace
-      };
-    }
-
-    if (methodName === 'createToken') {
-      return {
-        status: 'resolved',
-        type: 'object',
-        fields: {
-           plainTextToken: 'string'
-        },
-        confidence: 100,
-        trace: [{ source: 'FrameworkRegistryResolver', rule: 'Sanctum createToken method call', input: 'createToken', output: 'object' }]
-      };
+      return ruleToResolution(methodRule, trace);
     }
 
     return {

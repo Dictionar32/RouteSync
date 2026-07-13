@@ -1,5 +1,6 @@
 import { SemanticResolution } from '../types/contract';
 import { ResolverPlugin, CycleDetector, SemanticResolutionKernelContract, ResolutionContext, ResolverMeta, ModelNode } from './types';
+import { SymbolTable } from './SymbolTable';
 import { PrimitiveResolver } from './plugins/PrimitiveResolver';
 import { ModelColumnResolver } from './plugins/ModelColumnResolver';
 import { AccessorResolver } from './plugins/AccessorResolver';
@@ -13,9 +14,11 @@ import { ConditionalWrapperResolver } from './plugins/ConditionalWrapperResolver
 export class SemanticResolutionKernel implements SemanticResolutionKernelContract {
   private plugins: ResolverPlugin[] = [];
   private cycleDetector: CycleDetector;
+  private symbolTable: SymbolTable;
 
   constructor(private models: ModelNode[] = [], private resources: unknown[] = []) {
     this.cycleDetector = new CycleDetector();
+    this.symbolTable = new SymbolTable(this.models);
     this.plugins = [
       new PrimitiveResolver(),
       new ModelColumnResolver(),
@@ -30,7 +33,7 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       {
         canResolve: (meta) => meta && meta.kind === 'model',
         resolve: (meta) => {
-          const modelVal = meta.model || '';
+          const modelVal = meta.kind === 'model' ? meta.model || '' : '';
           return {
             status: 'resolved',
             type: 'model',
@@ -49,11 +52,14 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
 
   public loadGraph(graph: { models?: Record<string, ModelNode> }) {
     if (graph && graph.models) {
+      let changed = false;
       for (const [name, node] of Object.entries(graph.models)) {
         if (!this.models.some(m => m.name === name)) {
           this.models.push(node);
+          changed = true;
         }
       }
+      if (changed) this.symbolTable = new SymbolTable(this.models);
     }
   }
 
@@ -72,6 +78,7 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       resources: this.resources,
       kernel: this,
       cycleDetector: this.cycleDetector,
+      symbolTable: this.symbolTable,
       contextModel
     };
 

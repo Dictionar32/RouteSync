@@ -11,6 +11,9 @@ export class VariableResolver implements ResolverPlugin {
   }
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
+    if (meta.kind !== 'variable') {
+      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+    }
     const name = meta.name || '';
     const currentModel = context.contextModel;
 
@@ -109,39 +112,37 @@ export class VariableResolver implements ResolverPlugin {
     }
 
     // 4. Match against models in manifest/context by name
-    if (context.models && Array.isArray(context.models)) {
-      const exactMatch = context.models.find(m => m.name.toLowerCase() === name.toLowerCase());
-      if (exactMatch) {
-        return {
-          status: 'resolved',
-          type: 'model',
-          model: exactMatch.name,
-          confidence: 80,
-          trace: [{
-            source: 'VariableResolver',
-            rule: `Variable name exact match to manifest model`,
-            input: name,
-            output: `model: ${exactMatch.name}`
-          }]
-        };
-      }
+    const exactMatch = context.symbolTable.getCaseInsensitive(name);
+    if (exactMatch) {
+      return {
+        status: 'resolved',
+        type: 'model',
+        model: exactMatch.name,
+        confidence: 80,
+        trace: [{
+          source: 'VariableResolver',
+          rule: `Variable name exact match to manifest model`,
+          input: name,
+          output: `model: ${exactMatch.name}`
+        }]
+      };
+    }
 
-      const capName = name.charAt(0).toUpperCase() + name.slice(1);
-      const capMatch = context.models.find(m => m.name === capName);
-      if (capMatch) {
-        return {
-          status: 'resolved',
-          type: 'model',
-          model: capName,
-          confidence: 70,
-          trace: [{
-            source: 'VariableResolver',
-            rule: `Variable name capitalized match to manifest model`,
-            input: name,
-            output: `model: ${capName}`
-          }]
-        };
-      }
+    const capName = name.charAt(0).toUpperCase() + name.slice(1);
+    const capMatch = context.symbolTable.get(capName);
+    if (capMatch) {
+      return {
+        status: 'resolved',
+        type: 'model',
+        model: capName,
+        confidence: 70,
+        trace: [{
+          source: 'VariableResolver',
+          rule: `Variable name capitalized match to manifest model`,
+          input: name,
+          output: `model: ${capName}`
+        }]
+      };
     }
 
     return {

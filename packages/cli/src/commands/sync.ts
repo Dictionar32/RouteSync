@@ -99,10 +99,17 @@ export const syncCommand = new Command('sync')
       const localManifestPath = pathModule.resolve(process.cwd(), 'routesync.manifest.json')
 
       const { resolveManifestIncrementally } = await import('../utils/incremental')
-      const resolvedManifest = resolveManifestIncrementally(manifest, localManifestPath, kernel, models as ScannedModel[] | undefined)
+      const { manifest: resolvedManifest, irRegistry } = resolveManifestIncrementally(manifest, localManifestPath, kernel, models as ScannedModel[] | undefined)
 
       // Save the resolved manifest locally
       await ManifestGenerator.save(resolvedManifest, localManifestPath)
+
+      // Stage 2 (IR v3) output — additive, does not change any generator input above.
+      await fs.writeJson(
+        pathModule.resolve(pathModule.dirname(localManifestPath), 'routesync.ir.json'),
+        { irVersion: 'ir.v2', nodeCount: irRegistry.size, nodes: irRegistry.toJSON() },
+        { spaces: 2 }
+      )
 
       spinner.succeed(chalk.green(`✔ ${steps[0].text} (${routes.length} routes, ${channels.length} channels, ${models ? models.length : 0} models)`))
 

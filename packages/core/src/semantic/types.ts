@@ -1,4 +1,7 @@
-import { SemanticResolution, AccessKind } from '../types/contract';
+import { SemanticResolution } from '../types/contract';
+import { FieldNode } from '../types/field';
+import type { SourceRef } from '../types/semantic';
+import type { SymbolTable } from './SymbolTable';
 
 export class CycleDetector {
   private visited = new Set<string>()
@@ -16,38 +19,26 @@ export class CycleDetector {
   }
 }
 
-export interface ResolverMeta {
-  kind: string;
-  type?: string;
-  confidence?: number;
-  castType?: string;
-  code?: string;
-  expression?: ResolverMeta;
-  argument?: ResolverMeta;
-  arguments?: ResolverMeta[];
-  args?: ResolverMeta[];
-  value?: string | number | boolean | null;
-  left?: ResolverMeta;
-  right?: ResolverMeta;
-  operator?: string;
-  condition?: ResolverMeta;
-  truthy?: ResolverMeta;
-  falsy?: ResolverMeta;
-  target?: ResolverMeta;
-  property?: string;
-  accessKind?: AccessKind;
-  model?: string;
-  column?: string;
-  resource?: string;
-  collection?: boolean;
-  name?: string;
-  method?: string;
-  variable?: string | ResolverMeta;
-  function?: string;
-  fields?: Record<string, unknown>;
-  resolvedAssignments?: Record<string, ResolverMeta>;
-  assignments?: Record<string, ResolverMeta>;
-}
+/**
+ * Two internal RPC shapes plugins use to ask the kernel to resolve "what
+ * type is column X on model Y" (ExpressionResolver.ts, ModelColumnResolver.
+ * ts) — never produced by the parser, so they don't belong on FieldNode
+ * itself (that would leak resolver-internal plumbing into the AST type).
+ */
+export type InternalResolverQuery =
+  | { kind: 'model_column'; model: string; column: string }
+  | { kind: 'model_accessor'; model: string; column: string }
+
+/**
+ * `ResolverMeta` used to be a ~30-optional-field "God Interface" — every
+ * plugin declared its own subset of fields it cared about, with no
+ * guarantee any of them matched what FieldNode (types/field.ts) actually
+ * produces. It's now that same FieldNode, plus the two synthetic lookup
+ * shapes above. Two dead fields from the old interface — `argument` and
+ * `variable` (singular) — are gone entirely: neither was ever constructed
+ * anywhere in the codebase, only defensively read.
+ */
+export type ResolverMeta = FieldNode | InternalResolverQuery
 
 export interface ModelColumn {
   name: string;
@@ -61,10 +52,9 @@ export interface ModelRelation {
 }
 
 export interface ModelAccessor {
-  resolvedType?: string;
-  expression_code?: string | null;
-  parsed_ast?: ResolverMeta;
-  expression?: ResolverMeta | SemanticResolution;
+  source?: SourceRef;
+  ast?: FieldNode;
+  semantic?: SemanticResolution;
 }
 
 export interface ModelNode {
@@ -77,7 +67,7 @@ export interface ModelNode {
   relations?: Record<string, ModelRelation>;
   layer?: string;
   resolvedAssignments?: Record<string, SemanticResolution>;
-  assignments?: Record<string, ResolverMeta>;
+  assignments?: Record<string, FieldNode>;
 }
 
 export interface ExpressionNode {
@@ -113,10 +103,11 @@ export interface ResolutionContext {
   resources: unknown[];
   kernel: SemanticResolutionKernelContract;
   cycleDetector: CycleDetector;
+  symbolTable: SymbolTable;
   contextModel?: unknown;
   fileName?: string;
   resolvedAssignments?: Record<string, SemanticResolution>;
-  assignments?: Record<string, ResolverMeta>;
+  assignments?: Record<string, FieldNode>;
 }
 
 export interface ResolverPlugin {

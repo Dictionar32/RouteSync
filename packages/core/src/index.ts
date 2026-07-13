@@ -43,3 +43,14 @@ export type { ModelNode as SemanticModelNode, ResolverMeta, ResolutionContext, R
 export * from './types/semantic'
 export * from './types/emit'
 export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'
+
+// IR v3 (CompilerRoadmap.md Stage 2)
+export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
+export type { BuildIRNodeInput } from './ir/buildIRNode'
+
+// Unified FieldNode model (compiler/CompilerBacklog.md H1/H3 follow-up) — phase 1 of 3
+export * from './types/field'
+export { fieldFromResourceFieldKind, fieldFromResponseMetadata, fieldFromParsedASTNode } from './types/legacyFieldAdapter'
+
+// SymbolTable — O(1) model/member lookup (roadmap: next after ResolverMeta unification)
+export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'

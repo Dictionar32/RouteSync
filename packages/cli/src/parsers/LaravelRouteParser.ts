@@ -394,7 +394,12 @@ foreach ($routes as $route) {
             'middleware' => $middlewares,
             'schema' => empty($schema) ? null : ['rules' => $schema],
             'response' => $responseMetadata,
-            'assignments' => empty($assignments) ? null : $assignments
+            'assignments' => empty($assignments) ? null : $assignments,
+            // Real source location of the controller action, from ReflectionMethod —
+            // not derived/guessed. Null when the action isn't a controller@method
+            // (closures, etc.) rather than faked.
+            'sourceFile' => $fileName ?: null,
+            'sourceLine' => ($startLine !== false && $startLine !== null) ? $startLine : null
         ];
     }
 }
@@ -479,11 +484,15 @@ if ($extractModels) {
                                 // 2. Parse accessor (Attribute return type or Attribute::make call in body)
                                 if (preg_match('/Attribute::make\\s*\\(\\s*(?:get:\\s*)?fn\\s*\\(\\s*\\)\\s*=>\\s*(.+)\\s*\\)\\s*;/s', $mSource, $attrMatches)) {
                                     $accessors[$method->getName()] = [
-                                        'expression' => trim($attrMatches[1])
+                                        'expression' => trim($attrMatches[1]),
+                                        'sourceFile' => $fileName ?: null,
+                                        'sourceLine' => $mStart ?: null
                                     ];
                                 } else if (preg_match('/Attribute::make\\s*\\(\\s*(?:get:\\s*)?function\\s*\\(\\s*\\)\\s*\\{.*?return\\s*(.+?);\\s*\\}/s', $mSource, $attrMatches)) {
                                     $accessors[$method->getName()] = [
-                                        'expression' => trim($attrMatches[1])
+                                        'expression' => trim($attrMatches[1]),
+                                        'sourceFile' => $fileName ?: null,
+                                        'sourceLine' => $mStart ?: null
                                     ];
                                 } else if (preg_match('/^get([A-Za-z0-9_]+)Attribute$/', $method->getName(), $accessorMatches)) {
                                     $attrName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $accessorMatches[1]));
@@ -517,7 +526,9 @@ if ($extractModels) {
                                     }
                                     $accessors[$attrName] = [
                                         'expression' => $exprStr,
-                                        'type' => $typeStr
+                                        'type' => $typeStr,
+                                        'sourceFile' => $fileName ?: null,
+                                        'sourceLine' => $mStart ?: null
                                     ];
                                 }
                             }
@@ -645,7 +656,9 @@ if ($extractModels) {
                             $result['resources'][] = [
                                 'name' => class_basename($class),
                                 'fields' => $fields,
-                                'assignments' => $assignments
+                                'assignments' => $assignments,
+                                'sourceFile' => $fileName ?: null,
+                                'sourceLine' => $startLine ?: null
                             ];
                         }
                     }

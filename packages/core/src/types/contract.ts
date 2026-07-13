@@ -17,6 +17,8 @@ export interface SemanticResolution {
   nullable?: boolean
   confidence: number
   trace: TraceNode[]
+  /** For synthetic `type: 'object'` results (e.g. Sanctum's createToken()) — property name to type, read by ExpressionResolver's property_access handling. */
+  fields?: Record<string, string>
 }
 
 /**

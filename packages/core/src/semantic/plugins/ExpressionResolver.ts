@@ -26,11 +26,9 @@ function isModelNode(obj: unknown): obj is ModelNode {
 export class ExpressionResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
     return !!(meta && (
-      meta.kind === 'literal' || 
-      meta.kind === 'binary_operation' || 
+      meta.kind === 'literal' ||
       meta.kind === 'binary_expression' ||
       meta.kind === 'ternary' ||
-      meta.kind === 'ternary_expression' ||
       meta.kind === 'property_access' ||
       meta.kind === 'nullsafe_property_access'
     ));
@@ -40,24 +38,26 @@ export class ExpressionResolver implements ResolverPlugin {
     const currentModel = context.contextModel;
 
     if (meta.kind === 'literal') {
-      const t: SemanticType = meta.type === 'number' ? 'number' : meta.type === 'boolean' ? 'boolean' : 'string';
+      const v = meta.value;
+      const t: SemanticType = typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : v === null ? 'unknown' : 'string';
       return {
-        status: 'resolved',
+        status: v === null ? 'unknown' : 'resolved',
         type: t,
+        nullable: v === null ? true : undefined,
         confidence: 100,
         trace: [{
           source: 'ExpressionResolver',
           rule: 'Literal type mapping',
-          input: String(meta.value),
+          input: String(v),
           output: t
         }]
       };
     }
 
-    if (meta.kind === 'binary_operation' || meta.kind === 'binary_expression') {
-      const leftRes = context.kernel.resolve(meta.left || { kind: 'unknown', code: '' }, currentModel);
-      const rightRes = context.kernel.resolve(meta.right || { kind: 'unknown', code: '' }, currentModel);
-      
+    if (meta.kind === 'binary_expression') {
+      const leftRes = meta.left ? context.kernel.resolve(meta.left, currentModel) : { status: 'unknown' as const, type: 'unknown', confidence: 0, trace: [] };
+      const rightRes = meta.right ? context.kernel.resolve(meta.right, currentModel) : { status: 'unknown' as const, type: 'unknown', confidence: 0, trace: [] };
+
       const trace: TraceNode[] = [
         {
           source: 'ExpressionResolver',
@@ -74,7 +74,7 @@ export class ExpressionResolver implements ResolverPlugin {
         // runtime, even if the left resolution itself never set `nullable`.
         // We wrap rather than mutate leftRes so callers still see the exact
         // node that produced the value.
-        const rightIsNullish = meta.right?.kind === 'primitive' && meta.right.type === 'null';
+        const rightIsNullish = meta.right?.kind === 'literal' && meta.right.value === null;
 
         if (leftRes.status === 'resolved' && leftRes.type !== 'unknown') {
           if (rightIsNullish) {
@@ -92,7 +92,7 @@ export class ExpressionResolver implements ResolverPlugin {
           trace
         };
       }
-      
+
       let resolvedType: SemanticType = 'number'; // defaults to number for math operators
       if (meta.operator === '.') {
         resolvedType = 'string'; // string concatenation in PHP
@@ -101,7 +101,7 @@ export class ExpressionResolver implements ResolverPlugin {
             resolvedType = 'string';
         }
       }
-      
+
       return {
         status: 'resolved',
         type: resolvedType,
@@ -110,7 +110,7 @@ export class ExpressionResolver implements ResolverPlugin {
       };
     }
 
-    if (meta.kind === 'ternary' || meta.kind === 'ternary_expression') {
+    if (meta.kind === 'ternary') {
       const fallbackRes: SemanticResolution = { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
       const conditionRes = meta.condition ? context.kernel.resolve(meta.condition, currentModel) : null;
       const truthyRes = meta.truthy ? context.kernel.resolve(meta.truthy, currentModel) : fallbackRes;
@@ -156,7 +156,7 @@ export class ExpressionResolver implements ResolverPlugin {
       if (meta.target) {
           const targetRes = context.kernel.resolve(meta.target, currentModel);
           if (targetRes.trace) trace.push(...targetRes.trace);
-          
+
           if (targetRes.status === 'resolved' && targetRes.type !== 'unknown') {
               // Special framework classes / Sanctum / createToken object
               if (targetRes.type === 'object' && hasFields(targetRes) && targetRes.fields[prop]) {
@@ -191,7 +191,7 @@ export class ExpressionResolver implements ResolverPlugin {
               // decide the final TS type — the kernel itself makes no
               // decision about runtime JSON shape.
               if (targetRes.type === 'json-object' || targetRes.type === 'json-member') {
-                const accessKind: AccessKind = meta.accessKind
+                const accessKind: AccessKind = (meta.kind === 'property_access' ? meta.accessKind : undefined)
                   || (meta.kind === 'nullsafe_property_access' ? 'optional_access' : 'property_access');
 
                 trace.push({
@@ -228,13 +228,14 @@ export class ExpressionResolver implements ResolverPlugin {
                     trace
                   };
               }
-              
+
               const targetType = targetRes.type;
               const targetModelName = targetRes.type === 'model' && targetRes.model ? targetRes.model : targetType;
               const typeLower = targetModelName?.toLowerCase();
-              const tm = targetModelName && typeLower ? context.models.find(m => m.name === targetModelName || m.name.toLowerCase() === typeLower) : undefined;
+              const tm = (targetModelName ? context.symbolTable.get(targetModelName) : undefined)
+                || (typeLower ? context.symbolTable.getCaseInsensitive(typeLower) : undefined);
               if (tm) {
-                  targetModel = tm;
+                  targetModel = tm.node;
               } else {
                   return {
                     status: 'unknown',
@@ -253,58 +254,10 @@ export class ExpressionResolver implements ResolverPlugin {
               }
           } else if (meta.target.kind === 'model') {
               const targetModelName = meta.target.model || '';
-              const tm = context.models.find(m => m.name === targetModelName);
+              const tm = context.symbolTable.get(targetModelName);
               if (tm) {
-                  targetModel = tm;
+                  targetModel = tm.node;
               }
-          } else if (meta.target.kind === 'relation') {
-             const relName = meta.target.name || '';
-             // Check relations on current model
-             if (isModelNode(currentModel)) {
-                const rel = currentModel.relations?.[relName];
-                if (rel && rel.model) {
-                   const tm = context.models.find(m => m.name === rel.model);
-                   if (tm) {
-                       targetModel = tm;
-                       trace.push({
-                         source: 'ExpressionResolver',
-                         rule: `Relation target model lookup`,
-                         input: `${currentModel.name}.${relName}`,
-                         output: tm.name
-                       });
-                   } else {
-                       return {
-                         status: 'unknown',
-                         type: 'unknown',
-                         confidence: 0,
-                         trace: [
-                           { source: 'ExpressionResolver', rule: `Target model ${rel.model} not found for relation ${relName}` },
-                           ...trace
-                         ]
-                       };
-                   }
-                } else {
-                   return {
-                     status: 'unknown',
-                     type: 'unknown',
-                     confidence: 0,
-                     trace: [
-                       { source: 'ExpressionResolver', rule: `Relation ${relName} not found on current model` },
-                       ...trace
-                     ]
-                   };
-                }
-             } else {
-                return {
-                  status: 'unknown',
-                  type: 'unknown',
-                  confidence: 0,
-                  trace: [
-                    { source: 'ExpressionResolver', rule: `Current model not resolved for relation lookup` },
-                    ...trace
-                  ]
-                };
-             }
           } else {
               return {
                 status: 'unknown',
@@ -325,8 +278,7 @@ export class ExpressionResolver implements ResolverPlugin {
         targetModelName = currentModel.name;
       }
 
-      const innerMeta = { kind: 'model_column', model: targetModelName, column: prop };
-      const innerRes = context.kernel.resolve(innerMeta, targetModel || currentModel);
+      const innerRes = context.kernel.resolve({ kind: 'model_column', model: targetModelName || '', column: prop }, targetModel || currentModel);
       if (innerRes.trace) trace.push(...innerRes.trace);
       return {
           status: innerRes.status,

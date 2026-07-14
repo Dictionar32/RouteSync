@@ -155,7 +155,7 @@ export const auditCommand = new Command('audit')
             const reasonRule = typeof lastTrace?.rule === 'string' ? lastTrace.rule : 'Unknown Reason';
             const reasonSource = typeof lastTrace?.source === 'string' ? lastTrace.source : '';
             
-            if (reasonRule.includes('MethodReturn') || reasonSource.includes('MethodReturnResolver')) {
+            if (reasonRule.includes('MethodReturn') || reasonRule.includes('Eloquent method registry') || reasonSource.includes('EloquentMethodResolver')) {
                 unresolvedBreakdown['Missing MethodReturn Resolver'].push(fieldPath)
             } else if (reasonRule.includes('FrameworkResolver') || reasonSource.includes('FrameworkRegistryResolver')) {
                 unresolvedBreakdown['Missing Framework Registry'].push(fieldPath)

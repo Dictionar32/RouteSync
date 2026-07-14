@@ -5,7 +5,7 @@ import { PrimitiveResolver } from './plugins/PrimitiveResolver';
 import { ModelColumnResolver } from './plugins/ModelColumnResolver';
 import { AccessorResolver } from './plugins/AccessorResolver';
 import { ResourceGraphResolver } from './plugins/ResourceGraphResolver';
-import { MethodReturnResolver } from './plugins/MethodReturnResolver';
+import { EloquentMethodResolver } from './plugins/EloquentMethodResolver';
 import { ExpressionResolver } from './plugins/ExpressionResolver';
 import { FrameworkRegistryResolver } from './plugins/FrameworkRegistryResolver';
 import { VariableResolver } from './plugins/VariableResolver';
@@ -26,7 +26,7 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       new ResourceGraphResolver(),
       new ConditionalWrapperResolver(),
       new FrameworkRegistryResolver(),
-      new MethodReturnResolver(),
+      new EloquentMethodResolver(),
       new ExpressionResolver(),
       new VariableResolver(),
       // Model transform fallback

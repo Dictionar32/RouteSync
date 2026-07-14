@@ -43,6 +43,8 @@ export type { ModelNode as SemanticModelNode, ResolverMeta, ResolutionContext, R
 export * from './types/semantic'
 export * from './types/emit'
 export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'
+export { ContractGraph, isResolvedField } from './graph/ContractGraph'
+export type { ControllerNode } from './graph/ContractGraph'
 
 // IR v3 (CompilerRoadmap.md Stage 2)
 export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
@@ -54,3 +56,7 @@ export { fieldFromResourceFieldKind, fieldFromResponseMetadata, fieldFromParsedA
 
 // SymbolTable — O(1) model/member lookup (roadmap: next after ResolverMeta unification)
 export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
+
+// RouteSync Compiler Core v6.0
+export * as v6 from './compiler'
+

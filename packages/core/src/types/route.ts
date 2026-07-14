@@ -36,12 +36,16 @@ export interface ParsedChannel {
   isPresence: boolean
 }
 
-export type ResourceFieldKind = 
+export type ResourceFieldKind = (
   | { kind: 'primitive'; type: string }
   | { kind: 'model'; model: string; collection: boolean }
   | { kind: 'resource'; resource: string; collection: boolean }
   | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
   | { kind: 'unknown' }
+) & {
+  resolved?: SemanticResolution
+  semantic?: SemanticResolution
+}
 
 export interface ParsedResource {
   name: string // e.g., UserResource

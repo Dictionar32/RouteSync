@@ -1,15 +1,31 @@
-import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder } from '@routesync/core'
+import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder, ContractGraph } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { buildGeneratedRoutes, toTypeName, GeneratedRoute } from './names'
 import { deriveGroupName } from './route-classifier'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
+import { normalizeManifest, getSemanticNode, unwrapManifestNode, RuntimeAugmented } from './normalizer'
+
+interface SemanticNode {
+  status: string
+  type: string
+  model?: string
+  resource?: string
+  collection?: boolean
+  paginated?: boolean
+  nullable?: boolean
+  fields?: Record<string, any>
+  items?: any
+  kind?: string
+}
 
 export class ZodTierGenerator {
   private static knownSchemas = new Set<string>()
+  private static graph!: ContractGraph
 
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
     this.knownSchemas.clear()
+    this.graph = new ContractGraph(manifest)
     if (manifest.models) {
       manifest.models.forEach(m => this.knownSchemas.add(`${m.name}Schema`))
     }
@@ -18,135 +34,7 @@ export class ZodTierGenerator {
     }
 
     const kernel = new SemanticResolutionKernel()
-    const graphBuilder = new ServiceGraphBuilder()
-    
-    // Build a simple graph of models
-    if (manifest.models) {
-      manifest.models.forEach(m => {
-        const modelNode = graphBuilder.buildModelNode(m.name)
-        const fields: Record<string, any> = {}
-        m.columns.forEach(col => {
-          let type = 'string'
-          const lower = col.type.toLowerCase()
-          if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
-          else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
-          fields[col.name] = { type, nullable: !!col.nullable }
-        })
-        modelNode.fields = fields as any
-        if (m.relations) {
-          (modelNode as any).relations = m.relations
-        }
-        if (m.accessors) {
-          (modelNode as any).accessors = m.accessors
-        }
-        graphBuilder.getGraph().models[m.name] = modelNode
-      })
-    }
-    kernel.loadGraph(graphBuilder.getGraph())
-
-    // Patch resources with Kernel
-    if (manifest.resources) {
-      manifest.resources.forEach(res => {
-        const modelName = res.name.replace(/Resource$/, '')
-        
-        // Pre-parse and resolve assignments sequentially
-        const parsedAssignments: Record<string, any> = {};
-        const resolvedAssignments: Record<string, any> = {};
-        const context = {
-          layer: 'resource',
-          fileName: res.name,
-          modelMap: {},
-          relationMap: {},
-          assignments: parsedAssignments,
-          resolvedAssignments: resolvedAssignments
-        } as any;
-
-        if (res.assignments) {
-          for (const varName in res.assignments) {
-            const code = res.assignments[varName];
-            const ast = PhpCodeParser.parseExpression(code, {});
-            parsedAssignments[varName] = ast;
-            const resolved = kernel.resolve(ast, context);
-            if (resolved && resolved.status !== 'unknown') {
-              resolvedAssignments[varName] = resolved;
-            }
-          }
-        }
-
-        const patchField = (field: any) => {
-          if (!field) return;
-          if (field.kind === 'object' && field.fields) {
-            Object.values(field.fields).forEach(f => patchField(f));
-          } else {
-            const meta = field.resolved || field.semantic;
-            const ast = field.parsed_ast || (field.node && field.node.parsed_ast)
-              // Phase 2 (FieldNode migration): incremental.ts no longer
-              // wraps a resolved field in a surviving raw_code node with a
-              // nested parsed_ast — the field itself IS the parsed node now.
-              || (field.kind && field.kind !== 'object' && field.kind !== 'raw_code' ? field : null);
-            if ((!meta || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
-              const resolved = kernel.resolve(ast, context)
-              if (resolved && resolved.status !== 'unknown') {
-                field.resolved = resolved
-              }
-            }
-          }
-        }
-
-        Object.values(res.fields).forEach((field: any) => {
-          patchField(field);
-        })
-      })
-    }
-
-    // Patch routes with Kernel
-    if (manifest.routes) {
-      manifest.routes.forEach(route => {
-        const parsedAssignments: Record<string, any> = {};
-        const resolvedAssignments: Record<string, any> = {};
-        const context = {
-          layer: 'route',
-          fileName: route.name,
-          modelMap: {},
-          relationMap: {},
-          assignments: parsedAssignments,
-          resolvedAssignments: resolvedAssignments
-        } as any;
-
-        if (route.assignments) {
-          for (const varName in route.assignments) {
-            const code = route.assignments[varName];
-            const ast = PhpCodeParser.parseExpression(code, {});
-            parsedAssignments[varName] = ast;
-            const resolved = kernel.resolve(ast, context);
-            if (resolved && resolved.status !== 'unknown') {
-              resolvedAssignments[varName] = resolved;
-            }
-          }
-        }
-
-        const resolveResponse = (meta: any) => {
-          if (!meta) return;
-          if (meta.kind === 'object' && meta.fields) {
-            Object.values(meta.fields).forEach((field: any) => {
-              const ast = field.parsed_ast || (field.node && field.node.parsed_ast)
-              // Phase 2 (FieldNode migration): incremental.ts no longer
-              // wraps a resolved field in a surviving raw_code node with a
-              // nested parsed_ast — the field itself IS the parsed node now.
-              || (field.kind && field.kind !== 'object' && field.kind !== 'raw_code' ? field : null);
-              if (ast) {
-                  const resolved = kernel.resolve(ast, context)
-                  if (resolved && resolved.status !== 'unknown') {
-                    field.resolved = resolved
-                  }
-              }
-              resolveResponse(field);
-            });
-          }
-        };
-        resolveResponse(route.response);
-      });
-    }
+    normalizeManifest(manifest, kernel)
 
     const groupedRoutes = buildGeneratedRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const allRoutes: any[] = []
@@ -210,9 +98,15 @@ export class ZodTierGenerator {
         lines.push(`  ${safeName}: ${zType},`)
       }
       
-      const getZodTypeFromAccessor = (accessor: any): string => {
+      const getZodTypeFromAccessor = (accessor: any, fieldName?: string): string => {
+        const semantic = accessor?.semantic
+        if (semantic && semantic.status === 'resolved') {
+          return this.buildResponseZodType(accessor, undefined, undefined, fieldName)
+        }
         const expr = accessor?.expression
-        if (!expr) return 'z.unknown()'
+        if (!expr) {
+          return fieldName ? this.inferZodSchemaFromName(fieldName) : 'z.unknown()'
+        }
         if (expr.type === 'number') return 'z.number()'
         if (expr.type === 'boolean') return 'z.boolean()'
         if (expr.type === 'string') return 'z.string()'
@@ -224,7 +118,7 @@ export class ZodTierGenerator {
           const schemaName = `${expr.resource}Schema`
           return this.knownSchemas.has(schemaName) ? schemaName : 'z.unknown()'
         }
-        return 'z.unknown()'
+        return fieldName ? this.inferZodSchemaFromName(fieldName) : 'z.unknown()'
       }
 
       const appends = Array.isArray(model.appends) ? model.appends : []
@@ -234,7 +128,7 @@ export class ZodTierGenerator {
         if (model.accessors) {
           const accessor = model.accessors[append] || model.accessors[camelCase(append)]
           if (accessor) {
-            zType = getZodTypeFromAccessor(accessor)
+            zType = getZodTypeFromAccessor(accessor, append)
           }
         }
         lines.push(`  ${safeAppend}: ${zType}.optional(), // appended`)
@@ -531,28 +425,36 @@ export class ZodTierGenerator {
       return 'z.unknown()'
     }
 
-    let meta = payload.resolved || payload.semantic || payload
+    let meta = getSemanticNode(payload)
     
     // Fast path for inline JSON ASTs from PHP extractor
-    const node = payload.node || payload;
-    if (node && node.kind === 'literal' && typeof node.code === 'string' && node.code.startsWith('{"kind":')) {
+    const node = unwrapManifestNode(payload)
+    const augmentedNode = node as RuntimeAugmented
+    const augmentedPayload = payload as RuntimeAugmented
+    if (augmentedNode && augmentedNode.kind === 'literal' && typeof augmentedNode.code === 'string' && augmentedNode.code.startsWith('{"kind":')) {
       try {
-        const parsed = JSON.parse(node.code);
-        return this.buildResponseZodType(parsed, kernel, context, propertyName);
+        const parsed = JSON.parse(augmentedNode.code)
+        return this.buildResponseZodType(parsed, kernel, context, propertyName)
       } catch (e) {}
     }
 
     // Attempt on-the-fly resolution if we have a kernel and an AST
-    let astToResolve = node?.parsed_ast || payload?.parsed_ast || (payload?.kind ? payload : null);
+    let astToResolve = augmentedNode?.parsed_ast || augmentedPayload?.parsed_ast || (augmentedPayload?.kind ? augmentedPayload : null)
     if (kernel && (!meta || !meta.status || meta.status === 'unknown' || meta.type === 'unknown') && astToResolve) {
-       const resolved = kernel.resolve(astToResolve, context || { layer: 'route', modelMap: {}, relationMap: {} });
+       const resolved = kernel.resolve(astToResolve, context || { layer: 'route', modelMap: {}, relationMap: {} })
        if (resolved.status === 'resolved' || resolved.status === 'partial') {
-          meta = resolved;
-          payload.resolved = resolved; // cache it!
+          meta = resolved
+          augmentedPayload.resolved = resolved // cache it!
        }
     }
     
-    if (!meta || meta.status === 'unknown' || meta.type === 'unknown') return 'z.unknown()'
+    if (!meta || meta.status === 'unknown' || meta.type === 'unknown') {
+      if (propertyName) {
+        const inferred = this.inferZodSchemaFromName(propertyName)
+        if (inferred !== 'z.unknown()') return inferred
+      }
+      return 'z.unknown()'
+    }
     
     let baseZod = 'z.unknown()'
     let isCollection = !!meta.collection
@@ -630,6 +532,13 @@ export class ZodTierGenerator {
         } else {
            baseZod = 'z.unknown()'
         }
+      }
+    }
+    
+    if (baseZod === 'z.unknown()' && propertyName) {
+      const inferred = this.inferZodSchemaFromName(propertyName)
+      if (inferred !== 'z.unknown()') {
+        baseZod = inferred
       }
     }
 
@@ -854,6 +763,10 @@ export class ZodTierGenerator {
       }
       
       const getTsTypeFromAccessor = (accessor: any): string => {
+        const semantic = accessor?.semantic
+        if (semantic && semantic.status === 'resolved') {
+          return this.mapResolvedToTsType(semantic)
+        }
         const expr = accessor?.expression
         if (!expr) return 'unknown'
         if (expr.type === 'number') return 'number'
@@ -914,7 +827,7 @@ export class ZodTierGenerator {
             const flatFieldName = camelCol + nestedCamelName.charAt(0).toUpperCase() + nestedCamelName.slice(1)
             const safeFlatName = flatFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatFieldName : `"${flatFieldName}"`
             
-            let tsType = this.mapResolvedToTsType(nestedMeta)
+            let tsType = this.mapResolvedToTsType(nestedMeta, nestedFieldName)
             // Nullable if nested field is nullable
             const nestedResolvedType = nestedMeta.type || nestedMeta.kind
             if (nestedFieldDef.nullable || (nestedResolvedType === 'model' || nestedResolvedType === 'resource' || nestedResolvedType === 'object')) {
@@ -949,7 +862,7 @@ export class ZodTierGenerator {
                   const nestedInArrayCamelName = camelCase(nestedInArrayFieldName)
                   const flatArrayItemFieldName = itemCamelName + nestedInArrayCamelName.charAt(0).toUpperCase() + nestedInArrayCamelName.slice(1)
                   const safeFlatArrayItemFieldName = flatArrayItemFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatArrayItemFieldName : `"${flatArrayItemFieldName}"`
-                  let nestedItemType = this.mapResolvedToTsType(nestedInArrayMeta)
+                  let nestedItemType = this.mapResolvedToTsType(nestedInArrayMeta, nestedInArrayFieldName)
                   if (nestedInArrayFieldDef.nullable || nestedInArrayMeta.type === 'model' || nestedInArrayMeta.type === 'resource') {
                     nestedItemType += ' | null | undefined'
                   }
@@ -957,7 +870,7 @@ export class ZodTierGenerator {
                 }
               } else {
                 // Regular field in array item
-                let itemType = this.mapResolvedToTsType(itemMeta)
+                let itemType = this.mapResolvedToTsType(itemMeta, itemFieldName)
                 if (itemFieldDef.nullable) itemType += ' | null'
                 itemFields.push(`    ${safeFlatItemName}: ${itemType}`)
               }
@@ -967,13 +880,13 @@ export class ZodTierGenerator {
             lines.push(`  }>`)
           } else {
             // Regular array
-            let tsType = this.mapResolvedToTsType(meta)
+            let tsType = this.mapResolvedToTsType(meta, fieldName)
             lines.push(`  ${safeName}: ${tsType}`)
           }
         } else {
           // Regular field (not nested, not array)
           const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
-          let tsType = this.mapResolvedToTsType(meta)
+          let tsType = this.mapResolvedToTsType(meta, fieldName)
           let optional = ''
           if (resolvedType === 'model' || resolvedType === 'resource' || resolvedType === 'object') {
             optional = '?'
@@ -1526,8 +1439,14 @@ export class ZodTierGenerator {
     return props.join('\n')
   }
 
-  private static mapResolvedToTsType(meta: any): string {
-    if (!meta) return 'unknown'
+  private static mapResolvedToTsType(meta: any, fieldName?: string): string {
+    if (!meta) {
+      if (fieldName) {
+        const inferred = this.inferTypeFromName(fieldName)
+        if (inferred !== 'unknown') return inferred
+      }
+      return 'unknown'
+    }
     
     const type = meta.type || meta.kind
     const model = meta.model
@@ -1556,10 +1475,10 @@ export class ZodTierGenerator {
         typeStr = 'Record<string, unknown>'
       } else {
         const fields = Object.entries(meta.fields).map(([k, v]) => {
-          const subMeta = (v as any).resolved || (v as any).semantic || v
+          const subMeta = getSemanticNode(v)
           const camelK = camelCase(k)
           const safeK = camelK.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelK : `"${camelK}"`
-          return `${safeK}: ${this.mapResolvedToTsType(subMeta)}`
+          return `${safeK}: ${this.mapResolvedToTsType(subMeta, k)}`
         }).join('; ')
         typeStr = `{ ${fields} }`
       }
@@ -1576,6 +1495,13 @@ export class ZodTierGenerator {
       else if (meta.type === 'null') typeStr = 'null'
     }
 
+    if (typeStr === 'unknown' && fieldName) {
+      const inferred = this.inferTypeFromName(fieldName)
+      if (inferred !== 'unknown') {
+        typeStr = inferred
+      }
+    }
+
     if (collection) {
       if (meta.paginated) {
         typeStr = `{ data: ${typeStr}[]; currentPage?: number; total?: number }`
@@ -1589,6 +1515,96 @@ export class ZodTierGenerator {
     }
 
     return typeStr
+  }
+
+  private static inferTypeFromName(name: string): string {
+    const lowerName = name.toLowerCase()
+    if (
+      lowerName.endsWith('minor') ||
+      lowerName.endsWith('amount') ||
+      lowerName.endsWith('price') ||
+      lowerName.endsWith('harga') ||
+      lowerName.endsWith('count') ||
+      lowerName.endsWith('qty') ||
+      lowerName.endsWith('id') ||
+      lowerName === 'rating'
+    ) {
+      return 'number'
+    }
+    if (
+      lowerName.endsWith('url') ||
+      lowerName.endsWith('redirect') ||
+      lowerName.endsWith('name') ||
+      lowerName.endsWith('token') ||
+      lowerName.endsWith('number') ||
+      lowerName.endsWith('status') ||
+      lowerName.endsWith('reason') ||
+      lowerName.endsWith('provider') ||
+      lowerName.endsWith('code')
+    ) {
+      return 'string'
+    }
+    if (
+      lowerName.startsWith('is') ||
+      lowerName.startsWith('has') ||
+      lowerName.startsWith('was') ||
+      lowerName.endsWith('paid')
+    ) {
+      return 'boolean'
+    }
+    if (
+      lowerName.endsWith('at') ||
+      lowerName.endsWith('date') ||
+      lowerName.endsWith('time')
+    ) {
+      return 'string'
+    }
+    return 'unknown'
+  }
+
+  private static inferZodSchemaFromName(name: string): string {
+    const lowerName = name.toLowerCase()
+    if (
+      lowerName.endsWith('minor') ||
+      lowerName.endsWith('amount') ||
+      lowerName.endsWith('price') ||
+      lowerName.endsWith('harga') ||
+      lowerName.endsWith('count') ||
+      lowerName.endsWith('qty') ||
+      lowerName.endsWith('id') ||
+      lowerName === 'rating'
+    ) {
+      return 'z.number()'
+    }
+    if (
+      lowerName.endsWith('url') ||
+      lowerName.endsWith('redirect') ||
+      lowerName.endsWith('name') ||
+      lowerName.endsWith('token') ||
+      lowerName.endsWith('number') ||
+      lowerName.endsWith('status') ||
+      lowerName.endsWith('reason') ||
+      lowerName.endsWith('provider') ||
+      lowerName.endsWith('code')
+    ) {
+      return 'z.string()'
+    }
+    if (
+      lowerName.startsWith('is') ||
+      lowerName.startsWith('has') ||
+      lowerName.startsWith('was') ||
+      lowerName.endsWith('paid')
+    ) {
+      return 'z.boolean()'
+    }
+    if (
+      lowerName.endsWith('at') ||
+      lowerName.endsWith('date') ||
+      lowerName.endsWith('time')
+    ) {
+      return 'z.string()'
+    }
+    return 'z.unknown()'
   }
 
   private static generateObjectReadMapper(fieldDef: any, parentAccessor: string): string {

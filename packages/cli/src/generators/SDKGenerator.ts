@@ -89,12 +89,12 @@ export class SDKGenerator {
         if (isCollection) {
           if (isPaginated) {
             typeStr = `{ data: Read.${baseModel}Show[], currentPage?: number, total?: number }`
-            mapperStr = `(res: { data: unknown[] }) => ({ ...res, data: res.data.map(to${baseModel}Read) })`
-            usedMappers.add(`to${baseModel}Read`)
+            mapperStr = `(res: any) => ({ ...res, data: to${baseModel}ReadList(res.data) })`
+            usedMappers.add(`to${baseModel}ReadList`)
           } else {
             typeStr = `Read.${baseModel}Index`
-            mapperStr = `to${baseModel}ReadList`
-            usedMappers.add(`to${baseModel}ReadList`)
+            mapperStr = `to${keyName}ResponseRead`
+            usedMappers.add(`to${keyName}ResponseRead`)
           }
         } else {
           usedMappers.add(`to${baseModel}Read`)

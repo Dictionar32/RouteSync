@@ -340,7 +340,7 @@ export class TypedPassAdapter<
         optionsHash: computeFingerprintHash(fingerprint)
       };
       
-      const cachedOutputs = cache.get(descriptor) as ResolveArtifacts<O> | undefined;
+      const cachedOutputs = cache.get<ResolveArtifacts<O>>(descriptor);
       if (cachedOutputs) {
         return this.applyOutputs(state, cachedOutputs);
       }
@@ -350,17 +350,16 @@ export class TypedPassAdapter<
     const nextState = this.applyOutputs(state, outputs);
     
     if (cache && descriptor) {
-      cache.set(descriptor, outputs as any);
+      cache.set<ResolveArtifacts<O>>(descriptor, outputs);
     }
     return nextState;
   }
 
   private applyOutputs(state: CompilationState, outputs: ResolveArtifacts<O>): CompilationState {
-    const outputsArray = outputs as readonly CompilerArtifact[];
     let nextState = state;
     for (let i = 0; i < this.pass.outputKeys.length; i++) {
       const key = this.pass.outputKeys[i]!;
-      nextState = nextState.put(key, outputsArray[i] as any);
+      nextState = nextState.put(key, outputs[i] as ArtifactRegistry[O[number]]);
     }
     return nextState;
   }
@@ -1616,8 +1615,8 @@ export interface CacheDescriptor {
 }
 
 export interface ArtifactCache {
-  get<K extends ArtifactKey>(descriptor: CacheDescriptor): ArtifactRegistry[K] | undefined;
-  set<K extends ArtifactKey>(descriptor: CacheDescriptor, artifact: ArtifactRegistry[K]): void;
+  get<T>(descriptor: CacheDescriptor): T | undefined;
+  set<T>(descriptor: CacheDescriptor, artifact: T): void;
 }
 
 

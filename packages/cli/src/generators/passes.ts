@@ -1,4 +1,4 @@
-import { RouteManifest, SemanticResolutionKernel, ServiceGraphBuilder } from '@routesync/core'
+import { RouteManifest, SemanticResolutionKernel, ServiceGraphBuilder, SemanticModelNode } from '@routesync/core'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
 import { CompilerPass, CompilerContext } from './pipeline'
 import {
@@ -39,17 +39,13 @@ export class ModelGraphBuilderPass implements CompilerPass<RouteManifest, { mani
           fields[col.name] = { type, nullable: !!col.nullable }
         })
         
-        // SAFETY:
-        // ServiceGraphBuilder belongs to @routesync/core.
-        // The builder intentionally hides mutable fields in its public types.
-        // During graph construction we populate these internal structures
-        // before the graph becomes immutable. Safe boundary cast.
-        modelNode.fields = fields as any
+        const semanticModelNode = modelNode as unknown as SemanticModelNode
+        semanticModelNode.fields = fields
         if (m.relations) {
-          (modelNode as any).relations = m.relations
+          semanticModelNode.relations = m.relations
         }
         if (m.accessors) {
-          (modelNode as any).accessors = m.accessors
+          semanticModelNode.accessors = m.accessors
         }
         graphBuilder.getGraph().models[m.name] = modelNode
       })

@@ -26,7 +26,7 @@ export interface AggregateCollectionIntentActions<
 }
 
 const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K, unknown> => {
-  return typeof obj === 'object' && obj !== null && key in obj
+  return (typeof obj === 'object' || typeof obj === 'function') && obj !== null && key in obj
 }
 
 const getNumberValue = (obj: unknown, key: string): number => {

@@ -1,5 +1,5 @@
 export { defineApi, createClient, getClient, type EndpointCallable, type CallOptions, type EndpointCallableOptions, type LooseEndpointOptions, type OptionalIfEmpty, type ApiError } from './defineApi'
-export { endpoint, type EndpointDefinition } from './endpoint'
+export { endpoint, type EndpointDefinition, type ExtractRouteParams } from './endpoint'
 export {
   resource,
   type ResourceConfig,

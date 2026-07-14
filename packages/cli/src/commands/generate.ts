@@ -42,6 +42,12 @@ export const generateCommand = new Command('generate')
       await fs.writeJson(options.manifest, manifest, { spaces: 2 })
       await fs.ensureDir(options.output)
 
+      spinner.text = 'Resolving and validating semantic types...'
+      const { SemanticResolutionKernel } = require('@routesync/core')
+      const { normalizeManifest } = require('../generators/normalizer')
+      const kernel = new SemanticResolutionKernel()
+      const normalizedManifest = normalizeManifest(manifest, kernel)
+
       spinner.text = 'Generating types...'
       await TypeGenerator.generate(manifest, options.output)
       spinner.text = 'Generating SDK...'

@@ -299,9 +299,19 @@ export class ZodTierGenerator {
         }
         let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {}, assignments: routeAssignments })
 
-        // Index/list routes return a collection — wrap in z.array() if not already detected as one
-        if (route.actionName === 'list' && !zType.startsWith('z.array(') && !zType.includes('data:')) {
-          zType = `z.array(${zType})`
+        const respMeta = route.response ? {
+          ...(route.response.resolved || route.response.semantic || route.response),
+          collection: route.response.collection ?? route.response.resolved?.collection ?? route.response.semantic?.collection,
+          paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
+        } : null
+        const isCollection = respMeta ? (!!respMeta.collection || !!respMeta.paginated || respMeta.type === 'collection') : false
+        if (isCollection) {
+          if (zType.startsWith('z.array(')) {
+            const innerType = zType.substring(8, zType.length - 1)
+            zType = `z.object({ data: z.array(${innerType}) })`
+          } else if (!zType.includes('data:')) {
+            zType = `z.object({ data: z.array(${zType}) })`
+          }
         }
 
         // Naming: LoginResponse (single), ProfileUpdateResponse (multiple)
@@ -438,6 +448,14 @@ export class ZodTierGenerator {
       } catch (e) {}
     }
 
+    const rawObj = node as any
+    if (rawObj && (rawObj.kind === 'object' || rawObj.type === 'object') && rawObj.fields && Object.keys(rawObj.fields).length > 0) {
+      const fields = Object.entries(rawObj.fields).map(([k, v]) => `${k}: ${this.buildResponseZodType(v, kernel, context, k)}`).join(', ')
+      let zodStr = `z.object({ ${fields} })`
+      if (rawObj.nullable) zodStr += '.nullable()'
+      return zodStr
+    }
+
     // Attempt on-the-fly resolution if we have a kernel and an AST
     let astToResolve = augmentedNode?.parsed_ast || augmentedPayload?.parsed_ast || (augmentedPayload?.kind ? augmentedPayload : null)
     if (kernel && (!meta || !meta.status || meta.status === 'unknown' || meta.type === 'unknown') && astToResolve) {
@@ -457,8 +475,9 @@ export class ZodTierGenerator {
     }
     
     let baseZod = 'z.unknown()'
-    let isCollection = !!meta.collection
-    let isPaginated = !!meta.paginated
+    const rawPayload = (unwrapManifestNode(payload) || payload) as any
+    let isCollection = !!meta.collection || (rawPayload && !!rawPayload.collection)
+    let isPaginated = !!meta.paginated || (rawPayload && !!rawPayload.paginated)
 
     if (meta.type === 'model' || meta.kind === 'model') {
       const resourceName = `${meta.model}Resource`
@@ -1111,9 +1130,16 @@ export class ZodTierGenerator {
           paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
         }
         const kind = meta.kind || meta.type
+        const isCollection = !!meta.collection || !!meta.paginated || meta.type === 'collection'
+        const isGet = route.method?.toUpperCase() === 'GET'
 
-        if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
+        if ((kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) || isCollection) {
           modelImports.push(`${respKey}Response`)
+          if (isGet && !isCollection) {
+            const getCount = mapperGetOnlyCount.get(route.groupName || deriveGroupName(route.path || '')) || 1
+            const readKey = getCount === 1 ? TitleCaseResource : `${TitleCaseResource}${rawAction}`
+            readImports.push(`${readKey}Transformed`)
+          }
         }
       }
     }
@@ -1291,6 +1317,10 @@ export class ZodTierGenerator {
           paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
         }
         const kind = meta.kind || meta.type
+        const isCollection = !!meta.collection || !!meta.paginated || meta.type === 'collection'
+        const rawModelName = meta.model || meta.resource || toTypeName(route.groupName)
+        const resourceName = `${rawModelName}Resource`
+        const baseModel = resources.some(r => r.name === resourceName) ? resourceName : rawModelName
 
         if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
           hasExports = true
@@ -1304,6 +1334,11 @@ export class ZodTierGenerator {
             // Mutation → identity mapper (contract type = return type)
             lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${contractKey}Response => (api)`)
           }
+        } else if (isCollection && isGet) {
+          hasExports = true
+          generatedMapperFns.add(`resp:${contractKey}`)
+          const readType = `${baseModel}Transformed[]`
+          lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${readType} => to${baseModel}ReadList(api.data)`)
           lines.push(``)
         }
       }

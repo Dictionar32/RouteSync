@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { v6 } from '@routesync/core';
+import { v6, SemanticResolutionKernel } from '@routesync/core';
+import { PhpCodeParser } from '../../cli/src/parsers/PhpCodeParser';
 
 describe('RouteSync Compiler Core v6.1', () => {
   it('should support nominal type systems and cycle-safe relative hashing', () => {
@@ -955,5 +956,66 @@ describe('RouteSync Compiler Core v6.1', () => {
     const cfg = new v6.ControlFlowGraph(0, 0, new Map([[0, b0]]));
 
     expect(() => manager.runPhase(v6.VerifierPhase.PreOptimization, { cfg })).toThrow(/Failure 1; Failure 2/);
+  });
+
+  it('should support PHP code parsing and Laravel Eloquent model/accessor type resolution', () => {
+    const kernel = new SemanticResolutionKernel();
+
+    // Register a mock Eloquent model "Product" into the resolution kernel
+    kernel.loadGraph({
+      services: {},
+      controllers: {},
+      models: {
+        Product: {
+          kind: 'model_node',
+          name: 'Product',
+          layer: 'model',
+          confidence: 1.0,
+          fields: {
+            id: { type: 'number', nullable: false },
+            name: { type: 'string', nullable: false },
+            price: { type: 'number', nullable: false },
+            discounted_price: { type: 'number', nullable: true }
+          },
+          relations: {
+            category: { type: 'BelongsTo', model: 'Category' }
+          }
+        } as any,
+        Category: {
+          kind: 'model_node',
+          name: 'Category',
+          layer: 'model',
+          confidence: 1.0,
+          fields: {
+            id: { type: 'number', nullable: false },
+            title: { type: 'string', nullable: false }
+          },
+          relations: {}
+        } as any
+      },
+      edges: []
+    });
+
+    // 1. Test parsing simple property access expression: $this->price
+    const priceAST = PhpCodeParser.parseExpression('$this->price');
+    expect(priceAST.kind).toBe('property_access');
+    
+    // Resolve type of $this->price under context of Product model
+    const priceResolution = kernel.resolve(priceAST, { fileName: 'Product' });
+    expect(priceResolution.status).toBe('resolved');
+    expect(priceResolution.type).toBe('number');
+
+    // 2. Test parsing relation traversal: $this->category->title
+    const categoryTitleAST = PhpCodeParser.parseExpression('$this->category->title');
+    expect(categoryTitleAST.kind).toBe('property_access');
+    
+    const categoryTitleResolution = kernel.resolve(categoryTitleAST, { fileName: 'Product' });
+    expect(categoryTitleResolution.status).toBe('resolved');
+    expect(categoryTitleResolution.type).toBe('string');
+
+    // 3. Test parsing non-existent property fallback
+    const missingAST = PhpCodeParser.parseExpression('$this->non_existent');
+    const missingResolution = kernel.resolve(missingAST, { fileName: 'Product' });
+    expect(missingResolution.status).toBe('unknown');
   });
 });

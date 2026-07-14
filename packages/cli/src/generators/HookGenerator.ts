@@ -266,6 +266,13 @@ export class HookGenerator {
       let detailType = 'never'
       if (resource.show) {
         detailType = resolveResponseType(resource.show)
+      } else {
+        const customGet = resource.all.find(
+          r => r.method === 'GET' && r.crudRole === 'custom'
+        )
+        if (customGet) {
+          detailType = resolveResponseType(customGet)
+        }
       }
 
       // 3. Resolve create type

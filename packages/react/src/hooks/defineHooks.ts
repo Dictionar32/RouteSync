@@ -298,8 +298,8 @@ export interface HookConfig {
   intent?: unknown
 }
 
-const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K, unknown> => {
-  return typeof obj === 'object' && obj !== null && key in obj
+export const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K, unknown> => {
+  return (typeof obj === 'object' || typeof obj === 'function') && obj !== null && key in obj
 }
 
 const getHookMethodResult = (hookObj: unknown, method: string): unknown => {

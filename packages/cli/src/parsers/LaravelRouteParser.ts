@@ -241,6 +241,49 @@ foreach ($routes as $route) {
                     $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
                 }
 
+                // Detect JsonResource wrap behavior for attribute-based responses.
+                // When #[Response(Model::class)] is on the method, $responseMetadata is already set above.
+                // We still need to inspect the resource class the method actually returns to know
+                // whether it wraps in { data: ... } (Laravel default) or returns flat JSON.
+                // This runs regardless of how $responseMetadata was populated.
+                if ($responseMetadata && !($responseMetadata['collection'] ?? false) && $methodSource) {
+                    $returnedResource = null;
+                    if (preg_match('/return\\s+new\\s+([a-zA-Z0-9_]+Resource)/', $methodSource, $retMatches)) {
+                        $returnedResource = $retMatches[1];
+                    } elseif (preg_match('/return\\s+DB::transaction.*?new\\s+([a-zA-Z0-9_]+Resource)/s', $methodSource, $retMatches)) {
+                        $returnedResource = $retMatches[1];
+                    }
+                    if ($returnedResource) {
+                        $resClass = 'App\\\\Http\\\\Resources\\\\' . $returnedResource;
+                        if (class_exists($resClass)) {
+                            $resRef = new ReflectionClass($resClass);
+                            $wrapped = true; // Laravel default: single resources are wrapped
+                            try {
+                                if ($resRef->hasProperty('wrap')) {
+                                    $wrapProp = $resRef->getProperty('wrap');
+                                    // Only unwrapped when THIS class explicitly declares static $wrap = null
+                                    if ($wrapProp->getDeclaringClass()->getName() === $resRef->getName()) {
+                                        $wrapValue = $resRef->getStaticPropertyValue('wrap', '__UNSET__');
+                                        $wrapped = ($wrapValue !== null && $wrapValue !== '__UNSET__');
+                                    }
+                                }
+                            } catch (\\Throwable $e) {
+                                // Fallback: grep source file for static wrap = null declaration
+                                $srcFile = $resRef->getFileName();
+                                if ($srcFile && file_exists($srcFile)) {
+                                    $src = file_get_contents($srcFile);
+                                    if (preg_match('/static\\s+\\$wrap\\s*=\\s*null/', $src)) {
+                                        $wrapped = false;
+                                    }
+                                }
+                            }
+                            if ($wrapped) {
+                                $responseMetadata['wrapped'] = true;
+                            }
+                        }
+                    }
+                }
+
                 $assignments = [];
                 if ($methodSource) {
                     if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([^;]+);/s', $methodSource, $assignMatches)) {
@@ -297,6 +340,48 @@ foreach ($routes as $route) {
                                     ];
                                 }
                             }
+
+                            // Detect Laravel JsonResource $wrap behavior automatically.
+                            // Laravel wraps single resources in { data: ... } by default.
+                            // The SDK handles this transparently — developers do not need
+                            // to know about $wrap = null. We inspect the class via reflection:
+                            // if this specific class does NOT declare a $wrap property set to
+                            // null, the response is wrapped and we mark it in the manifest so
+                            // ZodTierGenerator generates z.object({ data: schema }) accordingly.
+                            if ($responseMetadata && !$collection) {
+                                // Laravel JsonResource wraps single resources in { data: ... } by default.
+                                // We detect this transparently so developers don't need to know about $wrap.
+                                // Strategy: read the static $wrap property from the resource class.
+                                //   - If the class declares its own $wrap = null → not wrapped (flat JSON)
+                                //   - Otherwise (inherits default 'data' from JsonResource) → wrapped
+                                $wrapped = true; // Laravel default
+                                try {
+                                    if ($resReflector->hasProperty('wrap')) {
+                                        $wrapProp = $resReflector->getProperty('wrap');
+                                        // Only consider it "explicitly unwrapped" if THIS class (not a parent)
+                                        // declares the property — otherwise it's just the inherited default.
+                                        if ($wrapProp->getDeclaringClass()->getName() === $resReflector->getName()) {
+                                            $wrapProp->setAccessible(true);
+                                            // getStaticPropertyValue works for static props in PHP 8
+                                            $wrapValue = $resReflector->getStaticPropertyValue('wrap', '__NOT_SET__');
+                                            $wrapped = ($wrapValue !== null && $wrapValue !== '__NOT_SET__');
+                                        }
+                                    }
+                                } catch (\Throwable $e) {
+                                    // Fallback: read the source file and look for static \$wrap = null
+                                    $srcFile = $resReflector->getFileName();
+                                    if ($srcFile && file_exists($srcFile)) {
+                                        $src = file_get_contents($srcFile);
+                                        if (preg_match('/static\s+\$wrap\s*=\s*null/', $src)) {
+                                            $wrapped = false;
+                                        }
+                                    }
+                                }
+                                if ($wrapped) {
+                                    $responseMetadata['wrapped'] = true;
+                                }
+                            }
+
                         }
                     }
                 }

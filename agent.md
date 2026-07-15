@@ -6,6 +6,103 @@
 
 ---
 
+## 2026-07-15 — Debugging Runtime: Urutan yang Benar & SDK Fix Items
+
+### Konteks
+
+Sesi debugging integrasi `toko-online` (Laravel + Next.js + RouteSync SDK). Tiga bug
+terpisah yang awalnya dikira satu masalah compiler, ternyata masalah runtime dan PHP.
+
+### Temuan #1 — Urutan debugging yang benar
+
+**Salah (yang terjadi di sesi ini):**
+```
+error "Gagal memuat data"
+↓ langsung ke ExpressionResolver
+↓ langsung ke compiler schema
+↓ langsung ke Zod nullable
+```
+
+**Benar:**
+```
+error "Gagal memuat data"
+↓ 1. Cek Network tab — apakah request sampai? (CORS? 401? 500?)
+↓ 2. Curl langsung ke backend dengan token valid
+↓ 3. Bandingkan response asli vs schema yang digenerate
+↓ 4. Baru sentuh compiler/SDK kalau memang schema yang salah
+```
+
+Pelajaran: **jangan sentuh SDK sebelum membuktikan dengan curl bahwa sumber
+masalahnya ada di SDK.**
+
+### Temuan #2 — CORS bukan masalah SDK
+
+`NEXT_PUBLIC_API_URL=http://toko-online.test/api` menyebabkan browser block semua
+request karena cross-origin (`localhost:3000` → `toko-online.test`).
+
+Fix yang benar: Next.js `rewrites()` proxy di `next.config.ts` + ganti env ke `/api`.
+Ini **bukan** masalah yang perlu difixed di SDK — SDK tidak tahu soal CORS.
+
+**Action item untuk SDK docs:** tambahkan section "Development Setup" di README
+yang menjelaskan bahwa `NEXT_PUBLIC_API_URL` harus menggunakan relative path
+(`/api`) dan `next.config.ts` harus dikonfigurasi dengan `rewrites()` proxy,
+bukan langsung ke domain backend.
+
+### Temuan #3 — `JsonResource $wrap` tidak dideteksi compiler
+
+Laravel `JsonResource` secara default membungkus response single resource dalam
+`{ data: {...} }`. RouteSync scanner membaca `#[Response(Order::class)]` dan
+menghasilkan schema flat tanpa wrapper — tetapi tidak mendeteksi apakah controller
+return `new OrderResource(...)` (yang menyebabkan wrapper) atau `$model->toArray()`
+(yang tidak menyebabkan wrapper).
+
+Akibatnya schema Zod yang digenerate gagal memvalidasi response yang dibungkus `data:`:
+
+```
+Backend mengirim:   { data: { id: 1, status: "pending", ... } }
+Zod schema expect:  { id: 1, status: "pending", ... }  ← Zod throw
+```
+
+Workaround saat ini: tambah `public static $wrap = null;` di `OrderResource.php`.
+
+**Action item untuk SDK compiler:** scanner perlu mendeteksi apakah route mengembalikan
+`new XxxResource(...)` vs `$model->toArray()` dan menambahkan atau tidak menambahkan
+`z.object({ data: ... })` wrapper di schema yang digenerate. Atau, sebagai alternatif
+yang lebih sederhana, tambahkan warning di output `sync` kalau compiler mendeteksi
+`JsonResource` tanpa `$wrap = null`.
+
+### Temuan #4 — Hydration mismatch di pages yang cek `isAuthenticated`
+
+Zustand store tidak tersedia di SSR. Semua page yang melakukan:
+```tsx
+if (!isAuthenticated) return <AuthGuard />
+```
+akan menyebabkan hydration mismatch karena server selalu render `AuthGuard`,
+klien bisa render sesuatu yang berbeda setelah store ter-hydrate.
+
+Pola fix yang benar:
+```tsx
+const [mounted, setMounted] = useState(false)
+useEffect(() => { setMounted(true) }, [])
+
+if (!mounted || !isAuthenticated) return <AuthGuard />
+```
+
+**Action item untuk generated code:** kalau RouteSync men-generate page yang
+membutuhkan auth guard, pola `mounted` ini harus ada di template generator,
+bukan dibiarkan developer menemukan sendiri.
+
+### Ringkasan Action Items (urutan prioritas)
+
+1. **`JsonResource $wrap` detection** — compiler harus deteksi dan handle wrapper
+   atau emit warning. Prioritas: **tinggi** (silent validation failure, sulit debug).
+2. **README: Development Setup section** — dokumentasikan kebutuhan Next.js proxy
+   untuk avoid CORS di dev. Prioritas: **sedang**.
+3. **Auth guard template** — generated auth-guard page harus pakai pola `mounted`.
+   Prioritas: **sedang**.
+
+---
+
 ## 2026-07-08 — Compiler Reframe: Findings & Open Items
 
 Ringkasan diskusi tentang reframing RouteSync dari "route/frontend generator" menjadi

@@ -314,6 +314,20 @@ export class ZodTierGenerator {
           }
         }
 
+        // Detect single-resource JsonResource $wrap behavior.
+        // When the PHP scanner marks response.wrapped = true, Laravel is using its
+        // default JsonResource behavior which wraps the payload in { data: ... }.
+        // We generate the correct z.object({ data: schema }) automatically — the
+        // developer does not need to know anything about $wrap.
+        const isWrapped = !isCollection && (
+          route.response?.wrapped === true ||
+          route.response?.resolved?.wrapped === true ||
+          route.response?.semantic?.wrapped === true
+        )
+        if (isWrapped && !zType.includes('data:')) {
+          zType = `z.object({ data: ${zType} })`
+        }
+
         // Naming: LoginResponse (single), ProfileUpdateResponse (multiple)
         const count = contractResponseCount.get(resource) || 1
         const respName = count === 1 ? TitleCaseResource : KeyName
@@ -1322,6 +1336,13 @@ export class ZodTierGenerator {
         const resourceName = `${rawModelName}Resource`
         const baseModel = resources.some(r => r.name === resourceName) ? resourceName : rawModelName
 
+        // Detect whether the response is wrapped in { data: ... } by Laravel JsonResource.
+        const isWrapped = !isCollection && (
+          (route.response as any)?.wrapped === true ||
+          (route.response as any)?.resolved?.wrapped === true ||
+          (route.response as any)?.semantic?.wrapped === true
+        )
+
         if (kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) {
           hasExports = true
           generatedMapperFns.add(`resp:${contractKey}`)
@@ -1330,6 +1351,10 @@ export class ZodTierGenerator {
             const readType = `${readKey}Transformed`
             const mappedValue = this.generateObjectReadMapper(route.response, 'api')
             lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${readType} => (${mappedValue})`)
+          } else if (isWrapped) {
+            // Mutation + wrapped JsonResource → unwrap api.data and transform.
+            const readType = `${baseModel}Transformed`
+            lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${readType} => to${baseModel}Read((api as any).data)`)
           } else {
             // Mutation → identity mapper (contract type = return type)
             lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${contractKey}Response => (api)`)
@@ -1339,6 +1364,13 @@ export class ZodTierGenerator {
           generatedMapperFns.add(`resp:${contractKey}`)
           const readType = `${baseModel}Transformed[]`
           lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${readType} => to${baseModel}ReadList(api.data)`)
+          lines.push(``)
+        } else if (!isGet && isWrapped) {
+          // Mutation response is a wrapped single resource
+          hasExports = true
+          generatedMapperFns.add(`resp:${contractKey}`)
+          const readType = `${baseModel}Transformed`
+          lines.push(`export const to${contractKey}ResponseRead = (api: ${contractKey}Response): ${readType} => to${baseModel}Read((api as any).data)`)
           lines.push(``)
         }
       }

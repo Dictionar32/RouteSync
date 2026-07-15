@@ -2,7 +2,55 @@
 
 All notable changes to RouteSync will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **`JsonResource $wrap` detection** — compiler scanner sekarang mendeteksi apakah
+  controller route mengembalikan `new XxxResource(...)` tanpa `$wrap = null`. Kalau
+  wrapper `data:` aktif, compiler emit schema dengan `z.object({ data: ... })` wrapper
+  yang sesuai. Sebelumnya, schema yang digenerate selalu flat (`OrderResourceSchema`)
+  sehingga Zod validation diam-diam gagal saat response backend membungkus data dalam
+  `{ data: {...} }` (Laravel `JsonResource` default behavior).
+
+  **Breaking behavior change:** project yang sudah punya `public static $wrap = null`
+  tidak terpengaruh. Project yang mengandalkan wrapper `data:` perlu mengupdate
+  schema manual atau tambahkan `$wrap = null` di resource class mereka.
+
+### Added
+- **`sync` warning untuk `JsonResource` tanpa `$wrap = null`** — saat `routesync sync`
+  mendeteksi controller yang return `new XxxResource(...)` dan resource class tidak
+  mendeklarasikan `public static $wrap = null`, sebuah warning dicetak ke stderr:
+  ```
+  ⚠ OrderResource wraps response in { data: ... } but schema expects flat object.
+    Add `public static $wrap = null;` to OrderResource, or the generated Zod schema
+    will fail at runtime.
+  ```
+- **README: Development Setup** — menambahkan section baru yang menjelaskan setup
+  Next.js `rewrites()` proxy untuk development agar request tidak cross-origin:
+  ```ts
+  // next.config.ts
+  async rewrites() {
+    return [
+      { source: '/api/:path*', destination: 'http://your-backend.test/api/:path*' },
+      { source: '/storage/:path*', destination: 'http://your-backend.test/storage/:path*' },
+    ]
+  }
+  ```
+  Dan `.env.local` harus menggunakan relative path:
+  ```
+  NEXT_PUBLIC_API_URL=/api
+  ```
+- **Auth-guard page template: `mounted` flag** — generated pages yang membutuhkan
+  auth check kini menggunakan pola `mounted` flag untuk menghindari React hydration
+  mismatch antara SSR (Zustand store belum ter-hydrate) dan client render:
+  ```tsx
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  if (!mounted || !isAuthenticated) return <AuthGuard ... />
+  ```
+
 ## [1.0.49] - 2026-07-08
+
 
 ### Fixed
 - **Accessor Type Resolution Pipeline** (Issues #4–#6):

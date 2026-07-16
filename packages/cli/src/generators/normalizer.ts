@@ -198,7 +198,7 @@ export function normalizeManifest(manifest: RouteManifest, kernel: SemanticResol
   const context = new CompilerContext()
   const pipeline = new CompilerPipeline()
 
-  pipeline.addPass(new ModelGraphBuilderPass())
+  pipeline.addPass(new ModelGraphBuilderPass(kernel))
   pipeline.addPass(new SemanticResolutionPass())
   pipeline.addPass(new NormalizationPass(kernel))
   pipeline.addPass(new ValidationPass())

@@ -5,6 +5,92 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 
 ---
 
+### Issue 17: Assignment Scanner Skipping Valid Assignments Inside Closures
+**Symptom** → Variables assigned inside a closure body (e.g. `$review = ProductReview::updateOrCreate(...)` inside `DB::transaction(function() { ... })`) were not captured by the assignments scanner. As a result, fields derived from those variables (e.g. `$review->title`) fell through to `z.unknown()` in the generated schema.  
+**Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — `assignmentsScannerPhp` template, the expression skip guard.  
+**Root cause** → The scanner had `if (str_contains($expr, 'return')) continue;` — it skipped any assignment whose captured expression contained the word `return` anywhere. Because `DB::transaction(function() { return ...; })` captures the entire closure body as part of the expression (the regex `/\$var\s*=\s*([^;]+);/s` with `s` flag spans newlines), the valid outer assignment was discarded.  
+**Fix** → Changed the guard from `str_contains($expr, 'return')` to `str_starts_with($expr, 'return')` — only skip when the expression **itself** starts with `return` (which would be a malformed PHP statement), not when `return` appears inside a nested closure argument.  
+**Regression test** → `laravelParserAssignments.spec.ts` › `should NOT skip $review = Model::updateOrCreate(fn that contains return)` and `should NOT skip $result = DB::transaction(function() { return Model::create(...); })`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 16: `updateOrCreate` and Other Eloquent Methods Not Tracked as Single-Instance Assignments
+**Symptom** → `$review = ProductReview::updateOrCreate(...)` was not tracked in the Smart Response Inference symbol table. Consequently, fields like `$review->title` and `$review->comment` in the inline `response()->json([...])` array were generated as `z.unknown()` instead of `z.string().nullable()`.  
+**Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — Level 90 single-instance Eloquent method list (Smart Response Inference block).  
+**Root cause** → The Level 90 regex only matched: `find|findOrFail|create|first|firstOrFail|update|latest`. The method `updateOrCreate` (and similarly `firstOrCreate`, `forceCreate`, `make`, `sole`, `firstOrNew`, `newInstance`, `newModelInstance`, `updateOrInsert`) were absent from the alternation. Any call using these methods was not registered in the `$symbolTable`, so downstream field access on the variable could not be resolved to a model column type.  
+**Fix** → Expanded the Level 90 regex alternation to include: `updateOrCreate|firstOrCreate|forceCreate|make|sole|firstOrNew|newInstance|newModelInstance|updateOrInsert`.  
+**Regression test** → `laravelParserAssignments.spec.ts` › `should track $review assigned via ProductReview::updateOrCreate()`, `firstOrCreate()`, `sole()`, `firstOrNew()`, and `Product::find()` (regression guard).  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 15: `nullsafe_property_access` (`?->`) Not Marking Resolved Field as Nullable
+**Symptom** → A resource field resolved via a PHP null-safe property access (e.g. `$promotion?->promo_code`) generated a non-nullable Zod type (`z.string()`) even when the underlying relation can be absent. At runtime, Zod validation threw when the relation was `null`.  
+**Where** → `packages/core/src/semantic/plugins/ExpressionResolver.ts` — end of the `property_access / nullsafe_property_access` handler (line ~283).  
+**Root cause** → After resolving the target property via `kernel.resolve({ kind: 'model_column', … })`, the final return statement spread `innerRes.nullable` verbatim. When the DB column is declared `nullable: false` (e.g. `promo_code varchar NOT NULL`), `innerRes.nullable` was `false`, and the null-safe operator `?->` was silently ignored — the nullability introduced by the optional chaining was never attached to the result.  
+**Fix** → Added `const isNullsafe = meta.kind === 'nullsafe_property_access'` check before the return; final `nullable` is now `isNullsafe ? true : innerRes.nullable`. Requires `npm run build` to take effect (core is consumed from `dist/`).  
+**Regression test** → `orders.spec.ts` › `should resolve nullsafe_property_access expression to nullable: true`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 14: Ternary Expression with `null` Branch Not Marked Nullable
+**Symptom** → A resource field resolved via PHP ternary (e.g. `$path ? $path : null`) generated a non-nullable type. When the PHP condition was false and the backend returned `null`, Zod validation rejected the value.  
+**Where** → `packages/core/src/semantic/plugins/ExpressionResolver.ts` — `ternary` handler (line ~130).  
+**Root cause** → The ternary resolver spread `...truthyRes` or `...falsyRes` as-is. When one branch resolved to `null`/`unknown` and the other to a concrete type (e.g. `string`), the concrete branch was returned without setting `nullable: true` — the null branch was effectively thrown away.  
+**Fix** → Added `truthyIsNull` / `falsyIsNull` guards before the return. If the non-null branch is chosen and the other branch is `null`/`unknown`, the result now carries `nullable: true`. Requires `npm run build`.  
+**Regression test** → `orders.spec.ts` › `should resolve ternary expression to nullable: true when one branch is null`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 13: `use X as Y` Alias Not Resolved in Wrap Detection
+**Symptom** → When a controller imports a resource with an alias (`use App\Http\Resources\OrderResource as OrderRes`) and returns `new OrderRes(null)`, wrap detection silently skipped — `response.wrapped` was not set even though `OrderRes` maps to a resource with default wrapping.  
+**Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — `wrapDetectionPhp` block, `return new …` regex.  
+**Root cause** → The return-statement regex required the captured class name to end with the literal string `Resource` (`[^\s(]+Resource`). An aliased name like `OrderRes` doesn't satisfy this suffix, so `$rawName` was never set and the alias-resolution branch was never reached.  
+**Fix** → Removed the `Resource` suffix requirement from the return regex: `[^\s(]+Resource` → `[^\s(]+`. The wrap detection block is inside a `$responseMetadata` guard that already guarantees this method returns a `JsonResource`, so suffix filtering is redundant.  
+**Regression test** → `jsonResourceWrap.spec.ts` › `BUG: aliased use (use X as Y) — must detect wrapped via alias resolution`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 12: Indented `use` Statement Not Matched in Namespace Block
+**Symptom** → When a controller uses a short resource name with an explicit `use` import (`use App\Http\Resources\OrderResource;`) inside a curly-brace namespace block, the import was not found and `response.wrapped` was silently skipped.  
+**Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — `wrapDetectionPhp`, `use`-statement resolution regex.  
+**Root cause** → The regex used `^use\s+…` with multiline flag (`#m`). In PHP files where the controller is inside a curly-brace namespace block (`namespace App\Http\Controllers { … }`), the `use` statement is indented (e.g. 4 spaces). The `^` anchor matches start-of-line but `use` is preceded by whitespace, so the match failed.  
+**Fix** → Changed `^use\s+` to `^\s*use\s+` in both the class-name pattern and the alias pattern so leading whitespace is consumed before `use`.  
+**Regression test** → `jsonResourceWrap.spec.ts` › `BUG: short name + use statement — must detect wrapped=true`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 11: Hardcoded `App\Http\Resources\` Namespace in Wrap Detection
+**Symptom** → Wrap detection only worked for projects that placed their resource classes under `App\Http\Resources\`. Any other namespace (e.g. `App\Domain\Order\Resources\`, `App\Http\Resources\V2\`) caused `class_exists()` to return `false` and the `wrapped` flag was silently skipped.  
+**Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — original wrap detection block that was inline in the `phpScript` template literal.  
+**Root cause** → After extracting the short class name from the return statement (e.g. `OrderResource`), the code unconditionally prepended `App\\Http\\Resources\\` to form the FQCN before calling `class_exists()`. This is project-specific and wrong for any non-default namespace layout.  
+**Fix** → Replaced hardcoded prefix with a two-path resolver:
+  1. If the return statement contains a backslash (e.g. `new \App\Domain\Resources\OrderResource(`), treat it as FQCN, strip the leading `\`, and call `class_exists()` directly.
+  2. If the return statement uses a short name (e.g. `new OrderResource(`), read the `use` import statements from `$reflector->getFileName()` and match `use … ClassName;` or `use … ClassName as Alias;` to derive the FQCN.  
+**Regression test** → `jsonResourceWrap.spec.ts` › `BUG: FQCN with leading backslash — must detect wrapped=true` and `BUG: short name + use statement — must detect wrapped=true`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
+### Issue 10: TS→PHP Template Literal Escaping Causing PHP Parse Errors
+**Symptom** → After wrapping the `$wrap` detection logic inside the `phpScript` JS template literal, the generated PHP file contained syntax errors such as `unexpected token "\"` (line 236+). The parser returned 0 routes for all projects.  
+**Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — the `phpScript` template literal containing inline PHP.  
+**Root cause** → PHP code embedded in a JS template literal undergoes two layers of backslash interpretation:
+  - JS template literal: `\\` → single `\` in the resulting string
+  - PHP regex strings: `\\` → single `\` in the pattern
+
+  Writing `\\s` (to produce PHP `\s`) required `\\\\s` in TS source. Getting this wrong caused PHP to receive literal `s` instead of the `\s` meta-sequence, producing parse errors. Multiple attempts to fix the escaping via different PHP regex delimiters (`/`, `#`) still failed due to the compounding layers.  
+**Fix** → Moved the entire wrap detection PHP block into a separate `const wrapDetectionPhp = String.raw\`…\`` constant **before** the `phpScript` template literal. `String.raw` prevents JS from interpreting any backslashes, so the PHP code reads exactly as written and is then interpolated into `phpScript` via `${wrapDetectionPhp}`. This eliminates the double-escape problem entirely.  
+**Regression test** → `jsonResourceWrap.spec.ts` › `BUG: TS→PHP escaping — generated PHP script must pass php -l (lint)`.  
+**Status** → Diagnosed & Fixed.
+
+---
+
 ### Issue 9: JSON Member Access Chain — Semantic Resolution Implemented, Runtime Typing Deferred
 **Symptom** → Follow-up to Issue 8. `PaymentResource.gateway.name` (and similar chained access into cast `array`/`json` columns) generated as `unknown` because property/array access on a resolved JSON blob had no handling in `ExpressionResolver` — it fell through to "Property access target model not found".
 **Where** → `packages/core/src/types/contract.ts`, `packages/core/src/semantic/plugins/{ModelColumnResolver,ExpressionResolver}.ts`, `packages/cli/src/parsers/PhpCodeParser.ts`, `packages/cli/src/generators/ZodTierGenerator.ts`.
@@ -97,3 +183,6 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 **Root cause** → The CLI scanner attempts to connect to the database via standard localhost configurations defined in the `.env` file, which may refer to docker container aliases instead of host port-forwarding addresses.  
 **Fix** → Run the scan command with environment overrides: `DB_HOST=127.0.0.1 DB_PORT=3307 npx routesync scan --input routes/api.php --models`.  
 **Status** → Workaround Documented.
+
+**Symptom** → Follow-up to Issue 8. `PaymentResource.gateway.name` (and similar chained access into cast `array`/`json` columns) generated as `unknown` because property/array access on a resolved JSON blob had no handling in `ExpressionResolver` — it fell through to "Property access target model not found".
+**Where** → `packages/core/src/types/contract.ts`, `packages/core/src/semantic/plugins/{ModelColumnResolver,ExpressionResolver}.ts`, `packages/cli/src/parsers/PhpCodeParser.ts`, `packages/cli/src/generators/ZodTierGenerator.ts`.

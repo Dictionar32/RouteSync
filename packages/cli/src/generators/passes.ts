@@ -23,8 +23,10 @@ export class ModelGraphBuilderPass implements CompilerPass<RouteManifest, { mani
   readonly inputKind = "RouteManifest"
   readonly outputKind = "ResolvedManifest"
 
+  constructor(private externalKernel?: SemanticResolutionKernel) {}
+
   run(manifest: RouteManifest, context: CompilerContext): { manifest: RouteManifest; kernel: SemanticResolutionKernel } {
-    const kernel = new SemanticResolutionKernel()
+    const kernel = this.externalKernel || new SemanticResolutionKernel()
     const graphBuilder = new ServiceGraphBuilder()
     
     if (manifest.models) {

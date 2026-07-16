@@ -127,15 +127,22 @@ export class ExpressionResolver implements ResolverPlugin {
         ...(falsyRes.trace || [])
       ];
 
-      if (truthyRes.status === 'resolved' && truthyRes.type !== 'unknown') {
+      // Determine if one branch resolves to null (PHP: null literal or 'null' type)
+      const truthyIsNull = truthyRes.type === 'null' || truthyRes.type === 'unknown'
+      const falsyIsNull  = falsyRes.type  === 'null' || falsyRes.type  === 'unknown'
+
+      if (truthyRes.status === 'resolved' && !truthyIsNull) {
         return {
           ...truthyRes,
+          // nullable: true if the other branch is null
+          nullable: falsyIsNull ? true : (truthyRes.nullable ?? false),
           trace: [...trace, ...(truthyRes.trace || [])]
         };
       }
-      if (falsyRes.status === 'resolved' && falsyRes.type !== 'unknown') {
+      if (falsyRes.status === 'resolved' && !falsyIsNull) {
         return {
           ...falsyRes,
+          nullable: truthyIsNull ? true : (falsyRes.nullable ?? false),
           trace: [...trace, ...(falsyRes.trace || [])]
         };
       }
@@ -280,6 +287,8 @@ export class ExpressionResolver implements ResolverPlugin {
 
       const innerRes = context.kernel.resolve({ kind: 'model_column', model: targetModelName || '', column: prop }, targetModel || currentModel);
       if (innerRes.trace) trace.push(...innerRes.trace);
+      // nullsafe_property_access (?->) always produces a nullable result
+      const isNullsafe = meta.kind === 'nullsafe_property_access';
       return {
           status: innerRes.status,
           type: innerRes.type,
@@ -287,7 +296,7 @@ export class ExpressionResolver implements ResolverPlugin {
           resource: innerRes.resource,
           collection: innerRes.collection,
           paginated: innerRes.paginated,
-          nullable: innerRes.nullable,
+          nullable: isNullsafe ? true : innerRes.nullable,
           confidence: innerRes.confidence,
           trace
       };

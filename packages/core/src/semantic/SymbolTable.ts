@@ -75,4 +75,12 @@ export class SymbolTable {
   getCaseInsensitive(name: string): ModelSymbol | undefined {
     return this.byLowerName.get(name.toLowerCase())
   }
+
+  /** Find the first ModelSymbol matching a predicate */
+  findFirst(predicate: (node: ModelNode) => boolean): ModelSymbol | undefined {
+    for (const sym of this.byName.values()) {
+      if (predicate(sym.node)) return sym
+    }
+    return undefined
+  }
 }

@@ -111,7 +111,7 @@ export class VariableResolver implements ResolverPlugin {
       };
     }
 
-    // 4. Match against models in manifest/context by name
+    // 4. Match against models in manifest/context by name (including plural/singular heuristics)
     const exactMatch = context.symbolTable.getCaseInsensitive(name);
     if (exactMatch) {
       return {
@@ -144,6 +144,74 @@ export class VariableResolver implements ResolverPlugin {
         }]
       };
     }
+
+    // Heuristics for plural variable names (e.g. categories -> Category, products -> Product)
+    let singularName = '';
+    if (name.endsWith('ies')) {
+      singularName = name.slice(0, -3) + 'y';
+    } else if (name.endsWith('s')) {
+      singularName = name.slice(0, -1);
+    }
+
+    if (singularName) {
+      const singularExactMatch = context.symbolTable.getCaseInsensitive(singularName);
+      if (singularExactMatch) {
+        return {
+          status: 'resolved',
+          type: 'model',
+          model: singularExactMatch.name,
+          collection: true,
+          confidence: 80,
+          trace: [{
+            source: 'VariableResolver',
+            rule: `Variable name singularized exact match to manifest model`,
+            input: name,
+            output: `model: ${singularExactMatch.name} (collection)`
+          }]
+        };
+      }
+
+      const singularCapName = singularName.charAt(0).toUpperCase() + singularName.slice(1);
+      const singularCapMatch = context.symbolTable.get(singularCapName);
+      if (singularCapMatch) {
+        return {
+          status: 'resolved',
+          type: 'model',
+          model: singularCapName,
+          collection: true,
+          confidence: 70,
+          trace: [{
+            source: 'VariableResolver',
+            rule: `Variable name singularized capitalized match to manifest model`,
+            input: name,
+            output: `model: ${singularCapName} (collection)`
+          }]
+        };
+      }
+
+      // Compound-name fallback: $reviews → singular 'Review' → find any model ending with 'Review'
+      // e.g. ProductReview, OrderReview — picks first match at confidence 60
+      const suffixUpper = singularCapName
+      const suffixMatch = context.symbolTable.findFirst(
+        (entry: { name: string }) => entry.name.endsWith(suffixUpper)
+      )
+      if (suffixMatch) {
+        return {
+          status: 'resolved',
+          type: 'model',
+          model: suffixMatch.name,
+          collection: true,
+          confidence: 60,
+          trace: [{
+            source: 'VariableResolver',
+            rule: `Variable name compound-suffix match to manifest model`,
+            input: name,
+            output: `model: ${suffixMatch.name} (collection, suffix=${suffixUpper})`
+          }]
+        }
+      }
+    }
+
 
     return {
       status: 'unknown',

@@ -473,7 +473,7 @@ export class HookGenerator {
       for (const t of Array.from(contractImportedTypes).sort()) {
         lines.push(`  ${t},`)
       }
-      lines.push(`} from './contract/api-contract'`)
+      lines.push(`} from './contract/api-schema'`)
     }
 
     lines.push(``)

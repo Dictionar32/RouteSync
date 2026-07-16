@@ -37,6 +37,7 @@ export class SDKGenerator {
 
     const usedSchemas = new Set<string>()
     const usedContracts = new Set<string>()
+    const usedPayloadContracts = new Set<string>()
     const usedMappers = new Set<string>()
 
     // Helper to extract response type, schema and mapper info
@@ -183,7 +184,7 @@ export class SDKGenerator {
           if (hasBodyContract) {
             const bodyValidator = `validate${KeyName}Payload`
             apiBodyLines.push(`        body: ${bodyValidator},`)
-            usedContracts.add(bodyValidator)
+            usedPayloadContracts.add(bodyValidator)
           }
           if (hasRespContract) {
             apiBodyLines.push(`        response: ${respInfo.schema},`)
@@ -235,6 +236,9 @@ export class SDKGenerator {
 
     if (usedContracts.size > 0) {
       lines.push(`import { ${Array.from(usedContracts).sort().join(', ')} } from './contract/api-contract'`)
+    }
+    if (usedPayloadContracts.size > 0) {
+      lines.push(`import { ${Array.from(usedPayloadContracts).sort().join(', ')} } from './contract/api-schema'`)
     }
     if (usedMappers.size > 0) {
       lines.push(`import { ${Array.from(usedMappers).sort().join(', ')} } from './mappers/api-mapper'`)

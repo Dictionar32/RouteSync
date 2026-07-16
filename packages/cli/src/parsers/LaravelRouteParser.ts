@@ -19,6 +19,83 @@ export class LaravelRouteParser {
     const projectRoot = path.dirname(path.dirname(resolvedFile))
     const extractModels = options.extractModels ? 'true' : 'false'
 
+    // ---------------------------------------------------------------------------
+    // PHP block: JsonResource $wrap detection.
+    // Built with String.raw so JS does NOT interpret backslashes — what you write
+    // is exactly what PHP receives. Injected into phpScript via ${wrapDetectionPhp}.
+    // ---------------------------------------------------------------------------
+    const wrapDetectionPhp = String.raw`
+                // Detect JsonResource wrap behavior for attribute-based responses.
+                // $responseMetadata is already set when the method has #[Response(Model::class)].
+                // We inspect the actual returned resource class to know whether it wraps in
+                // { data: ... } (Laravel default) or returns flat JSON ($wrap = null).
+                if ($responseMetadata && !($responseMetadata['collection'] ?? false) && $methodSource) {
+                    $returnedResClass = null;
+
+                    // Match: return new OrderResource( or return new \App\Http\Resources\OrderResource(
+                    // or aliased: return new OrderRes( — alias may not end in 'Resource'
+                    // [^\s(]+ grabs the full class name between "new " and "(".
+                    if (preg_match('#return\s+new\s+([^\s(]+)\s*\(#', $methodSource, $retMatches)
+                        || preg_match('#DB::transaction.*?new\s+([^\s(]+)\s*\(#s', $methodSource, $retMatches)) {
+                        $rawName = $retMatches[1];
+
+                        if (str_contains($rawName, '\\')) {
+                            // FQCN — strip optional leading backslash
+                            $returnedResClass = ltrim($rawName, '\\');
+                        } else {
+                            // Short name — resolve via 'use' statements in the controller file.
+                            // Deterministic: reads the actual source file.
+                            $ctrlFile = $reflector->getFileName();
+                            if ($ctrlFile && file_exists($ctrlFile)) {
+                                $ctrlSource = file_get_contents($ctrlFile);
+                                $esc = preg_quote($rawName, '#');
+                                // use Full\Namespace\ClassName; (may be indented inside namespace block)
+                                if (preg_match('#^\s*use\s+([\w\\\\]+\\\\' . $esc . ')\s*;#m', $ctrlSource, $um)) {
+                                    $returnedResClass = $um[1];
+                                // use Full\Namespace\ClassName as ShortAlias;
+                                } elseif (preg_match('#^\s*use\s+([^\s;]+)\s+as\s+' . $esc . '\s*;#m', $ctrlSource, $um)) {
+                                    $returnedResClass = $um[1];
+                                }
+                            }
+                        }
+                    }
+
+                    if ($returnedResClass && class_exists($returnedResClass)) {
+                        $resRef = new ReflectionClass($returnedResClass);
+                        $wrapped = true;
+                        if ($resRef->hasProperty('wrap')) {
+                            $wrapProp = $resRef->getProperty('wrap');
+                            // Unwrapped only if THIS class explicitly declares: public static $wrap = null
+                            if ($wrapProp->getDeclaringClass()->getName() === $resRef->getName()) {
+                                $wrapValue = $resRef->getStaticPropertyValue('wrap', '__UNSET__');
+                                $wrapped = ($wrapValue !== null && $wrapValue !== '__UNSET__');
+                            }
+                        }
+                        if ($wrapped) {
+                            $responseMetadata['wrapped'] = true;
+                        }
+                    }
+                }
+    `
+
+    const assignmentsScannerPhp = String.raw`
+                $assignments = [];
+                if ($methodSource) {
+                    if (preg_match_all('/\$([a-zA-Z0-9_]+)\s*=\s*([^;]+);/s', $methodSource, $assignMatches)) {
+                        foreach ($assignMatches[1] as $idx => $varName) {
+                            if ($varName === 'request' || $varName === 'this') continue;
+                            $expr = trim($assignMatches[2][$idx]);
+                            // Skip if the expression itself IS a return statement,
+                            // not if it merely contains 'return' inside a nested closure.
+                            if (str_starts_with($expr, 'return')) continue;
+                            // Normalize whitespace: collapse newlines and multiple spaces
+                            $expr = preg_replace('/\s+/', ' ', $expr);
+                            $assignments[$varName] = $expr;
+                        }
+                    }
+                }
+    `
+
     // NOTE: This string is written as-is to a .php file.
     // Do NOT use JS template literal interpolation inside PHP code blocks
     // except for the explicitly marked injection points below.
@@ -241,62 +318,9 @@ foreach ($routes as $route) {
                     $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
                 }
 
-                // Detect JsonResource wrap behavior for attribute-based responses.
-                // When #[Response(Model::class)] is on the method, $responseMetadata is already set above.
-                // We still need to inspect the resource class the method actually returns to know
-                // whether it wraps in { data: ... } (Laravel default) or returns flat JSON.
-                // This runs regardless of how $responseMetadata was populated.
-                if ($responseMetadata && !($responseMetadata['collection'] ?? false) && $methodSource) {
-                    $returnedResource = null;
-                    if (preg_match('/return\\s+new\\s+([a-zA-Z0-9_]+Resource)/', $methodSource, $retMatches)) {
-                        $returnedResource = $retMatches[1];
-                    } elseif (preg_match('/return\\s+DB::transaction.*?new\\s+([a-zA-Z0-9_]+Resource)/s', $methodSource, $retMatches)) {
-                        $returnedResource = $retMatches[1];
-                    }
-                    if ($returnedResource) {
-                        $resClass = 'App\\\\Http\\\\Resources\\\\' . $returnedResource;
-                        if (class_exists($resClass)) {
-                            $resRef = new ReflectionClass($resClass);
-                            $wrapped = true; // Laravel default: single resources are wrapped
-                            try {
-                                if ($resRef->hasProperty('wrap')) {
-                                    $wrapProp = $resRef->getProperty('wrap');
-                                    // Only unwrapped when THIS class explicitly declares static $wrap = null
-                                    if ($wrapProp->getDeclaringClass()->getName() === $resRef->getName()) {
-                                        $wrapValue = $resRef->getStaticPropertyValue('wrap', '__UNSET__');
-                                        $wrapped = ($wrapValue !== null && $wrapValue !== '__UNSET__');
-                                    }
-                                }
-                            } catch (\\Throwable $e) {
-                                // Fallback: grep source file for static wrap = null declaration
-                                $srcFile = $resRef->getFileName();
-                                if ($srcFile && file_exists($srcFile)) {
-                                    $src = file_get_contents($srcFile);
-                                    if (preg_match('/static\\s+\\$wrap\\s*=\\s*null/', $src)) {
-                                        $wrapped = false;
-                                    }
-                                }
-                            }
-                            if ($wrapped) {
-                                $responseMetadata['wrapped'] = true;
-                            }
-                        }
-                    }
-                }
+${wrapDetectionPhp}
 
-                $assignments = [];
-                if ($methodSource) {
-                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([^;]+);/s', $methodSource, $assignMatches)) {
-                        foreach ($assignMatches[1] as $idx => $varName) {
-                            if ($varName === 'request' || $varName === 'this') continue;
-                            $expr = trim($assignMatches[2][$idx]);
-                            if (str_contains($expr, 'return')) continue;
-                            // Normalize whitespace: collapse newlines and multiple spaces
-                            $expr = preg_replace('/\\\s+/', ' ', $expr);
-                            $assignments[$varName] = $expr;
-                        }
-                    }
-                }
+${assignmentsScannerPhp}
 
                 // Resource Discovery
                 if (!$responseMetadata && $methodSource) {
@@ -391,7 +415,10 @@ foreach ($routes as $route) {
                     $symbolTable = [];
                     
                     // Level 90: Single instance assignments
-                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[^;]*?->)?(?:find|findOrFail|create|first|firstOrFail|update|latest)\\\\s*\\\\(/s', $methodSource, $matches)) {
+                    // Covers: find, findOrFail, create, first, firstOrFail, update, latest,
+                    //         updateOrCreate, firstOrCreate, forceCreate, make, sole,
+                    //         firstOrNew, newInstance, newModelInstance, updateOrInsert
+                    if (preg_match_all('/\\\\$([a-zA-Z0-9_]+)\\\\s*=\\\\s*([A-Z][a-zA-Z0-9_]+)::(?:[^;]*?->)?(?:find|findOrFail|create|first|firstOrFail|update|latest|updateOrCreate|firstOrCreate|forceCreate|make|sole|firstOrNew|newInstance|newModelInstance|updateOrInsert)\\\\s*\\\\(/s', $methodSource, $matches)) {
                         foreach ($matches[1] as $idx => $var) {
                             $symbolTable[$var] = ['kind' => 'model', 'model' => $matches[2][$idx], 'collection' => false];
                         }

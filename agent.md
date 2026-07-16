@@ -6,6 +6,66 @@
 
 ---
 
+## 2026-07-16 — Payload Split Tests, Nullsafe & Ternary Nullable Fix
+
+### Konteks
+Sesi ini berfokus pada tiga hal: (1) membuat test suite untuk memverifikasi hasil split `api-schema.ts` / `api-contract.ts`, (2) memperbaiki dua bug lama di `ExpressionResolver` yang baru ketahuan saat test suite dijalankan, dan (3) menemukan bahwa perubahan di `@routesync/core` harus diikuti `npm run build` karena package dikonsumsi dari `dist/` yang sudah di-compile.
+
+### Temuan & Perbaikan
+
+1. **Test Suite: Payload / Response File Split (`payloadSplit.spec.ts`)**
+   - Dibuat `packages/sdk/tests/payloadSplit.spec.ts` dengan 25 test terbagi 5 describe block:
+     - **ZodTierGenerator: api-schema.ts** — verifikasi `*PayloadSchema`, `*Payload` type, `validate*Payload`, panggilan `.parse()`, dan tidak ada `*ResponseSchema` di dalamnya.
+     - **ZodTierGenerator: api-contract.ts** — verifikasi model schema, `*ResponseSchema`, `validate*Response`, dan tidak ada `*PayloadSchema` / `*Payload` di dalamnya.
+     - **SDKGenerator: api.ts** — verifikasi import `validate*Payload` dari `./contract/api-schema`, tidak dari `api-contract`, dan wiring `body:` / `response:` yang benar.
+     - **HookGenerator: hooks.ts** — verifikasi tidak ada import `*Payload` dari `api-contract`.
+     - **File split invariant** — kedua file exist, non-empty, dan exported names benar-benar **disjoint** (tidak ada overlap sama sekali).
+   - Saat run pertama, 5 test gagal karena nama yang di-generate menggunakan prefix `Api` (misal `ApiProductsCreatePayloadSchema`). Test disesuaikan menggunakan regex `\w+` generik daripada hardcode nama.
+
+2. **Bug Fix: `nullsafe_property_access` (`?->`) Tidak Nullable (Issue #15)**
+   - `ExpressionResolver` path `property_access / nullsafe_property_access` spread `innerRes.nullable` verbatim setelah resolve `model_column`. Karena kolom bisa `nullable: false` di DB, operator `?->` diabaikan.
+   - Fix: tambah `const isNullsafe = meta.kind === 'nullsafe_property_access'` dan `nullable: isNullsafe ? true : innerRes.nullable`.
+
+3. **Bug Fix: Ternary dengan Branch `null` Tidak Nullable (Issue #14)**
+   - `ExpressionResolver` ternary handler spread `...truthyRes` tanpa memeriksa apakah falsy branch adalah `null`. Akibatnya `$path ? 'url' : null` menghasilkan `string` (non-nullable).
+   - Fix: tambah `truthyIsNull` / `falsyIsNull` guard. Jika non-null branch dipilih dan sisi lainnya adalah `null`/`unknown`, `nullable: true` di-attach ke hasil.
+
+4. **Catatan Penting: `@routesync/core` dari `dist/`**
+   - Vitest test mengkonsumsi core dari `../../dist/core.js` (bukan source langsung). Perubahan di `packages/core/src/` **tidak aktif sampai `npm run build` dijalankan** di root workspace.
+   - Pattern ini harus diingat setiap kali ada fix di `@routesync/core`.
+
+### Status Test
+- Setelah `npm run build`: **101/101 test hijau** (semua file spec).
+- Dua test lama di `orders.spec.ts` yang sebelumnya fail ikut diperbaiki sebagai side-effect dari fix ExpressionResolver.
+
+---
+
+## 2026-07-16 — Plural Variable Resolution & Wrap Detection Edge Cases
+
+### Konteks
+Melanjutkan penyelesaian bug wrap detection dan memecahkan masalah variabel model plural (seperti `$categories`) yang tidak ter-resolve otomatis ke tipe model singular-nya (`Category`) pada request tanpa resource class Laravel.
+
+### Temuan & Perbaikan
+
+1. **Plural-to-Singular Model Heuristic (VariableResolver)**
+   - **Masalah:** Route `categories.get` mengembalikan JSON array langsung (`return response()->json(['data' => $categories])`). Karena variabelnya bernama `categories` (plural) sedangkan nama model di database/manifest adalah `Category` (singular), `VariableResolver` gagal mencocokkannya sehingga menghasilkan `z.unknown()`.
+   - **Perbaikan:** Menambahkan aturan singularisasi heuristik standard Laravel di `packages/core/src/semantic/plugins/VariableResolver.ts`. Jika nama variabel diakhiri dengan `ies` (misal `categories` -> `category`) atau `s` (misal `products` -> `product`), resolver akan mencoba mencari model singular tersebut dan melabelinya dengan `collection: true`.
+   - **Hasil:** `CategoriesResponseSchema` berhasil ter-resolve secara otomatis menjadi `z.object({ data: z.array(CategorySchema) })` tanpa memaksa developer menambahkan atribut `#[Response]` secara manual di controller.
+
+2. **Wrap Detection Edge Cases & Regression Tests (LaravelRouteParser)**
+   - **Masalah:** Masalah multi-escaping backslash pada regex parse route Laravel menyebabkan route parser pecah ketika dijalankan (mengembalikan 0 routes di test).
+   - **Perbaikan:** Memindahkan logika wrap detection PHP string regex ke `String.raw` template literal (Issue #10) untuk menghindari double-escaping hell.
+   - **Perbaikan Resolusi FQCN & Alias:** Memperbaiki deteksi use-statement yang ter-indent di dalam namespace block (Issue #12) dan mendukung aliased imports `use X as Y` dengan membuang syarat akhiran kata `Resource` di regex (Issue #13).
+   - **Unit & Regression Tests:** Menambahkan 4 named regression tests spesifik di `packages/sdk/tests/jsonResourceWrap.spec.ts` dan 4 unit tests baru di `packages/sdk/tests/pluralVariableResolution.spec.ts` untuk memastikan kestabilan fungsionalitas ini.
+
+3. **Splitting Request Payloads to `api-schema.ts`**
+   - **Masalah:** File `api-contract.ts` menjadi sangat panjang karena menampung data response backend sekaligus schema request payload untuk create, update, dan delete (e.g. `XxxCreatePayloadSchema`).
+   - **Perbaikan:** Memindahkan emisi standalone request payload schemas (`*PayloadSchema`, `*Payload` types, dan `validate*Payload` validator functions) dari `api-contract.ts` ke `api-schema.ts`. `api-contract.ts` sekarang bersih dan hanya berfokus pada schema response backend (`*ResponseSchema`).
+   - **Integrasi SDK & Hooks:** Menyesuaikan impor validator di `SDKGenerator.ts`, `HookGenerator.ts`, dan `ZodTierGenerator.ts` agar mengambil payload schema secara dinamis dari `api-schema` alih-alih `api-contract`.
+
+
+---
+
 ## 2026-07-15 — Debugging Runtime: Urutan yang Benar & SDK Fix Items
 
 ### Konteks

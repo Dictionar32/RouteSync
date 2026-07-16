@@ -4,7 +4,21 @@ All notable changes to RouteSync will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Plural Variable Resolution Heuristics** — VariableResolver sekarang memiliki heuristic singularisasi penamaan standard Laravel (misal `$categories` -> `Category`, `$products` -> `Product`). Jika nama variabel plural cocok dengan singular model dari symbolTable, resolver secara otomatis menyelesaikannya sebagai tipe model terkait dengan flag `collection: true`, menghasilkan `z.array(CategorySchema)` secara otomatis.
+- **Wrap Detection Regression Test Suite** — Menambahkan uji coba regresi (integration & unit) untuk mendeteksi syntax error, whitespace indentation pada use-statement, fully-qualified class names (FQCN) dengan leading backslash, dan aliased imports (`use X as Y`).
+- **`payloadSplit.spec.ts`** — Test suite baru (25 test) memverifikasi pemisahan payload/response: `api-schema.ts` hanya boleh berisi `*PayloadSchema`, `api-contract.ts` hanya boleh berisi `*ResponseSchema`, `SDKGenerator` mengimpor payload validator dari `api-schema`, `HookGenerator` tidak pernah mengimpor `*Payload` dari `api-contract`, dan exported names kedua file sepenuhnya disjoint.
+
+### Changed
+- **Pemisahan file kontrak & payload request** — Memindahkan `*PayloadSchema` (seperti `OrderCreatePayloadSchema`), `*Payload` types, dan `validate*Payload` helper functions dari `api-contract.ts` ke `api-schema.ts`. `api-contract.ts` sekarang bersih dari data payload request dan khusus menangani response schema backend (`*ResponseSchema`).
+
 ### Fixed
+- **Level 90 Eloquent method expansion — `updateOrCreate` dan kawan-kawan** — `LaravelRouteParser` Smart Response Inference sekarang melacak assignment `$var = Model::updateOrCreate(...)`, `firstOrCreate`, `forceCreate`, `make`, `sole`, `firstOrNew`, `newInstance`, `newModelInstance`, dan `updateOrInsert` sebagai single-instance model variable. Sebelumnya, field seperti `$review->title` hasil `updateOrCreate` menghasilkan `z.unknown()` karena method tidak masuk ke regex Level 90 (Issue #16).
+- **Assignment scanner — closure `return` false-positive skip** — Scanner tidak lagi membuang assignment yang ekspresinya mengandung kata `return` di dalam nested closure/lambda. Hanya expression yang **diawali** `return` (malformed PHP) yang dilewati. Ini memperbaiki `$review = ProductReview::updateOrCreate(...)` di dalam `DB::transaction(function() { ... })` (Issue #17).
+- **`nullsafe_property_access` (`?->`) selalu menghasilkan nullable** — `ExpressionResolver` sekarang memaksa `nullable: true` pada hasil resolusi `nullsafe_property_access` (PHP `?->`) terlepas dari deklarasi nullable kolom di database (Issue #15).
+- **Ternary dengan branch `null` menghasilkan nullable** — `ExpressionResolver` sekarang mendeteksi ketika satu branch ternary adalah `null`/`unknown` dan menandai branch yang non-null sebagai `nullable: true` (Issue #14).
+- **LaravelRouteParser phpScript Escaping** — Mengamankan runtime template string PHP generator dengan memindahkan script PHP wrap detection ke `String.raw` block untuk mencegah syntax error escaping backslash (Issue #10).
+- **Wrap Detection Class Resolvers** — Menghapus namespace hardcoded `App\Http\Resources\` dan menggantinya dengan deterministic FQCN extraction dari return statement dan controller `use` statements. (Issue #11, #12, #13).
 - **`JsonResource $wrap` detection** — compiler scanner sekarang mendeteksi apakah
   controller route mengembalikan `new XxxResource(...)` tanpa `$wrap = null`. Kalau
   wrapper `data:` aktif, compiler emit schema dengan `z.object({ data: ... })` wrapper

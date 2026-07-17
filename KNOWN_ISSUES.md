@@ -5,7 +5,34 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 
 ---
 
-### Issue 17: Assignment Scanner Skipping Valid Assignments Inside Closures
+### Issue 20: `routesync.manifest.json` Stale in `ecommerce_shop` — `resources[]`/`models[]` Empty
+**Symptom** → `routesync.manifest.json` committed in the `ecommerce_shop` project has empty `resources[]` and `models[]`, only `routes[]` (35 routes, all `response.kind: 'model'` or `'object'`). The resource-dedup logic verified in `resourceAliasDedup.spec.ts` cannot be exercised against this project's real manifest as a result.
+**Where** → `packages/cli/src/commands/sync.ts` — the `sync` command's `--models` flag gate.
+**Root cause** → `manifest.models`/`manifest.resources` are only populated `if (options.models)`: `if (options.models) { manifest.models = models; manifest.resources = resources }`. The last `sync` run against `ecommerce_shop` was very likely invoked without `--models --zod`, so the manifest was written without resource/model data even though `LaravelRouteParser.parse()` may have found them.
+**Fix** → Not a code fix — re-run `routesync sync --input routes/api.php --output frontend/src/api --models --zod` locally (requires `vendor/` + working DB connection for `--models`, unavailable in a network-restricted sandbox: PHP extractor needs Laravel bootstrap, and Composer/packagist.org isn't reachable there).
+**Status** → Diagnosed, not yet fixed. Needs to be re-run on `annas-zen@archlinux`, not fixable from a sandboxed session.
+
+---
+
+### Issue 19: `IntentResolver.ts` Type Errors (Preexisting, Unrelated to ZodTierGenerator/normalizer Fixes)
+**Symptom** → `npx tsc --noEmit` reports `Property 'model' does not exist on type 'ResponseMetadata'` (line 42) and `Object literal may only specify known properties, and 'capabilities' does not exist in type 'DomainIntentConfig'` (line 162).
+**Where** → `packages/cli/src/resolvers/IntentResolver.ts`.
+**Root cause** → Not yet investigated in depth. Surfaced incidentally while full-project typechecking after the ZodTierGenerator/normalizer fixes (Issue 18's session) — these errors existed before that session and are unrelated to it.
+**Fix** → Not attempted.
+**Status** → Known, undiagnosed. Flagged for a future session.
+
+---
+
+### Issue 18: Two Structurally Different `ModelNode` Interfaces With the Same Name
+**Symptom** → `kernel.loadGraph(graphBuilder.getGraph())` in `normalizer.ts` fails to typecheck: `Argument of type 'ServiceGraph' is not assignable to parameter of type '{ models?: Record<string, ModelNode> }'`. The same root cause cascades into `packages/cli/src/generators/passes.ts`, and from there into `scan.ts`/`sync.ts` (`ScannedManifest` not assignable to `RouteManifest` — missing `version`/`baseURL`/`generatedAt`), plus several test files (`compiler.spec.ts`, `normalizer.spec.ts`, `orders.spec.ts`, `pluralVariableResolution.spec.ts`).
+**Where** → `packages/core/src/types/semantic.ts` (`ModelNode: { kind: 'model_node', fields?: Record<string,string>, layer: 'model' (required), confidence: number (required) }`, used by `ServiceGraph`) vs. `packages/core/src/semantic/types.ts` (`ModelNode: { fields?: Record<string,{type,nullable}>, layer?: string (optional), no kind/confidence }`, used by `SemanticResolutionKernel.loadGraph`).
+**Root cause** → Two independently-authored interfaces share the name `ModelNode` but have incompatible shapes. `ServiceGraphBuilder.getGraph()` returns the first shape; `kernel.loadGraph()` expects the second. This is a naming collision from parallel development, not a single-site bug.
+**Fix** → Not fixed — boundary-cast with `as any` and an explanatory comment at the one call site touched (`normalizer.ts` `buildModelGraph`), deliberately left unresolved elsewhere. Reconciling the two interfaces (rename one, or make one a subtype of the other) is an architectural decision, not a type patch, and needs to be made deliberately rather than cast away site-by-site.
+**Status** → Diagnosed, deliberately not fixed. Cascading errors in `passes.ts`/`scan.ts`/`sync.ts`/several tests are a direct consequence and remain open until this is resolved.
+
+---
+
+
 **Symptom** → Variables assigned inside a closure body (e.g. `$review = ProductReview::updateOrCreate(...)` inside `DB::transaction(function() { ... })`) were not captured by the assignments scanner. As a result, fields derived from those variables (e.g. `$review->title`) fell through to `z.unknown()` in the generated schema.  
 **Where** → `packages/cli/src/parsers/LaravelRouteParser.ts` — `assignmentsScannerPhp` template, the expression skip guard.  
 **Root cause** → The scanner had `if (str_contains($expr, 'return')) continue;` — it skipped any assignment whose captured expression contained the word `return` anywhere. Because `DB::transaction(function() { return ...; })` captures the entire closure body as part of the expression (the regex `/\$var\s*=\s*([^;]+);/s` with `s` flag spans newlines), the valid outer assignment was discarded.  

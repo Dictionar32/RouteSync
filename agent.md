@@ -6,7 +6,65 @@
 
 ---
 
-## 2026-07-16 — Payload Split Tests, Nullsafe & Ternary Nullable Fix
+## 2026-07-16 (lanjutan) — Resource Dedup Test Refinement, ZodTierGenerator/normalizer Type Fixes, Known Issues
+
+### Konteks
+Tiga bagian: (1) merapikan `resourceAliasDedup.spec.ts` dari framing "route" ke framing "api-contract.ts = registry kontrak backend", (2) verifikasi end-to-end terhadap manifest asli project `ecommerce_shop`, (3) memperbaiki 17 + 11 TS compile error di `ZodTierGenerator.ts` dan `normalizer.ts`.
+
+### 1. `resourceAliasDedup.spec.ts` — reframing dari "route" ke "registry kontrak"
+- `describe` di-rename: dari `"resource-backed routes must not duplicate the Resource contract"` menjadi `"emits backend contracts exactly once per JsonResource"` — fokus test sekarang pada apa yang di-emit api-contract.ts, bukan perilaku route.
+- Test triad (`OrderResourceSchema`/`OrderResourceResponse`/`validateOrderResource`) di-merge, judul lama yang duplikat dihapus.
+- Bug A (blacklist `OrderIndexResponseSchema`/`CheckoutResponseSchema`/`BuyNowResponseSchema` dst) digeneralisasi jadi regex per-suffix CRUD (`\w*IndexResponseSchema`, `\w*ShowResponseSchema`, dst) — supaya nggak tergantung nama resource/route spesifik.
+- Bug B (`OrderResponseSchema`, naming branch `count === 1`) tetap dipertahankan sebagai test terpisah — beda root cause dari Bug A, jangan digabung.
+- Mapper test pakai word-boundary regex (`\bOrderShowResponse\b`) dan **tidak** menambahkan test yang mengikat ke nama fungsi generator internal (`toOrdersShowResponseRead` dst) — disepakati eksplisit karena itu bikin test rapuh terhadap refactor nama fungsi, padahal bukan bagian dari kontrak yang dijaga.
+
+### 2. Verifikasi terhadap manifest asli `ecommerce_shop`
+- `routesync.manifest.json` yang dicek ternyata **stale** — kosong `resources[]`/`models[]`, cuma `routes[]`. Root cause: di `sync.ts`, `manifest.models`/`manifest.resources` cuma diisi kalau flag `--models` dipassing (`if (options.models) { manifest.models = models; manifest.resources = resources }`). Compile terakhir kemungkinan nggak pakai `--models --zod`.
+- Output lama di `frontend/src/api` (yang sempat dicurigai py bug alias `OrdersGetResponseSchema = OrderResourceSchema`) dikonfirmasi user sebagai **artifact lama**, bukan representasi generator/manifest terkini — bukan bug aktif.
+- Re-run `sync` di sandbox gagal karena project nggak punya `vendor/` (Composer) dan sandbox nggak punya akses ke packagist.org — perlu dijalankan di mesin lokal (`annas-zen@archlinux`) dengan `routesync sync --input routes/api.php --output frontend/src/api --models --zod`.
+
+### 3. Fix TS compile error — `ZodTierGenerator.ts` (17 error → 0)
+Root cause utama: gap deklarasi type untuk field runtime yang genuinely dipakai (`wrapped`, `code`), bukan bug logic:
+- `private static graph!: ContractGraph` — TS **melarang** `!` definite-assignment assertion di **static** class property (limitation resmi TS, direproduksi dengan minimal repro). Field-nya ternyata write-only (nggak pernah dibaca), jadi cukup diganti `ContractGraph | undefined`.
+- `wrapped?: boolean` ditambahkan ke `ResponseMetadata` (`packages/core/src/types/route.ts`) — field ini sudah lama dipakai runtime (`LaravelRouteParser.ts` set `$responseMetadata['wrapped']`) dan dites di `jsonResourceWrap.spec.ts`/`code.spec.ts`/`resourceAliasDedup.spec.ts`, tapi belum pernah dideklarasikan di type.
+- `code?: string` dan `fields?: Record<string, unknown>` ditambahkan ke `RuntimeAugmented` (`normalizer.ts`) — field raw AST literal node dari PHP extractor, sama polanya: dipakai runtime, belum dideklarasikan.
+- `baseMeta = getSemanticNode(...) || {}` → buang fallback `|| {}` (bikin TS infer union termasuk `{}` yang nggak punya properti apa pun walau diakses via `?.`).
+- Dua spread object (`respMeta`, `meta`) yang menggabungkan field lintas-varian discriminated union `ResponseMetadata` (`model` vs `resource` vs `object`) — sengaja baca cross-variant, jadi di-type longgar `Record<string, any>`.
+
+### 4. Fix TS compile error — `normalizer.ts` (11 error → 0)
+- 2x `kernel.resolve(ast, context)` → `ast as any` (ikut pola "safe boundary cast" yang sudah ada di file yang sama).
+- `Object.values(field.fields).forEach(f => patchField(f as RuntimeAugmented))`.
+- **Sempat salah diagnosis**: awalnya dikira `route.uri`/`route.actionName`/`route.controllerName` nggak exist sama sekali (diganti ke `route.path`/`route.action`) — ternyata `normalizer.spec.ts` (test `PaymentIndex`) membuktikan field itu memang dipakai di manifest hand-authored/legacy. Perbaikan salah ini bikin regresi 1 test (`expected 'PaymentIndex' to be 'index'`), langsung ketauan dari full test run dan direvert.
+- Fix yang benar: tambahkan `uri?`, `actionName?`, `controllerName?` sebagai field **legacy/opsional** di `ParsedRoute` (route.ts), coexist dengan `path`/`action` yang lebih baru — dengan komentar jelas kenapa dua konvensi ini hidup berdampingan.
+
+### 5. Test baru: `packages/sdk/tests/generatorTypeSafety.spec.ts` (6 test)
+Regression guard untuk memastikan fix-fix di atas nggak "diperbaiki" lagi di masa depan dengan cara **menghapus** kode pembaca field, bukan benerin type-nya. Meng-cover end-to-end (bukan cuma `tsc --noEmit`):
+- `wrapped:true` pada resource response (via `.resolved`) dan pada model response (langsung di `route.response.wrapped`).
+- Nested `kind: 'object'` field dengan `fields` map bersarang (exercise `patchField`/`resolveResponse` recursion).
+- Raw literal AST node `{"kind":"literal","code":"..."}` — kalau `code` berhenti dibaca, harusnya degradasi ke `z.unknown()`, test ini nangkep itu.
+- Legacy route shape (`uri`/`actionName`/`controllerName`) tetap diterima `normalizeManifest` tanpa throw.
+
+### Status Test
+- `resourceAliasDedup.spec.ts`: 6/6 hijau.
+- Full suite setelah semua fix: **149/149 test hijau** (18 file), termasuk spec baru.
+- `npx tsc --noEmit` bersih untuk `ZodTierGenerator.ts`, `normalizer.ts`, `route.ts`.
+
+### Known Issues (belum diperbaiki, butuh keputusan arsitektur)
+
+1. **Dua interface `ModelNode` dengan nama sama, struktur beda.**
+   - `packages/core/src/types/semantic.ts`: `{ kind: 'model_node', fields?: Record<string,string>, layer: 'model' (required), confidence: number (required) }` — dipakai `ServiceGraph`.
+   - `packages/core/src/semantic/types.ts`: `{ fields?: Record<string,{type,nullable}>, layer?: string (optional), tanpa kind/confidence }` — dipakai `SemanticResolutionKernel.loadGraph`.
+   - Saat ini di-cast `as any` di `normalizer.ts` (`buildModelGraph`) dengan komentar penjelas, **bukan** solusi permanen. Perlu rename/merge salah satunya.
+   - Cascading error dari konflik ini (ditemukan saat full-project `tsc --noEmit`, semua **preexisting**, bukan dari sesi ini): `packages/cli/src/generators/passes.ts`, dan turunannya di `scan.ts`/`sync.ts` (`ScannedManifest` tidak assignable ke `RouteManifest` — missing `version`/`baseURL`/`generatedAt`), serta beberapa test (`compiler.spec.ts`, `normalizer.spec.ts`, `orders.spec.ts`, `pluralVariableResolution.spec.ts`) yang punya error type serupa (`ResolverMeta` union ketat, `FileSpan` shape berubah, dll).
+   - Belum ditindaklanjuti — di luar scope sesi ini, butuh keputusan arsitektur eksplisit, bukan cast cepat.
+
+2. **`IntentResolver.ts`**: `Property 'model' does not exist on type 'ResponseMetadata'` (baris 42) dan `'capabilities' does not exist in type 'DomainIntentConfig'` (baris 162) — belum diperbaiki, sama-sama muncul dari full-project typecheck, bukan bagian dari fix sesi ini.
+
+3. **`ecommerce_shop` project**: `routesync.manifest.json` yang di-commit stale (kosong `resources[]`/`models[]`). Perlu re-run `routesync sync --models --zod` di mesin lokal untuk menyinkronkan manifest dengan kode di `frontend/src/api`, dan supaya `resourceAliasDedup` logic beneran ke-exercise di project real (saat ini controller-nya kemungkinan belum expose `JsonResource` ke extractor sama sekali).
+
+---
+
+
 
 ### Konteks
 Sesi ini berfokus pada tiga hal: (1) membuat test suite untuk memverifikasi hasil split `api-schema.ts` / `api-contract.ts`, (2) memperbaiki dua bug lama di `ExpressionResolver` yang baru ketahuan saat test suite dijalankan, dan (3) menemukan bahwa perubahan di `@routesync/core` harus diikuti `npm run build` karena package dikonsumsi dari `dist/` yang sudah di-compile.

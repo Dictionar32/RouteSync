@@ -50,7 +50,7 @@ function routeResponseKey(route: { name?: string; method?: string; path?: string
 
 export class ZodTierGenerator {
   private static knownSchemas = new Set<string>()
-  private static graph!: ContractGraph
+  private static graph: ContractGraph | undefined
 
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
     this.knownSchemas.clear()
@@ -331,10 +331,10 @@ export class ZodTierGenerator {
       // has its own Schema/Response/validate from the resource loop above) or
       // whether it's something else (a raw Model, an inline object literal) that
       // needs a fallback route-named contract.
-      const baseMeta = getSemanticNode(route.response) || {}
+      const baseMeta = getSemanticNode(route.response)
       let zType = this.buildResponseZodType(route.response, kernel, { layer: 'route', fileName: route.name, modelMap: {}, relationMap: {}, assignments: routeAssignments })
 
-      const respMeta = {
+      const respMeta: RuntimeAugmented<Record<string, any>> = {
         ...(route.response.resolved || route.response.semantic || route.response),
         collection: route.response.collection ?? route.response.resolved?.collection ?? route.response.semantic?.collection,
         paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
@@ -618,10 +618,10 @@ export class ZodTierGenerator {
         modelName = meta.model
       }
       
-      if (node && node.kind === 'literal' && typeof node.code === 'string' && node.code.includes('"kind":"model"')) {
+      if (augmentedNode && augmentedNode.kind === 'literal' && typeof augmentedNode.code === 'string' && augmentedNode.code.includes('"kind":"model"')) {
         isModel = true
-        if (node.code.includes('"collection":true')) isCollection = true
-        if (node.code.includes('"paginated":true')) isPaginated = true
+        if (augmentedNode.code.includes('"collection":true')) isCollection = true
+        if (augmentedNode.code.includes('"paginated":true')) isPaginated = true
       }
       
       if (isModel) {
@@ -1440,7 +1440,7 @@ export class ZodTierGenerator {
 
         if (generatedMapperFns.has(`resp:${contractKey}`)) continue
 
-        const meta = {
+        const meta: Record<string, any> = {
           ...(route.response.resolved || route.response.semantic || route.response),
           collection: route.response.collection ?? route.response.resolved?.collection ?? route.response.semantic?.collection,
           paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated

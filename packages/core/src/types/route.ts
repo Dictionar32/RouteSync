@@ -61,12 +61,14 @@ export type ResponseMetadata = (
   | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }>; collection?: boolean; paginated?: boolean }
   | { kind: 'unknown' }
 ) & {
-  resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any> }
-  semantic?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any> }
+  resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any>; wrapped?: boolean }
+  semantic?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any>; wrapped?: boolean }
   /** Runtime-enriched by SemanticKernelV2 — present on all variants via intersection */
   collection?: boolean
   paginated?: boolean
   type?: string
+  /** Set by LaravelRouteParser when the JsonResource is subject to Laravel's default $wrap behaviour (wraps payload in `{ data: ... }`). */
+  wrapped?: boolean
 }
 
 export interface ParsedRoute {
@@ -84,6 +86,14 @@ export interface ParsedRoute {
   /** Real file/line of the controller action, from ReflectionMethod. Null for closures. */
   sourceFile?: string | null
   sourceLine?: number | null
+  /**
+   * Legacy/hand-authored manifest naming convention (predates `path`/`action`).
+   * Still used by some fixtures and by the stateless normalizer pipeline —
+   * kept alongside `path`/`action` rather than removed.
+   */
+  uri?: string
+  actionName?: string
+  controllerName?: string
 }
 
 export interface ParsedColumn {

@@ -108,6 +108,12 @@ export type RuntimeAugmented<T = unknown> = T & {
   node?: unknown
   kind?: string
   type?: string
+  /** Raw source text for literal AST nodes emitted by the PHP extractor, e.g. `{"kind":"literal","code":"{\"kind\":\"model\",...}"}`. */
+  code?: string
+  /** Nested field map for `kind: 'object'` shapes (mirrors SemanticNode.fields). */
+  fields?: Record<string, unknown>
+  /** Present on accessor definitions carrying a parsed PHP expression AST. */
+  expression?: unknown
 }
 
 export interface ResolutionContext {
@@ -244,7 +250,13 @@ function buildModelGraph(manifest: RouteManifest, kernel: SemanticResolutionKern
       graphBuilder.getGraph().models[m.name] = modelNode
     })
   }
-  kernel.loadGraph(graphBuilder.getGraph())
+  // KNOWN ISSUE (not fixed here — needs an architectural decision, not a cast):
+  // There are TWO structurally different `ModelNode` interfaces in @routesync/core:
+  //   - types/semantic.ts    ModelNode: { kind: 'model_node', fields?: Record<string,string>, layer: 'model' (required), confidence: number (required) }
+  //   - semantic/types.ts    ModelNode: { fields?: Record<string,{type,nullable}>, layer?: string (optional), no kind/confidence }
+  // ServiceGraph.models uses the first; SemanticResolutionKernel.loadGraph expects the second.
+  // Same name, different shape — pick one and rename/merge before this cast is removed.
+  kernel.loadGraph(graphBuilder.getGraph() as any)
 }
 
 export function normalizeResources(manifest: RouteManifest, kernel: SemanticResolutionKernel): NormalizedResource[] {
@@ -278,13 +290,13 @@ export function normalizeResources(manifest: RouteManifest, kernel: SemanticReso
     const patchField = (field: RuntimeAugmented) => {
       if (!field) return
       if (field.kind === 'object' && field.fields) {
-        Object.values(field.fields).forEach(f => patchField(f))
+        Object.values(field.fields).forEach(f => patchField(f as RuntimeAugmented))
       } else {
         const meta = field.resolved || field.semantic
         const ast = field.parsed_ast || (field.node && (field.node as RuntimeAugmented).parsed_ast)
           || (field.kind && field.kind !== 'object' && field.kind !== 'raw_code' ? field : null)
         if ((!meta || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
-          const resolved = kernel.resolve(ast, context)
+          const resolved = kernel.resolve(ast as any, context)
           if (resolved && resolved.status !== 'unknown') {
             field.resolved = resolved
           }
@@ -401,7 +413,7 @@ export function normalizeRoutes(manifest: RouteManifest, kernel: SemanticResolut
           const ast = augmentedField.parsed_ast || (augmentedField.node && (augmentedField.node as RuntimeAugmented).parsed_ast)
             || (augmentedField.kind && augmentedField.kind !== 'object' && augmentedField.kind !== 'raw_code' ? augmentedField : null)
           if (ast) {
-            const resolved = kernel.resolve(ast, context)
+            const resolved = kernel.resolve(ast as any, context)
             if (resolved && resolved.status !== 'unknown') {
               augmentedField.resolved = resolved
             }
@@ -423,7 +435,7 @@ export function normalizeRoutes(manifest: RouteManifest, kernel: SemanticResolut
     normalizedRoutes.push({
       symbolId: `route:${route.name || route.uri}`,
       method,
-      uri: route.uri,
+      uri: route.uri || route.path,
       actionName: route.actionName || 'index',
       controllerName: route.controllerName || '',
       response: responseField

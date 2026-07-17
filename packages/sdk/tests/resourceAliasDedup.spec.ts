@@ -5,17 +5,30 @@ import path from 'path'
 import fs from 'fs-extra'
 
 // ===========================================================================
-// Regression guard for the "route loop duplicates the resource contract" bug.
+// api-contract.ts is a registry of backend contracts.
 //
-// Context: api-contract.ts previously emitted ONE `${respName}ResponseSchema`
-// PER ROUTE (OrderIndexResponseSchema, CheckoutResponseSchema, BuyNowResponseSchema…)
-// even when every one of those routes just returns `new OrderResource($order)`
-// (± Laravel's collection/paginated/$wrap composition). All of those were
-// aliases of the same OrderResourceSchema — pure duplication.
+// JsonResource is the canonical contract. Routes consume those contracts —
+// they never mint their own. Therefore CRUD endpoints that resolve to the
+// same JsonResource must never generate additional
+// ResponseSchema/Response/validate declarations of their own.
+//
+// Two distinct bug classes are guarded here:
+//
+//   Bug A — per-route duplication:
+//     OrderShowResponseSchema, OrderIndexResponseSchema,
+//     CheckoutResponseSchema, BuyNowResponseSchema… one alias per route,
+//     even though every one of those routes just returns
+//     `new OrderResource($order)` (± collection/paginated/$wrap composition).
+//
+//   Bug B — the "count === 1" naming branch:
+//     OrderResponseSchema — still wrong even when there's only a single
+//     route pointing at the resource, because it's still a route-derived
+//     alias of OrderResourceSchema, not a distinct contract.
 //
 // Fixed behaviour:
-//   - manifest.resources[] is still the ONLY thing that produces a named
-//     `${Resource}Schema` / `${Resource}Response` / `validate${Resource}` triad.
+//   - manifest.resources[] is the ONLY thing that produces a named
+//     `${Resource}Schema` / `${Resource}Response` / `validate${Resource}`
+//     triad.
 //   - routes[] whose response resolves to a known Resource (`kind: 'resource'`)
 //     must NOT add a second name to api-contract.ts — they reuse
 //     `OrderResourceSchema` inline (wrapped in `data:`/array() as needed).
@@ -126,7 +139,7 @@ function makeManifest(): RouteManifest {
   } as any
 }
 
-describe('api-contract.ts: resource-backed routes must not duplicate the Resource contract', () => {
+describe('api-contract.ts: emits backend contracts exactly once per JsonResource', () => {
   const outDir = path.resolve(process.cwd(), 'temp-resource-alias-dedup-out')
   let contract: string
   let mapper: string
@@ -140,28 +153,26 @@ describe('api-contract.ts: resource-backed routes must not duplicate the Resourc
   })
   afterAll(() => fs.remove(outDir))
 
-  it('emits exactly one OrderResourceSchema (the resource loop) and no others', () => {
-    const schemaDecls = contract.split('\n').filter(l => /^export const \w+Schema = /.test(l))
-    const orderSchemaDecls = schemaDecls.filter(l => l.includes('OrderResource') || /^export const Order\w*Schema/.test(l))
-    expect(schemaDecls.filter(l => l.startsWith('export const OrderResourceSchema'))).toHaveLength(1)
-  })
-
-  it('does NOT emit OrderIndexResponseSchema / CheckoutResponseSchema / BuyNowResponseSchema', () => {
-    expect(contract).not.toMatch(/export const OrderIndexResponseSchema/)
-    expect(contract).not.toMatch(/export const OrderShowResponseSchema/)
-    expect(contract).not.toMatch(/export const CheckoutResponseSchema/)
-    expect(contract).not.toMatch(/export const BuyNowResponseSchema/)
-  })
-
-  it('does NOT emit OrderResponseSchema either (single-count alias case)', () => {
-    // Even the "count === 1" naming branch must not fire for a pure resource alias.
-    expect(contract).not.toMatch(/export const OrderResponseSchema/)
-  })
-
-  it('the four resource-backed routes exist only as OrderResourceSchema, plus type + validator, once each', () => {
+  it('emits one backend contract (Schema + Response type + validator) for each JsonResource, exactly once', () => {
     expect((contract.match(/export const OrderResourceSchema = /g) || []).length).toBe(1)
     expect((contract.match(/export type OrderResourceResponse = /g) || []).length).toBe(1)
     expect((contract.match(/export const validateOrderResource = /g) || []).length).toBe(1)
+  })
+
+  it('Bug A — does NOT emit a per-route ResponseSchema for any CRUD action on a resource-backed route', () => {
+    // Generic by CRUD suffix, not by route name — so this stays true even if
+    // route/group names change (OrderIndex, Checkout, BuyNow, CartItemsUpdate…).
+    expect(contract).not.toMatch(/export const \w*IndexResponseSchema/)
+    expect(contract).not.toMatch(/export const \w*ShowResponseSchema/)
+    expect(contract).not.toMatch(/export const \w*StoreResponseSchema/)
+    expect(contract).not.toMatch(/export const \w*UpdateResponseSchema/)
+    expect(contract).not.toMatch(/export const \w*DeleteResponseSchema/)
+  })
+
+  it('Bug B — does NOT emit OrderResponseSchema either (the single-route "count === 1" naming branch)', () => {
+    // Even when only one route points at the resource, that route must not
+    // mint its own alias — it's still a route-derived name, not a contract.
+    expect(contract).not.toMatch(/export const OrderResponseSchema/)
   })
 
   it('DOES still emit a fallback contract for the non-resource route (legacyStatus)', () => {
@@ -170,11 +181,12 @@ describe('api-contract.ts: resource-backed routes must not duplicate the Resourc
     expect(contract).toMatch(/export const OrdersLegacyStatusResponseSchema = /)
   })
 
-  it('api-mapper.ts imports OrderResourceResponse (not a per-route Response type) for the resource-backed routes', () => {
-    expect(mapper).toMatch(/OrderResourceResponse/)
-    expect(mapper).not.toMatch(/OrderIndexResponse\b/)
-    expect(mapper).not.toMatch(/CheckoutResponse\b/)
-    expect(mapper).not.toMatch(/BuyNowResponse\b/)
+  it('api-mapper.ts references OrderResourceResponse (not a per-route Response type) for the resource-backed routes', () => {
+    expect(mapper).toMatch(/\bOrderResourceResponse\b/)
+    expect(mapper).not.toMatch(/\bOrderShowResponse\b/)
+    expect(mapper).not.toMatch(/\bOrderIndexResponse\b/)
+    expect(mapper).not.toMatch(/\bCheckoutResponse\b/)
+    expect(mapper).not.toMatch(/\bBuyNowResponse\b/)
   })
 
   it('api-mapper.ts inlines the collection/paginated composition instead of importing a named alias', () => {

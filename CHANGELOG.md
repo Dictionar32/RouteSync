@@ -5,6 +5,22 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **`generatorTypeSafety.spec.ts`** — Regression suite (6 test) yang mengunci behavior runtime di balik fix type-safety `ZodTierGenerator.ts`/`normalizer.ts`: `wrapped:true` detection (lewat `.resolved` dan langsung di `route.response`), nested `kind:'object'` field recursion, parsing raw literal AST node (`{"kind":"literal","code":"..."}`), dan legacy route shape (`uri`/`actionName`/`controllerName`). Mencegah fix compile error di masa depan dikerjakan dengan cara menghapus kode pembaca field, bukan membenarkan type-nya.
+- **`resourceAliasDedup.spec.ts` reframing** — `describe` block di-rename dari framing "route" ke "api-contract.ts = registry kontrak backend". Bug A (per-route duplication) digeneralisasi jadi regex per-suffix CRUD (`\w*IndexResponseSchema` dst) alih-alih hardcode nama resource; Bug B (`OrderResponseSchema`, naming branch `count === 1`) dipertahankan sebagai test terpisah karena beda root cause.
+
+### Fixed
+- **`ZodTierGenerator.ts` — 17 TS compile error** (semua gap deklarasi type untuk field runtime yang sudah lama dipakai, bukan bug logic):
+  - `private static graph!: ContractGraph` — TS melarang definite-assignment assertion (`!`) di static class property; diganti `ContractGraph | undefined` (field ternyata write-only).
+  - `wrapped?: boolean` ditambahkan ke `ResponseMetadata` (`packages/core/src/types/route.ts`) — field sudah lama di-set `LaravelRouteParser.ts` dan dites di `jsonResourceWrap.spec.ts`, tapi belum pernah dideklarasikan.
+  - `code?: string` dan `fields?: Record<string, unknown>` ditambahkan ke `RuntimeAugmented` (`normalizer.ts`) — field raw AST literal node dari PHP extractor.
+  - `baseMeta || {}` fallback dihapus (bikin TS infer union yang menyertakan `{}` tanpa properti apa pun).
+  - Spread object `respMeta`/`meta` yang menggabungkan field lintas-varian discriminated union `ResponseMetadata` di-type longgar (`Record<string, any>`) karena memang sengaja baca cross-variant.
+- **`normalizer.ts` — 11 TS compile error**:
+  - 2x `kernel.resolve(ast, context)` di-cast `ast as any` (mengikuti pola "safe boundary cast" yang sudah ada di file yang sama).
+  - `Object.values(field.fields).forEach(f => patchField(f as RuntimeAugmented))`.
+  - `uri?`, `actionName?`, `controllerName?` ditambahkan sebagai field legacy opsional di `ParsedRoute` — coexist dengan `path`/`action` yang lebih baru (dibuktikan dipakai di fixture `normalizer.spec.ts`, bukan dihapus/diganti seperti percobaan pertama yang sempat bikin regresi 1 test).
+
+### Added
 - **Plural Variable Resolution Heuristics** — VariableResolver sekarang memiliki heuristic singularisasi penamaan standard Laravel (misal `$categories` -> `Category`, `$products` -> `Product`). Jika nama variabel plural cocok dengan singular model dari symbolTable, resolver secara otomatis menyelesaikannya sebagai tipe model terkait dengan flag `collection: true`, menghasilkan `z.array(CategorySchema)` secara otomatis.
 - **Wrap Detection Regression Test Suite** — Menambahkan uji coba regresi (integration & unit) untuk mendeteksi syntax error, whitespace indentation pada use-statement, fully-qualified class names (FQCN) dengan leading backslash, dan aliased imports (`use X as Y`).
 - **`payloadSplit.spec.ts`** — Test suite baru (25 test) memverifikasi pemisahan payload/response: `api-schema.ts` hanya boleh berisi `*PayloadSchema`, `api-contract.ts` hanya boleh berisi `*ResponseSchema`, `SDKGenerator` mengimpor payload validator dari `api-schema`, `HookGenerator` tidak pernah mengimpor `*Payload` dari `api-contract`, dan exported names kedua file sepenuhnya disjoint.

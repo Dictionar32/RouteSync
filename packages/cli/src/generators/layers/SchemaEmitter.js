@@ -1,0 +1,174 @@
+"use strict";
+/**
+ * layers/SchemaEmitter.ts
+ *
+ * Emits: contract/api-schema.ts (or contract/schema.ts)
+ *
+ * RESPONSIBILITY: Generate form validation schemas (Zod untuk client-side form validation)
+ *
+ * Outputs:
+ * - ${Model}${Action}FormSchema untuk each mutation route
+ * - Validation rules (min/max length, patterns, etc)
+ *
+ * RECEIVES: routeResponseMap (optional, untuk reference types)
+ *
+ * CONSOLIDATES:
+ * - ZodTierGenerator.generateSchema() logic (lines 666-768)
+ */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SchemaEmitter = void 0;
+const path_1 = __importDefault(require("path"));
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const helpers_1 = require("./helpers");
+const canonical_names_1 = require("../canonical-names");
+class SchemaEmitter {
+    /**
+     * Main entry point
+     */
+    static async generate(contractDir, context) {
+        const lines = [];
+        // Import statement
+        lines.push(`import { z } from 'zod'`);
+        lines.push('');
+        // Generate form schemas untuk mutation routes (POST/PUT/PATCH)
+        const routes = context.manifest.routes || [];
+        for (const route of routes) {
+            if (!route.schema || !route.schema.rules)
+                continue;
+            try {
+                const method = (route.method || 'get').toLowerCase();
+                const actionName = (0, helpers_1.getActionName)(route, canonical_names_1.CANONICAL_ACTION_MAP);
+                // Only emit untuk mutations
+                if (!['Create', 'Update'].includes(actionName))
+                    continue;
+                const groupName = (0, helpers_1.getResourceName)(route);
+                const titleCase = (0, helpers_1.toTitleCase)(groupName);
+                const actionLower = actionName[0].toLowerCase() + actionName.slice(1);
+                const schemaName = `${titleCase}${actionName}FormSchema`;
+                const typeName = `${titleCase}${actionName}Form`;
+                lines.push(this.generateFormSchema(schemaName, typeName, route.schema.rules));
+                lines.push('');
+            }
+            catch (error) {
+                console.warn(`[SchemaEmitter] Error processing route ${route.name}:`, error);
+            }
+        }
+        // Write file
+        const filePath = path_1.default.join(contractDir, 'api-schema.ts');
+        await fs_extra_1.default.ensureDir(contractDir);
+        await fs_extra_1.default.writeFile(filePath, lines.join('\n'));
+        return { lines };
+    }
+    /**
+     * Generate form schema (Zod object) dari validation rules
+     *
+     * Example:
+     *   export const ProductCreateFormSchema = z.object({
+     *     name: z.string().min(1),
+     *     price: z.number().min(0),
+     *     description: z.string().optional(),
+     *   })
+     *   export type ProductCreateForm = z.infer<typeof ProductCreateFormSchema>
+     */
+    static generateFormSchema(schemaName, typeName, rules) {
+        const fields = [];
+        for (const [fieldName, ruleData] of Object.entries(rules)) {
+            if (!ruleData || typeof ruleData !== 'object') {
+                fields.push(`  ${fieldName}: z.unknown(),`);
+                continue;
+            }
+            const rule = ruleData;
+            // Determine base type dari rule
+            let zodExpr = 'z.unknown()';
+            if (typeof rule.type === 'string') {
+                const baseType = (0, helpers_1.mapSqlTypeToZod)(rule.type);
+                zodExpr = baseType;
+            }
+            else if (typeof rule.rules === 'string') {
+                // Laravel validation string (e.g., 'required|string|min:10')
+                zodExpr = this.parseValidationRules(rule.rules);
+            }
+            // Apply modifiers berdasarkan rule properties
+            const isRequired = rule.required !== false && !rule.nullable;
+            const isNullable = rule.nullable === true;
+            if (!isRequired) {
+                zodExpr = `${zodExpr}.optional()`;
+            }
+            if (isNullable) {
+                zodExpr = (0, helpers_1.wrapNullableZod)(zodExpr, true);
+            }
+            fields.push(`  ${fieldName}: ${zodExpr},`);
+        }
+        return `export const ${schemaName} = z.object({
+${fields.join('\n')}
+})
+
+export type ${typeName} = z.infer<typeof ${schemaName}>`;
+    }
+    /**
+     * Parse Laravel validation rule string ke Zod expression
+     *
+     * Contoh:
+     *   'required|string|min:10|max:100' → 'z.string().min(10).max(100)'
+     *   'required|integer|min:1' → 'z.number().int().min(1)'
+     *   'required|email' → 'z.string().email()'
+     */
+    static parseValidationRules(ruleString) {
+        const rules = ruleString.split('|').map(r => r.trim());
+        let baseType = 'z.unknown()';
+        const modifiers = [];
+        for (const rule of rules) {
+            if (rule === 'required' || rule === 'filled') {
+                // Handled separately (not optional)
+                continue;
+            }
+            else if (rule === 'nullable') {
+                // Handled separately
+                continue;
+            }
+            else if (rule === 'string') {
+                baseType = 'z.string()';
+            }
+            else if (rule === 'integer' || rule === 'int') {
+                baseType = 'z.number().int()';
+            }
+            else if (rule === 'numeric' || rule === 'number') {
+                baseType = 'z.number()';
+            }
+            else if (rule === 'email') {
+                baseType = 'z.string()';
+                modifiers.push('.email()');
+            }
+            else if (rule === 'url') {
+                baseType = 'z.string()';
+                modifiers.push('.url()');
+            }
+            else if (rule.startsWith('min:')) {
+                const val = rule.substring(4);
+                modifiers.push(`.min(${val})`);
+            }
+            else if (rule.startsWith('max:')) {
+                const val = rule.substring(4);
+                modifiers.push(`.max(${val})`);
+            }
+            else if (rule.startsWith('regex:')) {
+                const pattern = rule.substring(6);
+                modifiers.push(`.regex(/${pattern}/)`);
+            }
+            else if (rule === 'array') {
+                baseType = 'z.array(z.unknown())';
+            }
+            else if (rule === 'json') {
+                baseType = 'z.record(z.string(), z.unknown())';
+            }
+            else if (rule === 'boolean' || rule === 'bool') {
+                baseType = 'z.boolean()';
+            }
+        }
+        return baseType + modifiers.join('');
+    }
+}
+exports.SchemaEmitter = SchemaEmitter;

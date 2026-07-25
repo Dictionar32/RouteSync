@@ -107,6 +107,21 @@ describe('Phase 2 Emitters Integration Tests', () => {
                     },
                 },
             ] as any,
+            // NOTE: ditambahkan agar FieldEmitter test benar-benar exercise
+            // logic-nya (bug lama: mock manifest tidak punya `models` sama
+            // sekali, jadi FieldEmitter selalu skip loop dan cuma nulis
+            // header comment tanpa `export const` apa pun).
+            models: [
+                {
+                    name: 'User',
+                    table: 'users',
+                    columns: [
+                        { name: 'id', type: 'bigint', nullable: false },
+                        { name: 'first_name', type: 'varchar', nullable: false },
+                        { name: 'email', type: 'varchar', nullable: false },
+                    ],
+                },
+            ] as any,
         } as any
     }
 

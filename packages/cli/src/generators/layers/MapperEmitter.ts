@@ -125,14 +125,24 @@ export class MapperEmitter {
     private static generateReadMapper(model: ParsedModel): string {
         const mappings: string[] = []
 
-        if (!model.fields) {
+        // NOTE: ParsedModel menyimpan kolom sebagai array `columns`
+        // (packages/core/src/types/route.ts), bukan object `fields`.
+        // Bug lama: baca `model.fields` (selalu undefined) -> selalu jatuh
+        // ke fallback `raw as XTransformed` (blunt full-object cast) untuk
+        // SEMUA model, tanpa pernah memetakan field satu per satu.
+        if (!model.columns || !model.columns.length) {
             return `export const to${model.name}Read = (raw: ${model.name}): ${model.name}Transformed => raw as ${model.name}Transformed`
         }
 
-        for (const [dbName, fieldDef] of Object.entries(model.fields)) {
-            const field = fieldDef as ParsedField
-            const camelName = toCamelCase(dbName)
-            mappings.push(`    ${camelName}: raw.${dbName} as unknown as typeof raw.${dbName},`)
+        for (const column of model.columns) {
+            const camelName = toCamelCase(column.name)
+            // Tidak perlu type assertion di sini: `raw.${column.name}` sudah
+            // punya tipe yang benar dari `raw: ${model.name}`, assignment ke
+            // properti object literal akan di-type-check oleh return type
+            // `${model.name}Transformed` secara structural. Assertion
+            // `as unknown as typeof raw.X` lama adalah no-op yang cuma
+          // menambah noise (dan melanggar aturan "tanpa type assertion").
+            mappings.push(`    ${camelName}: raw.${column.name},`)
         }
 
         return `export const to${model.name}Read = (raw: ${model.name}): ${model.name}Transformed => ({
@@ -178,7 +188,7 @@ ${mappings.join('\n')}
             for (const [fieldName] of Object.entries(route.schema.rules)) {
                 const snakeName = fieldName
                 const camelName = toCamelCase(fieldName)
-                formMappings.push(`    ${snakeName}: form.${camelName} as unknown,`)
+                formMappings.push(`    ${snakeName}: form.${camelName},`)
             }
         }
 

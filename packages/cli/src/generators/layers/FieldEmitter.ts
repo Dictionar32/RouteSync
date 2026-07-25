@@ -109,27 +109,30 @@ export class FieldEmitter {
             return `export const UnknownFields = {} as const`
         }
 
-        const m = model as { name?: string; fields?: Record<string, unknown> }
+        // NOTE: ParsedModel (packages/core/src/types/route.ts) menyimpan kolom
+        // sebagai array `columns: ParsedColumn[]`, BUKAN object `fields`.
+        // Bug lama: kode ini membaca `m.fields` yang tidak pernah ada di
+        // ParsedModel manapun, sehingga selalu jatuh ke UnknownModelFields.
+        const m = model as { name?: string; columns?: Array<{ name: string; type: string; nullable: boolean }>; casts?: Record<string, string> }
 
-        if (!m.fields || !m.name) {
+        if (!m.columns || !m.columns.length || !m.name) {
             return `export const UnknownModelFields = {} as const`
         }
 
-        for (const [snakeName, fieldDef] of Object.entries(m.fields)) {
-            if (!fieldDef || typeof fieldDef !== 'object') continue
-
-            const f = fieldDef as { type?: string; cast?: string; nullable?: boolean }
+        for (const column of m.columns) {
+            const snakeName = column.name
+            const cast = m.casts?.[snakeName]
             const camelName = toCamelCase(snakeName)
-            const zodType = mapSqlTypeToZod(f.type || '', f.cast)
-            const tsType = mapSqlTypeToTs(f.type || '', f.cast)
-            const type = this.parseFieldType(f.type || '', f.cast)
+            const zodType = mapSqlTypeToZod(column.type || '', cast)
+            const tsType = mapSqlTypeToTs(column.type || '', cast)
+            const type = this.parseFieldType(column.type || '', cast)
 
             fields.push(`  ${snakeName}: {
     name: '${camelName}',
     snakeName: '${snakeName}',
     camelName: '${camelName}',
     type: '${type}',
-    nullable: ${f.nullable ?? false},
+    nullable: ${column.nullable ?? false},
     zodType: '${zodType}',
     tsType: '${tsType}',
   },`)

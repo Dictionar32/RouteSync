@@ -104,6 +104,9 @@ export interface ParsedRoute {
     groupName?: string
     response?: RuntimeAugmented<Record<string, unknown>>
     schema?: { rules?: Record<string, unknown> }
+    // Assignments: peta nama variabel -> ekspresi PHP mentah, dipakai untuk
+    // resolve field ber-kind 'raw_code' (mis. `$categories` -> `Category::orderBy(...)->get(...)`)
+    assignments?: Record<string, string>
     // Augmented fields
     resolved?: SemanticNode
     semantic?: SemanticNode

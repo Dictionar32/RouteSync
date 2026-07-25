@@ -13,7 +13,8 @@
  * - Manifest traversal: 2 duplicate loops → 1 (§3, §4)
  */
 
-import { RouteManifest, toTypeName, camelCase } from '@routesync/core'
+import { RouteManifest, camelCase } from '@routesync/core'
+import { toTypeName } from './names'
 import {
     CANONICAL_ACTION_MAP,
     ActionType,
@@ -285,9 +286,11 @@ export class SemanticResolver {
         }
 
         // Check 1: Pure resource alias (e.g., 'OrderResource' with no fields)
+        // NOTE: meta.resource sudah berupa nama class Resource Laravel lengkap
+        // (mis. 'OrderResource'), JANGAN tambah suffix 'Resource' lagi di sini
+        // (bug lama: menghasilkan 'OrderResourceResource').
         if (meta.resource && !meta.fields) {
-            const resourceName = toTypeName(meta.resource)
-            return `${resourceName}Resource`
+            return toTypeName(meta.resource)
         }
 
         // Check 2: Pure model alias (e.g., 'Category' model with no fields)

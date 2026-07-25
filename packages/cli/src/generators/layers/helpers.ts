@@ -218,6 +218,25 @@ export function mapSqlTypeToTs(sqlType: string, cast?: string): string {
  * Internal: SQL type → mapping
  */
 function getSqlTypeMapping(sqlType: string): TypeMapping | null {
+    // Enum types: enum('a','b','c') -> z.enum(['a','b','c'])
+    // Ditemukan di manifest nyata (mis. Payment.status:
+    // enum('pending','success','failed')) dan sebelumnya tidak di-handle
+    // sama sekali sehingga selalu jatuh ke z.unknown().
+    const enumMatch = sqlType.match(/^enum\(([^)]*)\)$/i)
+    if (enumMatch) {
+        const rawValues = enumMatch[1]
+        const values = Array.from(rawValues.matchAll(/'((?:[^'\\]|\\.)*)'/g)).map((m) => m[1])
+        if (values.length > 0) {
+            const zodValues = values.map((v) => `'${v}'`).join(', ')
+            return {
+                zodType: `z.enum([${zodValues}])`,
+                tsType: values.map((v) => `'${v}'`).join(' | '),
+                baseType: 'string',
+                isNullable: false,
+            }
+        }
+    }
+
     // String types
     if (sqlType.includes('varchar') || sqlType.includes('text') || sqlType === 'string' || sqlType === 'char') {
         return { zodType: 'z.string()', tsType: 'string', baseType: 'string', isNullable: false }

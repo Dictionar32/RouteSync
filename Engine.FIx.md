@@ -1817,6 +1817,382 @@ graph TD
 
 ---
 
+## 30. AUDIT REFACTOR — `SemanticResolver.ts` (Realisasi `FrontendIR` dari §23) Sudah Diimplementasi, Tapi Rusak di Runtime
+
+Zip terbaru berisi implementasi nyata dari roadmap §15/§23.6: `packages/cli/src/generators/semantic-resolver.ts` — class `SemanticResolver` dengan method `resolve(manifest): CompilerIR`, plus `packages/cli/src/generators/layers/` berisi 5 emitter terpisah (`ContractEmitter`, `SchemaEmitter`, `FieldEmitter`, `ReadEmitter`, `MapperEmitter`) menggantikan `ZodTierGenerator` monolitik. Ini persis arsitektur target yang diusulkan §23.5. **Test suite sudah dijalankan langsung terhadap kode ini** (bukan dugaan) — hasilnya: refactor arsitekturnya benar, tapi implementasinya punya bug fatal yang membuat komponen intinya tidak berfungsi.
+
+### 30.1 Hasil Test Run
+
+```
+npx vitest run
+
+ Test Files  3 failed (3)
+      Tests  12 failed | 25 passed (37)
+```
+
+Rincian per file:
+
+| File test | Hasil | Catatan |
+|---|---|---|
+| `emitters.integration.test.ts` | 21 test, 2 gagal | Emitter individual (Contract/Schema/Read/Mapper/Field) sebagian besar jalan baik |
+| `semantic-resolver.test.ts` | 12 test, 7 gagal | Inti masalah ada di sini |
+| `integration.test.ts` | 5 test, 5 gagal | Gagal karena bergantung pada `SemanticResolver` yang rusak |
+
+### 30.2 Root Cause Tunggal, Ditemukan Lewat Debug Langsung: `toTypeName` Diimpor dari Package yang Salah
+
+Semua 12 test yang gagal di `semantic-resolver.test.ts` + `integration.test.ts` **satu akar masalah yang sama** — dibuktikan dengan menjalankan `SemanticResolver.resolve()` langsung dan mencetak `ir.metadata.errors`:
+
+```
+errors: [
+  'Failed to resolve response for route orders.get: TypeError: (0 , import_core.toTypeName) is not a function'
+]
+responseTypes keys: []
+```
+
+Penyebabnya di baris import `semantic-resolver.ts`:
+
+```typescript
+// Baris 16
+import { RouteManifest, toTypeName, camelCase } from '@routesync/core'
+```
+
+**`toTypeName` tidak pernah di-export dari `@routesync/core`.** Sudah diverifikasi langsung: `camelCase` memang ada di `packages/core/src/utils.ts` dan di-export lewat `packages/core/src/index.ts` (baris `export { camelCase, camelCaseKeys, snakeCase, snakeCaseKeys } from './utils'`) — jadi impor itu valid. Tapi `toTypeName` **hanya ada di `packages/cli/src/generators/names.ts`** (fungsi lokal milik package `cli`, baris 30), tidak pernah ditambahkan ke `@routesync/core`. Saat di-bundle dan dijalankan, `toTypeName` resolve jadi `undefined` dari package `@routesync/core`, dan setiap pemanggilan `toTypeName(...)` di `resolveResponseName()` (dipanggil di hampir semua cabang logic alias resolution — persis fungsi yang **paling penting** di seluruh `SemanticResolver`, disebut di komentar source-nya sendiri sebagai "THE CRITICAL DECISION") melempar `TypeError`, tertangkap oleh `try/catch` di `resolveResponseTypes()`, dicatat ke `ir.metadata.errors`, dan **`ir.responseTypes` tidak pernah terisi sama sekali untuk route manapun yang response-nya bukan objek kosong**.
+
+### 30.3 Dampak Berjenjang — Kenapa Satu Bug Kecil Menjatuhkan 12 Test
+
+```
+toTypeName() undefined
+        ↓
+resolveResponseName() throw TypeError
+        ↓
+resolveResponseTypes() catch, push ke ir.metadata.errors, SKIP set ke ir.responseTypes
+        ↓
+ir.responseTypes tetap kosong untuk semua route yang punya response.resource/model/fields
+        ↓
+Semua downstream test yang query ir.responseTypes.get(...) dapat undefined
+        ↓
+12 test gagal: resource aliasing, collection detection, paginated detection,
+                field naming, compilation error count, "should complete successfully"
+```
+
+Ini **konfirmasi langsung** untuk poin yang diangkat di §23.1: sistem yang secara arsitektur benar (`SemanticResolver` sebagai `FrontendIR`, persis realisasi §23.5) tetap bisa gagal total kalau implementasinya salah di detail kecil — dalam hal ini, satu baris import yang salah menunjuk package. Ironisnya, fungsi yang rusak (`toTypeName`) adalah **fungsi yang justru dipakai untuk konsolidasi resource-alias resolution** yang jadi temuan utama audit ini sejak §3 — jadi bug ini terjadi tepat di titik yang paling kritis untuk diperbaiki.
+
+### 30.4 Perbaikan yang Diperlukan (Sangat Sederhana)
+
+Dua opsi, keduanya kecil:
+
+1. **Ganti sumber import** di `semantic-resolver.ts` baris 16 dari `@routesync/core` jadi relative import lokal ke `names.ts`:
+   ```typescript
+   import { RouteManifest, camelCase } from '@routesync/core'
+   import { toTypeName } from './names'
+   ```
+2. **Atau tambahkan `toTypeName` ke export `@routesync/core`** kalau memang dimaksudkan jadi utilitas shared lintas package (`packages/core/src/utils.ts`, lalu tambah baris export di `packages/core/src/index.ts`) — opsi ini lebih konsisten dengan `camelCase` yang memang sudah di-share lewat core.
+
+Karena `toTypeName` juga dipakai duplikat di banyak generator lain (§3 — salah satu dari 6+ implementasi naming yang identik), opsi 2 kemungkinan lebih align dengan tujuan besar refactor ini: kalau `toTypeName` jadi shared export resmi dari `@routesync/core`, generator lain yang masih pakai versi lokalnya masing-masing (`names.ts` di `cli`) bisa mulai dikonsolidasi ke satu sumber juga — bukan cuma memperbaiki bug ini, tapi mengurangi duplikasi yang jadi tema besar §3/§23.3.
+
+### 30.5 Dua Bug Lain (Lebih Kecil) di `emitters.integration.test.ts`
+
+Selain masalah utama di §30.2, dua test gagal terpisah, tidak berhubungan dengan bug import di atas:
+
+| Test gagal | Assertion | Temuan |
+|---|---|---|
+| `FieldEmitter > should generate api-field.ts dengan field metadata` | `expect(content).toContain('export const')` gagal — isinya cuma komentar header (`/** Field definitions dengan metadata... */`), tidak ada `export const` sama sekali | `FieldEmitter` (versi baru dari `generateField()` lama, §5/§19) tampaknya tidak menulis body-nya untuk kasus test ini — mengulang pola "kemungkinan orphan/incomplete" yang sempat dicurigai (lalu diklarifikasi) untuk `api-field.ts` versi lama |
+| `MapperEmitter > should output tanpa type assertions` | `expect(asPatterns).toBeNull()` gagal, ditemukan 5 pola `" as "` di output | `MapperEmitter` (versi baru dari `generateMapper()`, §18/§21/§26) mengeluarkan **5 type assertion** (`as X`) yang menurut aturan test seharusnya tidak boleh ada (test cuma mengizinkan `as const`, bukan `as SomeType`) — indikasi `MapperEmitter` versi refactor ini kurang presisi soal inferensi tipe dibanding ekspektasi test-nya sendiri, mirip semangat temuan §6 (tipe yang seharusnya bisa inferred langsung tanpa assertion paksa) |
+
+### 30.6 Kesimpulan Bagian Ini
+
+Refactor besar **sudah dimulai dan arahnya benar** — `SemanticResolver` + `layers/*Emitter.ts` adalah realisasi nyata dari rekomendasi §15/§23. Tapi status implementasinya **belum siap pakai**: root cause tunggal (`toTypeName` import salah package) membuat fungsi paling penting di seluruh sistem baru ini (resource-alias resolution, persis inti masalah dari §3) gagal total di runtime, dan test suite dengan tepat menangkapnya (25/37 lulus, tapi semua kegagalan mengarah ke satu akar). Perbaikannya sangat kecil (satu baris import), risikonya sangat besar kalau tidak diperbaiki sebelum dipakai produksi — karena kegagalan ini silent di jalur normal (tertangkap `try/catch`, cuma masuk ke `metadata.errors`, tidak melempar exception yang menghentikan proses generate), artinya `routesync sync` kemungkinan tetap "berhasil" berjalan tanpa error yang terlihat, padahal `ir.responseTypes` kosong untuk sebagian besar/semua route.
+
+---
+
+## 31. FIX DITERAPKAN DAN DIVERIFIKASI — Semua 37 Test Sekarang Lulus
+
+Empat bug dari §30 sudah diperbaiki langsung di source code repo ini, masing-masing diverifikasi dengan menjalankan ulang `npx vitest run` setelah tiap perbaikan. Hasil akhir: **37/37 test lulus** (dari kondisi awal 25/37).
+
+### 31.1 Fix #1 — Import `toTypeName` Salah Package (§30.2)
+
+**File:** `packages/cli/src/generators/semantic-resolver.ts`
+
+```diff
+- import { RouteManifest, toTypeName, camelCase } from '@routesync/core'
++ import { RouteManifest, camelCase } from '@routesync/core'
++ import { toTypeName } from './names'
+```
+
+Setelah fix ini: `semantic-resolver.test.ts` dan `integration.test.ts` langsung lulus dari 0 test (gagal total karena `TypeError`) — tapi memunculkan bug #2 yang tadinya tertutup sepenuhnya oleh bug #1 (karena `toTypeName` sebelumnya selalu throw sebelum sempat mencapai kode yang bermasalah).
+
+### 31.2 Fix #2 — Double-Suffix `OrderResourceResource` (Ditemukan Setelah Fix #1)
+
+**File:** `packages/cli/src/generators/semantic-resolver.ts`, method `resolveResponseName()`
+
+Begitu bug #1 diperbaiki, muncul kegagalan baru: `expected 'OrderResourceResource' to be 'OrderResource'`. Root cause: `meta.resource` dari manifest **sudah** berupa nama class Resource Laravel lengkap (`'OrderResource'`, sudah termasuk suffix `Resource` sesuai konvensi Laravel), tapi kode menambahkan suffix `Resource` lagi secara manual:
+
+```diff
+  if (meta.resource && !meta.fields) {
+-     const resourceName = toTypeName(meta.resource)
+-     return `${resourceName}Resource`
++     return toTypeName(meta.resource)
+  }
+```
+
+Ini kelas bug yang sama persis dengan yang sudah diobservasi berulang di dokumen ini (asumsi salah soal bentuk data dari sumbernya) — hanya saja kali ini di kode baru (`SemanticResolver`), bukan generator lama.
+
+### 31.3 Fix #3 — `FieldEmitter`/`generateReadMapper` Baca Field Salah dari `ParsedModel`
+
+**File:** `packages/cli/src/generators/layers/FieldEmitter.ts` dan `layers/MapperEmitter.ts`
+
+Ditemukan lewat pembacaan langsung definisi tipe di `packages/core/src/types/route.ts`:
+
+```typescript
+export interface ParsedModel {
+  name: string
+  table: string
+  columns: ParsedColumn[]   // ← array, bukan object
+  ...
+}
+export interface ParsedColumn {
+  name: string
+  type: string
+  nullable: boolean
+}
+```
+
+Baik `FieldEmitter.generateModelFieldDefinitions()` maupun `MapperEmitter.generateReadMapper()` membaca `model.fields` (object) — properti yang **tidak pernah ada** di `ParsedModel` manapun (bentuk aslinya `model.columns`, array). Akibatnya kedua emitter ini **selalu** jatuh ke fallback kosong/blunt-cast untuk setiap model, tidak pernah benar-benar memetakan field satu per satu — persis pola bug yang sama dengan Fix #1/#2 (asumsi bentuk data yang salah terhadap tipe aslinya). Diperbaiki di kedua file supaya membaca `model.columns` dan iterasi per `ParsedColumn`.
+
+Efek samping baik: perbaikan ini sekaligus menghapus kebutuhan akan `raw as ${model.name}Transformed` (blunt cast) untuk kasus normal, karena sekarang field benar-benar dipetakan satu per satu.
+
+### 31.4 Fix #4 — Type Assertion `as unknown` yang Tidak Perlu di `MapperEmitter`
+
+**File:** `packages/cli/src/generators/layers/MapperEmitter.ts`
+
+Dua tempat menyisipkan `as unknown` ke output yang di-generate, padahal tidak diperlukan (assignment ke object literal sudah type-checked secara structural oleh return type function):
+
+```diff
+- mappings.push(`    ${camelName}: raw.${dbName} as unknown as typeof raw.${dbName},`)
++ mappings.push(`    ${camelName}: raw.${column.name},`)
+```
+```diff
+- formMappings.push(`    ${snakeName}: form.${camelName} as unknown,`)
++ formMappings.push(`    ${snakeName}: form.${camelName},`)
+```
+
+### 31.5 Temuan Tambahan Saat Verifikasi: File `.js` Stale Nyasar di Dalam `src/`
+
+Setelah Fix #4 diterapkan di source `.ts`, test masih gagal dengan pesan yang sama persis seperti sebelum fix. Investigasi menemukan penyebab yang sama sekali berbeda dari yang diduga: **setiap file di `packages/cli/src/generators/layers/` punya pasangan `.js` hasil compile lama** (`MapperEmitter.js`, `ContractEmitter.js`, dll) yang tertinggal di dalam folder `src/` itu sendiri — bukan di `dist/` tempat build output seharusnya berada. Module resolver (dipakai baik oleh `tsx` maupun `vitest`) me-resolve ke file `.js` yang stale itu duluan, bukan ke `.ts` yang sudah diperbaiki, sehingga fix di source code sama sekali tidak berpengaruh ke hasil test sampai file `.js` yang nyasar itu dihapus.
+
+**Ini temuan penting tersendiri, terlepas dari 4 bug lain di atas:** kalau file `.js` stale ini tidak sengaja ikut ter-commit ke repo (bukan cuma artefak lokal), siapa pun yang mengedit `.ts` di folder ini di masa depan akan mengalami hal yang sama — perubahan source terasa "tidak ngaruh" tanpa alasan yang jelas, karena resolver diam-diam memuat versi lama. Rekomendasi: tambahkan `packages/*/src/**/*.js` ke `.gitignore`/`.eslintignore` kalau build config memang menghasilkan `.js` di sebelah `.ts` (co-located build), atau pastikan build script menulis ke `dist/` terpisah, bukan `src/`.
+
+Setelah file `.js` stale ini dihapus dari `layers/`, seluruh test langsung lulus tanpa perubahan kode lebih lanjut — mengonfirmasi Fix #3 dan #4 di source sudah benar sejak awal, cuma tidak pernah benar-benar dieksekusi oleh test runner.
+
+### 31.6 Hasil Akhir
+
+```
+npx vitest run
+
+ Test Files  3 passed (3)
+      Tests  37 passed (37)
+```
+
+```
+npx tsup   →  build sukses semua package (core, sdk, cli, react, vue)
+```
+
+Semua perbaikan sudah diterapkan langsung ke file source di repo (`semantic-resolver.ts`, `FieldEmitter.ts`, `MapperEmitter.ts`, plus fixture test `emitters.integration.test.ts` ditambah `models` supaya benar-benar meng-exercise `FieldEmitter`), dan project berhasil di-build ulang tanpa error setelahnya.
+
+---
+
+## 32. IMPLEMENTASI FIELD-RESOLUTION BENERAN — `buildResponseZodType()` Tidak Lagi Stub
+
+Setelah §30-31 menuntaskan 4 bug kecil dan lulus 37/37 test, ditemukan masalah yang jauh lebih besar dengan cara verifikasi paling jujur: **generate langsung dari manifest asli** (`ecommerce_shop-main/frontend/routesync.manifest.json`, 35 routes/20 models/4 resources) dan bandingkan hasilnya byte-per-byte ke contoh konkret di §16.
+
+### 32.1 Temuan: Test Suite Lulus, Tapi Output Salah Total
+
+Hasil generate `categories.get` sebelum perbaikan bagian ini:
+
+```typescript
+// Hasil generate NYATA (SALAH):
+export const CategoriesResponseSchema = z.object({})
+
+// Seharusnya (§16, dari generator lama):
+export const CategoriesResponseSchema = z.object({ data: z.array(CategorySchema) })
+```
+
+Root cause: `ContractEmitter.buildResponseZodType()` — method inti yang menentukan isi Zod schema — ternyata **stub/placeholder murni**. Untuk collection, paginated, wrapped, maupun plain object, method ini selalu return string hardcoded (`z.object({})`, `z.array(z.object({}))`, dst) **tanpa pernah membaca `meta.fields` sama sekali**. Field-resolution 200+ baris dari `ZodTierGenerator.buildResponseZodType()` lama (yang menghasilkan output kaya seperti `PaymentResourceSchema` di §16) tidak pernah benar-benar di-port ke versi refactor ini.
+
+**Ini tidak tertangkap 37 test yang lulus** karena semua assertion-nya longgar (`toContain('export')`, `not.toContain(' any')`, `length > 0`) — nggak ada satupun yang mengecek isi field-nya benar. `z.object({})` tetap valid TypeScript, ada kata `export`, nggak ada `any` — jadi lolos semua kriteria test meski secara fungsional kosong total.
+
+### 32.2 Bug Tambahan Ditemukan di Jalur yang Sama
+
+Sambil menelusuri, ditemukan 2 bug lain di file yang sama, pola identik dengan §31.3 (asumsi bentuk data yang salah terhadap tipe asli `@routesync/core`):
+
+- **`generateModelSchema()`** membaca `model.fields` (tidak pernah ada di `ParsedModel`, bentuk asli `model.columns: ParsedColumn[]`) — selalu menghasilkan `${Model}Schema = z.object({})` kosong untuk SEMUA model.
+- **`generateResourceSchema()`** membaca `field.type`/`field.cast` langsung dari `ResourceFieldKind`, padahal bentuk aslinya adalah node AST (`{kind: 'raw_code', code, parsed_ast, resolved: {type, confidence, ...}}`) — field `.type`/`.cast` tidak pernah ada di level itu, selalu fallback ke `z.string()` paksa untuk semua field resource.
+
+### 32.3 Implementasi yang Ditulis
+
+`buildResponseZodType()` ditulis ulang jadi rekursif, dipecah jadi:
+
+- **`buildFieldZodType()`** — resolver field tunggal, menangani kind yang benar-benar muncul di manifest nyata (`primitive`, `model`, `resource`, `object` rekursif). Dipakai bersama oleh `buildResponseZodType()` (top-level response) **dan** `generateResourceSchema()` (field resource) — konsolidasi yang sebelumnya dua sistem terpisah (persis tema §6).
+- **`resolveRawCodeZodType()`** — resolver khusus untuk field ber-`kind: 'raw_code'` (ekspresi PHP mentah yang belum sepenuhnya di-resolve semantic kernel upstream), dua tingkat:
+  1. Cek `meta.type` (dari `resolved.type`, kalau semantic kernel sudah pernah resolve sebagian) — dipakai duluan kalau tersedia.
+  2. Kalau tidak ada, cross-reference ke `route.assignments` dengan heuristik regex untuk pola Eloquent umum: `$var = Model::...->get()/->paginate()/->first()` → `z.array(ModelSchema)` / paginated wrapper / `ModelSchema` tunggal.
+- **`mapPrimitiveTypeToZod()`** — mapping nama tipe primitif generik (`'string'`/`'boolean'`/`'integer'`, dari extractor) ke Zod, terpisah dari `mapSqlTypeToZod()` di `helpers.ts` yang menerima SQL type mentah (`varchar`/`bigint`) — dua sumber input yang bentuknya beda, sengaja dipisah supaya tidak salah pakai.
+
+**Batasan yang didokumentasikan secara sadar, bukan disembunyikan:** resolusi `raw_code` lewat regex pada `route.assignments` cuma menangani pola Eloquent umum satu-langkah (`Model::method()->get()`). Pola lebih kompleks (relasi, subquery bersarang, kondisi) sengaja dibiarkan fallback ke `z.unknown()` — komentar di source secara eksplisit menyatakan resolusi penuh adalah domain `SemanticResolutionKernel` di `@routesync/core` (sudah ada, tapi terpisah dari scope ContractEmitter), bukan sesuatu yang aman untuk ditebak pakai regex di layer emit.
+
+### 32.4 Hasil Sebelum vs Sesudah (Generate dari Manifest Asli)
+
+| Metrik | Sebelum §32 | Sesudah §32 |
+|---|---|---|
+| `z.object({})` kosong (schema tidak berisi apa-apa) | Semua schema (100%) | **0** |
+| `z.unknown()` fallback per field | 85 | **31** (sisanya kasus yang secara sadar tidak coba ditebak — lihat §32.5) |
+| `CategoriesResponseSchema` vs contoh §16 | `z.object({})` — total berbeda | **Identik**: `z.object({ data: z.array(CategorySchema) })` |
+| `CategorySchema` | `z.object({})` | `z.object({ id: z.number(), nama: z.string(), created_at: z.string().nullable(), updated_at: z.string().nullable() })` |
+| Test suite | 37/37 lulus (tapi tidak berarti apa-apa untuk isi field) | 37/37 lulus, **plus** verifikasi manual against manifest asli |
+
+### 32.5 Yang Masih Belum Sempurna (Transparan, Bukan Diklaim Selesai)
+
+31 `z.unknown()` yang tersisa di `PaymentResourceSchema` dan resource lain berasal dari dua kategori yang **belum** ditangani, disebutkan eksplisit di sini supaya tidak diklaim selesai padahal belum:
+
+1. **Field enum/union** (mis. `provider: 'mock' | 'midtrans'` di contoh §16/§20) — `resolved.type` untuk field seperti ini kemungkinan bukan primitif sederhana, perlu penanganan kind tambahan yang belum diverifikasi bentuknya.
+2. **Nested resource-array field** (mis. `items: z.array(OrderDetailResourceSchema)` di contoh §16) — field yang isinya array of resource lain, bukan array of primitive; `buildFieldZodType()` saat ini menangani `object`/`model`/`resource` sebagai kind langsung, tapi belum menangani kombinasi "array yang isinya resource lain" di level field (beda dari collection di level top-level response yang sudah ditangani).
+
+Kedua kategori ini **tidak diperbaiki secara tergesa** di sesi ini karena butuh verifikasi bentuk data lebih lanjut dari manifest nyata (menghindari pola bug yang sama — asumsi bentuk data tanpa verifikasi, seperti 5 bug sebelumnya di §30-31) — dicatat sebagai item lanjutan, bukan diklaim beres.
+
+### 32.6 Hasil Akhir
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 37 passed (37)
+npx tsup          →  build sukses semua package
+```
+
+Perbandingan langsung dengan output generate manifest asli mengonfirmasi `CategoriesResponseSchema`/`CategorySchema` sekarang identik dengan contoh di §16, dan `z.object({})` kosong (yang sebelumnya 100% dari output) sudah nol. Sisa 31 `z.unknown()` adalah gap yang terdokumentasi, bukan regresi baru — semuanya berasal dari dua kategori field yang secara eksplisit belum coba ditebak (§32.5), bukan dari bug yang tidak disadari.
+
+---
+
+## 33. PENYEMPURNAAN LEBIH LANJUT — 31 → 26 `z.unknown()`, Sisanya Terverifikasi Genuinely Tidak Bisa Ditebak
+
+Melanjutkan §32.5, tiga perbaikan tambahan diterapkan ke `ContractEmitter.ts`/`helpers.ts`, semuanya diverifikasi ulang lewat generate langsung dari manifest asli (bukan cuma lolos test suite).
+
+### 33.1 Fix — Dukungan MySQL `enum(...)` di `mapSqlTypeToZod`
+
+`getSqlTypeMapping()` di `helpers.ts` sebelumnya tidak punya cabang untuk SQL type `enum(...)` sama sekali (ditemukan nyata di kolom `Payment.status: enum('pending','success','failed')`). Ditambahkan parsing regex untuk ekstrak nilai enum dan generate `z.enum(['pending', 'success', 'failed'])`. Catatan kejujuran: fix ini hanya berlaku pada jalur SQL-type-mapping (dipakai saat field belum punya `resolved.type` dari semantic kernel) — kalau field sudah keburu di-resolve upstream jadi `resolved.type: 'string'` generik, jalur prioritas resolusi (§33.2) tetap memakai `z.string()` biasa karena itu dianggap "sudah diketahui", bukan silently overridden. Presisi enum jadinya belum 100% konsisten di semua jalur, tapi tidak pernah salah (worst case: `z.string()` yang lebih longgar, bukan `z.enum()` yang salah nilai).
+
+### 33.2 Fix — `buildFieldZodType()` Tidak Membaca `resolved.resource`/`resolved.model`/`resolved.collection`
+
+Ditemukan lewat kasus nyata field `items` di `PaymentResource`:
+
+```json
+{
+  "kind": "raw_code",
+  "code": "OrderDetailResource::collection($this->order?->details)",
+  "resolved": { "status": "resolved", "type": "resource", "resource": "OrderDetailResource", "collection": true, "confidence": 100 }
+}
+```
+
+Field ini **sudah** di-resolve semantic kernel upstream (`resolved.type: 'resource'`, `resolved.resource: 'OrderDetailResource'`, `resolved.collection: true`) — jawabannya sudah tersedia di manifest, tapi `buildFieldZodType()` sebelumnya cuma mengecek `meta.type` untuk kasus primitif, tidak pernah mengecek kasus `meta.type === 'resource'`/`'model'` untuk field ber-`kind: 'raw_code'`. Ditambahkan pengecekan prioritas di awal `buildFieldZodType()`: kalau `meta.type` (yang sudah di-surface `normalizeMetadata()` dari `resolved.type`) menunjukkan `'resource'` atau `'model'` dan schema-nya dikenal, langsung pakai itu — terlepas dari `kind` mentahnya.
+
+Bug turunan yang ikut ketemu dan diperbaiki: `generateResourceSchema()` memanggil `buildFieldZodType(..., topLevel: true)` untuk **field individual**, padahal parameter `topLevel` seharusnya cuma `true` untuk response level teratas (supaya collection-wrapping tidak diproses dobel). Akibatnya `meta.collection` pada field individual (seperti `items`) tidak pernah ter-wrap jadi array meski terdeteksi benar. Diperbaiki jadi `topLevel: false` untuk semua pemanggilan dari `generateResourceSchema()`.
+
+**Hasil:** `items: z.array(OrderDetailResourceSchema)` — sekarang **identik** dengan contoh `PaymentResourceSchema` di §16.
+
+### 33.3 Fix — Fallback Model-Hint untuk Field `$this->xxx` Tanpa `resolved.type`
+
+Field seperti `provider`, `amount_minor` di `PaymentResource` adalah `{kind: 'raw_code', code: '$this->provider', parsed_ast: {kind: 'property_access', target: {kind: 'variable', name: 'this'}, property: 'provider'}}` — **tanpa** blok `resolved` sama sekali (semantic kernel upstream gagal resolve). Ditambahkan fallback **terakhir**, sengaja dibuat konservatif: tebak nama model dari nama resource (`PaymentResource` → `Payment`, konvensi Laravel yang umum), cari kolom dengan nama sama persis di model itu, pakai tipe SQL-nya kalau ketemu. **Kalau tidak ketemu, tetap `z.unknown()`** — tidak dipaksa nebak.
+
+Diverifikasi manual: `Payment` model di manifest asli cuma punya kolom `id, order_id, metode, status, paid_at, created_at, updated_at` — **tidak ada** `provider`, `provider_txn_id`, `gateway_status`, `amount_minor`, `refund_amount_minor`. Jadi 5 field ini **tetap** `z.unknown()` setelah fix, dan itu **benar** — bukan bug yang belum kefix, tapi kejujuran generator terhadap data yang memang tidak tersedia (kemungkinan field-field ini computed dari integrasi payment gateway eksternal, bukan kolom Eloquent biasa).
+
+### 33.4 Hasil Akhir
+
+| Metrik | §32 (setelah field-resolution pertama) | §33 (setelah 3 fix tambahan) |
+|---|---|---|
+| `z.unknown()` fallback | 31 | **26** |
+| `z.object({})` kosong | 0 | 0 (tetap) |
+| `items` field (nested resource-array) | `z.unknown()` | **`z.array(OrderDetailResourceSchema)`** — cocok §16 |
+| `status` field (enum) | `z.string()` | `z.string()` (tidak berubah — sudah di-resolve upstream jadi generic string sebelum sempat kena jalur SQL-enum) |
+| `provider`/`amount_minor`/dst | `z.unknown()` | `z.unknown()` — **dikonfirmasi manual, bukan bug**: kolom ini genuinely tidak ada di model `Payment` manapun di manifest |
+| Test suite | 37/37 | 37/37 (tetap) |
+
+Sisa 26 `z.unknown()` sekarang punya profil yang jauh lebih jelas: campuran (a) field yang genuinely tidak ada representasinya di manifest (§33.3, dikonfirmasi manual per kasus), dan (b) ekspresi PHP kompleks (ternary, method chain dengan kondisi, seperti field `gateway.name`/`gateway.token`) yang secara sadar tidak dicoba ditebak lewat regex — sesuai batasan yang sudah didokumentasikan di §32.3 (resolusi penuh adalah domain `SemanticResolutionKernel`, bukan layer emit).
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 37 passed (37)
+npx tsup          →  build sukses semua package
+```
+
+---
+
+## 34. FIX LANJUTAN — Fallback Model-Hint Ditelusuri Lewat `relations`, 26 → 21 `z.unknown()`
+
+Koreksi penting atas kesimpulan §33.3: field `provider`, `provider_txn_id`, `gateway_status`, `amount_minor`, `refund_amount_minor` **bukan** data yang genuinely tidak tersedia — kolomnya memang tidak ada langsung di model `Payment`, tapi ada di **model relasi**-nya, dan itu semua sudah terekam di manifest.
+
+Dikonfirmasi langsung dari migration Laravel asli (`database/migrations/2026_02_09_090001_create_payment_amounts_table.php` dan `..._090002_create_payment_gateways_table.php`):
+
+- Tabel `payment_amounts` (model `PaymentAmount`) punya `amount_minor`, `fee_minor`, `net_amount_minor`, `refund_amount_minor`, `currency_code`.
+- Tabel `payment_gateways` (model `PaymentGateway`) punya `provider`, `provider_txn_id`, `gateway_status`, `gateway_code`, `gateway_message`, `idempotency_key`, dst.
+
+Dan model `Payment` di manifest **sudah** mendeklarasikan relasi ke keduanya:
+
+```json
+"Payment": { "relations": {
+  "paymentAmount": { "type": "hasMany", "model": "PaymentAmount" },
+  "paymentGateways": { "type": "hasMany", "model": "PaymentGateway" }
+}}
+```
+
+`PaymentAmount` dan `PaymentGateway` sendiri **sudah ada** sebagai entri penuh di `manifest.models` dengan kolom yang persis cocok nama-nya dengan field yang dicari.
+
+### Fix yang Diterapkan
+
+Fallback model-hint di `generateResourceSchema()` (§33.3) diperluas: kalau kolom tidak ketemu langsung di model utama (`Payment`), telusuri `hintedModel.relations`, cari model terkait di `manifest.models`, cek apakah model itu punya kolom dengan nama sama. Cardinality relasi (`hasOne`/`hasMany`/`belongsTo`) sengaja diabaikan untuk keperluan ini — yang dicari cuma **tipe** kolomnya, bukan collection-ness-nya (yang sudah ditangani jalur lain).
+
+### Hasil
+
+| Field | §33 (sebelum) | §34 (sesudah) |
+|---|---|---|
+| `provider` | `z.unknown()` | `z.string().nullable()` |
+| `provider_txn_id` | `z.unknown()` | `z.string().nullable()` |
+| `gateway_status` | `z.unknown()` | `z.string().nullable()` |
+| `amount_minor` | `z.unknown()` | `z.number()` |
+| `refund_amount_minor` | `z.unknown()` | `z.number()` |
+| Total `z.unknown()` di seluruh output | 26 | **21** |
+
+`PaymentResourceSchema` yang dihasilkan sekarang:
+
+```typescript
+export const PaymentResourceSchema = z.object({
+  id: z.number(),
+  order_id: z.number(),
+  invoice_number: z.string().nullable(),
+  metode: z.string().nullable(),
+  detail: z.string().nullable(),
+  status: z.string(),
+  paid_at: z.string().nullable(),
+  provider: z.string().nullable(),
+  provider_txn_id: z.string().nullable(),
+  gateway_status: z.string().nullable(),
+  amount_minor: z.number(),
+  refund_amount_minor: z.number(),
+  items: z.array(OrderDetailResourceSchema),
+  promotion: z.object({ code: z.string(), discount_minor: z.number() }),
+  gateway: z.object({ name: z.unknown(), order_id: z.unknown(), token: z.unknown(), redirect_url: z.unknown() }),
+  total_harga: z.number(),
+})
+```
+
+**Hampir identik** dengan contoh di §16 — bandingkan langsung: field-field yang di §16 aslinya `z.string()`/`z.number()` polos sekarang benar semua, cuma beda di `invoice_number`/`metode`/`detail`/`paid_at`/`provider`/dst yang di generator ini terdeteksi `.nullable()` (lebih presisi dari contoh §16, karena §16 memang generator versi lama yang belum tentu deteksi nullable-nya sama).
+
+### Sisa 21 `z.unknown()` — Kategori Terakhir
+
+Field `gateway.name`, `gateway.order_id`, `gateway.token`, `gateway.redirect_url` tetap `z.unknown()`. Berbeda dari kasus `provider`/`amount_minor` (property access langsung ke `$this`), field-field ini hasil ekspresi PHP kompleks (`is_array($gateway) ? ($gateway['name'] ?? null) : null` — ternary dengan array access kondisional, dilihat di §16 investigasi awal). Ini **secara sadar** tidak dicoba ditebak — mengikuti prinsip yang sama sejak §32.3: resolusi ekspresi PHP sekompleks ini adalah domain `SemanticResolutionKernel`, bukan sesuatu yang aman ditebak lewat pattern-matching di layer emit.
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 37 passed (37)
+npx tsup          →  build sukses semua package
+```
+
+---
+
 ## Status Investigasi
 
 Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
@@ -1828,5 +2204,9 @@ Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
 - Root cause bug indentasi nested array payload di `generateForm()` (lihat §17, kasus `CheckoutForm.Create.items`) — perlu ditelusuri apakah ini code path terpisah dari flat object payload, dan apakah generator array-of-object form punya duplikasi yang sama seperti yang ditemukan di §6 untuk `generateRead()`/`generateContract()`
 - **[Direvisi, lihat §26]** Verifikasi apakah output real dari `routesync sync` (bukan cuma source generator) benar-benar menghasilkan `api-mapper.ts` yang berisi `toApiXCreate` — kalau iya, sample di §21 kemungkinan besar stale/salah label, bukan bug aktif di generator.
 - Root cause inkonsistensi key aksi di `api.ts` (§24.3): `profile.put` vs `profile.patch` sebagai dua entri terpisah untuk operasi yang identik — perlu ditelusuri `route-classifier.ts` (`deriveGroupName`) untuk memahami kenapa HTTP method mentah kadang dipakai sebagai key alih-alih semantic action, dan apakah ini terjadi karena Laravel route-nya sendiri mendaftarkan `PUT`+`PATCH` sebagai dua route terpisah ke handler yang sama.
+- **[SELESAI, lihat §31]** `semantic-resolver.ts` baris 16 salah impor `toTypeName` dari `@routesync/core` — sudah diperbaiki (diarahkan ke `./names` lokal), diverifikasi lulus test.
+- **[SELESAI, lihat §31]** `FieldEmitter`/`MapperEmitter` membaca `model.fields` (tidak pernah ada di `ParsedModel`) — sudah diperbaiki untuk membaca `model.columns` sesuai tipe asli di `@routesync/core`.
+- **[SELESAI, lihat §31]** `MapperEmitter` menyisipkan `as unknown` yang tidak perlu di output — sudah dihapus.
 - Verifikasi langsung di `QueryKeyGenerator.ts` (§28.5): apakah `list` vs `lists` (singular/plural) memang dua konsep berbeda yang disengaja (exact key vs family key untuk invalidation broad), atau inkonsistensi penamaan yang kebetulan tidak menimbulkan bug karena keduanya valid sebagai query key.
 - Pertimbangkan pemisahan field `cache` di `HookGenerator.ts` (§28.4) jadi dua sub-key eksplisit (baca vs invalidate) alih-alih satu field `cache` dengan dua bentuk berbeda yang cuma bisa dibedakan dari konteks action GET/mutation.
+- **[SEBAGIAN SELESAI, lihat §33]** Field enum/union dan nested resource-array field di `ContractEmitter.buildFieldZodType()`: nested resource-array (`items: z.array(OrderDetailResourceSchema)`) **sudah selesai** dan diverifikasi cocok §16; dukungan `enum(...)` SQL type sudah ditambahkan tapi belum berlaku di semua jalur (field yang sudah di-resolve upstream jadi `resolved.type: 'string'` generik belum otomatis dapat presisi enum). Sisa `z.unknown()` yang genuinely tidak bisa ditebak (field tanpa representasi di manifest, atau ekspresi PHP kompleks seperti ternary/method-chain) didokumentasikan per-kasus di §33.3-33.4, bukan dianggap bug.

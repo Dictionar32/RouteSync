@@ -1,6 +1,1339 @@
 {
-  "services": {},
-  "controllers": {},
-  "models": {},
-  "edges": []
+  "services": {
+    "OrderDetailResource": {
+      "kind": "service_node",
+      "name": "OrderDetailResource",
+      "methods": [
+        "id",
+        "produk_item_id",
+        "produk",
+        "qty",
+        "harga",
+        "subtotal"
+      ],
+      "layer": "service",
+      "dependencies": [],
+      "confidence": 1
+    },
+    "OrderResource": {
+      "kind": "service_node",
+      "name": "OrderResource",
+      "methods": [
+        "id",
+        "status",
+        "total_harga",
+        "invoice_number",
+        "payment_status",
+        "financial_status",
+        "fulfillment_status",
+        "subtotal_minor",
+        "discount_minor",
+        "shipping_minor",
+        "tax_minor",
+        "total_harga_minor",
+        "items",
+        "promotion",
+        "shipping",
+        "created_at"
+      ],
+      "layer": "service",
+      "dependencies": [],
+      "confidence": 1
+    },
+    "PaymentResource": {
+      "kind": "service_node",
+      "name": "PaymentResource",
+      "methods": [
+        "id",
+        "order_id",
+        "invoice_number",
+        "metode",
+        "detail",
+        "status",
+        "paid_at",
+        "provider",
+        "provider_txn_id",
+        "gateway_status",
+        "amount_minor",
+        "refund_amount_minor",
+        "items",
+        "promotion",
+        "gateway",
+        "total_harga"
+      ],
+      "layer": "service",
+      "dependencies": [],
+      "confidence": 1
+    },
+    "ProdukItemResource": {
+      "kind": "service_node",
+      "name": "ProdukItemResource",
+      "methods": [
+        "id",
+        "nama",
+        "deskripsi",
+        "image",
+        "image_url",
+        "category_id",
+        "category_name",
+        "harga",
+        "stok",
+        "rating",
+        "review_count"
+      ],
+      "layer": "service",
+      "dependencies": [],
+      "confidence": 1
+    }
+  },
+  "controllers": {
+    "RegisterController": {
+      "kind": "controller_node",
+      "name": "RegisterController",
+      "routes": [
+        "/register"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "LoginController": {
+      "kind": "controller_node",
+      "name": "LoginController",
+      "routes": [
+        "/login"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Oauth_provider_redirectController": {
+      "kind": "controller_node",
+      "name": "Oauth_provider_redirectController",
+      "routes": [
+        "/oauth/{provider}/redirect"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Oauth_provider_callbackController": {
+      "kind": "controller_node",
+      "name": "Oauth_provider_callbackController",
+      "routes": [
+        "/oauth/{provider}/callback"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        },
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Social_loginController": {
+      "kind": "controller_node",
+      "name": "Social_loginController",
+      "routes": [
+        "/social/login"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Forgot-passwordController": {
+      "kind": "controller_node",
+      "name": "Forgot-passwordController",
+      "routes": [
+        "/forgot-password"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Reset-passwordController": {
+      "kind": "controller_node",
+      "name": "Reset-passwordController",
+      "routes": [
+        "/reset-password"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "CategoriesController": {
+      "kind": "controller_node",
+      "name": "CategoriesController",
+      "routes": [
+        "/categories"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "ProdukController": {
+      "kind": "controller_node",
+      "name": "ProdukController",
+      "routes": [
+        "/produk"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Produk_idController": {
+      "kind": "controller_node",
+      "name": "Produk_idController",
+      "routes": [
+        "/produk/{id}"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Produk_id_reviewsController": {
+      "kind": "controller_node",
+      "name": "Produk_id_reviewsController",
+      "routes": [
+        "/produk/{id}/reviews"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        },
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Payment_webhookController": {
+      "kind": "controller_node",
+      "name": "Payment_webhookController",
+      "routes": [
+        "/payment/webhook"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "ProfileController": {
+      "kind": "controller_node",
+      "name": "ProfileController",
+      "routes": [
+        "/profile"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        },
+        {
+          "name": "put"
+        },
+        {
+          "name": "patch"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "OrdersController": {
+      "kind": "controller_node",
+      "name": "OrdersController",
+      "routes": [
+        "/orders"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Orders_idController": {
+      "kind": "controller_node",
+      "name": "Orders_idController",
+      "routes": [
+        "/orders/{id}"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Cart_itemsController": {
+      "kind": "controller_node",
+      "name": "Cart_itemsController",
+      "routes": [
+        "/cart/items"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Cart_items_produkItemIdController": {
+      "kind": "controller_node",
+      "name": "Cart_items_produkItemIdController",
+      "routes": [
+        "/cart/items/{produkItemId}"
+      ],
+      "actions": [
+        {
+          "name": "patch"
+        },
+        {
+          "name": "delete"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "CartController": {
+      "kind": "controller_node",
+      "name": "CartController",
+      "routes": [
+        "/cart"
+      ],
+      "actions": [
+        {
+          "name": "delete"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Cart_promoController": {
+      "kind": "controller_node",
+      "name": "Cart_promoController",
+      "routes": [
+        "/cart/promo"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        },
+        {
+          "name": "delete"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "CheckoutController": {
+      "kind": "controller_node",
+      "name": "CheckoutController",
+      "routes": [
+        "/checkout"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Buy-nowController": {
+      "kind": "controller_node",
+      "name": "Buy-nowController",
+      "routes": [
+        "/buy-now"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "KeranjangController": {
+      "kind": "controller_node",
+      "name": "KeranjangController",
+      "routes": [
+        "/keranjang"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "WishlistController": {
+      "kind": "controller_node",
+      "name": "WishlistController",
+      "routes": [
+        "/wishlist"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        },
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Wishlist_produkItemIdController": {
+      "kind": "controller_node",
+      "name": "Wishlist_produkItemIdController",
+      "routes": [
+        "/wishlist/{produkItemId}"
+      ],
+      "actions": [
+        {
+          "name": "delete"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Payment_orderIdController": {
+      "kind": "controller_node",
+      "name": "Payment_orderIdController",
+      "routes": [
+        "/payment/{orderId}"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Orders_id_invoiceController": {
+      "kind": "controller_node",
+      "name": "Orders_id_invoiceController",
+      "routes": [
+        "/orders/{id}/invoice"
+      ],
+      "actions": [
+        {
+          "name": "get"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "LogoutController": {
+      "kind": "controller_node",
+      "name": "LogoutController",
+      "routes": [
+        "/logout"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    },
+    "Admin_produkController": {
+      "kind": "controller_node",
+      "name": "Admin_produkController",
+      "routes": [
+        "/admin/produk"
+      ],
+      "actions": [
+        {
+          "name": "post"
+        }
+      ],
+      "layer": "controller",
+      "calls": [],
+      "confidence": 1
+    }
+  },
+  "models": {
+    "Category": {
+      "kind": "model_node",
+      "name": "Category",
+      "layer": "model",
+      "confidence": 1,
+      "table": "categories",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "nama": "varchar(255)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "produkItems"
+      ]
+    },
+    "Order": {
+      "kind": "model_node",
+      "name": "Order",
+      "layer": "model",
+      "confidence": 1,
+      "table": "orders",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "user_id": "bigint(20) unsigned",
+        "total_harga": "int(11)",
+        "status": "enum('pending','paid','canceled')",
+        "order_number": "varchar(32)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "user",
+        "details",
+        "payment",
+        "shipping",
+        "promotion",
+        "amount",
+        "financial",
+        "fulfillment"
+      ]
+    },
+    "OrderAmount": {
+      "kind": "model_node",
+      "name": "OrderAmount",
+      "layer": "model",
+      "confidence": 1,
+      "table": "order_amounts",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "subtotal_minor": "bigint(20) unsigned",
+        "shipping_minor": "bigint(20) unsigned",
+        "discount_minor": "bigint(20) unsigned",
+        "tax_minor": "bigint(20) unsigned",
+        "total_minor": "bigint(20) unsigned",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "order"
+      ]
+    },
+    "OrderDetail": {
+      "kind": "model_node",
+      "name": "OrderDetail",
+      "layer": "model",
+      "confidence": 1,
+      "table": "order_details",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "produk_item_id": "bigint(20) unsigned",
+        "qty": "int(11)",
+        "harga": "int(11)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "banana": "varchar(255)",
+        "potato": "int(11)",
+        "flying_dog": "tinyint(1)"
+      },
+      "relations": [
+        "order",
+        "produkItem"
+      ]
+    },
+    "OrderFinancial": {
+      "kind": "model_node",
+      "name": "OrderFinancial",
+      "layer": "model",
+      "confidence": 1,
+      "table": "order_financials",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "financial_status": "enum('pending','paid','partially_refunded','refunded','failed','cancelled')",
+        "refunded_at": "timestamp",
+        "refund_reason": "text",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "order"
+      ]
+    },
+    "OrderFulfillment": {
+      "kind": "model_node",
+      "name": "OrderFulfillment",
+      "layer": "model",
+      "confidence": 1,
+      "table": "order_fulfillments",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "fulfillment_status": "enum('unfulfilled','processing','shipped','completed','cancelled','returned')",
+        "processing_at": "timestamp",
+        "shipped_at": "timestamp",
+        "completed_at": "timestamp",
+        "canceled_at": "timestamp",
+        "cancel_reason": "text",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "order"
+      ]
+    },
+    "OrderPromotion": {
+      "kind": "model_node",
+      "name": "OrderPromotion",
+      "layer": "model",
+      "confidence": 1,
+      "table": "order_promotions",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "promo_code_id": "bigint(20) unsigned",
+        "promo_code": "varchar(64)",
+        "discount_minor": "bigint(20) unsigned",
+        "metadata": "longtext",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "order",
+        "promoCode"
+      ]
+    },
+    "OrderShipping": {
+      "kind": "model_node",
+      "name": "OrderShipping",
+      "layer": "model",
+      "confidence": 1,
+      "table": "order_shippings",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "nama": "varchar(255)",
+        "telepon": "varchar(255)",
+        "alamat": "text",
+        "kota": "varchar(255)",
+        "kode_pos": "varchar(255)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "order"
+      ]
+    },
+    "Payment": {
+      "kind": "model_node",
+      "name": "Payment",
+      "layer": "model",
+      "confidence": 1,
+      "table": "payments",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "order_id": "bigint(20) unsigned",
+        "metode": "varchar(255)",
+        "status": "enum('pending','success','failed')",
+        "paid_at": "timestamp",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "paymentDetail",
+        "order",
+        "paymentAmount",
+        "paymentGateways"
+      ]
+    },
+    "PaymentAmount": {
+      "kind": "model_node",
+      "name": "PaymentAmount",
+      "layer": "model",
+      "confidence": 1,
+      "table": "payment_amounts",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "payment_id": "bigint(20) unsigned",
+        "currency_code": "varchar(3)",
+        "amount_minor": "bigint(20) unsigned",
+        "fee_minor": "bigint(20) unsigned",
+        "net_amount_minor": "bigint(20) unsigned",
+        "refund_amount_minor": "bigint(20) unsigned",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "payment"
+      ]
+    },
+    "PaymentDetail": {
+      "kind": "model_node",
+      "name": "PaymentDetail",
+      "layer": "model",
+      "confidence": 1,
+      "table": "payment_details",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "payment_id": "bigint(20) unsigned",
+        "detail": "longtext",
+        "payload_hash": "varchar(255)",
+        "payload_received_at": "timestamp",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "payment"
+      ]
+    },
+    "PaymentGateway": {
+      "kind": "model_node",
+      "name": "PaymentGateway",
+      "layer": "model",
+      "confidence": 1,
+      "table": "payment_gateways",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "payment_id": "bigint(20) unsigned",
+        "provider": "varchar(255)",
+        "provider_txn_id": "varchar(255)",
+        "idempotency_key": "varchar(255)",
+        "gateway_status": "varchar(255)",
+        "gateway_code": "varchar(255)",
+        "gateway_message": "text",
+        "authorized_at": "timestamp",
+        "captured_at": "timestamp",
+        "failed_at": "timestamp",
+        "refunded_at": "timestamp",
+        "reconciled_at": "timestamp",
+        "reconciliation_batch_id": "varchar(255)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "payment"
+      ]
+    },
+    "ProductReview": {
+      "kind": "model_node",
+      "name": "ProductReview",
+      "layer": "model",
+      "confidence": 1,
+      "table": "product_reviews",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "produk_item_id": "bigint(20) unsigned",
+        "user_id": "bigint(20) unsigned",
+        "rating": "tinyint(3) unsigned",
+        "title": "varchar(255)",
+        "comment": "text",
+        "is_verified_purchase": "tinyint(1)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "produkItem",
+        "user"
+      ]
+    },
+    "ProdukItem": {
+      "kind": "model_node",
+      "name": "ProdukItem",
+      "layer": "model",
+      "confidence": 1,
+      "table": "produk_items",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "nama": "varchar(255)",
+        "deskripsi": "text",
+        "category_id": "bigint(20) unsigned",
+        "harga": "int(11)",
+        "stok": "int(11)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "orderDetails",
+        "category",
+        "frontend",
+        "wishlists",
+        "reviews"
+      ]
+    },
+    "ProdukItemFrontend": {
+      "kind": "model_node",
+      "name": "ProdukItemFrontend",
+      "layer": "model",
+      "confidence": 1,
+      "table": "produk_item_frontends",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "produk_item_id": "bigint(20) unsigned",
+        "gambar": "varchar(255)",
+        "rating": "decimal(3,2)",
+        "jumlah_review": "int(10) unsigned",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "produkItem"
+      ]
+    },
+    "PromoCode": {
+      "kind": "model_node",
+      "name": "PromoCode",
+      "layer": "model",
+      "confidence": 1,
+      "table": "promo_codes",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "code": "varchar(64)",
+        "discount_type": "enum('fixed_minor','percent')",
+        "discount_value": "bigint(20) unsigned",
+        "max_discount_minor": "bigint(20) unsigned",
+        "min_order_minor": "bigint(20) unsigned",
+        "usage_limit": "int(10) unsigned",
+        "used_count": "int(10) unsigned",
+        "is_active": "tinyint(1)",
+        "starts_at": "timestamp",
+        "ends_at": "timestamp",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "orderPromotions"
+      ]
+    },
+    "SocialAccount": {
+      "kind": "model_node",
+      "name": "SocialAccount",
+      "layer": "model",
+      "confidence": 1,
+      "table": "social_accounts",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "user_id": "bigint(20) unsigned",
+        "provider": "varchar(32)",
+        "provider_user_id": "varchar(191)",
+        "email": "varchar(255)",
+        "avatar_url": "varchar(255)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "user"
+      ]
+    },
+    "User": {
+      "kind": "model_node",
+      "name": "User",
+      "layer": "model",
+      "confidence": 1,
+      "table": "users",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "name": "varchar(255)",
+        "email": "varchar(255)",
+        "password": "varchar(255)",
+        "role": "enum('admin','user')",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "orders",
+        "wishlists",
+        "socialAccounts",
+        "productReviews",
+        "newFactory",
+        "unreadNotifications",
+        "tokens"
+      ]
+    },
+    "Wishlist": {
+      "kind": "model_node",
+      "name": "Wishlist",
+      "layer": "model",
+      "confidence": 1,
+      "table": "wishlists",
+      "fields": {
+        "id": "bigint(20) unsigned",
+        "user_id": "bigint(20) unsigned",
+        "produk_item_id": "bigint(20) unsigned",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      },
+      "relations": [
+        "user",
+        "produkItem"
+      ]
+    },
+    "RegisterResponse": {
+      "kind": "model_node",
+      "name": "RegisterResponse",
+      "layer": "model",
+      "confidence": 1,
+      "table": null,
+      "fields": {
+        "success": "boolean",
+        "message": "string",
+        "data": "mixed"
+      },
+      "relations": []
+    }
+  },
+  "edges": [
+    {
+      "from": "Category",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "User",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderDetail",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderShipping",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderPromotion",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderAmount",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderFinancial",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderFulfillment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderAmount",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderDetail",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderDetail",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderFinancial",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderFulfillment",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderPromotion",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderPromotion",
+      "to": "PromoCode",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderShipping",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "PaymentDetail",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "PaymentAmount",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "PaymentGateway",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "PaymentAmount",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "PaymentDetail",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "PaymentGateway",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProductReview",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProductReview",
+      "to": "User",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "OrderDetail",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "Category",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "ProdukItemFrontend",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "Wishlist",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "ProductReview",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItemFrontend",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "PromoCode",
+      "to": "OrderPromotion",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "SocialAccount",
+      "to": "User",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Wishlist",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "SocialAccount",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "ProductReview",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Wishlist",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Wishlist",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Wishlist",
+      "to": "User",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Wishlist",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderDetailResource",
+      "to": "OrderDetail",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderResource",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "PaymentResource",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItemResource",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "RegisterController",
+      "to": "RegisterResponse",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukController",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Produk_idController",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrdersController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Orders_idController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Cart_itemsController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Cart_items_produkItemIdController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Cart_items_produkItemIdController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Cart_promoController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Cart_promoController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "CheckoutController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Buy-nowController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "KeranjangController",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "WishlistController",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Payment_orderIdController",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "Admin_produkController",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    }
+  ]
 }

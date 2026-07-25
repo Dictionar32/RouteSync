@@ -1,0 +1,2328 @@
+{
+  "irVersion": "ir.v2",
+  "nodeCount": 51,
+  "nodes": {
+    "route:POST:/register#response": {
+      "id": "route:POST:/register#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 26,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "RegisterResponse",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "RegisterResponse",
+            "output": "model: RegisterResponse"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "f58918604dc8deb0b20a3a6b9ddd342f6e487fc56bcb473b294fd6dd8014b752",
+        "lineage": [
+          "route:POST:/register"
+        ],
+        "createdAt": "2026-07-15T12:57:42.050Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.token": {
+      "id": "route:POST:/login#response.fields.data.fields.token",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$token"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "token",
+            "output": "string ()"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Framework method lookup: createToken",
+            "input": "createToken",
+            "output": "object"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ExpressionResolver",
+            "rule": "Field lookup from resolved object type fields.plainTextToken",
+            "input": "plainTextToken",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "310f843060d29ff98efe3c2f406e15e967e78f5762cdc5d07239d3d4a9576d42",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.092Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.user.fields.id": {
+      "id": "route:POST:/login#response.fields.data.fields.user.fields.id",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->id"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.id",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "e84e12a38445025ef2c6a470c1f60a067e8eec26a3e5f705bb2fb1bdcdbc93b5",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data",
+          "route:POST:/login#response.fields.data.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.092Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.user.fields.name": {
+      "id": "route:POST:/login#response.fields.data.fields.user.fields.name",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->name"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.name",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "aca93cf15459f369cbf49708defbb54de938397da53ae1a8588af047ad8961ee",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data",
+          "route:POST:/login#response.fields.data.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.093Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.user.fields.email": {
+      "id": "route:POST:/login#response.fields.data.fields.user.fields.email",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->email"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.email",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "83cc97d1f7f0da7d34bb3988b9deb0a2560a39691eb0d5ae3862050358bbae3c",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data",
+          "route:POST:/login#response.fields.data.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.093Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.user.fields.role": {
+      "id": "route:POST:/login#response.fields.data.fields.user.fields.role",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->role"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.role",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "55b44555b077acd1ba777b8efe8939df8fe19cf3496ac7758a2f40288545c930",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data",
+          "route:POST:/login#response.fields.data.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.093Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.user.fields.created_at": {
+      "id": "route:POST:/login#response.fields.data.fields.user.fields.created_at",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->created_at?->toISOString()"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Framework method lookup: toISOString",
+            "input": "toISOString",
+            "output": "string"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.created_at",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "1209c06ac27fe590cfa3b59a2d3f2d1331c490b216af4f3d5c8f2af775bef9d7",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data",
+          "route:POST:/login#response.fields.data.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.093Z"
+      }
+    },
+    "route:POST:/login#response.fields.data.fields.user.fields.updated_at": {
+      "id": "route:POST:/login#response.fields.data.fields.user.fields.updated_at",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->updated_at?->toISOString()"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Framework method lookup: toISOString",
+            "input": "toISOString",
+            "output": "string"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model User",
+            "rule": "Static method call User::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: first -> model",
+            "input": "static_method_call->first()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.updated_at",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "71190b292f6fc71551dbb534b1f50b044e2a60d501f935b30fdea5828535f91b",
+        "lineage": [
+          "route:POST:/login",
+          "route:POST:/login#response.fields.data",
+          "route:POST:/login#response.fields.data.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.093Z"
+      }
+    },
+    "route:GET:/oauth/{provider}/redirect#response.fields.provider": {
+      "id": "route:GET:/oauth/{provider}/redirect#response.fields.provider",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 77,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$provider"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "provider",
+            "output": "string ()"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Global function lookup: strtolower",
+            "input": "strtolower",
+            "output": "string"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from raw assignments",
+            "input": "provider",
+            "output": "string ()"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Global function lookup: strtolower",
+            "input": "strtolower",
+            "output": "string"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Cycle detected at variable var:oauth_provider_redirect.get:provider",
+            "input": "provider",
+            "output": "unknown"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "48fae69f5147a7e7a3f5163bb0c73f40222e56ffd5d00403771f86ed956a2d5b",
+        "lineage": [
+          "route:GET:/oauth/{provider}/redirect"
+        ],
+        "createdAt": "2026-07-16T00:58:25.094Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.token": {
+      "id": "route:POST:/social/login#response.fields.token",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$token"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "token",
+            "output": "string ()"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Framework method lookup: createToken",
+            "input": "createToken",
+            "output": "object"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ExpressionResolver",
+            "rule": "Field lookup from resolved object type fields.plainTextToken",
+            "input": "plainTextToken",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "310f843060d29ff98efe3c2f406e15e967e78f5762cdc5d07239d3d4a9576d42",
+        "lineage": [
+          "route:POST:/social/login"
+        ],
+        "createdAt": "2026-07-16T00:58:25.096Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.user.fields.id": {
+      "id": "route:POST:/social/login#response.fields.user.fields.id",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->id"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.id",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "e84e12a38445025ef2c6a470c1f60a067e8eec26a3e5f705bb2fb1bdcdbc93b5",
+        "lineage": [
+          "route:POST:/social/login",
+          "route:POST:/social/login#response.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.096Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.user.fields.name": {
+      "id": "route:POST:/social/login#response.fields.user.fields.name",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->name"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.name",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "aca93cf15459f369cbf49708defbb54de938397da53ae1a8588af047ad8961ee",
+        "lineage": [
+          "route:POST:/social/login",
+          "route:POST:/social/login#response.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.096Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.user.fields.email": {
+      "id": "route:POST:/social/login#response.fields.user.fields.email",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->email"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.email",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "83cc97d1f7f0da7d34bb3988b9deb0a2560a39691eb0d5ae3862050358bbae3c",
+        "lineage": [
+          "route:POST:/social/login",
+          "route:POST:/social/login#response.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.096Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.user.fields.role": {
+      "id": "route:POST:/social/login#response.fields.user.fields.role",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->role"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.role",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "55b44555b077acd1ba777b8efe8939df8fe19cf3496ac7758a2f40288545c930",
+        "lineage": [
+          "route:POST:/social/login",
+          "route:POST:/social/login#response.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.097Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.user.fields.created_at": {
+      "id": "route:POST:/social/login#response.fields.user.fields.created_at",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->created_at?->toISOString()"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Framework method lookup: toISOString",
+            "input": "toISOString",
+            "output": "string"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.created_at",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "1209c06ac27fe590cfa3b59a2d3f2d1331c490b216af4f3d5c8f2af775bef9d7",
+        "lineage": [
+          "route:POST:/social/login",
+          "route:POST:/social/login#response.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.097Z"
+      }
+    },
+    "route:POST:/social/login#response.fields.user.fields.updated_at": {
+      "id": "route:POST:/social/login#response.fields.user.fields.updated_at",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+        "line": 155,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->updated_at?->toISOString()"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Framework method lookup: toISOString",
+            "input": "toISOString",
+            "output": "string"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "create",
+            "output": "model User",
+            "rule": "Static method call User::create"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.updated_at",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "71190b292f6fc71551dbb534b1f50b044e2a60d501f935b30fdea5828535f91b",
+        "lineage": [
+          "route:POST:/social/login",
+          "route:POST:/social/login#response.fields.user"
+        ],
+        "createdAt": "2026-07-16T00:58:25.097Z"
+      }
+    },
+    "route:GET:/categories#response.fields.data": {
+      "id": "route:GET:/categories#response.fields.data",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/CategoryController.php",
+        "line": 9,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$categories"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Category",
+        "collection": true,
+        "confidence": 90,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "categories",
+            "output": "model (Category)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "orderBy",
+            "output": "model Category",
+            "rule": "Static method call Category::orderBy"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: get -> model",
+            "input": "static_method_call->get()",
+            "output": "model"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "127d20b7592658930238c3b2c8fb4e8b77231778708d0b1b8135d7ed215d9363",
+        "lineage": [
+          "route:GET:/categories"
+        ],
+        "createdAt": "2026-07-16T00:58:25.098Z"
+      }
+    },
+    "route:GET:/produk#response": {
+      "id": "route:GET:/produk#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProdukController.php",
+        "line": 20,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "ProdukItem",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "ProdukItem",
+            "output": "model: ProdukItem"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "4933cd10c1632110fda5f4ccb7ac3679bf0a2f456ce29a4da41fcb50517c036f",
+        "lineage": [
+          "route:GET:/produk"
+        ],
+        "createdAt": "2026-07-16T00:58:25.099Z"
+      }
+    },
+    "route:GET:/produk/{id}#response": {
+      "id": "route:GET:/produk/{id}#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProdukController.php",
+        "line": 68,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "ProdukItem",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "ProdukItem",
+            "output": "model: ProdukItem"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "4933cd10c1632110fda5f4ccb7ac3679bf0a2f456ce29a4da41fcb50517c036f",
+        "lineage": [
+          "route:GET:/produk/{id}"
+        ],
+        "createdAt": "2026-07-16T03:50:07.219Z"
+      }
+    },
+    "route:GET:/produk/{id}/reviews#response.fields.summary.fields.avg_rating": {
+      "id": "route:GET:/produk/{id}/reviews#response.fields.summary.fields.avg_rating",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 13,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "(float) ($summary->avg_rating ?? 0)"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Type cast to float",
+            "input": "float",
+            "output": "number"
+          },
+          {
+            "source": "ExpressionResolver",
+            "rule": "Binary operation: ??",
+            "input": "unknown ?? number"
+          },
+          {
+            "source": "ExpressionResolver",
+            "rule": "Cannot resolve target of property access: variable"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from raw assignments",
+            "input": "summary",
+            "output": "unknown ()"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Method return fallback",
+            "input": "method_call->first()",
+            "output": "unknown"
+          },
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Literal type mapping",
+            "input": "0",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "86d5801b784077a4b721de37f95b76b362a4ccd2c82758e1ae051fcadbf11f36",
+        "lineage": [
+          "route:GET:/produk/{id}/reviews",
+          "route:GET:/produk/{id}/reviews#response.fields.summary"
+        ],
+        "createdAt": "2026-07-16T00:58:25.100Z"
+      }
+    },
+    "route:GET:/produk/{id}/reviews#response.fields.summary.fields.total_review": {
+      "id": "route:GET:/produk/{id}/reviews#response.fields.summary.fields.total_review",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 13,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "(int) ($summary->total_review ?? 0)"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Type cast to int",
+            "input": "int",
+            "output": "number"
+          },
+          {
+            "source": "ExpressionResolver",
+            "rule": "Binary operation: ??",
+            "input": "unknown ?? number"
+          },
+          {
+            "source": "ExpressionResolver",
+            "rule": "Cannot resolve target of property access: variable"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from raw assignments",
+            "input": "summary",
+            "output": "unknown ()"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Method return fallback",
+            "input": "method_call->first()",
+            "output": "unknown"
+          },
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Literal type mapping",
+            "input": "0",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "7fbd532008f1427a68ce661c9a5e6c8b68f5de04d660a11b527edaa88513732e",
+        "lineage": [
+          "route:GET:/produk/{id}/reviews",
+          "route:GET:/produk/{id}/reviews#response.fields.summary"
+        ],
+        "createdAt": "2026-07-16T00:58:25.100Z"
+      }
+    },
+    "route:GET:/produk/{id}/reviews#response.fields.reviews": {
+      "id": "route:GET:/produk/{id}/reviews#response.fields.reviews",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 13,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$reviews"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "ProductReview",
+        "collection": true,
+        "paginated": true,
+        "confidence": 90,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "reviews",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "where",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::where"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: with -> builder",
+            "input": "static_method_call->with()",
+            "output": "builder"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: latest -> builder",
+            "input": "method_call->latest()",
+            "output": "builder"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Eloquent method registry: paginate -> model",
+            "input": "method_call->paginate()",
+            "output": "model"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "10c8c34318796ca1ed20efa1cf66adaffa960d1c3f9c84463feff5c9268c550e",
+        "lineage": [
+          "route:GET:/produk/{id}/reviews"
+        ],
+        "createdAt": "2026-07-16T00:58:25.100Z"
+      }
+    },
+    "route:GET:/profile#response.fields.id": {
+      "id": "route:GET:/profile#response.fields.id",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 10,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->id"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.id",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "e84e12a38445025ef2c6a470c1f60a067e8eec26a3e5f705bb2fb1bdcdbc93b5",
+        "lineage": [
+          "route:GET:/profile"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:GET:/profile#response.fields.name": {
+      "id": "route:GET:/profile#response.fields.name",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 10,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->name"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.name",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "aca93cf15459f369cbf49708defbb54de938397da53ae1a8588af047ad8961ee",
+        "lineage": [
+          "route:GET:/profile"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:GET:/profile#response.fields.email": {
+      "id": "route:GET:/profile#response.fields.email",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 10,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->email"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.email",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "83cc97d1f7f0da7d34bb3988b9deb0a2560a39691eb0d5ae3862050358bbae3c",
+        "lineage": [
+          "route:GET:/profile"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:PUT:/profile#response.fields.data.fields.id": {
+      "id": "route:PUT:/profile#response.fields.data.fields.id",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 21,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->id"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.id",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "e84e12a38445025ef2c6a470c1f60a067e8eec26a3e5f705bb2fb1bdcdbc93b5",
+        "lineage": [
+          "route:PUT:/profile",
+          "route:PUT:/profile#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:PUT:/profile#response.fields.data.fields.name": {
+      "id": "route:PUT:/profile#response.fields.data.fields.name",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 21,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->name"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.name",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "aca93cf15459f369cbf49708defbb54de938397da53ae1a8588af047ad8961ee",
+        "lineage": [
+          "route:PUT:/profile",
+          "route:PUT:/profile#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:PUT:/profile#response.fields.data.fields.email": {
+      "id": "route:PUT:/profile#response.fields.data.fields.email",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 21,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->email"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.email",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "83cc97d1f7f0da7d34bb3988b9deb0a2560a39691eb0d5ae3862050358bbae3c",
+        "lineage": [
+          "route:PUT:/profile",
+          "route:PUT:/profile#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:PATCH:/profile#response.fields.data.fields.id": {
+      "id": "route:PATCH:/profile#response.fields.data.fields.id",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 21,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->id"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.id",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "e84e12a38445025ef2c6a470c1f60a067e8eec26a3e5f705bb2fb1bdcdbc93b5",
+        "lineage": [
+          "route:PATCH:/profile",
+          "route:PATCH:/profile#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:PATCH:/profile#response.fields.data.fields.name": {
+      "id": "route:PATCH:/profile#response.fields.data.fields.name",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 21,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->name"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.name",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "aca93cf15459f369cbf49708defbb54de938397da53ae1a8588af047ad8961ee",
+        "lineage": [
+          "route:PATCH:/profile",
+          "route:PATCH:/profile#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:PATCH:/profile#response.fields.data.fields.email": {
+      "id": "route:PATCH:/profile#response.fields.data.fields.email",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+        "line": 21,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$user->email"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "user",
+            "output": "model (User)"
+          },
+          {
+            "source": "FrameworkRegistryResolver",
+            "rule": "Variable-keyed helper: request->user()",
+            "input": "request->user()",
+            "output": "model"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "User.email",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "83cc97d1f7f0da7d34bb3988b9deb0a2560a39691eb0d5ae3862050358bbae3c",
+        "lineage": [
+          "route:PATCH:/profile",
+          "route:PATCH:/profile#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.101Z"
+      }
+    },
+    "route:GET:/orders#response": {
+      "id": "route:GET:/orders#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 19,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:GET:/orders"
+        ],
+        "createdAt": "2026-07-16T00:58:25.102Z"
+      }
+    },
+    "route:GET:/orders/{id}#response": {
+      "id": "route:GET:/orders/{id}#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 30,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:GET:/orders/{id}"
+        ],
+        "createdAt": "2026-07-16T00:58:25.102Z"
+      }
+    },
+    "route:POST:/cart/items#response": {
+      "id": "route:POST:/cart/items#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 127,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:POST:/cart/items"
+        ],
+        "createdAt": "2026-07-16T00:58:25.102Z"
+      }
+    },
+    "route:PATCH:/cart/items/{produkItemId}#response": {
+      "id": "route:PATCH:/cart/items/{produkItemId}#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 145,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:PATCH:/cart/items/{produkItemId}"
+        ],
+        "createdAt": "2026-07-16T00:58:25.103Z"
+      }
+    },
+    "route:DELETE:/cart/items/{produkItemId}#response": {
+      "id": "route:DELETE:/cart/items/{produkItemId}#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 166,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:DELETE:/cart/items/{produkItemId}"
+        ],
+        "createdAt": "2026-07-16T00:58:25.103Z"
+      }
+    },
+    "route:POST:/cart/promo#response": {
+      "id": "route:POST:/cart/promo#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/PromoController.php",
+        "line": 16,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:POST:/cart/promo"
+        ],
+        "createdAt": "2026-07-16T00:58:25.113Z"
+      }
+    },
+    "route:DELETE:/cart/promo#response": {
+      "id": "route:DELETE:/cart/promo#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/PromoController.php",
+        "line": 85,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:DELETE:/cart/promo"
+        ],
+        "createdAt": "2026-07-16T00:58:25.113Z"
+      }
+    },
+    "route:POST:/checkout#response": {
+      "id": "route:POST:/checkout#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:POST:/checkout"
+        ],
+        "createdAt": "2026-07-16T00:58:25.113Z"
+      }
+    },
+    "route:POST:/buy-now#response": {
+      "id": "route:POST:/buy-now#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 65,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:POST:/buy-now"
+        ],
+        "createdAt": "2026-07-16T00:58:25.114Z"
+      }
+    },
+    "route:GET:/keranjang#response": {
+      "id": "route:GET:/keranjang#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+        "line": 114,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Order",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Order",
+            "output": "model: Order"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b32764dad47b7a2f39926fd00d7777c024ee671020607a9cd7b7562d36fb134a",
+        "lineage": [
+          "route:GET:/keranjang"
+        ],
+        "createdAt": "2026-07-16T00:58:25.114Z"
+      }
+    },
+    "route:GET:/wishlist#response": {
+      "id": "route:GET:/wishlist#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/WishlistController.php",
+        "line": 14,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "ProdukItem",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "ProdukItem",
+            "output": "model: ProdukItem"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "4933cd10c1632110fda5f4ccb7ac3679bf0a2f456ce29a4da41fcb50517c036f",
+        "lineage": [
+          "route:GET:/wishlist"
+        ],
+        "createdAt": "2026-07-16T00:58:25.115Z"
+      }
+    },
+    "route:DELETE:/wishlist/{produkItemId}#response.fields.message": {
+      "id": "route:DELETE:/wishlist/{produkItemId}#response.fields.message",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/WishlistController.php",
+        "line": 43,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$deleted ? 'Produk dihapus dari wishlist' : 'Produk tidak ditemukan di wishlist'"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "nullable": false,
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ExpressionResolver",
+            "rule": "Ternary expression resolution",
+            "input": "condition: unknown"
+          },
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from raw assignments",
+            "input": "deleted",
+            "output": "unknown ()"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "rule": "Method return fallback",
+            "input": "method_call->delete()",
+            "output": "unknown"
+          },
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Literal type mapping",
+            "input": "Produk dihapus dari wishlist",
+            "output": "string"
+          },
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Literal type mapping",
+            "input": "Produk tidak ditemukan di wishlist",
+            "output": "string"
+          },
+          {
+            "source": "PrimitiveResolver",
+            "rule": "Literal type mapping",
+            "input": "Produk dihapus dari wishlist",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "85cff6967339152f65e2f42ea8bb017eaa2815838bbbe8b3a7f5ba6d3744a08e",
+        "lineage": [
+          "route:DELETE:/wishlist/{produkItemId}"
+        ],
+        "createdAt": "2026-07-16T00:58:25.116Z"
+      }
+    },
+    "route:POST:/produk/{id}/reviews#response.fields.data.fields.id": {
+      "id": "route:POST:/produk/{id}/reviews#response.fields.data.fields.id",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 37,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$review->id"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "review",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "updateOrCreate",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::updateOrCreate"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "ProductReview.id",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "83a0ea454ee761c8a3b124de3139d0bbc3aa8e9b19215564e0b5bf0f83c5d5b9",
+        "lineage": [
+          "route:POST:/produk/{id}/reviews",
+          "route:POST:/produk/{id}/reviews#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.118Z"
+      }
+    },
+    "route:POST:/produk/{id}/reviews#response.fields.data.fields.rating": {
+      "id": "route:POST:/produk/{id}/reviews#response.fields.data.fields.rating",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 37,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$review->rating"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "review",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "updateOrCreate",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::updateOrCreate"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "ProductReview.rating",
+            "output": "number"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "57d4673b4ac0aa76ce9e18e0583b00ded8160351f7276f12ed2d765409c29c35",
+        "lineage": [
+          "route:POST:/produk/{id}/reviews",
+          "route:POST:/produk/{id}/reviews#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.118Z"
+      }
+    },
+    "route:POST:/produk/{id}/reviews#response.fields.data.fields.title": {
+      "id": "route:POST:/produk/{id}/reviews#response.fields.data.fields.title",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 37,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$review->title"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "nullable": true,
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "review",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "updateOrCreate",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::updateOrCreate"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "ProductReview.title",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "51c513acc3e534fd3cb83a2732aed02c669c31d1a7ed7b50e6a60092824fa3b3",
+        "lineage": [
+          "route:POST:/produk/{id}/reviews",
+          "route:POST:/produk/{id}/reviews#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.118Z"
+      }
+    },
+    "route:POST:/produk/{id}/reviews#response.fields.data.fields.comment": {
+      "id": "route:POST:/produk/{id}/reviews#response.fields.data.fields.comment",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 37,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$review->comment"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "nullable": true,
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "review",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "updateOrCreate",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::updateOrCreate"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "ProductReview.comment",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "297ff3258082cba151d0293469a686e20b7bc333d589c255ffb2ab2dd1c40ed3",
+        "lineage": [
+          "route:POST:/produk/{id}/reviews",
+          "route:POST:/produk/{id}/reviews#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.118Z"
+      }
+    },
+    "route:POST:/produk/{id}/reviews#response.fields.data.fields.is_verified_purchase": {
+      "id": "route:POST:/produk/{id}/reviews#response.fields.data.fields.is_verified_purchase",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 37,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$review->is_verified_purchase"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "boolean",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "review",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "updateOrCreate",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::updateOrCreate"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "ProductReview.is_verified_purchase",
+            "output": "boolean"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "a85d3a8d94fce7d7bef45295a1f32cc40158ce3cd3bb6ef0386b585dc39d646e",
+        "lineage": [
+          "route:POST:/produk/{id}/reviews",
+          "route:POST:/produk/{id}/reviews#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.118Z"
+      }
+    },
+    "route:POST:/produk/{id}/reviews#response.fields.data.fields.created_at": {
+      "id": "route:POST:/produk/{id}/reviews#response.fields.data.fields.created_at",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+        "line": 37,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "$review->created_at"
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "nullable": true,
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "VariableResolver",
+            "rule": "Variable lookup from resolved assignments",
+            "input": "review",
+            "output": "model (ProductReview)"
+          },
+          {
+            "source": "EloquentMethodResolver",
+            "input": "updateOrCreate",
+            "output": "model ProductReview",
+            "rule": "Static method call ProductReview::updateOrCreate"
+          },
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Column type lookup from database schema",
+            "input": "ProductReview.created_at",
+            "output": "string"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "d90cad737af2b744ff623e31ea215207e7efb4e541add60db77a70e18c76dd6d",
+        "lineage": [
+          "route:POST:/produk/{id}/reviews",
+          "route:POST:/produk/{id}/reviews#response.fields.data"
+        ],
+        "createdAt": "2026-07-16T00:58:25.118Z"
+      }
+    },
+    "route:POST:/payment/{orderId}#response": {
+      "id": "route:POST:/payment/{orderId}#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/PaymentController.php",
+        "line": 23,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "Payment",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "Payment",
+            "output": "model: Payment"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "27d0faf9d8eecfc0ab39672e54ffe7fbaf71afc0e1f423307fc4fd20162292b1",
+        "lineage": [
+          "route:POST:/payment/{orderId}"
+        ],
+        "createdAt": "2026-07-16T03:50:07.225Z"
+      }
+    },
+    "route:POST:/admin/produk#response": {
+      "id": "route:POST:/admin/produk#response",
+      "source": {
+        "file": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProdukController.php",
+        "line": 79,
+        "context": "route"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": ""
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "model",
+        "model": "ProdukItem",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ModelColumnResolver",
+            "rule": "Fallback model mapping",
+            "input": "ProdukItem",
+            "output": "model: ProdukItem"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "4933cd10c1632110fda5f4ccb7ac3679bf0a2f456ce29a4da41fcb50517c036f",
+        "lineage": [
+          "route:POST:/admin/produk"
+        ],
+        "createdAt": "2026-07-16T00:58:25.120Z"
+      }
+    }
+  }
+}

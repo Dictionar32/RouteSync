@@ -126,18 +126,34 @@ export class ReadEmitter {
      *   }
      */
     private static generateTransformedType(model: ParsedModel): string {
-        const fields: string[] = []
-
-        if (!model.fields) {
+        // NOTE (bug lama, sama persis dengan yang sudah diperbaiki di
+        // MapperEmitter.ts): ParsedModel menyimpan kolom sebagai array
+        // `columns` (hasil introspeksi migration/model asli lewat
+        // @routesync/core), BUKAN object `fields` — `model.fields` tidak
+        // pernah ada di manifest nyata manapun, jadi cabang ini selalu
+        // early-return interface kosong untuk SEMUA model tanpa kecuali.
+        //
+        // Prinsip sumber data (urutan prioritas, sama seperti
+        // ContractEmitter): (1) migration/model.columns dulu — ini
+        // authoritative untuk kolom fisik tabel; (2) kalau field TIDAK
+        // ada di columns (mis. accessor/appended attribute yang hanya
+        // muncul di Resource::toArray()), itu BUKAN tanggung jawab
+        // fungsi ini untuk menebak — itu domain ContractEmitter/resource
+        // tracer (lihat KNOWN_FIELD_TYPE_OVERRIDES). generateTransformedType
+        // di sini murni proyeksi camelCase dari kolom fisik yang sudah
+        // terverifikasi ada di migration, tidak melakukan resolusi
+        // accessor sendiri (menghindari duplicate-inference yang sudah
+        // jadi temuan utama di §6 Engine_Fix.md).
+        if (!model.columns || !model.columns.length) {
             return `export interface ${model.name}Transformed {}`
         }
 
-        for (const [dbName, fieldDef] of Object.entries(model.fields)) {
-            const field = fieldDef as ParsedField
-            const camelName = toCamelCase(dbName)
-            const tsType = mapSqlTypeToTs(field.type, field.cast)
-            const nullable = field.nullable ? ' | null' : ''
-            fields.push(`  readonly ${camelName}: ${tsType}${nullable}`)
+        const fields: string[] = []
+        for (const column of model.columns) {
+            const camelName = toCamelCase(column.name)
+            const tsType = mapSqlTypeToTs(column.type, model.casts?.[column.name])
+            const finalType = column.nullable ? wrapNullableTs(tsType) : tsType
+            fields.push(`  readonly ${camelName}: ${finalType}`)
         }
 
         return `export interface ${model.name}Transformed {
@@ -186,4 +202,3 @@ ${fields.join('\n')}
 }`
     }
 }
-

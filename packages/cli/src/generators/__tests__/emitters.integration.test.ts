@@ -164,6 +164,56 @@ describe('Phase 2 Emitters Integration Tests', () => {
             expect(content).toMatch(/import\s+{/)
             expect(content).toContain('export')
         })
+
+        // REGRESSION GUARD (Engine.Fix.md §32): sebelumnya buildResponseZodType()
+        // adalah stub yang SELALU menghasilkan `z.object({})` kosong terlepas
+        // dari isi manifest, dan test lama (cuma cek `toContain('z.object')` /
+        // `toContain('export')`) tidak pernah mendeteksi ini karena
+        // `z.object({})` tetap valid secara string-matching. Test di bawah
+        // memverifikasi ISI FIELD sebenarnya, bukan cuma pola permukaan.
+        it('TIDAK BOLEH menghasilkan schema kosong z.object({}) untuk model yang punya kolom', async () => {
+            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const content = output.lines.join('\n')
+
+            // Model 'User' di mock manifest punya 3 kolom (id, first_name, email)
+            // -> UserSchema TIDAK BOLEH kosong.
+            expect(content).not.toMatch(/export const UserSchema = z\.object\(\{\}\)/)
+            // Aturan umum: tidak ada satu pun `Schema = z.object({})` kosong
+            // di seluruh file selama manifest test punya models/resources berisi.
+            expect(content).not.toMatch(/Schema = z\.object\(\{\}\)/)
+        })
+
+        it('UserSchema harus berisi field asli dari model.columns dengan tipe Zod yang benar', async () => {
+            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const content = output.lines.join('\n')
+
+            const match = content.match(/export const UserSchema = z\.object\(\{([\s\S]*?)\}\)/)
+            expect(match).not.toBeNull()
+            const body = match![1]
+
+            // Ketiga kolom asli (bukan cuma "ada kata export") harus benar-benar
+            // muncul dengan mapping tipe SQL -> Zod yang sesuai:
+            // id: bigint -> z.number(), first_name/email: varchar -> z.string()
+            expect(body).toMatch(/\bid:\s*z\.number\(\)/)
+            expect(body).toMatch(/\bfirst_name:\s*z\.string\(\)/)
+            expect(body).toMatch(/\bemail:\s*z\.string\(\)/)
+        })
+
+        it('response schema untuk route register.post harus berisi field asli dari response.fields, bukan placeholder kosong', async () => {
+            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const content = output.lines.join('\n')
+
+            // Manifest test punya route register.post dengan response.fields:
+            // success (boolean), message (string), data.token (string) — nested.
+            // Sebelumnya (bug §32) ini akan selalu jadi z.object({}) polos.
+            const registerMatch = content.match(/RegisterResponseSchema = ([\s\S]*?)\n\n/)
+            expect(registerMatch).not.toBeNull()
+            const registerSchema = registerMatch![1]
+            expect(registerSchema).toMatch(/success:\s*z\.boolean\(\)/)
+            expect(registerSchema).toMatch(/message:\s*z\.string\(\)/)
+            // Tidak boleh cuma z.object({}) kosong
+            expect(registerSchema).not.toBe('z.object({})')
+        })
     })
 
     describe('ReadEmitter', () => {
@@ -187,6 +237,30 @@ describe('Phase 2 Emitters Integration Tests', () => {
             expect(content).not.toContain(' any')
             expect(content).not.toContain('as any')
         })
+
+        // REGRESSION GUARD (Engine.Fix.md §26.2/§31.3): generateReadMapper()
+        // sebelumnya membaca `model.fields` (properti yang tidak pernah ada
+        // di ParsedModel — bentuk aslinya `model.columns`), sehingga SELALU
+        // jatuh ke fallback blunt-cast `raw as XTransformed` untuk semua
+        // model, tanpa pernah memetakan satu field pun. Test lama tidak
+        // mendeteksi ini karena cuma cek kata 'interface'/'export' ada.
+        it('UserTransformed interface harus punya property camelCase dari model.columns, bukan interface kosong', async () => {
+            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const output = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
+            const content = output.lines.join('\n')
+
+            const match = content.match(/interface UserTransformed \{([\s\S]*?)\}/)
+            expect(match).not.toBeNull()
+            const body = match![1]
+
+            // 3 kolom asli model User (id, first_name, email) harus muncul
+            // sebagai property TypeScript, first_name di-flatten camelCase.
+            expect(body).toMatch(/\bid:\s*number/)
+            expect(body).toMatch(/\bfirstName:\s*string/)
+            expect(body).toMatch(/\bemail:\s*string/)
+            // Tidak boleh kosong / interface tanpa property
+            expect(body.trim().length).toBeGreaterThan(0)
+        })
     })
 
     describe('FieldEmitter', () => {
@@ -208,6 +282,27 @@ describe('Phase 2 Emitters Integration Tests', () => {
             expect(content).not.toContain(' any')
             expect(content).not.toContain('as any')
         })
+
+        // REGRESSION GUARD (Engine.Fix.md §31.3): FieldEmitter sebelumnya
+        // juga membaca `model.fields` (bug yang sama seperti ReadEmitter),
+        // hasilnya selalu `export const UnknownModelFields = {} as const`
+        // untuk SEMUA model — lolos test lama karena tetap punya
+        // `export const` + `as const`.
+        it('UserFields harus berisi entry per kolom asli, bukan UnknownModelFields kosong', async () => {
+            const output = await FieldEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const content = output.lines.join('\n')
+
+            expect(content).toContain('UserFields')
+            expect(content).not.toMatch(/export const UnknownModelFields = \{\} as const/)
+
+            const match = content.match(/export const UserFields = \{([\s\S]*?)\} as const/)
+            expect(match).not.toBeNull()
+            const body = match![1]
+            // Ketiga kolom asli harus muncul sebagai key di object field metadata
+            expect(body).toContain('id:')
+            expect(body).toContain('first_name:')
+            expect(body).toContain('email:')
+        })
     })
 
     describe('SchemaEmitter', () => {
@@ -219,6 +314,22 @@ describe('Phase 2 Emitters Integration Tests', () => {
 
             expect(content).toContain('export')
             expect(content).not.toContain(' any')
+        })
+
+        // REGRESSION GUARD: memverifikasi ApiSchema.RegisterCreate benar-benar
+        // berisi field dari `route.schema.rules` (name/email/password), bukan
+        // cuma memverifikasi kata 'export' ada di suatu tempat di file.
+        it('ApiSchema.RegisterCreate harus berisi field asli dari schema.rules', async () => {
+            const output = await SchemaEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const content = output.lines.join('\n')
+
+            const match = content.match(/RegisterCreate:\s*z\.object\(\{([\s\S]*?)\}\)/)
+            expect(match).not.toBeNull()
+            const body = match![1]
+
+            expect(body).toMatch(/\bname:\s*z\.string\(\)/)
+            expect(body).toMatch(/\bemail:\s*z\.string\(\)/)
+            expect(body).toMatch(/\bpassword:\s*z\.string\(\)/)
         })
     })
 
@@ -242,6 +353,27 @@ describe('Phase 2 Emitters Integration Tests', () => {
             // Only allow `as const` for readonly objects
             const asPatterns = content.match(/\s+as\s+(?!const\b)/g)
             expect(asPatterns).toBeNull()
+        })
+
+        // REGRESSION GUARD (Engine.Fix.md §31.3/§31.4): toUserRead()
+        // sebelumnya SELALU jatuh ke blunt-cast `raw as UserTransformed`
+        // (karena baca `model.fields` yang tidak pernah ada), dan field yang
+        // berhasil di-loop pun disisipi `as unknown as typeof raw.X` yang
+        // tidak perlu. Test lama cuma cek kata 'export' + tidak ada ' any'.
+        it('toUserRead harus memetakan field satu per satu (camelCase <- snake_case), bukan blunt-cast', async () => {
+            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+            const output = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
+            const content = output.lines.join('\n')
+
+            expect(content).not.toMatch(/toUserRead = \(raw: User\): UserTransformed => raw as UserTransformed/)
+
+            const match = content.match(/toUserRead = \(raw: User\): UserTransformed => \(\{([\s\S]*?)\}\)/)
+            expect(match).not.toBeNull()
+            const body = match![1]
+
+            expect(body).toMatch(/\bid:\s*raw\.id,/)
+            expect(body).toMatch(/\bfirstName:\s*raw\.first_name,/)
+            expect(body).toMatch(/\bemail:\s*raw\.email,/)
         })
     })
 
@@ -362,4 +494,3 @@ describe('Phase 2 Emitters Integration Tests', () => {
         })
     })
 })
-

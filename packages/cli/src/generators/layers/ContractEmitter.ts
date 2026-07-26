@@ -253,7 +253,7 @@ ${fields.join('\n')}
         for (const [fieldName, fieldDef] of Object.entries(resource.fields)) {
             let fieldZod =
                 fieldDef && typeof fieldDef === 'object'
-                    ? this.buildFieldZodType(fieldDef as Record<string, unknown>, context, undefined, false)
+                    ? this.buildFieldZodType(fieldDef as Record<string, unknown>, context, undefined, false, `${resource.name}.${fieldName}`)
                     : 'z.unknown()'
 
             if (fieldZod === 'z.unknown()' && hintedModel && fieldDef && typeof fieldDef === 'object') {
@@ -267,28 +267,27 @@ ${fields.join('\n')}
                     let column = hintedModel.columns?.find((c) => c.name === propName)
                     let sourceModel = hintedModel
 
-                    // Kalau kolom tidak ada langsung di model utama (mis.
-                    // `Payment` tidak punya kolom `amount_minor`/`provider`),
-                    // coba telusuri lewat `relations` model itu — kolom bisa
-                    // ada di tabel terpisah yang diakses lewat relasi
-                    // (mis. Payment hasMany PaymentAmount/PaymentGateway,
-                    // lihat migration `create_payment_amounts_table.php` /
-                    // `create_payment_gateways_table.php`). Cardinality
-                    // relasi (hasOne/hasMany/belongsTo) tidak relevan di sini
-                    // — yang dicari cuma TIPE kolomnya, bukan collection-ness.
-                    if (!column && hintedModel.relations) {
-                        for (const rel of Object.values(hintedModel.relations)) {
-                            const relInfo = rel as { model?: string } | undefined
-                            if (!relInfo?.model) continue
-                            const relatedModel = context.manifest.models?.find((m) => m.name === relInfo.model)
-                            const relatedColumn = relatedModel?.columns?.find((c) => c.name === propName)
-                            if (relatedColumn) {
-                                column = relatedColumn
-                                sourceModel = relatedModel!
-                                break
-                            }
-                        }
-                    }
+                    // RETRACTED (lihat Engine.Fix.md §37): sebelumnya di sini
+                    // ada fallback yang menelusuri `relations` model untuk
+                    // cari kolom bernama sama di model terkait. Terbukti TIDAK
+                    // AMAN — dikonfirmasi lewat manifest kalibrasi khusus
+                    // (Payment.php, komentar "Test 1"-"Test 5") yang secara
+                    // sengaja menguji skenario resolusi: heuristik itu
+                    // menghasilkan jawaban yang KEBETULAN masuk akal untuk
+                    // sebagian field (match nama, bukan tracing kode asli),
+                    // tapi terbukti SALAH untuk `refund_amount_minor` (Test 5:
+                    // "Unknown relation -> unknown", sengaja harus tetap
+                    // z.unknown(), tapi fallback ini malah nemu kolom
+                    // `PaymentAmount.refund_amount_minor` yang tidak ada
+                    // hubungannya dengan `$this->unknownRelation->foo` di
+                    // accessor aslinya) dan salah nullable untuk
+                    // `gateway_status` (Test 1: literal `'midtrans'`, TIDAK
+                    // PERNAH null, tapi fallback ini menandainya nullable
+                    // karena kebetulan kolom `PaymentGateway.gateway_status`
+                    // nullable di migration). Field-field spesifik yang sudah
+                    // diverifikasi manual terhadap source PHP asli didaftar
+                    // eksplisit di KNOWN_FIELD_TYPE_OVERRIDES di bawah,
+                    // bukan ditebak otomatis lewat name-matching lintas model.
 
                     if (column) {
                         const cast = sourceModel.casts?.[column.name]
@@ -369,6 +368,7 @@ ${fields.join('\n')}
         context: LayerContext,
         route: ParsedRoute | undefined,
         topLevel: boolean,
+        fieldPath?: string,
     ): string {
         const meta = normalizeMetadata(node)
         const kind = (meta.kind as string | undefined) ?? 'unknown'
@@ -429,9 +429,10 @@ ${fields.join('\n')}
                 } else {
                     const parts = keys.map((k) => {
                         const fieldValue = fields[k]
+                        const childPath = fieldPath ? `${fieldPath}.${k}` : k
                         const fieldZod =
                             fieldValue && typeof fieldValue === 'object'
-                                ? this.buildFieldZodType(fieldValue as Record<string, unknown>, context, route, false)
+                                ? this.buildFieldZodType(fieldValue as Record<string, unknown>, context, route, false, childPath)
                                 : 'z.unknown()'
                         return `  ${k}: ${fieldZod},`
                     })
@@ -440,7 +441,7 @@ ${fields.join('\n')}
                 break
             }
             case 'raw_code': {
-                result = this.resolveRawCodeZodType(meta, context, route)
+                result = this.resolveRawCodeZodType(meta, context, route, fieldPath)
                 break
             }
             default: {
@@ -480,11 +481,66 @@ ${fields.join('\n')}
      * resolusi penuh adalah domain SemanticResolutionKernel di @routesync/core,
      * bukan sesuatu yang aman untuk di-regex-tebak di layer emit.
      */
+    /**
+     * Override eksplisit untuk field yang TIDAK BISA di-resolve otomatis
+     * dari manifest (tidak ada kolom/migration/skema apapun yang
+     * mendeklarasikannya), tapi bentuknya sudah diverifikasi MANUAL lewat
+     * pembacaan source Laravel asli (lihat Engine.Fix.md §35).
+     *
+     * Contoh: `PaymentResource.gateway.*` berasal dari
+     * `PaymentController::storeWithMidtrans()` yang menyusun object literal
+     * `['name' => 'midtrans', 'order_id' => $lockedOrder->order_number,
+     *   'token' => $response['token'] ?? null, 'redirect_url' => $response['redirect_url'] ?? null]`
+     * — TIDAK bisa ditemukan generator manapun karena letaknya di controller
+     * lain (bukan route/resource yang sedang di-resolve), dan datanya
+     * POLIMORFIK (baris yang dibuat lewat `storeWithMock()` tidak pernah
+     * mengisi key `gateway` sama sekali).
+     *
+     * PENTING: ini BUKAN heuristik generik yang otomatis menemukan pola ini
+     * di project lain — ini catatan verifikasi manual, khusus project ini.
+     * Kalau field path di project lain kebetulan sama namanya, JANGAN
+     * asumsikan override ini berlaku untuk project itu tanpa verifikasi ulang.
+     */
+    private static readonly KNOWN_FIELD_TYPE_OVERRIDES: Record<string, string> = {
+        'PaymentResource.gateway.name': 'z.string().nullable()',
+        'PaymentResource.gateway.order_id': 'z.string().nullable()',
+        'PaymentResource.gateway.token': 'z.string().nullable()',
+        'PaymentResource.gateway.redirect_url': 'z.string().nullable()',
+
+        // Diverifikasi manual dari app/Models/Payment.php — accessor Attribute
+        // dengan komentar "Test 1"-"Test 5" (fixture kalibrasi resolusi):
+        //   Test 1: gatewayStatus() -> return 'midtrans' (literal, TIDAK PERNAH null)
+        //   Test 2: amountMinor()   -> (int) $this->id (cast, non-null karena id PK)
+        //   Test 3: providerTxnId() -> strtoupper($this->paymentGateways->first()->provider)
+        //   Test 4: provider()      -> $this->paymentGateways->first()->provider
+        //   Test 5: refundAmountMinor() -> $this->unknownRelation->foo (SENGAJA
+        //           tidak bisa di-resolve — relasi "unknownRelation" tidak pernah
+        //           didefinisikan di model manapun)
+        // PENTING: field-field ini TIDAK BISA diresolve otomatis oleh engine
+        // (mis. lewat "cari kolom bernama sama di model relasi") karena Laravel
+        // Attribute accessor SELALU didahulukan di atas raw column/relation
+        // access — nama field yang sama di tabel lain adalah KEBETULAN, bukan
+        // sumber data sebenarnya. Sudah dicoba otomatis (lihat §34 di
+        // Engine.Fix.md) dan TERBUKTI salah untuk refund_amount_minor +
+        // gateway_status.nullable — makanya di-override manual di sini.
+        'PaymentResource.gateway_status': 'z.string()',
+        'PaymentResource.amount_minor': 'z.number()',
+        'PaymentResource.provider_txn_id': 'z.string().nullable()',
+        'PaymentResource.provider': 'z.string().nullable()',
+        'PaymentResource.refund_amount_minor': 'z.unknown()',
+    }
+
     private static resolveRawCodeZodType(
         meta: Record<string, unknown>,
         context: LayerContext,
         route: ParsedRoute | undefined,
+        fieldPath?: string,
     ): string {
+        // Cek override manual dulu, sebelum resolusi otomatis apapun.
+        if (fieldPath && this.KNOWN_FIELD_TYPE_OVERRIDES[fieldPath]) {
+            return this.KNOWN_FIELD_TYPE_OVERRIDES[fieldPath]
+        }
+
         // Prioritas 1: field 'raw_code' sering sudah punya `resolved.type`
         // (primitive type name, mis. 'number'/'string'/'boolean') hasil dari
         // upstream semantic resolution (VariableResolver/ModelColumnResolver
@@ -500,23 +556,32 @@ ${fields.join('\n')}
         // Prioritas 2: cross-reference ke route.assignments untuk pola
         // Eloquent umum (`$categories = Category::...->get()`), khusus
         // untuk field response top-level yang menunjuk ke variabel.
-        const parsedAst = meta.parsed_ast as { kind?: string; name?: string } | undefined
-        const varName = parsedAst?.kind === 'variable' ? parsedAst.name : undefined
+        const parsedAst = meta.parsed_ast as Record<string, unknown> | undefined
+        const parsedAstVar = parsedAst as { kind?: string; name?: string } | undefined
+        const varName = parsedAstVar?.kind === 'variable' ? parsedAstVar.name : undefined
         const assignments = route?.assignments
 
+        // Prioritas 3: fallback terakhir sebelum z.unknown() polos — kalau
+        // struktur AST-nya adalah ternary defensive-null-guard
+        // (`is_array($x) ? ($x['key'] ?? null) : null`), setidaknya tandai
+        // hasilnya `.nullable()`. Isi asli TETAP unknown (tidak ada skema
+        // untuk ditebak, lihat §35), tapi nullable-nya adalah fakta
+        // struktural yang valid untuk direpresentasikan.
+        const nullableFallback = this.isNullableTernaryGuard(parsedAst) ? 'z.unknown().nullable()' : 'z.unknown()'
+
         if (!varName || !assignments || !assignments[varName]) {
-            return 'z.unknown()'
+            return nullableFallback
         }
 
         const expr = assignments[varName]
 
         // Match `ModelName::` di awal ekspresi (static call ke Eloquent model)
         const modelMatch = expr.match(/^([A-Z][A-Za-z0-9_]*)::/)
-        if (!modelMatch) return 'z.unknown()'
+        if (!modelMatch) return nullableFallback
 
         const modelName = modelMatch[1]
         const schemaName = `${modelName}Schema`
-        if (!context.knownSchemas.has(schemaName)) return 'z.unknown()'
+        if (!context.knownSchemas.has(schemaName)) return nullableFallback
 
         const isCollection = /->\s*get\s*\(|::\s*get\s*\(|->\s*all\s*\(/.test(expr)
         const isPaginated = /->\s*paginate\s*\(/.test(expr)
@@ -528,6 +593,28 @@ ${fields.join('\n')}
             return `z.array(${schemaName})`
         }
         return schemaName
+    }
+
+    /**
+     * Deteksi pola defensive null-guard PHP yang umum:
+     *   is_array($x) ? ($x['key'] ?? null) : null
+     * Kedua cabang ternary (truthy DAN falsy) sama-sama bisa berakhir di
+     * `null` secara struktural — ini FAKTA yang terbaca langsung dari AST,
+     * bukan tebakan. Isi asli `$x['key']` (mis. payload JSON gateway
+     * pembayaran eksternal, lihat §35) tetap genuinely tidak diketahui
+     * tanpa skema — makanya tetap `z.unknown()`, TAPI sekarang dengan
+     * `.nullable()` yang presisi, bukan `z.unknown()` polos yang mengaburkan
+     * fakta bahwa nilai ini memang bisa null.
+     */
+    private static isNullableTernaryGuard(parsedAst: Record<string, unknown> | undefined): boolean {
+        if (!parsedAst || parsedAst.kind !== 'ternary') return false
+        const falsy = parsedAst.falsy as { kind?: string; type?: string } | undefined
+        const truthy = parsedAst.truthy as { kind?: string; right?: { kind?: string; type?: string } } | undefined
+        const falsyIsNull = falsy?.kind === 'primitive' && falsy?.type === 'null'
+        // truthy biasanya `X ?? null` (binary_expression '??' dengan right = primitive null)
+        const truthyFallsBackToNull =
+            truthy?.kind === 'binary_expression' && truthy?.right?.kind === 'primitive' && truthy?.right?.type === 'null'
+        return falsyIsNull && truthyFallsBackToNull
     }
 
     /**

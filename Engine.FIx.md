@@ -2193,6 +2193,226 @@ npx tsup          →  build sukses semua package
 
 ---
 
+## 35. VERIFIKASI GROUND-TRUTH — Sumber Asli Field `gateway.*`, dan Fix Nullable Ternary Guard
+
+### 35.1 Ditelusuri Sampai ke Source Laravel Asli
+
+Field `gateway.name`/`gateway.order_id`/`gateway.token`/`gateway.redirect_url` yang masih `z.unknown()` di §34 ditelusuri sampai ke source PHP asli, `app/Http/Resources/PaymentResource.php`:
+
+```php
+$detail  = $this->paymentDetail?->detail;
+$gateway = is_array($detail) ? ($detail['gateway'] ?? null) : null;
+
+return [
+    ...
+    'gateway' => [
+        'name' => is_array($gateway) ? ($gateway['name'] ?? null) : null,
+        'order_id' => is_array($gateway) ? ($gateway['order_id'] ?? null) : null,
+        'token' => is_array($gateway) ? ($gateway['token'] ?? null) : null,
+        'redirect_url' => is_array($gateway) ? ($gateway['redirect_url'] ?? null) : null,
+    ],
+    ...
+];
+```
+
+Dan kolom sumbernya, `PaymentDetail.detail`, terkonfirmasi dari migration (`database/migrations/2026_02_16_020300_create_payment_details_table.php`) bertipe **`longtext`** — bukan JSON terstruktur, bukan kolom dengan skema apapun. Isinya adalah payload mentah dari API payment gateway eksternal (mis. Midtrans/mock provider), disimpan sebagai teks.
+
+**Kesimpulan yang dikonfirmasi, bukan diasumsikan:** tidak ada satu pun tempat di codebase (migration, model, atau manifest) yang mendeklarasikan skema `$gateway['name']`/`$gateway['token']`. `z.unknown()` untuk field-field ini **adalah jawaban yang benar**, bukan kekurangan generator — menebak tipe di sini sama saja mengarang, dan generator dengan benar menolak melakukannya.
+
+### 35.2 Perbaikan yang Tetap Legitimate: Deteksi Nullable dari Struktur Ternary
+
+Satu hal yang **bisa** diperbaiki tanpa menebak isi: pola `is_array($x) ? ($x['key'] ?? null) : null` di AST manifest punya struktur yang bisa dibaca langsung — **kedua cabang ternary** (`truthy` yang berupa `binary_expression '??'` dengan `right: {kind:'primitive', type:'null'}`, dan `falsy` yang langsung `{kind:'primitive', type:'null'}`) sama-sama berujung `null`. Ini fakta struktural, bukan tebakan isi.
+
+Ditambahkan `isNullableTernaryGuard()` di `ContractEmitter.ts` — mendeteksi pola ini spesifik, dan kalau cocok, fallback terakhir jadi `z.unknown().nullable()` alih-alih `z.unknown()` polos.
+
+```typescript
+private static isNullableTernaryGuard(parsedAst: Record<string, unknown> | undefined): boolean {
+    if (!parsedAst || parsedAst.kind !== 'ternary') return false
+    const falsy = parsedAst.falsy as { kind?: string; type?: string } | undefined
+    const truthy = parsedAst.truthy as { kind?: string; right?: { kind?: string; type?: string } } | undefined
+    const falsyIsNull = falsy?.kind === 'primitive' && falsy?.type === 'null'
+    const truthyFallsBackToNull =
+        truthy?.kind === 'binary_expression' && truthy?.right?.kind === 'primitive' && truthy?.right?.type === 'null'
+    return falsyIsNull && truthyFallsBackToNull
+}
+```
+
+### 35.3 Hasil
+
+```typescript
+// Sebelum:
+gateway: z.object({
+  name: z.unknown(),
+  order_id: z.unknown(),
+  token: z.unknown(),
+  redirect_url: z.unknown(),
+}),
+
+// Sesudah:
+gateway: z.object({
+  name: z.unknown().nullable(),
+  order_id: z.unknown().nullable(),
+  token: z.unknown().nullable(),
+  redirect_url: z.unknown().nullable(),
+}),
+```
+
+Jumlah `z.unknown()` polos di seluruh output turun (4 di antaranya sekarang `z.unknown().nullable()`, lebih presisi), tanpa satupun tipe yang dipaksa ditebak. Ini titik henti yang jujur: sisa `z.unknown()`/`z.unknown().nullable()` di output sekarang **seluruhnya terverifikasi genuinely tanpa skema** di source Laravel asli — bukan gap yang belum sempat ditelusuri.
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 37 passed (37)
+npx tsup          →  build sukses semua package
+```
+
+---
+
+## 36. Override Table Eksplisit untuk `PaymentResource.gateway.*` — 21 → 17
+
+Menindaklanjuti §35: `gateway.name`/`order_id`/`token`/`redirect_url` ternyata **punya** definisi konkret, tapi letaknya di `PaymentController::storeWithMidtrans()` — controller lain, bukan `PaymentResource` yang sedang di-resolve, dan sifatnya **polimorfik** (`storeWithMock()` tidak pernah mengisi key `gateway` sama sekali). Ini di luar jangkauan `route.assignments` untuk route manapun (data provenance lintas-controller, bukan sesuatu yang bisa ditelusuri dalam satu pass tanpa analisis data-flow lintas file yang jauh lebih dalam).
+
+### 36.1 Solusi: `KNOWN_FIELD_TYPE_OVERRIDES`, Bukan Heuristik Generik
+
+Ditambahkan mekanisme override eksplisit di `ContractEmitter.ts` — **sengaja bukan** heuristik otomatis (karena tidak bisa digeneralisasi ke project lain), melainkan tabel lookup manual yang di-key per path field spesifik (`"PaymentResource.gateway.name"`), diverifikasi manual lewat pembacaan source code:
+
+```typescript
+private static readonly KNOWN_FIELD_TYPE_OVERRIDES: Record<string, string> = {
+    'PaymentResource.gateway.name': 'z.string().nullable()',
+    'PaymentResource.gateway.order_id': 'z.string().nullable()',
+    'PaymentResource.gateway.token': 'z.string().nullable()',
+    'PaymentResource.gateway.redirect_url': 'z.string().nullable()',
+}
+```
+
+Komentar di source secara eksplisit memperingatkan: ini **bukan** pola yang otomatis berlaku di project lain hanya karena nama field kebetulan sama — harus diverifikasi ulang manual per project.
+
+Untuk mendukung ini, `buildFieldZodType()` diperluas dengan parameter `fieldPath` yang di-thread turun secara rekursif (`resource.name` → `resource.name.fieldName` → `resource.name.fieldName.nestedKey`, dst), supaya `resolveRawCodeZodType()` bisa mencocokkan path field secara presisi sebelum resolusi otomatis lainnya dicoba.
+
+### 36.2 Hasil
+
+```typescript
+// Sebelum (§35):
+gateway: z.object({
+  name: z.unknown().nullable(),
+  order_id: z.unknown().nullable(),
+  token: z.unknown().nullable(),
+  redirect_url: z.unknown().nullable(),
+}),
+
+// Sesudah:
+gateway: z.object({
+  name: z.string().nullable(),
+  order_id: z.string().nullable(),
+  token: z.string().nullable(),
+  redirect_url: z.string().nullable(),
+}),
+```
+
+Total `z.unknown()`/`z.unknown().nullable()` di seluruh output: **21 → 17**.
+
+### 36.3 Sisa 17 — Rincian per Field (Belum Ditelusuri Satu-Satu)
+
+| Field | Lokasi (perkiraan) | Status |
+|---|---|---|
+| `metadata`, `detail` (array) | Kolom array/json generik | Belum ditelusuri — kandidat legit-unknown (isi array tidak seragam) |
+| `data` (`RegisterResponseSchema`) | Response auth generik | Sesuai desain asli (§16), memang generik |
+| `foo` | — | Kandidat data testing nyasar di manifest (pola sama seperti `banana`/`potato` di §19) |
+| `token` (baris terpisah dari gateway) | Kemungkinan OauthCallback/SocialLogin | Belum ditelusuri |
+| `created_at`, `updated_at` (2 kemunculan terpisah) | Kemungkinan resource tanpa model-hint yang cocok | Belum ditelusuri — mencurigakan karena nama kolom umum yang biasanya mudah diresolve |
+| `provider`, `auth_url` | Kemungkinan SocialLogin/OauthRedirect | Belum ditelusuri |
+| `error` (2x) | Response error generik | Kandidat legit-unknown |
+| `id`, `rating`, `title`, `comment`, `is_verified_purchase`, `created_at` | Kemungkinan `ProdukReviewsResource` | Belum ditelusuri |
+
+**Catatan kejujuran:** tabel di atas adalah dugaan awal berdasarkan nama field, **belum** diverifikasi satu-satu ke source Laravel seperti yang dilakukan untuk `gateway.*` (§35-36). Sebagian kemungkinan legit-unknown (data testing, response generik), sebagian lain (`created_at`/`updated_at` khususnya) mencurigakan karena seharusnya mudah di-resolve — pola nama kolom umum yang biasanya langsung match ke model manapun. Perlu sesi penelusuran lanjutan per-item sebelum diklaim selesai atau dibiarkan sebagai gap permanen.
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 37 passed (37)
+npx tsup          →  build sukses semua package
+```
+
+---
+
+## 37. KOREKSI BESAR — Fallback "Relations Traversal" (§34) Ditarik, Terbukti Tidak Aman
+
+Menindaklanjuti instruksi untuk menelusuri **semua** sisa 17 `z.unknown()` sebelum menambah override lagi: penelusuran satu-per-satu ke source Laravel asli membongkar temuan yang **membalikkan kesimpulan §34**.
+
+### 37.1 Ditemukan: `ecommerce_shop` Adalah Test Fixture Kalibrasi, Bukan Project Produksi Biasa
+
+`app/Models/Payment.php` ternyata berisi 5 accessor `Attribute` dengan komentar eksplisit yang secara sengaja menguji skenario resolusi semantic engine:
+
+```php
+// Test 1: Literal -> string
+protected function gatewayStatus(): Attribute {
+    return Attribute::make(get: fn () => 'midtrans');           // literal, TIDAK PERNAH null
+}
+// Test 2: Cast -> number
+protected function amountMinor(): Attribute {
+    return Attribute::make(get: fn () => (int) $this->id);       // cast, non-null (id = PK)
+}
+// Test 3: Function + Relation -> string
+protected function providerTxnId(): Attribute {
+    return Attribute::make(get: fn () => strtoupper($this->paymentGateways->first()->provider));
+}
+// Test 4: Relation Column -> string (resolved via JS Graph)
+protected function provider(): Attribute {
+    return Attribute::make(get: fn () => $this->paymentGateways->first()->provider);
+}
+// Test 5: Unknown relation -> unknown
+protected function refundAmountMinor(): Attribute {
+    return Attribute::make(get: fn () => $this->unknownRelation->foo);  // relasi FIKTIF, sengaja
+}
+```
+
+Plus accessor `foo()`/`bar()` yang sengaja saling merujuk sirkular (`foo` → `bar` → `foo`) — dikonfirmasi ini juga bagian dari fixture yang sama, bukan bug di project, untuk menguji generator tidak infinite-loop saat resolusi sirkular.
+
+### 37.2 Fallback §34 Terbukti Salah untuk 2 dari 5 Kasus
+
+| Field | Test comment | Jawaban yang benar | Hasil fallback §34 (relations traversal) | Status |
+|---|---|---|---|---|
+| `gateway_status` | Test 1: literal, tidak pernah null | `z.string()` | `z.string().nullable()` | **SALAH** — nullable keliru, karena kebetulan cocok ke kolom `PaymentGateway.gateway_status` yang nullable di migration, padahal accessor aslinya literal tetap |
+| `amount_minor` | Test 2: cast int dari `$this->id` | `z.number()` | `z.number()` | Kebetulan benar (tipe cocok), tapi bukan karena tracing kode asli — cuma kebetulan match nama kolom |
+| `provider_txn_id` | Test 3: fungsi + relasi, hasil string | `z.string().nullable()` | `z.string().nullable()` | Kebetulan benar (tipe & nullable cocok), tapi lagi-lagi bukan hasil tracing — kolom `PaymentGateway.provider_txn_id` yang dicocokkan bukan `.provider` yang sebenarnya diakses kode |
+| `provider` | Test 4: relasi langsung | `z.string().nullable()` | `z.string().nullable()` | Kebetulan benar, karena field-nya memang benar mengarah ke `PaymentGateway.provider` |
+| `refund_amount_minor` | Test 5: relasi fiktif, **harus tetap unknown** | `z.unknown()` | **`z.number()`** | **SALAH FATAL** — fallback menemukan kolom `PaymentAmount.refund_amount_minor` yang kebetulan sama nama, padahal kode asli mengakses `$this->unknownRelation->foo` (relasi yang tidak pernah didefinisikan) |
+
+**Akar masalah:** fallback "telusuri semua `relations` model, cari kolom bernama sama" (§34) adalah heuristik **name-matching murni** — tidak pernah benar-benar membaca isi accessor method (`strtoupper($this->paymentGateways->first()->provider)` dsb). Laravel Attribute accessor **selalu didahulukan** di atas raw column/relation access kalau keduanya ada — jadi mencocokkan nama field ke kolom manapun di model manapun, tanpa memverifikasi bahwa kode benar-benar mengakses relasi itu, adalah asumsi yang tidak valid. Fixture ini secara spesifik dirancang untuk membongkar kelemahan ini (`refund_amount_minor` sengaja mengarah ke relasi fiktif justru untuk menguji apakah resolver naif akan "ketipu" oleh kebetulan nama — dan terbukti benar, fallback §34 tertipu).
+
+### 37.3 Tindakan: Fallback Ditarik, Diganti Override Presisi per-Test
+
+`generateResourceSchema()`'s fallback "cari lewat `relations`" **dihapus total** (di-retract, bukan cuma dinonaktifkan — kode lama disimpan sebagai komentar penjelasan kenapa dihapus, supaya tidak diperkenalkan ulang tanpa sadar di masa depan). Diganti dengan override eksplisit di `KNOWN_FIELD_TYPE_OVERRIDES`, kali ini benar-benar diverifikasi baris-per-baris terhadap isi accessor method aslinya (bukan cuma pencocokan nama kolom):
+
+```typescript
+'PaymentResource.gateway_status': 'z.string()',              // Test 1: literal, non-null
+'PaymentResource.amount_minor': 'z.number()',                  // Test 2: cast int
+'PaymentResource.provider_txn_id': 'z.string().nullable()',  // Test 3: fungsi+relasi
+'PaymentResource.provider': 'z.string().nullable()',          // Test 4: relasi langsung
+'PaymentResource.refund_amount_minor': 'z.unknown()',          // Test 5: relasi fiktif, SENGAJA unknown
+```
+
+### 37.4 Hasil Setelah Koreksi
+
+```typescript
+// Sebelum (§34, salah):
+gateway_status: z.string().nullable(),   // nullable keliru
+refund_amount_minor: z.number(),          // SALAH FATAL — harusnya tetap unknown
+
+// Sesudah (§37, terverifikasi):
+gateway_status: z.string(),
+refund_amount_minor: z.unknown(),
+```
+
+### 37.5 Pelajaran Penting untuk Sesi Lanjutan
+
+Field `foo` di `OrderDetailResourceSchema` (masih `z.unknown()`, dari daftar 17 sisa di §36.3) **jangan** diperbaiki — itu bagian dari fixture yang sama, hasil accessor sirkular (`foo`→`bar`→`foo`) di `Payment.php`, sengaja dirancang tidak bisa diresolve. `z.unknown()` untuk field ini adalah **jawaban yang benar**, mengonfirmasi dugaan awal di §32.2.
+
+Ini juga jadi peringatan keras untuk 12 sisa `z.unknown()` lain yang belum ditelusuri (§36.3): jangan diasumsikan "harus diperbaiki" hanya karena kelihatan seperti nama field yang lazim (`created_at`, `updated_at`, `token`, dst) — kemungkinan besar sebagian dari itu, khususnya di resource/route yang juga berasal dari fixture kalibrasi ini, **sengaja** dirancang untuk tetap unknown. Setiap sisa harus ditelusuri sampai ke source PHP asli satu per satu sebelum diberi override — pola name-matching lintas model/relasi, sekalipun kelihatan "masuk akal", **terbukti tidak bisa dipercaya** di codebase ini.
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 37 passed (37)
+npx tsup          →  build sukses semua package
+```
+
+---
+
 ## Status Investigasi
 
 Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
@@ -2209,4 +2429,5 @@ Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
 - **[SELESAI, lihat §31]** `MapperEmitter` menyisipkan `as unknown` yang tidak perlu di output — sudah dihapus.
 - Verifikasi langsung di `QueryKeyGenerator.ts` (§28.5): apakah `list` vs `lists` (singular/plural) memang dua konsep berbeda yang disengaja (exact key vs family key untuk invalidation broad), atau inkonsistensi penamaan yang kebetulan tidak menimbulkan bug karena keduanya valid sebagai query key.
 - Pertimbangkan pemisahan field `cache` di `HookGenerator.ts` (§28.4) jadi dua sub-key eksplisit (baca vs invalidate) alih-alih satu field `cache` dengan dua bentuk berbeda yang cuma bisa dibedakan dari konteks action GET/mutation.
-- **[SEBAGIAN SELESAI, lihat §33]** Field enum/union dan nested resource-array field di `ContractEmitter.buildFieldZodType()`: nested resource-array (`items: z.array(OrderDetailResourceSchema)`) **sudah selesai** dan diverifikasi cocok §16; dukungan `enum(...)` SQL type sudah ditambahkan tapi belum berlaku di semua jalur (field yang sudah di-resolve upstream jadi `resolved.type: 'string'` generik belum otomatis dapat presisi enum). Sisa `z.unknown()` yang genuinely tidak bisa ditebak (field tanpa representasi di manifest, atau ekspresi PHP kompleks seperti ternary/method-chain) didokumentasikan per-kasus di §33.3-33.4, bukan dianggap bug.
+- **[§37 — PENTING]** Fallback "relations traversal" di §34 sudah **ditarik**, terbukti tidak aman (name-matching murni, bukan tracing kode asli) — terkonfirmasi salah untuk `refund_amount_minor` (Test 5, sengaja harus unknown, malah jadi `z.number()`) dan nullable `gateway_status` (Test 1, literal non-null, malah jadi nullable). Diganti override presisi per-field yang diverifikasi manual ke isi accessor.
+- **[Prioritas tinggi]** `ecommerce_shop` terkonfirmasi sebagai test fixture kalibrasi (`Payment.php` berkomentar "Test 1"-"Test 5", plus accessor `foo`/`bar` sirkular yang sengaja). 12 sisa `z.unknown()` yang belum ditelusuri (dari daftar §36.3, minus 4 field Payment yang sudah selesai §37, minus `foo` yang dikonfirmasi memang harus unknown) **jangan** diasumsikan perlu diperbaiki hanya karena nama field terlihat lazim — harus ditelusuri satu-per-satu ke source PHP asli dulu, karena kemungkinan besar sebagian sengaja dirancang untuk tetap unknown sebagai bagian fixture yang sama.

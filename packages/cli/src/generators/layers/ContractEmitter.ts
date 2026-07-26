@@ -199,6 +199,17 @@ export class ContractEmitter {
         }
 
         for (const column of columns) {
+            // PRIORITAS (Engine.Fix.md §39): kalau `context.ir` tersedia
+            // (hasil SemanticResolver.resolve()), pakai `ir.fieldMappings`
+            // sebagai SATU-SATUNYA sumber kebenaran — jangan resolve ulang
+            // di sini. Fallback ke resolusi lokal cuma untuk kompatibilitas
+            // saat emitter dipakai standalone tanpa IR (mis. test lama).
+            const irField = context.ir?.fieldMappings.get(`${model.name}.${column.name}`)
+            if (irField) {
+                fields.push(`  ${column.name}: ${irField.zodType},`)
+                continue
+            }
+
             const cast = casts?.[column.name]
             const zodType = mapSqlTypeToZod(column.type, cast)
             const nullable = column.nullable ? `.nullable()` : ''
@@ -370,6 +381,21 @@ ${fields.join('\n')}
         topLevel: boolean,
         fieldPath?: string,
     ): string {
+        // PRIORITAS (Engine.Fix.md §39): kalau `context.ir` tersedia dan
+        // field ini punya path yang match `ir.fieldMappings` (mengcover
+        // SEMUA level nesting sekaligus — top-level resource field maupun
+        // nested seperti "PaymentResource.gateway.name" — karena
+        // SemanticResolver.resolveResourceFieldsRecursive() sudah membangun
+        // key dengan konvensi dotted-path yang sama), pakai itu langsung.
+        // Ini satu-satunya titik yang perlu tahu soal IR — sisa method ini
+        // tetap berfungsi sebagai fallback resolusi mandiri saat IR tidak
+        // ada (mis. emitter dipakai standalone di test tanpa
+        // SemanticResolver.resolve() dijalankan dulu).
+        if (fieldPath) {
+            const irField = context.ir?.fieldMappings.get(fieldPath)
+            if (irField) return irField.zodType
+        }
+
         const meta = normalizeMetadata(node)
         const kind = (meta.kind as string | undefined) ?? 'unknown'
 
@@ -644,3 +670,4 @@ ${fields.join('\n')}
         }
     }
 }
+

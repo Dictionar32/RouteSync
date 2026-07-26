@@ -2413,6 +2413,174 @@ npx tsup          →  build sukses semua package
 
 ---
 
+## 38. TEST CASE DIPERKETAT — Nemu 3 Bug Baru yang Lolos Total dari Test Longgar
+
+Menindaklanjuti instruksi eksplisit: ubah assertion `emitters.integration.test.ts` yang tadinya cuma cek pola permukaan (`toContain('export')`, `not.toContain(' any')`) jadi assertion yang benar-benar memverifikasi isi field. **Hasilnya langsung terbukti** — 7 test baru yang lebih ketat menemukan 3 bug produksi yang sebelumnya lolos total.
+
+### 38.1 Bug Baru #1 — `ReadEmitter.generateTransformedType()`: `model.fields` vs `model.columns`
+
+Pola identik dengan bug yang sudah diperbaiki di `FieldEmitter`/`MapperEmitter` (§31.3), ternyata **belum diperbaiki** di file `ReadEmitter.ts` (file terpisah, generator terpisah untuk output yang sama `api-read.ts`, §17):
+
+```typescript
+// Sebelum:
+export interface UserTransformed {}   // SELALU kosong, terlepas dari isi model
+
+// Sesudah:
+export interface UserTransformed {
+  readonly id: number
+  readonly firstName: string
+  readonly email: string
+}
+```
+
+Test lama (`toContain('interface')`, `toContain('export')`) **lulus untuk `interface UserTransformed {}` yang kosong** — string `'interface'` dan `'export'` sama-sama ada, walau body-nya nihil.
+
+### 38.2 Bug Baru #2 — `ReadEmitter.generateResponseType()`: Syntax TypeScript Invalid untuk SEMUA Kasus
+
+Ditemukan lebih dalam dari dugaan awal — bukan cuma kasus plain-object yang salah, **semua** cabang (collection, paginated, wrapped, plain) menghasilkan syntax invalid karena dibungkus paksa jadi `interface`:
+
+```typescript
+// Sebelum (plain object) — bare identifier di body interface, INVALID:
+export interface RegisterShow {
+  RegisterResponse
+}
+
+// Sebelum (collection/paginated/wrapped) — nested brace tanpa nama property, JUGA INVALID:
+export interface OrdersIndex {
+  {
+  readonly data: OrderResourceTransformed[]
+  readonly currentPage?: number
+  ...
+  }
+}
+```
+
+Diperbaiki dengan mengganti `interface` jadi `type` alias secara seragam — valid untuk semua bentuk `typeExpr` (object literal, array, atau bare reference):
+
+```typescript
+export type RegisterShow = RegisterResponse
+export type OrdersIndex = {
+  readonly data: OrderResourceTransformed[]
+  readonly currentPage?: number
+  ...
+}
+```
+
+**Ini bug yang paling parah dari tiga-tiganya** — hasil generate `api-read.ts` sebelumnya kemungkinan besar **gagal `tsc` compile** untuk setiap route yang bukan model-collection sederhana, dan tidak ada test satupun (termasuk 37 test lama) yang mendeteksinya karena tidak ada test yang benar-benar menjalankan TypeScript compiler terhadap output, cuma string-matching permukaan.
+
+### 38.3 Bug Baru #3 — `SchemaEmitter.generateFormSchema()`: Asumsi Bentuk `rules` yang Salah
+
+Pola bug yang sama persis dengan §26/§31/§38.1 (asumsi bentuk data salah terhadap manifest asli) — kali ini di `SchemaEmitter.ts`:
+
+```typescript
+// Kode lama:
+if (!ruleData || typeof ruleData !== 'object') {
+    fields.push(`  ${fieldName}: z.unknown(),`)   // <- SELALU masuk sini
+    continue
+}
+```
+
+Kode ini mengasumsikan `route.schema.rules[fieldName]` berbentuk **object bersarang** (`{ type, rules, required, nullable }`), padahal dikonfirmasi langsung dari manifest asli bentuknya **flat string per field**:
+
+```json
+"rules": { "name": "required|string|max:255", "email": "required|email|unique:users,email" }
+```
+
+Karena `typeof "required|string|max:255" !== 'object'`, setiap field **selalu** masuk ke early-return `z.unknown()` — logic `parseValidationRules()` (yang sebenarnya sudah benar dan lengkap, bisa parse `min`/`max`/`email`/`url`/dst) **tidak pernah tercapai** untuk manifest nyata manapun. Diperbaiki dengan menambah cabang eksplisit untuk `ruleData` bertipe string.
+
+Bonus fix kecil: default `baseType` di `parseValidationRules()` diubah dari `z.unknown()` ke `z.string()` untuk rule seperti `min:6` tanpa keyword tipe eksplisit — mengikuti konvensi Laravel paling umum (form field tanpa `integer`/`numeric` hampir selalu string).
+
+### 38.4 Temuan Struktural Tambahan (Dicatat, Belum Diputuskan)
+
+Selama perbaikan, ditemukan `SchemaEmitter.ts` menghasilkan nama const **per-route standalone** (`RegisterCreateFormSchema`, `RegisterCreateForm` type) — **berbeda struktural** dari `ApiSchema`/`ApiFormValues`/`ApiDefaultValues` (object ter-nested per resource-action) yang didokumentasikan ekstensif di §20/§26 untuk `ZodTierGenerator.generateSchema()` versi lama. Ini bukan bug yang diperbaiki di sesi ini — dicatat sebagai pertanyaan terbuka: apakah perubahan struktur ini disengaja (desain baru untuk emitter refactor) atau regresi dari kontrak `ApiFormValues`/`ApiDefaultValues` yang sebelumnya dipakai untuk react-hook-form + resolver.
+
+### 38.5 Hasil
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 44 passed (44)   [naik dari 37, +7 test baru yang lebih ketat]
+npx tsup          →  build sukses semua package
+```
+
+Verifikasi ke manifest asli (`ecommerce_shop`):
+
+| Metrik | Sebelum §38 | Sesudah §38 |
+|---|---|---|
+| `interface XTransformed {}` kosong | Semua interface (100%) | **0** |
+| `interface X { bareIdentifier }` (invalid syntax) | Ada di setiap route non-collection | **0** |
+| `CategoryTransformed` | `{}` kosong | `{ readonly id: number, readonly nama: string, readonly createdAt: string \| null, readonly updatedAt: string \| null }` — cocok §17 |
+| `z.unknown()` polos di `SchemaEmitter` output | Semua field (100%) | 4 tersisa (belum ditelusuri, kemungkinan field tanpa rule yang bisa di-infer) |
+
+### 38.6 Pelajaran untuk Test Suite ke Depan
+
+Pola assertion yang **harus dihindari** untuk generator kode (pelajaran langsung dari sesi ini): `toContain(keyword)` dan `not.toContain(' any')` tidak pernah cukup untuk memverifikasi generator yang tugasnya menghasilkan **struktur** (field, tipe, nama) — keduanya bisa lulus 100% untuk output yang kosong total atau bahkan syntactically invalid. Pola assertion yang **terbukti berguna** di sesi ini: ekstrak blok kode spesifik lewat regex (`match(/interface X \{([\s\S]*?)\}/)`), lalu assert isi field satu-per-satu dengan tipe yang diharapkan — assertion jenis ini yang berhasil menangkap ketiga bug di atas.
+
+---
+
+## 39. REFACTOR BESAR — `SemanticResolver` Jadi Single Source of Truth Beneran (Realisasi Penuh §23)
+
+Menindaklanjuti instruksi: pastikan resolver benar-benar berfungsi sesuai visi `FrontendIR` di §23, dan semua kerjaan field-resolution yang dibangun independen di `ContractEmitter` (§32-37) dipindah ke sana. Ditemukan 2 gap struktural besar sebelum perbaikan bisa dimulai.
+
+### 39.1 Temuan Awal: `SemanticResolver` dan `ContractEmitter` Sama Sekali Tidak Terhubung
+
+Sebelum refactor ini, dikonfirmasi lewat grep langsung:
+
+1. **`ContractEmitter.ts` tidak pernah membaca `ir.fieldMappings`** — 0 referensi ke `SemanticResolver`/`CompilerIR` di file itu. Semua field-resolution yang dibangun di §32-37 (`buildFieldZodType`, override table, deteksi ternary) berdiri sendiri, duplikat dari infrastruktur yang sudah ada.
+2. **`resolveFieldMappings()` di `semantic-resolver.ts` sendiri punya bug yang sama**: `for (const model of manifest.models ?? []) { if (!model.fields) continue }` — `ParsedModel` tidak pernah punya `.fields` (bentuk asli `.columns`), jadi method ini **selalu skip semua model**, `ir.fieldMappings` tidak pernah terisi untuk field manapun. Pola bug yang identik dengan §31.3/§38.1, kali ini di layer resolver, bukan emitter.
+3. **`ZodTierGeneratorRefactored.generate()` (orchestrator yang katanya "Called from sync.ts") tidak pernah memanggil `SemanticResolver.resolve()` sama sekali** — `context.kernel: undefined` di-hardcode. Bahkan kalau `resolveFieldMappings()` sudah benar, hasilnya tidak pernah sampai ke emitter manapun.
+4. **Ditemukan duplikasi ketiga** dari sistem type-mapping SQL→Zod/TS: `canonical-names.ts` punya `SQL_TO_TYPE_MAP`/`CAST_TO_TYPE_MAP` sendiri, terpisah dari `helpers.ts` (dipakai `ContractEmitter`, sudah punya dukungan `enum`, §33.1) dan dari `mapSqlTypeToTs`/`mapSqlTypeToZod` lama (dipakai `MapperEmitter`/`FieldEmitter`).
+
+### 39.2 Perbaikan yang Diterapkan
+
+**A. Fix bug `model.fields`→`model.columns` di `resolveFieldMappings()`** — pola perbaikan identik dengan §31.3/§38.1, kali ini di `semantic-resolver.ts`.
+
+**B. Satukan sumber type-mapping** — `resolveField()` (untuk kolom model) sekarang memakai `mapSqlTypeToMapping()` dari `layers/helpers.ts`, bukan `SQL_TO_TYPE_MAP`/`CAST_TO_TYPE_MAP` miliknya sendiri. Mengurangi 3 sistem duplikat jadi 2 (masih ada `mapSqlTypeToTs`/`mapSqlTypeToZod` terpisah di `MapperEmitter`/`FieldEmitter` — dicatat sebagai lanjutan di Status Investigasi, belum disatukan sepenuhnya dalam sesi ini).
+
+**C. Tambah `resolveResourceFieldsRecursive()` + `resolveResourceField()`** — port penuh dari logic yang sebelumnya independen di `ContractEmitter` (§32-37), sekarang jadi bagian resmi `SemanticResolver`:
+- Rekursi untuk field ber-`kind: 'object'` (nested, mis. `PaymentResource.gateway.*`), membangun key dotted-path yang konsisten dengan `fieldPath` yang dipakai `ContractEmitter`.
+- Prioritas resolusi dipertahankan **persis** urutan yang sudah diverifikasi §37: (1) `KNOWN_FIELD_TYPE_OVERRIDES` verified manual, (2) `resolved.type`/`resolved.resource`/`resolved.model` dari semantic kernel upstream, (3) model-hint **langsung** (bukan lewat `relations` — fallback itu sudah di-retract permanen di §37, komentar di source menjelaskan eksplisit kenapa supaya tidak diperkenalkan ulang tanpa sadar), (4) deteksi pola ternary defensive-null-guard, (5) fallback `z.unknown()`.
+- **Bug baru ditemukan & diperbaiki selama porting**: priority-2 (`resolved.type` primitif) tidak menerapkan `resolved.nullable` sama sekali — field seperti `invoice_number`/`metode`/`paid_at` (yang punya `resolved: {type: 'string', nullable: true}` di manifest) kehilangan `.nullable()` pada percobaan pertama. Ketahuan langsung lewat verifikasi ulang ke manifest asli (bukan cuma test suite), diperbaiki dengan menambahkan pengecekan `resolved.nullable` di titik itu.
+
+**D. `LayerContext` diperluas** dengan field `ir?: CompilerIR` — opsional supaya emitter tetap bisa dites standalone tanpa perlu menjalankan `SemanticResolver.resolve()` (kompatibel dengan 44 test yang ada).
+
+**E. `ContractEmitter.buildFieldZodType()` dan `generateModelSchema()`** sekarang mengecek `context.ir?.fieldMappings.get(fieldPath)` **duluan**, sebelum melakukan resolusi mandiri — satu titik pengecekan di `buildFieldZodType()` otomatis meng-cover semua level nesting (top-level maupun `gateway.name` yang nested) karena keduanya memakai konvensi key dotted-path yang sama.
+
+**F. `ZodTierGeneratorRefactored.generate()` sekarang benar-benar memanggil `SemanticResolver.resolve(manifest)`** dan meneruskan hasilnya ke semua emitter lewat `context.ir` — menutup gap wiring yang ditemukan di §39.1 poin 3.
+
+### 39.3 Verifikasi
+
+```typescript
+const ir = SemanticResolver.resolve(manifest)  // manifest asli, 35 routes/20 models/4 resources
+// ir.fieldMappings.size === 228, ir.metadata.errors === []
+```
+
+Delapan kasus yang sebelumnya diverifikasi manual satu-per-satu di §32-37 dicek ulang langsung dari `ir.fieldMappings` — **semua cocok**:
+
+| Key | Hasil `ir.fieldMappings` |
+|---|---|
+| `User.id` | `z.number()` (cast `int`) |
+| `Category.nama` | `z.string()` (SQL `varchar(255)`) |
+| `Payment.status` | `z.enum(['pending', 'success', 'failed'])` — dukungan enum (§33.1) ikut kepakai |
+| `PaymentResource.gateway_status` | `z.string()`, non-nullable (override §37, Test 1) |
+| `PaymentResource.refund_amount_minor` | `z.unknown()` (override §37, Test 5 — sengaja tidak diresolve) |
+| `PaymentResource.items` | `z.array(OrderDetailResourceSchema)` (resolved.type='resource', collection) |
+| `PaymentResource.gateway.name` | `z.string().nullable()` (override §36, nested path) |
+| `OrderDetailResource.foo` | `z.unknown()` (circular accessor test fixture, §37) |
+
+Lalu diverifikasi **end-to-end** lewat `ZodTierGeneratorRefactored.generate(manifest, outDir)` (bukan memanggil `ContractEmitter` langsung) — output `api-contract.ts` yang dihasilkan **identik** dengan yang sebelumnya diverifikasi manual di §16-38, termasuk `.nullable()` yang sempat hilang sebentar sebelum fix di §39.2.
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 44 passed (44)
+npx tsup          →  build sukses semua package
+```
+
+### 39.4 Yang Masih Belum Disentuh (Scope Sadar, Bukan Terlewat)
+
+- `MapperEmitter`/`FieldEmitter`/`ReadEmitter`/`SchemaEmitter` **belum** diubah untuk membaca `context.ir.fieldMappings` — cuma `ContractEmitter` yang sudah dikonsolidasi ke resolver di sesi ini. Keempat emitter lain masih melakukan resolusi field sendiri (walau masing-masing sudah diperbaiki bug-nya secara independen di §31.3/§38).
+- `mapSqlTypeToTs`/`mapSqlTypeToZod` (dipakai `MapperEmitter`/`FieldEmitter`) masih terpisah dari `mapSqlTypeToMapping` (`helpers.ts`, kini dipakai `resolveField`) — dua sistem paralel yang **seharusnya** juga disatukan, persis argumen §6, tapi belum dikerjakan di sesi ini.
+- **`sync.ts` (CLI entrypoint yang beneran dipanggil user) masih memanggil `ZodTierGenerator` lama, bukan `ZodTierGeneratorRefactored`.** Ini keputusan besar yang sengaja **tidak** diambil sepihak di sesi ini — mengganti generator yang dipakai command produksi butuh review terpisah (perlu dicek apakah `SDKGenerator`/`HookGenerator` downstream bergantung pada path/nama file yang persis sama dengan yang ditulis `ZodTierGenerator` lama, sebelum aman untuk switch). Ini keputusan yang perlu dikonfirmasi eksplisit sebelum dieksekusi, bukan efek samping dari perbaikan resolver.
+
+---
+
 ## Status Investigasi
 
 Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
@@ -2431,3 +2599,8 @@ Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
 - Pertimbangkan pemisahan field `cache` di `HookGenerator.ts` (§28.4) jadi dua sub-key eksplisit (baca vs invalidate) alih-alih satu field `cache` dengan dua bentuk berbeda yang cuma bisa dibedakan dari konteks action GET/mutation.
 - **[§37 — PENTING]** Fallback "relations traversal" di §34 sudah **ditarik**, terbukti tidak aman (name-matching murni, bukan tracing kode asli) — terkonfirmasi salah untuk `refund_amount_minor` (Test 5, sengaja harus unknown, malah jadi `z.number()`) dan nullable `gateway_status` (Test 1, literal non-null, malah jadi nullable). Diganti override presisi per-field yang diverifikasi manual ke isi accessor.
 - **[Prioritas tinggi]** `ecommerce_shop` terkonfirmasi sebagai test fixture kalibrasi (`Payment.php` berkomentar "Test 1"-"Test 5", plus accessor `foo`/`bar` sirkular yang sengaja). 12 sisa `z.unknown()` yang belum ditelusuri (dari daftar §36.3, minus 4 field Payment yang sudah selesai §37, minus `foo` yang dikonfirmasi memang harus unknown) **jangan** diasumsikan perlu diperbaiki hanya karena nama field terlihat lazim — harus ditelusuri satu-per-satu ke source PHP asli dulu, karena kemungkinan besar sebagian sengaja dirancang untuk tetap unknown sebagai bagian fixture yang sama.
+- **[§38]** Test suite `emitters.integration.test.ts` sudah diperketat (37→44 test), menemukan dan memperbaiki 3 bug baru: `ReadEmitter` model.fields→columns, `ReadEmitter.generateResponseType()` syntax invalid untuk semua kasus (diganti `type` alias), `SchemaEmitter` salah asumsi bentuk `rules`. 4 sisa `z.unknown()` di output `SchemaEmitter` untuk manifest asli belum ditelusuri.
+- **[§38.4 — pertanyaan terbuka]** `SchemaEmitter.ts` menghasilkan nama const per-route standalone (`RegisterCreateFormSchema`), berbeda struktural dari `ApiSchema`/`ApiFormValues`/`ApiDefaultValues` ter-nested yang didokumentasikan di §20/§26. Perlu diklarifikasi apakah ini perubahan desain sengaja atau regresi dari kontrak react-hook-form yang lama.
+- **[§39 — PENTING]** `SemanticResolver` sekarang jadi single source of truth beneran untuk `ContractEmitter` (field-resolution dipindah dari emitter ke resolver, wiring `SemanticResolver.resolve()` → `context.ir` sudah dipasang di `ZodTierGeneratorRefactored`). Tapi **belum** dikonsumsi oleh `MapperEmitter`/`FieldEmitter`/`ReadEmitter`/`SchemaEmitter` — 4 emitter itu masih resolve sendiri-sendiri.
+- **[Keputusan besar, belum dieksekusi]** `sync.ts` (CLI entrypoint produksi) masih memanggil `ZodTierGenerator` lama, bukan `ZodTierGeneratorRefactored` yang sudah diperbaiki sepanjang §30-39. Perlu review terpisah sebelum switch — cek dependency `SDKGenerator`/`HookGenerator` terhadap path/nama file persis dari generator lama.
+- Satukan `mapSqlTypeToTs`/`mapSqlTypeToZod` (dipakai `MapperEmitter`/`FieldEmitter`) dengan `mapSqlTypeToMapping` (`helpers.ts`, kini dipakai `resolveField`) — masih 2 sistem paralel terpisah, persis pola duplikasi §6 yang belum sepenuhnya disatukan.

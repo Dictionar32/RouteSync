@@ -126,34 +126,26 @@ export class ReadEmitter {
      *   }
      */
     private static generateTransformedType(model: ParsedModel): string {
-        // NOTE (bug lama, sama persis dengan yang sudah diperbaiki di
-        // MapperEmitter.ts): ParsedModel menyimpan kolom sebagai array
-        // `columns` (hasil introspeksi migration/model asli lewat
-        // @routesync/core), BUKAN object `fields` — `model.fields` tidak
-        // pernah ada di manifest nyata manapun, jadi cabang ini selalu
-        // early-return interface kosong untuk SEMUA model tanpa kecuali.
-        //
-        // Prinsip sumber data (urutan prioritas, sama seperti
-        // ContractEmitter): (1) migration/model.columns dulu — ini
-        // authoritative untuk kolom fisik tabel; (2) kalau field TIDAK
-        // ada di columns (mis. accessor/appended attribute yang hanya
-        // muncul di Resource::toArray()), itu BUKAN tanggung jawab
-        // fungsi ini untuk menebak — itu domain ContractEmitter/resource
-        // tracer (lihat KNOWN_FIELD_TYPE_OVERRIDES). generateTransformedType
-        // di sini murni proyeksi camelCase dari kolom fisik yang sudah
-        // terverifikasi ada di migration, tidak melakukan resolusi
-        // accessor sendiri (menghindari duplicate-inference yang sudah
-        // jadi temuan utama di §6 Engine_Fix.md).
-        if (!model.columns || !model.columns.length) {
+        const fields: string[] = []
+
+        // NOTE: ParsedModel menyimpan kolom sebagai array `columns`
+        // (packages/core/src/types/route.ts), bukan object `fields`. Bug
+        // lama: baca `model.fields` (selalu undefined) -> SEMUA interface
+        // Transformed selalu kosong `{}` — lolos test lama karena kata
+        // 'interface'/'export' tetap ada meski body-nya kosong.
+        const columns = (model as unknown as { columns?: Array<{ name: string; type: string; nullable: boolean }> }).columns
+        const casts = (model as unknown as { casts?: Record<string, string> }).casts
+
+        if (!columns || !columns.length) {
             return `export interface ${model.name}Transformed {}`
         }
 
-        const fields: string[] = []
-        for (const column of model.columns) {
+        for (const column of columns) {
+            const cast = casts?.[column.name]
             const camelName = toCamelCase(column.name)
-            const tsType = mapSqlTypeToTs(column.type, model.casts?.[column.name])
-            const finalType = column.nullable ? wrapNullableTs(tsType) : tsType
-            fields.push(`  readonly ${camelName}: ${finalType}`)
+            const tsType = mapSqlTypeToTs(column.type, cast)
+            const nullable = column.nullable ? ' | null' : ''
+            fields.push(`  readonly ${camelName}: ${tsType}${nullable}`)
         }
 
         return `export interface ${model.name}Transformed {
@@ -197,8 +189,17 @@ ${fields.join('\n')}
             typeExpr = composition.tsType
         }
 
-        return `export interface ${typeName} {
-  ${typeExpr}
-}`
+        // BUG LAMA (Engine.Fix.md §38): sebelumnya SEMUA cabang di atas
+        // (termasuk yang sudah berupa object-literal type `{...}`, mis. hasil
+        // paginated/wrapped) dibungkus lagi paksa jadi
+        // `export interface ${typeName} { ${typeExpr} }`. Untuk cabang
+        // collection/paginated/wrapped ini menghasilkan brace bersarang tanpa
+        // nama property (invalid TS). Untuk cabang plain-object ini
+        // menghasilkan `interface X { RegisterResponse }` — bare identifier
+        // di dalam body interface, juga invalid TS. `type` alias valid untuk
+        // SEMUA bentuk typeExpr (object literal, array, atau bare reference),
+        // jadi dipakai seragam di sini, bukan `interface`.
+        return `export type ${typeName} = ${typeExpr}`
     }
 }
+

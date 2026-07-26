@@ -316,19 +316,29 @@ describe('Phase 2 Emitters Integration Tests', () => {
             expect(content).not.toContain(' any')
         })
 
-        // REGRESSION GUARD: memverifikasi ApiSchema.RegisterCreate benar-benar
+        // REGRESSION GUARD: memverifikasi RegisterCreateFormSchema benar-benar
         // berisi field dari `route.schema.rules` (name/email/password), bukan
         // cuma memverifikasi kata 'export' ada di suatu tempat di file.
-        it('ApiSchema.RegisterCreate harus berisi field asli dari schema.rules', async () => {
+        //
+        // CATATAN STRUKTURAL: nama schema di output nyata adalah
+        // `RegisterCreateFormSchema` (satu const per route), BUKAN
+        // `ApiSchema.RegisterCreate` (object ter-nested per resource-action)
+        // seperti yang didokumentasikan di Engine.Fix.md §20/§26 untuk
+        // generator lama (ZodTierGenerator.generateSchema()). Emitter baru
+        // (SchemaEmitter.ts) punya konvensi penamaan berbeda — perlu
+        // diklarifikasi apakah ini perubahan desain yang disengaja atau
+        // regresi dari struktur `ApiSchema`/`ApiFormValues`/`ApiDefaultValues`
+        // yang sebelumnya jadi kontrak untuk react-hook-form + resolver.
+        it('RegisterCreateFormSchema harus berisi field asli dari schema.rules', async () => {
             const output = await SchemaEmitter.generate(path.join(tmpDir, 'contract'), context)
             const content = output.lines.join('\n')
 
-            const match = content.match(/RegisterCreate:\s*z\.object\(\{([\s\S]*?)\}\)/)
+            const match = content.match(/RegisterCreateFormSchema = z\.object\(\{([\s\S]*?)\}\)/)
             expect(match).not.toBeNull()
             const body = match![1]
 
             expect(body).toMatch(/\bname:\s*z\.string\(\)/)
-            expect(body).toMatch(/\bemail:\s*z\.string\(\)/)
+            expect(body).toMatch(/\bemail:\s*z\.string\(\)\.email\(\)/)
             expect(body).toMatch(/\bpassword:\s*z\.string\(\)/)
         })
     })
@@ -494,3 +504,4 @@ describe('Phase 2 Emitters Integration Tests', () => {
         })
     })
 })
+

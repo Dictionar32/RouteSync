@@ -98,6 +98,25 @@ export class SchemaEmitter {
         const fields: string[] = []
 
         for (const [fieldName, ruleData] of Object.entries(rules)) {
+            // BUG LAMA (Engine.Fix.md §38): kode ini sebelumnya cuma
+            // menangani `ruleData` berbentuk object bersarang
+            // ({ type/rules/required/nullable: ... }) dan langsung bail ke
+            // z.unknown() untuk apapun yang bukan object — padahal bentuk
+            // ASLI `route.schema.rules` di manifest nyata adalah flat
+            // string per field (mis. `{ name: 'required|string|max:255' }`,
+            // dikonfirmasi langsung dari routesync.manifest.json), BUKAN
+            // object bersarang. Akibatnya SEMUA field selalu z.unknown(),
+            // parseValidationRules() yang sudah benar tidak pernah tercapai.
+            if (typeof ruleData === 'string') {
+                let zodExpr = this.parseValidationRules(ruleData)
+                const isRequired = ruleData.split('|').map((r) => r.trim()).includes('required')
+                if (!isRequired) {
+                    zodExpr = `${zodExpr}.optional()`
+                }
+                fields.push(`  ${fieldName}: ${zodExpr},`)
+                continue
+            }
+
             if (!ruleData || typeof ruleData !== 'object') {
                 fields.push(`  ${fieldName}: z.unknown(),`)
                 continue
@@ -149,7 +168,15 @@ export type ${typeName} = z.infer<typeof ${schemaName}>`
     private static parseValidationRules(ruleString: string): string {
         const rules = ruleString.split('|').map(r => r.trim())
 
-        let baseType = 'z.unknown()'
+        // Default z.string() — bukan z.unknown(). Rule seperti `min:6`/`max:255`
+        // tanpa keyword tipe eksplisit (string/integer/numeric) secara teknis
+        // ambigu di Laravel (bisa berlaku untuk panjang string, nilai numerik,
+        // atau jumlah elemen array, tergantung tipe runtime value-nya) — tapi
+        // konvensi paling umum untuk form validation TANPA rule tipe eksplisit
+        // adalah field string (mis. `required|min:6` untuk password). Default
+        // z.unknown() sebelumnya membuat kasus ini SELALU jatuh ke unknown
+        // walau konteksnya jelas string di mayoritas kasus nyata.
+        let baseType = 'z.string()'
         const modifiers: string[] = []
 
         for (const rule of rules) {

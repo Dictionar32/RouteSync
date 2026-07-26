@@ -27,6 +27,7 @@ import { FieldEmitter } from './layers/FieldEmitter'
 import { ReadEmitter } from './layers/ReadEmitter'
 import { MapperEmitter } from './layers/MapperEmitter'
 import { LayerContext } from './layers/types'
+import { SemanticResolver } from './semantic-resolver'
 
 export class ZodTierGeneratorRefactored {
     /**
@@ -36,13 +37,21 @@ export class ZodTierGeneratorRefactored {
      * Orchestrates 6 emitters dalam correct order
      */
     static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
-        // Setup context yang akan di-pass ke semua emitters
+        // Engine.Fix.md §39: SemanticResolver.resolve() dijalankan SEKALI di
+        // sini, hasilnya (`ir.fieldMappings`, dst) di-pass ke semua emitter
+        // lewat `context.ir`. Sebelumnya `context.kernel`/IR selalu
+        // `undefined` di sini — artinya seluruh perbaikan field-resolution
+        // yang sudah diverifikasi di SemanticResolver (§32-39) TIDAK PERNAH
+        // benar-benar dipakai oleh emitter manapun, walau infrastrukturnya
+        // sudah ada sejak awal. Setup context yang akan di-pass ke semua emitters
+        const ir = SemanticResolver.resolve(manifest)
         const context: LayerContext = {
             manifest,
             knownModels: new Set(),
             knownResources: new Set(),
             knownSchemas: new Set(),
             kernel: undefined,
+            ir,
         }
 
         // Create subdirectories

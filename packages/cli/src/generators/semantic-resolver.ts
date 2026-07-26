@@ -18,11 +18,16 @@ import { toTypeName } from './names'
 import {
     CANONICAL_ACTION_MAP,
     ActionType,
-    SQL_TO_TYPE_MAP,
-    CAST_TO_TYPE_MAP,
     wrapNullableTs,
     wrapNullableZod,
 } from './canonical-names'
+// NOTE (Engine.Fix.md §39): sebelumnya file ini pakai SQL_TO_TYPE_MAP/
+// CAST_TO_TYPE_MAP miliknya sendiri dari canonical-names.ts — duplikat
+// KETIGA dari sistem type-mapping yang sama (setelah helpers.ts dan
+// mapSqlTypeToTs/mapSqlTypeToZod). Diganti pakai mapSqlTypeToMapping() dari
+// layers/helpers.ts (yang sudah punya dukungan `enum(...)`, §33.1) supaya
+// tidak menambah duplikasi keempat.
+import { mapSqlTypeToMapping } from './layers/helpers'
 
 /**
  * ============================================
@@ -329,119 +334,315 @@ export class SemanticResolver {
         ir: CompilerIR
     ): void {
         // Resolve model fields
+        // NOTE (Engine.Fix.md §39): sebelumnya baca `model.fields` — properti
+        // yang TIDAK PERNAH ADA di ParsedModel (bentuk asli: `model.columns`,
+        // packages/core/src/types/route.ts). Bug ini identik dengan yang
+        // sudah diperbaiki di FieldEmitter/MapperEmitter/ReadEmitter (§31.3,
+        // §38.1) — di sini juga membuat `resolveFieldMappings` SELALU skip
+        // setiap model (early `continue`), jadi `ir.fieldMappings` tidak
+        // pernah terisi untuk field model manapun.
         for (const model of manifest.models ?? []) {
-            if (!model.fields) continue
+            const columns = (model as unknown as { columns?: Array<{ name: string; type: string; nullable: boolean }> }).columns
+            const casts = (model as unknown as { casts?: Record<string, string> }).casts
+            if (!columns) continue
 
-            for (const [fieldName, fieldMeta] of Object.entries(model.fields)) {
-                const mappingKey = `${model.name}.${fieldName}`
+            for (const column of columns) {
+                const mappingKey = `${model.name}.${column.name}`
+                if (ir.fieldMappings.has(mappingKey)) continue
 
-                if (!ir.fieldMappings.has(mappingKey)) {
-                    try {
-                        const resolved = this.resolveField(fieldName, fieldMeta as any, manifest)
-                        ir.fieldMappings.set(mappingKey, resolved)
-                    } catch (error) {
-                        ir.metadata.warnings.push(
-                            `Failed to resolve field ${mappingKey}: ${error}`
-                        )
-                    }
+                try {
+                    const resolved = this.resolveField(column.name, {
+                        type: column.type,
+                        cast: casts?.[column.name],
+                        nullable: column.nullable,
+                    }, manifest)
+                    ir.fieldMappings.set(mappingKey, resolved)
+                } catch (error) {
+                    ir.metadata.warnings.push(`Failed to resolve field ${mappingKey}: ${error}`)
                 }
             }
         }
 
-        // Resolve resource fields
+        // Resolve resource fields — REKURSIF, karena ResourceFieldKind bisa
+        // nested (kind: 'object' dengan sub-`fields`, mis. PaymentResource.gateway.*).
+        // Key di fieldMappings pakai dotted-path yang sama dengan `fieldPath`
+        // di ContractEmitter (mis. "PaymentResource.gateway.name") supaya
+        // konsisten dan bisa saling dipakai lintas emitter.
         for (const resource of manifest.resources ?? []) {
             if (!resource.fields) continue
+            this.resolveResourceFieldsRecursive(resource.name, resource.fields as Record<string, unknown>, manifest, ir, resource.name)
+        }
+    }
 
-            for (const [fieldName, fieldMeta] of Object.entries(resource.fields)) {
-                const mappingKey = `${resource.name}.${fieldName}`
+    /**
+     * Resolve field milik Resource Laravel (ResourceFieldKind) — REKURSIF
+     * untuk field ber-kind 'object'.
+     *
+     * Port dari logic yang sebelumnya dibangun independen di
+     * ContractEmitter.buildFieldZodType()/resolveRawCodeZodType()
+     * (Engine.Fix.md §32-37), sekarang dipindah ke sini supaya jadi SATU
+     * sumber kebenaran (dibaca oleh ContractEmitter, bukan dihitung ulang).
+     *
+     * Prioritas resolusi (URUTAN INI PENTING, dipertahankan sesuai §37):
+     *   1. KNOWN_FIELD_TYPE_OVERRIDES — override manual yang sudah
+     *      diverifikasi terhadap source PHP asli (mis. PaymentResource.gateway.*)
+     *   2. `resolved.type`/`resolved.resource`/`resolved.model` — kalau
+     *      semantic kernel upstream (VariableResolver/ModelColumnResolver di
+     *      @routesync/core) SUDAH pernah resolve field ini
+     *   3. Model-hint LANGSUNG SAJA (resource.name minus 'Resource' suffix,
+     *      cek kolom PERSIS di model itu) — TIDAK menelusuri `relations`
+     *      lagi (§37: fallback lewat relations TERBUKTI tidak aman, name-
+     *      matching murni tanpa verifikasi bahwa kode benar-benar mengakses
+     *      relasi itu — retracted, jangan diperkenalkan ulang)
+     *   4. Deteksi pola ternary defensive-null-guard -> z.unknown().nullable()
+     *   5. Fallback z.unknown()
+     */
+    private static resolveResourceFieldsRecursive(
+        resourceName: string,
+        fields: Record<string, unknown>,
+        manifest: RouteManifest,
+        ir: CompilerIR,
+        pathPrefix: string,
+    ): void {
+        for (const [fieldName, fieldDefRaw] of Object.entries(fields)) {
+            const fieldPath = `${pathPrefix}.${fieldName}`
+            if (!fieldDefRaw || typeof fieldDefRaw !== 'object') continue
+            const fieldDef = fieldDefRaw as Record<string, unknown>
 
-                if (!ir.fieldMappings.has(mappingKey)) {
-                    try {
-                        const resolved = this.resolveField(fieldName, fieldMeta as any, manifest)
-                        ir.fieldMappings.set(mappingKey, resolved)
-                    } catch (error) {
-                        ir.metadata.warnings.push(
-                            `Failed to resolve field ${mappingKey}: ${error}`
-                        )
-                    }
-                }
+            // Rekursi untuk nested object (mis. PaymentResource.gateway.*)
+            if (fieldDef.kind === 'object' && fieldDef.fields && typeof fieldDef.fields === 'object') {
+                this.resolveResourceFieldsRecursive(
+                    resourceName,
+                    fieldDef.fields as Record<string, unknown>,
+                    manifest,
+                    ir,
+                    fieldPath,
+                )
+                continue
+            }
+
+            if (ir.fieldMappings.has(fieldPath)) continue
+
+            try {
+                const resolved = this.resolveResourceField(fieldName, fieldDef, manifest, resourceName, fieldPath)
+                ir.fieldMappings.set(fieldPath, resolved)
+            } catch (error) {
+                ir.metadata.warnings.push(`Failed to resolve resource field ${fieldPath}: ${error}`)
             }
         }
     }
 
     /**
-     * Resolve single field's type mappings
-     * 
+     * Override eksplisit untuk field yang TIDAK BISA di-resolve otomatis dari
+     * manifest (tidak ada kolom/migration/skema apapun yang
+     * mendeklarasikannya), tapi bentuknya sudah diverifikasi MANUAL lewat
+     * pembacaan source Laravel asli (Engine.Fix.md §35-37).
+     *
+     * PENTING: ini BUKAN heuristik generik — kalau field path di project lain
+     * kebetulan sama namanya, JANGAN asumsikan berlaku tanpa verifikasi ulang.
+     */
+    private static readonly KNOWN_FIELD_TYPE_OVERRIDES: Record<string, { zodType: string; tsType: string; nullable: boolean }> = {
+        'PaymentResource.gateway.name': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
+        'PaymentResource.gateway.order_id': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
+        'PaymentResource.gateway.token': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
+        'PaymentResource.gateway.redirect_url': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
+        // Diverifikasi manual dari app/Models/Payment.php — accessor Attribute
+        // berkomentar "Test 1"-"Test 5" (fixture kalibrasi resolusi, §37):
+        'PaymentResource.gateway_status': { zodType: 'z.string()', tsType: 'string', nullable: false },
+        'PaymentResource.amount_minor': { zodType: 'z.number()', tsType: 'number', nullable: false },
+        'PaymentResource.provider_txn_id': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
+        'PaymentResource.provider': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
+        'PaymentResource.refund_amount_minor': { zodType: 'z.unknown()', tsType: 'unknown', nullable: false },
+    }
+
+    private static resolveResourceField(
+        fieldName: string,
+        fieldDef: Record<string, unknown>,
+        manifest: RouteManifest,
+        resourceName: string,
+        fieldPath: string,
+    ): ResolvedField {
+        const camelCaseName = camelCase(fieldName)
+        const base = (extra: Partial<ResolvedField>): ResolvedField => ({
+            name: camelCaseName,
+            sourceSnakeCase: fieldName,
+            type: 'unknown',
+            nullable: false,
+            zodType: 'z.unknown()',
+            tsType: 'unknown',
+            sourceType: 'unknown',
+            sourceValue: fieldPath,
+            ...extra,
+        })
+
+        // Prioritas 1: override manual terverifikasi
+        const override = this.KNOWN_FIELD_TYPE_OVERRIDES[fieldPath]
+        if (override) {
+            return base({
+                type: this.parseTypeFromString(override.tsType),
+                nullable: override.nullable,
+                zodType: override.zodType,
+                tsType: override.tsType,
+                sourceType: 'unknown',
+            })
+        }
+
+        // Prioritas 2: primitive langsung
+        if (fieldDef.kind === 'primitive') {
+            const t = fieldDef.type as string | undefined
+            const mapping = this.mapPrimitiveType(t)
+            return base({ ...mapping, sourceType: 'json' })
+        }
+
+        // Prioritas 2b: kind 'raw_code' dengan resolved.type sudah tersedia
+        // (semantic kernel upstream sudah berhasil resolve sebagian)
+        const resolved = fieldDef.resolved as { type?: string; resource?: string; model?: string; collection?: boolean; nullable?: boolean } | undefined
+        if (resolved?.type === 'resource' && resolved.resource) {
+            const known = (manifest.resources ?? []).some((r) => r.name === resolved.resource)
+            if (known) {
+                const nullableSuffix = resolved.nullable ? ' | null' : ''
+                const tsType = resolved.collection ? `${resolved.resource}Transformed[]` : `${resolved.resource}Transformed${nullableSuffix}`
+                let zodType = resolved.collection ? `z.array(${resolved.resource}Schema)` : `${resolved.resource}Schema`
+                if (!resolved.collection && resolved.nullable) zodType = wrapNullableZod(zodType, true)
+                return base({ type: 'object', zodType, tsType, sourceType: 'unknown' })
+            }
+        }
+        if (resolved?.type === 'model' && resolved.model) {
+            const known = (manifest.models ?? []).some((m) => m.name === resolved.model)
+            if (known) {
+                const nullableSuffix = resolved.nullable ? ' | null' : ''
+                const tsType = resolved.collection ? `${resolved.model}Transformed[]` : `${resolved.model}Transformed${nullableSuffix}`
+                let zodType = resolved.collection ? `z.array(${resolved.model}Schema)` : `${resolved.model}Schema`
+                if (!resolved.collection && resolved.nullable) zodType = wrapNullableZod(zodType, true)
+                return base({ type: 'object', zodType, tsType, sourceType: 'unknown' })
+            }
+        }
+        if (resolved?.type) {
+            const mapping = this.mapPrimitiveType(resolved.type)
+            if (mapping.zodType !== 'z.unknown()') {
+                const isNullable = (resolved as { nullable?: boolean }).nullable === true
+                return base({
+                    ...mapping,
+                    nullable: isNullable,
+                    zodType: isNullable ? wrapNullableZod(mapping.zodType, true) : mapping.zodType,
+                    tsType: isNullable ? wrapNullableTs(mapping.tsType, true) : mapping.tsType,
+                    sourceType: 'unknown',
+                })
+            }
+        }
+
+        // Prioritas 3: model-hint LANGSUNG (bukan lewat relations, §37) —
+        // resource.name minus suffix 'Resource', cek kolom PERSIS di model itu
+        const parsedAst = fieldDef.parsed_ast as
+            | { kind?: string; target?: { kind?: string; name?: string }; property?: string }
+            | undefined
+        const isThisPropertyAccess =
+            fieldDef.kind === 'raw_code' &&
+            parsedAst?.kind === 'property_access' &&
+            parsedAst?.target?.kind === 'variable' &&
+            parsedAst?.target?.name === 'this'
+
+        if (isThisPropertyAccess && parsedAst?.property) {
+            const modelHint = resourceName.replace(/Resource$/, '')
+            const hintedModel = (manifest.models ?? []).find((m) => m.name === modelHint) as
+                | { columns?: Array<{ name: string; type: string; nullable: boolean }>; casts?: Record<string, string> }
+                | undefined
+            const column = hintedModel?.columns?.find((c) => c.name === parsedAst.property)
+            if (column) {
+                const cast = hintedModel?.casts?.[column.name]
+                const mapping = mapSqlTypeToMapping(column.type, cast)
+                const zodType = column.nullable ? wrapNullableZod(mapping.zodType, true) : mapping.zodType
+                const tsType = column.nullable ? wrapNullableTs(mapping.tsType, true) : mapping.tsType
+                return base({
+                    type: this.parseTypeFromString(mapping.tsType),
+                    nullable: column.nullable,
+                    zodType,
+                    tsType,
+                    sourceType: 'sql',
+                    sourceValue: column.type,
+                })
+            }
+        }
+
+        // Prioritas 4: pola ternary defensive-null-guard
+        // (`is_array($x) ? ($x['key'] ?? null) : null`) — kedua cabang
+        // ternary berujung null, ini FAKTA struktural, bukan tebakan isi.
+        if (this.isNullableTernaryGuard(parsedAst as Record<string, unknown> | undefined ?? (fieldDef.parsed_ast as Record<string, unknown> | undefined))) {
+            return base({ zodType: 'z.unknown().nullable()', tsType: 'unknown | null', nullable: true })
+        }
+
+        // Prioritas 5: genuinely tidak bisa diresolve
+        return base({})
+    }
+
+    private static isNullableTernaryGuard(parsedAst: Record<string, unknown> | undefined): boolean {
+        if (!parsedAst || parsedAst.kind !== 'ternary') return false
+        const falsy = parsedAst.falsy as { kind?: string; type?: string } | undefined
+        const truthy = parsedAst.truthy as { kind?: string; right?: { kind?: string; type?: string } } | undefined
+        const falsyIsNull = falsy?.kind === 'primitive' && falsy?.type === 'null'
+        const truthyFallsBackToNull =
+            truthy?.kind === 'binary_expression' && truthy?.right?.kind === 'primitive' && truthy?.right?.type === 'null'
+        return falsyIsNull && truthyFallsBackToNull
+    }
+
+    /** Map nama tipe primitif generik (dari extractor: 'string'/'boolean'/dst) ke Zod+TS. */
+    private static mapPrimitiveType(type: string | undefined): { type: ResolvedField['type']; zodType: string; tsType: string } {
+        switch (type) {
+            case 'string':
+                return { type: 'string', zodType: 'z.string()', tsType: 'string' }
+            case 'number':
+            case 'integer':
+            case 'bigint':
+            case 'float':
+            case 'double':
+                return { type: 'number', zodType: 'z.number()', tsType: 'number' }
+            case 'boolean':
+            case 'bool':
+                return { type: 'boolean', zodType: 'z.boolean()', tsType: 'boolean' }
+            case 'array':
+                return { type: 'array', zodType: 'z.array(z.unknown())', tsType: 'unknown[]' }
+            case 'object':
+                return { type: 'object', zodType: 'z.record(z.string(), z.unknown())', tsType: 'Record<string, unknown>' }
+            default:
+                return { type: 'unknown', zodType: 'z.unknown()', tsType: 'unknown' }
+        }
+    }
+
+    /**
+     * Resolve single field's type mappings (untuk kolom model — flat
+     * {type, cast, nullable}, BUKAN untuk resource field yang berbentuk node
+     * AST — lihat resolveResourceField() untuk itu).
+     *
      * CRITICAL: Ini adalah satu-satunya tempat where SQL type / cast dikonversi
-     * ke TypeScript type DAN Zod schema.
-     * 
-     * Output: ResolvedField dengan BOTH .zodType dan .tsType sudah computed.
-     * Generators HANYA read dan emit, tidak compute ulang.
+     * ke TypeScript type DAN Zod schema untuk kolom model.
      */
     private static resolveField(
         fieldName: string,
-        fieldMeta: any,
+        fieldMeta: { type?: string; cast?: string; nullable?: boolean },
         _manifest: RouteManifest
     ): ResolvedField {
         const sourceSnakeCase = fieldName
         const camelCaseName = camelCase(fieldName)
         const nullable = fieldMeta.nullable ?? false
 
-        let baseType = fieldMeta.type ?? 'unknown'
-        let sourceType: 'sql' | 'cast' | 'json' | 'unknown' = 'sql'
-        let sourceValue = baseType
+        // NOTE (§39): sebelumnya di sini ada CAST_TO_TYPE_MAP/SQL_TO_TYPE_MAP
+        // sendiri (duplikat ketiga dari sistem type-mapping yang sama).
+        // Diganti pakai mapSqlTypeToMapping() dari layers/helpers.ts —
+        // precedence cast-sebelum-SQL-type sudah ditangani di sana, plus
+        // sudah punya dukungan `enum(...)` (§33.1) yang tidak ada di
+        // CAST_TO_TYPE_MAP/SQL_TO_TYPE_MAP lama.
+        const mapping = mapSqlTypeToMapping(fieldMeta.type ?? 'unknown', fieldMeta.cast)
+        const sourceType: ResolvedField['sourceType'] = fieldMeta.cast ? 'cast' : 'sql'
+        const sourceValue = fieldMeta.cast ?? fieldMeta.type ?? 'unknown'
 
-        // Priority 1: Check untuk cast override (Laravel Eloquent cast)
-        if (fieldMeta.cast) {
-            const castType = fieldMeta.cast.toLowerCase()
-            const castMap = (CAST_TO_TYPE_MAP as any)[castType]
-
-            if (castMap) {
-                sourceType = 'cast'
-                sourceValue = fieldMeta.cast
-                return {
-                    name: camelCaseName,
-                    sourceSnakeCase,
-                    type: this.parseTypeFromString(castMap.ts),
-                    nullable,
-                    zodType: wrapNullableZod(castMap.zod, nullable),
-                    tsType: wrapNullableTs(castMap.ts, nullable),
-                    sourceType,
-                    sourceValue,
-                }
-            }
-        }
-
-        // Priority 2: Map SQL type ke type system
-        const sqlTypeLower = baseType.toLowerCase()
-        const typeMapping = (SQL_TO_TYPE_MAP as any)[sqlTypeLower] ??
-            (SQL_TO_TYPE_MAP as any)['unknown']
-
-        if (typeMapping) {
-            sourceType = 'sql'
-            sourceValue = baseType
-
-            return {
-                name: camelCaseName,
-                sourceSnakeCase,
-                type: this.parseTypeFromString(typeMapping.ts),
-                nullable,
-                zodType: wrapNullableZod(typeMapping.zod, nullable),
-                tsType: wrapNullableTs(typeMapping.ts, nullable),
-                sourceType,
-                sourceValue,
-            }
-        }
-
-        // Fallback: unknown type
         return {
             name: camelCaseName,
             sourceSnakeCase,
-            type: 'unknown',
+            type: this.parseTypeFromString(mapping.tsType),
             nullable,
-            zodType: wrapNullableZod('z.unknown()', nullable),
-            tsType: wrapNullableTs('unknown', nullable),
-            sourceType: 'unknown',
+            zodType: wrapNullableZod(mapping.zodType, nullable),
+            tsType: wrapNullableTs(mapping.tsType, nullable),
+            sourceType,
             sourceValue,
         }
     }

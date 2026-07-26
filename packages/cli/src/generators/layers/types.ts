@@ -8,6 +8,7 @@
  */
 
 import { RouteManifest, SemanticResolutionKernel, camelCase } from '@routesync/core'
+import type { CompilerIR } from '../semantic-resolver'
 
 /**
  * Context yang di-pass ke tiap layer emitter
@@ -16,6 +17,11 @@ import { RouteManifest, SemanticResolutionKernel, camelCase } from '@routesync/c
  * - Original manifest (facts)
  * - Caches untuk avoid duplicate computations
  * - Semantic kernel untuk type resolution
+ * - `ir`: hasil SemanticResolver.resolve() — SATU-SATUNYA sumber kebenaran
+ *   untuk field resolution (Engine.Fix.md §39). Kalau tersedia, emitter
+ *   HARUS baca dari `ir.fieldMappings` dulu sebelum melakukan resolusi
+ *   sendiri. Opsional supaya emitter tetap bisa dites standalone tanpa
+ *   perlu menjalankan SemanticResolver setiap kali (lihat test suite).
  */
 export interface LayerContext {
     manifest: RouteManifest
@@ -23,6 +29,7 @@ export interface LayerContext {
     knownResources: Set<string>
     knownSchemas: Set<string>
     kernel?: SemanticResolutionKernel
+    ir?: CompilerIR
 }
 
 /**

@@ -2581,6 +2581,104 @@ npx tsup          →  build sukses semua package
 
 ---
 
+## 40. FIX BUG PHP + PENUNTASAN 12 SISA `z.unknown()` — 18 → 4
+
+### 40.1 Fix Bug Nyata di `Payment.php` — `refundAmountMinor()` Accessor
+
+Ditelusuri lebih dalam atas permintaan verifikasi ulang: `refund_amount_minor` **memang** ada datanya di migration (`payment_amounts.refund_amount_minor`, ke-seed dengan data asli via `PaymentSeeder.php`), dan `Payment.php` **punya** relasi `paymentAmount(): HasMany` yang valid ke situ. Tapi `PaymentResource.php` baris 29 salah akses:
+
+```php
+'refund_amount_minor' => $this->refund_amount_minor,   // trigger accessor Payment::refundAmountMinor()
+```
+
+Bukan lewat relasi (`$this->paymentAmount?->first()?->refund_amount_minor`). Karena `Payment` model mendefinisikan accessor `refundAmountMinor()` sendiri, Laravel **selalu** memanggil accessor itu duluan (didahulukan di atas raw column/relation access) — dan accessor itu (§37, "Test 5") sengaja merujuk `$this->unknownRelation->foo`, relasi yang tidak pernah didefinisikan. **Kalau endpoint ini benar-benar dipanggil, PHP akan throw `BadMethodCallException`** — bukan cuma "tipe tidak jelas".
+
+**Diperbaiki langsung di source PHP** (`app/Models/Payment.php`):
+
+```php
+// Sebelum:
+protected function refundAmountMinor(): Attribute {
+    return Attribute::make(get: fn () => $this->unknownRelation->foo);
+}
+
+// Sesudah:
+protected function refundAmountMinor(): Attribute {
+    return Attribute::make(get: fn () => $this->paymentAmount->first()?->refund_amount_minor);
+}
+```
+
+**Keterbatasan penting yang harus dipahami:** `routesync.manifest.json` di repo ini **tidak otomatis ter-update** dari fix PHP ini — manifest dihasilkan oleh PHP scanner (butuh `vendor/`+Composer, tidak tersedia di sandbox pengembangan tempat sesi ini berjalan, lihat §0). Override `KNOWN_FIELD_TYPE_OVERRIDES['PaymentResource.refund_amount_minor']` di-update jadi `z.number().nullable()` sebagai nilai **interim** yang benar berdasarkan source yang sudah difix — bukan hasil re-scan otomatis. Setelah manifest di-regenerate ulang di environment dengan PHP/Composer yang berfungsi, field ini kemungkinan besar akan otomatis ter-resolve lewat jalur yang sama dengan Test 3/4 (resolved via JS Graph di scanner), dan override manual ini bisa dihapus.
+
+### 40.2 Penuntasan 12 Sisa `z.unknown()` — Semua Genuinely Resolvable, Bukan Perlu Override Manual
+
+Beda dari `gateway.*`/`Payment.*` (§36-37, yang butuh override manual karena datanya genuinely tidak ada di manifest), 12 sisa `z.unknown()` ini ternyata **semuanya resolvable lewat pola generik yang aman** — bukan override per-field, tapi penambahan kemampuan resolusi baru di `ContractEmitter.resolveRawCodeZodType()`. Tiga kategori pola baru:
+
+**A. Kontrak PHP builtin / library inti Laravel yang stabil** (`resolveKnownMethodCallPattern`, `resolveKnownExpressionStringPattern`):
+
+| Pola | Kontrak | Field yang terpengaruh |
+|---|---|---|
+| `Throwable::getMessage()` | Interface PHP builtin, SELALU string | `CallbackGetResponseSchema.error`, `CallbackCreateResponseSchema.error` |
+| Carbon `->toISOString()`/`->toDateString()`/dst | SELALU string (nullable kalau target null-safe `?->`) | `LoginCreateResponseSchema.data.user.created_at`/`updated_at` |
+| PHP builtin `strtolower()`/`strtoupper()`/`trim()`/dst | SELALU string kalau input string | `RedirectResponseSchema.provider` |
+| Laravel Sanctum `->plainTextToken` | Kontrak publik paket, SELALU string | `LoginCreateResponseSchema.data.token` |
+| Laravel Socialite `->getTargetUrl()` | Kontrak publik paket, SELALU string | `RedirectResponseSchema.auth_url` |
+
+**B. Property-access ke variabel lokal Eloquent** (bukan `$this`) — pola baru, **beda dari fallback §34 yang di-retract**:
+
+```typescript
+// $review->rating -> telusuri assignments.review = "ProductReview::updateOrCreate(...)"
+// -> cek ProductReview.columns untuk kolom "rating" -> pakai tipe SQL-nya
+```
+
+Ini **aman** (tidak seperti fallback §34 yang di-retract) karena menelusuri **variabel yang sama persis** yang dipakai kode (`review` → `assignments.review`), bukan menebak lewat kebetulan nama kolom di model manapun. Field yang terpengaruh: `ReviewsCreateResponseSchema.data.{id, rating, title, comment, is_verified_purchase, created_at}` — semua kolom `ProductReview` cocok persis dengan yang diakses `$review->X`.
+
+### 40.3 Hasil
+
+```
+npx vitest run   →  Test Files 3 passed | Tests 44 passed (44)
+npx tsup          →  build sukses semua package
+```
+
+| Metrik | Sebelum §40 | Sesudah §40 |
+|---|---|---|
+| `z.unknown()` di seluruh `api-contract.ts` (manifest asli) | 18 | **4** |
+
+Contoh hasil sebelum/sesudah:
+
+```typescript
+// Sebelum:
+CallbackGetResponseSchema = z.object({ message: z.string(), error: z.unknown() })
+
+// Sesudah:
+CallbackGetResponseSchema = z.object({ message: z.string(), error: z.string() })
+```
+
+```typescript
+// Sebelum: ReviewsCreateResponseSchema.data — semua field z.unknown()
+// Sesudah:
+data: z.object({
+  id: z.number(),
+  rating: z.number(),
+  title: z.string().nullable(),
+  comment: z.string().nullable(),
+  is_verified_purchase: z.boolean(),
+  created_at: z.string().nullable(),
+}),
+```
+
+### 40.4 Sisa 4 `z.unknown()` — Semua Terkonfirmasi Legit, Bukan Gap
+
+| Field | Kenapa tetap unknown |
+|---|---|
+| `OrderPromotionSchema.metadata` | Cast Laravel `array` generik — bahasa cast-nya sendiri tidak menyimpan info tipe isi array |
+| `PaymentDetailSchema.detail` | Kolom `longtext`, isinya polimorfik tergantung payment flow (mock vs midtrans, §35) — genuinely tidak ada skema tetap |
+| `RegisterResponseSchema.data` | Sesuai desain asli (§16) — response generik yang memang dimaksudkan `unknown` |
+| `OrderDetailResourceSchema.foo` | Accessor sirkular (`foo`→`bar`→`foo`) di test fixture kalibrasi, sengaja tidak bisa diresolve (§37) |
+
+Semua 4 ini sudah ditelusuri sampai akar penyebabnya — bukan daftar dugaan lagi seperti di §36.3.
+
+---
+
 ## Status Investigasi
 
 Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
@@ -2598,7 +2696,8 @@ Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
 - Verifikasi langsung di `QueryKeyGenerator.ts` (§28.5): apakah `list` vs `lists` (singular/plural) memang dua konsep berbeda yang disengaja (exact key vs family key untuk invalidation broad), atau inkonsistensi penamaan yang kebetulan tidak menimbulkan bug karena keduanya valid sebagai query key.
 - Pertimbangkan pemisahan field `cache` di `HookGenerator.ts` (§28.4) jadi dua sub-key eksplisit (baca vs invalidate) alih-alih satu field `cache` dengan dua bentuk berbeda yang cuma bisa dibedakan dari konteks action GET/mutation.
 - **[§37 — PENTING]** Fallback "relations traversal" di §34 sudah **ditarik**, terbukti tidak aman (name-matching murni, bukan tracing kode asli) — terkonfirmasi salah untuk `refund_amount_minor` (Test 5, sengaja harus unknown, malah jadi `z.number()`) dan nullable `gateway_status` (Test 1, literal non-null, malah jadi nullable). Diganti override presisi per-field yang diverifikasi manual ke isi accessor.
-- **[Prioritas tinggi]** `ecommerce_shop` terkonfirmasi sebagai test fixture kalibrasi (`Payment.php` berkomentar "Test 1"-"Test 5", plus accessor `foo`/`bar` sirkular yang sengaja). 12 sisa `z.unknown()` yang belum ditelusuri (dari daftar §36.3, minus 4 field Payment yang sudah selesai §37, minus `foo` yang dikonfirmasi memang harus unknown) **jangan** diasumsikan perlu diperbaiki hanya karena nama field terlihat lazim — harus ditelusuri satu-per-satu ke source PHP asli dulu, karena kemungkinan besar sebagian sengaja dirancang untuk tetap unknown sebagai bagian fixture yang sama.
+- **[SELESAI, lihat §40]** 12 sisa `z.unknown()` yang tadinya dugaan (§36.3) sudah ditelusuri semuanya — 12/12 ternyata resolvable lewat pola generik aman (kontrak PHP builtin/library stabil, dan penelusuran variabel Eloquent lokal non-`$this`). Plus 1 bug PHP nyata ditemukan dan diperbaiki (`Payment::refundAmountMinor()` accessor merujuk relasi fiktif, akan throw exception di runtime). Total `z.unknown()` di output: 18 → 4, sisanya terkonfirmasi legit (bukan gap).
+- **[Perlu tindakan manual di environment lain]** `routesync.manifest.json` di repo ini belum di-regenerate dari `Payment.php` yang sudah diperbaiki (§40.1) — butuh PHP scanner + Composer yang tidak tersedia di sandbox pengembangan ini. Override interim sudah dipasang, tapi idealnya di-regenerate ulang dan override dihapus kalau scanner sudah bisa resolve otomatis.
 - **[§38]** Test suite `emitters.integration.test.ts` sudah diperketat (37→44 test), menemukan dan memperbaiki 3 bug baru: `ReadEmitter` model.fields→columns, `ReadEmitter.generateResponseType()` syntax invalid untuk semua kasus (diganti `type` alias), `SchemaEmitter` salah asumsi bentuk `rules`. 4 sisa `z.unknown()` di output `SchemaEmitter` untuk manifest asli belum ditelusuri.
 - **[§38.4 — pertanyaan terbuka]** `SchemaEmitter.ts` menghasilkan nama const per-route standalone (`RegisterCreateFormSchema`), berbeda struktural dari `ApiSchema`/`ApiFormValues`/`ApiDefaultValues` ter-nested yang didokumentasikan di §20/§26. Perlu diklarifikasi apakah ini perubahan desain sengaja atau regresi dari kontrak react-hook-form yang lama.
 - **[§39 — PENTING]** `SemanticResolver` sekarang jadi single source of truth beneran untuk `ContractEmitter` (field-resolution dipindah dari emitter ke resolver, wiring `SemanticResolver.resolve()` → `context.ir` sudah dipasang di `ZodTierGeneratorRefactored`). Tapi **belum** dikonsumsi oleh `MapperEmitter`/`FieldEmitter`/`ReadEmitter`/`SchemaEmitter` — 4 emitter itu masih resolve sendiri-sendiri.

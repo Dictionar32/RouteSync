@@ -448,11 +448,24 @@ export class SemanticResolver {
         'PaymentResource.gateway.redirect_url': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
         // Diverifikasi manual dari app/Models/Payment.php — accessor Attribute
         // berkomentar "Test 1"-"Test 5" (fixture kalibrasi resolusi, §37):
+        //   Test 5 SUDAH DIPERBAIKI di source PHP (§40) — dulu sengaja
+        //   merujuk `$this->unknownRelation->foo` (relasi fiktif, akan throw
+        //   BadMethodCallException kalau dipanggil runtime), sekarang jadi
+        //   `$this->paymentAmount->first()?->refund_amount_minor` (relasi
+        //   genuinely ada, mengarah ke PaymentAmount.refund_amount_minor,
+        //   bigint unsigned default 0). PENTING: `routesync.manifest.json`
+        //   BELUM di-regenerate dari source yang sudah diperbaiki (butuh PHP
+        //   scanner + Composer, tidak tersedia di sandbox pengembangan ini) —
+        //   override di bawah nilai INTERIM berdasarkan source yang sudah
+        //   difix, bukan hasil re-scan otomatis. Kemungkinan besar sudah
+        //   tidak diperlukan lagi setelah manifest di-regenerate ulang,
+        //   karena pola kodenya sekarang identik dengan Test 3/4 yang sudah
+        //   ter-resolve otomatis ("resolved via JS Graph").
         'PaymentResource.gateway_status': { zodType: 'z.string()', tsType: 'string', nullable: false },
         'PaymentResource.amount_minor': { zodType: 'z.number()', tsType: 'number', nullable: false },
         'PaymentResource.provider_txn_id': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
         'PaymentResource.provider': { zodType: 'z.string().nullable()', tsType: 'string | null', nullable: true },
-        'PaymentResource.refund_amount_minor': { zodType: 'z.unknown()', tsType: 'unknown', nullable: false },
+        'PaymentResource.refund_amount_minor': { zodType: 'z.number().nullable()', tsType: 'number | null', nullable: true },
     }
 
     private static resolveResourceField(

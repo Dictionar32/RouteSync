@@ -7,10 +7,10 @@
  * calls these anymore.
  */
 
-import type { SemanticResolution } from './contract'
-import type { ParsedASTNode } from './semantic'
-import type { ResourceFieldKind, ResponseMetadata } from './route'
-import type { FieldNode } from './field'
+import type { SemanticResolution } from './../contract'
+import type { ParsedASTNode } from './../semantic'
+import type { ResourceFieldKind, ResponseMetadata } from './../route'
+import type { FieldNode } from './../field'
 
 /**
  * `ResourceFieldKind` (route.ts) -> `FieldNode`.

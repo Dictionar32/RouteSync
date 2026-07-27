@@ -27,16 +27,8 @@ describe('Phase 2 Emitters Integration Tests', () => {
         tmpDir = path.join('/tmp', `routesync-test-${Date.now()}`)
         await fs.ensureDir(tmpDir)
 
-        // Load real manifest dari frontend
-        let realManifest: RouteManifest
-        try {
-            const manifestPath = path.join(process.cwd(), 'routesync.manifest.json')
-            const content = await fs.readFile(manifestPath, 'utf-8')
-            realManifest = JSON.parse(content) as RouteManifest
-        } catch (e) {
-            // Fallback ke mock manifest jika file tidak ditemukan
-            realManifest = createMockManifest()
-        }
+        // Load mock manifest untuk test fixture yang konsisten
+        const realManifest = createMockManifest()
 
         context = {
             manifest: realManifest,

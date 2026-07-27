@@ -9,6 +9,7 @@ All notable changes to RouteSync will be documented in this file.
 - **`resourceAliasDedup.spec.ts` reframing** — `describe` block di-rename dari framing "route" ke "api-contract.ts = registry kontrak backend". Bug A (per-route duplication) digeneralisasi jadi regex per-suffix CRUD (`\w*IndexResponseSchema` dst) alih-alih hardcode nama resource; Bug B (`OrderResponseSchema`, naming branch `count === 1`) dipertahankan sebagai test terpisah karena beda root cause.
 
 ### Fixed
+- **`emitters.integration.test.ts` — fix test setup manifest path resolution**: Menggunakan test fixture `createMockManifest()` secara konsisten agar tidak ter-override oleh file `routesync.manifest.json` di root repo yang memiliki struktur rute dan model berbeda.
 - **`ZodTierGenerator.ts` — 17 TS compile error** (semua gap deklarasi type untuk field runtime yang sudah lama dipakai, bukan bug logic):
   - `private static graph!: ContractGraph` — TS melarang definite-assignment assertion (`!`) di static class property; diganti `ContractGraph | undefined` (field ternyata write-only).
   - `wrapped?: boolean` ditambahkan ke `ResponseMetadata` (`packages/core/src/types/route.ts`) — field sudah lama di-set `LaravelRouteParser.ts` dan dites di `jsonResourceWrap.spec.ts`, tapi belum pernah dideklarasikan.

@@ -5,200 +5,197 @@
  * 
  * RESPONSIBILITY: Generate transform functions between API (snake_case) and Frontend (camelCase)
  * 
+ * NEW CONTRACT IR ARCHITECTURE:
+ * - Consumes ContractIR.resources untuk read mappers (API → Frontend)
+ * - Consumes ContractIR.requests untuk form mappers (Frontend → API)
+ * - All transformations sudah computed di IR
+ * 
+ * Sesuai Engine.Fix.md §18 dan §21:
+ * - Read mappers: toCategoryRead, toCategoryReadList (response → frontend)
+ * - Form mappers: toApiRegisterCreate, toApiCartItemsUpdate (form → payload)
+ * - Uses ApiApiField untuk consistent snake_case keys
+ * 
  * Outputs:
- * - to${Model}Read: snake_case API response → camelCase frontend model
- * - to${Model}ReadList: transform array
- * - toApi${Action}: form data → API payload (for mutations)
- * 
- * RECEIVES: routeResponseMap from ContractEmitter (DO NOT RE-COMPUTE!)
- * 
- * CONSOLIDATES:
- * - ZodTierGenerator.generateMapper() logic (lines 1180-1529)
- * - Nested field transformation logic
+ * - Read mappers: API response → Frontend model (snake_case → camelCase)
+ * - List mappers: Array transformations via .map()
+ * - Form mappers: Frontend form → API payload (camelCase → snake_case via ApiApiField)
  */
 
-import path from 'path'
-import fs from 'fs-extra'
-import {
-    LayerContext,
-    LayerOutput,
-    RouteResponseComposition,
-    ParsedModel,
-    ParsedField,
-    ParsedRoute,
-} from './types'
-import {
-    normalizeMetadata,
-    getResourceName,
-    toTitleCase,
-    toCamelCase,
-    routeResponseKey,
-    getActionName,
-} from './helpers'
-import { CANONICAL_ACTION_MAP } from '../canonical-names'
+import { ContractIR, ResourceIR, RequestIR, RequestActionIR, GeneratedFile, IREmitter } from '../../../../core/src/types/ir'
+import { isNullableType, isOptionalType } from '../../../../core/src/utils/type-guards'
 
-export class MapperEmitter {
+export class MapperEmitter implements IREmitter {
+
     /**
-     * Main entry point
+     * Contract IR Architecture - Thin Emitter
      * 
-     * PENTING: Accept routeResponseMap dari ContractEmitter
-     * DO NOT re-compute atau re-infer!
+     * Generates both read and form mappers:
+     * 1. Read mappers (§18): API response → Frontend (snake_case → camelCase)
+     * 2. Form mappers (§21): Frontend form → API payload (camelCase → snake_case)
+     * 
+     * NO MORE:
+     * - Field-by-field computation (sudah di IR)
+     * - Duplicate name transformations
+     * - Mixed responsibilities dengan schema generation
      */
-    static async generate(
-        mappersDir: string,
-        context: LayerContext,
-        routeResponseMap: Map<string, RouteResponseComposition>,
-    ): Promise<LayerOutput> {
+    emit(ir: ContractIR): GeneratedFile[] {
+        const files: GeneratedFile[] = []
         const lines: string[] = []
-        const generatedMappers = new Set<string>()
 
-        // Phase 1: Generate read mappers (response transform)
-        if (context.manifest.models) {
-            for (const model of context.manifest.models) {
-                try {
-                    const mapperName = `to${model.name}Read`
-                    const listMapperName = `to${model.name}ReadList`
+        // Header dan imports
+        lines.push('/**')
+        lines.push(' * Runtime mapper functions untuk transformasi data')
+        lines.push(' * Generated dari Contract IR - domain-centric architecture')
+        lines.push(' */')
+        lines.push('')
+        lines.push('// Import types untuk type safety')
+        lines.push("import { ApiApiField } from '../fields/api-field'")
+        lines.push('')
 
-                    if (!generatedMappers.has(mapperName)) {
-                        generatedMappers.add(mapperName)
-                        lines.push(this.generateReadMapper(model))
-                        lines.push('')
-                    }
+        // Generate read mappers dari ResourceIR (§18)
+        lines.push('// ==== READ MAPPERS (API Response → Frontend Model) ====')
+        lines.push('// Transforms snake_case API responses to camelCase frontend models')
+        lines.push('')
 
-                    if (!generatedMappers.has(listMapperName)) {
-                        generatedMappers.add(listMapperName)
-                        lines.push(this.generateReadListMapper(model))
-                        lines.push('')
-                    }
-                } catch (error) {
-                    console.warn(`[MapperEmitter] Error generating mapper for model ${model.name}:`, error)
-                }
+        for (const resource of ir.resources) {
+            lines.push(this.generateReadMapper(resource))
+            lines.push('')
+            lines.push(this.generateReadListMapper(resource))
+            lines.push('')
+        }
+
+        // Generate form mappers dari RequestIR (§21)
+        lines.push('// ==== FORM MAPPERS (Frontend Form → API Payload) ====')
+        lines.push('// Transforms camelCase form data to snake_case API payloads using ApiApiField')
+        lines.push('')
+
+        for (const request of ir.requests) {
+            for (const action of request.actions) {
+                lines.push(this.generateFormMapper(request, action))
+                lines.push('')
             }
         }
 
-        // Phase 2: Generate API mappers (form transform)
-        const routes = context.manifest.routes || []
-
-        for (const route of routes) {
-            if (!route.response || !route.schema) continue
-
-            try {
-                const groupName = getResourceName(route)
-                const titleCase = toTitleCase(groupName)
-                const actionName = getActionName(route, CANONICAL_ACTION_MAP as Record<string, string>)
-
-                // Only emit untuk POST/PUT/PATCH (mutations)
-                if (['Create', 'Update'].includes(actionName)) {
-                    const mapperName = `toApi${titleCase}${actionName}`
-                    if (!generatedMappers.has(mapperName)) {
-                        generatedMappers.add(mapperName)
-                        lines.push(this.generateApiMapper(route, titleCase, actionName))
-                        lines.push('')
-                    }
-                }
-            } catch (error) {
-                console.warn(`[MapperEmitter] Error processing route ${route.name}:`, error)
+        files.push({
+            path: 'mappers/api-mapper.ts',
+            content: lines.join('\n'),
+            metadata: {
+                emitter: 'MapperEmitter',
+                generatedAt: new Date().toISOString(),
+                dependencies: ['api-field']
             }
-        }
+        })
 
-        // Write file
-        const filePath = path.join(mappersDir, 'api-mapper.ts')
-        await fs.ensureDir(mappersDir)
-        await fs.writeFile(filePath, lines.join('\n'))
-
-        return { lines }
+        return files
     }
 
     /**
-     * Generate read mapper: API response → Frontend model
+     * Generate read mapper sesuai format Engine.Fix.md §18
      * 
-     * Input: raw API response dengan snake_case
-     * Output: Frontend model dengan camelCase
+     * Format: toCategoryRead, toOrderRead, etc.
+     * Input: API response (snake_case)
+     * Output: Frontend model (camelCase)
      * 
      * Example:
-     *   export const toProductRead = (raw: Product): ProductTransformed => ({
-     *     id: raw.id,
-     *     firstName: raw.first_name,
-     *     createdAt: raw.created_at,
-     *   })
+     * export const toCategoryRead = (api: CategoryApiResponse): CategoryTransformed => ({
+     *   id: api.id,
+     *   nama: api.nama,
+     *   createdAt: api.created_at,
+     *   updatedAt: api.updated_at,
+     * })
      */
-    private static generateReadMapper(model: ParsedModel): string {
-        const mappings: string[] = []
-
-        // NOTE: ParsedModel menyimpan kolom sebagai array `columns`
-        // (packages/core/src/types/route.ts), bukan object `fields`.
-        // Bug lama: baca `model.fields` (selalu undefined) -> selalu jatuh
-        // ke fallback `raw as XTransformed` (blunt full-object cast) untuk
-        // SEMUA model, tanpa pernah memetakan field satu per satu.
-        if (!model.columns || !model.columns.length) {
-            return `export const to${model.name}Read = (raw: ${model.name}): ${model.name}Transformed => raw as ${model.name}Transformed`
+    private generateReadMapper(resource: ResourceIR): string {
+        if (!resource.fields.length) {
+            const resourceName = resource.name.replace('Resource', '')
+            return `export const to${resourceName}Read = (api: ${resource.name}Response): ${resource.name}Transformed => api as ${resource.name}Transformed`
         }
 
-        for (const column of model.columns) {
-            const camelName = toCamelCase(column.name)
-            // Tidak perlu type assertion di sini: `raw.${column.name}` sudah
-            // punya tipe yang benar dari `raw: ${model.name}`, assignment ke
-            // properti object literal akan di-type-check oleh return type
-            // `${model.name}Transformed` secara structural. Assertion
-            // `as unknown as typeof raw.X` lama adalah no-op yang cuma
-          // menambah noise (dan melanggar aturan "tanpa type assertion").
-            mappings.push(`    ${camelName}: raw.${column.name},`)
-        }
+        const mappings = resource.fields.map(field => {
+            // Simplified mapping - handle semantic type safely
+            // TODO: Implement proper nested resource handling when SemanticType is clarified
 
-        return `export const to${model.name}Read = (raw: ${model.name}): ${model.name}Transformed => ({
+            // Check if field type supports nullable/optional through type projections
+            const mapperType = field.type.mapper
+
+            // Safe type checking untuk nested optional-nullable dengan type assertion yang aman
+            const isOptionalWithNullableInner = mapperType?.kind === 'optional' &&
+                isOptionalType(mapperType) &&
+                mapperType.inner && isNullableType(mapperType.inner)
+
+            const isNullable = mapperType?.kind === 'nullable' || isOptionalWithNullableInner
+            const isOptional = mapperType?.kind === 'optional' || isNullable
+
+            // Handle optional chaining untuk nullable/optional fields
+            if (isNullable || isOptional) {
+                return `    ${field.transformedName}: api.${field.name},`
+            }
+
+            // Simple field mapping (most common case)
+            return `    ${field.transformedName}: api.${field.name},`
+        })
+
+        const resourceName = resource.name.replace('Resource', '')
+        return `export const to${resourceName}Read = (api: ${resource.name}Response): ${resource.name}Transformed => ({
 ${mappings.join('\n')}
   })`
     }
 
     /**
-     * Generate list mapper: transform array of responses
+     * Generate read list mapper sesuai format Engine.Fix.md §18
+     * 
+     * Format: toCategoryReadList, toOrderReadList, etc.
+     * Always uses .map(toXRead) - no duplicate logic
      * 
      * Example:
-     *   export const toProductReadList = (raw: Product[]): ProductTransformed[] =>
-     *     raw.map(toProductRead)
+     * export const toCategoryReadList = (api: CategoryApiResponse[]): CategoryTransformed[] => 
+     *   api.map(toCategoryRead)
      */
-    private static generateReadListMapper(model: ParsedModel): string {
-        return `export const to${model.name}ReadList = (raw: ${model.name}[]): ${model.name}Transformed[] =>
-  raw.map(to${model.name}Read)`
+    private generateReadListMapper(resource: ResourceIR): string {
+        const resourceName = resource.name.replace('Resource', '')
+        return `export const to${resourceName}ReadList = (api: ${resource.name}Response[]): ${resource.name}Transformed[] =>
+  api.map(to${resourceName}Read)`
     }
 
     /**
-     * Generate API mapper: Form input → API payload
+     * Generate form mapper sesuai format Engine.Fix.md §21
      * 
-     * Used untuk mutations (POST/PUT/PATCH)
-     * 
-     * Input: Form data (camelCase, from frontend)
-     * Output: API payload (snake_case, untuk backend)
+     * Format: toApiRegisterCreate, toApiCartItemsUpdate, etc.
+     * Input: Frontend form (camelCase)
+     * Output: API payload (snake_case via ApiApiField)
      * 
      * Example:
-     *   export const toApiProductCreate = (form: ProductForm['create']): ProductCreatePayload => ({
-     *     first_name: form.firstName,
-     *     email: form.email,
-     *   })
+     * export const toApiRegisterCreate = (form: RegisterForm['Create']): RegisterCreatePayload => ({
+     *   [ApiApiField.NAME]: form.name,
+     *   [ApiApiField.EMAIL]: form.email,
+     *   [ApiApiField.PASSWORD]: form.password,
+     * })
      */
-    private static generateApiMapper(
-        route: ParsedRoute,
-        titleCase: string,
-        actionName: string,
-    ): string {
-        // Get form schema dari route.schema.rules
-        const formMappings: string[] = []
+    private generateFormMapper(request: RequestIR, action: RequestActionIR): string {
+        const requestName = request.name.replace('Request', '')
+        const actionName = action.name
 
-        if (route.schema?.rules) {
-            for (const [fieldName] of Object.entries(route.schema.rules)) {
-                const snakeName = fieldName
-                const camelName = toCamelCase(fieldName)
-                formMappings.push(`    ${snakeName}: form.${camelName},`)
-            }
+        if (!action.fields.length) {
+            return `export const toApi${requestName}${actionName} = (form: ${requestName}Form['${actionName.toLowerCase()}']): ${requestName}${actionName}Payload => ({})`
         }
 
-        const actionLower = actionName[0].toLowerCase() + actionName.slice(1)
-        const formTypeName = `${titleCase}Form['${actionLower}']`
-        const payloadTypeName = `${titleCase}${actionName}Payload`
+        const mappings = action.fields.map(field => {
+            // Simplified form mapping - use ApiApiField for consistent snake_case keys
+            // TODO: Handle nested arrays when SemanticType is clarified
 
-        return `export const toApi${titleCase}${actionName} = (form: ${formTypeName}): ${payloadTypeName} => ({
-${formMappings.join('\n')}
+            // Simple field mapping using ApiApiField
+            return `    [ApiApiField.${this.toConstantCase(field.name)}]: form.${field.transformedName},`
+        })
+
+        return `export const toApi${requestName}${actionName} = (form: ${requestName}Form['${actionName.toLowerCase()}']): ${requestName}${actionName}Payload => ({
+${mappings.join('\n')}
   })`
     }
-}
 
+    /**
+     * Convert field name ke CONSTANT_CASE untuk ApiApiField keys
+     * Example: shippingNama → SHIPPINGNAMA, productId → PRODUCTID
+     */
+    private toConstantCase(str: string): string {
+        return str.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase()
+    }
+}

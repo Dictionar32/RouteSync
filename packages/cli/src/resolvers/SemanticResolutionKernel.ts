@@ -1,5 +1,6 @@
 import { SemanticResolution } from '@routesync/core';
 import { ResolverPlugin, CycleDetector, SemanticResolutionKernelContract } from './types';
+import { isObject, hasProperty, isString } from '../../../core/src/utils/type-guards';
 import { PrimitiveResolver } from './plugins/PrimitiveResolver';
 import { ModelColumnResolver } from './plugins/ModelColumnResolver';
 import { AccessorResolver } from './plugins/AccessorResolver';
@@ -58,16 +59,15 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       contextModel
     };
 
-    if (contextModel && typeof contextModel === 'object') {
-      const obj = contextModel as any;
-      if (typeof obj.fileName === 'string') {
-        context.fileName = obj.fileName;
+    if (contextModel && isObject(contextModel)) {
+      if (hasProperty(contextModel, 'fileName') && isString(contextModel.fileName)) {
+        context.fileName = contextModel.fileName;
       }
-      if (obj.assignments) {
-        context.assignments = obj.assignments;
+      if (hasProperty(contextModel, 'assignments')) {
+        context.assignments = contextModel.assignments;
       }
-      if (obj.resolvedAssignments) {
-        context.resolvedAssignments = obj.resolvedAssignments;
+      if (hasProperty(contextModel, 'resolvedAssignments')) {
+        context.resolvedAssignments = contextModel.resolvedAssignments;
       }
     }
 

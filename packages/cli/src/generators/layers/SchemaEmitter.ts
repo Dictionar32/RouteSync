@@ -1,222 +1,245 @@
 /**
  * layers/SchemaEmitter.ts
  *
- * Emits: contract/api-schema.ts (or contract/schema.ts)
+ * Emits: schemas/api-schema.ts
  * 
- * RESPONSIBILITY: Generate form validation schemas (Zod untuk client-side form validation)
+ * RESPONSIBILITY: Generate Zod schemas + types + defaults untuk react-hook-form integration ONLY
+ * 
+ * NEW CONTRACT IR ARCHITECTURE:
+ * - Consumes ContractIR.requests untuk generate form schemas
+ * - Uses RequestIR actions untuk build resource-action schemas  
+ * - Output: 3 exports yang saling melengkapi (ApiSchema, ApiFormValues, ApiDefaultValues)
+ * 
+ * IMPORTANT: Sesuai Engine.Fix.md §21 bug fix - SchemaEmitter TIDAK menghasilkan
+ * form mappers (toApiXCreate, toApiXUpdate). Form mappers adalah tanggung jawab
+ * MapperEmitter dan ke-generate di mappers/api-mapper.ts.
  * 
  * Outputs:
- * - ${Model}${Action}FormSchema untuk each mutation route
- * - Validation rules (min/max length, patterns, etc)
+ * - ApiSchema: Zod schemas untuk useForm resolver
+ * - ApiFormValues: TypeScript types dari z.infer
+ * - ApiDefaultValues: Default values untuk form initialization
  * 
- * RECEIVES: routeResponseMap (optional, untuk reference types)
- * 
- * CONSOLIDATES:
- * - ZodTierGenerator.generateSchema() logic (lines 666-768)
+ * DOES NOT OUTPUT:
+ * - Form mappers (toApiXCreate, toApiXUpdate) → MapperEmitter responsibility
+ * - Runtime transformation functions → MapperEmitter responsibility
  */
 
-import path from 'path'
-import fs from 'fs-extra'
-import {
-    LayerContext,
-    LayerOutput,
-} from './types'
-import {
-    getResourceName,
-    toTitleCase,
-    getActionName,
-    mapSqlTypeToZod,
-    wrapNullableZod,
-} from './helpers'
-import { CANONICAL_ACTION_MAP } from '../canonical-names'
+import { ContractIR, ResourceIR, ResourceVariantIR, RequestIR, RequestActionIR, GeneratedFile, IREmitter, TypeIR, PrimitiveTypeIR, InlineObjectTypeIR } from '../../../../core/src/types/ir'
 
-export class SchemaEmitter {
+export class SchemaEmitter implements IREmitter {
     /**
-     * Main entry point
+     * Contract IR Architecture - Thin Emitter
+     * 
+     * Generate complete react-hook-form integration package:
+     * 1. ApiSchema - Zod schemas untuk validation
+     * 2. ApiFormValues - TypeScript types dari z.infer  
+     * 3. ApiDefaultValues - Default form state
+     * 
+     * Format sesuai spek: resource-action keys (RegisterCreate, LoginCreate, etc.)
      */
-    static async generate(
-        contractDir: string,
-        context: LayerContext,
-    ): Promise<LayerOutput> {
+    emit(ir: ContractIR): GeneratedFile[] {
+        const files: GeneratedFile[] = []
         const lines: string[] = []
 
-        // Import statement
-        lines.push(`import { z } from 'zod'`)
+        // Import Zod
+        lines.push("import { z } from 'zod'")
         lines.push('')
 
-        // Generate form schemas untuk mutation routes (POST/PUT/PATCH)
-        const routes = context.manifest.routes || []
+        // Generate ApiSchema object
+        lines.push('export const ApiSchema = {')
+        const schemaEntries: string[] = []
+        const typeEntries: string[] = []
+        const defaultEntries: string[] = []
 
-        for (const route of routes) {
-            if (!route.schema || !route.schema.rules) continue
+        // Process RequestIR untuk generate schemas  
+        for (const request of ir.requests) {
+            for (const action of request.actions) {
+                const resourceName = request.name.replace('Request', '')
+                const actionName = action.name
+                const schemaKey = `${resourceName}${actionName}`  // RegisterCreate, LoginCreate
 
-            try {
-                const method = (route.method || 'get').toLowerCase()
-                const actionName = getActionName(route, CANONICAL_ACTION_MAP as Record<string, string>)
+                // Generate Zod schema
+                const zodSchema = this.generateZodSchema(action)
+                schemaEntries.push(`  ${schemaKey}: ${zodSchema},`)
 
-                // Only emit untuk mutations
-                if (!['Create', 'Update'].includes(actionName)) continue
-
-                const groupName = getResourceName(route)
-                const titleCase = toTitleCase(groupName)
-                const actionLower = actionName[0].toLowerCase() + actionName.slice(1)
-
-                const schemaName = `${titleCase}${actionName}FormSchema`
-                const typeName = `${titleCase}${actionName}Form`
-
-                lines.push(this.generateFormSchema(schemaName, typeName, route.schema.rules))
-                lines.push('')
-            } catch (error) {
-                console.warn(`[SchemaEmitter] Error processing route ${route.name}:`, error)
+                // Prepare type dan default entries
+                typeEntries.push(`  ${schemaKey}: z.infer<typeof ApiSchema.${schemaKey}>`)
+                defaultEntries.push(`  ${this.toCamelCase(schemaKey)}: {} as ApiFormValues['${schemaKey}'],`)
             }
         }
 
-        // Write file
-        const filePath = path.join(contractDir, 'api-schema.ts')
-        await fs.ensureDir(contractDir)
-        await fs.writeFile(filePath, lines.join('\n'))
+        // Add schema entries
+        lines.push(...schemaEntries)
+        lines.push('}')
+        lines.push('')
 
-        return { lines }
+        // Generate ApiFormValues types
+        lines.push('export type ApiFormValues = {')
+        lines.push(...typeEntries)
+        lines.push('}')
+        lines.push('')
+
+        // Generate ApiDefaultValues
+        lines.push('export const ApiDefaultValues = {')
+        lines.push(...defaultEntries)
+        lines.push('}')
+
+        files.push({
+            path: 'schemas/api-schema.ts',
+            content: lines.join('\n'),
+            metadata: {
+                emitter: 'SchemaEmitter',
+                generatedAt: new Date().toISOString(),
+                dependencies: ['zod']
+            }
+        })
+
+        return files
     }
 
     /**
-     * Generate form schema (Zod object) dari validation rules
+     * Generate Zod schema dari RequestActionIR fields
+     * 
+     * Input: RequestActionIR dengan fields untuk form validation
+     * Output: Zod schema definition string
      * 
      * Example:
-     *   export const ProductCreateFormSchema = z.object({
-     *     name: z.string().min(1),
-     *     price: z.number().min(0),
-     *     description: z.string().optional(),
-     *   })
-     *   export type ProductCreateForm = z.infer<typeof ProductCreateFormSchema>
+     * z.object({
+     *   email: z.string(),
+     *   password: z.string(),
+     * })
      */
-    private static generateFormSchema(
-        schemaName: string,
-        typeName: string,
-        rules: Record<string, unknown>,
-    ): string {
-        const fields: string[] = []
-
-        for (const [fieldName, ruleData] of Object.entries(rules)) {
-            // BUG LAMA (Engine.Fix.md §38): kode ini sebelumnya cuma
-            // menangani `ruleData` berbentuk object bersarang
-            // ({ type/rules/required/nullable: ... }) dan langsung bail ke
-            // z.unknown() untuk apapun yang bukan object — padahal bentuk
-            // ASLI `route.schema.rules` di manifest nyata adalah flat
-            // string per field (mis. `{ name: 'required|string|max:255' }`,
-            // dikonfirmasi langsung dari routesync.manifest.json), BUKAN
-            // object bersarang. Akibatnya SEMUA field selalu z.unknown(),
-            // parseValidationRules() yang sudah benar tidak pernah tercapai.
-            if (typeof ruleData === 'string') {
-                let zodExpr = this.parseValidationRules(ruleData)
-                const isRequired = ruleData.split('|').map((r) => r.trim()).includes('required')
-                if (!isRequired) {
-                    zodExpr = `${zodExpr}.optional()`
-                }
-                fields.push(`  ${fieldName}: ${zodExpr},`)
-                continue
-            }
-
-            if (!ruleData || typeof ruleData !== 'object') {
-                fields.push(`  ${fieldName}: z.unknown(),`)
-                continue
-            }
-
-            const rule = ruleData as Record<string, unknown>
-
-            // Determine base type dari rule
-            let zodExpr = 'z.unknown()'
-
-            if (typeof rule.type === 'string') {
-                const baseType = mapSqlTypeToZod(rule.type as string)
-                zodExpr = baseType
-            } else if (typeof rule.rules === 'string') {
-                // Laravel validation string (e.g., 'required|string|min:10')
-                zodExpr = this.parseValidationRules(rule.rules as string)
-            }
-
-            // Apply modifiers berdasarkan rule properties
-            const isRequired = rule.required !== false && !rule.nullable
-            const isNullable = rule.nullable === true
-
-            if (!isRequired) {
-                zodExpr = `${zodExpr}.optional()`
-            }
-
-            if (isNullable) {
-                zodExpr = wrapNullableZod(zodExpr, true)
-            }
-
-            fields.push(`  ${fieldName}: ${zodExpr},`)
+    private generateZodSchema(action: RequestActionIR): string {
+        if (!action.fields.length) {
+            return 'z.object({})'
         }
 
-        return `export const ${schemaName} = z.object({
-${fields.join('\n')}
-})
+        const fieldLines = action.fields.map(field => {
+            // Use TypeIR projection instead of manual nullable/optional handling
+            const zodType = this.emitTypeIRToZod(field.type.schema)
 
-export type ${typeName} = z.infer<typeof ${schemaName}>`
+            return `    ${field.transformedName}: ${zodType},`
+        })
+
+        return `z.object({
+${fieldLines.join('\n')}
+  })`
     }
 
     /**
-     * Parse Laravel validation rule string ke Zod expression
-     * 
-     * Contoh:
-     *   'required|string|min:10|max:100' → 'z.string().min(10).max(100)'
-     *   'required|integer|min:1' → 'z.number().int().min(1)'
-     *   'required|email' → 'z.string().email()'
+     * Emit TypeIR to Zod schema code
+     * This replaces mapSemanticTypeToZod() and manual nullable/optional logic
      */
-    private static parseValidationRules(ruleString: string): string {
-        const rules = ruleString.split('|').map(r => r.trim())
+    private emitTypeIRToZod(type: TypeIR): string {
+        switch (type.kind) {
+            case 'primitive':
+                return this.emitPrimitiveToZod(type)
 
-        // Default z.string() — bukan z.unknown(). Rule seperti `min:6`/`max:255`
-        // tanpa keyword tipe eksplisit (string/integer/numeric) secara teknis
-        // ambigu di Laravel (bisa berlaku untuk panjang string, nilai numerik,
-        // atau jumlah elemen array, tergantung tipe runtime value-nya) — tapi
-        // konvensi paling umum untuk form validation TANPA rule tipe eksplisit
-        // adalah field string (mis. `required|min:6` untuk password). Default
-        // z.unknown() sebelumnya membuat kasus ini SELALU jatuh ke unknown
-        // walau konteksnya jelas string di mayoritas kasus nyata.
-        let baseType = 'z.string()'
-        const modifiers: string[] = []
+            case 'reference':
+                return type.target
 
-        for (const rule of rules) {
-            if (rule === 'required' || rule === 'filled') {
-                // Handled separately (not optional)
-                continue
-            } else if (rule === 'nullable') {
-                // Handled separately
-                continue
-            } else if (rule === 'string') {
-                baseType = 'z.string()'
-            } else if (rule === 'integer' || rule === 'int') {
-                baseType = 'z.number().int()'
-            } else if (rule === 'numeric' || rule === 'number') {
-                baseType = 'z.number()'
-            } else if (rule === 'email') {
-                baseType = 'z.string()'
-                modifiers.push('.email()')
-            } else if (rule === 'url') {
-                baseType = 'z.string()'
-                modifiers.push('.url()')
-            } else if (rule.startsWith('min:')) {
-                const val = rule.substring(4)
-                modifiers.push(`.min(${val})`)
-            } else if (rule.startsWith('max:')) {
-                const val = rule.substring(4)
-                modifiers.push(`.max(${val})`)
-            } else if (rule.startsWith('regex:')) {
-                const pattern = rule.substring(6)
-                modifiers.push(`.regex(/${pattern}/)`)
-            } else if (rule === 'array') {
-                baseType = 'z.array(z.unknown())'
-            } else if (rule === 'json') {
-                baseType = 'z.record(z.string(), z.unknown())'
-            } else if (rule === 'boolean' || rule === 'bool') {
-                baseType = 'z.boolean()'
-            }
+            case 'array':
+                return `z.array(${this.emitTypeIRToZod(type.items)})`
+
+            case 'inline_object':
+                return this.emitInlineObjectToZod(type)
+
+            case 'nullable':
+                return `${this.emitTypeIRToZod(type.inner)}.nullable()`
+
+            case 'optional':
+                return `${this.emitTypeIRToZod(type.inner)}.optional()`
+
+            case 'union':
+                const unionSchemas = type.types.map((t: TypeIR) => this.emitTypeIRToZod(t))
+                return `z.union([${unionSchemas.join(', ')}])`
+
+            case 'literal':
+                return `z.literal(${JSON.stringify(type.value)})`
+
+            default:
+                return 'z.unknown()'
+        }
+    }
+
+    private emitPrimitiveToZod(type: PrimitiveTypeIR): string {
+        switch (type.type) {
+            case 'string': return 'z.string()'
+            case 'number': return 'z.number()'
+            case 'boolean': return 'z.boolean()'
+            case 'date': return 'z.string()'  // ISO date strings
+            case 'json': return 'z.unknown()'
+            default: return 'z.unknown()'
+        }
+    }
+
+    private emitInlineObjectToZod(type: InlineObjectTypeIR): string {
+        if (Object.keys(type.properties).length === 0) {
+            return 'z.object({})'
         }
 
-        return baseType + modifiers.join('')
+        const properties = Object.entries(type.properties).map(([key, valueType]) => {
+            const valueSchema = this.emitTypeIRToZod(valueType)
+            return `    ${key}: ${valueSchema},`
+        })
+
+        return `z.object({
+${properties.join('\n')}
+  })`
+    }
+
+    /**
+     * Convert PascalCase ke camelCase untuk default values
+     * RegisterCreate -> registerCreate
+     */
+    private toCamelCase(str: string): string {
+        return str.charAt(0).toLowerCase() + str.slice(1)
+    }
+
+    /**
+     * Map SemanticType ke Zod schema string
+     */
+    private mapSemanticTypeToZod(semanticType: any): string {
+        switch (semanticType.kind) {
+            case 'primitive':
+                return this.mapPrimitiveTypeToZod(semanticType.type)
+
+            case 'model':
+                return `${semanticType.model}Schema`
+
+            case 'resource':
+                const baseSchema = `${semanticType.resource}Schema`
+                return semanticType.collection ? `z.array(${baseSchema})` : baseSchema
+
+            case 'object':
+                return 'z.record(z.unknown())'
+
+            case 'array':
+                const itemSchema = this.mapSemanticTypeToZod(semanticType.items)
+                return `z.array(${itemSchema})`
+
+            default:
+                return 'z.unknown()'
+        }
+    }
+
+    /**
+     * Map primitive types ke Zod schemas with proper validation
+     */
+    private mapPrimitiveTypeToZod(primitiveType: string): string {
+        switch (primitiveType) {
+            case 'string':
+                return 'z.string()'
+            case 'number':
+                return 'z.number()'
+            case 'boolean':
+                return 'z.boolean()'
+            case 'date':
+                return 'z.string().datetime()' // ISO date strings
+            case 'json':
+                return 'z.unknown()' // Could be z.record() or z.array() depending on context
+            default:
+                return 'z.unknown()'
+        }
     }
 }
-

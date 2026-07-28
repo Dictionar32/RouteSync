@@ -5,201 +5,163 @@
  * 
  * RESPONSIBILITY: Generate TypeScript interfaces untuk read responses (camelCase, frontend-friendly)
  * 
+ * NEW CONTRACT IR ARCHITECTURE:
+ * - Consumes ContractIR.resources untuk generate interfaces
+ * - All transformations (snake_case → camelCase) sudah done di IR
+ * - Emitter hanya projection function yang thin
+ * 
  * Outputs:
- * - ${Model}Transformed interfaces (camelCase, readonly)
- * - ${Resource}Index, ${Resource}Show response types (composite)
- * 
- * RECEIVES: routeResponseMap from ContractEmitter (DO NOT RE-COMPUTE!)
- * 
- * CONSOLIDATES:
- * - ZodTierGenerator.generateRead() logic (lines 867-1078)
- * - Type transformation (previously duplicated mapSqlTypeToTs)
+ * - ${Resource}Transformed interfaces (dari ResourceIR.variants.read)
+ * - ${Resource}Show, ${Resource}Index aliases (dari ResourceIR.aliases)
  */
 
 import path from 'path'
 import fs from 'fs-extra'
-import {
-    LayerContext,
-    LayerOutput,
-    RouteResponseComposition,
-    ParsedModel,
-    ParsedField,
-    ParsedRoute,
-} from './types'
-import {
-    normalizeMetadata,
-    getResourceName,
-    toTitleCase,
-    toCamelCase,
-    routeResponseKey,
-    mapSqlTypeToTs,
-    wrapNullableTs,
-} from './helpers'
+import { ContractIR, ResourceIR, ResourceVariantIR, ResourceAliasIR, GeneratedFile, IREmitter, TypeIR, PrimitiveTypeIR, InlineObjectTypeIR } from '../../../../core/src/types/ir'
+import { SemanticType } from '../../../../core/src/types/semantic'
 
-export class ReadEmitter {
+export class ReadEmitter implements IREmitter {
     /**
-     * Main entry point
+     * Contract IR Architecture - Thin Emitter
      * 
-     * PENTING: Accept routeResponseMap dari ContractEmitter
-     * DO NOT re-compute atau re-infer!
+     * Input: Complete ContractIR dengan all transformations done
+     * Output: TypeScript interface files
+     * 
+     * NO MORE:
+     * - Name transformations (sudah di IR)
+     * - Type inference (sudah di IR) 
+     * - Field mapping (sudah di IR)
      */
-    static async generate(
-        typesDir: string,
-        context: LayerContext,
-        routeResponseMap: Map<string, RouteResponseComposition>,
-    ): Promise<LayerOutput> {
+    emit(ir: ContractIR): GeneratedFile[] {
+        const files: GeneratedFile[] = []
         const lines: string[] = []
-        const generatedTypes = new Set<string>()
 
-        // Phase 1: Generate transformed interfaces untuk models
-        if (context.manifest.models) {
-            for (const model of context.manifest.models) {
-                try {
-                    lines.push(this.generateTransformedType(model))
-                    lines.push('')
-                    generatedTypes.add(`${model.name}Transformed`)
-                } catch (error) {
-                    console.warn(`[ReadEmitter] Error generating model ${model.name}:`, error)
-                }
+        // Generate TypeScript interfaces from ResourceIR
+        for (const resource of ir.resources) {
+            const readVariant = resource.variants.find(v => v.kind === 'read')
+            if (!readVariant) continue
+
+            // Generate main transformed interface
+            lines.push(this.generateResourceInterface(resource, readVariant))
+            lines.push('')
+
+            // Generate aliases (Show, Index, Collection)
+            for (const alias of resource.aliases) {
+                lines.push(this.generateResourceAlias(alias))
             }
+            lines.push('')
         }
 
-        // Phase 2: Generate response types untuk routes
-        const routes = context.manifest.routes || []
-
-        for (const route of routes) {
-            if (!route.response) continue
-
-            try {
-                const key = routeResponseKey(route)
-                const composition = routeResponseMap.get(key)
-
-                if (!composition) {
-                    console.warn(`[ReadEmitter] No composition found for route ${route.name}`)
-                    continue
-                }
-
-                const groupName = getResourceName(route)
-                const titleCase = toTitleCase(groupName)
-
-                // Determine type name based on composition
-                let typeName: string
-                if (composition.isCollection && composition.isPaginated) {
-                    typeName = `${titleCase}Index`
-                } else if (composition.isCollection) {
-                    typeName = `${titleCase}List`
-                } else {
-                    typeName = `${titleCase}Show`
-                }
-
-                if (!generatedTypes.has(typeName)) {
-                    generatedTypes.add(typeName)
-                    lines.push(this.generateResponseType(typeName, composition, groupName))
-                    lines.push('')
-                }
-            } catch (error) {
-                console.warn(`[ReadEmitter] Error processing route ${route.name}:`, error)
+        files.push({
+            path: 'types/api-read.ts',
+            content: lines.join('\n'),
+            metadata: {
+                emitter: 'ReadEmitter',
+                generatedAt: new Date().toISOString(),
+                dependencies: []
             }
-        }
+        })
 
-        // Write file
-        const filePath = path.join(typesDir, 'api-read.ts')
-        await fs.ensureDir(typesDir)
-        await fs.writeFile(filePath, lines.join('\n'))
-
-        return { lines }
+        return files
     }
 
     /**
-     * Generate Transformed interface untuk model
+     * Generate TypeScript interface dari ResourceIR read variant
      * 
-     * Converts snake_case (DB) → camelCase (Frontend)
+     * Input: ResourceIR dengan semua transformations sudah done
+     * Output: Clean TypeScript interface
      * 
-     * Input:
-     *   model Product { id, first_name, created_at }
-     * 
-     * Output:
-     *   export interface ProductTransformed {
-     *     readonly id: number
-     *     readonly firstName: string
-     *     readonly createdAt: string
-     *   }
+     * SUDAH TIDAK ADA:
+     * - snake_case → camelCase (sudah di IR)
+     * - Type inference (sudah di IR)
+     * - Null handling (sudah di IR)
      */
-    private static generateTransformedType(model: ParsedModel): string {
-        const fields: string[] = []
-
-        // NOTE: ParsedModel menyimpan kolom sebagai array `columns`
-        // (packages/core/src/types/route.ts), bukan object `fields`. Bug
-        // lama: baca `model.fields` (selalu undefined) -> SEMUA interface
-        // Transformed selalu kosong `{}` — lolos test lama karena kata
-        // 'interface'/'export' tetap ada meski body-nya kosong.
-        const columns = (model as unknown as { columns?: Array<{ name: string; type: string; nullable: boolean }> }).columns
-        const casts = (model as unknown as { casts?: Record<string, string> }).casts
-
-        if (!columns || !columns.length) {
-            return `export interface ${model.name}Transformed {}`
+    private generateResourceInterface(resource: ResourceIR, variant: ResourceVariantIR): string {
+        if (!variant.fields.length) {
+            return `export interface ${resource.name}Transformed {}`
         }
 
-        for (const column of columns) {
-            const cast = casts?.[column.name]
-            const camelName = toCamelCase(column.name)
-            const tsType = mapSqlTypeToTs(column.type, cast)
-            const nullable = column.nullable ? ' | null' : ''
-            fields.push(`  readonly ${camelName}: ${tsType}${nullable}`)
-        }
+        const fields = variant.fields.map(field => {
+            // Use TypeIR projection instead of manual nullable/optional handling
+            const tsType = this.emitTypeIRToTypeScript(field.type.read)
 
-        return `export interface ${model.name}Transformed {
+            return `  readonly ${field.transformedName}: ${tsType}`
+        })
+
+        return `export interface ${resource.name}Transformed {
 ${fields.join('\n')}
 }`
     }
 
     /**
-     * Generate response type based on composition
-     * 
-     * PENTING: Use composition metadata untuk determine structure
-     * DO NOT re-infer!
+     * Emit TypeIR to TypeScript interface types  
+     * This replaces mapSemanticTypeToTs() and manual nullable/optional logic
      */
-    private static generateResponseType(
-        typeName: string,
-        composition: RouteResponseComposition,
-        _groupName: string,
-    ): string {
-        let typeExpr: string
+    private emitTypeIRToTypeScript(type: TypeIR): string {
+        switch (type.kind) {
+            case 'primitive':
+                return this.emitPrimitiveToTypeScript(type)
 
-        // Build type expression based on composition flags
-        if (composition.isCollection && composition.isPaginated) {
-            // Paginated response: { data: T[], currentPage?, total? }
-            typeExpr = `{
-  readonly data: ${composition.tsType}[]
-  readonly currentPage?: number
-  readonly total?: number
-  readonly perPage?: number
-  readonly lastPage?: number
-}`
-        } else if (composition.isCollection) {
-            // Array response
-            typeExpr = `${composition.tsType}[]`
-        } else if (composition.isWrapped) {
-            // Wrapped response: { data: T }
-            typeExpr = `{
-  readonly data: ${composition.tsType}
-}`
-        } else {
-            // Plain object response
-            typeExpr = composition.tsType
+            case 'reference':
+                return type.target.replace('Schema', 'Transformed')
+
+            case 'array':
+                return `${this.emitTypeIRToTypeScript(type.items)}[]`
+
+            case 'inline_object':
+                return this.emitInlineObjectToTypeScript(type)
+
+            case 'nullable':
+                return `${this.emitTypeIRToTypeScript(type.inner)} | null`
+
+            case 'optional':
+                return `${this.emitTypeIRToTypeScript(type.inner)} | undefined`
+
+            case 'union':
+                const unionTypes = type.types.map((t: TypeIR) => this.emitTypeIRToTypeScript(t))
+                return unionTypes.join(' | ')
+
+            case 'literal':
+                return JSON.stringify(type.value)
+
+            default:
+                return 'unknown'
         }
+    }
 
-        // BUG LAMA (Engine.Fix.md §38): sebelumnya SEMUA cabang di atas
-        // (termasuk yang sudah berupa object-literal type `{...}`, mis. hasil
-        // paginated/wrapped) dibungkus lagi paksa jadi
-        // `export interface ${typeName} { ${typeExpr} }`. Untuk cabang
-        // collection/paginated/wrapped ini menghasilkan brace bersarang tanpa
-        // nama property (invalid TS). Untuk cabang plain-object ini
-        // menghasilkan `interface X { RegisterResponse }` — bare identifier
-        // di dalam body interface, juga invalid TS. `type` alias valid untuk
-        // SEMUA bentuk typeExpr (object literal, array, atau bare reference),
-        // jadi dipakai seragam di sini, bukan `interface`.
-        return `export type ${typeName} = ${typeExpr}`
+    private emitPrimitiveToTypeScript(type: PrimitiveTypeIR): string {
+        switch (type.type) {
+            case 'string': return 'string'
+            case 'number': return 'number'
+            case 'boolean': return 'boolean'
+            case 'date': return 'string'  // ISO date strings
+            case 'json': return 'unknown'
+            default: return 'unknown'
+        }
+    }
+
+    private emitInlineObjectToTypeScript(type: InlineObjectTypeIR): string {
+        const properties = Object.entries(type.properties).map(([key, valueType]) => {
+            const valueTypeStr = this.emitTypeIRToTypeScript(valueType)
+            return `  ${key}: ${valueTypeStr};`
+        })
+
+        return `{\n${properties.join('\n')}\n}`
+    }
+
+    /**
+     * Generate type alias dari ResourceAliasIR
+     * 
+     * Input: ResourceAliasIR dengan metadata sudah resolved
+     * Output: Type alias definition
+     * 
+     * Examples:
+     * - export type OrderShow = OrderTransformed
+     * - export type OrderIndex = OrderTransformed[]
+     */
+    private generateResourceAlias(alias: ResourceAliasIR): string {
+        const target = alias.isArray ? `${alias.target}[]` : alias.target
+        return `export type ${alias.name} = ${target}`
     }
 }
 

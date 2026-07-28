@@ -1,4 +1,5 @@
 import { SemanticResolution } from './contract'
+import { SemanticType } from './semantic'
 
 /**
  * Resolved domain intent config, produced by `IntentResolver` and consumed at runtime by
@@ -14,6 +15,13 @@ export interface DomainIntentConfig {
   config: Record<string, string>
 }
 
+export interface PageConfig {
+  component?: string
+  layout?: string
+  props?: Record<string, unknown>
+  meta?: Record<string, unknown>
+}
+
 export interface RouteManifest {
   version: string
   baseURL: string
@@ -27,7 +35,7 @@ export interface RouteManifest {
     groupAliases?: Record<string, string>
     domains?: Record<string, string | DomainIntentConfig>
   }
-  pages?: Record<string, any>
+  pages?: Record<string, PageConfig>
 }
 
 export interface ParsedChannel {
@@ -61,8 +69,8 @@ export type ResponseMetadata = (
   | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }>; collection?: boolean; paginated?: boolean }
   | { kind: 'unknown' }
 ) & {
-  resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any>; wrapped?: boolean }
-  semantic?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, any>; wrapped?: boolean }
+  resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }
+  semantic?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }
   /** Runtime-enriched by SemanticKernelV2 — present on all variants via intersection */
   collection?: boolean
   paginated?: boolean
@@ -77,7 +85,7 @@ export interface ParsedRoute {
   path: string
   auth: boolean
   middleware: string[]
-  schema?: Record<string, any>
+  schema?: Record<string, unknown>
   group?: string
   action?: string
   response?: ResponseMetadata

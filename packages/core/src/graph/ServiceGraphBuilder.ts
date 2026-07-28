@@ -1,10 +1,10 @@
-import { 
-  ServiceGraph, 
-  ServiceNode, 
-  ControllerNode, 
-  ModelNode, 
-  ExecutionLayer, 
-  ServiceDependency 
+import {
+  ServiceGraph,
+  ServiceNode,
+  ControllerNode,
+  ModelNode,
+  ExecutionLayer,
+  ServiceDependency
 } from '../types/semantic';
 import { RouteManifest } from '../types/route';
 
@@ -84,6 +84,28 @@ export class ServiceGraphBuilder {
   }
 
   /**
+   * Map relation types to valid ServiceDependency types
+   */
+  private mapRelationToServiceDependency(relationType: string): ServiceDependency['type'] {
+    switch (relationType.toLowerCase()) {
+      case 'belongsto':
+      case 'hasone':
+      case 'hasmany':
+      case 'belongstomany':
+        return 'depends_on_model'
+      case 'calls':
+        return 'calls'
+      case 'composes':
+        return 'composes'
+      case 'uses':
+      case 'repository':
+        return 'uses_repository'
+      default:
+        return 'depends_on_model' // Default for model relations
+    }
+  }
+
+  /**
    * Gets the final assembled graph.
    */
   public getGraph(): ServiceGraph {
@@ -112,7 +134,9 @@ export class ServiceGraphBuilder {
 
         if (m.relations) {
           for (const rel of Object.values(m.relations)) {
-            this.linkGraph(m.name, rel.model, 'depends_on_model');
+            // Map relation types to valid ServiceDependency types
+            const dependencyType = this.mapRelationToServiceDependency(rel.type)
+            this.linkGraph(m.name, rel.model, dependencyType);
           }
         }
       });
@@ -135,7 +159,7 @@ export class ServiceGraphBuilder {
       manifest.routes.forEach((route) => {
         const parts = route.name.split('.');
         const controllerName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + 'Controller' : 'UnknownController';
-        
+
         let controller = this.graph.controllers[controllerName];
         if (!controller) {
           controller = this.buildControllerNode(controllerName, [], []);

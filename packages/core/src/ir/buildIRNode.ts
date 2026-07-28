@@ -1,5 +1,6 @@
 import { createHash } from 'crypto'
-import type { SemanticIRNode, SourceRef, IRRawNode, SemanticNode, IRContext } from '../types/semantic'
+import type { SemanticIRNode, SourceRef, IRRawNode, SemanticNode, IRContext, ParsedASTNode } from '../types/semantic'
+import { isObject, hasProperty, isString } from '../utils/type-guards'
 
 /**
  * Roadmap Stage 2 (IR v3) — see compiler/CompilerRoadmap.md.
@@ -55,12 +56,25 @@ export interface BuildIRNodeInput {
   context?: IRContext
 }
 
+/**
+ * Type guard untuk ParsedASTNode
+ */
+function isParsedASTNode(value: unknown): value is ParsedASTNode {
+  return isObject(value) &&
+    hasProperty(value, 'kind') &&
+    isString(value.kind) &&
+    ['property_access', 'method_call', 'binary_expression', 'type_cast',
+      'ternary', 'literal', 'nullsafe_chain', 'unknown', 'variable',
+      'primitive', 'resource', 'model', 'static_method_call',
+      'nullsafe_property_access', 'new_instance'].includes(value.kind)
+}
+
 export function buildSemanticIRNode(input: BuildIRNodeInput): SemanticIRNode {
   const node: IRRawNode = {
     kind: 'raw_code',
     code: input.rawCode,
     hints: input.hints,
-    parsed_ast: input.parsedAst as any,
+    parsed_ast: isParsedASTNode(input.parsedAst) ? input.parsedAst : undefined,
   }
 
   return {

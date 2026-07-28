@@ -31,11 +31,11 @@ export interface SourceRef {
   column?: number;
 
   context:
-    | "controller"
-    | "resource"
-    | "model"
-    | "route"
-    | "service";
+  | "controller"
+  | "resource"
+  | "model"
+  | "route"
+  | "service";
 }
 
 /* =========================
@@ -57,14 +57,14 @@ export interface IRRawNode {
 
 export interface IRHints {
   pattern:
-    | "property_access"
-    | "method_call"
-    | "binary_expression"
-    | "type_cast"
-    | "ternary"
-    | "nullsafe_chain"
-    | "collection"
-    | "unknown";
+  | "property_access"
+  | "method_call"
+  | "binary_expression"
+  | "type_cast"
+  | "ternary"
+  | "nullsafe_chain"
+  | "collection"
+  | "unknown";
 
   confidence?: number; // 0..1
 
@@ -210,7 +210,19 @@ export type SemanticType =
 export interface SemanticNode extends SemanticResolution {
   type: SemanticType;
 
-  fields?: Record<string, any>;
+  fields?: Record<string, SemanticType>;
+}
+
+/**
+ * Semantic Relation definition untuk relationMap
+ */
+export interface SemanticRelation {
+  type: 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany' | 'morphTo' | 'morphMany'
+  model: string
+  foreignKey?: string
+  localKey?: string
+  table?: string
+  pivot?: Record<string, SemanticType>
 }
 
 /* =========================
@@ -262,10 +274,10 @@ export interface ServiceDependency {
   from: string;   // ServiceA
   to: string;     // ServiceB
   type:
-    | "calls"
-    | "composes"
-    | "depends_on_model"
-    | "uses_repository";
+  | "calls"
+  | "composes"
+  | "depends_on_model"
+  | "uses_repository";
   weight: number; // 0-1 strength
 }
 
@@ -315,12 +327,12 @@ export interface ServiceGraph {
  * ========================= */
 
 export interface IRContext {
-  modelMap: Record<string, any>;
-  relationMap: Record<string, any>;
+  modelMap: Record<string, SemanticType>;
+  relationMap: Record<string, SemanticRelation>;
   config?: {
     strictMode: boolean;
   };
-  
+
   layer?: ExecutionLayer;
   controller?: ControllerNode;
   service?: ServiceNode;

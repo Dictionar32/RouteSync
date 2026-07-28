@@ -1,6 +1,8 @@
 import { SemanticResolution } from '../types/contract';
 import { ResolverPlugin, CycleDetector, SemanticResolutionKernelContract, ResolutionContext, ResolverMeta, ModelNode } from './types';
 import { SymbolTable } from './SymbolTable';
+import { isObject, hasProperty, isString } from '../utils/type-guards';
+import { FieldNode } from '../types/field';
 import { PrimitiveResolver } from './plugins/PrimitiveResolver';
 import { ModelColumnResolver } from './plugins/ModelColumnResolver';
 import { AccessorResolver } from './plugins/AccessorResolver';
@@ -15,6 +17,32 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
   private plugins: ResolverPlugin[] = [];
   private cycleDetector: CycleDetector;
   private symbolTable: SymbolTable;
+
+  /**
+   * Type guard untuk Record<string, FieldNode>
+   */
+  private isFieldNodeRecord(value: unknown): value is Record<string, FieldNode> {
+    if (!isObject(value)) return false
+    return Object.values(value).every(val =>
+      isObject(val) &&
+      hasProperty(val, 'kind') &&
+      isString(val.kind)
+    )
+  }
+
+  /**
+   * Type guard untuk Record<string, SemanticResolution>
+   */
+  private isSemanticResolutionRecord(value: unknown): value is Record<string, SemanticResolution> {
+    if (!isObject(value)) return false
+    return Object.values(value).every(val =>
+      isObject(val) &&
+      hasProperty(val, 'status') &&
+      hasProperty(val, 'type') &&
+      hasProperty(val, 'confidence') &&
+      hasProperty(val, 'trace')
+    )
+  }
 
   constructor(private models: ModelNode[] = [], private resources: unknown[] = []) {
     this.cycleDetector = new CycleDetector();
@@ -82,16 +110,15 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       contextModel
     };
 
-    if (contextModel && typeof contextModel === 'object') {
-      const obj = contextModel as any;
-      if (typeof obj.fileName === 'string') {
-        context.fileName = obj.fileName;
+    if (contextModel && isObject(contextModel)) {
+      if (hasProperty(contextModel, 'fileName') && isString(contextModel.fileName)) {
+        context.fileName = contextModel.fileName;
       }
-      if (obj.assignments) {
-        context.assignments = obj.assignments;
+      if (hasProperty(contextModel, 'assignments') && this.isFieldNodeRecord(contextModel.assignments)) {
+        context.assignments = contextModel.assignments;
       }
-      if (obj.resolvedAssignments) {
-        context.resolvedAssignments = obj.resolvedAssignments;
+      if (hasProperty(contextModel, 'resolvedAssignments') && this.isSemanticResolutionRecord(contextModel.resolvedAssignments)) {
+        context.resolvedAssignments = contextModel.resolvedAssignments;
       }
     }
 

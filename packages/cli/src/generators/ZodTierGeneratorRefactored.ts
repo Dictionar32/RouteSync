@@ -20,7 +20,10 @@
  */
 
 import path from 'path'
+import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
+import { GenerationContext, GeneratedFile, RouteManifest as IRRouteManifest } from '../../../core/src/types/ir'
+import { ContractIRBuilder } from '../../../core/src/ir/ContractIRBuilder'
 import { ContractEmitter } from './layers/ContractEmitter'
 import { SchemaEmitter } from './layers/SchemaEmitter'
 import { FieldEmitter } from './layers/FieldEmitter'
@@ -28,8 +31,55 @@ import { ReadEmitter } from './layers/ReadEmitter'
 import { MapperEmitter } from './layers/MapperEmitter'
 import { LayerContext } from './layers/types'
 import { SemanticResolver } from './semantic-resolver'
+import { ContractGenerator } from './ContractGenerator'
 
 export class ZodTierGeneratorRefactored {
+
+    /**
+     * Helper function to convert LayerContext to GenerationContext
+     */
+    private static createGenerationContext(context: LayerContext, outputDir: string): GenerationContext {
+        // Use ContractGenerator's adaptManifest method
+        const contractGen = new ContractGenerator()
+        const adaptedManifest = contractGen['adaptManifest'](context.manifest)
+
+        return {
+            projectRoot: '.',
+            outputDir,
+            config: {
+                typescript: {
+                    strict: true,
+                    target: 'ES2020',
+                    moduleResolution: 'node'
+                },
+                validation: {
+                    useZod: true,
+                    useLaravel: false
+                },
+                naming: {
+                    caseTransform: 'camel',
+                    resourceSuffix: 'Resource',
+                    requestSuffix: 'Request'
+                }
+            },
+            manifest: adaptedManifest
+        }
+    }
+
+    /**
+     * Write generated files to disk
+     */
+    private static async writeFiles(files: GeneratedFile[], outputDir: string): Promise<void> {
+        await fs.ensureDir(outputDir)
+
+        for (const file of files) {
+            const fullPath = path.join(outputDir, file.path)
+            await fs.ensureDir(path.dirname(fullPath))
+            await fs.writeFile(fullPath, file.content)
+            console.log(`[ZodTierGeneratorRefactored] Written: ${file.path}`)
+        }
+    }
+
     /**
      * Main entry point
      * 
@@ -62,29 +112,56 @@ export class ZodTierGeneratorRefactored {
         console.log(`[ZodTierGeneratorRefactored] Starting generation to ${outputDir}`)
 
         try {
+            // Build ContractIR once from RouteManifest
+            const generationContext = this.createGenerationContext(context, outputDir)
+            const irBuilder = new ContractIRBuilder(generationContext)
+            const contractIR = irBuilder.buildFromManifest(generationContext.manifest)
+
             // Phase 1: Contract (generates routeResponseMap IR)
             console.log(`[ZodTierGeneratorRefactored] Generating contract layer...`)
-            const { routeResponseMap } = await ContractEmitter.generate(contractDir, context)
+            const contractEmitter = new ContractEmitter()
+            const contractFiles = contractEmitter.emit(contractIR)
+            // Extract routeResponseMap if available from contract files
+            const routeResponseMap = {} // TODO: Extract from contract files if needed
 
             // Phase 2: Schema (form validation)
             console.log(`[ZodTierGeneratorRefactored] Generating schema layer...`)
-            await SchemaEmitter.generate(contractDir, context)
+            const schemaEmitter = new SchemaEmitter()
+            const schemaFiles = schemaEmitter.emit(contractIR)
 
             // Phase 3: Field (per-field metadata)
             console.log(`[ZodTierGeneratorRefactored] Generating field layer...`)
-            await FieldEmitter.generate(contractDir, context)
+            const fieldEmitter = new FieldEmitter()
+            const fieldFiles = fieldEmitter.emit(contractIR)
 
-            // Phase 4: Read & Mapper (use routeResponseMap)
+            // Phase 4: Read & Mapper
             console.log(`[ZodTierGeneratorRefactored] Generating read types...`)
-            await ReadEmitter.generate(typesDir, context, routeResponseMap)
+            const readEmitter = new ReadEmitter()
+            const readFiles = readEmitter.emit(contractIR)
 
             console.log(`[ZodTierGeneratorRefactored] Generating mappers...`)
-            await MapperEmitter.generate(mappersDir, context, routeResponseMap)
+            const mapperEmitter = new MapperEmitter()
+            const mapperFiles = mapperEmitter.emit(contractIR)
+
+            // Write all generated files
+            await ZodTierGeneratorRefactored.writeFiles([...contractFiles, ...schemaFiles, ...fieldFiles, ...readFiles, ...mapperFiles], outputDir)
 
             console.log(`[ZodTierGeneratorRefactored] Generation complete!`)
         } catch (error) {
             console.error(`[ZodTierGeneratorRefactored] Generation failed:`, error)
             throw error
+        }
+    }
+
+    /**
+     * Write generated files to disk
+     */
+    private async writeFiles(files: GeneratedFile[], outputDir: string): Promise<void> {
+        for (const file of files) {
+            const fullPath = path.join(outputDir, file.path)
+            await fs.ensureDir(path.dirname(fullPath))
+            await fs.writeFile(fullPath, file.content, 'utf8')
+            console.log(`[ZodTierGeneratorRefactored] Wrote: ${file.path}`)
         }
     }
 }

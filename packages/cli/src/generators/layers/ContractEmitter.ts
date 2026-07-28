@@ -156,7 +156,8 @@ ${fields.join('\n')}
     }
 
     /**
-     * Generate validator function untuk resource
+     * Generate SHARED validator function untuk resource (⭐ KEY FIX)
+     * Digunakan untuk semua CUD operations yang return single resource
      */
     private generateResourceValidator(resource: ResourceIR): string {
         const functionName = `validate${resource.name}Response`
@@ -166,12 +167,17 @@ ${fields.join('\n')}
 
     /**
      * Generate collection schema sesuai Engine.Fix.md §16
+     * Untuk index operations yang return array of resources
      */
     private generateCollectionSchema(resource: ResourceIR): string {
-        const collectionName = `${resource.name.replace('Resource', '')}sResponseSchema`
+        const resourceName = resource.name.replace('Resource', '')
+        const collectionName = `${resourceName}sResponseSchema`
         return `export const ${collectionName} = z.object({
   data: z.array(${resource.name}Schema)
-})`
+})
+
+export const validate${resource.name}CollectionResponse = (payload: unknown) =>
+  ${collectionName}.parse(payload)`
     }
 
     /**

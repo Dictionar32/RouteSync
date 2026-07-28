@@ -29,6 +29,7 @@ import { SchemaEmitter } from './layers/SchemaEmitter'
 import { ContractEmitter } from './layers/ContractEmitter'
 import { FieldEmitter } from './layers/FieldEmitter'
 import { MapperEmitter } from './layers/MapperEmitter'
+import { SDKEmitter } from './layers/SDKEmitter'
 
 export class ContractGenerator {
     private emitters = [
@@ -37,7 +38,8 @@ export class ContractGenerator {
         new SchemaEmitter(),
         new ContractEmitter(),
         new FieldEmitter(),
-        new MapperEmitter()
+        new MapperEmitter(),
+        new SDKEmitter()
     ]
 
     /**

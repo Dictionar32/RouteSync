@@ -11,7 +11,7 @@ import { readFileSync } from 'fs'
 import { ContractGenerator } from './packages/cli/src/generators/ContractGenerator.js'
 
 console.log('🚀 Contract IR Integration Test Started')
-console.log('=' = 50)
+console.log('='.repeat(50))
 
 // Load real RouteSync manifest
 let manifest
@@ -197,7 +197,7 @@ try {
     }
 
     console.log('\n🏆 Integration Test Results:')
-    console.log('=' = 50)
+    console.log('='.repeat(50))
     console.log('✅ Contract IR Architecture: WORKING')
     console.log('✅ Thin Emitters Pattern: IMPLEMENTED')
     console.log('✅ Domain-Centric Design: ACTIVE')

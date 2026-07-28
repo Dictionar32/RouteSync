@@ -1,0 +1,353 @@
+{
+  "version": "1.0.0",
+  "baseURL": "http://localhost:8000/api",
+  "generatedAt": "2026-07-28T08:10:16.070Z",
+  "routes": [
+    {
+      "name": "register.post",
+      "method": "POST",
+      "path": "/register",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "name": "required|string|max:255",
+          "email": "required|email|unique:users,email",
+          "password": "required|min:6"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "RegisterResponse",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "RegisterResponse",
+          "confidence": 100,
+          "trace": []
+        }
+      }
+    },
+    {
+      "name": "categories.index",
+      "method": "GET",
+      "path": "/categories",
+      "auth": false,
+      "middleware": [],
+      "response": {
+        "kind": "resource",
+        "resource": "CategoryResource",
+        "collection": true,
+        "paginated": false
+      }
+    },
+    {
+      "name": "payments.show",
+      "method": "GET",
+      "path": "/payments/{id}",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "response": {
+        "kind": "resource",
+        "resource": "PaymentResource",
+        "collection": false
+      }
+    }
+  ],
+  "resources": [
+    {
+      "name": "CategoryResource",
+      "fields": {
+        "id": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "nama": {
+          "kind": "primitive",
+          "type": "string",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "created_at": {
+          "kind": "primitive",
+          "type": "datetime",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "updated_at": {
+          "kind": "primitive",
+          "type": "datetime",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        }
+      }
+    },
+    {
+      "name": "PaymentResource",
+      "fields": {
+        "id": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "order_id": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "invoice_number": {
+          "kind": "primitive",
+          "type": "string",
+          "nullable": true,
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "metode": {
+          "kind": "primitive",
+          "type": "string",
+          "nullable": true,
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "detail": {
+          "kind": "primitive",
+          "type": "string",
+          "nullable": true,
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "status": {
+          "kind": "primitive",
+          "type": "string",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "paid_at": {
+          "kind": "primitive",
+          "type": "datetime",
+          "nullable": true,
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "provider": {
+          "kind": "primitive",
+          "type": "string",
+          "nullable": true,
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "provider_txn_id": {
+          "kind": "primitive",
+          "type": "string",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "gateway_status": {
+          "kind": "primitive",
+          "type": "string",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "amount_minor": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "refund_amount_minor": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "items": {
+          "kind": "resource",
+          "resource": "OrderDetailResource",
+          "collection": true
+        },
+        "total_harga": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        }
+      }
+    }
+  ],
+  "models": [
+    {
+      "name": "Category",
+      "table": "categories",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "nama",
+          "type": "varchar",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "table": "payments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "invoice_number",
+          "type": "varchar",
+          "nullable": true
+        },
+        {
+          "name": "metode",
+          "type": "varchar",
+          "nullable": true
+        },
+        {
+          "name": "detail",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "nullable": false
+        },
+        {
+          "name": "paid_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "provider",
+          "type": "varchar",
+          "nullable": true
+        },
+        {
+          "name": "provider_txn_id",
+          "type": "varchar",
+          "nullable": false
+        },
+        {
+          "name": "gateway_status",
+          "type": "varchar",
+          "nullable": false
+        },
+        {
+          "name": "amount_minor",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "refund_amount_minor",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "total_harga",
+          "type": "int",
+          "nullable": false
+        }
+      ]
+    }
+  ]
+}

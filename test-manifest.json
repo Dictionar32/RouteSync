@@ -1,0 +1,124 @@
+{
+  "version": "1.0.0",
+  "baseURL": "http://localhost:8000",
+  "generatedAt": "2026-07-28T08:08:36.150Z",
+  "routes": [
+    {
+      "name": "orders.index",
+      "method": "GET",
+      "path": "/api/orders",
+      "auth": false,
+      "middleware": [],
+      "response": {
+        "kind": "resource",
+        "resource": "OrderResource",
+        "collection": true,
+        "paginated": false
+      }
+    },
+    {
+      "name": "orders.show",
+      "method": "GET",
+      "path": "/api/orders/{id}",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "response": {
+        "kind": "resource",
+        "resource": "OrderResource",
+        "collection": false
+      }
+    },
+    {
+      "name": "orders.store",
+      "method": "POST",
+      "path": "/api/orders",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "schema": {
+        "rules": {
+          "customer_name": "required|string",
+          "total_minor": "required|integer"
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "name": "OrderResource",
+      "fields": {
+        "id": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "customer_name": {
+          "kind": "primitive",
+          "type": "string",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "total_minor": {
+          "kind": "primitive",
+          "type": "int",
+          "resolved": {
+            "type": "number",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        },
+        "created_at": {
+          "kind": "primitive",
+          "type": "datetime",
+          "resolved": {
+            "type": "string",
+            "status": "resolved",
+            "confidence": 1,
+            "trace": []
+          }
+        }
+      }
+    }
+  ],
+  "models": [
+    {
+      "name": "Order",
+      "table": "orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "customer_name",
+          "type": "varchar",
+          "nullable": false
+        },
+        {
+          "name": "total_minor",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": false
+        }
+      ]
+    }
+  ]
+}

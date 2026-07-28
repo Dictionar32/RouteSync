@@ -213,13 +213,28 @@ export class ContractIRBuilder {
      * Build ResourceFieldIR with semantic type and transformations
      */
     private buildResourceField(field: ParsedFieldData): ResourceFieldIR {
-        const typeProjections = this.buildTypeProjectionsFromField(field)
+        // Extract semantic type from resolved data if available
+        let semanticType: SemanticType | string | undefined = field.semanticType
+
+        // Check if field has resolved type information from manifest
+        if (field.resolved?.type) {
+            semanticType = {
+                kind: 'primitive',
+                type: field.resolved.type,
+                resolved: field.resolved
+            }
+            console.log(`✅ Using resolved type for ${field.name}: ${field.resolved.type}`)
+        } else {
+            console.warn(`⚠️  No resolved type for field: ${field.name}`)
+        }
+
+        const typeProjections = this.buildTypeProjectionsFromField(field, semanticType)
 
         return {
             name: field.name,
             transformedName: this.transformFieldName(field.name),
             type: typeProjections,
-            semanticType: field.resolved?.type || field.semanticType,
+            semanticType: semanticType,
             description: field.description,
             validation: field.validation ? this.buildValidationRules(field.validation) : undefined,
             source: field.resolved?.model ? {
@@ -236,17 +251,17 @@ export class ContractIRBuilder {
     /**
      * Build enriched TypeProjections from field data
      */
-    private buildTypeProjectionsFromField(field: ParsedFieldData): TypeProjections {
+    private buildTypeProjectionsFromField(field: ParsedFieldData, semanticType?: SemanticType | string | undefined): TypeProjections {
         const nullable = field.nullable || false
         const optional = field.optional || false
-        const semanticType = field.resolved?.type || field.semanticType
+        const resolvedSemanticType = semanticType || field.resolved?.type || field.semanticType
 
-        const contractType = this.buildContractTypeIR(semanticType, nullable, optional)
-        const readType = this.buildReadTypeIR(semanticType, nullable, optional)
-        const formType = this.buildFormTypeIR(semanticType, nullable, optional)
-        const fieldType = this.buildFieldTypeIR(semanticType, nullable, optional)
-        const mapperType = this.buildMapperTypeIR(semanticType, nullable, optional)
-        const schemaType = this.buildSchemaTypeIR(semanticType, nullable, optional)
+        const contractType = this.buildContractTypeIR(resolvedSemanticType, nullable, optional)
+        const readType = this.buildReadTypeIR(resolvedSemanticType, nullable, optional)
+        const formType = this.buildFormTypeIR(resolvedSemanticType, nullable, optional)
+        const fieldType = this.buildFieldTypeIR(resolvedSemanticType, nullable, optional)
+        const mapperType = this.buildMapperTypeIR(resolvedSemanticType, nullable, optional)
+        const schemaType = this.buildSchemaTypeIR(resolvedSemanticType, nullable, optional)
 
         return {
             contract: contractType,
@@ -328,7 +343,7 @@ export class ContractIRBuilder {
 
     /**
      * Convert semantic type to base TypeIR (without modifiers) - ENHANCED VERSION
-     * Menggunakan type guards utility untuk type safety yang lebih baik
+     * Uses resolved type information from manifest when available
      */
     private semanticToTypeIR(semanticType: SemanticType | string | undefined): TypeIR {
         if (!semanticType) {
@@ -341,6 +356,14 @@ export class ContractIRBuilder {
 
         if (!hasKind(semanticType)) {
             return { kind: 'primitive', type: 'unknown' }
+        }
+
+        // Check if this semantic type has resolved information first
+        const resolvedSemantic = semanticType 
+        if (resolvedSemantic.resolved?.type) {
+            const resolvedType = resolvedSemantic.resolved.type
+            console.log(`🔍 Using resolved type: ${resolvedType}`)
+            return { kind: 'primitive', type: resolvedType as PrimitiveTypeIR['type'] }
         }
 
         // Menggunakan type guards utility yang lebih aman
@@ -429,7 +452,7 @@ export class ContractIRBuilder {
     }
 
     /**
-     * Build resource aliases (Show, Index, Collection types)
+     * Build resource aliases (Show, Index only - removed redundant Collection/Paginated types)
      */
     private buildResourceAliases(resource: ParsedResource): ResourceAliasIR[] {
         const baseName = resource.name.replace('Resource', '')
@@ -443,18 +466,6 @@ export class ContractIRBuilder {
             {
                 name: `${baseName}Index`,
                 kind: "index",
-                target: `${baseName}Transformed`,
-                isArray: true
-            },
-            {
-                name: `${baseName}Collection`,
-                kind: "collection",
-                target: `${baseName}Transformed`,
-                isArray: true
-            },
-            {
-                name: `${baseName}Paginated`,
-                kind: "paginated",
                 target: `${baseName}Transformed`,
                 isArray: true
             }

@@ -32,7 +32,7 @@ export class ZodEmitter {
   static fromObject(fields: Record<string, unknown>, resources: ParsedResource[]): Record<string, ZodAST> {
     const shape: Record<string, ZodAST> = {};
     for (const [key, value] of Object.entries(fields)) {
-      if (value && value.semantic) {
+      if (value && typeof value === 'object' && 'semantic' in value) {
         shape[key] = this.from(value as SemanticIRNode, resources);
       } else {
         shape[key] = { kind: "zod_unknown" };

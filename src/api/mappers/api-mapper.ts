@@ -82,9 +82,8 @@ import type {
   UserTransformed,
   WishlistTransformed,
 } from '../types/api-read'
-import type { ApiFormValues } from '../contract/api-schema'
 import { ApiApiField } from '../contract/api-field'
-import { AdminProdukForm, BuyNowForm, CartItemsForm, CartPromoForm, CheckoutForm, ForgotPasswordForm, LoginForm, OauthRedirectForm, PaymentForm, ProdukReviewsForm, ProfileForm, RegisterForm, ResetPasswordForm, SocialLoginForm, WishlistForm } from '../types'
+import { AdminProdukForm, BuyNowForm, CartItemsForm, CartPromoForm, CheckoutForm, ForgotPasswordForm, LoginForm, OauthRedirectForm, PaymentForm, ProdukReviewsForm, ProfileForm, RegisterForm, ResetPasswordForm, SocialLoginForm, WishlistForm } from '../types/api-form'
 
 export const toCategoryRead = (api: CategoryApiResponse): CategoryTransformed => ({
   id: api.id,
@@ -436,30 +435,30 @@ export const toProdukItemResourceReadList = (api: ProdukItemResourceResponse[]):
 
 export const toLoginResponseRead = (api: LoginResponse): LoginResponse => (api)
 export const toOauthRedirectResponseRead = (api: OauthRedirectResponse): OauthRedirectTransformed => ({
-    provider: api?.provider,
-    authUrl: api?.auth_url
-  })
+  provider: api?.provider,
+  authUrl: api?.auth_url
+})
 export const toSocialLoginResponseRead = (api: SocialLoginResponse): SocialLoginResponse => (api)
 
 export const toCategoriesResponseRead = (api: CategoriesResponse): CategoriesTransformed => ({
-    data: api?.data?.map((item: CategoryApiResponse) => toCategoryRead(item))
-  })
+  data: api?.data?.map((item: CategoryApiResponse) => toCategoryRead(item))
+})
 
 export const toProdukListResponseRead = (api: ProdukListResponse): ProdukItemResourceTransformed[] => toProdukItemResourceReadList(api.data)
 
 export const toProdukReviewsGetResponseRead = (api: ProdukReviewsGetResponse): ProdukReviewsTransformed => ({
-    summaryAvgRating: api?.summary?.avg_rating,
-    summaryTotalReview: api?.summary?.total_review,
-    reviewsData: api?.reviews?.data?.map((item: ProductReviewApiResponse) => toProductReviewRead(item)),
-    reviewsCurrentPage: api?.reviews?.current_page,
-    reviewsTotal: api?.reviews?.total
-  })
+  summaryAvgRating: api?.summary?.avg_rating,
+  summaryTotalReview: api?.summary?.total_review,
+  reviewsData: api?.reviews?.data?.map((item: ProductReviewApiResponse) => toProductReviewRead(item)),
+  reviewsCurrentPage: api?.reviews?.current_page,
+  reviewsTotal: api?.reviews?.total
+})
 export const toProdukReviewsCreateResponseRead = (api: ProdukReviewsCreateResponse): ProdukReviewsCreateResponse => (api)
 export const toOrdersListResponseRead = (api: OrdersListResponse): OrderResourceTransformed[] => toOrderResourceReadList(api.data)
 
 export const toWishlistListResponseRead = (api: WishlistListResponse): ProdukItemResourceTransformed[] => toProdukItemResourceReadList(api.data)
 
-export const toPaymentResponseRead = (api: PaymentResponse): PaymentResourceTransformed => toPaymentResourceRead((api as any).data)
+export const toPaymentResponseRead = (api: PaymentResourceResponse): PaymentResourceTransformed => toPaymentResourceRead(api)
 
 export const toApiRegisterCreate = (form: RegisterForm['Create']): RegisterCreatePayload => ({
   [ApiApiField.NAME]: form.name,
@@ -520,9 +519,9 @@ export const toApiCartPromoCreate = (form: CartPromoForm['Create']): CartPromoCr
 
 export const toApiCheckoutCreate = (form: CheckoutForm['Create']): CheckoutCreatePayload => ({
   [ApiApiField.ITEMS]: form.items?.map((item1) => ({
-      [ApiApiField.PRODUKITEMID]: item1.produkItemId,
-      [ApiApiField.QTY]: item1.qty,
-    })),
+    [ApiApiField.PRODUKITEMID]: item1.produkItemId,
+    [ApiApiField.QTY]: item1.qty,
+  })),
   [ApiApiField.SHIPPINGNAMA]: form.shippingNama,
   [ApiApiField.SHIPPINGTELEPON]: form.shippingTelepon,
   [ApiApiField.SHIPPINGALAMAT]: form.shippingAlamat,

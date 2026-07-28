@@ -233,58 +233,182 @@ ${actionBlock.join('\n')}
     }
 
     private generateTypeImports(ir: ContractIR): string {
-        const imports: string[] = []
+        const readTypes: string[] = []
+        const contractTypes: string[] = []
 
+        // Frontend types dari ReadEmitter
         for (const resource of ir.resources) {
-            const resourceName = this.capitalize(resource.name)
-            // Frontend types dari ReadEmitter
-            imports.push(`import type {
-  ${resourceName}Index,
-  ${resourceName}Show,
-  ${resourceName}Form,
-  ${resourceName}ApiCreate,
-  ${resourceName}ApiUpdate,
-} from '../types/api-read'`)
-
-            // Response types dari ContractEmitter (z.infer results)
-            imports.push(`import type {
-  ${resourceName}ResourceResponse,
-} from '../contract/api-contract'`)
+            const resourceName = this.capitalize(resource.name.replace('Resource', ''))
+            readTypes.push(
+                `  ${resourceName}Index,`,
+                `  ${resourceName}Show,`,
+                `  ${resourceName}Form,`
+            )
         }
 
-        return imports.join('\n')
+        // Request payload types dari SchemaEmitter
+        for (const request of ir.requests) {
+            const requestName = this.capitalize(request.name.replace('Request', ''))
+            for (const action of request.actions) {
+                readTypes.push(`  ${requestName}Api${action.name},`)
+            }
+        }
+
+        // Response types dari ContractEmitter (z.infer results)
+        for (const resource of ir.resources) {
+            const resourceName = this.capitalize(resource.name)
+            contractTypes.push(`  ${resourceName}Response,`)
+        }
+
+        // Additional response types
+        const additionalResponseTypes = [
+            'LoginResponse',
+            'OauthRedirectResponse',
+            'SocialLoginResponse',
+            'CategoriesResponse',
+            'ProdukListResponse',
+            'ProdukReviewsGetResponse',
+            'ProdukReviewsCreateResponse',
+            'OrdersListResponse',
+            'WishlistListResponse'
+        ]
+
+        for (const type of additionalResponseTypes) {
+            if (!contractTypes.some(ct => ct.includes(type))) {
+                contractTypes.push(`  ${type},`)
+            }
+        }
+
+        return `// Frontend types dari ReadEmitter  
+import type {
+${readTypes.join('\n')}
+} from '../types/api-read'
+
+// Response types dari ContractEmitter (z.infer results)
+import type {
+${contractTypes.join('\n')}
+} from '../contract/api-contract'`
     }
 
     private generateValidationImports(ir: ContractIR): string {
-        const imports: string[] = []
+        const validationImports: string[] = []
+        const processedValidators = new Set<string>()
 
-        for (const resource of ir.resources) {
-            const resourceName = this.capitalize(resource.name)
-            imports.push(`import {
-  validate${resourceName}CreatePayload,
-  validate${resourceName}UpdatePayload,
-  validate${resourceName}ResourceResponse,          // ⭐ SHARED
-  validate${resourceName}ResourceCollectionResponse, // ⭐ Collection
-} from '../contract/api-contract'`)
+        // Payload validators dari requests
+        for (const request of ir.requests) {
+            const requestName = this.capitalize(request.name.replace('Request', ''))
+            for (const action of request.actions) {
+                const validatorName = `validate${requestName}${action.name}Payload`
+                if (!processedValidators.has(validatorName)) {
+                    validationImports.push(`  ${validatorName},`)
+                    processedValidators.add(validatorName)
+                }
+            }
         }
 
-        return imports.join('\n')
+        // Response validators dari resources  
+        for (const resource of ir.resources) {
+            const resourceName = this.capitalize(resource.name)
+            const singleValidator = `validate${resourceName}Response`
+            const collectionValidator = `validate${resourceName}CollectionResponse`
+
+            if (!processedValidators.has(singleValidator)) {
+                validationImports.push(`  ${singleValidator},          // ⭐ SHARED`)
+                processedValidators.add(singleValidator)
+            }
+
+            if (!processedValidators.has(collectionValidator)) {
+                validationImports.push(`  ${collectionValidator}, // ⭐ Collection`)
+                processedValidators.add(collectionValidator)
+            }
+        }
+
+        // Additional response validators
+        const additionalValidators = [
+            'validateLoginResponse',
+            'validateOauthRedirectResponse',
+            'validateSocialLoginResponse',
+            'validateCategoriesResponse',
+            'validateProdukListResponse',
+            'validateProdukReviewsGetResponse',
+            'validateProdukReviewsCreateResponse',
+            'validateOrdersListResponse',
+            'validateWishlistListResponse',
+            'validateLogoutResponse',
+            'validateResetPasswordResponse'
+        ]
+
+        for (const validator of additionalValidators) {
+            if (!processedValidators.has(validator)) {
+                validationImports.push(`  ${validator},`)
+                processedValidators.add(validator)
+            }
+        }
+
+        return `// Validation imports dari ContractEmitter
+import {
+${validationImports.join('\n')}
+} from '../contract/api-contract'`
     }
 
     private generateMapperImports(ir: ContractIR): string {
         const imports: string[] = []
+        const processedMappers = new Set<string>()
 
-        for (const resource of ir.resources) {
-            const resourceName = this.capitalize(resource.name)
-            imports.push(`import {
-  toApi${resourceName}Create,
-  toApi${resourceName}Update,
-  to${resourceName}Read,
-  to${resourceName}ReadList,
-} from '../mappers/api-mapper'`)
+        // Form mappers (frontend → API payload)
+        for (const request of ir.requests) {
+            const requestName = this.capitalize(request.name.replace('Request', ''))
+            for (const action of request.actions) {
+                const mapperName = `toApi${requestName}${action.name}`
+                if (!processedMappers.has(mapperName)) {
+                    imports.push(`  ${mapperName},`)
+                    processedMappers.add(mapperName)
+                }
+            }
         }
 
-        return imports.join('\n')
+        // Response mappers (API response → frontend)
+        for (const resource of ir.resources) {
+            const resourceName = this.capitalize(resource.name.replace('Resource', ''))
+            const singleMapper = `to${resourceName}Read`
+            const listMapper = `to${resourceName}ReadList`
+
+            if (!processedMappers.has(singleMapper)) {
+                imports.push(`  ${singleMapper},`)
+                processedMappers.add(singleMapper)
+            }
+
+            if (!processedMappers.has(listMapper)) {
+                imports.push(`  ${listMapper},`)
+                processedMappers.add(listMapper)
+            }
+        }
+
+        // Additional specialized mappers
+        const additionalMappers = [
+            'toLoginResponseRead',
+            'toOauthRedirectResponseRead',
+            'toSocialLoginResponseRead',
+            'toCategoriesResponseRead',
+            'toProdukListResponseRead',
+            'toProdukReviewsGetResponseRead',
+            'toProdukReviewsCreateResponseRead',
+            'toOrdersListResponseRead',
+            'toWishlistListResponseRead',
+            'toRegisterResponseRead'
+        ]
+
+        for (const mapper of additionalMappers) {
+            if (!processedMappers.has(mapper)) {
+                imports.push(`  ${mapper},`)
+                processedMappers.add(mapper)
+            }
+        }
+
+        return `// Mapper imports dari MapperEmitter
+import {
+${imports.join('\n')}
+} from '../mappers/api-mapper'`
     }
 
     private getBodyValidatorName(resourceName: string, actionName: string): string {

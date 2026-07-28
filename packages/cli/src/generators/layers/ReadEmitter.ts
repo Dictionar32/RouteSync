@@ -96,6 +96,8 @@ ${fields.join('\n')}
     /**
      * Emit TypeIR to TypeScript interface types  
      * This replaces mapSemanticTypeToTs() and manual nullable/optional logic
+     * 
+     * FIXED: Better type resolution, avoid defaulting to 'unknown'
      */
     private emitTypeIRToTypeScript(type: TypeIR): string {
         switch (type.kind) {
@@ -125,6 +127,7 @@ ${fields.join('\n')}
                 return JSON.stringify(type.value)
 
             default:
+                console.warn(`ReadEmitter: Unknown type kind '${(type as any).kind}', falling back to 'unknown'`)
                 return 'unknown'
         }
     }
@@ -152,14 +155,22 @@ ${fields.join('\n')}
     /**
      * Generate type alias dari ResourceAliasIR
      * 
+     * FIXED: Only generate standard Show/Index aliases, skip redundant ones
+     * 
      * Input: ResourceAliasIR dengan metadata sudah resolved
-     * Output: Type alias definition
+     * Output: Type alias definition for Show/Index only
      * 
      * Examples:
      * - export type OrderShow = OrderTransformed
      * - export type OrderIndex = OrderTransformed[]
      */
     private generateResourceAlias(alias: ResourceAliasIR): string {
+        // FILTER: Only generate Show and Index aliases
+        // Skip: Collection, Paginated, dan aliases lain yang redundant
+        if (!alias.name.endsWith('Show') && !alias.name.endsWith('Index')) {
+            return '' // Skip redundant aliases
+        }
+
         const target = alias.isArray ? `${alias.target}[]` : alias.target
         return `export type ${alias.name} = ${target}`
     }

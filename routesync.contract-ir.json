@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "generatedAt": "2026-07-28T12:03:30.950Z",
+    "generator": "ContractGenerator v2",
+    "stats": {
+      "resourceCount": 0,
+      "requestCount": 0,
+      "endpointCount": 35,
+      "fileCount": 7
+    },
+    "performance": {
+      "buildTime": 1.9389320000000225,
+      "emitTime": 2.510289
+    }
+  },
+  "note": "Contract IR dump requires generator modification to expose internal IR"
+}

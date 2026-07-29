@@ -74,35 +74,20 @@ export class ServiceGraphBuilder {
   /**
    * Links nodes together to form the Dependency Graph Edges.
    */
-  public linkGraph(fromNode: string, toNode: string, type: ServiceDependency['type'], weight = 1.0): void {
+  public linkGraph(
+    fromNode: string,
+    toNode: string,
+    type: ServiceDependency['type'],
+    weight = 1.0,
+    relationKind?: string
+  ): void {
     this.graph.edges.push({
       from: fromNode,
       to: toNode,
       type,
+      relationKind,
       weight
     });
-  }
-
-  /**
-   * Map relation types to valid ServiceDependency types
-   */
-  private mapRelationToServiceDependency(relationType: string): ServiceDependency['type'] {
-    switch (relationType.toLowerCase()) {
-      case 'belongsto':
-      case 'hasone':
-      case 'hasmany':
-      case 'belongstomany':
-        return 'depends_on_model'
-      case 'calls':
-        return 'calls'
-      case 'composes':
-        return 'composes'
-      case 'uses':
-      case 'repository':
-        return 'uses_repository'
-      default:
-        return 'depends_on_model' // Default for model relations
-    }
   }
 
   /**
@@ -121,22 +106,24 @@ export class ServiceGraphBuilder {
         const modelNode = this.buildModelNode(m.name);
         modelNode.table = m.table;
         if (m.columns) {
-          const fields: Record<string, string> = {};
+          const fields: Record<string, { type: string; nullable: boolean }> = {};
           m.columns.forEach((col) => {
-            fields[col.name] = col.type;
+            fields[col.name] = { type: col.type, nullable: col.nullable };
           });
           modelNode.fields = fields;
         }
         if (m.relations) {
-          modelNode.relations = Object.keys(m.relations);
+          modelNode.relations = m.relations;
         }
         this.graph.models[m.name] = modelNode;
 
         if (m.relations) {
           for (const rel of Object.values(m.relations)) {
-            // Map relation types to valid ServiceDependency types
-            const dependencyType = this.mapRelationToServiceDependency(rel.type)
-            this.linkGraph(m.name, rel.model, dependencyType);
+            // `type` tetap 'depends_on_model' demi backward-compat (lihat
+            // ContractGraph.ts yang mencocokkan `d.type === 'depends_on_model'`).
+            // Cardinality aslinya (hasMany/belongsTo/dst) dibawa lewat
+            // relationKind, bukan lagi dibuang.
+            this.linkGraph(m.name, rel.model, 'depends_on_model', 1.0, rel.type);
           }
         }
       });

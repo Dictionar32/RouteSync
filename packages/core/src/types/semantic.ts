@@ -278,6 +278,15 @@ export interface ServiceDependency {
   | "composes"
   | "depends_on_model"
   | "uses_repository";
+  /**
+   * Cardinality Eloquent relation asli ('hasMany' | 'belongsTo' | 'hasOne' |
+   * 'belongsToMany' | 'morphTo' | dst), kalau edge ini berasal dari model
+   * relation. `type` di atas tetap 'depends_on_model' untuk semuanya demi
+   * backward-compat (ContractGraph.ts mencocokkan `d.type === 'depends_on_model'`)
+   * -- field ini yang membawa info cardinality yang sebelumnya dibuang oleh
+   * ServiceGraphBuilder.
+   */
+  relationKind?: string;
   weight: number; // 0-1 strength
 }
 
@@ -309,8 +318,20 @@ export interface ModelNode {
   kind: "model_node";
   name: string;              // Order
   table?: string;            // orders
-  fields?: Record<string, string>;
-  relations?: string[];
+  /**
+   * Dulu Record<string, string> (nama field -> tipe doang, nullable
+   * hilang). Diperkaya supaya nullable ikut kebawa dari ParsedColumn
+   * -- data ini sudah ditangkap scanner PHP (Schema::getColumns()),
+   * cuma dibuang di ServiceGraphBuilder sebelumnya.
+   */
+  fields?: Record<string, { type: string; nullable: boolean }>;
+  /**
+   * Dulu string[] (nama relasi doang, type & target model hilang).
+   * Diperkaya supaya cardinality (hasMany/belongsTo/dst) dan model
+   * target ikut kebawa -- sama seperti di atas, datanya sudah ada
+   * dari scanner, cuma dibuang.
+   */
+  relations?: Record<string, { type: string; model: string }>;
   layer: "model";
   confidence: number;
 }

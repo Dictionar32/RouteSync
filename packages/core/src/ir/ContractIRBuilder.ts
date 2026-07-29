@@ -40,7 +40,8 @@ import type {
     PrimitiveTypeIR,
     ReferenceTypeIR,
     ValidationRules,
-    TransformFunction
+    TransformFunction,
+    ResolvedSemanticType
 } from '../types/ir'
 
 import { SemanticType } from '../types/semantic'
@@ -214,7 +215,7 @@ export class ContractIRBuilder {
      */
     private buildResourceField(field: ParsedFieldData): ResourceFieldIR {
         // Extract semantic type from resolved data if available
-        let semanticType: SemanticType | string | undefined = field.semanticType
+        let semanticType: SemanticType | ResolvedSemanticType | undefined = field.semanticType
 
         // Check if field has resolved type information from manifest
         if (field.resolved?.type) {
@@ -251,7 +252,7 @@ export class ContractIRBuilder {
     /**
      * Build enriched TypeProjections from field data
      */
-    private buildTypeProjectionsFromField(field: ParsedFieldData, semanticType?: SemanticType | string | undefined): TypeProjections {
+    private buildTypeProjectionsFromField(field: ParsedFieldData, semanticType?: SemanticType | ResolvedSemanticType | undefined): TypeProjections {
         const nullable = field.nullable || false
         const optional = field.optional || false
         const resolvedSemanticType = semanticType || field.resolved?.type || field.semanticType
@@ -276,7 +277,7 @@ export class ContractIRBuilder {
     /**
      * Build TypeIR for ContractEmitter - exact nullable/optional handling
      */
-    private buildContractTypeIR(semanticType: SemanticType | string | undefined, nullable: boolean, optional: boolean): TypeIR {
+    private buildContractTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
         let baseType = this.semanticToTypeIR(semanticType)
 
         if (nullable) {
@@ -293,14 +294,14 @@ export class ContractIRBuilder {
     /**
      * Build TypeIR for ReadEmitter - preserves nullable/optional  
      */
-    private buildReadTypeIR(semanticType: SemanticType | string | undefined, nullable: boolean, optional: boolean): TypeIR {
+    private buildReadTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
         return this.buildContractTypeIR(semanticType, nullable, optional)
     }
 
     /**
      * Build TypeIR for FormEmitter - treats nullable as optional
      */
-    private buildFormTypeIR(semanticType: SemanticType | string | undefined, nullable: boolean, optional: boolean): TypeIR {
+    private buildFormTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
         let baseType = this.semanticToTypeIR(semanticType)
 
         if (nullable || optional) {
@@ -313,14 +314,14 @@ export class ContractIRBuilder {
     /**
      * Build TypeIR for FieldEmitter - no modifiers needed
      */
-    private buildFieldTypeIR(semanticType: SemanticType | string | undefined, nullable: boolean, optional: boolean): TypeIR {
+    private buildFieldTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
         return this.semanticToTypeIR(semanticType)
     }
 
     /**
      * Build TypeIR for MapperEmitter - needs nullable info for runtime checks
      */
-    private buildMapperTypeIR(semanticType: SemanticType | string | undefined, nullable: boolean, optional: boolean): TypeIR {
+    private buildMapperTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
         let baseType = this.semanticToTypeIR(semanticType)
 
         if (nullable) {
@@ -337,7 +338,7 @@ export class ContractIRBuilder {
     /**
      * Build TypeIR for SchemaEmitter - needs nullable/optional for validation
      */
-    private buildSchemaTypeIR(semanticType: SemanticType | string | undefined, nullable: boolean, optional: boolean): TypeIR {
+    private buildSchemaTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
         return this.buildContractTypeIR(semanticType, nullable, optional)
     }
 
@@ -345,7 +346,7 @@ export class ContractIRBuilder {
      * Convert semantic type to base TypeIR (without modifiers) - ENHANCED VERSION
      * Uses resolved type information from manifest when available
      */
-    private semanticToTypeIR(semanticType: SemanticType | string | undefined): TypeIR {
+    private semanticToTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined): TypeIR {
         if (!semanticType) {
             return { kind: 'primitive', type: 'unknown' }
         }
@@ -359,7 +360,7 @@ export class ContractIRBuilder {
         }
 
         // Check if this semantic type has resolved information first
-        const resolvedSemantic = semanticType 
+        const resolvedSemantic = semanticType
         if (resolvedSemantic.resolved?.type) {
             const resolvedType = resolvedSemantic.resolved.type
             console.log(`🔍 Using resolved type: ${resolvedType}`)
@@ -403,7 +404,7 @@ export class ContractIRBuilder {
             if (objectType.properties) {
                 const properties: Record<string, TypeIR> = {}
                 for (const [key, value] of Object.entries(objectType.properties)) {
-                    properties[key] = this.semanticToTypeIR(value as SemanticType | string | undefined)
+                    properties[key] = this.semanticToTypeIR(value as SemanticType | ResolvedSemanticType | undefined)
                 }
 
                 return {
@@ -422,14 +423,14 @@ export class ContractIRBuilder {
 
         if (isArrayType(semanticType)) {
             const arrayType = semanticType as { kind: 'array', items: unknown }
-            return TypeIRUtils.makeArray(this.semanticToTypeIR(arrayType.items as SemanticType | string | undefined))
+            return TypeIRUtils.makeArray(this.semanticToTypeIR(arrayType.items as SemanticType | ResolvedSemanticType | undefined))
         }
 
         if (isUnionType(semanticType)) {
             const unionType = semanticType as { kind: 'union', types: unknown[] }
             return {
                 kind: 'union',
-                types: unionType.types.map((t: unknown) => this.semanticToTypeIR(t as SemanticType | string | undefined))
+                types: unionType.types.map((t: unknown) => this.semanticToTypeIR(t as SemanticType | ResolvedSemanticType | undefined))
             }
         }
 

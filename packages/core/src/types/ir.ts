@@ -25,6 +25,46 @@ import { SemanticType, SemanticNode } from './semantic'
  */
 
 /**
+ * ResolvedSemanticType — bentuk OBJEK dari hasil resolusi semantic,
+ * terpisah dari `SemanticType` (string union sederhana di types/semantic.ts).
+ *
+ * `SemanticType` cuma cocok buat nilai kayak `"string"`, `"number"`,
+ * `"model"`, dst. Tapi kode di ContractIRBuilder (semanticToTypeIR,
+ * buildResourceField) butuh bentuk yang lebih kaya -- objek dengan
+ * `.kind`/`.resource`/`.model`/`.properties`/dst, persis bentuk yang
+ * dicek oleh isPrimitiveType/isResourceType/isModelType/isObjectType/
+ * isArrayType/isUnionType/isLiteralType di utils/type-guards.ts.
+ *
+ * Field manapun yang perlu nampung HASIL RESOLUSI (bukan cuma tag
+ * mentah) harus pakai `SemanticType | ResolvedSemanticType`, bukan
+ * `SemanticType` doang.
+ */
+export interface ResolvedSemanticType {
+    kind: 'primitive' | 'resource' | 'model' | 'object' | 'array' | 'union' | 'literal'
+    // primitive
+    type?: SemanticType
+    format?: string
+    // resource
+    resource?: string
+    collection?: boolean
+    // model
+    model?: string
+    // object
+    properties?: Record<string, ResolvedSemanticType>
+    // array
+    items?: ResolvedSemanticType
+    // union
+    types?: ResolvedSemanticType[]
+    // literal
+    value?: string | number | boolean
+    // dibawa dari field.resolved manifest (lihat ContractIRBuilder.buildResourceField)
+    resolved?: {
+        type?: SemanticType
+        model?: string
+    }
+}
+
+/**
  * Enhanced TypeIR dengan utility methods untuk type safety
  */
 export interface EnhancedTypeIR {
@@ -214,7 +254,9 @@ export interface ResourceFieldIR {
     type: TypeProjections          // All emitter projections pre-computed
 
     // Legacy field (for compatibility during migration)
-    semanticType?: SemanticType    // TODO: Remove after full TypeIR migration
+    // Sebelumnya cuma SemanticType (string union) -- tapi ContractIRBuilder
+    // butuh nampung hasil resolusi berbentuk objek juga (lihat ResolvedSemanticType).
+    semanticType?: SemanticType | ResolvedSemanticType    // TODO: Remove after full TypeIR migration
 
     description?: string
     validation?: ValidationRules

@@ -595,6 +595,12 @@ export interface ParsedField {
     optional?: boolean
     nullable?: boolean
     readonly?: boolean
+
+    // Same rationale as ResourceFieldIR.semanticType (see below): `resolved` above
+    // can only carry a flat SemanticType tag + model name, not enough to represent
+    // resource/object/array/union kinds. ContractIRBuilder needs the richer object
+    // form for those, so adaptManifest() sets this directly for non-primitive fields.
+    semanticType?: SemanticType | ResolvedSemanticType
 }
 
 export interface ParsedAction {

@@ -57,6 +57,141 @@
         "resource": "PaymentResource",
         "collection": false
       }
+    },
+    {
+      "name": "produk.update",
+      "method": "PUT",
+      "path": "/produk/{id}",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "schema": {
+        "rules": {
+          "nama": [
+            "required",
+            "string",
+            "max:255"
+          ],
+          "harga": [
+            "required",
+            "numeric",
+            "min:0"
+          ],
+          "stok": "required|integer|min:0"
+        }
+      },
+      "response": {
+        "kind": "resource",
+        "resource": "ProdukResource",
+        "collection": false
+      }
+    },
+    {
+      "name": "produk.index",
+      "method": "GET",
+      "path": "/produk",
+      "auth": false,
+      "middleware": [],
+      "response": {
+        "kind": "resource",
+        "resource": "ProdukResource",
+        "collection": true,
+        "paginated": true
+      }
+    },
+    {
+      "name": "order.store",
+      "method": "POST",
+      "path": "/orders",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "schema": {
+        "produk_id": "required|exists:produk,id",
+        "qty": "required|integer|min:1",
+        "catatan": "nullable|string"
+      },
+      "response": {
+        "kind": "model",
+        "model": "OrderResponse",
+        "collection": false
+      }
+    },
+    {
+      "name": "wishlist.destroy",
+      "method": "DELETE",
+      "path": "/wishlist/{id}",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "response": {
+        "kind": "unknown"
+      }
+    },
+    {
+      "name": "profile.show",
+      "method": "GET",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "primitive",
+            "type": "int"
+          },
+          "nama_lengkap": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "no_hp": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "reviews.index",
+      "method": "GET",
+      "path": "/produk/{produkId}/reviews",
+      "auth": false,
+      "middleware": [],
+      "response": {
+        "kind": "resource",
+        "resource": "ProductReviewResource",
+        "collection": true,
+        "paginated": false
+      }
+    },
+    {
+      "name": "profile.updatePreferences",
+      "method": "PATCH",
+      "path": "/profile/preferences",
+      "auth": true,
+      "middleware": [
+        "auth"
+      ],
+      "schema": {
+        "rules": {
+          "theme": "required|in:light,dark",
+          "notification_settings": {
+            "email": true,
+            "sms": false
+          }
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "ProfileResponse",
+        "collection": false
+      }
     }
   ],
   "resources": [

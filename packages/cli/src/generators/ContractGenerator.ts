@@ -15,8 +15,8 @@
  * ✅ Testing Simplicity: Test IR building sekali, emitters deterministic
  */
 
-import { RouteManifest } from '../../../core/src/types/route'
-import { ContractIR, GeneratedFile, GeneratedOutput, GenerationContext, IREmitter, RouteManifest as IRRouteManifest, HttpMethod } from '../../../core/src/types/ir'
+import { RouteManifest, ResourceFieldKind } from '../../../core/src/types/route'
+import { ContractIR, GeneratedFile, GeneratedOutput, GenerationContext, IREmitter, RouteManifest as IRRouteManifest, HttpMethod, ResolvedSemanticType } from '../../../core/src/types/ir'
 import { OptimizedContractIRBuilder } from '../../../core/src/ir/ContractIRBuilder'
 import { SemanticResolution } from '../../../core/src/types/contract'
 import { SemanticNode, SemanticType } from '../../../core/src/types/semantic'
@@ -30,6 +30,7 @@ import { ContractEmitter } from './layers/ContractEmitter'
 import { FieldEmitter } from './layers/FieldEmitter'
 import { MapperEmitter } from './layers/MapperEmitter'
 import { SDKEmitter } from './layers/SDKEmitter'
+import { ManifestEnricher } from './layers/utils/manifest-enricher'
 
 export class ContractGenerator {
     private emitters = [
@@ -52,6 +53,13 @@ export class ContractGenerator {
     async generate(manifest: RouteManifest): Promise<GeneratedOutput> {
         const startTime = performance.now()
 
+        // Step 0: Enrich manifest — fills in resources/models RouteSync can infer
+        // from route.response / route.schema.rules that weren't hand-authored in
+        // the manifest. Without this, adaptManifest() below only sees whatever
+        // was already present in manifest.resources and silently drops everything
+        // the parser inferred (FormRequest bodies, JsonResource shapes, etc).
+        const enrichedManifest = ManifestEnricher.enrich(manifest)
+
         // Step 1: Build Contract IR dari manifest dengan mock context
         console.log('[ContractGenerator] Building Contract IR...')
         const mockContext: GenerationContext = {
@@ -73,10 +81,10 @@ export class ContractGenerator {
                     requestSuffix: 'Request'
                 }
             },
-            manifest: this.adaptManifest(manifest)
+            manifest: this.adaptManifest(enrichedManifest)
         }
 
-        const contractIR = new OptimizedContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(manifest))
+        const contractIR = new OptimizedContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(enrichedManifest))
 
         const buildTime = performance.now() - startTime
         console.log(`[ContractGenerator] IR built in ${buildTime.toFixed(2)}ms`)
@@ -200,6 +208,7 @@ export class ContractGenerator {
      * Debug helper - export IR untuk inspection
      */
     async debugExportIR(manifest: RouteManifest, outputPath?: string): Promise<ContractIR> {
+        const enrichedManifest = ManifestEnricher.enrich(manifest)
         const mockContext: GenerationContext = {
             projectRoot: '.',
             outputDir: './output',
@@ -219,10 +228,10 @@ export class ContractGenerator {
                     requestSuffix: 'Request'
                 }
             },
-            manifest: this.adaptManifest(manifest)
+            manifest: this.adaptManifest(enrichedManifest)
         }
 
-        const debugIR = new OptimizedContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(manifest))
+        const debugIR = new OptimizedContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(enrichedManifest))
 
         if (outputPath) {
             const fs = await import('fs-extra')
@@ -291,6 +300,33 @@ export class ContractGenerator {
     }
 
     /**
+     * Convert a raw manifest ResourceFieldKind (primitive/model/resource/object/unknown)
+     * into the richer ResolvedSemanticType object ContractIRBuilder's semanticToTypeIR()
+     * dispatcher understands. Without this, non-primitive fields (e.g. a JsonResource
+     * relation like `items: { kind: 'resource', resource: 'OrderDetailResource' }`)
+     * had no way to reach ContractIRBuilder and silently fell back to 'unknown'.
+     */
+    private toResolvedSemanticType(kind: ResourceFieldKind): ResolvedSemanticType {
+        switch (kind.kind) {
+            case 'primitive':
+                return { kind: 'primitive', type: this.toSemanticType(kind.type) }
+            case 'resource':
+                return { kind: 'resource', resource: kind.resource, collection: kind.collection }
+            case 'model':
+                return { kind: 'model', model: kind.model }
+            case 'object':
+                return {
+                    kind: 'object',
+                    properties: Object.fromEntries(
+                        Object.entries(kind.fields || {}).map(([key, value]) => [key, this.toResolvedSemanticType(value)])
+                    )
+                }
+            default:
+                return { kind: 'primitive', type: 'unknown' }
+        }
+    }
+
+    /**
      * Helper function to safely convert SemanticResolution to SemanticNode
      */
     private toSemanticNode(resolution: SemanticResolution): SemanticNode {
@@ -313,8 +349,9 @@ export class ContractGenerator {
                 fields: Object.entries(r.fields || {}).map(([name, kind]) => ({
                     name,
                     resolved: kind.resolved ? this.toSemanticNode(kind.resolved) : undefined,
+                    semanticType: this.toResolvedSemanticType(kind),
                     optional: false,
-                    nullable: false,
+                    nullable: kind.nullable === true,
                     readonly: false
                 })),
                 controller: undefined,

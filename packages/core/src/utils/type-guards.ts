@@ -121,6 +121,24 @@ export function isLiteralType(value: unknown): value is {
 }
 
 /**
+ * Laravel validation rules guard
+ *
+ * Memastikan value adalah flat map { fieldName: ruleString | ruleString[] },
+ * persis bentuk asli Laravel FormRequest::rules().
+ *
+ * Dipakai untuk menolak object bersarang seperti wrapper `{ rules: {...} }`
+ * (route.schema) sebelum dianggap sebagai flat rules map. Tanpa guard ini,
+ * fallback resolver bisa salah baca wrapper-nya sebagai satu field literal
+ * "rules" dan collapse tipenya jadi string generik.
+ */
+export function isRulesMap(value: unknown): value is Record<string, string | string[]> {
+    return isObject(value) &&
+        Object.values(value).every(
+            (v) => isString(v) || (isArray(v) && v.every(isString))
+        )
+}
+
+/**
  * TypeIR Guards untuk emitter type checking
  */
 export function isNullableType(value: unknown): value is {

@@ -20,6 +20,7 @@ import {
     ActionDefinition
 } from '../../../../../core/src/types/route'
 import { IdentifierSanitizer } from './identifier-sanitizer'
+import { isRulesMap } from '../../../../../core/src/utils/type-guards'
 
 /**
  * Type predicates for safe discriminated union handling
@@ -138,8 +139,20 @@ export class ManifestEnricher {
         const resourceDefinitions = Array.from(resourcesMap.values())
         const modelDefinitions = Array.from(modelsMap.values())
 
+        // Auto-inferred resources should only fill gaps — a resource already
+        // hand-authored in manifest.resources is more complete/curated (it went
+        // through the parser's own field resolution) than what extractResources()
+        // can re-derive purely from route.response metadata. Without this filter,
+        // every route referencing an already-authored resource re-adds a poorer
+        // duplicate, and whichever one lands last in the merged array silently
+        // wins downstream in ContractIRBuilder.
+        const authoredResourceNames = new Set((manifest.resources || []).map((r) => r.name))
+        const newlyInferredResources = resourceDefinitions.filter(
+            (rd) => !authoredResourceNames.has(rd.name)
+        )
+
         // Convert to RouteManifest compatible format
-        const parsedResources = resourceDefinitions.map(
+        const parsedResources = newlyInferredResources.map(
             (rd): ParsedResource => {
                 const collectedFields = rd.collectedFields
                 let fields: Record<string, ResourceFieldKind> = {}
@@ -678,12 +691,17 @@ export class ManifestEnricher {
 
                     // Try to extract schema rules using type-safe pattern
                     if (route && route.schema !== null && route.schema !== undefined && typeof route.schema === 'object' && !Array.isArray(route.schema)) {
-                        // Type-safe extraction: narrow type to object via control flow
-                        const schemaRules: Record<string, unknown> = {}
+                        // route.schema may be a wrapper `{ rules: {...} }` (Laravel FormRequest
+                        // shape from the manifest) or already a flat rules map. Narrow via
+                        // isRulesMap instead of assuming the wrapper shape, so a nested
+                        // object never gets misread as a single field.
+                        const nestedRules: unknown = route.schema.rules
+                        const rulesSource: Record<string, unknown> = isRulesMap(nestedRules)
+                            ? nestedRules
+                            : route.schema
 
-                        // Safely iterate Object.entries without any casting
-                        // Control flow narrowing: Object.entries() works on object types
-                        for (const [key, value] of Object.entries(route.schema)) {
+                        const schemaRules: Record<string, unknown> = {}
+                        for (const [key, value] of Object.entries(rulesSource)) {
                             schemaRules[key] = value
                         }
 

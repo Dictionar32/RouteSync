@@ -44,6 +44,7 @@ import type {
 
 import { SemanticType } from '../types/semantic'
 import { TypeIRUtils } from '../types/ir'
+import { resourceBaseName } from '../utils/resource-naming'
 
 // Constants for deterministic IR
 const IR_VERSION = 'v1.0.0' as const
@@ -539,7 +540,7 @@ export class OptimizedContractIRBuilder {
      * Build resource aliases
      */
     private buildResourceAliases(resource: ParsedResource): ResourceAliasIR[] {
-        const baseName = resource.name.replace('Resource', '')
+        const baseName = resourceBaseName(resource.name)
 
         return [
             {
@@ -572,7 +573,7 @@ export class OptimizedContractIRBuilder {
 
         return {
             source: resource.sourceModel || resource.name,
-            target: `${resource.name}Transformed`,
+            target: `${resourceBaseName(resource.name)}Transformed`,
             mappings,
             transformations: this.buildTransformationRules(fields)
         }

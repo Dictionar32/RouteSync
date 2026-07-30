@@ -53,6 +53,8 @@ export type ResourceFieldKind = (
 ) & {
   resolved?: SemanticResolution
   semantic?: SemanticResolution
+  /** Whether this field can be null in the response payload. */
+  nullable?: boolean
 }
 
 export interface ParsedResource {

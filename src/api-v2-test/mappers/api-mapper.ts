@@ -41,53 +41,28 @@ import { ApiApiField } from '../contract/api-field'
 // Transforms snake_case API responses to camelCase frontend models
 
 export const toRegisterResponseRead = (api: RegisterResponseResponse): RegisterResponseTransformed => ({
-    name: api.name,
-    email: api.email,
-    password: api.password,
+    rules: api.rules,
   })
 
 export const toRegisterResponseReadList = (api: RegisterResponseResponse[]): RegisterResponseTransformed[] =>
   api.map(toRegisterResponseRead)
 
 export const toProdukItemRead = (api: ProdukItemResponse): ProdukItemTransformed => ({
-    nama: api.nama,
-    deskripsi: api.deskripsi,
-    gambar: api.gambar,
-    categoryId: api.categoryId,
-    harga: api.harga,
-    stok: api.stok,
-    rating: api.rating,
-    jumlahReview: api.jumlahReview,
+    rules: api.rules,
   })
 
 export const toProdukItemReadList = (api: ProdukItemResponse[]): ProdukItemTransformed[] =>
   api.map(toProdukItemRead)
 
 export const toOrderRead = (api: OrderResponse): OrderTransformed => ({
-    produkItemId: api.produkItemId,
-    qty: api.qty,
-    code: api.code,
-    items: api.items,
-    itemsprodukItemId: api.itemsprodukItemId,
-    itemsqty: api.itemsqty,
-    shippingNama: api.shippingNama,
-    shippingTelepon: api.shippingTelepon,
-    shippingAlamat: api.shippingAlamat,
-    shippingKota: api.shippingKota,
-    shippingKodePos: api.shippingKodePos,
+    rules: api.rules,
   })
 
 export const toOrderReadList = (api: OrderResponse[]): OrderTransformed[] =>
   api.map(toOrderRead)
 
 export const toPaymentRead = (api: PaymentResponse): PaymentTransformed => ({
-    metode: api.metode,
-    detail: api.detail,
-    provider: api.provider,
-    providerTxnId: api.providerTxnId,
-    idempotencyKey: api.idempotencyKey,
-    gatewayCode: api.gatewayCode,
-    gatewayMessage: api.gatewayMessage,
+    rules: api.rules,
   })
 
 export const toPaymentReadList = (api: PaymentResponse[]): PaymentTransformed[] =>

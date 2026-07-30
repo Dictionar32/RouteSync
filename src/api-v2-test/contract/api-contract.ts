@@ -13,9 +13,7 @@ import { z } from 'zod'
 // Validates data coming FROM backend
 
 export const RegisterResponseSchema = z.object({
-  name: z.unknown(),
-  email: z.unknown(),
-  password: z.unknown(),
+  rules: z.string(),
 })
 
 export type RegisterResponseResponse = z.infer<typeof RegisterResponseSchema>
@@ -24,14 +22,7 @@ export const validateRegisterResponseResponse = (payload: unknown): RegisterResp
   RegisterResponseSchema.parse(payload)
 
 export const ProdukItemSchema = z.object({
-  nama: z.unknown(),
-  deskripsi: z.unknown(),
-  gambar: z.unknown(),
-  categoryId: z.unknown(),
-  harga: z.unknown(),
-  stok: z.unknown(),
-  rating: z.unknown(),
-  jumlahReview: z.unknown(),
+  rules: z.string(),
 })
 
 export type ProdukItemResponse = z.infer<typeof ProdukItemSchema>
@@ -40,17 +31,7 @@ export const validateProdukItemResponse = (payload: unknown): ProdukItemResponse
   ProdukItemSchema.parse(payload)
 
 export const OrderSchema = z.object({
-  produkItemId: z.unknown(),
-  qty: z.unknown(),
-  code: z.unknown(),
-  items: z.unknown(),
-  itemsprodukItemId: z.unknown(),
-  itemsqty: z.unknown(),
-  shippingNama: z.unknown(),
-  shippingTelepon: z.unknown(),
-  shippingAlamat: z.unknown(),
-  shippingKota: z.unknown(),
-  shippingKodePos: z.unknown(),
+  rules: z.string(),
 })
 
 export type OrderResponse = z.infer<typeof OrderSchema>
@@ -59,13 +40,7 @@ export const validateOrderResponse = (payload: unknown): OrderResponse =>
   OrderSchema.parse(payload)
 
 export const PaymentSchema = z.object({
-  metode: z.unknown(),
-  detail: z.unknown(),
-  provider: z.unknown(),
-  providerTxnId: z.unknown(),
-  idempotencyKey: z.unknown(),
-  gatewayCode: z.unknown(),
-  gatewayMessage: z.unknown(),
+  rules: z.string(),
 })
 
 export type PaymentResponse = z.infer<typeof PaymentSchema>

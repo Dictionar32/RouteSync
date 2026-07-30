@@ -5,6 +5,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
 import { ContractGenerator } from '../generators/ContractGenerator'
+import { ManifestEnricher } from '../generators/layers/utils/manifest-enricher'
 
 export const generateV2Command = new Command('generate-v2')
     .description('Generate typed SDK using new Contract IR Architecture (v2)')
@@ -31,6 +32,24 @@ export const generateV2Command = new Command('generate-v2')
                 console.log(chalk.dim(`\n  Loaded manifest: ${manifest.routes?.length || 0} routes, ${manifest.resources?.length || 0} resources, ${manifest.models?.length || 0} models`))
             }
 
+            // CRITICAL: Enrich manifest dengan missing Resources & Models
+            spinner.text = 'Enriching manifest dengan Resources & Models data...'
+            let enrichedManifest: any
+            try {
+                enrichedManifest = ManifestEnricher.enrich(manifest)
+            } catch (enrichError: any) {
+                spinner.fail(chalk.red(`Manifest enrichment failed: ${enrichError.message}`))
+                if (options.verbose) {
+                    console.error(chalk.dim(enrichError.stack))
+                }
+                process.exit(1)
+            }
+
+            if (options.verbose) {
+                console.log(chalk.dim(`\n  Enriched manifest: ${enrichedManifest.routes?.length || 0} routes, ${enrichedManifest.resources?.length || 0} resources, ${enrichedManifest.models?.length || 0} models`))
+                console.log(chalk.dim(`  Enrichment: ${enrichedManifest.enrichmentMetadata.resourcesFound} resources, ${enrichedManifest.enrichmentMetadata.modelsInferred} models inferred`))
+            }
+
             // Ensure output directory exists
             await fs.ensureDir(options.output)
 
@@ -46,7 +65,7 @@ export const generateV2Command = new Command('generate-v2')
             spinner.text = 'Building Contract IR and generating files...'
             const startTime = performance.now()
 
-            const result = await generator.generate(manifest)
+            const result = await generator.generate(enrichedManifest)
 
             const totalTime = performance.now() - startTime
 

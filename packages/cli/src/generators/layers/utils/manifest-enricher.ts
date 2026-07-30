@@ -76,21 +76,51 @@ export class ManifestEnricher {
         // Step 3: Build action definitions per resource
         this.buildActionDefinitions(manifest, resourcesMap, warnings)
 
+        // Step 4: Extract dan populate fields untuk setiap resource
+        this.populateResourceFields(manifest, resourcesMap, warnings)
+
         const enrichmentTime = performance.now() - startTime
         const resourceDefinitions = Array.from(resourcesMap.values())
         const modelDefinitions = Array.from(modelsMap.values())
 
         // Convert to RouteManifest compatible format
-        const parsedResources = resourceDefinitions.map(rd => ({
-            name: rd.name,
-            sanitizedName: rd.sanitizedName,
-            baseModel: rd.baseModel,
-            actions: rd.actions,
-            endpoints: rd.endpoints,
-            fields: {} as Record<string, any>, // Empty for now, can be enhanced later
-            sourceFile: null,
-            sourceLine: null
-        }))
+        const parsedResources = resourceDefinitions.map(rd => {
+            // Use collected fields dari populateResourceFields() jika ada
+            const collectedFields = (rd as any).collectedFields
+            let fields: Record<string, any> = {}
+
+            if (collectedFields && Object.keys(collectedFields).length > 0) {
+                fields = collectedFields
+            } else {
+                // Fallback: extract dari endpoints
+                for (const routeId of rd.endpoints) {
+                    const route = (manifest.routes || []).find(r =>
+                        (r.name || `${r.method}_${r.path}`) === routeId
+                    )
+
+                    if (route?.schema?.rules) {
+                        const schemaFields = this.extractFieldsFromSchema(route.schema.rules as Record<string, unknown>)
+                        Object.assign(fields, schemaFields)
+                    }
+                }
+            }
+
+            // Use populated fields atau fallback ke default
+            const finalFields = Object.keys(fields).length > 0
+                ? fields
+                : this.generateDefaultFields(rd.baseModel)
+
+            return {
+                name: rd.name,
+                sanitizedName: rd.sanitizedName,
+                baseModel: rd.baseModel,
+                actions: rd.actions,
+                endpoints: rd.endpoints,
+                fields: finalFields,
+                sourceFile: null,
+                sourceLine: null
+            }
+        })
 
         const parsedModels = modelDefinitions.map(md => ({
             name: md.name,
@@ -330,12 +360,15 @@ export class ManifestEnricher {
         return columns
     }
 
-    private static inferColumnsFromSchema(rules: Record<string, string>, warnings: string[]): ColumnDefinition[] {
+    private static inferColumnsFromSchema(rules: Record<string, unknown>, warnings: string[]): ColumnDefinition[] {
         const columns: ColumnDefinition[] = []
 
         for (const [fieldName, rule] of Object.entries(rules)) {
-            const type = this.inferSqlTypeFromRule(rule)
-            const nullable = !rule.includes('required')
+            // Handle rules that might be arrays (Laravel-style: ['required', 'string', 'max:255'])
+            const ruleString = Array.isArray(rule) ? rule.join('|') : String(rule)
+
+            const type = this.inferSqlTypeFromRule(ruleString)
+            const nullable = !ruleString.includes('required')
 
             columns.push({
                 name: fieldName,
@@ -393,6 +426,162 @@ export class ManifestEnricher {
                 return 'destroy'
             default:
                 return method.toLowerCase()
+        }
+    }
+
+    /**
+     * Extract fields dari Laravel validation rules dan map ke Zod schemas
+     */
+    private static extractFieldsFromSchema(rules: Record<string, unknown>): Record<string, any> {
+        const fields: Record<string, any> = {}
+
+        for (const [fieldName, rule] of Object.entries(rules)) {
+            const ruleString = Array.isArray(rule) ? rule.join('|') : String(rule)
+            const sanitizedName = IdentifierSanitizer.toCamelCase(fieldName)
+
+            // Infer Zod type dari Laravel rule
+            const zodType = this.inferZodTypeFromRule(ruleString)
+            const isRequired = ruleString.includes('required')
+
+            fields[sanitizedName] = {
+                name: sanitizedName,
+                type: zodType,
+                required: isRequired,
+                rule: ruleString,
+                validation: this.buildZodValidation(ruleString)
+            }
+        }
+
+        return fields
+    }
+
+    /**
+     * Infer Zod type dari Laravel validation rule
+     */
+    private static inferZodTypeFromRule(rule: string): string {
+        const ruleLower = rule.toLowerCase()
+
+        if (ruleLower.includes('email')) {
+            return 'z.string().email()'
+        }
+
+        if (ruleLower.includes('integer') || ruleLower.includes('numeric')) {
+            return 'z.number().int()'
+        }
+
+        if (ruleLower.includes('boolean')) {
+            return 'z.boolean()'
+        }
+
+        if (ruleLower.includes('array')) {
+            return 'z.array(z.unknown())'
+        }
+
+        if (ruleLower.includes('date')) {
+            return 'z.string().datetime()'
+        }
+
+        if (ruleLower.includes('json')) {
+            return 'z.record(z.unknown())'
+        }
+
+        // Default: string
+        return 'z.string()'
+    }
+
+    /**
+     * Build Zod validation dari Laravel rules
+     */
+    private static buildZodValidation(rule: string): string {
+        const ruleLower = rule.toLowerCase()
+        const parts: string[] = []
+
+        // Email validation
+        if (ruleLower.includes('email')) {
+            parts.push('email()')
+        }
+
+        // Max length validation
+        const maxMatch = rule.match(/max[:|=_]*(\d+)/i)
+        if (maxMatch) {
+            parts.push(`max(${maxMatch[1]})`)
+        }
+
+        // Min length validation
+        const minMatch = rule.match(/min[:|=_]*(\d+)/i)
+        if (minMatch) {
+            parts.push(`min(${minMatch[1]})`)
+        }
+
+        // Integer validation
+        if (ruleLower.includes('integer')) {
+            parts.push('int()')
+        }
+
+        // Unique validation (database constraint)
+        if (ruleLower.includes('unique')) {
+            parts.push('refine(async (val) => { /* check uniqueness */ })')
+        }
+
+        return parts.length > 0 ? parts.join('.') : 'nonempty()'
+    }
+
+    /**
+     * Generate default fields untuk resource berdasarkan base model
+     */
+    private static generateDefaultFields(baseModel?: string): Record<string, any> {
+        return {
+            id: {
+                name: 'id',
+                type: 'z.number()',
+                required: true,
+                validation: 'int()'
+            },
+            createdAt: {
+                name: 'createdAt',
+                type: 'z.string().datetime()',
+                required: false,
+                validation: 'datetime()'
+            },
+            updatedAt: {
+                name: 'updatedAt',
+                type: 'z.string().datetime()',
+                required: false,
+                validation: 'datetime()'
+            }
+        }
+    }
+
+    /**
+     * Populate resource fields dari manifest routes
+     */
+    private static populateResourceFields(
+        manifest: RouteManifest,
+        resourcesMap: Map<string, ResourceDefinition>,
+        warnings: string[]
+    ): void {
+        for (const resource of resourcesMap.values()) {
+            const fieldsMap = new Map<string, any>()
+
+            // Collect fields dari semua endpoints yang use resource ini
+            for (const routeId of resource.endpoints) {
+                const route = (manifest.routes || []).find(r =>
+                    (r.name || `${r.method}_${r.path}`) === routeId
+                )
+
+                if (route?.schema?.rules) {
+                    const fields = this.extractFieldsFromSchema(route.schema.rules as Record<string, unknown>)
+                    for (const [key, val] of Object.entries(fields)) {
+                        if (!fieldsMap.has(key)) {
+                            fieldsMap.set(key, val)
+                        }
+                    }
+                }
+            }
+
+            // Assign collected fields back to resource
+            // (Will be converted to Record in enrich() method)
+            ; (resource as any).collectedFields = Object.fromEntries(fieldsMap)
         }
     }
 

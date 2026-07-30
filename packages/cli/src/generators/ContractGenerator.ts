@@ -17,7 +17,7 @@
 
 import { RouteManifest } from '../../../core/src/types/route'
 import { ContractIR, GeneratedFile, GeneratedOutput, GenerationContext, IREmitter, RouteManifest as IRRouteManifest, HttpMethod } from '../../../core/src/types/ir'
-import { ContractIRBuilder } from '../../../core/src/ir/ContractIRBuilder'
+import { OptimizedContractIRBuilder } from '../../../core/src/ir/ContractIRBuilder'
 import { SemanticResolution } from '../../../core/src/types/contract'
 import { SemanticNode, SemanticType } from '../../../core/src/types/semantic'
 
@@ -76,7 +76,7 @@ export class ContractGenerator {
             manifest: this.adaptManifest(manifest)
         }
 
-        const contractIR = new ContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(manifest))
+        const contractIR = new OptimizedContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(manifest))
 
         const buildTime = performance.now() - startTime
         console.log(`[ContractGenerator] IR built in ${buildTime.toFixed(2)}ms`)
@@ -222,7 +222,7 @@ export class ContractGenerator {
             manifest: this.adaptManifest(manifest)
         }
 
-        const debugIR = new ContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(manifest))
+        const debugIR = new OptimizedContractIRBuilder(mockContext).buildFromManifest(this.adaptManifest(manifest))
 
         if (outputPath) {
             const fs = await import('fs-extra')

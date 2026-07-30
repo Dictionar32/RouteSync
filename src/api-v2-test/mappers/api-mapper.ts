@@ -2,6 +2,10 @@
 
 // ⭐ Contract types (Response types from Zod schemas)
 import type {
+  RegisterResponseResponse,
+  ProdukItemResponse,
+  OrderResponse,
+  PaymentResponse,
   LoginResponse,
   OauthRedirectResponse,
   SocialLoginResponse,
@@ -18,10 +22,13 @@ import type {
 
 // ⭐ Frontend types (Transformed display types)
 import type {
+  RegisterResponseTransformed,
+  ProdukItemTransformed,
+  OrderTransformed,
+  PaymentTransformed,
   CategoriesTransformed,
   OauthRedirectTransformed,
   ProdukReviewsTransformed,
-  RegisterResponseTransformed,
 } from '../types/api-read'
 
 // ⭐ Field constants for API payload transformation
@@ -32,6 +39,59 @@ import { ApiApiField } from '../contract/api-field'
 
 // ==== READ MAPPERS (API Response → Frontend Model) ====
 // Transforms snake_case API responses to camelCase frontend models
+
+export const toRegisterResponseRead = (api: RegisterResponseResponse): RegisterResponseTransformed => ({
+    name: api.name,
+    email: api.email,
+    password: api.password,
+  })
+
+export const toRegisterResponseReadList = (api: RegisterResponseResponse[]): RegisterResponseTransformed[] =>
+  api.map(toRegisterResponseRead)
+
+export const toProdukItemRead = (api: ProdukItemResponse): ProdukItemTransformed => ({
+    nama: api.nama,
+    deskripsi: api.deskripsi,
+    gambar: api.gambar,
+    categoryId: api.categoryId,
+    harga: api.harga,
+    stok: api.stok,
+    rating: api.rating,
+    jumlahReview: api.jumlahReview,
+  })
+
+export const toProdukItemReadList = (api: ProdukItemResponse[]): ProdukItemTransformed[] =>
+  api.map(toProdukItemRead)
+
+export const toOrderRead = (api: OrderResponse): OrderTransformed => ({
+    produkItemId: api.produkItemId,
+    qty: api.qty,
+    code: api.code,
+    items: api.items,
+    itemsprodukItemId: api.itemsprodukItemId,
+    itemsqty: api.itemsqty,
+    shippingNama: api.shippingNama,
+    shippingTelepon: api.shippingTelepon,
+    shippingAlamat: api.shippingAlamat,
+    shippingKota: api.shippingKota,
+    shippingKodePos: api.shippingKodePos,
+  })
+
+export const toOrderReadList = (api: OrderResponse[]): OrderTransformed[] =>
+  api.map(toOrderRead)
+
+export const toPaymentRead = (api: PaymentResponse): PaymentTransformed => ({
+    metode: api.metode,
+    detail: api.detail,
+    provider: api.provider,
+    providerTxnId: api.providerTxnId,
+    idempotencyKey: api.idempotencyKey,
+    gatewayCode: api.gatewayCode,
+    gatewayMessage: api.gatewayMessage,
+  })
+
+export const toPaymentReadList = (api: PaymentResponse[]): PaymentTransformed[] =>
+  api.map(toPaymentRead)
 
 // ==== FORM MAPPERS (Frontend Form → API Payload) ====
 // Transforms camelCase form data to snake_case API payloads using ApiApiField

@@ -13,6 +13,7 @@ import { createHash } from 'crypto'
 import type {
     ContractIR,
     ResourceIR,
+    ResourceVariantIR,
     RequestIR,
     EndpointIR,
     SharedTypeIR,
@@ -262,14 +263,25 @@ export class OptimizedContractIRBuilder {
      */
     private buildResourceIR(resource: ParsedResource): ResourceIR {
         const fields = resource.fields.map(field => this.buildOptimizedResourceField(field))
+        const legacyFields = fields.map(f => this.convertToLegacyFieldIR(f))
+
+        // Build variants untuk ReadEmitter (read-only transformations)
+        const readVariant: ResourceVariantIR = {
+            kind: 'read',
+            fields: legacyFields, // Use ResourceFieldIR directly
+            metadata: {
+                purpose: 'TypeScript interfaces for read operations',
+                generator: 'ReadEmitter'
+            }
+        }
 
         const resourceIR: ResourceIR = {
             id: this.generateResourceId(resource),
             name: resource.name,
             sourceModel: resource.sourceModel,
-            fields: fields.map(f => this.convertToLegacyFieldIR(f)), // Convert to legacy format
+            fields: legacyFields,
             aliases: this.buildResourceAliases(resource),
-            variants: [], // Simplified - no more variant duplication
+            variants: [readVariant], // Populate with read variant
             mapper: this.buildResourceMapper(resource, fields),
             metadata: {
                 sourceFile: resource.name,

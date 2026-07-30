@@ -293,7 +293,7 @@ export interface ResourceMetadata {
     sourceFile: string
     controller?: string
     routes?: string[]             // Routes that use this resource
-    generated_at: string
+
     dependencies: string[]        // Other resources this depends on
 }
 

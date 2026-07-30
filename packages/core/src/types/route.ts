@@ -57,10 +57,23 @@ export type ResourceFieldKind = (
 
 export interface ParsedResource {
   name: string // e.g., UserResource
+  sanitizedName?: string // Sanitized identifier name
+  baseModel?: string // Base model name  
+  actions?: ActionDefinition[] // Available CRUD actions
+  endpoints?: string[] // Associated route endpoints
   fields: Record<string, ResourceFieldKind>
   assignments?: Record<string, string>
   sourceFile?: string | null
   sourceLine?: number | null
+}
+
+// Add ActionDefinition interface for ParsedResource
+export interface ActionDefinition {
+  name: string
+  method: string
+  hasBody: boolean
+  hasResponse: boolean
+  routes: string[]
 }
 
 export type ResponseMetadata = (

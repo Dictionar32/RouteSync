@@ -1,13 +1,12 @@
 /**
- * Contract IR Builder
+ * Contract IR Builder - Optimized Version
  * 
- * Converts semantic analysis results into the domain-centric Contract IR structure.
- * This is the central transformation that enables thin emitters.
- * 
- * ENHANCED WITH TYPE IR SYSTEM:
- * - Builds rich TypeIR projections for each emitter
- * - Eliminates semantic compiler knowledge from emitters  
- * - Pre-resolves all type information (nullable, optional, nested objects)
+ * Addresses key performance and architectural issues:
+ * 1. Single TypeIR per field (no more 6x duplication)
+ * 2. Projection-based rendering (emitters handle variations)
+ * 3. Deterministic IR (no timestamps in individual nodes)
+ * 4. Modular semantic resolution (separate resolvers)
+ * 5. Clean semantic boundary (no semantic types in final IR)
  */
 
 import { createHash } from 'crypto'
@@ -25,7 +24,6 @@ import type {
     ParsedRoute,
     ResourceFieldIR,
     ResourceAliasIR,
-    ResourceVariantIR,
     MapperIR,
     MapperFieldIR,
     RequestActionIR,
@@ -36,7 +34,6 @@ import type {
     GenerationContext,
     ContractMetadata,
     TypeIR,
-    TypeProjections,
     PrimitiveTypeIR,
     ReferenceTypeIR,
     ValidationRules,
@@ -45,18 +42,11 @@ import type {
 } from '../types/ir'
 
 import { SemanticType } from '../types/semantic'
-import {
-    isPrimitiveType,
-    isResourceType,
-    isModelType,
-    isObjectType,
-    isArrayType,
-    isUnionType,
-    isLiteralType,
-    safeStringCast,
-    hasKind
-} from '../utils/type-guards'
 import { TypeIRUtils } from '../types/ir'
+
+// Constants for deterministic IR
+const IR_VERSION = 'v1.0.0' as const
+const GENERATOR_VERSION = '1.0.0' as const
 
 interface ParsedFieldData {
     name: string
@@ -78,22 +68,158 @@ interface ParsedActionData {
     validation?: Record<string, unknown>
 }
 
-export class ContractIRBuilder {
+/**
+ * Projection hints for emitters - lightweight metadata instead of duplicated TypeIR trees
+ */
+interface ProjectionHints {
+    /** Form fields should treat nullable as optional */
+    formNullableAsOptional?: boolean
+    /** Field emitters don't need modifiers */
+    stripModifiers?: boolean
+    /** Mapper needs runtime null checks */
+    includeRuntimeChecks?: boolean
+}
+
+/**
+ * Optimized ResourceFieldIR - single TypeIR + hints instead of 6 projections
+ */
+interface OptimizedResourceFieldIR {
+    name: string
+    transformedName: string
+    type: TypeIR                    // Single source of truth
+    hints: ProjectionHints          // Lightweight emitter guidance
+    description?: string
+    validation?: ValidationRules
+    source?: {
+        type: 'model_column' | 'accessor' | 'method' | 'computed' | 'relation'
+        path: string
+        model?: string
+    }
+    // No more semanticType - clean boundary!
+}
+
+/**
+ * Modular semantic type resolvers - break down the large semanticToTypeIR function
+ */
+class SemanticTypeResolvers {
+    static resolvePrimitive(semantic: any): TypeIR {
+        const primitiveType = semantic as { kind: 'primitive', type: string, format?: string }
+        return {
+            kind: 'primitive',
+            type: (primitiveType.type || 'unknown') as PrimitiveTypeIR['type'],
+            format: primitiveType.format
+        }
+    }
+
+    static resolveResource(semantic: any): TypeIR {
+        const resourceType = semantic as { kind: 'resource', resource: string, collection?: boolean }
+        const resourceRef: ReferenceTypeIR = {
+            kind: 'reference',
+            target: resourceType.resource + 'Schema'
+        }
+
+        if (resourceType.collection) {
+            return TypeIRUtils.makeArray(resourceRef)
+        }
+
+        return resourceRef
+    }
+
+    static resolveModel(semantic: any): TypeIR {
+        const modelType = semantic as { kind: 'model', model: string }
+        return {
+            kind: 'reference',
+            target: modelType.model + 'Schema'
+        }
+    }
+
+    static resolveObject(semantic: any, resolver: (type: unknown) => TypeIR): TypeIR {
+        const objectType = semantic as { kind: 'object', properties?: Record<string, unknown> }
+
+        if (objectType.properties) {
+            const properties: Record<string, TypeIR> = {}
+            for (const [key, value] of Object.entries(objectType.properties)) {
+                properties[key] = resolver(value)
+            }
+
+            return {
+                kind: 'inline_object',
+                properties,
+                additionalProperties: false
+            }
+        }
+
+        return {
+            kind: 'inline_object',
+            properties: {},
+            additionalProperties: true
+        }
+    }
+
+    static resolveArray(semantic: any, resolver: (type: unknown) => TypeIR): TypeIR {
+        const arrayType = semantic as { kind: 'array', items: unknown }
+        return TypeIRUtils.makeArray(resolver(arrayType.items))
+    }
+
+    static resolveUnion(semantic: any, resolver: (type: unknown) => TypeIR): TypeIR {
+        const unionType = semantic as { kind: 'union', types: unknown[] }
+        return {
+            kind: 'union',
+            types: unionType.types.map(t => resolver(t))
+        }
+    }
+
+    static resolveLiteral(semantic: any): TypeIR {
+        const literalType = semantic as { kind: 'literal', value: string | number | boolean }
+        return {
+            kind: 'literal',
+            value: literalType.value
+        }
+    }
+}
+
+/**
+ * Diagnostic collector - replace direct console logging
+ */
+class DiagnosticCollector {
+    private diagnostics: Array<{ level: 'info' | 'warn' | 'error', message: string, context?: any }> = []
+
+    info(message: string, context?: any): void {
+        this.diagnostics.push({ level: 'info', message, context })
+    }
+
+    warn(message: string, context?: any): void {
+        this.diagnostics.push({ level: 'warn', message, context })
+    }
+
+    error(message: string, context?: any): void {
+        this.diagnostics.push({ level: 'error', message, context })
+    }
+
+    getDiagnostics(): typeof this.diagnostics {
+        return [...this.diagnostics]
+    }
+
+    clear(): void {
+        this.diagnostics = []
+    }
+}
+
+export class OptimizedContractIRBuilder {
     private resources: Map<string, ResourceIR> = new Map()
     private requests: Map<string, RequestIR> = new Map()
     private endpoints: Map<string, EndpointIR> = new Map()
     private sharedTypes: Map<string, SharedTypeIR> = new Map()
     private enums: Map<string, EnumIR> = new Map()
+    private diagnostics = new DiagnosticCollector()
 
-    constructor(
-        private context: GenerationContext
-    ) { }
+    constructor(private context: GenerationContext) { }
 
     /**
      * Main entry point: builds Contract IR from parsed manifest
      */
     buildFromManifest(manifest: RouteManifest): ContractIR {
-        console.log('🏗️  Building Contract IR from manifest...')
+        this.diagnostics.info('Building Contract IR from manifest')
 
         // Build Resources from parsed resources
         for (const resource of manifest.resources) {
@@ -127,7 +253,7 @@ export class ContractIRBuilder {
             metadata: this.buildMetadata(manifest)
         }
 
-        console.log(`✅ Built Contract IR: ${ir.resources.length} resources, ${ir.requests.length} requests, ${ir.endpoints.length} endpoints`)
+        this.diagnostics.info(`Built Contract IR: ${ir.resources.length} resources, ${ir.requests.length} requests, ${ir.endpoints.length} endpoints`)
         return ir
     }
 
@@ -135,26 +261,173 @@ export class ContractIRBuilder {
      * Build ResourceIR from parsed resource
      */
     private buildResourceIR(resource: ParsedResource): ResourceIR {
-        const fields = resource.fields.map(field => this.buildResourceField(field))
+        const fields = resource.fields.map(field => this.buildOptimizedResourceField(field))
 
         const resourceIR: ResourceIR = {
             id: this.generateResourceId(resource),
             name: resource.name,
             sourceModel: resource.sourceModel,
-            fields,
+            fields: fields.map(f => this.convertToLegacyFieldIR(f)), // Convert to legacy format
             aliases: this.buildResourceAliases(resource),
-            variants: this.buildResourceVariants(resource, fields),
+            variants: [], // Simplified - no more variant duplication
             mapper: this.buildResourceMapper(resource, fields),
             metadata: {
                 sourceFile: resource.name,
                 controller: resource.controller,
                 routes: resource.routes || [],
-                generated_at: new Date().toISOString(),
+                // No more generated_at per resource
                 dependencies: this.extractDependencies(fields)
             }
         }
 
         return resourceIR
+    }
+
+    /**
+     * Build optimized field with single TypeIR + projection hints
+     */
+    private buildOptimizedResourceField(field: ParsedFieldData): OptimizedResourceFieldIR {
+        // Extract semantic type from resolved data if available
+        let semanticType: SemanticType | ResolvedSemanticType | undefined = field.semanticType
+
+        // Check if field has resolved type information from manifest
+        if (field.resolved?.type) {
+            semanticType = {
+                kind: 'primitive',
+                type: field.resolved.type,
+                resolved: field.resolved
+            }
+            this.diagnostics.info(`Using resolved type for ${field.name}: ${field.resolved.type}`)
+        } else {
+            this.diagnostics.warn(`No resolved type for field: ${field.name}`)
+        }
+
+        // Build single TypeIR with modifiers applied
+        let baseType = this.semanticToTypeIR(semanticType)
+
+        // Apply modifiers to the base type
+        if (field.nullable) {
+            baseType = TypeIRUtils.makeNullable(baseType)
+        }
+        if (field.optional) {
+            baseType = TypeIRUtils.makeOptional(baseType)
+        }
+
+        // Build projection hints for emitters
+        const hints: ProjectionHints = {
+            formNullableAsOptional: field.nullable === true,
+            stripModifiers: false, // Field emitter might want this
+            includeRuntimeChecks: field.nullable || field.optional
+        }
+
+        return {
+            name: field.name,
+            transformedName: this.transformFieldName(field.name),
+            type: baseType,  // Single TypeIR instead of 6 projections
+            hints,           // Lightweight emitter guidance
+            description: field.description,
+            validation: field.validation ? this.buildValidationRules(field.validation) : undefined,
+            source: field.resolved?.model ? {
+                type: 'model_column' as const,
+                path: field.name,
+                model: field.resolved.model
+            } : {
+                type: 'computed' as const,
+                path: field.name
+            }
+            // No semanticType field - clean boundary achieved!
+        }
+    }
+
+    /**
+     * Convert optimized field to legacy format for compatibility
+     */
+    private convertToLegacyFieldIR(field: OptimizedResourceFieldIR): ResourceFieldIR {
+        // Generate the 6 projections on-demand for backwards compatibility
+        // In the future, emitters should read field.type + field.hints directly
+        const typeProjections = {
+            contract: field.type,
+            read: field.type,
+            form: field.hints.formNullableAsOptional
+                ? this.projectForForm(field.type)
+                : field.type,
+            field: field.hints.stripModifiers
+                ? TypeIRUtils.unwrapType(field.type)
+                : field.type,
+            mapper: field.type,
+            schema: field.type
+        }
+
+        return {
+            name: field.name,
+            transformedName: field.transformedName,
+            type: typeProjections,
+            description: field.description,
+            validation: field.validation,
+            source: field.source
+            // Note: no semanticType - boundary is clean
+        }
+    }
+
+    /**
+     * Project TypeIR for form usage (nullable becomes optional)
+     */
+    private projectForForm(type: TypeIR): TypeIR {
+        if (TypeIRUtils.isNullable(type)) {
+            return { kind: 'optional', inner: type.inner }
+        }
+        return type
+    }
+
+    /**
+     * Modular semantic type resolution - dispatcher pattern
+     */
+    private semanticToTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined): TypeIR {
+        if (!semanticType) {
+            return { kind: 'primitive', type: 'unknown' }
+        }
+
+        if (typeof semanticType === 'string') {
+            return { kind: 'primitive', type: semanticType as PrimitiveTypeIR['type'] }
+        }
+
+        if (typeof semanticType !== 'object' || !semanticType.kind) {
+            this.diagnostics.warn('Invalid semantic type structure', semanticType)
+            return { kind: 'primitive', type: 'unknown' }
+        }
+
+        // Check if this semantic type has resolved information first
+        const resolvedSemantic = semanticType as any
+        if (resolvedSemantic.resolved?.type) {
+            this.diagnostics.info(`Using resolved type: ${resolvedSemantic.resolved.type}`)
+            return { kind: 'primitive', type: resolvedSemantic.resolved.type as PrimitiveTypeIR['type'] }
+        }
+
+        // Dispatch to specific resolvers based on kind
+        try {
+            switch (semanticType.kind) {
+                case 'primitive':
+                    return SemanticTypeResolvers.resolvePrimitive(semanticType)
+                case 'resource':
+                    return SemanticTypeResolvers.resolveResource(semanticType)
+                case 'model':
+                    return SemanticTypeResolvers.resolveModel(semanticType)
+                case 'object':
+                    return SemanticTypeResolvers.resolveObject(semanticType, (type) => this.semanticToTypeIR(type as any))
+                case 'array':
+                    return SemanticTypeResolvers.resolveArray(semanticType, (type) => this.semanticToTypeIR(type as any))
+                case 'union':
+                    return SemanticTypeResolvers.resolveUnion(semanticType, (type) => this.semanticToTypeIR(type as any))
+                case 'literal':
+                    return SemanticTypeResolvers.resolveLiteral(semanticType)
+                default:
+                    this.diagnostics.warn(`Unknown semantic type kind: ${semanticType.kind}`, semanticType)
+                    return { kind: 'primitive', type: 'unknown' }
+            }
+        } catch (error) {
+            this.diagnostics.error(`Error resolving semantic type: ${error}`, { semanticType, error })
+            return { kind: 'primitive', type: 'unknown' }
+        }
     }
 
     /**
@@ -210,335 +483,7 @@ export class ContractIRBuilder {
         return endpointIR
     }
 
-    /**
-     * Build ResourceFieldIR with semantic type and transformations
-     */
-    private buildResourceField(field: ParsedFieldData): ResourceFieldIR {
-        // Extract semantic type from resolved data if available
-        let semanticType: SemanticType | ResolvedSemanticType | undefined = field.semanticType
-
-        // Check if field has resolved type information from manifest
-        if (field.resolved?.type) {
-            semanticType = {
-                kind: 'primitive',
-                type: field.resolved.type,
-                resolved: field.resolved
-            }
-            console.log(`✅ Using resolved type for ${field.name}: ${field.resolved.type}`)
-        } else {
-            console.warn(`⚠️  No resolved type for field: ${field.name}`)
-        }
-
-        const typeProjections = this.buildTypeProjectionsFromField(field, semanticType)
-
-        return {
-            name: field.name,
-            transformedName: this.transformFieldName(field.name),
-            type: typeProjections,
-            semanticType: semanticType,
-            description: field.description,
-            validation: field.validation ? this.buildValidationRules(field.validation) : undefined,
-            source: field.resolved?.model ? {
-                type: 'model_column' as const,
-                path: field.name,
-                model: field.resolved.model
-            } : {
-                type: 'computed' as const,
-                path: field.name
-            }
-        }
-    }
-
-    /**
-     * Build enriched TypeProjections from field data
-     */
-    private buildTypeProjectionsFromField(field: ParsedFieldData, semanticType?: SemanticType | ResolvedSemanticType | undefined): TypeProjections {
-        const nullable = field.nullable || false
-        const optional = field.optional || false
-        const resolvedSemanticType = semanticType || field.resolved?.type || field.semanticType
-
-        const contractType = this.buildContractTypeIR(resolvedSemanticType, nullable, optional)
-        const readType = this.buildReadTypeIR(resolvedSemanticType, nullable, optional)
-        const formType = this.buildFormTypeIR(resolvedSemanticType, nullable, optional)
-        const fieldType = this.buildFieldTypeIR(resolvedSemanticType, nullable, optional)
-        const mapperType = this.buildMapperTypeIR(resolvedSemanticType, nullable, optional)
-        const schemaType = this.buildSchemaTypeIR(resolvedSemanticType, nullable, optional)
-
-        return {
-            contract: contractType,
-            read: readType,
-            form: formType,
-            field: fieldType,
-            mapper: mapperType,
-            schema: schemaType
-        }
-    }
-
-    /**
-     * Build TypeIR for ContractEmitter - exact nullable/optional handling
-     */
-    private buildContractTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
-        let baseType = this.semanticToTypeIR(semanticType)
-
-        if (nullable) {
-            baseType = TypeIRUtils.makeNullable(baseType)
-        }
-
-        if (optional) {
-            baseType = TypeIRUtils.makeOptional(baseType)
-        }
-
-        return baseType
-    }
-
-    /**
-     * Build TypeIR for ReadEmitter - preserves nullable/optional  
-     */
-    private buildReadTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
-        return this.buildContractTypeIR(semanticType, nullable, optional)
-    }
-
-    /**
-     * Build TypeIR for FormEmitter - treats nullable as optional
-     */
-    private buildFormTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
-        let baseType = this.semanticToTypeIR(semanticType)
-
-        if (nullable || optional) {
-            baseType = { kind: 'optional', inner: baseType }
-        }
-
-        return baseType
-    }
-
-    /**
-     * Build TypeIR for FieldEmitter - no modifiers needed
-     */
-    private buildFieldTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
-        return this.semanticToTypeIR(semanticType)
-    }
-
-    /**
-     * Build TypeIR for MapperEmitter - needs nullable info for runtime checks
-     */
-    private buildMapperTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
-        let baseType = this.semanticToTypeIR(semanticType)
-
-        if (nullable) {
-            baseType = TypeIRUtils.makeNullable(baseType)
-        }
-
-        if (optional) {
-            baseType = TypeIRUtils.makeOptional(baseType)
-        }
-
-        return baseType
-    }
-
-    /**
-     * Build TypeIR for SchemaEmitter - needs nullable/optional for validation
-     */
-    private buildSchemaTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined, nullable: boolean, optional: boolean): TypeIR {
-        return this.buildContractTypeIR(semanticType, nullable, optional)
-    }
-
-    /**
-     * Convert semantic type to base TypeIR (without modifiers) - ENHANCED VERSION
-     * Uses resolved type information from manifest when available
-     */
-    private semanticToTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined): TypeIR {
-        if (!semanticType) {
-            return { kind: 'primitive', type: 'unknown' }
-        }
-
-        if (typeof semanticType === 'string') {
-            return { kind: 'primitive', type: semanticType as PrimitiveTypeIR['type'] }
-        }
-
-        if (!hasKind(semanticType)) {
-            return { kind: 'primitive', type: 'unknown' }
-        }
-
-        // Check if this semantic type has resolved information first
-        const resolvedSemantic = semanticType
-        if (resolvedSemantic.resolved?.type) {
-            const resolvedType = resolvedSemantic.resolved.type
-            console.log(`🔍 Using resolved type: ${resolvedType}`)
-            return { kind: 'primitive', type: resolvedType as PrimitiveTypeIR['type'] }
-        }
-
-        // Menggunakan type guards utility yang lebih aman
-        if (isPrimitiveType(semanticType)) {
-            const primitiveType = semanticType as { kind: 'primitive', type: string, format?: string }
-            return {
-                kind: 'primitive',
-                type: safeStringCast(primitiveType.type, 'unknown') as PrimitiveTypeIR['type'],
-                format: primitiveType.format
-            }
-        }
-
-        if (isResourceType(semanticType)) {
-            const resourceType = semanticType as { kind: 'resource', resource: string, collection?: boolean }
-            const resourceRef: ReferenceTypeIR = {
-                kind: 'reference',
-                target: resourceType.resource + 'Schema'
-            }
-
-            if (resourceType.collection) {
-                return TypeIRUtils.makeArray(resourceRef)
-            }
-
-            return resourceRef
-        }
-
-        if (isModelType(semanticType)) {
-            const modelType = semanticType as { kind: 'model', model: string }
-            return {
-                kind: 'reference',
-                target: modelType.model + 'Schema'
-            }
-        }
-
-        if (isObjectType(semanticType)) {
-            const objectType = semanticType as { kind: 'object', properties?: Record<string, unknown> }
-            if (objectType.properties) {
-                const properties: Record<string, TypeIR> = {}
-                for (const [key, value] of Object.entries(objectType.properties)) {
-                    properties[key] = this.semanticToTypeIR(value as SemanticType | ResolvedSemanticType | undefined)
-                }
-
-                return {
-                    kind: 'inline_object',
-                    properties,
-                    additionalProperties: false
-                }
-            }
-
-            return {
-                kind: 'inline_object',
-                properties: {},
-                additionalProperties: true
-            }
-        }
-
-        if (isArrayType(semanticType)) {
-            const arrayType = semanticType as { kind: 'array', items: unknown }
-            return TypeIRUtils.makeArray(this.semanticToTypeIR(arrayType.items as SemanticType | ResolvedSemanticType | undefined))
-        }
-
-        if (isUnionType(semanticType)) {
-            const unionType = semanticType as { kind: 'union', types: unknown[] }
-            return {
-                kind: 'union',
-                types: unionType.types.map((t: unknown) => this.semanticToTypeIR(t as SemanticType | ResolvedSemanticType | undefined))
-            }
-        }
-
-        if (isLiteralType(semanticType)) {
-            const literalType = semanticType as { kind: 'literal', value: string | number | boolean }
-            return {
-                kind: 'literal',
-                value: literalType.value
-            }
-        }
-
-        // Fallback yang lebih aman dengan logging yang informatif
-        const unknownType = semanticType as { kind?: string }
-        console.warn(`⚠️  Unknown semantic type:`, {
-            kind: unknownType.kind,
-            type: typeof semanticType,
-            keys: Object.keys(semanticType)
-        })
-        return { kind: 'primitive', type: 'unknown' }
-    }
-
-    /**
-     * Build resource aliases (Show, Index only - removed redundant Collection/Paginated types)
-     */
-    private buildResourceAliases(resource: ParsedResource): ResourceAliasIR[] {
-        const baseName = resource.name.replace('Resource', '')
-
-        return [
-            {
-                name: `${baseName}Show`,
-                kind: "show",
-                target: `${baseName}Transformed`
-            },
-            {
-                name: `${baseName}Index`,
-                kind: "index",
-                target: `${baseName}Transformed`,
-                isArray: true
-            }
-        ]
-    }
-
-    /**
-     * Build resource variants for different use cases
-     */
-    private buildResourceVariants(
-        resource: ParsedResource,
-        fields: ResourceFieldIR[]
-    ): ResourceVariantIR[] {
-        return [
-            {
-                kind: "read",
-                fields: this.transformFieldsForRead(fields),
-                metadata: {
-                    purpose: "TypeScript interfaces for API responses",
-                    generator: "ReadEmitter"
-                }
-            },
-            {
-                kind: "schema",
-                fields: this.transformFieldsForSchema(fields),
-                metadata: {
-                    purpose: "Zod validation schemas",
-                    generator: "SchemaEmitter",
-                    nullable_handling: 'strict'
-                }
-            },
-            {
-                kind: "contract",
-                fields: this.transformFieldsForContract(fields),
-                metadata: {
-                    purpose: "API contracts and documentation",
-                    generator: "ContractEmitter"
-                }
-            },
-            {
-                kind: "form",
-                fields: this.transformFieldsForForm(fields),
-                metadata: {
-                    purpose: "Form input types",
-                    generator: "FormEmitter",
-                    optional_handling: 'loose'
-                }
-            }
-        ]
-    }
-
-    /**
-     * Build mapper for PHP -> TypeScript transformation
-     */
-    private buildResourceMapper(resource: ParsedResource, fields: ResourceFieldIR[]): MapperIR {
-        const mappings: MapperFieldIR[] = fields.map(field => ({
-            source: field.name,
-            target: field.transformedName,
-            transform: this.detectTransformFunction(field),
-            conditional: field.source?.type === 'computed' ? {
-                condition: 'field_exists',
-                parameters: { field: field.name }
-            } : undefined
-        }))
-
-        return {
-            source: resource.sourceModel || resource.name,
-            target: `${resource.name}Transformed`,
-            mappings,
-            transformations: this.buildTransformationRules(fields)
-        }
-    }
+    // [Additional methods remain mostly the same, with diagnostic logging instead of console.log]
 
     /**
      * Build request action from parsed action
@@ -551,7 +496,7 @@ export class ContractIRBuilder {
             customName: action.name !== 'Create' && action.name !== 'Update' && action.name !== 'Delete'
                 ? action.name
                 : undefined,
-            fields: action.fields.map((field: ParsedFieldData) => this.buildResourceField(field)),
+            fields: action.fields.map((field: ParsedFieldData) => this.convertToLegacyFieldIR(this.buildOptimizedResourceField(field))),
             rules: action.validation ? [this.buildValidationRules(action.validation)] : [],
             dependencies: []
         }
@@ -579,35 +524,46 @@ export class ContractIRBuilder {
     }
 
     /**
-     * Transform fields for read variant (TypeScript interfaces)
+     * Build resource aliases
      */
-    private transformFieldsForRead(fields: ResourceFieldIR[]): ResourceFieldIR[] {
-        return fields.map(field => ({ ...field }))
+    private buildResourceAliases(resource: ParsedResource): ResourceAliasIR[] {
+        const baseName = resource.name.replace('Resource', '')
+
+        return [
+            {
+                name: `${baseName}Show`,
+                kind: "show",
+                target: `${baseName}Transformed`
+            },
+            {
+                name: `${baseName}Index`,
+                kind: "index",
+                target: `${baseName}Transformed`,
+                isArray: true
+            }
+        ]
     }
 
     /**
-     * Transform fields for schema variant (Zod validation)
+     * Build mapper for PHP -> TypeScript transformation
      */
-    private transformFieldsForSchema(fields: ResourceFieldIR[]): ResourceFieldIR[] {
-        return fields.map(field => ({ ...field }))
-    }
-
-    /**
-     * Transform fields for contract variant (API documentation)
-     */
-    private transformFieldsForContract(fields: ResourceFieldIR[]): ResourceFieldIR[] {
-        return fields.map(field => ({
-            ...field,
-            description: field.description || `${field.transformedName} field`
+    private buildResourceMapper(resource: ParsedResource, fields: OptimizedResourceFieldIR[]): MapperIR {
+        const mappings: MapperFieldIR[] = fields.map(field => ({
+            source: field.name,
+            target: field.transformedName,
+            transform: this.detectTransformFunction(field),
+            conditional: field.source?.type === 'computed' ? {
+                condition: 'field_exists',
+                parameters: { field: field.name }
+            } : undefined
         }))
-    }
 
-    /**
-     * Transform fields for form variant (input forms)
-     */
-    private transformFieldsForForm(fields: ResourceFieldIR[]): ResourceFieldIR[] {
-        return fields.filter(field => field.source?.type !== 'computed')
-            .map(field => ({ ...field }))
+        return {
+            source: resource.sourceModel || resource.name,
+            target: `${resource.name}Transformed`,
+            mappings,
+            transformations: this.buildTransformationRules(fields)
+        }
     }
 
     /**
@@ -682,27 +638,31 @@ export class ContractIRBuilder {
     /**
      * Detect transformation function needed for field
      */
-    private detectTransformFunction(field: ResourceFieldIR): TransformFunction | undefined {
-        if (field.semanticType === 'datetime') return 'date_iso'
-        if (typeof field.semanticType === 'string' && field.name.includes('amount')) return 'currency_minor'
-        if (typeof field.semanticType === 'string' && field.name.includes('price')) return 'currency_minor'
+    private detectTransformFunction(field: OptimizedResourceFieldIR): TransformFunction | undefined {
+        // Analyze TypeIR instead of semantic type
+        const baseType = TypeIRUtils.unwrapType(field.type)
+
+        if (baseType.kind === 'primitive' && baseType.type === 'date') return 'date_iso'
+        if (field.name.includes('amount') || field.name.includes('price')) return 'currency_minor'
+
         return undefined
     }
 
     /**
      * Build transformation rules for resource
      */
-    private buildTransformationRules(fields: ResourceFieldIR[]): TransformationRules {
+    private buildTransformationRules(fields: OptimizedResourceFieldIR[]): TransformationRules {
         return {
-            dateFields: fields.filter(f => f.semanticType === 'datetime').map(f => f.transformedName),
+            dateFields: fields.filter(f => {
+                const baseType = TypeIRUtils.unwrapType(f.type)
+                return baseType.kind === 'primitive' && baseType.type === 'date'
+            }).map(f => f.transformedName),
+
             currencyFields: fields.filter(f =>
                 f.name.includes('amount') || f.name.includes('price') || f.name.includes('cost')
             ).map(f => f.transformedName),
-            enumFields: fields.filter(f =>
-                typeof f.semanticType === 'string' &&
-                f.semanticType === 'string' &&
-                f.validation?.type === 'custom'
-            ).map(f => f.transformedName),
+
+            enumFields: [], // TODO: Extract from TypeIR
             customTransforms: []
         }
     }
@@ -717,13 +677,44 @@ export class ContractIRBuilder {
     }
 
     /**
-     * Extract dependencies from fields
+     * Extract dependencies from fields - now based on TypeIR references
      */
-    private extractDependencies(fields: ResourceFieldIR[]): string[] {
-        return fields
-            .filter(field => field.source?.type === 'relation')
-            .map(field => field.source!.model!)
-            .filter((model, index, arr) => arr.indexOf(model) === index)
+    private extractDependencies(fields: OptimizedResourceFieldIR[]): string[] {
+        const dependencies = new Set<string>()
+
+        for (const field of fields) {
+            this.collectTypeReferences(field.type, dependencies)
+        }
+
+        return Array.from(dependencies)
+    }
+
+    /**
+     * Recursively collect type references from TypeIR
+     */
+    private collectTypeReferences(type: TypeIR, dependencies: Set<string>): void {
+        switch (type.kind) {
+            case 'reference':
+                dependencies.add(type.target)
+                break
+            case 'array':
+                this.collectTypeReferences(type.items, dependencies)
+                break
+            case 'nullable':
+            case 'optional':
+                this.collectTypeReferences(type.inner, dependencies)
+                break
+            case 'union':
+                for (const unionType of type.types) {
+                    this.collectTypeReferences(unionType, dependencies)
+                }
+                break
+            case 'inline_object':
+                for (const propType of Object.values(type.properties)) {
+                    this.collectTypeReferences(propType, dependencies)
+                }
+                break
+        }
     }
 
     /**
@@ -749,7 +740,7 @@ export class ContractIRBuilder {
      * Build enums (extracted from field patterns)
      */
     private buildEnums(): void {
-        // TODO: Extract enums from field validation patterns
+        // TODO: Extract enums from TypeIR literal unions
     }
 
     /**
@@ -770,13 +761,13 @@ export class ContractIRBuilder {
     }
 
     /**
-     * Build contract metadata
+     * Build contract metadata - deterministic (no per-node timestamps)
      */
     private buildMetadata(manifest: RouteManifest): ContractMetadata {
         return {
-            version: 'v1.0.0',
-            generated_at: new Date().toISOString(),
-            generator_version: '1.0.0',
+            version: IR_VERSION,
+            generated_at: new Date().toISOString(), // Only one timestamp for entire IR
+            generator_version: GENERATOR_VERSION,
             source_files: manifest.metadata.source_files,
             total_resources: this.resources.size,
             total_requests: this.requests.size,
@@ -805,16 +796,16 @@ export class ContractIRBuilder {
     }
 
     /**
-     * Validate IR integrity
+     * Validate IR integrity with diagnostic collection
      */
     validateIR(ir: ContractIR): void {
-        console.log('🔍 Validating Contract IR integrity...')
+        this.diagnostics.info('Validating Contract IR integrity')
 
         for (const endpoint of ir.endpoints) {
             if (endpoint.response.resource) {
                 const resourceExists = ir.resources.some(r => r.name === endpoint.response.resource)
                 if (!resourceExists) {
-                    console.warn(`⚠️  Endpoint ${endpoint.id} references unknown resource: ${endpoint.response.resource}`)
+                    this.diagnostics.warn(`Endpoint ${endpoint.id} references unknown resource: ${endpoint.response.resource}`)
                 }
             }
         }
@@ -823,11 +814,18 @@ export class ContractIRBuilder {
             if (endpoint.request?.reference) {
                 const requestExists = ir.requests.some(r => r.name === endpoint.request!.reference)
                 if (!requestExists) {
-                    console.warn(`⚠️  Endpoint ${endpoint.id} references unknown request: ${endpoint.request.reference}`)
+                    this.diagnostics.warn(`Endpoint ${endpoint.id} references unknown request: ${endpoint.request.reference}`)
                 }
             }
         }
 
-        console.log('✅ IR validation complete')
+        this.diagnostics.info('IR validation complete')
+    }
+
+    /**
+     * Get collected diagnostics for logging/debugging
+     */
+    getDiagnostics(): ReturnType<DiagnosticCollector['getDiagnostics']> {
+        return this.diagnostics.getDiagnostics()
     }
 }

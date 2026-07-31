@@ -144,6 +144,7 @@ export class ReadEmitter implements IREmitter {
             case 'number': return 'number'
             case 'boolean': return 'boolean'
             case 'date': return 'string'  // ISO date strings
+            case 'datetime': return 'string'  // ISO datetime strings — SemanticType uses 'datetime', not 'date'
             case 'json': return 'unknown'
             default: return 'unknown'
         }

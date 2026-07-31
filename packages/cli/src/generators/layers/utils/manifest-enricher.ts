@@ -21,6 +21,9 @@ import {
 } from '../../../../../core/src/types/route'
 import { IdentifierSanitizer } from './identifier-sanitizer'
 import { isRulesMap } from '../../../../../core/src/utils/type-guards'
+import { resourceBaseName } from '../../../../../core/src/utils/resource-naming'
+import { deriveGroupName } from '../../route-classifier'
+import { toTypeName } from '../../names'
 
 /**
  * Type predicates for safe discriminated union handling
@@ -118,6 +121,20 @@ export interface EnrichmentMetadata {
  */
 export class ManifestEnricher {
     static enrich(manifest: RouteManifest): EnrichedManifest {
+        // Idempotency guard: generate-v2.ts enriches the manifest before calling
+        // ContractGenerator.generate(), which enriches it again internally (so it
+        // also works when called directly with a raw manifest). Without this guard,
+        // a manifest that already went through enrich() gets run through it a
+        // second time — re-deriving the same inferred resources/fields from the
+        // same routes, which produces a slightly different result than pass 1 in
+        // some cases (e.g. a field's type or nullability being computed against
+        // already-enriched — not raw — resources) and silently uses the pass-2
+        // version everywhere downstream.
+        const alreadyEnriched = (manifest as Partial<EnrichedManifest>).enrichmentMetadata
+        if (alreadyEnriched) {
+            return manifest as EnrichedManifest
+        }
+
         const startTime = performance.now()
         const warnings: string[] = []
 
@@ -137,7 +154,10 @@ export class ManifestEnricher {
 
         const enrichmentTime = performance.now() - startTime
         const resourceDefinitions = Array.from(resourcesMap.values())
-        const modelDefinitions = Array.from(modelsMap.values())
+        const authoredModelNames = new Set((manifest.models || []).map((m) => m.name))
+        const modelDefinitions = Array.from(modelsMap.values()).filter(
+            (md) => !authoredModelNames.has(md.name)
+        )
 
         // Auto-inferred resources should only fill gaps — a resource already
         // hand-authored in manifest.resources is more complete/curated (it went
@@ -146,9 +166,16 @@ export class ManifestEnricher {
         // every route referencing an already-authored resource re-adds a poorer
         // duplicate, and whichever one lands last in the merged array silently
         // wins downstream in ContractIRBuilder.
-        const authoredResourceNames = new Set((manifest.resources || []).map((r) => r.name))
+        // Compare by base name (Resource suffix stripped), not raw name — an
+        // authored "OrderResource" and an inferred "Order" resolve to the same
+        // final interface name (resourceBaseName() strips "Resource" from both
+        // at emit time), so raw-name comparison here never caught the collision
+        // and both copies survived into the merged array.
+        const authoredResourceBaseNames = new Set(
+            (manifest.resources || []).map((r) => resourceBaseName(r.name))
+        )
         const newlyInferredResources = resourceDefinitions.filter(
-            (rd) => !authoredResourceNames.has(rd.name)
+            (rd) => !authoredResourceBaseNames.has(resourceBaseName(rd.name))
         )
 
         // Convert to RouteManifest compatible format
@@ -157,21 +184,28 @@ export class ManifestEnricher {
                 const collectedFields = rd.collectedFields
                 let fields: Record<string, ResourceFieldKind> = {}
 
-                if (collectedFields && Object.keys(collectedFields).length > 0) {
-                    // Convert collected metadata fields to ResourceFieldKind
-                    fields = this.convertMetadataToResourceFields(collectedFields)
-                } else {
-                    // Fallback: extract dari endpoints
-                    for (const routeId of rd.endpoints) {
-                        const route = (manifest.routes || []).find(
-                            (r) => (r.name || `${r.method}_${r.path}`) === routeId
-                        )
+                // Prefer the raw ResourceFieldKind straight off the route response —
+                // it preserves nested 'object' fields, .resolved.type, and .nullable.
+                // collectedFields (built by populateResourceFields) only ever kept a
+                // bare type-name string per top-level field, discarding all of that,
+                // but it was being read first whenever it was non-empty — which was
+                // almost always, since populateResourceFields runs unconditionally —
+                // so this richer raw path was essentially dead code before.
+                for (const routeId of rd.endpoints) {
+                    const route = (manifest.routes || []).find(
+                        (r) => (r.name || `${r.method}_${r.path}`) === routeId
+                    )
 
-                        if (route?.response && isObjectResponse(route.response)) {
-                            const schemaFields = this.extractFieldsFromResponse(route.response)
-                            Object.assign(fields, schemaFields)
-                        }
+                    if (route?.response && isObjectResponse(route.response)) {
+                        const schemaFields = this.extractFieldsFromResponse(route.response)
+                        Object.assign(fields, schemaFields)
                     }
+                }
+
+                // Fallback: resources backed by a 'model'/'resource' kind response
+                // (no raw .fields to walk directly) still need the flattened metadata.
+                if (Object.keys(fields).length === 0 && collectedFields && Object.keys(collectedFields).length > 0) {
+                    fields = this.convertMetadataToResourceFields(collectedFields)
                 }
 
                 // Use populated fields atau fallback ke default
@@ -325,7 +359,26 @@ export class ManifestEnricher {
             if (!route.response) continue
 
             // Extract resource name dari response metadata
-            const resourceName = this.getResourceNameFromResponse(route.response)
+            let resourceName = this.getResourceNameFromResponse(route.response)
+
+            // Fallback: an 'object'-kind response (a raw response()->json([...]) array
+            // literal in the controller — not backed by a Model or JsonResource class)
+            // has no name in the manifest at all. The old ZodTierGenerator only ever
+            // synthesized a name for these on GET routes, deriving it from the URL path
+            // (deriveGroupName + toTypeName) — e.g. GET /categories -> "Categories",
+            // GET /oauth/{provider}/redirect -> "OauthRedirect". Non-GET object routes
+            // (login, logout, cart.delete, wishlist.post, ...) intentionally stay
+            // unnamed here, same as before — they're per-action ack/error shapes that
+            // were never meant to get a shared exported type.
+            if (
+                !resourceName &&
+                route.method?.toUpperCase() === 'GET' &&
+                isObjectResponse(route.response) &&
+                Object.keys(route.response.fields || {}).length > 0
+            ) {
+                resourceName = toTypeName(deriveGroupName(route.path))
+            }
+
             if (!resourceName) continue
 
             const sanitizedName = IdentifierSanitizer.toPascalCase(resourceName)
@@ -372,6 +425,17 @@ export class ManifestEnricher {
 
         // Infer dari resources
         for (const resource of resourcesMap.values()) {
+            const isBackedByRealModel =
+                !resource.name.endsWith('Response') &&
+                resource.endpoints.some((routeId) => {
+                    const route = (manifest.routes || []).find(
+                        (r) => (r.name || `${r.method}_${r.path}`) === routeId
+                    )
+                    const kind = route?.response?.kind
+                    return kind === 'model' || kind === 'resource'
+                })
+            if (!isBackedByRealModel) continue
+
             if (resource.baseModel) {
                 const modelName = resource.baseModel
                 const sanitizedName = IdentifierSanitizer.toPascalCase(modelName)

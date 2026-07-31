@@ -321,8 +321,19 @@ export class ContractGenerator {
                         Object.entries(kind.fields || {}).map(([key, value]) => [key, this.toResolvedSemanticType(value)])
                     )
                 }
-            default:
+            default: {
+                // Fields the manifest parser emits as 'raw_code' (a PHP expression like
+                // $user->id or $exception->getMessage()) aren't declared in the
+                // ResourceFieldKind union, so they always hit this branch — but most of
+                // them still carry a `.resolved.type` from the manifest's own semantic
+                // resolver (e.g. "$user->id" -> resolved via ModelColumnResolver to
+                // "string"). Use it instead of discarding it.
+                const resolvedType = (kind as { resolved?: { type?: string } }).resolved?.type
+                if (resolvedType) {
+                    return { kind: 'primitive', type: this.toSemanticType(resolvedType) }
+                }
                 return { kind: 'primitive', type: 'unknown' }
+            }
         }
     }
 
@@ -338,25 +349,81 @@ export class ContractGenerator {
     }
 
     /**
+     * Map a raw SQL column type (as reported by the DB introspection that
+     * populates manifest.models[].columns, e.g. "bigint(20) unsigned",
+     * "varchar(255)", "enum('pending','paid','canceled')") to the SemanticType
+     * vocabulary buildOptimizedResourceField()/semanticToTypeIR() understand.
+     * toSemanticType() above only handles PHP/validation-rule type words
+     * (int, string, bool...), not raw SQL column types, so this is separate.
+     */
+    private sqlColumnTypeToSemanticType(sqlType: string): SemanticType {
+        const t = sqlType.toLowerCase()
+
+        if (t.includes('int') || t.includes('decimal') || t.includes('float') || t.includes('double')) {
+            // tinyint(1) is Laravel/MySQL's boolean convention
+            if (t.includes('tinyint(1)')) return 'boolean'
+            return 'number'
+        }
+        if (t.includes('bool')) return 'boolean'
+        if (t.includes('timestamp') || t.includes('datetime') || t.startsWith('date')) return 'datetime'
+        if (t.includes('json')) return 'json-object'
+        // varchar, char, text, enum(...), and anything else unrecognized default to string
+        return 'string'
+    }
+
+    /**
      * Adapter to convert route.ts RouteManifest to ir.ts RouteManifest format
      * This bridges the two different manifest structures
      */
     private adaptManifest(manifest: RouteManifest): IRRouteManifest {
-        return {
-            resources: (manifest.resources || []).map(r => ({
-                name: r.name,
-                sourceModel: undefined,
-                fields: Object.entries(r.fields || {}).map(([name, kind]) => ({
-                    name,
-                    resolved: kind.resolved ? this.toSemanticNode(kind.resolved) : undefined,
-                    semanticType: this.toResolvedSemanticType(kind),
-                    optional: false,
-                    nullable: kind.nullable === true,
-                    readonly: false
-                })),
+        const resourcesFromAuthored = (manifest.resources || []).map(r => ({
+            name: r.name,
+            sourceModel: undefined,
+            fields: Object.entries(r.fields || {}).map(([name, kind]) => ({
+                name,
+                resolved: kind.resolved ? this.toSemanticNode(kind.resolved) : undefined,
+                semanticType: this.toResolvedSemanticType(kind),
+                optional: false,
+                nullable: kind.nullable === true,
+                readonly: false
+            })),
+            controller: undefined,
+            routes: []
+        }))
+
+        // manifest.models (DB-introspected columns: id, nama, created_at, ...)
+        // used to be dropped on the floor here — this function only ever read
+        // manifest.resources, so every model that wasn't ALSO hand-authored as
+        // a JsonResource class (Category, User, Wishlist, OrderAmount, ...)
+        // never produced any output at all, no matter what ManifestEnricher did
+        // upstream. Each model becomes its own ParsedResource here, named after
+        // the bare model (no "Resource" suffix), so it emits alongside — not
+        // instead of — any same-named *Resource the manifest also defines.
+        // Dedup against inferModels()'s auto-generated duplicates happens
+        // upstream in manifest-enricher.ts, not here — see authoredModelNames
+        // there and the inferModels() "Response"-suffix skip.
+        const resourcesFromModels = (manifest.models || []).map(m => {
+            const hidden = new Set(m.hidden || [])
+            return {
+                name: m.name,
+                sourceModel: m.name,
+                fields: (m.columns || [])
+                    .filter(col => !hidden.has(col.name))
+                    .map(col => ({
+                        name: col.name,
+                        resolved: undefined,
+                        semanticType: { kind: 'primitive' as const, type: this.sqlColumnTypeToSemanticType(col.type) },
+                        optional: false,
+                        nullable: col.nullable === true,
+                        readonly: false
+                    })),
                 controller: undefined,
                 routes: []
-            })),
+            }
+        })
+
+        return {
+            resources: [...resourcesFromAuthored, ...resourcesFromModels],
             requests: [], // Empty for now, will be built from routes
             routes: (manifest.routes || []).map(r => ({
                 id: r.name || `${r.method}-${r.path}`,

@@ -5,14 +5,18 @@
  * used for its `${base}Transformed` interface and `${base}Show`/`${base}Index`
  * aliases).
  *
- * PROBLEM THIS SOLVES:
- * ContractIRBuilder.buildResourceAliases() and ReadEmitter.generateResourceInterface()
- * used to compute this independently — one stripped the "Resource" suffix,
- * the other didn't — so the interface (`CategoryResourceTransformed`) and its
- * alias target (`CategoryTransformed`) pointed at two different, non-existent
- * symbols. Both call sites must import this function instead of deriving the
- * name locally.
+ * NOTE: this used to strip a trailing "Resource" (so `OrderResource` ->
+ * `Order`), on the theory that the suffix was just Laravel/JsonResource
+ * naming noise. That was wrong: a hand-authored `OrderResource` (API
+ * response shape — computed/nested fields, camelCased) and the plain
+ * `Order` model (raw DB columns) are genuinely different types and both
+ * need to reach the emitted output. Stripping the suffix collapsed them
+ * into one name and caused one to silently overwrite/collide with the
+ * other. Both call sites (ContractIRBuilder.buildResourceAliases and
+ * ReadEmitter.generateResourceInterface) must still import this function
+ * rather than deriving the name locally, so if naming rules change again
+ * later they change in exactly one place.
  */
 export function resourceBaseName(resourceName: string): string {
-    return resourceName.replace(/Resource$/, '')
+    return resourceName
 }

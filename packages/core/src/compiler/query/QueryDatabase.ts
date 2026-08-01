@@ -137,21 +137,8 @@ export class MemoizedQueryDatabase {
             const parentCell = this.cells.get(parentCellKey);
 
             if (parentCell) {
-                const newDeps = [...parentCell.dependencies, queryId];
-                if (parentCell.kind === 'Ready') {
-                    this.cells.set(parentCellKey, {
-                        kind: 'Ready',
-                        value: parentCell.value,
-                        dependencies: newDeps,
-                        verifiedAtRevision: parentCell.verifiedAtRevision
-                    });
-                } else {
-                    this.cells.set(parentCellKey, {
-                        kind: 'Pending',
-                        dependencies: newDeps,
-                        verifiedAtRevision: parentCell.verifiedAtRevision
-                    });
-                }
+               const updatedParent = addDependency(parentCell, queryId);
+               this.cells.set(parentCellKey, updatedParent);
             }
         }
 
@@ -159,17 +146,13 @@ export class MemoizedQueryDatabase {
         const cellKey = createMemoizedQueryKey<QueryCell<O>>(queryId);
         const cached = this.cells.get(cellKey);
 
-        if (cached && cached.kind === 'Ready' && cached.verifiedAtRevision === revision) {
+        if (cached && isReady(cached) && cached.verifiedAtRevision === revision) {
             return cached.value;
         }
 
         // Execute query
         this.activeStack.push(queryId);
-        this.cells.set(cellKey, {
-            kind: 'Pending',
-            dependencies: [],
-            verifiedAtRevision: revision
-        });
+        this.cells.set(cellKey, createPendingCell(revision));
 
         try {
             const value = compute(input);

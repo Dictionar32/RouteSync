@@ -1,0 +1,61 @@
+/**
+ * Artifact Registry Type System
+ * 
+ * Central type registry mapping artifact keys to their concrete types.
+ * This enables type-safe artifact storage and retrieval throughout
+ * the compiler pipeline.
+ * 
+ * @module compiler/artifacts/types
+ */
+
+// Forward declarations - actual imports will be from specific artifact files
+import type { ASTArtifact } from './ASTArtifact';
+import type { ScopeGraphArtifact } from './ScopeGraphArtifact';
+import type { BoundASTArtifact } from './BoundASTArtifact';
+import type { SymbolGraphArtifact } from './SymbolGraphArtifact';
+import type { ConstraintGraphArtifact } from './ConstraintGraphArtifact';
+import type { TypeEnvironmentArtifact } from './TypeEnvironmentArtifact';
+import type { ExpressionIRArtifact } from './ExpressionIRArtifact';
+import type { LoweredTypeArtifact } from './LoweredTypeArtifact';
+import type { DiagnosticArtifact } from './DiagnosticArtifact';
+import type { DependencyGraphArtifact } from './DependencyGraphArtifact';
+import type { SemanticIRArtifact } from './SemanticIRArtifact';
+import type { ContractGraphArtifact } from './ContractGraphArtifact';
+import type { CompilationResultArtifact } from './CompilationResultArtifact';
+
+/**
+ * Central artifact registry mapping keys to concrete artifact types.
+ * 
+ * This interface defines the complete set of artifacts that can flow
+ * through the compiler pipeline. Each key must map to a unique artifact type.
+ */
+export interface ArtifactRegistry {
+    AST: ASTArtifact;
+    ScopeGraph: ScopeGraphArtifact;
+    BoundAST: BoundASTArtifact;
+    SymbolGraph: SymbolGraphArtifact;
+    ConstraintGraph: ConstraintGraphArtifact;
+    TypeEnvironment: TypeEnvironmentArtifact;
+    ExpressionIR: ExpressionIRArtifact;
+    LoweredTypeGraph: LoweredTypeArtifact;
+    DiagnosticSnapshot: DiagnosticArtifact;
+    DependencyGraph: DependencyGraphArtifact;
+    SemanticIR: SemanticIRArtifact;
+    ContractGraph: ContractGraphArtifact;
+    CompilationResult: CompilationResultArtifact;
+}
+
+/**
+ * Valid artifact keys (string literal union)
+ */
+export type ArtifactKey = keyof ArtifactRegistry;
+
+/**
+ * Partial storage for artifacts during compilation.
+ * 
+ * Not all artifacts need to be present at all times.
+ * This type allows incremental artifact accumulation.
+ */
+export type ArtifactStorage = {
+    [K in ArtifactKey]?: ArtifactRegistry[K];
+};

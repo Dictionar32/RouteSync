@@ -161,6 +161,49 @@ if (!function_exists('deriveTransportAndShape')) {
     }
 }
 
+if (!function_exists('deriveStatusAndContentType')) {
+    // Last piece of the ResponseDescriptor proposal: status + contentType.
+    // Defaults come from transport (a JSON resource/model/object response is
+    // 200 unless told otherwise; redirect is 302; empty is 204; binary
+    // transports are octet-stream). An explicit status passed to
+    // response()->json($data, XXX) overrides the default when present —
+    // this is a bounded, best-effort scan of $methodSource for that one
+    // pattern, not a full evaluation of every branch/early-return in the
+    // method, so a method with multiple response()->json(..., N) calls for
+    // different branches only reflects whichever one this regex matches.
+    function deriveStatusAndContentType($transport, $methodSource) {
+        $status = null;
+        $contentType = null;
+
+        switch ($transport) {
+            case 'resource':
+            case 'model':
+            case 'json':
+                $contentType = 'application/json';
+                $status = 200;
+                break;
+            case 'download':
+            case 'binary':
+            case 'stream':
+                $contentType = 'application/octet-stream';
+                $status = 200;
+                break;
+            case 'redirect':
+                $status = 302;
+                break;
+            case 'empty':
+                $status = 204;
+                break;
+        }
+
+        if ($methodSource && preg_match('/response\\(\\)->json\\([^;]*?,\\s*(\\d{3})\\s*\\)/s', $methodSource, $m)) {
+            $status = (int) $m[1];
+        }
+
+        return ['status' => $status, 'contentType' => $contentType];
+    }
+}
+
 if (!function_exists('parseArrayTokens')) {
     function parseArrayTokens($tokens, &$index, $symbolTable) {
         $fields = [];
@@ -438,6 +481,7 @@ ${assignmentsScannerPhp}
                                 'collection' => $collection
                             ];
                             $responseMetadata = array_merge($responseMetadata, deriveTransportAndShape($responseMetadata));
+                            $responseMetadata = array_merge($responseMetadata, deriveStatusAndContentType($responseMetadata['transport'], $methodSource));
 
                             // Detect Laravel JsonResource $wrap behavior automatically.
                             // Laravel wraps single resources in { data: ... } by default.
@@ -495,6 +539,7 @@ ${assignmentsScannerPhp}
                         'collection' => $attributeCollection
                     ];
                     $responseMetadata = array_merge($responseMetadata, deriveTransportAndShape($responseMetadata));
+                    $responseMetadata = array_merge($responseMetadata, deriveStatusAndContentType($responseMetadata['transport'], $methodSource));
                 }
 
                 // Smart Response Inference: Eloquent variable tracking
@@ -563,6 +608,7 @@ ${assignmentsScannerPhp}
                                     'fields' => $fieldsObj
                                 ];
                                 $responseMetadata = array_merge($responseMetadata, deriveTransportAndShape($responseMetadata));
+                                $responseMetadata = array_merge($responseMetadata, deriveStatusAndContentType($responseMetadata['transport'], $methodSource));
                             }
                         } catch (\\Throwable $e) {
                             file_put_contents(__DIR__ . '/routesync-error.log', "Error: " . $e->getMessage() . " on line " . $e->getLine() . "\\n", FILE_APPEND);
@@ -592,6 +638,9 @@ ${assignmentsScannerPhp}
                     } elseif (preg_match('/->\\s*noContent\\s*\\(/', $methodSource) ||
                               preg_match('/\\babort\\s*\\(\\s*204/', $methodSource)) {
                         $responseMetadata = ['kind' => 'empty', 'transport' => 'empty', 'shape' => 'single'];
+                    }
+                    if ($responseMetadata) {
+                        $responseMetadata = array_merge($responseMetadata, deriveStatusAndContentType($responseMetadata['transport'], $methodSource));
                     }
                 }
 

@@ -207,6 +207,13 @@ class DiagnosticCollector {
     }
 }
 
+// Type names that genuinely represent a primitive value in `resolved.type` —
+// used to distinguish "the resolver figured out this is a plain string/number"
+// from "the resolver figured out this is a resource/model reference" (which
+// carries a resource/model class name, not a primitive, and must not be
+// collapsed into {kind:'primitive', type:'resource'}).
+const PRIMITIVE_RESOLVED_TYPES = new Set(['string', 'number', 'boolean', 'date', 'datetime', 'json', 'unknown'])
+
 export class OptimizedContractIRBuilder {
     private resources: Map<string, ResourceIR> = new Map()
     private requests: Map<string, RequestIR> = new Map()
@@ -303,17 +310,29 @@ export class OptimizedContractIRBuilder {
         // Extract semantic type from resolved data if available
         let semanticType: SemanticType | ResolvedSemanticType | undefined = field.semanticType
 
-        // Check if field has resolved type information from manifest
-        if (field.resolved?.type) {
+        // Check if field has resolved type information from manifest — but only
+        // override with a primitive shortcut when resolved.type genuinely names a
+        // primitive (string/number/boolean/date/datetime/json/unknown). "resource"
+        // and "model" are not primitive type names — they carry a resource/model
+        // class name (field.resolved.resource / field.resolved.model) that this
+        // override used to silently discard, which is why a field the manifest had
+        // ALREADY resolved to e.g. { type: 'resource', resource: 'OrderDetailResource' }
+        // (a nested Resource reference like items -> OrderDetailResource::collection(...))
+        // always fell through to 'unknown' downstream: field.semanticType (built
+        // correctly upstream in ContractGenerator.adaptManifest) was being thrown
+        // away here in favor of this primitive-only shortcut.
+        if (field.resolved?.type && PRIMITIVE_RESOLVED_TYPES.has(field.resolved.type)) {
             semanticType = {
                 kind: 'primitive',
                 type: field.resolved.type,
                 resolved: field.resolved
             }
             this.diagnostics.info(`Using resolved type for ${field.name}: ${field.resolved.type}`)
-        } else {
+        } else if (!field.resolved?.type) {
             this.diagnostics.warn(`No resolved type for field: ${field.name}`)
         }
+        // else: field.resolved.type is "resource"/"model"/something non-primitive —
+        // keep field.semanticType as-is, it already carries the correct shape.
 
         // Build single TypeIR with modifiers applied
         let baseType = this.semanticToTypeIR(semanticType)
@@ -409,9 +428,15 @@ export class OptimizedContractIRBuilder {
             return { kind: 'primitive', type: 'unknown' }
         }
 
-        // Check if this semantic type has resolved information first
+        // Check if this semantic type has resolved information first — same
+        // primitive-only guard as buildOptimizedResourceField above. Without it,
+        // a semanticType that's already correctly {kind:'resource', resource:...}
+        // but ALSO happens to carry .resolved.type === 'resource' (nested resource
+        // reference field, e.g. items) would get collapsed into an invalid
+        // {kind:'primitive', type:'resource'} here, which the emitter can't render
+        // and falls back to 'unknown'.
         const resolvedSemantic = semanticType as any
-        if (resolvedSemantic.resolved?.type) {
+        if (resolvedSemantic.resolved?.type && PRIMITIVE_RESOLVED_TYPES.has(resolvedSemantic.resolved.type)) {
             this.diagnostics.info(`Using resolved type: ${resolvedSemantic.resolved.type}`)
             return { kind: 'primitive', type: resolvedSemantic.resolved.type as PrimitiveTypeIR['type'] }
         }

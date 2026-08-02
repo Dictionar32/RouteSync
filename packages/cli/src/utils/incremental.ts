@@ -48,7 +48,7 @@ export interface ScannedManifest {
   resources?: ScannedResource[];
 }
 
-export function calculateRouteHash(route: ScannedRoute): string {
+export function calculateRouteHash(route: ScannedRoute, availableModelNames: string[] = []): string {
   const replacer = (key: string, value: unknown) => {
     if (key === 'resolved' || key === 'parsed_ast') return undefined
     return value
@@ -59,7 +59,10 @@ export function calculateRouteHash(route: ScannedRoute): string {
     auth: route.auth,
     schema: route.schema || null,
     response: route.response || null,
-    assignments: route.assignments || null
+    assignments: route.assignments || null,
+    // Sorted so key order never affects the hash, only the actual set of
+    // models available to resolve against.
+    availableModels: [...availableModelNames].sort()
   }, replacer)
   return crypto.createHash('sha256').update(content).digest('hex')
 }
@@ -152,7 +155,7 @@ export function resolveManifestIncrementally(
     lineage: string[]
   ): Record<string, unknown> | undefined | null => {
     if (!field) return field;
-    
+
     if (field.kind === 'object' && field.fields) {
       const fields = field.fields as Record<string, unknown>;
       for (const key in fields) {
@@ -171,14 +174,14 @@ export function resolveManifestIncrementally(
 
     let target: Record<string, unknown> = field;
     if (field.kind === 'raw_code' && typeof field.code === 'string') {
-       const parsedField = PhpCodeParser.parseExpression(field.code, field.hints as Record<string, unknown>);
-       // The raw_code node is replaced by its parsed form in the tree —
-       // it must not survive as a wrapper holding a nested parsed_ast
-       // (see design review: "RawCodeField should always disappear after
-       // the parser"). ZodTierGenerator's on-the-fly retry resolution was
-       // updated to match — it now falls back to using the field itself
-       // when there's no separate parsed_ast to find.
-       target = parsedField as unknown as Record<string, unknown>;
+      const parsedField = PhpCodeParser.parseExpression(field.code, field.hints as Record<string, unknown>);
+      // The raw_code node is replaced by its parsed form in the tree —
+      // it must not survive as a wrapper holding a nested parsed_ast
+      // (see design review: "RawCodeField should always disappear after
+      // the parser"). ZodTierGenerator's on-the-fly retry resolution was
+      // updated to match — it now falls back to using the field itself
+      // when there's no separate parsed_ast to find.
+      target = parsedField as unknown as Record<string, unknown>;
     }
     // Every ParsedField carries its own originalCode (field.ts) — falling
     // back to that instead of only trusting the raw_code branch means the
@@ -200,8 +203,8 @@ export function resolveManifestIncrementally(
 
     const resolved = kernel.resolve(target, context);
     if (resolved && resolved.status !== 'unknown') {
-       target.resolved = resolved as unknown as Record<string, unknown>;
-       registerIRNode(idPath, source, rawCode, resolved, lineage);
+      target.resolved = resolved as unknown as Record<string, unknown>;
+      registerIRNode(idPath, source, rawCode, resolved, lineage);
     }
 
     return target;
@@ -287,7 +290,7 @@ export function resolveManifestIncrementally(
     resolvedManifest.resources.forEach((res: ScannedResource) => {
       let contextModel = models ? models.find((m: ScannedModel) => m.name === res.model) : null;
       if (!contextModel && res.name.endsWith('Resource')) {
-          contextModel = models ? models.find((m: ScannedModel) => m.name === res.name.replace('Resource', '')) : null;
+        contextModel = models ? models.find((m: ScannedModel) => m.name === res.name.replace('Resource', '')) : null;
       }
 
       const parsedAssignments: Record<string, unknown> = {};
@@ -331,9 +334,10 @@ export function resolveManifestIncrementally(
   }
 
   // Resolve Routes Incrementally
+  const availableModelNames = (models || []).map((m) => m.name)
   if (resolvedManifest.routes) {
     resolvedManifest.routes.forEach((route: ScannedRoute) => {
-      const hash = calculateRouteHash(route)
+      const hash = calculateRouteHash(route, availableModelNames)
       route.stableHash = hash
 
       const cachedRoute = prevRouteMap.get(`${route.method}:${route.path}`)
@@ -384,31 +388,31 @@ export function resolveManifestIncrementally(
       const routeId = `route:${route.method}:${route.path}`;
 
       if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
-         route.response = resolveField(
-           route.response as Record<string, unknown>,
-           null,
-           parsedAssignments,
-           resolvedAssignments,
-           `${routeId}#response`,
-           routeSource,
-           [routeId]
-         ) as Record<string, unknown>;
+        route.response = resolveField(
+          route.response as Record<string, unknown>,
+          null,
+          parsedAssignments,
+          resolvedAssignments,
+          `${routeId}#response`,
+          routeSource,
+          [routeId]
+        ) as Record<string, unknown>;
       } else if (route.response && route.response.kind === 'object' && route.response.fields) {
-         const fields = route.response.fields as Record<string, unknown>;
-         for (const key in fields) {
-            const field = fields[key] as Record<string, unknown>;
-            if (field.kind && field.kind !== 'primitive') {
-               fields[key] = resolveField(
-                 field,
-                 null,
-                 parsedAssignments,
-                 resolvedAssignments,
-                 `${routeId}#response.fields.${key}`,
-                 routeSource,
-                 [routeId]
-               ) as Record<string, unknown>;
-            }
+        const fields = route.response.fields as Record<string, unknown>;
+        for (const key in fields) {
+          const field = fields[key] as Record<string, unknown>;
+          if (field.kind && field.kind !== 'primitive') {
+            fields[key] = resolveField(
+              field,
+              null,
+              parsedAssignments,
+              resolvedAssignments,
+              `${routeId}#response.fields.${key}`,
+              routeSource,
+              [routeId]
+            ) as Record<string, unknown>;
           }
+        }
       }
     })
   }

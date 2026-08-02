@@ -5,26 +5,38 @@ import path from 'path'
 import os from 'os'
 
 export interface ParserResult {
-  routes: ParsedRoute[]
-  models: ParsedModel[]
-  resources?: any[]
+    routes: ParsedRoute[]
+    models: ParsedModel[]
+    resources?: any[]
 }
 
 export class LaravelRouteParser {
-  async parse(filePath: string, options: { extractModels?: boolean } = {}): Promise<ParserResult> {
-    // Resolve filePath relative to cwd first so that relative paths like
-    // "../routes/api.php" or "routes/api.php" always land correctly.
-    // Then go one level up from the routes directory to get the Laravel project root.
-    const resolvedFile = path.resolve(process.cwd(), filePath)
-    const projectRoot = path.dirname(path.dirname(resolvedFile))
-    const extractModels = options.extractModels ? 'true' : 'false'
+    async parse(filePath: string, options: { extractModels?: boolean } = {}): Promise<ParserResult> {
+        // Resolve filePath relative to cwd first so that relative paths like
+        // "../routes/api.php" or "routes/api.php" always land correctly.
+        // Then go one level up from the routes directory to get the Laravel project root.
+        const resolvedFile = path.resolve(process.cwd(), filePath)
+        const projectRoot = path.dirname(path.dirname(resolvedFile))
+        const extractModels = options.extractModels ? 'true' : 'false'
 
-    // ---------------------------------------------------------------------------
-    // PHP block: JsonResource $wrap detection.
-    // Built with String.raw so JS does NOT interpret backslashes — what you write
-    // is exactly what PHP receives. Injected into phpScript via ${wrapDetectionPhp}.
-    // ---------------------------------------------------------------------------
-    const wrapDetectionPhp = String.raw`
+        // ---------------------------------------------------------------------------
+        // PHP block: JsonResource $wrap detection.
+        // Built with String.raw so JS does NOT interpret backslashes — what you write
+        // is exactly what PHP receives. Injected into phpScript via ${wrapDetectionPhp}.
+        // ---------------------------------------------------------------------------
+        const wrapDetectionPhp = String.raw`
+                // NOTE: this block is now dead code as of the Resource Discovery
+                // fix below — $responseMetadata is never set yet at this point in
+                // execution (Resource Discovery, which sets it, runs AFTER this).
+                // It's harmless (the guard below just never becomes true), but its
+                // class-resolution logic (use-statement/alias resolution, the
+                // DB::transaction(...) pattern) is more robust than the inline
+                // version now inside Resource Discovery. Left in place rather than
+                // silently deleted — worth consolidating into a single WrapResolver
+                // that Resource Discovery calls, as a separate, deliberate cleanup
+                // (not folded into this fix to keep this change narrowly scoped to
+                // the actual bug: the attribute short-circuiting Resource Discovery).
+                //
                 // Detect JsonResource wrap behavior for attribute-based responses.
                 // $responseMetadata is already set when the method has #[Response(Model::class)].
                 // We inspect the actual returned resource class to know whether it wraps in
@@ -78,7 +90,7 @@ export class LaravelRouteParser {
                 }
     `
 
-    const assignmentsScannerPhp = String.raw`
+        const assignmentsScannerPhp = String.raw`
                 $assignments = [];
                 if ($methodSource) {
                     if (preg_match_all('/\$([a-zA-Z0-9_]+)\s*=\s*([^;]+);/s', $methodSource, $assignMatches)) {
@@ -96,11 +108,11 @@ export class LaravelRouteParser {
                 }
     `
 
-    // NOTE: This string is written as-is to a .php file.
-    // Do NOT use JS template literal interpolation inside PHP code blocks
-    // except for the explicitly marked injection points below.
-    // All backslashes here are literal PHP backslashes (single \).
-    const phpScript = `<?php
+        // NOTE: This string is written as-is to a .php file.
+        // Do NOT use JS template literal interpolation inside PHP code blocks
+        // except for the explicitly marked injection points below.
+        // All backslashes here are literal PHP backslashes (single \).
+        const phpScript = `<?php
 error_reporting(0);
 require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
@@ -269,8 +281,19 @@ foreach ($routes as $route) {
                     }
                 }
 
-                // Parse PHP 8 Attributes for Response Metadata
-                $responseMetadata = null;
+                // Parse PHP 8 Attributes for a MODEL hint — NOT the final response
+                // shape. #[Response(Order::class)] only tells us which model the
+                // endpoint is about; it says nothing about whether the actual
+                // return statement wraps that model in a Resource class. Used to
+                // commit straight to $responseMetadata here, which meant Resource
+                // Discovery below (gated on '!$responseMetadata') never ran for any
+                // method carrying this attribute — so 'return new OrderResource(...)'
+                // was never read, and the manifest silently downgraded every
+                // Resource-wrapped response to a bare model. Now it's just a hint
+                // ($attributeModel) that gets merged into whatever Resource
+                // Discovery finds, instead of overwriting it.
+                $attributeModel = null;
+                $attributeCollection = false;
                 $attributes = $reflector->getAttributes();
                 foreach ($attributes as $attr) {
                     $attrName = $attr->getName();
@@ -298,11 +321,8 @@ foreach ($routes as $route) {
                         }
 
                         if ($type) {
-                            $responseMetadata = [
-                                'kind' => 'model',
-                                'model' => class_basename($type),
-                                'collection' => $collection
-                            ];
+                            $attributeModel = class_basename($type);
+                            $attributeCollection = $collection;
                             break;
                         }
                     }
@@ -322,48 +342,65 @@ ${wrapDetectionPhp}
 
 ${assignmentsScannerPhp}
 
-                // Resource Discovery
-                if (!$responseMetadata && $methodSource) {
+                // Resource Discovery — ALWAYS runs now, regardless of whether the
+                // #[Response(...)] attribute already gave us a model hint. The
+                // attribute and the actual return statement answer two different
+                // questions (which model vs. what wire shape) and need to be
+                // merged, not left to overwrite each other. See $attributeModel
+                // above for why this changed.
+                if ($methodSource) {
                     $resourceName = null;
-                    $collection = false;
+                    $collection = $attributeCollection;
 
-                    if (preg_match('/return\\s+new\\s+([a-zA-Z0-9_]+Resource)/', $methodSource, $matches)) {
+                    if (preg_match('/return\\s+new\\s+([a-zA-Z0-9_]+Resource)\\s*\\(/', $methodSource, $matches)) {
                         $resourceName = $matches[1];
-                    } elseif (preg_match('/return\\s+([a-zA-Z0-9_]+Resource)::collection/', $methodSource, $matches)) {
+                    } elseif (preg_match('/return\\s+([a-zA-Z0-9_]+Resource)::(?:collection|make)\\s*\\(/', $methodSource, $matches)) {
+                        $resourceName = $matches[1];
+                        if (str_contains($matches[0], '::collection')) {
+                            $collection = true;
+                        }
+                    } elseif (preg_match('/([a-zA-Z0-9_]+Resource)::collection\\s*\\(/', $methodSource, $matches)) {
                         $resourceName = $matches[1];
                         $collection = true;
+                    } elseif (preg_match('/new\\s+([a-zA-Z0-9_]+Resource)\\s*\\(/', $methodSource, $matches)) {
+                        $resourceName = $matches[1];
                     }
 
                     if ($resourceName) {
                         $resourceClass = 'App\\\\Http\\\\Resources\\\\' . $resourceName;
                         if (class_exists($resourceClass)) {
                             $resReflector = new ReflectionClass($resourceClass);
-                            $resAttrs = $resReflector->getAttributes();
-                            foreach ($resAttrs as $attr) {
-                                $shortName = class_basename($attr->getName());
-                                if (in_array($shortName, ['Response', 'RouteSyncResponse'])) {
-                                    $args = $attr->getArguments();
-                                    $type = $args[0] ?? $args['type'] ?? $args['model'] ?? $args['response'] ?? null;
-                                    if ($type) {
-                                        $responseMetadata = [
-                                            'kind' => 'model',
-                                            'model' => class_basename($type),
-                                            'collection' => $collection
-                                        ];
+
+                            // The model comes from the #[Response(...)] attribute
+                            // hint when present — otherwise fall back to inspecting
+                            // the Resource class's own attribute/@mixin.
+                            $resolvedModel = $attributeModel;
+                            if (!$resolvedModel) {
+                                $resAttrs = $resReflector->getAttributes();
+                                foreach ($resAttrs as $attr) {
+                                    $shortName = class_basename($attr->getName());
+                                    if (in_array($shortName, ['Response', 'RouteSyncResponse'])) {
+                                        $args = $attr->getArguments();
+                                        $type = $args[0] ?? $args['type'] ?? $args['model'] ?? $args['response'] ?? null;
+                                        if ($type) {
+                                            $resolvedModel = class_basename($type);
+                                        }
                                     }
                                 }
                             }
-
-                            if (!$responseMetadata) {
+                            if (!$resolvedModel) {
                                 $docComment = $resReflector->getDocComment();
                                 if ($docComment && preg_match('/@mixin\\s+([\\\\a-zA-Z0-9_]+)/', $docComment, $mixinMatches)) {
-                                    $responseMetadata = [
-                                        'kind' => 'model',
-                                        'model' => class_basename($mixinMatches[1]),
-                                        'collection' => $collection
-                                    ];
+                                    $resolvedModel = class_basename($mixinMatches[1]);
                                 }
                             }
+
+                            $responseMetadata = [
+                                'kind' => 'resource',
+                                'resource' => $resourceName,
+                                'model' => $resolvedModel,
+                                'collection' => $collection
+                            ];
 
                             // Detect Laravel JsonResource $wrap behavior automatically.
                             // Laravel wraps single resources in { data: ... } by default.
@@ -372,7 +409,7 @@ ${assignmentsScannerPhp}
                             // if this specific class does NOT declare a $wrap property set to
                             // null, the response is wrapped and we mark it in the manifest so
                             // ZodTierGenerator generates z.object({ data: schema }) accordingly.
-                            if ($responseMetadata && !$collection) {
+                            if (!$collection) {
                                 // Laravel JsonResource wraps single resources in { data: ... } by default.
                                 // We detect this transparently so developers don't need to know about $wrap.
                                 // Strategy: read the static $wrap property from the resource class.
@@ -408,6 +445,18 @@ ${assignmentsScannerPhp}
 
                         }
                     }
+                }
+
+                // Fallback: Resource Discovery found nothing (return statement isn't
+                // a recognized Resource pattern — e.g. WishlistController returning
+                // a bare Eloquent collection), but the attribute gave us a model.
+                // That's a genuine bare-model response, not a missed Resource.
+                if (!$responseMetadata && $attributeModel) {
+                    $responseMetadata = [
+                        'kind' => 'model',
+                        'model' => $attributeModel,
+                        'collection' => $attributeCollection
+                    ];
                 }
 
                 // Smart Response Inference: Eloquent variable tracking
@@ -783,55 +832,55 @@ if ($extractModels) {
 echo json_encode($result);
 `;
 
-    const scriptPath = path.join(projectRoot, 'routesync-extractor-temp.php')
+        const scriptPath = path.join(projectRoot, 'routesync-extractor-temp.php')
 
-    try {
-      await fs.writeFile(scriptPath, phpScript)
-      await fs.writeFile(path.join(projectRoot, 'routesync-dump.php'), phpScript)
+        try {
+            await fs.writeFile(scriptPath, phpScript)
+            await fs.writeFile(path.join(projectRoot, 'routesync-dump.php'), phpScript)
 
-      // Use spawnSync instead of execSync so we can capture stdout and stderr
-      // as separate streams without relying on shell redirect syntax (which is
-      // not cross-platform: "2>/dev/null" fails on Windows, "2>NUL" requires
-      // shell:true which itself has quoting issues on Windows paths with spaces).
-      const { spawnSync } = await import('child_process')
-      const result = spawnSync('php', ['routesync-extractor-temp.php'], {
-        cwd: projectRoot,
-        encoding: 'utf-8',
-        maxBuffer: 1024 * 1024 * 10
-      })
+            // Use spawnSync instead of execSync so we can capture stdout and stderr
+            // as separate streams without relying on shell redirect syntax (which is
+            // not cross-platform: "2>/dev/null" fails on Windows, "2>NUL" requires
+            // shell:true which itself has quoting issues on Windows paths with spaces).
+            const { spawnSync } = await import('child_process')
+            const result = spawnSync('php', ['routesync-extractor-temp.php'], {
+                cwd: projectRoot,
+                encoding: 'utf-8',
+                maxBuffer: 1024 * 1024 * 10
+            })
 
-//       await fs.remove(scriptPath)
+            //       await fs.remove(scriptPath)
 
-      if (result.error) {
-        throw result.error
-      }
+            if (result.error) {
+                throw result.error
+            }
 
-      const raw = result.stdout ?? ''
+            const raw = result.stdout ?? ''
 
-      // Strip UTF-8 BOM if present, normalize CRLF → LF, trim whitespace
-      const cleaned = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim()
+            // Strip UTF-8 BOM if present, normalize CRLF → LF, trim whitespace
+            const cleaned = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim()
 
-      // Find the first '{' to skip any stray PHP notices/warnings on stdout
-      const jsonStart = cleaned.indexOf('{')
-      if (jsonStart === -1) {
-        // Dump stderr to help diagnose what PHP actually printed
-        const stderrHint = result.stderr ? `\nPHP stderr: ${result.stderr.slice(0, 500)}` : ''
-        const stdoutHint = cleaned ? `\nPHP stdout: ${cleaned.slice(0, 500)}` : ''
-        throw new Error('No JSON output from PHP script' + stderrHint + stdoutHint)
-      }
+            // Find the first '{' to skip any stray PHP notices/warnings on stdout
+            const jsonStart = cleaned.indexOf('{')
+            if (jsonStart === -1) {
+                // Dump stderr to help diagnose what PHP actually printed
+                const stderrHint = result.stderr ? `\nPHP stderr: ${result.stderr.slice(0, 500)}` : ''
+                const stdoutHint = cleaned ? `\nPHP stdout: ${cleaned.slice(0, 500)}` : ''
+                throw new Error('No JSON output from PHP script' + stderrHint + stdoutHint)
+            }
 
-      const parsed = JSON.parse(cleaned.slice(jsonStart))
-      return {
-        routes: parsed.routes || [],
-        models: parsed.models || [],
-        resources: parsed.resources || []
-      }
-    } catch (err) {
-      if (fs.existsSync(scriptPath)) {
-        // await fs.remove(scriptPath)
-      }
-      console.error('Failed to parse Laravel routes via PHP script:', err)
-      return { routes: [], models: [], resources: [] }
+            const parsed = JSON.parse(cleaned.slice(jsonStart))
+            return {
+                routes: parsed.routes || [],
+                models: parsed.models || [],
+                resources: parsed.resources || []
+            }
+        } catch (err) {
+            if (fs.existsSync(scriptPath)) {
+                // await fs.remove(scriptPath)
+            }
+            console.error('Failed to parse Laravel routes via PHP script:', err)
+            return { routes: [], models: [], resources: [] }
+        }
     }
-  }
 }

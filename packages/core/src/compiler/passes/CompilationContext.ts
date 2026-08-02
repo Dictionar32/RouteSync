@@ -5,9 +5,9 @@
  * for compiler pass execution.
  */
 
-import type { DiagnosticBag } from '../diagnostics/DiagnosticBag';
+import { DiagnosticBag } from '../diagnostics/DiagnosticBag';
 import type { CompilerFingerprint } from '../fingerprint/Fingerprint';
-import { DiagnosticBag as DiagnosticBagImpl } from '../diagnostics/DiagnosticBag';
+
 
 /**
  * Compiler options controlling compilation behavior.
@@ -130,7 +130,7 @@ export class CompilationContext {
      */
     public static default(): CompilationContext {
         return new CompilationContext(
-            DiagnosticBagImpl.createEmpty(),
+            DiagnosticBag.createEmpty(),
             {
                 readFile: () => '',
                 writeFile: () => { },

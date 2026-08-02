@@ -125,6 +125,42 @@ $result = [
     'resources' => []
 ];
 
+if (!function_exists('deriveTransportAndShape')) {
+    // Phase 1 of the ResponseDescriptor proposal (see
+    // ISSUE-manifest-resource-linkage.md): derive 'transport' and 'shape' from
+    // data the manifest already has (kind/model/resource/collection/paginated),
+    // rather than resolving anything new. Purely additive — ReadEmitter doesn't
+    // read these fields yet, so this cannot change any existing output.
+    // 'transport' answers "what wire format" (resource/model/json/primitive/...),
+    // 'shape' answers "single, collection, or paginated" — kept orthogonal per
+    // the design discussion, instead of collapsing both into one enum
+    // (the old responseType draft had 'resourceCollection' AND a separate
+    // 'shape:collection' saying the same thing twice).
+    function deriveTransportAndShape($meta) {
+        if (!is_array($meta) || !isset($meta['kind'])) {
+            return ['transport' => 'json', 'shape' => 'single'];
+        }
+
+        $transport = 'json';
+        if ($meta['kind'] === 'resource') {
+            $transport = 'resource';
+        } elseif ($meta['kind'] === 'model') {
+            $transport = 'model';
+        } elseif ($meta['kind'] === 'object') {
+            $transport = 'json';
+        }
+
+        $shape = 'single';
+        if (!empty($meta['paginated'])) {
+            $shape = 'paginated';
+        } elseif (!empty($meta['collection'])) {
+            $shape = 'collection';
+        }
+
+        return ['transport' => $transport, 'shape' => $shape];
+    }
+}
+
 if (!function_exists('parseArrayTokens')) {
     function parseArrayTokens($tokens, &$index, $symbolTable) {
         $fields = [];
@@ -401,6 +437,7 @@ ${assignmentsScannerPhp}
                                 'model' => $resolvedModel,
                                 'collection' => $collection
                             ];
+                            $responseMetadata = array_merge($responseMetadata, deriveTransportAndShape($responseMetadata));
 
                             // Detect Laravel JsonResource $wrap behavior automatically.
                             // Laravel wraps single resources in { data: ... } by default.
@@ -457,6 +494,7 @@ ${assignmentsScannerPhp}
                         'model' => $attributeModel,
                         'collection' => $attributeCollection
                     ];
+                    $responseMetadata = array_merge($responseMetadata, deriveTransportAndShape($responseMetadata));
                 }
 
                 // Smart Response Inference: Eloquent variable tracking
@@ -514,6 +552,7 @@ ${assignmentsScannerPhp}
                                     'kind' => 'object',
                                     'fields' => $fieldsObj
                                 ];
+                                $responseMetadata = array_merge($responseMetadata, deriveTransportAndShape($responseMetadata));
                             }
                         } catch (\\Throwable $e) {
                             file_put_contents(__DIR__ . '/routesync-error.log', "Error: " . $e->getMessage() . " on line " . $e->getLine() . "\\n", FILE_APPEND);

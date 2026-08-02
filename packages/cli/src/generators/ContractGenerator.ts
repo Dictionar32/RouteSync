@@ -325,12 +325,25 @@ export class ContractGenerator {
                 // Fields the manifest parser emits as 'raw_code' (a PHP expression like
                 // $user->id or $exception->getMessage()) aren't declared in the
                 // ResourceFieldKind union, so they always hit this branch — but most of
-                // them still carry a `.resolved.type` from the manifest's own semantic
-                // resolver (e.g. "$user->id" -> resolved via ModelColumnResolver to
-                // "string"). Use it instead of discarding it.
-                const resolvedType = (kind as { resolved?: { type?: string } }).resolved?.type
-                if (resolvedType) {
-                    return { kind: 'primitive', type: this.toSemanticType(resolvedType) }
+                // them still carry a `.resolved` payload from the manifest's own semantic
+                // resolver. Previously only `.resolved.type` was read (and only used for
+                // primitives), which meant a raw_code field the resolver had ALREADY
+                // figured out was a nested Resource reference — e.g.
+                // "OrderDetailResource::collection($this->details)" resolving to
+                // { type: 'resource', resource: 'OrderDetailResource', collection: true }
+                // — had that resource name silently discarded, falling through to
+                // 'unknown' below instead of linking to OrderDetailResourceTransformed[].
+                const resolved = (kind as {
+                    resolved?: { type?: string; resource?: string; model?: string; collection?: boolean }
+                }).resolved
+                if (resolved?.type === 'resource' && resolved.resource) {
+                    return { kind: 'resource', resource: resolved.resource, collection: resolved.collection }
+                }
+                if (resolved?.type === 'model' && resolved.model) {
+                    return { kind: 'model', model: resolved.model }
+                }
+                if (resolved?.type) {
+                    return { kind: 'primitive', type: this.toSemanticType(resolved.type) }
                 }
                 return { kind: 'primitive', type: 'unknown' }
             }
@@ -392,35 +405,75 @@ export class ContractGenerator {
         }))
 
         // manifest.models (DB-introspected columns: id, nama, created_at, ...)
-        // used to be dropped on the floor here — this function only ever read
-        // manifest.resources, so every model that wasn't ALSO hand-authored as
-        // a JsonResource class (Category, User, Wishlist, OrderAmount, ...)
-        // never produced any output at all, no matter what ManifestEnricher did
-        // upstream. Each model becomes its own ParsedResource here, named after
-        // the bare model (no "Resource" suffix), so it emits alongside — not
-        // instead of — any same-named *Resource the manifest also defines.
-        // Dedup against inferModels()'s auto-generated duplicates happens
-        // upstream in manifest-enricher.ts, not here — see authoredModelNames
-        // there and the inferModels() "Response"-suffix skip.
-        const resourcesFromModels = (manifest.models || []).map(m => {
-            const hidden = new Set(m.hidden || [])
-            return {
-                name: m.name,
-                sourceModel: m.name,
-                fields: (m.columns || [])
-                    .filter(col => !hidden.has(col.name))
-                    .map(col => ({
-                        name: col.name,
-                        resolved: undefined,
-                        semanticType: { kind: 'primitive' as const, type: this.sqlColumnTypeToSemanticType(col.type) },
-                        optional: false,
-                        nullable: col.nullable === true,
-                        readonly: false
-                    })),
-                controller: undefined,
-                routes: []
+        // used to be dumped here UNCONDITIONALLY — every model in the manifest
+        // got a Transformed interface whether or not it's ever actually
+        // returned by any endpoint. That's the real bug: api-read.ts is
+        // supposed to represent the API's response contract, not a database
+        // schema dump. A model belongs here only if it's reachable from some
+        // route's actual response — determined strictly from links the
+        // manifest itself already resolved (never by guessing, e.g. matching a
+        // field named "shipping" to a model named "OrderShipping" — that would
+        // just be ReadEmitter compensating for semantic loss that happened
+        // upstream in the parser, which is a separate, harder problem to fix
+        // at the source, not something to paper over here).
+        //
+        // Two kinds of already-resolved links count as "reachable":
+        //  1. Top-level: some route's response is kind:'model'/'resource' and
+        //     names this model directly (e.g. GET /orders -> kind:'model',
+        //     model:'Order').
+        //  2. Nested: some resource's own field resolved to kind:'model'/
+        //     'resource' and names this model (e.g. OrderResource.items ->
+        //     resolved.type:'resource', resolved.resource:'OrderDetailResource').
+        // manifest.resources itself (the 4 hand-authored *Resource classes)
+        // is NOT filtered by this — those are genuine Resource/DTO classes
+        // known to exist in the codebase; the manifest just failed to record
+        // which routes return them (e.g. OrderResource::collection() got
+        // resolved down to a bare kind:'model' response, losing the Resource
+        // class entirely). That's a manifest/parser gap, tracked separately —
+        // ReadEmitter has no reliable way to reconstruct it without guessing.
+        const reachableModelNames = new Set<string>()
+        for (const route of manifest.routes || []) {
+            const resp = route.response as { kind?: string; model?: string } | undefined
+            if (resp && (resp.kind === 'model' || resp.kind === 'resource') && resp.model) {
+                reachableModelNames.add(resp.model)
             }
-        })
+        }
+        const collectNestedReachable = (kind: ResourceFieldKind | undefined): void => {
+            if (!kind) return
+            const resolved = kind.resolved as { type?: string; model?: string; resource?: string } | undefined
+            if (resolved && (resolved.type === 'model' || resolved.type === 'resource')) {
+                const name = resolved.model || resolved.resource
+                if (name) reachableModelNames.add(name)
+            }
+            if (kind.kind === 'object' && kind.fields) {
+                for (const nested of Object.values(kind.fields)) collectNestedReachable(nested)
+            }
+        }
+        for (const resource of manifest.resources || []) {
+            for (const field of Object.values(resource.fields || {})) collectNestedReachable(field)
+        }
+
+        const resourcesFromModels = (manifest.models || [])
+            .filter(m => reachableModelNames.has(m.name))
+            .map(m => {
+                const hidden = new Set(m.hidden || [])
+                return {
+                    name: m.name,
+                    sourceModel: m.name,
+                    fields: (m.columns || [])
+                        .filter(col => !hidden.has(col.name))
+                        .map(col => ({
+                            name: col.name,
+                            resolved: undefined,
+                            semanticType: { kind: 'primitive' as const, type: this.sqlColumnTypeToSemanticType(col.type) },
+                            optional: false,
+                            nullable: col.nullable === true,
+                            readonly: false
+                        })),
+                    controller: undefined,
+                    routes: []
+                }
+            })
 
         return {
             resources: [...resourcesFromAuthored, ...resourcesFromModels],

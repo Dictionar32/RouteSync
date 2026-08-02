@@ -5,26 +5,26 @@ import path from 'path'
 import os from 'os'
 
 export interface ParserResult {
-    routes: ParsedRoute[]
-    models: ParsedModel[]
-    resources?: any[]
+  routes: ParsedRoute[]
+  models: ParsedModel[]
+  resources?: any[]
 }
 
 export class LaravelRouteParser {
-    async parse(filePath: string, options: { extractModels?: boolean } = {}): Promise<ParserResult> {
-        // Resolve filePath relative to cwd first so that relative paths like
-        // "../routes/api.php" or "routes/api.php" always land correctly.
-        // Then go one level up from the routes directory to get the Laravel project root.
-        const resolvedFile = path.resolve(process.cwd(), filePath)
-        const projectRoot = path.dirname(path.dirname(resolvedFile))
-        const extractModels = options.extractModels ? 'true' : 'false'
+  async parse(filePath: string, options: { extractModels?: boolean } = {}): Promise<ParserResult> {
+    // Resolve filePath relative to cwd first so that relative paths like
+    // "../routes/api.php" or "routes/api.php" always land correctly.
+    // Then go one level up from the routes directory to get the Laravel project root.
+    const resolvedFile = path.resolve(process.cwd(), filePath)
+    const projectRoot = path.dirname(path.dirname(resolvedFile))
+    const extractModels = options.extractModels ? 'true' : 'false'
 
-        // ---------------------------------------------------------------------------
-        // PHP block: JsonResource $wrap detection.
-        // Built with String.raw so JS does NOT interpret backslashes — what you write
-        // is exactly what PHP receives. Injected into phpScript via ${wrapDetectionPhp}.
-        // ---------------------------------------------------------------------------
-        const wrapDetectionPhp = String.raw`
+    // ---------------------------------------------------------------------------
+    // PHP block: JsonResource $wrap detection.
+    // Built with String.raw so JS does NOT interpret backslashes — what you write
+    // is exactly what PHP receives. Injected into phpScript via ${wrapDetectionPhp}.
+    // ---------------------------------------------------------------------------
+    const wrapDetectionPhp = String.raw`
                 // NOTE: this block is now dead code as of the Resource Discovery
                 // fix below — $responseMetadata is never set yet at this point in
                 // execution (Resource Discovery, which sets it, runs AFTER this).
@@ -90,7 +90,7 @@ export class LaravelRouteParser {
                 }
     `
 
-        const assignmentsScannerPhp = String.raw`
+    const assignmentsScannerPhp = String.raw`
                 $assignments = [];
                 if ($methodSource) {
                     if (preg_match_all('/\$([a-zA-Z0-9_]+)\s*=\s*([^;]+);/s', $methodSource, $assignMatches)) {
@@ -108,11 +108,11 @@ export class LaravelRouteParser {
                 }
     `
 
-        // NOTE: This string is written as-is to a .php file.
-        // Do NOT use JS template literal interpolation inside PHP code blocks
-        // except for the explicitly marked injection points below.
-        // All backslashes here are literal PHP backslashes (single \).
-        const phpScript = `<?php
+    // NOTE: This string is written as-is to a .php file.
+    // Do NOT use JS template literal interpolation inside PHP code blocks
+    // except for the explicitly marked injection points below.
+    // All backslashes here are literal PHP backslashes (single \).
+    const phpScript = `<?php
 error_reporting(0);
 require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
@@ -535,6 +535,16 @@ ${assignmentsScannerPhp}
                         $arrayContent = $retMatches[1];
                     } elseif (preg_match('/return\\\\s+(\\\\[.*)/s', $methodSource, $retMatches)) {
                         $arrayContent = $retMatches[1];
+                    } elseif (
+                        preg_match('/return\\\\s+response\\\\(\\\\)->json\\\\(\\\\s*\\\\$([A-Za-z0-9_]+)\\\\s*[,)]/s', $methodSource, $varMatches)
+                        && isset($assignments[$varMatches[1]])
+                        && str_starts_with(trim($assignments[$varMatches[1]]), '[')
+                    ) {
+                        // return response()->json($response) where $response was a plain
+                        // "$response = [...]" assignment earlier in the method — reuse
+                        // $assignments (already scanned above), which previously was only
+                        // ever written into the manifest, never read back for this.
+                        $arrayContent = $assignments[$varMatches[1]];
                     } else {
                         $arrayContent = null;
                     }
@@ -557,6 +567,31 @@ ${assignmentsScannerPhp}
                         } catch (\\Throwable $e) {
                             file_put_contents(__DIR__ . '/routesync-error.log', "Error: " . $e->getMessage() . " on line " . $e->getLine() . "\\n", FILE_APPEND);
                         }
+                    }
+                }
+
+                // Fallback: non-JSON transports (Phase 3 of ResponseDescriptor).
+                // These never produce a data shape for api-read.ts to generate —
+                // detecting them here just means the manifest correctly records
+                // *why* there's no shape (download/redirect/empty), instead of
+                // $responseMetadata staying null and the route reporting
+                // "Response type could not be inferred" as if it were a parser
+                // failure. Order matters: more specific patterns first.
+                if (!$responseMetadata && $methodSource) {
+                    if (preg_match('/->\\s*download\\s*\\(/', $methodSource) ||
+                        preg_match('/->\\s*streamDownload\\s*\\(/', $methodSource)) {
+                        $responseMetadata = ['kind' => 'binary', 'transport' => 'download', 'shape' => 'single'];
+                    } elseif (preg_match('/response\\(\\)\\s*->\\s*file\\s*\\(/', $methodSource) ||
+                              preg_match('/->\\s*stream\\s*\\(/', $methodSource)) {
+                        $responseMetadata = ['kind' => 'binary', 'transport' => 'stream', 'shape' => 'single'];
+                    } elseif (preg_match('/\\bredirect\\s*\\(/', $methodSource) ||
+                              preg_match('/\\bRedirect::/', $methodSource) ||
+                              preg_match('/->\\s*route\\s*\\(/', $methodSource) ||
+                              preg_match('/\\bback\\s*\\(\\s*\\)/', $methodSource)) {
+                        $responseMetadata = ['kind' => 'redirect', 'transport' => 'redirect', 'shape' => 'single'];
+                    } elseif (preg_match('/->\\s*noContent\\s*\\(/', $methodSource) ||
+                              preg_match('/\\babort\\s*\\(\\s*204/', $methodSource)) {
+                        $responseMetadata = ['kind' => 'empty', 'transport' => 'empty', 'shape' => 'single'];
                     }
                 }
 
@@ -871,55 +906,55 @@ if ($extractModels) {
 echo json_encode($result);
 `;
 
-        const scriptPath = path.join(projectRoot, 'routesync-extractor-temp.php')
+    const scriptPath = path.join(projectRoot, 'routesync-extractor-temp.php')
 
-        try {
-            await fs.writeFile(scriptPath, phpScript)
-            await fs.writeFile(path.join(projectRoot, 'routesync-dump.php'), phpScript)
+    try {
+      await fs.writeFile(scriptPath, phpScript)
+      await fs.writeFile(path.join(projectRoot, 'routesync-dump.php'), phpScript)
 
-            // Use spawnSync instead of execSync so we can capture stdout and stderr
-            // as separate streams without relying on shell redirect syntax (which is
-            // not cross-platform: "2>/dev/null" fails on Windows, "2>NUL" requires
-            // shell:true which itself has quoting issues on Windows paths with spaces).
-            const { spawnSync } = await import('child_process')
-            const result = spawnSync('php', ['routesync-extractor-temp.php'], {
-                cwd: projectRoot,
-                encoding: 'utf-8',
-                maxBuffer: 1024 * 1024 * 10
-            })
+      // Use spawnSync instead of execSync so we can capture stdout and stderr
+      // as separate streams without relying on shell redirect syntax (which is
+      // not cross-platform: "2>/dev/null" fails on Windows, "2>NUL" requires
+      // shell:true which itself has quoting issues on Windows paths with spaces).
+      const { spawnSync } = await import('child_process')
+      const result = spawnSync('php', ['routesync-extractor-temp.php'], {
+        cwd: projectRoot,
+        encoding: 'utf-8',
+        maxBuffer: 1024 * 1024 * 10
+      })
 
-            //       await fs.remove(scriptPath)
+//       await fs.remove(scriptPath)
 
-            if (result.error) {
-                throw result.error
-            }
+      if (result.error) {
+        throw result.error
+      }
 
-            const raw = result.stdout ?? ''
+      const raw = result.stdout ?? ''
 
-            // Strip UTF-8 BOM if present, normalize CRLF → LF, trim whitespace
-            const cleaned = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim()
+      // Strip UTF-8 BOM if present, normalize CRLF → LF, trim whitespace
+      const cleaned = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim()
 
-            // Find the first '{' to skip any stray PHP notices/warnings on stdout
-            const jsonStart = cleaned.indexOf('{')
-            if (jsonStart === -1) {
-                // Dump stderr to help diagnose what PHP actually printed
-                const stderrHint = result.stderr ? `\nPHP stderr: ${result.stderr.slice(0, 500)}` : ''
-                const stdoutHint = cleaned ? `\nPHP stdout: ${cleaned.slice(0, 500)}` : ''
-                throw new Error('No JSON output from PHP script' + stderrHint + stdoutHint)
-            }
+      // Find the first '{' to skip any stray PHP notices/warnings on stdout
+      const jsonStart = cleaned.indexOf('{')
+      if (jsonStart === -1) {
+        // Dump stderr to help diagnose what PHP actually printed
+        const stderrHint = result.stderr ? `\nPHP stderr: ${result.stderr.slice(0, 500)}` : ''
+        const stdoutHint = cleaned ? `\nPHP stdout: ${cleaned.slice(0, 500)}` : ''
+        throw new Error('No JSON output from PHP script' + stderrHint + stdoutHint)
+      }
 
-            const parsed = JSON.parse(cleaned.slice(jsonStart))
-            return {
-                routes: parsed.routes || [],
-                models: parsed.models || [],
-                resources: parsed.resources || []
-            }
-        } catch (err) {
-            if (fs.existsSync(scriptPath)) {
-                // await fs.remove(scriptPath)
-            }
-            console.error('Failed to parse Laravel routes via PHP script:', err)
-            return { routes: [], models: [], resources: [] }
-        }
+      const parsed = JSON.parse(cleaned.slice(jsonStart))
+      return {
+        routes: parsed.routes || [],
+        models: parsed.models || [],
+        resources: parsed.resources || []
+      }
+    } catch (err) {
+      if (fs.existsSync(scriptPath)) {
+        // await fs.remove(scriptPath)
+      }
+      console.error('Failed to parse Laravel routes via PHP script:', err)
+      return { routes: [], models: [], resources: [] }
     }
+  }
 }

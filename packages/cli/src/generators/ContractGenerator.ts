@@ -433,8 +433,12 @@ export class ContractGenerator {
         // ReadEmitter has no reliable way to reconstruct it without guessing.
         const reachableModelNames = new Set<string>()
         for (const route of manifest.routes || []) {
-            const resp = route.response as { kind?: string; model?: string } | undefined
-            if (resp && (resp.kind === 'model' || resp.kind === 'resource') && resp.model) {
+            const resp = route.response as { kind?: string; transport?: string; model?: string } | undefined
+            if (!resp || !resp.model) continue
+            // transport (Phase 1+) is preferred; kind is the pre-ResponseDescriptor
+            // field, kept as a fallback for manifests scanned before this rollout.
+            const transport = resp.transport ?? resp.kind
+            if (transport === 'model' || transport === 'resource') {
                 reachableModelNames.add(resp.model)
             }
         }

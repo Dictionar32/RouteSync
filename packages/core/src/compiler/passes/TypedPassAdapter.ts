@@ -4,7 +4,6 @@
  * Adapts a typed CompilerPass to the ExecutablePass interface.
  * Handles artifact marshalling, caching, and type-safe input/output management.
  */
-
 import type { ArtifactKey } from '../artifacts/types';
 import type { CompilerPass } from './CompilerPass';
 import type { ExecutablePass } from './ExecutablePass';
@@ -15,6 +14,7 @@ import type { ArtifactCache, CacheDescriptor } from '../cache/ArtifactCache';
 import type { CompilerArtifact } from '../artifacts/Artifact';
 import { readArtifacts, tupleAt } from './ArtifactKeyWitness';
 import { computeFingerprintHash } from '../fingerprint/Fingerprint';
+import { ResolveArtifacts, ArtifactKeyWitness } from './ArtifactKeyWitness';
 
 /**
  * TypedPassAdapter wraps a typed CompilerPass and adapts it to ExecutablePass.
@@ -80,7 +80,7 @@ export class TypedPassAdapter<
 
         // Cast for cache descriptor construction
         const inputsArray = inputs as readonly CompilerArtifact[];
-        const witnesses = this.pass.inputWitnesses as readonly any[];
+        const witnesses = this.pass.inputWitnesses as readonly ArtifactKeyWitness<ArtifactKey>[];
 
         // Build cache descriptor if caching is enabled
         let descriptor: CacheDescriptor | undefined;
@@ -97,7 +97,7 @@ export class TypedPassAdapter<
             };
 
             // Check cache for existing outputs
-            const cachedOutputs = cache.get<any>(descriptor);
+            const cachedOutputs = cache.get<ResolveArtifacts<O>>(descriptor);
             if (cachedOutputs) {
                 return this.applyOutputs(state, cachedOutputs);
             }
@@ -111,23 +111,13 @@ export class TypedPassAdapter<
 
         // Store outputs in cache if enabled
         if (cache && descriptor) {
-            cache.set<any>(descriptor, outputs);
+            cache.set<ResolveArtifacts<O>>(descriptor, outputs);
         }
 
         return nextState;
     }
 
-    /**
-     * Apply typed outputs to compilation state.
-     * 
-     * Iterates through output keys and uses tupleAt to safely extract
-     * the corresponding output artifact at each index.
-     * 
-     * @param state - Current compilation state
-     * @param outputs - Typed outputs from pass execution
-     * @returns Updated compilation state with outputs
-     */
-    private applyOutputs(state: CompilationState, outputs: any): CompilationState {
+    private applyOutputs(state: CompilationState, outputs: ResolveArtifacts<O>): CompilationState {
         let nextState = state;
         for (let i = 0; i < this.pass.outputKeys.length; i++) {
             const key = this.pass.outputKeys[i]!;

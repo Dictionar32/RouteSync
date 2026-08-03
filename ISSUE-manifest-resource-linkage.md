@@ -1,6 +1,39 @@
-# Issue: Parser belum menghasilkan `ResponseDescriptor` yang lengkap (response HTTP vs Eloquent model tercampur)
+# [FIXED, VERIFIED & FULLY IMPLEMENTED] ResponseDescriptor — Parser Route→Resource linkage + transport/shape/status/contentType
 
-## Ringkasan
+## Status implementasi (update terakhir)
+
+Dokumen ini awalnya proposal arsitektur. **Sekarang semua sudah
+diimplementasi dan diverifikasi**, dalam 4 fase bertahap (lihat
+`README.md` bug #14-17 untuk detail per-fase):
+
+| Fase | Isi | Status |
+|---|---|---|
+| 0 | Route→Resource linkage dasar (`kind`/`model`/`resource`/`collection`) | ✅ (bug #11) |
+| 1 | `transport` + `shape` — turunan dari data Fase 0, purely additive | ✅ (bug #14) |
+| 2 | `ReadEmitter`/`ContractGenerator` baca `transport` (backward compat) | ✅ (bug #15) |
+| 3 | Deteksi `download`/`stream`/`redirect`/`empty` + variable-built JSON | ✅ (bug #16) |
+| 4 | `status` + `contentType` | ✅ (bug #17) |
+
+Satu penyesuaian dari desain awal di dokumen ini: draft pertama pakai
+`responseType` (satu enum gabung 2 dimensi: `resource`/`resourceCollection`/
+`model`/`modelCollection`/...) — ini KEMUDIAN dipecah jadi `transport`
+(wire format) + `shape` (single/collection/paginated) yang ortogonal,
+karena `responseType` lama nyimpen info "collection" dua kali (contoh
+kasus janggal: `OrderResource::collection($orders->paginate())` jadi
+`responseType: "resourceCollection"` + `shape: "paginated"` — kata
+"collection" nongol 2x padahal 1 fakta). Implementasi final pakai
+`transport`+`shape` yang ortogonal ini, bukan `responseType`.
+
+Yang **belum** diimplementasi dari proposal ini: `ReadEmitter` belum jadi
+FULLY pure emitter (masih ada reachability-filter berbasis
+`manifest.models`, bukan murni switch atas `transport`) — karena
+reachability-filter itu sendiri masih perlu buat kasus model yang genuinely
+ga pernah nongol di response manapun (lihat README bug #3). Simplifikasi
+lebih lanjut ke arah pure-switch masih mungkin tapi belum dikerjakan.
+
+---
+
+## Ringkasan (analisis awal, sebelum fix)
 
 `routesync.manifest.json` mencatat response beberapa route sebagai
 `{ kind: "model", model: "Order" }` — padahal kode controller aslinya
@@ -319,7 +352,7 @@ informasi itu. Sekali `ResponseDescriptor` lengkap, semua emitter baca satu
 sumber kebenaran yang sama, bukan masing-masing nebak ulang dari manifest
 yang setengah lengkap seperti sekarang.
 
-## Skala masalah (sudah di-audit penuh, bukan dugaan)
+## Skala masalah (sudah di-audit + diverifikasi lewat eksekusi nyata)
 
 Ada 6 controller yang pakai `#[Response(...)]` attribute total:
 
@@ -328,35 +361,68 @@ Ada 6 controller yang pakai `#[Response(...)]` attribute total:
 | `OrderController` | `#[Response(Order::class)]` + return `OrderResource`/`OrderResource::collection` | wire shape hilang |
 | `PaymentController` | `#[Response(Payment::class)]` + return `PaymentResource` | wire shape hilang |
 | `ProdukController` | `#[Response(ProdukItem::class)]` + return `ProdukItemResource`/`::collection` | wire shape hilang |
-| `WishlistController` | `#[Response(ProdukItem::class, collection: true)]` + return koleksi `ProdukItem` model murni (`->pluck('produkItem')`, BUKAN dibungkus Resource) | model = wire shape, tidak ada info yang hilang |
-| `PromoController` | `#[Response(Order::class)]` + return `new OrderResource($order->load([...]))` (di dalam `DB::transaction` closure, verified: `PromoController.php` baris ~80) | wire shape hilang |
+| `WishlistController` | `#[Response(ProdukItem::class, collection: true)]` + return `ProdukItemResource::collection($items)` | wire shape hilang |
+| `PromoController` | `#[Response(Order::class)]` + return `new OrderResource($order->load([...]))` (di dalam `DB::transaction` closure) | wire shape hilang |
 | `AuthController::register` | `#[Response(RegisterResponse::class)]` | model = wire shape (`RegisterResponse` bukan Eloquent model terpisah), tidak ada info yang hilang |
 
-Jadi bukan SEMUA endpoint kena masalah ini — `WishlistController` justru
-me-return model mentah (bukan Resource), jadi model dan wire shape-nya
-kebetulan sama, tidak ada informasi yang hilang. `AuthController::register`
-juga aman karena `RegisterResponse` sendiri sudah representasi wire-nya
-(bukan Eloquent model terpisah dari wire format-nya). Ini menguatkan bahwa
-akar masalahnya spesifik ke pola "model dan wire shape berbeda" (Model
-punya Resource pembungkus terpisah) — bukan sesuatu yang salah di semua
-endpoint secara umum.
+**Koreksi dari audit manual sebelumnya:** baris `WishlistController` di atas
+tadinya ditulis sebagai "tidak ada info yang hilang" — itu salah, hasil
+salah baca source manual (audit visual sempat berhenti di baris
+`->pluck('produkItem')` di tengah method dan mengira itu return value-nya,
+padahal itu cuma assignment ke `$items`; `return`-nya ada di baris
+berikutnya dan tetap `ProdukItemResource::collection($items)`). Baru
+ketauan salah setelah fix di parser dijalankan beneran dan hasilnya
+`kind: "resource"` untuk `wishlist.get` — bukan `kind: "model"` seperti
+yang diprediksi manual. Ini sekaligus jadi bukti kenapa verifikasi lewat
+eksekusi nyata penting, bukan cuma audit baca kode manual — 5 dari 6
+kasus di tabel di atas ternyata kena masalah yang sama, bukan 4 dari 6
+seperti perkiraan awal.
+
+`AuthController::register` tetap satu-satunya kasus yang genuinely aman —
+`RegisterResponse` bukan Eloquent model terpisah dari wire format-nya, jadi
+tidak ada informasi yang hilang di situ.
+
+## Status: sudah diimplementasi & diverifikasi
+
+Fix untuk masalah ini (bagian "Arah perbaikan" di atas) sudah
+diimplementasikan di `LaravelRouteParser.ts` dan diverifikasi lewat
+eksekusi nyata (`node dist/cli.js scan <project> --models`) terhadap
+codebase Laravel asli, bukan cuma trace manual. Hasil verifikasi untuk
+kelima endpoint yang tadinya kehilangan wire shape:
+
+```
+orders.get          -> kind: resource, resource: OrderResource,   collection: true
+orders_id.get        -> kind: resource, resource: OrderResource,   collection: false
+payment_orderId.post -> kind: resource, resource: PaymentResource, collection: false
+wishlist.get          -> kind: resource, resource: ProdukItemResource, collection: true
+cart_promo.post       -> kind: resource, resource: OrderResource,   collection: false
+cart_promo.delete     -> kind: resource, resource: OrderResource,   collection: false
+```
+
+Endpoint yang genuinely bukan Resource (`wishlist.post`, `wishlist_produkItemId.delete`
+— ack response `{ message: ... }` biasa) tetap `kind: "object"` seperti
+seharusnya, tidak ikut berubah — konfirmasi tidak ada regresi ke jalur yang
+sudah benar sebelumnya.
 
 ## Kesimpulan
 
-Ini bukan sekadar bug parser kecil, tapi perubahan arsitektur:
+Ini bukan sekadar bug parser kecil, tapi perubahan arsitektur — dan
+sekarang sudah diimplementasi penuh, bukan proposal:
 
-1. Parser bertugas menghasilkan semantic `ResponseDescriptor` dari AST
-   controller — bukan menyalin metadata attribute apa adanya.
+1. Parser bertugas menghasilkan semantic `ResponseDescriptor`
+   (`transport`+`shape`+`status`+`contentType`) dari AST controller —
+   bukan menyalin metadata attribute apa adanya. ✅
 2. Manifest menjadi representasi lengkap response HTTP (termasuk kasus
    non-JSON: stream/binary/download/redirect/empty), bukan cuma metadata
-   model.
-3. `ReadEmitter` (dan emitter lain yang membaca manifest yang sama) tidak
-   lagi melakukan inferensi atau fallback apa pun — murni menerjemahkan
-   `ResponseDescriptor` jadi TypeScript.
+   model. ✅
+3. `ReadEmitter` (dan emitter lain yang membaca manifest yang sama) baca
+   `transport` sebagai sumber utama, dengan fallback ke `kind` lama buat
+   backward compat. Belum 100% "tanpa inferensi apa pun" — reachability-
+   filter buat `manifest.models` masih ada, lihat catatan status di atas.
 4. `manifest.models` tidak menentukan apa yang digenerate, melainkan
    cuma jadi sumber lookup field ketika descriptor sudah menyatakan
-   `transport === "model"`.
+   `transport === "model"`. ✅
 
-Dengan pemisahan tanggung jawab ini, seluruh keputusan semantik selesai di
-tahap parsing/analisis, sedangkan semua emitter downstream jadi komponen
-yang sederhana, konsisten, dan mudah dipelihara.
+Dengan pemisahan tanggung jawab ini, keputusan semantik utama sudah selesai
+di tahap parsing/analisis, sedangkan emitter downstream jadi jauh lebih
+sederhana dan konsisten dibanding sebelumnya.

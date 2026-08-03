@@ -1,10 +1,12 @@
 import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder, ContractGraph } from '@routesync/core'
+import type { ResponseArtifact } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { buildGeneratedRoutes, toTypeName, GeneratedRoute } from './names'
 import { deriveGroupName } from './route-classifier'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
 import { normalizeManifest, getSemanticNode, unwrapManifestNode, RuntimeAugmented } from './normalizer'
+import { ResponseAnalysisHelper } from './response-analysis-helper'
 
 interface SemanticNode {
   status: string
@@ -48,13 +50,37 @@ function routeResponseKey(route: { name?: string; method?: string; path?: string
   return route.name || `${route.method || ''}:${route.path || ''}`
 }
 
+/**
+ * SSOT Helper: Get collection detection from ResponseArtifactMap
+ * This replaces multiple inline detection implementations
+ */
+function getIsCollectionFromArtifact(routeName: string, responseArtifactMap?: Map<string, ResponseArtifact>): boolean {
+  if (!responseArtifactMap) return false
+
+  const artifactId = `${routeName}.Response`
+  const artifact = responseArtifactMap.get(artifactId)
+
+  if (!artifact || !artifact.body || !('shape' in artifact.body)) {
+    return false
+  }
+
+  return artifact.body.shape === 'collection' || artifact.body.shape === 'paginated'
+}
+
 export class ZodTierGenerator {
   private static knownSchemas = new Set<string>()
   private static graph: ContractGraph | undefined
+  private static responseArtifactMap: Map<string, ResponseArtifact> | undefined
 
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
     this.knownSchemas.clear()
     this.graph = new ContractGraph(manifest)
+
+    // BUILD SSOT: ResponseArtifactMap from manifest
+    // This is THE source of truth for collection detection
+    console.log('🔨 ZodTierGenerator: Building ResponseArtifactMap (SSOT)...')
+    this.responseArtifactMap = ResponseAnalysisHelper.buildResponseArtifactMap(manifest)
+
     if (manifest.models) {
       manifest.models.forEach(m => this.knownSchemas.add(`${m.name}Schema`))
     }
@@ -76,7 +102,7 @@ export class ZodTierGenerator {
     // Ensure output directory exists (src/api/contract)
     const contractDir = path.join(outputDir, 'contract')
     await fs.ensureDir(contractDir)
-      
+
     // Write the 3 unified files directly to contractDir
     // generateContract returns the per-route response composition map — this is
     // the single source of truth for "what shape does this route's response have"
@@ -121,14 +147,14 @@ export class ZodTierGenerator {
     for (const model of models) {
       hasExports = true
       lines.push(`export const ${model.name}Schema = z.object({`)
-      
+
       const hidden = Array.isArray(model.hidden) ? model.hidden : []
       const casts = model.casts || {}
 
       for (const col of model.columns) {
         const isHidden = hidden.includes(col.name)
         const castType = casts[col.name]
-        
+
         let zType = this.mapSqlTypeToZod(col.type)
         if (castType) zType = this.mapCastToZod(castType, zType)
         if (col.nullable) zType += '.nullable()'
@@ -137,7 +163,7 @@ export class ZodTierGenerator {
         const safeName = col.name.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? col.name : `"${col.name}"`
         lines.push(`  ${safeName}: ${zType},`)
       }
-      
+
       const getZodTypeFromAccessor = (accessor: any, fieldName?: string): string => {
         const semantic = accessor?.semantic
         if (semantic && semantic.status === 'resolved') {
@@ -177,7 +203,7 @@ export class ZodTierGenerator {
       if (model.accessors) {
         for (const [key, accessor] of Object.entries(model.accessors)) {
           if (hidden.includes(key)) continue
-          
+
           // Skip if key is already output as an appended field (case-insensitive and camel/snake normalized)
           const isAppended = appends.some((a: string) => a.toLowerCase() === key.toLowerCase() || camelCase(a) === camelCase(key))
           if (isAppended) continue
@@ -189,7 +215,7 @@ export class ZodTierGenerator {
       }
       lines.push(`})`)
       lines.push(``)
-      
+
       lines.push(`export type ${model.name}ApiResponse = z.infer<typeof ${model.name}Schema>`)
       lines.push(`export const validate${model.name} = (payload: unknown): ${model.name}ApiResponse => ${model.name}Schema.parse(payload)`)
       lines.push(``)
@@ -260,7 +286,7 @@ export class ZodTierGenerator {
       } else {
         lines.push(`export const ${resource.name}Schema = z.object({`)
       }
-      
+
       const parsedAssignments: Record<string, any> = {};
       if (resource.assignments) {
         for (const varName in resource.assignments) {
@@ -276,7 +302,7 @@ export class ZodTierGenerator {
         let zType = this.buildResponseZodType(fieldDef, kernel, context, fieldName)
         lines.push(`  ${safeName}: ${zType},`)
       }
-      
+
       if (isCircular) {
         lines.push(`}))`)
       } else {
@@ -322,7 +348,7 @@ export class ZodTierGenerator {
         for (const [varName, code] of Object.entries(rawAssignments)) {
           try {
             routeAssignments[varName] = PhpCodeParser.parseExpression(code as string, {})
-          } catch {}
+          } catch { }
         }
       }
 
@@ -339,7 +365,9 @@ export class ZodTierGenerator {
         collection: route.response.collection ?? route.response.resolved?.collection ?? route.response.semantic?.collection,
         paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
       }
-      const isCollection = !!respMeta.collection || !!respMeta.paginated || respMeta.type === 'collection'
+
+      // SSOT: Use ResponseArtifact for collection detection instead of re-computing
+      const isCollection = getIsCollectionFromArtifact(route.name, ZodTierGenerator.responseArtifactMap)
       if (isCollection) {
         if (zType.startsWith('z.array(')) {
           const innerType = zType.substring(8, zType.length - 1)
@@ -469,17 +497,17 @@ export class ZodTierGenerator {
 
     const walk = (node: any) => {
       if (!node) return
-      
+
       if (node.kind === 'literal' && typeof node.code === 'string' && node.code.startsWith('{"kind":')) {
         try {
           const parsed = JSON.parse(node.code)
           walk(parsed)
           return
-        } catch (e) {}
+        } catch (e) { }
       }
 
       let meta = node.resolved || node.semantic || node
-      
+
       if (meta.type === 'model' || meta.kind === 'model') {
         const resourceName = `${meta.model}Resource`
         if (knownResourceNames.has(resourceName)) {
@@ -511,7 +539,7 @@ export class ZodTierGenerator {
 
   private static buildResponseZodType(payload: any, kernel?: any, context?: any, propertyName?: string): string {
     if (!payload) return 'z.unknown()'
-    
+
     // Check if it's already a string like "number", "string", "array" from a simple type map
     if (typeof payload === 'string') {
       if (payload === 'integer' || payload === 'number') return 'z.number()'
@@ -523,7 +551,7 @@ export class ZodTierGenerator {
     }
 
     let meta = getSemanticNode(payload)
-    
+
     // Fast path for inline JSON ASTs from PHP extractor
     const node = unwrapManifestNode(payload)
     const augmentedNode = node as RuntimeAugmented
@@ -532,7 +560,7 @@ export class ZodTierGenerator {
       try {
         const parsed = JSON.parse(augmentedNode.code)
         return this.buildResponseZodType(parsed, kernel, context, propertyName)
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const rawObj = node as any
@@ -546,13 +574,13 @@ export class ZodTierGenerator {
     // Attempt on-the-fly resolution if we have a kernel and an AST
     let astToResolve = augmentedNode?.parsed_ast || augmentedPayload?.parsed_ast || (augmentedPayload?.kind ? augmentedPayload : null)
     if (kernel && (!meta || !meta.status || meta.status === 'unknown' || meta.type === 'unknown') && astToResolve) {
-       const resolved = kernel.resolve(astToResolve, context || { layer: 'route', modelMap: {}, relationMap: {} })
-       if (resolved.status === 'resolved' || resolved.status === 'partial') {
-          meta = resolved
-          augmentedPayload.resolved = resolved // cache it!
-       }
+      const resolved = kernel.resolve(astToResolve, context || { layer: 'route', modelMap: {}, relationMap: {} })
+      if (resolved.status === 'resolved' || resolved.status === 'partial') {
+        meta = resolved
+        augmentedPayload.resolved = resolved // cache it!
+      }
     }
-    
+
     if (!meta || meta.status === 'unknown' || meta.type === 'unknown') {
       if (propertyName) {
         const inferred = this.inferZodSchemaFromName(propertyName)
@@ -560,7 +588,7 @@ export class ZodTierGenerator {
       }
       return 'z.unknown()'
     }
-    
+
     let baseZod = 'z.unknown()'
     const rawPayload = (unwrapManifestNode(payload) || payload) as any
     let isCollection = !!meta.collection || (rawPayload && !!rawPayload.collection)
@@ -612,18 +640,18 @@ export class ZodTierGenerator {
       // Check PHP Extractor fields (e.g. #[Response(Order::class)])
       let isModel = false
       let modelName = meta.type
-      
+
       if (meta.type === 'model' && meta.model) {
         isModel = true
         modelName = meta.model
       }
-      
+
       if (augmentedNode && augmentedNode.kind === 'literal' && typeof augmentedNode.code === 'string' && augmentedNode.code.includes('"kind":"model"')) {
         isModel = true
         if (augmentedNode.code.includes('"collection":true')) isCollection = true
         if (augmentedNode.code.includes('"paginated":true')) isPaginated = true
       }
-      
+
       if (isModel) {
         const schemaName = `${modelName}Schema`
         if (this.knownSchemas.has(schemaName)) {
@@ -634,13 +662,13 @@ export class ZodTierGenerator {
       } else if (typeof meta.type === 'string' && meta.type !== 'unknown') {
         const schemaName = `${meta.type}Schema`
         if (this.knownSchemas.has(schemaName)) {
-           baseZod = schemaName
+          baseZod = schemaName
         } else {
-           baseZod = 'z.unknown()'
+          baseZod = 'z.unknown()'
         }
       }
     }
-    
+
     if (baseZod === 'z.unknown()' && propertyName) {
       const inferred = this.inferZodSchemaFromName(propertyName)
       if (inferred !== 'z.unknown()') {
@@ -651,9 +679,9 @@ export class ZodTierGenerator {
     let result = baseZod
     if (isCollection) {
       if (isPaginated) {
-         result = `z.object({ data: z.array(${baseZod}), current_page: z.number().optional(), total: z.number().optional() })`
+        result = `z.object({ data: z.array(${baseZod}), current_page: z.number().optional(), total: z.number().optional() })`
       } else {
-         result = `z.array(${baseZod})`
+        result = `z.array(${baseZod})`
       }
     }
     if (meta && meta.nullable === true) {
@@ -874,24 +902,24 @@ export class ZodTierGenerator {
     for (const model of models) {
       hasExports = true
       lines.push(`export interface ${model.name}Transformed {`)
-      
+
       const hidden = Array.isArray(model.hidden) ? model.hidden : []
       const casts = model.casts || {}
 
       for (const col of model.columns) {
         if (hidden.includes(col.name)) continue
-        
+
         const castType = casts[col.name]
         let tsType = this.mapSqlTypeToTs(col.type)
         if (castType) tsType = this.mapCastToTs(castType, tsType)
-        
+
         if (col.nullable) tsType += ' | null'
-        
+
         const camelCol = camelCase(col.name)
         const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
         lines.push(`  ${safeName}: ${tsType}`)
       }
-      
+
       const getTsTypeFromAccessor = (accessor: any): string => {
         const semantic = accessor?.semantic
         if (semantic && semantic.status === 'resolved') {
@@ -915,7 +943,7 @@ export class ZodTierGenerator {
       for (const append of appends) {
         const camelAppend = camelCase(append)
         const safeAppend = camelAppend.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelAppend : `"${camelAppend}"`
-        
+
         let tsType = 'unknown'
         if (model.accessors) {
           const accessor = model.accessors[append] || model.accessors[camelCase(append)]
@@ -927,7 +955,7 @@ export class ZodTierGenerator {
       }
       lines.push(`}`)
       lines.push(``)
-      
+
       lines.push(`export type ${model.name}Show = ${model.name}Transformed`)
       lines.push(`export type ${model.name}Index = ${model.name}Transformed[]`)
       lines.push(``)
@@ -937,13 +965,13 @@ export class ZodTierGenerator {
     for (const resource of resources) {
       hasExports = true
       lines.push(`export interface ${resource.name}Transformed {`)
-      
+
       for (const [fieldName, fieldDefRaw] of Object.entries(resource.fields as Record<string, any>)) {
         const fieldDef = fieldDefRaw as any
         const camelCol = camelCase(fieldName)
         const meta = fieldDef.resolved || fieldDef.semantic || fieldDef
         const resolvedType = meta.type || meta.kind
-        
+
         // FLATTEN STRATEGY: If nested resource/model/object, flatten fields instead of nested type
         if ((resolvedType === 'resource' || resolvedType === 'model' || resolvedType === 'object') && meta.fields) {
           // Flatten nested fields with prefix
@@ -952,11 +980,11 @@ export class ZodTierGenerator {
             const nestedFieldDef = nestedFieldDefRaw as any
             const nestedMeta = nestedFieldDef.resolved || nestedFieldDef.semantic || nestedFieldDef
             const nestedCamelName = camelCase(nestedFieldName)
-            
+
             // Prefix with parent field name (e.g., produk + id -> produkId)
             const flatFieldName = camelCol + nestedCamelName.charAt(0).toUpperCase() + nestedCamelName.slice(1)
             const safeFlatName = flatFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatFieldName : `"${flatFieldName}"`
-            
+
             let tsType = this.mapResolvedToTsType(nestedMeta, nestedFieldName)
             // Nullable if nested field is nullable
             const nestedResolvedType = nestedMeta.type || nestedMeta.kind
@@ -970,7 +998,7 @@ export class ZodTierGenerator {
           const safeName = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
           const arrayMeta = meta.items || {}
           const arrayResolvedType = arrayMeta.type || arrayMeta.kind
-          
+
           if ((arrayResolvedType === 'resource' || arrayResolvedType === 'model' || arrayResolvedType === 'object') && arrayMeta.fields) {
             // Generate inline array item type with flattened fields
             const itemFields: string[] = []
@@ -981,7 +1009,7 @@ export class ZodTierGenerator {
               const itemResolvedType = itemMeta.type || itemMeta.kind
               const itemCamelName = camelCase(itemFieldName)
               const safeFlatItemName = itemCamelName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? itemCamelName : `"${itemCamelName}"`
-              
+
               // Handle nested resource/model within array item - flatten it
               if ((itemResolvedType === 'resource' || itemResolvedType === 'model' || itemResolvedType === 'object') && itemMeta.fields) {
                 // Flatten nested fields within array item
@@ -1027,7 +1055,7 @@ export class ZodTierGenerator {
       }
       lines.push(`}`)
       lines.push(``)
-      
+
       lines.push(`export type ${resource.name}Show = ${resource.name}Transformed`)
       lines.push(`export type ${resource.name}Index = ${resource.name}Transformed[]`)
       lines.push(``)
@@ -1187,7 +1215,7 @@ export class ZodTierGenerator {
     // Imports
     const modelImports: string[] = []
     const readImports: string[] = []
-    
+
     for (const model of models) {
       modelImports.push(`${model.name}ApiResponse`)
       readImports.push(`${model.name}Transformed`)
@@ -1238,7 +1266,8 @@ export class ZodTierGenerator {
           paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
         }
         const kind = meta.kind || meta.type
-        const isCollection = !!meta.collection || !!meta.paginated || meta.type === 'collection'
+        // SSOT: Use ResponseArtifact for collection detection
+        const isCollection = getIsCollectionFromArtifact(route.name, ZodTierGenerator.responseArtifactMap)
         const isGet = route.method?.toUpperCase() === 'GET'
 
         if ((kind === 'object' && (this.hasModelOrResource(route.response) || this.hasSnakeCaseFields(route.response))) || isCollection) {
@@ -1315,7 +1344,7 @@ export class ZodTierGenerator {
     for (const model of models) {
       hasExports = true
       lines.push(`export const to${model.name}Read = (api: ${model.name}ApiResponse): ${model.name}Transformed => ({`)
-      
+
       const hidden = Array.isArray(model.hidden) ? model.hidden : []
       for (const col of model.columns) {
         if (hidden.includes(col.name)) continue
@@ -1343,16 +1372,16 @@ export class ZodTierGenerator {
     for (const resource of resources) {
       hasExports = true
       lines.push(`export const to${resource.name}Read = (api: ${resource.name}Response): ${resource.name}Transformed => ({`)
-      
+
       for (const [fieldName, fieldDefRaw] of Object.entries(resource.fields as Record<string, any>)) {
         const fieldDef = fieldDefRaw as any
         const camelCol = camelCase(fieldName)
         const safeCamel = camelCol.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? camelCol : `"${camelCol}"`
         const safeOriginal = fieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `api.${fieldName}` : `api["${fieldName}"]`
-        
+
         const meta = fieldDef.resolved || fieldDef.semantic || fieldDef
         const resolvedType = meta.type || meta.kind
-        
+
         // FLATTEN STRATEGY: If nested resource/model/object, flatten fields with optional chaining
         if ((resolvedType === 'resource' || resolvedType === 'model' || resolvedType === 'object') && meta.fields) {
           const nestedFields = meta.fields as Record<string, any>
@@ -1360,32 +1389,32 @@ export class ZodTierGenerator {
             const nestedCamelName = camelCase(nestedFieldName)
             const flatFieldName = camelCol + nestedCamelName.charAt(0).toUpperCase() + nestedCamelName.slice(1)
             const safeFlatName = flatFieldName.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? flatFieldName : `"${flatFieldName}"`
-            
+
             // Use optional chaining for safety: api.produk?.id
-            const nestedAccessor = safeOriginal.endsWith(']') 
-              ? `${safeOriginal}?.${nestedFieldName}` 
+            const nestedAccessor = safeOriginal.endsWith(']')
+              ? `${safeOriginal}?.${nestedFieldName}`
               : `${safeOriginal}?.${nestedFieldName}`
-            
+
             lines.push(`  ${safeFlatName}: ${nestedAccessor},`)
           }
         } else if (resolvedType === 'array') {
           // Array of items - inline mapping with flattened fields (Approach B)
           const arrayMeta = meta.items || {}
           const arrayResolvedType = arrayMeta.type || arrayMeta.kind
-          
+
           if ((arrayResolvedType === 'resource' || arrayResolvedType === 'model' || arrayResolvedType === 'object') && arrayMeta.fields) {
             // Inline definition with fields - generate inline approach B
             const itemFields: string[] = []
             const itemFieldsObj = arrayMeta.fields as Record<string, any>
-            
+
             for (const [itemFieldName, itemFieldDefRaw] of Object.entries(itemFieldsObj)) {
               const itemFieldDef = itemFieldDefRaw as any
               const itemCamelName = camelCase(itemFieldName)
-              
+
               // Handle nested fields in array items too
               const itemMeta = itemFieldDef.resolved || itemFieldDef.semantic || itemFieldDef
               const itemResolvedType = itemMeta.type || itemMeta.kind
-              
+
               if ((itemResolvedType === 'resource' || itemResolvedType === 'model') && itemMeta.fields) {
                 // Nested resource in array item - flatten it
                 const nestedInArrayFields = itemMeta.fields as Record<string, any>
@@ -1402,7 +1431,7 @@ export class ZodTierGenerator {
                 itemFields.push(`          ${safeItemCamelName}: item.${itemFieldName},`)
               }
             }
-            
+
             // Approach B: Inline without ? and ?? [] (assumes items always exists)
             lines.push(`  ${safeCamel}: ${safeOriginal}.map(item => ({`)
             lines.push(itemFields.join('\n'))
@@ -1606,14 +1635,14 @@ export class ZodTierGenerator {
   private static generateMapperRecursive(node: any, varName: string, level: number = 1): string {
     const indent = '  '.repeat(level)
     const props: string[] = []
-    
+
     for (const [key, childNode] of Object.entries(node.children)) {
       const camel = camelCase(key)
       const typedChild = childNode as any
       const constantKey = camel.toUpperCase()
       const safeAccessor = constantKey.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `ApiApiField.${constantKey}` : `ApiApiField["${constantKey}"]`
       const safeCamel = camel.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) ? `${varName}.${camel}` : `${varName}["${camel}"]`
-      
+
       if (typedChild.children && typedChild.children['*']) {
         const innerNode = typedChild.children['*']
         const innerVar = `item${level}`
@@ -1638,13 +1667,13 @@ export class ZodTierGenerator {
       }
       return 'unknown'
     }
-    
+
     const type = meta.type || meta.kind
     const model = meta.model
     const resource = meta.resource
     const collection = !!meta.collection
     const nullable = !!meta.nullable
-    
+
     let typeStr = 'unknown'
 
     if (type === 'model') {

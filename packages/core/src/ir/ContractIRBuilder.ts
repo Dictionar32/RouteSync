@@ -269,8 +269,69 @@ export class OptimizedContractIRBuilder {
     /**
      * Build ResourceIR from parsed resource
      */
+    /**
+     * Fields whose semanticType is a nested inline object (e.g. OrderResource's
+     * `shipping` => { nama, alamat }) used to always render as an anonymous
+     * `{ nama: string; alamat: string }` inline type. This extracts them into
+     * their own named, top-level interface instead — e.g. `OrderShipping` —
+     * registered into `this.resources` alongside every other resource, so
+     * ReadEmitter emits it as a real `export interface OrderShippingTransformed`
+     * just like anything else, and the field itself becomes a reference to it.
+     *
+     * Naming: strip a trailing "Resource"/"Response" off the parent resource
+     * name, PascalCase the field name, concatenate. Deliberately does NOT reuse
+     * any DB model of the same name (e.g. the real `OrderShipping` Eloquent
+     * model, if one exists) — the shape here is whatever fields the object
+     * literal actually has, which may be a partial projection of that model,
+     * not the model itself. See ISSUE-manifest-resource-linkage.md.
+     */
+    private extractNestedObjectResource(parentResourceName: string, field: ParsedFieldData): ParsedFieldData {
+        const semanticType = field.semanticType as { kind?: string; properties?: Record<string, unknown> } | undefined
+        if (!semanticType || semanticType.kind !== 'object' || !semanticType.properties) {
+            return field
+        }
+        const propertyEntries = Object.entries(semanticType.properties)
+        if (propertyEntries.length === 0) {
+            return field
+        }
+
+        const parentBase = parentResourceName.replace(/(Resource|Response)$/, '')
+        const pascalFieldName = field.name.charAt(0).toUpperCase() + field.name.slice(1)
+        const syntheticName = parentBase + pascalFieldName
+
+        if (!this.resources.has(syntheticName)) {
+            const subFields: ParsedFieldData[] = propertyEntries.map(([key, value]) => ({
+                name: key,
+                resolved: undefined,
+                semanticType: value as SemanticType | ResolvedSemanticType,
+                optional: false,
+                nullable: false,
+                readonly: false
+            }))
+            const subResource: ParsedResource = {
+                name: syntheticName,
+                sourceModel: undefined,
+                fields: subFields,
+                controller: undefined,
+                routes: []
+            }
+            // Insert a placeholder first so a field inside this sub-object that
+            // happens to reference the SAME synthetic name (shouldn't normally
+            // happen, but field/parent names are developer-controlled input)
+            // can't recurse infinitely.
+            this.resources.set(syntheticName, undefined as unknown as ResourceIR)
+            this.resources.set(syntheticName, this.buildResourceIR(subResource))
+        }
+
+        return {
+            ...field,
+            semanticType: { kind: 'resource', resource: syntheticName, collection: false } as ResolvedSemanticType
+        }
+    }
+
     private buildResourceIR(resource: ParsedResource): ResourceIR {
-        const fields = resource.fields.map(field => this.buildOptimizedResourceField(field))
+        const processedFields = resource.fields.map(field => this.extractNestedObjectResource(resource.name, field))
+        const fields = processedFields.map(field => this.buildOptimizedResourceField(field))
         const legacyFields = fields.map(f => this.convertToLegacyFieldIR(f))
 
         // Build variants untuk ReadEmitter (read-only transformations)

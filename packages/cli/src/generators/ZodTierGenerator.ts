@@ -1475,7 +1475,8 @@ export class ZodTierGenerator {
           paginated: route.response.paginated ?? route.response.resolved?.paginated ?? route.response.semantic?.paginated
         }
         const kind = meta.kind || meta.type
-        const isCollection = !!meta.collection || !!meta.paginated || meta.type === 'collection'
+        // SSOT: Use ResponseArtifact for collection detection
+        const isCollection = getIsCollectionFromArtifact(route.name, ZodTierGenerator.responseArtifactMap)
         const rawModelName = meta.model || meta.resource || toTypeName(route.groupName)
         const resourceName = `${rawModelName}Resource`
         const baseModel = resources.some(r => r.name === resourceName) ? resourceName : rawModelName

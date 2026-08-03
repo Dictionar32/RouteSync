@@ -106,6 +106,27 @@ export class LaravelRouteParser {
                         }
                     }
                 }
+
+                // Incremental array construction: $response['key'] = value; — the
+                // scanner above structurally cannot match this (its regex requires
+                // '=' immediately after the variable name; '[...]' in between means
+                // no match at all), so a shape built up field-by-field across
+                // several statements was invisible to $assignments entirely.
+                $incrementalAssignments = [];
+                if ($methodSource) {
+                    if (preg_match_all('/\$([a-zA-Z0-9_]+)\[\s*[\'"]([a-zA-Z0-9_]+)[\'"]\s*\]\s*=\s*([^;]+);/s', $methodSource, $incMatches)) {
+                        foreach ($incMatches[1] as $idx => $varName) {
+                            $key = $incMatches[2][$idx];
+                            $expr = trim($incMatches[3][$idx]);
+                            if (str_starts_with($expr, 'return')) continue;
+                            $expr = preg_replace('/\s+/', ' ', $expr);
+                            if (!isset($incrementalAssignments[$varName])) {
+                                $incrementalAssignments[$varName] = [];
+                            }
+                            $incrementalAssignments[$varName][] = "'" . $key . "' => " . $expr;
+                        }
+                    }
+                }
     `
 
     // NOTE: This string is written as-is to a .php file.
@@ -201,6 +222,46 @@ if (!function_exists('deriveStatusAndContentType')) {
         }
 
         return ['status' => $status, 'contentType' => $contentType];
+    }
+}
+
+if (!function_exists('mergeAssignmentShape')) {
+    // Fixes the "incremental array construction" gap: $response = ['message' => 'ok'];
+    // followed by $response['reset_token'] = $token; — two different statements
+    // that together build the shape actually passed to response()->json($response).
+    // Rather than text-splicing new keys into the original "$response = [...]"
+    // source (fragile — the closing bracket could be on any line, nested arrays
+    // make find-the-real-closing-bracket ambiguous), this builds a FRESH array
+    // literal string: inner content of the base assignment (if it looks like an
+    // array literal) plus each incremental 'key' => expr entry appended after,
+    // in the order they were scanned. That fresh literal is what
+    // token_get_all() downstream tokenizes, same as any other array-literal
+    // response shape.
+    function mergeAssignmentShape($varName, $assignments, $incrementalAssignments) {
+        $base = $assignments[$varName] ?? null;
+        $incremental = $incrementalAssignments[$varName] ?? [];
+
+        $baseInner = '';
+        if ($base !== null) {
+            $trimmed = trim($base);
+            if (str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) {
+                $baseInner = trim(substr($trimmed, 1, -1));
+            }
+        }
+
+        $parts = [];
+        if ($baseInner !== '') {
+            $parts[] = $baseInner;
+        }
+        foreach ($incremental as $entry) {
+            $parts[] = $entry;
+        }
+
+        if (empty($parts)) {
+            return null;
+        }
+
+        return '[' . implode(', ', $parts) . ']';
     }
 }
 
@@ -582,14 +643,15 @@ ${assignmentsScannerPhp}
                         $arrayContent = $retMatches[1];
                     } elseif (
                         preg_match('/return\\\\s+response\\\\(\\\\)->json\\\\(\\\\s*\\\\$([A-Za-z0-9_]+)\\\\s*[,)]/s', $methodSource, $varMatches)
-                        && isset($assignments[$varMatches[1]])
-                        && str_starts_with(trim($assignments[$varMatches[1]]), '[')
+                        && ($mergedShape = mergeAssignmentShape($varMatches[1], $assignments, $incrementalAssignments)) !== null
                     ) {
-                        // return response()->json($response) where $response was a plain
-                        // "$response = [...]" assignment earlier in the method — reuse
-                        // $assignments (already scanned above), which previously was only
-                        // ever written into the manifest, never read back for this.
-                        $arrayContent = $assignments[$varMatches[1]];
+                        // return response()->json($response) where $response's shape
+                        // comes from a plain "$response = [...]" assignment and/or
+                        // incremental "$response['key'] = ...;" statements earlier in
+                        // the method — both scanned above ($assignments /
+                        // $incrementalAssignments), previously only ever written into
+                        // the manifest's 'assignments' field, never read back for this.
+                        $arrayContent = $mergedShape;
                     } else {
                         $arrayContent = null;
                     }

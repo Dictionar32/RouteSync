@@ -322,7 +322,15 @@ ${contracts.join('\n')}
                 mapperParts.push(`        body: ${bodyMapperName},`)
             }
 
-            const isCollection = actionName === 'index'
+            // SSOT: Use ResponseArtifact instead of action name heuristic
+            // Old way: const isCollection = actionName === 'index'  ❌
+            // New way: Read from artifact
+            const artifactId = `${action.endpoint.id}.Response`
+            const artifact = this.responseArtifactMap?.get(artifactId)
+            const isCollection = artifact?.body && 'shape' in artifact.body
+                ? (artifact.body.shape === 'collection' || artifact.body.shape === 'paginated')
+                : false
+
             const responseMapperName = IdentifierSanitizer.getMapperName(resource.resourceName, actionName, 'fromApi', isCollection)
             mapperParts.push(`        response: ${responseMapperName},`)
 

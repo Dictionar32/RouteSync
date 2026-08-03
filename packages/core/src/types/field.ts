@@ -42,23 +42,37 @@ export interface ParsedField extends BaseField {
    scan — never by PhpCodeParser. */
 
 export interface PrimitiveField extends BaseField { kind: 'primitive'; type: string }
+
 export interface ModelField extends BaseField { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
+
 export interface ObjectField extends BaseField { kind: 'object'; fields: Record<string, FieldNode> }
+
 export interface UnknownField extends BaseField { kind: 'unknown'; code?: string }
 
 /* ---------- raw / parsed kinds ---------- */
 
 export interface RawCodeField extends BaseField { kind: 'raw_code'; code: string; hints?: IRHints }
+
 export interface LiteralField extends ParsedField { kind: 'literal'; value: string | number | boolean | null }
+
 export interface VariableField extends ParsedField { kind: 'variable'; name: string }
+
 export interface PropertyAccessField extends ParsedField { kind: 'property_access'; target: FieldNode | null; property: string; accessKind: AccessKind }
+
 export interface MethodCallField extends ParsedField { kind: 'method_call'; target: FieldNode | null; name: string; args: FieldNode[] }
+
 export interface StaticMethodCallField extends ParsedField { kind: 'static_method_call'; className: string; name: string; args: FieldNode[] }
+
 export interface BinaryExpressionField extends ParsedField { kind: 'binary_expression'; operator: string; left: FieldNode; right: FieldNode }
+
 export interface TypeCastField extends ParsedField { kind: 'type_cast'; castType: 'int' | 'float' | 'string' | 'bool'; expression: FieldNode }
+
 export interface TernaryField extends ParsedField { kind: 'ternary'; condition: FieldNode; truthy: FieldNode; falsy: FieldNode }
+
 export interface NullsafeChainField extends ParsedField { kind: 'nullsafe_chain'; chain: FieldNode[] }
+
 export interface NullsafePropertyAccessField extends ParsedField { kind: 'nullsafe_property_access'; target: FieldNode | null; property: string }
+
 export interface NewInstanceField extends ParsedField { kind: 'new_instance'; className: string; args: FieldNode[] }
 
 export type FieldNode =

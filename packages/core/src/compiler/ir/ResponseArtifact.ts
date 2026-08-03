@@ -1,245 +1,297 @@
 /**
- * ResponseArtifact: Compiler IR for HTTP Response Analysis
+ * ResponseArtifact: Pure Compiler IR for HTTP Response Analysis
  * 
- * Memisahkan concern antara:
- * - HOW response dikirim (ResponseDescriptor - transport layer)
- * - WHAT response berisi (ResponseBody - content layer)
+ * PHILOSOPHY: Artifact represents ANALYSIS RESULTS ONLY, not generation decisions.
+ * 
+ * Separation of concerns:
+ * - HOW response sent (ResponseDescriptor - HTTP transport)
+ * - WHAT response contains (ResponseBody - discriminated union)
  * 
  * Design principles:
- * 1. Orthogonal: transport dan body independent
- * 2. Extensible: body schema bisa berkembang tanpa affect descriptor
- * 3. Type-safe: compiler IR dengan proper type definitions
+ * 1. Orthogonal: transport dan body completely independent
+ * 2. Discriminated unions: TypeScript type safety
+ * 3. Shape in body: collection = data property, bukan transport
+ * 4. Immutable: all readonly for compiler pipeline
+ * 5. Pure analysis: NO backend/generator concerns
+ * 6. Deterministic: same input → same artifact (no timestamp!)
+ * 7. Uses compiler artifact patterns (class extends TypedArtifact)
+ * 
+ * Compiler pipeline:
+ * Frontend → Semantic Analysis → Artifact/IR → Backend
+ * 
+ * Backend queries artifact via registry, tidak tahu tentang PHP parser.
  */
 
+import type { FileSpan } from '../types/FileSpan';
+import type { ArtifactMetadata } from '../artifacts/Artifact';
+import { TypedArtifact } from '../artifacts/Artifact';
+
 // ============================================================================
-// Core Response Artifact
+// CONFIDENCE SCORING (With Transparency)
 // ============================================================================
 
 /**
- * Complete response artifact dari compiler analysis
+ * Confidence score dengan reasons untuk transparency
+ * 
+ * WHY: Users perlu tahu KENAPA confidence rendah
+ * 
+ * @example
+ * ```typescript
+ * confidence: {
+ *   score: 0.72,
+ *   reasons: [
+ *     "Variable-built JSON response",
+ *     "Dynamic array mutation detected"
+ *   ],
+ *   method: 'heuristic'
+ * }
+ * ```
  */
-export interface ResponseArtifact {
-    /**
-     * HOW response dikirim (transport layer)
-     */
-    descriptor: ResponseDescriptor;
+export interface ConfidenceScore {
+    /** Score 0.0-1.0 (1.0 = fully confident, 0.0 = pure guess) */
+    readonly score: number;
 
-    /**
-     * WHAT response berisi (content layer)
-     * Optional karena beberapa transport tidak punya body (redirect, empty)
-     */
-    body?: ResponseBody;
+    /** Human-readable reasons untuk score ini */
+    readonly reasons: readonly string[];
 
-    /**
-     * Source location dalam controller method
-     */
-    source?: SourceLocation;
+    /** Inference method used */
+    readonly method: 'explicit' | 'inferred' | 'heuristic' | 'fallback';
 }
 
 // ============================================================================
-// Response Descriptor (Transport Layer)
+// RESPONSE DESCRIPTOR (Pure HTTP Transport)
 // ============================================================================
 
 /**
- * ResponseDescriptor: Metadata tentang bagaimana response dikirim
+ * ResponseDescriptor: Pure HTTP transport metadata
  * 
- * Fokus: HTTP transport mechanism, bukan isi response
+ * HANYA describes bagaimana response dikirim via HTTP.
+ * Shape TIDAK ada di sini (pindah ke body).
  */
 export interface ResponseDescriptor {
     /**
-     * Transport mechanism
+     * Transport mechanism type
      */
-    transport:
-    | "resource"    // new XResource(...), XResource::make(...), XResource::collection(...)
-    | "model"       // return Eloquent model/collection mentah, tanpa Resource wrapper
-    | "json"        // response()->json([...]) — array/object literal ad-hoc
-    | "primitive"   // return string/bool/int polos
-    | "binary"      // response()->file(...), response()->download(...), file downloads
-    | "stream"      // response()->stream(...), chunked transfer
-    | "redirect"    // redirect()->route(...), redirect()->back(), dll
-    | "empty";      // response()->noContent(), return void
+    readonly transport:
+    | "resource"    // Laravel Resource transformation
+    | "model"       // Eloquent model mentah
+    | "json"        // response()->json([...])
+    | "primitive"   // return string/bool/int
+    | "binary"      // file/download (unified!)
+    | "stream"      // chunked transfer
+    | "redirect"    // route redirect
+    | "empty";      // no content
+
+    /** HTTP status code */
+    readonly status?: number;
+
+    /** MIME type */
+    readonly contentType?: string;
+
+    /** Can return null/void */
+    readonly nullable?: boolean;
 
     /**
-     * Response shape (applicable untuk data responses)
+     * Binary content disposition (UNIFIED!)
+     * inline = view in browser, attachment = force download
      */
-    shape: "single" | "collection" | "paginated";
-
-    /**
-     * HTTP status code (optional, default 200 untuk success)
-     */
-    status?: number;
-
-    /**
-     * Content-Type header
-     */
-    contentType?:
-    | "application/json"
-    | "text/plain"
-    | "text/html"
-    | "application/pdf"
-    | "application/octet-stream"
-    | string;
-
-    /**
-     * Content-Disposition header (untuk binary responses)
-     * 
-     * - "inline": tampilkan di browser (response()->file())
-     * - "attachment": download dengan filename (response()->download())
-     */
-    contentDisposition?: {
-        type: "inline" | "attachment";
-        filename?: string;
+    readonly contentDisposition?: {
+        readonly type: "inline" | "attachment";
+        readonly filename?: string;
     };
 
-    /**
-     * Response bisa null/undefined?
-     */
-    nullable?: boolean;
-
-    /**
-     * Redirect metadata (jika transport === "redirect")
-     */
-    redirect?: {
-        type: "route" | "url" | "back" | "action";
-        target?: string; // route name, URL, atau action name
-        parameters?: Record<string, unknown>;
+    /** Redirect metadata */
+    readonly redirect?: {
+        readonly type: "route" | "url" | "back" | "action";
+        readonly target?: string;
+        readonly parameters?: Record<string, unknown>;
     };
 
-    /**
-     * Stream metadata (jika transport === "stream")
-     */
-    stream?: {
-        chunked: boolean;
-        callback?: string; // callback function name
+    /** Stream metadata */
+    readonly stream?: {
+        readonly chunked: boolean;
+        readonly callback?: string;
     };
 }
 
 // ============================================================================
-// Response Body (Content Layer)
+// RESPONSE BODY (Discriminated Union)
 // ============================================================================
 
 /**
- * ResponseBody: Representasi isi response
+ * ResponseBody: Discriminated union dengan readonly type discriminator
  * 
- * Fokus: struktur data yang dikembalikan, bukan cara pengirimannya
+ * Shape is HERE (in body), not in descriptor!
+ * Collection adalah property dari DATA, bukan HTTP transport.
  */
-export interface ResponseBody {
-    /**
-     * Jenis body content
-     */
-    kind:
-    | "resource"   // Laravel Resource transformation
-    | "model"      // Eloquent model raw attributes
-    | "object"     // Ad-hoc object/array structure
-    | "primitive"; // Scalar value (string, number, boolean)
+export type ResponseBody =
+    | ResourceBody
+    | ModelBody
+    | ObjectBody
+    | PrimitiveBody;
 
-    /**
-     * Schema struktur object (jika kind === "object")
-     */
-    schema?: ObjectSchema;
+/**
+ * ResourceBody: Laravel Resource transformation
+ */
+export interface ResourceBody {
+    readonly type: "resource";
+    readonly resource: string;
+    readonly model?: string;
 
-    /**
-     * Resource class name (jika kind === "resource")
-     */
-    resource?: string;
+    /** Shape is DATA property, not transport */
+    readonly shape: "single" | "collection" | "paginated";
 
-    /**
-     * Eloquent model name (jika kind === "model" atau resource wraps model)
-     */
-    model?: string;
-
-    /**
-     * Primitive type (jika kind === "primitive")
-     */
-    primitiveType?: "string" | "number" | "boolean" | "null";
-
-    /**
-     * Nested properties (untuk object/resource analysis)
-     */
-    properties?: PropertyDescriptor[];
+    readonly properties?: readonly PropertyDescriptor[];
 }
 
 /**
- * Object schema untuk ad-hoc structures
- * 
- * Example:
- * return response()->json([
- *     "user" => $user,
- *     "token" => $token
- * ]);
- * 
- * Schema:
- * {
- *     properties: {
- *         user: { type: "User", kind: "model" },
- *         token: { type: "string", kind: "primitive" }
- *     }
- * }
+ * ModelBody: Eloquent model mentah
  */
+export interface ModelBody {
+    readonly type: "model";
+    readonly model: string;
+
+    /** Shape is DATA property */
+    readonly shape: "single" | "collection" | "paginated";
+
+    readonly attributes?: readonly ModelAttribute[];
+}
+
+/**
+ * ObjectBody: Ad-hoc object structure
+ */
+export interface ObjectBody {
+    readonly type: "object";
+    readonly schemaName?: string;
+    readonly schema: ObjectSchema;
+
+    /** Shape is DATA property */
+    readonly shape: "single" | "collection" | "paginated";
+}
+
+/**
+ * PrimitiveBody: Scalar value
+ */
+export interface PrimitiveBody {
+    readonly type: "primitive";
+    readonly primitiveType: "string" | "number" | "boolean" | "null";
+
+    /** Primitives always single */
+    readonly shape: "single";
+}
+
+// ============================================================================
+// SUPPORTING TYPES
+// ============================================================================
+
 export interface ObjectSchema {
-    /**
-     * Object properties dengan types
-     */
-    properties: Record<string, PropertyType>;
-
-    /**
-     * Required property keys
-     */
-    required?: string[];
-
-    /**
-     * Allow additional properties?
-     */
-    additionalProperties?: boolean;
+    readonly name?: string;
+    readonly properties: Record<string, PropertyType>;
+    readonly required?: readonly string[];
+    readonly additionalProperties?: boolean;
 }
 
-/**
- * Property type descriptor
- */
 export interface PropertyType {
-    kind: "primitive" | "model" | "resource" | "object" | "array";
-    type: string; // TypeScript type name
-    nullable?: boolean;
-    collection?: boolean;
-
-    /**
-     * Nested schema (jika kind === "object")
-     */
-    schema?: ObjectSchema;
-
-    /**
-     * Array item type (jika kind === "array")
-     */
-    items?: PropertyType;
+    readonly typeName: string;
+    readonly nullable?: boolean;
+    readonly isArray?: boolean;
+    readonly schema?: ObjectSchema;
+    readonly items?: PropertyType;
+    readonly reference?: {
+        readonly kind: "model" | "resource";
+        readonly name: string;
+    };
 }
 
-/**
- * Property descriptor dengan metadata
- */
 export interface PropertyDescriptor {
-    name: string;
-    type: PropertyType;
-    description?: string;
-    source?: SourceLocation;
+    readonly name: string;
+    readonly type: PropertyType;
+    readonly description?: string;
+    readonly span?: FileSpan;
+    readonly confidence?: number;
+}
+
+export interface ModelAttribute {
+    readonly name: string;
+    readonly type: string;
+    readonly nullable: boolean;
+    readonly default?: unknown;
+    readonly comment?: string;
 }
 
 // ============================================================================
-// Supporting Types
+// RESPONSE ARTIFACT (Following Compiler Pattern)
 // ============================================================================
 
 /**
- * Source location dalam PHP code
+ * ResponseArtifact: Complete response analysis artifact
+ * 
+ * Following compiler artifact pattern (class extends TypedArtifact).
+ * Uses base ArtifactMetadata (timestamp OK di sana, untuk compilation tracking).
+ * 
+ * PURE ANALYSIS RESULT:
+ * - Contains ONLY semantic information extracted from source
+ * - NO generation decisions (NO derivedNames!)
+ * - NO backend concerns (naming, formatting, etc)
+ * - Backend-agnostic (TypeScript, Kotlin, OpenAPI, etc)
+ * 
+ * @example
+ * ```typescript
+ * const artifact = new ResponseArtifact(
+ *   'users.show.Response',
+ *   { transport: 'resource', status: 200 },
+ *   { type: 'resource', resource: 'UserResource', model: 'User', shape: 'single' },
+ *   { score: 1.0, reasons: ['Explicit return type'], method: 'explicit' },
+ *   sourceSpan,
+ *   metadata
+ * );
+ * ```
  */
-export interface SourceLocation {
-    file: string;
-    line: number;
-    column: number;
-    length?: number;
+export class ResponseArtifact extends TypedArtifact<'ResponseAnalysis'> {
+    public readonly typeId = 'ResponseAnalysis' as const;
+
+    constructor(
+        /** Unique identifier (e.g., 'users.show.Response') */
+        public readonly id: string,
+
+        /** HOW response dikirim (pure HTTP transport) */
+        public readonly descriptor: ResponseDescriptor,
+
+        /** WHAT response berisi (optional: redirect/empty tidak punya body) */
+        public readonly body: ResponseBody | undefined,
+
+        /** Confidence tracking dengan transparency */
+        public readonly confidence: ConfidenceScore,
+
+        /** Precise source location (byte-level granularity) */
+        public readonly span: FileSpan | undefined,
+
+        /** Pure analysis metadata (from base Artifact) */
+        public readonly metadata: ArtifactMetadata,
+    ) {
+        super();
+    }
 }
 
 // ============================================================================
-// Type Guards
+// TYPE GUARDS
 // ============================================================================
+
+export function isResourceBody(body: ResponseBody): body is ResourceBody {
+    return body.type === 'resource';
+}
+
+export function isModelBody(body: ResponseBody): body is ModelBody {
+    return body.type === 'model';
+}
+
+export function isObjectBody(body: ResponseBody): body is ObjectBody {
+    return body.type === 'object';
+}
+
+export function isPrimitiveBody(body: ResponseBody): body is PrimitiveBody {
+    return body.type === 'primitive';
+}
 
 export function isDataResponse(transport: ResponseDescriptor['transport']): boolean {
     return ['resource', 'model', 'json', 'primitive'].includes(transport);
@@ -257,300 +309,404 @@ export function hasBody(artifact: ResponseArtifact): artifact is ResponseArtifac
     return artifact.body !== undefined;
 }
 
+export function isCollectionResponse(body: ResponseBody): boolean {
+    if ('shape' in body) {
+        return body.shape === 'collection' || body.shape === 'paginated';
+    }
+    return false;
+}
+
+export function isHighConfidence(artifact: ResponseArtifact): boolean {
+    return artifact.confidence.score >= 0.8;
+}
+
 // ============================================================================
-// Builder Helpers
+// BUILDER (Simplified - No Backend Concerns)
 // ============================================================================
 
 /**
- * Builder untuk ResponseArtifact dengan sensible defaults
+ * Builder untuk ResponseArtifact
+ * 
+ * REMOVED:
+ * - derivedNames computation (backend concern!)
+ * - timestamp in hash (determinism!)
+ * 
+ * Builder now focuses ONLY on pure analysis data.
  */
 export class ResponseArtifactBuilder {
-    private artifact: ResponseArtifact = {
-        descriptor: {
-            transport: 'json',
-            shape: 'single',
-        }
+    private _id: string = 'UnnamedResponse';
+    private _descriptor: ResponseDescriptor = { transport: 'json' };
+    private _body?: ResponseBody;
+    private _confidence: ConfidenceScore = {
+        score: 1.0,
+        reasons: ['Default confidence'],
+        method: 'explicit'
     };
+    private _span?: FileSpan;
+    private _metadataPartial: Partial<ArtifactMetadata> = {};
 
-    transport(type: ResponseDescriptor['transport']): this {
-        this.artifact.descriptor.transport = type;
+    id(value: string): this {
+        this._id = value;
         return this;
     }
 
-    shape(shape: ResponseDescriptor['shape']): this {
-        this.artifact.descriptor.shape = shape;
+    transport(type: ResponseDescriptor['transport']): this {
+        this._descriptor = { ...this._descriptor, transport: type };
         return this;
     }
 
     status(code: number): this {
-        this.artifact.descriptor.status = code;
+        this._descriptor = { ...this._descriptor, status: code };
         return this;
     }
 
     contentType(type: string): this {
-        this.artifact.descriptor.contentType = type;
+        this._descriptor = { ...this._descriptor, contentType: type };
         return this;
     }
 
     contentDisposition(type: 'inline' | 'attachment', filename?: string): this {
-        this.artifact.descriptor.contentDisposition = { type, filename };
+        this._descriptor = { ...this._descriptor, contentDisposition: { type, filename } };
         return this;
     }
 
     nullable(value = true): this {
-        this.artifact.descriptor.nullable = value;
+        this._descriptor = { ...this._descriptor, nullable: value };
+        return this;
+    }
+
+    /**
+     * Set confidence score dengan transparency
+     */
+    confidence(score: ConfidenceScore): this {
+        this._confidence = score;
+        return this;
+    }
+
+    /**
+     * Convenience method for simple confidence
+     */
+    confidenceScore(score: number, reason: string, method: ConfidenceScore['method'] = 'inferred'): this {
+        this._confidence = {
+            score: Math.max(0, Math.min(1, score)),
+            reasons: [reason],
+            method
+        };
         return this;
     }
 
     body(body: ResponseBody): this {
-        this.artifact.body = body;
+        this._body = body;
         return this;
     }
 
-    resource(resourceName: string, modelName?: string): this {
-        this.artifact.body = {
-            kind: 'resource',
+    resource(
+        resourceName: string,
+        modelName: string | undefined,
+        shape: ResourceBody['shape'] = 'single',
+        confidenceScore = 1.0,
+        confidenceReason = 'Explicit resource return'
+    ): this {
+        this._descriptor = { ...this._descriptor, transport: 'resource' };
+        this._body = {
+            type: 'resource',
             resource: resourceName,
-            model: modelName
+            model: modelName,
+            shape
+        };
+        this._confidence = {
+            score: confidenceScore,
+            reasons: [confidenceReason],
+            method: 'explicit'
         };
         return this;
     }
 
-    model(modelName: string): this {
-        this.artifact.body = {
-            kind: 'model',
-            model: modelName
+    model(
+        modelName: string,
+        shape: ModelBody['shape'] = 'single',
+        confidenceScore = 0.9,
+        confidenceReason = 'Inferred from model return'
+    ): this {
+        this._descriptor = { ...this._descriptor, transport: 'model' };
+        this._body = {
+            type: 'model',
+            model: modelName,
+            shape
+        };
+        this._confidence = {
+            score: confidenceScore,
+            reasons: [confidenceReason],
+            method: 'inferred'
         };
         return this;
     }
 
-    primitive(type: 'string' | 'number' | 'boolean' | 'null'): this {
-        this.artifact.body = {
-            kind: 'primitive',
-            primitiveType: type
+    primitive(
+        primitiveType: PrimitiveBody['primitiveType'],
+        confidenceScore = 1.0,
+        confidenceReason = 'Explicit primitive return'
+    ): this {
+        this._descriptor = { ...this._descriptor, transport: 'primitive' };
+        this._body = {
+            type: 'primitive',
+            primitiveType,
+            shape: 'single'
+        };
+        this._confidence = {
+            score: confidenceScore,
+            reasons: [confidenceReason],
+            method: 'explicit'
         };
         return this;
     }
 
-    object(schema: ObjectSchema): this {
-        this.artifact.body = {
-            kind: 'object',
-            schema
+    object(
+        schemaName: string | undefined,
+        schema: ObjectSchema,
+        shape: ObjectBody['shape'] = 'single',
+        confidenceScore = 0.8,
+        confidenceReason = 'Heuristic object inference'
+    ): this {
+        this._descriptor = { ...this._descriptor, transport: 'json' };
+        this._body = {
+            type: 'object',
+            schemaName,
+            schema,
+            shape
+        };
+        this._confidence = {
+            score: confidenceScore,
+            reasons: [confidenceReason],
+            method: 'heuristic'
         };
         return this;
     }
 
-    source(location: SourceLocation): this {
-        this.artifact.source = location;
+    span(location: FileSpan): this {
+        this._span = location;
         return this;
+    }
+
+    metadata(meta: Partial<ArtifactMetadata>): this {
+        this._metadataPartial = { ...this._metadataPartial, ...meta };
+        return this;
+    }
+
+    /**
+     * DETERMINISTIC hash computation (NO timestamp!)
+     * Content-based only.
+     */
+    private computeHash(): string {
+        const content = JSON.stringify({
+            id: this._id,
+            descriptor: this._descriptor,
+            body: this._body,
+            confidence: this._confidence,
+        });
+        // Simple hash untuk demo (production: use crypto.createHash)
+        let hash = 0;
+        for (let i = 0; i < content.length; i++) {
+            hash = ((hash << 5) - hash) + content.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
     }
 
     build(): ResponseArtifact {
-        return this.artifact;
+        const metadata: ArtifactMetadata = {
+            hash: this.computeHash(),
+            producer: this._metadataPartial.producer || 'ResponseAnalysisPass',
+            dependencies: this._metadataPartial.dependencies || [],
+            timestamp: this._metadataPartial.timestamp || Date.now(),
+            revision: this._metadataPartial.revision || '1.0.0',
+        };
+
+        return new ResponseArtifact(
+            this._id,
+            this._descriptor,
+            this._body,
+            this._confidence,
+            this._span,
+            metadata
+        );
     }
 }
 
 // ============================================================================
-// Usage Examples
+// USAGE EXAMPLES
 // ============================================================================
 
 /**
- * Example 1: Resource response
- * 
- * return new UserResource($user);
+ * Example 1: Resource single dengan compiler artifact pattern
  */
-export const exampleResourceResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'resource',
-        shape: 'single',
-        status: 200,
-        contentType: 'application/json'
-    },
-    body: {
-        kind: 'resource',
-        resource: 'UserResource',
-        model: 'User'
-    }
-};
+export function exampleResourceSingle(): ResponseArtifact {
+    return new ResponseArtifactBuilder()
+        .id('users.show.Response')
+        .resource('UserResource', 'User', 'single', 1.0, 'Explicit UserResource return')
+        .status(200)
+        .contentType('application/json')
+        .metadata({
+            producer: 'ResponseAnalysisPass',
+            dependencies: ['UserModel', 'UserResource'],
+            revision: '1.0.0',
+        })
+        .build();
+}
 
 /**
- * Example 2: Collection response dengan pagination
- * 
- * return UserResource::collection(User::paginate());
+ * Example 2: Collection dengan low confidence
  */
-export const exampleCollectionResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'resource',
-        shape: 'paginated',
-        status: 200,
-        contentType: 'application/json'
-    },
-    body: {
-        kind: 'resource',
-        resource: 'UserResource',
-        model: 'User'
-    }
-};
+export function exampleCollectionLowConfidence(): ResponseArtifact {
+    return new ResponseArtifactBuilder()
+        .id('products.index.Response')
+        .resource('ProductResource', 'Product', 'collection', 0.72, 'Variable-built collection')
+        .status(200)
+        .confidence({
+            score: 0.72,
+            reasons: [
+                'Variable-built JSON response',
+                'Dynamic array mutation detected',
+                'Conditional resource wrapping'
+            ],
+            method: 'heuristic'
+        })
+        .metadata({
+            producer: 'ResponseAnalysisPass',
+            dependencies: ['ProductModel', 'ProductResource'],
+            revision: '1.0.0',
+        })
+        .build();
+}
 
 /**
- * Example 3: Ad-hoc JSON response
- * 
- * return response()->json([
- *     "user" => $user,
- *     "token" => $token,
- *     "expires_in" => 3600
- * ]);
+ * Example 3: Binary download
  */
-export const exampleAdHocResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'json',
-        shape: 'single',
-        status: 200,
-        contentType: 'application/json'
-    },
-    body: {
-        kind: 'object',
-        schema: {
-            properties: {
-                user: {
-                    kind: 'model',
-                    type: 'User',
-                    nullable: false
-                },
-                token: {
-                    kind: 'primitive',
-                    type: 'string',
-                    nullable: false
-                },
-                expires_in: {
-                    kind: 'primitive',
-                    type: 'number',
-                    nullable: false
-                }
-            },
-            required: ['user', 'token', 'expires_in']
-        }
-    }
-};
+export function exampleBinaryDownload(): ResponseArtifact {
+    return new ResponseArtifactBuilder()
+        .id('files.download.Response')
+        .transport('binary')
+        .contentType('application/pdf')
+        .contentDisposition('attachment', 'document.pdf')
+        .status(200)
+        .confidence({
+            score: 1.0,
+            reasons: ['Explicit download() call'],
+            method: 'explicit'
+        })
+        .metadata({
+            producer: 'ResponseAnalysisPass',
+            dependencies: [],
+            revision: '1.0.0',
+        })
+        .build();
+}
+
+// ============================================================================
+// ARTIFACT FAMILY (Pure IR Only - Remove Backend Concerns)
+// ============================================================================
 
 /**
- * Example 4: File download
- * 
- * return response()->download($pathToFile);
+ * ValidationArtifact: For FormRequest validation rules
+ * PURE ANALYSIS: only validation rules, no generator logic
  */
-export const exampleDownloadResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'binary',
-        shape: 'single',
-        status: 200,
-        contentType: 'application/octet-stream',
-        contentDisposition: {
-            type: 'attachment',
-            filename: 'report.pdf'
-        }
+export class ValidationArtifact extends TypedArtifact<'ValidationAnalysis'> {
+    public readonly typeId = 'ValidationAnalysis' as const;
+
+    constructor(
+        public readonly id: string,
+        public readonly rules: Record<string, readonly string[]>,
+        public readonly messages: Record<string, string> | undefined,
+        public readonly span: FileSpan | undefined,
+        public readonly metadata: ArtifactMetadata,
+    ) {
+        super();
     }
-    // No body - binary stream
-};
+}
 
 /**
- * Example 5: Inline file display
- * 
- * return response()->file($pathToFile);
+ * ModelArtifact: For Eloquent model metadata
+ * PURE ANALYSIS: only model structure, no generator logic
  */
-export const exampleFileResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'binary',
-        shape: 'single',
-        status: 200,
-        contentType: 'application/pdf',
-        contentDisposition: {
-            type: 'inline'
-        }
+export class ModelArtifact extends TypedArtifact<'ModelAnalysis'> {
+    public readonly typeId = 'ModelAnalysis' as const;
+
+    constructor(
+        public readonly id: string,
+        public readonly name: string,
+        public readonly table: string,
+        public readonly attributes: readonly ModelAttribute[],
+        public readonly relationships: readonly RelationshipDescriptor[] | undefined,
+        public readonly span: FileSpan | undefined,
+        public readonly metadata: ArtifactMetadata,
+    ) {
+        super();
     }
-};
+}
 
 /**
- * Example 6: Redirect response
- * 
- * return redirect()->route('dashboard');
+ * ResourceArtifact: For Laravel Resource metadata
+ * PURE ANALYSIS: only resource structure, no generator logic
  */
-export const exampleRedirectResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'redirect',
-        shape: 'single',
-        status: 302,
-        redirect: {
-            type: 'route',
-            target: 'dashboard'
-        }
+export class ResourceArtifact extends TypedArtifact<'ResourceAnalysis'> {
+    public readonly typeId = 'ResourceAnalysis' as const;
+
+    constructor(
+        public readonly id: string,
+        public readonly name: string,
+        public readonly model: string | undefined,
+        public readonly properties: readonly PropertyDescriptor[],
+        public readonly conditionalAttributes: readonly ConditionalAttribute[] | undefined,
+        public readonly span: FileSpan | undefined,
+        public readonly metadata: ArtifactMetadata,
+    ) {
+        super();
     }
-};
+}
 
 /**
- * Example 7: Empty response
- * 
- * return response()->noContent();
+ * RouteArtifact: Umbrella artifact combining all analysis
+ * PURE ANALYSIS: route metadata only, no generator decisions
  */
-export const exampleEmptyResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'empty',
-        shape: 'single',
-        status: 204
-    }
-};
+export class RouteArtifact extends TypedArtifact<'RouteAnalysis'> {
+    public readonly typeId = 'RouteAnalysis' as const;
 
-/**
- * Example 8: Primitive response
- * 
- * return "OK";
- */
-export const examplePrimitiveResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'primitive',
-        shape: 'single',
-        status: 200,
-        contentType: 'text/plain'
-    },
-    body: {
-        kind: 'primitive',
-        primitiveType: 'string'
-    }
-};
+    constructor(
+        public readonly id: string,
+        public readonly method: string,
+        public readonly path: string,
+        public readonly controller: string,
+        public readonly action: string,
+        public readonly middleware: readonly string[] | undefined,
+        public readonly parameters: readonly RouteParameter[] | undefined,
 
-/**
- * Example 9: Nullable response
- * 
- * return $user ? new UserResource($user) : null;
- */
-export const exampleNullableResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'resource',
-        shape: 'single',
-        status: 200,
-        contentType: 'application/json',
-        nullable: true
-    },
-    body: {
-        kind: 'resource',
-        resource: 'UserResource',
-        model: 'User'
-    }
-};
+        /** Reference to ResponseArtifact by ID (not nested!) */
+        public readonly responseRef: string | undefined,
 
-/**
- * Example 10: Stream response
- * 
- * return response()->stream($callback);
- */
-export const exampleStreamResponse: ResponseArtifact = {
-    descriptor: {
-        transport: 'stream',
-        shape: 'single',
-        status: 200,
-        contentType: 'text/event-stream',
-        stream: {
-            chunked: true,
-            callback: 'streamCallback'
-        }
+        /** Reference to ValidationArtifact by ID */
+        public readonly validationRef: string | undefined,
+
+        public readonly span: FileSpan | undefined,
+        public readonly metadata: ArtifactMetadata,
+    ) {
+        super();
     }
-};
+}
+
+// Supporting types
+interface RelationshipDescriptor {
+    readonly type: 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany';
+    readonly related: string;
+    readonly foreignKey?: string;
+}
+
+interface ConditionalAttribute {
+    readonly condition: string;
+    readonly attributes: readonly string[];
+}
+
+interface RouteParameter {
+    readonly name: string;
+    readonly type: string;
+    readonly optional: boolean;
+}

@@ -64,46 +64,55 @@ interface RouteResponseAnalysis {
  * Analyzes routes to produce ResponseArtifact entries.
  * This is THE pass that determines collection detection for all generators.
  * 
- * INPUT: RouteManifest (from CLI scanning)
- * OUTPUT: Map<routeId, ResponseArtifact>
+ * This is a PLACEHOLDER that shows the pattern. In production, it would be
+ * instantiated by the CLI with the actual manifest data and registered as
+ * an external input to PassManager.
  * 
- * The artifact map is stored and made available to all downstream generators
- * via CompilationState.
+ * USAGE PATTERN:
+ * ```typescript
+ * const manifest = await scanLaravelRoutes(...);
+ * const manager = new PassManager(['ResponseAnalysis']);
+ * // No need to register ResponseAnalysisPass - manifest is external input
+ * const result = await manager.execute('ResponseAnalysis', buildResponseMap(manifest));
+ * ```
+ * 
+ * The ResponseArtifact map becomes available to all downstream generators
+ * via CompilationState, making it the SSOT for collection detection.
  */
-export class ResponseAnalysisPass implements CompilerPass<['RouteAnalysis'], ['ResponseAnalysis']> {
+export class ResponseAnalysisPass implements CompilerPass<[], ['ResponseAnalysis']> {
     readonly name = 'ResponseAnalysis';
 
-    readonly inputWitnesses = {
-        0: { key: 'RouteAnalysis' } as ArtifactKeyWitness<'RouteAnalysis'>
-    };
+    readonly inputWitnesses = {};
 
     readonly outputKeys = ['ResponseAnalysis'] as const;
 
     readonly descriptor: PassDescriptor = {
-        consumes: ['RouteAnalysis'],
+        consumes: [],
         produces: ['ResponseAnalysis']
     };
 
-    readonly requires: PassDependency[] = [
-        { artifact: 'RouteAnalysis' }
-    ];
+    readonly requires: PassDependency[] = [];
 
     readonly producesPass: string[] = [];
 
     /**
      * Execute response analysis pass
      * 
-     * @param inputs Tuple with single element: RouteManifest
+     * NOTE: This is a placeholder. In actual use, the manifest is provided
+     * as external input to PassManager.
+     * 
+     * @param inputs Empty tuple (manifest comes as external input)
      * @param context Compilation context
      * @returns Tuple with single element: ResponseArtifactMap
      */
     async run(
-        inputs: ResolveArtifacts<['RouteAnalysis']>,
+        inputs: ResolveArtifacts<[]>,
         context: CompilationContext
     ): Promise<ResolveArtifacts<['ResponseAnalysis']>> {
-        const [routeManifest] = inputs;
+        // In actual use, the manifest would come from context or external input
+        const routeManifest = context.getManifest?.() || { routes: [] };
 
-        console.log(`🔍 ResponseAnalysisPass: Analyzing ${routeManifest.routes.length} routes for response characteristics`);
+        console.log(`🔍 ResponseAnalysisPass: Analyzing ${routeManifest.routes?.length || 0} routes for response characteristics`);
 
         // Analyze each route's response
         const responseArtifacts = new Map<string, ResponseArtifact>();

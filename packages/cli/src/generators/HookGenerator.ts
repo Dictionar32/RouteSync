@@ -1,13 +1,15 @@
 import { RouteManifest } from '@routesync/core'
+import type { ResponseArtifact } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
 import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-classifier'
+import { ResponseAnalysisHelper } from './response-analysis-helper'
 
 export class HookGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
     const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
-    const resources  = buildResourceMap(classified)
+    const resources = buildResourceMap(classified)
 
     const knownModels = new Set(manifest.models?.map(m => m.name) || [])
     const knownResources = new Set(manifest.resources?.map(r => r.name) || [])
@@ -378,7 +380,7 @@ export class HookGenerator {
           cacheLines.push(`      },`)
         }
       }
-      
+
       const hasDelete = resource.delete
       if (hasDelete) {
         const invs: string[] = []

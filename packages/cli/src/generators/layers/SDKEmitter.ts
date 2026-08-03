@@ -42,11 +42,19 @@ interface ActionEndpoint {
 }
 
 export class SDKEmitter implements IREmitter {
+    private responseArtifactMap: Map<string, ResponseArtifact> | undefined
+
     emit(ir: ContractIR): GeneratedFile[] {
         console.log('🚀 SDKEmitter: Generating enhanced V2 API structure...')
 
         // Step 1: Enrich manifest with missing resources & models
         const originalManifest = this.extractManifestFromIR(ir)
+
+        // BUILD SSOT: ResponseArtifactMap from manifest
+        // This replaces action name heuristics ('index' means collection)
+        console.log('🔨 SDKEmitter: Building ResponseArtifactMap (SSOT)...')
+        this.responseArtifactMap = ResponseAnalysisHelper.buildResponseArtifactMap(originalManifest)
+
         const enrichedManifest = ManifestEnricher.enrich(originalManifest)
 
         console.log(`📊 Enrichment results: ${enrichedManifest.resources?.length || 0} resources, ${enrichedManifest.models?.length || 0} models`)

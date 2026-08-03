@@ -1835,6 +1835,9 @@ export class ZodTierGenerator {
       paginated: fieldDef.paginated ?? fieldDef.resolved?.paginated ?? fieldDef.semantic?.paginated
     }
     const kind = meta.kind || meta.type
+    // Note: For nested field analysis, we can't use route-level artifact lookup
+    // This is a field-level analysis, not a route response
+    // SSOT principle still applies: collection detection logic should be consistent
     const isCollection = !!meta.collection
     const isPaginated = !!meta.paginated
 

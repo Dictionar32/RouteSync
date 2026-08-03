@@ -19,9 +19,11 @@
  */
 
 import { ContractIR, EndpointIR, GeneratedFile, IREmitter, HttpMethod } from '../../../../core/src/types/ir'
+import type { ResponseArtifact } from '../../../../core/src/types/ir'
 import { RouteManifest } from '../../../../core/src/types/route'
 import { IdentifierSanitizer } from './utils/identifier-sanitizer'
 import { ManifestEnricher, EnrichedManifest } from './utils/manifest-enricher'
+import { ResponseAnalysisHelper } from '../response-analysis-helper'
 
 interface ResourceEndpoint {
     resourceName: string

@@ -58,7 +58,8 @@ interface_body() {
 }
 
 count_matches() {
-    grep -c "$1" "$API_READ" 2>/dev/null || echo 0
+    grep -c "$1" "$API_READ" 2>/dev/null
+    return 0
 }
 
 echo "=================================================================="
@@ -122,7 +123,7 @@ echo "=================================================================="
 echo " Bug #9+#10: inferModels() ga bikin duplikat palsu"
 echo "=================================================================="
 assert_true "RegisterTransformed TIDAK ada (duplikat palsu dari RegisterResponse)" \
-    '[ "$(grep -c "^export interface RegisterTransformed " "$API_READ" 2>/dev/null || echo 0)" -eq 0 ]'
+    '[ "$(count_matches "^export interface RegisterTransformed {")" -eq 0 ]'
 assert_true "RegisterResponseTransformed ada (yang asli)" \
     '[ "$(count_matches "^export interface RegisterResponseTransformed")" -eq 1 ]'
 echo ""
@@ -146,11 +147,28 @@ assert_true "OrderResourceTransformed.items ter-link ke OrderDetailResourceTrans
 echo ""
 
 echo "=================================================================="
+echo " Bug #18: nested inline object (shipping/promotion) → named interface"
+echo "=================================================================="
+assert_true "OrderShippingTransformed ada (bukan lagi anonymous inline)" \
+    '[ "$(count_matches "^export interface OrderShippingTransformed {")" -eq 1 ]'
+assert_true "OrderPromotionTransformed ada (bukan lagi anonymous inline)" \
+    '[ "$(count_matches "^export interface OrderPromotionTransformed {")" -eq 1 ]'
+body="$(interface_body OrderResourceTransformed)"
+assert_true "OrderResourceTransformed.shipping ter-link ke OrderShippingTransformed (bukan inline {...})" \
+    'echo "$body" | grep -q "readonly shipping: OrderShippingTransformed"'
+assert_true "OrderResourceTransformed.promotion ter-link ke OrderPromotionTransformed (bukan inline {...})" \
+    'echo "$body" | grep -q "readonly promotion: OrderPromotionTransformed"'
+body_shipping="$(interface_body OrderShippingTransformed)"
+assert_true "OrderShippingTransformed field-nya camelCase (kodePos, bukan kode_pos)" \
+    'echo "$body_shipping" | grep -q "kodePos" && ! echo "$body_shipping" | grep -q "kode_pos"'
+echo ""
+
+echo "=================================================================="
 echo " Final: hanya interface yang genuinely reachable yang tergenerate"
 echo "=================================================================="
 TOTAL=$(grep -c "^export interface" "$API_READ")
-assert_true "Total interface = 13 (fixture ini spesifik — sesuaikan kalau fixture beda)" \
-    '[ "$TOTAL" -eq 13 ]'
+assert_true "Total interface = 19 (fixture ini spesifik — sesuaikan kalau fixture beda; naik dari 13 karena bug #18 nambah interface baru per nested object)" \
+    '[ "$TOTAL" -eq 19 ]'
 for iface in CategoryTransformed UserTransformed WishlistTransformed; do
     assert_true "$iface TIDAK ada (model DB murni, ga pernah jadi response di fixture ini)" \
         '[ "$(count_matches "^export interface '"$iface"'")" -eq 0 ]'

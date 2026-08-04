@@ -291,23 +291,67 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
     /**
      * Convert CollectionType to TS array type
      * 
-     * Handles both readonly and mutable collections:
-     * - readonly_collection → ReadonlyArray<T> or readonly T[]
-     * - mutable_collection → Array<T> or T[]
+     * Phase 3 - Day 2: Enhanced collection type handling
+     * 
+     * Handles all collection variants:
+     * - readonly_collection → readonly T[]
+     * - mutable_collection → T[]
+     * - CollectionKind.ARRAY → Standard array
+     * - CollectionKind.COLLECTION → Generic Collection<T> wrapper
+     * - CollectionKind.NULLABLE → Union dengan null type
+     * 
+     * @example
+     * ```typescript
+     * // readonly string[]
+     * ReadonlyCollectionType(ARRAY, string) → readonly string[]
+     * 
+     * // User[]
+     * MutableCollectionType(ARRAY, User) → User[]
+     * 
+     * // Collection<Product>
+     * ReadonlyCollectionType(COLLECTION, Product) → Collection<Product>
+     * 
+     * // (string | null)[]
+     * MutableCollectionType(NULLABLE, string) → (string | null)[]
+     * ```
      */
     private convertCollectionType(
         type: SemanticType
-    ): TSTypeReference {
+    ): TSTypeReference | TSArrayType | TSUnionType {
         if (type.kind !== 'readonly_collection' && type.kind !== 'mutable_collection') {
             throw new Error('Expected collection type');
         }
 
+        const isReadonly = type.kind === 'readonly_collection';
+
         // Convert element type recursively
         const elementType = this.semanticTypeToTSType(type.elementType);
 
-        // Create array type
-        // TODO: Implement proper readonly array distinction
-        return elementType.toArray();
+        // Handle different collection kinds
+        switch (type.collectionKind) {
+            case 'array':
+                // Standard array: T[] atau readonly T[]
+                return new TSArrayType(elementType, isReadonly);
+
+            case 'collection':
+                // Generic Collection wrapper: Collection<T>
+                // Track import requirement untuk Collection type
+                this.collectImportRequirement('Collection');
+
+                // TODO: Implement TSGenericType untuk Collection<T>
+                // For now, fallback ke array
+                return new TSArrayType(elementType, isReadonly);
+
+            case 'nullable':
+                // Union dengan null: (T | null)[]
+                const nullType = new TSTypeReference('null');
+                const nullableElement = new TSUnionType([elementType, nullType]);
+                return new TSArrayType(nullableElement, isReadonly);
+
+            default:
+                // Unknown collection kind - fallback ke standard array
+                return new TSArrayType(elementType, isReadonly);
+        }
     }
 
     /**

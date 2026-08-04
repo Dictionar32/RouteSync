@@ -1986,3 +1986,158 @@ Jika ingin menambah fitur atau improve query system:
 ---
 p
 **Dokumentasi ini berdasarkan implementasi aktual** di folder `compiler/query` dan menjelaskan seluruh komponen yang tersedia tanpa asumsi terhadap fitur yang tidak ada.
+
+
+---
+
+## 11. Integrasi Query System dengan Compiler Pipeline
+
+### 11.1. Posisi Query System dalam Arsitektur Compiler
+
+Query system **belum terintegrasi secara langsung** dengan compiler pass system RouteSync. Berdasarkan review kode compiler:
+
+```
+Current Compiler Architecture:
+┌────────────────────────────────────────────────┐
+│         PassManager + PassGraph                │
+│  • Artifact-based pipeline                     │
+│  • Dependency resolution                       │
+│  • Wave-based parallel execution               │
+└────────────────────────────────────────────────┘
+                    ↓
+┌────────────────────────────────────────────────┐
+│        CompilationState (Immutable)            │
+│  • Artifact storage                            │
+│  • State transformations                       │
+└────────────────────────────────────────────────┘
+
+Query System (Standalone):
+┌────────────────────────────────────────────────┐
+│     SalsaCompiler + QueryDatabase              │
+│  • Incremental computation                     │
+│  • Dependency tracking                         │
+│  • Cycle detection                             │
+│  • Revision-based caching                      │
+└────────────────────────────────────────────────┘
+        ↑
+  NOT YET INTEGRATED
+```
+
+### 11.2. Perbedaan Arsitektur
+
+| Aspect | Compiler Pass System | Query System |
+|--------|---------------------|--------------|
+| **State Model** | Immutable artifacts | Query cells with revisions |
+| **Dependencies** | Static (PassDescriptor) | Dynamic (runtime tracking) |
+| **Execution** | Wave-based pipeline | Demand-driven queries |
+| **Caching** | ArtifactCache (not shown in query/) | TypedCache, QueryDatabase |
+| **Invalidation** | Fingerprint-based | Revision-based |
+| **Cycle Detection** | PassGraph validation | SalsaCompiler runtime detection |
+
+### 11.3. Potential Integration Points
+
+**Option 1: Query System sebagai Caching Layer**
+```typescript
+// Hypothetical integration
+class QueryBasedPassManager extends PassManager {
+    private compiler = new SalsaCompiler(symbolDb);
+    private revision = 0;
+    
+    async executePass(pass: ExecutablePass, state: CompilationState): Promise<CompilationState> {
+        const key = this.buildQueryKey(pass);
+        
+        return this.compiler.executeQuery(
+            key,
+            async () => pass.execute(state, context),
+            state,
+            this.revision
+        );
+    }
+    
+    onSourceChanged(): void {
+        this.revision++;
+    }
+}
+```
+
+**Option 2: TypedCache untuk ArtifactCache**
+```typescript
+// Replace compiler's artifact cache with TypedCache
+class ArtifactCache {
+    private cache = new TypedCache();
+    
+    get<T>(descriptor: CacheDescriptor): T | undefined {
+        const key = createMemoizedQueryKey<T>(
+            this.buildCacheKey(descriptor)
+        );
+        return this.cache.get(key);
+    }
+}
+```
+
+**Option 3: Incremental Type Resolution**
+```typescript
+// Use SalsaCompiler for type resolution within passes
+class IncrementalTypePass implements CompilerPass<['AST'], ['TypeEnvironment']> {
+    private compiler = new SalsaCompiler(symbolDb);
+    
+    async run(inputs, context): Promise<TypeEnvironmentArtifact[]> {
+        const types = new Map<string, SemanticType>();
+        
+        for (const symbol of extractSymbols(inputs[0])) {
+            // Incremental type resolution dengan caching
+            const type = this.compiler.typecheck(symbol.id, context.revision);
+            types.set(symbol.id, type);
+        }
+        
+        return [createTypeEnvironmentArtifact(types)];
+    }
+}
+```
+
+### 11.4. Rekomendasi Integrasi
+
+Untuk mengintegrasikan query system dengan compiler RouteSync:
+
+1. **Evaluate Need**: Tentukan apakah incremental computation benar-benar needed
+   - Current compiler sudah memiliki artifact caching
+   - Pass system sudah support parallel execution
+   - Query system adds overhead jika tidak digunakan dengan baik
+
+2. **Start Small**: Gunakan TypedCache dulu untuk simple caching needs
+   ```typescript
+   const cache = new TypedCache();
+   const typeKey = createMemoizedQueryKey<SemanticType>('type:User');
+   ```
+
+3. **Add Incremental Queries**: Implement MemoizedQueryDatabase untuk nested queries
+   ```typescript
+   const db = new MemoizedQueryDatabase();
+   const result = db.runQuery(key, compute, input, revision);
+   ```
+
+4. **Full Integration**: Gunakan SalsaCompiler untuk full compiler pipeline
+   - Requires significant refactoring
+   - Need to map artifacts to queries
+   - Need revision management strategy
+
+### 11.5. Current Usage (Jika Ada)
+
+Berdasarkan review source code:
+- ✅ Query system components tersedia di `compiler/query/`
+- ✅ Exports di `compiler/query/index.ts` complete
+- ❌ Tidak ada usage aktual dalam compiler passes
+- ❌ Tidak ada integration dengan PassManager
+- ❌ Tidak ada usage dalam type resolution atau semantic analysis
+
+Query system saat ini adalah **standalone infrastructure** yang dapat digunakan untuk:
+- Custom incremental computations
+- External tools yang need dependency tracking
+- Future incremental compilation features
+- Prototype untuk testing Salsa-style architecture
+
+**Status:** Query system adalah **future-ready infrastructure** yang belum dimanfaatkan secara aktif oleh compiler saat ini, tetapi menyediakan foundation untuk incremental compilation ketika feature tersebut diperlukan.
+
+---
+
+**Catatan Akhir:** Dokumentasi ini akurat berdasarkan implementasi yang ada di `compiler/query/`. Tidak ada asumsi tentang fitur yang belum diimplementasikan atau integration yang belum ada.

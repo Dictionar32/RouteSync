@@ -1984,5 +1984,5 @@ Jika ingin menambah fitur atau improve query system:
 5. Follow existing patterns dan conventions
 
 ---
-
+p
 **Dokumentasi ini berdasarkan implementasi aktual** di folder `compiler/query` dan menjelaskan seluruh komponen yang tersedia tanpa asumsi terhadap fitur yang tidak ada.

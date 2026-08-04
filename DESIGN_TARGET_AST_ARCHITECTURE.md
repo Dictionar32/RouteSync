@@ -1171,112 +1171,221 @@ describe('TypeScriptEmitter', () => {
 
 **Goal**: Create Target AST node definitions
 
+**⚠️ CRITICAL RULES**:
+- **NO `any` TYPE ALLOWED** - Semua types harus explicit
+- **Strict TypeScript mode** - Enable `strict: true` di tsconfig
+- **Immutable by default** - Semua properties `readonly`
+- **Type-safe from day one** - No compromises
+
 **Tasks**:
 1. Create `/compiler/target/typescript/nodes/` folder
-2. Implement base `TSNode` class
-3. Implement concrete node types:
-   - `TSFile`
-   - `TSImportDeclaration`
-   - `TSInterfaceDeclaration`
-   - `TSPropertySignature`
-   - `TSTypeReference`, `TSArrayType`, `TSUnionType`
-4. Implement `TSVisitor` interface
-5. Implement `TSBaseVisitor` base class
-6. Write unit tests untuk node creation
+2. Implement base `TSNode` class (fully typed)
+3. Implement concrete node types **ONE BY ONE**:
+   - `TSFile` ← Start here (simplest)
+   - `TSImportDeclaration` ← Then this
+   - `TSInterfaceDeclaration` ← Then this
+   - `TSPropertySignature` ← Then this
+   - `TSTypeReference`, `TSArrayType`, `TSUnionType` ← Finally these
+4. Implement `TSVisitor` interface (generic type parameter, no `any`)
+5. Implement `TSBaseVisitor` base class (type-safe)
+6. Write unit tests untuk EACH node (test immutability, type safety)
 
 **Duration**: 1 week
 
 **Dependencies**: None
 
 **Deliverables**:
-- Complete TypeScript Target AST node definitions
-- Visitor pattern implementation
+- Complete TypeScript Target AST node definitions (**ZERO `any` types**)
+- Visitor pattern implementation (fully typed)
 - Unit tests dengan 90%+ coverage
+- TypeScript strict mode passing
+
+**Implementation Order** (bertahap):
+1. Day 1-2: Base nodes (`TSNode`, `TSFile`)
+2. Day 3: Import nodes (`TSImportDeclaration`)
+3. Day 4: Declaration nodes (`TSInterfaceDeclaration`)
+4. Day 5: Property nodes (`TSPropertySignature`)
+5. Day 6: Type nodes (`TSTypeReference`, `TSArrayType`, `TSUnionType`)
+6. Day 7: Visitor pattern + tests
 
 
 ### 10.2 Phase 2: Generator Implementation
 
 **Goal**: Create Generator layer untuk transform IR → Target AST
 
-**Tasks**:
-1. Create `/compiler/generators/` folder structure
-2. Define `IGenerator` base interface
-3. Implement `TypeScriptGenerator`:
-   - Entity → Interface transformation
-   - Schema → Type alias transformation
-   - Property type mapping (SemanticType → TSType)
-   - Import collection logic
-4. Implement helper methods:
-   - `semanticTypeToTSType()`
-   - `collectRequiredImports()`
-   - `generateEntityInterface()`
-5. Write integration tests dengan mock IR
+**⚠️ CRITICAL RULES**:
+- **NO `any` TYPE** - All transformations type-safe
+- **Explicit return types** - Every method must declare return type
+- **Exhaustive pattern matching** - Use `switch` dengan `never` check
+- **No implicit conversions** - All type mappings explicit
+
+**Tasks** (BERTAHAP, satu per satu):
+1. **Week 1**: Basic infrastructure
+   - Create `/compiler/generators/` folder structure
+   - Define `IGenerator<TInput, TOutput>` interface (generic, type-safe)
+   - Implement skeleton `TypeScriptGenerator` (empty methods, typed signatures)
+   - Write tests untuk interfaces
+
+2. **Week 2**: Core transformations
+   - Implement `semanticTypeToTSType()` method:
+     ```typescript
+     private semanticTypeToTSType(type: SemanticType): TSType {
+       switch (type.kind) {
+         case 'primitive': return new TSTypeReference(type.typeName);
+         case 'array': return new TSArrayType(this.semanticTypeToTSType(type.elementType));
+         case 'union': return new TSUnionType(type.types.map(t => this.semanticTypeToTSType(t)));
+         default: 
+           const _exhaustive: never = type; // ← Type safety check
+           throw new Error(`Unhandled type: ${JSON.stringify(_exhaustive)}`);
+       }
+     }
+     ```
+   - Implement `generateEntityInterface()` ← Start here
+   - Implement `collectRequiredImports()`
+   - Write unit tests per method
 
 **Duration**: 2 weeks
 
-**Dependencies**: Phase 1 (Target AST nodes)
+**Dependencies**: Phase 1 (Target AST nodes must be complete)
 
 **Deliverables**:
-- Complete TypeScript Generator implementation
-- Generator dapat transform ContractGraph → TSFile
+- TypeScript Generator implementation (**ZERO `any` types**)
+- Generator transform ContractGraph → TSFile (fully typed)
 - Integration tests dengan real-world scenarios
 - Performance benchmarks (target: <100ms untuk 100 routes)
+- **Type safety verification** (strict mode passing)
 
 
 ### 10.3 Phase 3: Formatter Implementation
 
 **Goal**: Create Formatter layer untuk optimize AST structure
 
-**Tasks**:
-1. Create `/compiler/formatting/typescript/` folder
-2. Define `IFormatter` interface
-3. Implement `TypeScriptFormatter`:
-   - Import sorting (alphabetical)
-   - Import grouping (third-party vs relative)
-   - Declaration reordering (types → interfaces → classes)
-   - Comment optimization
-4. Implement AST traversal utilities
-5. Write unit tests untuk each formatting rule
+**⚠️ CRITICAL RULES**:
+- **NO `any` TYPE** - All AST transformations type-safe
+- **Pure functions** - No side effects, return new AST
+- **Type-preserving** - Input type === Output type
+- **Explicit comparators** - No implicit sorting
+
+**Tasks** (BERTAHAP):
+1. **Day 1-2**: Infrastructure
+   - Create `/compiler/formatting/typescript/` folder
+   - Define `IFormatter<T extends TSNode>` interface (generic)
+   - Implement skeleton `TypeScriptFormatter`
+   - Write interface tests
+
+2. **Day 3**: Import sorting
+   - Implement `formatImports()` dengan explicit comparator:
+     ```typescript
+     private sortImports(imports: TSImportDeclaration[]): TSImportDeclaration[] {
+       return imports.sort((a, b) => {
+         // Explicit string comparison, no implicit coercion
+         return a.moduleSpecifier.localeCompare(b.moduleSpecifier);
+       });
+     }
+     ```
+   - Write tests untuk sorting
+
+3. **Day 4**: Import grouping
+   - Implement grouping logic (third-party vs relative)
+   - Write tests untuk grouping
+
+4. **Day 5**: Declaration reordering
+   - Implement reordering (types → interfaces → classes)
+   - Write tests untuk reordering
+
+5. **Day 6-7**: Integration dan polish
+   - Integrate all formatting rules
+   - End-to-end formatter tests
+   - Documentation
 
 **Duration**: 1 week
 
-**Dependencies**: Phase 1 (Target AST nodes)
+**Dependencies**: Phase 1 (Target AST nodes must be complete)
 
 **Deliverables**:
-- Complete TypeScript Formatter implementation
-- Formatter dapat optimize TSFile structure
+- TypeScript Formatter implementation (**ZERO `any` types**)
+- Formatter optimize TSFile structure (type-safe transformations)
 - Unit tests dengan 90%+ coverage
 - Documentation untuk formatting rules
+- **Type safety verification** (strict mode passing)
 
 
 ### 10.4 Phase 4: Emitter Refactoring
 
 **Goal**: Refactor existing Emitter menjadi pure visitor
 
-**Tasks**:
-1. Create `/compiler/emitters/typescript/` folder
-2. Refactor `TypeScriptEmitter` class:
-   - Remove domain logic (`collectImports`, `mapType`, `resolveEntity`)
-   - Implement pure visitor pattern
-   - Add indentation logic
-   - Handle syntax printing only
-3. Implement `TSBaseVisitor` extensions
-4. Remove old template-based emitter code
-5. Write unit tests untuk visitor methods
+**⚠️ CRITICAL RULES**:
+- **NO `any` TYPE** - All visitor methods fully typed
+- **NO domain logic** - Remove `collectImports()`, `mapType()`, `resolveEntity()`
+- **Pure visitor pattern** - Only traversal + printing
+- **Explicit return types** - Every visitor method returns `string`
+
+**Tasks** (BERTAHAP, sangat hati-hati):
+1. **Week 1**: Analysis dan preparation
+   - Audit current `TypeScriptEmitter` untuk identify domain logic
+   - Document all methods yang perlu diremove/refactor
+   - Create refactoring plan dengan safety checks
+   - Set up parallel testing (old vs new output comparison)
+
+2. **Week 2**: Pure visitor implementation
+   - Create `/compiler/emitters/typescript/` folder
+   - Implement new `TypeScriptEmitter extends TSBaseVisitor<string>`:
+     ```typescript
+     export class TypeScriptEmitter extends TSBaseVisitor<string> {
+       private indentLevel = 0;
+       private readonly indentSize = 4;
+       
+       defaultResult(): string {
+         return '';
+       }
+       
+       // ✅ Pure printing - NO domain logic
+       visitInterfaceDeclaration(node: TSInterfaceDeclaration): string {
+         const lines: string[] = [];
+         const exported = node.isExported ? 'export ' : '';
+         lines.push(`${exported}interface ${node.name} {`);
+         
+         this.indentLevel++;
+         for (const member of node.members) {
+           lines.push(this.indent() + member.accept(this));
+         }
+         this.indentLevel--;
+         
+         lines.push('}');
+         return lines.join('\n');
+       }
+       
+       // Helper - NO domain logic, just string manipulation
+       private indent(): string {
+         return ' '.repeat(this.indentLevel * this.indentSize);
+       }
+     }
+     ```
+   - Implement ALL visitor methods (one by one, test each)
+   - **NO `collectImports()`** - imports already in AST
+   - **NO `mapType()`** - types already resolved in Generator
+   - **NO `resolveEntity()`** - entities already resolved
+
+3. **Validation**:
+   - Output comparison: new emitter vs old emitter
+   - Performance comparison
+   - Type safety verification
 
 **Duration**: 2 weeks
 
-**Dependencies**: Phase 1 (Target AST nodes)
+**Dependencies**: Phase 1 (Target AST nodes must be complete)
 
 **Deliverables**:
-- Pure visitor TypeScript Emitter
-- No domain logic dalam emitter
+- Pure visitor TypeScript Emitter (**ZERO `any` types**)
+- **ZERO domain logic** dalam emitter (verified)
 - Unit tests dengan 90%+ coverage
-- Performance comparison (old vs new)
+- Performance comparison report (old vs new)
+- Output equivalence verification
 
 **Risk Mitigation**:
 - Keep old emitter sebagai fallback during transition
 - Extensive testing untuk ensure output equivalence
+- Feature flag untuk gradual rollout
 
 
 ### 10.5 Phase 5: Pipeline Integration
@@ -2249,4 +2358,265 @@ TSNode (abstract)
 *Timestamp: 2026-08-04*  
 *Document Status: PROPOSAL - PENDING REVIEW*  
 *Implementation Status: NOT STARTED*
+
+
+
+---
+
+## 19. Implementation Safety Guidelines
+
+### 19.1 Type Safety Enforcement
+
+**WAJIB DIIKUTI** untuk semua implementasi:
+
+```typescript
+// ✅ GOOD: Explicit types everywhere
+interface GeneratorConfig {
+  readonly outputDir: string;
+  readonly strict: boolean;
+}
+
+function createGenerator(config: GeneratorConfig): TypeScriptGenerator {
+  return new TypeScriptGenerator(config);
+}
+
+// ❌ BAD: Any types
+interface GeneratorConfig {
+  outputDir: any;  // ← NEVER DO THIS
+  strict: any;     // ← NEVER DO THIS
+}
+
+function createGenerator(config: any): any {  // ← NEVER DO THIS
+  return new TypeScriptGenerator(config);
+}
+```
+
+### 19.2 Exhaustive Pattern Matching
+
+**WAJIB** untuk semua switch statements:
+
+```typescript
+// ✅ GOOD: Exhaustive switch dengan never check
+function semanticTypeToTSType(type: SemanticType): TSType {
+  switch (type.kind) {
+    case 'primitive':
+      return new TSTypeReference(type.typeName);
+    case 'array':
+      return new TSArrayType(this.semanticTypeToTSType(type.elementType));
+    case 'union':
+      return new TSUnionType(type.types.map(t => this.semanticTypeToTSType(t)));
+    case 'intersection':
+      return new TSIntersectionType(type.types.map(t => this.semanticTypeToTSType(t)));
+    default:
+      // Compile-time exhaustiveness check
+      const _exhaustive: never = type;
+      throw new Error(`Unhandled type kind: ${JSON.stringify(_exhaustive)}`);
+  }
+}
+
+// ❌ BAD: Non-exhaustive switch
+function semanticTypeToTSType(type: any): any {  // ← NEVER any
+  switch (type.kind) {
+    case 'primitive':
+      return new TSTypeReference(type.typeName);
+    case 'array':
+      return new TSArrayType(this.semanticTypeToTSType(type.elementType));
+    // Missing cases! No compile-time check!
+  }
+}
+```
+
+### 19.3 Immutability Enforcement
+
+**WAJIB** untuk semua AST nodes:
+
+```typescript
+// ✅ GOOD: Readonly properties + Object.freeze
+export class TSInterfaceDeclaration extends TSNode {
+  readonly kind = 'InterfaceDeclaration';
+  
+  constructor(
+    readonly name: string,
+    readonly members: readonly TSPropertySignature[],  // ← readonly array
+    readonly typeParameters: readonly TSTypeParameter[] = [],
+    readonly heritage: readonly TSTypeReference[] = [],
+    readonly isExported: boolean = false,
+    location?: SourceLocation
+  ) {
+    super(location);
+    Object.freeze(this);  // ← Freeze untuk enforce immutability
+  }
+}
+
+// ❌ BAD: Mutable properties
+export class TSInterfaceDeclaration extends TSNode {
+  kind = 'InterfaceDeclaration';  // ← Not readonly
+  
+  constructor(
+    public name: string,  // ← Not readonly
+    public members: TSPropertySignature[],  // ← Mutable array
+  ) {
+    super();
+    // No Object.freeze() - mutable!
+  }
+}
+```
+
+### 19.4 Null Safety
+
+**WAJIB** handle null/undefined explicitly:
+
+```typescript
+// ✅ GOOD: Explicit null handling
+function findNode(
+  nodes: readonly TSNode[], 
+  predicate: (node: TSNode) => boolean
+): TSNode | undefined {  // ← Explicit undefined
+  for (const node of nodes) {
+    if (predicate(node)) {
+      return node;
+    }
+  }
+  return undefined;  // ← Explicit return
+}
+
+// Usage dengan null check
+const node = findNode(nodes, n => n.kind === 'Interface');
+if (node !== undefined) {  // ← Explicit check
+  console.log(node.name);
+}
+
+// ❌ BAD: Implicit null handling
+function findNode(nodes: any[], predicate: any): any {  // ← any everywhere
+  for (const node of nodes) {
+    if (predicate(node)) {
+      return node;
+    }
+  }
+  // Implicit undefined - no type safety
+}
+```
+
+### 19.5 Generic Type Parameters
+
+**WAJIB** use generics correctly:
+
+```typescript
+// ✅ GOOD: Generic dengan constraints
+interface IGenerator<TInput, TOutput extends TSNode> {
+  generate(input: TInput): TOutput;
+}
+
+class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
+  generate(input: ContractGraph): TSFile {
+    // Type-safe implementation
+    return new TSFile([], [], []);
+  }
+}
+
+// ❌ BAD: No generics atau wrong usage
+interface IGenerator {
+  generate(input: any): any;  // ← NEVER
+}
+
+class TypeScriptGenerator implements IGenerator {
+  generate(input: any): any {  // ← NEVER
+    return anything;  // ← No type safety
+  }
+}
+```
+
+### 19.6 Error Handling
+
+**WAJIB** type-safe error handling:
+
+```typescript
+// ✅ GOOD: Custom error types
+export class GeneratorError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: Error,
+    public readonly context?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'GeneratorError';
+  }
+}
+
+function generateInterface(entity: EntityNode): TSInterfaceDeclaration {
+  try {
+    return doGenerate(entity);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new GeneratorError(
+        `Type error during generation: ${error.message}`,
+        error,
+        { entityName: entity.name }
+      );
+    }
+    throw error;
+  }
+}
+
+// ❌ BAD: Untyped error handling
+function generateInterface(entity: any): any {
+  try {
+    return doGenerate(entity);
+  } catch (error: any) {  // ← NEVER catch as any
+    throw error;
+  }
+}
+```
+
+### 19.7 Pre-commit Checklist
+
+**SEBELUM commit**, verify:
+
+- [ ] `npx tsc --noEmit --strict` passes (zero errors)
+- [ ] No `any` type dalam code (search untuk `: any` dan `as any`)
+- [ ] All functions have explicit return types
+- [ ] All switch statements exhaustive (dengan `never` check)
+- [ ] All AST nodes frozen (`Object.freeze(this)`)
+- [ ] All arrays `readonly` where appropriate
+- [ ] All null/undefined handled explicitly
+- [ ] All tests passing
+- [ ] ESLint passing (dengan `@typescript-eslint/no-explicit-any` error)
+
+### 19.8 CI/CD Verification
+
+Pipeline HARUS enforce:
+
+```yaml
+# .github/workflows/type-safety.yml
+name: Type Safety Check
+
+on: [push, pull_request]
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      # ENFORCE: Zero any types
+      - name: Check for any types
+        run: |
+          if grep -r ": any" packages/core/src/compiler/target/ packages/core/src/compiler/generators/ packages/core/src/compiler/formatting/ packages/core/src/compiler/emitters/typescript/; then
+            echo "ERROR: Found 'any' type in implementation!"
+            exit 1
+          fi
+      
+      # ENFORCE: Strict mode compilation
+      - name: TypeScript strict check
+        run: npx tsc --noEmit --strict
+      
+      # ENFORCE: ESLint rules
+      - name: ESLint check
+        run: npx eslint --ext .ts --rule '@typescript-eslint/no-explicit-any: error'
+```
+
+**CRITICAL**: Pipeline HARUS fail jika ada violation.
 

@@ -127,10 +127,12 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
             this.transformPropertyToSignature(prop)
         );
 
-        // Generate JSDoc comment if description exists
-        const comment = entity.description
-            ? new TSComment(entity.description, 'doc')
-            : undefined;
+        // Generate JSDoc comment
+        // TODO: Add description support to EntityNode in future
+        const comment = new TSComment(
+            `Interface for ${entity.name}`,
+            'jsdoc'
+        );
 
         return new TSInterfaceDeclaration(
             entity.name,
@@ -175,7 +177,7 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
 
         // Generate property comment if exists
         const comment = prop.description
-            ? new TSComment(prop.description, 'line')
+            ? new TSComment(prop.description, 'single-line')
             : undefined;
 
         return new TSPropertySignature(

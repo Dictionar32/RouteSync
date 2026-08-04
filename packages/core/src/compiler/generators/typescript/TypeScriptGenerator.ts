@@ -28,6 +28,7 @@ import { TSTypeReference } from '../../target/typescript/nodes/TSTypeReference';
 import { TSComment } from '../../target/typescript/nodes/TSComment';
 import { TSArrayType } from '../../target/typescript/nodes/TSArrayType';
 import { TSUnionType } from '../../target/typescript/nodes/TSUnionType';
+import { TSIntersectionType } from '../../target/typescript/nodes/TSIntersectionType';
 import { ImportCollector, type ImportSpec } from './ImportCollector';
 
 /**
@@ -401,24 +402,45 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
     /**
      * Convert IntersectionType to TS intersection
      * 
-     * Phase 3 - Day 3: Full implementation needed
-     * Current: Returns first member as fallback
+     * Phase 3 - Day 2 Part 3: Full implementation
+     * 
+     * Maps all intersection members to TypeScript intersection type (A & B & C).
+     * Handles nested intersections, empty intersections, dan single-member intersections.
+     * 
+     * @example
+     * ```typescript
+     * // User & Timestamps
+     * IntersectionType([User, Timestamps]) → TSIntersectionType([User, Timestamps])
+     * 
+     * // Base & Extended
+     * IntersectionType([Base, Extended]) → TSIntersectionType([Base, Extended])
+     * ```
      */
     private convertIntersectionType(
         type: SemanticType
-    ): TSTypeReference {
+    ): TSTypeReference | TSIntersectionType {
         if (type.kind !== 'intersection') {
             throw new Error('Expected intersection type');
         }
 
-        // For now, just map first member
-        // TODO: Create TSIntersectionType node and map all members
-        const firstMember = Array.from(type.members.values())[0];
-        if (firstMember) {
-            return this.semanticTypeToTSType(firstMember);
+        // Convert all members recursively
+        const members = Array.from(type.members.values());
+
+        // Edge case: Empty intersection → never type (impossible type)
+        if (members.length === 0) {
+            return new TSTypeReference('never');
         }
 
-        return new TSTypeReference('unknown');
+        // Edge case: Single member → just return that type
+        if (members.length === 1) {
+            return this.semanticTypeToTSType(members[0]);
+        }
+
+        // Convert each member to TypeScript type
+        const tsTypes = members.map(member => this.semanticTypeToTSType(member));
+
+        // Create intersection type
+        return new TSIntersectionType(tsTypes);
     }
 
     /**

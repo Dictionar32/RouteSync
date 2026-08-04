@@ -357,24 +357,45 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
     /**
      * Convert UnionType to TS union
      * 
-     * Phase 3 - Day 3: Full implementation needed
-     * Current: Returns first member as fallback
+     * Phase 3 - Day 2 Part 3: Full implementation
+     * 
+     * Maps all union members to TypeScript union type (A | B | C).
+     * Handles nested unions, empty unions, dan single-member unions.
+     * 
+     * @example
+     * ```typescript
+     * // string | number
+     * UnionType([string, number]) → TSUnionType([string, number])
+     * 
+     * // User | null
+     * UnionType([User, null]) → TSUnionType([User, null])
+     * ```
      */
     private convertUnionType(
         type: SemanticType
-    ): TSTypeReference {
+    ): TSTypeReference | TSUnionType {
         if (type.kind !== 'union') {
             throw new Error('Expected union type');
         }
 
-        // For now, just map first member
-        // TODO: Create TSUnionType node and map all members
-        const firstMember = Array.from(type.members.values())[0];
-        if (firstMember) {
-            return this.semanticTypeToTSType(firstMember);
+        // Convert all members recursively
+        const members = Array.from(type.members.values());
+
+        // Edge case: Empty union → never type
+        if (members.length === 0) {
+            return new TSTypeReference('never');
         }
 
-        return new TSTypeReference('unknown');
+        // Edge case: Single member → just return that type
+        if (members.length === 1) {
+            return this.semanticTypeToTSType(members[0]);
+        }
+
+        // Convert each member to TypeScript type
+        const tsTypes = members.map(member => this.semanticTypeToTSType(member));
+
+        // Create union type
+        return new TSUnionType(tsTypes);
     }
 
     /**

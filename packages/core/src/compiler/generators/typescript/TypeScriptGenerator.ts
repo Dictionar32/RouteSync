@@ -193,23 +193,23 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
     /**
      * Map SemanticType to TSTypeReference (PRIMARY CONVERSION METHOD)
      * 
-     * Phase 3 - Day 2: Implementation with enhanced collection types
+     * Phase 3 - Day 2: Implementation with enhanced collection types + union/intersection
      * 
      * Handles all SemanticType variants:
      * - PrimitiveType → TS primitives (string, number, etc.)
      * - ReferenceType → Custom types (User, Product, etc.)
      * - CollectionType → Arrays (dengan readonly support)
-     * - UnionType → Union types
-     * - IntersectionType → Intersection types
+     * - UnionType → Union types (A | B | C)
+     * - IntersectionType → Intersection types (A & B & C)
      * - GenericType → Generic types
      * - ObjectType → Inline object types
      * 
      * @param semanticType - Semantic type dari IR
-     * @returns TypeScript type node (TSTypeReference, TSArrayType, atau TSUnionType)
+     * @returns TypeScript type node (TSTypeReference, TSArrayType, TSUnionType, atau TSIntersectionType)
      */
     public semanticTypeToTSType(
         semanticType: SemanticType
-    ): TSTypeReference | TSArrayType | TSUnionType {
+    ): TSTypeReference | TSArrayType | TSUnionType | TSIntersectionType {
         switch (semanticType.kind) {
             case 'primitive':
                 return this.convertPrimitiveType(semanticType);

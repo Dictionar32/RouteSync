@@ -7,7 +7,7 @@ ground-truth dari `zodtiergenerator` (engine lama)", berkembang jadi
 perbaikan arsitektur yang lebih dalam setelah ketemu root cause asli:
 parser manifest kehilangan linkage Route→Resource.
 
-**Status akhir: 7 file source diperbaiki, 17 root-cause bug/fase, semuanya
+**Status akhir: 7 file source diperbaiki, 19 root-cause bug/fase, semuanya
 diverifikasi lewat eksekusi nyata terhadap project Laravel produksi
 `toko-online` (bukan cuma sample `ecommerce_shop-main`), 0 regresi di
 sepanjang jalan.**
@@ -79,7 +79,7 @@ keluar kosong/nyaris kosong — bukan bug RouteSync, override aja:
 DB_HOST=127.0.0.1 DB_PORT=<port-mysql-yang-di-expose-ke-host> node dist/cli.js scan ...
 ```
 
-## 17 root-cause bug/fase yang di-fix (urutan kronologis)
+## 19 root-cause bug/fase yang di-fix (urutan kronologis)
 
 | # | File | Masalah | Fix |
 |---|------|---------|-----|
@@ -100,6 +100,19 @@ DB_HOST=127.0.0.1 DB_PORT=<port-mysql-yang-di-expose-ke-host> node dist/cli.js s
 | 15 | `ContractGenerator.ts` (ResponseDescriptor Fase 2) | Reachability filter masih baca `resp.kind` langsung | Prefer `resp.transport`, fallback ke `kind` (backward compat manifest lama) |
 | 16 | `LaravelRouteParser.ts` (ResponseDescriptor Fase 3) | Route yang return `download`/`redirect`/`empty` (bukan JSON) selalu warning "Response type could not be inferred" — bukan krn ambigu, tapi krn ga ada yg nyari pattern ini sama sekali | Deteksi `->download()`, `redirect()`, `->noContent()`, dll → `transport:'download'/'redirect'/'empty'`. Plus subkasus `return response()->json($var)` (variable-built JSON) — reuse `$assignments` yang udah ada tapi ga pernah dipake |
 | 17 | `LaravelRouteParser.ts` (ResponseDescriptor Fase 4) | Ga ada info `status`/`contentType` di manifest — emitter lain (OpenAPI/SDK) bakal butuh infer ulang | Tambah `deriveStatusAndContentType()` — default per-transport + override dari `response()->json($x, XXX)` eksplisit |
+| 18 | `LaravelRouteParser.ts` | Assignment scanner cuma nangkep `$var = [...]` langsung — pattern `$var = []; $var['key'] = ...;` (incremental array construction, dibangun bertahap lewat beberapa statement) ga pernah ke-track sama sekali | Tambah scanner kedua khusus `$var['key'] = expr;`, digabung sama base assignment lewat `mergeAssignmentShape()` — verified: `forgot-password` sekarang resolve `message` DAN `reset_token` (field kedua ini yang tadinya hilang) |
+| 19 | `ContractIRBuilder.ts` | Field object-kind nested (`shipping`, `promotion` di `OrderResource`) selalu render sebagai anonymous inline `{ nama: string; alamat: string }` — ga ada nama interface sendiri, field-nya juga masih snake_case | `extractNestedObjectResource()` — extract jadi resource baru bernama `${ParentBase}${PascalField}` (mis. `OrderShipping`), register ke `this.resources`, field aslinya jadi reference. Sengaja TIDAK reuse model DB yang namanya kebetulan sama — shape-nya murni dari field yang genuinely ada di response. Bonus: field ikut ke-camelCase karena reuse pipeline yang sama kayak field top-level |
+
+**Verifikasi final (di project asli `toko-online`, bukan fixture):** abis
+fix #19, `generate-v2` terhadap manifest asli hasilnya **21 interface**
+(naik dari 15 sebelum fix #19 — 6 interface baru:
+`OrderShipping`/`OrderPromotion`/`PaymentGateway`/`PaymentPromotion`/
+`OrderDetailProduk`/`ProdukReviewsSummary`), `OrderResourceTransformed`
+semua field-nya jadi reference bersih
+(`items: OrderDetailResourceTransformed[]`,
+`promotion: OrderPromotionTransformed`,
+`shipping: OrderShippingTransformed`), dan `OrderShippingTransformed`
+sendiri field-nya udah camelCase (`kodePos`, bukan `kode_pos`). 0 regresi.
 
 ## Catatan / known follow-up (belum di-fix)
 
@@ -108,51 +121,49 @@ DB_HOST=127.0.0.1 DB_PORT=<port-mysql-yang-di-expose-ke-host> node dist/cli.js s
   `PaymentResourceTransformed.gateway.*`) — masih `unknown`. Beda dari bug
   #13 (itu soal CACHE nyimpen hasil lama); ini soal resolver PHP genuinely
   gagal resolve untuk pattern tertentu. Belum diinvestigasi lebih dalam.
-- **`payment_webhook.post`** — BUKAN bug. Route ini nunjuk ke
+- **`payment_webhook.post`** — BUKAN bug RouteSync. Route ini nunjuk ke
   `PaymentController::webhook()` yang **ga pernah diimplementasikan** di
   kode Laravel-nya sama sekali (cuma ada `__construct`+`store`). Parser
-  udah bener return `null` karena emang ga ada apa-apa buat di-parse. Perlu
-  diimplementasikan di sisi Laravel, di luar scope RouteSync.
+  udah bener return `null` karena emang ga ada apa-apa buat di-parse.
+  Implementasi lengkap (pakai `MidtransGateway::isValidSignature()` yang
+  udah ada tapi belum pernah dipanggil dari mana pun) sudah disiapkan
+  terpisah — lihat `PaymentController-webhook-method.txt` — tinggal
+  di-paste ke controller-nya dan ditest di sandbox Midtrans sebelum
+  production.
 - **`wrapDetectionPhp` dead code** di `LaravelRouteParser.ts` — gate-nya
   nunggu `$responseMetadata` yang keisi TERLALU AWAL (sebelum fix #11,
   timing-nya masih pas; sekarang enggak). Logic-nya lebih canggih dari
   yang sekarang dipakai (resolve `use` alias, tangkep `DB::transaction()`)
   — worth dikonsolidasi jadi satu `WrapResolver`, bukan dihapus asal-asalan.
-- **Incremental array construction belum ditangani** — pattern
-  `$response['key'] = value;` (assignment via array index, bukan
-  assignment langsung `$response = [...]`) masih ga ke-track sama
-  assignment scanner. Subkasus sederhana (`$response = [...]; return
-  response()->json($response);`) sudah di-fix di bug #16, tapi bangun
-  array bertahap lewat banyak baris `$x['key'] = ...` belum.
-- **Nested inline object → named interface** — `shipping`/`promotion` di
-  `OrderResourceTransformed` masih anonymous inline object
-  (`{nama, alamat}`), bukan interface `OrderShipping`/`OrderPromotion`
-  terpisah. Sengaja belum dikerjakan (lihat diskusi di
-  `ISSUE-manifest-resource-linkage.md` — projection parsial vs model
-  penuh).
-- **Belum ada automated test/regression suite.** Semua verifikasi di atas
-  manual (run CLI beneran, baca output, bandingin manual/`diff`). Kalau
-  nambah fix baru, WAJIB re-run comparison manual, karena beberapa fix di
-  sesi ini saling tarik-menarik (bug #8 contoh nyata: benerin 1 kasus,
-  ngerusak kasus lain, ke-revert lagi).
+  Satu-satunya item follow-up dari daftar sebelumnya yang masih genuinely
+  belum dikerjakan.
+
+**Yang tadinya ada di list ini tapi sekarang sudah selesai:** incremental
+array construction (bug #18), nested inline object → named interface
+(bug #19), dan automated test suite (`test-suite.sh` +
+`test-manifest-fixture.json`, 25 assertion, terverifikasi genuinely nangkep
+regresi).
 
 ## Daftar file di sini
 
 ```
 README.md                          <- file ini
-ISSUE-manifest-resource-linkage.md <- analisis mendalam bug #11 + proposal ResponseDescriptor (sekarang sudah diimplementasi, bug #14-17)
+ISSUE-manifest-resource-linkage.md <- analisis mendalam bug #11 + proposal ResponseDescriptor (sudah diimplementasi penuh, bug #14-17)
 01-resource-naming.ts              -> packages/core/src/utils/resource-naming.ts
 03-ReadEmitter.ts                  -> packages/cli/src/generators/layers/ReadEmitter.ts
 04-manifest-enricher.ts            -> packages/cli/src/generators/layers/utils/manifest-enricher.ts
 ContractGenerator.ts               -> packages/cli/src/generators/ContractGenerator.ts
-ContractIRBuilder.ts               -> packages/core/src/ir/ContractIRBuilder.ts
+ContractIRBuilder.ts               -> packages/core/src/ir/ContractIRBuilder.ts (termasuk bug #19, nested object extraction)
 incremental.ts                     -> packages/cli/src/utils/incremental.ts
-LaravelRouteParser.ts              -> packages/cli/src/parsers/LaravelRouteParser.ts
-output-api-read.ts                 <- CATATAN: hasil generate-v2 dari manifest SEBELUM bug #13-17,
-output-api-form.ts                    jadi bukan representasi output final (belum ada transport/shape/
-output-api-contract.ts                status/contentType, dan Profile/dst masih ada yang unknown akibat
-output-api-field.ts                   cache stale). Interface count & shape utamanya tetap sama (15
-output-api-mapper.ts                  interface), tapi kalau butuh output paling akurat, regenerate
-output-api-schema.ts                  ulang dari manifest fresh pakai instruksi di atas.
-output-sdk-api.ts
+LaravelRouteParser.ts              -> packages/cli/src/parsers/LaravelRouteParser.ts (termasuk bug #18)
+test-suite.sh                      <- automated regression test, 25 assertion, cakupan bug #1-12+#15+#19 (sisi TypeScript)
+test-manifest-fixture.json         <- fixture statis buat test-suite.sh, ga butuh PHP/DB
+PaymentController-webhook-method.txt <- implementasi payment_webhook (bukan bug RouteSync, gap di kode Laravel)
+output-api-read.ts                 <- CATATAN: hasil generate-v2 dari manifest LAMA (sebelum bug
+output-api-form.ts                    #13-19). Verifikasi FINAL (21 interface, semua nested object
+output-api-contract.ts                jadi reference bersih) sudah dijalankan langsung terhadap
+output-api-field.ts                   project toko-online — lihat tabel bug #19 di atas untuk hasil
+output-api-mapper.ts                  lengkapnya. File-file di sini TIDAK direfresh ulang; kalau
+output-api-schema.ts                  butuh output paling akurat, regenerate sendiri pakai instruksi
+output-sdk-api.ts                     "Cara pakai" di atas.
 ```

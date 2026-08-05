@@ -761,6 +761,11 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
             throw new Error(`Expected ObjectType, got ${type.kind}`);
         }
 
+        // Track generated interface name FIRST (sebelum processing properties)
+        // Ini penting untuk prevent self-reference imports
+        // Example: interface User { parent?: User }
+        this.generatedTypes.add(name);
+
         // Extract properties dari ObjectType
         const properties = this.extractPropertiesFromObjectType(type);
 
@@ -771,9 +776,6 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
         const propertySignatures = properties.map(prop =>
             this.transformPropertyToSignature(prop)
         );
-
-        // Track generated interface name
-        this.generatedTypes.add(name);
 
         // Generate JSDoc comment
         const comment = new TSComment(

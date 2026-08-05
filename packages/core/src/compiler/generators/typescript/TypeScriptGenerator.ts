@@ -375,7 +375,7 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
      */
     private convertUnionType(
         type: SemanticType
-    ): TSTypeReference | TSUnionType {
+    ): TSTypeReference | TSArrayType | TSUnionType | TSIntersectionType {
         if (type.kind !== 'union') {
             throw new Error('Expected union type');
         }
@@ -419,7 +419,7 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
      */
     private convertIntersectionType(
         type: SemanticType
-    ): TSTypeReference | TSIntersectionType {
+    ): TSTypeReference | TSArrayType | TSUnionType | TSIntersectionType {
         if (type.kind !== 'intersection') {
             throw new Error('Expected intersection type');
         }
@@ -543,7 +543,7 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
         }
 
         // Strategy decision based on complexity
-        const propertyCount = type.properties.size;
+        const propertyCount = type.properties.entries().length;
         const hasInheritance = type.baseObject !== undefined ||
             (type.interfaces && type.interfaces.length > 0);
 

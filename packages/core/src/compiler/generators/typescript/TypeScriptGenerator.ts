@@ -709,4 +709,187 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
             return TSImportDeclaration.valueImport(namedImports, spec.source);
         }
     }
+
+    /**
+     * Generate entity interface dari ObjectType
+     * 
+     * Phase 3 - Day 4: Public API untuk interface generation
+     * 
+     * Creates TSInterfaceDeclaration directly dari ObjectType semantic type.
+     * Useful untuk manual interface generation outside of ContractGraph context.
+     * 
+     * Process:
+     * 1. Extract properties dari ObjectType
+     * 2. Build extends clause dari baseObject dan interfaces
+     * 3. Convert properties to TSPropertySignature
+     * 4. Track generated interface name
+     * 5. Collect import requirements
+     * 
+     * @param name - Interface name
+     * @param type - ObjectType semantic type
+     * @returns TSInterfaceDeclaration
+     * 
+     * @throws {Error} Jika type bukan ObjectType
+     * 
+     * @example
+     * ```typescript
+     * const generator = new TypeScriptGenerator();
+     * 
+     * const userType = new ObjectType(
+     *   new ImmutableMap(new Map([
+     *     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+     *     ['name', new PrimitiveType(PrimitiveKind.STRING)],
+     *     ['email', new PrimitiveType(PrimitiveKind.STRING)]
+     *   ])),
+     *   new ImmutableSet(new Set(['id', 'name'])) // email is optional
+     * );
+     * 
+     * const iface = generator.generateEntityInterface('User', userType);
+     * // → interface User {
+     * //     id: number;
+     * //     name: string;
+     * //     email?: string;
+     * //   }
+     * ```
+     */
+    public generateEntityInterface(
+        name: string,
+        type: ObjectType
+    ): TSInterfaceDeclaration {
+        // Validate input
+        if (type.kind !== 'object') {
+            throw new Error(`Expected ObjectType, got ${type.kind}`);
+        }
+
+        // Extract properties dari ObjectType
+        const properties = this.extractPropertiesFromObjectType(type);
+
+        // Build extends clause (inheritance + interface implementations)
+        const extendsClause = this.buildExtendsClause(type);
+
+        // Convert properties to TSPropertySignature nodes
+        const propertySignatures = properties.map(prop =>
+            this.transformPropertyToSignature(prop)
+        );
+
+        // Track generated interface name
+        this.generatedTypes.add(name);
+
+        // Generate JSDoc comment
+        const comment = new TSComment(
+            `Interface for ${name}`,
+            'jsdoc'
+        );
+
+        // Create interface declaration
+        return new TSInterfaceDeclaration(
+            name,
+            propertySignatures,
+            extendsClause,
+            true, // exported
+            comment
+        );
+    }
+
+    /**
+     * Extract property definitions dari ObjectType
+     * 
+     * Converts ObjectType.properties (ImmutableMap) to PropertyDefinition array.
+     * Determines optional vs required using ObjectType.requiredProperties set.
+     * 
+     * @param type - ObjectType semantic type
+     * @returns Array of property definitions dengan correct optional flags
+     * 
+     * @example
+     * ```typescript
+     * const objectType = new ObjectType(
+     *   new ImmutableMap(new Map([
+     *     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+     *     ['name', new PrimitiveType(PrimitiveKind.STRING)]
+     *   ])),
+     *   new ImmutableSet(new Set(['id'])) // only id is required
+     * );
+     * 
+     * const props = extractPropertiesFromObjectType(objectType);
+     * // [
+     * //   { name: 'id', type: number, optional: false, readonly: false },
+     * //   { name: 'name', type: string, optional: true, readonly: false }
+     * // ]
+     * ```
+     */
+    private extractPropertiesFromObjectType(
+        type: ObjectType
+    ): PropertyDefinition[] {
+        const properties: PropertyDefinition[] = [];
+
+        // Iterate through all properties dalam ObjectType
+        for (const [propName, propType] of type.properties.entries()) {
+            // Property is required jika ada dalam requiredProperties set
+            const isRequired = type.requiredProperties.has(propName);
+
+            properties.push({
+                name: propName,
+                type: propType,
+                optional: !isRequired, // optional adalah negasi dari required
+                readonly: false, // TODO: Add mutability tracking dalam ObjectType
+                description: undefined // TODO: Extract dari annotations jika ada
+            });
+        }
+
+        return properties;
+    }
+
+    /**
+     * Build extends clause dari ObjectType inheritance
+     * 
+     * Extracts base types dan interface implementations untuk extends clause.
+     * Tracks import requirements untuk all extended types.
+     * 
+     * @param type - ObjectType dengan potential baseObject dan interfaces
+     * @returns Array of base type names (empty array jika no inheritance)
+     * 
+     * @example
+     * ```typescript
+     * // Simple inheritance
+     * const type = new ObjectType(
+     *   properties,
+     *   required,
+     *   new ReferenceType('App\\Models', 'BaseUser') // baseObject
+     * );
+     * buildExtendsClause(type); // → ['BaseUser']
+     * 
+     * // Multiple interface implementations
+     * const type = new ObjectType(
+     *   properties,
+     *   required,
+     *   undefined, // no baseObject
+     *   [
+     *     new ReferenceType('', 'Timestamped'),
+     *     new ReferenceType('', 'SoftDeletable')
+     *   ]
+     * );
+     * buildExtendsClause(type); // → ['Timestamped', 'SoftDeletable']
+     * ```
+     */
+    private buildExtendsClause(type: ObjectType): string[] {
+        const extendsTypes: string[] = [];
+
+        // Handle base object (single inheritance)
+        if (type.baseObject && type.baseObject.kind === 'reference') {
+            extendsTypes.push(type.baseObject.name);
+            this.collectImportRequirement(type.baseObject.name);
+        }
+
+        // Handle interface implementations (multiple inheritance)
+        if (type.interfaces) {
+            for (const iface of type.interfaces) {
+                if (iface.kind === 'reference') {
+                    extendsTypes.push(iface.name);
+                    this.collectImportRequirement(iface.name);
+                }
+            }
+        }
+
+        return extendsTypes;
+    }
 }

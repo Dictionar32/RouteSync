@@ -1438,3 +1438,317 @@ describe('TypeScriptGenerator', () => {
     });
 });
 
+
+// ========================================
+// PHASE 3 - DAY 5: EDGE CASES & ERROR HANDLING
+// ========================================
+
+describe('Edge Cases - Circular References', () => {
+    it('should handle mutual circular references (A ↔ B)', () => {
+        generator.reset();
+
+        // Create TypeA that references TypeB
+        const typeBRef = new ReferenceType('App\\Models', 'TypeB');
+        const typeAProps = new ImmutableMap(new Map([
+            ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+            ['b', typeBRef] // TypeA references TypeB
+        ]));
+        const typeARequired = new ImmutableSet(new Set(['id']));
+        const typeA = new ObjectType(typeAProps, typeARequired);
+
+        // Generate TypeA interface
+        const ifaceA = generator.generateEntityInterface('TypeA', typeA);
+
+        // Verify TypeA generated correctly
+        expect(ifaceA.name).toBe('TypeA');
+        expect(ifaceA.properties).toHaveLength(2);
+
+        // Verify TypeB import was collected
+        const imports = generator['importCollector'].getImports();
+        expect(imports.some(spec => spec.named.has('TypeB'))).toBe(true);
+
+        // Now generate TypeB that references TypeA back
+        const typeARef = new ReferenceType('App\\Models', 'TypeA');
+        const typeBProps = new ImmutableMap(new Map([
+            ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+            ['a', typeARef] // TypeB references TypeA back
+        ]));
+        const typeBRequired = new ImmutableSet(new Set(['id']));
+        const typeB = new ObjectType(typeBProps, typeBRequired);
+
+        // This should NOT fail - circular references are valid in TypeScript
+        const ifaceB = generator.generateEntityInterface('TypeB', typeB);
+
+        expect(ifaceB.name).toBe('TypeB');
+        expect(ifaceB.properties).toHaveLength(2);
+
+        // TypeA was already generated, so should NOT be imported
+        const importsAfterB = generator['importCollector'].getImports();
+        const typeAImport = importsAfterB.find(spec => spec.source === './TypeA');
+
+        // TypeA should not have import (already generated in same file)
+        expect(typeAImport).toBeUndefined();
+    });
+
+    it('should handle self-referencing types with arrays', () => {
+        generator.reset();
+
+        // TreeNode dengan children: TreeNode[]
+        const treeNodeRef = new ReferenceType('App\\Models', 'TreeNode');
+        const childrenArray = new ReadonlyCollectionType(
+            CollectionKind.ARRAY,
+            treeNodeRef
+        );
+
+        const treeNodeProps = new ImmutableMap(new Map([
+            ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+            ['value', new PrimitiveType(PrimitiveKind.STRING)],
+            ['children', childrenArray] // Self-reference via array
+        ]));
+        const treeNodeRequired = new ImmutableSet(new Set(['id', 'value']));
+        const treeNode = new ObjectType(treeNodeProps, treeNodeRequired);
+
+        const iface = generator.generateEntityInterface('TreeNode', treeNode);
+
+        expect(iface.name).toBe('TreeNode');
+        expect(iface.properties).toHaveLength(3);
+
+        // Verify children property is array type
+        const childrenProp = iface.properties.find(p => p.name === 'children');
+        expect(childrenProp).toBeDefined();
+        expect(childrenProp?.type).toBeInstanceOf(TSArrayType);
+
+        // Should not import TreeNode from itself
+        const imports = generator['importCollector'].getImports();
+        const selfImport = imports.find(spec => spec.source === './TreeNode');
+        expect(selfImport).toBeUndefined();
+    });
+});
+
+describe('Edge Cases - Deep Nesting', () => {
+    it('should handle very deep nested arrays (5+ levels)', () => {
+        // Create 5D array: number[][][][][]
+        let current: SemanticType = new PrimitiveType(PrimitiveKind.NUMBER);
+
+        for (let i = 0; i < 5; i++) {
+            current = new MutableCollectionType(CollectionKind.ARRAY, current);
+        }
+
+        const result = generator.semanticTypeToTSType(current);
+
+        // Verify 5 levels of array nesting
+        expect(result).toBeInstanceOf(TSArrayType);
+        let depth = 0;
+        let node: any = result;
+
+        while (node instanceof TSArrayType && depth < 5) {
+            expect(node.readonly).toBe(false);
+            node = node.elementType;
+            depth++;
+        }
+
+        expect(depth).toBe(5);
+        expect(node).toBeInstanceOf(TSTypeReference);
+        expect((node as TSTypeReference).name).toBe('number');
+    });
+
+    it('should handle deeply nested unions and intersections', () => {
+        // Create complex nested type:
+        // ((A & B) | (C & D)) & ((E | F) & G)
+
+        const typeA = new ReferenceType('', 'A');
+        const typeB = new ReferenceType('', 'B');
+        const typeC = new ReferenceType('', 'C');
+        const typeD = new ReferenceType('', 'D');
+        const typeE = new ReferenceType('', 'E');
+        const typeF = new ReferenceType('', 'F');
+        const typeG = new ReferenceType('', 'G');
+
+        // A & B
+        const ab = new IntersectionType(new ImmutableSet(new Set([typeA, typeB])));
+        // C & D
+        const cd = new IntersectionType(new ImmutableSet(new Set([typeC, typeD])));
+        // (A & B) | (C & D)
+        const abcd = new UnionType(new ImmutableSet(new Set([ab, cd])));
+
+        // E | F
+        const ef = new UnionType(new ImmutableSet(new Set([typeE, typeF])));
+        // (E | F) & G
+        const efg = new IntersectionType(new ImmutableSet(new Set([ef, typeG])));
+
+        // Final: ((A & B) | (C & D)) & ((E | F) & G)
+        const final = new IntersectionType(new ImmutableSet(new Set([abcd, efg])));
+
+        const result = generator.semanticTypeToTSType(final);
+
+        // Verify top level is intersection
+        expect(result).toBeInstanceOf(TSIntersectionType);
+        const topIntersection = result as TSIntersectionType;
+        expect(topIntersection.types).toHaveLength(2);
+
+        // First member should be union
+        expect(topIntersection.types[0]).toBeInstanceOf(TSUnionType);
+
+        // Second member should be intersection
+        expect(topIntersection.types[1]).toBeInstanceOf(TSIntersectionType);
+    });
+});
+
+describe('Edge Cases - Large Interfaces', () => {
+    it('should handle interfaces with 50+ properties', () => {
+        generator.reset();
+
+        // Create object type with 50 properties
+        const properties = new Map<string, SemanticType>();
+        const requiredSet = new Set<string>();
+
+        for (let i = 1; i <= 50; i++) {
+            properties.set(`prop${i}`, new PrimitiveType(PrimitiveKind.STRING));
+            if (i % 2 === 0) {
+                requiredSet.add(`prop${i}`); // Even properties required
+            }
+        }
+
+        const largeType = new ObjectType(
+            new ImmutableMap(properties),
+            new ImmutableSet(requiredSet)
+        );
+
+        const iface = generator.generateEntityInterface('LargeInterface', largeType);
+
+        expect(iface.name).toBe('LargeInterface');
+        expect(iface.properties).toHaveLength(50);
+
+        // Verify optional/required flags
+        const requiredProps = iface.properties.filter(p => !p.optional);
+        const optionalProps = iface.properties.filter(p => p.optional);
+
+        expect(requiredProps).toHaveLength(25); // Half are required
+        expect(optionalProps).toHaveLength(25); // Half are optional
+    });
+
+    it('should handle interfaces with mixed complex property types', () => {
+        generator.reset();
+
+        // Create interface with various complex types
+        const properties = new Map<string, SemanticType>([
+            // Simple primitives
+            ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+            ['name', new PrimitiveType(PrimitiveKind.STRING)],
+
+            // Arrays
+            ['tags', new ReadonlyCollectionType(
+                CollectionKind.ARRAY,
+                new PrimitiveType(PrimitiveKind.STRING)
+            )],
+
+            // Nested arrays
+            ['matrix', new MutableCollectionType(
+                CollectionKind.ARRAY,
+                new MutableCollectionType(
+                    CollectionKind.ARRAY,
+                    new PrimitiveType(PrimitiveKind.NUMBER)
+                )
+            )],
+
+            // Union types
+            ['status', new UnionType(new ImmutableSet(new Set([
+                new PrimitiveType(PrimitiveKind.STRING),
+                new PrimitiveType(PrimitiveKind.NUMBER)
+            ])))],
+
+            // Reference types
+            ['user', new ReferenceType('App\\Models', 'User')],
+
+            // Arrays of references
+            ['comments', new ReadonlyCollectionType(
+                CollectionKind.ARRAY,
+                new ReferenceType('App\\Models', 'Comment')
+            )]
+        ]);
+
+        const complexType = new ObjectType(
+            new ImmutableMap(properties),
+            new ImmutableSet(new Set(['id', 'name']))
+        );
+
+        const iface = generator.generateEntityInterface('ComplexInterface', complexType);
+
+        expect(iface.name).toBe('ComplexInterface');
+        expect(iface.properties).toHaveLength(7);
+
+        // Verify imports collected for reference types
+        const imports = generator['importCollector'].getImports();
+        expect(imports.some(spec => spec.named.has('User'))).toBe(true);
+        expect(imports.some(spec => spec.named.has('Comment'))).toBe(true);
+    });
+});
+
+describe('Edge Cases - Reserved Keywords', () => {
+    it('should allow TypeScript reserved keywords as property names', () => {
+        // TypeScript allows reserved words as property names (quoted)
+        const properties = new Map<string, SemanticType>([
+            ['type', new PrimitiveType(PrimitiveKind.STRING)],
+            ['interface', new PrimitiveType(PrimitiveKind.STRING)],
+            ['class', new PrimitiveType(PrimitiveKind.STRING)],
+            ['function', new PrimitiveType(PrimitiveKind.STRING)],
+            ['return', new PrimitiveType(PrimitiveKind.STRING)]
+        ]);
+
+        const keywordType = new ObjectType(
+            new ImmutableMap(properties),
+            new ImmutableSet(new Set(['type']))
+        );
+
+        // Should not throw error
+        const iface = generator.generateEntityInterface('KeywordProps', keywordType);
+
+        expect(iface.name).toBe('KeywordProps');
+        expect(iface.properties).toHaveLength(5);
+
+        // Property names should be preserved as-is
+        const propNames = iface.properties.map(p => p.name);
+        expect(propNames).toContain('type');
+        expect(propNames).toContain('interface');
+        expect(propNames).toContain('class');
+    });
+});
+
+describe('Error Handling - Custom Errors', () => {
+    it('should throw TypeConversionError with helpful context', () => {
+        const invalidType = { kind: 'invalid' } as any;
+
+        expect(() => {
+            generator['convertPrimitiveType'](invalidType);
+        }).toThrow('Expected primitive type, got invalid');
+    });
+
+    it('should throw InterfaceGenerationError for wrong type kind', () => {
+        const primitiveType = new PrimitiveType(PrimitiveKind.STRING) as any;
+
+        expect(() => {
+            generator.generateEntityInterface('Invalid', primitiveType);
+        }).toThrow('Expected ObjectType, got primitive');
+    });
+
+    it('should wrap errors in InterfaceGenerationError', () => {
+        // Create invalid object type that will cause error during processing
+        const invalidProps = new Map<string, SemanticType>([
+            ['prop', { kind: 'invalid' } as any] // Invalid type will cause error
+        ]);
+
+        const invalidType = new ObjectType(
+            new ImmutableMap(invalidProps),
+            new ImmutableSet(new Set())
+        );
+
+        try {
+            generator.generateEntityInterface('Invalid', invalidType);
+            expect.fail('Should have thrown error');
+        } catch (error: any) {
+            // Should wrap error in InterfaceGenerationError
+            expect(error.message).toContain('Failed to generate interface');
+        }
+    });
+});
+});

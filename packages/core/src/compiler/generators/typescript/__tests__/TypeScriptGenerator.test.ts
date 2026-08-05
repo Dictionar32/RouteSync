@@ -805,7 +805,7 @@ describe('TypeScriptGenerator', () => {
     describe('Object Types - Simple', () => {
         it('should convert small object type (inline fallback)', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)]
                 ])),
@@ -822,7 +822,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should convert object dengan optional properties', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)],
                     ['email', new PrimitiveType(PrimitiveKind.STRING)]
@@ -841,7 +841,7 @@ describe('TypeScriptGenerator', () => {
             generator.reset();
 
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['author', new ReferenceType('App\\Models', 'User')]
                 ])),
                 new ImmutableSet(new Set(['author']))
@@ -857,7 +857,7 @@ describe('TypeScriptGenerator', () => {
     describe('Object Types - Complex', () => {
         it('should generate synthetic type name untuk large objects (>3 props)', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)],
                     ['email', new PrimitiveType(PrimitiveKind.STRING)],
@@ -878,7 +878,7 @@ describe('TypeScriptGenerator', () => {
             generator.reset();
 
             const obj1 = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['a', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['b', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['c', new PrimitiveType(PrimitiveKind.NUMBER)],
@@ -888,7 +888,7 @@ describe('TypeScriptGenerator', () => {
             );
 
             const obj2 = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['x', new PrimitiveType(PrimitiveKind.STRING)],
                     ['y', new PrimitiveType(PrimitiveKind.STRING)],
                     ['z', new PrimitiveType(PrimitiveKind.STRING)],
@@ -906,7 +906,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle object dengan nested collection types', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['tags', new ReadonlyCollectionType(
                         CollectionKind.ARRAY,
                         new PrimitiveType(PrimitiveKind.STRING)
@@ -929,7 +929,7 @@ describe('TypeScriptGenerator', () => {
             );
 
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['value', stringOrNumber]
                 ])),
                 new ImmutableSet(new Set(['value']))
@@ -945,7 +945,7 @@ describe('TypeScriptGenerator', () => {
         it('should generate synthetic type untuk object dengan base type', () => {
             const baseType = new ReferenceType('App\\Models', 'BaseModel');
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id'])),
@@ -965,7 +965,7 @@ describe('TypeScriptGenerator', () => {
 
             const baseType = new ReferenceType('App\\Models', 'BaseModel');
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id'])),
@@ -984,7 +984,7 @@ describe('TypeScriptGenerator', () => {
             const iface1 = new ReferenceType('App\\Contracts', 'Timestampable');
             const iface2 = new ReferenceType('App\\Contracts', 'Auditable');
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id'])),
@@ -1015,14 +1015,14 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle nested object types', () => {
             const nestedObject = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['nested', new PrimitiveType(PrimitiveKind.STRING)]
                 ])),
                 new ImmutableSet(new Set(['nested']))
             );
 
             const outerObject = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['inner', nestedObject],
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)],
@@ -1040,7 +1040,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should reset synthetic counter on reset()', () => {
             const obj = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['a', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['b', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['c', new PrimitiveType(PrimitiveKind.NUMBER)],
@@ -1069,7 +1069,7 @@ describe('TypeScriptGenerator', () => {
     describe('generateEntityInterface() - Basic Interface Generation', () => {
         it('should generate simple interface dengan all required properties', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)]
                 ])),
@@ -1094,7 +1094,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle optional properties correctly', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)],
                     ['email', new PrimitiveType(PrimitiveKind.STRING)]
@@ -1115,7 +1115,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle all optional properties', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['email', new PrimitiveType(PrimitiveKind.STRING)],
                     ['phone', new PrimitiveType(PrimitiveKind.STRING)]
                 ])),
@@ -1157,7 +1157,7 @@ describe('TypeScriptGenerator', () => {
     describe('generateEntityInterface() - Complex Property Types', () => {
         it('should handle reference type properties', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['author', new ReferenceType('App\\Models', 'User')]
                 ])),
@@ -1181,7 +1181,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle array properties', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['tags', new MutableCollectionType(
                         CollectionKind.ARRAY,
                         new PrimitiveType(PrimitiveKind.STRING)
@@ -1199,7 +1199,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle union type properties', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['value', new UnionType(new ImmutableSet(new Set([
                         new PrimitiveType(PrimitiveKind.STRING),
                         new PrimitiveType(PrimitiveKind.NUMBER)
@@ -1217,7 +1217,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle nested object properties', () => {
             const nestedObjectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['street', new PrimitiveType(PrimitiveKind.STRING)],
                     ['city', new PrimitiveType(PrimitiveKind.STRING)]
                 ])),
@@ -1225,7 +1225,7 @@ describe('TypeScriptGenerator', () => {
             );
 
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['name', new PrimitiveType(PrimitiveKind.STRING)],
                     ['address', nestedObjectType]
                 ])),
@@ -1243,7 +1243,7 @@ describe('TypeScriptGenerator', () => {
     describe('generateEntityInterface() - Inheritance', () => {
         it('should handle base object (extends)', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['extraField', new PrimitiveType(PrimitiveKind.STRING)]
                 ])),
                 new ImmutableSet(new Set(['extraField'])),
@@ -1265,7 +1265,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle interface implementations', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id'])),
@@ -1291,7 +1291,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle both base object and interfaces', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id'])),
@@ -1311,7 +1311,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should handle no inheritance (empty extends)', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id']))
@@ -1327,7 +1327,7 @@ describe('TypeScriptGenerator', () => {
     describe('generateEntityInterface() - Naming & Tracking', () => {
         it('should track generated interface names', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id']))
@@ -1342,14 +1342,14 @@ describe('TypeScriptGenerator', () => {
 
         it('should allow generating multiple interfaces', () => {
             const userType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id']))
             );
 
             const postType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)]
                 ])),
                 new ImmutableSet(new Set(['id']))
@@ -1366,7 +1366,7 @@ describe('TypeScriptGenerator', () => {
 
         it('should not create imports for self-reference', () => {
             const objectType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['parent', new ReferenceType('', 'User')] // self-reference
                 ])),
@@ -1393,7 +1393,7 @@ describe('TypeScriptGenerator', () => {
         it('should work with complex real-world example', () => {
             // Simulate a User entity dengan complex properties
             const userType = new ObjectType(
-                new ImmutableMap(new Map([
+                new ImmutableMap(new Map<string, SemanticType>([
                     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                     ['name', new PrimitiveType(PrimitiveKind.STRING)],
                     ['email', new PrimitiveType(PrimitiveKind.STRING)],
@@ -1448,7 +1448,7 @@ describe('TypeScriptGenerator', () => {
 
             // Create TypeA that references TypeB
             const typeBRef = new ReferenceType('App\\Models', 'TypeB');
-            const typeAProps = new ImmutableMap(new Map([
+            const typeAProps = new ImmutableMap(new Map<string, SemanticType>([
                 ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                 ['b', typeBRef] // TypeA references TypeB
             ]));
@@ -1468,7 +1468,7 @@ describe('TypeScriptGenerator', () => {
 
             // Now generate TypeB that references TypeA back
             const typeARef = new ReferenceType('App\\Models', 'TypeA');
-            const typeBProps = new ImmutableMap(new Map([
+            const typeBProps = new ImmutableMap(new Map<string, SemanticType>([
                 ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                 ['a', typeARef] // TypeB references TypeA back
             ]));
@@ -1499,7 +1499,7 @@ describe('TypeScriptGenerator', () => {
                 treeNodeRef
             );
 
-            const treeNodeProps = new ImmutableMap(new Map([
+            const treeNodeProps = new ImmutableMap(new Map<string, SemanticType>([
                 ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
                 ['value', new PrimitiveType(PrimitiveKind.STRING)],
                 ['children', childrenArray] // Self-reference via array
@@ -1750,3 +1750,5 @@ describe('TypeScriptGenerator', () => {
             }
         });
     });
+
+}); // End of describe('TypeScriptGenerator')

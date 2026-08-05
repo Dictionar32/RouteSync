@@ -21,7 +21,8 @@ import {
     UnionType,
     IntersectionType,
     GenericType,
-    ObjectType
+    ObjectType,
+    type SemanticType
 } from '../../../types/SemanticType';
 import { ImmutableSet, ImmutableMap } from '../../../utils/ImmutableCollections';
 import { TSTypeReference } from '../../../target/typescript/nodes/TSTypeReference';

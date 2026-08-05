@@ -782,12 +782,14 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
         );
 
         // Create interface declaration
+        // Note: TSInterfaceDeclaration constructor order:
+        // (name, properties, extendsTypes, exported, comment)
         return new TSInterfaceDeclaration(
             name,
-            propertySignatures,
-            extendsClause,
-            true, // exported
-            comment
+            propertySignatures, // properties
+            extendsClause,      // extendsTypes
+            true,               // exported
+            comment             // comment
         );
     }
 

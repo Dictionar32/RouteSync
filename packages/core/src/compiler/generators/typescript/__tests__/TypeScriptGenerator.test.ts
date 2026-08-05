@@ -1078,12 +1078,12 @@ describe('TypeScriptGenerator', () => {
             const iface = generator.generateEntityInterface('User', objectType);
 
             expect(iface.name).toBe('User');
-            expect(iface.members).toHaveLength(2);
+            expect(iface.properties).toHaveLength(2);
             expect(iface.exported).toBe(true);
 
             // Check property signatures
-            const idProp = iface.members.find(m => m.name === 'id');
-            const nameProp = iface.members.find(m => m.name === 'name');
+            const idProp = iface.properties.find(m => m.name === 'id');
+            const nameProp = iface.properties.find(m => m.name === 'name');
 
             expect(idProp).toBeDefined();
             expect(idProp?.optional).toBe(false);
@@ -1103,9 +1103,9 @@ describe('TypeScriptGenerator', () => {
 
             const iface = generator.generateEntityInterface('User', objectType);
 
-            const emailProp = iface.members.find(m => m.name === 'email');
-            const idProp = iface.members.find(m => m.name === 'id');
-            const nameProp = iface.members.find(m => m.name === 'name');
+            const emailProp = iface.properties.find(m => m.name === 'email');
+            const idProp = iface.properties.find(m => m.name === 'id');
+            const nameProp = iface.properties.find(m => m.name === 'name');
 
             expect(emailProp?.optional).toBe(true); // optional
             expect(idProp?.optional).toBe(false);   // required
@@ -1123,10 +1123,10 @@ describe('TypeScriptGenerator', () => {
 
             const iface = generator.generateEntityInterface('ContactInfo', objectType);
 
-            expect(iface.members).toHaveLength(2);
+            expect(iface.properties).toHaveLength(2);
 
-            const emailProp = iface.members.find(m => m.name === 'email');
-            const phoneProp = iface.members.find(m => m.name === 'phone');
+            const emailProp = iface.properties.find(m => m.name === 'email');
+            const phoneProp = iface.properties.find(m => m.name === 'phone');
 
             expect(emailProp?.optional).toBe(true);
             expect(phoneProp?.optional).toBe(true);
@@ -1141,7 +1141,7 @@ describe('TypeScriptGenerator', () => {
             const iface = generator.generateEntityInterface('EmptyType', objectType);
 
             expect(iface.name).toBe('EmptyType');
-            expect(iface.members).toHaveLength(0);
+            expect(iface.properties).toHaveLength(0);
         });
 
         it('should throw error jika type bukan ObjectType', () => {
@@ -1166,7 +1166,7 @@ describe('TypeScriptGenerator', () => {
             generator.reset();
             const iface = generator.generateEntityInterface('Post', objectType);
 
-            const authorProp = iface.members.find(m => m.name === 'author');
+            const authorProp = iface.properties.find(m => m.name === 'author');
             expect(authorProp).toBeDefined();
             expect(authorProp?.type).toBeInstanceOf(TSTypeReference);
             expect((authorProp?.type as TSTypeReference).name).toBe('User');
@@ -1191,7 +1191,7 @@ describe('TypeScriptGenerator', () => {
 
             const iface = generator.generateEntityInterface('Post', objectType);
 
-            const tagsProp = iface.members.find(m => m.name === 'tags');
+            const tagsProp = iface.properties.find(m => m.name === 'tags');
             expect(tagsProp).toBeDefined();
             expect(tagsProp?.type).toBeInstanceOf(TSArrayType);
         });
@@ -1209,7 +1209,7 @@ describe('TypeScriptGenerator', () => {
 
             const iface = generator.generateEntityInterface('Config', objectType);
 
-            const valueProp = iface.members.find(m => m.name === 'value');
+            const valueProp = iface.properties.find(m => m.name === 'value');
             expect(valueProp).toBeDefined();
             expect(valueProp?.type).toBeInstanceOf(TSUnionType);
         });
@@ -1233,7 +1233,7 @@ describe('TypeScriptGenerator', () => {
 
             const iface = generator.generateEntityInterface('User', objectType);
 
-            const addressProp = iface.members.find(m => m.name === 'address');
+            const addressProp = iface.properties.find(m => m.name === 'address');
             expect(addressProp).toBeDefined();
             // Nested objects currently fallback to 'object' atau synthetic type
         });
@@ -1252,8 +1252,8 @@ describe('TypeScriptGenerator', () => {
             generator.reset();
             const iface = generator.generateEntityInterface('AdminUser', objectType);
 
-            expect(iface.extends).toHaveLength(1);
-            expect(iface.extends[0]).toBe('BaseUser');
+            expect(iface.extendsTypes).toHaveLength(1);
+            expect(iface.extendsTypes[0]).toBe('BaseUser');
 
             // Check import tracking untuk base type
             const imports = generator['importCollector'].getImports();
@@ -1278,9 +1278,9 @@ describe('TypeScriptGenerator', () => {
             generator.reset();
             const iface = generator.generateEntityInterface('User', objectType);
 
-            expect(iface.extends).toHaveLength(2);
-            expect(iface.extends).toContain('Timestamped');
-            expect(iface.extends).toContain('SoftDeletable');
+            expect(iface.extendsTypes).toHaveLength(2);
+            expect(iface.extendsTypes).toContain('Timestamped');
+            expect(iface.extendsTypes).toContain('SoftDeletable');
 
             // Check import tracking
             const imports = generator['importCollector'].getImports();
@@ -1303,9 +1303,9 @@ describe('TypeScriptGenerator', () => {
             generator.reset();
             const iface = generator.generateEntityInterface('User', objectType);
 
-            expect(iface.extends).toHaveLength(2);
-            expect(iface.extends[0]).toBe('BaseModel'); // base comes first
-            expect(iface.extends[1]).toBe('Timestamped');
+            expect(iface.extendsTypes).toHaveLength(2);
+            expect(iface.extendsTypes[0]).toBe('BaseModel'); // base comes first
+            expect(iface.extendsTypes[1]).toBe('Timestamped');
         });
 
         it('should handle no inheritance (empty extends)', () => {
@@ -1319,7 +1319,7 @@ describe('TypeScriptGenerator', () => {
 
             const iface = generator.generateEntityInterface('SimpleUser', objectType);
 
-            expect(iface.extends).toHaveLength(0);
+            expect(iface.extendsTypes).toHaveLength(0);
         });
     });
 
@@ -1417,16 +1417,16 @@ describe('TypeScriptGenerator', () => {
 
             // Verify structure
             expect(iface.name).toBe('User');
-            expect(iface.members.length).toBeGreaterThan(0);
-            expect(iface.extends).toContain('BaseModel');
-            expect(iface.extends).toContain('Timestamped');
+            expect(iface.properties.length).toBeGreaterThan(0);
+            expect(iface.extendsTypes).toContain('BaseModel');
+            expect(iface.extendsTypes).toContain('Timestamped');
 
             // Verify property types
-            const postsProp = iface.members.find(m => m.name === 'posts');
+            const postsProp = iface.properties.find(m => m.name === 'posts');
             expect(postsProp?.optional).toBe(true);
             expect(postsProp?.type).toBeInstanceOf(TSArrayType);
 
-            const roleProp = iface.members.find(m => m.name === 'role');
+            const roleProp = iface.properties.find(m => m.name === 'role');
             expect(roleProp?.optional).toBe(false);
             expect(roleProp?.type).toBeInstanceOf(TSUnionType);
 

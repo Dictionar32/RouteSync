@@ -23,6 +23,9 @@ import type { SemanticIRArtifact } from './SemanticIRArtifact';
 import type { ContractGraphArtifact } from './ContractGraphArtifact';
 import type { CompilationResultArtifact } from './CompilationResultArtifact';
 
+// Response analysis artifacts (Laravel-specific)
+import type { ResponseArtifact, ValidationArtifact, ModelArtifact, ResourceArtifact, RouteArtifact } from '../ir/ResponseArtifact';
+
 /**
  * Central artifact registry mapping keys to concrete artifact types.
  * 
@@ -43,6 +46,13 @@ export interface ArtifactRegistry {
     SemanticIR: SemanticIRArtifact;
     ContractGraph: ContractGraphArtifact;
     CompilationResult: CompilationResultArtifact;
+
+    // Laravel/HTTP Response Analysis Artifacts
+    ResponseAnalysis: ResponseArtifact;
+    ValidationAnalysis: ValidationArtifact;
+    ModelAnalysis: ModelArtifact;
+    ResourceAnalysis: ResourceArtifact;
+    RouteAnalysis: RouteArtifact;
 }
 
 /**

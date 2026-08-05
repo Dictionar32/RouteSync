@@ -1,95 +1,158 @@
-# RouteSync ReadEmitter (v2) — Bug Fix Backup
+# RouteSync — Bug Fix Backup
 
-Backup dari sesi debugging `generate-v2` (Contract IR Architecture) — target: bikin
-`types/api-read.ts` yang di-generate dari `ecommerce_shop-main` match persis sama
-`api-read.ts` ground-truth (29 interface, hasil generate dari `zodtiergenerator`
-engine lama).
+Backup dari sesi debugging panjang, mulai dari `generate-v2` (Contract IR
+Architecture) sampai ke `LaravelRouteParser.ts` (parser manifest) dan
+`incremental.ts` (caching). Dimulai dari target "match 29 interface
+ground-truth dari `zodtiergenerator` (engine lama)", berkembang jadi
+perbaikan arsitektur yang lebih dalam setelah ketemu root cause asli:
+parser manifest kehilangan linkage Route→Resource.
 
-**Hasil akhir: 29/29 nama interface match persis, 0 duplikat.**
-Lihat `generated-output/types/api-read.ts` untuk hasil final.
+**Status akhir: 7 file source diperbaiki, 17 root-cause bug/fase, semuanya
+diverifikasi lewat eksekusi nyata terhadap project Laravel produksi
+`toko-online` (bukan cuma sample `ecommerce_shop-main`), 0 regresi di
+sepanjang jalan.**
 
-## Cara pakai (langsung timpa ke repo)
+Filosofi output berubah di tengah jalan: bukan lagi "match 29 nama
+ground-truth apa adanya", tapi **"generate hanya shape yang genuinely
+muncul di response API"** — model DB murni yang ga pernah jadi response
+endpoint manapun sengaja TIDAK digenerate. Lihat
+`ISSUE-manifest-resource-linkage.md` untuk penjelasan lengkap kenapa
+keputusan ini diambil, dan proposal arsitektur `ResponseDescriptor` yang
+jadi arah pengembangan setelahnya (sekarang sudah diimplementasi penuh,
+lihat bug #14-17 di bawah).
 
-Zip ini strukturnya udah dibikin match root `RouteSync-main/` — tinggal extract
-langsung DI DALAM folder repo lu (timpa), 5 file source otomatis ke-replace:
+## File yang diubah (7 total)
+
+| File | Layer | Ringkasan |
+|---|---|---|
+| `01-resource-naming.ts` | ReadEmitter | Stop strip suffix `Resource` |
+| `03-ReadEmitter.ts` | ReadEmitter | Tambah case `datetime` yang kelewat |
+| `04-manifest-enricher.ts` | ReadEmitter | Dedupe, GET-fallback naming, idempotent enrich, skip infer model utk resource non-DB |
+| `ContractGenerator.ts` | ReadEmitter | `manifest.models` dibaca (filter reachability), fix resolusi `resource`/`model` kind, baca `transport`/`shape` (Fase 2 ResponseDescriptor) |
+| `ContractIRBuilder.ts` | ReadEmitter | Fix nested resource reference (`items: unknown` → `OrderDetailResourceTransformed[]`) |
+| `incremental.ts` | Scan caching | Fix stale-cache bug — hash sekarang ikut model availability |
+| `LaravelRouteParser.ts` | **Parser** (bukan ReadEmitter) | **Fix paling besar**: Route→Resource linkage + `ResponseDescriptor` (transport/shape/status/contentType) lengkap |
+
+`LaravelRouteParser.ts` dan `incremental.ts` beda kelas dari 5 file lain —
+mereka bukan bagian dari `ReadEmitter`/`ContractGenerator` (TypeScript
+codegen), tapi parser PHP-embedded + caching layer yang bikin
+`routesync.manifest.json` dari source code Laravel. Bug di sini adalah
+ROOT CAUSE dari mayoritas gejala yang tadinya "ditambal" di level
+`ReadEmitter` (lihat `ISSUE-manifest-resource-linkage.md`).
+
+## Cara pakai
+
+Timpa langsung ke lokasi yang sama di repo `RouteSync` lu:
+- `01-resource-naming.ts` → `packages/core/src/utils/resource-naming.ts`
+- `03-ReadEmitter.ts` → `packages/cli/src/generators/layers/ReadEmitter.ts`
+- `04-manifest-enricher.ts` → `packages/cli/src/generators/layers/utils/manifest-enricher.ts`
+- `ContractGenerator.ts` → `packages/cli/src/generators/ContractGenerator.ts`
+- `ContractIRBuilder.ts` → `packages/core/src/ir/ContractIRBuilder.ts`
+- `incremental.ts` → `packages/cli/src/utils/incremental.ts`
+- `LaravelRouteParser.ts` → `packages/cli/src/parsers/LaravelRouteParser.ts`
 
 ```bash
-cd /path/ke/RouteSync-main
-unzip -o routesync-readmitter-fix-backup.zip -d .
-# atau kalau nama folder repo lu beda dari "RouteSync-main":
-unzip -o routesync-readmitter-fix-backup.zip
-cp -r RouteSync-main/packages/* /path/ke/repo/lu/packages/
-
+cd RouteSync
 npm install --legacy-peer-deps
 npx tsup
 
-node dist/cli.js generate-v2 \
-  -m _routesync-fix-backup/test-manifest/routesync.manifest.json \
-  -o ./output --verbose
+# HAPUS manifest lama dulu sebelum scan ulang — kalau ga, bisa kena bug
+# #13 (stale cache) meski sudah di-patch, karena hash lama masih nyantol
+# di file yang belum di-regenerate sejak fix. Aman & disarankan selalu
+# hapus manifest lama tiap kali abis ganti versi RouteSync.
+rm <path-project-laravel>/routesync.manifest.json
+rm <path-project-laravel>/routesync.ir.json
+
+# regenerate manifest (butuh PHP + koneksi DB aktif ke project Laravel-nya)
+node dist/cli.js scan <path-project-laravel> --models --output routesync.manifest.json
+
+# generate ulang api-read.ts dkk
+node dist/cli.js generate-v2 -m routesync.manifest.json -o ./output --verbose
 ```
 
-Folder `_routesync-fix-backup/` (dengan underscore prefix, sengaja biar gampang
-kebeda dari source asli & gampang di-`.gitignore`) isinya dokumentasi, manifest
-test, sama hasil generate final — BUKAN bagian dari source code, aman kalau mau
-dihapus abis dicek.
+**Catatan koneksi DB kalau project Laravel-nya jalan di Docker:** kalau
+`.env` project pakai `DB_HOST=mysql` (nama service Docker Compose) dan
+command `scan` dijalanin dari host (bukan dari dalam container), koneksi
+DB bakal gagal (`getaddrinfo for mysql failed`) dan `manifest.models`
+keluar kosong/nyaris kosong — bukan bug RouteSync, override aja:
+```bash
+DB_HOST=127.0.0.1 DB_PORT=<port-mysql-yang-di-expose-ke-host> node dist/cli.js scan ...
+```
 
-
-
-1. `packages/core/src/utils/resource-naming.ts`
-2. `packages/core/src/ir/ContractIRBuilder.ts`
-3. `packages/cli/src/generators/layers/ReadEmitter.ts`
-4. `packages/cli/src/generators/layers/utils/manifest-enricher.ts`
-5. `packages/cli/src/generators/ContractGenerator.ts`
-
-Copy langsung timpa ke lokasi yang sama di repo — semua path di atas relatif dari
-root repo RouteSync.
-
-## 10 root-cause bug yang di-fix (urutan kronologis)
+## 17 root-cause bug/fase yang di-fix (urutan kronologis)
 
 | # | File | Masalah | Fix |
 |---|------|---------|-----|
-| 1 | `resource-naming.ts` | `resourceBaseName()` strip suffix `"Resource"` → `OrderResource` dan model `Order` collapse jadi 1 nama, saling nabrak | Stop strip suffix — `resourceBaseName()` jadi identity function. `OrderResourceTransformed` (dari Resource class) dan `OrderTransformed` (dari DB model) sekarang coexist sebagai 2 interface beda, sesuai ground truth |
-| 2 | `manifest-enricher.ts` | Dedupe resource inferred vs authored bandingin nama mentah (`"Order"` vs `"OrderResource"`) — ga pernah match | Bandingin pake `resourceBaseName()` di kedua sisi (jadi otomatis no-op konsisten sejak fix #1) |
-| 3 | `ContractGenerator.ts` | `adaptManifest()` cuma baca `manifest.resources`, `manifest.models` (kolom DB asli) ga pernah disentuh sama sekali → 21 model (`Category`, `User`, `Wishlist`, dll) hilang total dari output | Tambah jalur baru: convert tiap `manifest.models[]` jadi `ParsedResource` juga (nama bare, kolom SQL → semantic type, filter kolom `hidden`) |
-| 4 | `ReadEmitter.ts` | `emitPrimitiveToTypeScript()` ga punya case `'datetime'` (cuma `'date'`) — field macam `createdAt` jatuh ke `unknown` padahal harusnya `string` | Tambah `case 'datetime': return 'string'` |
-| 5 | `manifest-enricher.ts` | `extractResources()` cuma nangkep response `kind:'model'`/`'resource'` — 5 route GET dengan response `kind:'object'` ad-hoc (`categories.get`, `oauth_provider_redirect.get`, `oauth_provider_callback.get`, `produk_id_reviews.get`, `profile.get`) ga pernah dikasih nama sama sekali → interface `Categories`, `OauthRedirect`, `OauthCallback`, `ProdukReviews`, `Profile` hilang | Port rule dari `ZodTierGenerator.ts` (engine lama): kalau response `kind==='object'` DAN method `GET` DAN belum ada nama, derive nama dari path pakai `deriveGroupName()` + `toTypeName()` (fungsi yang udah ada di `route-classifier.ts`/`names.ts`). Non-GET object routes (`login`, `logout`, `wishlist.post`, dll) sengaja tetap ga dikasih nama, sesuai ground truth |
-| 6 | `manifest-enricher.ts` | `generate-v2.ts` (command) manggil `ManifestEnricher.enrich()` DULU sebelum manggil `ContractGenerator.generate()`, yang manggil `enrich()` LAGI di dalemnya → manifest ke-enrich 2x, hasil pass ke-2 kadang beda dari pass ke-1 | `enrich()` sekarang idempotent — cek marker `enrichmentMetadata`, kalau udah ada langsung return manifest apa adanya |
-| 7 | (data manifest, bukan bug kode) | 10 route cart/checkout (`orders.get`, `checkout.post`, `cart_items.post`, `buy-now.post`, dll) semua resolve ke resource `"Order"` yang sama, field-nya ke-gabung (`populateResourceFields`) jadi 1 interface frankenstein | Fix #3+#9+#10 (dedupe model vs resource) otomatis nyelesaiin ini — `OrderTransformed` sekarang konsisten ambil dari `manifest.models` (DB asli), bukan dari resource multi-route yang berantakan |
-| 8 | `ContractGenerator.ts` | Percobaan fix kolisi model-vs-resource pake `endpoints.length <= 1` — kebablasan, `OrderResource`/`PaymentResource`/`ProdukItemResource` punya `endpoints: 0` di manifest asli (bukan genuinely "1 endpoint", cuma field yang emang ga pernah diisi buat hand-authored resource) → ke-exclude juga → `Order`/`Payment`/`ProdukItem` balik rusak | Filter ini di-revert total dari `ContractGenerator.ts` — dedupe yang bener ada di fix #9/#10, di `manifest-enricher.ts` |
-| 9 | `manifest-enricher.ts` | `inferModels()` bikin model duplikat buat SETIAP resource di `resourcesMap` tanpa cek apakah model itu udah ada — `RegisterResponse` (resource) → `inferModels()` bikin model `"Register"` (suffix `Response` di-strip lewat `extractBaseModelName`), nabrak sama resource `RegisterResponse` sendiri, muncul interface asing `RegisterTransformed` | Skip infer model untuk resource ber-suffix `"Response"` (fix awal, sempit) |
-| 10 | `manifest-enricher.ts` | Fix #9 kesempit — 5 resource GET-fallback (fix #5) ga ada suffix sama sekali, jadi masih nabrak juga jadi 30 interface (bukan 29) | General-kan jadi: skip infer model kecuali resource itu punya route dengan `response.kind === 'model'`/`'resource'` beneran DAN bukan suffix `Response`. `RegisterResponse` responsenya emang `kind:'model'` juga (parser resolve nama kelasnya sebagai referensi model walau bukan Eloquent beneran), makanya kedua syarat dipakai bareng |
+| 1 | `resource-naming.ts` | `resourceBaseName()` strip suffix `"Resource"` → `OrderResource` dan model `Order` collapse jadi 1 nama, saling nabrak | Stop strip suffix — jadi identity function. `OrderResourceTransformed` dan `OrderTransformed` sekarang coexist sebagai 2 interface beda |
+| 2 | `manifest-enricher.ts` | Dedupe resource inferred vs authored bandingin nama mentah (`"Order"` vs `"OrderResource"`) — ga pernah match | Bandingin pake `resourceBaseName()` di kedua sisi |
+| 3 | `ContractGenerator.ts` | `adaptManifest()` cuma baca `manifest.resources`, `manifest.models` (kolom DB asli) ga pernah disentuh → banyak model hilang total dari output | Convert tiap `manifest.models[]` jadi `ParsedResource` juga |
+| 4 | `ReadEmitter.ts` | `emitPrimitiveToTypeScript()` ga punya case `'datetime'` — field macam `createdAt` jatuh ke `unknown` | Tambah `case 'datetime': return 'string'` |
+| 5 | `manifest-enricher.ts` | `extractResources()` cuma nangkep response `kind:'model'`/`'resource'` — route GET dengan response `kind:'object'` ad-hoc ga pernah dikasih nama | Port rule dari `ZodTierGenerator.ts` (engine lama): derive nama dari path pakai `deriveGroupName()` + `toTypeName()`, GET-only |
+| 6 | `manifest-enricher.ts` | `generate-v2.ts` manggil `ManifestEnricher.enrich()` 2x (command + internal), hasil pass ke-2 kadang beda dari pass ke-1 | `enrich()` jadi idempotent lewat marker `enrichmentMetadata` |
+| 7 | (data manifest) | 10 route cart/checkout semua resolve ke resource `"Order"` yang sama, field-nya ke-gabung jadi 1 interface frankenstein | Fix #3+#9+#10 otomatis nyelesaiin — `OrderTransformed` konsisten ambil dari `manifest.models` |
+| 8 | `ContractGenerator.ts` | Percobaan fix kolisi model-vs-resource pake `endpoints.length <= 1` — kebablasan, ngerusak `Order`/`Payment`/`ProdukItem` | Di-revert total, dedupe yang bener ada di fix #9/#10 |
+| 9 | `manifest-enricher.ts` | `inferModels()` bikin model duplikat (`"Register"` dari resource `RegisterResponse`) | Skip infer model untuk resource ber-suffix `"Response"` |
+| 10 | `manifest-enricher.ts` | Fix #9 kesempit — 5 resource GET-fallback ga ada suffix, masih nabrak | General-kan: skip infer model kecuali resource punya route `kind==='model'`/`'resource'` beneran DAN bukan suffix `Response` |
+| 11 | **`LaravelRouteParser.ts`** | `#[Response(Order::class)]` attribute langsung commit ke `$responseMetadata`, Resource Discovery (detect `return new OrderResource(...)`) NEVER RUN — Route→Resource linkage hilang total. **Root cause mayoritas gejala di fix #1-10** | Attribute cuma nyimpen model hint terpisah, Resource Discovery SELALU jalan dan MERGE, bukan overwrite. Pattern regex diperluas (`::make()`, `DB::transaction()`, `tap()`, dll) |
+| 12 | `ContractIRBuilder.ts` | `field.resolved.type === 'resource'`/`'model'` ke-treat sebagai primitive type name, field nested resource reference kolaps ke `unknown` | Guard whitelist `PRIMITIVE_RESOLVED_TYPES` — `items: OrderDetailResourceTransformed[]` |
+| 13 | `incremental.ts` | Hash cache route cuma dari kode sendiri (bukan model availability) — scan pertama (DB gagal connect) hasilnya ke-cache, scan kedua (DB udah connect) COPY hasil lama, ga di-resolve ulang | `calculateRouteHash()` sekarang ikut hash daftar nama model yang tersedia — cache otomatis invalid begitu model availability berubah |
+| 14 | `LaravelRouteParser.ts` (ResponseDescriptor Fase 1) | Manifest cuma punya `kind`/`model`/`resource`/`collection` — ga ada representasi terpisah "wire format" vs "shape" | Tambah `transport` (resource/model/json/...) + `shape` (single/collection/paginated) — derived dari data lama, purely additive, 0 regresi |
+| 15 | `ContractGenerator.ts` (ResponseDescriptor Fase 2) | Reachability filter masih baca `resp.kind` langsung | Prefer `resp.transport`, fallback ke `kind` (backward compat manifest lama) |
+| 16 | `LaravelRouteParser.ts` (ResponseDescriptor Fase 3) | Route yang return `download`/`redirect`/`empty` (bukan JSON) selalu warning "Response type could not be inferred" — bukan krn ambigu, tapi krn ga ada yg nyari pattern ini sama sekali | Deteksi `->download()`, `redirect()`, `->noContent()`, dll → `transport:'download'/'redirect'/'empty'`. Plus subkasus `return response()->json($var)` (variable-built JSON) — reuse `$assignments` yang udah ada tapi ga pernah dipake |
+| 17 | `LaravelRouteParser.ts` (ResponseDescriptor Fase 4) | Ga ada info `status`/`contentType` di manifest — emitter lain (OpenAPI/SDK) bakal butuh infer ulang | Tambah `deriveStatusAndContentType()` — default per-transport + override dari `response()->json($x, XXX)` eksplisit |
 
 ## Catatan / known follow-up (belum di-fix)
 
-- Field yang sumbernya `kind: 'raw_code'` tanpa `.resolved` (misal `Categories.data`,
-  `OauthRedirect.provider`) ke-render sebagai `unknown`, bukan tipe spesifik
-  (`CategoryTransformed[]`, `string`). Ini akurat/jujur (manifest emang ga resolve
-  tipe pastinya), tapi kurang presisi dibanding target. Perlu tracing lebih dalam
-  ke arah nested object/array flattening kalau mau match 100% ke level field.
-- `ProdukReviews.reviews` seharusnya jadi array/paginator `ProductReviewTransformed[]`,
-  sekarang masih `unknown`.
-- Semua fix di atas SUDAH diverifikasi jalan bareng lewat run CLI beneran
-  (`node dist/cli.js generate-v2 ...`), bukan asumsi — tapi belum ada automated
-  test/regression suite. Kalau nambah fix baru, WAJIB re-run comparison manual
-  kayak yang didokumentasikan di atas (diff nama interface + spot-check field per
-  interface), karena beberapa fix di sesi ini saling tarik-menarik (fix #8 contoh
-  nyata: benerin 1 kasus, ngerusak kasus lain, ke-revert lagi).
+- **Field yang datanya emang ga ke-resolve di manifest** (`Categories.data`,
+  `OauthRedirect.provider`, `ProdukReviews.reviews`, nested field
+  `PaymentResourceTransformed.gateway.*`) — masih `unknown`. Beda dari bug
+  #13 (itu soal CACHE nyimpen hasil lama); ini soal resolver PHP genuinely
+  gagal resolve untuk pattern tertentu. Belum diinvestigasi lebih dalam.
+- **`payment_webhook.post`** — BUKAN bug. Route ini nunjuk ke
+  `PaymentController::webhook()` yang **ga pernah diimplementasikan** di
+  kode Laravel-nya sama sekali (cuma ada `__construct`+`store`). Parser
+  udah bener return `null` karena emang ga ada apa-apa buat di-parse. Perlu
+  diimplementasikan di sisi Laravel, di luar scope RouteSync.
+- **`wrapDetectionPhp` dead code** di `LaravelRouteParser.ts` — gate-nya
+  nunggu `$responseMetadata` yang keisi TERLALU AWAL (sebelum fix #11,
+  timing-nya masih pas; sekarang enggak). Logic-nya lebih canggih dari
+  yang sekarang dipakai (resolve `use` alias, tangkep `DB::transaction()`)
+  — worth dikonsolidasi jadi satu `WrapResolver`, bukan dihapus asal-asalan.
+- **Incremental array construction belum ditangani** — pattern
+  `$response['key'] = value;` (assignment via array index, bukan
+  assignment langsung `$response = [...]`) masih ga ke-track sama
+  assignment scanner. Subkasus sederhana (`$response = [...]; return
+  response()->json($response);`) sudah di-fix di bug #16, tapi bangun
+  array bertahap lewat banyak baris `$x['key'] = ...` belum.
+- **Nested inline object → named interface** — `shipping`/`promotion` di
+  `OrderResourceTransformed` masih anonymous inline object
+  (`{nama, alamat}`), bukan interface `OrderShipping`/`OrderPromotion`
+  terpisah. Sengaja belum dikerjakan (lihat diskusi di
+  `ISSUE-manifest-resource-linkage.md` — projection parsial vs model
+  penuh).
+- **Belum ada automated test/regression suite.** Semua verifikasi di atas
+  manual (run CLI beneran, baca output, bandingin manual/`diff`). Kalau
+  nambah fix baru, WAJIB re-run comparison manual, karena beberapa fix di
+  sesi ini saling tarik-menarik (bug #8 contoh nyata: benerin 1 kasus,
+  ngerusak kasus lain, ke-revert lagi).
 
-## Struktur zip ini
+## Daftar file di sini
 
 ```
-RouteSync-main/                          <- extract langsung ke root repo lu
-├── packages/                            <- 5 file source hasil fix (timpa langsung)
-│   ├── core/src/utils/resource-naming.ts
-│   ├── core/src/ir/ContractIRBuilder.ts
-│   └── cli/src/generators/
-│       ├── ContractGenerator.ts
-│       └── layers/
-│           ├── ReadEmitter.ts
-│           └── utils/manifest-enricher.ts
-└── _routesync-fix-backup/               <- bukan source code, aman dihapus
-    ├── README.md                        <- file ini
-    ├── generated-output/                <- hasil generate-v2 final (7 file)
-    └── test-manifest/
-        └── routesync.manifest.json      <- manifest test (dari ecommerce_shop-main/frontend/)
+README.md                          <- file ini
+ISSUE-manifest-resource-linkage.md <- analisis mendalam bug #11 + proposal ResponseDescriptor (sekarang sudah diimplementasi, bug #14-17)
+01-resource-naming.ts              -> packages/core/src/utils/resource-naming.ts
+03-ReadEmitter.ts                  -> packages/cli/src/generators/layers/ReadEmitter.ts
+04-manifest-enricher.ts            -> packages/cli/src/generators/layers/utils/manifest-enricher.ts
+ContractGenerator.ts               -> packages/cli/src/generators/ContractGenerator.ts
+ContractIRBuilder.ts               -> packages/core/src/ir/ContractIRBuilder.ts
+incremental.ts                     -> packages/cli/src/utils/incremental.ts
+LaravelRouteParser.ts              -> packages/cli/src/parsers/LaravelRouteParser.ts
+output-api-read.ts                 <- CATATAN: hasil generate-v2 dari manifest SEBELUM bug #13-17,
+output-api-form.ts                    jadi bukan representasi output final (belum ada transport/shape/
+output-api-contract.ts                status/contentType, dan Profile/dst masih ada yang unknown akibat
+output-api-field.ts                   cache stale). Interface count & shape utamanya tetap sama (15
+output-api-mapper.ts                  interface), tapi kalau butuh output paling akurat, regenerate
+output-api-schema.ts                  ulang dari manifest fresh pakai instruksi di atas.
+output-sdk-api.ts
 ```

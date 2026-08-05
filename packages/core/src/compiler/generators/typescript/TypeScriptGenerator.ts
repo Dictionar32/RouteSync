@@ -30,6 +30,82 @@ import { TSArrayType } from '../../target/typescript/nodes/TSArrayType';
 import { TSUnionType } from '../../target/typescript/nodes/TSUnionType';
 import { TSIntersectionType } from '../../target/typescript/nodes/TSIntersectionType';
 import { ImportCollector, type ImportSpec } from './ImportCollector';
+import { ObjectType } from '../../types/SemanticType';
+
+// ═══════════════════════════════════════════════════════════════
+// Phase 3 - Day 5: Custom Error Classes
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Error thrown during type conversion dari SemanticType ke TypeScript type
+ * 
+ * Provides context tentang source type yang gagal diconvert dan hints
+ * untuk troubleshooting.
+ */
+export class TypeConversionError extends Error {
+    constructor(
+        message: string,
+        public readonly sourceType: SemanticType,
+        public readonly hint?: string
+    ) {
+        super(message);
+        this.name = 'TypeConversionError';
+
+        // Maintain proper stack trace dalam V8
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, TypeConversionError);
+        }
+    }
+
+    /**
+     * Get formatted error message dengan context
+     */
+    public getDetailedMessage(): string {
+        let msg = `${this.name}: ${this.message}\n`;
+        msg += `  Source Type: ${this.sourceType.kind}\n`;
+
+        if (this.hint) {
+            msg += `  Hint: ${this.hint}\n`;
+        }
+
+        return msg;
+    }
+}
+
+/**
+ * Error thrown during interface generation dari ObjectType
+ * 
+ * Provides context tentang interface name dan type yang bermasalah.
+ */
+export class InterfaceGenerationError extends Error {
+    constructor(
+        message: string,
+        public readonly interfaceName: string,
+        public readonly cause?: Error
+    ) {
+        super(message);
+        this.name = 'InterfaceGenerationError';
+
+        // Maintain proper stack trace dalam V8
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, InterfaceGenerationError);
+        }
+    }
+
+    /**
+     * Get formatted error message dengan context
+     */
+    public getDetailedMessage(): string {
+        let msg = `${this.name}: ${this.message}\n`;
+        msg += `  Interface Name: ${this.interfaceName}\n`;
+
+        if (this.cause) {
+            msg += `  Cause: ${this.cause.message}\n`;
+        }
+
+        return msg;
+    }
+}
 
 /**
  * Property definition extracted dari EntityNode
@@ -255,7 +331,11 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
      */
     private convertPrimitiveType(type: SemanticType): TSTypeReference {
         if (type.kind !== 'primitive') {
-            throw new Error('Expected primitive type');
+            throw new TypeConversionError(
+                `Expected primitive type, got ${type.kind}`,
+                type,
+                'Use semanticTypeToTSType() for non-primitive types'
+            );
         }
 
         // Map PrimitiveKind to TypeScript type names
@@ -281,7 +361,11 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
         type: SemanticType
     ): TSTypeReference {
         if (type.kind !== 'reference') {
-            throw new Error('Expected reference type');
+            throw new TypeConversionError(
+                `Expected reference type, got ${type.kind}`,
+                type,
+                'Reference types are custom types like User, Product, etc.'
+            );
         }
 
         // Collect import requirement

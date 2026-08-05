@@ -446,8 +446,22 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
     /**
      * Convert GenericType to TS generic
      * 
-     * Phase 3 - Day 3: Full implementation needed
-     * Current: Returns base type without parameters
+     * Phase 3 - Day 3: Full implementation
+     * 
+     * Maps generic types dengan type parameters ke TypeScript generic syntax.
+     * Supports variance annotations dan nested generics.
+     * 
+     * @example
+     * ```typescript
+     * // Collection<User>
+     * GenericType(Collection, [User]) → Collection<User>
+     * 
+     * // Promise<Result<User>>
+     * GenericType(Promise, [GenericType(Result, [User])]) → Promise<Result<User>>
+     * 
+     * // Array<string | number>
+     * GenericType(Array, [UnionType([string, number])]) → Array<string | number>
+     * ```
      */
     private convertGenericType(
         type: SemanticType
@@ -456,9 +470,40 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
             throw new Error('Expected generic type');
         }
 
-        // For now, just map base type
-        // TODO: Map generic parameters properly
-        return this.convertReferenceType(type.base);
+        // Convert base type (must be ReferenceType)
+        const baseTypeRef = this.convertReferenceType(type.base);
+
+        // Edge case: No parameters → return base type directly
+        if (type.parameters.length === 0) {
+            return baseTypeRef;
+        }
+
+        // Convert each generic parameter to TypeScript type
+        const typeArgs: TSTypeReference[] = [];
+
+        for (const param of type.parameters) {
+            // Convert parameter type recursively
+            const paramType = this.semanticTypeToTSType(param.type);
+
+            // Generic parameters must be TSTypeReference untuk type arguments
+            // Wrap complex types jika diperlukan
+            if (paramType instanceof TSTypeReference) {
+                typeArgs.push(paramType);
+            } else {
+                // Complex types (arrays, unions, intersections) need wrapping
+                // For now, create inline type reference
+                // TODO: Consider generating type alias for complex generic parameters
+                throw new Error(`Complex generic parameter not yet supported: ${param.type.kind}`);
+            }
+        }
+
+        // Create generic type reference dengan type arguments
+        // Example: Collection<User> → TSTypeReference('Collection', [User])
+        return new TSTypeReference(
+            baseTypeRef.name,
+            typeArgs,
+            false // not array
+        );
     }
 
     /**

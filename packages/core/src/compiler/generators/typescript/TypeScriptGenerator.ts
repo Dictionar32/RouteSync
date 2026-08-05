@@ -813,7 +813,7 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
      * @param type - ObjectType semantic type
      * @returns TSInterfaceDeclaration
      * 
-     * @throws {Error} Jika type bukan ObjectType
+     * @throws {InterfaceGenerationError} Jika type bukan ObjectType atau generation gagal
      * 
      * @example
      * ```typescript
@@ -840,43 +840,59 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
         name: string,
         type: ObjectType
     ): TSInterfaceDeclaration {
-        // Validate input
-        if (type.kind !== 'object') {
-            throw new Error(`Expected ObjectType, got ${type.kind}`);
+        try {
+            // Validate input
+            if (type.kind !== 'object') {
+                throw new InterfaceGenerationError(
+                    `Expected ObjectType, got ${type.kind}`,
+                    name
+                );
+            }
+
+            // Track generated interface name FIRST (sebelum processing properties)
+            // Ini penting untuk prevent self-reference imports
+            // Example: interface User { parent?: User }
+            this.generatedTypes.add(name);
+
+            // Extract properties dari ObjectType
+            const properties = this.extractPropertiesFromObjectType(type);
+
+            // Build extends clause (inheritance + interface implementations)
+            const extendsClause = this.buildExtendsClause(type);
+
+            // Convert properties to TSPropertySignature nodes
+            const propertySignatures = properties.map(prop =>
+                this.transformPropertyToSignature(prop)
+            );
+
+            // Generate JSDoc comment
+            const comment = new TSComment(
+                `Interface for ${name}`,
+                'jsdoc'
+            );
+
+            // Create interface declaration
+            // Note: TSInterfaceDeclaration constructor order:
+            // (name, properties, extendsTypes, exported, comment)
+            return new TSInterfaceDeclaration(
+                name,
+                propertySignatures, // properties
+                extendsClause,      // extendsTypes
+                true,               // exported
+                comment             // comment
+            );
+        } catch (error) {
+            // Wrap errors dalam InterfaceGenerationError untuk better context
+            if (error instanceof InterfaceGenerationError) {
+                throw error;
+            }
+
+            throw new InterfaceGenerationError(
+                `Failed to generate interface: ${error instanceof Error ? error.message : String(error)}`,
+                name,
+                error instanceof Error ? error : undefined
+            );
         }
-
-        // Track generated interface name FIRST (sebelum processing properties)
-        // Ini penting untuk prevent self-reference imports
-        // Example: interface User { parent?: User }
-        this.generatedTypes.add(name);
-
-        // Extract properties dari ObjectType
-        const properties = this.extractPropertiesFromObjectType(type);
-
-        // Build extends clause (inheritance + interface implementations)
-        const extendsClause = this.buildExtendsClause(type);
-
-        // Convert properties to TSPropertySignature nodes
-        const propertySignatures = properties.map(prop =>
-            this.transformPropertyToSignature(prop)
-        );
-
-        // Generate JSDoc comment
-        const comment = new TSComment(
-            `Interface for ${name}`,
-            'jsdoc'
-        );
-
-        // Create interface declaration
-        // Note: TSInterfaceDeclaration constructor order:
-        // (name, properties, extendsTypes, exported, comment)
-        return new TSInterfaceDeclaration(
-            name,
-            propertySignatures, // properties
-            extendsClause,      // extendsTypes
-            true,               // exported
-            comment             // comment
-        );
     }
 
     /**

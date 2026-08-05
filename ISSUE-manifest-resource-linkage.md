@@ -13,6 +13,14 @@ diimplementasi dan diverifikasi**, dalam 4 fase bertahap (lihat
 | 2 | `ReadEmitter`/`ContractGenerator` baca `transport` (backward compat) | ✅ (bug #15) |
 | 3 | Deteksi `download`/`stream`/`redirect`/`empty` + variable-built JSON | ✅ (bug #16) |
 | 4 | `status` + `contentType` | ✅ (bug #17) |
+| 5 | Incremental array construction (`$var['key'] = ...;`, subkasus yang kelewat di Fase 3) | ✅ (bug #18) |
+
+**Verifikasi Fase 0 (bug #11) di project asli, bukan cuma sample:**
+diverifikasi lewat 6+ endpoint nyata (`OrderController` show+index,
+`PaymentController`, `WishlistController`, `PromoController` apply+remove
+— termasuk yang return statement-nya di dalam closure
+`DB::transaction()`), semua bener, 0 regresi. Lihat README.md bug #11
+untuk detail.
 
 Satu penyesuaian dari desain awal di dokumen ini: draft pertama pakai
 `responseType` (satu enum gabung 2 dimensi: `resource`/`resourceCollection`/

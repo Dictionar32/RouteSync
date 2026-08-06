@@ -155,9 +155,10 @@ export class CompilerBridge {
             return results
         }
 
-        const newVisited = new WeakSet(context.visited)
+        // ⚠️ WeakSet MUST be mutated in place (cannot copy - not iterable)
+        // This is documented in Known Limitations
         if (typeof field === 'object' && field !== null) {
-            newVisited.add(field)
+            context.visited.add(field)
         }
 
         // Type-safe discriminated union handling based on ResourceFieldKind
@@ -227,7 +228,7 @@ export class CompilerBridge {
 
                     const nestedContext: FlatteningContext = {
                         prefix: fullPrefix,
-                        visited: newVisited,
+                        visited: context.visited,  // ⚠️ Share reference (WeakSet mutated in place)
                         usedNames: context.usedNames,
                         maxDepth: context.maxDepth,
                         currentDepth: context.currentDepth + 1
@@ -375,6 +376,16 @@ export class CompilerBridge {
         }
 
         // Convert resources to ObjectTypes
+        console.log('[CompilerBridge] manifest.resources type:', typeof manifest.resources)
+        console.log('[CompilerBridge] manifest.resources isArray:', Array.isArray(manifest.resources))
+        console.log('[CompilerBridge] manifest.resources length:', manifest.resources?.length)
+
+        if (!manifest.resources) {
+            console.warn('[CompilerBridge] No resources in manifest')
+        } else if (!Array.isArray(manifest.resources)) {
+            throw new Error(`manifest.resources is not an array (type: ${typeof manifest.resources})`)
+        }
+
         for (const resource of manifest.resources || []) {
             const properties = new Map<string, PrimitiveType>()
 

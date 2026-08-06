@@ -49,6 +49,8 @@ export type ResourceFieldKind = (
   | { kind: 'model'; model: string; collection: boolean }
   | { kind: 'resource'; resource: string; collection: boolean }
   | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
+  | { kind: 'property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Real manifest data
+  | { kind: 'variable'; resolved?: { type: string }; nullable?: boolean }         // ✅ Phase 2: Real manifest data
   | { kind: 'unknown' }
 ) & {
   resolved?: SemanticResolution

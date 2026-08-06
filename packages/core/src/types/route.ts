@@ -50,7 +50,12 @@ export type ResourceFieldKind = (
   | { kind: 'resource'; resource: string; collection: boolean }
   | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
   | { kind: 'property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Real manifest data
+  | { kind: 'nullsafe_property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Nullsafe operator
   | { kind: 'variable'; resolved?: { type: string }; nullable?: boolean }         // ✅ Phase 2: Real manifest data
+  | { kind: 'type_cast'; resolved?: { type: string }; nullable?: boolean }        // ✅ Phase 2: Type casting
+  | { kind: 'binary_expression'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Binary operators
+  | { kind: 'method_call'; resolved?: { type: string }; nullable?: boolean }      // ✅ Phase 2: Method calls
+  | { kind: 'literal'; resolved?: { type: string }; nullable?: boolean }          // ✅ Phase 2: Literals
   | { kind: 'unknown' }
 ) & {
   resolved?: SemanticResolution
@@ -69,6 +74,7 @@ export interface ParsedResource {
   assignments?: Record<string, string>
   sourceFile?: string | null
   sourceLine?: number | null
+  isSynthetic?: boolean // True if this is a synthetic nested object resource (not a real Laravel Resource)
 }
 
 // Add ActionDefinition interface for ParsedResource

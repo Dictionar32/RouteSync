@@ -355,12 +355,17 @@ export class OptimizedContractIRBuilder {
             }
         }
 
+        // CRITICAL FIX: Skip alias generation for synthetic nested object resources
+        // Synthetic resources (extracted from nested object fields) should NOT get Show/Index aliases
+        // Only real API endpoint Resources from manifest should have aliases
+        const aliases = resource.isSynthetic === true ? [] : this.buildResourceAliases(resource)
+
         const resourceIR: ResourceIR = {
             id: this.generateResourceId(resource),
             name: resource.name,
             sourceModel: resource.sourceModel,
             fields: legacyFields,
-            aliases: this.buildResourceAliases(resource),
+            aliases,  // Empty array for synthetic, full aliases for real resources
             variants: [readVariant], // Populate with read variant
             mapper: this.buildResourceMapper(resource, fields),
             metadata: {

@@ -571,6 +571,7 @@ export interface ParsedResource {
     fields: ParsedField[]
     controller?: string
     routes?: string[]
+    isSynthetic?: boolean  // True if this is a synthetic nested object resource (not a real Laravel Resource)
 }
 
 export interface ParsedRequest {

@@ -119,11 +119,11 @@ export function flattenResourceField(
     prefix: string,
     ctx: FlatteningContext
 ): FlattenedProperty[] {
-    // Check depth limit
-    if (ctx.depth >= ctx.options.maxDepth) {
+    // Check depth limit (allow maxDepth properties, stop at maxDepth+1)
+    if (ctx.depth > ctx.options.maxDepth) {
         if (ctx.options.circularRefWarnings) {
             console.warn(
-                `[RouteSync] Maximum nesting depth (${ctx.options.maxDepth}) reached at field '${prefix}${fieldName}'. Stopping flattening.`
+                `[RouteSync] Maximum nesting depth (${ctx.options.maxDepth}) exceeded at field '${prefix}${fieldName}'. Stopping flattening.`
             )
         }
         return []
@@ -154,15 +154,22 @@ export function flattenResourceField(
     switch (field.kind) {
         case 'primitive': {
             // Leaf node - return as-is with camelCase name
+            // Use factory to properly map type string to PrimitiveKind
             return [{
                 name: toCamelCase(newPrefix),
-                type: new PrimitiveType(field.type as PrimitiveKind)
+                type: PrimitiveTypeFactory.fromString(field.type)
             }]
         }
 
         case 'property_access':
-        case 'variable': {
+        case 'nullsafe_property_access':
+        case 'variable':
+        case 'type_cast':
+        case 'binary_expression':
+        case 'method_call':
+        case 'literal': {
             // Infer type from resolved.type if available
+            // This handles all expression kinds that have resolved metadata
             const inferredType = field.resolved?.type
                 ? primitiveStringToSemanticType(field.resolved.type)
                 : new PrimitiveType(PrimitiveKind.STRING)

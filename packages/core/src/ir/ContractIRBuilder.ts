@@ -23,6 +23,8 @@ import type {
     ParsedResource,
     ParsedRequest,
     ParsedRoute,
+    ParsedField,
+    ParsedAction,
     ResourceFieldIR,
     ResourceAliasIR,
     MapperIR,
@@ -50,25 +52,8 @@ import { resourceBaseName } from '../utils/resource-naming'
 const IR_VERSION = 'v1.0.0' as const
 const GENERATOR_VERSION = '1.0.0' as const
 
-interface ParsedFieldData {
-    name: string
-    nullable?: boolean
-    optional?: boolean
-    readonly?: boolean
-    description?: string
-    validation?: Record<string, unknown>
-    resolved?: {
-        type?: SemanticType
-        model?: string
-    }
-    semanticType?: SemanticType
-}
-
-interface ParsedActionData {
-    name: string
-    fields: ParsedFieldData[]
-    validation?: Record<string, unknown>
-}
+// Note: Using ParsedField and ParsedAction from types/ir.ts directly
+// No need for local ParsedFieldData/ParsedActionData interfaces
 
 /**
  * Projection hints for emitters - lightweight metadata instead of duplicated TypeIR trees
@@ -285,7 +270,7 @@ export class OptimizedContractIRBuilder {
      * literal actually has, which may be a partial projection of that model,
      * not the model itself. See ISSUE-manifest-resource-linkage.md.
      */
-    private extractNestedObjectResource(parentResourceName: string, field: ParsedFieldData): ParsedFieldData {
+    private extractNestedObjectResource(parentResourceName: string, field: ParsedField): ParsedField {
         const semanticType = field.semanticType as { kind?: string; properties?: Record<string, unknown> } | undefined
         if (!semanticType || semanticType.kind !== 'object' || !semanticType.properties) {
             return field
@@ -383,7 +368,7 @@ export class OptimizedContractIRBuilder {
     /**
      * Build optimized field with single TypeIR + projection hints
      */
-    private buildOptimizedResourceField(field: ParsedFieldData): OptimizedResourceFieldIR {
+    private buildOptimizedResourceField(field: ParsedField): OptimizedResourceFieldIR {
         // Extract semantic type from resolved data if available
         let semanticType: SemanticType | ResolvedSemanticType | undefined = field.semanticType
 
@@ -528,11 +513,11 @@ export class OptimizedContractIRBuilder {
                 case 'model':
                     return SemanticTypeResolvers.resolveModel(semanticType)
                 case 'object':
-                    return SemanticTypeResolvers.resolveObject(semanticType, (type) => this.semanticToTypeIR(type))
+                    return SemanticTypeResolvers.resolveObject(semanticType, (type) => this.semanticToTypeIR(type as SemanticType | ResolvedSemanticType))
                 case 'array':
-                    return SemanticTypeResolvers.resolveArray(semanticType, (type) => this.semanticToTypeIR(type))
+                    return SemanticTypeResolvers.resolveArray(semanticType, (type) => this.semanticToTypeIR(type as SemanticType | ResolvedSemanticType))
                 case 'union':
-                    return SemanticTypeResolvers.resolveUnion(semanticType, (type) => this.semanticToTypeIR(type))
+                    return SemanticTypeResolvers.resolveUnion(semanticType, (type) => this.semanticToTypeIR(type as SemanticType | ResolvedSemanticType))
                 case 'literal':
                     return SemanticTypeResolvers.resolveLiteral(semanticType)
                 default:
@@ -603,7 +588,7 @@ export class OptimizedContractIRBuilder {
     /**
      * Build request action from parsed action
      */
-    private buildRequestAction(action: ParsedActionData): RequestActionIR {
+    private buildRequestAction(action: ParsedAction): RequestActionIR {
         return {
             name: action.name === 'Create' || action.name === 'Update' || action.name === 'Delete'
                 ? action.name
@@ -611,7 +596,7 @@ export class OptimizedContractIRBuilder {
             customName: action.name !== 'Create' && action.name !== 'Update' && action.name !== 'Delete'
                 ? action.name
                 : undefined,
-            fields: action.fields.map((field: ParsedFieldData) => this.convertToLegacyFieldIR(this.buildOptimizedResourceField(field))),
+            fields: action.fields.map((field: ParsedField) => this.convertToLegacyFieldIR(this.buildOptimizedResourceField(field))),
             rules: action.validation ? [this.buildValidationRules(action.validation)] : [],
             dependencies: []
         }

@@ -91,17 +91,22 @@ export class CompilerBridge {
      * Convert RouteManifest to SemanticTypesArtifact
      * Pure data lowering - uses utilities for complex logic
      * 
+     * ✅ ONLY PROCESS RESOURCES (not models)
+     * - Resources get Show/Index aliases (for API responses)
+     * - Models are database tables (not needed in api-read.ts)
+     * 
      * @param manifest - Input manifest from CLI scan
      * @returns SemanticTypesArtifact for compiler passes
      */
     private static manifestToSemanticTypes(manifest: RouteManifest): SemanticTypesArtifact {
         const typesArray: ObjectType[] = []
 
-        // Convert models
-        const modelTypes = this.processModels(manifest.models || [])
-        typesArray.push(...modelTypes)
+        // ❌ SKIP models - not needed for API types
+        // Models are database tables, not API responses
+        // const modelTypes = this.processModels(manifest.models || [])
+        // typesArray.push(...modelTypes)
 
-        // Convert resources
+        // ✅ Convert resources ONLY
         const resourceTypes = this.processResources(manifest.resources || [])
         typesArray.push(...resourceTypes)
 

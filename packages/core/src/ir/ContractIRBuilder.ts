@@ -42,7 +42,7 @@ import type {
     ResolvedSemanticType
 } from '../types/ir'
 
-import { SemanticType } from '../types/semantic'
+import { SemanticType, SemanticNode } from '../types/semantic'
 import { TypeIRUtils } from '../types/ir'
 import { resourceBaseName } from '../utils/resource-naming'
 
@@ -104,7 +104,7 @@ interface OptimizedResourceFieldIR {
  * Modular semantic type resolvers - break down the large semanticToTypeIR function
  */
 class SemanticTypeResolvers {
-    static resolvePrimitive(semantic: any): TypeIR {
+    static resolvePrimitive(semantic: unknown): TypeIR {
         const primitiveType = semantic as { kind: 'primitive', type: string, format?: string }
         return {
             kind: 'primitive',
@@ -113,7 +113,7 @@ class SemanticTypeResolvers {
         }
     }
 
-    static resolveResource(semantic: any): TypeIR {
+    static resolveResource(semantic: unknown): TypeIR {
         const resourceType = semantic as { kind: 'resource', resource: string, collection?: boolean }
         const resourceRef: ReferenceTypeIR = {
             kind: 'reference',
@@ -127,7 +127,7 @@ class SemanticTypeResolvers {
         return resourceRef
     }
 
-    static resolveModel(semantic: any): TypeIR {
+    static resolveModel(semantic: unknown): TypeIR {
         const modelType = semantic as { kind: 'model', model: string }
         return {
             kind: 'reference',
@@ -135,7 +135,7 @@ class SemanticTypeResolvers {
         }
     }
 
-    static resolveObject(semantic: any, resolver: (type: unknown) => TypeIR): TypeIR {
+    static resolveObject(semantic: unknown, resolver: (type: unknown) => TypeIR): TypeIR {
         const objectType = semantic as { kind: 'object', properties?: Record<string, unknown> }
 
         if (objectType.properties) {
@@ -158,12 +158,12 @@ class SemanticTypeResolvers {
         }
     }
 
-    static resolveArray(semantic: any, resolver: (type: unknown) => TypeIR): TypeIR {
+    static resolveArray(semantic: unknown, resolver: (type: unknown) => TypeIR): TypeIR {
         const arrayType = semantic as { kind: 'array', items: unknown }
         return TypeIRUtils.makeArray(resolver(arrayType.items))
     }
 
-    static resolveUnion(semantic: any, resolver: (type: unknown) => TypeIR): TypeIR {
+    static resolveUnion(semantic: unknown, resolver: (type: unknown) => TypeIR): TypeIR {
         const unionType = semantic as { kind: 'union', types: unknown[] }
         return {
             kind: 'union',
@@ -171,7 +171,7 @@ class SemanticTypeResolvers {
         }
     }
 
-    static resolveLiteral(semantic: any): TypeIR {
+    static resolveLiteral(semantic: unknown): TypeIR {
         const literalType = semantic as { kind: 'literal', value: string | number | boolean }
         return {
             kind: 'literal',
@@ -184,17 +184,17 @@ class SemanticTypeResolvers {
  * Diagnostic collector - replace direct console logging
  */
 class DiagnosticCollector {
-    private diagnostics: Array<{ level: 'info' | 'warn' | 'error', message: string, context?: any }> = []
+    private diagnostics: Array<{ level: 'info' | 'warn' | 'error', message: string, context?: unknown }> = []
 
-    info(message: string, context?: any): void {
+    info(message: string, context?: unknown): void {
         this.diagnostics.push({ level: 'info', message, context })
     }
 
-    warn(message: string, context?: any): void {
+    warn(message: string, context?: unknown): void {
         this.diagnostics.push({ level: 'warn', message, context })
     }
 
-    error(message: string, context?: any): void {
+    error(message: string, context?: unknown): void {
         this.diagnostics.push({ level: 'error', message, context })
     }
 
@@ -300,7 +300,15 @@ export class OptimizedContractIRBuilder {
         const syntheticName = parentBase + pascalFieldName
 
         if (!this.resources.has(syntheticName)) {
-            const subFields: ParsedFieldData[] = propertyEntries.map(([key, value]) => ({
+            // Create ParsedField[] (from ir.ts interface) instead of ParsedFieldData[]
+            const subFields: Array<{
+                name: string
+                resolved?: SemanticNode
+                semanticType?: SemanticType | ResolvedSemanticType
+                optional?: boolean
+                nullable?: boolean
+                readonly?: boolean
+            }> = propertyEntries.map(([key, value]) => ({
                 name: key,
                 resolved: undefined,
                 semanticType: value as SemanticType | ResolvedSemanticType,
@@ -308,12 +316,15 @@ export class OptimizedContractIRBuilder {
                 nullable: false,
                 readonly: false
             }))
+
+            // Create synthetic resource with correct ParsedResource interface (from ir.ts)
             const subResource: ParsedResource = {
                 name: syntheticName,
                 sourceModel: undefined,
-                fields: subFields,
+                fields: subFields, // ParsedField[] from ir.ts
                 controller: undefined,
-                routes: []
+                routes: [],
+                isSynthetic: true  // Mark as synthetic nested object resource
             }
             // Insert a placeholder first so a field inside this sub-object that
             // happens to reference the SAME synthetic name (shouldn't normally
@@ -496,7 +507,7 @@ export class OptimizedContractIRBuilder {
         // reference field, e.g. items) would get collapsed into an invalid
         // {kind:'primitive', type:'resource'} here, which the emitter can't render
         // and falls back to 'unknown'.
-        const resolvedSemantic = semanticType as any
+        const resolvedSemantic = semanticType
         if (resolvedSemantic.resolved?.type && PRIMITIVE_RESOLVED_TYPES.has(resolvedSemantic.resolved.type)) {
             this.diagnostics.info(`Using resolved type: ${resolvedSemantic.resolved.type}`)
             return { kind: 'primitive', type: resolvedSemantic.resolved.type as PrimitiveTypeIR['type'] }
@@ -512,11 +523,11 @@ export class OptimizedContractIRBuilder {
                 case 'model':
                     return SemanticTypeResolvers.resolveModel(semanticType)
                 case 'object':
-                    return SemanticTypeResolvers.resolveObject(semanticType, (type) => this.semanticToTypeIR(type as any))
+                    return SemanticTypeResolvers.resolveObject(semanticType, (type) => this.semanticToTypeIR(type))
                 case 'array':
-                    return SemanticTypeResolvers.resolveArray(semanticType, (type) => this.semanticToTypeIR(type as any))
+                    return SemanticTypeResolvers.resolveArray(semanticType, (type) => this.semanticToTypeIR(type))
                 case 'union':
-                    return SemanticTypeResolvers.resolveUnion(semanticType, (type) => this.semanticToTypeIR(type as any))
+                    return SemanticTypeResolvers.resolveUnion(semanticType, (type) => this.semanticToTypeIR(type))
                 case 'literal':
                     return SemanticTypeResolvers.resolveLiteral(semanticType)
                 default:
@@ -627,6 +638,20 @@ export class OptimizedContractIRBuilder {
      */
     private buildResourceAliases(resource: ParsedResource): ResourceAliasIR[] {
         const baseName = resourceBaseName(resource.name)
+
+        // FILTER: Skip alias generation for synthetic nested object resources
+        // These are Model types extracted from inline objects (e.g., CategoryTransformed, OrderTransformed)
+        // They should NOT get Show/Index aliases - only true API endpoint Resources should
+        const isSyntheticNestedResource = (resource).isSynthetic === true
+
+        // DEBUG: Log to verify flag
+        if (resource.name.includes('Category') || resource.name.includes('Order')) {
+            console.log(`[DEBUG] Resource: ${resource.name}, isSynthetic: ${(resource).isSynthetic}, skipping: ${isSyntheticNestedResource}`)
+        }
+
+        if (isSyntheticNestedResource) {
+            return [] // No aliases for synthetic resources
+        }
 
         return [
             {

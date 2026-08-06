@@ -183,6 +183,8 @@ export class CompilerBridge {
             case 'property_access': {
                 // Handle property_access kind (most common in real manifests!)
                 // Extract type from resolved.type
+                if (field.kind !== 'property_access') break
+
                 const resolvedType = field.resolved?.type || 'string'
                 const propName = context.prefix || 'unknownProp'
                 const nullable = field.nullable ?? false
@@ -198,6 +200,8 @@ export class CompilerBridge {
 
             case 'variable': {
                 // Handle variable kind - extract from resolved
+                if (field.kind !== 'variable') break
+
                 const resolvedType = field.resolved?.type || 'string'
                 const propName = context.prefix || 'unknownVar'
                 const nullable = field.nullable ?? false
@@ -376,10 +380,6 @@ export class CompilerBridge {
         }
 
         // Convert resources to ObjectTypes
-        console.log('[CompilerBridge] manifest.resources type:', typeof manifest.resources)
-        console.log('[CompilerBridge] manifest.resources isArray:', Array.isArray(manifest.resources))
-        console.log('[CompilerBridge] manifest.resources length:', manifest.resources?.length)
-
         if (!manifest.resources) {
             console.warn('[CompilerBridge] No resources in manifest')
         } else if (!Array.isArray(manifest.resources)) {

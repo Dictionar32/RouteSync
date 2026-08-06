@@ -15,7 +15,13 @@
  */
 
 import type { ResourceFieldKind } from '../../../../core/src/types/route'
-import type { SemanticType } from '../../../../core/src/compiler'
+import {
+    type SemanticType,
+    PrimitiveType,
+    PrimitiveKind,
+    ReferenceType
+} from '../../../../core/src/compiler/types/SemanticType'
+import { PrimitiveTypeFactory } from './PrimitiveTypeFactory'
 
 /**
  * Options for flattening resource fields
@@ -150,10 +156,7 @@ export function flattenResourceField(
             // Leaf node - return as-is with camelCase name
             return [{
                 name: toCamelCase(newPrefix),
-                type: {
-                    kind: 'primitive',
-                    type: field.type
-                }
+                type: new PrimitiveType(field.type as PrimitiveKind)
             }]
         }
 
@@ -162,7 +165,7 @@ export function flattenResourceField(
             // Infer type from resolved.type if available
             const inferredType = field.resolved?.type
                 ? primitiveStringToSemanticType(field.resolved.type)
-                : { kind: 'primitive' as const, type: 'string' }
+                : new PrimitiveType(PrimitiveKind.STRING)
 
             return [{
                 name: toCamelCase(newPrefix),
@@ -202,14 +205,12 @@ export function flattenResourceField(
         default: {
             // For model/resource/unknown, treat as opaque object
             // Return as-is without flattening (semantic types will handle it)
+            const typeName = field.kind === 'model' ? field.model :
+                field.kind === 'resource' ? field.resource : 'unknown'
+
             return [{
                 name: toCamelCase(newPrefix),
-                type: {
-                    kind: 'reference',
-                    name: field.kind === 'model' || field.kind === 'resource'
-                        ? (field).name || 'unknown'
-                        : 'unknown'
-                }
+                type: new ReferenceType('App\\Models', typeName)
             }]
         }
     }
@@ -218,27 +219,13 @@ export function flattenResourceField(
 /**
  * Convert primitive type string to SemanticType
  * 
+ * Delegates to PrimitiveTypeFactory for proper type construction.
+ * 
  * @param typeStr - Type string from resolved.type (e.g., 'int', 'string', 'bool')
- * @returns Semantic primitive type
+ * @returns Semantic primitive type instance
  */
 export function primitiveStringToSemanticType(typeStr: string): SemanticType {
-    switch (typeStr.toLowerCase()) {
-        case 'int':
-        case 'integer':
-        case 'float':
-        case 'double':
-        case 'number':
-            return { kind: 'primitive', type: 'number' }
-
-        case 'bool':
-        case 'boolean':
-            return { kind: 'primitive', type: 'boolean' }
-
-        case 'string':
-        case 'text':
-        default:
-            return { kind: 'primitive', type: 'string' }
-    }
+    return PrimitiveTypeFactory.fromString(typeStr)
 }
 
 /**

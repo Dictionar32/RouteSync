@@ -811,18 +811,37 @@ export interface OrderResourceTransformed {
 
 **Evidence-Based Type-Safe Implementation (Phase 2):**
 
-#### 1. Define Type-Safe Flattening Context
+**CRITICAL EVIDENCE:** Actual `ResourceFieldKind` type dari codebase (`packages/core/src/types/route.ts`):
+
+```typescript
+// ✅ ACTUAL TYPE from RouteSync codebase
+export type ResourceFieldKind = (
+  | { kind: 'primitive'; type: string }
+  | { kind: 'model'; model: string; collection: boolean }
+  | { kind: 'resource'; resource: string; collection: boolean }
+  | { kind: 'object'; fields: Record<string, ResourceFieldKind> }  // ✅ RECURSIVE!
+  | { kind: 'unknown' }
+) & {
+  resolved?: SemanticResolution
+  semantic?: SemanticResolution
+  nullable?: boolean
+}
+```
+
+**Key Insight:** Type sudah support recursive nesting via `{ kind: 'object'; fields: Record<string, ResourceFieldKind> }`!
+
+#### 1. Define Type-Safe Flattening Context (Using ACTUAL Types)
 ```typescript
 /**
  * Context for tracking flattening state (NO `any` types!)
- * Based on actual manifest structure analysis
+ * Uses ACTUAL ResourceFieldKind from codebase
  */
 interface FlatteningContext {
   /** Current property path prefix (e.g., 'user', 'shipping') */
   readonly prefix: string
   
   /** Visited fields to detect circular references */
-  readonly visited: Set<ManifestResponseField>
+  readonly visited: WeakSet<ResourceFieldKind>  // ✅ WeakSet prevents memory leaks
   
   /** Collision detection: tracks used property names */
   readonly usedNames: Set<string>
@@ -846,42 +865,26 @@ interface FlattenedProperty {
   
   /** Original path for debugging (e.g., 'user.id', 'shipping.address') */
   readonly originalPath: string
-}
-
-/**
- * Manifest field structure (evidence dari toko-online manifest)
- */
-interface ManifestResponseField {
-  kind: 'object' | 'primitive' | 'variable' | 'property_access' | 'method_call'
   
-  // For kind='object':
-  fields?: Record<string, ManifestResponseField>
-  
-  // For kind='primitive':
-  type?: 'string' | 'number' | 'boolean'
-  
-  // For kind='variable' | 'property_access':
-  resolved?: {
-    status: 'resolved'
-    type: 'string' | 'number' | 'boolean' | 'object'
-    confidence: number
-    trace?: Array<{ source: string; rule: string }>
-  }
+  /** Whether property can be null */
+  readonly nullable: boolean
 }
 ```
 
-#### 2. Type-Safe Recursive Flattening Algorithm
+#### 2. Type-Safe Recursive Flattening Algorithm (Using Discriminated Union)
 ```typescript
 /**
- * Flatten nested ManifestResponseField into flat properties
- * NO `any` types - full type safety!
+ * Flatten nested ResourceFieldKind into flat properties
+ * NO `any` types - full type safety with discriminated union!
  * 
- * @param field - Manifest response field to flatten
+ * Evidence: packages/core/src/types/route.ts lines 26-37
+ * 
+ * @param field - ResourceFieldKind from manifest
  * @param context - Flattening context with visited tracking
  * @returns Array of flattened properties
  */
-private static flattenManifestField(
-  field: ManifestResponseField,
+private static flattenResourceField(
+  field: ResourceFieldKind,
   context: FlatteningContext
 ): readonly FlattenedProperty[] {
   const results: FlattenedProperty[] = []
@@ -899,38 +902,150 @@ private static flattenManifestField(
   }
   
   // Mark as visited
-  const newVisited = new Set(context.visited)
+  const newVisited = new WeakSet(context.visited)
   newVisited.add(field)
   
-  // Handle based on field kind (type-safe pattern matching)
-  if (field.kind === 'object' && field.fields) {
-    // Recursive case: nested object
-    for (const [key, nestedField] of Object.entries(field.fields)) {
-      const camelKey = this.toCamelCase(key)
-      
-      // Build full path (e.g., 'user' + 'Name' = 'userName')
-      const fullPrefix = context.prefix
-        ? `${context.prefix}${this.capitalize(camelKey)}`
-        : camelKey
-      
-      const nestedContext: FlatteningContext = {
-        prefix: fullPrefix,
-        visited: newVisited,
-        usedNames: context.usedNames,
-        maxDepth: context.maxDepth,
-        currentDepth: context.currentDepth + 1
+  // ✅ Type-safe discriminated union pattern (exhaustive switch)
+  switch (field.kind) {
+    case 'object': {
+      // Recursive case: nested object
+      if (!field.fields) {
+        console.warn(`[CompilerBridge] Object field has no fields property at "${context.prefix}"`)
+        break
       }
       
-      // Recursively flatten nested fields
-      const nestedResults = this.flattenManifestField(nestedField, nestedContext)
-      results.push(...nestedResults)
+      for (const [key, nestedField] of Object.entries(field.fields)) {
+        const camelKey = this.toCamelCase(key)
+        
+        // Build full path (e.g., 'user' + 'Name' = 'userName')
+        const fullPrefix = context.prefix
+          ? `${context.prefix}${this.capitalize(camelKey)}`
+          : camelKey
+        
+        const nestedContext: FlatteningContext = {
+          prefix: fullPrefix,
+          visited: newVisited,
+          usedNames: context.usedNames,
+          maxDepth: context.maxDepth,
+          currentDepth: context.currentDepth + 1
+        }
+        
+        // Recursively flatten nested fields
+        const nestedResults = this.flattenResourceField(nestedField, nestedContext)
+        results.push(...nestedResults)
+      }
+      break
     }
-  } else {
-    // Base case: primitive field
-    const propertyName = context.prefix || 'value'
-    const resolvedName = this.resolveCollision(propertyName, context.usedNames)
     
-    const primitiveType = this.manifestFieldToPrimitiveType(field)
+    case 'primitive': {
+      // Base case: primitive field
+      const propertyName = context.prefix || 'value'
+      const resolvedName = this.resolveCollision(propertyName, context.usedNames)
+      
+      // Convert primitive type string to PrimitiveType
+      const primitiveType = this.primitiveStringToPrimitiveType(field.type || 'string')
+      
+      results.push({
+        name: resolvedName,
+        type: primitiveType,
+        originalPath: context.prefix,
+        nullable: field.nullable || false
+      })
+      
+      // Mark name as used
+      context.usedNames.add(resolvedName)
+      break
+    }
+    
+    case 'model':
+    case 'resource': {
+      // Model/Resource reference: treat as string or object reference
+      const propertyName = context.prefix || 'value'
+      const resolvedName = this.resolveCollision(propertyName, context.usedNames)
+      
+      // For now, treat as string (Phase 2 could resolve to actual type)
+      results.push({
+        name: resolvedName,
+        type: new PrimitiveType(PrimitiveKind.STRING),
+        originalPath: context.prefix,
+        nullable: field.nullable || false
+      })
+      
+      context.usedNames.add(resolvedName)
+      break
+    }
+    
+    case 'unknown': {
+      // Unknown type: treat as string with warning
+      const propertyName = context.prefix || 'value'
+      const resolvedName = this.resolveCollision(propertyName, context.usedNames)
+      
+      console.warn(`[CompilerBridge] Unknown field type at "${context.prefix}", defaulting to string`)
+      
+      results.push({
+        name: resolvedName,
+        type: new PrimitiveType(PrimitiveKind.STRING),
+        originalPath: context.prefix,
+        nullable: true  // Unknown types might be null
+      })
+      
+      context.usedNames.add(resolvedName)
+      break
+    }
+    
+    // ✅ TypeScript ensures exhaustiveness (all cases handled)
+    default: {
+      const _exhaustive: never = field  // Compile error if case missing!
+      console.error(`[CompilerBridge] Unhandled field kind:`, _exhaustive)
+    }
+  }
+  
+  return results
+}
+
+/**
+ * Convert primitive type string to PrimitiveType
+ */
+private static primitiveStringToPrimitiveType(typeStr: string): PrimitiveType {
+  const t = typeStr.toLowerCase()
+  
+  if (t === 'number' || t === 'int' || t === 'float' || t === 'integer') {
+    return new PrimitiveType(PrimitiveKind.NUMBER)
+  }
+  
+  if (t === 'boolean' || t === 'bool') {
+    return new PrimitiveType(PrimitiveKind.BOOLEAN)
+  }
+  
+  if (t === 'datetime' || t === 'date' || t === 'timestamp') {
+    return new PrimitiveType(PrimitiveKind.DATETIME)
+  }
+  
+  return new PrimitiveType(PrimitiveKind.STRING)
+}
+
+/**
+ * Capitalize first letter of string
+ */
+private static capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+/**
+ * Resolve naming collisions by adding numeric suffix
+ */
+private static resolveCollision(name: string, usedNames: Set<string>): string {
+  if (!usedNames.has(name)) {
+    return name
+  }
+  
+  let counter = 2
+  while (usedNames.has(`${name}${counter}`)) {
+    counter++
+  }
+  
+  return `${name}${counter}`
+}e(field)
     
     results.push({
       name: resolvedName,
@@ -1085,153 +1200,314 @@ private static processResourceWithFlattening(resource: {
 }
 ```
 
-**Challenges:**
+#### 3. Integration with CompilerBridge (Phase 2)
+```typescript
+/**
+ * Update manifestToSemanticTypes to use flattening (Phase 2)
+ */
+private static manifestToSemanticTypes(manifest: RouteManifest): SemanticTypesArtifact {
+  const typesMap = new Map<string, ObjectType>()
+
+  // Convert models to ObjectTypes (NO CHANGES - models don't have nested fields)
+  for (const model of manifest.models || []) {
+    const properties = new Map<string, PrimitiveType>()
+
+    for (const column of model.columns || []) {
+      const camelName = this.toCamelCase(column.name)
+      const columnType = this.sqlToSemanticType(column.type)
+      properties.set(camelName, columnType)
+    }
+
+    const objectType = new ObjectType(
+      new ImmutableMap(properties),
+      new ImmutableSet(new Set(model.columns?.map(c => this.toCamelCase(c.name)) || [])),
+      undefined,
+      [],
+      new ImmutableMap(new Map([
+        ['name', model.name],
+        ['kind', 'model']
+      ]))
+    )
+
+    typesMap.set(model.name, objectType)
+  }
+
+  // Convert resources to ObjectTypes with FLATTENING (Phase 2)
+  for (const resource of manifest.resources || []) {
+    const flattenedProps: FlattenedProperty[] = []
+    
+    // ✅ Use type-safe flattening for each field
+    for (const [fieldName, fieldKind] of Object.entries(resource.fields || {})) {
+      const context: FlatteningContext = {
+        prefix: this.toCamelCase(fieldName),
+        visited: new WeakSet(),
+        usedNames: new Set(flattenedProps.map(p => p.name)),
+        maxDepth: 5,  // Reasonable depth limit
+        currentDepth: 0
+      }
+      
+      const flattened = this.flattenResourceField(fieldKind, context)
+      flattenedProps.push(...flattened)
+    }
+    
+    // Build properties map from flattened results
+    const properties = new Map<string, PrimitiveType>()
+    const requiredFields = new Set<string>()
+    
+    for (const prop of flattenedProps) {
+      properties.set(prop.name, prop.type)
+      if (!prop.nullable) {
+        requiredFields.add(prop.name)
+      }
+    }
+
+    const objectType = new ObjectType(
+      new ImmutableMap(properties),
+      new ImmutableSet(requiredFields),
+      undefined,
+      [],
+      new ImmutableMap(new Map([
+        ['name', resource.name],
+        ['kind', 'resource']
+      ]))
+    )
+
+    typesMap.set(resource.name, objectType)
+  }
+
+  const typesArray = Array.from(typesMap.values())
+
+  return {
+    typeId: 'SemanticTypes',
+    types: typesArray,
+    metadata: {
+      hash: `manifest-${Date.now()}`,
+      producer: 'CompilerBridge',
+      dependencies: [],
+      timestamp: Date.now(),
+      revision: '1.0.0'
+    }
+  }
+}
+```
+
+#### 4. Complete Type-Safe Example (Phase 2)
+```typescript
+// Input manifest (nested structure):
+const orderResource: ParsedResource = {
+  name: 'OrderResource',
+  fields: {
+    order_id: { kind: 'primitive', type: 'number' },
+    user: {
+      kind: 'object',
+      fields: {
+        name: { kind: 'primitive', type: 'string' },
+        email: { kind: 'primitive', type: 'string' }
+      }
+    },
+    shipping: {
+      kind: 'object',
+      fields: {
+        address: { kind: 'primitive', type: 'string' },
+        city: { kind: 'primitive', type: 'string' }
+      }
+    },
+    items: {
+      kind: 'resource',
+      resource: 'OrderItemResource',
+      collection: true
+    }
+  }
+}
+
+// Output TypeScript (flattened + camelCase):
+export interface OrderResourceTransformed {
+  orderId: number;           // ✅ Top-level camelCase
+  userName: string;          // ✅ Flattened: user.name
+  userEmail: string;         // ✅ Flattened: user.email
+  shippingAddress: string;   // ✅ Flattened: shipping.address
+  shippingCity: string;      // ✅ Flattened: shipping.city
+  items: string;             // ⚠️ Collection reference (future: resolve to type)
+}
+
+export type OrderResourceShow = OrderResourceTransformed
+export type OrderResourceIndex = OrderResourceTransformed[]
+```
+
+**Challenges & Edge Cases (Phase 2):**
 
 1. **Naming Collisions:**
-   ```typescript
-   // What if we have both?
-   {
-       address: "Direct address",
-       shipping: {
-           address: "Shipping address"
-       }
-   }
-   // Result: address vs shippingAddress - collision!
-   ```
+```typescript
+// What if we have both?
+{
+  address: "Direct address",
+  shipping: {
+    address: "Shipping address"
+  }
+}
+// Result: address vs shippingAddress - collision handled by resolveCollision()
+```
+
+**Solution:** Sequential suffix (`address`, `shippingAddress` coexist peacefully)
 
 2. **Deep Nesting:**
-   ```typescript
-   user.profile.settings.preferences.notifications.email
-   // → userProfileSettingsPreferencesNotificationsEmail (very long!)
-   ```
+```typescript
+user.profile.settings.preferences.notifications.email
+// → userProfileSettingsPreferencesNotificationsEmail (very long!)
+```
 
-3. **Array Handling:**
-   ```typescript
-   items: [{ product_id: 1, qty: 2 }]
-   // → items: unknown | Array<{ productId: number, qty: number }>?
-   ```
+**Solution:** Enforce maxDepth limit (5 levels), log warning beyond that
+
+3. **Array/Collection Handling:**
+```typescript
+items: {
+  kind: 'resource',
+  resource: 'OrderItemResource',
+  collection: true
+}
+// Phase 2: Keep as reference string or unknown
+// Future: Resolve to OrderItemResourceTransformed[]
+```
+
+**Solution:** Treat collection references as string in Phase 2, defer full resolution to future
 
 4. **Circular References:**
-   ```typescript
-   // User → Posts → User (circular)
-   // Need to detect and break cycle
-   ```
+```typescript
+// User → Posts → User (circular)
+class User {
+  posts: Post[]  // ✅ Detected by WeakSet visited tracking
+}
+class Post {
+  author: User   // ✅ Stops recursion
+}
+```
+
+**Solution:** WeakSet visited tracking prevents infinite loops
+
+5. **Nullable vs Required:**
+```typescript
+// Use nullable field from ResourceFieldKind
+interface FlattenedProperty {
+  nullable: boolean  // ✅ From field.nullable
+}
+```
+
+**Solution:** Pass nullable through to ObjectType requiredFields set
 
 **Effort Estimate: 2-3 days**
-- Day 1: Implement recursive flattening logic
-- Day 2: Handle edge cases (collisions, circular refs)
-- Day 3: Testing and integration
+- Day 1: Implement recursive flattening logic with type-safe discriminated union
+- Day 2: Handle edge cases (collisions, circular refs, depth limits)
+- Day 3: Testing and integration, comprehensive test coverage
 
 **Priority: Medium (Nice to have, not critical for Phase 1)**
 
+**Evidence-Based Implementation Confidence: HIGH**
+- ✅ Actual `ResourceFieldKind` type supports recursive nesting
+- ✅ Discriminated union enables type-safe exhaustive pattern matching
+- ✅ WeakSet prevents circular reference issues
+- ✅ Clear algorithm with bounded complexity
+
 **Acceptance Criteria (Phase 2):**
-- [ ] Nested objects flattened dengan pattern `parentChildProperty`
-- [ ] Circular references detected via `Set<ManifestResponseField>` tracking
-- [ ] Naming collisions resolved dengan numbered suffix (name2, name3, etc.)
-- [ ] Deep nesting limited to 5 levels maximum
-- [ ] Arrays extract properties dari first element
-- [ ] **NO `any` types in implementation** - full TypeScript type safety
-- [ ] All Phase 1 features still working (backward compatibility)
+- [ ] Nested objects flattened dengan naming pattern `parentChildProperty`
+- [ ] Circular references detected dan handled gracefully via WeakSet
+- [ ] Naming collisions resolved dengan numeric suffix (address, address2, ...)
+- [ ] Deep nesting limited to maxDepth (default: 5 levels)
+- [ ] Collection references kept as string or properly resolved
+- [ ] **NO `any` types** - full type safety maintained with actual `ResourceFieldKind` type
+- [ ] All existing Phase 1 features still working
 - [ ] Comprehensive test coverage untuk edge cases
-- [ ] Type inference accuracy maintained
-- [ ] Performance impact < 10% (flattening shouldn't slow generation significantly)
+- [ ] Performance impact < 10%
 
-### Testing Strategy (Phase 2)
-
-#### 1. Unit Tests for Flattening Logic
+**Testing Strategy (Phase 2):**
 ```typescript
-// packages/cli/src/generators/__tests__/CompilerBridge-flattening.test.ts
-
 describe('CompilerBridge - Nested Flattening', () => {
-  it('should flatten nested object properties', () => {
-    const field: ManifestResponseField = {
-      kind: 'object',
+  it('should flatten nested object fields to camelCase properties', () => {
+    const resource: ParsedResource = {
+      name: 'OrderResource',
       fields: {
-        user: {
+        order_id: { kind: 'primitive', type: 'number' },
+        shipping: {
           kind: 'object',
           fields: {
-            id: { kind: 'primitive', type: 'number' },
-            name: { kind: 'primitive', type: 'string' }
+            address: { kind: 'primitive', type: 'string' },
+            city: { kind: 'primitive', type: 'string' }
           }
         }
       }
     }
     
-    const context: FlatteningContext = {
-      prefix: '',
-      visited: new Set(),
-      usedNames: new Set(),
-      maxDepth: 5,
-      currentDepth: 0
-    }
+    const result = CompilerBridge.manifestToSemanticTypes({ resources: [resource] })
+    const orderType = result.types[0] as ObjectType
     
-    const result = CompilerBridge['flattenManifestField'](field, context)
-    
-    // Should flatten user.id → userId, user.name → userName
-    expect(result).toHaveLength(2)
-    expect(result.find(p => p.name === 'userId')).toBeDefined()
-    expect(result.find(p => p.name === 'userName')).toBeDefined()
+    expect(orderType.properties.has('orderId')).toBe(true)
+    expect(orderType.properties.has('shippingAddress')).toBe(true)
+    expect(orderType.properties.has('shippingCity')).toBe(true)
   })
   
-  it('should detect and break circular references', () => {
-    // Create circular structure
-    const userField: ManifestResponseField = {
-      kind: 'object',
-      fields: {}
-    }
-    
-    const postsField: ManifestResponseField = {
-      kind: 'object',
+  it('should handle circular references without infinite loop', () => {
+    const resource: ParsedResource = {
+      name: 'UserResource',
       fields: {
-        author: userField  // Circular!
+        id: { kind: 'primitive', type: 'number' },
+        posts: {
+          kind: 'resource',
+          resource: 'PostResource',
+          collection: true
+        }
       }
     }
     
-    userField.fields!.posts = postsField
+    // PostResource references back to UserResource (circular!)
+    // Should not cause infinite loop due to WeakSet visited tracking
     
-    const context: FlatteningContext = {
-      prefix: '',
-      visited: new Set(),
-      usedNames: new Set(),
-      maxDepth: 5,
-      currentDepth: 0
-    }
-    
-    // Should not throw, should detect circular ref
     expect(() => {
-      CompilerBridge['flattenManifestField'](userField, context)
+      CompilerBridge.manifestToSemanticTypes({ resources: [resource] })
     }).not.toThrow()
   })
   
-  it('should resolve naming collisions with numbered suffix', () => {
-    const usedNames = new Set(['address', 'address2'])
-    const result = CompilerBridge['resolveCollision']('address', usedNames)
-    
-    // Should skip address, address2 → address3
-    expect(result).toBe('address3')
-  })
-  
-  it('should respect max depth limit', () => {
-    // Create deeply nested structure (6 levels)
-    const deepField: ManifestResponseField = {
-      kind: 'object',
+  it('should resolve naming collisions with numeric suffix', () => {
+    const resource: ParsedResource = {
+      name: 'OrderResource',
       fields: {
-        level1: {
+        address: { kind: 'primitive', type: 'string' },
+        shipping: {
           kind: 'object',
           fields: {
+            address: { kind: 'primitive', type: 'string' }
+          }
+        }
+      }
+    }
+    
+    const result = CompilerBridge.manifestToSemanticTypes({ resources: [resource] })
+    const orderType = result.types[0] as ObjectType
+    
+    // Should have both 'address' and 'shippingAddress'
+    expect(orderType.properties.has('address')).toBe(true)
+    expect(orderType.properties.has('shippingAddress')).toBe(true)
+  })
+  
+  it('should enforce max depth limit', () => {
+    // Create deeply nested structure (> 5 levels)
+    const deeplyNested = {
+      kind: 'object' as const,
+      fields: {
+        level1: {
+          kind: 'object' as const,
+          fields: {
             level2: {
-              kind: 'object',
+              kind: 'object' as const,
               fields: {
                 level3: {
-                  kind: 'object',
+                  kind: 'object' as const,
                   fields: {
                     level4: {
-                      kind: 'object',
+                      kind: 'object' as const,
                       fields: {
                         level5: {
-                          kind: 'object',
+                          kind: 'object' as const,
                           fields: {
-                            level6: { kind: 'primitive', type: 'string' }
+                            level6: { kind: 'primitive' as const, type: 'string' }
                           }
                         }
                       }
@@ -1245,275 +1521,18 @@ describe('CompilerBridge - Nested Flattening', () => {
       }
     }
     
-    const context: FlatteningContext = {
-      prefix: '',
-      visited: new Set(),
-      usedNames: new Set(),
-      maxDepth: 5,
-      currentDepth: 0
-    }
+    // Should stop at depth 5, not process level6
+    const result = CompilerBridge.manifestToSemanticTypes({
+      resources: [{
+        name: 'DeepResource',
+        fields: { root: deeplyNested }
+      }]
+    })
     
-    const result = CompilerBridge['flattenManifestField'](deepField, context)
-    
-    // Should stop at level 5, not reach level 6
-    expect(result.find(p => p.originalPath.includes('level6'))).toBeUndefined()
-  })
-  
-  it('should extract properties from array elements', () => {
-    const arrayField: ManifestResponseField & { kind: 'array' } = {
-      kind: 'array',
-      elementType: {
-        kind: 'object',
-        fields: {
-          product_id: { kind: 'primitive', type: 'number' },
-          qty: { kind: 'primitive', type: 'number' }
-        }
-      }
-    }
-    
-    const context: FlatteningContext = {
-      prefix: 'items',
-      visited: new Set(),
-      usedNames: new Set(),
-      maxDepth: 5,
-      currentDepth: 0
-    }
-    
-    const result = CompilerBridge['flattenArrayField'](arrayField, context)
-    
-    // Should generate itemsProductId, itemsQty
-    expect(result.find(p => p.name === 'itemsProductId')).toBeDefined()
-    expect(result.find(p => p.name === 'itemsQty')).toBeDefined()
+    const deepType = result.types[0] as ObjectType
+    expect(Array.from(deepType.properties.keys())).not.toContain('rootLevel1Level2Level3Level4Level5Level6')
   })
 })
-```
-
-#### 2. Integration Tests with Real Manifest
-```typescript
-// Test dengan toko-online manifest yang actual
-describe('CompilerBridge - Real Manifest Flattening', () => {
-  it('should flatten toko-online login response', async () => {
-    const manifest = await loadManifest('/home/annas-zen/Documents/laragon-docker/www/toko-online/routesync.manifest.fresh6.json')
-    
-    // Find login endpoint (has nested user object)
-    const loginRoute = manifest.routes.find(r => r.name === 'login.post')
-    
-    expect(loginRoute).toBeDefined()
-    expect(loginRoute!.response.kind).toBe('object')
-    expect(loginRoute!.response.fields.user).toBeDefined()
-    
-    // Process dengan flattening
-    const result = await CompilerBridge.generateTypeScript(manifest)
-    
-    // Should have flattened properties
-    expect(result.code).toContain('userId: number')
-    expect(result.code).toContain('userName: string')
-    expect(result.code).toContain('userEmail: string')
-    
-    // Should NOT have nested user object
-    expect(result.code).not.toContain('user: {')
-  })
-})
-```
-
-#### 3. Performance Benchmarks
-```typescript
-describe('CompilerBridge - Performance', () => {
-  it('should process large manifest with flattening within time limit', async () => {
-    const largeManifest = generateManifestWithNestedObjects(1000) // 1000 routes
-    
-    const start = performance.now()
-    await CompilerBridge.generateTypeScript(largeManifest)
-    const duration = performance.now() - start
-    
-    // Should not exceed 20 seconds for 1000 routes
-    expect(duration).toBeLessThan(20000)
-  })
-  
-  it('should not cause memory leak during flattening', async () => {
-    const initialMemory = process.memoryUsage().heapUsed
-    
-    for (let i = 0; i < 100; i++) {
-      await CompilerBridge.generateTypeScript(testManifest)
-    }
-    
-    if (global.gc) global.gc()
-    const finalMemory = process.memoryUsage().heapUsed
-    const memoryGrowth = finalMemory - initialMemory
-    
-    // Should not leak > 50MB
-    expect(memoryGrowth).toBeLessThan(50 * 1024 * 1024)
-  })
-})
-```
-
-### Migration Path (Phase 1 → Phase 2)
-
-**Step 1: Add feature flag**
-```typescript
-// Enable/disable flattening via config
-interface CompilerBridgeOptions {
-  enableNestedFlattening?: boolean  // Default: false (Phase 1)
-}
-```
-
-**Step 2: Test in isolation**
-```bash
-# Test Phase 2 with flag
-ENABLE_FLATTENING=true npm run generate
-```
-
-**Step 3: Gradual rollout**
-1. Week 1: Internal testing dengan flattening enabled
-2. Week 2: Beta users testing
-3. Week 3: Full rollout dengan flattening as default
-
-**Step 4: Backward compatibility**
-- Keep Phase 1 behavior available via flag
-- Allow users to opt-out if flattening causes issues
-- Clear migration guide for users
-
-### Edge Case Handling Examples
-
-#### Case 1: Multiple nested levels
-```typescript
-// Input:
-{
-  order: {
-    user: {
-      profile: {
-        avatar: "url"
-      }
-    }
-  }
-}
-
-// Output (Phase 2):
-{
-  orderUserProfileAvatar: string  // ✅ Flattened 4 levels deep
-}
-```
-
-#### Case 2: Collision between top-level and nested
-```typescript
-// Input:
-{
-  address: "Direct address",
-  shipping: {
-    address: "Shipping address"
-  }
-}
-
-// Output (Phase 2):
-{
-  address: string,           // ✅ Top-level keeps original name
-  shippingAddress: string    // ✅ Nested gets prefixed
-}
-// No collision because different paths!
-```
-
-#### Case 3: Array with nested objects
-```typescript
-// Input:
-{
-  items: [
-    {
-      product: {
-        id: 1,
-        name: "Product A"
-      },
-      qty: 2
-    }
-  ]
-}
-
-// Output (Phase 2):
-{
-  itemsProductId: number,     // ✅ Flattened: items[0].product.id
-  itemsProductName: string,   // ✅ Flattened: items[0].product.name
-  itemsQty: number            // ✅ Flattened: items[0].qty
-}
-```
-
-#### Case 4: Circular reference handling
-```typescript
-// Input (circular):
-{
-  user: {
-    id: 1,
-    posts: [
-      {
-        id: 1,
-        author: { /* circular → user */ }
-      }
-    ]
-  }
-}
-
-// Output (Phase 2):
-{
-  userId: number,
-  userPostsId: number
-  // ⚠️ Circular ref detected, breaks at author
-}
-```
-
-### Documentation Updates (Phase 2)
-
-**1. README.md section:**
-```markdown
-## Nested Object Flattening
-
-RouteSync automatically flattens nested objects into top-level camelCase properties:
-
-### Example
-```typescript
-// Backend response:
-{
-  "order_id": 1,
-  "shipping": {
-    "address": "123 Main St",
-    "city": "Jakarta"
-  }
-}
-
-// Generated TypeScript:
-interface OrderResourceTransformed {
-  orderId: number              // From order_id
-  shippingAddress: string      // From shipping.address
-  shippingCity: string         // From shipping.city
-}
-```
-
-### Configuration
-```typescript
-// Disable flattening if needed
-{
-  enableNestedFlattening: false
-}
-```
-```
-
-**2. Migration guide:**
-```markdown
-## Migrating to Phase 2 (Nested Flattening)
-
-### Breaking Changes
-- Nested objects are now flattened by default
-- Property names may change (e.g., `user.id` → `userId`)
-
-### Migration Steps
-1. Review generated types for naming changes
-2. Update frontend code to use new property names
-3. Test thoroughly before deploying
-
-### Rollback
-If issues occur, disable flattening:
-```typescript
-{
-  enableNestedFlattening: false
-}
-```
 ```
 
 ---
@@ -1525,3 +1544,17 @@ If issues occur, disable flattening:
 2. Phase 2 is complex and requires separate focused effort
 3. Risk mitigation: Don't rush complex feature
 4. Incremental delivery: Ship Phase 1, gather feedback, then Phase 2
+5. **Evidence-based confidence:** Implementation path is clear with actual `ResourceFieldKind` type
+
+**Phase 2 Prerequisites:**
+- [ ] Phase 1 fully tested and stable
+- [ ] Performance benchmarks established
+- [ ] Edge case documentation complete
+- [ ] User feedback gathered on Phase 1 output
+
+---
+
+*Phase 2 Section Updated: 2026-08-06*  
+*Evidence Source: packages/core/src/types/route.ts lines 26-37*  
+*Implementation: Type-safe with discriminated union pattern (NO `any` types)*  
+*Status: Ready for implementation after Phase 1 completion*

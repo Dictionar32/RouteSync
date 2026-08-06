@@ -8,7 +8,7 @@
  */
 
 // Import types yang dibutuhkan
-import type { RouteManifest } from '../../../core/src/types/route'
+import type { RouteManifest, ResourceFieldKind } from '../../../core/src/types/route'
 import { TypeScriptGeneratorPass } from '../../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import type { SemanticTypesArtifact } from '../../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import { ImmutableMap, ImmutableSet } from '../../../core/src/compiler/utils/ImmutableCollections'
@@ -138,7 +138,7 @@ export class CompilerBridge {
      * @returns Array of flattened properties
      */
     private static flattenResourceField(
-        field: any, // ResourceFieldKind from route.ts
+        field: ResourceFieldKind,
         context: FlatteningContext
     ): readonly FlattenedProperty[] {
         const results: FlattenedProperty[] = []
@@ -378,17 +378,38 @@ export class CompilerBridge {
         for (const resource of manifest.resources || []) {
             const properties = new Map<string, PrimitiveType>()
 
-            // Convert each field to property dengan camelCase
+            // Phase 2: Convert each field dengan flattening untuk nested objects
             for (const [fieldName, fieldKind] of Object.entries(resource.fields || {})) {
                 const camelName = this.toCamelCase(fieldName)  // ✅ snake → camel
-                const fieldType = this.resourceFieldToSemanticType(fieldKind)
-                properties.set(camelName, fieldType)  // ✅ camelCase property
+
+                // Create flattening context
+                const context: FlatteningContext = {
+                    prefix: camelName,
+                    visited: new WeakSet(),
+                    usedNames: new Set(Array.from(properties.keys())),
+                    maxDepth: 5,  // Reasonable depth limit
+                    currentDepth: 0
+                }
+
+                // Flatten nested fields (Phase 2)
+                const flattenedProps = this.flattenResourceField(fieldKind, context)
+
+                // Add all flattened properties
+                for (const prop of flattenedProps) {
+                    // Collision check
+                    if (properties.has(prop.name)) {
+                        console.warn(`[CompilerBridge] Property collision: ${prop.name} (from ${prop.originalPath})`)
+                        // Could add suffix like prop.name + '2', but for now just overwrite
+                    }
+
+                    properties.set(prop.name, prop.type)
+                }
             }
 
             // Create ObjectType for resource dengan annotations
             const objectType = new ObjectType(
                 new ImmutableMap(properties),
-                new ImmutableSet(new Set(Object.keys(resource.fields || {}).map(k => this.toCamelCase(k)))),
+                new ImmutableSet(new Set(Array.from(properties.keys()))),  // Use actual property names from flattened result
                 undefined, // no base
                 [], // no interfaces
                 new ImmutableMap(new Map([
@@ -450,7 +471,7 @@ export class CompilerBridge {
      * @param fieldKind - ResourceFieldKind dari manifest
      * @returns PrimitiveType yang sesuai
      */
-    private static resourceFieldToSemanticType(fieldKind: any): PrimitiveType {
+    private static resourceFieldToSemanticType(fieldKind: ResourceFieldKind): PrimitiveType {
         // Handle primitive kinds
         if (fieldKind.kind === 'primitive') {
             const t = fieldKind.type?.toLowerCase() || 'string'

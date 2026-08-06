@@ -275,7 +275,7 @@ Key principle: **Documentation is code. It must stay in sync.**
 - **❓ Questions?**: Check [Glossary](compiler/GLOSSARY.md)
 - **🔧 How do I...?**: Use the "Reading Paths by Role" section above
 
----
+---.kiro/steering
 
 **Last Updated:** July 25, 2026  
 **Compiler Version:** IR v2  

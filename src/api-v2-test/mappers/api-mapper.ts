@@ -2,14 +2,27 @@
 
 // ⭐ Contract types (Response types from Zod schemas)
 import type {
+  OrderDetailResourceResponse,
+  OrderResourceResponse,
+  PaymentResourceResponse,
+  ProdukItemResourceResponse,
   RegisterResponseResponse,
   ProdukItemResponse,
   OrderResponse,
   PaymentResponse,
-  LoginResponse,
+  RegisterResponse,
+  LoginResponseResponse,
+  RedirectResponseResponse,
+  CallbackResponseResponse,
+  ResetPasswordResponseResponse,
+  CategoriesResponseResponse,
+  ReviewsResponseResponse,
+  ProfileResponseResponse,
+  CartResponseResponse,
+  WishlistResponseResponse,
+  LogoutResponseResponse,
   OauthRedirectResponse,
   SocialLoginResponse,
-  CategoriesResponse,
   ProdukListResponse,
   ProdukReviewsGetResponse,
   ProdukReviewsCreateResponse,
@@ -22,10 +35,25 @@ import type {
 
 // ⭐ Frontend types (Transformed display types)
 import type {
+  OrderDetailTransformed,
+  OrderTransformed,
+  PaymentTransformed,
+  ProdukItemTransformed,
   RegisterResponseTransformed,
   ProdukItemTransformed,
   OrderTransformed,
   PaymentTransformed,
+  RegisterTransformed,
+  LoginResponseTransformed,
+  RedirectResponseTransformed,
+  CallbackResponseTransformed,
+  ResetPasswordResponseTransformed,
+  CategoriesResponseTransformed,
+  ReviewsResponseTransformed,
+  ProfileResponseTransformed,
+  CartResponseTransformed,
+  WishlistResponseTransformed,
+  LogoutResponseTransformed,
   CategoriesTransformed,
   OauthRedirectTransformed,
   ProdukReviewsTransformed,
@@ -40,33 +68,200 @@ import { ApiApiField } from '../contract/api-field'
 // ==== READ MAPPERS (API Response → Frontend Model) ====
 // Transforms snake_case API responses to camelCase frontend models
 
+export const toOrderDetailRead = (api: OrderDetailResourceResponse): OrderDetailResourceTransformed => ({
+    id: api.id,
+    produkItemId: api.produk_item_id,
+    produk: api.produk,
+    qty: api.qty,
+    harga: api.harga,
+    subtotal: api.subtotal,
+  })
+
+export const toOrderDetailReadList = (api: OrderDetailResourceResponse[]): OrderDetailResourceTransformed[] =>
+  api.map(toOrderDetailRead)
+
+export const toOrderRead = (api: OrderResourceResponse): OrderResourceTransformed => ({
+    id: api.id,
+    status: api.status,
+    totalHarga: api.total_harga,
+    invoiceNumber: api.invoice_number,
+    paymentStatus: api.payment_status,
+    financialStatus: api.financial_status,
+    fulfillmentStatus: api.fulfillment_status,
+    subtotalMinor: api.subtotal_minor,
+    discountMinor: api.discount_minor,
+    shippingMinor: api.shipping_minor,
+    taxMinor: api.tax_minor,
+    totalHargaMinor: api.total_harga_minor,
+    items: api.items,
+    promotion: api.promotion,
+    shipping: api.shipping,
+    createdAt: api.created_at,
+  })
+
+export const toOrderReadList = (api: OrderResourceResponse[]): OrderResourceTransformed[] =>
+  api.map(toOrderRead)
+
+export const toPaymentRead = (api: PaymentResourceResponse): PaymentResourceTransformed => ({
+    id: api.id,
+    orderId: api.order_id,
+    invoiceNumber: api.invoice_number,
+    metode: api.metode,
+    detail: api.detail,
+    status: api.status,
+    paidAt: api.paid_at,
+    provider: api.provider,
+    providerTxnId: api.provider_txn_id,
+    gatewayStatus: api.gateway_status,
+    amountMinor: api.amount_minor,
+    refundAmountMinor: api.refund_amount_minor,
+    items: api.items,
+    promotion: api.promotion,
+    gateway: api.gateway,
+    totalHarga: api.total_harga,
+  })
+
+export const toPaymentReadList = (api: PaymentResourceResponse[]): PaymentResourceTransformed[] =>
+  api.map(toPaymentRead)
+
+export const toProdukItemRead = (api: ProdukItemResourceResponse): ProdukItemResourceTransformed => ({
+    id: api.id,
+    nama: api.nama,
+    deskripsi: api.deskripsi,
+    image: api.image,
+    imageUrl: api.image_url,
+    categoryId: api.category_id,
+    categoryName: api.category_name,
+    harga: api.harga,
+    stok: api.stok,
+    rating: api.rating,
+    reviewCount: api.review_count,
+  })
+
+export const toProdukItemReadList = (api: ProdukItemResourceResponse[]): ProdukItemResourceTransformed[] =>
+  api.map(toProdukItemRead)
+
 export const toRegisterResponseRead = (api: RegisterResponseResponse): RegisterResponseTransformed => ({
-    rules: api.rules,
+    success: api.success,
+    message: api.message,
+    data: api.data,
   })
 
 export const toRegisterResponseReadList = (api: RegisterResponseResponse[]): RegisterResponseTransformed[] =>
   api.map(toRegisterResponseRead)
 
 export const toProdukItemRead = (api: ProdukItemResponse): ProdukItemTransformed => ({
-    rules: api.rules,
+    id: api.id,
+    createdAt: api.created_at,
+    updatedAt: api.updated_at,
   })
 
 export const toProdukItemReadList = (api: ProdukItemResponse[]): ProdukItemTransformed[] =>
   api.map(toProdukItemRead)
 
 export const toOrderRead = (api: OrderResponse): OrderTransformed => ({
-    rules: api.rules,
+    id: api.id,
+    createdAt: api.created_at,
+    updatedAt: api.updated_at,
   })
 
 export const toOrderReadList = (api: OrderResponse[]): OrderTransformed[] =>
   api.map(toOrderRead)
 
 export const toPaymentRead = (api: PaymentResponse): PaymentTransformed => ({
-    rules: api.rules,
+    id: api.id,
+    createdAt: api.created_at,
+    updatedAt: api.updated_at,
   })
 
 export const toPaymentReadList = (api: PaymentResponse[]): PaymentTransformed[] =>
   api.map(toPaymentRead)
+
+export const toRegisterRead = (api: RegisterResponse): RegisterTransformed => ({
+    id: api.id,
+    createdAt: api.created_at,
+    updatedAt: api.updated_at,
+  })
+
+export const toRegisterReadList = (api: RegisterResponse[]): RegisterTransformed[] =>
+  api.map(toRegisterRead)
+
+export const toLoginResponseRead = (api: LoginResponseResponse): LoginResponseTransformed => ({
+    success: api.success,
+    message: api.message,
+    data: api.data,
+  })
+
+export const toLoginResponseReadList = (api: LoginResponseResponse[]): LoginResponseTransformed[] =>
+  api.map(toLoginResponseRead)
+
+export const toRedirectResponseRead = (api: RedirectResponseResponse): RedirectResponseTransformed => ({
+    provider: api.provider,
+    authUrl: api.auth_url,
+  })
+
+export const toRedirectResponseReadList = (api: RedirectResponseResponse[]): RedirectResponseTransformed[] =>
+  api.map(toRedirectResponseRead)
+
+export const toCallbackResponseRead = (api: CallbackResponseResponse): CallbackResponseTransformed => ({
+    message: api.message,
+    error: api.error,
+  })
+
+export const toCallbackResponseReadList = (api: CallbackResponseResponse[]): CallbackResponseTransformed[] =>
+  api.map(toCallbackResponseRead)
+
+export const toResetPasswordResponseRead = (api: ResetPasswordResponseResponse): ResetPasswordResponseTransformed => ({
+    message: api.message,
+  })
+
+export const toResetPasswordResponseReadList = (api: ResetPasswordResponseResponse[]): ResetPasswordResponseTransformed[] =>
+  api.map(toResetPasswordResponseRead)
+
+export const toCategoriesResponseRead = (api: CategoriesResponseResponse): CategoriesResponseTransformed => ({
+    data: api.data,
+  })
+
+export const toCategoriesResponseReadList = (api: CategoriesResponseResponse[]): CategoriesResponseTransformed[] =>
+  api.map(toCategoriesResponseRead)
+
+export const toReviewsResponseRead = (api: ReviewsResponseResponse): ReviewsResponseTransformed => ({
+    summary: api.summary,
+    reviews: api.reviews,
+  })
+
+export const toReviewsResponseReadList = (api: ReviewsResponseResponse[]): ReviewsResponseTransformed[] =>
+  api.map(toReviewsResponseRead)
+
+export const toProfileResponseRead = (api: ProfileResponseResponse): ProfileResponseTransformed => ({
+    id: api.id,
+    name: api.name,
+    email: api.email,
+  })
+
+export const toProfileResponseReadList = (api: ProfileResponseResponse[]): ProfileResponseTransformed[] =>
+  api.map(toProfileResponseRead)
+
+export const toCartResponseRead = (api: CartResponseResponse): CartResponseTransformed => ({
+    message: api.message,
+  })
+
+export const toCartResponseReadList = (api: CartResponseResponse[]): CartResponseTransformed[] =>
+  api.map(toCartResponseRead)
+
+export const toWishlistResponseRead = (api: WishlistResponseResponse): WishlistResponseTransformed => ({
+    message: api.message,
+  })
+
+export const toWishlistResponseReadList = (api: WishlistResponseResponse[]): WishlistResponseTransformed[] =>
+  api.map(toWishlistResponseRead)
+
+export const toLogoutResponseRead = (api: LogoutResponseResponse): LogoutResponseTransformed => ({
+    message: api.message,
+  })
+
+export const toLogoutResponseReadList = (api: LogoutResponseResponse[]): LogoutResponseTransformed[] =>
+  api.map(toLogoutResponseRead)
 
 // ==== FORM MAPPERS (Frontend Form → API Payload) ====
 // Transforms camelCase form data to snake_case API payloads using ApiApiField

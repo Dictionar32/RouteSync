@@ -20,3 +20,40 @@
 export function resourceBaseName(resourceName: string): string {
     return resourceName
 }
+
+/**
+ * Convert snake_case string to camelCase
+ * Used for property name conversions from database columns
+ * 
+ * @param str - Snake case string (e.g., 'user_id', 'total_harga')
+ * @returns Camel case string (e.g., 'userId', 'totalHarga')
+ * 
+ * @example
+ * ```typescript
+ * toCamelCase('user_id')      // 'userId'
+ * toCamelCase('created_at')   // 'createdAt'
+ * toCamelCase('total_harga')  // 'totalHarga'
+ * ```
+ */
+export function toCamelCase(str: string): string {
+    return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+}
+
+/**
+ * Capitalize first letter of string
+ * Used for building nested property paths
+ * 
+ * @param str - Input string (e.g., 'address', 'name')
+ * @returns String with first letter capitalized (e.g., 'Address', 'Name')
+ * 
+ * @example
+ * ```typescript
+ * capitalize('address')  // 'Address'
+ * capitalize('name')     // 'Name'
+ * capitalize('')         // ''
+ * ```
+ */
+export function capitalize(str: string): string {
+    if (!str) return str
+    return str.charAt(0).toUpperCase() + str.slice(1)
+}

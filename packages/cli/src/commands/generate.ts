@@ -49,6 +49,30 @@ export const generateCommand = new Command('generate')
       const normalizedManifest = normalizeManifest(manifest, kernel)
 
       spinner.text = 'Generating types...'
+
+      // NEW: Generate via compiler path (Phase 3 Day 7)
+      try {
+        const { CompilerBridge } = await import('../generators/CompilerBridge')
+        const compilerOutput = await CompilerBridge.generateTypeScript(manifest)
+
+        // Write compiler-generated types to api-read.ts
+        const compilerTypesPath = path.join(options.output, 'types', 'api-read.ts')
+        await fs.ensureDir(path.dirname(compilerTypesPath))
+        await fs.writeFile(compilerTypesPath, compilerOutput.code)
+
+        console.log(`  [CompilerBridge] Generated:`)
+        console.log(`    - Types: ${compilerOutput.metadata.typeCount}`)
+        console.log(`    - Interfaces: ${compilerOutput.metadata.interfaceCount}`)
+        console.log(`    - LOC: ${compilerOutput.metadata.linesOfCode}`)
+        if (compilerOutput.metadata.warnings.length > 0) {
+          console.log(`    - Warnings: ${compilerOutput.metadata.warnings.length}`)
+        }
+      } catch (compilerError) {
+        console.warn(`  [CompilerBridge] Warning: ${compilerError instanceof Error ? compilerError.message : String(compilerError)}`)
+        console.warn(`  Falling back to legacy generator...`)
+      }
+
+      // Keep existing generator (parallel execution for validation)
       await TypeGenerator.generate(manifest, options.output)
       spinner.text = 'Generating SDK...'
       await SDKGenerator.generate(manifest, options.output, options)
@@ -124,4 +148,3 @@ export const generateCommand = new Command('generate')
       process.exit(1)
     }
   })
-  

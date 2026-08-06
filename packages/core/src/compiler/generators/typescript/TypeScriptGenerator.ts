@@ -996,4 +996,13 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
 
         return extendsTypes;
     }
+
+    /**
+ * Get collected imports as ImportSpec array
+ * 
+ * @returns Array of import specifications
+ */
+    public getImports(): readonly ImportSpec[] {
+        return this.importCollector.getImports();
+    }
 }

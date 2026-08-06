@@ -11,6 +11,10 @@ export class HookGenerator {
     const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const resources = buildResourceMap(classified)
 
+    // BUILD SSOT: ResponseArtifactMap from manifest
+    console.log('🔨 HookGenerator: Building ResponseArtifactMap (SSOT)...')
+    const responseArtifactMap = ResponseAnalysisHelper.buildResponseArtifactMap(manifest)
+
     const knownModels = new Set(manifest.models?.map(m => m.name) || [])
     const knownResources = new Set(manifest.resources?.map(r => r.name) || [])
 
@@ -118,7 +122,16 @@ export class HookGenerator {
           if (!route.raw.response) return 'never'
           // Object response bukan model/resource → pakai Transformed type dari api-read
           const resourceName = toTypeName(route.groupName)
-          const isList = route.actionName === 'list' || route.crudRole === 'index'
+
+          // SSOT: Use ResponseArtifact instead of action name heuristic
+          // Old way: const isList = route.actionName === 'list' || route.crudRole === 'index'  ❌
+          // New way: Read from artifact
+          const artifactId = `${route.name}.Response`
+          const artifact = responseArtifactMap?.get(artifactId)
+          const isList = artifact?.body && 'shape' in artifact.body
+            ? (artifact.body.shape === 'collection' || artifact.body.shape === 'paginated')
+            : false
+
           const readType = isList ? `${resourceName}Index` : `${resourceName}Show`
           importedTypes.add(readType)
           return readType

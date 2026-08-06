@@ -60,3 +60,19 @@ export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
 // RouteSync Compiler Core v6.0
 export * as v6 from './compiler'
 
+// ResponseArtifact and related types (SSOT for response analysis)
+export { ResponseArtifact, ResponseArtifactBuilder } from './compiler/ir/ResponseArtifact'
+export type {
+  ResponseDescriptor,
+  ResponseBody,
+  ResourceBody,
+  ModelBody,
+  ObjectBody,
+  PrimitiveBody,
+  ConfidenceScore,
+  ObjectSchema,
+  PropertyType,
+  PropertyDescriptor,
+  ModelAttribute
+} from './compiler/ir/ResponseArtifact'
+

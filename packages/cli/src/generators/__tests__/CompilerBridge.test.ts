@@ -1,0 +1,189 @@
+/**
+ * CompilerBridge.test.ts - REFACTORED
+ * Tests for CompilerBridge orchestration
+ * 
+ * Focus: Verify Bridge orchestrates correctly, not implementation details
+ * Implementation logic tested in:
+ * - PrimitiveTypeFactory.test.ts
+ * - resource-flattening.test.ts
+ * - TypeScriptGeneratorPass.test.ts
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { CompilerBridge } from '../CompilerBridge'
+import type { RouteManifest } from '../../../../core/src/types/route'
+
+// Mock dependencies
+vi.mock('../../../../core/src/compiler/passes/TypeScriptGeneratorPass', () => ({
+    TypeScriptGeneratorPass: vi.fn().mockImplementation(() => ({
+        run: vi.fn().mockReturnValue([{
+            typeId: 'GeneratedTypeScript',
+            code: 'export interface User { id: number; name: string; }',
+            imports: [{ from: './types', names: ['User'] }],
+            interfaces: [{ name: 'User', properties: [] }],
+            generationMetadata: {
+                typeCount: 1,
+                interfaceCount: 1,
+                linesOfCode: 1,
+                warnings: []
+            },
+            metadata: {
+                hash: 'test-hash',
+                producer: 'TypeScriptGeneratorPass',
+                dependencies: [],
+                timestamp: Date.now(),
+                revision: '1.0.0'
+            }
+        }])
+    }))
+}))
+
+vi.mock('../utils/PrimitiveTypeFactory', () => ({
+    PrimitiveTypeFactory: {
+        fromString: vi.fn().mockReturnValue({ kind: 'primitive', name: 'string' }),
+        fromSqlType: vi.fn().mockReturnValue({ kind: 'primitive', name: 'string' })
+    }
+}))
+
+vi.mock('../utils/resource-flattening', () => ({
+    flattenResourceFields: vi.fn().mockReturnValue(new Map([
+        ['id', { kind: 'primitive', name: 'number' }],
+        ['name', { kind: 'primitive', name: 'string' }]
+    ]))
+}))
+
+describe('CompilerBridge - Refactored', () => {
+    let mockManifest: RouteManifest
+
+    beforeEach(() => {
+        mockManifest = {
+            version: '1.0',
+            baseURL: 'http://localhost',
+            routes: [],
+            models: [
+                {
+                    name: 'User',
+                    table: 'users',
+                    columns: [
+                        { name: 'id', type: 'bigint', nullable: false },
+                        { name: 'user_name', type: 'varchar', nullable: false }
+                    ]
+                }
+            ],
+            resources: [
+                {
+                    name: 'UserResource',
+                    fields: {
+                        id: { kind: 'primitive', type: 'number' },
+                        name: { kind: 'primitive', type: 'string' }
+                    }
+                }
+            ],
+            generatedAt: new Date().toISOString()
+        }
+    })
+
+    describe('generateTypeScript', () => {
+        it('should orchestrate manifest → types → pass → output', async () => {
+            const result = await CompilerBridge.generateTypeScript(mockManifest)
+
+            expect(result).toBeDefined()
+            expect(result.code).toBeDefined()
+            expect(result.imports).toBeDefined()
+            expect(result.interfaces).toBeDefined()
+            expect(result.metadata).toBeDefined()
+        })
+
+        it('should return CompilerOutput with correct structure', async () => {
+            const result = await CompilerBridge.generateTypeScript(mockManifest)
+
+            // Verify top-level structure
+            expect(result).toBeDefined()
+            expect(typeof result.code).toBe('string')
+            expect(Array.isArray(result.imports)).toBe(true)
+            expect(Array.isArray(result.interfaces)).toBe(true)
+            expect(result.metadata).toBeDefined()
+
+            // Verify metadata structure
+            expect(typeof result.metadata.typeCount).toBe('number')
+            expect(typeof result.metadata.interfaceCount).toBe('number')
+            expect(typeof result.metadata.linesOfCode).toBe('number')
+            expect(Array.isArray(result.metadata.warnings)).toBe(true)
+        })
+
+        it('should add warning when no models in manifest', async () => {
+            mockManifest.models = []
+
+            const result = await CompilerBridge.generateTypeScript(mockManifest)
+
+            expect(result.metadata.warnings).toContain('No models found in manifest')
+        })
+
+        it('should add warning when no resources in manifest', async () => {
+            mockManifest.resources = []
+
+            const result = await CompilerBridge.generateTypeScript(mockManifest)
+
+            expect(result.metadata.warnings).toContain('No resources found in manifest')
+        })
+
+        it('should handle manifest with both models and resources', async () => {
+            const result = await CompilerBridge.generateTypeScript(mockManifest)
+
+            expect(result.metadata.typeCount).toBeGreaterThanOrEqual(1)
+            expect(result.metadata.warnings).not.toContain('No models found in manifest')
+            expect(result.metadata.warnings).not.toContain('No resources found in manifest')
+        })
+
+        it('should throw error if Pass execution fails', async () => {
+            // Mock Pass to throw error
+            vi.resetModules()
+            vi.doMock('../../../../core/src/compiler/passes/TypeScriptGeneratorPass', () => ({
+                TypeScriptGeneratorPass: vi.fn().mockImplementation(() => ({
+                    run: vi.fn().mockImplementation(() => {
+                        throw new Error('Pass execution failed')
+                    })
+                }))
+            }))
+
+            await expect(
+                CompilerBridge.generateTypeScript(mockManifest)
+            ).rejects.toThrow('CompilerBridge generation failed')
+        })
+    })
+
+    describe('Architecture Compliance', () => {
+        it('should only orchestrate, not implement business logic', () => {
+            // Verify Bridge delegates to utilities
+            const bridgeSource = require('fs').readFileSync(
+                require('path').resolve(__dirname, '../CompilerBridge.ts'),
+                'utf-8'
+            )
+
+            // Should use utilities, not implement inline
+            expect(bridgeSource).toContain('PrimitiveTypeFactory')
+            expect(bridgeSource).toContain('flattenResourceFields')
+            expect(bridgeSource).toContain('toCamelCase')
+            expect(bridgeSource).toContain('TypeScriptGeneratorPass')
+
+            // Should NOT have inline flattening logic
+            expect(bridgeSource).not.toContain('function flattenResourceField')
+            expect(bridgeSource).not.toContain('function primitiveStringToSemanticType')
+        })
+
+        it('should be significantly smaller than original', () => {
+            const fs = require('fs')
+            const path = require('path')
+
+            const currentSize = fs.readFileSync(
+                path.resolve(__dirname, '../CompilerBridge.ts'),
+                'utf-8'
+            ).split('\n').length
+
+            const originalSize = 516 // From Phase 2 report
+
+            expect(currentSize).toBeLessThan(originalSize)
+            expect(currentSize).toBeLessThan(300) // Should be under 300 lines
+        })
+    })
+})

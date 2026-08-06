@@ -13,16 +13,20 @@ import type { TSVisitor } from '../visitor/TSVisitor';
 /**
  * Array type node
  * 
+ * Mendukung readonly distinction:
+ * - readonly=true → readonly T[] atau ReadonlyArray<T>
+ * - readonly=false → T[] atau Array<T>
+ * 
  * @example
  * ```typescript
- * // string[]
- * new TSArrayType(TSTypeReference.string())
+ * // string[] (mutable)
+ * new TSArrayType(TSTypeReference.string(), false)
  * 
- * // User[]
- * new TSArrayType(new TSTypeReference('User'))
+ * // readonly User[] (immutable)
+ * new TSArrayType(new TSTypeReference('User'), true)
  * 
- * // Array<number>
- * new TSArrayType(TSTypeReference.number())
+ * // ReadonlyArray<number>
+ * new TSArrayType(TSTypeReference.number(), true)
  * ```
  */
 export class TSArrayType implements TSNode, TSTypeNode {
@@ -30,6 +34,7 @@ export class TSArrayType implements TSNode, TSTypeNode {
 
     constructor(
         public readonly elementType: TSTypeNode,
+        public readonly readonly: boolean = false,
         public readonly span?: SourceSpan
     ) {
         Object.freeze(this);
@@ -37,15 +42,33 @@ export class TSArrayType implements TSNode, TSTypeNode {
 
     /**
      * Create array of arrays (2D array)
+     * Preserves readonly modifier pada outer array.
      * 
      * @example
      * ```typescript
-     * // string[][]
-     * TSArrayType.string().toArray()
+     * // readonly string[][]
+     * new TSArrayType(TSTypeReference.string(), true).toArray()
+     * 
+     * // string[][] (mutable)
+     * new TSArrayType(TSTypeReference.string(), false).toArray()
      * ```
      */
     public toArray(): TSArrayType {
-        return new TSArrayType(this, this.span);
+        return new TSArrayType(this, this.readonly, this.span);
+    }
+
+    /**
+     * Create readonly variant dari array ini
+     * 
+     * @example
+     * ```typescript
+     * // Convert mutable to readonly
+     * const mutable = new TSArrayType(TSTypeReference.string(), false);
+     * const readonly = mutable.toReadonly(); // readonly string[]
+     * ```
+     */
+    public toReadonly(): TSArrayType {
+        return new TSArrayType(this.elementType, true, this.span);
     }
 
     /**

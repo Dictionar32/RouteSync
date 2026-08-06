@@ -31,6 +31,45 @@ export interface CompilerOutput {
 }
 
 /**
+ * Context for nested object flattening (Phase 2)
+ * Tracks state during recursive traversal of ResourceFieldKind
+ */
+interface FlatteningContext {
+    /** Current property path prefix (e.g., 'shipping', 'shippingAddress') */
+    readonly prefix: string
+
+    /** Visited fields for circular reference detection */
+    readonly visited: WeakSet<object>
+
+    /** Used property names for collision detection */
+    readonly usedNames: Set<string>
+
+    /** Maximum nesting depth to prevent stack overflow */
+    readonly maxDepth: number
+
+    /** Current depth in recursion */
+    readonly currentDepth: number
+}
+
+/**
+ * Result of flattening one ResourceFieldKind
+ * Represents a single flattened property with its type
+ */
+interface FlattenedProperty {
+    /** Final camelCase property name (e.g., 'shippingAddress') */
+    readonly name: string
+
+    /** Semantic type for this property */
+    readonly type: PrimitiveType
+
+    /** Original path for debugging (e.g., 'shipping.address') */
+    readonly originalPath: string
+
+    /** Whether this property can be null */
+    readonly nullable: boolean
+}
+
+/**
  * CompilerBridge class
  * Main orchestrator untuk bridge manifest → compiler → output
  */
@@ -80,6 +119,159 @@ export class CompilerBridge {
 
         // Default to string for text, varchar, char, etc.
         return new PrimitiveType(PrimitiveKind.STRING)
+    }
+
+    /**
+     * Flatten nested ResourceFieldKind into flat properties (Phase 2)
+     * Recursively traverses nested objects and builds flat camelCase property names
+     * 
+     * Evidence-based implementation using ACTUAL ResourceFieldKind type
+     * from packages/core/src/types/route.ts
+     * 
+     * Example:
+     *   Input: { kind: 'object', fields: { address: { kind: 'primitive', type: 'string' } } }
+     *   Context: { prefix: 'shipping', ... }
+     *   Output: [{ name: 'shippingAddress', type: PrimitiveType(STRING), ... }]
+     * 
+     * @param field - ResourceFieldKind from manifest
+     * @param context - Flattening context with prefix, visited set, etc.
+     * @returns Array of flattened properties
+     */
+    private static flattenResourceField(
+        field: any, // ResourceFieldKind from route.ts
+        context: FlatteningContext
+    ): readonly FlattenedProperty[] {
+        const results: FlattenedProperty[] = []
+
+        // Depth limit protection
+        if (context.currentDepth > context.maxDepth) {
+            console.warn(`[CompilerBridge] Max depth ${context.maxDepth} reached at "${context.prefix}"`)
+            return results
+        }
+
+        // Circular reference check
+        if (typeof field === 'object' && field !== null && context.visited.has(field)) {
+            console.warn(`[CompilerBridge] Circular reference detected at "${context.prefix}"`)
+            return results
+        }
+
+        const newVisited = new WeakSet(context.visited)
+        if (typeof field === 'object' && field !== null) {
+            newVisited.add(field)
+        }
+
+        // Type-safe discriminated union handling based on ResourceFieldKind
+        const kind = field?.kind
+
+        switch (kind) {
+            case 'primitive': {
+                // Base case: primitive type
+                const propName = context.prefix || 'unknownProp'
+                const nullable = field.nullable ?? false
+                const typeStr = field.type || 'string'
+
+                results.push({
+                    name: propName,
+                    type: this.primitiveStringToSemanticType(typeStr),
+                    originalPath: context.prefix,
+                    nullable
+                })
+                break
+            }
+
+            case 'property_access': {
+                // Handle property_access kind (most common in real manifests!)
+                // Extract type from resolved.type
+                const resolvedType = field.resolved?.type || 'string'
+                const propName = context.prefix || 'unknownProp'
+                const nullable = field.nullable ?? false
+
+                results.push({
+                    name: propName,
+                    type: this.primitiveStringToSemanticType(resolvedType),
+                    originalPath: context.prefix,
+                    nullable
+                })
+                break
+            }
+
+            case 'variable': {
+                // Handle variable kind - extract from resolved
+                const resolvedType = field.resolved?.type || 'string'
+                const propName = context.prefix || 'unknownVar'
+                const nullable = field.nullable ?? false
+
+                results.push({
+                    name: propName,
+                    type: this.primitiveStringToSemanticType(resolvedType),
+                    originalPath: context.prefix,
+                    nullable
+                })
+                break
+            }
+
+            case 'object': {
+                // Recursive case: nested object
+                if (!field.fields || typeof field.fields !== 'object') {
+                    console.warn(`[CompilerBridge] Object has no fields at "${context.prefix}"`)
+                    break
+                }
+
+                for (const [key, nestedField] of Object.entries(field.fields)) {
+                    const camelKey = this.toCamelCase(key)
+
+                    // Build path: 'shipping' + 'Address' = 'shippingAddress'
+                    const fullPrefix = context.prefix
+                        ? `${context.prefix}${this.capitalize(camelKey)}`
+                        : camelKey
+
+                    const nestedContext: FlatteningContext = {
+                        prefix: fullPrefix,
+                        visited: newVisited,
+                        usedNames: context.usedNames,
+                        maxDepth: context.maxDepth,
+                        currentDepth: context.currentDepth + 1
+                    }
+
+                    // Recurse into nested field
+                    const nestedResults = this.flattenResourceField(nestedField, nestedContext)
+                    results.push(...nestedResults)
+                }
+                break
+            }
+
+            case 'model':
+            case 'resource': {
+                // Model/Resource reference - treat as string for Phase 2
+                // Phase 3 could expand this to follow references
+                const propName = context.prefix || 'unknownModel'
+                const nullable = field.nullable ?? false
+
+                results.push({
+                    name: propName,
+                    type: new PrimitiveType(PrimitiveKind.STRING),
+                    originalPath: context.prefix,
+                    nullable
+                })
+                break
+            }
+
+            case 'unknown':
+            default: {
+                // Unknown type - fallback to string
+                const propName = context.prefix || 'unknownProp'
+
+                results.push({
+                    name: propName,
+                    type: new PrimitiveType(PrimitiveKind.STRING),
+                    originalPath: context.prefix,
+                    nullable: true
+                })
+                break
+            }
+        }
+
+        return results
     }
 
     /**

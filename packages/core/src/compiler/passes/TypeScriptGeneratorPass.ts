@@ -246,6 +246,10 @@ export class TypeScriptGeneratorPass
      * Build code string from types
      * 
      * Phase 1 implementation - generates semantic interface names + conditional aliases
+     * 
+     * FIXED: Detect resources by naming convention, not just kind annotation
+     * - Resources end with "Resource" OR "Response"
+     * - Models are database models (don't get Show/Index aliases)
      */
     private buildCodeFromTypes(types: readonly SemanticType[]): string {
         const lines: string[] = [];
@@ -274,14 +278,20 @@ export class TypeScriptGeneratorPass
                 lines.push('}');
                 lines.push('');
 
-                // ✅ Conditionally generate Show/Index aliases
-                if (kindAnnotation === 'resource') {
-                    // Only for Resources (Laravel Resource classes)
+                // ✅ FIXED: Detect resources by naming convention
+                // Resources: ends with "Resource" OR "Response"
+                // Models: everything else (database models)
+                const isResource = kindAnnotation === 'resource' ||
+                    baseName.endsWith('Resource') ||
+                    baseName.endsWith('Response');
+
+                if (isResource) {
+                    // Generate Show/Index aliases for ALL resources
                     lines.push(`export type ${baseName}Show = ${interfaceName}`);
                     lines.push(`export type ${baseName}Index = ${interfaceName}[]`);
                     lines.push('');
                 }
-                // If kindAnnotation === 'model', skip aliases (DB models don't need Show/Index)
+                // If it's a model (no Resource/Response suffix), skip aliases
             }
         }
 
@@ -295,6 +305,10 @@ export class TypeScriptGeneratorPass
         switch (type.kind) {
             case 'primitive':
                 // PrimitiveType has 'type' property (PrimitiveKind enum)
+                // FIXED: datetime → string (ISO datetime strings in JSON)
+                if (type.type === 'datetime') {
+                    return 'string';
+                }
                 return type.type;
             case 'reference':
                 return type.name;

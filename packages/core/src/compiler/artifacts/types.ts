@@ -26,6 +26,12 @@ import type { CompilationResultArtifact } from './CompilationResultArtifact';
 // Response analysis artifacts (Laravel-specific)
 import type { ResponseArtifact, ValidationArtifact, ModelArtifact, ResourceArtifact, RouteArtifact } from '../ir/ResponseArtifact';
 
+// TypeScript generation artifact
+import type { GeneratedTypeScriptArtifact } from './GeneratedTypeScriptArtifact';
+
+// Import at top
+import type { SemanticTypesArtifact } from '../passes/TypeScriptGeneratorPass';
+
 /**
  * Central artifact registry mapping keys to concrete artifact types.
  * 
@@ -53,6 +59,10 @@ export interface ArtifactRegistry {
     ModelAnalysis: ModelArtifact;
     ResourceAnalysis: ResourceArtifact;
     RouteAnalysis: RouteArtifact;
+
+    // ✨ NEW: TypeScript Generation Artifact
+    SemanticTypes: SemanticTypesArtifact;
+    GeneratedTypeScript: GeneratedTypeScriptArtifact;
 }
 
 /**

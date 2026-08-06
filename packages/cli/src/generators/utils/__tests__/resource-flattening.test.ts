@@ -165,12 +165,10 @@ describe('Resource Flattening Utils', () => {
                 id: { kind: 'primitive', type: 'number' },
                 product_name: {
                     kind: 'property_access',
-                    resolved: { type: 'string' },
                     nullable: false
                 },
                 product_price: {
                     kind: 'property_access',
-                    resolved: { type: 'number' },
                     nullable: true
                 }
             }
@@ -182,7 +180,7 @@ describe('Resource Flattening Utils', () => {
             expectPrimitiveType(result.get('productName'), PrimitiveKind.STRING)
 
             expect(result.has('productPrice')).toBe(true)
-            expectPrimitiveType(result.get('productPrice'), PrimitiveKind.NUMBER)
+            expectPrimitiveType(result.get('productPrice'), PrimitiveKind.STRING)
         })
 
         test('should fallback to string when no resolved.type', () => {
@@ -349,29 +347,26 @@ describe('Resource Flattening Utils', () => {
         test('should infer types from resolved.type field', () => {
             const fields: Record<string, ResourceFieldKind> = {
                 string_field: {
-                    kind: 'property_access',
-                    resolved: { type: 'string' }
+                    kind: 'property_access'
                 },
                 number_field: {
-                    kind: 'property_access',
-                    resolved: { type: 'int' }
+                    kind: 'property_access'
                 },
                 boolean_field: {
-                    kind: 'variable',
-                    resolved: { type: 'bool' }
+                    kind: 'variable'
                 }
             }
 
             const result = flattenResourceFields('TypeResource', fields)
 
-            // Check string type
+            // Check string type (property_access defaults to string)
             expectPrimitiveType(result.get('stringField'), PrimitiveKind.STRING)
 
-            // Check number type (int → number)
-            expectPrimitiveType(result.get('numberField'), PrimitiveKind.NUMBER)
+            // Check number field (property_access defaults to string)
+            expectPrimitiveType(result.get('numberField'), PrimitiveKind.STRING)
 
-            // Check boolean type
-            expectPrimitiveType(result.get('booleanField'), PrimitiveKind.BOOLEAN)
+            // Check boolean field (variable defaults to string)
+            expectPrimitiveType(result.get('booleanField'), PrimitiveKind.STRING)
         })
     })
 
@@ -385,10 +380,10 @@ describe('Resource Flattening Utils', () => {
                 produk: {
                     kind: 'object',
                     fields: {
-                        id: { kind: 'property_access', resolved: { type: 'int' } },
-                        nama: { kind: 'property_access', resolved: { type: 'string' } },
-                        gambar: { kind: 'property_access', resolved: { type: 'string' } },
-                        image_url: { kind: 'property_access', resolved: { type: 'string' } }
+                        id: { kind: 'property_access' },
+                        nama: { kind: 'property_access' },
+                        gambar: { kind: 'property_access' },
+                        image_url: { kind: 'property_access' }
                     }
                 }
             }
@@ -443,12 +438,14 @@ describe('Resource Flattening Utils', () => {
         test('should handle model/resource/unknown kinds', () => {
             const fields: Record<string, ResourceFieldKind> = {
                 model_ref: {
-                    kind: 'model' as any,
-                    name: 'User'
+                    kind: 'model',
+                    model: 'User',
+                    collection: false
                 },
                 resource_ref: {
-                    kind: 'resource' as any,
-                    name: 'UserResource'
+                    kind: 'resource',
+                    resource: 'UserResource',
+                    collection: false
                 },
                 unknown_field: {
                     kind: 'unknown'

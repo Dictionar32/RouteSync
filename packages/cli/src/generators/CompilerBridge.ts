@@ -47,6 +47,42 @@ export class CompilerBridge {
     }
 
     /**
+     * Capitalize first letter of string
+     * Used for building nested property paths (e.g., 'address' → 'Address')
+     * 
+     * @param str - Input string
+     * @returns String with first letter capitalized
+     */
+    private static capitalize(str: string): string {
+        if (!str) return str
+        return str.charAt(0).toUpperCase() + str.slice(1)
+    }
+
+    /**
+     * Convert primitive type string to SemanticType (PrimitiveType)
+     * Handles various type string formats from manifest resolved.type
+     * 
+     * @param typeStr - Type string from manifest (e.g., 'number', 'string', 'boolean')
+     * @returns Corresponding PrimitiveType
+     */
+    private static primitiveStringToSemanticType(typeStr: string): PrimitiveType {
+        const normalized = typeStr.toLowerCase()
+
+        if (normalized === 'number' || normalized === 'int' || normalized === 'float' || normalized === 'double') {
+            return new PrimitiveType(PrimitiveKind.NUMBER)
+        }
+        if (normalized === 'boolean' || normalized === 'bool') {
+            return new PrimitiveType(PrimitiveKind.BOOLEAN)
+        }
+        if (normalized === 'datetime' || normalized === 'date' || normalized === 'timestamp') {
+            return new PrimitiveType(PrimitiveKind.DATETIME)
+        }
+
+        // Default to string for text, varchar, char, etc.
+        return new PrimitiveType(PrimitiveKind.STRING)
+    }
+
+    /**
      * Generate TypeScript from manifest
      * 
      * @param manifest - RouteManifest dari CLI scan
@@ -124,19 +160,23 @@ export class CompilerBridge {
         for (const model of manifest.models || []) {
             const properties = new Map<string, PrimitiveType>()
 
-            // Convert each column to property
+            // Convert each column to property dengan camelCase
             for (const column of model.columns || []) {
+                const camelName = this.toCamelCase(column.name)  // ✅ snake → camel
                 const columnType = this.sqlToSemanticType(column.type)
-                properties.set(column.name, columnType)
+                properties.set(camelName, columnType)  // ✅ camelCase property
             }
 
-            // Create ObjectType for model
+            // Create ObjectType for model dengan annotations
             const objectType = new ObjectType(
                 new ImmutableMap(properties),
-                new ImmutableSet(new Set(model.columns?.map(c => c.name) || [])),
+                new ImmutableSet(new Set(model.columns?.map(c => this.toCamelCase(c.name)) || [])),
                 undefined, // no base
                 [], // no interfaces
-                new ImmutableMap(new Map()) // no annotations
+                new ImmutableMap(new Map([
+                    ['name', model.name],    // ✅ Name: "Order", "User", etc
+                    ['kind', 'model']        // ✅ Kind: DB model (no Show/Index)
+                ]))
             )
 
             typesMap.set(model.name, objectType)
@@ -146,19 +186,23 @@ export class CompilerBridge {
         for (const resource of manifest.resources || []) {
             const properties = new Map<string, PrimitiveType>()
 
-            // Convert each field to property
+            // Convert each field to property dengan camelCase
             for (const [fieldName, fieldKind] of Object.entries(resource.fields || {})) {
+                const camelName = this.toCamelCase(fieldName)  // ✅ snake → camel
                 const fieldType = this.resourceFieldToSemanticType(fieldKind)
-                properties.set(fieldName, fieldType)
+                properties.set(camelName, fieldType)  // ✅ camelCase property
             }
 
-            // Create ObjectType for resource
+            // Create ObjectType for resource dengan annotations
             const objectType = new ObjectType(
                 new ImmutableMap(properties),
-                new ImmutableSet(new Set(Object.keys(resource.fields || {}))),
+                new ImmutableSet(new Set(Object.keys(resource.fields || {}).map(k => this.toCamelCase(k)))),
                 undefined, // no base
                 [], // no interfaces
-                new ImmutableMap(new Map()) // no annotations
+                new ImmutableMap(new Map([
+                    ['name', resource.name],     // ✅ Name: "OrderResource"
+                    ['kind', 'resource']         // ✅ Kind: Resource (has Show/Index)
+                ]))
             )
 
             typesMap.set(resource.name, objectType)

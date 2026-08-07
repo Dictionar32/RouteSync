@@ -1,788 +1,828 @@
-# Implementation Prompt: Output Generation System (api-read.ts & api-form.ts)
+# Implementation Prompt: Form Generation Pass (api-form.ts)
 
-## 🎯 Task Overview
+## 🎯 Overview
 
-**STATUS UPDATE:**
-- ✅ **api-read.ts** - Sudah selesai di engine baru (`ReadEmitter` di compiler)
-- ❌ **api-form.ts** - Belum ada di engine baru, masih pakai engine lama
+**Current Status:**
+- ✅ **api-read.ts**: Working with TypeScriptGeneratorPass in new compiler engine
+- ❌ **api-form.ts**: Old engine at `packages/cli/src/generators/layers/FormEmitter.ts`
+- 🎯 **Goal**: Implement FormGeneratorPass in new compiler-based architecture
 
-**Task:** Implementasikan **FormEmitter baru di engine compiler** (`packages/core/src/compiler/emitters/FormEmitter.ts`) yang sejajar dengan ReadEmitter, menggunakan arsitektur compiler-based yang bersih.
-
-**Engine Lama vs Baru:**
-- Engine Lama: `packages/cli/src/generators/layers/FormEmitter.ts` (masih pakai IR architecture lama)
-- Engine Baru: `packages/core/src/compiler/` (compiler-based, belum ada FormEmitter)
+**Task:** Create **FormGeneratorPass** (`packages/core/src/compiler/passes/FormGeneratorPass.ts`) following the same pattern as TypeScriptGeneratorPass, but for form type generation.
 
 ---
 
-## 📋 Required Skills
+## ⚠️ CRITICAL: Data Source Difference
 
-Sebelum memulai implementasi, **WAJIB** activate 2 skills berikut:
+**api-read.ts** (Response Types):
+- **Source**: `manifest.resources` - Laravel Resources (transformed output)
+- **Contains**: Interface definitions dengan Show/Index aliases
+- **Example**: `UserTransformed`, `UserShow`, `UserIndex`
 
-### 1. Reverse Engineering Skill
-```bash
-# Activate skill untuk evidence-based analysis
-disclose_context: "reverse-engineering"
-```
+**api-form.ts** (Request Types):
+- **Source**: `manifest.routes[].validation` - FormRequest rules ONLY
+- **Contains**: Form types dengan actions (create, update)
+- **Example**: `UserForm = { create: {...}, update: {...} }`
 
-**Why needed:**
-- Memahami existing generator (ReadEmitter, FormEmitter)
-- Trace data flow dari manifest → IR → output
-- Identify duplicate type inference systems
-- Document evidence-based findings
+**❌ JANGAN:**
+- Generate model types di api-form.ts
+- Generate Show/Index aliases di api-form.ts
+- Process `manifest.resources` atau `manifest.models`
 
-### 2. Compiler Bridge Architecture Skill
-```bash
-# Activate skill untuk clean architecture
-disclose_context: "compiler-bridge-architecture"
-```
-
-**Why needed:**
-- Memastikan Bridge hanya translate, tidak analyze
-- Separate concerns antara semantic vs transformation
-- Follow SSOT (Single Source of Truth) principle
-- Proper artifact boundaries
+**✅ HANYA:**
+- Process validation rules dari routes
+- Generate form types dengan action-based structure
+- Group by resource name dari route path
 
 ---
 
-## 📖 Context: Output Files Purpose
+## 📁 Compiler Architecture (New Engine)
 
-### api-read.ts — Backend → Frontend (Response Types)
+### Directory Structure
 
-**Purpose:** Representasi data yang **keluar** dari backend, sudah transformed untuk frontend consumption.
-
-**Source:** Laravel Resources (UserResource::toArray())
-**Target:** TypeScript interfaces dengan camelCase, nested fields flattened
-
-**Data Flow:**
 ```
-Backend Response (snake_case, nested)
-    ↓
-Resource Transformation
-    ↓
-api-read.ts (camelCase, flattened)
-    ↓
-Frontend UI Components
+packages/core/src/compiler/
+├── passes/                          # ← Compiler passes (transformation logic)
+│   ├── CompilerPass.ts                 # Base interface
+│   ├── PassManager.ts                  # Pass orchestration
+│   ├── CompilationState.ts             # Artifact accumulation
+│   ├── TypeScriptGeneratorPass.ts      # ✅ WORKING (api-read.ts)
+│   └── FormGeneratorPass.ts            # ❌ TODO: Implement this
+│
+├── artifacts/                       # ← Artifact definitions
+│   ├── types.ts                        # Artifact registry
+│   ├── GeneratedTypeScriptArtifact.ts  # api-read.ts artifact
+│   └── GeneratedFormArtifact.ts        # ❌ TODO: Create this
+│
+├── emitters/                        # ← Pure code emitters (visitor pattern)
+│   ├── IEmitter.ts                     # Base interface
+│   ├── TypeScriptEmitter.ts            # Pure TypeScript emitter
+│   └── ContractEmitter.ts              # Contract code emitter
+│
+├── ir/                             # ← Intermediate representations
+│   └── ContractGraph.ts               # Contract graph IR
+│
+└── types/                          # ← Type system
+    └── SemanticType.ts                # Core type definitions
 ```
 
-### api-form.ts — Frontend → Backend (Request Types)
+### Old Engine (Reference Only)
 
-**Purpose:** Representasi data yang **masuk** ke backend untuk create/update operations.
-
-**Source:** Laravel FormRequest validation rules
-**Target:** TypeScript types dengan multiple actions (Create, Update, Get)
-
-**Data Flow:**
 ```
-Frontend Form Input
-    ↓
-api-form.ts (camelCase, optional handling)
-    ↓
-API Request (transformed back to snake_case)
-    ↓
-Backend Validation & Storage
+packages/cli/src/generators/layers/
+├── FormEmitter.ts     # ❌ OLD: IR-based architecture (obsolete)
+├── ReadEmitter.ts     # ❌ OLD: IR-based architecture (obsolete)
+└── utils/
+    └── manifest-enricher.ts
+```
+
+**⚠️ CRITICAL:** Do NOT modify old engine files. New implementation goes in `packages/core/src/compiler/`.
+
+---
+
+## 🔄 Data Flow
+
+### Current Working Flow (api-read.ts)
+
+```
+1. CLI scans Laravel routes
+   ↓
+2. RouteManifest JSON created
+   ↓
+3. CompilerBridge.manifestToSemanticTypes()
+   ├─ Extract resources from manifest
+   ├─ Flatten nested objects
+   └─ Convert to SemanticType[] (ObjectType)
+   ↓
+4. SemanticTypesArtifact created
+   {
+     typeId: 'SemanticTypes',
+     types: SemanticType[],  // Array of ObjectType
+     metadata: { ... }
+   }
+   ↓
+5. TypeScriptGeneratorPass.run([semanticTypesArtifact])
+   ├─ Uses TypeScriptGenerator internally
+   ├─ Converts SemanticType → TypeScript interfaces
+   └─ Adds Show/Index aliases for resources
+   ↓
+6. GeneratedTypeScriptArtifact returned
+   {
+     typeId: 'GeneratedTypeScript',
+     code: string,  // Complete TypeScript code
+     imports: GeneratedImport[],
+     interfaces: GeneratedInterface[],
+     metadata: { ... }
+   }
+   ↓
+7. CLI writes to: test-output/types/api-read.ts
+```
+
+### New Flow to Implement (api-form.ts)
+
+```
+1. CLI scans Laravel routes (same)
+   ↓
+2. RouteManifest JSON created (same)
+   ↓
+3. CompilerBridge.manifestToRequestTypes()  ❌ TODO: New method
+   ├─ Extract request/validation data from manifest
+   ├─ Process FormRequest rules per endpoint
+   └─ Convert to RequestType[] with actions (Create, Update, etc)
+   ↓
+4. RequestTypesArtifact created  ❌ TODO: New artifact type
+   {
+     typeId: 'RequestTypes',
+     requests: RequestType[],  // Per-endpoint request types
+     metadata: { ... }
+   }
+   ↓
+5. FormGeneratorPass.run([requestTypesArtifact])  ❌ TODO: New pass
+   ├─ Process each RequestType
+   ├─ Generate form types per action
+   └─ Handle optional fields and validation
+   ↓
+6. GeneratedFormArtifact returned  ❌ TODO: New artifact type
+   {
+     typeId: 'GeneratedForm',
+     code: string,  // Complete form type code
+     forms: FormDefinition[],
+     metadata: { ... }
+   }
+   ↓
+7. CLI writes to: test-output/forms/api-form.ts
 ```
 
 ---
 
-## 📊 Contoh Output Nyata
+## 📚 Key References
 
-### 1. api-read.ts — Nested Resource Flattened
+### 1. TypeScriptGeneratorPass (Pattern to Follow)
 
-**Backend (Laravel Resource):**
-```php
-// OrderDetailResource.php
-public function toArray($request): array
-{
-    return [
-        'id' => $this->id,
-        'produk_item_id' => $this->produk_item_id,
-        'produk' => [
-            'id' => $this->produk->id,
-            'nama' => $this->produk->nama,
-            'gambar' => $this->produk->gambar,
-        ],
-        'qty' => $this->qty,
-        'harga' => $this->harga,
-    ];
-}
-```
+**File:** `packages/core/src/compiler/passes/TypeScriptGeneratorPass.ts`
 
-**Generated Output (api-read.ts):**
+**Key Points:**
+- Implements `CompilerPass<['SemanticTypes'], ['GeneratedTypeScript']>`
+- Input: SemanticTypesArtifact (array of SemanticType)
+- Output: GeneratedTypeScriptArtifact (with code, imports, interfaces)
+- Uses TypeScriptGenerator internally for type conversion
+- Pass is pure orchestration - delegates to generator
+
+**Pattern:**
 ```typescript
-export interface OrderDetailResourceTransformed {
-  id: number
-  produkItemId: number
-  produkId: number              // ✅ Flattened from nested produk.id
-  produkNama: string            // ✅ Flattened from nested produk.nama
-  produkGambar: (string) | null // ✅ Flattened from nested produk.gambar
-  produkImageUrl: (string) | null
-  qty: number
-  harga: number
-  subtotal: number
+export class TypeScriptGeneratorPass
+    implements CompilerPass<readonly ['SemanticTypes'], readonly ['GeneratedTypeScript']> {
+    
+    public readonly name = 'TypeScriptGenerator';
+    public readonly inputWitnesses = [{ key: 'SemanticTypes' }] as const;
+    public readonly outputKeys = ['GeneratedTypeScript'] as const;
+    
+    private readonly generator: TypeScriptGenerator;
+    
+    public run(inputs: ResolveArtifacts<readonly ['SemanticTypes']>): 
+        ResolveArtifacts<readonly ['GeneratedTypeScript']> {
+        
+        // 1. Extract input artifact
+        const semanticTypes = inputs[0];
+        
+        // 2. Process with generator
+        // ... generation logic ...
+        
+        // 3. Return output artifact
+        return [generatedArtifact];
+    }
 }
-
-export type OrderDetailResourceShow = OrderDetailResourceTransformed
-export type OrderDetailResourceIndex = OrderDetailResourceTransformed[]
 ```
 
-**Key Features:**
-- ✅ snake_case → camelCase transformation
-- ✅ Nested fields flattened with prefix (produk.nama → produkNama)
-- ✅ Nullable encoding: `(string) | null` not `string | null`
-- ✅ Show/Index aliases generated
+### 2. CompilerBridge (Data Extraction)
+
+**File:** `packages/cli/src/generators/CompilerBridge.ts`
+
+**Current Method:**
+```typescript
+private static manifestToSemanticTypes(manifest: RouteManifest): SemanticTypesArtifact {
+    const typesArray: ObjectType[] = [];
+    
+    // Process resources (for api-read.ts)
+    const resourceTypes = this.processResources(manifest.resources || []);
+    typesArray.push(...resourceTypes);
+    
+    return {
+        typeId: 'SemanticTypes',
+        types: typesArray,
+        metadata: { ... }
+    };
+}
+```
+
+**New Method Needed:**
+```typescript
+// ❌ TODO: Implement this
+private static manifestToRequestTypes(manifest: RouteManifest): RequestTypesArtifact {
+    const requestsArray: RequestType[] = [];
+    
+    // ⚠️ CRITICAL: Extract ONLY from validation rules, NOT from resources/models
+    // api-form.ts = request input types (create/update)
+    // api-read.ts = response output types (resources)
+    
+    // Group routes by resource name
+    const routesByResource = new Map<string, RouteDefinition[]>();
+    
+    for (const route of manifest.routes) {
+        // Skip if no validation (no FormRequest = no form types)
+        if (!route.validation) continue;
+        
+        const resourceName = this.extractResourceName(route.path);
+        if (!routesByResource.has(resourceName)) {
+            routesByResource.set(resourceName, []);
+        }
+        routesByResource.get(resourceName)!.push(route);
+    }
+    
+    // Process each resource's routes
+    for (const [resourceName, routes] of routesByResource) {
+        const actions: RequestAction[] = [];
+        
+        for (const route of routes) {
+            // Determine action from HTTP method
+            const action = this.methodToAction(route.method); // POST→create, PUT→update
+            
+            // Process validation rules to fields
+            const fields = this.processValidationRules(route.validation!);
+            
+            actions.push({ action, fields, validationRules: route.validation });
+        }
+        
+        if (actions.length > 0) {
+            requestsArray.push({ name: resourceName, actions });
+        }
+    }
+    
+    return {
+        typeId: 'RequestTypes',
+        requests: requestsArray,
+        metadata: { ... }
+    };
+}
+```
+
+### 3. Old FormEmitter (Output Reference)
+
+**File:** `packages/cli/src/generators/layers/FormEmitter.ts`
+
+**Use for:**
+- Understanding form output structure
+- Seeing what types need to be generated
+- Reference for action-based grouping
+
+**Do NOT:**
+- Copy IR-based architecture
+- Use ContractIR/RequestIR patterns
+- Modify this file
 
 ---
 
-### 2. api-read.ts — Complex Nested with Arrays
+## 📝 Expected Output Examples
 
-**Backend:**
-```php
-// OrderResource.php
-public function toArray($request): array
-{
-    return [
-        'id' => $this->id,
-        'status' => $this->status,
-        'shipping_nama' => $this->shipping_nama,
-        'shipping_telepon' => $this->shipping_telepon,
-        'shipping_alamat' => $this->shipping_alamat,
-        'promotion_code' => $this->promotion_code,
-        'promotion_discount_minor' => $this->promotion_discount_minor,
-        'items' => OrderDetailResource::collection($this->items),
-    ];
-}
-```
+### api-read.ts (Current Working Output)
 
-**Generated Output:**
 ```typescript
-export interface OrderResourceTransformed {
-  id: number
-  status: string
-  totalHarga: number
-  invoiceNumber: (string) | null
-  
-  // Nested prefixes flattened
-  shippingNama: (string) | null
-  shippingTelepon: (string) | null
-  shippingAlamat: (string) | null
-  shippingKota: (string) | null
-  shippingKodePos: (string) | null
-  
-  // Promotion fields
-  promotionCode: (string) | null
-  promotionDiscountMinor: number
-  
-  // Nested array relation (NOT flattened further)
-  items?: OrderDetailResourceTransformed[]
-  
-  createdAt: string
+// Generated by TypeScriptGenerator
+// File: types/api-read.ts
+
+export interface UserTransformed {
+    id: number;
+    name: string;
+    email: string;
+    createdAt: string;
 }
 
-export type OrderResourceShow = OrderResourceTransformed
-export type OrderResourceIndex = OrderResourceTransformed[]
-```
+export type UserShow = UserTransformed
+export type UserIndex = UserTransformed[]
 
-**Key Features:**
-- ✅ Multiple nested prefixes (shipping_*, promotion_*) flattened
-- ✅ Array relations kept as array (items: T[])
-- ✅ Optional arrays: `?: T[]` not `| undefined`
-
----
-
-### 3. api-read.ts — Collection Wrapper
-
-**Backend:**
-```php
-// CategoryController.php
-public function index(): JsonResponse
-{
-    return CategoryResource::collection(Category::all());
+export interface ProductTransformed {
+    id: number;
+    name: string;
+    price: number;
+    category: string;
 }
+
+export type ProductShow = ProductTransformed
+export type ProductIndex = ProductTransformed[]
 ```
 
-**Generated Output:**
+### api-form.ts (Target Output)
+
 ```typescript
-export interface CategoriesTransformed {
-  data: CategoryTransformed[]
-}
+// Generated by FormGeneratorPass
+// File: forms/api-form.ts
 
-export interface CategoryTransformed {
-  id: number
-  nama: string
-  createdAt: string | null
-  updatedAt: string | null
-}
-```
-
-**Key Features:**
-- ✅ Collection wrapper with `data: T[]` pattern
-- ✅ Plural naming for collection (CategoriesTransformed)
-
----
-
-### 4. api-form.ts — Simple Form (Single Action)
-
-**Backend:**
-```php
-// RegisterRequest.php
-public function rules(): array
-{
-    return [
-        'name' => ['required', 'string'],
-        'email' => ['required', 'email'],
-        'password' => ['required', 'string', 'min:8'],
-    ];
-}
-```
-
-**Generated Output:**
-```typescript
-export type RegisterForm = {
-  Create: {
+export type UserForm = {
+  create: {
     name: string
     email: string
     password: string
+    passwordConfirmation: string
+  }
+  update: {
+    name?: string
+    email?: string
+    password?: string
   }
 }
-```
 
-**Key Features:**
-- ✅ Action-based structure (Create)
-- ✅ Required fields: `field: Type`
-- ✅ Validation rules → TypeScript types
-
----
-
-### 5. api-form.ts — Multi-Action Form
-
-**Backend:**
-```php
-// CartItemsController.php
-
-// StoreCartItemRequest
-public function rules(): array {
-    return [
-        'produk_item_id' => ['required', 'string'],
-        'qty' => ['required', 'integer'],
-    ];
-}
-
-// UpdateCartItemRequest  
-public function rules(): array {
-    return [
-        'qty' => ['required', 'integer'],
-    ];
-}
-```
-
-**Generated Output:**
-```typescript
-export type CartItemsForm = {
-  Create: {
-    produkItemId: string
-    qty: number
-  }
-  
-  Update: {
-    qty: number
-  }
-}
-```
-
-**Key Features:**
-- ✅ Multiple actions on same resource
-- ✅ Different shapes per action
-- ✅ snake_case → camelCase in form fields
-
----
-
-### 6. api-form.ts — Optional & Nullable Fields
-
-**Backend:**
-```php
-// ProfileUpdateRequest.php
-public function rules(): array
-{
-    return [
-        'name' => ['required', 'string'],
-        'email' => ['required', 'email'],
-        'avatar_url' => ['nullable', 'string'],
-        'bio' => ['sometimes', 'string'],
-    ];
-}
-```
-
-**Generated Output:**
-```typescript
-export type ProfileForm = {
-  Update: {
+export type ProductForm = {
+  create: {
     name: string
-    email: string
-    avatarUrl?: string | undefined | null
-    bio?: string | undefined | null
+    price: number
+    categoryId: number
+    description?: string
+  }
+  update: {
+    name?: string
+    price?: number
+    description?: string
+  }
+}
+
+export type CartItemsForm = {
+  create: {
+    productId: number
+    quantity: number
+  }
+  update: {
+    quantity?: number
+  }
+}
+
+// ⚠️ KNOWN BUG: Nested array indentation
+export type CheckoutForm = {
+  create: {
+    customerName: string
+    items: {
+      productId: number
+      quantity: number
+    }[]  // ❌ Should be indented properly
   }
 }
 ```
 
-**Key Features:**
-- ✅ Required: `field: Type`
-- ✅ Optional: `field?: Type | undefined | null`
-- ✅ Nullable/sometimes rules → optional TypeScript field
+**⚠️ Known Limitation:** Nested array indentation bug (items array should be properly indented).
 
 ---
 
-### 7. api-form.ts — Nested Array Payload
+## 🏗️ Implementation Plan
 
-**Backend:**
-```php
-// CheckoutRequest.php
-public function rules(): array
-{
-    return [
-        'items' => ['required', 'array'],
-        'items.*.produk_item_id' => ['required', 'string'],
-        'items.*.qty' => ['required', 'integer'],
-        'shipping_nama' => ['nullable', 'string'],
-        'shipping_telepon' => ['nullable', 'string'],
-    ];
+### Phase 1: Artifact Definition
+
+**Create:** `packages/core/src/compiler/artifacts/GeneratedFormArtifact.ts`
+
+```typescript
+import type { ArtifactMetadata } from './Artifact';
+
+export interface FormAction {
+    readonly action: 'create' | 'update' | 'delete' | 'get';
+    readonly fields: readonly FormField[];
+}
+
+export interface FormField {
+    readonly name: string;
+    readonly type: string;  // TypeScript type string
+    readonly optional: boolean;
+    readonly nullable: boolean;
+}
+
+export interface FormDefinition {
+    readonly name: string;  // e.g., "UserForm"
+    readonly actions: readonly FormAction[];
+}
+
+export interface GeneratedFormArtifact {
+    readonly typeId: 'GeneratedForm';
+    readonly metadata: ArtifactMetadata;
+    readonly code: string;
+    readonly forms: readonly FormDefinition[];
+    readonly generationMetadata: {
+        readonly generatorVersion: string;
+        readonly formCount: number;
+        readonly actionCount: number;
+        readonly linesOfCode: number;
+        readonly warnings: readonly string[];
+    };
 }
 ```
 
-**Generated Output (with known bug):**
+**Register in:** `packages/core/src/compiler/artifacts/types.ts`
+
+```typescript
+export interface ArtifactRegistry {
+    // ... existing artifacts ...
+    GeneratedForm: GeneratedFormArtifact;  // ← Add this
+}
+```
+
+### Phase 2: Request Types Artifact
+
+**Create:** `packages/core/src/compiler/artifacts/RequestTypesArtifact.ts`
+
+```typescript
+export interface RequestType {
+    readonly name: string;  // e.g., "User"
+    readonly actions: readonly RequestAction[];
+}
+
+export interface RequestAction {
+    readonly action: 'create' | 'update' | 'delete' | 'get';
+    readonly fields: readonly RequestField[];
+    readonly validationRules?: Record<string, string[]>;
+}
+
+export interface RequestField {
+    readonly name: string;  // camelCase
+    readonly type: SemanticType;
+    readonly optional: boolean;
+    readonly nullable: boolean;
+}
+
+export interface RequestTypesArtifact {
+    readonly typeId: 'RequestTypes';
+    readonly metadata: ArtifactMetadata;
+    readonly requests: readonly RequestType[];
+}
+```
+
+**Register in artifact registry:**
+
+```typescript
+export interface ArtifactRegistry {
+    // ... existing ...
+    RequestTypes: RequestTypesArtifact;  // ← Add this
+}
+```
+
+### Phase 3: FormGeneratorPass Implementation
+
+**Create:** `packages/core/src/compiler/passes/FormGeneratorPass.ts`
+
+```typescript
+export class FormGeneratorPass
+    implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedForm']> {
+    
+    public readonly name = 'FormGenerator';
+    public readonly inputWitnesses = [{ key: 'RequestTypes' }] as const;
+    public readonly outputKeys = ['GeneratedForm'] as const;
+    
+    public run(
+        inputs: ResolveArtifacts<readonly ['RequestTypes']>
+    ): ResolveArtifacts<readonly ['GeneratedForm']> {
+        
+        const requestTypesArtifact = inputs[0];
+        const code = this.buildFormCode(requestTypesArtifact.requests);
+        
+        const artifact: GeneratedFormArtifact = {
+            typeId: 'GeneratedForm',
+            code,
+            forms: this.extractFormDefinitions(requestTypesArtifact.requests),
+            generationMetadata: {
+                generatorVersion: '1.0.0',
+                formCount: requestTypesArtifact.requests.length,
+                actionCount: this.countActions(requestTypesArtifact.requests),
+                linesOfCode: code.split('\n').length,
+                warnings: []
+            },
+            metadata: {
+                hash: computeFingerprintHash(/* ... */),
+                producer: this.name,
+                dependencies: ['RequestTypes'],
+                timestamp: Date.now(),
+                revision: '1.0.0'
+            }
+        };
+        
+        return [artifact];
+    }
+    
+    private buildFormCode(requests: readonly RequestType[]): string {
+        const lines: string[] = [];
+        
+        lines.push('// Generated by FormGeneratorPass');
+        lines.push('// File: forms/api-form.ts');
+        lines.push('');
+        
+        for (const request of requests) {
+            lines.push(this.generateFormType(request));
+            lines.push('');
+        }
+        
+        return lines.join('\n');
+    }
+    
+    private generateFormType(request: RequestType): string {
+        const formName = `${request.name}Form`;
+        const actions: string[] = [];
+        
+        for (const action of request.actions) {
+            actions.push(this.generateAction(action));
+        }
+        
+        return `export type ${formName} = {\n${actions.join('\n')}\n}`;
+    }
+    
+    private generateAction(action: RequestAction): string {
+        const fields = action.fields.map(field => {
+            const optional = field.optional ? '?' : '';
+            const nullable = field.nullable ? ' | null' : '';
+            const typeStr = this.semanticTypeToString(field.type);
+            return `    ${field.name}${optional}: ${typeStr}${nullable}`;
+        }).join('\n');
+        
+        return `  ${action.action}: {\n${fields}\n  }`;
+    }
+    
+    private semanticTypeToString(type: SemanticType): string {
+        // Convert SemanticType to TypeScript string
+        // Similar to TypeScriptGeneratorPass.convertTypeToString()
+        // Handle primitive, reference, collection, union types
+    }
+}
+```
+
+### Phase 4: CompilerBridge Integration
+
+**Modify:** `packages/cli/src/generators/CompilerBridge.ts`
+
+Add new method:
+
+```typescript
+private static manifestToRequestTypes(manifest: RouteManifest): RequestTypesArtifact {
+    const requests: RequestType[] = [];
+    
+    // Group routes by resource
+    const routesByResource = new Map<string, RouteDefinition[]>();
+    
+    for (const route of manifest.routes) {
+        const resourceName = this.extractResourceName(route.path);
+        if (!routesByResource.has(resourceName)) {
+            routesByResource.set(resourceName, []);
+        }
+        routesByResource.get(resourceName)!.push(route);
+    }
+    
+    // Process each resource
+    for (const [resourceName, routes] of routesByResource) {
+        const actions: RequestAction[] = [];
+        
+        for (const route of routes) {
+            if (route.validation) {
+                // Extract action from route method
+                const action = this.methodToAction(route.method);
+                
+                // Process validation rules
+                const fields = this.processValidationRules(route.validation);
+                
+                actions.push({
+                    action,
+                    fields,
+                    validationRules: route.validation
+                });
+            }
+        }
+        
+        if (actions.length > 0) {
+            requests.push({
+                name: resourceName,
+                actions
+            });
+        }
+    }
+    
+    return {
+        typeId: 'RequestTypes',
+        requests,
+        metadata: {
+            hash: `request-${Date.now()}`,
+            producer: 'CompilerBridge',
+            dependencies: [],
+            timestamp: Date.now(),
+            revision: '1.0.0'
+        }
+    };
+}
+
+private static methodToAction(method: string): 'create' | 'update' | 'delete' | 'get' {
+    switch (method.toUpperCase()) {
+        case 'POST': return 'create';
+        case 'PUT':
+        case 'PATCH': return 'update';
+        case 'DELETE': return 'delete';
+        default: return 'get';
+    }
+}
+
+private static processValidationRules(validation: Record<string, string[]>): RequestField[] {
+    const fields: RequestField[] = [];
+    
+    for (const [fieldName, rules] of Object.entries(validation)) {
+        const camelName = toCamelCase(fieldName);
+        const optional = !rules.includes('required');
+        const nullable = rules.includes('nullable');
+        
+        // Infer type from validation rules
+        const type = this.inferTypeFromRules(rules);
+        
+        fields.push({
+            name: camelName,
+            type,
+            optional,
+            nullable
+        });
+    }
+    
+    return fields;
+}
+```
+
+### Phase 5: CLI Integration
+
+**Modify:** `packages/cli/src/commands/generate.ts`
+
+Add form generation:
+
+```typescript
+// Generate api-read.ts (existing)
+const semanticTypesArtifact = CompilerBridge.manifestToSemanticTypes(manifest);
+const typeScriptPass = new TypeScriptGeneratorPass();
+const [generatedTypes] = typeScriptPass.run([semanticTypesArtifact]);
+
+fs.writeFileSync(
+    path.join(outputDir, 'types', 'api-read.ts'),
+    generatedTypes.code
+);
+
+// Generate api-form.ts (new)
+const requestTypesArtifact = CompilerBridge.manifestToRequestTypes(manifest);
+const formPass = new FormGeneratorPass();
+const [generatedForms] = formPass.run([requestTypesArtifact]);
+
+fs.writeFileSync(
+    path.join(outputDir, 'forms', 'api-form.ts'),
+    generatedForms.code
+);
+```
+
+---
+
+## ⚠️ Known Issues to Fix
+
+### 1. Nested Array Indentation Bug
+
+**Problem:**
 ```typescript
 export type CheckoutForm = {
-  Create: {
-    items?: {
-    produkItemId: string  // ⚠️ BUG: Wrong indentation
-    qty: number           // ⚠️ BUG: Should be indented
-  }[] | undefined
-    shippingNama?: string | undefined | null
-    shippingTelepon?: string | undefined | null
+  create: {
+    items: {
+      productId: number
+      quantity: number
+    }[]  // ❌ Wrong indentation
   }
 }
 ```
 
-**Known Bug:**
-- ❌ Nested object literal indentation broken
-- ❌ `produkItemId` and `qty` not indented under `items?: {`
-- ✅ Type structure correct, formatting wrong
-
----
-
-## 🚨 Known Limitations & Bugs
-
-### Limitation 1: Nested Array Object Indentation
-
-**File:** api-form.ts
-**Issue:** Nested object literals in array types tidak di-indent dengan benar
-
-**Evidence:**
+**Should be:**
 ```typescript
-// ❌ Current Output (Wrong)
-items?: {
-produkItemId: string
-qty: number
-}[] | undefined
-
-// ✅ Expected Output (Correct)
-items?: {
-  produkItemId: string
-  qty: number
-}[] | undefined
+export type CheckoutForm = {
+  create: {
+    items: Array<{
+      productId: number
+      quantity: number
+    }>  // ✅ Proper formatting
+  }
+}
 ```
 
-**Root Cause:** Suspected separate code path for array-of-object payloads, tidak menggunakan rekursi yang sama dengan flat objects.
+**Fix:** In FormGeneratorPass, handle array types properly:
 
-**Impact:** Cosmetic (code works, but formatting ugly)
-
-**Files to Investigate:**
-- `packages/cli/src/generators/layers/FormEmitter.ts` (suspected)
-- Method yang handle array payloads dalam `generateForm()`
-
----
-
-### Limitation 2: Duplicate Type Inference Systems
-
-**Files:** ReadEmitter.ts, FormEmitter.ts, (potentially others)
-
-**Issue:** Multiple independent type inference implementations:
-1. `mapSqlTypeToTs()` — SQL column → TypeScript (for api-read.ts)
-2. `buildResponseZodType()` — Response → Zod schema (for api-contract.ts)
-3. Suspected third system in FormEmitter for validation rules → TypeScript
-
-**Evidence:**
-- ReadEmitter uses `mapSqlTypeToTs(field.type)`
-- Each emitter has own type mapping logic
-- No shared type inference kernel
-
-**Impact:**
-- ❌ Code duplication
-- ❌ Inconsistent type mapping across emitters
-- ❌ Hard to maintain (fix bug in 3 places)
-
-**Recommendation:** Consolidate into single `TypeInferenceKernel` with pluggable strategies.
-
----
-
-### Limitation 3: No Semantic Type Validation
-
-**Issue:** Generated types assume manifest data is correct, no validation of semantic correctness.
-
-**Example Problem:**
 ```typescript
-// If manifest has wrong type inference
-produkItemId: string  // Backend actually expects number
+private semanticTypeToString(type: SemanticType): string {
+    if (type.kind === 'readonly_collection' || type.kind === 'mutable_collection') {
+        const elementType = this.semanticTypeToString(type.elementType);
+        
+        // If element is complex (object), use Array<T> syntax
+        if (type.elementType.kind === 'object') {
+            return `Array<${elementType}>`;
+        }
+        
+        // Otherwise use T[] syntax
+        return `${elementType}[]`;
+    }
+    // ... other cases
+}
 ```
 
-**Impact:** Runtime type mismatches not caught at generation time
+### 2. Output Path
 
-**Recommendation:** Add semantic validation pass before emission.
+**Correct path:** `forms/api-form.ts` (not `types/api-form.ts`)
+
+Ensure CLI writes to correct directory.
 
 ---
 
-### Limitation 4: Nullable vs Optional Encoding Inconsistency
+## 🧪 Testing Strategy
 
-**api-read.ts:**
+### Unit Tests
+
+**Create:** `packages/core/src/compiler/passes/__tests__/FormGeneratorPass.test.ts`
+
 ```typescript
-field: (string) | null  // ✅ Explicit nullable
+describe('FormGeneratorPass', () => {
+    it('should generate form types from request artifact', () => {
+        const pass = new FormGeneratorPass();
+        const input: RequestTypesArtifact = {
+            typeId: 'RequestTypes',
+            requests: [{
+                name: 'User',
+                actions: [{
+                    action: 'create',
+                    fields: [
+                        { name: 'name', type: primitiveString, optional: false, nullable: false },
+                        { name: 'email', type: primitiveString, optional: false, nullable: false }
+                    ]
+                }]
+            }],
+            metadata: { /* ... */ }
+        };
+        
+        const [output] = pass.run([input]);
+        
+        expect(output.code).toContain('export type UserForm');
+        expect(output.code).toContain('create: {');
+        expect(output.code).toContain('name: string');
+        expect(output.forms).toHaveLength(1);
+    });
+});
 ```
 
-**api-form.ts:**
-```typescript
-field?: string | undefined | null  // ✅ Optional + nullable
-```
+### Integration Tests
 
-**Issue:** Different encoding strategies across files, can confuse developers.
-
-**Recommendation:** Document encoding convention clearly, or unify.
-
----
-
-### Limitation 5: Collection Wrapper Detection
-
-**Issue:** Collection detection based on naming convention (plural resource name) not explicit API contract.
-
-**Problem:**
-```php
-// UserResource::collection() → should wrap with data: []
-// But detection might fail if resource name not pluralizable
-```
-
-**Recommendation:** Use explicit metadata from manifest, not naming inference.
-
----
-
-### Limitation 6: Show/Index Alias Generation
-
-**Issue:** Aliases generated for ALL resources, even synthetic nested ones.
-
-**Problem:**
-```typescript
-// ❌ Generated for synthetic nested resource (wrong)
-export type OrderShippingShow = OrderShippingTransformed
-export type OrderShippingIndex = OrderShippingTransformed[]
-
-// OrderShipping is NOT a real API endpoint resource,
-// it's extracted from nested object in OrderResource
-```
-
-**Fix Applied:** Check `isSynthetic` flag to skip alias generation (see ContractIRBuilder.ts line 451)
-
-**Status:** ✅ Fixed in Phase 3
-
----
-
-### Limitation 7: Raw Model Types Generation
-
-**Issue:** `ModelGenerator` generates raw database model types in `core/models.ts`
-
-**Problem:**
-- ❌ Exposes internal DB structure (passwords, tokens)
-- ❌ Different from actual API response
-- ❌ Never used in actual code (0 imports found)
-- ❌ Misleading for developers
-
-**Recommendation:** 🗑️ **Remove ModelGenerator entirely** (documented in MODEL_GENERATION_CLARIFICATION.md)
-
-**Priority:** P2 (not breaking, but cleanup needed)
-
----
-
-## 🎯 Implementation Goals
-
-### Primary Goals
-
-1. **Generate api-read.ts** (Backend → Frontend)
-   - ✅ Flatten nested resources dengan prefix
-   - ✅ snake_case → camelCase transformation
-   - ✅ Nullable encoding: `(Type) | null`
-   - ✅ Show/Index aliases (exclude synthetic resources)
-   - ✅ Collection wrappers dengan `data: T[]`
-
-2. **Generate api-form.ts** (Frontend → Backend)
-   - ✅ Action-based structure (Create/Update/Get)
-   - ✅ Optional encoding: `?: Type | undefined | null`
-   - ✅ Multi-action support per resource
-   - ✅ Validation rules → TypeScript types
-   - ⚠️ Fix nested array indentation bug
-
-3. **Architectural Cleanness**
-   - ✅ Follow CompilerBridge principles
-   - ✅ Single Source of Truth for type inference
-   - ✅ Evidence-based implementation (not assumptions)
-   - ✅ Clear artifact boundaries
-
----
-
-## 📝 Implementation Approach
-
-### Phase 1: Evidence Collection (Use Reverse Engineering Skill)
-
-**Tasks:**
-1. Read existing `ReadEmitter.ts` implementation
-2. Read existing `FormEmitter.ts` implementation (if exists)
-3. Trace data flow: Manifest → IR → ReadEmitter → api-read.ts
-4. Document all type inference systems found
-5. Identify code duplication points
-
-**Output:** Evidence document dengan file:line references
-
-**Checklist:**
-- [ ] All emitter files analyzed
-- [ ] Data flow fully mapped
-- [ ] Type inference systems catalogued
-- [ ] Duplication points identified
-
----
-
-### Phase 2: Architecture Design (Use Compiler Bridge Skill)
-
-**Tasks:**
-1. Design ReadEmitter interface following IEmitter contract
-2. Design FormEmitter interface following IEmitter contract
-3. Ensure Bridge only translates, semantic in passes
-4. Design shared TypeInferenceKernel
-5. Define artifact boundaries
-
-**Output:** Architecture design document
-
-**Checklist:**
-- [ ] Emitter interfaces defined
-- [ ] Bridge boundaries clear
-- [ ] No semantic logic in Bridge
-- [ ] Type inference centralized
-
----
-
-### Phase 3: Implementation — ReadEmitter
-
-**Tasks:**
-1. Implement `ReadEmitter.emit(ir: ContractIR)`
-2. Handle nested flattening with prefix
-3. Handle snake_case → camelCase
-4. Handle nullable encoding `(Type) | null`
-5. Generate Show/Index aliases (skip synthetic)
-6. Handle collection wrappers
-
-**Test Cases:**
-- OrderDetailResourceTransformed (nested flatten)
-- OrderResourceTransformed (multiple prefixes + array)
-- CategoryTransformed (collection wrapper)
-
-**Output:** Working ReadEmitter + tests
-
----
-
-### Phase 4: Implementation — FormEmitter
-
-**Tasks:**
-1. Implement `FormEmitter.emit(ir: ContractIR)`
-2. Handle action-based structure
-3. Handle optional encoding `?: Type | undefined | null`
-4. Handle multi-action per resource
-5. **FIX: Nested array indentation bug**
-
-**Test Cases:**
-- RegisterForm (single action)
-- CartItemsForm (multi-action)
-- CheckoutForm (nested array — verify indentation fix)
-
-**Output:** Working FormEmitter + tests
-
----
-
-### Phase 5: Integration & Testing
-
-**Tasks:**
-1. Integrate emitters into CLI generate command
-2. Test with real manifest (toko-online)
-3. Compare output dengan existing output
-4. Verify no regressions
-5. Update documentation
-
-**Output:** Integrated system + comparison report
-
----
-
-## 🔍 Implementation Checklist
-
-### Before Starting
-
-- [ ] Activate `reverse-engineering` skill
-- [ ] Activate `compiler-bridge-architecture` skill
-- [ ] Read PHASE_2_ROOT_CAUSE_ANALYSIS.md (context)
-- [ ] Read ISSUE-manifest-resource-linkage.md (synthetic resources)
-
-### During Implementation
-
-- [ ] Follow evidence-based approach (no assumptions)
-- [ ] Document all decisions with file:line references
-- [ ] Keep Bridge thin (translation only)
-- [ ] Write tests for each feature
-- [ ] Fix known bugs (array indentation)
-
-### After Implementation
-
-- [ ] Generate api-read.ts from test manifest
-- [ ] Generate api-form.ts from test manifest
-- [ ] Compare with existing output (should match)
-- [ ] Document any differences found
-- [ ] Update known limitations list
-
----
-
-## 📊 Success Criteria
-
-### Functional Requirements
-
-- ✅ api-read.ts matches existing output format
-- ✅ api-form.ts matches existing output format
-- ✅ Nested flattening works correctly
-- ✅ Case transformation accurate
-- ✅ Nullable/optional encoding correct
-- ✅ Array indentation bug fixed
-
-### Architecture Requirements
-
-- ✅ Follows CompilerBridge principles
-- ✅ No semantic logic in Bridge
-- ✅ Single type inference system
-- ✅ Clean artifact boundaries
-- ✅ Evidence-based implementation
-
-### Quality Requirements
-
-- ✅ 80%+ test coverage
-- ✅ No TypeScript errors
-- ✅ Matches existing output (byte-for-byte if possible)
-- ✅ Documentation complete
-
----
-
-## 🎓 Learning Resources
-
-### Required Reading
-
-1. `.kiro/steering/skills/reverse-engineering/SKILL.md`
-   - Evidence collection methods
-   - Data flow analysis
-   - Ownership analysis
-
-2. `.kiro/steering/skills/compiler-bridge-architecture/SKILL.md`
-   - Bridge responsibilities
-   - What Bridge can/cannot do
-   - Architecture principles
-
-3. `PHASE_2_ROOT_CAUSE_ANALYSIS.md`
-   - Context on duplicate type systems
-   - Why this refactoring needed
-
-4. `packages/cli/src/generators/layers/ReadEmitter.ts`
-   - Current implementation
-   - Type inference logic
-
-### Supporting Documents
-
-- `ISSUE-manifest-resource-linkage.md` — Synthetic resource handling
-- `RESOURCE_FLATTENING_EVIDENCE_ANALYSIS.md` — Flattening logic
-- `MODEL_GENERATION_CLARIFICATION.md` — What NOT to generate
-
----
-
-## 🚀 Execution Command
+**Test with real manifest:**
 
 ```bash
-# Step 1: Activate required skills
-# (Kiro will load skill instructions into context)
+./capture.sh node dist/cli.js generate \
+    --manifest /path/to/test-manifest.json \
+    --output test-output
 
-# Step 2: Start evidence collection
-# Read existing emitters, trace data flow
-
-# Step 3: Design architecture
-# Follow CompilerBridge principles
-
-# Step 4: Implement ReadEmitter
-# Generate api-read.ts output
-
-# Step 5: Implement FormEmitter  
-# Generate api-form.ts output
-
-# Step 6: Test & verify
-# Compare with existing output
+# Verify output
+cat test-output/forms/api-form.ts
 ```
 
 ---
 
-## 📝 Output Format
+## 📚 Skills to Activate
 
-### Expected Generated Files
+Before starting implementation:
 
-```
-src/api/types/
-├── api-read.ts       ← Backend → Frontend types
-├── api-form.ts       ← Frontend → Backend types
-└── api-contract.ts   ← Zod schemas (already done)
-```
+### 1. Reverse Engineering
 
-### File Structure — api-read.ts
+Understand existing TypeScriptGeneratorPass pattern:
+- How passes receive/return artifacts
+- How generators convert types
+- Evidence-based analysis
 
-```typescript
-// Resource Transformed Interfaces
-export interface XResourceTransformed {
-  // Flattened fields, camelCase
-}
+### 2. Compiler Bridge Architecture
 
-// Show/Index Aliases
-export type XResourceShow = XResourceTransformed
-export type XResourceIndex = XResourceTransformed[]
-
-// Collection Wrappers
-export interface XsTransformed {
-  data: XTransformed[]
-}
-```
-
-### File Structure — api-form.ts
-
-```typescript
-// Action-based Forms
-export type XForm = {
-  Create: {
-    // Create fields
-  }
-  Update: {
-    // Update fields
-  }
-  Get: {
-    // Query params
-  }
-}
-```
+Follow clean architecture:
+- Bridge only translates data
+- Pass does transformation
+- No duplicate logic
+- Single Source of Truth
 
 ---
 
-**Status:** ✅ **READY FOR IMPLEMENTATION**  
-**Priority:** P0 (Critical path for compiler migration)  
-**Estimated Effort:** 2-3 days (with proper evidence collection)  
-**Skills Required:** reverse-engineering + compiler-bridge-architecture
+## ✅ Success Criteria
 
+- [ ] GeneratedFormArtifact defined
+- [ ] RequestTypesArtifact defined
+- [ ] FormGeneratorPass implemented
+- [ ] CompilerBridge.manifestToRequestTypes() implemented
+- [ ] CLI integration complete
+- [ ] Unit tests passing
+- [ ] Integration test with real manifest successful
+- [ ] Output matches expected format
+- [ ] Nested array indentation bug fixed
+- [ ] Output path is `forms/api-form.ts`
+
+---
+
+## 📝 Notes
+
+- Follow TypeScriptGeneratorPass pattern exactly
+- Use immutable collections (ImmutableMap, ImmutableSet)
+- Pass is orchestration only - delegate to utilities
+- CompilerBridge is data lowering only - no analysis
+- All type conversion logic in pass, not bridge
+- Artifact metadata must include hash, producer, dependencies
+
+---
+
+**Last Updated:** 2026-08-07
+**Status:** Ready for implementation
+**Next Step:** Phase 1 - Create artifact definitions

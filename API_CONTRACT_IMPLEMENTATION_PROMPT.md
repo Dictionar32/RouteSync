@@ -8,7 +8,7 @@
 
 ## 🚨 MANDATORY: Activate Skills Before Implementation
 
-**BEFORE you start coding, you MUST activate these skills:**
+**BEFORE you start ANY analysis or coding, you MUST activate these skills:**
 
 ```
 Skill 1: reverse-engineering
@@ -16,15 +16,26 @@ Skill 2: compiler-bridge-architecture
 ```
 
 **How to activate:**
-1. Use `disclose_context` tool with skill name
-2. Read and understand COMPLETE skill content
-3. Apply principles throughout implementation
+```
+1. disclose_context(name="reverse-engineering")
+2. disclose_context(name="compiler-bridge-architecture")
+3. Read COMPLETE skill content
+4. Apply principles throughout implementation
+```
 
 **Why mandatory:**
 - ✅ Ensures evidence-based analysis before design
-- ✅ Follows established architecture patterns
+- ✅ Follows established CompilerBridge architecture patterns
 - ✅ Prevents common mistakes and anti-patterns
 - ✅ Maintains consistency with existing codebase
+- ✅ Implements proper SoC (Separation of Concerns)
+
+**What happens if you skip:**
+- ❌ Risk of violating CompilerBridge principles
+- ❌ Risk of creating god classes
+- ❌ Risk of tight coupling
+- ❌ Risk of duplicate logic
+- ❌ Will need refactoring later
 
 ---
 
@@ -32,20 +43,86 @@ Skill 2: compiler-bridge-architecture
 
 **Goal:** Generate `api-contract.ts` yang menggabungkan Response Schema (read) dan Request Schema (form) menggunakan **Zod-first approach** dengan TypeScript type inference.
 
-**Key Difference dari api-read.ts & api-form.ts:**
-- ❌ `api-read.ts`: TypeScript types, TRANSFORMED (flat+camelCase)
-- ❌ `api-form.ts`: TypeScript types, TRANSFORMED (flat+camelCase)
-- ✅ `api-contract.ts`: **Zod schemas, ORIGINAL backend structure (snake_case + nested)**
+**🚨 CRITICAL DIFFERENCE dari api-read.ts & api-form.ts:**
+
+| File | Structure | Naming | Purpose |
+|------|-----------|--------|---------|
+| `api-read.ts` | **FLAT** | **camelCase** | Frontend types (transformed) |
+| `api-form.ts` | **FLAT** | **camelCase** | Form types (transformed) |
+| `api-contract.ts` | **ORIGINAL** | **snake_case** | Runtime validation (backend contract) |
 
 **Philosophy:** 
 - Schema as Source of Truth, Types as Derived
-- **Backend Response as-is** - NO transformation, NO flattening
+- **Backend Response as-is** - NO transformation, NO flattening, NO camelCase
+- **Backend Request as-is** - NO transformation, NO flattening, NO camelCase
+- **Backend Contract** - Validates EXACT backend structure for both request & response
+
+---
+
+## 🎯 Critical Architecture Principles
+
+### Principle 1: Response = Original Backend Structure (NO Transform)
+
+**api-contract.ts preserves EXACT backend structure:**
+
+```typescript
+// ✅ CORRECT - api-contract.ts (backend original)
+export const OrderSchema = z.object({
+  total_harga: z.number(),        // ← snake_case (backend)
+  invoice_number: z.string(),     // ← snake_case (backend)
+  shipping: z.object({            // ← NESTED (backend)
+    nama: z.string().nullable(),
+    telepon: z.string().nullable(),
+    alamat: z.string().nullable(),
+  }).nullable().optional(),
+})
+
+// ❌ WRONG - Don't transform like api-read.ts
+export const OrderSchema = z.object({
+  totalHarga: z.number(),         // ← NO! Don't camelCase
+  invoiceNumber: z.string(),      // ← NO! Don't camelCase
+  shippingNama: z.string(),       // ← NO! Don't flatten
+})
+```
+
+**Reason:** Contract validates backend's actual JSON structure.
+
+### Principle 2: Request = ORIGINAL Backend Structure (NO Transform)
+
+**Request schemas preserve EXACT backend structure - same as response:**
+
+```typescript
+// ✅ CORRECT - Original nested + snake_case
+export const OrderCreateSchema = z.object({
+  shipping: z.object({           // ← NESTED (backend original)
+    nama: z.string(),            // ← snake_case (backend original)
+    telepon: z.string(),         // ← snake_case (backend original)
+    alamat: z.string(),          // ← snake_case (backend original)
+  })
+})
+
+// ❌ WRONG - Don't flatten like api-form.ts
+export const OrderCreateSchema = z.object({
+  shipping_nama: z.string(),     // ← NO! Don't flatten
+  shipping_telepon: z.string(),  // ← NO! Don't flatten
+})
+
+// ❌ WRONG - Don't use camelCase like api-form.ts
+export const OrderCreateSchema = z.object({
+  shippingNama: z.string(),      // ← NO! Don't camelCase
+})
+```
+
+**Reason:** 
+- Contract validates EXACT backend JSON structure
+- Backend expects nested snake_case input
+- NO transformation for runtime validation
 
 ---
 
 ## Feature Requirements
 
-### 1. Output Structure
+### 1. Complete Output Structure
 
 ```typescript
 // contracts/api-contract.ts
@@ -62,18 +139,36 @@ export const OrderSchema = z.object({
   total_harga: z.number(),              // ← snake_case (backend original)
   invoice_number: z.string().nullable(), // ← snake_case (backend original)
   payment_status: z.string(),
+  financial_status: z.string(),
+  fulfillment_status: z.string(),
+  subtotal_minor: z.number(),
+  discount_minor: z.number(),
+  shipping_minor: z.number(),
+  tax_minor: z.number(),
+  total_harga_minor: z.number(),
+  created_at: z.string(),
+  
+  // ✅ Nested structure preserved (backend original)
   items: z.array(z.object({
-    produk_item_id: z.number(),          // ← snake_case (backend original)
+    produk_item_id: z.number(),          // ← snake_case (backend)
     produk: z.object({
       id: z.number(),
       nama: z.string(),
       gambar: z.string().nullable(),
+      image_url: z.string().nullable(),
     }),
     qty: z.number(),
     harga: z.number(),
     subtotal: z.number(),
   })),
-  // ✅ Nested structure preserved (backend original)
+  
+  // ✅ Nested object (backend original)
+  promotion: z.object({
+    code: z.string().nullable(),
+    discount_minor: z.number().nullable(),
+  }).nullable().optional(),
+  
+  // ✅ Nested object (backend original)
   shipping: z.object({
     nama: z.string().nullable(),
     telepon: z.string().nullable(),
@@ -86,20 +181,22 @@ export const OrderSchema = z.object({
 export const OrderIndexSchema = z.array(OrderSchema)
 
 // ============================================
-// Request Schemas (FLATTENED for Frontend Domain Model)
+// Request Schemas (ORIGINAL backend structure)
 // ============================================
 
 export const OrderCreateSchema = z.object({
-  shipping_nama: z.string(),        // ✅ Flattened BUT snake_case (matches backend)
-  shipping_telepon: z.string(),      // ✅ Flattened BUT snake_case
-  shipping_alamat: z.string(),       // ✅ Flattened BUT snake_case
-  shipping_kota: z.string(),         // ✅ Flattened BUT snake_case
-  shipping_kode_pos: z.string(),     // ✅ Flattened BUT snake_case
+  shipping: z.object({           // ✅ Nested (backend original)
+    nama: z.string(),            // ✅ snake_case (backend original)
+    telepon: z.string(),         // ✅ snake_case (backend original)
+    alamat: z.string(),          // ✅ snake_case (backend original)
+    kota: z.string(),            // ✅ snake_case (backend original)
+    kode_pos: z.string(),        // ✅ snake_case (backend original)
+  })
 })
 
 export const OrderUpdateSchema = z.object({
   status: z.string().optional(),
-  // ... update fields (snake_case)
+  // ... other update fields (nested + snake_case)
 })
 
 // ============================================
@@ -144,7 +241,27 @@ export const validateOrderListQuery = (payload: unknown): OrderListQuery =>
 
 ---
 
-## Architecture Design
+## Architecture Design (Evidence-Based Approach)
+
+**⚠️  MANDATORY: Follow reverse-engineering skill principles!**
+
+### Before You Write ANY Code:
+
+1. **✅ Evidence Collection (2-3 hours)**
+   - Read `TypeScriptGeneratorPass.ts` (understand existing pass structure)
+   - Read `FormGeneratorPass.ts` (understand form generation)
+   - Read `CompilerBridge.ts` (understand bridge architecture)
+   - Document data flow with file:line evidence
+
+2. **✅ Ownership Analysis (1 hour)**
+   - Who owns Response data? (Backend → Original structure)
+   - Who owns Request data? (Frontend → Flattened structure)
+   - Document with 10 Critical Questions from reverse-engineering skill
+
+3. **✅ Design Document (1 hour)**
+   - Create evidence-based architecture design
+   - Reference existing implementations
+   - No assumptions without code evidence
 
 ### Pass System Architecture
 
@@ -152,7 +269,7 @@ export const validateOrderListQuery = (payload: unknown): OrderListQuery =>
 ContractGeneratorPass (NEW)
   ├── Input: Manifest routes + validation rules
   ├── Process:
-  │   ├── ContractSchemaMapper (maps SemanticType → Zod schema)
+  │   ├── ContractSchemaMapper (SemanticType → Zod, NO transform)
   │   ├── ContractActionGenerator (groups schemas by resource+action)
   │   └── ContractCodeBuilder (generates final code)
   └── Output: GeneratedContractArtifact
@@ -165,20 +282,33 @@ ContractGeneratorPass (NEW)
 
 **Responsibilities:**
 - Map `SemanticType` → Zod schema definition
+- **PRESERVE original backend naming (snake_case)**
+- **PRESERVE original backend structure (nested)**
 - Handle all type variants (primitives, objects, arrays, unions)
-- Support nested objects (response) vs flattened objects (request)
+- Support nested objects for BOTH response AND request
 - Generate nullable/optional modifiers
 - Track Zod import requirements
+
+**🚨 CRITICAL: NO Transformation (Both Request & Response)**
+- ❌ Don't convert snake_case → camelCase
+- ❌ Don't flatten nested objects (for both request and response)
+- ✅ Keep backend structure as-is for EVERYTHING
 
 **Key Methods:**
 ```typescript
 class ContractSchemaMapper {
+  // Main mapping (NO transformation)
   mapToZodSchema(type: SemanticType, context: MappingContext): ZodSchemaNode
+  
+  // Type-specific mapping
   mapPrimitiveToZod(primitive: PrimitiveType): ZodSchemaNode
-  mapObjectToZod(obj: ObjectType, flatten: boolean): ZodSchemaNode
+  mapObjectToZod(obj: ObjectType, context: MappingContext): ZodSchemaNode
   mapArrayToZod(array: CollectionType): ZodSchemaNode
   mapUnionToZod(union: UnionType): ZodSchemaNode
-  shouldFlatten(context: MappingContext): boolean // true for request, false for response
+  
+  // Context helpers (NO transformation for contracts)
+  shouldTransformNaming(context: MappingContext): boolean // always false (NO transform)
+  shouldPreserveStructure(context: MappingContext): boolean // always true (preserve nested)
 }
 ```
 
@@ -211,7 +341,7 @@ class ContractActionGenerator {
 - Generate schema definitions section
 - Generate type inference section
 - Generate validation functions section
-- Add imports (Zod)
+- Add imports (Zod only)
 - Format code consistently
 
 **Key Methods:**
@@ -229,34 +359,38 @@ class ContractCodeBuilder {
 
 ## Key Differences: Response vs Request
 
-### Response Schemas (Nested)
+### Response Schemas (Original Backend Structure)
 
 ```typescript
-// ✅ Response: Keep nested structure
+// ✅ Response: Keep EXACT backend structure
 export const OrderSchema = z.object({
   id: z.number(),
-  shipping: z.object({        // ← Nested
+  total_harga: z.number(),       // ← snake_case (backend)
+  shipping: z.object({           // ← Nested (backend)
     nama: z.string().nullable(),
     telepon: z.string().nullable(),
-    alamat: z.string().nullable(),
   }).nullable().optional(),
 })
 ```
 
-**Reason:** Backend sends nested JSON, frontend should validate as-is.
+**Reason:** Backend sends this exact JSON, validate as-is.
 
-### Request Schemas (Flattened)
+### Request Schemas (ALSO Original Backend Structure)
 
 ```typescript
-// ✅ Request: Flatten nested structure
+// ✅ Request: SAME as response - nested + snake_case
 export const OrderCreateSchema = z.object({
-  shippingNama: z.string(),      // ← Flattened
-  shippingTelepon: z.string(),    // ← Flattened
-  shippingAlamat: z.string(),     // ← Flattened
+  shipping: z.object({           // ← Nested (backend expects this)
+    nama: z.string(),            // ← snake_case (backend expects this)
+    telepon: z.string(),         // ← snake_case (backend expects this)
+  })
 })
 ```
 
-**Reason:** Frontend Domain Model philosophy - form inputs are flat.
+**Reason:** 
+- Backend expects nested snake_case input
+- Contract validates EXACT backend structure
+- NO transformation for runtime validation
 
 ---
 
@@ -264,14 +398,14 @@ export const OrderCreateSchema = z.object({
 
 ### Primitive Types
 
-| SemanticType | Zod Schema |
-|--------------|------------|
-| `PrimitiveType(STRING)` | `z.string()` |
-| `PrimitiveType(NUMBER)` | `z.number()` |
-| `PrimitiveType(INTEGER)` | `z.number().int()` |
-| `PrimitiveType(BOOLEAN)` | `z.boolean()` |
-| `PrimitiveType(DATE)` | `z.string()` (ISO date) |
-| `PrimitiveType(DATETIME)` | `z.string()` (ISO datetime) |
+| SemanticType | Zod Schema | Backend Example |
+|--------------|------------|-----------------|
+| `PrimitiveType(STRING)` | `z.string()` | `"hello"` |
+| `PrimitiveType(NUMBER)` | `z.number()` | `42.5` |
+| `PrimitiveType(INTEGER)` | `z.number().int()` | `42` |
+| `PrimitiveType(BOOLEAN)` | `z.boolean()` | `true` |
+| `PrimitiveType(DATE)` | `z.string()` | `"2024-01-01"` |
+| `PrimitiveType(DATETIME)` | `z.string()` | `"2024-01-01T10:00:00Z"` |
 
 ### Nullable & Optional
 
@@ -290,40 +424,43 @@ PrimitiveType(STRING) + nullable + optional → z.string().nullable().optional()
 
 ```typescript
 // Simple array
-ReadonlyCollectionType(ARRAY, STRING) → z.array(z.string())
+CollectionType(ARRAY, STRING) → z.array(z.string())
 
-// Array of objects
-ReadonlyCollectionType(ARRAY, ObjectType) → z.array(z.object({ ... }))
+// Array of objects (preserve backend structure)
+CollectionType(ARRAY, ObjectType) → z.array(z.object({
+  field_name: z.string()  // ← snake_case preserved
+}))
 ```
 
-### Objects
+### Objects (Nested - Both Request & Response)
 
 ```typescript
-// Simple object
+// ✅ Both request & response: Keep nested structure
 ObjectType({
-  id: NUMBER,
-  name: STRING
+  user_id: NUMBER,
+  user: ObjectType({
+    name: STRING,
+    email: STRING
+  })
 }) → z.object({
-  id: z.number(),
-  name: z.string()
+  user_id: z.number(),      // ← snake_case
+  user: z.object({          // ← Nested
+    name: z.string(),
+    email: z.string()
+  })
 })
 
-// Nested object (response)
-ObjectType({
-  shipping: ObjectType({ ... })
-}) → z.object({
-  shipping: z.object({ ... })
-})
-
-// Flattened object (request)
+// ✅ Request example: SAME structure as response
 ObjectType({
   shipping: ObjectType({
     nama: STRING,
     telepon: STRING
   })
 }) → z.object({
-  shippingNama: z.string(),     // ← Flattened
-  shippingTelepon: z.string()    // ← Flattened
+  shipping: z.object({           // ← Nested (backend expects this)
+    nama: z.string(),            // ← snake_case (backend expects this)
+    telepon: z.string()          // ← snake_case (backend expects this)
+  })
 })
 ```
 
@@ -351,28 +488,50 @@ z.array(z.object({ ... })).min(1)
 
 ---
 
-## Implementation Steps
+## Implementation Steps (Evidence-Based)
 
-### Phase 1: Create Schema Mapper (Week 1)
+### Phase 0: Evidence Collection & Analysis (Week 1 - Day 1-2)
+
+**⚠️  MANDATORY: Do this FIRST before ANY coding!**
+
+**Tasks:**
+1. ✅ Activate reverse-engineering skill
+2. ✅ Activate compiler-bridge-architecture skill
+3. ✅ Read & analyze `TypeScriptGeneratorPass.ts` (document evidence)
+4. ✅ Read & analyze `FormGeneratorPass.ts` (document evidence)
+5. ✅ Read & analyze `CompilerBridge.ts` (document evidence)
+6. ✅ Create Evidence Analysis Document with file:line references
+7. ✅ Document data flow with diagrams
+8. ✅ Answer 10 Critical Questions for each component
+
+**Deliverable:** `CONTRACT_GENERATION_EVIDENCE_ANALYSIS.md`
+
+### Phase 1: Create Schema Mapper (Week 1 - Day 3-5)
 
 **Tasks:**
 1. ✅ Create `ContractSchemaMapper.ts`
-2. ✅ Implement primitive type mapping
-3. ✅ Implement array mapping
-4. ✅ Implement object mapping (both nested & flattened)
+2. ✅ Implement primitive type mapping (NO transformation)
+3. ✅ Implement array mapping (preserve snake_case)
+4. ✅ Implement object mapping (nested for response, flattened for request)
 5. ✅ Implement union mapping
 6. ✅ Implement nullable/optional handling
 7. ✅ Write unit tests (25+ tests)
 
 **Test Coverage:**
 - Primitives: 8 tests
-- Arrays: 5 tests
-- Objects (nested): 5 tests
-- Objects (flattened): 5 tests
+- Arrays (with snake_case): 5 tests
+- Objects (nested - both request & response): 8 tests
 - Unions: 3 tests
 - Edge cases: 5 tests
 
-### Phase 2: Create Action Generator (Week 2)
+**Acceptance Criteria:**
+- ✅ Response schemas preserve snake_case + nested
+- ✅ Request schemas preserve snake_case + nested (SAME as response)
+- ✅ NO flattening for either request or response
+- ✅ All tests pass
+- ✅ 95%+ coverage
+
+### Phase 2: Create Action Generator (Week 2 - Day 1-2)
 
 **Tasks:**
 1. ✅ Create `ContractActionGenerator.ts`
@@ -387,7 +546,7 @@ z.array(z.object({ ... })).min(1)
 - Name generation: 7 tests
 - Edge cases: 3 tests
 
-### Phase 3: Create Code Builder (Week 2)
+### Phase 3: Create Code Builder (Week 2 - Day 3-5)
 
 **Tasks:**
 1. ✅ Create `ContractCodeBuilder.ts`
@@ -404,7 +563,7 @@ z.array(z.object({ ... })).min(1)
 - Imports: 4 tests
 - Edge cases: 3 tests
 
-### Phase 4: Create Pass (Week 3)
+### Phase 4: Create Pass (Week 3 - Day 1-3)
 
 **Tasks:**
 1. ✅ Create `ContractGeneratorPass.ts`
@@ -419,7 +578,7 @@ z.array(z.object({ ... })).min(1)
 - Error handling: 5 tests
 - Integration: 5 tests
 
-### Phase 5: CLI Integration (Week 3)
+### Phase 5: CLI Integration (Week 3 - Day 4-5)
 
 **Tasks:**
 1. ✅ Update `CompilerBridge` to support contracts
@@ -444,110 +603,36 @@ z.array(z.object({ ... })).min(1)
 **ContractSchemaMapper:** 25+ tests
 ```typescript
 describe('ContractSchemaMapper', () => {
+  describe('Naming Convention', () => {
+    test('should preserve snake_case for response')
+    test('should preserve snake_case for request')
+    test('should NOT convert to camelCase')
+  })
+  
+  describe('Structure Preservation', () => {
+    test('should keep nested structure for response')
+    test('should keep nested structure for request (SAME as response)')
+    test('should NOT flatten for either request or response')
+  })
+  
   describe('Primitive Mapping', () => {
     test('should map STRING to z.string()')
     test('should map NUMBER to z.number()')
     test('should map INTEGER to z.number().int()')
-    test('should map BOOLEAN to z.boolean()')
     test('should map nullable STRING to z.string().nullable()')
-    test('should map optional STRING to z.string().optional()')
-    test('should map nullable+optional to z.string().nullable().optional()')
   })
   
   describe('Array Mapping', () => {
-    test('should map array of strings to z.array(z.string())')
+    test('should preserve snake_case in arrays')
     test('should map array of objects')
-    test('should map nested arrays')
   })
   
-  describe('Object Mapping - Nested', () => {
+  describe('Object Mapping - Both Request & Response', () => {
     test('should keep nested structure for response')
-    test('should preserve object hierarchy')
+    test('should keep nested structure for request')
+    test('should preserve snake_case field names')
+    test('should NOT flatten nested objects')
   })
-  
-  describe('Object Mapping - Flattened', () => {
-    test('should flatten nested objects for request')
-    test('should generate correct field names (shippingNama)')
-  })
-  
-  describe('Union Mapping', () => {
-    test('should map union types to z.union()')
-  })
-})
-```
-
-**ContractActionGenerator:** 20+ tests
-```typescript
-describe('ContractActionGenerator', () => {
-  describe('Resource Grouping', () => {
-    test('should group routes by resource name')
-    test('should handle multiple resources')
-  })
-  
-  describe('Action Identification', () => {
-    test('should identify index action (GET /orders)')
-    test('should identify show action (GET /orders/:id)')
-    test('should identify create action (POST /orders)')
-    test('should identify update action (PUT /orders/:id)')
-    test('should identify delete action (DELETE /orders/:id)')
-  })
-  
-  describe('Name Generation', () => {
-    test('should generate OrderSchema for response')
-    test('should generate OrderCreateSchema for create')
-    test('should generate OrderApiResponse for type')
-    test('should generate validateOrderResponse for validator')
-  })
-})
-```
-
-**ContractCodeBuilder:** 20+ tests
-```typescript
-describe('ContractCodeBuilder', () => {
-  describe('Schema Section', () => {
-    test('should generate schema definitions')
-    test('should order schemas logically (response, request, query)')
-  })
-  
-  describe('Type Section', () => {
-    test('should generate z.infer types')
-    test('should use correct naming')
-  })
-  
-  describe('Validator Section', () => {
-    test('should generate validation functions')
-    test('should use schema.parse()')
-  })
-  
-  describe('Imports', () => {
-    test('should add Zod import')
-    test('should not add unnecessary imports')
-  })
-})
-```
-
-### Integration Tests (25+ tests)
-
-**ContractGeneratorPass:** 25+ tests
-```typescript
-describe('ContractGeneratorPass Integration', () => {
-  test('should generate complete contract file')
-  test('should handle multiple resources')
-  test('should preserve response nesting')
-  test('should flatten request objects')
-  test('should generate correct validators')
-  test('should handle error scenarios')
-})
-```
-
-### E2E Tests (5+ tests)
-
-```typescript
-describe('Contract Generation E2E', () => {
-  test('should generate from real manifest')
-  test('should compile TypeScript without errors')
-  test('should validate runtime data correctly')
-  test('should integrate with existing generators')
 })
 ```
 
@@ -563,9 +648,9 @@ describe('Contract Generation E2E', () => {
   "method": "POST",
   "controller": "OrderController@store",
   "validation": {
-    "shipping_nama": "required|string|max:255",
-    "shipping_telepon": "required|string|max:20",
-    "shipping_alamat": "required|string|max:500"
+    "shipping.nama": "required|string|max:255",
+    "shipping.telepon": "required|string|max:20",
+    "shipping.alamat": "required|string|max:500"
   },
   "response": {
     "type": "Order",
@@ -573,6 +658,7 @@ describe('Contract Generation E2E', () => {
     "fields": {
       "id": "number",
       "status": "string",
+      "total_harga": "number",
       "shipping": {
         "nama": "string|null",
         "telepon": "string|null",
@@ -588,22 +674,25 @@ describe('Contract Generation E2E', () => {
 ```typescript
 import { z } from 'zod'
 
-// Response Schema (nested)
+// Response Schema (ORIGINAL backend structure)
 export const OrderSchema = z.object({
   id: z.number(),
   status: z.string(),
-  shipping: z.object({
+  total_harga: z.number(),            // ← snake_case (backend)
+  shipping: z.object({                // ← Nested (backend)
     nama: z.string().nullable(),
     telepon: z.string().nullable(),
     alamat: z.string().nullable(),
   }).nullable().optional(),
 })
 
-// Request Schema (flattened)
+// Request Schema (SAME structure - nested + snake_case)
 export const OrderCreateSchema = z.object({
-  shippingNama: z.string().max(255),
-  shippingTelepon: z.string().max(20),
-  shippingAlamat: z.string().max(500),
+  shipping: z.object({                     // ← Nested (backend expects this)
+    nama: z.string().max(255),            // ← snake_case (backend expects this)
+    telepon: z.string().max(20),          // ← snake_case (backend expects this)
+    alamat: z.string().max(500),          // ← snake_case (backend expects this)
+  })
 })
 
 // Inferred Types
@@ -620,50 +709,14 @@ export const validateOrderCreate = (payload: unknown): OrderApiCreate =>
 
 ---
 
-## Integration with Existing System
-
-### CompilerBridge Integration
-
-```typescript
-// packages/core/src/compiler/generators/CompilerBridge.ts
-
-async generateContracts(manifest: Manifest): Promise<GeneratedContractArtifact> {
-  const contractPass = new ContractGeneratorPass()
-  const state = new CompilationState()
-  
-  await contractPass.run(state, manifest)
-  
-  return state.artifacts.get(ArtifactKey.GENERATED_CONTRACT)
-}
-```
-
-### CLI Integration
-
-```bash
-# Generate all outputs including contracts
-npx routesync generate \
-  --manifest routesync.manifest.json \
-  --output src/api \
-  --contracts  # ← New flag
-
-# Output structure:
-src/api/
-├── types/
-│   └── api-read.ts      (existing)
-├── forms/
-│   └── api-form.ts      (existing)
-└── contracts/           (NEW)
-    └── api-contract.ts  (NEW)
-```
-
----
-
 ## Success Criteria
 
 ### Functionality
 - ✅ Generates valid Zod schemas from manifest
-- ✅ Response schemas keep nested structure
-- ✅ Request schemas flatten nested objects
+- ✅ **Response schemas preserve ORIGINAL backend structure (snake_case + nested)**
+- ✅ **Request schemas ALSO preserve ORIGINAL backend structure (snake_case + nested)**
+- ✅ NO transformation to camelCase
+- ✅ NO flattening for either request or response
 - ✅ Type inference works correctly
 - ✅ Validators work at runtime
 - ✅ Handles all SemanticType variants
@@ -674,11 +727,14 @@ src/api/
 - ✅ ~95% code coverage
 - ✅ No TypeScript errors in generated code
 - ✅ Runtime validation works correctly
+- ✅ Follows evidence-based architecture
+- ✅ Follows CompilerBridge principles
 
 ### Documentation
+- ✅ Evidence analysis document
 - ✅ Comprehensive implementation guide
 - ✅ Usage examples
-- ✅ Migration guide from api-read + api-form
+- ✅ Migration guide
 - ✅ API reference
 
 ---
@@ -686,16 +742,18 @@ src/api/
 ## Benefits
 
 ### For Developers
-1. **Single Source of Truth**: Schema defines both validation & types
-2. **Runtime Safety**: Validation at runtime, not just compile-time
-3. **Better DX**: IntelliSense works from inferred types
-4. **Less Boilerplate**: No need to write types + schemas separately
+1. **Runtime Safety**: Validates backend contract at runtime
+2. **Backend Contract Validation**: Ensures data matches what backend sends
+3. **Type Safety**: IntelliSense from inferred types
+4. **Single Source**: Schema defines validation + types
+5. **No Transform Errors**: Validates EXACT backend structure
 
 ### For RouteSync Architecture
-1. **Consistency**: All three outputs (read, form, contract) follow same patterns
-2. **Testability**: Zod schemas are easily testable
-3. **Maintainability**: Schemas easier to understand than TypeScript types
-4. **Flexibility**: Can add custom validators easily
+1. **Consistency**: Follows existing pass patterns
+2. **Separation of Concerns**: Each generator has different purpose
+3. **Testability**: Zod schemas easily testable
+4. **Maintainability**: Clear responsibility boundaries
+5. **Flexibility**: Can customize validation easily
 
 ---
 
@@ -703,47 +761,53 @@ src/api/
 
 **Total Duration:** 4 weeks
 
-- **Week 1:** ContractSchemaMapper implementation + tests
-- **Week 2:** ContractActionGenerator + ContractCodeBuilder + tests
-- **Week 3:** ContractGeneratorPass + CLI integration + tests
+- **Week 1:** Evidence analysis (2 days) + ContractSchemaMapper (3 days)
+- **Week 2:** ContractActionGenerator + ContractCodeBuilder
+- **Week 3:** ContractGeneratorPass + CLI integration
 - **Week 4:** Documentation + E2E tests + polish
 
 **Estimated Effort:** ~80-100 hours
 
 ---
 
-## Next Steps
-
-### Immediate Actions
-1. ✅ Create Phase 1 implementation plan
-2. ✅ Set up test infrastructure
-3. ✅ Create initial file structure
-4. ✅ Write first batch of unit tests
-
-### Follow-up
-1. Weekly progress reviews
-2. Integration testing with real manifests
-3. Performance benchmarking
-4. User feedback collection
-
----
-
 ## References
 
 ### Existing Implementations
-- `packages/core/src/compiler/generators/form-generation/FormFieldMapper.ts` (reference for flattening)
-- `packages/core/src/compiler/generators/typescript/TypeScriptGenerator.ts` (reference for type mapping)
-- `packages/core/src/compiler/passes/FormGeneratorPass.ts` (reference for pass structure)
+- `packages/core/src/compiler/passes/TypeScriptGeneratorPass.ts` (pass structure)
+- `packages/core/src/compiler/passes/FormGeneratorPass.ts` (form generation reference - NOTE: Form uses flattening, Contract does NOT)
+- `packages/core/src/compiler/generators/CompilerBridge.ts` (bridge architecture)
+- `packages/core/src/compiler/generators/form-generation/FormFieldMapper.ts` (reference only - Contract does NOT flatten)
 
 ### Documentation
 - `.kiro/steering/frontend-domain-model.md` (philosophy)
-- `FORM_GENERATION_IMPLEMENTATION_COMPLETE.md` (similar feature reference)
-- `TYPESCRIPT_GENERATION_TEST_COVERAGE_ANALYSIS.md` (test coverage reference)
+- `.kiro/steering/evidence-based-architecture.md` (analysis approach)
+- `.kiro/steering/skills/compiler-bridge-architecture/SKILL.md` (architecture rules)
+- `.kiro/steering/skills/reverse-engineering/SKILL.md` (analysis methodology)
+
+---
+
+## 🚨 Final Reminders
+
+### Before Implementation:
+1. ✅ **ACTIVATE SKILLS** (reverse-engineering + compiler-bridge-architecture)
+2. ✅ **EVIDENCE COLLECTION** (read existing code, document data flow)
+3. ✅ **NO ASSUMPTIONS** (every decision backed by evidence)
+
+### During Implementation:
+1. ✅ **NO TRANSFORMATION** (preserve backend structure)
+2. ✅ **snake_case ONLY** (never camelCase)
+3. ✅ **SoC Architecture** (separate mapper, generator, builder)
+
+### After Implementation:
+1. ✅ **100% TEST PASS** (70+ unit tests)
+2. ✅ **DOCUMENTATION** (evidence analysis + usage guide)
+3. ✅ **CODE REVIEW** (verify principles followed)
 
 ---
 
 **Status:** READY FOR IMPLEMENTATION  
 **Priority:** HIGH  
 **Complexity:** MEDIUM-HIGH  
-**Risk:** LOW (follows established patterns)
+**Risk:** LOW (follows established patterns + evidence-based approach)  
+**Architecture Compliance:** MANDATORY (skills must be followed)
 

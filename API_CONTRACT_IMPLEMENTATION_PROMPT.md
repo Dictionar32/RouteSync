@@ -786,6 +786,584 @@ export const validateOrderCreate = (payload: unknown): OrderApiCreate =>
 
 ---
 
+## 🏗️ Code Architecture Principles (Maintainability Focus)
+
+### Prinsip Utama: Small, Reusable, Composable
+
+**⚠️ MANDATORY: NEVER create large classes without small reusable building blocks!**
+
+### 1. ✅ Small Classes Principle
+
+**Rule:** Setiap class harus **single purpose** dan **< 200 lines**.
+
+```typescript
+// ❌ BAD: God class dengan 1000+ lines
+class ContractGenerator {
+  mapPrimitive() { /* 50 lines */ }
+  mapArray() { /* 80 lines */ }
+  mapObject() { /* 120 lines */ }
+  mapUnion() { /* 60 lines */ }
+  generateSchema() { /* 100 lines */ }
+  generateTypes() { /* 150 lines */ }
+  generateValidators() { /* 200 lines */ }
+  buildCode() { /* 300 lines */ }
+  formatCode() { /* 100 lines */ }
+  // Total: 1160 lines - UNMAINTAINABLE!
+}
+```
+
+```typescript
+// ✅ GOOD: Small, focused classes
+class PrimitiveMapper {
+  map(primitive: PrimitiveType): ZodPrimitive {
+    // 30 lines - FOCUSED
+  }
+}
+
+class ArrayMapper {
+  constructor(private typeMapper: TypeMapper) {}
+  map(array: CollectionType): ZodArray {
+    // 40 lines - FOCUSED
+  }
+}
+
+class ObjectMapper {
+  constructor(private typeMapper: TypeMapper) {}
+  map(object: ObjectType): ZodObject {
+    // 60 lines - FOCUSED
+  }
+}
+
+class UnionMapper {
+  constructor(private typeMapper: TypeMapper) {}
+  map(union: UnionType): ZodUnion {
+    // 40 lines - FOCUSED
+  }
+}
+
+// Composition
+class TypeMapper {
+  constructor(
+    private primitiveMapper: PrimitiveMapper,
+    private arrayMapper: ArrayMapper,
+    private objectMapper: ObjectMapper,
+    private unionMapper: UnionMapper
+  ) {}
+  
+  map(type: SemanticType): ZodSchema {
+    // 50 lines - ORCHESTRATION ONLY
+    if (isPrimitive(type)) return this.primitiveMapper.map(type)
+    if (isArray(type)) return this.arrayMapper.map(type)
+    if (isObject(type)) return this.objectMapper.map(type)
+    if (isUnion(type)) return this.unionMapper.map(type)
+    throw new UnknownTypeError(type)
+  }
+}
+```
+
+### 2. ✅ Dependency Injection (Wiring Pattern)
+
+**Rule:** Large classes harus **composed** dari small classes via DI.
+
+```typescript
+// ❌ BAD: Tight coupling, cannot test independently
+class ContractCodeBuilder {
+  buildCode(schemas: ZodSchema[]): string {
+    const mapper = new TypeMapper() // ← Hard-coded dependency
+    const generator = new SchemaGenerator() // ← Hard-coded
+    const formatter = new CodeFormatter() // ← Hard-coded
+    // Cannot mock, cannot swap, cannot test
+  }
+}
+```
+
+```typescript
+// ✅ GOOD: Dependency injection for testability & flexibility
+interface ITypeMapper {
+  map(type: SemanticType): ZodSchema
+}
+
+interface ISchemaGenerator {
+  generate(schemas: ZodSchema[]): string
+}
+
+interface ICodeFormatter {
+  format(code: string): string
+}
+
+class ContractCodeBuilder {
+  constructor(
+    private typeMapper: ITypeMapper,
+    private schemaGenerator: ISchemaGenerator,
+    private codeFormatter: ICodeFormatter
+  ) {}
+  
+  buildCode(types: SemanticType[]): string {
+    // ✅ Can inject mocks for testing
+    // ✅ Can swap implementations
+    // ✅ Each dependency testable independently
+    const schemas = types.map(t => this.typeMapper.map(t))
+    const code = this.schemaGenerator.generate(schemas)
+    return this.codeFormatter.format(code)
+  }
+}
+
+// Usage with real implementations
+const builder = new ContractCodeBuilder(
+  new TypeMapper(
+    new PrimitiveMapper(),
+    new ArrayMapper(typeMapper),
+    new ObjectMapper(typeMapper),
+    new UnionMapper(typeMapper)
+  ),
+  new SchemaGenerator(),
+  new CodeFormatter()
+)
+
+// Usage in tests with mocks
+const mockBuilder = new ContractCodeBuilder(
+  mockTypeMapper,
+  mockSchemaGenerator,
+  mockCodeFormatter
+)
+```
+
+### 3. ✅ SoC (Separation of Concerns)
+
+**Rule:** Setiap class hanya bertanggung jawab untuk **satu hal**.
+
+```typescript
+// ❌ BAD: Multiple concerns in one class
+class ContractGenerator {
+  // Concern 1: Type mapping
+  mapType(type: SemanticType): ZodSchema { /* */ }
+  
+  // Concern 2: Schema generation
+  generateSchema(types: SemanticType[]): string { /* */ }
+  
+  // Concern 3: Code formatting
+  formatCode(code: string): string { /* */ }
+  
+  // Concern 4: File I/O
+  writeFile(path: string, code: string): void { /* */ }
+  
+  // TOO MANY CONCERNS!
+}
+```
+
+```typescript
+// ✅ GOOD: One concern per class
+class TypeMapper {
+  // Concern: Type → Zod mapping ONLY
+  map(type: SemanticType): ZodSchema
+}
+
+class SchemaGenerator {
+  // Concern: Zod → Code string ONLY
+  generate(schemas: ZodSchema[]): string
+}
+
+class CodeFormatter {
+  // Concern: Code formatting ONLY
+  format(code: string): string
+}
+
+class FileWriter {
+  // Concern: File I/O ONLY
+  write(path: string, content: string): void
+}
+
+// Orchestrator (thin layer)
+class ContractGeneratorOrchestrator {
+  constructor(
+    private typeMapper: TypeMapper,
+    private schemaGenerator: SchemaGenerator,
+    private codeFormatter: CodeFormatter,
+    private fileWriter: FileWriter
+  ) {}
+  
+  generate(types: SemanticType[], outputPath: string): void {
+    const schemas = types.map(t => this.typeMapper.map(t))
+    const code = this.schemaGenerator.generate(schemas)
+    const formatted = this.codeFormatter.format(code)
+    this.fileWriter.write(outputPath, formatted)
+  }
+}
+```
+
+### 4. ✅ SoT (Single Source of Truth)
+
+**Rule:** Setiap piece of logic hanya ada di **satu tempat**.
+
+```typescript
+// ❌ BAD: Duplicate logic di banyak tempat
+class TypeMapper {
+  mapPrimitive(type: PrimitiveType): ZodPrimitive {
+    if (type.kind === 'string') return z.string()
+    if (type.kind === 'number') return z.number()
+    // ... primitive mapping logic
+  }
+}
+
+class ValidationMapper {
+  mapRule(rule: ValidationRule): ZodSchema {
+    if (rule.type === 'string') return z.string() // ← DUPLICATE!
+    if (rule.type === 'number') return z.number() // ← DUPLICATE!
+    // Same logic duplicated!
+  }
+}
+
+class SchemaGenerator {
+  generateSchema(type: string): string {
+    if (type === 'string') return 'z.string()' // ← DUPLICATE AGAIN!
+    if (type === 'number') return 'z.number()' // ← DUPLICATE AGAIN!
+  }
+}
+```
+
+```typescript
+// ✅ GOOD: Single source of truth
+class PrimitiveTypeRegistry {
+  // ✅ SINGLE place for primitive type mapping
+  private static readonly MAPPINGS: Record<PrimitiveKind, () => ZodPrimitive> = {
+    string: () => z.string(),
+    number: () => z.number(),
+    integer: () => z.number().int(),
+    boolean: () => z.boolean(),
+    date: () => z.string(), // ISO date string
+    datetime: () => z.string(), // ISO datetime string
+  }
+  
+  static getZodType(kind: PrimitiveKind): ZodPrimitive {
+    const mapper = this.MAPPINGS[kind]
+    if (!mapper) throw new UnknownPrimitiveError(kind)
+    return mapper()
+  }
+  
+  static getZodCode(kind: PrimitiveKind): string {
+    // ✅ Code generation also uses SAME registry
+    const typeMap: Record<PrimitiveKind, string> = {
+      string: 'z.string()',
+      number: 'z.number()',
+      integer: 'z.number().int()',
+      boolean: 'z.boolean()',
+      date: 'z.string()',
+      datetime: 'z.string()',
+    }
+    return typeMap[kind]
+  }
+}
+
+// All mappers use same registry
+class TypeMapper {
+  mapPrimitive(type: PrimitiveType): ZodPrimitive {
+    return PrimitiveTypeRegistry.getZodType(type.kind)
+  }
+}
+
+class SchemaGenerator {
+  generatePrimitive(type: PrimitiveType): string {
+    return PrimitiveTypeRegistry.getZodCode(type.kind)
+  }
+}
+```
+
+### 5. ✅ Utility Classes (Shared Helpers)
+
+**Rule:** Extract common patterns ke reusable utilities.
+
+```typescript
+// ✅ GOOD: Shared utilities
+class ZodModifierBuilder {
+  // ✅ Reusable across all mappers
+  static addNullable(schema: ZodSchema): ZodSchema {
+    return schema.nullable()
+  }
+  
+  static addOptional(schema: ZodSchema): ZodSchema {
+    return schema.optional()
+  }
+  
+  static addValidation(
+    schema: ZodSchema,
+    rules: ValidationRule[]
+  ): ZodSchema {
+    let result = schema
+    for (const rule of rules) {
+      result = this.applyRule(result, rule)
+    }
+    return result
+  }
+  
+  private static applyRule(
+    schema: ZodSchema,
+    rule: ValidationRule
+  ): ZodSchema {
+    switch (rule.type) {
+      case 'min': return schema.min(rule.value)
+      case 'max': return schema.max(rule.value)
+      case 'email': return schema.email()
+      case 'url': return schema.url()
+      default: return schema
+    }
+  }
+}
+
+// Usage in mappers
+class ObjectMapper {
+  map(object: ObjectType): ZodObject {
+    let schema = z.object({ /* fields */ })
+    
+    // ✅ Reuse utility
+    if (object.nullable) {
+      schema = ZodModifierBuilder.addNullable(schema)
+    }
+    
+    if (object.optional) {
+      schema = ZodModifierBuilder.addOptional(schema)
+    }
+    
+    return schema
+  }
+}
+```
+
+### 6. ✅ Factory Pattern (Object Creation)
+
+**Rule:** Complex object creation melalui factory.
+
+```typescript
+// ✅ GOOD: Factory for mapper creation
+class MapperFactory {
+  static createTypeMapper(): TypeMapper {
+    const primitiveMapper = new PrimitiveMapper()
+    const typeMapper = new TypeMapper(
+      primitiveMapper,
+      null!, // Will be set after circular dependency resolved
+      null!,
+      null!
+    )
+    
+    const arrayMapper = new ArrayMapper(typeMapper)
+    const objectMapper = new ObjectMapper(typeMapper)
+    const unionMapper = new UnionMapper(typeMapper)
+    
+    // Set circular dependencies
+    ;(typeMapper).arrayMapper = arrayMapper
+    ;(typeMapper).objectMapper = objectMapper
+    ;(typeMapper).unionMapper = unionMapper
+    
+    return typeMapper
+  }
+  
+  static createContractGenerator(): ContractGenerator {
+    const typeMapper = this.createTypeMapper()
+    const schemaGenerator = new SchemaGenerator()
+    const codeFormatter = new CodeFormatter()
+    
+    return new ContractGenerator(
+      typeMapper,
+      schemaGenerator,
+      codeFormatter
+    )
+  }
+}
+
+// Usage
+const generator = MapperFactory.createContractGenerator()
+```
+
+### 7. ✅ Test-Driven Class Design
+
+**Rule:** Design classes untuk testability.
+
+```typescript
+// ✅ GOOD: Pure functions, easy to test
+class TypeMapper {
+  // ✅ Pure function: no side effects, no state
+  map(type: SemanticType): ZodSchema {
+    // Deterministic: same input → same output
+  }
+}
+
+// Test
+describe('TypeMapper', () => {
+  test('should map string to z.string()', () => {
+    const mapper = new TypeMapper(/* dependencies */)
+    const result = mapper.map({ kind: 'string' })
+    expect(result).toEqual(z.string())
+  })
+})
+```
+
+### 8. ✅ Anti-Pattern Detection
+
+**🚨 RED FLAGS indicating bad design:**
+
+#### Red Flag 1: Class > 200 lines
+```typescript
+// ❌ BAD: Too large
+class ContractGenerator {
+  // 1500 lines - BREAK IT DOWN!
+}
+```
+
+**Fix:** Split into smaller classes with single responsibilities.
+
+#### Red Flag 2: Method > 50 lines
+```typescript
+// ❌ BAD: Method too long
+map(type: SemanticType): ZodSchema {
+  // 150 lines of if/else - EXTRACT METHODS!
+}
+```
+
+**Fix:** Extract to smaller methods or separate classes.
+
+#### Red Flag 3: No dependency injection
+```typescript
+// ❌ BAD: Hard-coded dependencies
+class Generator {
+  generate() {
+    const mapper = new TypeMapper() // ← Cannot test
+  }
+}
+```
+
+**Fix:** Inject dependencies via constructor.
+
+#### Red Flag 4: Multiple concerns
+```typescript
+// ❌ BAD: Doing everything
+class Generator {
+  parse() { /* */ }
+  map() { /* */ }
+  generate() { /* */ }
+  format() { /* */ }
+  write() { /* */ }
+}
+```
+
+**Fix:** One class per concern.
+
+#### Red Flag 5: Duplicate logic
+```typescript
+// ❌ BAD: Same logic in multiple places
+if (type === 'string') return z.string() // In class A
+if (type === 'string') return z.string() // In class B
+if (type === 'string') return z.string() // In class C
+```
+
+**Fix:** Extract to shared registry/utility.
+
+---
+
+## 📐 Recommended Class Structure
+
+### File Organization
+```
+contract-generation/
+├── mappers/
+│   ├── TypeMapper.ts              (50 lines - orchestrator)
+│   ├── PrimitiveMapper.ts         (30 lines)
+│   ├── ArrayMapper.ts             (40 lines)
+│   ├── ObjectMapper.ts            (60 lines)
+│   ├── UnionMapper.ts             (40 lines)
+│   └── __tests__/
+│       ├── TypeMapper.test.ts     (80 lines)
+│       ├── PrimitiveMapper.test.ts (40 lines)
+│       ├── ArrayMapper.test.ts    (50 lines)
+│       ├── ObjectMapper.test.ts   (70 lines)
+│       └── UnionMapper.test.ts    (50 lines)
+├── generators/
+│   ├── SchemaGenerator.ts         (80 lines)
+│   ├── TypeGenerator.ts           (60 lines)
+│   ├── ValidatorGenerator.ts      (70 lines)
+│   └── __tests__/
+│       ├── SchemaGenerator.test.ts
+│       ├── TypeGenerator.test.ts
+│       └── ValidatorGenerator.test.ts
+├── builders/
+│   ├── ContractCodeBuilder.ts     (100 lines - orchestrator)
+│   ├── ImportBuilder.ts           (40 lines)
+│   ├── SectionBuilder.ts          (50 lines)
+│   └── __tests__/
+│       ├── ContractCodeBuilder.test.ts
+│       ├── ImportBuilder.test.ts
+│       └── SectionBuilder.test.ts
+├── utils/
+│   ├── PrimitiveTypeRegistry.ts   (50 lines)
+│   ├── ZodModifierBuilder.ts      (60 lines)
+│   ├── NamingHelper.ts            (40 lines)
+│   └── __tests__/
+│       ├── PrimitiveTypeRegistry.test.ts
+│       ├── ZodModifierBuilder.test.ts
+│       └── NamingHelper.test.ts
+└── ContractSchemaMapper.ts        (120 lines - main facade)
+```
+
+### Class Size Guidelines
+
+| Type | Max Lines | Purpose |
+|------|-----------|---------|
+| Mapper | 60 lines | Single type mapping |
+| Generator | 80 lines | Single section generation |
+| Builder | 100 lines | Orchestration only |
+| Utility | 60 lines | Pure helper functions |
+| Factory | 80 lines | Object creation |
+| Facade | 150 lines | Public API (delegates to small classes) |
+
+### Dependency Graph Example
+```
+ContractSchemaMapper (Facade)
+  ↓
+TypeMapper (Orchestrator)
+  ├─→ PrimitiveMapper
+  ├─→ ArrayMapper ──→ TypeMapper (circular, OK via DI)
+  ├─→ ObjectMapper ──→ TypeMapper (circular, OK via DI)
+  └─→ UnionMapper ──→ TypeMapper (circular, OK via DI)
+
+ContractCodeBuilder (Orchestrator)
+  ├─→ TypeMapper
+  ├─→ SchemaGenerator
+  │     ├─→ PrimitiveTypeRegistry (utility)
+  │     └─→ ZodModifierBuilder (utility)
+  ├─→ TypeGenerator
+  │     └─→ NamingHelper (utility)
+  └─→ ValidatorGenerator
+        └─→ NamingHelper (utility)
+```
+
+---
+
+## ✅ Implementation Checklist: Code Quality
+
+### Before Writing ANY Class
+
+- [ ] Is this class < 200 lines? If not, split it.
+- [ ] Does it have ONE clear responsibility?
+- [ ] Are dependencies injected (not hard-coded)?
+- [ ] Can I test this class in isolation?
+- [ ] Is there duplicate logic that should be extracted?
+
+### During Implementation
+
+- [ ] Each method < 50 lines
+- [ ] No nested if/else > 3 levels deep
+- [ ] Extract magic values to constants/registry
+- [ ] Use meaningful names (no abbreviations)
+- [ ] Add JSDoc comments for public APIs
+
+### After Implementation
+
+- [ ] Unit tests for EACH small class (95%+ coverage)
+- [ ] Integration test for orchestrator
+- [ ] No duplicate logic found
+- [ ] Dependencies can be mocked
+- [ ] Code review against anti-patterns
+
+---
+
 ## 🚨 Final Reminders
 
 ### Before Implementation:
@@ -797,11 +1375,18 @@ export const validateOrderCreate = (payload: unknown): OrderApiCreate =>
 1. ✅ **NO TRANSFORMATION** (preserve backend structure)
 2. ✅ **snake_case ONLY** (never camelCase)
 3. ✅ **SoC Architecture** (separate mapper, generator, builder)
+4. ✅ **Small Classes** (< 200 lines, single responsibility)
+5. ✅ **DI Pattern** (inject dependencies, no hard-coding)
+6. ✅ **No Duplication** (extract to registry/utility)
+7. ✅ **Testability** (pure functions, mockable dependencies)
 
 ### After Implementation:
 1. ✅ **100% TEST PASS** (70+ unit tests)
-2. ✅ **DOCUMENTATION** (evidence analysis + usage guide)
-3. ✅ **CODE REVIEW** (verify principles followed)
+2. ✅ **NO God Classes** (check class sizes)
+3. ✅ **NO Duplicate Logic** (verify SoT principle)
+4. ✅ **DOCUMENTATION** (evidence analysis + usage guide)
+5. ✅ **CODE REVIEW** (verify principles followed)
+6. ✅ **Anti-Pattern Check** (run through red flags list)
 
 ---
 

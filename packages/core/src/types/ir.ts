@@ -596,6 +596,8 @@ export interface ParsedField {
     optional?: boolean
     nullable?: boolean
     readonly?: boolean
+    description?: string
+    validation?: Record<string, unknown>
 
     // Same rationale as ResourceFieldIR.semanticType (see below): `resolved` above
     // can only carry a flat SemanticType tag + model name, not enough to represent

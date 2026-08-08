@@ -41,3 +41,6 @@ export { CompilationResultArtifact } from './CompilationResultArtifact';
 
 // Existing exports...
 export * from './GeneratedTypeScriptArtifact';
+export * from './GeneratedFormArtifact';
+export * from './GeneratedContractArtifact';
+export * from './RequestTypesArtifact';

@@ -32,6 +32,13 @@ import type { GeneratedTypeScriptArtifact } from './GeneratedTypeScriptArtifact'
 // Import at top
 import type { SemanticTypesArtifact } from '../passes/TypeScriptGeneratorPass';
 
+// Form generation artifacts
+import type { RequestTypesArtifact } from './RequestTypesArtifact';
+import type { GeneratedFormArtifact } from './GeneratedFormArtifact';
+
+// Contract generation artifacts
+import type { GeneratedContractArtifact } from './GeneratedContractArtifact';
+
 /**
  * Central artifact registry mapping keys to concrete artifact types.
  * 
@@ -63,6 +70,13 @@ export interface ArtifactRegistry {
     // ✨ NEW: TypeScript Generation Artifact
     SemanticTypes: SemanticTypesArtifact;
     GeneratedTypeScript: GeneratedTypeScriptArtifact;
+
+    // ✨ NEW: Form Generation Artifacts
+    RequestTypes: RequestTypesArtifact;
+    GeneratedForm: GeneratedFormArtifact;
+
+    // ✨ NEW: Contract Generation Artifacts
+    GeneratedContract: GeneratedContractArtifact;
 }
 
 /**

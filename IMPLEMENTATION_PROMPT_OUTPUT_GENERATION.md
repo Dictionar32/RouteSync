@@ -459,11 +459,211 @@ export interface ArtifactRegistry {
 }
 ```
 
-### Phase 3: FormGeneratorPass Implementation
+### Phase 3: FormGeneratorPass Implementation (Modular Architecture)
+
+**📁 File Structure** - Small, focused classes:
+
+```
+packages/core/src/compiler/passes/
+├── FormGeneratorPass.ts              # Main pass (orchestration only)
+└── form-generation/                  # Supporting utilities
+    ├── FormCodeBuilder.ts            # Build form type code
+    ├── FormActionGenerator.ts        # Generate action blocks
+    ├── FormFieldMapper.ts            # Map fields to TypeScript
+    └── ValidationRuleInferrer.ts     # Infer types from validation
+```
+
+---
+
+#### 3.1: FormFieldMapper (Type Conversion)
+
+**Create:** `packages/core/src/compiler/passes/form-generation/FormFieldMapper.ts`
+
+```typescript
+/**
+ * FormFieldMapper - Convert SemanticType to TypeScript form types
+ * 
+ * Single Responsibility: Type string conversion
+ * No dependencies on other generation logic
+ */
+export class FormFieldMapper {
+    /**
+     * Convert SemanticType to TypeScript type string
+     * 
+     * Handles:
+     * - Primitives (string, number, boolean)
+     * - Collections (Array<T>)
+     * - Nested objects
+     * - Unions and optionals
+     */
+    toTypeString(type: SemanticType): string {
+        switch (type.kind) {
+            case 'primitive':
+                return this.mapPrimitive(type);
+            case 'readonly_collection':
+            case 'mutable_collection':
+                return this.mapCollection(type);
+            case 'union':
+                return this.mapUnion(type);
+            case 'object':
+                return this.mapObject(type);
+            default:
+                return 'unknown';
+        }
+    }
+    
+    private mapPrimitive(type: PrimitiveType): string {
+        // Primitive type mapping
+        const mapping = {
+            'string': 'string',
+            'number': 'number',
+            'boolean': 'boolean',
+            'datetime': 'string',  // ISO date strings
+        };
+        return mapping[type.type] || 'unknown';
+    }
+    
+    private mapCollection(type: ReadonlyCollectionType | MutableCollectionType): string {
+        const elementType = this.toTypeString(type.elementType);
+        
+        // Use Array<T> for complex types, T[] for simple
+        if (type.elementType.kind === 'object') {
+            return `Array<${elementType}>`;
+        }
+        return `${elementType}[]`;
+    }
+    
+    private mapUnion(type: UnionType): string {
+        return type.members.values()
+            .map(m => this.toTypeString(m))
+            .join(' | ');
+    }
+    
+    private mapObject(type: ObjectType): string {
+        // For nested objects, generate inline type
+        const props = Array.from(type.properties.entries())
+            .map(([key, valueType]) => {
+                const valueStr = this.toTypeString(valueType);
+                return `${key}: ${valueStr}`;
+            });
+        return `{\n    ${props.join('\n    ')}\n  }`;
+    }
+}
+```
+
+---
+
+#### 3.2: FormActionGenerator (Action Block Generation)
+
+**Create:** `packages/core/src/compiler/passes/form-generation/FormActionGenerator.ts`
+
+```typescript
+/**
+ * FormActionGenerator - Generate action blocks (create, update)
+ * 
+ * Single Responsibility: Format action structures
+ * Delegates type conversion to FormFieldMapper
+ */
+export class FormActionGenerator {
+    constructor(private readonly fieldMapper: FormFieldMapper) {}
+    
+    /**
+     * Generate action block code
+     * 
+     * Example output:
+     *   create: {
+     *     name: string
+     *     email: string
+     *   }
+     */
+    generateAction(action: RequestAction): string {
+        const fields = this.generateFields(action.fields);
+        return `  ${action.action}: {\n${fields}\n  }`;
+    }
+    
+    private generateFields(fields: readonly RequestField[]): string {
+        if (fields.length === 0) {
+            return '    // No fields';
+        }
+        
+        return fields.map(field => this.generateField(field)).join('\n');
+    }
+    
+    private generateField(field: RequestField): string {
+        const optional = field.optional ? '?' : '';
+        const nullable = field.nullable ? ' | null' : '';
+        const typeStr = this.fieldMapper.toTypeString(field.type);
+        
+        return `    ${field.name}${optional}: ${typeStr}${nullable}`;
+    }
+}
+```
+
+---
+
+#### 3.3: FormCodeBuilder (Code Assembly)
+
+**Create:** `packages/core/src/compiler/passes/form-generation/FormCodeBuilder.ts`
+
+```typescript
+/**
+ * FormCodeBuilder - Assemble complete form type code
+ * 
+ * Single Responsibility: Code structure and formatting
+ * Delegates action generation to FormActionGenerator
+ */
+export class FormCodeBuilder {
+    constructor(private readonly actionGenerator: FormActionGenerator) {}
+    
+    /**
+     * Build complete form code from requests
+     */
+    build(requests: readonly RequestType[]): string {
+        const lines: string[] = [];
+        
+        // Header
+        lines.push('// Generated by FormGeneratorPass');
+        lines.push('// File: forms/api-form.ts');
+        lines.push('');
+        
+        // Generate each form type
+        for (const request of requests) {
+            lines.push(this.generateFormType(request));
+            lines.push('');
+        }
+        
+        return lines.join('\n');
+    }
+    
+    private generateFormType(request: RequestType): string {
+        const formName = `${request.name}Form`;
+        
+        if (request.actions.length === 0) {
+            return `export type ${formName} = {}`;
+        }
+        
+        const actions = request.actions
+            .map(action => this.actionGenerator.generateAction(action))
+            .join('\n');
+        
+        return `export type ${formName} = {\n${actions}\n}`;
+    }
+}
+```
+
+---
+
+#### 3.4: FormGeneratorPass (Orchestration)
 
 **Create:** `packages/core/src/compiler/passes/FormGeneratorPass.ts`
 
 ```typescript
+/**
+ * FormGeneratorPass - Main pass orchestrator
+ * 
+ * Single Responsibility: Coordinate generation pipeline
+ * Delegates to small, focused utility classes
+ */
 export class FormGeneratorPass
     implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedForm']> {
     
@@ -471,17 +671,38 @@ export class FormGeneratorPass
     public readonly inputWitnesses = [{ key: 'RequestTypes' }] as const;
     public readonly outputKeys = ['GeneratedForm'] as const;
     
+    // Small utility instances (dependency injection)
+    private readonly fieldMapper: FormFieldMapper;
+    private readonly actionGenerator: FormActionGenerator;
+    private readonly codeBuilder: FormCodeBuilder;
+    
+    constructor() {
+        // Wire up small classes
+        this.fieldMapper = new FormFieldMapper();
+        this.actionGenerator = new FormActionGenerator(this.fieldMapper);
+        this.codeBuilder = new FormCodeBuilder(this.actionGenerator);
+    }
+    
+    /**
+     * Execute pass - pure orchestration
+     */
     public run(
         inputs: ResolveArtifacts<readonly ['RequestTypes']>
     ): ResolveArtifacts<readonly ['GeneratedForm']> {
         
         const requestTypesArtifact = inputs[0];
-        const code = this.buildFormCode(requestTypesArtifact.requests);
         
+        // Delegate to code builder
+        const code = this.codeBuilder.build(requestTypesArtifact.requests);
+        
+        // Extract metadata
+        const forms = this.extractFormDefinitions(requestTypesArtifact.requests);
+        
+        // Build artifact
         const artifact: GeneratedFormArtifact = {
             typeId: 'GeneratedForm',
             code,
-            forms: this.extractFormDefinitions(requestTypesArtifact.requests),
+            forms,
             generationMetadata: {
                 generatorVersion: '1.0.0',
                 formCount: requestTypesArtifact.requests.length,
@@ -501,47 +722,75 @@ export class FormGeneratorPass
         return [artifact];
     }
     
-    private buildFormCode(requests: readonly RequestType[]): string {
-        const lines: string[] = [];
-        
-        lines.push('// Generated by FormGeneratorPass');
-        lines.push('// File: forms/api-form.ts');
-        lines.push('');
-        
-        for (const request of requests) {
-            lines.push(this.generateFormType(request));
-            lines.push('');
-        }
-        
-        return lines.join('\n');
+    // Simple metadata extraction methods
+    private extractFormDefinitions(requests: readonly RequestType[]): FormDefinition[] {
+        return requests.map(req => ({
+            name: `${req.name}Form`,
+            actions: req.actions.map(act => ({
+                action: act.action,
+                fields: act.fields.map(f => ({
+                    name: f.name,
+                    type: this.fieldMapper.toTypeString(f.type),
+                    optional: f.optional,
+                    nullable: f.nullable
+                }))
+            }))
+        }));
     }
     
-    private generateFormType(request: RequestType): string {
-        const formName = `${request.name}Form`;
-        const actions: string[] = [];
-        
-        for (const action of request.actions) {
-            actions.push(this.generateAction(action));
-        }
-        
-        return `export type ${formName} = {\n${actions.join('\n')}\n}`;
+    private countActions(requests: readonly RequestType[]): number {
+        return requests.reduce((sum, req) => sum + req.actions.length, 0);
     }
+}
+```
+
+---
+
+## 🧩 Architecture Benefits
+
+### Small, Focused Classes
+
+| Class | Lines | Responsibility |
+|-------|-------|----------------|
+| FormFieldMapper | ~80 | Type conversion only |
+| FormActionGenerator | ~50 | Action block formatting |
+| FormCodeBuilder | ~60 | Code assembly |
+| FormGeneratorPass | ~80 | Orchestration only |
+
+**Total:** ~270 lines split across 4 focused classes (vs ~500 lines monolithic)
+
+### Easy Testing
+
+```typescript
+// Test individual pieces independently
+describe('FormFieldMapper', () => {
+    it('should map primitive types', () => {
+        const mapper = new FormFieldMapper();
+        expect(mapper.toTypeString(stringType)).toBe('string');
+    });
+});
+
+describe('FormActionGenerator', () => {
+    it('should generate action with fields', () => {
+        const mapper = new FormFieldMapper();
+        const generator = new FormActionGenerator(mapper);
+        const result = generator.generateAction(mockAction);
+        expect(result).toContain('create: {');
+    });
+});
+```
+
+### Easy Extension
+
+Want to add Zod schema generation? Just add new class:
+
+```typescript
+// New class, no modification to existing code
+class FormZodGenerator {
+    constructor(private readonly fieldMapper: FormFieldMapper) {}
     
-    private generateAction(action: RequestAction): string {
-        const fields = action.fields.map(field => {
-            const optional = field.optional ? '?' : '';
-            const nullable = field.nullable ? ' | null' : '';
-            const typeStr = this.semanticTypeToString(field.type);
-            return `    ${field.name}${optional}: ${typeStr}${nullable}`;
-        }).join('\n');
-        
-        return `  ${action.action}: {\n${fields}\n  }`;
-    }
-    
-    private semanticTypeToString(type: SemanticType): string {
-        // Convert SemanticType to TypeScript string
-        // Similar to TypeScriptGeneratorPass.convertTypeToString()
-        // Handle primitive, reference, collection, union types
+    generateZodSchema(request: RequestType): string {
+        // Reuse fieldMapper for type conversion
     }
 }
 ```

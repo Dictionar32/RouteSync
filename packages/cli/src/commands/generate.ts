@@ -53,6 +53,8 @@ export const generateCommand = new Command('generate')
       // NEW: Generate via compiler path (Phase 3 Day 7)
       try {
         const { CompilerBridge } = await import('../generators/CompilerBridge')
+
+        // Generate api-read.ts (resource types)
         const compilerOutput = await CompilerBridge.generateTypeScript(manifest)
 
         // Write compiler-generated types to api-read.ts
@@ -60,12 +62,56 @@ export const generateCommand = new Command('generate')
         await fs.ensureDir(path.dirname(compilerTypesPath))
         await fs.writeFile(compilerTypesPath, compilerOutput.code)
 
-        console.log(`  [CompilerBridge] Generated:`)
+        console.log(`  [CompilerBridge] Generated api-read.ts:`)
         console.log(`    - Types: ${compilerOutput.metadata.typeCount}`)
         console.log(`    - Interfaces: ${compilerOutput.metadata.interfaceCount}`)
         console.log(`    - LOC: ${compilerOutput.metadata.linesOfCode}`)
         if (compilerOutput.metadata.warnings.length > 0) {
           console.log(`    - Warnings: ${compilerOutput.metadata.warnings.length}`)
+        }
+
+        // Generate api-form.ts (form types from validation rules)
+        spinner.text = 'Generating form types...'
+        try {
+          const formOutput = await CompilerBridge.generateFormTypes(manifest)
+
+          // Write compiler-generated form types to api-form.ts
+          const formTypesPath = path.join(options.output, 'forms', 'api-form.ts')
+          await fs.ensureDir(path.dirname(formTypesPath))
+          await fs.writeFile(formTypesPath, formOutput.code)
+
+          console.log(`  [CompilerBridge] Generated api-form.ts:`)
+          console.log(`    - Form Types: ${formOutput.metadata.formTypeCount}`)
+          console.log(`    - Total Actions: ${formOutput.metadata.totalActions}`)
+          console.log(`    - LOC: ${formOutput.metadata.linesOfCode}`)
+          if (formOutput.metadata.warnings.length > 0) {
+            console.log(`    - Warnings: ${formOutput.metadata.warnings.length}`)
+          }
+        } catch (formError) {
+          console.warn(`  [CompilerBridge] Warning: Form generation failed - ${formError instanceof Error ? formError.message : String(formError)}`)
+        }
+
+        // Generate api-contract.ts (Zod schemas for runtime validation)
+        spinner.text = 'Generating contract types...'
+        try {
+          const contractOutput = await CompilerBridge.generateContractTypes(manifest)
+
+          // Write compiler-generated contract to api-contract.ts
+          const contractPath = path.join(options.output, 'contracts', 'api-contract.ts')
+          await fs.ensureDir(path.dirname(contractPath))
+          await fs.writeFile(contractPath, contractOutput.code)
+
+          console.log(`  [CompilerBridge] Generated api-contract.ts:`)
+          console.log(`    - Contracts: ${contractOutput.metadata.contractCount}`)
+          console.log(`    - Total Actions: ${contractOutput.metadata.totalActions}`)
+          console.log(`    - Zod Schemas: ${contractOutput.metadata.zodSchemasCount}`)
+          console.log(`    - Validators: ${contractOutput.metadata.validatorsCount}`)
+          console.log(`    - LOC: ${contractOutput.metadata.linesOfCode}`)
+          if (contractOutput.metadata.warnings.length > 0) {
+            console.log(`    - Warnings: ${contractOutput.metadata.warnings.length}`)
+          }
+        } catch (contractError) {
+          console.warn(`  [CompilerBridge] Warning: Contract generation failed - ${contractError instanceof Error ? contractError.message : String(contractError)}`)
         }
       } catch (compilerError) {
         console.warn(`  [CompilerBridge] Warning: ${compilerError instanceof Error ? compilerError.message : String(compilerError)}`)

@@ -232,7 +232,7 @@ Plan sudah complete dengan:
 **Updated:** 2026-08-08  
 **Status:** Step 4 COMPLETE ✅
 
-### Completed Steps (4/6)
+### Completed Steps (5/6)
 
 | Step | Component | Tests | Lines | Status |
 |------|-----------|-------|-------|--------|
@@ -240,28 +240,33 @@ Plan sudah complete dengan:
 | 2 | ResponseStructureBuilder | 16 | ~120 | ✅ PASS |
 | 3 | NestedObjectSchemaBuilder | 17 | ~130 | ✅ PASS |
 | 4 | ArraySchemaBuilder | 15 | ~110 | ✅ PASS |
-| 5 | ContractSchemaMapper | TBD | ~150 | 📋 NEXT |
-| 6 | Integration & E2E | TBD | ~100 | 📋 Pending |
+| 5 | ResponseSchemaMapper | 16 | ~220 | ✅ PASS |
+| 6 | Integration & E2E | TBD | ~100 | 📋 NEXT |
 
-**Total Tests Passing:** 70 ✅  
-**Total Production Code:** ~600 lines  
-**Progress:** 67% complete 🚀
+**Total Tests Passing:** 86 ✅  
+**Total Production Code:** ~900 lines  
+**Progress:** 83% complete 🚀
 
-### Latest Achievement (Step 4)
-✅ **ArraySchemaBuilder** - 15 tests passing
-- Array of primitives (string, number, boolean)
-- Array of objects (simple, nested, empty)
-- Nested arrays (2D, 3D, recursive)
-- Nullable/optional arrays
-- E-commerce scenarios (product variants, order items)
+### Latest Achievement (Step 5)
+✅ **ResponseSchemaMapper** - 16 tests passing
+- Map single route response to Zod schema
+- Handle index (array) and show (single) responses
+- Generate schema names (userShowSchema, userIndexSchema)
+- Integrate all response schema builders
+- E-commerce scenarios (checkout, orders, products)
+- Edge cases (empty, deeply nested, nullable/optional mix)
 
-**Key Innovation:** Enhanced NestedObjectSchemaBuilder with `inline` parameter for compact array formatting
+**Key Features:**
+- Direct field mapping (no intermediate structure building)
+- Schema name generation (camelCase resource + PascalCase action)
+- Array wrapping for collections
+- Full integration with Steps 1-4
 
-### Next Up: Step 5
-**ContractSchemaMapper** (~150 lines, 20 tests)
-- Map complete route to contract schema
-- Handle request + response schemas
-- Integrate all builders
-- Generate final `defineApi()` contract
+### Next Up: Step 6
+**Integration & E2E Testing** (~100 lines, 20 tests)
+- Wire into ContractGeneratorPass
+- Test complete pipeline with real manifest
+- Generate actual contract files
+- Verify TypeScript compilation
 
 **Estimate:** 2-3 hours implementation + testing

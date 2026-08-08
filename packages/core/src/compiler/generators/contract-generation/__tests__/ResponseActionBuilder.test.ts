@@ -126,7 +126,7 @@ describe('ResponseActionBuilder', () => {
 
         it('should handle kebab-case resource name', () => {
             const fields = [
-                { name: 'id', type: 'number', optional: false }
+                { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
             ];
 
             const schema = builder.buildShowSchema('user-profile', fields);
@@ -146,8 +146,8 @@ describe('ResponseActionBuilder', () => {
     describe('buildIndexSchema()', () => {
         it('should wrap schema in z.array()', () => {
             const fields = [
-                { name: 'id', type: 'number', optional: false },
-                { name: 'name', type: 'string', optional: false }
+                { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false }
             ];
 
             const schema = builder.buildIndexSchema('user', fields);
@@ -162,14 +162,23 @@ describe('ResponseActionBuilder', () => {
 
         it('should build array schema with nested objects', () => {
             const fields = [
-                { name: 'id', type: 'number', optional: false },
+                { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
-                    name: 'items', type: 'array', optional: false, items: {
+                    name: 'items',
+                    kind: 'array',
+                    type: 'array',
+                    nullable: false,
+                    optional: false,
+                    itemType: {
+                        name: 'item',
+                        kind: 'object',
                         type: 'object',
-                        properties: {
-                            itemId: { name: 'itemId', type: 'number', optional: false },
-                            qty: { name: 'qty', type: 'number', optional: false }
-                        }
+                        nullable: false,
+                        optional: false,
+                        fields: [
+                            { name: 'itemId', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                            { name: 'qty', kind: 'primitive', type: 'number', nullable: false, optional: false }
+                        ]
                     }
                 }
             ];
@@ -183,7 +192,7 @@ describe('ResponseActionBuilder', () => {
 
         it('should handle PascalCase resource for index', () => {
             const fields = [
-                { name: 'id', type: 'number', optional: false }
+                { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
             ];
 
             const schema = builder.buildIndexSchema('CartItems', fields);
@@ -233,11 +242,16 @@ describe('ResponseActionBuilder', () => {
     describe('integration with ResponseSchemaMapper', () => {
         it('should delegate schema generation to mapper', () => {
             const fields = [
-                { name: 'id', type: 'number', optional: false },
+                { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
-                    name: 'nested', type: 'object', optional: false, nested: {
-                        field: { name: 'field', type: 'string', optional: false }
-                    }
+                    name: 'nested',
+                    kind: 'object',
+                    type: 'object',
+                    nullable: false,
+                    optional: false,
+                    fields: [
+                        { name: 'field', kind: 'primitive', type: 'string', nullable: false, optional: false }
+                    ]
                 }
             ];
 
@@ -259,25 +273,31 @@ describe('ResponseActionBuilder', () => {
             const fields = [
                 {
                     name: 'data',
+                    kind: 'object',
                     type: 'object',
+                    nullable: false,
                     optional: false,
-                    nested: {
-                        user: {
+                    fields: [
+                        {
                             name: 'user',
+                            kind: 'object',
                             type: 'object',
+                            nullable: false,
                             optional: false,
-                            nested: {
-                                profile: {
+                            fields: [
+                                {
                                     name: 'profile',
+                                    kind: 'object',
                                     type: 'object',
+                                    nullable: false,
                                     optional: false,
-                                    nested: {
-                                        name: { name: 'name', type: 'string', optional: false }
-                                    }
+                                    fields: [
+                                        { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false }
+                                    ]
                                 }
-                            }
+                            ]
                         }
-                    }
+                    ]
                 }
             ];
 
@@ -293,22 +313,30 @@ describe('ResponseActionBuilder', () => {
             const fields = [
                 {
                     name: 'items',
+                    kind: 'array',
                     type: 'array',
+                    nullable: false,
                     optional: false,
-                    items: {
+                    itemType: {
+                        name: 'item',
+                        kind: 'object',
                         type: 'object',
-                        properties: {
-                            product: {
+                        nullable: false,
+                        optional: false,
+                        fields: [
+                            {
                                 name: 'product',
+                                kind: 'object',
                                 type: 'object',
+                                nullable: false,
                                 optional: false,
-                                nested: {
-                                    name: { name: 'name', type: 'string', optional: false },
-                                    price: { name: 'price', type: 'number', optional: false }
-                                }
+                                fields: [
+                                    { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false },
+                                    { name: 'price', kind: 'primitive', type: 'number', nullable: false, optional: false }
+                                ]
                             },
-                            qty: { name: 'qty', type: 'number', optional: false }
-                        }
+                            { name: 'qty', kind: 'primitive', type: 'number', nullable: false, optional: false }
+                        ]
                     }
                 }
             ];

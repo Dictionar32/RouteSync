@@ -488,9 +488,484 @@ z.array(z.object({ ... })).min(1)
 
 ---
 
-## Implementation Steps (Evidence-Based)
+---
 
-### Phase 0: Evidence Collection & Analysis (Week 1 - Day 1-2)
+## 🔍 Phase 0: Mandatory Duplicate Detection & Source Analysis
+
+**⚠️ CRITICAL: This phase is MANDATORY before ANY implementation!**
+
+### Why This Phase Exists
+
+**Problem:** RouteSync sudah memiliki banyak komponen. Risiko membuat duplicate:
+- Duplicate mapper classes
+- Duplicate generator logic
+- Duplicate utility functions
+- Duplicate type definitions
+- Duplicate validation logic
+
+**Solution:** **SEARCH FIRST, CODE LATER**
+
+---
+
+### Step 1: Search for Existing Mappers
+
+**🚨 MANDATORY: Search codebase untuk existing mapper classes!**
+
+```bash
+# Search for ALL mapper classes
+grep -r "class.*Mapper" packages/core/src --include="*.ts"
+grep -r "class.*Mapper" packages/cli/src --include="*.ts"
+
+# Search for type mapping logic
+grep -r "mapToZod\|toZodSchema\|zodMapping" packages/ --include="*.ts"
+
+# Search for SemanticType → Zod conversion
+grep -r "SemanticType.*Zod\|Zod.*SemanticType" packages/ --include="*.ts"
+```
+
+**Report Template:**
+```markdown
+## Existing Mapper Analysis
+
+### Found Mappers:
+1. **FormFieldMapper** (`packages/core/src/compiler/generators/form-generation/FormFieldMapper.ts`)
+   - Purpose: Maps SemanticType → Form fields (flattened)
+   - Line count: [X lines]
+   - Reusable for contracts?: [YES/NO/PARTIAL]
+   - Reason: [Detailed analysis]
+
+2. **[OtherMapper]** ([file path])
+   - Purpose: [Description]
+   - Reusable?: [Analysis]
+
+### Recommendation:
+- ✅ Reuse [MapperName] for [Purpose]
+- ❌ Cannot reuse [MapperName] because [Reason]
+- 🔧 Need new [ComponentName] because [No existing solution]
+```
+
+### Step 2: Search for Existing Generators
+
+**🚨 MANDATORY: Search for generator patterns!**
+
+```bash
+# Search for schema generators
+grep -r "class.*Generator" packages/core/src --include="*.ts"
+grep -r "generateSchema\|schemaGeneration" packages/ --include="*.ts"
+
+# Search for code builders
+grep -r "class.*Builder" packages/core/src --include="*.ts"
+grep -r "buildCode\|codeBuilder" packages/ --include="*.ts"
+
+# Search for Zod-related generation
+grep -r "zod\|Zod" packages/ --include="*.ts" | grep -i "generat"
+```
+
+**Report Template:**
+```markdown
+## Existing Generator Analysis
+
+### Found Generators:
+1. **FormActionGenerator** ([path])
+   - Purpose: Groups form actions by resource
+   - Reusable for contracts?: [Analysis]
+
+2. **[OtherGenerator]** ([path])
+   - Purpose: [Description]
+   - Reusable?: [Analysis]
+
+### Recommendation:
+- [Detailed analysis of what can be reused vs. what needs to be created]
+```
+
+### Step 3: Search for Existing Utilities
+
+**🚨 MANDATORY: Check for duplicate utilities!**
+
+```bash
+# Search for type registries
+grep -r "Registry\|TypeMap" packages/ --include="*.ts"
+
+# Search for naming helpers
+grep -r "toCamelCase\|toSnakeCase\|pascalCase" packages/ --include="*.ts"
+
+# Search for validation utilities
+grep -r "Validator\|ValidationRule" packages/ --include="*.ts"
+
+# Search for modifier builders
+grep -r "nullable\|optional.*builder\|modifier" packages/ --include="*.ts"
+```
+
+**Report Template:**
+```markdown
+## Existing Utilities Analysis
+
+### Found Utilities:
+1. **PrimitiveTypeFactory** ([path])
+   - Purpose: Creates primitive semantic types
+   - Contains: [List methods]
+   - Reusable?: [YES/NO/EXTEND]
+   - Action needed: [Reuse as-is / Extend / Create new]
+
+2. **resource-naming.ts** ([path])
+   - Purpose: Naming transformations
+   - Contains: [List functions]
+   - Reusable?: [Analysis]
+
+### Duplicate Risk Assessment:
+- [ ] No primitive type registry found → Need to create
+- [ ] Found PrimitiveTypeFactory → Can extend
+- [ ] Found naming helpers → Can reuse
+```
+
+### Step 4: Search for Existing Type Definitions
+
+**🚨 MANDATORY: Check type definitions!**
+
+```bash
+# Search for Zod-related types
+grep -r "ZodSchema\|ZodType\|z\\.object" packages/ --include="*.ts"
+
+# Search for mapping context types
+grep -r "MappingContext\|MapperContext" packages/ --include="*.ts"
+
+# Search for artifact types
+grep -r "Artifact.*Zod\|Zod.*Artifact\|Contract.*Artifact" packages/ --include="*.ts"
+```
+
+**Report Template:**
+```markdown
+## Existing Types Analysis
+
+### Found Type Definitions:
+1. **[TypeName]** ([path])
+   - Used by: [Components]
+   - Reusable?: [Analysis]
+
+### Actions:
+- [ ] Reuse [existing type]
+- [ ] Extend [existing type]
+- [ ] Create new [type name] because [reason]
+```
+
+### Step 5: Analyze Existing Pass Structure
+
+**🚨 MANDATORY: Study existing pass implementations!**
+
+```bash
+# Search for existing passes
+ls -la packages/core/src/compiler/passes/*.ts
+
+# Search for pass patterns
+grep -r "implements.*Pass\|extends.*Pass" packages/core/src/compiler/passes/
+
+# Read FormGeneratorPass as reference
+cat packages/core/src/compiler/passes/FormGeneratorPass.ts
+```
+
+**Report Template:**
+```markdown
+## Existing Pass Analysis
+
+### FormGeneratorPass Structure:
+- Input artifact: [Type]
+- Output artifact: [Type]
+- Dependencies: [List]
+- Components used:
+  1. FormFieldMapper
+  2. FormActionGenerator
+  3. FormCodeBuilder
+
+### Pattern to Follow:
+```typescript
+class ContractGeneratorPass {
+  // Same pattern as FormGeneratorPass:
+  constructor(private mapper, private generator, private builder) {}
+  run(state: CompilationState): Promise<void>
+}
+```
+
+### Differences from FormGeneratorPass:
+- [List specific differences]
+```
+
+---
+
+## 📋 Mandatory Pre-Implementation Report
+
+**⚠️ BEFORE writing ANY code, create this report:**
+
+### Duplicate Detection Report
+
+```markdown
+# Contract Generation - Duplicate Detection Report
+
+**Date:** [YYYY-MM-DD]  
+**Analyst:** [Name]
+
+---
+
+## Executive Summary
+
+**Existing Components Found:** [N components]  
+**Reusable Components:** [N components]  
+**New Components Needed:** [N components]  
+**Duplicate Risk:** [LOW/MEDIUM/HIGH]
+
+---
+
+## 1. Mapper Component Analysis
+
+### Existing Mappers Found:
+
+#### FormFieldMapper
+- **Location:** `packages/core/src/compiler/generators/form-generation/FormFieldMapper.ts`
+- **Purpose:** Maps SemanticType → flattened form fields
+- **Line Count:** ~120 lines
+- **Key Methods:**
+  - `mapField(field, context)`
+  - `flattenNestedFields()`
+- **Reusability Assessment:**
+  - ❌ **Cannot reuse directly** because:
+    - Flattens nested objects (Contract needs nested)
+    - Transforms to camelCase (Contract needs snake_case)
+    - Form-specific logic (Contract needs Zod schemas)
+  - ✅ **Can learn from:**
+    - SemanticType traversal pattern
+    - Field mapping structure
+    - Test organization
+- **Action:** Create new `ContractSchemaMapper` with different logic
+
+#### [Other Mappers]
+[Repeat analysis for each found mapper]
+
+### Conclusion:
+- **Reuse:** [List components to reuse]
+- **Extend:** [List components to extend]
+- **Create New:** [List new components needed with justification]
+
+---
+
+## 2. Generator Component Analysis
+
+### Existing Generators Found:
+
+#### FormActionGenerator
+- **Location:** `packages/core/src/compiler/generators/form-generation/FormActionGenerator.ts`
+- **Purpose:** Groups validation rules by action
+- **Reusability Assessment:**
+  - ✅ **Pattern reusable:** Resource grouping logic similar
+  - ❌ **Cannot reuse code:** Different output structure
+- **Action:** Create similar `ContractActionGenerator` with contract-specific logic
+
+[Repeat for other generators]
+
+### Conclusion:
+- [Summary of reuse vs. create new]
+
+---
+
+## 3. Utility Component Analysis
+
+### Existing Utilities Found:
+
+#### PrimitiveTypeFactory
+- **Location:** `packages/cli/src/generators/utils/PrimitiveTypeFactory.ts`
+- **Purpose:** Creates SemanticType from primitive strings
+- **Reusability Assessment:**
+  - ⚠️ **Different direction:** Creates SemanticType (we need SemanticType → Zod)
+  - ✅ **Learn from:** Registry pattern for type mapping
+- **Action:** Create new `PrimitiveTypeRegistry` for Zod mapping
+
+#### resource-naming.ts
+- **Location:** `packages/core/src/utils/resource-naming.ts`
+- **Contains:** `toCamelCase`, `toSnakeCase`, etc.
+- **Reusability Assessment:**
+  - ✅ **Fully reusable:** Import and use directly
+- **Action:** Import and reuse
+
+[Repeat for other utilities]
+
+### Conclusion:
+- **Reuse:** resource-naming.ts (✅)
+- **Cannot Reuse:** PrimitiveTypeFactory (different purpose)
+- **Create New:** PrimitiveTypeRegistry, ZodModifierBuilder
+
+---
+
+## 4. Type Definition Analysis
+
+### Existing Types Found:
+
+#### GeneratedFormArtifact
+- **Location:** `packages/core/src/compiler/artifacts/GeneratedFormArtifact.ts`
+- **Structure:** [Describe]
+- **Reusability:** Create similar `GeneratedContractArtifact`
+
+[Repeat for other types]
+
+---
+
+## 5. Architecture Pattern Analysis
+
+### Pass System Pattern (from FormGeneratorPass)
+
+**Structure to Follow:**
+```typescript
+class XyzGeneratorPass implements CompilerPass {
+  constructor(
+    private mapper: Mapper,
+    private generator: Generator,
+    private builder: Builder
+  ) {}
+  
+  async run(state: CompilationState): Promise<void> {
+    // 1. Get input artifact
+    // 2. Process with mapper
+    // 3. Generate with generator
+    // 4. Build code with builder
+    // 5. Store output artifact
+  }
+}
+```
+
+**Components Pattern:**
+- Small focused classes (< 200 lines)
+- Dependency injection
+- Single responsibility
+- Testable in isolation
+
+---
+
+## 6. Duplicate Risk Matrix
+
+| Component | Risk | Reason | Mitigation |
+|-----------|------|--------|------------|
+| Mapper | ❌ LOW | FormFieldMapper not reusable | Create new with clear differentiation |
+| Generator | ⚠️ MEDIUM | Similar pattern to FormActionGenerator | Document differences clearly |
+| Builder | ❌ LOW | No existing contract builder | Create new |
+| Utilities | ✅ LOW | Can reuse resource-naming.ts | Import existing |
+
+---
+
+## 7. Final Recommendations
+
+### Components to REUSE:
+1. ✅ `resource-naming.ts` - Import directly
+2. ✅ Pass architecture pattern - Follow FormGeneratorPass
+3. ✅ Test structure - Follow Form generator tests
+
+### Components to CREATE:
+1. 🆕 `ContractSchemaMapper` - Different logic than FormFieldMapper
+2. 🆕 `ContractActionGenerator` - Similar to FormActionGenerator but contract-specific
+3. 🆕 `ContractCodeBuilder` - New component
+4. 🆕 `PrimitiveTypeRegistry` - Zod-specific mapping
+5. 🆕 `ZodModifierBuilder` - Zod helper utilities
+6. 🆕 `GeneratedContractArtifact` - New artifact type
+7. 🆕 `ContractGeneratorPass` - New pass
+
+### Components to EXTEND:
+[None identified - or list if any]
+
+---
+
+## 8. No Duplication Guarantee
+
+**Verification Checklist:**
+- [ ] No mapper with similar name exists
+- [ ] No generator with overlapping responsibility
+- [ ] No utility with duplicate logic
+- [ ] New components have clear, distinct purpose
+- [ ] Naming convention differentiates from existing (Contract prefix)
+
+**Naming Strategy:**
+- Prefix all new components with `Contract` to differentiate
+- Example: `ContractSchemaMapper` vs `FormFieldMapper`
+- Clear purpose separation in class names
+
+---
+
+## 9. Implementation Safety
+
+**Safe to Proceed:**
+- ✅ All existing components analyzed
+- ✅ No unexpected duplicates found
+- ✅ Clear justification for new components
+- ✅ Reusable components identified
+- ✅ Naming strategy prevents confusion
+
+**Next Step:** Proceed to Phase 1 implementation with confidence
+
+---
+
+**Report Status:** ✅ COMPLETE  
+**Approval:** Ready for implementation  
+**Duplicate Risk:** LOW (all components justified)
+```
+
+---
+
+## ✅ Phase 0 Checklist
+
+### Before Writing Code:
+- [ ] ✅ Searched for existing mappers (`grep -r "Mapper"`)
+- [ ] ✅ Searched for existing generators (`grep -r "Generator"`)
+- [ ] ✅ Searched for existing utilities (`grep -r "Registry\|Helper"`)
+- [ ] ✅ Searched for existing types (`grep -r "Artifact"`)
+- [ ] ✅ Analyzed FormGeneratorPass structure
+- [ ] ✅ Created Duplicate Detection Report
+- [ ] ✅ Identified components to reuse
+- [ ] ✅ Justified all new components
+- [ ] ✅ No duplicate logic detected
+- [ ] ✅ Naming strategy prevents conflicts
+
+### Report Must Include:
+- [ ] ✅ List of ALL existing components found
+- [ ] ✅ Reusability assessment for EACH component
+- [ ] ✅ Justification for EACH new component
+- [ ] ✅ Duplicate risk matrix
+- [ ] ✅ Final recommendations (reuse/create/extend)
+- [ ] ✅ No duplication guarantee statement
+
+### Approval Criteria:
+- [ ] ✅ No unexpected duplicates found
+- [ ] ✅ All new components have clear justification
+- [ ] ✅ Naming strategy differentiates from existing
+- [ ] ✅ Report reviewed and approved
+
+---
+
+## 🚨 Anti-Pattern: Skipping Phase 0
+
+**❌ DON'T:**
+```
+"Let me quickly create ContractMapper..."
+↓
+[3 hours later]
+"Oh wait, FormFieldMapper already does something similar..."
+↓
+[Refactoring hell]
+```
+
+**✅ DO:**
+```
+Phase 0: Search & analyze (2 hours)
+  ↓
+Report: "FormFieldMapper exists but not reusable because X"
+  ↓
+Phase 1: Create ContractSchemaMapper with confidence (3 hours)
+  ↓
+No surprises, no refactoring needed
+```
+
+**Time Investment:**
+- Phase 0: 2-3 hours (search + report)
+- Saves: 5-10 hours (avoid refactoring + duplicate removal)
+- ROI: 2-3x time savings
+
+---
+
+## Phase 0: Evidence Collection & Analysis (Week 1 - Day 1-2)
 
 **⚠️  MANDATORY: Do this FIRST before ANY coding!**
 

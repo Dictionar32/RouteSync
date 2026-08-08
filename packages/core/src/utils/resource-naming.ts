@@ -57,3 +57,25 @@ export function capitalize(str: string): string {
     if (!str) return str
     return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+/**
+ * Convert string to PascalCase
+ * Used for generating type names from resource paths
+ * 
+ * @param str - Input string (e.g., 'cart-items', 'user_profile')
+ * @returns PascalCase string (e.g., 'CartItems', 'UserProfile')
+ * 
+ * @example
+ * ```typescript
+ * toPascalCase('cart-items')    // 'CartItems'
+ * toPascalCase('user_profile')  // 'UserProfile'
+ * toPascalCase('products')      // 'Products'
+ * ```
+ */
+export function toPascalCase(str: string): string {
+    // Handle snake_case and kebab-case
+    return str
+        .split(/[-_\s]+/)
+        .map(word => capitalize(word))
+        .join('')
+}

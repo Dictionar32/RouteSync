@@ -15,11 +15,13 @@ import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
 import { ContractSchemaMapper } from '../generators/contract-generation/ContractSchemaMapper';
 import { ContractActionGenerator } from '../generators/contract-generation/ContractActionGenerator';
+import type { GeneratedContractAction } from '../generators/contract-generation/ContractActionGenerator';
 import { ContractCodeBuilder } from '../generators/contract-generation/ContractCodeBuilder';
 import { ResponseActionBuilder, type ActionResponseSchema } from '../generators/contract-generation/ResponseActionBuilder';
 import { ResponseSchemaMapper } from '../generators/contract-generation/ResponseSchemaMapper';
 import { computeFingerprintHash, type CompilerFingerprint } from '../fingerprint/Fingerprint';
 import type { ParsedResponseField } from '../generators/contract-generation/ResponseFieldParser';
+import type { SemanticType } from '../types/SemanticType';
 
 /**
  * ContractGeneratorPass transforms request types into Zod contract schemas.
@@ -138,7 +140,7 @@ export class ContractGeneratorPass
             }
 
             // Process each request type
-            const allContracts: Array<{ resourceName: string, actions: [] }> = [];
+            const allContracts: Array<{ resourceName: string, actions: GeneratedContractAction[] }> = [];
             const warnings: string[] = [];
             let totalActions = 0;
             let zodSchemasCount = 0;
@@ -178,16 +180,11 @@ export class ContractGeneratorPass
                 }
             }
 
-            // Build final code (4 sections)
-            const builtCode = this.codeBuilder.buildContractFile(allContracts);
+            // Build final code (4 sections) - NOW WITH RESPONSE SCHEMAS!
+            const builtCode = this.codeBuilder.buildContractFile(allContracts, allResponseSchemas);
 
             console.log(`[ContractGeneratorPass] Generated ${allContracts.length} contracts with ${totalActions} actions`);
             console.log(`[ContractGeneratorPass] Generated ${allResponseSchemas.length} response schemas`);
-
-            // TODO Step 6.1: Store response schemas in artifact
-            // Currently response schemas are generated but not written to output
-            // Next step: Extend GeneratedContractArtifact to include response section
-            // or modify ContractCodeBuilder to output response schemas
 
             // Build contract info for artifact metadata
             const contractsInfo: GeneratedContractInfo[] = allContracts.map((contract, index) => ({
@@ -229,8 +226,8 @@ export class ContractGeneratorPass
      * Delegates to ContractActionGenerator for actual generation.
      * Returns data structure compatible with ContractCodeBuilder.
      */
-    private processRequestType(requestType: RequestTypesArtifact['requestTypes'][number]) {
-        const actions = [];
+    private processRequestType(requestType: RequestTypesArtifact['requestTypes'][number]): GeneratedContractAction[] {
+        const actions: GeneratedContractAction[] = [];
 
         for (const action of requestType.actions) {
             // Convert RequestTypesArtifact fields to ContractField format
@@ -317,7 +314,7 @@ export class ContractGeneratorPass
      * @returns Array of ParsedResponseField
      */
     private convertResponseFields(
-        fields: Record<string,>
+        fields: Record<string, SemanticType>
     ): ParsedResponseField[] {
         const result: ParsedResponseField[] = [];
 
@@ -351,33 +348,26 @@ export class ContractGeneratorPass
      */
     private convertSingleField(
         fieldName: string,
-        semanticType: any
+        semanticType: SemanticType
     ): ParsedResponseField {
         // Handle primitive types
-        if (
-            semanticType.kind === 'primitive' ||
-            semanticType.type === 'string' ||
-            semanticType.type === 'number' ||
-            semanticType.type === 'boolean'
-        ) {
+        if (semanticType.kind === 'primitive') {
             return {
                 name: fieldName,
                 kind: 'primitive',
-                type: semanticType.type || 'string',
-                nullable: semanticType.nullable ?? false,
-                optional: semanticType.optional ?? false
+                type: semanticType.type, // PrimitiveType has .type property
+                nullable: false, // PrimitiveType doesn't have nullable/optional
+                optional: false
             };
         }
 
         // Handle object types
-        if (semanticType.kind === 'object' || semanticType.properties) {
+        if (semanticType.kind === 'object') {
             const nestedFields: ParsedResponseField[] = [];
 
             if (semanticType.properties) {
-                // Convert Map or Record to nested fields
-                const props = semanticType.properties instanceof Map
-                    ? Array.from(semanticType.properties.entries())
-                    : Object.entries(semanticType.properties);
+                // Convert ImmutableMap to array of entries
+                const props = Array.from(semanticType.properties.entries());
 
                 for (const [propName, propType] of props) {
                     nestedFields.push(
@@ -390,39 +380,41 @@ export class ContractGeneratorPass
                 name: fieldName,
                 kind: 'object',
                 type: 'object',
-                nullable: semanticType.nullable ?? false,
-                optional: semanticType.optional ?? false,
+                nullable: false, // ObjectType doesn't have nullable/optional
+                optional: false,
                 fields: nestedFields
             };
         }
 
-        // Handle array types
-        if (semanticType.kind === 'array' || semanticType.itemType) {
-            const itemType = semanticType.itemType || semanticType.elementType;
-
+        // Handle collection types (readonly and mutable)
+        if (semanticType.kind === 'readonly_collection' || semanticType.kind === 'mutable_collection') {
             return {
                 name: fieldName,
                 kind: 'array',
                 type: 'array',
-                nullable: semanticType.nullable ?? false,
-                optional: semanticType.optional ?? false,
-                itemType: itemType
-                    ? this.convertSingleField('item', itemType)
-                    : {
-                        name: 'item',
-                        kind: 'primitive',
-                        type: 'unknown',
-                        nullable: false,
-                        optional: false
-                    }
+                nullable: false, // Collection types don't have nullable/optional
+                optional: false,
+                itemType: this.convertSingleField('item', semanticType.elementType)
             };
         }
 
-        // Default: treat as primitive string
+        // Handle reference types (named types like User, Product)
+        if (semanticType.kind === 'reference') {
+            return {
+                name: fieldName,
+                kind: 'primitive',
+                type: semanticType.name, // Use the reference name as type
+                nullable: false,
+                optional: false
+            };
+        }
+
+        // Fallback for unhandled types (never, error, union, intersection, generic)
+        // These are treated as unknown primitives
         return {
             name: fieldName,
             kind: 'primitive',
-            type: 'string',
+            type: 'unknown',
             nullable: false,
             optional: false
         };

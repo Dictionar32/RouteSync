@@ -19,6 +19,16 @@ export interface GeneratedContract {
 }
 
 /**
+ * Response schema for show/index actions
+ */
+export interface ResponseSchema {
+    readonly schemaName: string;
+    readonly zodSchema: string;
+    readonly action: 'show' | 'index';
+    readonly resourceName: string;
+}
+
+/**
  * Output: Complete contract file
  */
 export interface BuiltContractCode {
@@ -69,10 +79,12 @@ export class ContractCodeBuilder {
      * Build complete contract file from generated contracts
      * 
      * @param contracts - Array of generated contracts with actions
+     * @param responseSchemas - Optional response schemas for show/index actions
      * @returns Complete contract file code with metadata
      */
     buildContractFile(
-        contracts: readonly GeneratedContract[]
+        contracts: readonly GeneratedContract[],
+        responseSchemas: readonly ResponseSchema[] = []
     ): BuiltContractCode {
         const lines: string[] = [];
         const sections: SectionInfo[] = [];
@@ -85,9 +97,25 @@ export class ContractCodeBuilder {
         lines.push("import { z } from 'zod';");
         lines.push('');
 
-        // Section 1: Zod Schemas
+        // Section 0: Response Schemas (show/index) - NEW!
+        if (responseSchemas.length > 0) {
+            const responseSchemasStart = lines.length;
+            lines.push('// ========== RESPONSE SCHEMAS ==========');
+
+            this.buildResponseSchemasSection(lines, responseSchemas);
+
+            lines.push('');
+            const responseSchemasEnd = lines.length - 1;
+            sections.push({
+                name: 'response-schemas',
+                startLine: responseSchemasStart,
+                endLine: responseSchemasEnd
+            });
+        }
+
+        // Section 1: Zod Schemas (REQUEST schemas)
         const schemasStart = lines.length;
-        lines.push('// ========== SECTION 1: Zod Schemas ==========');
+        lines.push('// ========== REQUEST SCHEMAS ==========');
 
         if (contracts.length === 0) {
             lines.push('// No contracts generated');
@@ -102,15 +130,24 @@ export class ContractCodeBuilder {
 
         lines.push('');
         const schemasEnd = lines.length - 1;
-        sections.push({ name: 'schemas', startLine: schemasStart, endLine: schemasEnd });
+        sections.push({ name: 'request-schemas', startLine: schemasStart, endLine: schemasEnd });
 
-        // Section 2: Inferred Types
+        // Section 2: Inferred Types (for BOTH response and request schemas)
         const typesStart = lines.length;
-        lines.push('// ========== SECTION 2: Inferred Types ==========');
+        lines.push('// ========== INFERRED TYPES ==========');
 
-        if (contracts.length === 0) {
+        if (contracts.length === 0 && responseSchemas.length === 0) {
             lines.push('// No types generated');
         } else {
+            // Response types first (show/index)
+            if (responseSchemas.length > 0) {
+                this.buildResponseTypesSection(lines, responseSchemas);
+                if (contracts.length > 0) {
+                    lines.push('');
+                }
+            }
+
+            // Request types
             contracts.forEach((contract, index) => {
                 this.buildTypeSection(lines, contract);
                 if (index < contracts.length - 1) {
@@ -123,13 +160,22 @@ export class ContractCodeBuilder {
         const typesEnd = lines.length - 1;
         sections.push({ name: 'types', startLine: typesStart, endLine: typesEnd });
 
-        // Section 3: Validators
+        // Section 3: Validators (for BOTH response and request schemas)
         const validatorsStart = lines.length;
-        lines.push('// ========== SECTION 3: Validators ==========');
+        lines.push('// ========== VALIDATORS ==========');
 
-        if (contracts.length === 0) {
+        if (contracts.length === 0 && responseSchemas.length === 0) {
             lines.push('// No validators generated');
         } else {
+            // Response validators first
+            if (responseSchemas.length > 0) {
+                this.buildResponseValidatorsSection(lines, responseSchemas);
+                if (contracts.length > 0) {
+                    lines.push('');
+                }
+            }
+
+            // Request validators
             contracts.forEach(contract => {
                 this.buildValidatorSection(lines, contract);
             });
@@ -141,12 +187,12 @@ export class ContractCodeBuilder {
 
         // Section 4: Exports
         const exportsStart = lines.length;
-        lines.push('// ========== SECTION 4: Exports ==========');
+        lines.push('// ========== EXPORTS ==========');
 
-        if (contracts.length === 0) {
+        if (contracts.length === 0 && responseSchemas.length === 0) {
             lines.push('// No exports generated');
         } else {
-            this.buildExportsSection(lines, contracts);
+            this.buildExportsSection(lines, contracts, responseSchemas);
         }
 
         const exportsEnd = lines.length - 1;
@@ -160,6 +206,141 @@ export class ContractCodeBuilder {
             contractCount: contracts.length,
             sections
         };
+    }
+
+    /**
+     * Build Response Schemas Section (show/index at top of file)
+     * 
+     * Generates schemas like:
+     * ```typescript
+     * export const Schema = z.object({ id: z.number(), ... });
+     * export const IndexSchema = z.array(Schema);
+     * ```
+     */
+    private buildResponseSchemasSection(
+        lines: string[],
+        responseSchemas: readonly ResponseSchema[]
+    ): void {
+        // Group by resource
+        const byResource = new Map<string, ResponseSchema[]>();
+
+        for (const schema of responseSchemas) {
+            const existing = byResource.get(schema.resourceName) ?? [];
+            existing.push(schema);
+            byResource.set(schema.resourceName, existing);
+        }
+
+        // For each resource, emit Show schema first, then Index
+        for (const [resourceName, schemas] of byResource.entries()) {
+            const showSchema = schemas.find(s => s.action === 'show');
+            const indexSchema = schemas.find(s => s.action === 'index');
+
+            // Emit Show schema (base schema)
+            if (showSchema) {
+                lines.push(`export const ${showSchema.schemaName} = ${showSchema.zodSchema};`);
+            }
+
+            // Emit Index schema (wraps Show schema in array)
+            if (indexSchema) {
+                // For index, we wrap the show schema in z.array()
+                // The ResponseActionBuilder already provides the full zodSchema
+                lines.push(`export const ${indexSchema.schemaName} = ${indexSchema.zodSchema};`);
+            }
+
+            lines.push('');
+        }
+    }
+
+    /**
+     * Build Response Types Section
+     * 
+     * Generates types like:
+     * ```typescript
+     * export type OrderApiResponse = z.infer<typeof Schema>;
+     * export type OrderApiIndex = z.infer<typeof IndexSchema>;
+     * ```
+     */
+    private buildResponseTypesSection(
+        lines: string[],
+        responseSchemas: readonly ResponseSchema[]
+    ): void {
+        // Group by resource
+        const byResource = new Map<string, ResponseSchema[]>();
+
+        for (const schema of responseSchemas) {
+            const existing = byResource.get(schema.resourceName) ?? [];
+            existing.push(schema);
+            byResource.set(schema.resourceName, existing);
+        }
+
+        // For each resource, emit type for show and index
+        for (const [resourceName, schemas] of byResource.entries()) {
+            const showSchema = schemas.find(s => s.action === 'show');
+            const indexSchema = schemas.find(s => s.action === 'index');
+
+            const pascalResource = this.capitalize(resourceName);
+
+            // Type for show action
+            if (showSchema) {
+                lines.push(
+                    `export type ${pascalResource}ApiResponse = z.infer<typeof ${showSchema.schemaName}>;`
+                );
+            }
+
+            // Type for index action
+            if (indexSchema) {
+                lines.push(
+                    `export type ${pascalResource}ApiIndex = z.infer<typeof ${indexSchema.schemaName}>;`
+                );
+            }
+        }
+    }
+
+    /**
+     * Build Response Validators Section
+     * 
+     * Generates validators like:
+     * ```typescript
+     * export const validateSchema = (payload: unknown): OrderApiResponse => Schema.parse(payload);
+     * export const validateIndex = (payload: unknown): OrderApiIndex => IndexSchema.parse(payload);
+     * ```
+     */
+    private buildResponseValidatorsSection(
+        lines: string[],
+        responseSchemas: readonly ResponseSchema[]
+    ): void {
+        // Group by resource
+        const byResource = new Map<string, ResponseSchema[]>();
+
+        for (const schema of responseSchemas) {
+            const existing = byResource.get(schema.resourceName) ?? [];
+            existing.push(schema);
+            byResource.set(schema.resourceName, existing);
+        }
+
+        // For each resource, emit validators
+        for (const [resourceName, schemas] of byResource.entries()) {
+            const showSchema = schemas.find(s => s.action === 'show');
+            const indexSchema = schemas.find(s => s.action === 'index');
+
+            const pascalResource = this.capitalize(resourceName);
+
+            // Validator for show action
+            if (showSchema) {
+                lines.push(
+                    `export const validateSchema = (payload: unknown): ${pascalResource}ApiResponse => ${showSchema.schemaName}.parse(payload);`
+                );
+            }
+
+            // Validator for index action
+            if (indexSchema) {
+                lines.push(
+                    `export const validateIndex = (payload: unknown): ${pascalResource}ApiIndex => ${indexSchema.schemaName}.parse(payload);`
+                );
+            }
+
+            lines.push('');
+        }
     }
 
     /**
@@ -232,14 +413,34 @@ export class ContractCodeBuilder {
      */
     private buildExportsSection(
         lines: string[],
-        contracts: readonly GeneratedContract[]
+        contracts: readonly GeneratedContract[],
+        responseSchemas: readonly ResponseSchema[] = []
     ): void {
         lines.push('export const ContractSchemas = {');
 
+        // Export request schemas
         contracts.forEach((contract, index) => {
-            const comma = index < contracts.length - 1 ? ',' : '';
+            const comma = (index < contracts.length - 1 || responseSchemas.length > 0) ? ',' : '';
             lines.push(`  ${contract.resourceName}: ${contract.resourceName}ContractSchema${comma}`);
         });
+
+        // Export response schemas (grouped by resource)
+        if (responseSchemas.length > 0) {
+            const byResource = new Map<string, ResponseSchema[]>();
+
+            for (const schema of responseSchemas) {
+                const existing = byResource.get(schema.resourceName) ?? [];
+                existing.push(schema);
+                byResource.set(schema.resourceName, existing);
+            }
+
+            const resources = Array.from(byResource.keys());
+            resources.forEach((resourceName, index) => {
+                const comma = index < resources.length - 1 ? ',' : '';
+                const pascalResource = this.capitalize(resourceName);
+                lines.push(`  ${pascalResource}Response: { Schema, IndexSchema }${comma}`);
+            });
+        }
 
         lines.push('};');
     }

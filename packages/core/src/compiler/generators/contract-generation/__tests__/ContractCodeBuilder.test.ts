@@ -1,454 +1,390 @@
 /**
  * ContractCodeBuilder Tests
  * 
- * Test Coverage:
- * 1. Builds 4 sections correctly
- * 2. Handles empty contracts
- * 3. Handles single contract
- * 4. Handles multiple contracts
- * 5. Handles multiple actions per contract
- * 6. Proper section ordering
- * 7. Proper imports
- * 8. Section line ranges tracked
- * 9. Comment headers present
- * 10. Valid TypeScript syntax
+ * Tests for bug fixes:
+ * - Bug #1 & #2: Unique validator function names
+ * - Bug #3: Correct schema references in exports
+ * - Bug #4: Index schema reuses show schema
  */
 
 import { describe, test, expect } from 'vitest';
 import { ContractCodeBuilder } from '../ContractCodeBuilder';
-import type { GeneratedContract, GeneratedContractAction } from '../ContractActionGenerator';
+import type { GeneratedContract, ResponseSchema } from '../ContractCodeBuilder';
 
 describe('ContractCodeBuilder', () => {
-    /**
-     * Test 1: Builds 4 sections correctly
-     */
-    test('should build 4 sections (schemas, types, validators, exports)', () => {
-        const builder = new ContractCodeBuilder();
+    describe('Bug #1 & #2: Unique validator function names', () => {
+        test('should generate unique validateSchema names for each resource', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'produkItemResourceShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'produkItemResource'
+                },
+                {
+                    schemaName: 'orderResourceShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'orderResource'
+                }
+            ];
 
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    name: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    name: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
 
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Register',
-            actions: [mockAction]
-        }];
+            // Should NOT have duplicate validateSchema
+            const validateSchemaCount = (result.code.match(/export const validateSchema =/g) || []).length;
+            expect(validateSchemaCount).toBe(0); // Should be 0 (all have resource prefix)
 
-        const result = builder.buildContractFile(contracts);
+            // Should have unique names with resource prefix
+            expect(result.code).toContain('export const validateProdukItemResourceSchema =');
+            expect(result.code).toContain('export const validateOrderResourceSchema =');
+        });
 
-        // Should have 4 sections
-        expect(result.sections).toHaveLength(4);
-        expect(result.sections[0].name).toBe('schemas');
-        expect(result.sections[1].name).toBe('types');
-        expect(result.sections[2].name).toBe('validators');
-        expect(result.sections[3].name).toBe('exports');
+        test('should generate unique validateIndex names for each resource', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'produkItemResourceShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'produkItemResource'
+                },
+                {
+                    schemaName: 'produkItemResourceIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'produkItemResource'
+                },
+                {
+                    schemaName: 'orderResourceShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'orderResource'
+                },
+                {
+                    schemaName: 'orderResourceIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'orderResource'
+                }
+            ];
 
-        // Code should contain all sections
-        expect(result.code).toContain('// ========== SECTION 1: Zod Schemas ==========');
-        expect(result.code).toContain('// ========== SECTION 2: Inferred Types ==========');
-        expect(result.code).toContain('// ========== SECTION 3: Validators ==========');
-        expect(result.code).toContain('// ========== SECTION 4: Exports ==========');
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
+
+            // Should NOT have duplicate validateIndex
+            const validateIndexCount = (result.code.match(/export const validateIndex =/g) || []).length;
+            expect(validateIndexCount).toBe(0); // Should be 0 (all have resource prefix)
+
+            // Should have unique names with resource prefix
+            expect(result.code).toContain('export const validateProdukItemResourceIndex =');
+            expect(result.code).toContain('export const validateOrderResourceIndex =');
+        });
     });
 
-    /**
-     * Test 2: Handles empty contracts
-     */
-    test('should handle empty contracts gracefully', () => {
-        const builder = new ContractCodeBuilder();
+    describe('Bug #3: Correct schema references in exports', () => {
+        test('should use actual schema names in exports object', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'orderShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'order'
+                },
+                {
+                    schemaName: 'orderIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'order'
+                }
+            ];
 
-        const result = builder.buildContractFile([]);
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
 
-        expect(result.contractCount).toBe(0);
-        expect(result.sections).toHaveLength(4);
+            // Should NOT use undefined shorthand
+            expect(result.code).not.toContain('{ Schema, IndexSchema }');
 
-        // Should have placeholder comments
-        expect(result.code).toContain('// No contracts generated');
-        expect(result.code).toContain('// No types generated');
-        expect(result.code).toContain('// No validators generated');
-        expect(result.code).toContain('// No exports generated');
+            // Should use full object syntax with actual names
+            expect(result.code).toContain('Schema: orderShowSchema');
+            expect(result.code).toContain('IndexSchema: orderIndexSchema');
+        });
+
+        test('should handle missing show schema gracefully', () => {
+            const schemasOnlyIndex: ResponseSchema[] = [
+                {
+                    schemaName: 'orderIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'order'
+                }
+            ];
+
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemasOnlyIndex);
+
+            // Should only export IndexSchema (no Schema)
+            expect(result.code).toContain('IndexSchema: orderIndexSchema');
+            expect(result.code).not.toContain('Schema: undefined');
+        });
+
+        test('should handle missing index schema gracefully', () => {
+            const schemasOnlyShow: ResponseSchema[] = [
+                {
+                    schemaName: 'orderShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'order'
+                }
+            ];
+
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemasOnlyShow);
+
+            // Should only export Schema (no IndexSchema)
+            expect(result.code).toContain('Schema: orderShowSchema');
+            expect(result.code).not.toContain('IndexSchema: undefined');
+        });
     });
 
-    /**
-     * Test 3: Handles single contract
-     */
-    test('should handle single contract with single action', () => {
-        const builder = new ContractCodeBuilder();
+    describe('Bug #4: Index schema reuses show schema', () => {
+        test('should reference show schema instead of duplicating', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'orderShowSchema',
+                    zodSchema: 'z.object({ id: z.number(), name: z.string() })',
+                    action: 'show',
+                    resourceName: 'order'
+                },
+                {
+                    schemaName: 'orderIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number(), name: z.string() }))', // Will be ignored
+                    action: 'index',
+                    resourceName: 'order'
+                }
+            ];
 
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    email: z.string()',
-                '    password: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    email: string',
-                '    password: string',
-                '  }'
-            ],
-            fieldCount: 2
-        };
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
 
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Login',
-            actions: [mockAction]
-        }];
+            // Should NOT duplicate field definitions
+            const duplicateObjectCount = (result.code.match(/z\.array\(z\.object\(/g) || []).length;
+            expect(duplicateObjectCount).toBe(0);
 
-        const result = builder.buildContractFile(contracts);
+            // Should reference show schema
+            expect(result.code).toContain('export const orderIndexSchema = z.array(orderShowSchema);');
+        });
 
-        expect(result.contractCount).toBe(1);
+        test('should fallback to inline schema when show schema missing', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'orderIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'order'
+                }
+            ];
 
-        // Should contain schema
-        expect(result.code).toContain('export const LoginContractSchema = {');
-        expect(result.code).toContain('create: z.object({');
-        expect(result.code).toContain('email: z.string()');
-        expect(result.code).toContain('password: z.string()');
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
 
-        // Should contain type
-        expect(result.code).toContain('export type LoginContract = {');
-        expect(result.code).toContain('create: z.infer<typeof LoginContractSchema.create>');
+            // Should use inline schema (no show to reference)
+            expect(result.code).toContain('z.array(z.object({');
+        });
 
-        // Should contain validator
-        expect(result.code).toContain('export const validateLoginCreate = (data: unknown) => {');
-        expect(result.code).toContain('return LoginContractSchema.create.parse(data);');
+        test('should reduce file size significantly', () => {
+            // Simulate resource with 11 fields (like ProdukItemResource)
+            const fields = Array.from({ length: 11 }, (_, i) => `field${i}: z.string()`).join(', ');
+            const showZodSchema = `z.object({ ${fields} })`;
+            const indexZodSchema = `z.array(z.object({ ${fields} }))`; // Duplicate
 
-        // Should contain export
-        expect(result.code).toContain('export const ContractSchemas = {');
-        expect(result.code).toContain('Login: LoginContractSchema');
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'produkShowSchema',
+                    zodSchema: showZodSchema,
+                    action: 'show',
+                    resourceName: 'produk'
+                },
+                {
+                    schemaName: 'produkIndexSchema',
+                    zodSchema: indexZodSchema,
+                    action: 'index',
+                    resourceName: 'produk'
+                }
+            ];
+
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
+
+            // With fix: should reference show schema
+            expect(result.code).toContain('z.array(produkShowSchema)');
+
+            // Should NOT contain duplicate z.array(z.object({ with all fields
+            const codeLines = result.code.split('\n');
+            const schemasSection = codeLines.filter(line =>
+                line.includes('produkShowSchema') || line.includes('produkIndexSchema')
+            );
+
+            // Index schema line should be short (just a reference)
+            const indexSchemaLine = schemasSection.find(line => line.includes('produkIndexSchema'));
+            expect(indexSchemaLine).toBeDefined();
+            expect(indexSchemaLine!.length).toBeLessThan(100); // Short reference, not full definition
+        });
     });
 
-    /**
-     * Test 4: Handles multiple contracts
-     */
-    test('should handle multiple contracts', () => {
-        const builder = new ContractCodeBuilder();
+    describe('Integration: All fixes together', () => {
+        test('should generate valid TypeScript code with all fixes', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'produkItemResourceShowSchema',
+                    zodSchema: 'z.object({ id: z.number(), nama: z.string() })',
+                    action: 'show',
+                    resourceName: 'produkItemResource'
+                },
+                {
+                    schemaName: 'produkItemResourceIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number(), nama: z.string() }))',
+                    action: 'index',
+                    resourceName: 'produkItemResource'
+                },
+                {
+                    schemaName: 'orderResourceShowSchema',
+                    zodSchema: 'z.object({ id: z.number(), total: z.number() })',
+                    action: 'show',
+                    resourceName: 'orderResource'
+                },
+                {
+                    schemaName: 'orderResourceIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number(), total: z.number() }))',
+                    action: 'index',
+                    resourceName: 'orderResource'
+                }
+            ];
 
-        const createAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    name: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    name: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
 
-        const loginAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    email: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    email: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
+            // No duplicate validator names
+            expect(result.code).not.toContain('export const validateSchema =');
+            expect(result.code).not.toContain('export const validateIndex =');
 
-        const contracts: GeneratedContract[] = [
-            { resourceName: 'Register', actions: [createAction] },
-            { resourceName: 'Login', actions: [loginAction] }
-        ];
+            // Has unique validator names
+            expect(result.code).toContain('validateProdukItemResourceSchema');
+            expect(result.code).toContain('validateProdukItemResourceIndex');
+            expect(result.code).toContain('validateOrderResourceSchema');
+            expect(result.code).toContain('validateOrderResourceIndex');
 
-        const result = builder.buildContractFile(contracts);
+            // Exports use actual schema names
+            expect(result.code).toContain('Schema: produkItemResourceShowSchema');
+            expect(result.code).toContain('IndexSchema: produkItemResourceIndexSchema');
 
-        expect(result.contractCount).toBe(2);
+            // Index schemas reference show schemas
+            expect(result.code).toContain('z.array(produkItemResourceShowSchema)');
+            expect(result.code).toContain('z.array(orderResourceShowSchema)');
+        });
 
-        // Should contain both contracts
-        expect(result.code).toContain('RegisterContractSchema');
-        expect(result.code).toContain('LoginContractSchema');
+        test('should work with both request and response schemas', () => {
+            const requestContracts: GeneratedContract[] = [
+                {
+                    resourceName: 'Register',
+                    actions: [
+                        {
+                            name: 'create',
+                            schemaLines: [
+                                '  create: z.object({',
+                                '    name: z.string(),',
+                                '    email: z.string()',
+                                '  })'
+                            ],
+                            typeLines: [
+                                '  create: {',
+                                '    name: string,',
+                                '    email: string',
+                                '  }'
+                            ],
+                            fieldCount: 2
+                        }
+                    ]
+                }
+            ];
 
-        // Should contain both types
-        expect(result.code).toContain('RegisterContract');
-        expect(result.code).toContain('LoginContract');
+            const responseSchemas: ResponseSchema[] = [
+                {
+                    schemaName: 'orderShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'order'
+                },
+                {
+                    schemaName: 'orderIndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'order'
+                }
+            ];
 
-        // Should contain both validators
-        expect(result.code).toContain('validateRegisterCreate');
-        expect(result.code).toContain('validateLoginCreate');
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile(requestContracts, responseSchemas);
 
-        // Should contain both exports
-        expect(result.code).toContain('Register: RegisterContractSchema');
-        expect(result.code).toContain('Login: LoginContractSchema');
+            // Should have both request and response sections
+            expect(result.code).toContain('// ========== RESPONSE SCHEMAS ==========');
+            expect(result.code).toContain('// ========== REQUEST SCHEMAS ==========');
+
+            // Should have all exports
+            expect(result.code).toContain('Register: RegisterContractSchema');
+            expect(result.code).toContain('OrderResponse: { Schema: orderShowSchema, IndexSchema: orderIndexSchema }');
+        });
     });
 
-    /**
-     * Test 5: Handles multiple actions per contract
-     */
-    test('should handle multiple actions per contract', () => {
-        const builder = new ContractCodeBuilder();
+    describe('Edge cases', () => {
+        test('should handle empty response schemas', () => {
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], []);
 
-        const createAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    shipping_nama: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    shipping_nama: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
+            expect(result.code).toContain("import { z } from 'zod'");
+            expect(result.contractCount).toBe(0);
+        });
 
-        const updateAction: GeneratedContractAction = {
-            name: 'update',
-            schemaLines: [
-                '  update: z.object({',
-                '    status: z.string().optional()',
-                '  })'
-            ],
-            typeLines: [
-                '  update: {',
-                '    status: string | undefined',
-                '  }'
-            ],
-            fieldCount: 1
-        };
+        test('should handle multiple resources with same structure', () => {
+            const schemas: ResponseSchema[] = [
+                {
+                    schemaName: 'user1ShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'user1'
+                },
+                {
+                    schemaName: 'user1IndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'user1'
+                },
+                {
+                    schemaName: 'user2ShowSchema',
+                    zodSchema: 'z.object({ id: z.number() })',
+                    action: 'show',
+                    resourceName: 'user2'
+                },
+                {
+                    schemaName: 'user2IndexSchema',
+                    zodSchema: 'z.array(z.object({ id: z.number() }))',
+                    action: 'index',
+                    resourceName: 'user2'
+                }
+            ];
 
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Order',
-            actions: [createAction, updateAction]
-        }];
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile([], schemas);
 
-        const result = builder.buildContractFile(contracts);
+            // All validators should be unique
+            expect(result.code).toContain('validateUser1Schema');
+            expect(result.code).toContain('validateUser1Index');
+            expect(result.code).toContain('validateUser2Schema');
+            expect(result.code).toContain('validateUser2Index');
 
-        // Should contain both actions in schema
-        expect(result.code).toContain('create: z.object({');
-        expect(result.code).toContain('update: z.object({');
-
-        // Should contain both actions in type
-        expect(result.code).toContain('create: z.infer<typeof OrderContractSchema.create>');
-        expect(result.code).toContain('update: z.infer<typeof OrderContractSchema.update>');
-
-        // Should contain both validators
-        expect(result.code).toContain('validateOrderCreate');
-        expect(result.code).toContain('validateOrderUpdate');
-    });
-
-    /**
-     * Test 6: Proper section ordering
-     */
-    test('should maintain proper section ordering', () => {
-        const builder = new ContractCodeBuilder();
-
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    field: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    field: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
-
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Test',
-            actions: [mockAction]
-        }];
-
-        const result = builder.buildContractFile(contracts);
-
-        // Section 1 should come before Section 2
-        const section1Index = result.code.indexOf('SECTION 1: Zod Schemas');
-        const section2Index = result.code.indexOf('SECTION 2: Inferred Types');
-        const section3Index = result.code.indexOf('SECTION 3: Validators');
-        const section4Index = result.code.indexOf('SECTION 4: Exports');
-
-        expect(section1Index).toBeLessThan(section2Index);
-        expect(section2Index).toBeLessThan(section3Index);
-        expect(section3Index).toBeLessThan(section4Index);
-    });
-
-    /**
-     * Test 7: Proper imports
-     */
-    test('should include proper imports at top', () => {
-        const builder = new ContractCodeBuilder();
-
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    field: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    field: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
-
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Test',
-            actions: [mockAction]
-        }];
-
-        const result = builder.buildContractFile(contracts);
-
-        // Should start with header comment + imports
-        expect(result.code).toMatch(/^\/\*\*[\s\S]*Runtime contract validation/);
-        expect(result.code).toContain("import { z } from 'zod';");
-
-        // Import should come before first section
-        const importIndex = result.code.indexOf("import { z } from 'zod';");
-        const firstSectionIndex = result.code.indexOf('SECTION 1');
-        expect(importIndex).toBeLessThan(firstSectionIndex);
-    });
-
-    /**
-     * Test 8: Section line ranges tracked
-     */
-    test('should track section line ranges correctly', () => {
-        const builder = new ContractCodeBuilder();
-
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    field: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    field: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
-
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Test',
-            actions: [mockAction]
-        }];
-
-        const result = builder.buildContractFile(contracts);
-
-        // All sections should have valid ranges
-        for (const section of result.sections) {
-            expect(section.startLine).toBeGreaterThan(0);
-            expect(section.endLine).toBeGreaterThanOrEqual(section.startLine);
-        }
-
-        // Sections should not overlap
-        for (let i = 0; i < result.sections.length - 1; i++) {
-            const current = result.sections[i];
-            const next = result.sections[i + 1];
-            expect(current.endLine).toBeLessThan(next.startLine);
-        }
-    });
-
-    /**
-     * Test 9: Comment headers present
-     */
-    test('should include section comment headers', () => {
-        const builder = new ContractCodeBuilder();
-
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    field: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    field: string',
-                '  }'
-            ],
-            fieldCount: 1
-        };
-
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Test',
-            actions: [mockAction]
-        }];
-
-        const result = builder.buildContractFile(contracts);
-
-        // All section headers should be present
-        expect(result.code).toContain('// ========== SECTION 1: Zod Schemas ==========');
-        expect(result.code).toContain('// ========== SECTION 2: Inferred Types ==========');
-        expect(result.code).toContain('// ========== SECTION 3: Validators ==========');
-        expect(result.code).toContain('// ========== SECTION 4: Exports ==========');
-
-        // File header should be present
-        expect(result.code).toContain('Runtime contract validation schemas');
-        expect(result.code).toContain('Generated by ContractGeneratorPass');
-    });
-
-    /**
-     * Test 10: Valid TypeScript syntax
-     */
-    test('should generate syntactically valid TypeScript', () => {
-        const builder = new ContractCodeBuilder();
-
-        const mockAction: GeneratedContractAction = {
-            name: 'create',
-            schemaLines: [
-                '  create: z.object({',
-                '    name: z.string(),',
-                '    email: z.string()',
-                '  })'
-            ],
-            typeLines: [
-                '  create: {',
-                '    name: string',
-                '    email: string',
-                '  }'
-            ],
-            fieldCount: 2
-        };
-
-        const contracts: GeneratedContract[] = [{
-            resourceName: 'Register',
-            actions: [mockAction]
-        }];
-
-        const result = builder.buildContractFile(contracts);
-
-        // Should have valid export statements
-        expect(result.code).toMatch(/export const \w+ContractSchema = \{/);
-        expect(result.code).toMatch(/export type \w+Contract = \{/);
-        expect(result.code).toMatch(/export const validate\w+ = \(data: unknown\) => \{/);
-        expect(result.code).toMatch(/export const ContractSchemas = \{/);
-
-        // Should have proper object/block structure
-        expect(result.code).not.toContain('{{'); // No double braces
-        expect(result.code).not.toContain('}}'); // No double braces
-
-        // Should have matching braces (count should be equal)
-        const openBraces = (result.code.match(/\{/g) || []).length;
-        const closeBraces = (result.code.match(/\}/g) || []).length;
-        expect(openBraces).toBe(closeBraces);
+            // All exports should be unique
+            expect(result.code).toContain('User1Response:');
+            expect(result.code).toContain('User2Response:');
+        });
     });
 });

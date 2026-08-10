@@ -14,7 +14,7 @@ import type { GeneratedFormArtifact, GeneratedFormType, GeneratedFormAction } fr
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
 import { FormFieldMapper } from '../generators/form-generation/FormFieldMapper';
-import { FormActionGenerator } from '../generators/form-generation/FormActionGenerator';
+import { FormActionGenerator, GeneratedAction } from '../generators/form-generation/FormActionGenerator';
 import { FormCodeBuilder } from '../generators/form-generation/FormCodeBuilder';
 import { computeFingerprintHash, type CompilerFingerprint } from '../fingerprint/Fingerprint';
 
@@ -122,7 +122,8 @@ export class FormGeneratorPass
             }
 
             // Process each request type
-            const actionsByResource = new Map<string, readonly GeneratedFormAction[]>();
+            const actionsByResource = new Map<string, readonly GeneratedAction[]>();
+            const formActionsByResource = new Map<string, readonly GeneratedFormAction[]>();
             const formTypes: GeneratedFormType[] = [];
             const warnings: string[] = [];
             let totalActions = 0;
@@ -130,21 +131,27 @@ export class FormGeneratorPass
             for (const requestType of requestTypes) {
                 try {
                     // Generate actions untuk each request type
-                    const actions = this.processRequestType(requestType);
-                    actionsByResource.set(requestType.resourceName, actions);
+                    const generatedActions = this.processRequestTypeActions(requestType);
+
+                    // Store GeneratedAction for code building
+                    actionsByResource.set(requestType.resourceName, generatedActions);
+
+                    // Convert to GeneratedFormAction for artifact
+                    const formActions: GeneratedFormAction[] = generatedActions.map(a => ({
+                        name: a.name,
+                        fieldCount: a.fieldCount,
+                        lineRange: [0, 0] as const // Will be computed after code building
+                    }));
+                    formActionsByResource.set(requestType.resourceName, formActions);
 
                     // Collect metadata
                     formTypes.push({
                         name: requestType.formTypeName,
-                        actions: actions.map(a => ({
-                            name: a.name,
-                            fieldCount: a.fieldCount,
-                            lineRange: [0, 0] as const // Will be computed after code building
-                        })),
+                        actions: formActions,
                         lineRange: [0, 0] as const
                     });
 
-                    totalActions += actions.length;
+                    totalActions += generatedActions.length;
 
                 } catch (error) {
                     warnings.push(
@@ -176,15 +183,17 @@ export class FormGeneratorPass
      * Process single request type - generate actions
      * 
      * Delegates to FormActionGenerator untuk actual generation.
+     * Returns GeneratedAction (with lines property) for code building.
      */
-    private processRequestType(requestType: RequestTypesArtifact['requestTypes'][number]) {
-        const actions = [];
+    private processRequestTypeActions(requestType: RequestTypesArtifact['requestTypes'][number]): readonly GeneratedAction[] {
+        const actions: GeneratedAction[] = [];
 
         for (const action of requestType.actions) {
             const generated = this.actionGenerator.generateAction(
                 action.name,
                 action.fields
             );
+
             actions.push(generated);
         }
 

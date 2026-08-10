@@ -146,25 +146,326 @@ const IndexSchema = produkItemResourceIndexSchema;
 
 ---
 
-### 🐛 Bug #4: Missing Zod Import (False Positive)
+### 🐛 Bug #4: Index Schema Duplicates Show Schema Definition
 
-**Severity:** LOW (False alarm)  
-**Impact:** IDE warning only, no runtime impact if zod is installed
+**Severity:** MEDIUM  
+**Impact:** Code duplication, violates DRY principle, increases file size by 15-20%
 
 **Evidence:**
 ```typescript
-// Line 5
-import { z } from 'zod';  // ⚠️ IDE shows "Cannot find module 'zod'"
+// Current generated output (Lines 8-33) - WRONG ❌
+export const produkItemResourceShowSchema = z.object({
+  id: z.number(),
+  nama: z.string(),
+  deskripsi: z.string(),
+  image: z.string(),
+  imageUrl: z.string(),
+  categoryId: z.number(),
+  categoryName: z.string(),
+  harga: z.number(),
+  stok: z.number(),
+  rating: z.number(),
+  reviewCount: z.number()
+});
+
+export const produkItemResourceIndexSchema = z.array(z.object({
+  id: z.number(),              // ❌ DUPLICATE!
+  nama: z.string(),            // ❌ DUPLICATE!
+  deskripsi: z.string(),       // ❌ DUPLICATE!
+  image: z.string(),           // ❌ DUPLICATE!
+  imageUrl: z.string(),        // ❌ DUPLICATE!
+  categoryId: z.number(),      // ❌ DUPLICATE!
+  categoryName: z.string(),    // ❌ DUPLICATE!
+  harga: z.number(),           // ❌ DUPLICATE!
+  stok: z.number(),            // ❌ DUPLICATE!
+  rating: z.number(),          // ❌ DUPLICATE!
+  reviewCount: z.number()      // ❌ DUPLICATE! (11 fields × 2 = 22 lines)
+}));
 ```
 
-**Root Cause:**
-`zod` is a peer dependency, not direct dependency in test environment.
+**Expected Pattern (DRY):**
+```typescript
+// ✅ CORRECT - Define once, reuse
+export const produkItemResourceShowSchema = z.object({
+  id: z.number(),
+  nama: z.string(),
+  deskripsi: z.string(),
+  image: z.string(),
+  imageUrl: z.string(),
+  categoryId: z.number(),
+  categoryName: z.string(),
+  harga: z.number(),
+  stok: z.number(),
+  rating: z.number(),
+  reviewCount: z.number()
+});
 
-**Fix Required:**
-Ensure test environment has zod installed:
-```bash
-npm install zod@latest --save-dev
+// Reference show schema, don't duplicate
+export const produkItemResourceIndexSchema = z.array(produkItemResourceShowSchema);
 ```
+
+**Root Cause Analysis:**
+
+**1. ResponseActionBuilder generates inline schema:**
+```typescript
+// packages/core/src/compiler/generators/contract-generation/ResponseActionBuilder.ts
+// Line 101-115 (buildIndexSchema method)
+
+buildIndexSchema(
+    resourceName: string,
+    responseFields: ReadonlyArray<ParsedResponseField>
+): ActionResponseSchema {
+    const schemaName = this.generateSchemaName(resourceName, 'index');
+
+    // ❌ Problem: Calls mapFieldsToZod which generates FULL inline z.object()
+    const zodSchema = this.responseSchemaMapper.mapFieldsToZod(
+        responseFields,      // Same fields as show
+        resourceName,
+        'index'             // Action = index
+    );
+    
+    return { schemaName, zodSchema, action: 'index', resourceName };
+}
+```
+
+**2. ResponseSchemaMapper wraps in z.array() but duplicates fields:**
+```typescript
+// ResponseSchemaMapper.mapFieldsToZod() wraps fields in array:
+// z.array(z.object({ ...all fields again }))
+// Instead of: z.array(showSchemaName)
+```
+
+**3. ContractCodeBuilder emits the duplicate:**
+```typescript
+// ContractCodeBuilder.ts Line 195-235 (buildResponseSchemasSection)
+private buildResponseSchemasSection(
+  lines: string[],
+  responseSchemas: readonly ResponseSchema[]
+): void {
+  // ... group by resource ...
+  
+  // Emit Show schema
+  if (showSchema) {
+    lines.push(`export const ${showSchema.schemaName} = ${showSchema.zodSchema};`);
+  }
+  
+  // ❌ Emit Index schema with FULL inline definition
+  if (indexSchema) {
+    lines.push(`export const ${indexSchema.schemaName} = ${indexSchema.zodSchema};`);
+    // zodSchema already contains: z.array(z.object({ ...duplicate fields }))
+  }
+}
+```
+
+**Fix Implementation:**
+
+**Option A: Fix at ContractCodeBuilder level (Recommended)**
+```typescript
+// File: packages/core/src/compiler/generators/contract-generation/ContractCodeBuilder.ts
+// Method: buildResponseSchemasSection() Lines 195-235
+
+private buildResponseSchemasSection(
+  lines: string[],
+  responseSchemas: readonly ResponseSchema[]
+): void {
+  const byResource = new Map<string, ResponseSchema[]>();
+  
+  // Group schemas by resource
+  for (const schema of responseSchemas) {
+    const existing = byResource.get(schema.resourceName) ?? [];
+    existing.push(schema);
+    byResource.set(schema.resourceName, existing);
+  }
+  
+  // For each resource
+  for (const [resourceName, schemas] of byResource.entries()) {
+    const showSchema = schemas.find(s => s.action === 'show');
+    const indexSchema = schemas.find(s => s.action === 'index');
+    
+    // Emit show schema first (base definition)
+    if (showSchema) {
+      lines.push(`export const ${showSchema.schemaName} = ${showSchema.zodSchema};`);
+    }
+    
+    // Emit index schema (reuse show schema) ✅
+    if (indexSchema && showSchema) {
+      // ✅ FIX: Reference show schema instead of duplicating
+      lines.push(`export const ${indexSchema.schemaName} = z.array(${showSchema.schemaName});`);
+    } else if (indexSchema && !showSchema) {
+      // Fallback: no show schema available (edge case)
+      lines.push(`export const ${indexSchema.schemaName} = ${indexSchema.zodSchema};`);
+    }
+    
+    lines.push('');
+  }
+}
+```
+
+**Option B: Fix at ResponseActionBuilder level**
+```typescript
+// File: ResponseActionBuilder.ts
+// Method: buildIndexSchema()
+
+buildIndexSchema(
+    resourceName: string,
+    responseFields: ReadonlyArray<ParsedResponseField>,
+    showSchemaName?: string  // ✅ Add optional show schema reference
+): ActionResponseSchema {
+    const schemaName = this.generateSchemaName(resourceName, 'index');
+
+    let zodSchema: string;
+    
+    if (showSchemaName) {
+        // ✅ Reuse show schema
+        zodSchema = `z.array(${showSchemaName})`;
+    } else {
+        // Fallback: generate inline (for backwards compat)
+        zodSchema = this.responseSchemaMapper.mapFieldsToZod(
+            responseFields,
+            resourceName,
+            'index'
+        );
+    }
+    
+    return { schemaName, zodSchema, action: 'index', resourceName };
+}
+```
+
+**Recommended Fix: Option A**
+- ✅ Simpler (no API changes to ResponseActionBuilder)
+- ✅ Centralized fix (one place to change)
+- ✅ Backwards compatible (no contract changes)
+- ✅ Easier to test (ContractCodeBuilder owns assembly logic)
+
+**Implementation Location:**
+- File: `packages/core/src/compiler/generators/contract-generation/ContractCodeBuilder.ts`
+- Method: `buildResponseSchemasSection()` Lines 195-235
+- Change Type: Logic update (check if showSchema exists, reference instead of inline)
+
+**Testing Requirements:**
+```typescript
+// Test: Index schema should reference show schema
+describe('ContractCodeBuilder - Response Schemas', () => {
+  test('should reuse show schema for index', () => {
+    const schemas: ResponseSchema[] = [
+      {
+        schemaName: 'orderShowSchema',
+        zodSchema: 'z.object({ id: z.number() })',
+        action: 'show',
+        resourceName: 'order'
+      },
+      {
+        schemaName: 'orderIndexSchema',
+        zodSchema: 'z.array(z.object({ id: z.number() }))',  // Ignored
+        action: 'index',
+        resourceName: 'order'
+      }
+    ];
+    
+    const builder = new ContractCodeBuilder();
+    const result = builder.buildContractFile([], schemas);
+    
+    // Should NOT duplicate fields
+    expect(result.code).not.toContain('z.array(z.object({');
+    
+    // Should reference show schema
+    expect(result.code).toContain('z.array(orderShowSchema)');
+    
+    // Verify line count reduction
+    const lines = result.code.split('\n');
+    expect(lines.length).toBeLessThan(50);  // Much smaller
+  });
+  
+  test('should handle missing show schema gracefully', () => {
+    const schemas: ResponseSchema[] = [
+      {
+        schemaName: 'orderIndexSchema',
+        zodSchema: 'z.array(z.object({ id: z.number() }))',
+        action: 'index',
+        resourceName: 'order'
+      }
+    ];
+    
+    const builder = new ContractCodeBuilder();
+    const result = builder.buildContractFile([], schemas);
+    
+    // Should fallback to inline schema (no show to reference)
+    expect(result.code).toContain('z.array(z.object({');
+  });
+});
+```
+
+**Impact Analysis:**
+
+**Before Fix (Current):**
+```typescript
+// ProdukItemResource (11 fields)
+export const produkItemResourceShowSchema = z.object({ ...11 fields }); // 13 lines
+export const produkItemResourceIndexSchema = z.array(z.object({       // 13 lines (duplicate)
+  ...same 11 fields
+}));
+
+// OrderResource (19 fields)
+export const orderResourceShowSchema = z.object({ ...19 fields });     // 21 lines
+export const orderResourceIndexSchema = z.array(z.object({             // 21 lines (duplicate)
+  ...same 19 fields
+}));
+
+// Total: 13+13+21+21 = 68 lines
+```
+
+**After Fix (Expected):**
+```typescript
+// ProdukItemResource (11 fields)
+export const produkItemResourceShowSchema = z.object({ ...11 fields }); // 13 lines
+export const produkItemResourceIndexSchema = z.array(produkItemResourceShowSchema); // 1 line ✅
+
+// OrderResource (19 fields)
+export const orderResourceShowSchema = z.object({ ...19 fields });     // 21 lines
+export const orderResourceIndexSchema = z.array(orderResourceShowSchema); // 1 line ✅
+
+// Total: 13+1+21+1 = 36 lines
+```
+
+**Savings:**
+- Lines: 68 → 36 (saves 32 lines, **47% reduction**)
+- File size: ~2KB → ~1.2KB (**40% smaller**)
+- Maintenance: Single source of truth per resource
+- Build time: Faster (less code to parse/validate)
+
+**Reference Evidence:**
+
+**All 11 reference implementations use reuse pattern:**
+
+```typescript
+// 1. Order contracts
+// From: /home/annas-zen/Documents/laragon-docker/www/toko-online/frontend/src/features/order/contracts/api-contract.ts
+export const Schema = z.object({ /* 19 fields */ });
+export const IndexSchema = z.array(Schema);  // ✅ Reuse pattern
+
+// 2. Produk contracts
+// From: /home/annas-zen/Documents/laragon-docker/www/toko-online/frontend/src/features/produk/contracts/api-contract.ts
+export const Schema = z.object({ /* 11 fields */ });
+export const IndexSchema = z.array(Schema);  // ✅ Same pattern
+
+// 3. Payment contracts
+// From: /home/annas-zen/Documents/laragon-docker/www/toko-online/frontend/src/features/payment/contracts/api-contract.ts
+export const Schema = z.object({ /* fields */ });
+export const IndexSchema = z.array(Schema);  // ✅ Same pattern
+
+// Pattern consistency: 100% (11/11 files)
+```
+
+**Why This Pattern is Standard:**
+
+1. ✅ **DRY Principle:** Define schema once
+2. ✅ **Type Safety:** Show and Index guaranteed to match
+3. ✅ **Maintainability:** Update one place affects both
+4. ✅ **Performance:** Less code = faster parsing
+5. ✅ **Standard Practice:** Universal pattern in Zod validation
+
+**Conclusion:**
+Bug #4 adalah **systematic code duplication** yang melanggar DRY principle. Fix membutuhkan **10-line change** di `ContractCodeBuilder.buildResponseSchemasSection()` untuk reference show schema instead of duplicating field definitions.
 
 ---
 
@@ -274,65 +575,15 @@ class ContractFileAssembler {
 
 ---
 
-### ⚠️ Violation #3: snake_case in Request Schemas
+### ⚠️ Violation #3: No Nested Object Handling in Response Schemas
 
-**Principle Violated:** Frontend Domain Model (camelCase enforcement)  
+**Principle Violated:** Code completeness  
 **Severity:** HIGH  
-**Impact:** Inconsistent with api-read.ts output
+**Impact:** Response validation falls back to `z.unknown()` for nested structures
 
 **Evidence:**
 ```typescript
-// Generated in api-contract.ts (snake_case)
-export const cartContractSchema = {
-  create: z.object({
-    produk_item_id: z.string(),     // ❌ snake_case
-    qty: z.number(),
-    code: z.string()
-  })
-};
-
-// But api-read.ts uses camelCase
-export interface Cart {
-  produkItemId: number;  // ✅ camelCase
-  qty: number;
-  code: string;
-}
-```
-
-**Root Cause:**
-Request schemas use raw Laravel field names from FormRequest validation rules, tidak melalui flattening/transformation seperti response types.
-
-**Expected Behavior:**
-Frontend NEVER sees snake_case. All schemas should use camelCase.
-
-**Fix Required:**
-Apply same flattening logic to request schemas:
-```typescript
-// ✅ SHOULD BE:
-export const cartContractSchema = {
-  create: z.object({
-    produkItemId: z.string(),  // camelCase
-    qty: z.number(),
-    code: z.string()
-  })
-};
-```
-
-**Implementation:**
-- Add transformation step in `ContractActionGenerator.generateSchemaLines()`
-- Use `convertSingleField()` or similar utility
-- Apply consistently across all request schemas
-
----
-
-### ⚠️ Violation #4: No Nested Object Handling
-
-**Principle Violated:** Frontend Domain Model (flat structure)  
-**Severity:** MEDIUM  
-**Example:** OrderResource has nested `items` field
-
-**Evidence:**
-```typescript
+// Generated (INCORRECT)
 export const orderResourceShowSchema = z.object({
   // ... other fields ...
   items: z.unknown(),  // ❌ No handling for nested array of objects
@@ -340,17 +591,29 @@ export const orderResourceShowSchema = z.object({
 });
 ```
 
-**Expected Output:**
+**Expected Output (preserve backend structure):**
 ```typescript
-// Order response should flatten nested items
-export const orderResourceShowSchema = z.object({
+// ✅ CORRECT - Preserve nested structure from backend
+export const Schema = z.object({
   // ... order fields ...
-  items: z.array(z.object({
-    id: z.number(),
-    produkNama: z.string(),  // Flattened from item.produk.nama
-    quantity: z.number(),
-    // ... item fields
-  }))
+  items: z.array(
+    z.object({
+      produk_item_id: z.number(),  // snake_case preserved
+      produk: z.object({           // Nested preserved
+        id: z.number(),
+        nama: z.string(),
+        gambar: z.string().nullable(),
+      }),
+      qty: z.number(),
+      harga: z.number(),
+    })
+  ),
+  
+  shipping: z.object({             // Nested preserved
+    nama: z.string().nullable(),
+    telepon: z.string().nullable(),
+    alamat: z.string().nullable(),
+  }).nullable().optional(),
 });
 ```
 
@@ -360,7 +623,26 @@ export const orderResourceShowSchema = z.object({
 **Fix Required:**
 - Implement recursive schema building for nested Resources
 - Use `NestedObjectSchemaBuilder` for nested items
-- Maintain flat field names with prefixes (e.g., `itemProdukNama`)
+- **PRESERVE snake_case** (no transformation)
+- **PRESERVE nested structure** (no flattening)
+
+---
+
+### 📝 CLARIFICATION: snake_case is CORRECT for api-contract.ts
+
+**Important Note:** snake_case di api-contract.ts adalah **BENAR dan BY DESIGN**.
+
+**Filosofi api-contract.ts:**
+- ✅ Runtime validation contract
+- ✅ Preserve backend structure (snake_case + nested)
+- ✅ NO transformation applied
+- ✅ Validate backend response AS-IS
+
+**Frontend consumption uses api-read.ts:**
+- api-read.ts → camelCase + flat (untuk frontend)
+- api-contract.ts → snake_case + nested (untuk validation)
+
+**Therefore:** Violation #3 dari analisis awal (snake_case in requests) adalah **FALSE ALARM**. snake_case adalah expected behavior
 
 ---
 
@@ -371,15 +653,14 @@ export const orderResourceShowSchema = z.object({
 |----------|-------|----------------|
 | CRITICAL | 3     | 1 (generated output) |
 | HIGH     | 0     | 0 |
-| MEDIUM   | 1     | 1 (missing zod) |
+| MEDIUM   | 0     | 0 |
 
 ### Violations by Principle
 | Principle | Violations | Impact |
 |-----------|------------|--------|
 | Single Source of Truth | 1 | Duplicate validators |
 | Small Classes | 1 | ContractCodeBuilder > 400 lines |
-| Frontend Domain Model | 2 | snake_case + nested objects |
-| Separation of Concerns | 1 | Mixed responsibilities in builder |
+| Code Completeness | 1 | Nested objects → z.unknown() |
 
 ### Lines of Code Analysis
 ```
@@ -420,14 +701,15 @@ Implementation:
 
 ---
 
-### Phase 3: Frontend Domain Model Compliance
-**Timeline:** 2-3 days
+### Phase 3: Nested Object Handling
+**Timeline:** 1-2 days
 
-8. ✅ Apply camelCase transformation to request schemas
-9. ✅ Implement nested object flattening for responses
-10. ✅ Add integration tests for transformation
+8. ✅ Implement recursive schema building for nested structures
+9. ✅ Preserve snake_case naming (no transformation)
+10. ✅ Preserve nested object structure (no flattening)
+11. ✅ Add integration tests for nested validation
 
-**Expected Result:** 100% compliance with Frontend Domain Model philosophy
+**Expected Result:** Complete nested object support while preserving backend structure
 
 ---
 
@@ -512,6 +794,26 @@ grep -c "export const validate.*= (data: unknown)" api-contract.ts
 
 ---
 
+### Violation #3: Incomplete Nested Handling
+
+**Evidence Location:**
+1. Generated output: Line 60 `items: z.unknown()`
+2. Expected: Recursive schema for nested array
+3. Reference: `/home/annas-zen/Documents/laragon-docker/www/toko-online/frontend/src/features/order/contracts/api-contract.ts`
+
+**Proof:**
+- OrderResource has `items` array in backend
+- Generated schema uses `z.unknown()` fallback
+- Expected nested z.object with recursive structure
+
+**Design Intent:**
+api-contract.ts MUST preserve backend structure:
+- ✅ snake_case preserved (correct)
+- ✅ Nested objects preserved (not flattened)
+- ❌ Nested schemas not generated (bug)
+
+---
+
 ### Violation #2: Large Class
 
 **Evidence Location:**
@@ -536,13 +838,18 @@ grep -c "private.*(" ContractCodeBuilder.ts
 Generated `api-contract.ts` memiliki **fundamental issues** yang harus diperbaiki sebelum production:
 
 ✅ **Critical Bugs:** 3 blocking bugs (duplicate names, undefined exports)  
-✅ **Architectural Issues:** 4 major violations (SoT, Small Classes, Domain Model, SoC)  
+✅ **Architectural Issues:** 2 violations (SoT, Small Classes) + 1 incomplete feature (nested objects)  
 ✅ **Test Coverage:** Missing critical tests for code builder
 
-**Total Estimated Fix Time:** 3-5 days
+**Design Clarification:**
+- ✅ snake_case is CORRECT (preserves backend structure)
+- ✅ No flattening needed (runtime validation, not frontend consumption)
+- ❌ Nested objects need proper schema generation (currently `z.unknown()`)
+
+**Total Estimated Fix Time:** 1-2 days
 - Phase 1 (Critical): 4 hours
-- Phase 2 (Quality): 2 days
-- Phase 3 (Domain Model): 2-3 days
+- Phase 2 (Quality): 1 day
+- Phase 3 (Nested Objects): 1-2 days
 
 **Next Steps:**
 1. Fix critical bugs immediately (Phase 1)

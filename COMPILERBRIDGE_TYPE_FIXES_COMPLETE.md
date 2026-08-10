@@ -80,7 +80,7 @@ private convertSingleField(
 // ✅ AFTER
 private convertSingleField(
     fieldName: string,
-    semanticType: any
+    semanticType: 
 ): ParsedResponseField {
 ```
 

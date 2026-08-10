@@ -1,85 +1,126 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import type { Writer, WrittenFile, FileToWrite, WriterOptions } from './Writer';
-import { DEFAULT_WRITER_OPTIONS } from './Writer';
+import type { IWriter, GeneratedArtifact, WriterConfig } from './IWriter';
+import { WriterError } from './IWriter';
+
+/**
+ * Default writer configuration
+ */
+const DEFAULT_CONFIG: Required<WriterConfig> = {
+    outputDir: './output',
+    overwrite: true,
+    backup: false,
+    permissions: '0644',
+    dryRun: false
+};
 
 /**
  * File system writer implementation
  * 
- * Writes generated code to actual files on disk
+ * Writes generated code to actual files on disk.
+ * Implements IWriter interface dari pipeline architecture.
  */
-export class FileWriter implements Writer {
-    private readonly options: Required<WriterOptions>;
+export class FileWriter implements IWriter {
+    private readonly config: Required<WriterConfig>;
 
-    constructor(options: WriterOptions = {}) {
-        this.options = {
-            ...DEFAULT_WRITER_OPTIONS,
-            ...options
-        } as Required<WriterOptions>;
+    constructor(config: WriterConfig = {}) {
+        this.config = {
+            ...DEFAULT_CONFIG,
+            ...config
+        };
+        Object.freeze(this);
     }
 
     /**
-     * Write single file to disk
+     * Write single artifact to disk
+     * 
+     * Implementation:
+     * 1. Resolve full path (relative to outputDir)
+     * 2. Check overwrite policy
+     * 3. Create directories if needed
+     * 4. Write file atomically
+     * 5. Set permissions
+     * 
+     * @param artifact - GeneratedArtifact to write
+     * @throws WriterError if write fails
      */
-    public async write(filePath: string, content: string): Promise<WrittenFile> {
-        const fullPath = this.resolvePath(filePath);
+    public async write(artifact: GeneratedArtifact): Promise<void> {
+        const fullPath = this.resolvePath(artifact.filePath);
 
-        // Dry run - don't actually write
-        if (this.options.dryRun) {
-            return this.createWrittenFile(fullPath, content);
-        }
-
-        // Check if file exists
-        if (!this.options.overwrite) {
-            const fileExists = await this.exists(filePath);
-            if (fileExists) {
-                throw new Error(`File already exists and overwrite is disabled: ${fullPath}`);
+        try {
+            // Dry run - don't actually write
+            if (this.config.dryRun) {
+                console.log(`[DryRun] Would write: ${fullPath} (${Buffer.byteLength(artifact.content)} bytes)`);
+                return;
             }
-        }
 
-        // Create directory if needed
-        if (this.options.createDirs) {
+            // Check if file exists dan overwrite policy
+            const fileExists = await this.fileExists(fullPath);
+            if (fileExists && !this.config.overwrite) {
+                throw new WriterError(
+                    `File already exists and overwrite is disabled`,
+                    fullPath
+                );
+            }
+
+            // Backup existing file jika enabled
+            if (fileExists && this.config.backup) {
+                await this.backupFile(fullPath);
+            }
+
+            // Create directory if needed
             const dir = path.dirname(fullPath);
             await fs.mkdir(dir, { recursive: true });
+
+            // Write file atomically (write to temp, then rename)
+            const tempPath = `${fullPath}.tmp`;
+            await fs.writeFile(tempPath, artifact.content, { encoding: 'utf-8' });
+            await fs.rename(tempPath, fullPath);
+
+            // Set permissions if specified
+            if (this.config.permissions) {
+                await fs.chmod(fullPath, this.config.permissions);
+            }
+
+            console.log(`[FileWriter] Written: ${fullPath} (${Buffer.byteLength(artifact.content)} bytes)`);
+
+        } catch (error) {
+            if (error instanceof WriterError) {
+                throw error;
+            }
+            throw new WriterError(
+                `Failed to write file: ${error instanceof Error ? error.message : String(error)}`,
+                fullPath,
+                error instanceof Error ? error : undefined
+            );
         }
-
-        // Write file
-        await fs.writeFile(fullPath, content, { encoding: this.options.encoding });
-
-        // Get file stats
-        const stats = await fs.stat(fullPath);
-
-        return {
-            path: fullPath,
-            content,
-            byteSize: stats.size,
-            timestamp: new Date()
-        };
     }
 
     /**
-     * Write multiple files to disk
+     * Write multiple artifacts to disk
+     * 
+     * Writes files sequentially to avoid race conditions.
+     * Could be optimized untuk parallel writes in future.
+     * 
+     * @param artifacts - Array of GeneratedArtifact to write
+     * @throws WriterError if any write fails
      */
-    public async writeMany(files: FileToWrite[]): Promise<WrittenFile[]> {
-        const results: WrittenFile[] = [];
+    public async writeAll(artifacts: readonly GeneratedArtifact[]): Promise<void> {
+        console.log(`[FileWriter] Writing ${artifacts.length} file(s)...`);
 
-        // Write files sequentially to avoid race conditions
-        for (const file of files) {
-            const written = await this.write(file.path, file.content);
-            results.push(written);
+        for (const artifact of artifacts) {
+            await this.write(artifact);
         }
 
-        return results;
+        console.log(`[FileWriter] Successfully wrote ${artifacts.length} file(s)`);
     }
 
     /**
      * Check if file exists
      */
-    public async exists(filePath: string): Promise<boolean> {
-        const fullPath = this.resolvePath(filePath);
-
+    private async fileExists(filePath: string): Promise<boolean> {
         try {
-            await fs.access(fullPath);
+            await fs.access(filePath);
             return true;
         } catch {
             return false;
@@ -87,51 +128,22 @@ export class FileWriter implements Writer {
     }
 
     /**
-     * Delete file
+     * Backup existing file sebelum overwrite
      */
-    public async delete(filePath: string): Promise<void> {
-        const fullPath = this.resolvePath(filePath);
-
-        if (this.options.dryRun) {
-            return;
-        }
-
-        try {
-            await fs.unlink(fullPath);
-        } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-                throw error;
-            }
-        }
+    private async backupFile(filePath: string): Promise<void> {
+        const backupPath = `${filePath}.backup`;
+        await fs.copyFile(filePath, backupPath);
+        console.log(`[FileWriter] Created backup: ${backupPath}`);
     }
 
     /**
-     * Get writer options
-     */
-    public getOptions(): WriterOptions {
-        return { ...this.options };
-    }
-
-    /**
-     * Resolve file path relative to base directory
+     * Resolve file path relative to base output directory
      */
     private resolvePath(filePath: string): string {
         if (path.isAbsolute(filePath)) {
             return filePath;
         }
 
-        return path.join(this.options.baseDir, filePath);
-    }
-
-    /**
-     * Create WrittenFile object for dry run
-     */
-    private createWrittenFile(filePath: string, content: string): WrittenFile {
-        return {
-            path: filePath,
-            content,
-            byteSize: Buffer.byteLength(content, this.options.encoding),
-            timestamp: new Date()
-        };
+        return path.join(this.config.outputDir, filePath);
     }
 }

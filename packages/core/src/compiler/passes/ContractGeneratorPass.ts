@@ -286,10 +286,10 @@ export class ContractGeneratorPass
             );
             schemas.push(showSchema);
 
-            // Build index schema (array of resources)
+            // Build index schema (array of resources) - references show schema
             const indexSchema = this.responseActionBuilder.buildIndexSchema(
                 resourceName,
-                parsedFields
+                showSchema.schemaName
             );
             schemas.push(indexSchema);
 

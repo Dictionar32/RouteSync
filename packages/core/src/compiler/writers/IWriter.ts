@@ -15,6 +15,9 @@ export interface GeneratedArtifact {
     /** Target file path (relative atau absolute) */
     readonly filePath: string;
 
+    /** Alternative: file name only (deprecated, use filePath) */
+    readonly fileName?: string;
+
     /** Generated content (already formatted, ready to write) */
     readonly content: string;
 
@@ -37,6 +40,12 @@ export interface ArtifactMetadata {
 
     /** Content hash untuk change detection */
     readonly contentHash?: string;
+
+    /** Artifact type identifier */
+    readonly artifactType?: string;
+
+    /** Lines of code generated */
+    readonly linesOfCode?: number;
 
     /** Additional custom metadata */
     readonly custom?: Readonly<Record<string, unknown>>;

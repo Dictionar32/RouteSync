@@ -50,10 +50,10 @@ export interface IEmitter<T extends ITargetNode> {
      * - Only printing (no logic)
      * 
      * @param node - AST node to emit
-     * @returns Text representation
+     * @returns Text representation (Promise untuk async compatibility)
      * @throws EmitterError jika emission fails
      */
-    emit(node: T): string;
+    emit(node: T): string | Promise<string>;
 }
 
 /**

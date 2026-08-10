@@ -144,23 +144,25 @@ describe('ResponseActionBuilder', () => {
     });
 
     describe('buildIndexSchema()', () => {
-        it('should wrap schema in z.array()', () => {
+        it('should reference show schema in z.array()', () => {
             const fields = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false }
             ];
 
-            const schema = builder.buildIndexSchema('user', fields);
+            // Build show schema first
+            const showSchema = builder.buildShowSchema('user', fields);
+
+            // Build index schema referencing show schema
+            const schema = builder.buildIndexSchema('user', showSchema.schemaName);
 
             expect(schema.schemaName).toBe('userIndexSchema');
             expect(schema.action).toBe('index');
             expect(schema.resourceName).toBe('user');
-            expect(schema.zodSchema).toMatch(/^z\.array\(/);
-            expect(schema.zodSchema).toContain('z.object({');
-            expect(schema.zodSchema).toContain('id: z.number()');
+            expect(schema.zodSchema).toBe(`z.array(${showSchema.schemaName})`);
         });
 
-        it('should build array schema with nested objects', () => {
+        it('should build array schema referencing show schema', () => {
             const fields = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
@@ -183,11 +185,10 @@ describe('ResponseActionBuilder', () => {
                 }
             ];
 
-            const schema = builder.buildIndexSchema('cart', fields);
+            const showSchema = builder.buildShowSchema('cart', fields);
+            const schema = builder.buildIndexSchema('cart', showSchema.schemaName);
 
-            expect(schema.zodSchema).toMatch(/^z\.array\(/);
-            expect(schema.zodSchema).toContain('items: z.array(z.object({');
-            expect(schema.zodSchema).toContain('itemId: z.number()');
+            expect(schema.zodSchema).toBe(`z.array(${showSchema.schemaName})`);
         });
 
         it('should handle PascalCase resource for index', () => {
@@ -195,16 +196,18 @@ describe('ResponseActionBuilder', () => {
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
             ];
 
-            const schema = builder.buildIndexSchema('CartItems', fields);
+            const showSchema = builder.buildShowSchema('CartItems', fields);
+            const schema = builder.buildIndexSchema('CartItems', showSchema.schemaName);
 
             expect(schema.schemaName).toBe('cartItemsIndexSchema');
         });
 
         it('should handle empty fields in array', () => {
-            const schema = builder.buildIndexSchema('empty', []);
+            const showSchema = builder.buildShowSchema('empty', []);
+            const schema = builder.buildIndexSchema('empty', showSchema.schemaName);
 
             expect(schema.schemaName).toBe('emptyIndexSchema');
-            expect(schema.zodSchema).toContain('z.array(z.object({}))');
+            expect(schema.zodSchema).toBe(`z.array(${showSchema.schemaName})`);
         });
     });
 
@@ -233,7 +236,8 @@ describe('ResponseActionBuilder', () => {
             ];
 
             for (const { resource, expected } of testCases) {
-                const schema = builder.buildIndexSchema(resource, []);
+                const showSchema = builder.buildShowSchema(resource, []);
+                const schema = builder.buildIndexSchema(resource, showSchema.schemaName);
                 expect(schema.schemaName).toBe(expected);
             }
         });
@@ -256,15 +260,13 @@ describe('ResponseActionBuilder', () => {
             ];
 
             const showSchema = builder.buildShowSchema('test', fields);
-            const indexSchema = builder.buildIndexSchema('test', fields);
+            const indexSchema = builder.buildIndexSchema('test', showSchema.schemaName);
 
-            // Both should use ResponseSchemaMapper
+            // Show should use ResponseSchemaMapper
             expect(showSchema.zodSchema).toContain('z.object({');
-            expect(indexSchema.zodSchema).toContain('z.array(z.object({');
 
-            // Both should have nested object
-            expect(showSchema.zodSchema).toContain('nested: z.object({');
-            expect(indexSchema.zodSchema).toContain('nested: z.object({');
+            // Index should reference show schema
+            expect(indexSchema.zodSchema).toBe(`z.array(${showSchema.schemaName})`);
         });
     });
 

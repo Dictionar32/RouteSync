@@ -158,7 +158,7 @@ describe('ContractCodeBuilder', () => {
                 },
                 {
                     schemaName: 'orderIndexSchema',
-                    zodSchema: 'z.array(z.object({ id: z.number(), name: z.string() }))', // Will be ignored
+                    zodSchema: 'z.array(orderShowSchema)', // ✅ Correct: already references show schema
                     action: 'index',
                     resourceName: 'order'
                 }

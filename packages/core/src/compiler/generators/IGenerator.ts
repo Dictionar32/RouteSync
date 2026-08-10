@@ -35,10 +35,10 @@ export interface IGenerator<TInput, TOutput> {
      * - Type-safe (no any types)
      * 
      * @param input - Input untuk transform (IR node)
-     * @returns Target AST node
+     * @returns Target AST node (Promise untuk async compatibility)
      * @throws GeneratorError jika transformation fails
      */
-    generate(input: TInput): TOutput;
+    generate(input: TInput): TOutput | Promise<TOutput>;
 }
 
 /**

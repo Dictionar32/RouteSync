@@ -221,15 +221,10 @@ export class CompilerBridge {
         const requestTypes: RequestType[] = []
         const fieldMapper = new FormFieldMapper()
 
-        // Group routes by resource name
+        // Group routes by resource name (include ALL methods for response extraction)
         const routesByResource = new Map<string, typeof manifest.routes>()
 
         for (const route of manifest.routes || []) {
-            // Only process POST/PUT/PATCH (create/update actions)
-            if (!['POST', 'PUT', 'PATCH'].includes(route.method)) {
-                continue
-            }
-
             // Extract resource name from path
             let resourceName = this.extractResourceName(route)
             if (!resourceName) {
@@ -239,7 +234,7 @@ export class CompilerBridge {
             // 🔧 FIX BUG 1: Sanitize resource name (kebab-case → camelCase)
             resourceName = this.sanitizeResourceName(resourceName)
 
-            // Group routes
+            // Group routes (ALL methods, not just POST/PUT/PATCH)
             if (!routesByResource.has(resourceName)) {
                 routesByResource.set(resourceName, [])
             }
@@ -250,7 +245,13 @@ export class CompilerBridge {
         for (const [resourceName, routes] of routesByResource) {
             const actionsMap = new Map<'create' | 'update', RequestField[]>()
 
+            // Process REQUEST actions (POST/PUT/PATCH only)
             for (const route of routes) {
+                // Only process POST/PUT/PATCH for request validation
+                if (!['POST', 'PUT', 'PATCH'].includes(route.method)) {
+                    continue
+                }
+
                 // Determine action type (create/update)
                 const action = this.determineAction(route.method)
                 if (!action) continue
@@ -334,13 +335,17 @@ export class CompilerBridge {
                 }
             }
 
-            if (actions.length > 0) {
+            // ✅ FIX: Include resource if EITHER actions OR responseData exist
+            // Previously only added if actions.length > 0, which skipped GET-only resources
+            if (actions.length > 0 || responseData) {
                 requestTypes.push({
                     resourceName,
                     formTypeName: `${toPascalCase(resourceName)}Contract`,
                     actions,
-                    responseData  // ← NEW: Include response data for contracts
+                    responseData  // ← Include response data (may be undefined)
                 })
+
+                console.log(`[CompilerBridge] ${resourceName}: ${actions.length} request actions, ${responseData ? 'has' : 'no'} response schemas`)
             }
         }
 

@@ -40,10 +40,10 @@ export interface IFormatter<T extends ITargetNode> {
      * - Type-safe (no any types)
      * 
      * @param node - AST node to format
-     * @returns New formatted AST node
+     * @returns New formatted AST node (Promise untuk async compatibility)
      * @throws FormatterError jika formatting fails
      */
-    format(node: T): T;
+    format(node: T): T | Promise<T>;
 }
 
 /**

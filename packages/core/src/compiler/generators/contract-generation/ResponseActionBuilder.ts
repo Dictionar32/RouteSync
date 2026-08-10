@@ -103,33 +103,22 @@ export class ResponseActionBuilder {
      * 
      * Generates:
      * ```typescript
-     * export const checkoutIndexSchema = z.array(
-     *   z.object({
-     *     id: z.number(),
-     *     items: z.array(z.object({ ... })),
-     *     // ... other fields
-     *   })
-     * );
+     * export const checkoutIndexSchema = z.array(checkoutShowSchema);
      * ```
      * 
      * @param resourceName - Resource name (e.g., 'checkout')
-     * @param responseFields - Parsed response fields
+     * @param showSchemaName - Show schema name to reference
      * @returns Action response schema (wrapped in z.array())
      */
     buildIndexSchema(
         resourceName: string,
-        responseFields: ReadonlyArray<ParsedResponseField>
+        showSchemaName: string
     ): ActionResponseSchema {
         // Generate schema name: resourceIndexSchema
         const schemaName = this.generateSchemaName(resourceName, 'index');
 
-        // Build schema using ResponseSchemaMapper's simple adapter method
-        // The adapter automatically wraps in z.array() for index actions
-        const zodSchema = this.responseSchemaMapper.mapFieldsToZod(
-            responseFields,
-            resourceName,
-            'index'
-        );
+        // Reference show schema instead of duplicating
+        const zodSchema = `z.array(${showSchemaName})`;
 
         return {
             schemaName,

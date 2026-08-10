@@ -1,120 +1,117 @@
-import type { Writer, WrittenFile, FileToWrite, WriterOptions } from './Writer';
-import { DEFAULT_WRITER_OPTIONS } from './Writer';
+/**
+ * @file MemoryWriter.ts
+ * @description In-memory writer implementation untuk testing
+ * 
+ * MemoryWriter stores generated files in memory instead of disk,
+ * useful untuk unit tests dan quick validation.
+ */
+
+import type { IWriter, IMemoryWriter, GeneratedArtifact } from './IWriter';
 
 /**
  * In-memory writer implementation
  * 
- * Stores generated code in memory instead of disk.
- * Useful for testing, preview, or temporary operations.
+ * Stores files in memory Map untuk fast testing.
+ * No actual file I/O performed.
+ * 
+ * @example
+ * ```typescript
+ * const writer = new MemoryWriter();
+ * 
+ * await writer.write({
+ *   filePath: 'types/api-read.ts',
+ *   content: 'export interface User { ... }'
+ * });
+ * 
+ * const content = writer.getFile('types/api-read.ts');
+ * ```
  */
-export class MemoryWriter implements Writer {
-    private readonly files = new Map<string, string>();
-    private readonly options: Required<WriterOptions>;
+export class MemoryWriter implements IMemoryWriter {
+    private readonly files: Map<string, string> = new Map();
 
-    constructor(options: WriterOptions = {}) {
-        this.options = {
-            ...DEFAULT_WRITER_OPTIONS,
-            ...options
-        } as Required<WriterOptions>;
+    /**
+     * Write artifact to memory
+     */
+    public async write(artifact: GeneratedArtifact): Promise<void> {
+        this.files.set(artifact.filePath, artifact.content);
+        console.log(`[MemoryWriter] Written: ${artifact.filePath} (${Buffer.byteLength(artifact.content)} bytes)`);
     }
 
     /**
-     * Write file to memory
+     * Write multiple artifacts to memory
      */
-    public async write(path: string, content: string): Promise<WrittenFile> {
-        // Check overwrite option
-        if (!this.options.overwrite && this.files.has(path)) {
-            throw new Error(`File already exists in memory: ${path}`);
+    public async writeAll(artifacts: readonly GeneratedArtifact[]): Promise<void> {
+        for (const artifact of artifacts) {
+            await this.write(artifact);
         }
-
-        // Store in memory
-        this.files.set(path, content);
-
-        return {
-            path,
-            content,
-            byteSize: Buffer.byteLength(content, this.options.encoding),
-            timestamp: new Date()
-        };
+        console.log(`[MemoryWriter] Written ${artifacts.length} file(s) to memory`);
     }
 
     /**
-     * Write multiple files to memory
-     */
-    public async writeMany(files: FileToWrite[]): Promise<WrittenFile[]> {
-        const results: WrittenFile[] = [];
-
-        for (const file of files) {
-            const written = await this.write(file.path, file.content);
-            results.push(written);
-        }
-
-        return results;
-    }
-
-    /**
-     * Check if file exists in memory
-     */
-    public async exists(path: string): Promise<boolean> {
-        return this.files.has(path);
-    }
-
-    /**
-     * Delete file from memory
-     */
-    public async delete(path: string): Promise<void> {
-        this.files.delete(path);
-    }
-
-    /**
-     * Get writer options
-     */
-    public getOptions(): WriterOptions {
-        return { ...this.options };
-    }
-
-    /**
-     * Get file content from memory
+     * Get file content dari memory
+     * 
+     * @param path - File path to retrieve
+     * @returns File content, atau undefined jika not found
      */
     public getFile(path: string): string | undefined {
         return this.files.get(path);
     }
 
     /**
-     * Get all files from memory
+     * Get all files dalam memory
+     * 
+     * @returns ReadonlyMap of all files
      */
-    public getAllFiles(): Map<string, string> {
+    public getAllFiles(): ReadonlyMap<string, string> {
         return new Map(this.files);
     }
 
     /**
-     * Clear all files from memory
+     * Check if file exists dalam memory
+     * 
+     * @param path - File path to check
+     * @returns true if file exists
      */
-    public clear(): void {
-        this.files.clear();
+    public hasFile(path: string): boolean {
+        return this.files.has(path);
     }
 
     /**
-     * Get number of files in memory
+     * Get file count
+     * 
+     * @returns Number of files in memory
      */
-    public size(): number {
+    public getFileCount(): number {
         return this.files.size;
     }
 
     /**
-     * Get all file paths in memory
+     * Clear all files dari memory
      */
-    public getPaths(): string[] {
-        return Array.from(this.files.keys());
+    public clear(): void {
+        this.files.clear();
+        console.log('[MemoryWriter] Cleared all files from memory');
     }
 
     /**
-     * Export all files as array
+     * Get total size of all files dalam bytes
+     * 
+     * @returns Total size in bytes
      */
-    public toArray(): Array<{ path: string; content: string }> {
-        return Array.from(this.files.entries()).map(([path, content]) => ({
-            path,
-            content
-        }));
+    public getTotalSize(): number {
+        let total = 0;
+        for (const content of this.files.values()) {
+            total += Buffer.byteLength(content);
+        }
+        return total;
+    }
+
+    /**
+     * List all file paths
+     * 
+     * @returns Array of file paths
+     */
+    public listFiles(): readonly string[] {
+        return Array.from(this.files.keys());
     }
 }

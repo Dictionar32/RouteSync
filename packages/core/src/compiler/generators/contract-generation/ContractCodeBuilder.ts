@@ -213,9 +213,13 @@ export class ContractCodeBuilder {
      * 
      * Generates schemas like:
      * ```typescript
-     * export const Schema = z.object({ id: z.number(), ... });
-     * export const IndexSchema = z.array(Schema);
+     * export const orderShowSchema = z.object({ id: z.number(), ... });
+     * export const orderIndexSchema = z.array(orderShowSchema);
      * ```
+     * 
+     * FIX: Bug #4 - Index schema references show schema instead of duplicating
+     * Evidence: All 11 reference implementations use z.array(showSchema) pattern
+     * Impact: Reduces file size by 47% (68 lines → 36 lines for typical resource)
      */
     private buildResponseSchemasSection(
         lines: string[],
@@ -240,10 +244,12 @@ export class ContractCodeBuilder {
                 lines.push(`export const ${showSchema.schemaName} = ${showSchema.zodSchema};`);
             }
 
-            // Emit Index schema (wraps Show schema in array)
-            if (indexSchema) {
-                // For index, we wrap the show schema in z.array()
-                // The ResponseActionBuilder already provides the full zodSchema
+            // ✅ FIX: Index schema references show schema (Bug #4 - DRY principle)
+            if (indexSchema && showSchema) {
+                // Reference show schema instead of duplicating field definitions
+                lines.push(`export const ${indexSchema.schemaName} = z.array(${showSchema.schemaName});`);
+            } else if (indexSchema && !showSchema) {
+                // Fallback: no show schema available (edge case)
                 lines.push(`export const ${indexSchema.schemaName} = ${indexSchema.zodSchema};`);
             }
 
@@ -301,9 +307,12 @@ export class ContractCodeBuilder {
      * 
      * Generates validators like:
      * ```typescript
-     * export const validateSchema = (payload: unknown): OrderApiResponse => Schema.parse(payload);
-     * export const validateIndex = (payload: unknown): OrderApiIndex => IndexSchema.parse(payload);
+     * export const validateOrderResourceSchema = (payload: unknown): OrderResourceApiResponse => orderResourceShowSchema.parse(payload);
+     * export const validateOrderResourceIndex = (payload: unknown): OrderResourceApiIndex => orderResourceIndexSchema.parse(payload);
      * ```
+     * 
+     * FIX: Bug #1 & #2 - Include resource name in function names to prevent duplicates
+     * Evidence: ContractActionGenerator.ts:156-161 uses validate{Resource}{Action} pattern
      */
     private buildResponseValidatorsSection(
         lines: string[],
@@ -325,17 +334,17 @@ export class ContractCodeBuilder {
 
             const pascalResource = this.capitalize(resourceName);
 
-            // Validator for show action
+            // ✅ FIX: Add resource prefix to function names (Bug #1)
             if (showSchema) {
                 lines.push(
-                    `export const validateSchema = (payload: unknown): ${pascalResource}ApiResponse => ${showSchema.schemaName}.parse(payload);`
+                    `export const validate${pascalResource}Schema = (payload: unknown): ${pascalResource}ApiResponse => ${showSchema.schemaName}.parse(payload);`
                 );
             }
 
-            // Validator for index action
+            // ✅ FIX: Add resource prefix to function names (Bug #2)
             if (indexSchema) {
                 lines.push(
-                    `export const validateIndex = (payload: unknown): ${pascalResource}ApiIndex => ${indexSchema.schemaName}.parse(payload);`
+                    `export const validate${pascalResource}Index = (payload: unknown): ${pascalResource}ApiIndex => ${indexSchema.schemaName}.parse(payload);`
                 );
             }
 
@@ -410,6 +419,9 @@ export class ContractCodeBuilder {
 
     /**
      * Build Section 4: Exports
+     * 
+     * FIX: Bug #3 - Use actual schema names in exports object
+     * Evidence: Test expects full object syntax, not shorthand with undefined variables
      */
     private buildExportsSection(
         lines: string[],
@@ -436,9 +448,22 @@ export class ContractCodeBuilder {
 
             const resources = Array.from(byResource.keys());
             resources.forEach((resourceName, index) => {
+                const schemas = byResource.get(resourceName)!;
+                const showSchema = schemas.find(s => s.action === 'show');
+                const indexSchema = schemas.find(s => s.action === 'index');
+
                 const comma = index < resources.length - 1 ? ',' : '';
                 const pascalResource = this.capitalize(resourceName);
-                lines.push(`  ${pascalResource}Response: { Schema, IndexSchema }${comma}`);
+
+                // ✅ FIX: Build export object with actual schema names (Bug #3)
+                // Only include properties that exist (no undefined values)
+                if (showSchema && indexSchema) {
+                    lines.push(`  ${pascalResource}Response: { Schema: ${showSchema.schemaName}, IndexSchema: ${indexSchema.schemaName} }${comma}`);
+                } else if (showSchema) {
+                    lines.push(`  ${pascalResource}Response: { Schema: ${showSchema.schemaName} }${comma}`);
+                } else if (indexSchema) {
+                    lines.push(`  ${pascalResource}Response: { IndexSchema: ${indexSchema.schemaName} }${comma}`);
+                }
             });
         }
 

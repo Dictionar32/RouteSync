@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { fieldFromParsedASTNode } from '../../../../core/src/types/__archive__/legacyFieldAdapter'
-import type { ParsedASTNode } from '../../../../core/src/types/semantic'
 // NOTE lokasi import ini lintas-package (core -> cli), yang sebenarnya
 // terbalik dari arah dependency biasa (cli depends on core, bukan
 // sebaliknya). Ini sengaja dibiarkan relative import untuk kebutuhan
@@ -47,19 +46,14 @@ describe('[ARCHIVE] legacyFieldAdapter vs PhpCodeParser (engine baru)', () => {
       })
     })
 
-    it('adapter lama SELALU mengosongkan args (data loss yang terdokumentasi di komentarnya sendiri)', () => {
-      const oldInput: ParsedASTNode = {
-        kind: 'new_instance',
-        target: { kind: 'model', model: 'PaymentResource' },
-        resource: 'PaymentResource',
-      } as unknown as ParsedASTNode
-
-      const result = fieldFromParsedASTNode(oldInput, code)
-      expect(result).toMatchObject({
-        kind: 'new_instance',
-        className: 'PaymentResource',
-        args: [], // <- selalu kosong, beda dari engine baru
-      })
+    it('adapter lama sudah dihapus dari module archive (fungsi di-comment out)', () => {
+      // fieldFromParsedASTNode() sudah TIDAK di-export lagi dari
+      // legacyFieldAdapter.ts — seluruh implementasi di-comment out di
+      // __archive__ karena branch 'resource'/'model'-nya dead code terhadap
+      // PhpCodeParser yang sekarang berjalan. Test lama memanggil fungsi ini
+      // untuk mendokumentasikan data loss args-nya; sekarang fungsi itu tidak
+      // ada sama sekali, yang justru jadi bukti archival yang lebih kuat.
+      expect(fieldFromParsedASTNode).toBeUndefined()
     })
   })
 
@@ -76,25 +70,6 @@ describe('[ARCHIVE] legacyFieldAdapter vs PhpCodeParser (engine baru)', () => {
       // Klasifikasi "ini Resource atau bukan" sengaja TIDAK terjadi di sini
       // — itu tanggung jawab ResourceGraphResolver, bukan parser.
       expect(result).not.toHaveProperty('resolved')
-    })
-
-    it('adapter lama (diberi input pre-classified gaya lama) langsung short-circuit ke resolved resource', () => {
-      const oldInput: ParsedASTNode = {
-        kind: 'resource',
-        resource: 'PaymentResource',
-        collection: true,
-      } as unknown as ParsedASTNode
-
-      const result = fieldFromParsedASTNode(oldInput, code)
-      expect(result).toMatchObject({
-        kind: 'unknown',
-        resolved: {
-          status: 'resolved',
-          type: 'resource',
-          resource: 'PaymentResource',
-          collection: true,
-        },
-      })
     })
 
     it('KESIMPULAN: dua bentuk ini tidak kompatibel satu sama lain', () => {

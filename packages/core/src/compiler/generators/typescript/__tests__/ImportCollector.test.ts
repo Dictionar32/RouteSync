@@ -140,11 +140,19 @@ describe('ImportCollector', () => {
             collector.addNamedImport('User', './types');
             const imports = collector.getImports();
 
-            // Try to modify (should not affect original)
-            expect(() => {
-                // @ts-expect-error Testing immutability
-                imports[0].named.add('Hacker');
-            }).toThrow();
+            // Spec object di-freeze (Object.freeze) — mutasi properti harus gagal
+            expect(Object.isFrozen(imports[0])).toBe(true);
+
+            // `named` adalah Set biasa (type-level ReadonlySet) — .add() tidak
+            // throw, tapi karena getImports() selalu mengembalikan SALINAN baru,
+            // mutasi oleh caller tidak boleh mempengaruhi pemanggilan berikutnya.
+            // @ts-expect-error Testing immutability
+            imports[0].named.add('Hacker');
+            expect(Array.from(imports[0].named)).toContain('Hacker');
+
+            const fresh = collector.getImports();
+            expect(Array.from(fresh[0].named)).toEqual(['User']);
+            expect(fresh[0].named.has('Hacker')).toBe(false);
         });
     });
 

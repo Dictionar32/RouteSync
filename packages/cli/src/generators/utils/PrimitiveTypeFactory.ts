@@ -61,11 +61,13 @@ export class PrimitiveTypeFactory {
     static fromSqlType(sqlType: string): PrimitiveType {
         const normalized = sqlType.toLowerCase()
 
-        if (this.isSqlNumber(normalized)) {
-            return new PrimitiveType(PrimitiveKind.NUMBER)
-        }
+        // isSqlBoolean harus dicek DULU: 'tinyint(1)' juga memenuhi isSqlNumber
+        // (contains 'int'), dan 'tinyint(1)' adalah konvensi boolean MySQL.
         if (this.isSqlBoolean(normalized)) {
             return new PrimitiveType(PrimitiveKind.BOOLEAN)
+        }
+        if (this.isSqlNumber(normalized)) {
+            return new PrimitiveType(PrimitiveKind.NUMBER)
         }
         if (this.isSqlDateTime(normalized)) {
             return new PrimitiveType(PrimitiveKind.DATETIME)

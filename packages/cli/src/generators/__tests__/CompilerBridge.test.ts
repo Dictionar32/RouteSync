@@ -14,28 +14,35 @@ import { CompilerBridge } from '../CompilerBridge'
 import type { RouteManifest } from '../../../../core/src/types/route'
 
 // Mock dependencies
+// CompilerBridge memanggil `new TypeScriptGeneratorPass()` — mock harus
+// berupa class, bukan vi.fn().mockImplementation(() => ({...})) yang
+// tidak bisa dipakai dengan `new` di Vitest 4. Semua instance berbagi satu
+// mock function `run` sehingga test bisa override-nya (mockImplementationOnce)
+// per test.
+const mockPassRun = vi.fn().mockReturnValue([{
+    typeId: 'GeneratedTypeScript',
+    code: 'export interface User { id: number; name: string; }',
+    imports: [{ from: './types', names: ['User'] }],
+    interfaces: [{ name: 'User', properties: [] }],
+    generationMetadata: {
+        typeCount: 1,
+        interfaceCount: 1,
+        linesOfCode: 1,
+        warnings: []
+    },
+    metadata: {
+        hash: 'test-hash',
+        producer: 'TypeScriptGeneratorPass',
+        dependencies: [],
+        timestamp: Date.now(),
+        revision: '1.0.0'
+    }
+}])
+
 vi.mock('../../../../core/src/compiler/passes/TypeScriptGeneratorPass', () => ({
-    TypeScriptGeneratorPass: vi.fn().mockImplementation(() => ({
-        run: vi.fn().mockReturnValue([{
-            typeId: 'GeneratedTypeScript',
-            code: 'export interface User { id: number; name: string; }',
-            imports: [{ from: './types', names: ['User'] }],
-            interfaces: [{ name: 'User', properties: [] }],
-            generationMetadata: {
-                typeCount: 1,
-                interfaceCount: 1,
-                linesOfCode: 1,
-                warnings: []
-            },
-            metadata: {
-                hash: 'test-hash',
-                producer: 'TypeScriptGeneratorPass',
-                dependencies: [],
-                timestamp: Date.now(),
-                revision: '1.0.0'
-            }
-        }])
-    }))
+    TypeScriptGeneratorPass: class {
+        run = mockPassRun
+    }
 }))
 
 vi.mock('../utils/PrimitiveTypeFactory', () => ({
@@ -136,15 +143,10 @@ describe('CompilerBridge - Refactored', () => {
         })
 
         it('should throw error if Pass execution fails', async () => {
-            // Mock Pass to throw error
-            vi.resetModules()
-            vi.doMock('../../../../core/src/compiler/passes/TypeScriptGeneratorPass', () => ({
-                TypeScriptGeneratorPass: vi.fn().mockImplementation(() => ({
-                    run: vi.fn().mockImplementation(() => {
-                        throw new Error('Pass execution failed')
-                    })
-                }))
-            }))
+            // Override mock Pass untuk melempar error pada pemanggilan berikutnya
+            mockPassRun.mockImplementationOnce(() => {
+                throw new Error('Pass execution failed')
+            })
 
             await expect(
                 CompilerBridge.generateTypeScript(mockManifest)

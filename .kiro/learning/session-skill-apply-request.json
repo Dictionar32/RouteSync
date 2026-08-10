@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "requestedAt": "2026-08-10T12:05:16.354Z",
+  "sessionId": "b621b6c7-7d14-4007-927c-ba1befd8d26c",
+  "platform": "extension",
+  "skills": [
+    "self-learning",
+    "file-style-conventions",
+    "skill-creator",
+    "skill-usage-insights",
+    "skill-feedback-adaptation",
+    "skill-official-updater",
+    "doc-coauthoring",
+    "drawio-diagrams",
+    "github-actions-ci",
+    "vitest-extension-testing",
+    "cross-platform-scripting"
+  ],
+  "source": "proposals"
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "profileType": "team-multi-agent",
+  "detectedFrom": {
+    "gitRemotes": [
+      "https://github.com/Dictionar32/RouteSync.git"
+    ],
+    "teamSize": "solo",
+    "aiTools": [
+      "claude",
+      "kiro"
+    ],
+    "budgetPattern": "none",
+    "hasSharedClaudeSkills": true,
+    "isGitRepo": true,
+    "branchCount": 6,
+    "trackedFileCount": 948,
+    "repoSizeKb": 5,
+    "commitsLast30d": 289,
+    "commitsTotal": 371,
+    "projectAgeDays": 0,
+    "authorCount30d": 1,
+    "activityLevel": "high",
+    "hasAidlcWorkflow": false,
+    "hasPendingProfileInit": false,
+    "remoteReachable": true,
+    "remoteOriginUrl": "https://github.com/Dictionar32/RouteSync.git",
+    "remoteBranchCount": 1,
+    "remoteAuthors30d": 1,
+    "upstreamAhead": 1,
+    "upstreamBehind": 0,
+    "remoteProbeSource": "remote-tracking"
+  },
+  "enabledFeatures": {
+    "autoOptimizer": true
+  },
+  "costTracking": "full",
+  "confidence": 0.85,
+  "detectedAt": "2026-08-09T08:58:30.005Z",
+  "appliedAt": "2026-08-09T08:58:30.005Z",
+  "rationale": "Git analysis: 948 tracked files, 6 branches (6 local, 1 remote), 372 commits (290 last 30d), 1 author (30d), high activity, ~5 KB git objects, 1d old. Remote git (https://github.com/Dictionar32/RouteSync.git): 1 remote branch, 1 remote author (30d), via cache, ahead 2 / behind 0 vs upstream. Collaborative or multi-branch product — full sync and attribution."
+}

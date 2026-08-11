@@ -15,41 +15,35 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ResponseActionBuilder } from '../ResponseActionBuilder';
 import { ResponseSchemaMapper } from '../ResponseSchemaMapper';
-import { ResponseFieldParser } from '../ResponseFieldParser';
+import { ResponseFieldParser, type ParsedResponseField } from '../ResponseFieldParser';
 import { ZodModifierBuilder } from '../ZodModifierBuilder';
 import { NestedObjectSchemaBuilder } from '../NestedObjectSchemaBuilder';
 import { ArraySchemaBuilder } from '../ArraySchemaBuilder';
-import { PrimitiveTypeRegistry } from '../PrimitiveTypeRegistry';
 
 describe('ResponseActionBuilder', () => {
     let builder: ResponseActionBuilder;
     let responseSchemaMapper: ResponseSchemaMapper;
 
     beforeEach(() => {
-        // Create complete mapper with all dependencies
-        const primitiveRegistry = new PrimitiveTypeRegistry();
+        // Signatures sesuai refactor dependency injection:
+        // - NestedObjectSchemaBuilder(zodModifierBuilder) — 1 param
+        // - ArraySchemaBuilder(nestedObjectBuilder, zodModifierBuilder) — 2 param
+        // - ResponseSchemaMapper() — self-contained, 0 param
         const zodModifierBuilder = new ZodModifierBuilder();
-        const nestedObjectBuilder = new NestedObjectSchemaBuilder(
-            primitiveRegistry,
-            zodModifierBuilder
-        );
+        const nestedObjectBuilder = new NestedObjectSchemaBuilder(zodModifierBuilder);
         const arraySchemaBuilder = new ArraySchemaBuilder(
-            primitiveRegistry,
             nestedObjectBuilder,
             zodModifierBuilder
         );
 
-        responseSchemaMapper = new ResponseSchemaMapper(
-            nestedObjectBuilder,
-            arraySchemaBuilder
-        );
+        responseSchemaMapper = new ResponseSchemaMapper();
 
         builder = new ResponseActionBuilder(responseSchemaMapper);
     });
 
     describe('buildShowSchema()', () => {
         it('should build schema for simple response', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false },
                 { name: 'email', kind: 'primitive', type: 'string', nullable: false, optional: true }
@@ -67,7 +61,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should build schema with nested object', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
                     name: 'address',
@@ -90,7 +84,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should build schema with array field', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
                     name: 'tags',
@@ -114,7 +108,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should handle PascalCase resource name', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
             ];
 
@@ -125,7 +119,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should handle kebab-case resource name', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
             ];
 
@@ -145,7 +139,7 @@ describe('ResponseActionBuilder', () => {
 
     describe('buildIndexSchema()', () => {
         it('should reference show schema in z.array()', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false }
             ];
@@ -163,7 +157,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should build array schema referencing show schema', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
                     name: 'items',
@@ -192,7 +186,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should handle PascalCase resource for index', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
             ];
 
@@ -245,7 +239,7 @@ describe('ResponseActionBuilder', () => {
 
     describe('integration with ResponseSchemaMapper', () => {
         it('should delegate schema generation to mapper', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                 {
                     name: 'nested',
@@ -272,7 +266,7 @@ describe('ResponseActionBuilder', () => {
 
     describe('complex response structures', () => {
         it('should handle deeply nested response', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 {
                     name: 'data',
                     kind: 'object',
@@ -312,7 +306,7 @@ describe('ResponseActionBuilder', () => {
         });
 
         it('should handle array of nested objects', () => {
-            const fields = [
+            const fields: ParsedResponseField[] = [
                 {
                     name: 'items',
                     kind: 'array',

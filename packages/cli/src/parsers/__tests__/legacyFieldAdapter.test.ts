@@ -1,12 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { fieldFromParsedASTNode } from '../../../../core/src/types/__archive__/legacyFieldAdapter'
-// NOTE lokasi import ini lintas-package (core -> cli), yang sebenarnya
-// terbalik dari arah dependency biasa (cli depends on core, bukan
-// sebaliknya). Ini sengaja dibiarkan relative import untuk kebutuhan
-// perbandingan lokal di test arsip ini. Kalau file ini dipindah jadi test
-// permanen, pertimbangkan pindahkan perbandingan ini ke package `cli`
-// (yang memang sudah punya akses ke keduanya), atau mock PhpCodeParser's
-// output langsung tanpa import lintas-package.
+// NOTE: legacyFieldAdapter.ts di __archive__ sudah TIDAK punya export aktif
+// (semua fungsi di-comment out) sehingga file-nya bukan module — status
+// archival diverifikasi lewat pembacaan source di test dokumentasi, bukan
+// lewat import.
 import { PhpCodeParser } from '../PhpCodeParser'
 
 /**
@@ -53,7 +49,18 @@ describe('[ARCHIVE] legacyFieldAdapter vs PhpCodeParser (engine baru)', () => {
       // PhpCodeParser yang sekarang berjalan. Test lama memanggil fungsi ini
       // untuk mendokumentasikan data loss args-nya; sekarang fungsi itu tidak
       // ada sama sekali, yang justru jadi bukti archival yang lebih kuat.
-      expect(fieldFromParsedASTNode).toBeUndefined()
+      // (Verifikasi via source — file archive bukan module karena tidak punya
+      // export aktif, jadi tidak bisa di-import.)
+      const fs = require('fs')
+      const archiveSource = fs.readFileSync(
+        require('path').resolve(
+          __dirname,
+          '../../../../core/src/types/__archive__/legacyFieldAdapter.ts'
+        ),
+        'utf-8'
+      )
+      expect(archiveSource).toMatch(/\/\/ export function fieldFromParsedASTNode/)
+      expect(archiveSource).not.toMatch(/^export function fieldFromParsedASTNode/)
     })
   })
 

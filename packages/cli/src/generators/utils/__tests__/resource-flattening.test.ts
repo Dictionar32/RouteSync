@@ -432,10 +432,10 @@ describe('Resource Flattening Utils', () => {
                     fields: {
                         // property_access dengan resolved.type — jalur inferensi
                         // tipe dari resolved (id → int → number)
-                        id: { kind: 'property_access', resolved: { type: 'int', status: 'resolved' } },
-                        nama: { kind: 'property_access', resolved: { type: 'string', status: 'resolved' } },
-                        gambar: { kind: 'property_access', resolved: { type: 'string', status: 'resolved' } },
-                        image_url: { kind: 'property_access', resolved: { type: 'string', status: 'resolved' } }
+                        id: { kind: 'property_access', resolved: { type: 'int', status: 'resolved', confidence: 1, trace: [] } },
+                        nama: { kind: 'property_access', resolved: { type: 'string', status: 'resolved', confidence: 1, trace: [] } },
+                        gambar: { kind: 'property_access', resolved: { type: 'string', status: 'resolved', confidence: 1, trace: [] } },
+                        image_url: { kind: 'property_access', resolved: { type: 'string', status: 'resolved', confidence: 1, trace: [] } }
                     }
                 }
             }

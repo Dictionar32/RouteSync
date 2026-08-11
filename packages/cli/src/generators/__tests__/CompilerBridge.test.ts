@@ -162,15 +162,17 @@ describe('CompilerBridge - Refactored', () => {
                 'utf-8'
             )
 
-            // Should use utilities, not implement inline
-            expect(bridgeSource).toContain('PrimitiveTypeFactory')
-            expect(bridgeSource).toContain('flattenResourceFields')
-            expect(bridgeSource).toContain('toCamelCase')
+            // Should delegate to lowering utilities, not implement them inline
+            expect(bridgeSource).toContain('manifestToSemanticTypes')
+            expect(bridgeSource).toContain('manifestToRequestTypes')
+            expect(bridgeSource).toContain('manifestToContractInput')
             expect(bridgeSource).toContain('TypeScriptGeneratorPass')
 
-            // Should NOT have inline flattening logic
+            // Should NOT have inline business logic (all moved to utils)
             expect(bridgeSource).not.toContain('function flattenResourceField')
             expect(bridgeSource).not.toContain('function primitiveStringToSemanticType')
+            expect(bridgeSource).not.toContain('function parseValidationRules')
+            expect(bridgeSource).not.toContain('function processResources')
         })
 
         it('should be significantly smaller than original', () => {

@@ -16,10 +16,11 @@
  */
 
 import { RouteManifest, ResourceFieldKind } from '../../../core/src/types/route'
-import { ContractIR, GeneratedFile, GeneratedOutput, GenerationContext, IREmitter, RouteManifest as IRRouteManifest, HttpMethod, ResolvedSemanticType } from '../../../core/src/types/ir'
+import { ContractIR, GeneratedFile, GeneratedOutput, GenerationContext, IREmitter, RouteManifest as IRRouteManifest, HttpMethod, ResolvedSemanticType, ParsedRequest, ParsedField } from '../../../core/src/types/ir'
 import { OptimizedContractIRBuilder } from '../../../core/src/ir/ContractIRBuilder'
 import { SemanticResolution } from '../../../core/src/types/contract'
 import { SemanticNode, SemanticType } from '../../../core/src/types/semantic'
+import { toPascalCase } from '../../../core/src/utils/resource-naming'
 
 // Import all emitters
 import { ReadEmitter } from './layers/ReadEmitter'
@@ -479,9 +480,15 @@ export class ContractGenerator {
                 }
             })
 
+        // Build requests from routes carrying FormRequest validation rules so
+        // the Contract IR emitters can generate payload schemas
+        // (RegisterCreatePayload, CartItemsCreatePayload, ...). Previously
+        // `requests: []` left ApiSchema and payload schemas empty in output.
+        const requestsFromRoutes = this.buildRequestsFromRoutes(manifest)
+
         return {
             resources: [...resourcesFromAuthored, ...resourcesFromModels],
-            requests: [], // Empty for now, will be built from routes
+            requests: requestsFromRoutes,
             routes: (manifest.routes || []).map(r => ({
                 id: r.name || `${r.method}-${r.path}`,
                 method: this.toHttpMethod(r.method),
@@ -495,6 +502,101 @@ export class ContractGenerator {
                 scanned_at: manifest.generatedAt || new Date().toISOString(),
                 source_files: []
             }
+        }
+    }
+
+    /**
+     * Build ParsedRequest[] dari routes yang punya FormRequest validation
+     * rules (route.schema.rules). Satu request per resource path + action
+     * group (POST → Create, PUT/PATCH → Update), nama request
+     * `${PascalCase(resource)}Request` sehingga ContractEmitter menghasilkan
+     * payload bernama sama seperti engine lama (RegisterCreatePayload dll).
+     */
+    private buildRequestsFromRoutes(manifest: RouteManifest): ParsedRequest[] {
+        const requestGroups = new Map<string, { action: string; fields: ParsedField[]; routes: string[] }>()
+
+        for (const route of manifest.routes || []) {
+            const rules = (route.schema as { rules?: Record<string, string | string[]> } | undefined)?.rules
+            if (!rules || Object.keys(rules).length === 0) continue
+
+            const resourceName = this.extractPathResourceName(route.path)
+            if (!resourceName) continue
+
+            const actionName = route.method === 'POST' ? 'Create'
+                : route.method === 'PUT' || route.method === 'PATCH' ? 'Update' : 'Custom'
+            const requestName = `${toPascalCase(resourceName)}Request`
+
+            const fields = Object.entries(rules).map(([fieldName, ruleString]) =>
+                this.validationRuleToParsedField(fieldName, ruleString)
+            )
+
+            const existing = requestGroups.get(requestName)
+            if (existing) {
+                // Merge fields dari route lain di resource yang sama (hindari duplikat)
+                const existingNames = new Set(existing.fields.map(f => f.name))
+                for (const f of fields) {
+                    if (!existingNames.has(f.name)) existing.fields.push(f)
+                }
+                existing.routes.push(route.name || '')
+            } else {
+                requestGroups.set(requestName, {
+                    action: actionName,
+                    fields,
+                    routes: [route.name || '']
+                })
+            }
+        }
+
+        const requests: ParsedRequest[] = []
+        for (const [requestName, group] of requestGroups) {
+            requests.push({
+                name: requestName,
+                actions: [{ name: group.action, fields: group.fields }],
+                routes: group.routes
+            })
+        }
+        return requests
+    }
+
+    /**
+     * Ambil nama resource dari path: segmen pertama non-'api' non-parameter.
+     * /register → register, /cart/items → cart, /api/orders/{id} → orders
+     */
+    private extractPathResourceName(path: string): string | null {
+        const segments = path.replace(/^\//, '').split('/')
+        for (const segment of segments) {
+            if (segment === 'api' || segment.startsWith('{')) continue
+            if (segment.length > 0) return segment
+        }
+        return null
+    }
+
+    /**
+     * Konversi rule Laravel ke ParsedField dengan semanticType + optional/nullable.
+     * Rules bisa berbentuk string ('required|string|max:255') ATAU array
+     * (['sometimes', 'required', 'email', {}] — bentuk yang dipakai
+     * profile.put/patch di manifest scan).
+     */
+    private validationRuleToParsedField(name: string, ruleString: string | string[]): ParsedField {
+        const ruleNames = Array.isArray(ruleString)
+            ? ruleString.map(String)
+            : ruleString.split('|').map(r => r.split(':')[0])
+        let primitiveType: 'string' | 'number' | 'boolean' | 'json' = 'string'
+        for (const rule of ruleNames) {
+            if (rule === 'integer' || rule === 'int' || rule === 'numeric' || rule === 'decimal') {
+                primitiveType = 'number'
+            } else if (rule === 'boolean' || rule === 'bool') {
+                primitiveType = 'boolean'
+            } else if (rule === 'array' || rule === 'json') {
+                primitiveType = 'json'
+            }
+        }
+        return {
+            name,
+            semanticType: { kind: 'primitive', type: primitiveType },
+            nullable: ruleNames.includes('nullable'),
+            optional: !ruleNames.includes('required'),
+            validation: { rules: ruleString }
         }
     }
 }

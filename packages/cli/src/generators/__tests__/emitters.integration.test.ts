@@ -270,6 +270,19 @@ describe('Phase 2 Emitters Integration Tests', () => {
             expect(content).toContain('export const ApiDefaultValues = {')
             expect(content).not.toContain(' any')
         })
+
+        // REGRESSION GUARD: requests dibangun dari route.schema.rules di
+        // adaptManifest — ApiSchema TIDAK boleh kosong untuk manifest dengan
+        // FormRequest rules (register.post punya name/email/password).
+        it('ApiSchema harus berisi form schema dari route.schema.rules', () => {
+            const content = new SchemaEmitter().emit(ir)[0].content
+
+            expect(content).toContain('RegisterCreate: z.object({')
+            expect(content).toContain('name: z.string()')
+            expect(content).toContain('email: z.string()')
+            expect(content).toContain('password: z.string()')
+            expect(content).not.toMatch(/ApiSchema = \{\n\}/)
+        })
     })
 
     describe('MapperEmitter', () => {

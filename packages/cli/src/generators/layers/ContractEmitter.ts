@@ -149,10 +149,19 @@ ${fields.join('\n')}
     }
 
     /**
+     * Nama tipe response tanpa suffix dobel.
+     * Resource yang sudah berakhiran 'Response' (mis. RegisterResponse) tidak
+     * boleh jadi 'RegisterResponseResponse' — konsisten dengan engine lama.
+     */
+    private responseTypeName(name: string): string {
+        return name.endsWith('Response') ? name : `${name}Response`
+    }
+
+    /**
      * Generate type inference dari resource schema
      */
     private generateResourceTypeInference(resource: ResourceIR): string {
-        return `export type ${resource.name}Response = z.infer<typeof ${resource.name}Schema>`
+        return `export type ${this.responseTypeName(resource.name)} = z.infer<typeof ${resource.name}Schema>`
     }
 
     /**
@@ -160,8 +169,9 @@ ${fields.join('\n')}
      * Digunakan untuk semua CUD operations yang return single resource
      */
     private generateResourceValidator(resource: ResourceIR): string {
-        const functionName = `validate${resource.name}Response`
-        return `export const ${functionName} = (payload: unknown): ${resource.name}Response => 
+        const typeName = this.responseTypeName(resource.name)
+        const functionName = `validate${typeName}`
+        return `export const ${functionName} = (payload: unknown): ${typeName} =>
   ${resource.name}Schema.parse(payload)`
     }
 

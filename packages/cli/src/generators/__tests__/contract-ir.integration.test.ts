@@ -322,6 +322,40 @@ describe('Contract IR Architecture', () => {
                 expect(content).toContain('data: z.array(OrderResourceSchema)')
                 expect(content).toContain('export const validateOrderResourceCollectionResponse =')
             })
+
+            it('should NOT double the Response suffix for resources ending in Response', () => {
+                // Resource 'RegisterResponse' sudah berakhiran 'Response' — type
+                // inference dan validator tidak boleh jadi 'RegisterResponseResponse'
+                // / 'validateRegisterResponseResponse'.
+                const builder = new OptimizedContractIRBuilder(mockContext)
+                const generator = new ContractGenerator()
+                const registerManifest: RouteManifest = {
+                    version: '1.0.0',
+                    baseURL: 'http://localhost:8000',
+                    generatedAt: '2024-01-01T00:00:00Z',
+                    routes: [],
+                    resources: [
+                        {
+                            name: 'RegisterResponse',
+                            fields: {
+                                'token': {
+                                    kind: 'primitive',
+                                    type: 'string',
+                                    resolved: { type: 'string', status: 'resolved' as const, confidence: 1, trace: [] }
+                                }
+                            }
+                        }
+                    ]
+                }
+                const registerIR = builder.buildFromManifest(generator['adaptManifest'](registerManifest))
+
+                const content = new ContractEmitter().emit(registerIR)[0].content
+
+                expect(content).toContain('export type RegisterResponse = z.infer<typeof RegisterResponseSchema>')
+                expect(content).toContain('export const validateRegisterResponse =')
+                expect(content).not.toContain('RegisterResponseResponse')
+                expect(content).not.toContain('validateRegisterResponseResponse')
+            })
         })
 
         describe('FieldEmitter', () => {

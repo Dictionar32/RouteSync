@@ -119,8 +119,11 @@ export function flattenResourceField(
     prefix: string,
     ctx: FlatteningContext
 ): FlattenedProperty[] {
-    // Check depth limit (allow maxDepth properties, stop at maxDepth+1)
-    if (ctx.depth > ctx.options.maxDepth) {
+    // Check depth limit: maxDepth = jumlah level (segmen key) maksimum yang
+    // diizinkan. Depth 0-indexed (top-level = 0), jadi leaf di depth >= maxDepth
+    // (level ke-(maxDepth+1)) harus berhenti — sebelumnya `>` memberi
+    // maxDepth+1 level (off-by-one): 6 level untuk maxDepth 5.
+    if (ctx.depth >= ctx.options.maxDepth) {
         if (ctx.options.circularRefWarnings) {
             console.warn(
                 `[RouteSync] Maximum nesting depth (${ctx.options.maxDepth}) exceeded at field '${prefix}${fieldName}'. Stopping flattening.`

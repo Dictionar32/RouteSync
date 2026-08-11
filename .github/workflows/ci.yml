@@ -24,8 +24,11 @@ jobs:
       - name: Setup PHP
         run: sudo apt-get update && sudo apt-get install -y php-cli
 
+      # --legacy-peer-deps: @vee-validate/zod (dipakai useApiForm.ts) butuh peer
+      # zod ^3.24, project pakai zod ^4 — konflik upstream yang tidak bisa
+      # di-upgrade; instal lokal juga memakai flag ini.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build (tsup)
         run: npm run build

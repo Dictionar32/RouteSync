@@ -6,7 +6,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { ContractActionGenerator } from '../ContractActionGenerator';
-import { PrimitiveType, PrimitiveKind, ObjectType, ReadonlyCollectionType } from '../../../types/SemanticType';
+import { PrimitiveType, PrimitiveKind, ObjectType, ReadonlyCollectionType, CollectionKind } from '../../../types/SemanticType';
 import { ImmutableMap, ImmutableSet } from '../../../utils/ImmutableCollections';
 
 describe('ContractActionGenerator', () => {
@@ -165,7 +165,11 @@ describe('ContractActionGenerator', () => {
         });
 
         test('should handle arrays', () => {
+            // Constructor butuh (CollectionKind, elementType) — versi lama
+            // hanya (elementType), elementType jadi undefined dan
+            // getBaseTypeName crash dengan TypeError.
             const arrayType = new ReadonlyCollectionType(
+                CollectionKind.ARRAY,
                 new PrimitiveType(PrimitiveKind.STRING)
             );
 

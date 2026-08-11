@@ -490,24 +490,50 @@ ${assignmentsScannerPhp}
                 // above for why this changed.
                 if ($methodSource) {
                     $resourceName = null;
+                    $resourceClass = null;
                     $collection = $attributeCollection;
 
-                    if (preg_match('/return\\s+new\\s+([a-zA-Z0-9_]+Resource)\\s*\\(/', $methodSource, $matches)) {
-                        $resourceName = $matches[1];
-                    } elseif (preg_match('/return\\s+([a-zA-Z0-9_]+Resource)::(?:collection|make)\\s*\\(/', $methodSource, $matches)) {
-                        $resourceName = $matches[1];
+                    // FQCN-aware matching: [^\\s(]+ menangkap FQCN
+                    // (\\App\\Http\\Resources\\OrderResource), short name (OrderResource),
+                    // dan alias (OrderRes — tidak harus berakhiran "Resource").
+                    // Tanpa ini, return new \\App\\Http\\Resources\\OrderResource(...)
+                    // jatuh ke fallback bare-model dan deteksi $wrap ($wrapped) hilang.
+                    if (preg_match('/return\\s+new\\s+([^\\s(]+)\\s*\\(/', $methodSource, $matches)
+                        || preg_match('/return\\s+([^\\s(]+Resource)::(?:collection|make)\\s*\\(/', $methodSource, $matches)
+                        || preg_match('/([^\\s(]+Resource)::collection\\s*\\(/', $methodSource, $matches)
+                        || preg_match('/new\\s+([^\\s(]+)\\s*\\(/', $methodSource, $matches)) {
+                        $rawName = ltrim($matches[1], '\\\\');
                         if (str_contains($matches[0], '::collection')) {
                             $collection = true;
                         }
-                    } elseif (preg_match('/([a-zA-Z0-9_]+Resource)::collection\\s*\\(/', $methodSource, $matches)) {
-                        $resourceName = $matches[1];
-                        $collection = true;
-                    } elseif (preg_match('/new\\s+([a-zA-Z0-9_]+Resource)\\s*\\(/', $methodSource, $matches)) {
-                        $resourceName = $matches[1];
+                        if (str_contains($rawName, '\\\\')) {
+                            // FQCN — pakai langsung, resource name = basename
+                            $resourceClass = $rawName;
+                            $resourceName = class_basename($rawName);
+                        } else {
+                            $candidate = 'App\\\\Http\\\\Resources\\\\' . $rawName;
+                            if (class_exists($candidate)) {
+                                $resourceClass = $candidate;
+                                $resourceName = $rawName;
+                            } else {
+                                // Short name / alias — resolve via use statements di file controller
+                                $ctrlFile = $reflector->getFileName();
+                                if ($ctrlFile && file_exists($ctrlFile)) {
+                                    $ctrlSource = file_get_contents($ctrlFile);
+                                    $esc = preg_quote($rawName, '#');
+                                    if (preg_match('#^\\s*use\\s+([\\w\\\\]+\\\\' . $esc . ')\\s*;#m', $ctrlSource, $um)) {
+                                        $resourceClass = $um[1];
+                                        $resourceName = class_basename($um[1]);
+                                    } elseif (preg_match('#^\\s*use\\s+([^\\s;]+)\\s+as\\s+' . $esc . '\\s*;#m', $ctrlSource, $um)) {
+                                        $resourceClass = $um[1];
+                                        $resourceName = class_basename($um[1]);
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    if ($resourceName) {
-                        $resourceClass = 'App\\\\Http\\\\Resources\\\\' . $resourceName;
+                    if ($resourceClass) {
                         if (class_exists($resourceClass)) {
                             $resReflector = new ReflectionClass($resourceClass);
 

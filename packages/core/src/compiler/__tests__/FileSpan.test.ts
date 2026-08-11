@@ -356,19 +356,42 @@ describe('mergeSpans', () => {
 });
 
 describe('Performance characteristics', () => {
+    // Micro-benchmark helper: warmup (JIT) lalu ambil MIN dari beberapa run.
+    // Min mewakili best-case CPU bebas GC/load noise — mean/sekali-jalan tetap
+    // flaky di mesin dev yang sibuk (pernah terukur ratio 96x-67x untuk
+    // implementasi O(n) murni karena timer noise mendominasi operasi ~0.1ms).
+    function minTime(fn: () => void, iterations: number, runs: number): number {
+        for (let r = 0; r < runs; r++) {
+            fn(); // warmup
+        }
+        let best = Infinity;
+        for (let r = 0; r < runs; r++) {
+            const start = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                fn();
+            }
+            best = Math.min(best, (performance.now() - start) / iterations);
+        }
+        return best;
+    }
+
     test('LineMap construction should be O(n) in file size', () => {
         const sizes = [100, 1000, 10000];
+        const iterations = [1000, 100, 10];
         const times: number[] = [];
 
-        for (const size of sizes) {
-            const source = 'x'.repeat(size / 2) + '\n' + 'y'.repeat(size / 2);
-            const start = performance.now();
-            new LineMap(source);
-            times.push(performance.now() - start);
+        for (let i = 0; i < sizes.length; i++) {
+            const source = 'x'.repeat(sizes[i] / 2) + '\n' + 'y'.repeat(sizes[i] / 2);
+            times.push(minTime(() => { new LineMap(source); }, iterations[i], 5));
         }
 
-        // Time should scale roughly linearly (within 2x for 10x size increase)
-        expect(times[2] / times[0]).toBeLessThan(20); // Allow some variance
+        // O(n): 10x ukuran -> ~10x waktu per konstruksi. Bandingkan per-step
+        // (100→1000 dan 1000→10000 = 10x), BUKAN total (100→10000 = 100x) —
+        // threshold untuk total 100x tidak mungkin lolos implementasi O(n)
+        // murni (rasio ~100), yang dulu membuat test selalu flaky gagal.
+        // Threshold 50x = 5x dari linear, toleran terhadap load mesin dev.
+        expect(times[1] / times[0]).toBeLessThan(50);
+        expect(times[2] / times[1]).toBeLessThan(50);
     });
 
     test('offsetToPosition should be O(log n) in line count', () => {
@@ -378,12 +401,9 @@ describe('Performance characteristics', () => {
         for (const lineCount of lineCounts) {
             const source = Array(lineCount).fill('line').join('\n');
             const lineMap = new LineMap(source);
-
-            const start = performance.now();
-            for (let i = 0; i < 1000; i++) {
+            times.push(minTime(() => {
                 lineMap.offsetToPosition(source.length / 2);
-            }
-            times.push(performance.now() - start);
+            }, 1000, 5));
         }
 
         // Time should scale logarithmically (< 2x for 10x increase)

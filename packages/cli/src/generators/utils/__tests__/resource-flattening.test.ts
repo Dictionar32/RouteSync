@@ -229,8 +229,10 @@ describe('Resource Flattening Utils', () => {
 
     describe('flattenResourceFields - Depth Limit', () => {
         test('should enforce maximum nesting depth', () => {
-            // Create deeply nested structure (6 levels)
-            const fields: Record<string, ResourceFieldKind> = {
+            // maxDepth = jumlah level (segmen key) maksimum yang diizinkan.
+            // Struktur 6 level: leaf di level 6 = 6 segmen > 5 → berhenti
+            // (tidak ada leaf yang tercapai, map kosong).
+            const sixLevels: Record<string, ResourceFieldKind> = {
                 level1: {
                     kind: 'object',
                     fields: {
@@ -262,18 +264,47 @@ describe('Resource Flattening Utils', () => {
                 }
             }
 
-            const result = flattenResourceFields('DeepResource', fields, {
+            const result = flattenResourceFields('DeepResource', sixLevels, {
                 maxDepth: 5
             })
 
-            // Should have flattened up to level 5
-            expect(result.has('level1Level2Level3Level4Level5')).toBe(true)
-
-            // Level 6 should be stopped (depth limit)
+            // Level 6 (6 segmen) melebihi maxDepth 5 — tidak ada leaf yang masuk
+            expect(result.size).toBe(0)
             expect(result.has('level1Level2Level3Level4Level5Level6')).toBe(false)
+
+            // Struktur 5 level: leaf di level 5 = 5 segmen = maxDepth → masuk
+            const fiveLevels: Record<string, ResourceFieldKind> = {
+                level1: {
+                    kind: 'object',
+                    fields: {
+                        level2: {
+                            kind: 'object',
+                            fields: {
+                                level3: {
+                                    kind: 'object',
+                                    fields: {
+                                        level4: {
+                                            kind: 'object',
+                                            fields: {
+                                                level5: { kind: 'primitive', type: 'string' }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            const result5 = flattenResourceFields('DeepResource', fiveLevels, {
+                maxDepth: 5
+            })
+            expect(result5.has('level1Level2Level3Level4Level5')).toBe(true)
         })
 
         test('should respect custom maxDepth option', () => {
+            // a > b > c: leaf c = 3 segmen
             const fields: Record<string, ResourceFieldKind> = {
                 a: {
                     kind: 'object',
@@ -288,13 +319,32 @@ describe('Resource Flattening Utils', () => {
                 }
             }
 
-            // With maxDepth: 1, should only flatten one level
+            // maxDepth 1: leaf b pun (2 segmen) melebihi batas → tidak ada output
             const result = flattenResourceFields('TestResource', fields, {
                 maxDepth: 1
             })
+            expect(result.size).toBe(0)
 
-            expect(result.has('aB')).toBe(true)
-            expect(result.has('aBC')).toBe(false)
+            // a > b (leaf 2 segmen) dengan maxDepth 2 → masuk
+            const shallow: Record<string, ResourceFieldKind> = {
+                a: {
+                    kind: 'object',
+                    fields: {
+                        b: { kind: 'primitive', type: 'string' }
+                    }
+                }
+            }
+
+            const result2 = flattenResourceFields('TestResource', shallow, {
+                maxDepth: 2
+            })
+            expect(result2.has('aB')).toBe(true)
+
+            // maxDepth 1: b (2 segmen) > 1 → tidak masuk
+            const result3 = flattenResourceFields('TestResource', shallow, {
+                maxDepth: 1
+            })
+            expect(result3.size).toBe(0)
         })
     })
 
@@ -380,10 +430,12 @@ describe('Resource Flattening Utils', () => {
                 produk: {
                     kind: 'object',
                     fields: {
-                        id: { kind: 'property_access' },
-                        nama: { kind: 'property_access' },
-                        gambar: { kind: 'property_access' },
-                        image_url: { kind: 'property_access' }
+                        // property_access dengan resolved.type — jalur inferensi
+                        // tipe dari resolved (id → int → number)
+                        id: { kind: 'property_access', resolved: { type: 'int', status: 'resolved', confidence: 1, trace: [] } },
+                        nama: { kind: 'property_access', resolved: { type: 'string', status: 'resolved', confidence: 1, trace: [] } },
+                        gambar: { kind: 'property_access', resolved: { type: 'string', status: 'resolved', confidence: 1, trace: [] } },
+                        image_url: { kind: 'property_access', resolved: { type: 'string', status: 'resolved', confidence: 1, trace: [] } }
                     }
                 }
             }

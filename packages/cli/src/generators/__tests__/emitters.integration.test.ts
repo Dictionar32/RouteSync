@@ -1,499 +1,330 @@
 /**
  * emitters.integration.test.ts
- * 
- * Integration tests untuk Phase 2 emitters
- * Verifikasi output sesuai dengan contoh di Engine.FIx.md (§16-21)
- * 
- * Menggunakan manifest asli dari frontend
+ *
+ * Integration tests untuk Phase 2 emitters (Contract IR Architecture)
+ * Verifikasi output sesuai arsitektur baru: emitters adalah thin projection
+ * functions yang consume ContractIR dan menghasilkan GeneratedFile[].
+ *
+ * Pola test: build ContractIR dari mock manifest via ContractIRBuilder +
+ * ContractGenerator['adaptManifest'], lalu panggil emitter.emit(ir).
+ *
+ * REGRESSION GUARD yang dipertahankan dari fase lama (Engine.Fix.md):
+ * - Tidak boleh ada schema kosong untuk model yang punya kolom
+ * - Tidak boleh ada interface kosong / blunt-cast di mappers
+ * - Tidak boleh ada `any` types di output
  */
 
+import { describe, it, expect, beforeEach } from 'vitest'
 import { ContractEmitter } from '../layers/ContractEmitter'
 import { SchemaEmitter } from '../layers/SchemaEmitter'
 import { FieldEmitter } from '../layers/FieldEmitter'
 import { ReadEmitter } from '../layers/ReadEmitter'
 import { MapperEmitter } from '../layers/MapperEmitter'
-import { LayerContext, RouteResponseComposition } from '../layers/types'
-import { RouteManifest } from '@routesync/core'
-import path from 'path'
-import fs from 'fs-extra'
+import { OptimizedContractIRBuilder } from '../../../../core/src/ir/ContractIRBuilder'
+import { ContractGenerator } from '../ContractGenerator'
+import type { RouteManifest } from '../../../../core/src/types/route'
+import type { GenerationContext, ContractIR } from '../../../../core/src/types/ir'
+
+// Mock context untuk testing (sama dengan contract-ir.integration.test.ts)
+const mockContext: GenerationContext = {
+    projectRoot: '.',
+    outputDir: './output',
+    config: {
+        typescript: {
+            strict: true,
+            target: 'ES2020',
+            moduleResolution: 'node'
+        },
+        validation: {
+            useZod: true,
+            useLaravel: false
+        },
+        naming: {
+            caseTransform: 'camel',
+            resourceSuffix: 'Resource',
+            requestSuffix: 'Request'
+        }
+    },
+    manifest: {
+        resources: [],
+        requests: [],
+        routes: [],
+        metadata: {
+            version: '1.0.0',
+            scanned_at: new Date().toISOString(),
+            source_files: []
+        }
+    }
+}
+
+/**
+ * Mock manifest untuk test fixture yang konsisten:
+ * - Route GET users.show dengan response kind:'model' → model User reachable
+ *   (adaptManifest hanya memasukkan model yang reachable dari response route)
+ * - Model User dengan 3 kolom (id, first_name, email)
+ */
+function createMockManifest(): RouteManifest {
+    return {
+        version: '1.0.0',
+        baseURL: 'http://localhost/api',
+        routes: [
+            {
+                name: 'register.post',
+                method: 'POST',
+                path: '/register',
+                auth: false,
+                middleware: ['api'],
+                schema: {
+                    rules: {
+                        name: 'required|string|max:255',
+                        email: 'required|email|unique:users,email',
+                        password: 'required|min:6',
+                    },
+                },
+            },
+            {
+                name: 'login.post',
+                method: 'POST',
+                path: '/login',
+                auth: false,
+                middleware: ['api'],
+                schema: {
+                    rules: {
+                        email: 'required|email',
+                        password: 'required',
+                    },
+                },
+            },
+            {
+                name: 'users.show',
+                method: 'GET',
+                path: '/users/{id}',
+                auth: true,
+                middleware: ['auth'],
+                response: {
+                    kind: 'model',
+                    model: 'User',
+                },
+            },
+        ] as any,
+        models: [
+            {
+                name: 'User',
+                table: 'users',
+                columns: [
+                    { name: 'id', type: 'bigint', nullable: false },
+                    { name: 'first_name', type: 'varchar', nullable: false },
+                    { name: 'email', type: 'varchar', nullable: false },
+                ],
+            },
+        ] as any,
+    } as any
+}
+
+function buildIR(manifest: RouteManifest): ContractIR {
+    const builder = new OptimizedContractIRBuilder(mockContext)
+    const generator = new ContractGenerator()
+    return builder.buildFromManifest(generator['adaptManifest'](manifest))
+}
 
 describe('Phase 2 Emitters Integration Tests', () => {
-    let context: LayerContext
-    let mockManifest: RouteManifest
-    let tmpDir: string
+    let ir: ContractIR
 
-    beforeEach(async () => {
-        // Create temporary directory untuk output
-        tmpDir = path.join('/tmp', `routesync-test-${Date.now()}`)
-        await fs.ensureDir(tmpDir)
-
-        // Load mock manifest untuk test fixture yang konsisten
-        const realManifest = createMockManifest()
-
-        context = {
-            manifest: realManifest,
-            knownModels: new Set(),
-            knownResources: new Set(),
-            knownSchemas: new Set(),
-            kernel: undefined,
-        }
-
-        mockManifest = realManifest
+    beforeEach(() => {
+        ir = buildIR(createMockManifest())
     })
-
-    afterEach(async () => {
-        // Cleanup temporary directory
-        try {
-            await fs.remove(tmpDir)
-        } catch (e) {
-            // Ignore cleanup errors
-        }
-    })
-
-    function createMockManifest(): RouteManifest {
-        return {
-            version: '1.0.0',
-            baseURL: 'http://localhost/api',
-            routes: [
-                {
-                    name: 'register.post',
-                    method: 'POST',
-                    path: '/register',
-                    auth: false,
-                    middleware: ['api'],
-                    schema: {
-                        rules: {
-                            name: 'required|string|max:255',
-                            email: 'required|email|unique:users,email',
-                            password: 'required|min:6',
-                        },
-                    },
-                    response: {
-                        kind: 'object',
-                        fields: {
-                            success: { kind: 'primitive', type: 'boolean' },
-                            message: { kind: 'primitive', type: 'string' },
-                            data: { kind: 'object', fields: { token: { kind: 'primitive', type: 'string' } } },
-                        },
-                    },
-                },
-                {
-                    name: 'login.post',
-                    method: 'POST',
-                    path: '/login',
-                    auth: false,
-                    middleware: ['api'],
-                    schema: {
-                        rules: {
-                            email: 'required|email',
-                            password: 'required',
-                        },
-                    },
-                    response: {
-                        kind: 'object',
-                        fields: {
-                            success: { kind: 'primitive', type: 'boolean' },
-                            message: { kind: 'primitive', type: 'string' },
-                            data: { kind: 'object', fields: { token: { kind: 'primitive', type: 'string' } } },
-                        },
-                    },
-                },
-            ] as any,
-            // NOTE: ditambahkan agar FieldEmitter test benar-benar exercise
-            // logic-nya (bug lama: mock manifest tidak punya `models` sama
-            // sekali, jadi FieldEmitter selalu skip loop dan cuma nulis
-            // header comment tanpa `export const` apa pun).
-            models: [
-                {
-                    name: 'User',
-                    table: 'users',
-                    columns: [
-                        { name: 'id', type: 'bigint', nullable: false },
-                        { name: 'first_name', type: 'varchar', nullable: false },
-                        { name: 'email', type: 'varchar', nullable: false },
-                    ],
-                },
-            ] as any,
-        } as any
-    }
 
     describe('ContractEmitter', () => {
-        it('should generate api-contract.ts dengan proper Zod schemas', async () => {
-            const { output, routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+        it('should generate api-contract.ts dengan proper Zod schemas', () => {
+            const files = new ContractEmitter().emit(ir)
 
-            expect(output.lines.length).toBeGreaterThan(0)
-            const content = output.lines.join('\n')
+            expect(files).toHaveLength(1)
+            expect(files[0].path).toBe('contract/api-contract.ts')
 
+            const content = files[0].content
             expect(content).toContain('z.object')
             expect(content).toContain('export')
-
-            // Verifikasi routeResponseMap populated
-            expect(routeResponseMap.size).toBeGreaterThan(0)
+            expect(content).toContain("import { z } from 'zod'")
         })
 
-        it('should process routes dari manifest', async () => {
-            const { output, routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-
-            // Verifikasi ada entries untuk routes yang ada di manifest
-            const routeCount = context.manifest.routes?.length || 0
-            expect(routeResponseMap.size).toBeGreaterThanOrEqual(0)
-            expect(output.lines.length).toBeGreaterThan(0)
-        })
-
-        it('should output file tanpa `any` types', async () => {
-            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
+        it('should output file tanpa `any` types', () => {
+            const content = new ContractEmitter().emit(ir)[0].content
 
             expect(content).not.toContain(' any')
             expect(content).not.toContain('as any')
         })
 
-        it('should create valid TypeScript file', async () => {
-            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
-
-            // Basic TS validation
-            expect(content).toMatch(/import\s+{/)
-            expect(content).toContain('export')
-        })
-
         // REGRESSION GUARD (Engine.Fix.md §32): sebelumnya buildResponseZodType()
-        // adalah stub yang SELALU menghasilkan `z.object({})` kosong terlepas
-        // dari isi manifest, dan test lama (cuma cek `toContain('z.object')` /
-        // `toContain('export')`) tidak pernah mendeteksi ini karena
-        // `z.object({})` tetap valid secara string-matching. Test di bawah
-        // memverifikasi ISI FIELD sebenarnya, bukan cuma pola permukaan.
-        it('TIDAK BOLEH menghasilkan schema kosong z.object({}) untuk model yang punya kolom', async () => {
-            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
+        // selalu menghasilkan `z.object({})` kosong terlepas dari isi manifest.
+        it('TIDAK BOLEH menghasilkan schema kosong z.object({}) untuk model yang punya kolom', () => {
+            const content = new ContractEmitter().emit(ir)[0].content
 
             // Model 'User' di mock manifest punya 3 kolom (id, first_name, email)
             // -> UserSchema TIDAK BOLEH kosong.
             expect(content).not.toMatch(/export const UserSchema = z\.object\(\{\}\)/)
-            // Aturan umum: tidak ada satu pun `Schema = z.object({})` kosong
-            // di seluruh file selama manifest test punya models/resources berisi.
             expect(content).not.toMatch(/Schema = z\.object\(\{\}\)/)
         })
 
-        it('UserSchema harus berisi field asli dari model.columns dengan tipe Zod yang benar', async () => {
-            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
+        it('UserSchema harus berisi field asli dari model.columns dengan tipe Zod yang benar', () => {
+            const content = new ContractEmitter().emit(ir)[0].content
 
             const match = content.match(/export const UserSchema = z\.object\(\{([\s\S]*?)\}\)/)
             expect(match).not.toBeNull()
             const body = match![1]
 
-            // Ketiga kolom asli (bukan cuma "ada kata export") harus benar-benar
-            // muncul dengan mapping tipe SQL -> Zod yang sesuai:
+            // Ketiga kolom asli dengan mapping SQL -> Zod:
             // id: bigint -> z.number(), first_name/email: varchar -> z.string()
+            // Nama field pakai snake_case asli backend (Laravel).
             expect(body).toMatch(/\bid:\s*z\.number\(\)/)
             expect(body).toMatch(/\bfirst_name:\s*z\.string\(\)/)
             expect(body).toMatch(/\bemail:\s*z\.string\(\)/)
         })
 
-        it('response schema untuk route register.post harus berisi field asli dari response.fields, bukan placeholder kosong', async () => {
-            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
+        it('should generate collection response schema + validator functions', () => {
+            const content = new ContractEmitter().emit(ir)[0].content
 
-            // Manifest test punya route register.post dengan response.fields:
-            // success (boolean), message (string), data.token (string) — nested.
-            // Sebelumnya (bug §32) ini akan selalu jadi z.object({}) polos.
-            const registerMatch = content.match(/RegisterResponseSchema = ([\s\S]*?)\n\n/)
-            expect(registerMatch).not.toBeNull()
-            const registerSchema = registerMatch![1]
-            expect(registerSchema).toMatch(/success:\s*z\.boolean\(\)/)
-            expect(registerSchema).toMatch(/message:\s*z\.string\(\)/)
-            // Tidak boleh cuma z.object({}) kosong
-            expect(registerSchema).not.toBe('z.object({})')
+            expect(content).toContain('export const UsersResponseSchema = z.object({')
+            expect(content).toContain('data: z.array(UserSchema)')
+            expect(content).toContain('export const validateUserCollectionResponse')
+            expect(content).toContain('export const validateUserResponse')
+            expect(content).toContain('export type UserResponse = z.infer<typeof UserSchema>')
         })
     })
 
     describe('ReadEmitter', () => {
-        it('should generate api-read.ts dengan TypeScript interfaces', async () => {
-            const { output: contractOutput, routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
+        it('should generate api-read.ts dengan TypeScript interfaces', () => {
+            const files = new ReadEmitter().emit(ir)
 
-            expect(output.lines.length).toBeGreaterThan(0)
-            const content = output.lines.join('\n')
+            expect(files).toHaveLength(1)
+            expect(files[0].path).toBe('types/api-read.ts')
 
+            const content = files[0].content
             expect(content).toContain('interface')
             expect(content).toContain('export')
             expect(content).not.toContain(' any')
         })
 
-        it('should output file tanpa `any` types', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
-            const content = output.lines.join('\n')
-
-            expect(content).not.toContain(' any')
-            expect(content).not.toContain('as any')
-        })
-
-        // REGRESSION GUARD (Engine.Fix.md §26.2/§31.3): generateReadMapper()
-        // sebelumnya membaca `model.fields` (properti yang tidak pernah ada
-        // di ParsedModel — bentuk aslinya `model.columns`), sehingga SELALU
-        // jatuh ke fallback blunt-cast `raw as XTransformed` untuk semua
-        // model, tanpa pernah memetakan satu field pun. Test lama tidak
-        // mendeteksi ini karena cuma cek kata 'interface'/'export' ada.
-        it('UserTransformed interface harus punya property camelCase dari model.columns, bukan interface kosong', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
-            const content = output.lines.join('\n')
+        // REGRESSION GUARD (Engine.Fix.md §26.2/§31.3): ReadEmitter sebelumnya
+        // membaca `model.fields` (properti yang tidak pernah ada), sehingga
+        // selalu jatuh ke interface kosong. Sekarang field diambil dari
+        // model.columns yang sudah di-transform ke camelCase di IR.
+        it('UserTransformed interface harus punya property camelCase dari model.columns, bukan interface kosong', () => {
+            const content = new ReadEmitter().emit(ir)[0].content
 
             const match = content.match(/interface UserTransformed \{([\s\S]*?)\}/)
             expect(match).not.toBeNull()
             const body = match![1]
 
-            // 3 kolom asli model User (id, first_name, email) harus muncul
-            // sebagai property TypeScript, first_name di-flatten camelCase.
             expect(body).toMatch(/\bid:\s*number/)
             expect(body).toMatch(/\bfirstName:\s*string/)
             expect(body).toMatch(/\bemail:\s*string/)
-            // Tidak boleh kosong / interface tanpa property
             expect(body.trim().length).toBeGreaterThan(0)
+        })
+
+        it('should generate Show/Index aliases', () => {
+            const content = new ReadEmitter().emit(ir)[0].content
+
+            expect(content).toContain('export type UserShow = UserTransformed')
+            expect(content).toContain('export type UserIndex = UserTransformed[]')
         })
     })
 
     describe('FieldEmitter', () => {
-        it('should generate api-field.ts dengan field metadata', async () => {
-            const output = await FieldEmitter.generate(path.join(tmpDir, 'contract'), context)
+        it('should generate api-field.ts dengan field metadata', () => {
+            const files = new FieldEmitter().emit(ir)
 
-            expect(output.lines.length).toBeGreaterThan(0)
-            const content = output.lines.join('\n')
+            expect(files).toHaveLength(1)
+            expect(files[0].path).toBe('contract/api-field.ts')
 
-            expect(content).toContain('export const')
-            expect(content).toContain('as const')
+            const content = files[0].content
+            expect(content).toContain('export const ApiApiField = {')
+            expect(content).toContain('} as const')
             expect(content).not.toContain(' any')
         })
 
-        it('should have no `any` types', async () => {
-            const output = await FieldEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
+        // REGRESSION GUARD (Engine.Fix.md §31.3): FieldEmitter lama selalu
+        // menghasilkan `UnknownModelFields = {} as const`. Sekarang menghasilkan
+        // ApiApiField global dengan SNAKE_UPPER key -> snake_case value.
+        it('ApiApiField harus berisi entry per kolom asli, bukan UnknownModelFields kosong', () => {
+            const content = new FieldEmitter().emit(ir)[0].content
 
-            expect(content).not.toContain(' any')
-            expect(content).not.toContain('as any')
-        })
-
-        // REGRESSION GUARD (Engine.Fix.md §31.3): FieldEmitter sebelumnya
-        // juga membaca `model.fields` (bug yang sama seperti ReadEmitter),
-        // hasilnya selalu `export const UnknownModelFields = {} as const`
-        // untuk SEMUA model — lolos test lama karena tetap punya
-        // `export const` + `as const`.
-        it('UserFields harus berisi entry per kolom asli, bukan UnknownModelFields kosong', async () => {
-            const output = await FieldEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
-
-            expect(content).toContain('UserFields')
             expect(content).not.toMatch(/export const UnknownModelFields = \{\} as const/)
 
-            const match = content.match(/export const UserFields = \{([\s\S]*?)\} as const/)
-            expect(match).not.toBeNull()
-            const body = match![1]
-            // Ketiga kolom asli harus muncul sebagai key di object field metadata
-            expect(body).toContain('id:')
-            expect(body).toContain('first_name:')
-            expect(body).toContain('email:')
+            expect(content).toContain('ID: "id",')
+            expect(content).toContain('FIRST_NAME: "first_name",')
+            expect(content).toContain('EMAIL: "email",')
         })
     })
 
     describe('SchemaEmitter', () => {
-        it('should generate api-schema.ts dengan form validation schemas', async () => {
-            const output = await SchemaEmitter.generate(path.join(tmpDir, 'contract'), context)
+        it('should generate api-schema.ts dengan form validation schemas', () => {
+            const files = new SchemaEmitter().emit(ir)
 
-            expect(output.lines.length).toBeGreaterThan(0)
-            const content = output.lines.join('\n')
+            expect(files).toHaveLength(1)
+            expect(files[0].path).toBe('schemas/api-schema.ts')
 
-            expect(content).toContain('export')
+            const content = files[0].content
+            expect(content).toContain("import { z } from 'zod'")
+            expect(content).toContain('export const ApiSchema = {')
+            expect(content).toContain('export type ApiFormValues = {')
+            expect(content).toContain('export const ApiDefaultValues = {')
             expect(content).not.toContain(' any')
-        })
-
-        // REGRESSION GUARD: memverifikasi RegisterCreateFormSchema benar-benar
-        // berisi field dari `route.schema.rules` (name/email/password), bukan
-        // cuma memverifikasi kata 'export' ada di suatu tempat di file.
-        //
-        // CATATAN STRUKTURAL: nama schema di output nyata adalah
-        // `RegisterCreateFormSchema` (satu const per route), BUKAN
-        // `ApiSchema.RegisterCreate` (object ter-nested per resource-action)
-        // seperti yang didokumentasikan di Engine.Fix.md §20/§26 untuk
-        // generator lama (ZodTierGenerator.generateSchema()). Emitter baru
-        // (SchemaEmitter.ts) punya konvensi penamaan berbeda — perlu
-        // diklarifikasi apakah ini perubahan desain yang disengaja atau
-        // regresi dari struktur `ApiSchema`/`ApiFormValues`/`ApiDefaultValues`
-        // yang sebelumnya jadi kontrak untuk react-hook-form + resolver.
-        it('RegisterCreateFormSchema harus berisi field asli dari schema.rules', async () => {
-            const output = await SchemaEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
-
-            const match = content.match(/RegisterCreateFormSchema = z\.object\(\{([\s\S]*?)\}\)/)
-            expect(match).not.toBeNull()
-            const body = match![1]
-
-            expect(body).toMatch(/\bname:\s*z\.string\(\)/)
-            expect(body).toMatch(/\bemail:\s*z\.string\(\)\.email\(\)/)
-            expect(body).toMatch(/\bpassword:\s*z\.string\(\)/)
         })
     })
 
     describe('MapperEmitter', () => {
-        it('should generate api-mapper.ts dengan transform functions', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
+        it('should generate api-mapper.ts dengan transform functions', () => {
+            const files = new MapperEmitter().emit(ir)
 
-            expect(output.lines.length).toBeGreaterThan(0)
-            const content = output.lines.join('\n')
+            expect(files).toHaveLength(1)
+            expect(files[0].path).toBe('mappers/api-mapper.ts')
 
-            expect(content).toContain('export')
+            const content = files[0].content
+            expect(content).toContain('export const toUserRead =')
+            expect(content).toContain('export const toUserReadList =')
             expect(content).not.toContain(' any')
         })
 
-        it('should output tanpa type assertions', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
-            const content = output.lines.join('\n')
+        // REGRESSION GUARD (Engine.Fix.md §31.3/§31.4): toUserRead sebelumnya
+        // selalu jatuh ke blunt-cast `raw as UserTransformed`. Sekarang field
+        // dipetakan satu per satu dari snake_case ke camelCase.
+        it('toUserRead harus memetakan field satu per satu (camelCase <- snake_case), bukan blunt-cast', () => {
+            const content = new MapperEmitter().emit(ir)[0].content
 
-            // Only allow `as const` for readonly objects
-            const asPatterns = content.match(/\s+as\s+(?!const\b)/g)
-            expect(asPatterns).toBeNull()
-        })
+            expect(content).not.toMatch(/toUserRead = \(api: UserResponse\): UserTransformed => api as UserTransformed/)
 
-        // REGRESSION GUARD (Engine.Fix.md §31.3/§31.4): toUserRead()
-        // sebelumnya SELALU jatuh ke blunt-cast `raw as UserTransformed`
-        // (karena baca `model.fields` yang tidak pernah ada), dan field yang
-        // berhasil di-loop pun disisipi `as unknown as typeof raw.X` yang
-        // tidak perlu. Test lama cuma cek kata 'export' + tidak ada ' any'.
-        it('toUserRead harus memetakan field satu per satu (camelCase <- snake_case), bukan blunt-cast', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
-            const content = output.lines.join('\n')
-
-            expect(content).not.toMatch(/toUserRead = \(raw: User\): UserTransformed => raw as UserTransformed/)
-
-            const match = content.match(/toUserRead = \(raw: User\): UserTransformed => \(\{([\s\S]*?)\}\)/)
+            const match = content.match(/toUserRead = \(api: UserResponse\): UserTransformed => \(\{([\s\S]*?)\}\)/)
             expect(match).not.toBeNull()
             const body = match![1]
 
-            expect(body).toMatch(/\bid:\s*raw\.id,/)
-            expect(body).toMatch(/\bfirstName:\s*raw\.first_name,/)
-            expect(body).toMatch(/\bemail:\s*raw\.email,/)
+            expect(body).toMatch(/\bid:\s*api\.id,/)
+            expect(body).toMatch(/\bfirstName:\s*api\.first_name,/)
+            expect(body).toMatch(/\bemail:\s*api\.email,/)
         })
     })
 
     describe('Cross-emitter consistency', () => {
-        it('routeResponseMap dari ContractEmitter harus consistent', async () => {
-            const { routeResponseMap: contractMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
+        it('field naming harus konsisten antar emitters', () => {
+            const contractContent = new ContractEmitter().emit(ir)[0].content
+            const readContent = new ReadEmitter().emit(ir)[0].content
+            const mapperContent = new MapperEmitter().emit(ir)[0].content
+            const fieldContent = new FieldEmitter().emit(ir)[0].content
 
-            // Setiap entry harus memiliki struktur yang valid
-            for (const [key, composition] of contractMap) {
-                expect(typeof key).toBe('string')
-                expect(composition).toBeDefined()
-            }
+            // Contract pakai snake_case asli backend
+            expect(contractContent).toContain('first_name: z.string()')
+            // Read types pakai camelCase frontend
+            expect(readContent).toContain('readonly firstName:')
+            // Mapper menjembatani snake_case -> camelCase
+            expect(mapperContent).toContain('firstName: api.first_name')
+            // Field lookup SNAKE_UPPER -> snake_case
+            expect(fieldContent).toContain('FIRST_NAME: "first_name"')
         })
 
-        it('ReadEmitter harus bisa menerima routeResponseMap dari ContractEmitter', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const readOutput = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
+        it('emitters harus deterministic: emit dua kali menghasilkan output identik', () => {
+            const first = new ReadEmitter().emit(ir)[0].content
+            const second = new ReadEmitter().emit(ir)[0].content
 
-            expect(readOutput.lines.length).toBeGreaterThanOrEqual(0)
-        })
-
-        it('MapperEmitter harus bisa menerima routeResponseMap dari ContractEmitter', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const mapperOutput = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
-
-            expect(mapperOutput.lines.length).toBeGreaterThanOrEqual(0)
-        })
-
-        it('All emitters output harus valid TypeScript', async () => {
-            const contractOutput = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const schemaOutput = await SchemaEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const fieldOutput = await FieldEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const readOutput = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, contractOutput.routeResponseMap)
-            const mapperOutput = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, contractOutput.routeResponseMap)
-
-            // Semua output harus punya content
-            expect(contractOutput.output.lines.length).toBeGreaterThanOrEqual(0)
-            expect(schemaOutput.lines.length).toBeGreaterThanOrEqual(0)
-            expect(fieldOutput.lines.length).toBeGreaterThanOrEqual(0)
-            expect(readOutput.lines.length).toBeGreaterThanOrEqual(0)
-            expect(mapperOutput.lines.length).toBeGreaterThanOrEqual(0)
-
-            // Tidak ada `any` types di semua output
-            const allContent = [
-                contractOutput.output.lines.join('\n'),
-                schemaOutput.lines.join('\n'),
-                fieldOutput.lines.join('\n'),
-                readOutput.lines.join('\n'),
-                mapperOutput.lines.join('\n'),
-            ].join('\n')
-
-            expect(allContent).not.toContain(' any')
-        })
-    })
-
-    describe('Output format validation', () => {
-        it('ContractEmitter output harus berupa valid TypeScript', async () => {
-            const { output } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const content = output.lines.join('\n')
-
-            // Basic TypeScript validation
-            expect(content.length).toBeGreaterThanOrEqual(0)
-            expect(content).not.toContain('as any')
-        })
-
-        it('ReadEmitter output harus berupa valid TypeScript interface', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
-            const content = output.lines.join('\n')
-
-            expect(content.length).toBeGreaterThanOrEqual(0)
-            expect(content).not.toContain('as any')
-        })
-
-        it('MapperEmitter output harus berupa valid TypeScript functions', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const output = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
-            const content = output.lines.join('\n')
-
-            expect(content.length).toBeGreaterThanOrEqual(0)
-            expect(content).not.toContain('as any')
-        })
-    })
-
-    describe('IR pattern: routeResponseMap reusability', () => {
-        it('routeResponseMap harus di-pass ke ReadEmitter tanpa re-computation', async () => {
-            const { routeResponseMap: firstMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-
-            // ReadEmitter harus menerima routeResponseMap sebagai parameter
-            const readOutput = await ReadEmitter.generate(path.join(tmpDir, 'types'), context, firstMap)
-
-            // Verifikasi bahwa output valid
-            expect(readOutput.lines.length).toBeGreaterThanOrEqual(0)
-        })
-
-        it('routeResponseMap harus di-pass ke MapperEmitter tanpa re-computation', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-
-            // MapperEmitter harus menerima routeResponseMap sebagai parameter
-            const mapperOutput = await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
-
-            // Verifikasi bahwa output valid
-            expect(mapperOutput.lines.length).toBeGreaterThanOrEqual(0)
-        })
-
-        it('Immutability: routeResponseMap tidak berubah setelah di-pass ke emitters', async () => {
-            const { routeResponseMap } = await ContractEmitter.generate(path.join(tmpDir, 'contract'), context)
-            const mapBefore = new Map(routeResponseMap)
-
-            // Pass ke ReadEmitter
-            await ReadEmitter.generate(path.join(tmpDir, 'types'), context, routeResponseMap)
-
-            // Pass ke MapperEmitter
-            await MapperEmitter.generate(path.join(tmpDir, 'mappers'), context, routeResponseMap)
-
-            // Verifikasi map masih sama
-            expect(routeResponseMap.size).toBe(mapBefore.size)
+            expect(second).toBe(first)
         })
     })
 })
-

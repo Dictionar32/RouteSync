@@ -209,7 +209,7 @@ describe('ResponseFieldParser', () => {
         test('should parse array of primitives', () => {
             const fieldData: ResponseFieldData = {
                 kind: 'array',
-                items: {
+                itemType: {
                     kind: 'primitive',
                     type: 'string',
                 },
@@ -226,7 +226,7 @@ describe('ResponseFieldParser', () => {
         test('should parse array of objects', () => {
             const fieldData: ResponseFieldData = {
                 kind: 'array',
-                items: {
+                itemType: {
                     kind: 'object',
                     fields: {
                         id: { kind: 'primitive', type: 'number' },
@@ -245,7 +245,7 @@ describe('ResponseFieldParser', () => {
         test('should parse array of nested objects', () => {
             const fieldData: ResponseFieldData = {
                 kind: 'array',
-                items: {
+                itemType: {
                     kind: 'object',
                     fields: {
                         produk_item_id: { kind: 'primitive', type: 'number' },

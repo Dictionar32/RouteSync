@@ -1,13 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { fieldFromParsedASTNode } from '../../../../core/src/types/__archive__/legacyFieldAdapter'
-import type { ParsedASTNode } from '../../../../core/src/types/semantic'
-// NOTE lokasi import ini lintas-package (core -> cli), yang sebenarnya
-// terbalik dari arah dependency biasa (cli depends on core, bukan
-// sebaliknya). Ini sengaja dibiarkan relative import untuk kebutuhan
-// perbandingan lokal di test arsip ini. Kalau file ini dipindah jadi test
-// permanen, pertimbangkan pindahkan perbandingan ini ke package `cli`
-// (yang memang sudah punya akses ke keduanya), atau mock PhpCodeParser's
-// output langsung tanpa import lintas-package.
+// NOTE: legacyFieldAdapter.ts di __archive__ sudah TIDAK punya export aktif
+// (semua fungsi di-comment out) sehingga file-nya bukan module — status
+// archival diverifikasi lewat pembacaan source di test dokumentasi, bukan
+// lewat import.
 import { PhpCodeParser } from '../PhpCodeParser'
 
 /**
@@ -47,19 +42,25 @@ describe('[ARCHIVE] legacyFieldAdapter vs PhpCodeParser (engine baru)', () => {
       })
     })
 
-    it('adapter lama SELALU mengosongkan args (data loss yang terdokumentasi di komentarnya sendiri)', () => {
-      const oldInput: ParsedASTNode = {
-        kind: 'new_instance',
-        target: { kind: 'model', model: 'PaymentResource' },
-        resource: 'PaymentResource',
-      } as unknown as ParsedASTNode
-
-      const result = fieldFromParsedASTNode(oldInput, code)
-      expect(result).toMatchObject({
-        kind: 'new_instance',
-        className: 'PaymentResource',
-        args: [], // <- selalu kosong, beda dari engine baru
-      })
+    it('adapter lama sudah dihapus dari module archive (fungsi di-comment out)', () => {
+      // fieldFromParsedASTNode() sudah TIDAK di-export lagi dari
+      // legacyFieldAdapter.ts — seluruh implementasi di-comment out di
+      // __archive__ karena branch 'resource'/'model'-nya dead code terhadap
+      // PhpCodeParser yang sekarang berjalan. Test lama memanggil fungsi ini
+      // untuk mendokumentasikan data loss args-nya; sekarang fungsi itu tidak
+      // ada sama sekali, yang justru jadi bukti archival yang lebih kuat.
+      // (Verifikasi via source — file archive bukan module karena tidak punya
+      // export aktif, jadi tidak bisa di-import.)
+      const fs = require('fs')
+      const archiveSource = fs.readFileSync(
+        require('path').resolve(
+          __dirname,
+          '../../../../core/src/types/__archive__/legacyFieldAdapter.ts'
+        ),
+        'utf-8'
+      )
+      expect(archiveSource).toMatch(/\/\/ export function fieldFromParsedASTNode/)
+      expect(archiveSource).not.toMatch(/^export function fieldFromParsedASTNode/)
     })
   })
 
@@ -76,25 +77,6 @@ describe('[ARCHIVE] legacyFieldAdapter vs PhpCodeParser (engine baru)', () => {
       // Klasifikasi "ini Resource atau bukan" sengaja TIDAK terjadi di sini
       // — itu tanggung jawab ResourceGraphResolver, bukan parser.
       expect(result).not.toHaveProperty('resolved')
-    })
-
-    it('adapter lama (diberi input pre-classified gaya lama) langsung short-circuit ke resolved resource', () => {
-      const oldInput: ParsedASTNode = {
-        kind: 'resource',
-        resource: 'PaymentResource',
-        collection: true,
-      } as unknown as ParsedASTNode
-
-      const result = fieldFromParsedASTNode(oldInput, code)
-      expect(result).toMatchObject({
-        kind: 'unknown',
-        resolved: {
-          status: 'resolved',
-          type: 'resource',
-          resource: 'PaymentResource',
-          collection: true,
-        },
-      })
     })
 
     it('KESIMPULAN: dua bentuk ini tidak kompatibel satu sama lain', () => {

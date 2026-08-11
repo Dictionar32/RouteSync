@@ -357,20 +357,25 @@ describe('mergeSpans', () => {
 
 describe('Performance characteristics', () => {
     test('LineMap construction should be O(n) in file size', () => {
+        // Operasi mikro (~0.1ms untuk 100 char) terlalu cepat diukur sekali
+        // jalan — timer noise mendominasi dan ratio jadi flaky (terukur 96x
+        // untuk mesin O(n) murni). Ukur RATA-RATA banyak iterasi dengan total
+        // kerja seimbang (100k char per ukuran) supaya noise rata-rata hilang.
         const sizes = [100, 1000, 10000];
+        const iterations = [1000, 100, 10];
         const times: number[] = [];
 
-        for (const size of sizes) {
-            const source = 'x'.repeat(size / 2) + '\n' + 'y'.repeat(size / 2);
+        for (let i = 0; i < sizes.length; i++) {
+            const source = 'x'.repeat(sizes[i] / 2) + '\n' + 'y'.repeat(sizes[i] / 2);
             const start = performance.now();
-            new LineMap(source);
-            times.push(performance.now() - start);
+            for (let j = 0; j < iterations[i]; j++) {
+                new LineMap(source);
+            }
+            times.push((performance.now() - start) / iterations[i]);
         }
 
-        // Time should scale roughly linearly (within 2x for 10x size increase).
-        // Threshold dijaga longgar (50x bukan 20x) karena test timing ini rawan
-        // flaky di mesin dengan load (cache-cold, GC) — nilai ~30x terukur
-        // normal pada mesin dev meski implementasi tetap O(n).
+        // O(n): 10x ukuran -> ~10x waktu per konstruksi. Threshold 50x
+        // (5x dari linear) masih toleran terhadap load mesin dev.
         expect(times[2] / times[0]).toBeLessThan(50);
     });
 

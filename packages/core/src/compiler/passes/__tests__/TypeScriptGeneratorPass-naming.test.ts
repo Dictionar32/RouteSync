@@ -243,7 +243,35 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         })
 
         it('should NOT generate Show/Index aliases for non-annotated types', async () => {
-            // Arrange: Type without kind annotation
+            // Arrange: Type without kind annotation AND without Resource/Response
+            // suffix (RegisterFields bukan resource-by-naming-convention)
+            const properties = new Map<string, PrimitiveType>([
+                ['success', new PrimitiveType('boolean' as PrimitiveKind)],
+                ['message', new PrimitiveType('string' as PrimitiveKind)],
+            ])
+
+            const annotations = new Map<string, string>([
+                ['name', 'RegisterFields']
+                // No 'kind' annotation!
+            ])
+
+            const responseType = createMockObjectType(properties, annotations)
+            const artifact = createMockSemanticTypesArtifact([responseType])
+
+            // Act
+            const pass = new TypeScriptGeneratorPass()
+            const [result] = pass.run([artifact])
+
+            // Assert
+            expect(result.code).toContain('export interface RegisterFieldsTransformed')
+            expect(result.code).not.toContain('RegisterFieldsShow')
+            expect(result.code).not.toContain('RegisterFieldsIndex')
+        })
+
+        it('should generate Show/Index aliases for types ending in Response (naming convention)', async () => {
+            // Arrange: tanpa kind annotation, tapi nama berakhiran "Response" —
+            // sejak refactor, resource dideteksi via naming convention
+            // (endsWith Resource OR Response), bukan hanya kind annotation.
             const properties = new Map<string, PrimitiveType>([
                 ['success', new PrimitiveType('boolean' as PrimitiveKind)],
                 ['message', new PrimitiveType('string' as PrimitiveKind)],
@@ -263,8 +291,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Assert
             expect(result.code).toContain('export interface RegisterResponseTransformed')
-            expect(result.code).not.toContain('RegisterResponseShow')
-            expect(result.code).not.toContain('RegisterResponseIndex')
+            expect(result.code).toContain('export type RegisterResponseShow = RegisterResponseTransformed')
+            expect(result.code).toContain('export type RegisterResponseIndex = RegisterResponseTransformed[]')
         })
 
         it('should handle multiple resources with correct aliases', async () => {

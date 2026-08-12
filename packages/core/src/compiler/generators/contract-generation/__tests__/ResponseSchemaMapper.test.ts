@@ -6,7 +6,7 @@
 
 import { describe, test, expect } from 'vitest'
 import { ResponseSchemaMapper } from '../ResponseSchemaMapper'
-import type { ResponseTypeInfo } from '../../../../../../types/route'
+import type { ResponseTypeInfo } from '../ResponseSchemaMapper'
 
 describe('ResponseSchemaMapper', () => {
     const mapper = new ResponseSchemaMapper()
@@ -17,8 +17,8 @@ describe('ResponseSchemaMapper', () => {
                 type: 'User',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
-                    { name: 'name', kind: 'primitive', type: 'string' }
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                    { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false }
                 ]
             }
 
@@ -35,8 +35,8 @@ describe('ResponseSchemaMapper', () => {
                 type: 'User',
                 collection: true,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
-                    { name: 'name', kind: 'primitive', type: 'string' }
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                    { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false }
                 ]
             }
 
@@ -54,13 +54,13 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Order',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                     {
                         name: 'shipping',
                         kind: 'object',
                         fields: [
-                            { name: 'address', kind: 'primitive', type: 'string' },
-                            { name: 'phone', kind: 'primitive', type: 'string' }
+                            { name: 'address', kind: 'primitive', type: 'string', nullable: false, optional: false },
+                            { name: 'phone', kind: 'primitive', type: 'string', nullable: false, optional: false }
                         ]
                     }
                 ]
@@ -78,8 +78,8 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Product',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
-                    { name: 'description', kind: 'primitive', type: 'string', nullable: true }
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                    { name: 'description', kind: 'primitive', type: 'string', nullable: true, optional: false }
                 ]
             }
 
@@ -93,7 +93,7 @@ describe('ResponseSchemaMapper', () => {
                 type: 'User',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                     { name: 'bio', kind: 'primitive', type: 'string', optional: true }
                 ]
             }
@@ -108,15 +108,19 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Order',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                     {
                         name: 'items',
                         kind: 'array',
                         itemType: {
+                            name: 'item',
                             kind: 'object',
+                            type: 'object',
+                            nullable: false,
+                            optional: false,
                             fields: [
-                                { name: 'productId', kind: 'primitive', type: 'number' },
-                                { name: 'quantity', kind: 'primitive', type: 'number' }
+                                { name: 'productId', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                                { name: 'quantity', kind: 'primitive', type: 'number', nullable: false, optional: false }
                             ]
                         }
                     }
@@ -134,7 +138,7 @@ describe('ResponseSchemaMapper', () => {
                 type: 'ProductCategory',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' }
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
                 ]
             }
 
@@ -148,7 +152,7 @@ describe('ResponseSchemaMapper', () => {
                 type: 'ShippingAddress',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' }
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
                 ]
             }
 
@@ -165,17 +169,17 @@ describe('ResponseSchemaMapper', () => {
                     type: 'User',
                     collection: true,
                     fields: [
-                        { name: 'id', kind: 'primitive' as const, type: 'number' },
-                        { name: 'name', kind: 'primitive' as const, type: 'string' }
+                        { name: 'id', kind: 'primitive' as const, type: 'number', nullable: false, optional: false },
+                        { name: 'name', kind: 'primitive' as const, type: 'string', nullable: false, optional: false }
                     ]
                 },
                 show: {
                     type: 'User',
                     collection: false,
                     fields: [
-                        { name: 'id', kind: 'primitive' as const, type: 'number' },
-                        { name: 'name', kind: 'primitive' as const, type: 'string' },
-                        { name: 'email', kind: 'primitive' as const, type: 'string' }
+                        { name: 'id', kind: 'primitive' as const, type: 'number', nullable: false, optional: false },
+                        { name: 'name', kind: 'primitive' as const, type: 'string', nullable: false, optional: false },
+                        { name: 'email', kind: 'primitive' as const, type: 'string', nullable: false, optional: false }
                     ]
                 },
                 store: null,
@@ -204,7 +208,7 @@ describe('ResponseSchemaMapper', () => {
                 index: {
                     type: 'Product',
                     collection: true,
-                    fields: [{ name: 'id', kind: 'primitive' as const, type: 'number' }]
+                    fields: [{ name: 'id', kind: 'primitive' as const, type: 'number', nullable: false, optional: false }]
                 },
                 show: null,
                 store: null,
@@ -225,15 +229,15 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Checkout',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                     {
                         name: 'shipping',
                         kind: 'object',
                         nullable: true,
                         fields: [
-                            { name: 'nama', kind: 'primitive', type: 'string', nullable: true },
-                            { name: 'telepon', kind: 'primitive', type: 'string', nullable: true },
-                            { name: 'alamat', kind: 'primitive', type: 'string', nullable: true }
+                            { name: 'nama', kind: 'primitive', type: 'string', nullable: true, optional: false },
+                            { name: 'telepon', kind: 'primitive', type: 'string', nullable: true, optional: false },
+                            { name: 'alamat', kind: 'primitive', type: 'string', nullable: true, optional: false }
                         ]
                     }
                 ]
@@ -251,20 +255,24 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Order',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                     {
                         name: 'items',
                         kind: 'array',
                         itemType: {
+                            name: 'item',
                             kind: 'object',
+                            type: 'object',
+                            nullable: false,
+                            optional: false,
                             fields: [
-                                { name: 'produkItemId', kind: 'primitive', type: 'number' },
-                                { name: 'qty', kind: 'primitive', type: 'number' },
-                                { name: 'harga', kind: 'primitive', type: 'number' }
+                                { name: 'produkItemId', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                                { name: 'qty', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                                { name: 'harga', kind: 'primitive', type: 'number', nullable: false, optional: false }
                             ]
                         }
                     },
-                    { name: 'total', kind: 'primitive', type: 'number' }
+                    { name: 'total', kind: 'primitive', type: 'number', nullable: false, optional: false }
                 ]
             }
 
@@ -280,18 +288,22 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Product',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
-                    { name: 'name', kind: 'primitive', type: 'string' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                    { name: 'name', kind: 'primitive', type: 'string', nullable: false, optional: false },
                     {
                         name: 'variants',
                         kind: 'array',
                         itemType: {
+                            name: 'item',
                             kind: 'object',
+                            type: 'object',
+                            nullable: false,
+                            optional: false,
                             fields: [
-                                { name: 'id', kind: 'primitive', type: 'number' },
-                                { name: 'size', kind: 'primitive', type: 'string' },
-                                { name: 'price', kind: 'primitive', type: 'number' },
-                                { name: 'stock', kind: 'primitive', type: 'number', nullable: true }
+                                { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                                { name: 'size', kind: 'primitive', type: 'string', nullable: false, optional: false },
+                                { name: 'price', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                                { name: 'stock', kind: 'primitive', type: 'number', nullable: true, optional: false }
                             ]
                         }
                     }
@@ -323,7 +335,7 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Complex',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
                     {
                         name: 'level1',
                         kind: 'object',
@@ -331,12 +343,18 @@ describe('ResponseSchemaMapper', () => {
                             {
                                 name: 'level2',
                                 kind: 'object',
+                                type: 'object',
+                                nullable: false,
+                                optional: false,
                                 fields: [
                                     {
                                         name: 'level3',
                                         kind: 'object',
+                                        type: 'object',
+                                        nullable: false,
+                                        optional: false,
                                         fields: [
-                                            { name: 'value', kind: 'primitive', type: 'string' }
+                                            { name: 'value', kind: 'primitive', type: 'string', nullable: false, optional: false }
                                         ]
                                     }
                                 ]
@@ -359,8 +377,8 @@ describe('ResponseSchemaMapper', () => {
                 type: 'Mixed',
                 collection: false,
                 fields: [
-                    { name: 'id', kind: 'primitive', type: 'number' },
-                    { name: 'nullableField', kind: 'primitive', type: 'string', nullable: true },
+                    { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false },
+                    { name: 'nullableField', kind: 'primitive', type: 'string', nullable: true, optional: false },
                     { name: 'optionalField', kind: 'primitive', type: 'string', optional: true },
                     { name: 'bothField', kind: 'primitive', type: 'string', nullable: true, optional: true }
                 ]

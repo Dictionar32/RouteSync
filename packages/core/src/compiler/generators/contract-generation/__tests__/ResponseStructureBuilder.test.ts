@@ -7,7 +7,7 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import { ResponseStructureBuilder } from '../ResponseStructureBuilder'
 import { ResponseFieldParser } from '../ResponseFieldParser'
-import type { ResponseFieldData } from '../../../../../types/route'
+import type { ResponseFieldData } from '../ResponseFieldParser'
 
 describe('ResponseStructureBuilder', () => {
     let builder: ResponseStructureBuilder

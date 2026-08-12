@@ -9,7 +9,7 @@
  * @module compiler/generators/form-generation
  */
 
-import { PrimitiveType, PrimitiveKind } from '../../types/SemanticType';
+import { PrimitiveType, PrimitiveKind, ReadonlyCollectionType, CollectionKind } from '../../types/SemanticType';
 import type { SemanticType } from '../../types/SemanticType';
 
 /**
@@ -95,8 +95,12 @@ export class FormFieldMapper {
                     break;
 
                 case 'array':
-                    // Array type - default to string[] for simplicity
-                    baseType = new PrimitiveType(PrimitiveKind.STRING);
+                    // Array type — elemen default string. Contract parser dapat
+                    // meng-upgrade elemen jadi ObjectType via wildcard (items.*.x).
+                    baseType = new ReadonlyCollectionType(
+                        CollectionKind.ARRAY,
+                        new PrimitiveType(PrimitiveKind.STRING)
+                    );
                     break;
 
                 case 'date':

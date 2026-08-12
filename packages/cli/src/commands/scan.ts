@@ -55,6 +55,12 @@ export const scanCommand = new Command('scan')
             fields: fields,
             relations: m.relations,
             accessors: m.accessors,
+            // casts wajib dibawa: ModelColumnResolver membaca cast via
+            // SymbolTable.cast() — tanpa ini kolom ber-cast (mis. `detail`
+            // => 'array') jatuh ke string, dan property access JSON
+            // ($detail['gateway']) tidak pernah jadi 'json-object' sehingga
+            // seluruh rantai ternary di resource tidak ter-resolve.
+            casts: m.casts,
             layer: 'model',
             confidence: 1.0
           }

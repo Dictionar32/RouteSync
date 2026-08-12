@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-12T01:11:51.006Z",
-  "proposalsGeneratedAt": "2026-08-12T01:08:29.281Z",
-  "source": "task-skill-proposals",
+  "generatedAt": "2026-08-12T01:40:10.589Z",
+  "proposalsGeneratedAt": "2026-08-12T01:40:10.401Z",
+  "source": "session-apply",
   "activeSkills": [
     "self-learning",
     "file-style-conventions",
@@ -17,34 +17,11 @@
     "vitest-extension-testing"
   ],
   "ignoredSkills": [
-    "adx-schema-check",
-    "aidlc-doc-writer",
-    "aidlc-tracker",
-    "azure-infra-preflight",
-    "azure-rbac-diagnostics",
-    "azure-resource-ops",
-    "brand-guidelines",
-    "canvas-design",
     "claude-api",
-    "cursor-kiro-extension-publishing",
-    "deployment-practical",
     "docx",
     "frontend-design",
-    "gitlab-pipeline-ops",
     "infra-cost-guard",
     "internal-comms",
-    "mcp-builder",
-    "mcp-server-creation",
-    "pdf",
-    "pptx",
-    "profile-init",
-    "run-routesync",
-    "terraform-module-ops",
-    "terraform-plan-review",
-    "theme-factory",
-    "vscode-extension-publishing",
-    "web-artifacts-builder",
-    "webapp-testing",
-    "xlsx"
+    "run-routesync"
   ]
 }

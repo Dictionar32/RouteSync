@@ -235,7 +235,7 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
         }
 
         // Convert map to actions array
-        const actions: FormAction[] = []
+        let actions: FormAction[] = []
         for (const [actionName, fields] of actionsMap) {
             actions.push({
                 name: actionName,

@@ -13,18 +13,19 @@
  */
 
 // Types
-import type { ParsedModel, ParsedResource, ParsedRoute } from '../../../../core/src/types/route'
+import type { ParsedModel, ParsedResource, ParsedRoute, ResourceFieldKind } from '../../../../core/src/types/route'
 import type { RouteManifest } from '../../../../core/src/types/route'
 import type { SemanticType } from '../../../../core/src/compiler/types/SemanticType'
 import type { SemanticTypesArtifact } from '../../../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import type { RequestTypesArtifact, RequestType, FormAction, RequestField } from '../../../../core/src/compiler/artifacts/RequestTypesArtifact'
 
 // Implementation
-import { ObjectType, ReadonlyCollectionType, CollectionKind } from '../../../../core/src/compiler/types/SemanticType'
+import { ObjectType, ReadonlyCollectionType, CollectionKind, PrimitiveType, PrimitiveKind, ReferenceType } from '../../../../core/src/compiler/types/SemanticType'
 import { ImmutableMap, ImmutableSet } from '../../../../core/src/compiler/utils/ImmutableCollections'
 import { toCamelCase, toPascalCase } from '../../../../core/src/utils/resource-naming'
 import { FormFieldMapper } from '../../../../core/src/compiler/generators/form-generation/FormFieldMapper'
-import { flattenResourceFields } from './resource-flattening'
+import type { ValidationRule } from '../../../../core/src/compiler/generators/form-generation/FormFieldMapper'
+import { flattenResourceFields, primitiveStringToSemanticType } from './resource-flattening'
 import { PrimitiveTypeFactory } from './PrimitiveTypeFactory'
 
 /**
@@ -192,6 +193,12 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
         routesByResource.get(resourceName)!.push(route)
     }
 
+    // ✅ FIX #2: dedupe global per RESPONSE resource — response resource bisa
+    // berbeda dari resource path (POST /cart/items → OrderResource), sehingga
+    // satu response resource bisa muncul di beberapa group. Tanpa dedupe ini,
+    // ContractCodeBuilder merender export schema yang sama dua kali.
+    const processedResponseResources = new Set<string>()
+
     // Process each resource group
     for (const [resourceName, routes] of routesByResource) {
         const actionsMap = new Map<'create' | 'update', RequestField[]>()
@@ -241,8 +248,15 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
         // ============================================
         let responseData: RequestType['responseData'] | undefined
 
-        // Find first route with response metadata (GET routes typically)
-        const routeWithResponse = routes.find(r => r.response && r.method === 'GET')
+        // ✅ FIX #2: cari response di route method APAPUN (bukan GET-only).
+        // Urutan prioritas: GET dulu (index/show resource path sendiri),
+        // lalu route lain (POST /payment/{orderId} → PaymentResource,
+        // POST /cart/items → OrderResource).
+        const responseRoutes = routes.filter(
+            r => r.response && (r.response.kind === 'resource' || r.response.kind === 'model')
+        )
+        const routeWithResponse =
+            responseRoutes.find(r => r.method === 'GET') ?? responseRoutes[0]
 
         if (routeWithResponse?.response) {
             const response = routeWithResponse.response
@@ -255,76 +269,43 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                     : undefined
 
             if (responseResourceName) {
-                // Find resource definition in manifest
-                const resource = manifest.resources?.find(r => r.name === responseResourceName)
-
-                if (resource) {
-                    console.log(`[CompilerBridge] Extracting response data for ${resourceName} from ${responseResourceName}`)
-
-                    // Flatten resource fields (reuse existing utility)
-                    const flattenedFields = flattenResourceFields(
-                        resource.name,
-                        resource.fields || {},
-                        { maxDepth: 5, circularRefWarnings: true }
-                    )
-
-                    // Convert Map to Record
-                    const fieldsRecord: Record<string, SemanticType> = {}
-                    for (const [fieldName, fieldType] of flattenedFields) {
-                        fieldsRecord[fieldName] = fieldType
-                    }
-
-                    // ✅ FIX (analisa: items: z.unknown()): resolve field yang
-                    // resolver-nya sudah tahu merujuk Resource lain
-                    // (resolved.type === 'resource') ke definisi resource di
-                    // manifest — bukan dibiarkan jadi ReferenceType → z.unknown().
-                    // Hasil: ObjectType (flatten fields resource target) atau
-                    // ReadonlyCollectionType untuk koleksi → mapper menghasilkan
-                    // z.object({...}) / z.array(z.object({...})).
-                    for (const [fieldName, fieldDef] of Object.entries(resource.fields || {})) {
-                        const resolved = (fieldDef as {
-                            resolved?: { type?: string; resource?: string; collection?: boolean }
-                        }).resolved
-                        if (resolved?.type !== 'resource' || !resolved.resource) continue
-
-                        const targetResource = manifest.resources?.find(r => r.name === resolved.resource)
-                        if (!targetResource) continue
-
-                        const nestedFlattened = flattenResourceFields(
-                            targetResource.name,
-                            targetResource.fields || {},
-                            { maxDepth: 5, circularRefWarnings: true }
-                        )
-                        const props = new Map<string, SemanticType>()
-                        for (const [nestedName, nestedType] of nestedFlattened) {
-                            props.set(nestedName, nestedType)
-                        }
-                        const nestedObject = new ObjectType(
-                            new ImmutableMap(props),
-                            new ImmutableSet(new Set(props.keys())),
-                            undefined, // no base
-                            [], // no interfaces
-                            new ImmutableMap(new Map<string, string>([
-                                ['name', targetResource.name],
-                                ['kind', 'resource']
-                            ]))
-                        )
-
-                        fieldsRecord[fieldName] = resolved.collection
-                            ? new ReadonlyCollectionType(CollectionKind.ARRAY, nestedObject)
-                            : nestedObject
-
-                        console.log(`[CompilerBridge] Resolved ${fieldName} → ${resolved.resource}${resolved.collection ? '[]' : ''} (${props.size} fields)`)
-                    }
-
-                    responseData = {
-                        resourceName: resource.name,
-                        fields: fieldsRecord
-                    }
-
-                    console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} response fields`)
+                // ✅ Dedupe global: response resource yang sama sudah
+                // diproses di group lain — skip (hindari export duplikat)
+                if (processedResponseResources.has(responseResourceName)) {
+                    console.log(`[CompilerBridge] Response ${responseResourceName} already extracted (skip duplicate for ${resourceName})`)
                 } else {
-                    console.warn(`[CompilerBridge] Resource ${responseResourceName} not found in manifest`)
+                    // Find resource definition in manifest
+                    const resource = manifest.resources?.find(r => r.name === responseResourceName)
+
+                    if (resource) {
+                        console.log(`[CompilerBridge] Extracting response data for ${resourceName} from ${responseResourceName} (${routeWithResponse.method})`)
+
+                        // ✅ Konversi resource fields ke SemanticType dengan bentuk
+                        // ASLI (nested + snake_case) — TANPA flattening, TANPA
+                        // camelCase. Sesuai desain manifestToContractInput:
+                        // "Preserves ORIGINAL backend structure".
+                        // - Nama field dipakai apa adanya (originalName)
+                        // - Object bersarang tetap ObjectType (bukan di-flatten)
+                        // - Reference resource (items → OrderDetailResource)
+                        //   di-resolve ke ObjectType definisi resource di manifest
+                        //   (collection → ReadonlyCollectionType)
+                        const fieldsRecord = resourceFieldsToNestedTypes(
+                            resource,
+                            manifest.resources || [],
+                            new Set()
+                        )
+
+                        responseData = {
+                            resourceName: resource.name,
+                            fields: fieldsRecord
+                        }
+
+                        processedResponseResources.add(responseResourceName)
+
+                        console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} response fields`)
+                    } else {
+                        console.warn(`[CompilerBridge] Resource ${responseResourceName} not found in manifest`)
+                    }
                 }
             }
         }
@@ -478,33 +459,38 @@ function sanitizeResourceName(resourceName: string): string {
  * @returns Array of RequestField with ORIGINAL naming
  */
 function parseValidationRulesPreserveNested(
-    rules: Record<string, string>,
+    rules: Record<string, string | string[]>,
     fieldMapper: FormFieldMapper
 ): RequestField[] {
-    const fields: RequestField[] = []
+    let fields: RequestField[] = []
+
+    // Wildcard children: parent → childName → parsed rules
+    // (mis. checkout items.*.produk_item_id → elemen dari items)
+    const wildcardChildren = new Map<string, Map<string, ValidationRule[]>>()
 
     for (const [fieldName, ruleString] of Object.entries(rules)) {
-        // Skip if ruleString is not a string
-        if (typeof ruleString !== 'string') {
-            console.warn(`[CompilerBridge] Skipping field ${fieldName}: rules is not a string`)
+        // ✅ FIX #5: dukung rule format array JSON
+        // (['sometimes','required','email',{}]) bukan hanya string pipe
+        if (typeof ruleString !== 'string' && !Array.isArray(ruleString)) {
+            console.warn(`[CompilerBridge] Skipping field ${fieldName}: rules is not a string or array`)
             continue
         }
 
-        // Skip nested array fields (items.*.fieldName)
-        // These need special handling which we'll implement later
-        if (fieldName.includes('.*.') || fieldName.includes('.*')) {
-            console.warn(`[CompilerBridge] Skipping nested array field: ${fieldName}`)
-            continue
-        }
+        const parsedRules = normalizeValidationRules(ruleString)
 
-        // Parse rule string (format: "required|string|max:255")
-        const parsedRules = ruleString.split('|').map(r => {
-            const [rule, ...params] = r.split(':')
-            return {
-                rule,
-                parameters: params.length > 0 ? params[0].split(',') : []
+        // ✅ FIX #4: wildcard (items.*.produk_item_id) TIDAK di-skip —
+        // dikumpulkan sebagai elemen dari array parent-nya
+        const wildcardMatch = fieldName.match(/^([^.]+)\.\*\.(.+)$/)
+        if (wildcardMatch) {
+            const parent = wildcardMatch[1]
+            const child = wildcardMatch[2]
+
+            if (!wildcardChildren.has(parent)) {
+                wildcardChildren.set(parent, new Map())
             }
-        })
+            wildcardChildren.get(parent)!.set(child, parsedRules)
+            continue
+        }
 
         // Map to TypeScript type
         const mapped = fieldMapper.mapValidationToType(parsedRules)
@@ -521,7 +507,75 @@ function parseValidationRulesPreserveNested(
         })
     }
 
+    // Terapkan wildcard: upgrade field array parent → array of object
+    for (const [parent, children] of wildcardChildren) {
+        const props = new Map<string, SemanticType>()
+
+        for (const [childName, childRules] of children) {
+            const mapped = fieldMapper.mapValidationToType(childRules)
+            props.set(childName, mapped.type)
+        }
+
+        const elementObject = new ObjectType(
+            new ImmutableMap(props),
+            new ImmutableSet(new Set(props.keys())),
+            undefined, // no base
+            [], // no interfaces
+            new ImmutableMap(new Map<string, string>([
+                ['name', parent],
+                ['kind', 'array_element']
+            ]))
+        )
+
+        const arrayType = new ReadonlyCollectionType(CollectionKind.ARRAY, elementObject)
+        const parentField = fields.find(f => f.originalName === parent)
+
+        if (parentField) {
+            // Upgrade: items: z.array(z.string()) → z.array(z.object({...}))
+            fields = fields.map(f =>
+                f.originalName === parent ? { ...f, type: arrayType } : f
+            )
+        } else {
+            // Wildcard tanpa field parent di rules — buat field baru
+            fields.push({
+                originalName: parent,
+                transformedName: parent,
+                type: arrayType,
+                required: false,
+                nullable: false
+            })
+        }
+
+        console.log(`[CompilerBridge] Resolved array wildcard ${parent}.* → z.array(z.object({ ${Array.from(props.keys()).join(', ')} }))`)
+    }
+
     return fields
+}
+
+/**
+ * Normalisasi rule string jadi ValidationRule[]
+ *
+ * Mendukung dua format Laravel:
+ * - String pipe: "required|string|max:255"
+ * - Array JSON: ['sometimes', 'required', 'email', {}] — item non-string
+ *   (opsi parameter) diabaikan, aturan diekstrak dari string saja
+ */
+function normalizeValidationRules(ruleString: string | string[]): ValidationRule[] {
+    if (typeof ruleString === 'string') {
+        // Format: "required|string|max:255"
+        return ruleString.split('|').map(r => {
+            const [rule, ...params] = r.split(':')
+            return {
+                rule,
+                parameters: params.length > 0 ? params[0].split(',') : []
+            }
+        })
+    }
+
+    // Format array: ['sometimes', 'required', 'email', {}]
+    return ruleString
+        .filter((item): item is string => typeof item === 'string')
+        .map(rule => ({ rule, parameters: [] }))
 }
 
 /**
@@ -569,6 +623,174 @@ function parseValidationRules(
     }
 
     return fields
+}
+
+/**
+ * Convert resource fields to nested SemanticTypes preserving ORIGINAL
+ * backend structure (nested objects + snake_case field names).
+ *
+ * Ini satu-satunya konversi bentuk untuk response schema jalur contract:
+ * - Nama field dipakai APA ADANYA (snake_case asli, TANPA camelCase)
+ * - Object bersarang tetap ObjectType (TANPA flattening ke leaf field)
+ * - Reference resource (resolved.type === 'resource', mis. items →
+ *   OrderDetailResource::collection()) di-resolve ke ObjectType definisi
+ *   resource di manifest — collection → ReadonlyCollectionType
+ *
+ * @param resource - Resource dari manifest
+ * @param allResources - Semua resource (untuk resolve referensi)
+ * @param seen - Nama resource yang sedang diproses (deteksi circular)
+ * @returns Record nama field → SemanticType (nama asli, bukan camelCase)
+ */
+function resourceFieldsToNestedTypes(
+    resource: ParsedResource,
+    allResources: ParsedResource[],
+    seen: Set<string>
+): Record<string, SemanticType> {
+    const record: Record<string, SemanticType> = {}
+
+    for (const [fieldName, fieldDef] of Object.entries(resource.fields || {})) {
+        const fieldType = mapResourceFieldToNestedType(fieldName, fieldDef, allResources, seen)
+        if (fieldType) {
+            record[fieldName] = fieldType
+        }
+    }
+
+    return record
+}
+
+/**
+ * Map satu field resource ke SemanticType (bentuk asli, nested).
+ *
+ * Resolved check dilakukan SEBELUM switch karena member union tidak
+ * mendeklarasikan 'static_method_call' (items di manifest) dan resolved
+ * runtime punya lebih banyak metadata (resource/collection) daripada tipe
+ * deklarasi ({ type: string }).
+ */
+function mapResourceFieldToNestedType(
+    fieldName: string,
+    field: ResourceFieldKind,
+    allResources: ParsedResource[],
+    seen: Set<string>
+): SemanticType | undefined {
+    const resolved = (field as {
+        resolved?: { type?: string; resource?: string; collection?: boolean }
+    }).resolved
+
+    // Reference ke resource lain — resolve ke ObjectType definisi resource
+    // di manifest (bukan ReferenceType → z.unknown())
+    if (resolved?.type === 'resource' && resolved.resource) {
+        const nested = buildNestedResourceType(
+            resolved.resource,
+            resolved.collection ?? false,
+            allResources,
+            seen
+        )
+        if (nested) {
+            console.log(`[CompilerBridge] Resolved ${fieldName} → ${resolved.resource}${resolved.collection ? '[]' : ''}`)
+            return nested
+        }
+    }
+
+    switch (field.kind) {
+        case 'primitive':
+            return PrimitiveTypeFactory.fromString(field.type)
+
+        case 'object': {
+            // Nested object — pertahankan sebagai ObjectType (TANPA flattening)
+            const nestedTypes = resourceFieldsToNestedTypes(
+                { name: fieldName, fields: field.fields || {} } as ParsedResource,
+                allResources,
+                seen
+            )
+            const props = new Map(Object.entries(nestedTypes))
+            return new ObjectType(
+                new ImmutableMap(props),
+                new ImmutableSet(new Set(props.keys())),
+                undefined, // no base
+                [], // no interfaces
+                new ImmutableMap(new Map<string, string>([
+                    ['name', fieldName],
+                    ['kind', 'object']
+                ]))
+            )
+        }
+
+        case 'resource':
+            // Field kind='resource' langsung (tanpa resolved) — sama: resolve
+            if (field.resource) {
+                const nested = buildNestedResourceType(
+                    field.resource,
+                    field.collection ?? false,
+                    allResources,
+                    seen
+                )
+                if (nested) return nested
+            }
+            return new ReferenceType('App\\Models', field.resource ?? 'unknown')
+
+        case 'property_access':
+        case 'nullsafe_property_access':
+        case 'variable':
+        case 'type_cast':
+        case 'binary_expression':
+        case 'method_call':
+        case 'literal':
+            // Infer type dari resolved metadata (sama dengan flatten)
+            return resolved?.type
+                ? primitiveStringToSemanticType(resolved.type)
+                : new PrimitiveType(PrimitiveKind.STRING)
+
+        default:
+            // model / unknown / (static_method_call tanpa resolved) —
+            // opaque, mapper akan fallback ke z.unknown()
+            return new ReferenceType(
+                'App\\Models',
+                field.kind === 'model' ? field.model ?? 'unknown' : 'unknown'
+            )
+    }
+}
+
+/**
+ * Build ObjectType dari definisi resource di manifest (nested, nama asli).
+ * collection → ReadonlyCollectionType(ARRAY, ObjectType)
+ *
+ * Guard circular reference: resource yang sedang diproses (di `seen`)
+ * tidak di-resolve ulang.
+ */
+function buildNestedResourceType(
+    resourceName: string,
+    collection: boolean,
+    allResources: ParsedResource[],
+    seen: Set<string>
+): SemanticType | undefined {
+    if (seen.has(resourceName)) {
+        console.warn(`[CompilerBridge] Circular resource reference detected: ${resourceName}. Skipping.`)
+        return undefined
+    }
+
+    const target = allResources.find(r => r.name === resourceName)
+    if (!target) return undefined
+
+    const nextSeen = new Set(seen)
+    nextSeen.add(resourceName)
+
+    const nestedTypes = resourceFieldsToNestedTypes(target, allResources, nextSeen)
+    const props = new Map(Object.entries(nestedTypes))
+
+    const nestedObject = new ObjectType(
+        new ImmutableMap(props),
+        new ImmutableSet(new Set(props.keys())),
+        undefined, // no base
+        [], // no interfaces
+        new ImmutableMap(new Map<string, string>([
+            ['name', target.name],
+            ['kind', 'resource']
+        ]))
+    )
+
+    return collection
+        ? new ReadonlyCollectionType(CollectionKind.ARRAY, nestedObject)
+        : nestedObject
 }
 
 /**

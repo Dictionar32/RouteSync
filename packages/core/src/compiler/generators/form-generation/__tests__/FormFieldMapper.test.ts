@@ -7,7 +7,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { FormFieldMapper, type ValidationRule } from '../FormFieldMapper';
-import { PrimitiveType, PrimitiveKind } from '../../../types/SemanticType';
+import { PrimitiveType, PrimitiveKind, ReadonlyCollectionType, CollectionKind } from '../../../types/SemanticType';
 
 describe('FormFieldMapper', () => {
     const mapper = new FormFieldMapper();
@@ -65,12 +65,15 @@ describe('FormFieldMapper', () => {
             expect((result.type as PrimitiveType).type).toBe(PrimitiveKind.DATETIME);
         });
 
-        test('should map array rule to STRING type (default array element)', () => {
+        test('should map array rule to ReadonlyCollectionType of STRING (default array element)', () => {
             const rules: ValidationRule[] = [{ rule: 'array' }];
             const result = mapper.mapValidationToType(rules);
 
-            expect(result.type).toBeInstanceOf(PrimitiveType);
-            expect((result.type as PrimitiveType).type).toBe(PrimitiveKind.STRING);
+            expect(result.type).toBeInstanceOf(ReadonlyCollectionType);
+            const collection = result.type as ReadonlyCollectionType;
+            expect(collection.collectionKind).toBe(CollectionKind.ARRAY);
+            expect(collection.elementType).toBeInstanceOf(PrimitiveType);
+            expect((collection.elementType as PrimitiveType).type).toBe(PrimitiveKind.STRING);
         });
 
         test('should map json rule to STRING type', () => {

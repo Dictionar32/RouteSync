@@ -36,7 +36,7 @@ export interface ResponseTypeInfo {
         kind: 'primitive' | 'object' | 'array'
         type?: string
         fields?: Array<ParsedResponseField>
-        itemType?: string
+        itemType?: ParsedResponseField
         nullable?: boolean
         optional?: boolean
     }>

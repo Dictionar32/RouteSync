@@ -387,4 +387,40 @@ describe('ContractCodeBuilder', () => {
             expect(result.code).toContain('User2Response:');
         });
     });
+
+    describe('Bug (analisa): validator names PascalCase', () => {
+        test('should PascalCase lowercase resource names in request validators', () => {
+            const requestContracts: GeneratedContract[] = [
+                {
+                    resourceName: 'cart',
+                    actions: [
+                        {
+                            name: 'create',
+                            schemaLines: [
+                                '  create: z.object({',
+                                '    items: z.array(z.object({ id: z.number() }))',
+                                '  })'
+                            ],
+                            typeLines: [
+                                '  create: {',
+                                '    items: { id: number }[]',
+                                '  }'
+                            ],
+                            fieldCount: 1
+                        }
+                    ]
+                }
+            ];
+
+            const builder = new ContractCodeBuilder();
+            const result = builder.buildContractFile(requestContracts);
+
+            // validateCartCreate (PascalCase), NOT validatecartCreate
+            expect(result.code).toContain('export const validateCartCreate =');
+            expect(result.code).not.toContain('validatecartCreate');
+
+            // Schema reference stays lowercase (cartContractSchema — existing design)
+            expect(result.code).toContain('cartContractSchema.create.parse(data)');
+        });
+    });
 });

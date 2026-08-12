@@ -94,18 +94,27 @@ pembuatan kontraknya lewat `layers/ContractEmitter` yang consume
 
 ---
 
-## Dua Mesin yang Menghasilkan `contract/api-contract.ts`
+## Tiga Mesin `api-contract` — dua di jalur A, satu di jalur B
 
-Ini sumber utama kebingungan — **dua implementasi berbeda** menulis ke file
-dengan nama yang sama di folder berbeda:
+Ini sumber utama kebingungan — **tiga implementasi berbeda** menghasilkan
+file bernama `api-contract.ts` di tiga lokasi berbeda:
 
-| | Jalur A | Jalur B |
-|---|---|---|
-| Generator | `ContractCodeBuilder` (via `ContractGeneratorPass`) | `ContractEmitter` (via `ContractGenerator`) |
-| Lokasi kode | `packages/core/src/compiler/generators/contract-generation/` | `packages/cli/src/generators/layers/ContractEmitter.ts` |
-| Input | `RequestTypesArtifact` (dari `manifestToContractInput`) | `ContractIR` (dari `OptimizedContractIRBuilder`) |
-| Output | `frontend/src/api/contract/api-contract.ts` | `frontend/src/api-compiler/contract/api-contract.ts` |
-| Nama payload | `RegisterCreatePayloadSchema` (suffix Schema) | `RegisterCreatePayload` (tanpa Schema) |
+| | Jalur A — `ContractCodeBuilder` | Jalur A — `ZodTierGenerator` | Jalur B — `ContractEmitter` |
+|---|---|---|---|
+| Lokasi kode | `packages/core/src/compiler/generators/contract-generation/` | `packages/cli/src/generators/ZodTierGenerator.ts` | `packages/cli/src/generators/layers/ContractEmitter.ts` |
+| Dipanggil oleh | `ContractGeneratorPass` ← `CompilerBridge.generateContractTypes()` | CLI `generate` (langsung, jika `--zod`) | `ContractGenerator` (generate-v2) |
+| **Output file** | `frontend/src/api/**contracts**/api-contract.ts` (plural) | `frontend/src/api/**contract**/api-contract.ts` (singular) | `frontend/src/api-compiler/**contract**/api-contract.ts` |
+| Model schemas | ❌ tidak ada (resource + request contracts saja) | ✅ ada (20 model dari `manifest.models`) | ❌ tidak ada (resources dari IR) |
+| Format nama | `orderResourceShowSchema`, `registerContractSchema`, `ContractSchemas` registry | `OrderSchema` + `RegisterCreatePayloadSchema` + `validateX` | `OrderResourceSchema` + `RegisterCreatePayload` + `validateX` |
+| Case | camelCase | snake_case (backend asli) | snake_case (backend asli) |
+
+> ⚠️ **Tidak saling menimpa** — `contracts/` (plural) vs `contract/` (singular)
+> adalah folder berbeda. Tapi namanya mirip, jadi mudah tertukar saat
+> membaca output.
+
+> ⚠️ Urutan eksekusi di `generate.ts`: `ContractCodeBuilder` (via
+> CompilerBridge) jalan lebih dulu menulis `contracts/`, lalu `ZodTierGenerator`
+> menulis `contract/`. Keduanya hidup berdampingan di folder output yang sama.
 
 ---
 
@@ -143,10 +152,16 @@ packages/
 1. **Dua jalur bisa dipakai paralel** — output ke folder berbeda; kalau ke
    folder sama, file dengan nama sama akan saling menimpa (format beda).
 2. **Perbaikan harus tahu jalurnya**: fix `contract-generation/` (mis.
-   ResponseActionBuilder) hanya memengaruhi jalur A; fix `layers/ContractEmitter`
-   hanya memengaruhi jalur B.
+   ResponseActionBuilder) hanya memengaruhi `contracts/api-contract.ts` di
+   jalur A; fix `layers/ContractEmitter` hanya memengaruhi jalur B; fix
+   `ZodTierGenerator` hanya memengaruhi `contract/api-contract.ts` jalur A.
 3. **Gap jalur B saat ini:** belum ada hooks/actions (HookGenerator/NextActionGenerator
    hanya di jalur A). Gap jalur A: ZodTierGenerator vs SchemaEmitter duplikasi
    form schemas.
-4. **Dokumen terkait:** `ANALISA_RESPONSE_ACTION_BUILDER_TESTS.md` (analisa error
+4. **Quirk yang perlu ditelusuri:** di `contracts/api-contract.ts`, nested
+   resource di-resolve `z.unknown()` (`items`, `gateway`, ...) dan
+   `RegisterResponseSchema` muncul dua kali di `contract/api-contract.ts`
+   (self-reference) — kandidat bug yang terdokumentasi di
+   `API_CONTRACT_KNOWN_LIMITATIONS.md`.
+5. **Dokumen terkait:** `ANALISA_RESPONSE_ACTION_BUILDER_TESTS.md` (analisa error
    TS di `contract-generation/`), `ENGINE.Fix.md`, `API_CONTRACT_GENERATION_COMPLETE.md`.

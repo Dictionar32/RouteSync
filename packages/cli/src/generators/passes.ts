@@ -49,6 +49,13 @@ export class ModelGraphBuilderPass implements CompilerPass<RouteManifest, { mani
         if (m.accessors) {
           semanticModelNode.accessors = m.accessors
         }
+        // casts wajib dibawa — lihat komentar di commands/scan.ts; tanpa ini
+        // kolom ber-cast (mis. `detail` => 'array') tidak pernah jadi
+        // 'json-object' dan rantai ternary is_array($x) ? ($x['k'] ?? null)
+        // : null tidak ter-resolve (SymbolTable.cast() selalu undefined).
+        if (m.casts) {
+          semanticModelNode.casts = m.casts
+        }
         graphBuilder.getGraph().models[m.name] = modelNode
       })
     }

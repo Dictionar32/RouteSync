@@ -247,6 +247,9 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
         // ✅ STEP 6: Extract response data from manifest
         // ============================================
         let responseData: RequestType['responseData'] | undefined
+        // Fields response resource group ini (juga saat responseData di-skip
+        // dedupe) — dipakai untuk inferensi tipe request field.
+        let inferenceFields: Record<string, SemanticType> | undefined
 
         // ✅ FIX #2: cari response di route method APAPUN (bukan GET-only).
         // Urutan prioritas: GET dulu (index/show resource path sendiri),
@@ -270,9 +273,20 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
 
             if (responseResourceName) {
                 // ✅ Dedupe global: response resource yang sama sudah
-                // diproses di group lain — skip (hindari export duplikat)
+                // diproses di group lain — skip SET responseData (hindari
+                // export duplikat di ContractCodeBuilder), tapi tetap bangun
+                // fields untuk inferensi tipe request group ini.
                 if (processedResponseResources.has(responseResourceName)) {
                     console.log(`[CompilerBridge] Response ${responseResourceName} already extracted (skip duplicate for ${resourceName})`)
+
+                    const resource = manifest.resources?.find(r => r.name === responseResourceName)
+                    if (resource) {
+                        inferenceFields = resourceFieldsToNestedTypes(
+                            resource,
+                            manifest.resources || [],
+                            new Set()
+                        )
+                    }
                 } else {
                     // Find resource definition in manifest
                     const resource = manifest.resources?.find(r => r.name === responseResourceName)
@@ -300,6 +314,7 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                             fields: fieldsRecord
                         }
 
+                        inferenceFields = fieldsRecord
                         processedResponseResources.add(responseResourceName)
 
                         console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} response fields`)
@@ -308,6 +323,21 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                     }
                 }
             }
+        }
+
+        // ✅ Inferensi tipe request dari response (field senama):
+        // request field yang tidak punya rule tipe (masih string default)
+        // di-upgrade ke z.number() kalau ada field dengan nama yang sama
+        // bertipe number di response resource-nya. Contoh: cart.create.
+        // produk_item_id (rule exists tanpa tipe) ↔ OrderResource.items.
+        // produk_item_id: z.number(). Field dengan rule tipe eksplisit
+        // (string/numeric/array) TIDAK disentuh.
+        // Pakai inferenceFields (ada walau responseData di-skip dedupe).
+        if (inferenceFields) {
+            actions = actions.map(action => ({
+                ...action,
+                fields: action.fields.map(f => inferRequestFieldType(f, inferenceFields!))
+            }))
         }
 
         // ✅ FIX: Include resource if EITHER actions OR responseData exist
@@ -579,6 +609,104 @@ function normalizeValidationRules(ruleString: string | string[]): ValidationRule
 }
 
 /**
+ * Apakah type masih string DEFAULT (tidak ada rule tipe eksplisit)?
+ * Digunakan untuk inferensi tipe dari response field senama.
+ */
+function isDefaultStringType(type: SemanticType): boolean {
+    return type instanceof PrimitiveType && type.type === PrimitiveKind.STRING
+}
+
+/**
+ * Upgrade tipe request field dari response field senama yang bertipe number:
+ * - primitif string-default → number (kalau ada cocokan)
+ * - array-of-object (wildcard items.*) → elemen object string-default yang
+ *   cocok juga di-upgrade (rebuild ObjectType — properties immutable)
+ */
+function inferRequestFieldType(
+    field: RequestField,
+    responseFields: Record<string, SemanticType>
+): RequestField {
+    if (isDefaultStringType(field.type)) {
+        const inferred = findNumberTypeInResponse(responseFields, field.originalName)
+        return inferred ? { ...field, type: inferred } : field
+    }
+
+    if (
+        field.type instanceof ReadonlyCollectionType
+        && field.type.elementType instanceof ObjectType
+    ) {
+        const element = field.type.elementType
+        const newProps = new Map<string, SemanticType>()
+        for (const [propName, propType] of element.properties.entries()) {
+            if (isDefaultStringType(propType)) {
+                const inferred = findNumberTypeInResponse(responseFields, propName)
+                newProps.set(propName, inferred ?? propType)
+            } else {
+                newProps.set(propName, propType)
+            }
+        }
+
+        // Perlu upgrade? (cek apakah ada yang berubah)
+        const changed = element.properties.entries().some(
+            ([propName, propType]) => newProps.get(propName) !== propType
+        )
+        if (!changed) return field
+
+        const newElement = new ObjectType(
+            new ImmutableMap(newProps),
+            new ImmutableSet(new Set(newProps.keys())),
+            element.baseObject,
+            element.interfaces,
+            element.annotations
+        )
+        return {
+            ...field,
+            type: new ReadonlyCollectionType(CollectionKind.ARRAY, newElement)
+        }
+    }
+
+    return field
+}
+
+/**
+ * Cari field bertipe number di response fields (rekursif, termasuk nested
+ * object dan array-of-object seperti items) dengan nama yang sama persis.
+ * Return undefined kalau tidak ketemu atau tipenya bukan number.
+ */
+function findNumberTypeInResponse(
+    fields: Record<string, SemanticType>,
+    name: string
+): SemanticType | undefined {
+    for (const [fieldName, fieldType] of Object.entries(fields)) {
+        if (fieldName === name) {
+            return fieldType instanceof PrimitiveType && fieldType.type === PrimitiveKind.NUMBER
+                ? fieldType
+                : undefined
+        }
+
+        if (fieldType instanceof ObjectType) {
+            const nested = findNumberTypeInResponse(
+                Object.fromEntries(fieldType.properties.entries()),
+                name
+            )
+            if (nested) return nested
+        }
+
+        if (
+            fieldType instanceof ReadonlyCollectionType
+            && fieldType.elementType instanceof ObjectType
+        ) {
+            const nested = findNumberTypeInResponse(
+                Object.fromEntries(fieldType.elementType.properties.entries()),
+                name
+            )
+            if (nested) return nested
+        }
+    }
+    return undefined
+}
+
+/**
  * Parse validation rules to RequestField array
  */
 function parseValidationRules(
@@ -659,6 +787,31 @@ function resourceFieldsToNestedTypes(
 }
 
 /**
+ * Bungkus SemanticType dengan penanda nullable untuk response contract.
+ *
+ * SemanticType (PrimitiveType/ObjectType/...) tidak membawa flag nullable —
+ * `nullable` hanya ada di ParsedField/ParsedResponseField (di-set false oleh
+ * ContractGeneratorPass.convertSingleField). Pola defensive-null ternary
+ * (`is_array($x) ? ($x['k'] ?? null) : null`) terbukti legal-null secara
+ * struktural, jadi kita bungkus tipe dasarnya dalam ObjectType sintetis
+ * ber-annotation — ContractGeneratorPass.convertSingleField mengenali
+ * penanda ini dan meneruskan nullable:true tanpa mengubah vocab SemanticType
+ * itu sendiri.
+ */
+function markNullableSemanticType(baseType: SemanticType): SemanticType {
+    return new ObjectType(
+        new ImmutableMap(new Map([['__value', baseType]])),
+        new ImmutableSet(new Set(['__value'])),
+        undefined,
+        [],
+        new ImmutableMap(new Map([
+            ['kind', 'nullable_wrapper'],
+            ['__value', 'nullable']
+        ]))
+    )
+}
+
+/**
  * Map satu field resource ke SemanticType (bentuk asli, nested).
  *
  * Resolved check dilakukan SEBELUM switch karena member union tidak
@@ -689,6 +842,38 @@ function mapResourceFieldToNestedType(
             console.log(`[CompilerBridge] Resolved ${fieldName} → ${resolved.resource}${resolved.collection ? '[]' : ''}`)
             return nested
         }
+    }
+
+    // ternary bukan member union ResourceFieldKind — cek via cast (sama
+    // seperti static_method_call). Infer dari branch truthy; pola defensive-
+    // null guard `is_array($x) ? ($x['k'] ?? null) : null` (falsy = null,
+    // truthy ?? null) menghasilkan tipe NULlABLE dari tipe truthy.
+    if ((field as { kind?: string }).kind === 'ternary') {
+        const ternary = field as unknown as {
+            truthy?: { resolved?: { type?: string; nullable?: boolean } }
+            falsy?: { kind?: string; type?: string; value?: unknown }
+        }
+        const truthyResolved = ternary.truthy?.resolved
+        const truthyIsNullish = ternary.truthy?.kind === 'binary_expression'
+            && (ternary.truthy as { right?: { kind?: string; value?: unknown } }).right?.kind === 'literal'
+            && (ternary.truthy as { right?: { kind?: string; value?: unknown } }).right?.value === null
+        const falsyIsNull = ternary.falsy?.kind === 'literal' && ternary.falsy?.value === null
+
+        // `string | null` → z.string().nullable() — bukan z.string() polos:
+        // branch falsy (atau `?? null` di truthy) membuktikan null legal.
+        const isNullable = truthyResolved?.nullable === true || truthyIsNullish || falsyIsNull
+
+        // json-member: property access JSON yang di-resolve kernel (setelah
+        // fix casts di scan/normalizer, $gateway['name'] jadi json-member).
+        // Tidak membawa tipe primitif konkret — representasinya string, dan
+        // karena seluruh chain ini lahir dari pola `?? null`, selalu nullable.
+        const truthyResolvedType = truthyResolved?.type
+        const baseType = truthyResolvedType === 'json-member' || truthyResolvedType === 'json-object'
+            ? new PrimitiveType(PrimitiveKind.STRING)
+            : truthyResolvedType
+                ? primitiveStringToSemanticType(truthyResolvedType)
+                : new PrimitiveType(PrimitiveKind.STRING)
+        return isNullable ? markNullableSemanticType(baseType) : baseType
     }
 
     switch (field.kind) {

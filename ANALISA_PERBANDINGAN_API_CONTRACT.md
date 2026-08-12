@@ -187,6 +187,82 @@ dipertahankan.
 > masih men-skip non-string & wildcard — itu di luar scope contract
 > (`api-contract.ts`) dan tidak memengaruhi output contract.
 
+### Perbaikan lanjutan (pasca-PR #6)
+
+- **Expression `ternary`** (`is_array($x) ? $x['y'] ?? null : null`, 4 field anak
+  `gateway`) kini di-infer ke `z.string()` dari branch truthy — sebelumnya jatuh
+  ke `default` → `ReferenceType` → `z.unknown()`.
+- **Inferensi tipe request dari response**: request field tanpa rule tipe
+  (masih string default) di-upgrade ke `z.number()` kalau ada field senama
+  bertipe number di response resource-nya (rekursif, termasuk elemen
+  array-of-object dari wildcard `items.*`). Contoh: `cart.create.produk_item_id`,
+  `checkout.items[].produk_item_id`, `buyNow.produk_item_id`,
+  `admin.create.category_id` → `z.number()`. Konservatif: `wishlist.create.
+  produk_item_id` tetap string karena ProdukItemResource tidak punya field
+  senama; field dengan rule tipe eksplisit tidak pernah disentuh.
+- Inferensi tetap jalan walau `responseData` di-skip dedupe global
+  (`inferenceFields` dibangun terpisah).
+
+---
+
+## 4. Root cause sebenarnya: casts hilang saat graph dibangun (bukan handler ternary)
+
+Saat ditelusuri atas kritik arsitektur "ternary seharusnya sudah di-resolve IR",
+ditemukan titik putus yang sebenarnya — **bukan** di `ExpressionResolver`
+(handler ternary di `ExpressionResolver.ts:113-156` sudah lengkap: resolve
+condition/truthy/falsy, truthy menang dengan `nullable: falsyIsNull ? true :
+truthyRes.nullable ?? false`).
+
+### Rantai putus
+
+```
+$detail = $this->paymentDetail?->detail      // kolom longtext, cast 'array'
+  → ModelColumnResolver harus override ke 'json-object' lewat cast
+  → SymbolTable.cast() baca this.node.casts?.[columnName]  (SymbolTable.ts:38-39)
+  → TAPI ketiga graph builder TIDAK membawa casts dari manifest:
+      • commands/scan.ts:55-66 (graphModels scan)
+      • generators/passes.ts (ModelGraphBuilderPass)
+      • generators/normalizer.ts (buildModelGraph)
+  → node.casts undefined → cast override tidak pernah jalan
+  → $detail : string (bukan json-object)
+  → $detail['gateway'] : property access di atas string
+  → "Property access target model not found" (ExpressionResolver.ts:215-218) → unknown
+  → ?? null → unknown → ternary → unknown
+  → tidak masuk resolvedAssignments (incremental.ts:337-341, skip status unknown)
+  → 4 anak ternary gateway.* tanpa `resolved` di manifest → z.unknown()
+```
+
+### Perbaikan (2 lapis)
+
+1. **Fix akar** — bawa `casts` ke graph kernel di 3 builder:
+   - `scan.ts` (graphModels literal) + `passes.ts` (ModelGraphBuilderPass)
+     + `normalizer.ts` (buildModelGraph). `ModelNode` types/semantic.ts kini
+     membawa `accessors` & `casts` (kernel sudah punya di semantic/types.ts;
+     SymbolTable membaca keduanya dari node yang di-load).
+   - Bukti rantai (test kernel): dengan casts, `$detail` → `json-object |
+     nullable:true` → `$detail['gateway'] ?? null` → `json-member | nullable` →
+     ternary → resolved, dan 4 anaknya ikut resolved.
+2. **Defensif di manifest-to-types** (untuk manifest lama yang ternary-nya
+   belum resolved): deteksi `is_array($x) ? ($x['k'] ?? null) : null` secara
+   struktural → `z.string().nullable()` via `markNullableSemanticType()`
+   (ObjectType sintetis ber-annotation `kind: 'nullable_wrapper'`) + unwrap di
+   `ContractGeneratorPass.convertSingleField`.
+
+### Hasil (manifest fresh6, 35 routes)
+
+- `gateway: z.object({ name/order_id/token/redirect_url: z.string().nullable() })`
+- `0` `z.unknown()` di api-contract.ts, 28 `.nullable()`, validator konsisten
+  PascalCase (`validateCartCreate`, `validateRegisterCreate`, …)
+- 779/779 test lulus (termasuk 9 suite SDK yang sempat PARSE_ERROR karena
+  normalizer.ts terkoyak refactor "hapus `any`" — kini normalizer.ts bersih
+  tanpa `any`/`as any`; `ModelNode` graph & kernel berbagi bentuk data yang
+  sama sehingga assignment typecheck tanpa cast)
+
+> Catatan: `packages/cli/src/commands/scan.ts:73` & `sync.ts` masih punya error
+> tsc pre-existing di HEAD (Record<string, unknown> → Record<string, ModelNode>
+> di `loadGraph`, mismatch `KernelResolver`, `ScannedManifest` vs
+> `RouteManifest`) — bukan dari refactor ini, belum difix.
+
 ---
 
 ## File yang terlibat

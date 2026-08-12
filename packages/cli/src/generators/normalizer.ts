@@ -1,4 +1,5 @@
 import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder } from '@routesync/core'
+import type { FieldNode } from '@routesync/core'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
 
 export interface SourceLocation {
@@ -15,7 +16,7 @@ export type NormalizedField =
 
 export interface PrimitiveField {
   readonly kind: "primitive"
-  readonly type: "string" | "number" | "boolean" | "null" | "any"
+  readonly type: "string" | "number" | "boolean" | "null"
   readonly nullable: boolean
   readonly loc?: SourceLocation
 }
@@ -227,7 +228,7 @@ function buildModelGraph(manifest: RouteManifest, kernel: SemanticResolutionKern
   if (manifest.models) {
     manifest.models.forEach(m => {
       const modelNode = graphBuilder.buildModelNode(m.name)
-      const fields: Record<string, unknown> = {}
+      const fields: Record<string, { type: string; nullable: boolean }> = {}
       m.columns.forEach(col => {
         let type = 'string'
         const lower = col.type.toLowerCase()
@@ -235,28 +236,36 @@ function buildModelGraph(manifest: RouteManifest, kernel: SemanticResolutionKern
         else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
         fields[col.name] = { type, nullable: !!col.nullable }
       })
-      // SAFETY:
-      // ServiceGraphBuilder belongs to @routesync/core.
-      // The builder intentionally hides mutable fields in its public types.
-      // During graph construction we populate these internal structures
-      // before the graph becomes immutable. Safe boundary cast.
-      modelNode.fields = fields as any
+      // ServiceGraphBuilder's ModelNode exposes mutable data fields on the
+      // freshly-built node; we populate them before the graph is handed to
+      // the kernel. Kedua ModelNode (graph & kernel) kini berbagi bentuk
+      // data yang sama, jadi tidak perlu cast.
+      modelNode.fields = fields
       if (m.relations) {
-        (modelNode as any).relations = m.relations
+        modelNode.relations = m.relations
       }
       if (m.accessors) {
-        (modelNode as any).accessors = m.accessors
+        modelNode.accessors = m.accessors
+      }
+      // casts wajib dibawa — lihat komentar di commands/scan.ts; tanpa ini
+      // kolom ber-cast tidak pernah jadi 'json-object' dan rantai ternary
+      // (is_array($x) ? ($x['k'] ?? null) : null) tidak ter-resolve di jalur
+      // generate ini (normalizeResources → kernel.resolve).
+      if (m.casts) {
+        modelNode.casts = m.casts
       }
       graphBuilder.getGraph().models[m.name] = modelNode
     })
   }
-  // KNOWN ISSUE (not fixed here — needs an architectural decision, not a cast):
-  // There are TWO structurally different `ModelNode` interfaces in @routesync/core:
-  //   - types/semantic.ts    ModelNode: { kind: 'model_node', fields?: Record<string,string>, layer: 'model' (required), confidence: number (required) }
-  //   - semantic/types.ts    ModelNode: { fields?: Record<string,{type,nullable}>, layer?: string (optional), no kind/confidence }
+  // KNOWN ISSUE (not fixed here — needs an architectural decision):
+  // There are still TWO structurally different `ModelNode` interfaces in @routesync/core:
+  //   - types/semantic.ts    ModelNode: { kind: 'model_node', layer: 'model' (required), confidence: number (required) }
+  //   - semantic/types.ts    ModelNode: { layer?: string (optional), no kind/confidence }
   // ServiceGraph.models uses the first; SemanticResolutionKernel.loadGraph expects the second.
-  // Same name, different shape — pick one and rename/merge before this cast is removed.
-  kernel.loadGraph(graphBuilder.getGraph() as any)
+  // Field data (fields/relations/accessors/casts) kini identik bentuknya, jadi
+  // assignment typechecks tanpa cast — sisanya tinggal metadata (kind/layer/confidence).
+  // Pick one and rename/merge before the next consumer trips on the metadata difference.
+  kernel.loadGraph(graphBuilder.getGraph())
 }
 
 export function normalizeResources(manifest: RouteManifest, kernel: SemanticResolutionKernel): NormalizedResource[] {
@@ -296,7 +305,7 @@ export function normalizeResources(manifest: RouteManifest, kernel: SemanticReso
         const ast = field.parsed_ast || (field.node && (field.node as RuntimeAugmented).parsed_ast)
           || (field.kind && field.kind !== 'object' && field.kind !== 'raw_code' ? field : null)
         if ((!meta || meta.status === 'unknown' || meta.type === 'unknown') && ast) {
-          const resolved = kernel.resolve(ast as any, context)
+          const resolved = kernel.resolve(ast as FieldNode, context)
           if (resolved && resolved.status !== 'unknown') {
             field.resolved = resolved
           }
@@ -335,7 +344,7 @@ export function normalizeModels(manifest: RouteManifest, kernel: SemanticResolut
     const casts = m.casts || {}
     
     m.columns.forEach(col => {
-      let type: "string" | "number" | "boolean" | "null" | "any" = "string"
+      let type: "string" | "number" | "boolean" | "null" = "string"
       const lower = col.type.toLowerCase()
       if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
       else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
@@ -345,7 +354,7 @@ export function normalizeModels(manifest: RouteManifest, kernel: SemanticResolut
         const lowerCast = castType.toLowerCase()
         if (lowerCast.includes('int') || lowerCast.includes('float') || lowerCast.includes('double') || lowerCast.includes('real')) type = 'number'
         else if (lowerCast.includes('bool') || lowerCast === 'boolean') type = 'boolean'
-        else if (lowerCast === 'array' || lowerCast === 'json' || lowerCast === 'object' || lowerCast === 'collection') type = 'any'
+        else if (lowerCast === 'array' || lowerCast === 'json' || lowerCast === 'object' || lowerCast === 'collection') type = 'string'
       }
 
       fields[col.name] = {
@@ -413,7 +422,7 @@ export function normalizeRoutes(manifest: RouteManifest, kernel: SemanticResolut
           const ast = augmentedField.parsed_ast || (augmentedField.node && (augmentedField.node as RuntimeAugmented).parsed_ast)
             || (augmentedField.kind && augmentedField.kind !== 'object' && augmentedField.kind !== 'raw_code' ? augmentedField : null)
           if (ast) {
-            const resolved = kernel.resolve(ast as any, context)
+            const resolved = kernel.resolve(ast as FieldNode, context)
             if (resolved && resolved.status !== 'unknown') {
               augmentedField.resolved = resolved
             }
@@ -460,13 +469,13 @@ function normalizeAccessor(
     const expr = augmentedDef?.expression as { type?: string } | undefined
     if (!expr) {
       const inferred = inferTypeFromName(fieldName)
-      returnType = { kind: "primitive", type: inferred === "unknown" ? "any" : inferred, nullable: true }
+      returnType = { kind: "primitive", type: inferred === "unknown" ? "string" : inferred, nullable: true }
     } else {
-      let primitiveType: "string" | "number" | "boolean" | "null" | "any" = "any"
+      let primitiveType: "string" | "number" | "boolean" | "null" = "string"
       if (expr.type === 'number') primitiveType = 'number'
       else if (expr.type === 'string') primitiveType = 'string'
       else if (expr.type === 'boolean') primitiveType = 'boolean'
-      
+
       returnType = { kind: "primitive", type: primitiveType, nullable: true }
     }
   }
@@ -486,7 +495,7 @@ function mapToNormalizedField(
     const inferred = inferTypeFromName(fieldName)
     return {
       kind: "primitive",
-      type: inferred === "unknown" ? "any" : inferred,
+      type: inferred === "unknown" ? "string" : inferred,
       nullable: true
     }
   }
@@ -496,7 +505,7 @@ function mapToNormalizedField(
   if (visited.has(path)) {
     return {
       kind: "primitive",
-      type: "any",
+      type: "string",
       nullable: true
     }
   }
@@ -509,7 +518,7 @@ function mapToNormalizedField(
     const inferred = inferTypeFromName(fieldName)
     return {
       kind: "primitive",
-      type: inferred === "unknown" ? "any" : inferred,
+      type: inferred === "unknown" ? "string" : inferred,
       nullable: true
     }
   }
@@ -554,13 +563,12 @@ function mapToNormalizedField(
     }
   }
 
-  let primitiveType: "string" | "number" | "boolean" | "null" | "any" = "any"
+  let primitiveType: "string" | "number" | "boolean" | "null" = "string"
   if (type === 'number') primitiveType = 'number'
   else if (type === 'string') primitiveType = 'string'
   else if (type === 'boolean') primitiveType = 'boolean'
   else if (type === 'null') primitiveType = 'null'
-
-  if (primitiveType === 'any') {
+  else {
     const inferred = inferTypeFromName(fieldName)
     if (inferred !== 'unknown') {
       primitiveType = inferred

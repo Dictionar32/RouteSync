@@ -351,6 +351,24 @@ export class ContractGeneratorPass
         fieldName: string,
         semanticType: SemanticType
     ): ParsedResponseField {
+        // Penanda nullable dari manifest-to-types (markNullableSemanticType):
+        // ObjectType sintetis ber-annotation `kind: 'nullable_wrapper'` yang
+        // membungkus tipe asli di property `__value`. Tanpa ini flag nullable
+        // dari pola defensive-null ternary (`is_array($x) ? ($x['k'] ?? null)
+        // : null`) hilang — SemanticType sendiri tidak membawa nullable.
+        if (
+            semanticType.kind === 'object' &&
+            semanticType.annotations?.get('kind') === 'nullable_wrapper'
+        ) {
+            const inner = semanticType.properties.get('__value');
+            if (inner) {
+                return {
+                    ...this.convertSingleField(fieldName, inner),
+                    nullable: true
+                };
+            }
+        }
+
         // Handle primitive types
         if (semanticType.kind === 'primitive') {
             return {

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:37677/hook/cli-loop-guard?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
+            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:45639/hook/cli-loop-guard?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
             "timeout": 8
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:37677/hook/skill-invoke?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
+            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:45639/hook/skill-invoke?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
             "timeout": 8
           }
         ]
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/home/annas-zen/.kiro/extensions/serhiivoinolovych.claude-skill-deployer-1.0.135-universal/resources/hooks/terminal-watch.js\" claude",
+            "command": "node \"/home/annas-zen/.kiro/extensions/serhiivoinolovych.claude-skill-deployer-1.0.139-universal/resources/hooks/terminal-watch.js\" claude",
             "timeout": 5
           }
         ]
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:37677/hook/dir-cache-guard?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
+            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:45639/hook/dir-cache-guard?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
             "timeout": 8
           }
         ]
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:37677/hook/skill-invoke?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
+            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:45639/hook/skill-invoke?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
             "timeout": 8
           }
         ]
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:37677/hook/official-skills?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
+            "command": "curl -sf -X POST -H \"Content-Type: application/json\" --data @- \"http://127.0.0.1:45639/hook/official-skills?agent=claude&cwd=${CLAUDE_PROJECT_DIR}\" || true",
             "timeout": 20
           }
         ]

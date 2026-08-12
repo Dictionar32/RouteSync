@@ -38,5 +38,5 @@
   "confidence": 0.85,
   "detectedAt": "2026-08-09T08:58:30.005Z",
   "appliedAt": "2026-08-09T08:58:30.005Z",
-  "rationale": "Git analysis: 960 tracked files, 7 branches (7 local, 1 remote), 375 commits (293 last 30d), 1 author (30d), high activity, ~6 KB git objects. Remote git (https://github.com/Dictionar32/RouteSync.git): 1 remote branch, 1 remote author (30d), via cache, ahead 5 / behind 0 vs upstream. Collaborative or multi-branch product — full sync and attribution."
+  "rationale": "Git analysis: 1094 tracked files, 7 branches (7 local, 1 remote), 381 commits (298 last 30d), 2 authors (30d), high activity, ~7 KB git objects. Remote git (https://github.com/Dictionar32/RouteSync.git): 1 remote branch, 2 remote authors (30d), via cache, ahead 0 / behind 1 vs upstream. Collaborative or multi-branch product — full sync and attribution."
 }

@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+        "lsp": {
+            "url": "http://127.0.0.1:9527/mcp",
+            "autoApprove": [
+                "get_hover",
+                "get_references",
+                "get_definition",
+                "get_java_source",
+                "get_workspace_symbol",
+                "get_document_symbol"
+            ]
+        }
+    }
+}

@@ -4,7 +4,7 @@
     "postToolUse": [
       {
         "type": "command",
-        "powershell": "$body = [Console]::In.ReadToEnd(); try { Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:37677/hook/skill-invoke?agent=copilot&cwd=%2Fhome%2Fannas-zen%2FDocuments%2FRouteSync' -Method POST -Headers @{ 'Content-Type' = 'application/json' } -Body $body | Out-Null } catch { }",
+        "powershell": "$body = [Console]::In.ReadToEnd(); try { Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:45639/hook/skill-invoke?agent=copilot&cwd=%2Fhome%2Fannas-zen%2FDocuments%2FRouteSync' -Method POST -Headers @{ 'Content-Type' = 'application/json' } -Body $body | Out-Null } catch { }",
         "matcher": "Skill|Read|read|fs_read|fileread|mcp__filesystem__read_file|mcp__filesystem__search_in_file|mcp__filesystem__search_files"
       }
     ]

@@ -2,9 +2,9 @@
   "originUrl": "https://github.com/Dictionar32/RouteSync.git",
   "reachable": true,
   "remoteBranchCount": 1,
-  "remoteAuthors30d": 1,
-  "upstreamAhead": 5,
-  "upstreamBehind": 0,
+  "remoteAuthors30d": 2,
+  "upstreamAhead": 0,
+  "upstreamBehind": 1,
   "source": "remote-tracking",
-  "probedAt": "2026-08-10T14:26:15.480Z"
+  "probedAt": "2026-08-12T01:05:10.069Z"
 }

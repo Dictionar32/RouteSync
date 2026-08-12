@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-10T13:51:10.131Z",
+  "generatedAt": "2026-08-12T01:13:02.692Z",
   "workspacePath": "/home/annas-zen/Documents/RouteSync",
   "branch": "main",
   "skills": [
@@ -81,6 +81,7 @@
       ],
       "isRelevant": true,
       "matchedGlobs": [
+        "**/.github/workflows/*.yml",
         "**/.github/**/*.md",
         "**/src/**",
         "**/*.test.ts"
@@ -428,7 +429,7 @@
       ],
       "isRelevant": false,
       "matchedGlobs": [],
-      "installedInWorkspace": false,
+      "installedInWorkspace": true,
       "availableInGlobal": true,
       "inLibrary": true,
       "requiredForProfileInit": false
@@ -588,7 +589,7 @@
       ],
       "isRelevant": false,
       "matchedGlobs": [],
-      "installedInWorkspace": false,
+      "installedInWorkspace": true,
       "availableInGlobal": true,
       "inLibrary": true,
       "requiredForProfileInit": false

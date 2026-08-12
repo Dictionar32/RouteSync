@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-12T01:40:10.174Z",
+  "generatedAt": "2026-08-12T01:54:13.250Z",
   "workspacePath": "/home/annas-zen/Documents/RouteSync",
   "branch": "main",
   "skills": [
@@ -29,7 +29,7 @@
       ],
       "isRelevant": false,
       "matchedGlobs": [],
-      "installedInWorkspace": false,
+      "installedInWorkspace": true,
       "availableInGlobal": true,
       "inLibrary": true,
       "requiredForProfileInit": false
@@ -155,7 +155,7 @@
       ],
       "isRelevant": false,
       "matchedGlobs": [],
-      "installedInWorkspace": false,
+      "installedInWorkspace": true,
       "availableInGlobal": true,
       "inLibrary": true,
       "requiredForProfileInit": false
@@ -488,7 +488,7 @@
       ],
       "isRelevant": false,
       "matchedGlobs": [],
-      "installedInWorkspace": false,
+      "installedInWorkspace": true,
       "availableInGlobal": true,
       "inLibrary": true,
       "requiredForProfileInit": false

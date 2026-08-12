@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-12T01:40:10.589Z",
+  "generatedAt": "2026-08-12T01:54:09.732Z",
   "proposalsGeneratedAt": "2026-08-12T01:40:10.401Z",
-  "source": "session-apply",
+  "source": "task-skill-proposals",
   "activeSkills": [
     "self-learning",
     "file-style-conventions",
@@ -22,6 +22,9 @@
     "frontend-design",
     "infra-cost-guard",
     "internal-comms",
-    "run-routesync"
+    "profile-init",
+    "run-routesync",
+    "terraform-module-ops",
+    "terraform-plan-review"
   ]
 }

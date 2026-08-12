@@ -14,6 +14,7 @@ import type { GeneratedContractArtifact, GeneratedContractInfo, ContractActionIn
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
 import { ContractSchemaMapper } from '../generators/contract-generation/ContractSchemaMapper';
+import { toPascalCase } from '../../utils/resource-naming';
 import { ContractActionGenerator } from '../generators/contract-generation/ContractActionGenerator';
 import type { GeneratedContractAction } from '../generators/contract-generation/ContractActionGenerator';
 import { ContractCodeBuilder } from '../generators/contract-generation/ContractCodeBuilder';
@@ -193,7 +194,7 @@ export class ContractGeneratorPass
                 actions: contract.actions.map(a => ({
                     name: a.name,
                     zodSchema: a.schemaLines.join('\n'),
-                    validatorName: `validate${contract.resourceName}${this.capitalize(a.name)}`,
+                    validatorName: `validate${toPascalCase(contract.resourceName)}${this.capitalize(a.name)}`,
                     fieldCount: a.fieldCount
                 })),
                 lineRange: [0, 0] as const // Will be computed from sections

@@ -20,7 +20,7 @@ import type { SemanticTypesArtifact } from '../../../../core/src/compiler/passes
 import type { RequestTypesArtifact, RequestType, FormAction, RequestField } from '../../../../core/src/compiler/artifacts/RequestTypesArtifact'
 
 // Implementation
-import { ObjectType } from '../../../../core/src/compiler/types/SemanticType'
+import { ObjectType, ReadonlyCollectionType, CollectionKind } from '../../../../core/src/compiler/types/SemanticType'
 import { ImmutableMap, ImmutableSet } from '../../../../core/src/compiler/utils/ImmutableCollections'
 import { toCamelCase, toPascalCase } from '../../../../core/src/utils/resource-naming'
 import { FormFieldMapper } from '../../../../core/src/compiler/generators/form-generation/FormFieldMapper'
@@ -272,6 +272,49 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                     const fieldsRecord: Record<string, SemanticType> = {}
                     for (const [fieldName, fieldType] of flattenedFields) {
                         fieldsRecord[fieldName] = fieldType
+                    }
+
+                    // ✅ FIX (analisa: items: z.unknown()): resolve field yang
+                    // resolver-nya sudah tahu merujuk Resource lain
+                    // (resolved.type === 'resource') ke definisi resource di
+                    // manifest — bukan dibiarkan jadi ReferenceType → z.unknown().
+                    // Hasil: ObjectType (flatten fields resource target) atau
+                    // ReadonlyCollectionType untuk koleksi → mapper menghasilkan
+                    // z.object({...}) / z.array(z.object({...})).
+                    for (const [fieldName, fieldDef] of Object.entries(resource.fields || {})) {
+                        const resolved = (fieldDef as {
+                            resolved?: { type?: string; resource?: string; collection?: boolean }
+                        }).resolved
+                        if (resolved?.type !== 'resource' || !resolved.resource) continue
+
+                        const targetResource = manifest.resources?.find(r => r.name === resolved.resource)
+                        if (!targetResource) continue
+
+                        const nestedFlattened = flattenResourceFields(
+                            targetResource.name,
+                            targetResource.fields || {},
+                            { maxDepth: 5, circularRefWarnings: true }
+                        )
+                        const props = new Map<string, SemanticType>()
+                        for (const [nestedName, nestedType] of nestedFlattened) {
+                            props.set(nestedName, nestedType)
+                        }
+                        const nestedObject = new ObjectType(
+                            new ImmutableMap(props),
+                            new ImmutableSet(new Set(props.keys())),
+                            undefined, // no base
+                            [], // no interfaces
+                            new ImmutableMap(new Map<string, string>([
+                                ['name', targetResource.name],
+                                ['kind', 'resource']
+                            ]))
+                        )
+
+                        fieldsRecord[fieldName] = resolved.collection
+                            ? new ReadonlyCollectionType(CollectionKind.ARRAY, nestedObject)
+                            : nestedObject
+
+                        console.log(`[CompilerBridge] Resolved ${fieldName} → ${resolved.resource}${resolved.collection ? '[]' : ''} (${props.size} fields)`)
                     }
 
                     responseData = {

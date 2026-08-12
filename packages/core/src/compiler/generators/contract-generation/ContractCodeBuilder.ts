@@ -9,6 +9,7 @@
  */
 
 import type { GeneratedContractAction } from './ContractActionGenerator';
+import { toPascalCase } from '../../../utils/resource-naming';
 
 /**
  * Input: Generated contract with actions
@@ -409,7 +410,10 @@ export class ContractCodeBuilder {
         const { resourceName, actions } = contract;
 
         actions.forEach(action => {
-            const functionName = `validate${resourceName}${this.capitalize(action.name)}`;
+            // FIX (analisa: validator lowercase): nama fungsi validator
+            // di-PascalCase-kan (validateCartCreate), referensi schema contract
+            // tetap lowercase (cartContractSchema).
+            const functionName = `validate${toPascalCase(resourceName)}${this.capitalize(action.name)}`;
             lines.push(`export const ${functionName} = (data: unknown) => {`);
             lines.push(`  return ${resourceName}ContractSchema.${action.name}.parse(data);`);
             lines.push('};');

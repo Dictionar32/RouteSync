@@ -40,7 +40,8 @@ function buildManifest(): RouteManifest {
                             type: 'resource',
                             resource: 'OrderDetailResource',
                             collection: true,
-                            confidence: 100
+                            confidence: 100,
+                            trace: []
                         }
                     }
                 }
@@ -104,7 +105,8 @@ describe('manifestToContractInput (Opsi D: resolve resource reference)', () => {
                 type: 'resource',
                 resource: 'OrderDetailResource',
                 collection: false,
-                confidence: 100
+                confidence: 100,
+                trace: []
             }
         };
 
@@ -114,5 +116,48 @@ describe('manifestToContractInput (Opsi D: resolve resource reference)', () => {
         const customer = order.responseData!.fields['customer'];
         expect(customer).toBeInstanceOf(ObjectType);
         expect((customer as ObjectType).annotations?.get('name')).toBe('OrderDetailResource');
+    });
+});
+
+describe('manifestToContractInput (bentuk original: snake_case + nested)', () => {
+    test('preserves snake_case field names (no camelCase transformation)', () => {
+        const manifest = buildManifest();
+        const orderResource = manifest.resources!.find(r => r.name === 'OrderResource')!;
+        orderResource.fields['image_url'] = { kind: 'primitive', type: 'string' };
+        orderResource.fields['review_count'] = { kind: 'primitive', type: 'int' };
+
+        const artifact = manifestToContractInput(manifest);
+        const order = artifact.requestTypes.find(r => r.resourceName === 'orders')!;
+        const fields = order.responseData!.fields;
+
+        // Nama field dipakai APA ADANYA — bukan imageUrl/reviewCount
+        expect(fields['image_url']).toBeDefined();
+        expect(fields['review_count']).toBeDefined();
+        expect(fields['imageUrl']).toBeUndefined();
+        expect(fields['reviewCount']).toBeUndefined();
+    });
+
+    test('keeps nested object as ObjectType with original child names (no flattening)', () => {
+        const manifest = buildManifest();
+        const orderResource = manifest.resources!.find(r => r.name === 'OrderResource')!;
+        orderResource.fields['shipping'] = {
+            kind: 'object',
+            fields: {
+                nama: { kind: 'primitive', type: 'string' },
+                kode_pos: { kind: 'primitive', type: 'string' }
+            }
+        };
+
+        const artifact = manifestToContractInput(manifest);
+        const order = artifact.requestTypes.find(r => r.resourceName === 'orders')!;
+        const shipping = order.responseData!.fields['shipping'];
+
+        // shipping tetap ObjectType (bukan flattened shippingNama/shippingKodePos)
+        expect(shipping).toBeInstanceOf(ObjectType);
+        const obj = shipping as ObjectType;
+        expect(obj.properties.get('nama')).toBeDefined();
+        expect(obj.properties.get('kode_pos')).toBeDefined();
+        expect(obj.properties.get('shippingNama')).toBeUndefined();
+        expect(order.responseData!.fields['shippingNama']).toBeUndefined();
     });
 });

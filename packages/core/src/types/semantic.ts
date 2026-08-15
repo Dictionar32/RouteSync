@@ -1,4 +1,5 @@
 import { TraceNode, SemanticResolution } from './contract';
+import type { FieldNode } from './field';
 
 /* =========================================================
  *  ROUTESYNC COMPILER CORE — IR v2 SPEC
@@ -332,6 +333,14 @@ export interface ModelNode {
    * dari scanner, cuma dibuang.
    */
   relations?: Record<string, { type: string; model: string }>;
+  /**
+   * Accessors (camelCase getter) dan casts ikut dibawa dari manifest —
+   * SymbolTable membaca keduanya dari node yang di-load
+   * (SymbolTable.ts:31,39), jadi graph node yang tidak membawanya
+   * membuat accessor/JSON-cast column jatuh ke fallback string.
+   */
+  accessors?: Record<string, { source?: SourceRef; ast?: FieldNode; semantic?: SemanticResolution }>;
+  casts?: Record<string, string>;
   layer: "model";
   confidence: number;
 }

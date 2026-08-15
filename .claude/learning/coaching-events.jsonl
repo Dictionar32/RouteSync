@@ -1,0 +1,6 @@
+{"ts":"2026-08-12T08:08:35.459Z","metric":"promptClarity","type":"advice_shown","scoreBefore":0,"adviceText":"Split into 27 separate prompts, one per goal. Start with the highest-priority item."}
+{"ts":"2026-08-12T08:11:38.970Z","metric":"promptClarity","type":"score_improved","scoreBefore":0,"scoreAfter":20}
+{"ts":"2026-08-12T08:16:29.352Z","metric":"promptClarity","type":"score_unchanged","scoreBefore":20,"scoreAfter":20}
+{"ts":"2026-08-12T08:32:27.845Z","metric":"promptClarity","type":"score_improved","scoreBefore":20,"scoreAfter":40}
+{"ts":"2026-08-12T09:02:10.080Z","metric":"promptClarity","type":"score_unchanged","scoreBefore":40,"scoreAfter":20}
+{"ts":"2026-08-12T09:23:08.149Z","metric":"promptClarity","type":"score_improved","scoreBefore":20,"scoreAfter":25}

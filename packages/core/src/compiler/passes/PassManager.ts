@@ -1,11 +1,9 @@
 /**
- * PassManager.ts
- * 
- * Orchestrates compiler pass registration and execution.
- * PassManager is the entry point for running the compiler pipeline.
+ * Registers typed compiler passes, validates their dependency graph, and
+ * executes the resulting deterministic pass schedule.
  */
-
-import type { ArtifactKey, ArtifactRegistry } from '../artifacts/types';
+import type { ArtifactKey, ArtifactRegistry, ArtifactStorage } from '../artifacts/types';
+import type { ArtifactCache } from '../cache/ArtifactCache';
 import type { CompilerPass } from './CompilerPass';
 import type { ExecutablePass } from './ExecutablePass';
 import type { CompilationResult } from '../result/CompilationResult';
@@ -15,101 +13,80 @@ import { CompilationState } from './CompilationState';
 import { CompilationContext } from './CompilationContext';
 import { ArtifactKeyWitness } from './ArtifactKeyWitness';
 
-/**
- * PassManager manages pass registration and orchestrates pipeline execution.
- * 
- * Key responsibilities:
- * - Register typed passes (automatically adapts to ExecutablePass)
- * - Resolve pass execution order using PassGraph
- * - Execute passes in topologically-sorted or wave-based order
- * - Provide compilation result
- * 
- * Usage:
- * ```typescript
- * const manager = new PassManager(['AST']);
- * manager.registerPass(parsePass);
- * manager.registerPass(typeCheckPass);
- * manager.registerPass(codeGenPass);
- * const result = await manager.execute('AST', astArtifact);
- * ```
- */
+export interface PassExecutionOptions {
+    readonly context?: CompilationContext;
+    readonly cache?: ArtifactCache;
+}
+
 export class PassManager {
     private passes: ExecutablePass[] = [];
 
-    /**
-     * Create a PassManager.
-     * 
-     * @param externalInputs - Artifact keys provided externally (not by passes)
-     */
-    constructor(
-        private readonly externalInputs: readonly ArtifactKey[] = []
-    ) { }
+    constructor(private readonly externalInputs: readonly ArtifactKey[] = []) { }
 
-    /**
-     * Register a typed compiler pass.
-     * 
-     * The pass is automatically adapted to ExecutablePass and added to the pipeline.
-     * After registration, the pass list is re-sorted to maintain topological order.
-     * 
-     * @param pass - Typed compiler pass to register
-     * @template I - Tuple of input artifact keys
-     * @template O - Tuple of output artifact keys
-     */
+    /** Registers a pass only after the resulting graph validates successfully. */
     public registerPass<
         I extends readonly ArtifactKey[],
         O extends readonly ArtifactKey[]
     >(pass: CompilerPass<I, O>): void {
-        // Adapt typed pass to executable pass
-        this.passes.push(new TypedPassAdapter(pass));
+        const executable = new TypedPassAdapter(pass);
+        const candidate = [...this.passes, executable];
 
-        // Re-resolve pass execution order
-        this.passes = [...PassGraph.resolve(this.passes, this.externalInputs)];
+
+
+        const resolved = PassGraph.resolve(candidate, this.externalInputs);
+        this.passes = [...resolved];
     }
 
-    /**
-     * Execute the compiler pipeline.
-     * 
-     * Execution strategy:
-     * 1. Initialize compilation state with initial input artifact
-     * 2. Create default compilation context
-     * 3. Resolve passes into parallel execution layers
-     * 4. Execute each layer sequentially:
-     *    - Within each layer, execute passes concurrently
-     *    - Merge results from all passes in the layer
-     * 5. Extract and return final CompilationResult artifact
-     * 
-     * @param key - Artifact key of the initial input
-     * @param initialInput - Initial input artifact
-     * @returns Promise resolving to compilation result
-     * @template K - Type of the initial input artifact key
-     */
+
+    /** Returns the deterministic parallel execution layers. */
+    public getExecutionPlan(): readonly (readonly ExecutablePass[])[] {
+        return PassGraph.resolveLayers(this.passes, this.externalInputs);
+    }
+
+
+    /** Executes the pipeline starting from one external artifact. */
     public async execute<K extends keyof ArtifactRegistry>(
         key: K,
-        initialInput: ArtifactRegistry[K]
+        initialInput: ArtifactRegistry[K],
+        options: PassExecutionOptions = {}
     ): Promise<CompilationResult> {
-        // Initialize compilation state with initial input
-        let state = CompilationState.empty().put(key, initialInput);
+        return this.executeWithInputs({ [key]: initialInput } as ArtifactStorage, options);
+    }
 
-        // Create compilation context
-        const context = CompilationContext.default();
 
-        // Resolve passes into parallel execution layers
-        const layers = PassGraph.resolveLayers(this.passes, this.externalInputs);
+    /** Executes the pipeline with all supplied root artifacts. */
+    public async executeWithInputs(
+        inputs: ArtifactStorage,
+        options: PassExecutionOptions = {}
+    ): Promise<CompilationResult> {
+        let state = CompilationState.empty();
 
-        // Execute each layer sequentially
-        for (const layer of layers) {
-            // Execute passes in layer concurrently
-            const nextStates = await Promise.all(
-                layer.map(pass => pass.execute(state, context))
-            );
-
-            // Merge results from all passes in the layer
-            for (const ns of nextStates) {
-                state = state.merge(ns);
+        for (const key of Object.keys(inputs) as ArtifactKey[]) {
+            const value = inputs[key];
+            if (value !== undefined) {
+                state = state.put(key, value);
             }
         }
 
-        // Extract and return final compilation result
+        for (const externalKey of this.externalInputs) {
+            if (!state.has(externalKey)) {
+                throw new Error(`Missing external input artifact: ${externalKey}`);
+            }
+        }
+
+        const context = options.context ?? CompilationContext.default();
+        const layers = this.getExecutionPlan();
+
+        for (const layer of layers) {
+            const nextStates = await Promise.all(
+                layer.map(pass => pass.execute(state, context, options.cache))
+            );
+
+            for (const nextState of nextStates) {
+                state = state.merge(nextState);
+            }
+        }
+
         return state.require(new ArtifactKeyWitness('CompilationResult')).result;
     }
 }

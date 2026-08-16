@@ -1,8 +1,14 @@
 /**
- * TypedPassAdapter.ts
- * 
- * Adapts a typed CompilerPass to the ExecutablePass interface.
- * Handles artifact marshalling, caching, and type-safe input/output management.
+ * TypedPassAdapter
+ *
+ * Bridges a typed CompilerPass to the runtime ExecutablePass contract.
+ * The compiler's ArtifactRegistry/ResolveArtifacts types provide the
+ * compile-time relationship between artifact keys and artifact values; this
+ * adapter therefore does not perform redundant per-output type assertions.
+ * Runtime checks are limited to failures that can occur at the cache/
+ * execution boundary.
+ *
+ * @module compiler/passes
  */
 import type { ArtifactKey } from '../artifacts/types';
 import type { CompilerPass } from './CompilerPass';
@@ -11,22 +17,20 @@ import type { PassDescriptor, PassDependency } from './PassDescriptor';
 import type { CompilationState } from './CompilationState';
 import type { CompilationContext } from './CompilationContext';
 import type { ArtifactCache, CacheDescriptor } from '../cache/ArtifactCache';
-import type { CompilerArtifact } from '../artifacts/Artifact';
 import { readArtifacts, tupleAt } from './ArtifactKeyWitness';
 import { computeFingerprintHash } from '../fingerprint/Fingerprint';
-import { ResolveArtifacts, ArtifactKeyWitness } from './ArtifactKeyWitness';
+import type { ResolveArtifacts } from './ArtifactKeyWitness';
 
 /**
- * TypedPassAdapter wraps a typed CompilerPass and adapts it to ExecutablePass.
- * 
- * Key responsibilities:
- * - Marshalls artifacts from CompilationState to typed inputs
- * - Executes the underlying typed pass
- * - Updates CompilationState with typed outputs
- * - Implements caching logic for incremental compilation
- * 
- * @template I - Tuple of input artifact keys
- * @template O - Tuple of output artifact keys
+ * Adapts a typed pass to the runtime pass interface.
+ *
+ * The type relationship is carried by `CompilerPass<I, O>`:
+ * - `I` resolves through `ArtifactRegistry` to the input tuple.
+ * - `O` resolves through `ArtifactRegistry` to the output tuple.
+ *
+ * The adapter is responsible for runtime concerns only: reading inputs,
+ * constructing the cache descriptor, invoking the pass, and committing the
+ * typed outputs to the compilation state.
  */
 export class TypedPassAdapter<
     I extends readonly ArtifactKey[],
@@ -34,82 +38,65 @@ export class TypedPassAdapter<
 > implements ExecutablePass {
     constructor(private readonly pass: CompilerPass<I, O>) { }
 
-    /**
-     * Pass name from underlying typed pass.
-     */
     public get name(): string {
         return this.pass.name;
     }
 
-    /**
-     * Pass descriptor from underlying typed pass.
-     */
     public get descriptor(): PassDescriptor {
         return this.pass.descriptor;
     }
 
-    /**
-     * Pass dependencies from underlying typed pass.
-     */
     public get requires(): readonly PassDependency[] {
         return this.pass.requires;
     }
 
     /**
-     * Execute the adapted pass.
-     * 
-     * Implementation:
-     * 1. Marshall input artifacts using witnesses
-     * 2. Check cache if enabled
-     * 3. Execute underlying typed pass
-     * 4. Apply outputs to compilation state
-     * 5. Store outputs in cache if enabled
-     * 
-     * @param state - Current compilation state
-     * @param context - Compilation context
-     * @param cache - Optional artifact cache
-     * @returns Updated compilation state
+     * Executes the typed pass.
+     *
+     * Cache keys are derived from the declared input witnesses and the
+     * compiler fingerprint. Cache values retain their static `ResolveArtifacts<O>`
+     * type; the cache abstraction is trusted to return the type it was asked
+     * to store.
      */
     public async execute(
         state: CompilationState,
         context: CompilationContext,
         cache?: ArtifactCache
     ): Promise<CompilationState> {
-        // Marshall inputs using typed witnesses
         const inputs = readArtifacts(this.pass.inputWitnesses, state);
 
-        // Cast for cache descriptor construction
-        const inputsArray = inputs as readonly CompilerArtifact[];
-        const witnesses = this.pass.inputWitnesses as readonly ArtifactKeyWitness<ArtifactKey>[];
-
-        // Build cache descriptor if caching is enabled
         let descriptor: CacheDescriptor | undefined;
         if (cache) {
             const fingerprint = context.getFingerprint();
             descriptor = {
                 passName: this.name,
-                inputs: witnesses.map((w, index) => ({
-                    artifactKey: w.key,
-                    inputHash: inputsArray[index]!.metadata.hash
-                })),
+                inputs: this.pass.inputWitnesses.map((witness) => {
+                    const artifact = witness.read(state);
+                    return {
+                        artifactKey: witness.key,
+                        inputHash: artifact.metadata.hash
+                    };
+                }),
                 compilerVersion: fingerprint.compilerVersion,
                 optionsHash: computeFingerprintHash(fingerprint)
             };
 
-            // Check cache for existing outputs
             const cachedOutputs = cache.get<ResolveArtifacts<O>>(descriptor);
-            if (cachedOutputs) {
+            if (cachedOutputs !== undefined) {
                 return this.applyOutputs(state, cachedOutputs);
             }
         }
 
-        // Execute underlying typed pass
-        const outputs = await this.pass.run(inputs, context);
+        let outputs: ResolveArtifacts<O>;
+        try {
+            outputs = await this.pass.run(inputs, context);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            throw new Error(`Compiler pass ${this.name} failed: ${message}`);
+        }
 
-        // Apply outputs to state
         const nextState = this.applyOutputs(state, outputs);
 
-        // Store outputs in cache if enabled
         if (cache && descriptor) {
             cache.set<ResolveArtifacts<O>>(descriptor, outputs);
         }
@@ -117,11 +104,22 @@ export class TypedPassAdapter<
         return nextState;
     }
 
-    private applyOutputs(state: CompilationState, outputs: ResolveArtifacts<O>): CompilationState {
+    /**
+     * Applies the statically typed output tuple to the compilation state.
+     *
+     * `tupleAt` is the single low-level helper that bridges runtime numeric
+     * indexing with the tuple type. The key/value relationship remains owned
+     * by `ResolveArtifacts<O>` and `outputKeys`.
+     */
+    private applyOutputs(
+        state: CompilationState,
+        outputs: ResolveArtifacts<O>
+    ): CompilationState {
         let nextState = state;
         for (let i = 0; i < this.pass.outputKeys.length; i++) {
             const key = this.pass.outputKeys[i]!;
-            nextState = nextState.put(key, tupleAt(outputs, i));
+            const output = tupleAt(outputs, i);
+            nextState = nextState.put(key, output);
         }
         return nextState;
     }

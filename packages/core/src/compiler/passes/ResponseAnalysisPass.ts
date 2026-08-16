@@ -1,258 +1,235 @@
 /**
- * ResponseAnalysisPass.ts
- * 
- * SSOT for Response Analysis: Single source of truth for collection detection
- * and response type inference.
- * 
- * PURPOSE:
- * This pass analyzes HTTP response characteristics from parsed routes and
- * creates ResponseArtifact entries. All downstream generators (Zod, SDK, Hooks)
- * read from these artifacts instead of re-computing collection detection.
- * 
- * IMPLEMENTS:
- * - Single Source of Truth (Principle #1)
- * - Unidirectional Dependencies (Parser → Analysis → Artifact → Emitters)
- * - All Communication Via ArtifactRegistry (Principle #9)
- * 
- * INPUT: RouteArtifact (parsed routes from Laravel)
- * OUTPUT: ResponseArtifact (analyzed response characteristics)
- * 
- * ANALYSIS STAGES:
- * 1. Collect route metadata for each endpoint
- * 2. Detect resource type (Resource, Model, Object, Primitive)
- * 3. Detect collection vs single (from return type, NOT action name heuristic)
- * 4. Detect pagination
- * 5. Build confidence scores
- * 6. Create ResponseArtifact entries
- * 
- * KEY PRINCIPLE:
- * Do NOT use action name heuristics (e.g., 'index' means collection).
- * Instead, analyze the ACTUAL return type from semantic analysis.
- * 
- * @module compiler/passes
+ * ResponseAnalysisPass
+ *
+ * Analyzes the response metadata already present in the route manifest and
+ * produces one aggregate ResponseAnalysis artifact containing the per-route
+ * ResponseArtifact entries used by downstream consumers.
+ *
+ * The route manifest is an explicit artifact dependency. CompilationContext is
+ * reserved for compilation environment/services and is not used to smuggle
+ * semantic compiler inputs into the pass.
  */
 
 import type { CompilerPass } from './CompilerPass';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
-import type { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
+import { ArtifactKeyWitness, type ResolveArtifacts } from './ArtifactKeyWitness';
 import type { CompilationContext } from './CompilationContext';
 import {
-    ResponseArtifact,
     ResponseArtifactBuilder,
+    type ResponseArtifact,
     type ResponseBody,
     type ConfidenceScore,
 } from '../ir/ResponseArtifact';
-import type { RouteManifest, GeneratedRoute } from '../../types/route';
+import { ResponseAnalysisArtifact } from '../artifacts/ResponseAnalysisArtifact';
+import type { ParsedRoute, ResponseMetadata } from '../../types/route';
 
-/**
- * Response analysis result for a single route
- */
-interface RouteResponseAnalysis {
-    routeName: string;
-    responseType: 'resource' | 'model' | 'object' | 'primitive' | 'unknown';
-    isCollection: boolean;
-    isPaginated: boolean;
-    resourceName?: string;
-    modelName?: string;
-    confidence: number;
-    reasons: string[];
-}
+export class ResponseAnalysisPass
+    implements CompilerPass<readonly ['RouteManifest'], readonly ['ResponseAnalysis']> {
+    public readonly name = 'ResponseAnalysis';
 
-/**
- * ResponseAnalysisPass
- * 
- * Analyzes routes to produce ResponseArtifact entries.
- * This is THE pass that determines collection detection for all generators.
- * 
- * This is a PLACEHOLDER that shows the pattern. In production, it would be
- * instantiated by the CLI with the actual manifest data and registered as
- * an external input to PassManager.
- * 
- * USAGE PATTERN:
- * ```typescript
- * const manifest = await scanLaravelRoutes(...);
- * const manager = new PassManager(['ResponseAnalysis']);
- * // No need to register ResponseAnalysisPass - manifest is external input
- * const result = await manager.execute('ResponseAnalysis', buildResponseMap(manifest));
- * ```
- * 
- * The ResponseArtifact map becomes available to all downstream generators
- * via CompilationState, making it the SSOT for collection detection.
- */
-export class ResponseAnalysisPass implements CompilerPass<[], ['ResponseAnalysis']> {
-    readonly name = 'ResponseAnalysis';
+    public readonly inputWitnesses = [
+        new ArtifactKeyWitness('RouteManifest'),
+    ] as const;
 
-    readonly inputWitnesses = {};
+    public readonly outputKeys = ['ResponseAnalysis'] as const;
 
-    readonly outputKeys = ['ResponseAnalysis'] as const;
-
-    readonly descriptor: PassDescriptor = {
-        consumes: [],
-        produces: ['ResponseAnalysis']
+    public readonly descriptor: PassDescriptor = {
+        consumes: ['RouteManifest'],
+        produces: ['ResponseAnalysis'],
     };
 
-    readonly requires: PassDependency[] = [];
+    public readonly requires: readonly PassDependency[] = [
+        { artifact: 'RouteManifest' },
+    ];
 
-    readonly producesPass: string[] = [];
+    public readonly producesPass: readonly string[] = [];
 
-    /**
-     * Execute response analysis pass
-     * 
-     * NOTE: This is a placeholder. In actual use, the manifest is provided
-     * as external input to PassManager.
-     * 
-     * @param inputs Empty tuple (manifest comes as external input)
-     * @param context Compilation context
-     * @returns Tuple with single element: ResponseArtifactMap
-     */
-    async run(
-        inputs: ResolveArtifacts<[]>,
-        context: CompilationContext
-    ): Promise<ResolveArtifacts<['ResponseAnalysis']>> {
-        // In actual use, the manifest would come from context or external input
-        const routeManifest = context.getManifest?.() || { routes: [] };
-
-        console.log(`🔍 ResponseAnalysisPass: Analyzing ${routeManifest.routes?.length || 0} routes for response characteristics`);
-
-        // Analyze each route's response
+    public async run(
+        [routeManifestArtifact]: ResolveArtifacts<readonly ['RouteManifest']>,
+        context: CompilationContext,
+    ): Promise<ResolveArtifacts<readonly ['ResponseAnalysis']>> {
         const responseArtifacts = new Map<string, ResponseArtifact>();
 
-        for (const route of routeManifest.routes) {
+        for (const route of routeManifestArtifact.manifest.routes) {
             try {
                 const analysis = this.analyzeRouteResponse(route);
                 const artifact = this.buildResponseArtifact(route, analysis);
                 responseArtifacts.set(artifact.id, artifact);
-            } catch (error) {
-                console.warn(`⚠️  Failed to analyze response for ${route.name}: ${error}`);
+            } catch {
+                // A single malformed route must not invalidate successfully
+                // analyzed routes. Diagnostics belong to the compiler context
+                // when a caller needs user-facing error reporting.
             }
         }
 
-        console.log(`✅ ResponseAnalysisPass: Created ${responseArtifacts.size} response artifacts`);
+        const metadata = {
+            hash: this.computeAggregateHash(responseArtifacts),
+            producer: this.name,
+            dependencies: ['RouteManifest'],
+            timestamp: Date.now(),
+            revision: '1.0.0',
+        } as const;
 
-        // Return as tuple (single output artifact)
-        return [responseArtifacts] as ResolveArtifacts<['ResponseAnalysis']>;
+        return [
+            new ResponseAnalysisArtifact(responseArtifacts, metadata),
+        ];
     }
 
-    /**
-     * Analyze a single route's response characteristics
-     * 
-     * KEY DECISION POINT: Determine if response is collection or single.
-     * This analysis should NOT depend on action name heuristics.
-     */
-    private analyzeRouteResponse(route: GeneratedRoute): RouteResponseAnalysis {
+    private analyzeRouteResponse(route: ParsedRoute): RouteResponseAnalysis {
+        const response = route.response;
         const reasons: string[] = [];
+        const responseType = response?.kind ?? 'unknown';
+        const collection = response?.collection === true;
+        const isPaginated = response?.paginated === true;
+        const isCollection = collection || isPaginated;
 
-        // 1. Detect response type from semantic analysis
-        const responseKind = route.response?.kind || 'unknown';
-        const isPaginated = !!(route.response?.paginated || route.response?.resolved?.paginated);
-        const collection = !!(route.response?.collection || route.response?.resolved?.collection);
-
-        reasons.push(`Response kind: ${responseKind}`);
-
-        // 2. Determine if collection from actual type information (NOT action name)
-        // The semantic analysis should already have this from the actual return type
-        let isCollection = collection || false;
-        let confidence = 0.8;
+        reasons.push(`Response kind: ${responseType}`);
 
         if (collection) {
-            reasons.push('Collection detected from return type');
-            confidence = 0.95;
+            reasons.push('Collection detected from response metadata');
         } else if (isPaginated) {
-            isCollection = true;
             reasons.push('Paginated response implies collection');
-            confidence = 0.95;
         } else {
-            // Single response
             reasons.push('Single response detected');
-            confidence = 0.85;
         }
 
-        // 3. Extract resource/model name
-        const resourceName = route.response?.resource || route.response?.model;
-        const modelName = route.response?.model;
-
-        if (resourceName) {
-            reasons.push(`Resource: ${resourceName}`);
-        }
+        const names = this.extractResponseNames(response);
 
         return {
             routeName: route.name,
-            responseType: responseKind as 'resource' | 'model' | 'object' | 'primitive' | 'unknown',
+            responseType,
             isCollection,
             isPaginated,
-            resourceName,
-            modelName,
-            confidence,
-            reasons
+            resourceName: names.resourceName,
+            modelName: names.modelName,
+            confidence: response ? 0.95 : 0.5,
+            reasons,
         };
     }
 
-    /**
-     * Build ResponseArtifact from analysis
-     */
-    private buildResponseArtifact(route: GeneratedRoute, analysis: RouteResponseAnalysis): ResponseArtifact {
-        const artifactId = `${route.name}.Response`;
-
-        // Build the response body based on type
-        let responseBody: ResponseBody;
-
-        if (analysis.responseType === 'resource') {
-            responseBody = {
-                type: 'resource',
-                resource: analysis.resourceName || 'UnknownResource',
-                model: analysis.modelName,
-                shape: analysis.isPaginated ? 'paginated' : analysis.isCollection ? 'collection' : 'single',
-                properties: undefined // Will be filled by semantic analysis pass
-            };
-        } else if (analysis.responseType === 'model') {
-            responseBody = {
-                type: 'model',
-                model: analysis.modelName || 'UnknownModel',
-                shape: analysis.isPaginated ? 'paginated' : analysis.isCollection ? 'collection' : 'single',
-                attributes: undefined
-            };
-        } else if (analysis.responseType === 'object') {
-            responseBody = {
-                type: 'object',
-                shape: analysis.isPaginated ? 'paginated' : analysis.isCollection ? 'collection' : 'single',
-                schema: {
-                    name: analysis.routeName,
-                    properties: {},
-                    required: []
-                }
-            };
-        } else if (analysis.responseType === 'primitive') {
-            responseBody = {
-                type: 'primitive',
-                primitiveType: 'unknown' as any,
-                shape: 'single' as const
-            };
-        } else {
-            responseBody = {
-                type: 'object',
-                shape: 'single' as const,
-                schema: {
-                    name: 'Unknown',
-                    properties: {},
-                    required: []
-                }
-            };
+    private extractResponseNames(response: ResponseMetadata | undefined): {
+        resourceName?: string;
+        modelName?: string;
+    } {
+        if (!response) {
+            return {};
         }
 
-        // Build confidence score
-        const confidenceScore: ConfidenceScore = {
+        if (response.kind === 'resource') {
+            return { resourceName: response.resource };
+        }
+
+        if (response.kind === 'model') {
+            return { modelName: response.model };
+        }
+
+        return {};
+    }
+
+    private buildResponseArtifact(
+        route: ParsedRoute,
+        analysis: RouteResponseAnalysis,
+    ): ResponseArtifact {
+        const artifactId = `${route.name}.Response`;
+        const responseBody = this.buildResponseBody(analysis);
+        const confidence: ConfidenceScore = {
             score: analysis.confidence,
             reasons: analysis.reasons,
-            method: 'inferred'
+            method: 'inferred',
         };
 
-        // Create the artifact using builder
-        const artifact = new ResponseArtifactBuilder()
+        return new ResponseArtifactBuilder()
             .id(artifactId)
             .body(responseBody)
-            .confidence(confidenceScore)
+            .confidence(confidence)
+            .metadata({
+                producer: this.name,
+                dependencies: ['RouteManifest'],
+                revision: '1.0.0',
+            })
             .build();
-
-        return artifact;
     }
+
+    private buildResponseBody(analysis: RouteResponseAnalysis): ResponseBody {
+        const shape = analysis.isPaginated
+            ? 'paginated'
+            : analysis.isCollection
+                ? 'collection'
+                : 'single';
+
+        switch (analysis.responseType) {
+            case 'resource':
+                return {
+                    type: 'resource',
+                    resource: analysis.resourceName ?? 'UnknownResource',
+                    model: analysis.modelName,
+                    shape,
+                };
+
+            case 'model':
+                return {
+                    type: 'model',
+                    model: analysis.modelName ?? 'UnknownModel',
+                    shape,
+                };
+
+            case 'primitive':
+                return {
+                    type: 'primitive',
+                    primitiveType: this.resolvePrimitiveType(),
+                    shape: 'single',
+                };
+
+            case 'object':
+            case 'unknown':
+            default:
+                return {
+                    type: 'object',
+                    schemaName: analysis.routeName,
+                    schema: {
+                        name: analysis.routeName,
+                        properties: {},
+                        required: [],
+                    },
+                    shape,
+                };
+        }
+    }
+
+    private resolvePrimitiveType(): 'string' | 'number' | 'boolean' | 'null' {
+        return 'string';
+    }
+
+    private computeAggregateHash(
+        artifacts: ReadonlyMap<string, ResponseArtifact>,
+    ): string {
+        let hash = 0;
+        const content = Array.from(artifacts.values())
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .map((artifact) => `${artifact.id}:${artifact.metadata.hash}`)
+            .join('|');
+
+        for (let i = 0; i < content.length; i += 1) {
+            hash = ((hash << 5) - hash) + content.charCodeAt(i);
+            hash |= 0;
+        }
+
+        return Math.abs(hash).toString(16);
+    }
+}
+
+interface RouteResponseAnalysis {
+    readonly routeName: string;
+    readonly responseType:
+    | 'resource'
+    | 'model'
+    | 'object'
+    | 'primitive'
+    | 'unknown';
+    readonly isCollection: boolean;
+    readonly isPaginated: boolean;
+    readonly resourceName?: string;
+    readonly modelName?: string;
+    readonly confidence: number;
+    readonly reasons: readonly string[];
 }

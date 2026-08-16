@@ -247,8 +247,8 @@ export interface ModelAttribute {
  * );
  * ```
  */
-export class ResponseArtifact extends TypedArtifact<'ResponseAnalysis'> {
-    public readonly typeId = 'ResponseAnalysis' as const;
+export class ResponseArtifact extends TypedArtifact<'ResponseArtifact'> {
+    public readonly typeId = 'ResponseArtifact' as const;
 
     constructor(
         /** Unique identifier (e.g., 'users.show.Response') */

@@ -44,3 +44,5 @@ export * from './GeneratedTypeScriptArtifact';
 export * from './GeneratedFormArtifact';
 export * from './GeneratedContractArtifact';
 export * from './RequestTypesArtifact';
+export { RouteManifestArtifact } from './RouteManifestArtifact';
+export { ResponseAnalysisArtifact } from './ResponseAnalysisArtifact';

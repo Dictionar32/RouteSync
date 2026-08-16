@@ -9,7 +9,7 @@
 
 import type { CompilerPass } from './CompilerPass';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
-import type { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
+import { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
 import type { GeneratedTypeScriptArtifact, GeneratedImport, GeneratedInterface } from '../artifacts/GeneratedTypeScriptArtifact';
 import type { SemanticType, ObjectType, PrimitiveType, ReadonlyCollectionType, MutableCollectionType, UnionType } from '../types/SemanticType';
 
@@ -66,7 +66,7 @@ export class TypeScriptGeneratorPass
 
     /** Input witnesses untuk type-safe artifact retrieval */
     public readonly inputWitnesses = [
-        { key: 'SemanticTypes' } as ArtifactKeyWitness<'SemanticTypes'>
+        new ArtifactKeyWitness('SemanticTypes')
     ] as const;
 
     /** Output keys yang di-produce oleh pass ini */

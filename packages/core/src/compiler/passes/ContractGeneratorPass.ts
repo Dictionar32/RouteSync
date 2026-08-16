@@ -9,7 +9,7 @@
 
 import type { CompilerPass } from './CompilerPass';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
-import type { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
+import { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
 import type { GeneratedContractArtifact, GeneratedContractInfo, ContractActionInfo } from '../artifacts/GeneratedContractArtifact';
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
@@ -58,7 +58,7 @@ export class ContractGeneratorPass
 
     /** Input witnesses for type-safe artifact retrieval */
     public readonly inputWitnesses = [
-        { key: 'RequestTypes' } as ArtifactKeyWitness<'RequestTypes'>
+        new ArtifactKeyWitness('RequestTypes')
     ] as const;
 
     /** Output keys that this pass produces */

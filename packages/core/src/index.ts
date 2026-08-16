@@ -62,6 +62,8 @@ export * as v6 from './compiler'
 
 // ResponseArtifact and related types (SSOT for response analysis)
 export { ResponseArtifact, ResponseArtifactBuilder } from './compiler/ir/ResponseArtifact'
+export { RouteManifestArtifact } from './compiler/artifacts/RouteManifestArtifact'
+export { ResponseAnalysisArtifact } from './compiler/artifacts/ResponseAnalysisArtifact'
 export type {
   ResponseDescriptor,
   ResponseBody,

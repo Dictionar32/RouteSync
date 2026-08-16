@@ -25,6 +25,8 @@ import type { CompilationResultArtifact } from './CompilationResultArtifact';
 
 // Response analysis artifacts (Laravel-specific)
 import type { ResponseArtifact, ValidationArtifact, ModelArtifact, ResourceArtifact, RouteArtifact } from '../ir/ResponseArtifact';
+import type { RouteManifestArtifact } from './RouteManifestArtifact';
+import type { ResponseAnalysisArtifact } from './ResponseAnalysisArtifact';
 
 // TypeScript generation artifact
 import type { GeneratedTypeScriptArtifact } from './GeneratedTypeScriptArtifact';
@@ -61,7 +63,9 @@ export interface ArtifactRegistry {
     CompilationResult: CompilationResultArtifact;
 
     // Laravel/HTTP Response Analysis Artifacts
-    ResponseAnalysis: ResponseArtifact;
+    RouteManifest: RouteManifestArtifact;
+    ResponseAnalysis: ResponseAnalysisArtifact;
+    ResponseArtifact: ResponseArtifact;
     ValidationAnalysis: ValidationArtifact;
     ModelAnalysis: ModelArtifact;
     ResourceAnalysis: ResourceArtifact;

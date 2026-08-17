@@ -9,7 +9,7 @@
 
 import type { CompilerPass } from './CompilerPass';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
-import { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
+import { ArtifactKeyWitness, type ResolveArtifacts } from './ArtifactKeyWitness';
 import type { GeneratedContractArtifact, GeneratedContractInfo, ContractActionInfo } from '../artifacts/GeneratedContractArtifact';
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
@@ -65,16 +65,19 @@ export class ContractGeneratorPass
     public readonly outputKeys = ['GeneratedContract'] as const;
 
     /** Pass descriptor for dependency resolution */
-    public readonly descriptor: PassDescriptor = {
-        consumes: ['RequestTypes'],
-        produces: ['GeneratedContract']
-    };
+    public readonly descriptor: PassDescriptor<
+        readonly ['RequestTypes'],
+        readonly ['GeneratedContract']
+    > = {
+            consumes: ['RequestTypes'],
+            produces: ['GeneratedContract']
+        };
 
     /** Dependencies - this pass requires RequestTypes artifact */
-    public readonly requires: readonly PassDependency[] = [
+    public readonly requires: readonly PassDependency<'RequestTypes'>[] = [
         {
             artifact: 'RequestTypes',
-            producer: undefined // External input
+            producer: undefined
         }
     ];
 
@@ -130,7 +133,7 @@ export class ContractGeneratorPass
     ): ResolveArtifacts<readonly ['GeneratedContract']> {
         try {
             // Extract request types artifact
-            const requestTypesArtifact = inputs[0];
+            const [requestTypesArtifact] = inputs;
             const requestTypes = requestTypesArtifact.requestTypes;
 
             console.log(`[ContractGeneratorPass] Processing ${requestTypes.length} request types`);

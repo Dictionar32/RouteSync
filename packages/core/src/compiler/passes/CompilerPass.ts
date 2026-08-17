@@ -7,7 +7,7 @@
  * @module compiler/passes
  */
 
-import type { ArtifactKey, ArtifactRegistry } from '../artifacts/types';
+import type { ArtifactKey } from '../artifacts/types';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
 import type { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
 import type { CompilationContext } from './CompilationContext';
@@ -26,16 +26,18 @@ export interface CompilerPass<
     readonly name: string;
 
     /** Type witnesses for input artifacts */
-    readonly inputWitnesses: { readonly [K in keyof I]: ArtifactKeyWitness<I[K]> };
+    readonly inputWitnesses: {
+        readonly [K in keyof I]: ArtifactKeyWitness<I[K]>;
+    };
 
     /** Output artifact keys this pass produces */
     readonly outputKeys: O;
 
     /** Pass descriptor for dependency resolution */
-    readonly descriptor: PassDescriptor;
+    readonly descriptor: PassDescriptor<I, O>;
 
     /** Specific artifact dependencies */
-    readonly requires: readonly PassDependency[];
+    readonly requires: readonly PassDependency<I[number]>[];
 
     /** Names of passes this produces (for ordering) */
     readonly producesPass: readonly string[];

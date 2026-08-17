@@ -8,6 +8,7 @@
  */
 
 import type { CompilerPass } from './CompilerPass';
+import type { CompilationContext } from './CompilationContext';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
 import { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
 import type { GeneratedTypeScriptArtifact, GeneratedImport, GeneratedInterface } from '../artifacts/GeneratedTypeScriptArtifact';
@@ -73,16 +74,19 @@ export class TypeScriptGeneratorPass
     public readonly outputKeys = ['GeneratedTypeScript'] as const;
 
     /** Pass descriptor untuk dependency resolution */
-    public readonly descriptor: PassDescriptor = {
-        consumes: ['SemanticTypes'],
-        produces: ['GeneratedTypeScript']
-    };
+    public readonly descriptor: PassDescriptor<
+        readonly ['SemanticTypes'],
+        readonly ['GeneratedTypeScript']
+    > = {
+            consumes: ['SemanticTypes'],
+            produces: ['GeneratedTypeScript']
+        };
 
     /** Dependencies - pass ini butuh SemanticTypes artifact */
-    public readonly requires: readonly PassDependency[] = [
+    public readonly requires: readonly PassDependency<'SemanticTypes'>[] = [
         {
             artifact: 'SemanticTypes',
-            producer: undefined // External input or previous pass
+            producer: undefined
         }
     ];
 
@@ -120,11 +124,12 @@ export class TypeScriptGeneratorPass
      * @returns Tuple containing GeneratedTypeScriptArtifact
      */
     public run(
-        inputs: ResolveArtifacts<readonly ['SemanticTypes']>
+        inputs: ResolveArtifacts<readonly ['SemanticTypes']>,
+        _context: CompilationContext,
     ): ResolveArtifacts<readonly ['GeneratedTypeScript']> {
         try {
             // Extract semantic types artifact
-            const semanticTypesArtifact = inputs[0];
+            const [semanticTypesArtifact] = inputs;
             const types = semanticTypesArtifact.types;
 
             // Reset generator untuk fresh state

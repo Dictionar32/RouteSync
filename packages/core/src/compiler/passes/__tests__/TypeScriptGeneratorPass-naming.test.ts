@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { TypeScriptGeneratorPass } from '../TypeScriptGeneratorPass'
+import { CompilationContext } from '../CompilationContext'
 import type { SemanticTypesArtifact } from '../TypeScriptGeneratorPass'
 import { PrimitiveType, PrimitiveKind, ObjectType } from '../../types/SemanticType'
 import { ImmutableMap, ImmutableSet } from '../../utils/ImmutableCollections'
@@ -61,8 +62,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should generate semantic names from annotations', async () => {
             // Arrange: Create ObjectType dengan name annotation
             const properties = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('number' as PrimitiveKind)],
-                ['name', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType( PrimitiveKind.NUMBER)],
+                ['name', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -75,7 +76,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result).toBeDefined()
@@ -87,8 +88,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should handle resource types with semantic names', async () => {
             // Arrange: Create resource type
             const properties = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('string' as PrimitiveKind)],
-                ['totalHarga', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['totalHarga', new PrimitiveType(PrimitiveKind.NUMBER)],
             ])
 
             const annotations = new Map<string, string>([
@@ -101,7 +102,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('export interface OrderResourceTransformed')
@@ -110,7 +111,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should fallback to synthetic names if no annotation', async () => {
             // Arrange: Create type WITHOUT name annotation
             const properties = new Map<string, PrimitiveType>([
-                ['value', new PrimitiveType('string' as PrimitiveKind)],
+                ['value', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const anonymousType = createMockObjectType(properties) // No annotations!
@@ -118,7 +119,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             // Should generate SOME name (not crash)
@@ -131,10 +132,10 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should preserve camelCase properties from CompilerBridge', async () => {
             // Arrange: Properties already in camelCase (dari CompilerBridge)
             const properties = new Map<string, PrimitiveType>([
-                ['totalHarga', new PrimitiveType('string' as PrimitiveKind)],
-                ['invoiceNumber', new PrimitiveType('string' as PrimitiveKind)],
-                ['paymentStatus', new PrimitiveType('string' as PrimitiveKind)],
-                ['createdAt', new PrimitiveType('string' as PrimitiveKind)],
+                ['totalHarga', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['invoiceNumber', new PrimitiveType(PrimitiveKind.STRING)],
+                ['paymentStatus', new PrimitiveType(PrimitiveKind.STRING)],
+                ['createdAt', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -147,7 +148,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('totalHarga')
@@ -165,10 +166,10 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should handle mixed camelCase properties', async () => {
             // Arrange: Mix of simple and compound names
             const properties = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('number' as PrimitiveKind)],
-                ['firstName', new PrimitiveType('string' as PrimitiveKind)],
-                ['lastName', new PrimitiveType('string' as PrimitiveKind)],
-                ['emailAddress', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['firstName', new PrimitiveType(PrimitiveKind.STRING)],
+                ['lastName', new PrimitiveType(PrimitiveKind.STRING)],
+                ['emailAddress', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -181,7 +182,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('id')
@@ -195,8 +196,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should generate Show/Index aliases for resources (kind=resource)', async () => {
             // Arrange: Resource type (kind: 'resource')
             const properties = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('string' as PrimitiveKind)],
-                ['nama', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['nama', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -209,7 +210,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('export interface ProductResourceTransformed')
@@ -220,8 +221,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should NOT generate Show/Index aliases for models (kind=model)', async () => {
             // Arrange: Model type (kind: 'model')
             const properties = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('number' as PrimitiveKind)],
-                ['name', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['name', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -234,7 +235,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('export interface UserTransformed')
@@ -246,8 +247,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
             // Arrange: Type without kind annotation AND without Resource/Response
             // suffix (RegisterFields bukan resource-by-naming-convention)
             const properties = new Map<string, PrimitiveType>([
-                ['success', new PrimitiveType('boolean' as PrimitiveKind)],
-                ['message', new PrimitiveType('string' as PrimitiveKind)],
+                ['success', new PrimitiveType(PrimitiveKind.BOOLEAN)],
+                ['message', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -260,7 +261,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('export interface RegisterFieldsTransformed')
@@ -273,8 +274,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
             // sejak refactor, resource dideteksi via naming convention
             // (endsWith Resource OR Response), bukan hanya kind annotation.
             const properties = new Map<string, PrimitiveType>([
-                ['success', new PrimitiveType('boolean' as PrimitiveKind)],
-                ['message', new PrimitiveType('string' as PrimitiveKind)],
+                ['success', new PrimitiveType(PrimitiveKind.BOOLEAN)],
+                ['message', new PrimitiveType(PrimitiveKind.STRING)],
             ])
 
             const annotations = new Map<string, string>([
@@ -287,7 +288,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             expect(result.code).toContain('export interface RegisterResponseTransformed')
@@ -298,7 +299,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should handle multiple resources with correct aliases', async () => {
             // Arrange: Multiple resource types dan 1 model
             const orderProps = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
             ])
             const orderAnnotations = new Map<string, string>([
                 ['name', 'OrderResource'],
@@ -306,7 +307,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
             ])
 
             const paymentProps = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
             ])
             const paymentAnnotations = new Map<string, string>([
                 ['name', 'PaymentResource'],
@@ -314,7 +315,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
             ])
 
             const userProps = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('number' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
             ])
             const userAnnotations = new Map<string, string>([
                 ['name', 'User'],
@@ -333,7 +334,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert
             // Resources should have aliases
@@ -352,11 +353,11 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
         it('should handle real-world toko-online scenario', async () => {
             // Arrange: Types similar to toko-online
             const orderProps = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('string' as PrimitiveKind)],
-                ['totalHarga', new PrimitiveType('string' as PrimitiveKind)],
-                ['invoiceNumber', new PrimitiveType('string' as PrimitiveKind)],
-                ['paymentStatus', new PrimitiveType('string' as PrimitiveKind)],
-                ['createdAt', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['totalHarga', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['invoiceNumber', new PrimitiveType(PrimitiveKind.STRING)],
+                ['paymentStatus', new PrimitiveType(PrimitiveKind.STRING)],
+                ['createdAt', new PrimitiveType(PrimitiveKind.STRING)],
             ])
             const orderAnnotations = new Map<string, string>([
                 ['name', 'OrderResource'],
@@ -364,8 +365,8 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
             ])
 
             const userProps = new Map<string, PrimitiveType>([
-                ['id', new PrimitiveType('number' as PrimitiveKind)],
-                ['createdAt', new PrimitiveType('string' as PrimitiveKind)],
+                ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
+                ['createdAt', new PrimitiveType(PrimitiveKind.STRING)],
             ])
             const userAnnotations = new Map<string, string>([
                 ['name', 'User'],
@@ -379,7 +380,7 @@ describe('TypeScriptGeneratorPass - Semantic Naming (Phase 1)', () => {
 
             // Act
             const pass = new TypeScriptGeneratorPass()
-            const [result] = pass.run([artifact])
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Assert: Resource
             expect(result.code).toContain('export interface OrderResourceTransformed')

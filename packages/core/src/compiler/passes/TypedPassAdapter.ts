@@ -36,7 +36,55 @@ export class TypedPassAdapter<
     I extends readonly ArtifactKey[],
     O extends readonly ArtifactKey[]
 > implements ExecutablePass {
-    constructor(private readonly pass: CompilerPass<I, O>) { }
+    constructor(private readonly pass: CompilerPass<I, O>) {
+        this.validateContract();
+    }
+
+
+    /**
+     * Validates the runtime shape of a manually constructed CompilerPass.
+     * Generic typing guarantees this contract for normal TypeScript code, but
+     * JavaScript callers and erased runtime values can still violate it.
+     */
+    private validateContract(): void {
+        const inputKeys = this.pass.inputWitnesses.map((witness) => witness.key);
+        const declaredInputs = this.pass.descriptor.consumes;
+        const declaredOutputs = this.pass.descriptor.produces;
+
+        if (!this.sameKeys(inputKeys, declaredInputs)) {
+            throw new Error(
+                `Compiler pass ${this.pass.name} has an inconsistent input contract: ` +
+                'input witnesses do not match descriptor.consumes',
+            );
+        }
+
+        if (!this.sameKeys(this.pass.outputKeys, declaredOutputs)) {
+            throw new Error(
+                `Compiler pass ${this.pass.name} has an inconsistent output contract: ` +
+                'outputKeys do not match descriptor.produces',
+            );
+        }
+
+        const consumed = new Set(declaredInputs);
+        for (const dependency of this.pass.requires) {
+            if (!consumed.has(dependency.artifact)) {
+                throw new Error(
+                    `Compiler pass ${this.pass.name} declares dependency on ${dependency.artifact} ` +
+                    'but does not consume that artifact',
+                );
+            }
+        }
+    }
+
+    private sameKeys(
+        left: readonly ArtifactKey[],
+        right: readonly ArtifactKey[],
+    ): boolean {
+        return (
+            left.length === right.length &&
+            left.every((key, index) => key === right[index])
+        );
+    }
 
     public get name(): string {
         return this.pass.name;

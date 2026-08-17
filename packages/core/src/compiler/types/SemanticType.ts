@@ -55,10 +55,44 @@ export abstract class SemanticTypeBase {
  * const numberType = new PrimitiveType(PrimitiveKind.NUMBER);
  * ```
  */
+export type PrimitiveKindValue =
+    | PrimitiveKind
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'datetime'
+    | 'unknown';
+
+const primitiveKindByValue: Readonly<Record<
+    'string' | 'number' | 'boolean' | 'datetime' | 'unknown',
+    PrimitiveKind
+>> = {
+    string: PrimitiveKind.STRING,
+    number: PrimitiveKind.NUMBER,
+    boolean: PrimitiveKind.BOOLEAN,
+    datetime: PrimitiveKind.DATETIME,
+    unknown: PrimitiveKind.UNKNOWN,
+};
+
+function normalizePrimitiveKind(
+    value: PrimitiveKindValue,
+): PrimitiveKind {
+    if (value === PrimitiveKind.STRING) return PrimitiveKind.STRING;
+    if (value === PrimitiveKind.NUMBER) return PrimitiveKind.NUMBER;
+    if (value === PrimitiveKind.BOOLEAN) return PrimitiveKind.BOOLEAN;
+    if (value === PrimitiveKind.DATETIME) return PrimitiveKind.DATETIME;
+    if (value === PrimitiveKind.UNKNOWN) return PrimitiveKind.UNKNOWN;
+
+    return primitiveKindByValue[value];
+}
+
 export class PrimitiveType extends SemanticTypeBase {
     readonly kind = 'primitive';
-    constructor(readonly type: PrimitiveKind) {
+    readonly type: PrimitiveKind;
+
+    constructor(type: PrimitiveKindValue) {
         super();
+        this.type = normalizePrimitiveKind(type);
     }
 }
 
@@ -270,4 +304,3 @@ export type SemanticType =
     | MutableCollectionType
     | GenericType
     | ObjectType;
-

@@ -9,12 +9,13 @@
 
 import type { CompilerPass } from './CompilerPass';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
-import { ArtifactKeyWitness, ResolveArtifacts } from './ArtifactKeyWitness';
+import { ArtifactKeyWitness, type ResolveArtifacts } from './ArtifactKeyWitness';
+import type { CompilationContext } from './CompilationContext';
 import type { GeneratedFormArtifact, GeneratedFormType, GeneratedFormAction } from '../artifacts/GeneratedFormArtifact';
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
 import { FormFieldMapper } from '../generators/form-generation/FormFieldMapper';
-import { FormActionGenerator, GeneratedAction } from '../generators/form-generation/FormActionGenerator';
+import { FormActionGenerator, type GeneratedAction } from '../generators/form-generation/FormActionGenerator';
 import { FormCodeBuilder } from '../generators/form-generation/FormCodeBuilder';
 import { computeFingerprintHash, type CompilerFingerprint } from '../fingerprint/Fingerprint';
 
@@ -39,7 +40,10 @@ import { computeFingerprintHash, type CompilerFingerprint } from '../fingerprint
  * ```
  */
 export class FormGeneratorPass
-    implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedForm']> {
+    implements CompilerPass<
+        readonly ['RequestTypes'],
+        readonly ['GeneratedForm']
+    > {
 
     /** Pass name untuk identification dan logging */
     public readonly name = 'FormGenerator';
@@ -53,16 +57,19 @@ export class FormGeneratorPass
     public readonly outputKeys = ['GeneratedForm'] as const;
 
     /** Pass descriptor untuk dependency resolution */
-    public readonly descriptor: PassDescriptor = {
-        consumes: ['RequestTypes'],
-        produces: ['GeneratedForm']
-    };
+    public readonly descriptor: PassDescriptor<
+        readonly ['RequestTypes'],
+        readonly ['GeneratedForm']
+    > = {
+            consumes: ['RequestTypes'],
+            produces: ['GeneratedForm']
+        };
 
     /** Dependencies - pass ini butuh RequestTypes artifact */
-    public readonly requires: readonly PassDependency[] = [
+    public readonly requires: readonly PassDependency<'RequestTypes'>[] = [
         {
             artifact: 'RequestTypes',
-            producer: undefined // External input
+            producer: undefined
         }
     ];
 
@@ -107,11 +114,12 @@ export class FormGeneratorPass
      * @returns Tuple containing GeneratedFormArtifact
      */
     public run(
-        inputs: ResolveArtifacts<readonly ['RequestTypes']>
+        inputs: ResolveArtifacts<readonly ['RequestTypes']>,
+        _context: CompilationContext,
     ): ResolveArtifacts<readonly ['GeneratedForm']> {
         try {
             // Extract request types artifact
-            const requestTypesArtifact = inputs[0];
+            const [requestTypesArtifact] = inputs;
             const requestTypes = requestTypesArtifact.requestTypes;
 
             console.log(`[FormGeneratorPass] Processing ${requestTypes.length} request types`);

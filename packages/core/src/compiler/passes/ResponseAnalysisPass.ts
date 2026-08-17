@@ -33,12 +33,15 @@ export class ResponseAnalysisPass
 
     public readonly outputKeys = ['ResponseAnalysis'] as const;
 
-    public readonly descriptor: PassDescriptor = {
-        consumes: ['RouteManifest'],
-        produces: ['ResponseAnalysis'],
-    };
+    public readonly descriptor: PassDescriptor<
+        readonly ['RouteManifest'],
+        readonly ['ResponseAnalysis']
+    > = {
+            consumes: ['RouteManifest'],
+            produces: ['ResponseAnalysis'],
+        };
 
-    public readonly requires: readonly PassDependency[] = [
+    public readonly requires: readonly PassDependency<'RouteManifest'>[] = [
         { artifact: 'RouteManifest' },
     ];
 
@@ -46,7 +49,7 @@ export class ResponseAnalysisPass
 
     public async run(
         [routeManifestArtifact]: ResolveArtifacts<readonly ['RouteManifest']>,
-        context: CompilationContext,
+        _context: CompilationContext,
     ): Promise<ResolveArtifacts<readonly ['ResponseAnalysis']>> {
         const responseArtifacts = new Map<string, ResponseArtifact>();
 

@@ -1,278 +1,340 @@
 /**
- * @fileoverview Salsa-inspired incremental compilation system
- * @module compiler/query/SalsaCompiler
+ * @fileoverview Salsa-inspired incremental query compiler.
+ *
+ * Phase 3B:
+ * - Query output type is carried by QueryKey<O>.
+ * - Query graph stores metadata only; values never become unknown.
+ * - Cache values remain attached to typed query keys.
+ * - No generic result assertion is required on cache reads.
  */
 
 import type { FileSpan } from '../types/FileSpan';
 import type { SemanticType } from '../types/SemanticType';
 import { PrimitiveType, PrimitiveKind } from '../types/SemanticType';
-/**
- * Unique identifier for a query
- */
-export interface QueryKey {
+import { SymbolDatabase } from '../analysis';
+import {
+    createMemoizedQueryKey,
+    type MemoizedQueryKey,
+} from './TypedCache';
+
+export interface QueryKey<O> extends MemoizedQueryKey<O> {
     readonly queryName: string;
     readonly targetId: string;
     readonly optionsHash: string;
+
+    derive(targetId: string, optionsHash?: string): QueryKey<O>;
 }
 
-/**
- * Node in the query dependency graph
- */
+function createQueryKeyInternal<O>(
+    queryName: string,
+    targetId: string,
+    optionsHash: string,
+    cacheRoot: MemoizedQueryKey<O>,
+): QueryKey<O> {
+    const id = `${queryName}:${targetId}:${optionsHash}`;
+    const valueKey = cacheRoot.scope(id);
+
+    return {
+        ...valueKey,
+        id,
+        queryName,
+        targetId,
+        optionsHash,
+
+        derive: (
+            nextTargetId: string,
+            nextOptionsHash = optionsHash,
+        ) => createQueryKeyInternal(
+            queryName,
+            nextTargetId,
+            nextOptionsHash,
+            cacheRoot,
+        ),
+    };
+}
+
+export function createQueryKey<O>(
+    queryName: string,
+    targetId: string,
+    optionsHash: string,
+): QueryKey<O> {
+    const root = createMemoizedQueryKey<O>(
+        `${queryName}:${targetId}:${optionsHash}`,
+    );
+
+    return createQueryKeyInternal(
+        queryName,
+        targetId,
+        optionsHash,
+        root,
+    );
+}
+
 export interface QueryNode {
-    readonly key: QueryKey;
-    readonly value: unknown;
+    readonly keyId: string;
     readonly dependencies: ReadonlySet<string>;
     readonly dependents: ReadonlySet<string>;
     readonly lastChangedRevision: number;
     readonly lastVerifiedRevision: number;
 }
 
-/**
- * Context information for a query
- */
 export interface QueryContext {
     readonly packageId?: string;
     readonly moduleId?: string;
     readonly symbolId?: string;
 }
 
-/**
- * Stack frame for query execution
- */
 export interface QueryFrame {
-    readonly key: QueryKey;
+    readonly key: QueryKey<unknown>;
     readonly queryKind: string;
     readonly context?: QueryContext;
     readonly span?: FileSpan;
 }
 
-/**
- * Error thrown when a query cycle is detected
- */
 export class QueryCycleError extends Error {
     constructor(
         message: string,
-        public readonly queryStack: readonly QueryFrame[]
+        public readonly queryStack: readonly QueryFrame[],
     ) {
         super(message);
         this.name = 'QueryCycleError';
     }
 }
 
-/**
- * Simple symbol database interface
- */
-import { SymbolDatabase } from '../analysis';
+interface ActiveQueryFrame {
+    readonly keyId: string;
+}
 
-/**
- * Salsa-inspired incremental compilation engine
- * 
- * Implements demand-driven computation with:
- * - Fine-grained dependency tracking
- * - Cycle detection
- * - Incremental invalidation
- * - Revision-based caching
- * 
- * Based on the Salsa framework: https://salsa-rs.github.io/salsa/
- * 
- * @example
- * ```typescript
- * const compiler = new SalsaCompiler(symbolDb);
- * 
- * const type = compiler.typecheck('User', 1);
- * 
- * // Later revisions reuse results if dependencies haven't changed
- * const cachedType = compiler.typecheck('User', 2);
- * ```
- */
 export class SalsaCompiler {
-    private queryGraph = new Map<string, QueryNode>();
-    private activeQueries = new Set<string>();
-    private activeQueryStack: string[] = [];
-    private queryKeys = new Map<string, QueryKey>();
+    private readonly queryGraph = new Map<string, QueryNode>();
+    private readonly activeQueries = new Set<string>();
+    private readonly activeQueryStack: ActiveQueryFrame[] = [];
+
+    private readonly typecheckKey = createQueryKey<SemanticType>(
+        'typecheck',
+        '__root__',
+        'default',
+    );
 
     constructor(
-        private readonly symbolDb: SymbolDatabase
+        private readonly symbolDb: SymbolDatabase,
     ) { }
 
-    /**
-     * Executes a query with incremental caching
-     * 
-     * @template I Input type
-     * @template O Output type
-     * @param key Query key
-     * @param compute Computation function
-     * @param input Query input
-     * @param currentRevision Current revision number
-     * @returns Computed or cached result
-     * @throws {QueryCycleError} If a query cycle is detected
-     */
     public executeQuery<I, O>(
-        key: QueryKey,
+        key: QueryKey<O>,
         compute: (input: I) => O,
         input: I,
-        currentRevision: number
+        currentRevision: number,
     ): O {
-        const keyStr = `${key.queryName}:${key.targetId}:${key.optionsHash}`;
+        const keyId = key.id;
 
-        // Detect cycles
-        if (this.activeQueries.has(keyStr)) {
-            const cycleFrames = this.activeQueryStack.map(k => {
-                const queryKey = this.queryKeys.get(k)!;
-                return {
-                    key: queryKey,
-                    queryKind: queryKey.queryName,
-                    context: {
-                        symbolId: queryKey.targetId
-                    }
-                };
-            });
-            cycleFrames.push({
-                key,
-                queryKind: key.queryName,
-                context: {
-                    symbolId: key.targetId
-                }
-            });
-            const cyclePath = [...this.activeQueryStack, keyStr].join(' -> ');
-            throw new QueryCycleError(`Query cycle detected: ${cyclePath}`, cycleFrames);
+        if (this.activeQueries.has(keyId)) {
+            throw new QueryCycleError(
+                `Query cycle detected: ${[
+                    ...this.activeQueryStack.map((frame) => frame.keyId),
+                    keyId,
+                ].join(' -> ')}`,
+                this.buildCycleFrames(key),
+            );
         }
 
-        // Track dependency from parent
-        if (this.activeQueryStack.length > 0) {
-            const parentKey = this.activeQueryStack[this.activeQueryStack.length - 1]!;
-            const parentNode = this.queryGraph.get(parentKey);
-            if (parentNode) {
-                const nextDeps = new Set([...parentNode.dependencies, keyStr]);
-                this.queryGraph.set(parentKey, { ...parentNode, dependencies: nextDeps });
-            }
+        this.recordParentDependency(keyId);
 
-            const childNode = this.queryGraph.get(keyStr);
-            if (childNode) {
-                const nextDepsOfChild = new Set([...childNode.dependents, parentKey]);
-                this.queryGraph.set(keyStr, { ...childNode, dependents: nextDepsOfChild });
+        const cachedNode = this.queryGraph.get(keyId);
+        if (
+            cachedNode &&
+            this.isCacheValid(cachedNode, currentRevision) &&
+            key.hasValue()
+        ) {
+            const cachedValue = key.read();
+            if (cachedValue !== undefined) {
+                return cachedValue;
             }
         }
 
-        // Check cache
-        const cached = this.queryGraph.get(keyStr);
-        if (cached) {
-            let dependenciesValid = true;
-            for (const depKey of cached.dependencies) {
-                const depNode = this.queryGraph.get(depKey);
-                if (!depNode || depNode.lastChangedRevision > cached.lastVerifiedRevision) {
-                    dependenciesValid = false;
-                    break;
-                }
-            }
+        const existingDependents =
+            cachedNode?.dependents ?? new Set<string>();
 
-            if (dependenciesValid && cached.lastVerifiedRevision === currentRevision) {
-                return cached.value as O;
-            }
-        }
+        const node: QueryNode = {
+            keyId,
+            dependencies: new Set<string>(),
+            dependents: new Set(existingDependents),
+            lastChangedRevision:
+                cachedNode?.lastChangedRevision ?? currentRevision,
+            lastVerifiedRevision: currentRevision,
+        };
 
-        // Execute query
-        this.activeQueries.add(keyStr);
-        this.queryKeys.set(keyStr, key);
-        this.activeQueryStack.push(keyStr);
-        const existingNode = this.queryGraph.get(keyStr);
-        this.queryGraph.set(keyStr, {
-            key,
-            value: existingNode ? existingNode.value : undefined,
-            dependencies: new Set(),
-            dependents: existingNode ? existingNode.dependents : new Set(),
-            lastChangedRevision: existingNode ? existingNode.lastChangedRevision : currentRevision,
-            lastVerifiedRevision: currentRevision
-        });
+        this.queryGraph.set(keyId, node);
+        this.activeQueries.add(keyId);
+        this.activeQueryStack.push({ keyId });
 
         try {
+            const previousValue = key.read();
             const value = compute(input);
-            const node = this.queryGraph.get(keyStr);
-            if (node) {
-                const valueChanged = JSON.stringify(node.value) !== JSON.stringify(value);
-                this.queryGraph.set(keyStr, {
-                    ...node,
-                    value,
-                    lastChangedRevision: valueChanged ? currentRevision : node.lastChangedRevision,
-                    lastVerifiedRevision: currentRevision
-                });
+            const valueChanged =
+                !key.hasValue() ||
+                JSON.stringify(previousValue) !== JSON.stringify(value);
 
-                if (valueChanged) {
-                    this.invalidateDependents(keyStr, currentRevision);
-                }
+            this.queryGraph.set(keyId, {
+                ...node,
+                lastChangedRevision: valueChanged
+                    ? currentRevision
+                    : node.lastChangedRevision,
+                lastVerifiedRevision: currentRevision,
+            });
+
+            key.write(value);
+
+            if (valueChanged) {
+                this.invalidateDependents(keyId, currentRevision);
             }
+
             return value;
         } finally {
-            this.activeQueries.delete(keyStr);
+            this.activeQueries.delete(keyId);
             this.activeQueryStack.pop();
         }
     }
 
-    /**
-     * Invalidates all queries that depend on the given query
-     * 
-     * @param keyStr Query key string
-     * @param revision Current revision
-     * @private
-     */
-    private invalidateDependents(keyStr: string, revision: number): void {
-        const queue = [keyStr];
+    private buildCycleFrames<O>(key: QueryKey<O>): readonly QueryFrame[] {
+        const frames = this.activeQueryStack.map(
+            (frame): QueryFrame => ({
+                key: createQueryKey<unknown>(
+                    'query',
+                    frame.keyId,
+                    'cycle',
+                ),
+                queryKind: 'query',
+            }),
+        );
+
+        return [
+            ...frames,
+            {
+                key: createQueryKey<unknown>(
+                    key.queryName,
+                    key.targetId,
+                    key.optionsHash,
+                ),
+                queryKind: key.queryName,
+                context: {
+                    symbolId: key.targetId,
+                },
+            },
+        ];
+    }
+
+    private recordParentDependency(childId: string): void {
+        const parent = this.activeQueryStack.at(-1);
+        if (!parent) {
+            return;
+        }
+
+        const parentNode = this.queryGraph.get(parent.keyId);
+        if (parentNode) {
+            const dependencies = new Set(parentNode.dependencies);
+            dependencies.add(childId);
+
+            this.queryGraph.set(parent.keyId, {
+                ...parentNode,
+                dependencies,
+            });
+        }
+
+        const childNode = this.queryGraph.get(childId);
+        if (childNode) {
+            const dependents = new Set(childNode.dependents);
+            dependents.add(parent.keyId);
+
+            this.queryGraph.set(childId, {
+                ...childNode,
+                dependents,
+            });
+        }
+    }
+
+    private isCacheValid(
+        node: QueryNode,
+        currentRevision: number,
+    ): boolean {
+        if (node.lastVerifiedRevision !== currentRevision) {
+            return false;
+        }
+
+        for (const dependencyId of node.dependencies) {
+            const dependency = this.queryGraph.get(dependencyId);
+
+            if (
+                !dependency ||
+                dependency.lastChangedRevision > node.lastVerifiedRevision
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private invalidateDependents(
+        keyId: string,
+        revision: number,
+    ): void {
+        const queue = [keyId];
         const visited = new Set<string>();
 
         while (queue.length > 0) {
-            const current = queue.shift()!;
+            const current = queue.shift();
+
+            if (!current || visited.has(current)) {
+                continue;
+            }
+
             visited.add(current);
 
             const node = this.queryGraph.get(current);
-            if (node) {
-                for (const dep of node.dependents) {
-                    if (!visited.has(dep)) {
-                        const depNode = this.queryGraph.get(dep);
-                        if (depNode) {
-                            this.queryGraph.set(dep, {
-                                ...depNode,
-                                lastVerifiedRevision: revision - 1
-                            });
-                            queue.push(dep);
-                        }
-                    }
+            if (!node) {
+                continue;
+            }
+
+            for (const dependentId of node.dependents) {
+                const dependent = this.queryGraph.get(dependentId);
+
+                if (!dependent || visited.has(dependentId)) {
+                    continue;
                 }
+
+                this.queryGraph.set(dependentId, {
+                    ...dependent,
+                    lastVerifiedRevision: revision - 1,
+                });
+
+                queue.push(dependentId);
             }
         }
     }
 
-    /**
-     * Example: Typecheck query
-     * 
-     * @param symbolId Symbol identifier
-     * @param revision Current revision
-     * @returns Semantic type of the symbol
-     */
-    public typecheck(symbolId: string, revision: number): SemanticType {
-        const key: QueryKey = {
-            queryName: 'typecheck',
-            targetId: symbolId,
-            optionsHash: 'default'
-        };
+    public typecheck(
+        symbolId: string,
+        revision: number,
+    ): SemanticType {
+        const key = this.typecheckKey.derive(symbolId);
 
         return this.executeQuery(
             key,
             () => {
-                const sym = this.symbolDb.getSymbol(symbolId);
-                if (!sym) {
+                const symbol = this.symbolDb.getSymbol(symbolId);
+
+                if (!symbol) {
                     throw new Error(`Symbol not found: ${symbolId}`);
                 }
-                // Simple placeholder - real implementation would analyze the symbol
+
                 return new PrimitiveType(PrimitiveKind.STRING);
             },
             undefined,
-            revision
+            revision,
         );
     }
 
-    /**
-     * Gets statistics about the query system
-     */
     public getStats(): {
         totalQueries: number;
         activeQueries: number;
@@ -281,17 +343,13 @@ export class SalsaCompiler {
         return {
             totalQueries: this.queryGraph.size,
             activeQueries: this.activeQueries.size,
-            graphSize: this.queryGraph.size
+            graphSize: this.queryGraph.size,
         };
     }
 
-    /**
-     * Clears all cached queries
-     */
     public clear(): void {
         this.queryGraph.clear();
         this.activeQueries.clear();
-        this.activeQueryStack = [];
-        this.queryKeys.clear();
+        this.activeQueryStack.length = 0;
     }
 }

@@ -1,49 +1,48 @@
 /**
  * @file AnalysisManager.ts
- * @description Analysis result caching dan dependency tracking
+ * @description Registry-typed analysis caching and dependency invalidation.
  */
-
-import type { AnalysisKey } from '../passes/PassResult';
 import { FIFOQueue } from '../utils/Queue';
+import type { AnalysisKey } from '../passes/PassResult';
+import type { AnalysisKeyName, AnalysisRegistry } from './AnalysisRegistry';
+import { PassAnalysisStore } from './PassAnalysisStore';
 
-/**
- * Analysis dependency graph
- * 
- * Tracks dependencies between analyses untuk proper invalidation.
- * When analysis A changes, all dependent analyses must be invalidated.
- */
-export class AnalysisDependencyGraph {
-    /** Map dari analysis ke analyses yang depend on it */
-    private dependentsMap = new Map<AnalysisKey<unknown>, Set<AnalysisKey<unknown>>>();
+type AnyAnalysisKey<R extends object> = AnalysisKey<R, AnalysisKeyName<R>>;
 
-    /** Map dari analysis ke analyses it depends on */
-    private dependenciesMap = new Map<AnalysisKey<unknown>, Set<AnalysisKey<unknown>>>();
+export class AnalysisDependencyGraph<R extends object = AnalysisRegistry> {
+    private readonly dependentsMap = new Map<
+        AnyAnalysisKey<R>,
+        Set<AnyAnalysisKey<R>>
+    >();
 
-    /**
-     * Add dependency: child depends on parent
-     * 
-     * @param parent - Analysis yang depended upon
-     * @param child - Analysis yang depends on parent
-     */
-    public addDependency(parent: AnalysisKey<unknown>, child: AnalysisKey<unknown>): void {
-        // Track dependents (forward edges)
-        const deps = this.dependentsMap.get(parent) ?? new Set();
+    private readonly dependenciesMap = new Map<
+        AnyAnalysisKey<R>,
+        Set<AnyAnalysisKey<R>>
+    >();
+
+    public addDependency<
+        TParent extends AnalysisKeyName<R>,
+        TChild extends AnalysisKeyName<R>,
+    >(
+        parent: AnalysisKey<R, TParent>,
+        child: AnalysisKey<R, TChild>,
+    ): void {
+        const deps = this.dependentsMap.get(parent) ?? new Set<AnyAnalysisKey<R>>();
         deps.add(child);
         this.dependentsMap.set(parent, deps);
 
-        // Track dependencies (backward edges)
-        const revs = this.dependenciesMap.get(child) ?? new Set();
-        revs.add(parent);
-        this.dependenciesMap.set(child, revs);
+        const reverse = this.dependenciesMap.get(child) ?? new Set<AnyAnalysisKey<R>>();
+        reverse.add(parent);
+        this.dependenciesMap.set(child, reverse);
     }
 
-    /**
-     * Remove dependency
-     * 
-     * @param parent - Parent analysis
-     * @param child - Child analysis
-     */
-    public removeDependency(parent: AnalysisKey<unknown>, child: AnalysisKey<unknown>): void {
+    public removeDependency<
+        TParent extends AnalysisKeyName<R>,
+        TChild extends AnalysisKeyName<R>,
+    >(
+        parent: AnalysisKey<R, TParent>,
+        child: AnalysisKey<R, TChild>,
+    ): void {
         const deps = this.dependentsMap.get(parent);
         if (deps) {
             deps.delete(child);
@@ -52,185 +51,117 @@ export class AnalysisDependencyGraph {
             }
         }
 
-        const revs = this.dependenciesMap.get(child);
-        if (revs) {
-            revs.delete(parent);
-            if (revs.size === 0) {
+        const reverse = this.dependenciesMap.get(child);
+        if (reverse) {
+            reverse.delete(parent);
+            if (reverse.size === 0) {
                 this.dependenciesMap.delete(child);
             }
         }
     }
 
-    /**
-     * Get all analyses yang depend on given analysis
-     * 
-     * @param key - Analysis key
-     * @returns Set of dependent analyses
-     */
-    public dependents(key: AnalysisKey<unknown>): ReadonlySet<AnalysisKey<unknown>> {
-        return this.dependentsMap.get(key) ?? new Set();
+    public dependents<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+    ): ReadonlySet<AnyAnalysisKey<R>> {
+        return this.dependentsMap.get(key) ?? new Set<AnyAnalysisKey<R>>();
     }
 
-    /**
-     * Get all analyses yang this analysis depends on
-     * 
-     * @param key - Analysis key
-     * @returns Set of dependency analyses
-     */
-    public dependencies(key: AnalysisKey<unknown>): ReadonlySet<AnalysisKey<unknown>> {
-        return this.dependenciesMap.get(key) ?? new Set();
+    public dependencies<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+    ): ReadonlySet<AnyAnalysisKey<R>> {
+        return this.dependenciesMap.get(key) ?? new Set<AnyAnalysisKey<R>>();
     }
 
-    /**
-     * Clear all dependencies
-     */
+    public dependencyCount(): number {
+        let total = 0;
+        for (const deps of this.dependentsMap.values()) {
+            total += deps.size;
+        }
+        return total;
+    }
+
     public clear(): void {
         this.dependentsMap.clear();
         this.dependenciesMap.clear();
     }
 }
 
-/**
- * Analysis result manager dengan caching dan invalidation
- * 
- * Manages:
- * - Cached analysis results
- * - Analysis dependencies
- * - Automatic invalidation when dependencies change
- * 
- * @example
- * ```typescript
- * const manager = new AnalysisManager();
- * 
- * // Store analysis result
- * manager.set(CFGAnalysis, controlFlowGraph);
- * 
- * // Register dependency
- * manager.registerDependency(DominatorsAnalysis, CFGAnalysis);
- * 
- * // Retrieve result
- * const cfg = manager.get(CFGAnalysis);
- * 
- * // Invalidate (also invalidates dependents)
- * manager.invalidate(CFGAnalysis); // Will also invalidate DominatorsAnalysis
- * ```
- */
-export class AnalysisManager {
-    /** Cache dari analysis results */
-    private cache = new Map<AnalysisKey<unknown>, unknown>();
+export class AnalysisManager<R extends object = AnalysisRegistry> {
+    private readonly cache = new PassAnalysisStore<R>();
+    private readonly graph = new AnalysisDependencyGraph<R>();
 
-    /** Dependency graph */
-    private graph = new AnalysisDependencyGraph();
-
-    /**
-     * Get cached analysis result
-     * 
-     * @param key - Analysis key
-     * @returns Cached result atau undefined
-     */
-    public get<T>(key: AnalysisKey<T>): T | undefined {
-        return this.cache.get(key as unknown as AnalysisKey<unknown>) as T | undefined;
+    public get<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+    ): R[K] | undefined {
+        return this.cache.get(key);
     }
 
-    /**
-     * Store analysis result dalam cache
-     * 
-     * @param key - Analysis key
-     * @param value - Analysis result
-     */
-    public set<T>(key: AnalysisKey<T>, value: T): void {
-        this.cache.set(key as unknown as AnalysisKey<unknown>, value);
+    public set<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+        value: R[K],
+    ): void {
+        this.cache.set(key, value);
     }
 
-    /**
-     * Check apakah analysis result is cached
-     * 
-     * @param key - Analysis key
-     * @returns True jika result is cached
-     */
-    public has<T>(key: AnalysisKey<T>): boolean {
-        return this.cache.has(key as unknown as AnalysisKey<unknown>);
+    public has<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+    ): boolean {
+        return this.cache.has(key);
     }
 
-    /**
-     * Register dependency between analyses
-     * 
-     * @param parent - Analysis yang depended upon
-     * @param child - Analysis yang depends on parent
-     */
-    public registerDependency(
-        parent: AnalysisKey<unknown>,
-        child: AnalysisKey<unknown>
+    public registerDependency<
+        TParent extends AnalysisKeyName<R>,
+        TChild extends AnalysisKeyName<R>,
+    >(
+        parent: AnalysisKey<R, TParent>,
+        child: AnalysisKey<R, TChild>,
     ): void {
         this.graph.addDependency(parent, child);
     }
 
-    /**
-     * Collect all analyses transitively dependent on given analysis
-     * 
-     * Uses BFS untuk traverse dependency graph.
-     * 
-     * @param key - Root analysis key
-     * @returns Set of all dependent analyses
-     */
-    public collectDependents(key: AnalysisKey<unknown>): ReadonlySet<AnalysisKey<unknown>> {
-        const visited = new Set<AnalysisKey<unknown>>();
-        const queue = new FIFOQueue<AnalysisKey<unknown>>();
+    public collectDependents<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+    ): ReadonlySet<AnyAnalysisKey<R>> {
+        const visited = new Set<AnyAnalysisKey<R>>();
+        const queue = new FIFOQueue<AnyAnalysisKey<R>>();
         queue.enqueue(key);
 
         while (!queue.isEmpty) {
-            const current = queue.dequeue()!;
+            const current = queue.dequeue();
+            if (!current || visited.has(current)) {
+                continue;
+            }
 
-            if (visited.has(current)) continue;
             visited.add(current);
-
-            const deps = this.graph.dependents(current);
-            for (const dep of deps) {
-                queue.enqueue(dep);
+            for (const dependent of this.graph.dependents(current)) {
+                queue.enqueue(dependent);
             }
         }
 
         return visited;
     }
 
-    /**
-     * Invalidate analysis dan all dependent analyses
-     * 
-     * Removes cached results untuk analysis dan semua analyses yang depend on it.
-     * 
-     * @param key - Analysis key to invalidate
-     */
-    public invalidate(key: AnalysisKey<unknown>): void {
-        const dependents = this.collectDependents(key);
-
-        for (const dep of dependents) {
-            this.cache.delete(dep);
+    public invalidate<K extends AnalysisKeyName<R>>(
+        key: AnalysisKey<R, K>,
+    ): void {
+        for (const dependent of this.collectDependents(key)) {
+            this.cache.delete(dependent);
         }
+        this.cache.delete(key);
     }
 
-    /**
-     * Clear all cached results dan dependencies
-     */
     public clear(): void {
         this.cache.clear();
         this.graph.clear();
     }
 
-    /**
-     * Get statistics about cached analyses
-     */
     public getStats(): {
         cachedAnalyses: number;
         dependencies: number;
     } {
-        let totalDeps = 0;
-        for (const deps of this.graph['dependentsMap'].values()) {
-            totalDeps += deps.size;
-        }
-
         return {
             cachedAnalyses: this.cache.size,
-            dependencies: totalDeps
+            dependencies: this.graph.dependencyCount(),
         };
     }
 }

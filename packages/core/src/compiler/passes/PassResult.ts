@@ -1,64 +1,42 @@
 /**
  * @file PassResult.ts
- * @description Result types untuk compiler pass execution
+ * @description Result types for compiler pass execution and typed analysis keys.
  */
-
 import type { DiagnosticBag } from '../diagnostics/DiagnosticBag';
+import type { AnalysisRegistry, AnalysisKeyName } from '../analysis/AnalysisRegistry';
 
-/**
- * Marker type untuk analysis keys
- * Used untuk type-safe analysis key identification
- */
 declare const analysisKeyBrand: unique symbol;
 
 /**
- * Type-safe key untuk identifying specific analysis results
- * 
- * @template T - Type of analysis result
- * 
- * @example
- * ```typescript
- * const CFGAnalysisKey = new AnalysisKey<ControlFlowGraph>('CFG');
- * const DominatorsKey = new AnalysisKey<DominatorTree>('Dominators');
- * ```
+ * A compile-time analysis key bound to an analysis registry entry.
+ *
+ * The key name K determines the result type through R[K]. No runtime cast is
+ * needed to recover the value type from a stored key.
  */
-export interface AnalysisKey<T> {
-    readonly [analysisKeyBrand]: T;
+export class AnalysisKey<
+    R extends object,
+    K extends AnalysisKeyName<R>,
+> {
+    declare readonly [analysisKeyBrand]: R[K];
+
+    constructor(public readonly name: K) { }
 }
 
-/**
- * Factory untuk creating type-safe analysis keys
- * 
- * @template T - Type of analysis result
- */
-export class AnalysisKey<T> {
-    constructor(readonly name: string) { }
-}
+export type DefaultAnalysisKey = AnalysisKey<
+    AnalysisRegistry,
+    AnalysisKeyName<AnalysisRegistry>
+>;
 
 /**
- * Result dari compiler pass execution
- * 
- * Contains information about:
- * - Whether pass modified IR
- * - Which analyses are still valid
- * - Any diagnostics generated
- * 
- * @example
- * ```typescript
- * const result: PassResult = {
- *   changed: true,
- *   preservedAnalyses: new Set([CFGAnalysisKey]),
- *   diagnostics: diagnosticBag
- * };
- * ```
+ * Creates keys without repeating the registry generic at every call site.
  */
+export function createAnalysisKeyFactory<R extends object>() {
+    return <K extends AnalysisKeyName<R>>(name: K): AnalysisKey<R, K> =>
+        new AnalysisKey<R, K>(name);
+}
+
 export interface PassResult {
-    /** Whether pass modified the IR */
     readonly changed: boolean;
-
-    /** Set of analyses yang masih valid setelah pass */
-    readonly preservedAnalyses: ReadonlySet<AnalysisKey<unknown>>;
-
-    /** Optional diagnostics generated during pass execution */
+    readonly preservedAnalyses: ReadonlySet<DefaultAnalysisKey>;
     readonly diagnostics?: DiagnosticBag;
 }

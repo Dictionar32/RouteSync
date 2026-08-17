@@ -1,146 +1,125 @@
 /**
- * @fileoverview Type-safe caching mechanism with runtime symbol-based keys
- * @module compiler/query/TypedCache
+ * @fileoverview Type-safe memoized query cache.
+ *
+ * The cache deliberately does not own heterogeneous unknown storage.
+ * Each MemoizedQueryKey owns a typed storage map and exposes only typed
+ * operations. TypedCache is therefore a small typed facade over those keys.
  */
 
-/**
- * Brand symbol for memoized query keys to ensure type safety
- * @internal
- */
-const memoizedQueryBrand = Symbol("memoizedQueryBrand");
+const memoizedQueryBrand: unique symbol = Symbol('memoizedQueryBrand');
 
-/**
- * Type-safe key for memoized query results
- * 
- * @template O Output type of the query
- * 
- * @example
- * ```typescript
- * const userKey = createMemoizedQueryKey<User>('users:123');
- * cache.set(userKey, user);
- * const cached = cache.get(userKey); // Type: User | undefined
- * ```
- */
-export interface MemoizedQueryKey<O> {
-    readonly id: string;
-    readonly [memoizedQueryBrand]: (value: O) => O;
+interface QueryValueStore<O> {
+    readonly read: (id: string) => O | undefined;
+    readonly write: (id: string, value: O) => void;
+    readonly has: (id: string) => boolean;
+    readonly remove: (id: string) => boolean;
 }
 
-/**
- * Creates a type-safe memoized query key
- * 
- * @template O Output type
- * @param id Unique identifier for the query
- * @returns Type-safe query key
- * 
- * @example
- * ```typescript
- * const typeKey = createMemoizedQueryKey<SemanticType>('type:User');
- * ```
- */
-export function createMemoizedQueryKey<O>(id: string): MemoizedQueryKey<O> {
+function createQueryValueStore<O>(): QueryValueStore<O> {
+    const values = new Map<string, O>();
+
     return {
-        id,
-        [memoizedQueryBrand]: (value: O) => value,
+        read: (id) => values.get(id),
+
+        write: (id, value) => {
+            values.set(id, value);
+        },
+
+        has: (id) => values.has(id),
+
+        remove: (id) => values.delete(id),
     };
 }
 
-/**
- * Type-safe cache with symbol-based runtime keys
- * 
- * Provides type-safe access to cached values while using runtime symbols
- * for storage to avoid key collisions and enable efficient lookups.
- * 
- * @example
- * ```typescript
- * const cache = new TypedCache();
- * const key = createMemoizedQueryKey<number>('count');
- * 
- * cache.set(key, 42);
- * const value = cache.get(key); // Type: number | undefined
- * console.log(cache.has(key)); // true
- * ```
- */
+export interface MemoizedQueryKey<O> {
+    readonly id: string;
+    readonly [memoizedQueryBrand]: (value: O) => O;
+
+    read(): O | undefined;
+    write(value: O): void;
+    hasValue(): boolean;
+    deleteValue(): boolean;
+
+    /**
+     * Derive a new runtime identity while preserving the same output type.
+     * Derived keys share the same typed storage map.
+     */
+    scope(id: string): MemoizedQueryKey<O>;
+}
+
+function createKey<O>(
+    id: string,
+    store: QueryValueStore<O>,
+): MemoizedQueryKey<O> {
+    return {
+        id,
+        [memoizedQueryBrand]: (value: O) => value,
+
+        read: () => store.read(id),
+
+        write: (value: O) => {
+            store.write(id, value);
+        },
+
+        hasValue: () => store.has(id),
+
+        deleteValue: () => store.remove(id),
+
+        scope: (scopedId: string) => createKey(scopedId, store),
+    };
+}
+
+export function createMemoizedQueryKey<O>(
+    id: string,
+): MemoizedQueryKey<O> {
+    return createKey(id, createQueryValueStore<O>());
+}
+
 export class TypedCache {
-    private store = new Map<symbol, unknown>();
-    private keyRegistry = new Map<string, symbol>();
+    public get<O>(key: MemoizedQueryKey<O>): O | undefined {
+        return key.read();
+    }
 
-    /**
-     * Gets or creates a runtime symbol for a string key
-     * 
-     * @param id String identifier
-     * @returns Runtime symbol for the key
-     * @private
-     */
-    private getOrCreateRuntimeSymbol(id: string): symbol {
-        let sym = this.keyRegistry.get(id);
-        if (!sym) {
-            sym = Symbol(id);
-            this.keyRegistry.set(id, sym);
+    public set<O>(key: MemoizedQueryKey<O>, value: O): void {
+        key.write(value);
+    }
+
+    public has<O>(key: MemoizedQueryKey<O>): boolean {
+        return key.hasValue();
+    }
+
+    public delete<O>(key: MemoizedQueryKey<O>): boolean {
+        return key.deleteValue();
+    }
+}
+
+export interface QueryDescriptor<I, O> {
+    readonly key: MemoizedQueryKey<O>;
+    readonly inputHash: string;
+    readonly compute: (input: I) => O;
+}
+
+export class QueryDatabase {
+    private readonly cache = new TypedCache();
+
+    public executeQuery<I, O>(
+        query: QueryDescriptor<I, O>,
+        input: I,
+        dependencyFingerprint: string,
+    ): O {
+        const cacheId =
+            `${query.key.id}:${query.inputHash}:${dependencyFingerprint}`;
+
+        const cacheKey = query.key.scope(cacheId);
+        const cached = this.cache.get(cacheKey);
+
+        if (this.cache.has(cacheKey) && cached !== undefined) {
+            return cached;
         }
-        return sym;
-    }
 
-    /**
-     * Retrieves a cached value
-     * 
-     * @template T Type of the cached value
-     * @param key Type-safe query key
-     * @returns Cached value or undefined if not found
-     */
-    public get<T>(key: MemoizedQueryKey<T>): T | undefined {
-        const sym = this.getOrCreateRuntimeSymbol(key.id);
-        return this.store.get(sym) as T | undefined;
-    }
+        const value = query.compute(input);
+        this.cache.set(cacheKey, value);
 
-    /**
-     * Stores a value in the cache
-     * 
-     * @template T Type of the value
-     * @param key Type-safe query key
-     * @param value Value to cache
-     */
-    public set<T>(key: MemoizedQueryKey<T>, value: T): void {
-        const sym = this.getOrCreateRuntimeSymbol(key.id);
-        this.store.set(sym, value);
-    }
-
-    /**
-     * Checks if a key exists in the cache
-     * 
-     * @template T Type of the value
-     * @param key Type-safe query key
-     * @returns True if the key exists
-     */
-    public has<T>(key: MemoizedQueryKey<T>): boolean {
-        const sym = this.getOrCreateRuntimeSymbol(key.id);
-        return this.store.has(sym);
-    }
-
-    /**
-     * Removes a value from the cache
-     * 
-     * @template T Type of the value
-     * @param key Type-safe query key
-     * @returns True if the key was removed
-     */
-    public delete<T>(key: MemoizedQueryKey<T>): boolean {
-        const sym = this.getOrCreateRuntimeSymbol(key.id);
-        return this.store.delete(sym);
-    }
-
-    /**
-     * Clears all cached values
-     */
-    public clear(): void {
-        this.store.clear();
-        this.keyRegistry.clear();
-    }
-
-    /**
-     * Gets the number of cached values
-     */
-    public get size(): number {
-        return this.store.size;
+        return value;
     }
 }

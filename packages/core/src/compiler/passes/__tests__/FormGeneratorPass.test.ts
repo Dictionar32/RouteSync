@@ -12,6 +12,7 @@ import { FormActionGenerator } from '../../generators/form-generation/FormAction
 import { FormCodeBuilder } from '../../generators/form-generation/FormCodeBuilder';
 import { PrimitiveType, PrimitiveKind } from '../../types/SemanticType';
 import type { RequestTypesArtifact, RequestType } from '../../artifacts/RequestTypesArtifact';
+import { CompilationContext } from '../CompilationContext';
 
 describe('FormGeneratorPass', () => {
     describe('Pass metadata', () => {
@@ -123,7 +124,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.typeId).toBe('GeneratedForm');
             expect(result.code).toContain('export type UsersForm = {');
@@ -186,7 +187,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.formTypes).toHaveLength(2);
             expect(result.formTypes[0].name).toBe('UsersForm');
@@ -210,7 +211,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: []
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.typeId).toBe('GeneratedForm');
             expect(result.formTypes).toHaveLength(0);
@@ -266,7 +267,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.formTypes[0].actions).toHaveLength(2);
             expect(result.formTypes[0].actions[0].name).toBe('create');
@@ -317,7 +318,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.generationMetadata.totalActions).toBe(3);
         });
@@ -358,7 +359,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.generationMetadata).toBeDefined();
             expect(result.generationMetadata.generatorVersion).toBe('1.0.0');
@@ -384,7 +385,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: []
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.metadata).toBeDefined();
             expect(result.metadata.producer).toBe('FormGenerator');
@@ -427,7 +428,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             const actualLines = result.code.split('\n').length;
             expect(result.generationMetadata.linesOfCode).toBe(actualLines);
@@ -488,7 +489,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.code).toContain('CartItemsForm');
             expect(result.code).toContain('produkItemId: string');
@@ -537,7 +538,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.code).toContain('ProfileForm');
             expect(result.code).toContain('email: string');
@@ -578,10 +579,10 @@ describe('FormGeneratorPass', () => {
                     revision: '1.0.0'
                 },
                 requestTypes: [requestType]
-            };
-
+            }; 
+            
             // Should not throw
-            expect(() => pass.run([artifact])).not.toThrow();
+            expect(() => pass.run([artifact], CompilationContext.default())).not.toThrow();
         });
 
         test('should include warnings in metadata', () => {
@@ -599,7 +600,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: []
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(result.generationMetadata.warnings).toBeDefined();
             expect(Array.isArray(result.generationMetadata.warnings)).toBe(true);
@@ -622,11 +623,11 @@ describe('FormGeneratorPass', () => {
                 requestTypes: []
             };
 
-            const result = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             expect(Array.isArray(result)).toBe(true);
             expect(result).toHaveLength(1);
-            expect(result[0].typeId).toBe('GeneratedForm');
+            expect(result.typeId).toBe('GeneratedForm');
         });
 
         test('should have valid TypeScript code', () => {
@@ -663,7 +664,7 @@ describe('FormGeneratorPass', () => {
                 requestTypes: [requestType]
             };
 
-            const [result] = pass.run([artifact]);
+            const [result] = pass.run([artifact], CompilationContext.default())
 
             // Check for valid TypeScript syntax elements
             expect(result.code).toMatch(/export type \w+Form = \{/);

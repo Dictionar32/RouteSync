@@ -18,6 +18,16 @@ export interface PassExecutionOptions {
     readonly cache?: ArtifactCache;
 }
 
+
+function singletonInputs<K extends ArtifactKey>(
+    key: K,
+    value: ArtifactRegistry[K],
+): ArtifactStorage {
+    const inputs: ArtifactStorage = {};
+    inputs[key] = value;
+    return inputs;
+}
+
 export class PassManager {
     private passes: ExecutablePass[] = [];
 
@@ -50,8 +60,7 @@ export class PassManager {
         initialInput: ArtifactRegistry[K],
         options: PassExecutionOptions = {}
     ): Promise<CompilationResult> {
-        let state = CompilationState.empty().put(key, initialInput);
-        return this.executeState(state, options);
+        return this.executeWithInputs(singletonInputs(key, initialInput), options);
     }
 
 
@@ -68,15 +77,6 @@ export class PassManager {
                 state = state.put(key, value);
             }
         }
-
-        return this.executeState(state, options);
-    }
-
-    private async executeState(
-        initialState: CompilationState,
-        options: PassExecutionOptions,
-    ): Promise<CompilationResult> {
-        let state = initialState;
 
         for (const externalKey of this.externalInputs) {
             if (!state.has(externalKey)) {

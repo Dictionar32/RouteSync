@@ -26,7 +26,9 @@ export interface CompilerPass<
     readonly name: string;
 
     /** Type witnesses for input artifacts */
-    readonly inputWitnesses: { [K in keyof I]: ArtifactKeyWitness<I[K]> };
+    readonly inputWitnesses: {
+        readonly [K in keyof I]: ArtifactKeyWitness<I[K]>;
+    };
 
     /** Output artifact keys this pass produces */
     readonly outputKeys: O;

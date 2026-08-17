@@ -130,7 +130,7 @@ export class ContractGeneratorPass
     ): ResolveArtifacts<readonly ['GeneratedContract']> {
         try {
             // Extract request types artifact
-            const requestTypesArtifact = inputs[0] as RequestTypesArtifact;
+            const [requestTypesArtifact] = inputs;
             const requestTypes = requestTypesArtifact.requestTypes;
 
             console.log(`[ContractGeneratorPass] Processing ${requestTypes.length} request types`);
@@ -211,7 +211,8 @@ export class ContractGeneratorPass
             );
 
             // Return as output tuple
-            return [artifact] as ResolveArtifacts<readonly ['GeneratedContract']>;
+            const output: ResolveArtifacts<readonly ['GeneratedContract']> = [artifact];
+            return output;
 
         } catch (error) {
             throw new ContractGeneratorPassError(
@@ -498,7 +499,8 @@ export class ContractGeneratorPass
             0,
             ['No validation rules found']
         );
-        return [artifact] as ResolveArtifacts<readonly ['GeneratedContract']>;
+        const output: ResolveArtifacts<readonly ['GeneratedContract']> = [artifact];
+        return output;
     }
 
     /**

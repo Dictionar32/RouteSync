@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { ASTArtifact } from '../../artifacts/ASTArtifact';
 import { ScopeGraphArtifact } from '../../artifacts/ScopeGraphArtifact';
 import { CompilationState } from '../CompilationState';
-import { ArtifactKeyWitness, type ResolveArtifacts } from '../ArtifactKeyWitness';
+import {
+    ArtifactKeyWitness,
+    type ResolveArtifacts,
+} from '../ArtifactKeyWitness';
 import type { CompilerPass } from '../CompilerPass';
 import type { ExecutablePass } from '../ExecutablePass';
+import { CompilationContext } from '../CompilationContext';
 import { PassGraph } from '../PassGraph';
 
 function metadata(producer: string) {
@@ -17,7 +21,34 @@ function metadata(producer: string) {
     } as const;
 }
 
-function parsePass(name: string, output: 'AST' | 'ScopeGraph'): ExecutablePass {
+function createAST(name: string, producer = 'Parse'): ASTArtifact {
+    return new ASTArtifact(
+        {
+            kind: 'ClassDeclaration',
+            span: {
+                filePath: 'test.ts',
+                start: 0,
+                length: 1,
+                line: 1,
+                column: 0,
+            },
+            name,
+        },
+        metadata(producer),
+    );
+}
+
+function createScopeGraph(producer = 'Scope'): ScopeGraphArtifact {
+    return new ScopeGraphArtifact(
+        new Map(),
+        metadata(producer),
+    );
+}
+
+function parsePass(
+    name: string,
+    output: 'AST' | 'ScopeGraph',
+): ExecutablePass {
     return {
         name,
         descriptor: {
@@ -31,16 +62,9 @@ function parsePass(name: string, output: 'AST' | 'ScopeGraph'): ExecutablePass {
 
 describe('Pass Engine invariants', () => {
     it('preserves ArtifactRegistry typing through a witness', () => {
-        const ast = new ASTArtifact(
-            {
-                kind: 'ClassDeclaration',
-                span: { filePath: 'test.ts', start: 0, length: 1, line: 1, column: 0 },
-                name: 'User',
-            },
-            metadata('Parse'),
-        );
-
+        const ast = createAST('User');
         const state = CompilationState.empty().put('AST', ast);
+
         const witness = new ArtifactKeyWitness('AST');
         const resolved = witness.read(state);
 
@@ -53,15 +77,9 @@ describe('Pass Engine invariants', () => {
             new ArtifactKeyWitness('AST'),
             new ArtifactKeyWitness('ScopeGraph'),
         ] as const;
-        const ast = new ASTArtifact(
-            {
-                kind: 'ClassDeclaration',
-                span: { filePath: 'test.ts', start: 0, length: 1, line: 1, column: 0 },
-                name: 'User',
-            },
-            metadata('Parse'),
-        );
-        const scope = new ScopeGraphArtifact(new Map(), metadata('Scope'));
+
+        const ast = createAST('User');
+        const scope = createScopeGraph();
 
         const state = CompilationState.empty()
             .put('AST', ast)
@@ -72,6 +90,8 @@ describe('Pass Engine invariants', () => {
             witnesses[1].read(state),
         ];
 
+        expect(resolvedAst).toBe(ast);
+        expect(resolvedScope).toBe(scope);
         expect(resolvedAst.typeId).toBe('AST');
         expect(resolvedScope.typeId).toBe('ScopeGraph');
     });
@@ -79,58 +99,56 @@ describe('Pass Engine invariants', () => {
     it('rejects conflicting artifact merges', () => {
         const left = CompilationState.empty().put(
             'AST',
-            new ASTArtifact(
-                {
-                    kind: 'ClassDeclaration',
-                    span: { filePath: 'test.ts', start: 0, length: 1, line: 1, column: 0 },
-                    name: 'Left',
-                },
-                metadata('ParseLeft'),
-            ),
-        );
-        const right = CompilationState.empty().put(
-            'AST',
-            new ASTArtifact(
-                {
-                    kind: 'ClassDeclaration',
-                    span: { filePath: 'test.ts', start: 0, length: 1, line: 1, column: 0 },
-                    name: 'Right',
-                },
-                metadata('ParseRight'),
-            ),
+            createAST('Left', 'ParseLeft'),
         );
 
-        expect(() => left.merge(right)).toThrow(/Artifact merge conflict/);
+        const right = CompilationState.empty().put(
+            'AST',
+            createAST('Right', 'ParseRight'),
+        );
+
+        expect(() => left.merge(right)).toThrow(
+            /Artifact merge conflict/,
+        );
     });
 
     it('allows shared immutable artifacts from the same base state to merge', () => {
-        const ast = new ASTArtifact(
-            {
-                kind: 'ClassDeclaration',
-                span: { filePath: 'test.ts', start: 0, length: 1, line: 1, column: 0 },
-                name: 'Shared',
-            },
-            metadata('Parse'),
-        );
+        const ast = createAST('Shared');
         const base = CompilationState.empty().put('AST', ast);
-        const left = base.put('ScopeGraph', new ScopeGraphArtifact(new Map(), metadata('Scope')));
-        const right = base.put('ScopeGraph', new ScopeGraphArtifact(new Map(), metadata('Scope')));
 
-        expect(() => left.merge(right)).toThrow(/Artifact merge conflict/);
+        const left = base.put(
+            'ScopeGraph',
+            createScopeGraph(),
+        );
+
+        // right shares the exact same AST object from the common base.
+        // It does not produce a second ScopeGraph value for the same key.
+        const right = base;
+
+        const merged = left.merge(right);
+
+        expect(merged.require(new ArtifactKeyWitness('AST'))).toBe(ast);
+        expect(merged.require(new ArtifactKeyWitness('ScopeGraph'))).toBe(
+            left.require(new ArtifactKeyWitness('ScopeGraph')),
+        );
     });
 
     it('detects duplicate pass names', () => {
-        expect(() => PassGraph.resolve([
-            parsePass('Parse', 'AST'),
-            parsePass('Parse', 'ScopeGraph'),
-        ])).toThrow(/Duplicate compiler pass name/);
+        expect(() =>
+            PassGraph.resolve([
+                parsePass('Parse', 'AST'),
+                parsePass('Parse', 'ScopeGraph'),
+            ]),
+        ).toThrow(/Duplicate compiler pass name/);
     });
 
     it('detects duplicate artifact producers', () => {
-        expect(() => PassGraph.resolve([
-            parsePass('ParseA', 'AST'),
-            parsePass('ParseB', 'AST'),
-        ])).toThrow(/Multiple producers detected/);
+        expect(() =>
+            PassGraph.resolve([
+                parsePass('ParseA', 'AST'),
+                parsePass('ParseB', 'AST'),
+            ]),
+        ).toThrow(/Multiple producers detected/);
     });
 
     it('detects missing providers', () => {
@@ -144,7 +162,9 @@ describe('Pass Engine invariants', () => {
             execute: async (state) => state,
         };
 
-        expect(() => PassGraph.resolve([consumer])).toThrow(/Missing provider for artifact: AST/);
+        expect(() =>
+            PassGraph.resolve([consumer]),
+        ).toThrow(/Missing provider for artifact: AST/);
     });
 
     it('enforces a producer constraint', () => {
@@ -154,14 +174,21 @@ describe('Pass Engine invariants', () => {
                 consumes: ['AST'],
                 produces: ['TypeEnvironment'],
             },
-            requires: [{ artifact: 'AST', producer: 'OtherParse' }],
+            requires: [
+                {
+                    artifact: 'AST',
+                    producer: 'OtherParse',
+                },
+            ],
             execute: async (state) => state,
         };
 
-        expect(() => PassGraph.resolve([
-            parsePass('Parse', 'AST'),
-            consumer,
-        ])).toThrow(/Producer mismatch/);
+        expect(() =>
+            PassGraph.resolve([
+                parsePass('Parse', 'AST'),
+                consumer,
+            ]),
+        ).toThrow(/Producer mismatch/);
     });
 
     it('produces deterministic parallel layers', () => {
@@ -187,19 +214,23 @@ describe('Pass Engine invariants', () => {
             },
         ]);
 
-        expect(layers.map((layer) => layer.map((pass) => pass.name))).toEqual([
+        expect(
+            layers.map((layer) => layer.map((pass) => pass.name)),
+        ).toEqual([
             ['Parse'],
             ['Symbols', 'Types'],
         ]);
     });
 
-    it('preserves typed pass input/output tuples without a call-site cast', () => {
+    it('preserves typed pass input/output tuples', async () => {
         const pass: CompilerPass<
             readonly ['AST'],
             readonly ['ScopeGraph']
         > = {
             name: 'ScopePass',
-            inputWitnesses: [new ArtifactKeyWitness('AST')],
+            inputWitnesses: [
+                new ArtifactKeyWitness('AST'),
+            ],
             outputKeys: ['ScopeGraph'],
             descriptor: {
                 consumes: ['AST'],
@@ -207,11 +238,21 @@ describe('Pass Engine invariants', () => {
             },
             requires: [{ artifact: 'AST' }],
             producesPass: [],
-            run: ([ast]): ResolveArtifacts<readonly ['ScopeGraph']> => [
-                new ScopeGraphArtifact(new Map(), metadata(ast.metadata.producer)),
-            ],
+            run: ([ast]): ResolveArtifacts<
+                readonly ['ScopeGraph']
+            > => [
+                    createScopeGraph(ast.metadata.producer),
+                ],
         };
 
-        expect(pass.outputKeys).toEqual(['ScopeGraph']);
+        const ast = createAST('User');
+        const [result] = await pass.run(
+            [ast],
+            CompilationContext.default(),
+        );
+
+        expect(result).toBeInstanceOf(ScopeGraphArtifact);
+        expect(result.typeId).toBe('ScopeGraph');
+        expect(result.metadata.producer).toBe('Parse');
     });
 });

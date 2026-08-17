@@ -50,7 +50,8 @@ export class PassManager {
         initialInput: ArtifactRegistry[K],
         options: PassExecutionOptions = {}
     ): Promise<CompilationResult> {
-        return this.executeWithInputs({ [key]: initialInput } as ArtifactStorage, options);
+        let state = CompilationState.empty().put(key, initialInput);
+        return this.executeState(state, options);
     }
 
 
@@ -67,6 +68,15 @@ export class PassManager {
                 state = state.put(key, value);
             }
         }
+
+        return this.executeState(state, options);
+    }
+
+    private async executeState(
+        initialState: CompilationState,
+        options: PassExecutionOptions,
+    ): Promise<CompilationResult> {
+        let state = initialState;
 
         for (const externalKey of this.externalInputs) {
             if (!state.has(externalKey)) {

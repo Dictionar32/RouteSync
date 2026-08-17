@@ -111,7 +111,7 @@ export class FormGeneratorPass
     ): ResolveArtifacts<readonly ['GeneratedForm']> {
         try {
             // Extract request types artifact
-            const requestTypesArtifact = inputs[0] as RequestTypesArtifact;
+            const [requestTypesArtifact] = inputs;
             const requestTypes = requestTypesArtifact.requestTypes;
 
             console.log(`[FormGeneratorPass] Processing ${requestTypes.length} request types`);
@@ -169,7 +169,8 @@ export class FormGeneratorPass
             const artifact = this.buildArtifact(builtCode, formTypes, totalActions, warnings);
 
             // Return as output tuple
-            return [artifact] as ResolveArtifacts<readonly ['GeneratedForm']>;
+            const output: ResolveArtifacts<readonly ['GeneratedForm']> = [artifact];
+            return output;
 
         } catch (error) {
             throw new FormGeneratorPassError(
@@ -247,7 +248,8 @@ export class FormGeneratorPass
     private buildEmptyArtifact(): ResolveArtifacts<readonly ['GeneratedForm']> {
         const builtCode = this.codeBuilder.buildEmptyFile();
         const artifact = this.buildArtifact(builtCode, [], 0, ['No validation rules found']);
-        return [artifact] as ResolveArtifacts<readonly ['GeneratedForm']>;
+        const output: ResolveArtifacts<readonly ['GeneratedForm']> = [artifact];
+        return output;
     }
 }
 

@@ -124,7 +124,7 @@ export class TypeScriptGeneratorPass
     ): ResolveArtifacts<readonly ['GeneratedTypeScript']> {
         try {
             // Extract semantic types artifact
-            const semanticTypesArtifact = inputs[0] as SemanticTypesArtifact;
+            const [semanticTypesArtifact] = inputs;
             const types = semanticTypesArtifact.types;
 
             // Reset generator untuk fresh state
@@ -231,7 +231,8 @@ export class TypeScriptGeneratorPass
             };
 
             // Return as output tuple
-            return [artifact] as ResolveArtifacts<readonly ['GeneratedTypeScript']>;
+            const output: ResolveArtifacts<readonly ['GeneratedTypeScript']> = [artifact];
+            return output;
 
         } catch (error) {
             // Fatal error - re-throw dengan context

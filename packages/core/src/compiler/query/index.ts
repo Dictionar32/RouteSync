@@ -39,7 +39,7 @@ export type {
     QueryNode,
     QueryContext,
     QueryFrame,
-    SymbolDatabase
+    
 } from './SalsaCompiler';
 export {
     SalsaCompiler,

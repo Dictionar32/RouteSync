@@ -1,33 +1,45 @@
 /**
  * @fileoverview Type-safe memoized query cache.
  *
- * The cache deliberately does not own heterogeneous unknown storage.
- * Each MemoizedQueryKey owns a typed storage map and exposes only typed
- * operations. TypedCache is therefore a small typed facade over those keys.
+ * Query values stay associated with their MemoizedQueryKey<O>.
+ * The cache never needs a Map<string, unknown> or a generic result assertion.
  */
 
 const memoizedQueryBrand: unique symbol = Symbol('memoizedQueryBrand');
 
-interface QueryValueStore<O> {
-    readonly read: (id: string) => O | undefined;
-    readonly write: (id: string, value: O) => void;
-    readonly has: (id: string) => boolean;
-    readonly remove: (id: string) => boolean;
+export interface QueryStorage {
+    readonly size: number;
+    clear(): void;
+}
+
+interface QueryValueStore<O> extends QueryStorage {
+    read(id: string): O | undefined;
+    write(id: string, value: O): void;
+    has(id: string): boolean;
+    remove(id: string): boolean;
 }
 
 function createQueryValueStore<O>(): QueryValueStore<O> {
     const values = new Map<string, O>();
 
     return {
-        read: (id) => values.get(id),
+        read: (id: string): O | undefined => values.get(id),
 
-        write: (id, value) => {
+        write: (id: string, value: O): void => {
             values.set(id, value);
         },
 
-        has: (id) => values.has(id),
+        has: (id: string): boolean => values.has(id),
 
-        remove: (id) => values.delete(id),
+        remove: (id: string): boolean => values.delete(id),
+
+        get size(): number {
+            return values.size;
+        },
+
+        clear: (): void => {
+            values.clear();
+        },
     };
 }
 
@@ -41,8 +53,14 @@ export interface MemoizedQueryKey<O> {
     deleteValue(): boolean;
 
     /**
-     * Derive a new runtime identity while preserving the same output type.
-     * Derived keys share the same typed storage map.
+     * Returns the typed storage handle owned by this key.
+     *
+     * Derived/scoped keys share the same storage while retaining O.
+     */
+    storage(): QueryStorage;
+
+    /**
+     * Derive a new runtime identity while preserving O.
      */
     scope(id: string): MemoizedQueryKey<O>;
 }
@@ -53,19 +71,23 @@ function createKey<O>(
 ): MemoizedQueryKey<O> {
     return {
         id,
-        [memoizedQueryBrand]: (value: O) => value,
 
-        read: () => store.read(id),
+        [memoizedQueryBrand]: (value: O): O => value,
 
-        write: (value: O) => {
+        read: (): O | undefined => store.read(id),
+
+        write: (value: O): void => {
             store.write(id, value);
         },
 
-        hasValue: () => store.has(id),
+        hasValue: (): boolean => store.has(id),
 
-        deleteValue: () => store.remove(id),
+        deleteValue: (): boolean => store.remove(id),
 
-        scope: (scopedId: string) => createKey(scopedId, store),
+        storage: (): QueryStorage => store,
+
+        scope: (scopedId: string): MemoizedQueryKey<O> =>
+            createKey(scopedId, store),
     };
 }
 
@@ -75,13 +97,24 @@ export function createMemoizedQueryKey<O>(
     return createKey(id, createQueryValueStore<O>());
 }
 
+/**
+ * Typed cache facade.
+ *
+ * The cache tracks storage handles, never erased values.
+ */
 export class TypedCache {
+    private readonly storages = new Set<QueryStorage>();
+
     public get<O>(key: MemoizedQueryKey<O>): O | undefined {
         return key.read();
     }
 
-    public set<O>(key: MemoizedQueryKey<O>, value: O): void {
+    public set<O>(
+        key: MemoizedQueryKey<O>,
+        value: O,
+    ): void {
         key.write(value);
+        this.storages.add(key.storage());
     }
 
     public has<O>(key: MemoizedQueryKey<O>): boolean {
@@ -90,6 +123,30 @@ export class TypedCache {
 
     public delete<O>(key: MemoizedQueryKey<O>): boolean {
         return key.deleteValue();
+    }
+
+    /**
+     * Number of values currently stored across all registered typed stores.
+     */
+    public get size(): number {
+        let total = 0;
+
+        for (const storage of this.storages) {
+            total += storage.size;
+        }
+
+        return total;
+    }
+
+    /**
+     * Clears every registered typed store.
+     */
+    public clear(): void {
+        for (const storage of this.storages) {
+            storage.clear();
+        }
+
+        this.storages.clear();
     }
 }
 
@@ -121,5 +178,13 @@ export class QueryDatabase {
         this.cache.set(cacheKey, value);
 
         return value;
+    }
+
+    public get size(): number {
+        return this.cache.size;
+    }
+
+    public clear(): void {
+        this.cache.clear();
     }
 }

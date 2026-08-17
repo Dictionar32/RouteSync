@@ -106,6 +106,11 @@ export interface PropertyAccessAST {
   kind: "property_access";
   target: ParsedASTNode | null;
   property: string;
+  /**
+   * Explicit access classification emitted by the parser.
+   * The adapter must not infer or default this value.
+   */
+  accessKind: AccessKind;
 }
 
 export interface MethodCallAST {

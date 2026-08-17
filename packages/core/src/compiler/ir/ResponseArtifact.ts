@@ -248,7 +248,7 @@ export interface ModelAttribute {
  * ```
  */
 export class ResponseArtifact extends TypedArtifact<'ResponseArtifact'> {
-    public readonly typeId = 'ResponseArtifact' as const;
+    public readonly typeId = 'ResponseArtifact';
 
     constructor(
         /** Unique identifier (e.g., 'users.show.Response') */
@@ -611,7 +611,7 @@ export function exampleBinaryDownload(): ResponseArtifact {
  * PURE ANALYSIS: only validation rules, no generator logic
  */
 export class ValidationArtifact extends TypedArtifact<'ValidationAnalysis'> {
-    public readonly typeId = 'ValidationAnalysis' as const;
+    public readonly typeId = 'ValidationAnalysis';
 
     constructor(
         public readonly id: string,
@@ -629,7 +629,7 @@ export class ValidationArtifact extends TypedArtifact<'ValidationAnalysis'> {
  * PURE ANALYSIS: only model structure, no generator logic
  */
 export class ModelArtifact extends TypedArtifact<'ModelAnalysis'> {
-    public readonly typeId = 'ModelAnalysis' as const;
+    public readonly typeId = 'ModelAnalysis';
 
     constructor(
         public readonly id: string,
@@ -649,7 +649,7 @@ export class ModelArtifact extends TypedArtifact<'ModelAnalysis'> {
  * PURE ANALYSIS: only resource structure, no generator logic
  */
 export class ResourceArtifact extends TypedArtifact<'ResourceAnalysis'> {
-    public readonly typeId = 'ResourceAnalysis' as const;
+    public readonly typeId = 'ResourceAnalysis';
 
     constructor(
         public readonly id: string,
@@ -669,7 +669,7 @@ export class ResourceArtifact extends TypedArtifact<'ResourceAnalysis'> {
  * PURE ANALYSIS: route metadata only, no generator decisions
  */
 export class RouteArtifact extends TypedArtifact<'RouteAnalysis'> {
-    public readonly typeId = 'RouteAnalysis' as const;
+    public readonly typeId = 'RouteAnalysis';
 
     constructor(
         public readonly id: string,

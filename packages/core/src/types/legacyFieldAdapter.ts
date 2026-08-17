@@ -58,7 +58,7 @@ export function fieldFromResourceFieldKind(old: ResourceFieldKind): FieldNode {
  * actually wrote most recently in the old pipeline.
  */
 export function fieldFromResponseMetadata(old: ResponseMetadata): FieldNode {
-  const resolved = (old.semantic ?? old.resolved) as SemanticResolution | undefined
+  const resolved = old.semantic ?? old.resolved
   const base: FieldNode = (() => {
     switch (old.kind) {
       case 'model':
@@ -79,7 +79,17 @@ export function fieldFromResponseMetadata(old: ResponseMetadata): FieldNode {
         const fields: Record<string, FieldNode> = {}
         for (const key in old.fields) {
           const v = old.fields[key]
-          fields[key] = 'kind' in v && v.kind === 'primitive' ? { kind: 'primitive', type: v.type } : fieldFromResponseMetadata(v as ResponseMetadata)
+          switch (v.kind) {
+            case 'primitive':
+              fields[key] = { kind: 'primitive', type: v.type }
+              break
+            case 'model':
+            case 'resource':
+            case 'object':
+            case 'unknown':
+              fields[key] = fieldFromResponseMetadata(v)
+              break
+          }
         }
         return { kind: 'object', fields }
       }
@@ -100,7 +110,9 @@ export function fieldFromResponseMetadata(old: ResponseMetadata): FieldNode {
  * `resolved` rather than as a raw kind, matching the new design.
  */
 export function fieldFromParsedASTNode(ast: ParsedASTNode, originalCode = ''): FieldNode {
-  const oc = originalCode || (ast as { code?: string }).code || ''
+  const oc = originalCode || (
+    ast.kind === 'unknown' ? ast.code : ''
+  )
   switch (ast.kind) {
     case 'literal':
       return { kind: 'literal', originalCode: oc, value: ast.value }
@@ -112,10 +124,7 @@ export function fieldFromParsedASTNode(ast: ParsedASTNode, originalCode = ''): F
         originalCode: oc,
         target: ast.target ? fieldFromParsedASTNode(ast.target) : null,
         property: ast.property,
-        // old PropertyAccessAST type never declared this even though the
-        // real parser has set it since the JSON-member-access work — see
-        // PhpCodeParser.ts's offsetlookup/propertylookup handling.
-        accessKind: (ast as unknown as { accessKind?: 'array_access' | 'property_access' | 'optional_access' }).accessKind || 'property_access',
+        accessKind: ast.accessKind,
       }
     case 'nullsafe_property_access':
       return { kind: 'nullsafe_property_access', originalCode: oc, target: ast.target ? fieldFromParsedASTNode(ast.target) : null, property: ast.property }

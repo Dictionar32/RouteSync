@@ -1,0 +1,43 @@
+{
+  "required": {
+    "adapter_execution": true,
+    "baseline_for_pass": false,
+    "baseline_lineage": true,
+    "complexity_delta_recompute": true,
+    "evidence_digest": true,
+    "execution_chain": true,
+    "execution_proof": true,
+    "independent_analysis_recompute": true,
+    "independent_risk_recompute": true,
+    "parent_attestation": false,
+    "policy_lineage": true,
+    "schema_validation": true,
+    "snapshot_recheck": true,
+    "structured_failures": true
+  },
+  "risk_rules": {
+    "auth_security": "CRITICAL",
+    "behavior": "MEDIUM",
+    "build_pipeline": "HIGH",
+    "configuration": "HIGH",
+    "dependency": "HIGH",
+    "documentation_only": "LOW",
+    "medium": "MEDIUM",
+    "native_binding": "HIGH",
+    "security": "CRITICAL"
+  },
+  "typescript_quality": {
+    "ai_pattern_mode": "advisory",
+    "enabled": true,
+    "minimum_score": 85,
+    "rules": {
+      "max_any": 2,
+      "max_complexity": 10,
+      "max_file_lines": 500,
+      "max_function_lines": 80,
+      "max_nesting": 4,
+      "max_params": 6
+    }
+  },
+  "version": "28.4.0"
+}

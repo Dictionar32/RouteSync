@@ -1,0 +1,219 @@
+{
+  "$schema": "./schemas/routesync-config.schema.json",
+  "version": "1.0.0",
+  "project_name": "RouteSync",
+  "project_type": "monorepo_sdk_generator",
+  
+  "extensions": {
+    "monorepo": {
+      "enabled": true,
+      "workspace_pattern": "packages/*",
+      "enforce_dependency_direction": true,
+      "allowed_dependencies": {
+        "core": [],
+        "sdk": ["core"],
+        "react": ["core", "sdk"],
+        "vue": ["core", "sdk"],
+        "cli": ["core", "sdk", "react", "vue"]
+      },
+      "block_on_circular": true
+    },
+    
+    "frameworks": {
+      "react": {
+        "enabled": true,
+        "package_path": "packages/react",
+        "strict_hooks_rules": true,
+        "check_tanstack_query": true,
+        "check_react_hook_form": true,
+        "peer_dependencies": {
+          "react": "^19.2.7",
+          "@tanstack/react-query": "^5.101.0",
+          "react-hook-form": "^7.71.2",
+          "@hookform/resolvers": "^5.4.0"
+        }
+      },
+      "vue": {
+        "enabled": true,
+        "package_path": "packages/vue",
+        "strict_reactivity": true,
+        "check_tanstack_query": true,
+        "check_vee_validate": true,
+        "peer_dependencies": {
+          "vue": "^3.5.35",
+          "@tanstack/vue-query": "^5.101.0",
+          "vee-validate": "^4.15.1",
+          "@vee-validate/zod": "^4.15.1"
+        }
+      }
+    },
+    
+    "cli": {
+      "enabled": true,
+      "bin_path": "dist/cli.js",
+      "required_shebang": "#!/usr/bin/env node",
+      "check_permissions": true,
+      "validate_error_messages": true,
+      "check_cross_platform": true
+    },
+    
+    "multi_export": {
+      "enabled": true,
+      "exports_must_exist": true,
+      "types_required": true,
+      "dual_package_check": true,
+      "validate_subpaths": true
+    },
+    
+    "build_tools": {
+      "turbo": {
+        "enabled": true,
+        "config_path": "turbo.json",
+        "validate_tasks": ["build", "lint", "test"],
+        "check_cache_config": true
+      },
+      "tsup": {
+        "enabled": true,
+        "config_path": "tsup.config.ts",
+        "validate_entry_points": true,
+        "formats_required": ["esm", "cjs"],
+        "dts_required": true,
+        "validate_externals": true
+      }
+    },
+    
+    "bundle_size": {
+      "enabled": true,
+      "measure_gzip": true,
+      "budgets": {
+        "@routesync/core": "50kb",
+        "@routesync/sdk": "30kb",
+        "@routesync/react": "20kb",
+        "@routesync/vue": "20kb",
+        "@routesync/cli": "1mb"
+      },
+      "severity_on_exceed": "warning",
+      "check_tree_shaking": true
+    },
+    
+    "coverage": {
+      "enabled": true,
+      "tool": "vitest",
+      "config_path": "vitest.config.ts",
+      "thresholds": {
+        "statements": 80,
+        "branches": 75,
+        "functions": 80,
+        "lines": 80
+      },
+      "block_on_threshold_miss": false,
+      "check_test_colocation": true
+    },
+    
+    "security": {
+      "npm_audit": true,
+      "block_on_high_severity": true,
+      "block_on_critical_severity": true,
+      "allowed_licenses": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC",
+        "0BSD"
+      ],
+      "check_peer_dependencies": true
+    },
+    
+    "generated_code": {
+      "enabled": true,
+      "markers": [
+        "// @generated",
+        "// This file is auto-generated",
+        "/* eslint-disable */",
+        "// DO NOT EDIT"
+      ],
+      "relax_quality_rules": true,
+      "relax_complexity_rules": true,
+      "still_check_types": true,
+      "still_check_security": true
+    },
+    
+    "documentation": {
+      "tsdoc_coverage": true,
+      "public_api_must_document": true,
+      "check_readme_consistency": true,
+      "validate_examples": false,
+      "severity": "high"
+    }
+  },
+  
+  "quality_thresholds": {
+    "minimum_score": 85,
+    "pass_score": 95,
+    "complexity_max": 15,
+    "file_length_max": 500,
+    "function_length_max": 50
+  },
+  
+  "exclude_from_strict_checks": [
+    "**/*.generated.ts",
+    "**/*.d.ts",
+    "**/dist/**",
+    "**/build/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/node_modules/**",
+    "**/.turbo/**"
+  ],
+  
+  "relaxed_rules_for_generated": {
+    "disable": [
+      "large-source-file",
+      "long-function",
+      "high-cyclomatic-complexity",
+      "repetitive-code-pattern"
+    ],
+    "severity_downgrade": {
+      "from": "high",
+      "to": "low",
+      "rules": ["unused-import", "todo-comment"]
+    }
+  },
+  
+  "blocking_rules": [
+    "circular-workspace-dependency",
+    "invalid-workspace-dependency-direction",
+    "missing-export-path",
+    "missing-type-declarations",
+    "hooks-called-conditionally",
+    "reactive-destructure-without-torefs",
+    "cli-missing-shebang",
+    "high-severity-cve",
+    "critical-severity-cve",
+    "unsafe-dynamic-code-execution",
+    "unvalidated-user-input-to-sink"
+  ],
+  
+  "warning_rules": [
+    "bundle-size-exceeded",
+    "coverage-below-threshold",
+    "missing-tsdoc",
+    "test-file-only-or-skip",
+    "large-source-file",
+    "high-cyclomatic-complexity"
+  ],
+  
+  "auto_fix": {
+    "enabled": false,
+    "safe_fixes_only": true,
+    "allowed_fixes": [
+      "trailing-whitespace",
+      "missing-import",
+      "unused-import"
+    ]
+  }
+}

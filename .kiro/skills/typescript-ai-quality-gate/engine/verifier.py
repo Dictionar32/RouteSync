@@ -6,7 +6,7 @@ from .snapshot import snapshot,diff
 from .evidence import validate
 from .policy import LEVELS,risk
 from .schema import validate_attestation
-from .analysis import complexity,complexity_delta,style,reuse,architecture,semantic_change,_api_index
+from .analysis import complexity,complexity_delta,style,reuse,architecture,semantic_change,_api_index,routesync_extensions
 from .provenance import collect
 from .identity import identity
 from .project_model import build_project_model
@@ -327,6 +327,20 @@ def verify(att,repo,schema_path=None,parent_path=None,source_path=None):
             recomputed=fn(repo)
             if expected.get('content')!=recomputed: errors.append('analysis-recomputation-mismatch:'+name)
             if name=='complexity' and a.get('complexity')!=recomputed: errors.append('complexity-attestation-mismatch')
+    
+    # RouteSync extensions recomputation
+    try:
+        from .analysis import routesync_extensions
+        rse_expected = routesync_extensions(repo, resolved or {})
+        rse_att_ws = a.get('workspace_analysis') or {}
+        rse_att_ex = a.get('export_validation') or {}
+        if rse_att_ws != rse_expected.get('workspace_analysis',{}):
+            errors.append('routesync-workspace-recomputation-mismatch')
+        if rse_att_ex != rse_expected.get('export_validation',{}):
+            errors.append('routesync-export-recomputation-mismatch')
+    except Exception:
+        errors.append('routesync-extensions-recompute-failed')
+    
     # TypeScript quality is intentionally NOT recomputed with the production analyzer here.
     # Its evidence digest is covered by the attestation, while verifier_tsq.py independently
     # recomputes invariant source metrics above. This avoids sharing the analyzer as a trust root.

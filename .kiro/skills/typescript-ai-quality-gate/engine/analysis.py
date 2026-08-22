@@ -3,6 +3,10 @@ import ast, json, re, hashlib, subprocess, shutil, os, signal
 from pathlib import Path
 from .project_model import build_project_model
 from .findings import finding, normalize
+from .workspace import analyze_workspace
+from .exports import validate_exports
+from .config import load_config
+from .frameworks import validate_frameworks
 CODE_EXT={'.ts','.tsx','.js','.jsx','.rs','.sh','.bash','.php','.py','.vue'}
 IGNORE={'.git','node_modules','target','vendor','dist','build','__pycache__','.venv','.pytest_cache','.mypy_cache'}
 _TS_CACHE={}
@@ -380,10 +384,93 @@ def reuse(repo):
         if len(paths)>1: raw.append({'paths':sorted(paths)[:12],'rule':'repeated-function-shape','severity':'medium','message':'Functions share structural control-flow and arity shape'})
     findings=normalize({'findings':raw},'reuse'); return {'findings':findings,'ast_backend':'typescript-compiler-api/python-ast-with-token-fallback','structural_index':ast_index,'ok':not any(x['severity'] in {'high','critical'} for x in findings)}
 
+def routesync_extensions(repo):
+    """
+    RouteSync-specific extensions: workspace validation, export validation, and framework patterns.
+    """
+    repo=Path(repo); findings=[]; ws_result={}; export_result={}; framework_result={}
+    
+    # Load config to enforce thresholds and policies
+    config = load_config(repo)
+    
+    # Workspace dependency validation
+    try:
+        ws_result = analyze_workspace(repo)
+        if ws_result.get('workspace_enabled'):
+            findings.extend(ws_result.get('violations', []))
+    except Exception as e:
+        findings.append({
+            'path': '<repository>',
+            'rule': 'workspace-analysis-failed',
+            'severity': 'low',
+            'message': f'Workspace analysis failed: {str(e)}'
+        })
+    
+    # Export path validation
+    try:
+        ts_files = [p for p in files(repo) if p.suffix.lower() in {'.ts', '.tsx', '.js', '.jsx'}]
+        export_result = validate_exports(repo, ts_files)
+        findings.extend(export_result.get('violations', []))
+    except Exception as e:
+        findings.append({
+            'path': '<repository>',
+            'rule': 'export-validation-failed',
+            'severity': 'low',
+            'message': f'Export validation failed: {str(e)}'
+        })
+    
+    # Framework pattern validation (React Hooks, Vue Composition, etc.)
+    try:
+        framework_result = validate_frameworks(repo, ts_files)
+        findings.extend(framework_result.get('violations', []))
+    except Exception as e:
+        findings.append({
+            'path': '<repository>',
+            'rule': 'framework-validation-failed',
+            'severity': 'low',
+            'message': f'Framework validation failed: {str(e)}'
+        })
+    
+    normalized = normalize({'findings': findings}, 'routesync')
+    
+    # Apply config thresholds
+    critical_count = sum(1 for f in normalized if f['severity'] == 'critical')
+    high_count = sum(1 for f in normalized if f['severity'] == 'high')
+    medium_count = sum(1 for f in normalized if f['severity'] == 'medium')
+    
+    threshold_violations = []
+    if config.is_loaded:
+        thresholds = config.data.get('thresholds', {})
+        if critical_count > thresholds.get('critical', 0):
+            threshold_violations.append(f"Critical violations: {critical_count} > {thresholds.get('critical', 0)}")
+        if high_count > thresholds.get('high', 5):
+            threshold_violations.append(f"High violations: {high_count} > {thresholds.get('high', 5)}")
+        if medium_count > thresholds.get('medium', 20):
+            threshold_violations.append(f"Medium violations: {medium_count} > {thresholds.get('medium', 20)}")
+    
+    return {
+        'findings': normalized,
+        'workspace_analysis': ws_result,
+        'export_validation': export_result,
+        'framework_validation': framework_result,
+        'threshold_violations': threshold_violations,
+        'config_loaded': config.is_loaded,
+        'ok': not any(x['severity'] in {'high', 'critical'} for x in normalized) and not threshold_violations
+    }
+
 def architecture(repo):
     repo=Path(repo); raw=[]; edges=[]
+    
+    # Load config to apply exclusions and blocking rules
+    config = load_config(repo)
+    
     for p in files(repo):
         text=_safe_read(p) or ''; rel=p.relative_to(repo).as_posix(); ext=p.suffix.lower()
+        
+        # Skip excluded files
+        if config.is_loaded and config.is_file_excluded(rel):
+            continue
+            
         if ext in {'.ts','.tsx','.js','.jsx'}:
             for m in re.finditer(r"(?:from\s+|import\s*\(|require\s*\()\s*['\"]([^'\"]+)",text):
                 target=m.group(1); resolved=_resolve_ts_target(repo,rel,target); edges.append((rel,resolved))

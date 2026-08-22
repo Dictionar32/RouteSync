@@ -6,7 +6,7 @@ from .policy import resolve,risk,LEVELS
 from .evidence import make,validate
 from .attestation import build,write
 from .provenance import collect
-from .analysis import complexity,complexity_delta,style,reuse,architecture,semantic_change,typescript_quality
+from .analysis import complexity,complexity_delta,style,reuse,architecture,semantic_change,typescript_quality,routesync_extensions
 from .project_model import build_project_model
 from .adapters import available,adapter_commands,adapters,adapter_contracts
 from .identity import identity
@@ -117,8 +117,17 @@ def load_baseline(path):
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as e: return None,None,repr(e)
 
 def main():
-    if len(sys.argv)<3: return 2
-    repo=Path(sys.argv[1]).resolve(); out=Path(sys.argv[2]); baseline_path=Path(sys.argv[3]) if len(sys.argv)>3 else None
+    import argparse
+    parser = argparse.ArgumentParser(description='TypeScript AI Quality Gate')
+    parser.add_argument('--project-root', type=Path, required=True, help='Project root directory')
+    parser.add_argument('--output', type=Path, help='Output attestation file')
+    parser.add_argument('--output-format', choices=['json', 'text'], default='json', help='Output format')
+    parser.add_argument('--baseline', type=Path, help='Baseline attestation file')
+    
+    args = parser.parse_args()
+    repo = args.project_root.resolve()
+    out = args.output or repo / 'quality-gate-attestation.json'
+    baseline_path = args.baseline
     policy,ph,sources,conflicts=resolve(repo)
     before=snapshot(repo); b,bl,berr=load_baseline(baseline_path)
     # A supplied baseline is a trust boundary. If its intrinsic attestation
@@ -132,7 +141,8 @@ def main():
         evidence.append(execute(repo,c['name'],c['argv'],c['source'],i,c['adapter'],c.get('parser')))
     style_r,reuse_r,arch_r=style(repo),reuse(repo),architecture(repo); complexity_r=complexity(repo)
     tsq_r=typescript_quality(repo,policy)
-    for rid,kind,report in [('style-analysis','style',style_r),('reuse-analysis','reuse',reuse_r),('architecture-analysis','architecture',arch_r),('complexity-analysis','complexity',complexity_r),('typescript-quality-analysis','typescript_quality',tsq_r)]:
+    rse_r=routesync_extensions(repo,policy)
+    for rid,kind,report in [('style-analysis','style',style_r),('reuse-analysis','reuse',reuse_r),('architecture-analysis','architecture',arch_r),('complexity-analysis','complexity',complexity_r),('typescript-quality-analysis','typescript_quality',tsq_r),('routesync-extensions-analysis','routesync_extensions',rse_r)]:
         status='PASS' if report.get('ok', True) else 'FAIL'
         if kind=='typescript_quality': status='PASS' if report.get('status')=='PASS' else 'FAIL'
         evidence.append(make(rid,'analysis',status,kind+' analyzer',0 if status=='PASS' else 1,report,execution={'seq':len(evidence)+1,'started':time.time(),'ended':time.time()}))
@@ -162,6 +172,7 @@ def main():
     state={'schema_version':SCHEMA_VERSION,'skill_version':SCHEMA_VERSION,'engine_version':SCHEMA_VERSION,'run_id':str(uuid.uuid4()),
       'project_model':build_project_model(repo),'baseline_snapshot':base_snap,'baseline_complexity':base_complexity if base_snap else None,'semantic_api':__import__('engine.analysis',fromlist=['_api_index'])._api_index(repo),
       'snapshot':before,'final_snapshot':final,'semantic_change':sem,'complexity':complexity_r,'complexity_delta':cd,'typescript_quality':tsq_r,
+      'workspace_analysis':rse_r.get('workspace_analysis',{}),'export_validation':rse_r.get('export_validation',{}),
       'adapter_commands':adapter_commands(repo),'adapters':adapters(repo),'adapter_contracts':adapter_contracts(repo),
       'policy':policy_bundle,'provenance':collect(),'repo_identity':identity(repo),'baseline_lineage':bl or {},
       'execution_chain_sha256':chain_hash(before,evidence,final),'risk':current_risk,'baseline_risk':base_risk,

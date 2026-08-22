@@ -87,3 +87,119 @@ Final42 increases default watchdog ceilings for slower CI/runtime environments w
 
 ### Final42 stabilization gate
 Final42 is a stabilization release rather than a new intelligence-layer feature release. It adds a bounded stabilization harness covering Python/Bash static hygiene and a consolidated adversarial TypeScript security fixture. The fixture specifically guards against generic request-parameter taint, while preserving direct request-property, multi-hop Promise, and cross-file class-method evidence. The gate is fail-closed: timeout or analyzer unavailability is non-zero and cannot become PASS. Full release certification additionally requires both `run.sh` and `runx.sh` to exit 0 in the target runtime.
+
+## RouteSync Extensions (v28.5)
+
+v28.5 adds RouteSync-specific extensions for monorepo workspace validation, export path verification, and framework-specific pattern checks. These extensions are enabled via `routesync.config.json` and integrate into the existing analysis and verification pipeline.
+
+### Implemented Features
+
+✅ **Workspace Dependency Validation** (`engine/workspace.py`)
+- Monorepo workspace package detection
+- Circular dependency detection between workspace packages
+- Dependency direction validation (core → domain → app)
+- Package.json workspace configuration parsing
+
+✅ **Export Path Validation** (`engine/exports.py`)
+- package.json exports field validation
+- Conditional exports verification
+- Missing export file detection
+- TypeScript declaration file checks
+
+✅ **Framework Pattern Validation** (`engine/frameworks.py`)
+- React Hooks rules validation (no conditional hooks)
+- Vue Composition API reactivity checks (toRefs usage)
+- TanStack Query patterns (optional)
+
+✅ **Configuration Integration** (`engine/config.py`)
+- routesync.config.json loading and parsing
+- Threshold configuration (critical, high, medium)
+- Framework-specific rule enablement
+- Policy integration
+
+✅ **Analysis Pipeline Integration** (`engine/analysis.py`)
+- routesync_extensions() function implementation
+- Config-driven analysis execution
+- Threshold violation detection
+- Evidence normalization
+
+✅ **Verification Integration** (`engine/verifier.py`)
+- RouteSync extensions recomputation in verify()
+- Workspace analysis consistency checks
+- Export validation consistency checks
+- Independent verification of extension findings
+
+✅ **Schema Updates** (`schemas/attestation.schema.json`)
+- workspace_analysis object schema
+- export_validation object schema
+- framework_validation results schema
+
+✅ **Policy Rules** (`policies/default.json`)
+- circular-workspace-dependency
+- invalid-workspace-dependency-direction
+- missing-export-path
+- hooks-called-conditionally
+- reactive-destructure-without-torefs
+- missing-cli-shebang
+- bundle-size-exceeded
+- missing-peer-dependency
+
+✅ **Test Coverage** (`self-tests/test_routesync_extensions.py`)
+- Workspace validation tests
+- Export validation tests
+- Framework pattern tests
+- Config integration tests
+- Full pipeline integration tests
+- Schema compliance tests
+
+### Known Limitations
+
+⚠️ **CLI Validation** - Not yet implemented
+- Shebang validation for CLI entry files
+- Execute permission checks
+- Cross-platform path validation
+
+⚠️ **Bundle Size Enforcement** - Not yet implemented
+- Integration with size-limit or similar tools
+- Budget enforcement per chunk/entry
+- Bundle analysis integration
+
+⚠️ **TSDoc Coverage** - Not yet implemented
+- Documentation coverage metrics
+- Missing @param/@returns detection
+- Public API documentation requirements
+
+⚠️ **npm audit Integration** - Not yet implemented
+- Vulnerability scanning with blocking CVE thresholds
+- Peer dependency validation
+- Automated security advisory checks
+
+### Architecture Notes
+
+The RouteSync extensions follow the v28.4 evidence-based analysis model:
+- Extensions produce normalized evidence, not trust decisions
+- The verifier independently recomputes all extension findings
+- Threshold violations are advisory unless marked blocking
+- All extensions are bounded and deterministic
+- Config files are loaded once and validated against schema
+
+Extension findings are included in the attestation under:
+```json
+{
+  "workspace_analysis": {
+    "violations": [...],
+    "dependencies": [...],
+    "workspaces": [...]
+  },
+  "export_validation": {
+    "violations": [...],
+    "exports": {...}
+  },
+  "framework_validation": {
+    "react": [...],
+    "vue": [...]
+  }
+}
+```
+
+The verifier recomputes these sections independently and compares byte-for-byte as canonical JSON before accepting verification.

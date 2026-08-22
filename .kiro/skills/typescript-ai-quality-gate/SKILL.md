@@ -36,11 +36,11 @@ Cross-project post-implementation quality gate for agents working on TypeScript,
 After implementation, and after every remediation iteration, the agent must inspect project-local conventions, derive project-native validation commands, execute applicable checks with argv/no shell, validate formatter/linter/type/build/test contracts where available, review reuse/architecture/complexity, record evidence, re-snapshot, attest, and invoke the independent verifier.
 
 Version contract:
-- skill_version: 29.0.0-routesync
-- engine_version: 28.4.0
-- schema_version: 28.4.0
-- policy_version: 28.4.0
-- routesync_extensions: 1.0.0
+- skill_version: 30.0.0-routesync
+- engine_version: 29.0.0
+- schema_version: 29.0.0
+- policy_version: 29.0.0
+- routesync_extensions: 2.0.0
 
 The attestation records a resolved policy bundle and its source digests. Verification uses the attested resolved policy for risk recomputation and separately detects current policy drift. Baseline lineage is verified when a parent attestation is supplied to the verifier.
 

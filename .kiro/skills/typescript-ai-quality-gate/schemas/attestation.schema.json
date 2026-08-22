@@ -1112,6 +1112,49 @@
       ],
       "type": "object"
     },
+    "workspace_analysis": {
+      "additionalProperties": false,
+      "properties": {
+        "violations": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "workspaces": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "export_validation": {
+      "additionalProperties": false,
+      "properties": {
+        "violations": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "exports": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "verification": {
       "additionalProperties": false,
       "allOf": [

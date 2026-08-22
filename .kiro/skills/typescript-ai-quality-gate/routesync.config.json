@@ -1,8 +1,9 @@
 {
   "$schema": "./schemas/routesync-config.schema.json",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "project_name": "RouteSync",
   "project_type": "monorepo_sdk_generator",
+  "upgraded_at": "2026-08-21T00:00:00Z",
   
   "extensions": {
     "monorepo": {

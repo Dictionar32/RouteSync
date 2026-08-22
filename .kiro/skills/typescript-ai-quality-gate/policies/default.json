@@ -39,5 +39,110 @@
       "max_params": 6
     }
   },
-  "version": "28.4.0"
+  "routesync_extensions": {
+    "enabled": true,
+    "workspace": {
+      "enabled": true,
+      "check_circular_dependencies": true,
+      "check_dependency_direction": true,
+      "allowed_directions": [
+        "core->domain",
+        "domain->app",
+        "core->app"
+      ]
+    },
+    "exports": {
+      "enabled": true,
+      "validate_export_paths": true,
+      "check_missing_files": true
+    },
+    "frameworks": {
+      "react": {
+        "enabled": true,
+        "check_hooks_rules": true,
+        "check_conditional_hooks": true
+      },
+      "vue": {
+        "enabled": true,
+        "check_reactivity": true,
+        "check_torefs_usage": true
+      }
+    },
+    "cli": {
+      "enabled": true,
+      "check_shebang": true,
+      "check_permissions": true,
+      "check_cross_platform": true
+    },
+    "performance": {
+      "enabled": true,
+      "check_bundle_size": true,
+      "bundle_budgets": {
+        "app": "250kb",
+        "chunk": "150kb"
+      }
+    },
+    "dependencies": {
+      "enabled": true,
+      "check_peer_deps": true,
+      "audit_vulnerabilities": false
+    }
+  },
+  "violation_rules": {
+    "circular-workspace-dependency": {
+      "severity": "error",
+      "message": "Circular dependency detected between workspace packages",
+      "autofix": false,
+      "category": "routesync-workspace"
+    },
+    "invalid-workspace-dependency-direction": {
+      "severity": "error",
+      "message": "Workspace dependency violates allowed direction (core → domain → app)",
+      "autofix": false,
+      "category": "routesync-workspace"
+    },
+    "missing-export-path": {
+      "severity": "error",
+      "message": "Export path declared in package.json but file does not exist",
+      "autofix": false,
+      "category": "routesync-exports"
+    },
+    "hooks-called-conditionally": {
+      "severity": "error",
+      "message": "React Hooks must be called at the top level, not inside conditions",
+      "autofix": false,
+      "category": "routesync-react"
+    },
+    "reactive-destructure-without-torefs": {
+      "severity": "warning",
+      "message": "Destructuring reactive object without toRefs() loses reactivity",
+      "autofix": false,
+      "category": "routesync-vue"
+    },
+    "missing-cli-shebang": {
+      "severity": "error",
+      "message": "CLI entry file missing shebang (#!/usr/bin/env node)",
+      "autofix": true,
+      "category": "routesync-cli"
+    },
+    "bundle-size-exceeded": {
+      "severity": "error",
+      "message": "Bundle size exceeds configured budget",
+      "autofix": false,
+      "category": "routesync-performance"
+    },
+    "missing-peer-dependency": {
+      "severity": "warning",
+      "message": "Package uses peer dependency that is not declared",
+      "autofix": false,
+      "category": "routesync-deps"
+    },
+    "no-unused-imports": {
+      "severity": "error",
+      "message": "Unused import detected",
+      "autofix": true,
+      "category": "typescript-quality"
+    }
+  },
+  "version": "28.5.0"
 }

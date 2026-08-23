@@ -1,4 +1,5 @@
 import { SemanticResolution } from './contract'
+import { ManifestMetadata } from './ir'
 import { SemanticType } from './semantic'
 
 /**

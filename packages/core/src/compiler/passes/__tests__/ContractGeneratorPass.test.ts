@@ -852,3 +852,33 @@ describe('ContractGeneratorPass', () => {
         });
     });
 });
+
+describe('ContractGeneratorPass - inline responses', () => {
+    test('should generate schemas for inline responses', () => {
+        const artifact: RequestTypesArtifact = {
+            typeId: 'RequestTypes',
+            requestTypes: [{
+                resourceName: 'payment',
+                formTypeName: 'PaymentContract',
+                actions: [],
+                responseData: {
+                    resourceName: 'PaymentConfirm',
+                    fields: {
+                        success: new PrimitiveType(PrimitiveKind.BOOLEAN),
+                        message: new PrimitiveType(PrimitiveKind.STRING)
+                    }
+                }
+            }],
+            metadata: { ... }
+        }
+
+        const pass = new ContractGeneratorPass()
+        const result = await pass.run([artifact])
+
+        // Should generate response schemas
+        const generated = result[0]
+        expect(generated.contracts).toContain('export const paymentConfirmShow')
+        expect(generated.contracts).toContain('success: z.boolean()')
+        expect(generated.contracts).toContain('message: z.string()')
+    })
+})

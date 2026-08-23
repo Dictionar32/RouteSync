@@ -255,8 +255,13 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
         // Urutan prioritas: GET dulu (index/show resource path sendiri),
         // lalu route lain (POST /payment/{orderId} → PaymentResource,
         // POST /cart/items → OrderResource).
+        // ✅ INLINE RESPONSE FIX: Also accept inline responses (kind === 'object')
         const responseRoutes = routes.filter(
-            r => r.response && (r.response.kind === 'resource' || r.response.kind === 'model')
+            r => r.response && (
+                r.response.kind === 'resource' ||
+                r.response.kind === 'model' ||
+                r.response.kind === 'object'  // ← Inline responses from manifest
+            )
         )
         const routeWithResponse =
             responseRoutes.find(r => r.method === 'GET') ?? responseRoutes[0]
@@ -322,6 +327,36 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                         console.warn(`[CompilerBridge] Resource ${responseResourceName} not found in manifest`)
                     }
                 }
+            } else if (response.kind === 'object' && response.fields) {
+                // ✅ INLINE RESPONSE: Handle inline response objects (not resource references)
+                // Generate synthetic resource name from route path
+                const syntheticName = generateInlineResourceName(routeWithResponse)
+
+                // Check for collision with existing resources
+                const collisionResource = manifest.resources?.find(r => r.name === syntheticName)
+                const finalName = collisionResource ? `${syntheticName}Inline` : syntheticName
+
+                console.log(`[CompilerBridge] Extracting inline response for ${resourceName} from ${routeWithResponse.path} as ${finalName}`)
+
+                // Convert inline fields to SemanticType using EXISTING utility
+                // resourceFieldsToNestedTypes works for both ParsedResource and inline fields
+                const fieldsRecord = resourceFieldsToNestedTypes(
+                    {
+                        name: finalName,
+                        fields: response.fields
+                    } as ParsedResource,
+                    manifest.resources || [],
+                    new Set()
+                )
+
+                responseData = {
+                    resourceName: finalName,
+                    fields: fieldsRecord
+                }
+
+                inferenceFields = fieldsRecord
+
+                console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} inline response fields`)
             }
         }
 
@@ -456,6 +491,45 @@ function processModels(models: ParsedModel[]): ObjectType[] {
     }
 
     return result
+}
+
+/**
+ * Generate synthetic resource name for inline responses
+ * 
+ * Creates a meaningful name from the route path for inline response objects.
+ * 
+ * @example
+ * /api/payment/confirm → PaymentConfirm
+ * /api/auth/login → AuthLogin
+ * /api/auth/social → AuthSocial
+ * /api/register → Register
+ * /api/forgot-password → ForgotPassword (kebab-case → camelCase)
+ * 
+ * @param route - Route with inline response
+ * @returns PascalCase synthetic resource name
+ */
+export function generateInlineResourceName(route: ParsedRoute): string {
+    const segments = route.path
+        .replace(/^\//, '')  // Remove leading slash
+        .split('/')
+        .filter(s => s.toLowerCase() !== 'api' && !s.startsWith('{'))  // Remove 'api' (case-insensitive) and params like {id}
+        .map(s => s.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()))  // kebab-case → camelCase
+
+    if (segments.length === 0) return 'Unknown'
+
+    if (segments.length === 1) {
+        // Single segment: just capitalize first letter
+        return segments[0].charAt(0).toUpperCase() + segments[0].slice(1)
+    }
+
+    // Multiple segments: use first + last, PascalCase both
+    const first = segments[0]
+    const last = segments[segments.length - 1]
+
+    const pascalFirst = first.charAt(0).toUpperCase() + first.slice(1)
+    const pascalLast = last.charAt(0).toUpperCase() + last.slice(1)
+
+    return pascalFirst + pascalLast
 }
 
 /**
@@ -882,15 +956,24 @@ function mapResourceFieldToNestedType(
 
         case 'object': {
             // Nested object — pertahankan sebagai ObjectType (TANPA flattening)
-            const nestedTypes = resourceFieldsToNestedTypes(
-                { name: fieldName, fields: field.fields || {} } as ParsedResource,
-                allResources,
-                seen
-            )
-            const props = new Map(Object.entries(nestedTypes))
+            // Recursively process nested fields
+            const nestedProps = new Map<string, SemanticType>()
+
+            for (const [nestedFieldName, nestedFieldDef] of Object.entries(field.fields || {})) {
+                const nestedType = mapResourceFieldToNestedType(
+                    nestedFieldName,
+                    nestedFieldDef,
+                    allResources,
+                    seen
+                )
+                if (nestedType) {
+                    nestedProps.set(nestedFieldName, nestedType)
+                }
+            }
+
             return new ObjectType(
-                new ImmutableMap(props),
-                new ImmutableSet(new Set(props.keys())),
+                new ImmutableMap(nestedProps),
+                new ImmutableSet(new Set(nestedProps.keys())),
                 undefined, // no base
                 [], // no interfaces
                 new ImmutableMap(new Map<string, string>([

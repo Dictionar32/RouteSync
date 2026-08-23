@@ -1,4 +1,4 @@
-import { TraceNode, SemanticResolution } from './contract';
+import { TraceNode, SemanticResolution, AccessKind } from './contract';
 import type { FieldNode } from './field';
 
 /* =========================================================

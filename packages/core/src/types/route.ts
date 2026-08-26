@@ -91,7 +91,7 @@ export interface ActionDefinition {
 export type ResponseMetadata = (
   | { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
   | { kind: 'resource'; resource: string; collection: boolean; paginated?: boolean }
-  | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string } | { kind: 'array'; element: ResourceFieldKind }>; collection?: boolean; paginated?: boolean }
+  | { kind: 'object'; fields: Record<string, ResponseMetadata | ResourceFieldKind>; collection?: boolean; paginated?: boolean }
   | { kind: 'unknown' }
 ) & {
   resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }

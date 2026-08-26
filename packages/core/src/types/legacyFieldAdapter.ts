@@ -79,17 +79,7 @@ export function fieldFromResponseMetadata(old: ResponseMetadata): FieldNode {
         const fields: Record<string, FieldNode> = {}
         for (const key in old.fields) {
           const v = old.fields[key]
-          switch (v.kind) {
-            case 'primitive':
-              fields[key] = { kind: 'primitive', type: v.type }
-              break
-            case 'model':
-            case 'resource':
-            case 'object':
-            case 'unknown':
-              fields[key] = fieldFromResponseMetadata(v)
-              break
-          }
+          fields[key] = fieldFromResponseField(v)
         }
         return { kind: 'object', fields }
       }
@@ -99,6 +89,25 @@ export function fieldFromResponseMetadata(old: ResponseMetadata): FieldNode {
     }
   })()
   return resolved ? { ...base, resolved } : base
+}
+
+/**
+ * Response object fields may use either response metadata or the richer
+ * resource-field union emitted by the manifest parser (for example a
+ * `method_call` carrying a resolved resource collection).
+ */
+function fieldFromResponseField(field: ResponseMetadata | ResourceFieldKind): FieldNode {
+  switch (field.kind) {
+    case 'primitive':
+      return { kind: 'primitive', type: field.type }
+    case 'model':
+    case 'resource':
+    case 'object':
+    case 'unknown':
+      return fieldFromResponseMetadata(field as ResponseMetadata)
+    default:
+      return fieldFromResourceFieldKind(field)
+  }
 }
 
 /**

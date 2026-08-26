@@ -80,6 +80,19 @@ describe('ContractSchemaMapper', () => {
 
             expect(result.zodSchema).toBe('z.string().datetime()');
         });
+
+        test('should map FILE type without eagerly reading the browser File global', () => {
+            const type = new PrimitiveType(PrimitiveKind.FILE);
+            const config: FieldConfig = {
+                fieldName: 'avatar',
+                required: true,
+                nullable: false
+            };
+
+            const result = mapper.mapToZodSchema(type, config);
+
+            expect(result.zodSchema).toBe("z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)");
+        });
     });
 
     describe('Modifier application', () => {

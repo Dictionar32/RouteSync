@@ -82,14 +82,16 @@ export class ResponseAnalysisPass
         const response = route.response;
         const reasons: string[] = [];
         const responseType = response?.kind ?? 'unknown';
-        const collection = response?.collection === true;
+        const collection = response?.kind === 'array' || response?.collection === true;
         const isPaginated = response?.paginated === true;
         const isCollection = collection || isPaginated;
 
         reasons.push(`Response kind: ${responseType}`);
 
         if (collection) {
-            reasons.push('Collection detected from response metadata');
+            reasons.push(response?.kind === 'array'
+                ? 'Collection detected from canonical array descriptor'
+                : 'Collection detected from response metadata');
         } else if (isPaginated) {
             reasons.push('Paginated response implies collection');
         } else {
@@ -124,6 +126,15 @@ export class ResponseAnalysisPass
 
         if (response.kind === 'model') {
             return { modelName: response.model };
+        }
+
+        if (response.kind === 'array') {
+            if (response.element.kind === 'resource') {
+                return { resourceName: response.element.resource, modelName: response.element.model };
+            }
+            if (response.element.kind === 'model') {
+                return { modelName: response.element.model };
+            }
         }
 
         return {};
@@ -173,6 +184,29 @@ export class ResponseAnalysisPass
                 return {
                     type: 'model',
                     model: analysis.modelName ?? 'UnknownModel',
+                    shape,
+                };
+
+            case 'array':
+                if (analysis.resourceName) {
+                    return {
+                        type: 'resource',
+                        resource: analysis.resourceName,
+                        model: analysis.modelName,
+                        shape,
+                    };
+                }
+                if (analysis.modelName) {
+                    return {
+                        type: 'model',
+                        model: analysis.modelName,
+                        shape,
+                    };
+                }
+                return {
+                    type: 'object',
+                    schemaName: analysis.routeName,
+                    schema: { name: analysis.routeName, properties: {}, required: [] },
                     shape,
                 };
 
@@ -227,6 +261,7 @@ interface RouteResponseAnalysis {
     | 'resource'
     | 'model'
     | 'object'
+    | 'array'
     | 'primitive'
     | 'unknown';
     readonly isCollection: boolean;

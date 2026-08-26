@@ -11,6 +11,7 @@
 
 import { PrimitiveType, PrimitiveKind, ReadonlyCollectionType, CollectionKind } from '../../types/SemanticType';
 import type { SemanticType } from '../../types/SemanticType';
+import type { FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
 
 /**
  * Laravel validation rule (simplified)
@@ -29,6 +30,9 @@ export interface ValidationRule {
 export interface MappedField {
     /** TypeScript type untuk field */
     readonly type: SemanticType;
+
+    /** File validation constraints retained for contract generation. */
+    readonly fileConstraints?: FileValidationConstraints;
 
     /** Is this field required? */
     readonly required: boolean;
@@ -69,6 +73,11 @@ export class FormFieldMapper {
         let baseType: SemanticType = new PrimitiveType(PrimitiveKind.STRING); // Default type
         let required = false;
         let nullable = false;
+        let isFile = false;
+        let image = false;
+        const extensions = new Set<string>();
+        const mimeTypes = new Set<string>();
+        let maxKilobytes: number | undefined;
 
         // Scan rules untuk extract type info
         for (const rule of rules) {
@@ -109,6 +118,33 @@ export class FormFieldMapper {
                     baseType = new PrimitiveType(PrimitiveKind.DATETIME);
                     break;
 
+                // Laravel treats all of these as uploaded files. `image`,
+                // `mimes`, and `mimetypes` are file constraints as well, even
+                // when an explicit `file` rule is omitted.
+                case 'file':
+                    isFile = true;
+                    baseType = new PrimitiveType(PrimitiveKind.FILE);
+                    break;
+                case 'image':
+                    isFile = true;
+                    image = true;
+                    baseType = new PrimitiveType(PrimitiveKind.FILE);
+                    break;
+                case 'mimes':
+                    isFile = true;
+                    for (const extension of rule.parameters ?? []) {
+                        extensions.add(extension.toLowerCase());
+                    }
+                    baseType = new PrimitiveType(PrimitiveKind.FILE);
+                    break;
+                case 'mimetypes':
+                    isFile = true;
+                    for (const mimeType of rule.parameters ?? []) {
+                        mimeTypes.add(mimeType.toLowerCase());
+                    }
+                    baseType = new PrimitiveType(PrimitiveKind.FILE);
+                    break;
+
                 case 'json':
                     // JSON fields are strings in forms
                     baseType = new PrimitiveType(PrimitiveKind.STRING);
@@ -116,6 +152,11 @@ export class FormFieldMapper {
 
                 // Ignore validation-only rules (they don't affect type)
                 case 'max':
+                    // Laravel's `max` for an uploaded file is expressed in KB.
+                    if (rule.parameters?.[0] && Number.isFinite(Number(rule.parameters[0]))) {
+                        maxKilobytes = Number(rule.parameters[0]);
+                    }
+                    break;
                 case 'min':
                 case 'email':
                 case 'url':
@@ -132,8 +173,18 @@ export class FormFieldMapper {
             }
         }
 
+        const fileConstraints = isFile
+            ? {
+                ...(image ? { image: true } : {}),
+                ...(extensions.size > 0 ? { extensions: Array.from(extensions) } : {}),
+                ...(mimeTypes.size > 0 ? { mimeTypes: Array.from(mimeTypes) } : {}),
+                ...(maxKilobytes !== undefined ? { maxBytes: maxKilobytes * 1024 } : {}),
+            }
+            : undefined;
+
         return {
             type: baseType,
+            fileConstraints,
             required,
             nullable
         };

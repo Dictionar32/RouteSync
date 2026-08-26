@@ -50,6 +50,9 @@ export class PrimitiveTypeRegistry {
         [PrimitiveKind.NUMBER, 'z.number()'],
         [PrimitiveKind.BOOLEAN, 'z.boolean()'],
         [PrimitiveKind.DATETIME, 'z.string().datetime()'],
+        // Avoid evaluating the browser-only File constructor when an SDK is
+        // imported during SSR. The predicate is evaluated only on validation.
+        [PrimitiveKind.FILE, "z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)"],
         [PrimitiveKind.UNKNOWN, 'z.unknown()']
     ]);
 

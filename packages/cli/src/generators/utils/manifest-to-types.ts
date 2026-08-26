@@ -107,7 +107,7 @@ export function manifestToRequestTypes(manifest: RouteManifest): RequestTypesArt
 
             // Parse validation rules
             const fields = parseValidationRules(
-                (route.schema?.rules || {}) as Record<string, string>,
+                (route.schema?.rules || {}) as Record<string, string | string[]>,
                 fieldMapper
             )
 
@@ -216,7 +216,7 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
 
             // 🔧 FIX BUG 2: Parse validation rules WITHOUT flattening
             const fields = parseValidationRulesPreserveNested(
-                (route.schema?.rules || {}) as Record<string, string>,
+                (route.schema?.rules || {}) as Record<string, string | string[]>,
                 fieldMapper
             )
 
@@ -262,6 +262,7 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                 r.response.kind === 'resource' ||
                 r.response.kind === 'model' ||
                 r.response.kind === 'object' ||  // ← Inline responses from manifest
+                r.response.kind === 'array' ||   // ← Canonical top-level collection descriptor
                 r.response.kind === 'unknown'
             )
         )
@@ -368,6 +369,32 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                 inferenceFields = fieldsRecord
 
                 console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} inline response fields${response.collection ? ' as collection' : ''}`)
+            } else if (response.kind === 'array') {
+                const syntheticName = generateInlineResourceName(routeWithResponse)
+                const collisionResource = manifest.resources?.find(r => r.name === syntheticName)
+                const finalName = collisionResource ? `${syntheticName}Inline` : syntheticName
+
+                // A canonical top-level array has no object field name of its
+                // own. Keep the established response artifact convention by
+                // exposing it through `data`, while preserving its recursive
+                // element type (resource, model, object, primitive, or array).
+                const arrayType = mapResourceFieldToNestedType(
+                    'data',
+                    response as ResourceFieldKind,
+                    manifest.resources || [],
+                    new Set()
+                ) ?? new ReadonlyCollectionType(
+                    CollectionKind.ARRAY,
+                    new ReferenceType('App\\Models', 'unknown')
+                )
+
+                responseData = {
+                    resourceName: finalName,
+                    fields: { data: arrayType }
+                }
+                inferenceFields = responseData.fields
+
+                console.log(`[CompilerBridge] Extracted canonical array response for ${resourceName} from ${routeWithResponse.path} as ${finalName}`)
             } else if (response.kind === 'unknown') {
                 const syntheticName = generateInlineResourceName(routeWithResponse)
                 const collisionResource = manifest.resources?.find(r => r.name === syntheticName)
@@ -597,6 +624,8 @@ function parseValidationRulesPreserveNested(
     // Wildcard children: parent → childName → parsed rules
     // (mis. checkout items.*.produk_item_id → elemen dari items)
     const wildcardChildren = new Map<string, Map<string, ValidationRule[]>>()
+    // Direct wildcards (attachments.*) describe scalar array elements.
+    const wildcardElements = new Map<string, ValidationRule[]>()
 
     for (const [fieldName, ruleString] of Object.entries(rules)) {
         // ✅ FIX #5: dukung rule format array JSON
@@ -607,6 +636,12 @@ function parseValidationRulesPreserveNested(
         }
 
         const parsedRules = normalizeValidationRules(ruleString)
+
+        const wildcardElementMatch = fieldName.match(/^([^.]+)\.\*$/)
+        if (wildcardElementMatch) {
+            wildcardElements.set(wildcardElementMatch[1], parsedRules)
+            continue
+        }
 
         // ✅ FIX #4: wildcard (items.*.produk_item_id) TIDAK di-skip —
         // dikumpulkan sebagai elemen dari array parent-nya
@@ -632,9 +667,34 @@ function parseValidationRulesPreserveNested(
             originalName: fieldName,        // ← snake_case preserved
             transformedName: fieldName,     // ← Same as original (NO transform)
             type: mapped.type,
+            fileConstraints: mapped.fileConstraints,
             required: mapped.required,
             nullable: mapped.nullable
         })
+    }
+
+    // `attachments.*: file` upgrades `attachments: array` to File[].
+    for (const [parent, elementRules] of wildcardElements) {
+        const mapped = fieldMapper.mapValidationToType(elementRules)
+        const type = new ReadonlyCollectionType(CollectionKind.ARRAY, mapped.type)
+        const parentField = fields.find(field => field.originalName === parent)
+
+        if (parentField) {
+            fields = fields.map(field =>
+                field.originalName === parent
+                    ? { ...field, type, fileConstraints: mapped.fileConstraints }
+                    : field
+            )
+        } else {
+            fields.push({
+                originalName: parent,
+                transformedName: parent,
+                type,
+                fileConstraints: mapped.fileConstraints,
+                required: false,
+                nullable: false
+            })
+        }
     }
 
     // Terapkan wildcard: upgrade field array parent → array of object
@@ -691,21 +751,17 @@ function parseValidationRulesPreserveNested(
  *   (opsi parameter) diabaikan, aturan diekstrak dari string saja
  */
 function normalizeValidationRules(ruleString: string | string[]): ValidationRule[] {
-    if (typeof ruleString === 'string') {
-        // Format: "required|string|max:255"
-        return ruleString.split('|').map(r => {
-            const [rule, ...params] = r.split(':')
-            return {
-                rule,
-                parameters: params.length > 0 ? params[0].split(',') : []
-            }
-        })
-    }
+    const ruleParts = typeof ruleString === 'string'
+        ? ruleString.split('|')
+        : ruleString.filter((item): item is string => typeof item === 'string')
 
-    // Format array: ['sometimes', 'required', 'email', {}]
-    return ruleString
-        .filter((item): item is string => typeof item === 'string')
-        .map(rule => ({ rule, parameters: [] }))
+    return ruleParts.map(rulePart => {
+        const [rule, ...params] = rulePart.split(':')
+        return {
+            rule,
+            parameters: params.length > 0 ? params[0].split(',') : []
+        }
+    })
 }
 
 /**
@@ -810,33 +866,33 @@ function findNumberTypeInResponse(
  * Parse validation rules to RequestField array
  */
 function parseValidationRules(
-    rules: Record<string, string>,
+    rules: Record<string, string | string[]>,
     fieldMapper: FormFieldMapper
 ): RequestField[] {
     const fields: RequestField[] = []
+    const wildcardElements = new Map<string, ValidationRule[]>()
 
     for (const [fieldName, ruleString] of Object.entries(rules)) {
-        // Skip if ruleString is not a string
-        if (typeof ruleString !== 'string') {
-            console.warn(`[CompilerBridge] Skipping field ${fieldName}: rules is not a string`)
+        // Laravel permits both pipe strings and arrays of rule strings.
+        if (typeof ruleString !== 'string' && !Array.isArray(ruleString)) {
+            console.warn(`[CompilerBridge] Skipping field ${fieldName}: rules is not a string or array`)
             continue
         }
 
-        // Skip nested array fields (items.*.fieldName)
-        // These need special handling which we'll implement later
+        const parsedRules = normalizeValidationRules(ruleString)
+
+        const wildcardElementMatch = fieldName.match(/^(.+)\.\*$/)
+        if (wildcardElementMatch) {
+            wildcardElements.set(wildcardElementMatch[1], parsedRules)
+            continue
+        }
+
+        // Nested object wildcards (items.*.fieldName) are handled only by the
+        // contract lowering path, where the object shape is preserved.
         if (fieldName.includes('.*.') || fieldName.includes('.*')) {
             console.warn(`[CompilerBridge] Skipping nested array field: ${fieldName}`)
             continue
         }
-
-        // Parse rule string (format: "required|string|max:255")
-        const parsedRules = ruleString.split('|').map(r => {
-            const [rule, ...params] = r.split(':')
-            return {
-                rule,
-                parameters: params.length > 0 ? params[0].split(',') : []
-            }
-        })
 
         // Map to TypeScript type
         const mapped = fieldMapper.mapValidationToType(parsedRules)
@@ -845,9 +901,30 @@ function parseValidationRules(
             originalName: fieldName,
             transformedName: toCamelCase(fieldName),
             type: mapped.type,
+            fileConstraints: mapped.fileConstraints,
             required: mapped.required,
             nullable: mapped.nullable
         })
+    }
+
+    for (const [parent, elementRules] of wildcardElements) {
+        const mapped = fieldMapper.mapValidationToType(elementRules)
+        const type = new ReadonlyCollectionType(CollectionKind.ARRAY, mapped.type)
+        const parentField = fields.find(field => field.originalName === parent)
+
+        if (parentField) {
+            const index = fields.indexOf(parentField)
+            fields[index] = { ...parentField, type, fileConstraints: mapped.fileConstraints }
+        } else {
+            fields.push({
+                originalName: parent,
+                transformedName: toCamelCase(parent),
+                type,
+                fileConstraints: mapped.fileConstraints,
+                required: false,
+                nullable: false
+            })
+        }
     }
 
     return fields
@@ -1037,12 +1114,20 @@ function mapResourceFieldToNestedType(
             }
             return new ReferenceType('App\\Models', field.resource ?? 'unknown')
 
+        case 'model': {
+            const modelType = new ReferenceType('App\\Models', field.model)
+            return field.collection
+                ? new ReadonlyCollectionType(CollectionKind.ARRAY, modelType)
+                : modelType
+        }
+
         case 'property_access':
         case 'nullsafe_property_access':
         case 'variable':
         case 'type_cast':
         case 'binary_expression':
         case 'method_call':
+        case 'static_method_call':
         case 'literal':
             // Infer type dari resolved metadata (sama dengan flatten)
             return resolved?.type

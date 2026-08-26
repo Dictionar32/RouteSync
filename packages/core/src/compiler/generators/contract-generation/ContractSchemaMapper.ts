@@ -10,6 +10,7 @@
  */
 
 import type { SemanticType } from '../../types/SemanticType';
+import type { FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
 import {
     PrimitiveType,
     ObjectType,
@@ -27,6 +28,7 @@ export interface FieldConfig {
     readonly fieldName: string;
     readonly required: boolean;
     readonly nullable: boolean;
+    readonly fileConstraints?: FileValidationConstraints;
 }
 
 /**
@@ -81,7 +83,7 @@ export class ContractSchemaMapper {
      */
     mapToZodSchema(type: SemanticType, config: FieldConfig): MappedSchema {
         // Get base schema without modifiers
-        const baseSchema = this.mapBaseType(type);
+        const baseSchema = this.mapBaseType(type, config.fileConstraints);
 
         // Add modifiers if needed
         const modifiers = this.modifierBuilder.buildModifiers({
@@ -99,9 +101,12 @@ export class ContractSchemaMapper {
     /**
      * Map base type (without modifiers)
      */
-    private mapBaseType(type: SemanticType): string {
+    private mapBaseType(type: SemanticType, fileConstraints?: FileValidationConstraints): string {
         if (type instanceof PrimitiveType) {
-            return this.primitiveRegistry.getZodSchema(type);
+            const schema = this.primitiveRegistry.getZodSchema(type);
+            return type.type === 'file'
+                ? this.applyFileConstraints(schema, fileConstraints)
+                : schema;
         }
 
         if (type instanceof ObjectType) {
@@ -109,7 +114,7 @@ export class ContractSchemaMapper {
         }
 
         if (type instanceof ReadonlyCollectionType) {
-            return this.mapCollectionType(type);
+            return this.mapCollectionType(type, fileConstraints);
         }
 
         if (type instanceof UnionType) {
@@ -154,9 +159,58 @@ export class ContractSchemaMapper {
     /**
      * Map collection type (array)
      */
-    private mapCollectionType(type: ReadonlyCollectionType): string {
-        const elementSchema = this.mapBaseType(type.elementType);
+    private mapCollectionType(
+        type: ReadonlyCollectionType,
+        fileConstraints?: FileValidationConstraints
+    ): string {
+        const elementSchema = this.mapBaseType(type.elementType, fileConstraints);
         return `z.array(${elementSchema})`;
+    }
+
+    /** Convert retained Laravel upload constraints into browser File refinements. */
+    private applyFileConstraints(
+        schema: string,
+        constraints?: FileValidationConstraints
+    ): string {
+        if (!constraints) return schema;
+
+        const mimeTypes = new Set<string>(constraints.mimeTypes ?? []);
+        for (const extension of constraints.extensions ?? []) {
+            const mimeType = this.mimeTypeForExtension(extension);
+            if (mimeType) mimeTypes.add(mimeType);
+        }
+
+        let result = schema;
+        const conditions: string[] = [];
+        if (constraints.image) {
+            conditions.push("file.type.startsWith('image/')");
+        }
+        if (mimeTypes.size > 0) {
+            conditions.push(Array.from(mimeTypes)
+                .map(mimeType => `file.type === '${mimeType}'`)
+                .join(' || '));
+        }
+        if (conditions.length > 0) {
+            result += `.refine((file) => ${conditions.map(condition => `(${condition})`).join(' && ')}, { message: 'Unsupported file type' })`;
+        }
+        if (constraints.maxBytes !== undefined) {
+            result += `.refine((file) => file.size <= ${constraints.maxBytes}, { message: 'File is too large' })`;
+        }
+
+        return result;
+    }
+
+    private mimeTypeForExtension(extension: string): string | undefined {
+        const normalized = extension.toLowerCase().replace(/^\./, '');
+        const mimeTypes: Readonly<Record<string, string>> = {
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg',
+            png: 'image/png',
+            webp: 'image/webp',
+            gif: 'image/gif',
+            pdf: 'application/pdf',
+        };
+        return mimeTypes[normalized];
     }
 
     /**

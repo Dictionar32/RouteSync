@@ -9,6 +9,7 @@
  */
 
 import type { SemanticType } from '../../types/SemanticType';
+import type { FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
 import { ContractSchemaMapper } from './ContractSchemaMapper';
 
 /**
@@ -17,6 +18,7 @@ import { ContractSchemaMapper } from './ContractSchemaMapper';
 export interface ContractField {
     readonly name: string;
     readonly type: SemanticType;
+    readonly fileConstraints?: FileValidationConstraints;
     readonly required: boolean;
     readonly nullable: boolean;
 }
@@ -106,7 +108,8 @@ export class ContractActionGenerator {
             const mapped = this.schemaMapper.mapToZodSchema(field.type, {
                 fieldName: field.name,
                 required: field.required,
-                nullable: field.nullable
+                nullable: field.nullable,
+                fileConstraints: field.fileConstraints
             });
 
             const comma = isLast ? '' : ',';
@@ -201,6 +204,8 @@ export class ContractActionGenerator {
                     return 'boolean';
                 case 'datetime':
                     return 'string';  // Datetime represented as ISO string
+                case 'file':
+                    return 'File';
                 case 'unknown':
                 default:
                     return 'unknown';

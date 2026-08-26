@@ -76,6 +76,14 @@ describe('TypeScriptGenerator', () => {
             expect((result as TSTypeReference).name).toBe('string');
         });
 
+        it('should convert file primitive to File', () => {
+            const semantic = new PrimitiveType(PrimitiveKind.FILE);
+            const result = generator.semanticTypeToTSType(semantic);
+
+            expect(result).toBeInstanceOf(TSTypeReference);
+            expect((result as TSTypeReference).name).toBe('File');
+        });
+
         it('should convert unknown primitive', () => {
             const semantic = new PrimitiveType(PrimitiveKind.UNKNOWN);
             const result = generator.semanticTypeToTSType(semantic);

@@ -344,6 +344,7 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
             'number': 'number',
             'boolean': 'boolean',
             'datetime': 'string', // DateTime serialized as ISO string
+            'file': 'File',
             'unknown': 'unknown'
         };
 

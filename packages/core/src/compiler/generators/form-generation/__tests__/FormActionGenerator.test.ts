@@ -66,6 +66,18 @@ describe('FormActionGenerator', () => {
             ]);
         });
 
+        test('should generate File for a Laravel upload field', () => {
+            const action = generator.generateAction('create', [{
+                originalName: 'avatar',
+                transformedName: 'avatar',
+                type: new PrimitiveType(PrimitiveKind.FILE),
+                required: true,
+                nullable: false
+            }]);
+
+            expect(action.lines).toContain('    avatar: File');
+        });
+
         test('should generate action with no fields', () => {
             const fields: RequestField[] = [];
 

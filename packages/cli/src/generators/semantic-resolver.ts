@@ -265,7 +265,7 @@ export class SemanticResolver {
             mapperName: `to${name}Read`,
             formMapperName: `toApi${name}${actionName}`,
             fields: this.buildFieldMap(meta, manifest),
-            isCollection: meta.collection ?? false,
+            isCollection: meta.kind === 'array' || (meta.collection ?? false),
             isPaginated: meta.paginated ?? false,
             isWrapped: meta.wrapped ?? false,
             isNullable: meta.nullable ?? false,
@@ -288,6 +288,10 @@ export class SemanticResolver {
         if (!meta || !Object.keys(meta).length) {
             // No response metadata: fallback to route-derived name
             return `${toTypeName(route.name ?? 'Response')}Response`
+        }
+
+        if (meta.kind === 'array' && meta.element) {
+            return this.resolveResponseName(route, meta.element)
         }
 
         // Check 1: Pure resource alias (e.g., 'OrderResource' with no fields)
@@ -675,7 +679,7 @@ export class SemanticResolver {
                 name: route.name,
                 action,
                 responseId,
-                isCollection: route.response?.collection ?? false,
+                isCollection: route.response?.kind === 'array' || (route.response?.collection ?? false),
                 isPaginated: route.response?.paginated ?? false,
                 isWrapped: route.response?.wrapped ?? false,
             })

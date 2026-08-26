@@ -65,6 +65,13 @@ describe('FormFieldMapper', () => {
             expect((result.type as PrimitiveType).type).toBe(PrimitiveKind.DATETIME);
         });
 
+        test.each(['file', 'image', 'mimes', 'mimetypes'])('should map %s rule to FILE type', (rule) => {
+            const result = mapper.mapValidationToType([{ rule }]);
+
+            expect(result.type).toBeInstanceOf(PrimitiveType);
+            expect((result.type as PrimitiveType).type).toBe(PrimitiveKind.FILE);
+        });
+
         test('should map array rule to ReadonlyCollectionType of STRING (default array element)', () => {
             const rules: ValidationRule[] = [{ rule: 'array' }];
             const result = mapper.mapValidationToType(rules);

@@ -48,7 +48,7 @@ export interface ParsedChannel {
 export type ResourceFieldKind = (
   | { kind: 'primitive'; type: string }
   | { kind: 'model'; model: string; collection: boolean }
-  | { kind: 'resource'; resource: string; collection: boolean }
+  | { kind: 'resource'; resource: string; model?: string; collection: boolean }
   | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
   | { kind: 'array'; element: ResourceFieldKind }
   | { kind: 'property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Real manifest data
@@ -57,6 +57,7 @@ export type ResourceFieldKind = (
   | { kind: 'type_cast'; resolved?: { type: string }; nullable?: boolean }        // ✅ Phase 2: Type casting
   | { kind: 'binary_expression'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Binary operators
   | { kind: 'method_call'; resolved?: { type: string }; nullable?: boolean }      // ✅ Phase 2: Method calls
+  | { kind: 'static_method_call'; resolved?: { type: string }; nullable?: boolean } // ✅ Phase 2: Static method calls
   | { kind: 'literal'; resolved?: { type: string }; nullable?: boolean }          // ✅ Phase 2: Literals
   | { kind: 'unknown' }
 ) & {
@@ -64,6 +65,8 @@ export type ResourceFieldKind = (
   semantic?: SemanticResolution
   /** Whether this field can be null in the response payload. */
   nullable?: boolean
+  /** A paginator serializes as an object containing a collection in `data`. */
+  paginated?: boolean
 }
 
 export interface ParsedResource {
@@ -92,6 +95,7 @@ export type ResponseMetadata = (
   | { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
   | { kind: 'resource'; resource: string; collection: boolean; paginated?: boolean }
   | { kind: 'object'; fields: Record<string, ResponseMetadata | ResourceFieldKind>; collection?: boolean; paginated?: boolean }
+  | { kind: 'array'; element: ResourceFieldKind; paginated?: boolean }
   | { kind: 'unknown' }
 ) & {
   resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }

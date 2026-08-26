@@ -130,6 +130,98 @@ describe('manifestToContractInput — collection capability matrix', () => {
         expect(response.fields.name).toBeInstanceOf(PrimitiveType);
     });
 
+    test('REGRESSION: canonical inline model array becomes a ReadonlyCollectionType', () => {
+        const manifest = baseManifest({
+            kind: 'object',
+            fields: {
+                data: {
+                    kind: 'array',
+                    element: {
+                        kind: 'model',
+                        model: 'Category',
+                        collection: false,
+                    },
+                },
+            },
+        });
+
+        const artifact = manifestToContractInput(manifest);
+        const data = artifact.requestTypes[0].responseData!.fields.data;
+
+        expect(data).toBeInstanceOf(ReadonlyCollectionType);
+        expect((data as ReadonlyCollectionType).collectionKind).toBe(CollectionKind.ARRAY);
+    });
+
+    test('COMPATIBILITY: legacy inline model collection remains readable', () => {
+        const manifest = baseManifest({
+            kind: 'object',
+            fields: {
+                data: {
+                    kind: 'model',
+                    model: 'Category',
+                    collection: true,
+                },
+            },
+        });
+
+        const artifact = manifestToContractInput(manifest);
+        const data = artifact.requestTypes[0].responseData!.fields.data;
+
+        expect(data).toBeInstanceOf(ReadonlyCollectionType);
+        expect((data as ReadonlyCollectionType).collectionKind).toBe(CollectionKind.ARRAY);
+    });
+
+    test('REGRESSION: canonical top-level resource array is retained as response data', () => {
+        const manifest = baseManifest({
+            kind: 'array',
+            element: {
+                kind: 'resource',
+                resource: 'ProdukItemResource',
+                collection: false,
+            },
+        });
+        manifest.resources = [{
+            name: 'ProdukItemResource',
+            fields: {
+                id: { kind: 'primitive', type: 'number' },
+            },
+        }];
+
+        const artifact = manifestToContractInput(manifest);
+        const data = artifact.requestTypes[0].responseData!.fields.data;
+
+        expect(data).toBeInstanceOf(ReadonlyCollectionType);
+        expect((data as ReadonlyCollectionType).elementType).toBeInstanceOf(ObjectType);
+    });
+
+    test('REGRESSION: paginator response keeps its nested data collection', () => {
+        const manifest = baseManifest({
+            kind: 'object',
+            fields: {
+                reviews: {
+                    kind: 'object',
+                    paginated: true,
+                    fields: {
+                        data: {
+                            kind: 'array',
+                            element: {
+                                kind: 'model',
+                                model: 'ProductReview',
+                                collection: false,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const artifact = manifestToContractInput(manifest);
+        const reviews = artifact.requestTypes[0].responseData!.fields.reviews;
+
+        expect(reviews).toBeInstanceOf(ObjectType);
+        expect((reviews as ObjectType).properties.get('data')).toBeInstanceOf(ReadonlyCollectionType);
+    });
+
     /**
      * INTENTIONAL LIMITATION TEST
      *

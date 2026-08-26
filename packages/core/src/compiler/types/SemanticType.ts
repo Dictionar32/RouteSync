@@ -3,7 +3,7 @@
  * @description Core semantic type system for RouteSync compiler
  * 
  * Defines the type hierarchy used throughout semantic analysis:
- * - Primitive types (string, number, boolean, datetime, unknown)
+ * - Primitive types (string, number, boolean, datetime, file, unknown)
  * - Reference types (named types from Laravel models/resources)
  * - Collection types (arrays, nullable, etc.)
  * - Generic types with variance support
@@ -21,6 +21,8 @@ export enum PrimitiveKind {
     NUMBER = 'number',
     BOOLEAN = 'boolean',
     DATETIME = 'datetime',
+    /** Browser File submitted through multipart/form-data. */
+    FILE = 'file',
     UNKNOWN = 'unknown'
 }
 
@@ -61,16 +63,18 @@ export type PrimitiveKindValue =
     | 'number'
     | 'boolean'
     | 'datetime'
+    | 'file'
     | 'unknown';
 
 const primitiveKindByValue: Readonly<Record<
-    'string' | 'number' | 'boolean' | 'datetime' | 'unknown',
+    'string' | 'number' | 'boolean' | 'datetime' | 'file' | 'unknown',
     PrimitiveKind
 >> = {
     string: PrimitiveKind.STRING,
     number: PrimitiveKind.NUMBER,
     boolean: PrimitiveKind.BOOLEAN,
     datetime: PrimitiveKind.DATETIME,
+    file: PrimitiveKind.FILE,
     unknown: PrimitiveKind.UNKNOWN,
 };
 
@@ -81,9 +85,14 @@ function normalizePrimitiveKind(
     if (value === PrimitiveKind.NUMBER) return PrimitiveKind.NUMBER;
     if (value === PrimitiveKind.BOOLEAN) return PrimitiveKind.BOOLEAN;
     if (value === PrimitiveKind.DATETIME) return PrimitiveKind.DATETIME;
+    if (value === PrimitiveKind.FILE) return PrimitiveKind.FILE;
     if (value === PrimitiveKind.UNKNOWN) return PrimitiveKind.UNKNOWN;
 
-    return primitiveKindByValue[value];
+    // Preserve an unrecognised runtime value so downstream registries can
+    // report the actual unsupported kind instead of the misleading `undefined`.
+    // The public constructor remains type-safe; this only matters for malformed
+    // external data or deliberate test casts.
+    return primitiveKindByValue[value] ?? (value as PrimitiveKind);
 }
 
 export class PrimitiveType extends SemanticTypeBase {

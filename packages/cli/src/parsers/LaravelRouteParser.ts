@@ -266,121 +266,274 @@ if (!function_exists('mergeAssignmentShape')) {
 }
 
 if (!function_exists('parseArrayTokens')) {
-    function parseArrayTokens($tokens, &$index, $symbolTable) {
-        $fields = [];
-        $expectingKey = true;
-        $currentKey = null;
+    function skipArrayTrivia($tokens, &$index) {
+        while ($index < count($tokens) && is_array($tokens[$index]) && in_array($tokens[$index][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            $index++;
+        }
+    }
 
+    function tokensToCode($tokens) {
+        $code = '';
+        foreach ($tokens as $token) {
+            $code .= is_array($token) ? $token[1] : $token;
+        }
+        return trim(preg_replace('/\\s+/', ' ', $code));
+    }
+
+    function descriptorFromExpression($code, $symbolTable = []) {
+        $lower = strtolower($code);
+        if ($lower === 'true' || $lower === 'false') return ['kind' => 'primitive', 'type' => 'boolean'];
+        if ($lower === 'null') return ['kind' => 'primitive', 'type' => 'null'];
+        if (is_numeric($code)) return ['kind' => 'primitive', 'type' => 'number'];
+        if (preg_match('/^[\\\'\\"].*[\\\'\\"]$/s', $code)) return ['kind' => 'primitive', 'type' => 'string'];
+
+        // Inline JSON can contain a variable assigned by Eloquent get() or
+        // paginate(). The response scanner already records those values in
+        // $symbolTable; keep that collection metadata in the manifest.
+        if (preg_match('/^\\$([A-Za-z_][A-Za-z0-9_]*)$/', $code, $matches)
+            && isset($symbolTable[$matches[1]])) {
+            $symbol = $symbolTable[$matches[1]];
+            $elementFromCollection = function ($collection) {
+                $element = $collection;
+                $element['collection'] = false;
+                unset($element['paginated']);
+                return $element;
+            };
+            if (($symbol['kind'] ?? null) === 'model' && !empty($symbol['paginated'])) {
+                // Laravel paginator JSON is an object with an array in data.
+                return [
+                    'kind' => 'object',
+                    'paginated' => true,
+                    'fields' => (object)[
+                        'data' => [
+                            'kind' => 'array',
+                            'element' => $elementFromCollection($symbol)
+                        ]
+                    ]
+                ];
+            }
+            if (($symbol['kind'] ?? null) === 'model' && !empty($symbol['collection'])) {
+                return [
+                    'kind' => 'array',
+                    'element' => $elementFromCollection($symbol)
+                ];
+            }
+            return $symbol;
+        }
+
+        $hints = [];
+        if (str_contains($code, '?->')) {
+            $hints['pattern'] = 'nullsafe_property_access';
+        } elseif (str_contains($code, '::')) {
+            $hints['pattern'] = 'static_method_call';
+        } elseif (str_contains($code, '->')) {
+            $hints['pattern'] = str_contains($code, '()') ? 'method_call' : 'property_access';
+        } elseif (str_starts_with($code, '$')) {
+            $hints['pattern'] = 'variable';
+        }
+        return ['kind' => 'raw_code', 'code' => $code, 'hints' => (object)$hints];
+    }
+
+    function parseArrayExpression($tokens, &$index, $symbolTable) {
+        skipArrayTrivia($tokens, $index);
+        if ($index < count($tokens) && $tokens[$index] === '[') {
+            return parseArrayValue($tokens, $index, $symbolTable);
+        }
+
+        $valueTokens = [];
+        $bracketDepth = 0;
+        $parenDepth = 0;
         while ($index < count($tokens)) {
             $token = $tokens[$index];
-            
             if (is_string($token)) {
-                if ($token === '[') {
-                    if ($currentKey !== null) {
-                        $index++;
-                        $fields[$currentKey] = [
-                            'kind' => 'object',
-                            'fields' => parseArrayTokens($tokens, $index, $symbolTable)
-                        ];
-                        $currentKey = null;
-                        $expectingKey = true;
-                    } else {
-                        // Start of array, just continue
-                    }
-                } elseif ($token === ']') {
-                    return (object)$fields;
-                } elseif ($token === ',') {
-                    $expectingKey = true;
+                if ($token === '[') $bracketDepth++;
+                if ($token === ']') {
+                    if ($bracketDepth === 0 && $parenDepth === 0) break;
+                    $bracketDepth--;
                 }
+                if ($token === '(') $parenDepth++;
+                if ($token === ')' && $parenDepth > 0) $parenDepth--;
+                if ($token === ',' && $bracketDepth === 0 && $parenDepth === 0) break;
+            }
+            $valueTokens[] = $token;
+            $index++;
+        }
+
+        return descriptorFromExpression(tokensToCode($valueTokens), $symbolTable);
+    }
+
+    function parseArrayValue($tokens, &$index, $symbolTable) {
+        skipArrayTrivia($tokens, $index);
+        if ($index < count($tokens) && $tokens[$index] === '[') $index++;
+
+        $entries = [];
+        $isAssociative = false;
+
+        while ($index < count($tokens)) {
+            skipArrayTrivia($tokens, $index);
+            if ($index >= count($tokens)) break;
+            if ($tokens[$index] === ']') {
                 $index++;
-                continue;
+                break;
             }
 
-            $id = $token[0];
-            $text = $token[1];
-
-            if ($id === T_WHITESPACE || $id === T_COMMENT || $id === T_DOC_COMMENT) {
-                $index++;
-                continue;
+            // Detect a key/value pair before the next top-level comma or closing bracket.
+            $scan = $index;
+            $bracketDepth = 0;
+            $parenDepth = 0;
+            $arrowIndex = null;
+            while ($scan < count($tokens)) {
+                $token = $tokens[$scan];
+                if (is_string($token)) {
+                    if ($token === '[') $bracketDepth++;
+                    if ($token === ']') {
+                        if ($bracketDepth === 0 && $parenDepth === 0) break;
+                        $bracketDepth--;
+                    }
+                    if ($token === '(') $parenDepth++;
+                    if ($token === ')' && $parenDepth > 0) $parenDepth--;
+                    if ($token === ',' && $bracketDepth === 0 && $parenDepth === 0) break;
+                }
+                if (is_array($token) && $token[0] === T_DOUBLE_ARROW && $bracketDepth === 0 && $parenDepth === 0) {
+                    $arrowIndex = $scan;
+                    break;
+                }
+                $scan++;
             }
 
-            if ($expectingKey) {
-                if ($id === T_CONSTANT_ENCAPSED_STRING) {
-                    $currentKey = trim($text, "'\\\"");
-                    // Skip to =>
-                    while ($index < count($tokens)) {
-                        $t = $tokens[$index];
-                        if (is_array($t) && $t[0] === T_DOUBLE_ARROW) {
-                            $index++;
-                            $expectingKey = false;
-                            break;
-                        }
-                        $index++;
-                    }
-                } else {
-                    $index++;
-                }
+            if ($arrowIndex !== null) {
+                $key = tokensToCode(array_slice($tokens, $index, $arrowIndex - $index));
+                $key = trim($key, "'\\\"");
+                $index = $arrowIndex + 1;
+                $entries[$key] = parseArrayExpression($tokens, $index, $symbolTable);
+                $isAssociative = true;
             } else {
-                // We are expecting a value
-                if (is_string($token) && $token === '[') {
+                $entries[] = parseArrayExpression($tokens, $index, $symbolTable);
+            }
+
+            skipArrayTrivia($tokens, $index);
+            if ($index < count($tokens) && $tokens[$index] === ',') $index++;
+        }
+
+        if ($isAssociative) {
+            return ['kind' => 'object', 'fields' => (object)$entries];
+        }
+
+        return [
+            'kind' => 'array',
+            'element' => $entries[0] ?? ['kind' => 'unknown']
+        ];
+    }
+
+    function parseArrayTokens($tokens, &$index, $symbolTable) {
+        $descriptor = parseArrayValue($tokens, $index, $symbolTable);
+        return $descriptor['kind'] === 'object' ? $descriptor['fields'] : (object)[];
+    }
+}
+
+if (!function_exists('readValidationRuleProperty')) {
+    function readValidationRuleProperty($rule, $property, $default = null) {
+        try {
+            $reflection = new ReflectionObject($rule);
+            while ($reflection) {
+                if ($reflection->hasProperty($property)) {
+                    $reflectedProperty = $reflection->getProperty($property);
+                    $reflectedProperty->setAccessible(true);
+                    return $reflectedProperty->getValue($rule);
+                }
+                $reflection = $reflection->getParentClass();
+            }
+        } catch (\Throwable $e) {
+            // A rule we cannot inspect remains unsupported rather than aborting a scan.
+        }
+        return $default;
+    }
+
+    function normalizeManifestValidationRules($rules) {
+        if (!is_array($rules)) return [];
+
+        $normalized = [];
+        foreach ($rules as $field => $fieldRules) {
+            $ruleList = is_array($fieldRules) ? $fieldRules : [$fieldRules];
+            $tokens = [];
+
+            foreach ($ruleList as $rule) {
+                if (is_string($rule)) {
+                    $tokens[] = $rule;
                     continue;
                 }
-                
-                $valTokens = [];
-                $bracketDepth = 0;
-                $parenDepth = 0;
-                while ($index < count($tokens)) {
-                    $t = $tokens[$index];
-                    if (is_string($t)) {
-                        if ($t === '[') $bracketDepth++;
-                        if ($t === ']') {
-                            if ($bracketDepth === 0 && $parenDepth === 0) break;
-                            $bracketDepth--;
+
+                if (is_object($rule) && is_a($rule, 'Illuminate\\Validation\\Rules\\File')) {
+                    // Laravel's fluent File rule keeps its useful state in protected
+                    // properties, which json_encode() otherwise emits as an empty object.
+                    $tokens[] = 'file';
+                    $isImage = is_a($rule, 'Illuminate\\Validation\\Rules\\ImageFile')
+                        || readValidationRuleProperty($rule, 'image', false) === true;
+                    if ($isImage) $tokens[] = 'image';
+
+                    $allowedMimetypes = readValidationRuleProperty($rule, 'allowedMimetypes', []);
+                    if (is_array($allowedMimetypes) && !empty($allowedMimetypes)) {
+                        // File::types() accepts either extensions or MIME types.
+                        // Preserve that distinction so downstream schema generation
+                        // can emit the correct browser File validation.
+                        $extensions = [];
+                        $mimeTypes = [];
+                        foreach ($allowedMimetypes as $allowedMimetype) {
+                            if (!is_string($allowedMimetype)) continue;
+                            if (str_contains($allowedMimetype, '/')) {
+                                $mimeTypes[] = $allowedMimetype;
+                            } else {
+                                $extensions[] = $allowedMimetype;
+                            }
                         }
-                        if ($t === '(') $parenDepth++;
-                        if ($t === ')') {
-                            if ($parenDepth > 0) $parenDepth--;
-                        }
-                        if ($t === ',' && $bracketDepth === 0 && $parenDepth === 0) break;
+                        if (!empty($extensions)) $tokens[] = 'mimes:' . implode(',', $extensions);
+                        if (!empty($mimeTypes)) $tokens[] = 'mimetypes:' . implode(',', $mimeTypes);
                     }
-                    $valTokens[] = $t;
-                    $index++;
-                }
-                
-                $code = '';
-                foreach ($valTokens as $vt) {
-                    $code .= is_array($vt) ? $vt[1] : $vt;
-                }
-                $code = trim($code);
-                $code = preg_replace('/\\s+/', ' ', $code);
-                
-                $valLower = strtolower($code);
-                if ($valLower === 'true' || $valLower === 'false') {
-                    $fields[$currentKey] = ['kind' => 'primitive', 'type' => 'boolean'];
-                } elseif ($valLower === 'null') {
-                    $fields[$currentKey] = ['kind' => 'primitive', 'type' => 'null'];
-                } elseif (is_numeric($code)) {
-                    $fields[$currentKey] = ['kind' => 'primitive', 'type' => 'number'];
-                } elseif (preg_match('/^[\\\\\\'\\\\\\"].*[\\\\\\'\\\\\\"]$/s', $code)) {
-                    $fields[$currentKey] = ['kind' => 'primitive', 'type' => 'string'];
-                } else {
-                    $hints = [];
-                    if (str_contains($code, '?->')) {
-                        $hints['pattern'] = 'nullsafe_property_access';
-                    } elseif (str_contains($code, '::')) {
-                        $hints['pattern'] = 'static_method_call';
-                    } elseif (str_contains($code, '->')) {
-                        $hints['pattern'] = str_contains($code, '()') ? 'method_call' : 'property_access';
-                    } elseif (str_starts_with($code, '$')) {
-                        $hints['pattern'] = 'variable';
+
+                    $allowedExtensions = readValidationRuleProperty($rule, 'allowedExtensions', []);
+                    if (is_array($allowedExtensions) && !empty($allowedExtensions)) {
+                        $tokens[] = 'mimes:' . implode(',', $allowedExtensions);
                     }
-                    $fields[$currentKey] = ['kind' => 'raw_code', 'code' => $code, 'hints' => (object)$hints];
+
+                    $maximumFileSize = readValidationRuleProperty($rule, 'maximumFileSize');
+                    if (is_numeric($maximumFileSize)) {
+                        $tokens[] = 'max:' . $maximumFileSize;
+                    }
+                    continue;
                 }
-                $currentKey = null;
+
+                if (is_object($rule) && method_exists($rule, '__toString')) {
+                    $tokens[] = (string)$rule;
+                }
+            }
+
+            $normalized[$field] = is_array($fieldRules) ? $tokens : ($tokens[0] ?? '');
+        }
+        return $normalized;
+    }
+
+    function extractInlineValidationRules($methodSource) {
+        if (!preg_match('/\\$[A-Za-z_][A-Za-z0-9_]*->validate\\s*\\(\\s*(\\[.*\\])\\s*\\)/s', $methodSource, $matches)) {
+            return [];
+        }
+
+        $rules = [];
+        if (!preg_match_all('/[\\\'\\"]([^\\\'\\"]+)[\\\'\\"]\\s*=>\\s*(\\[[^\\]]*\\]|[\\\'\\"][^\\\'\\"]*[\\\'"])/s', $matches[1], $fieldMatches, PREG_SET_ORDER)) {
+            return $rules;
+        }
+
+        foreach ($fieldMatches as $fieldMatch) {
+            $field = $fieldMatch[1];
+            $value = trim($fieldMatch[2]);
+            if (str_starts_with($value, '[')) {
+                preg_match_all('/[\\\'\\"]([^\\\'\\"]+)[\\\'"]/', $value, $ruleMatches);
+                $rules[$field] = $ruleMatches[1];
+            } else {
+                $rules[$field] = trim($value, "'\\\"");
             }
         }
-        
-        return (object)$fields;
+
+        return $rules;
     }
 }
 
@@ -415,7 +568,7 @@ foreach ($routes as $route) {
                         if (is_subclass_of($className, 'Illuminate\\\\Foundation\\\\Http\\\\FormRequest')) {
                             $request = new $className();
                             if (method_exists($request, 'rules')) {
-                                $schema = $request->rules();
+                                $schema = normalizeManifestValidationRules($request->rules());
                             }
                         }
                     }
@@ -476,6 +629,10 @@ foreach ($routes as $route) {
                 if ($fileName && $startLine !== false && $endLine !== false) {
                     $lines = file($fileName);
                     $methodSource = implode("", array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
+                }
+
+                if (empty($schema) && $methodSource) {
+                    $schema = extractInlineValidationRules($methodSource);
                 }
 
 ${wrapDetectionPhp}

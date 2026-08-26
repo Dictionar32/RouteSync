@@ -11,6 +11,17 @@ import type { ArtifactMetadata } from './Artifact';
 import type { SemanticType } from '../types/SemanticType';
 
 /**
+ * File-specific Laravel validation metadata retained after type lowering.
+ * `max` is converted from Laravel kilobytes to browser `File.size` bytes.
+ */
+export interface FileValidationConstraints {
+    readonly image?: boolean;
+    readonly extensions?: readonly string[];
+    readonly mimeTypes?: readonly string[];
+    readonly maxBytes?: number;
+}
+
+/**
  * Field definition dengan validation rules
  */
 export interface RequestField {
@@ -22,6 +33,9 @@ export interface RequestField {
 
     /** Semantic type dari validation rules */
     readonly type: SemanticType;
+
+    /** Optional browser-side constraints for a File or an array of File values. */
+    readonly fileConstraints?: FileValidationConstraints;
 
     /** Is this field required? */
     readonly required: boolean;

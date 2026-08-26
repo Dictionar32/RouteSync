@@ -238,6 +238,7 @@ export class ContractGeneratorPass
             const contractFields = action.fields.map(field => ({
                 name: field.originalName, // Use original snake_case name
                 type: field.type,
+                fileConstraints: field.fileConstraints,
                 required: field.required,
                 nullable: field.nullable
             }));

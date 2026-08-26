@@ -66,8 +66,10 @@ export class ResponseAnalysisHelper {
 
         // Determine response characteristics
         const responseKind = route.response?.kind || route.response?.type || 'unknown';
+        const arrayElement = responseKind === 'array' ? route.response?.element : undefined;
+        const elementKind = arrayElement?.kind;
         const isPaginated = !!(route.response?.paginated || route.response?.resolved?.paginated);
-        const isCollectionFromType = !!(route.response?.collection || route.response?.resolved?.collection);
+        const isCollectionFromType = responseKind === 'array' || !!(route.response?.collection || route.response?.resolved?.collection);
 
         // Collect analysis reasons
         const reasons: string[] = [];
@@ -92,15 +94,17 @@ export class ResponseAnalysisHelper {
         // Set transport type
         if (responseKind === 'resource' || responseKind === 'model') {
             builder.transport(responseKind);
+        } else if (responseKind === 'array' && (elementKind === 'resource' || elementKind === 'model')) {
+            builder.transport(elementKind);
         } else {
             builder.transport('json');
         }
 
         // Build response body
-        const resourceName = route.response?.resource || route.response?.model;
-        const modelName = route.response?.model;
+        const resourceName = route.response?.resource || route.response?.model || arrayElement?.resource || arrayElement?.model;
+        const modelName = route.response?.model || arrayElement?.model;
 
-        if (responseKind === 'resource' && resourceName) {
+        if ((responseKind === 'resource' || (responseKind === 'array' && elementKind === 'resource')) && resourceName) {
             builder.resource(
                 resourceName,
                 modelName,
@@ -108,7 +112,7 @@ export class ResponseAnalysisHelper {
                 confidence,
                 reasons.join('; ')
             );
-        } else if (responseKind === 'model' && modelName) {
+        } else if ((responseKind === 'model' || (responseKind === 'array' && elementKind === 'model')) && modelName) {
             builder.model(
                 modelName,
                 isPaginated ? 'paginated' : isCollection ? 'collection' : 'single',

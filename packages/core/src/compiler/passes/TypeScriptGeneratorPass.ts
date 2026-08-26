@@ -314,6 +314,9 @@ export class TypeScriptGeneratorPass
                 if (type.type === 'datetime') {
                     return 'string';
                 }
+                if (type.type === 'file') {
+                    return 'File';
+                }
                 return type.type;
             case 'reference':
                 return type.name;

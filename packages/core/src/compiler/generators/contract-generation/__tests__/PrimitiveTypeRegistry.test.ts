@@ -41,6 +41,13 @@ describe('PrimitiveTypeRegistry', () => {
             expect(schema).toBe('z.string().datetime()');
         });
 
+        test('should map FILE to an SSR-safe File schema', () => {
+            const fileType = new PrimitiveType(PrimitiveKind.FILE);
+            const schema = registry.getZodSchema(fileType);
+
+            expect(schema).toBe("z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)");
+        });
+
         test('should map UNKNOWN to z.unknown()', () => {
             const unknownType = new PrimitiveType(PrimitiveKind.UNKNOWN);
             const schema = registry.getZodSchema(unknownType);
@@ -99,6 +106,11 @@ describe('PrimitiveTypeRegistry', () => {
         test('should return true for DATETIME type', () => {
             const datetimeType = new PrimitiveType(PrimitiveKind.DATETIME);
             expect(registry.supports(datetimeType)).toBe(true);
+        });
+
+        test('should return true for FILE type', () => {
+            const fileType = new PrimitiveType(PrimitiveKind.FILE);
+            expect(registry.supports(fileType)).toBe(true);
         });
 
         test('should return true for UNKNOWN type', () => {

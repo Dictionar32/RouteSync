@@ -399,9 +399,12 @@ export class ZodTierGenerator {
       // composition around it is a route concern, not a new backend contract,
       // so we DON'T emit a second name. We just record the composition so
       // generateMapper()/generateRead() can inline it.
-      const resourceRef: string | undefined = baseMeta?.resource || respMeta?.resource
+      const responseElement = route.response.kind === 'array' ? route.response.element : undefined
+      const elementMeta = responseElement ? getSemanticNode(responseElement) : undefined
+      const resourceRef: string | undefined = baseMeta?.resource || respMeta?.resource || elementMeta?.resource
       const isResourceAlias = (baseMeta?.type === 'resource' || baseMeta?.kind === 'resource'
-        || respMeta?.type === 'resource' || respMeta?.kind === 'resource')
+        || respMeta?.type === 'resource' || respMeta?.kind === 'resource'
+        || elementMeta?.type === 'resource' || elementMeta?.kind === 'resource')
         && !!resourceRef && this.knownSchemas.has(`${resourceRef}Schema`)
 
       const baseTsType = resourceRef ? `${resourceRef}Response` : 'unknown'
@@ -564,6 +567,9 @@ export class ZodTierGenerator {
     }
 
     const rawObj = node as any
+    if (rawObj && (rawObj.kind === 'array' || rawObj.type === 'array') && rawObj.element) {
+      return `z.array(${this.buildResponseZodType(rawObj.element, kernel, context, propertyName)})`
+    }
     if (rawObj && (rawObj.kind === 'object' || rawObj.type === 'object') && rawObj.fields && Object.keys(rawObj.fields).length > 0) {
       const fields = Object.entries(rawObj.fields).map(([k, v]) => `${k}: ${this.buildResponseZodType(v, kernel, context, k)}`).join(', ')
       let zodStr = `z.object({ ${fields} })`

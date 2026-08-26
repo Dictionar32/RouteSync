@@ -50,6 +50,7 @@ export type ResourceFieldKind = (
   | { kind: 'model'; model: string; collection: boolean }
   | { kind: 'resource'; resource: string; collection: boolean }
   | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
+  | { kind: 'array'; element: ResourceFieldKind }
   | { kind: 'property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Real manifest data
   | { kind: 'nullsafe_property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Nullsafe operator
   | { kind: 'variable'; resolved?: { type: string }; nullable?: boolean }         // ✅ Phase 2: Real manifest data
@@ -90,7 +91,7 @@ export interface ActionDefinition {
 export type ResponseMetadata = (
   | { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
   | { kind: 'resource'; resource: string; collection: boolean; paginated?: boolean }
-  | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string }>; collection?: boolean; paginated?: boolean }
+  | { kind: 'object'; fields: Record<string, ResponseMetadata | { kind: 'primitive'; type: string } | { kind: 'array'; element: ResourceFieldKind }>; collection?: boolean; paginated?: boolean }
   | { kind: 'unknown' }
 ) & {
   resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }

@@ -22,7 +22,7 @@
 import { describe, expect, test } from 'vitest'
 import { manifestToContractInput } from '../manifest-to-types'
 import { ContractGeneratorPass } from '../../../../../core/src/compiler/passes/ContractGeneratorPass'
-import type { RouteManifest } from '../../../../../core/src/types/route'
+import type { ResourceFieldKind, RouteManifest } from '../../../../../core/src/types/route'
 import {
     PrimitiveType,
     ObjectType,
@@ -41,7 +41,7 @@ import {
  * that proves the mapper silently fell back to resolving a same-named
  * model/resource instead of using the manifest response shape as SSOT.
  */
-function baseManifest(dataField: unknown): RouteManifest {
+function baseManifest(dataField: ResourceFieldKind): RouteManifest {
     return {
         version: '1.0.0',
         baseURL: 'http://localhost',
@@ -85,7 +85,7 @@ function baseManifest(dataField: unknown): RouteManifest {
                 },
             },
         ],
-    } as RouteManifest
+    }
 }
 
 describe('register.post -> RegisterResponse.data -> api-contract.ts (data shape fidelity)', () => {

@@ -255,12 +255,14 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
         // Urutan prioritas: GET dulu (index/show resource path sendiri),
         // lalu route lain (POST /payment/{orderId} → PaymentResource,
         // POST /cart/items → OrderResource).
-        // ✅ INLINE RESPONSE FIX: Also accept inline responses (kind === 'object')
+        // ✅ INLINE RESPONSE FIX: Also accept inline and intentionally unknown
+        // responses so their route is retained in the generated contract input.
         const responseRoutes = routes.filter(
             r => r.response && (
                 r.response.kind === 'resource' ||
                 r.response.kind === 'model' ||
-                r.response.kind === 'object'  // ← Inline responses from manifest
+                r.response.kind === 'object' ||  // ← Inline responses from manifest
+                r.response.kind === 'unknown'
             )
         )
         const routeWithResponse =
@@ -349,14 +351,38 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                     new Set()
                 )
 
+                const responseFields = response.collection
+                    ? {
+                        data: new ReadonlyCollectionType(
+                            CollectionKind.ARRAY,
+                            buildInlineObjectType(finalName, fieldsRecord)
+                        )
+                    }
+                    : fieldsRecord
+
                 responseData = {
                     resourceName: finalName,
-                    fields: fieldsRecord
+                    fields: responseFields
                 }
 
                 inferenceFields = fieldsRecord
 
-                console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} inline response fields`)
+                console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} inline response fields${response.collection ? ' as collection' : ''}`)
+            } else if (response.kind === 'unknown') {
+                const syntheticName = generateInlineResourceName(routeWithResponse)
+                const collisionResource = manifest.resources?.find(r => r.name === syntheticName)
+                const finalName = collisionResource ? `${syntheticName}Inline` : syntheticName
+
+                // Keep an explicitly unknown response in the artifact without
+                // inventing a model-derived schema. The empty field map is an
+                // honest representation of the manifest's available knowledge.
+                responseData = {
+                    resourceName: finalName,
+                    fields: {}
+                }
+                inferenceFields = {}
+
+                console.log(`[CompilerBridge] Preserving unknown response for ${resourceName} from ${routeWithResponse.path} as ${finalName}`)
             }
         }
 
@@ -951,6 +977,21 @@ function mapResourceFieldToNestedType(
     }
 
     switch (field.kind) {
+        case 'array': {
+            const element = field.element
+            const elementType = element && typeof element === 'object'
+                ? mapResourceFieldToNestedType(`${fieldName}[]`, element, allResources, seen)
+                : undefined
+
+            // Preserve array semantics even for malformed runtime manifests.
+            // A missing/unmappable element becomes z.unknown() downstream, but
+            // the contract still states that the field itself is an array.
+            return new ReadonlyCollectionType(
+                CollectionKind.ARRAY,
+                elementType ?? new ReferenceType('App\\Models', 'unknown')
+            )
+        }
+
         case 'primitive':
             return PrimitiveTypeFactory.fromString(field.type)
 
@@ -1016,6 +1057,25 @@ function mapResourceFieldToNestedType(
                 field.kind === 'model' ? field.model ?? 'unknown' : 'unknown'
             )
     }
+}
+
+/** Build the element type for an inline response marked `collection: true`. */
+function buildInlineObjectType(
+    name: string,
+    fields: Record<string, SemanticType>
+): ObjectType {
+    const properties = new Map(Object.entries(fields))
+
+    return new ObjectType(
+        new ImmutableMap(properties),
+        new ImmutableSet(new Set(properties.keys())),
+        undefined,
+        [],
+        new ImmutableMap(new Map<string, string>([
+            ['name', name],
+            ['kind', 'object']
+        ]))
+    )
 }
 
 /**

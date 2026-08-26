@@ -96,7 +96,17 @@ Hasil: **29/29 pass**, tidak ada regresi ke test lain di file tersebut maupun fu
 
 ---
 
-## 2. Inline / response-level collection — 5 test, known limitation (BELUM diimplementasikan)
+## 2. Inline / response-level collection — baseline historis (diimplementasikan 2026-08-26)
+
+> **Status terbaru:** seluruh gap collection di bagian ini telah diimplementasikan
+> pada `manifestToContractInput`; lihat
+> `COLLECTION_RESPONSE_IMPLEMENTATION.md` untuk kontrak dan hasil verifikasi.
+> Assertion lama `addressesCollection.kind === CollectionKind.ARRAY` bukan
+> limitation fungsional: properti yang benar adalah `collectionKind`. Assertion
+> tersebut telah dikoreksi secara terpisah dari perubahan lowering.
+
+Bagian berikut menyimpan akar masalah dan kontrak target sebagai catatan
+baseline sebelum implementasi.
 
 Ditemukan di 3 file:
 - `manifest-to-contract.e2e-regression.test.ts` (3 gagal)

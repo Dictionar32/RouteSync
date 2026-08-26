@@ -229,7 +229,7 @@ describe('manifestToContractInput — collection capability matrix', () => {
                     },
                 },
             },
-        } as never);
+        });
 
         const artifact = manifestToContractInput(manifest);
         const response = artifact.requestTypes[0].responseData!;
@@ -269,7 +269,7 @@ describe('manifestToContractInput — collection capability matrix', () => {
                     },
                 },
             },
-        } as never);
+        });
 
         const artifact = manifestToContractInput(manifest);
         const response = artifact.requestTypes[0].responseData!;

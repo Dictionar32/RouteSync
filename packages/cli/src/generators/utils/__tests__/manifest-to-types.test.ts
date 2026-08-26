@@ -507,7 +507,7 @@ describe('manifestToContractInput - inline responses', () => {
 
         // Verify collection structure
         const addressesCollection = fields?.addresses as ReadonlyCollectionType
-        expect(addressesCollection.kind).toBe(CollectionKind.ARRAY)
+        expect(addressesCollection.collectionKind).toBe(CollectionKind.ARRAY)
         expect(addressesCollection.elementType).toBeInstanceOf(ObjectType)
 
         // Verify nested object in collection

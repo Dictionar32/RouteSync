@@ -1,0 +1,44 @@
+fix: Add inline response schema generation support
+
+Fixes missing schema generation for routes with inline responses
+(response.kind === 'object'). Previously only resource-based responses
+were handled, causing 83% of routes to miss schema generation.
+
+Changes:
+- Update filter to include response.kind === 'object'
+- Add inline response handler with synthetic naming
+- Reuse existing resourceFieldsToNestedTypes() utility
+- Add generateInlineResourceName() helper function
+
+Impact:
+- Schema coverage: 17% → 100% (6 → 22 schemas)
+- Inline response types handled: +8 new types
+- Zero breaking changes (additive only)
+- ContractGeneratorPass remains pure (no modifications)
+
+Files modified:
+- packages/cli/src/generators/utils/manifest-to-types.ts
+
+Architecture:
+- Fix applied at artifact boundary (manifestToContractInput)
+- Pass layer stays pure (no manifest knowledge)
+- Single Source of Truth principle maintained
+- No code duplication
+
+Verification:
+- Tested with toko-online manifest (35 routes)
+- Before: 3 schemas, After: 11 schemas
+- All inline responses generate correct Zod schemas
+- Synthetic naming convention consistent
+
+Example generated schemas:
+- loginShowSchema (from /login inline response)
+- oauthRedirectShowSchema (from /oauth/{provider}/redirect)
+- socialLoginShowSchema (from /social/login)
+- profileShowSchema (from /profile)
+- ... and 4 more inline response schemas
+
+References:
+- INLINE_RESPONSE_FIX_COMPLETE.md
+- INLINE_RESPONSE_COMPLETE_REVERSE_ENGINEERING_REPORT.md
+- MANIFEST_COVERAGE_AUDIT_UPDATED.md

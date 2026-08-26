@@ -623,11 +623,11 @@ describe('FormGeneratorPass', () => {
                 requestTypes: []
             };
 
-            const [result] = pass.run([artifact], CompilationContext.default())
+            const result = pass.run([artifact], CompilationContext.default())
 
             expect(Array.isArray(result)).toBe(true);
             expect(result).toHaveLength(1);
-            expect(result.typeId).toBe('GeneratedForm');
+            expect(result[0].typeId).toBe('GeneratedForm');
         });
 
         test('should have valid TypeScript code', () => {

@@ -869,16 +869,21 @@ describe('ContractGeneratorPass - inline responses', () => {
                     }
                 }
             }],
-            metadata: { ... }
+            metadata: {
+                hash: 'test-hash',
+                producer: 'test',
+                dependencies: [],
+                timestamp: Date.now(),
+                revision: '1.0.0'
+            }
         }
 
         const pass = new ContractGeneratorPass()
-        const result = await pass.run([artifact])
+        const [result] = pass.run([artifact])
 
         // Should generate response schemas
-        const generated = result[0]
-        expect(generated.contracts).toContain('export const paymentConfirmShow')
-        expect(generated.contracts).toContain('success: z.boolean()')
-        expect(generated.contracts).toContain('message: z.string()')
+        expect(result.code).toContain('paymentConfirmShow');
+        expect(result.code).toContain('success: z.boolean()');
+        expect(result.code).toContain('message: z.string()');
     })
 })

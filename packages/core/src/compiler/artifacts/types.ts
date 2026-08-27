@@ -40,6 +40,10 @@ import type { GeneratedFormArtifact } from './GeneratedFormArtifact';
 
 // Contract generation artifacts
 import type { GeneratedContractArtifact } from './GeneratedContractArtifact';
+import type { GeneratedApiFieldArtifact } from './GeneratedApiFieldArtifact';
+
+// Mapper generation artifact
+import type { GeneratedMapperArtifact } from './GeneratedMapperArtifact';
 
 /**
  * Central artifact registry mapping keys to concrete artifact types.
@@ -81,6 +85,10 @@ export interface ArtifactRegistry {
 
     // ✨ NEW: Contract Generation Artifacts
     GeneratedContract: GeneratedContractArtifact;
+    GeneratedApiField: GeneratedApiFieldArtifact;
+
+    // ✨ NEW: Mapper Generation Artifact
+    GeneratedMapper: GeneratedMapperArtifact;
 }
 
 /**

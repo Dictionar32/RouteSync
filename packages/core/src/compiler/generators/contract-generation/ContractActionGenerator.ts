@@ -98,7 +98,7 @@ export class ContractActionGenerator {
         const lines: string[] = [];
 
         // Opening line
-        lines.push(`  ${actionName}: z.object({`);
+        lines.push(`  ${this.capitalize(actionName)}: z.object({`);
 
         // Field lines
         for (let i = 0; i < fields.length; i++) {
@@ -132,7 +132,7 @@ export class ContractActionGenerator {
         const lines: string[] = [];
 
         // Opening line
-        lines.push(`  ${actionName}: {`);
+        lines.push(`  ${this.capitalize(actionName)}: {`);
 
         // Field lines
         for (let i = 0; i < fields.length; i++) {
@@ -154,14 +154,18 @@ export class ContractActionGenerator {
      * Generate empty schema lines
      */
     private generateEmptySchemaLines(actionName: string): readonly string[] {
-        return [`  ${actionName}: z.object({})`];
+        return [`  ${this.capitalize(actionName)}: z.object({})`];
     }
 
     /**
      * Generate empty type lines
      */
     private generateEmptyTypeLines(actionName: string): readonly string[] {
-        return [`  ${actionName}: {}`];
+        return [`  ${this.capitalize(actionName)}: {}`];
+    }
+
+    private capitalize(str: string): string {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
     }
 
     /**

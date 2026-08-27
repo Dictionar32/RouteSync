@@ -324,13 +324,13 @@ ${readTypes.join('\n')}
         // Format untuk multiline import yang readable
         if (sortedFormNames.length <= 3) {
             // Untuk sedikit forms, gunakan single line
-            return `import { ${sortedFormNames.join(', ')} } from '../types/api-form'`
+            return `import { ${sortedFormNames.join(', ')} } from '../forms/api-form'`
         } else {
             // Untuk banyak forms, gunakan multiline
             const formImports = sortedFormNames.map(name => `  ${name},`).join('\n')
             return `import {
 ${formImports}
-} from '../types/api-form'`
+} from '../forms/api-form'`
         }
     }
 

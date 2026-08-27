@@ -20,7 +20,7 @@ import type { SemanticTypesArtifact } from '../../../../core/src/compiler/passes
 import type { RequestTypesArtifact, RequestType, FormAction, RequestField } from '../../../../core/src/compiler/artifacts/RequestTypesArtifact'
 
 // Implementation
-import { ObjectType, ReadonlyCollectionType, CollectionKind, PrimitiveType, PrimitiveKind, ReferenceType } from '../../../../core/src/compiler/types/SemanticType'
+import { ObjectType, ReadonlyCollectionType, MutableCollectionType, CollectionKind, PrimitiveType, PrimitiveKind, ReferenceType } from '../../../../core/src/compiler/types/SemanticType'
 import { ImmutableMap, ImmutableSet } from '../../../../core/src/compiler/utils/ImmutableCollections'
 import { toCamelCase, toPascalCase } from '../../../../core/src/utils/resource-naming'
 import { FormFieldMapper } from '../../../../core/src/compiler/generators/form-generation/FormFieldMapper'
@@ -46,8 +46,132 @@ export function manifestToSemanticTypes(manifest: RouteManifest): SemanticTypesA
     // Models are database tables, not API responses
 
     // ✅ Convert resources ONLY
-    const resourceTypes = processResources(manifest.resources || [])
+    const resourceTypes = processResources(manifest.resources || [], manifest.models || [])
     typesArray.push(...resourceTypes)
+
+    // ✅ Extract inline responses (from routes) for api-read.ts transformed types
+    const contractInput = manifestToContractInput(manifest)
+    const existingNames = new Set(resourceTypes.map(t => t.annotations?.get('name')).filter(Boolean))
+
+    const capitalize = (str: string) => str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
+
+    function flattenSemanticTypeFields(
+        prefix: string,
+        type: SemanticType,
+        props: Map<string, SemanticType>
+    ): void {
+        if (type instanceof ObjectType) {
+            if (type.annotations?.get('kind') === 'nullable_wrapper') {
+                const inner = type.properties.get('__value')
+                if (inner) {
+                    flattenSemanticTypeFields(prefix, inner, props)
+                    return
+                }
+            }
+            for (const [key, propType] of type.properties.entries()) {
+                const newKey = prefix ? `${prefix}${capitalize(toCamelCase(key))}` : toCamelCase(key)
+                flattenSemanticTypeFields(newKey, propType, props)
+            }
+            return
+        }
+
+        if (type instanceof ReadonlyCollectionType || type instanceof MutableCollectionType) {
+            let elem = type.elementType
+            const elemName = elem instanceof ReferenceType ? elem.name.split('\\').pop() : (elem instanceof ObjectType ? elem.annotations?.get('name') : undefined)
+            const resourceDef = elemName ? manifest.resources?.find(r => r.name === elemName) : undefined
+            const model = elemName ? manifest.models?.find(m => m.name === elemName) : undefined
+
+            if (resourceDef) {
+                const resPascal = toPascalCase(resourceDef.name)
+                elem = new ReferenceType('', `${resPascal}Transformed`)
+            } else if (model) {
+                const modelProps = new Map<string, SemanticType>()
+                for (const col of model.columns || []) {
+                    const baseType = PrimitiveTypeFactory.fromSqlType(col.type)
+                    const colType = col.nullable ? markNullableSemanticType(baseType) : baseType
+                    modelProps.set(toCamelCase(col.name), colType)
+                }
+                elem = new ObjectType(
+                    new ImmutableMap(modelProps),
+                    new ImmutableSet(new Set(Array.from(modelProps.keys()))),
+                    undefined,
+                    [],
+                    new ImmutableMap(new Map([['name', model.name]]))
+                )
+            } else if (elem instanceof ObjectType) {
+                const elemProps = new Map<string, SemanticType>()
+                for (const [key, propType] of elem.properties.entries()) {
+                    elemProps.set(toCamelCase(key), propType)
+                }
+                elem = new ObjectType(
+                    new ImmutableMap(elemProps),
+                    new ImmutableSet(new Set(Array.from(elemProps.keys()))),
+                    elem.baseObject,
+                    elem.interfaces,
+                    elem.annotations
+                )
+            }
+
+            const collType = type instanceof ReadonlyCollectionType
+                ? new ReadonlyCollectionType(type.collectionKind, elem)
+                : new MutableCollectionType(type.collectionKind, elem)
+
+            props.set(prefix, collType)
+            return
+        }
+
+        if (type instanceof ReferenceType) {
+            const refName = type.name.split('\\').pop()
+            const model = manifest.models?.find(m => m.name === type.name || m.name === refName)
+            if (model) {
+                const modelProps = new Map<string, SemanticType>()
+                for (const col of model.columns || []) {
+                    const baseType = PrimitiveTypeFactory.fromSqlType(col.type)
+                    const colType = col.nullable ? markNullableSemanticType(baseType) : baseType
+                    modelProps.set(toCamelCase(col.name), colType)
+                }
+                const objType = new ObjectType(
+                    new ImmutableMap(modelProps),
+                    new ImmutableSet(new Set(Array.from(modelProps.keys()))),
+                    undefined,
+                    [],
+                    new ImmutableMap(new Map([['name', model.name]]))
+                )
+                props.set(prefix, objType)
+                return
+            }
+        }
+
+        props.set(prefix, type)
+    }
+
+    for (const reqType of contractInput.requestTypes) {
+        if (reqType.responseData) {
+            const rawName = reqType.responseData.resourceName
+            const pascalName = toPascalCase(rawName)
+            if (!existingNames.has(rawName) && !existingNames.has(pascalName)) {
+                existingNames.add(rawName)
+                existingNames.add(pascalName)
+
+                const props = new Map<string, SemanticType>()
+                for (const [key, semanticType] of Object.entries(reqType.responseData.fields)) {
+                    flattenSemanticTypeFields(toCamelCase(key), semanticType, props)
+                }
+
+                const objectType = new ObjectType(
+                    new ImmutableMap(props),
+                    new ImmutableSet(new Set(Array.from(props.keys()))),
+                    undefined,
+                    [],
+                    new ImmutableMap(new Map<string, string>([
+                        ['name', pascalName],
+                        ['kind', 'inline']
+                    ]))
+                )
+                typesArray.push(objectType)
+            }
+        }
+    }
 
     return {
         typeId: 'SemanticTypes',
@@ -105,10 +229,12 @@ export function manifestToRequestTypes(manifest: RouteManifest): RequestTypesArt
             const action = determineAction(route.method)
             if (!action) continue
 
-            // Parse validation rules
-            const fields = parseValidationRules(
+            // Parse validation rules (preserving nested object shapes for forms)
+            const fields = parseValidationRulesPreserveNested(
                 (route.schema?.rules || {}) as Record<string, string | string[]>,
-                fieldMapper
+                fieldMapper,
+                { path: route.path, method: route.method, action: route.action },
+                { camelCaseTransformedName: true }
             )
 
             if (fields.length > 0) {
@@ -217,7 +343,8 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
             // 🔧 FIX BUG 2: Parse validation rules WITHOUT flattening
             const fields = parseValidationRulesPreserveNested(
                 (route.schema?.rules || {}) as Record<string, string | string[]>,
-                fieldMapper
+                fieldMapper,
+                { path: route.path, method: route.method, action: route.action }
             )
 
             if (fields.length > 0) {
@@ -292,28 +419,22 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                         inferenceFields = resourceFieldsToNestedTypes(
                             resource,
                             manifest.resources || [],
+                            manifest.models || [],
                             new Set()
                         )
                     }
                 } else {
-                    // Find resource definition in manifest
+                    // Find resource or model definition in manifest
                     const resource = manifest.resources?.find(r => r.name === responseResourceName)
+                    const model = !resource ? manifest.models?.find(m => m.name === responseResourceName) : undefined
 
                     if (resource) {
                         console.log(`[CompilerBridge] Extracting response data for ${resourceName} from ${responseResourceName} (${routeWithResponse.method})`)
 
-                        // ✅ Konversi resource fields ke SemanticType dengan bentuk
-                        // ASLI (nested + snake_case) — TANPA flattening, TANPA
-                        // camelCase. Sesuai desain manifestToContractInput:
-                        // "Preserves ORIGINAL backend structure".
-                        // - Nama field dipakai apa adanya (originalName)
-                        // - Object bersarang tetap ObjectType (bukan di-flatten)
-                        // - Reference resource (items → OrderDetailResource)
-                        //   di-resolve ke ObjectType definisi resource di manifest
-                        //   (collection → ReadonlyCollectionType)
                         const fieldsRecord = resourceFieldsToNestedTypes(
                             resource,
                             manifest.resources || [],
+                            manifest.models || [],
                             new Set()
                         )
 
@@ -326,8 +447,21 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                         processedResponseResources.add(responseResourceName)
 
                         console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} response fields`)
+                    } else if (model) {
+                        console.log(`[CompilerBridge] Extracting model columns for type inference from ${model.name}`)
+                        const fieldsRecord: Record<string, SemanticType> = {}
+                        for (const col of model.columns) {
+                            const colType = col.type.toLowerCase()
+                            const isNum = colType.includes('int') || colType.includes('float') || colType.includes('double') || colType.includes('decimal') || colType.includes('numeric')
+                            fieldsRecord[col.name] = isNum
+                                ? new PrimitiveType(PrimitiveKind.NUMBER)
+                                : new PrimitiveType(PrimitiveKind.STRING)
+                        }
+                        inferenceFields = fieldsRecord
+                        processedResponseResources.add(responseResourceName)
+                        console.log(`[CompilerBridge] Extracted ${Object.keys(fieldsRecord).length} model column fields for ${model.name}`)
                     } else {
-                        console.warn(`[CompilerBridge] Resource ${responseResourceName} not found in manifest`)
+                        console.warn(`[CompilerBridge] Resource or Model ${responseResourceName} not found in manifest`)
                     }
                 }
             } else if (response.kind === 'object' && response.fields) {
@@ -349,6 +483,7 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
                         fields: response.fields
                     } as ParsedResource,
                     manifest.resources || [],
+                    manifest.models || [],
                     new Set()
                 )
 
@@ -430,15 +565,69 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
 
         // ✅ FIX: Include resource if EITHER actions OR responseData exist
         // Previously only added if actions.length > 0, which skipped GET-only resources
+        // Convert field names and ObjectType properties to camelCase for RequestTypes (Form types)
         if (actions.length > 0 || responseData) {
             requestTypes.push({
                 resourceName,
-                formTypeName: `${toPascalCase(resourceName)}Contract`,
+                formTypeName: `${toPascalCase(resourceName)}Form`,
                 actions,
                 responseData  // ← Include response data (may be undefined)
             })
 
             console.log(`[CompilerBridge] ${resourceName}: ${actions.length} request actions, ${responseData ? 'has' : 'no'} response schemas`)
+        }
+    }
+
+    // ✅ STEP 2: Extract contract-reachable child resources
+    // Scan manifest.resources for any child resource referenced in responseData
+    // that hasn't been registered yet, so ContractGeneratorPass generates its ApiResponse type.
+    if (manifest.resources) {
+        let foundNewChild = true;
+        while (foundNewChild) {
+            foundNewChild = false;
+            const currentResponseTypes = requestTypes
+                .filter(rt => rt.responseData)
+                .map(rt => rt.responseData!.fields);
+
+            for (const manifestRes of manifest.resources) {
+                if (processedResponseResources.has(manifestRes.name)) continue;
+
+                // Check if manifestRes is referenced as element or nested type in currentResponseTypes
+                const isReachable = currentResponseTypes.some(fieldsMap => {
+                    return Object.values(fieldsMap).some(fieldType => {
+                        let target: SemanticType | undefined = fieldType;
+                        if (fieldType instanceof ReadonlyCollectionType || fieldType instanceof MutableCollectionType) {
+                            target = fieldType.elementType;
+                        }
+                        if (target instanceof ObjectType) {
+                            const name = target.annotations?.get('name') ?? (target as any).metadata?.get('name');
+                            return name === manifestRes.name;
+                        }
+                        return false;
+                    });
+                });
+
+                if (isReachable) {
+                    const fieldsRecord = resourceFieldsToNestedTypes(
+                        manifestRes,
+                        manifest.resources,
+                        manifest.models || [],
+                        new Set()
+                    );
+                    requestTypes.push({
+                        resourceName: manifestRes.name,
+                        formTypeName: `${toPascalCase(manifestRes.name)}Contract`,
+                        actions: [],
+                        responseData: {
+                            resourceName: manifestRes.name,
+                            fields: fieldsRecord
+                        }
+                    });
+                    processedResponseResources.add(manifestRes.name);
+                    foundNewChild = true;
+                    console.log(`[CompilerBridge] Registered contract-reachable child resource: ${manifestRes.name}`);
+                }
+            }
         }
     }
 
@@ -462,7 +651,7 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
  * @param resources - Array of ParsedResource from manifest
  * @returns Array of ObjectType for semantic types
  */
-function processResources(resources: ParsedResource[]): ObjectType[] {
+function processResources(resources: ParsedResource[], allModels: ParsedModel[] = []): ObjectType[] {
     const result: ObjectType[] = []
 
     // Validate resources array
@@ -473,9 +662,9 @@ function processResources(resources: ParsedResource[]): ObjectType[] {
     }
 
     for (const resource of resources) {
-        const properties = new Map()
+        const properties = new Map<string, SemanticType>()
 
-        // ✅ Use existing utility instead of inline flattening
+        // Flatten resource fields to camelCase properties (api-read.ts flattened read types)
         const flattenedFields = flattenResourceFields(
             resource.name,
             resource.fields || {},
@@ -485,7 +674,6 @@ function processResources(resources: ParsedResource[]): ObjectType[] {
             }
         )
 
-        // Convert flattened fields to properties
         for (const [fieldName, fieldType] of flattenedFields) {
             properties.set(fieldName, fieldType)
         }
@@ -617,9 +805,12 @@ function sanitizeResourceName(resourceName: string): string {
  */
 function parseValidationRulesPreserveNested(
     rules: Record<string, string | string[]>,
-    fieldMapper: FormFieldMapper
+    fieldMapper: FormFieldMapper,
+    context?: { path?: string; method?: string; action?: string },
+    options?: { camelCaseTransformedName?: boolean }
 ): RequestField[] {
     let fields: RequestField[] = []
+    const toName = (name: string) => options?.camelCaseTransformedName ? toCamelCase(name) : name
 
     // Wildcard children: parent → childName → parsed rules
     // (mis. checkout items.*.produk_item_id → elemen dari items)
@@ -657,6 +848,19 @@ function parseValidationRulesPreserveNested(
             continue
         }
 
+        const hasExplicitType = parsedRules.some(r =>
+            ['string', 'integer', 'numeric', 'boolean', 'file', 'image', 'mimes', 'mimetypes', 'json', 'date', 'date_format', 'array'].includes(r.rule)
+        )
+        if (!hasExplicitType) {
+            const routeInfo = context?.path
+                ? ` pada [${context.method ?? ''} ${context.path}] (${context.action || 'inline'})`
+                : ''
+            const suggestedType = parsedRules.some(r => r.rule === 'exists') ? 'integer' : 'string'
+            console.warn(
+                `[CompilerBridge] ⚠️ Tipe field "${fieldName}" tidak dapat dipastikan${routeInfo}. Rule validasi "${fieldName}" tidak menentukan tipe eksplisit (contoh: '${fieldName}' => '${suggestedType}'). Harap perbarui rule validasi pada backend Laravel Anda.`
+            )
+        }
+
         // Map to TypeScript type
         const mapped = fieldMapper.mapValidationToType(parsedRules)
 
@@ -664,8 +868,8 @@ function parseValidationRulesPreserveNested(
         // - NO transformation to camelCase
         // - Preserves snake_case from backend
         fields.push({
-            originalName: fieldName,        // ← snake_case preserved
-            transformedName: fieldName,     // ← Same as original (NO transform)
+            originalName: fieldName,
+            transformedName: toName(fieldName),
             type: mapped.type,
             fileConstraints: mapped.fileConstraints,
             required: mapped.required,
@@ -675,8 +879,21 @@ function parseValidationRulesPreserveNested(
 
     // `attachments.*: file` upgrades `attachments: array` to File[].
     for (const [parent, elementRules] of wildcardElements) {
+        const hasExplicitType = elementRules.some(r =>
+            ['string', 'integer', 'numeric', 'boolean', 'file', 'image', 'mimes', 'mimetypes', 'json', 'date', 'date_format'].includes(r.rule)
+        )
+        if (!hasExplicitType) {
+            const routeInfo = context?.path
+                ? ` pada [${context.method ?? ''} ${context.path}] (${context.action || 'inline'})`
+                : ''
+            console.warn(
+                `[CompilerBridge] ⚠️ Tipe elemen "${parent}.*" tidak dapat dipastikan${routeInfo}. Rule validasi "${parent}.*" tidak menentukan tipe eksplisit (contoh: '${parent}.*' => 'sometimes|string'). Harap perbarui rule validasi pada backend Laravel Anda.`
+            )
+        }
+
         const mapped = fieldMapper.mapValidationToType(elementRules)
-        const type = new ReadonlyCollectionType(CollectionKind.ARRAY, mapped.type)
+        const elementType = hasExplicitType ? mapped.type : new PrimitiveType(PrimitiveKind.UNKNOWN)
+        const type = new ReadonlyCollectionType(CollectionKind.ARRAY, elementType)
         const parentField = fields.find(field => field.originalName === parent)
 
         if (parentField) {
@@ -688,7 +905,7 @@ function parseValidationRulesPreserveNested(
         } else {
             fields.push({
                 originalName: parent,
-                transformedName: parent,
+                transformedName: toName(parent),
                 type,
                 fileConstraints: mapped.fileConstraints,
                 required: false,
@@ -703,7 +920,7 @@ function parseValidationRulesPreserveNested(
 
         for (const [childName, childRules] of children) {
             const mapped = fieldMapper.mapValidationToType(childRules)
-            props.set(childName, mapped.type)
+            props.set(toName(childName), mapped.type)
         }
 
         const elementObject = new ObjectType(
@@ -729,7 +946,7 @@ function parseValidationRulesPreserveNested(
             // Wildcard tanpa field parent di rules — buat field baru
             fields.push({
                 originalName: parent,
-                transformedName: parent,
+                transformedName: toName(parent),
                 type: arrayType,
                 required: false,
                 nullable: false
@@ -770,6 +987,51 @@ function normalizeValidationRules(ruleString: string | string[]): ValidationRule
  */
 function isDefaultStringType(type: SemanticType): boolean {
     return type instanceof PrimitiveType && type.type === PrimitiveKind.STRING
+}
+
+/**
+ * Convert RequestField transformedName and nested ObjectType property keys to camelCase for Form types
+ */
+function convertRequestFieldToCamelCase(field: RequestField): RequestField {
+    const transformedName = toCamelCase(field.originalName)
+    let type = field.type
+
+    if (
+        type instanceof ReadonlyCollectionType &&
+        type.elementType instanceof ObjectType
+    ) {
+        const element = type.elementType
+        const newProps = new Map<string, SemanticType>()
+        for (const [propName, propType] of element.properties.entries()) {
+            newProps.set(toCamelCase(propName), propType)
+        }
+        const newElement = new ObjectType(
+            new ImmutableMap(newProps),
+            new ImmutableSet(new Set(newProps.keys())),
+            element.baseObject,
+            element.interfaces,
+            element.annotations
+        )
+        type = new ReadonlyCollectionType(CollectionKind.ARRAY, newElement)
+    } else if (type instanceof ObjectType) {
+        const newProps = new Map<string, SemanticType>()
+        for (const [propName, propType] of type.properties.entries()) {
+            newProps.set(toCamelCase(propName), propType)
+        }
+        type = new ObjectType(
+            new ImmutableMap(newProps),
+            new ImmutableSet(new Set(newProps.keys())),
+            type.baseObject,
+            type.interfaces,
+            type.annotations
+        )
+    }
+
+    return {
+        ...field,
+        transformedName,
+        type
+    }
 }
 
 /**
@@ -867,7 +1129,8 @@ function findNumberTypeInResponse(
  */
 function parseValidationRules(
     rules: Record<string, string | string[]>,
-    fieldMapper: FormFieldMapper
+    fieldMapper: FormFieldMapper,
+    context?: { path?: string; method?: string; action?: string }
 ): RequestField[] {
     const fields: RequestField[] = []
     const wildcardElements = new Map<string, ValidationRule[]>()
@@ -894,6 +1157,19 @@ function parseValidationRules(
             continue
         }
 
+        const hasExplicitType = parsedRules.some(r =>
+            ['string', 'integer', 'numeric', 'boolean', 'file', 'image', 'mimes', 'mimetypes', 'json', 'date', 'date_format', 'array'].includes(r.rule)
+        )
+        if (!hasExplicitType) {
+            const routeInfo = context?.path
+                ? ` pada [${context.method ?? ''} ${context.path}] (${context.action || 'inline'})`
+                : ''
+            const suggestedType = parsedRules.some(r => r.rule === 'exists') ? 'integer' : 'string'
+            console.warn(
+                `[CompilerBridge] ⚠️ Tipe field "${fieldName}" tidak dapat dipastikan${routeInfo}. Rule validasi "${fieldName}" tidak menentukan tipe eksplisit (contoh: '${fieldName}' => '${suggestedType}'). Harap perbarui rule validasi pada backend Laravel Anda.`
+            )
+        }
+
         // Map to TypeScript type
         const mapped = fieldMapper.mapValidationToType(parsedRules)
 
@@ -908,8 +1184,21 @@ function parseValidationRules(
     }
 
     for (const [parent, elementRules] of wildcardElements) {
+        const hasExplicitType = elementRules.some(r =>
+            ['string', 'integer', 'numeric', 'boolean', 'file', 'image', 'mimes', 'mimetypes', 'json', 'date', 'date_format'].includes(r.rule)
+        )
+        if (!hasExplicitType) {
+            const routeInfo = context?.path
+                ? ` pada [${context.method ?? ''} ${context.path}] (${context.action || 'inline'})`
+                : ''
+            console.warn(
+                `[CompilerBridge] ⚠️ Tipe elemen "${parent}.*" tidak dapat dipastikan${routeInfo}. Rule validasi "${parent}.*" tidak menentukan tipe eksplisit (contoh: '${parent}.*' => 'sometimes|string'). Harap perbarui rule validasi pada backend Laravel Anda.`
+            )
+        }
+
         const mapped = fieldMapper.mapValidationToType(elementRules)
-        const type = new ReadonlyCollectionType(CollectionKind.ARRAY, mapped.type)
+        const elementType = hasExplicitType ? mapped.type : new PrimitiveType(PrimitiveKind.UNKNOWN)
+        const type = new ReadonlyCollectionType(CollectionKind.ARRAY, elementType)
         const parentField = fields.find(field => field.originalName === parent)
 
         if (parentField) {
@@ -949,12 +1238,13 @@ function parseValidationRules(
 function resourceFieldsToNestedTypes(
     resource: ParsedResource,
     allResources: ParsedResource[],
-    seen: Set<string>
+    allModels: ParsedModel[] = [],
+    seen: Set<string> = new Set()
 ): Record<string, SemanticType> {
     const record: Record<string, SemanticType> = {}
 
     for (const [fieldName, fieldDef] of Object.entries(resource.fields || {})) {
-        const fieldType = mapResourceFieldToNestedType(fieldName, fieldDef, allResources, seen)
+        const fieldType = mapResourceFieldToNestedType(fieldName, fieldDef, allResources, allModels, seen)
         if (fieldType) {
             record[fieldName] = fieldType
         }
@@ -1000,7 +1290,8 @@ function mapResourceFieldToNestedType(
     fieldName: string,
     field: ResourceFieldKind,
     allResources: ParsedResource[],
-    seen: Set<string>
+    allModels: ParsedModel[] = [],
+    seen: Set<string> = new Set()
 ): SemanticType | undefined {
     const resolved = (field as {
         resolved?: { type?: string; resource?: string; collection?: boolean }
@@ -1013,6 +1304,7 @@ function mapResourceFieldToNestedType(
             resolved.resource,
             resolved.collection ?? false,
             allResources,
+            allModels,
             seen
         )
         if (nested) {
@@ -1057,7 +1349,7 @@ function mapResourceFieldToNestedType(
         case 'array': {
             const element = field.element
             const elementType = element && typeof element === 'object'
-                ? mapResourceFieldToNestedType(`${fieldName}[]`, element, allResources, seen)
+                ? mapResourceFieldToNestedType(`${fieldName}[]`, element, allResources, allModels, seen)
                 : undefined
 
             // Preserve array semantics even for malformed runtime manifests.
@@ -1082,6 +1374,7 @@ function mapResourceFieldToNestedType(
                     nestedFieldName,
                     nestedFieldDef,
                     allResources,
+                    allModels,
                     seen
                 )
                 if (nestedType) {
@@ -1108,6 +1401,7 @@ function mapResourceFieldToNestedType(
                     field.resource,
                     field.collection ?? false,
                     allResources,
+                    allModels,
                     seen
                 )
                 if (nested) return nested
@@ -1115,6 +1409,30 @@ function mapResourceFieldToNestedType(
             return new ReferenceType('App\\Models', field.resource ?? 'unknown')
 
         case 'model': {
+            if (field.model && allModels) {
+                const modelDef = allModels.find(m => m.name === field.model)
+                if (modelDef && modelDef.columns && modelDef.columns.length > 0) {
+                    const props = new Map<string, SemanticType>()
+                    for (const col of modelDef.columns) {
+                        const baseType = PrimitiveTypeFactory.fromSqlType(col.type)
+                        const colType = col.nullable ? markNullableSemanticType(baseType) : baseType
+                        props.set(col.name, colType)
+                    }
+                    const objType = new ObjectType(
+                        new ImmutableMap(props),
+                        new ImmutableSet(new Set(props.keys())),
+                        undefined,
+                        [],
+                        new ImmutableMap(new Map<string, string>([
+                            ['name', field.model],
+                            ['kind', 'model']
+                        ]))
+                    )
+                    return field.collection
+                        ? new ReadonlyCollectionType(CollectionKind.ARRAY, objType)
+                        : objType
+                }
+            }
             const modelType = new ReferenceType('App\\Models', field.model)
             return field.collection
                 ? new ReadonlyCollectionType(CollectionKind.ARRAY, modelType)
@@ -1129,6 +1447,27 @@ function mapResourceFieldToNestedType(
         case 'method_call':
         case 'static_method_call':
         case 'literal':
+            // Check if resolved refers to a resource or model reference
+            if (resolved?.type === 'resource' && resolved?.resource) {
+                const nested = buildNestedResourceType(
+                    resolved.resource,
+                    resolved.collection ?? false,
+                    allResources,
+                    allModels,
+                    seen
+                )
+                if (nested) return nested
+                const ref = new ReferenceType('App\\Http\\Resources', resolved.resource)
+                return resolved.collection
+                    ? new ReadonlyCollectionType(CollectionKind.ARRAY, ref)
+                    : ref
+            }
+            if (resolved?.type === 'model' && resolved?.model) {
+                const ref = new ReferenceType('App\\Models', resolved.model)
+                return resolved.collection
+                    ? new ReadonlyCollectionType(CollectionKind.ARRAY, ref)
+                    : ref
+            }
             // Infer type dari resolved metadata (sama dengan flatten)
             return resolved?.type
                 ? primitiveStringToSemanticType(resolved.type)
@@ -1174,7 +1513,8 @@ function buildNestedResourceType(
     resourceName: string,
     collection: boolean,
     allResources: ParsedResource[],
-    seen: Set<string>
+    allModels: ParsedModel[] = [],
+    seen: Set<string> = new Set()
 ): SemanticType | undefined {
     if (seen.has(resourceName)) {
         console.warn(`[CompilerBridge] Circular resource reference detected: ${resourceName}. Skipping.`)
@@ -1187,7 +1527,7 @@ function buildNestedResourceType(
     const nextSeen = new Set(seen)
     nextSeen.add(resourceName)
 
-    const nestedTypes = resourceFieldsToNestedTypes(target, allResources, nextSeen)
+    const nestedTypes = resourceFieldsToNestedTypes(target, allResources, allModels, nextSeen)
     const props = new Map(Object.entries(nestedTypes))
 
     const nestedObject = new ObjectType(
@@ -1212,21 +1552,19 @@ function buildNestedResourceType(
  */
 function extractResourceName(route: ParsedRoute): string | null {
     // Remove leading slash and split by slash
-    const segments = route.path.replace(/^\//, '').split('/')
+    const rawSegments = route.path.replace(/^\//, '').split('/')
+        .filter(segment => segment && segment !== 'api' && !segment.startsWith('{'))
 
-    // Find first non-api segment
-    for (const segment of segments) {
-        // Skip 'api' prefix and path parameters
-        if (segment === 'api' || segment.startsWith('{')) {
-            continue
-        }
-        // Return first valid segment
-        if (segment.length > 0) {
-            return segment
-        }
+    if (rawSegments.length === 0) {
+        return null
     }
 
-    return null
+    const camelSegments = rawSegments.map((seg, idx) => {
+        const sanitized = sanitizeResourceName(seg)
+        return idx === 0 ? sanitized : toPascalCase(sanitized)
+    })
+
+    return camelSegments.join('')
 }
 
 /**

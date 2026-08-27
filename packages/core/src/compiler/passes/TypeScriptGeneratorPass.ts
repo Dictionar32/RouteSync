@@ -322,15 +322,30 @@ export class TypeScriptGeneratorPass
                 return type.name;
             case 'readonly_collection':
             case 'mutable_collection':
-                // Collection types have 'elementType' property
                 return `${this.convertTypeToString(type.elementType)}[]`;
             case 'union':
                 // ImmutableSet.values() returns readonly T[]
                 return type.members.values()
                     .map((m: SemanticType) => this.convertTypeToString(m))
                     .join(' | ');
-            case 'object':
+            case 'object': {
+                if (type.annotations?.get('kind') === 'nullable_wrapper') {
+                    const innerVal = type.properties.get('__value');
+                    return innerVal ? `${this.convertTypeToString(innerVal)} | null` : 'unknown | null';
+                }
+                if (type.properties.entries().length > 0) {
+                    const propLines: string[] = [];
+                    for (const [propName, propType] of type.properties.entries()) {
+                        const convertedProp = this.convertTypeToString(propType);
+                        const formattedProp = convertedProp.includes('\n')
+                            ? convertedProp.replace(/\n/g, '\n      ')
+                            : convertedProp;
+                        propLines.push(`${propName}: ${formattedProp};`);
+                    }
+                    return `{\n      ${propLines.join('\n      ')}\n    }`;
+                }
                 return 'object';
+            }
             case 'intersection':
                 // ImmutableSet.values() returns readonly T[]
                 return type.members.values()

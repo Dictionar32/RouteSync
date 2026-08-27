@@ -50,7 +50,7 @@ export const generateCommand = new Command('generate')
 
       spinner.text = 'Generating types...'
 
-      // NEW: Generate via compiler path (Phase 3 Day 7)
+      let compilerBridgeSuccess = false
       try {
         const { CompilerBridge } = await import('../generators/CompilerBridge')
 
@@ -110,6 +110,26 @@ export const generateCommand = new Command('generate')
           if (contractOutput.metadata.warnings.length > 0) {
             console.log(`    - Warnings: ${contractOutput.metadata.warnings.length}`)
           }
+
+          // Generate api-field.ts (ApiApiField table)
+          const apiFieldOutput = await CompilerBridge.generateApiFieldTypes(manifest)
+          const apiFieldPath = path.join(options.output, 'contracts', 'api-field.ts')
+          await fs.ensureDir(path.dirname(apiFieldPath))
+          await fs.writeFile(apiFieldPath, apiFieldOutput.code)
+
+          console.log(`  [CompilerBridge] Generated api-field.ts:`)
+          console.log(`    - LOC: ${apiFieldOutput.metadata.linesOfCode}`)
+
+          // Generate api-mapper.ts (Read & Form Mapper functions)
+          const mapperOutput = await CompilerBridge.generateMapperTypes(manifest)
+          const mapperPath = path.join(options.output, 'mappers', 'api-mapper.ts')
+          await fs.ensureDir(path.dirname(mapperPath))
+          await fs.writeFile(mapperPath, mapperOutput.code)
+
+          console.log(`  [CompilerBridge] Generated api-mapper.ts:`)
+          console.log(`    - LOC: ${mapperOutput.metadata.linesOfCode}`)
+
+          compilerBridgeSuccess = true
         } catch (contractError) {
           console.warn(`  [CompilerBridge] Warning: Contract generation failed - ${contractError instanceof Error ? contractError.message : String(contractError)}`)
         }
@@ -150,11 +170,11 @@ export const generateCommand = new Command('generate')
         await ModelGenerator.generate(manifest, options.output)
       }
 
-      if (options.zod) {
+      if (options.zod && !compilerBridgeSuccess) {
         spinner.text = 'Generating Zod Tier (Contract, Types, Mappers)...'
         const { ZodTierGenerator } = require('../generators/ZodTierGenerator')
         await ZodTierGenerator.generate(manifest, options.output)
-      } else {
+      } else if (!compilerBridgeSuccess) {
         spinner.text = 'Generating legacy schemas.ts...'
         const { SchemaGenerator } = require('../generators/SchemaGenerator')
         await SchemaGenerator.generate(manifest, options.output)

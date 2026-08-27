@@ -1,26 +1,24 @@
 /**
  * CompilerBridge.ts - pure orchestration: manifest → adapter → pass → format.
- * Lowering logic lives in utils/manifest-to-types.ts (was 853 lines inline).
+ * Lowering logic lives in utils/manifest-to-types.ts.
  */
 
-// Import types
 import type { RouteManifest } from '../../../core/src/types/route'
 import type { SemanticTypesArtifact } from '../../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import type { GeneratedTypeScriptArtifact } from '../../../core/src/compiler/artifacts/GeneratedTypeScriptArtifact'
 import type { RequestTypesArtifact } from '../../../core/src/compiler/artifacts/RequestTypesArtifact'
 import type { GeneratedFormArtifact } from '../../../core/src/compiler/artifacts/GeneratedFormArtifact'
 import type { GeneratedContractArtifact } from '../../../core/src/compiler/artifacts/GeneratedContractArtifact'
+import type { GeneratedApiFieldArtifact } from '../../../core/src/compiler/artifacts/GeneratedApiFieldArtifact'
+import type { GeneratedMapperArtifact } from '../../../core/src/compiler/artifacts/GeneratedMapperArtifact'
 import { TypeScriptGeneratorPass } from '../../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import { FormGeneratorPass } from '../../../core/src/compiler/passes/FormGeneratorPass'
 import { ContractGeneratorPass } from '../../../core/src/compiler/passes/ContractGeneratorPass'
+import { ApiFieldGeneratorPass } from '../../../core/src/compiler/passes/ApiFieldGeneratorPass'
+import { MapperGeneratorPass } from '../../../core/src/compiler/passes/MapperGeneratorPass'
 
-// ✅ Import lowering utilities (business logic lives here, not in the bridge)
 import { manifestToSemanticTypes, manifestToRequestTypes, manifestToContractInput } from './utils/manifest-to-types'
 
-/**
- * Output from compiler bridge
- * Result generation ready to write to files
- */
 export interface CompilerOutput {
     readonly code: string
     readonly imports: readonly string[]
@@ -33,10 +31,6 @@ export interface CompilerOutput {
     }
 }
 
-/**
- * Form output from compiler bridge
- * Form type generation ready to write to forms/api-form.ts
- */
 export interface FormOutput {
     readonly code: string
     readonly formTypes: readonly string[]
@@ -48,10 +42,6 @@ export interface FormOutput {
     }
 }
 
-/**
- * Contract output from compiler bridge
- * Contract generation ready to write to contracts/api-contract.ts
- */
 export interface ContractOutput {
     readonly code: string
     readonly contracts: readonly string[]
@@ -65,26 +55,29 @@ export interface ContractOutput {
     }
 }
 
-/**
- * CompilerBridge class
- * Main orchestrator for bridge manifest → compiler → output
- */
+export interface ApiFieldOutput {
+    readonly code: string
+    readonly metadata: {
+        readonly linesOfCode: number
+        readonly warnings: readonly string[]
+    }
+}
+
+export interface MapperOutput {
+    readonly code: string
+    readonly metadata: {
+        readonly linesOfCode: number
+        readonly warnings: readonly string[]
+    }
+}
+
 export class CompilerBridge {
-    /**
-     * Generate TypeScript from manifest
-     * Pure orchestration - delegates to utilities and passes
-     *
-     * @param manifest - RouteManifest from CLI scan
-     * @returns CompilerOutput ready to write to files
-     */
     static async generateTypeScript(manifest: RouteManifest): Promise<CompilerOutput> {
-        console.log('[CompilerBridge] Starting generation...')
+        console.log('[CompilerBridge] Starting compilation...')
 
-        // Step 1: Convert manifest to SemanticTypes (lowering in utils)
         const semanticTypesArtifact = manifestToSemanticTypes(manifest)
-        console.log(`[CompilerBridge] Converted ${semanticTypesArtifact.types.length} types`)
+        console.log(`[CompilerBridge] Extracted ${semanticTypesArtifact.types.length} semantic types`)
 
-        // Step 2: Execute TypeScriptGeneratorPass
         const pass = new TypeScriptGeneratorPass()
 
         try {
@@ -100,7 +93,6 @@ export class CompilerBridge {
             console.log(`  - Interface count: ${generatedArtifact.generationMetadata.interfaceCount}`)
             console.log(`  - Lines of code: ${generatedArtifact.generationMetadata.linesOfCode}`)
 
-            // Step 3: Format output for CLI
             return this.formatCompilerOutput(generatedArtifact, manifest)
         } catch (error) {
             console.error('[CompilerBridge] Error during execution:', error)
@@ -110,21 +102,12 @@ export class CompilerBridge {
         }
     }
 
-    /**
-     * Generate form types from manifest
-     * Pure orchestration - delegates to FormGeneratorPass
-     *
-     * @param manifest - RouteManifest from CLI scan (uses validation rules)
-     * @returns FormOutput ready to write to forms/api-form.ts
-     */
     static async generateFormTypes(manifest: RouteManifest): Promise<FormOutput> {
         console.log('[CompilerBridge] Starting form generation...')
 
-        // Step 1: Convert manifest to RequestTypes (lowering in utils)
         const requestTypesArtifact = manifestToRequestTypes(manifest)
         console.log(`[CompilerBridge] Extracted ${requestTypesArtifact.requestTypes.length} request types`)
 
-        // Step 2: Execute FormGeneratorPass
         const pass = new FormGeneratorPass()
 
         try {
@@ -135,7 +118,6 @@ export class CompilerBridge {
             console.log(`  - Total actions: ${generatedArtifact.generationMetadata.totalActions}`)
             console.log(`  - Lines of code: ${generatedArtifact.generationMetadata.linesOfCode}`)
 
-            // Step 3: Format output for CLI
             return this.formatFormOutput(generatedArtifact, manifest)
         } catch (error) {
             console.error('[CompilerBridge] Error during form generation:', error)
@@ -145,25 +127,12 @@ export class CompilerBridge {
         }
     }
 
-    /**
-     * Generate contract types from manifest
-     * Pure orchestration - delegates to ContractGeneratorPass
-     *
-     * 🚨 IMPORTANT: Contracts need ORIGINAL manifest data (nested + snake_case)
-     * - DO NOT use manifestToRequestTypes (that flattens for forms)
-     * - manifestToContractInput preserves backend structure
-     *
-     * @param manifest - RouteManifest from CLI scan (uses validation rules)
-     * @returns ContractOutput ready to write to contracts/api-contract.ts
-     */
     static async generateContractTypes(manifest: RouteManifest): Promise<ContractOutput> {
         console.log('[CompilerBridge] Starting contract generation...')
 
-        // Step 1: Convert manifest to ContractInput (preserves original structure)
         const requestTypesArtifact = manifestToContractInput(manifest)
         console.log(`[CompilerBridge] Extracted ${requestTypesArtifact.requestTypes.length} request types`)
 
-        // Step 2: Execute ContractGeneratorPass
         const pass = new ContractGeneratorPass()
 
         try {
@@ -176,7 +145,6 @@ export class CompilerBridge {
             console.log(`  - Validators: ${generatedArtifact.generationMetadata.validatorsCount}`)
             console.log(`  - Lines of code: ${generatedArtifact.generationMetadata.linesOfCode}`)
 
-            // Step 3: Format output for CLI
             return this.formatContractOutput(generatedArtifact, manifest)
         } catch (error) {
             console.error('[CompilerBridge] Error during contract generation:', error)
@@ -186,27 +154,68 @@ export class CompilerBridge {
         }
     }
 
-    /**
-     * Format GeneratedTypeScriptArtifact to CompilerOutput
-     * Extracts data from artifact and formats for CLI consumption
-     *
-     * @param artifact - Generated artifact from TypeScriptGeneratorPass
-     * @param manifest - Original manifest for warnings
-     * @returns CompilerOutput formatted for CLI
-     */
+    static async generateApiFieldTypes(manifest: RouteManifest): Promise<ApiFieldOutput> {
+        console.log('[CompilerBridge] Starting api-field generation...')
+
+        const requestTypesArtifact = manifestToContractInput(manifest)
+        const pass = new ApiFieldGeneratorPass()
+
+        try {
+            const [generatedArtifact]: readonly [GeneratedApiFieldArtifact] = pass.run([requestTypesArtifact])
+            const linesOfCode = generatedArtifact.code.split('\n').length
+
+            console.log(`[CompilerBridge] ApiField generation complete: LOC ${linesOfCode}`)
+
+            return {
+                code: generatedArtifact.code,
+                metadata: {
+                    linesOfCode,
+                    warnings: []
+                }
+            }
+        } catch (error) {
+            console.error('[CompilerBridge] Error during api-field generation:', error)
+            throw new Error(
+                `CompilerBridge api-field generation failed: ${error instanceof Error ? error.message : String(error)}`
+            )
+        }
+    }
+
+    static async generateMapperTypes(manifest: RouteManifest): Promise<MapperOutput> {
+        console.log('[CompilerBridge] Starting mapper generation...')
+
+        const requestTypesArtifact = manifestToContractInput(manifest)
+        const pass = new MapperGeneratorPass()
+
+        try {
+            const [generatedArtifact]: readonly [GeneratedMapperArtifact] = pass.run([requestTypesArtifact])
+            const linesOfCode = generatedArtifact.code.split('\n').length
+
+            console.log(`[CompilerBridge] Mapper generation complete: LOC ${linesOfCode}`)
+
+            return {
+                code: generatedArtifact.code,
+                metadata: {
+                    linesOfCode,
+                    warnings: []
+                }
+            }
+        } catch (error) {
+            console.error('[CompilerBridge] Error during mapper generation:', error)
+            throw new Error(
+                `CompilerBridge mapper generation failed: ${error instanceof Error ? error.message : String(error)}`
+            )
+        }
+    }
+
     private static formatCompilerOutput(
         artifact: GeneratedTypeScriptArtifact,
         manifest: RouteManifest
     ): CompilerOutput {
-        // Format imports as strings
         const imports = artifact.imports.map(imp =>
             `import { ${imp.names.join(', ')} } from '${imp.from}'`
         )
-
-        // Extract interface names
         const interfaces = artifact.interfaces.map(iface => iface.name)
-
-        // Collect warnings
         const warnings: string[] = [...artifact.generationMetadata.warnings]
 
         if (!manifest.models || manifest.models.length === 0) {
@@ -229,18 +238,11 @@ export class CompilerBridge {
         }
     }
 
-    /**
-     * Format GeneratedFormArtifact to FormOutput
-     * Extracts data from artifact and formats for CLI consumption
-     */
     private static formatFormOutput(
         artifact: GeneratedFormArtifact,
         manifest: RouteManifest
     ): FormOutput {
-        // Extract form type names
         const formTypes = artifact.formTypes.map(ft => ft.name)
-
-        // Collect warnings
         const warnings: string[] = [...artifact.generationMetadata.warnings]
 
         if (artifact.generationMetadata.formTypeCount === 0) {
@@ -259,18 +261,11 @@ export class CompilerBridge {
         }
     }
 
-    /**
-     * Format GeneratedContractArtifact to ContractOutput
-     * Extracts data from artifact and formats for CLI consumption
-     */
     private static formatContractOutput(
         artifact: GeneratedContractArtifact,
         manifest: RouteManifest
     ): ContractOutput {
-        // Extract contract names
         const contracts = artifact.contracts.map(c => c.name)
-
-        // Collect warnings
         const warnings: string[] = [...artifact.generationMetadata.warnings]
 
         if (artifact.generationMetadata.contractCount === 0) {

@@ -19,9 +19,26 @@ import {
     type SemanticType,
     PrimitiveType,
     PrimitiveKind,
-    ReferenceType
+    ObjectType,
+    ReferenceType,
+    ReadonlyCollectionType,
+    CollectionKind
 } from '../../../../core/src/compiler/types/SemanticType'
+import { ImmutableMap, ImmutableSet } from '../../../../core/src/compiler/utils/ImmutableCollections'
 import { PrimitiveTypeFactory } from './PrimitiveTypeFactory'
+
+function markNullableSemanticType(baseType: SemanticType): SemanticType {
+    return new ObjectType(
+        new ImmutableMap(new Map([['__value', baseType]])),
+        new ImmutableSet(new Set(['__value'])),
+        undefined,
+        [],
+        new ImmutableMap(new Map([
+            ['kind', 'nullable_wrapper'],
+            ['__value', 'nullable']
+        ]))
+    )
+}
 
 /**
  * Options for flattening resource fields
@@ -158,9 +175,11 @@ export function flattenResourceField(
         case 'primitive': {
             // Leaf node - return as-is with camelCase name
             // Use factory to properly map type string to PrimitiveKind
+            const baseType = PrimitiveTypeFactory.fromString(field.type)
+            const finalType = (field as any).nullable ? markNullableSemanticType(baseType) : baseType
             return [{
                 name: toCamelCase(newPrefix),
-                type: PrimitiveTypeFactory.fromString(field.type)
+                type: finalType
             }]
         }
 
@@ -213,14 +232,33 @@ export function flattenResourceField(
         case 'resource':
         case 'unknown':
         default: {
-            // For model/resource/unknown, treat as opaque object
-            // Return as-is without flattening (semantic types will handle it)
-            const typeName = field.kind === 'model' ? field.model :
-                field.kind === 'resource' ? field.resource : 'unknown'
+            // For model/resource/unknown/expression, extract type and collection metadata
+            const rawField = field as any
+            const resolved = rawField.resolved || {}
+
+            const resourceName = rawField.resource || resolved.resource || (typeof rawField.className === 'string' && rawField.className.endsWith('Resource') ? rawField.className : undefined)
+            const modelName = rawField.model || resolved.model
+
+            const typeName = resourceName || modelName || (rawField.kind === 'model' ? rawField.model : 'unknown')
+            const isResource = Boolean(resourceName || resolved.type === 'resource')
+            const isCollection = Boolean(rawField.collection || rawField.is_collection || resolved.collection || rawField.name === 'collection')
+
+            const formattedTypeName = (isResource && typeName.endsWith('Resource') && !typeName.endsWith('Transformed'))
+                ? `${typeName}Transformed`
+                : typeName
+
+            let refType: SemanticType = new ReferenceType(
+                isResource ? 'App\\Http\\Resources' : 'App\\Models',
+                formattedTypeName
+            )
+
+            if (isCollection) {
+                refType = new ReadonlyCollectionType(CollectionKind.ARRAY, refType)
+            }
 
             return [{
                 name: toCamelCase(newPrefix),
-                type: new ReferenceType('App\\Models', typeName)
+                type: refType
             }]
         }
     }

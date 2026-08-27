@@ -246,6 +246,7 @@ if (!function_exists('mergeAssignmentShape')) {
             $trimmed = trim($base);
             if (str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) {
                 $baseInner = trim(substr($trimmed, 1, -1));
+                $baseInner = rtrim($baseInner, " \t\n\r\0\x0B,");
             }
         }
 
@@ -254,7 +255,10 @@ if (!function_exists('mergeAssignmentShape')) {
             $parts[] = $baseInner;
         }
         foreach ($incremental as $entry) {
-            $parts[] = $entry;
+            $entryClean = rtrim(trim($entry), " \t\n\r\0\x0B,");
+            if ($entryClean !== '') {
+                $parts[] = $entryClean;
+            }
         }
 
         if (empty($parts)) {
@@ -513,7 +517,7 @@ if (!function_exists('readValidationRuleProperty')) {
     }
 
     function extractInlineValidationRules($methodSource) {
-        if (!preg_match('/\\$[A-Za-z_][A-Za-z0-9_]*->validate\\s*\\(\\s*(\\[.*\\])\\s*\\)/s', $methodSource, $matches)) {
+        if (!preg_match('/\\$[A-Za-z_][A-Za-z0-9_]*->validate\\s*\\(\\s*(\\[.*?\\])\\s*\\)/s', $methodSource, $matches)) {
             return [];
         }
 
@@ -950,15 +954,39 @@ if ($extractModels) {
 
                     $model = new $class();
                     $table = $model->getTable();
-                    $columns = \\Illuminate\\Support\\Facades\\Schema::getColumns($table);
 
                     $parsedColumns = [];
-                    foreach ($columns as $col) {
-                        $parsedColumns[] = [
-                            'name' => $col['name'],
-                            'type' => $col['type'],
-                            'nullable' => $col['nullable']
-                        ];
+                    try {
+                        $columns = \\Illuminate\\Support\\Facades\\Schema::getColumns($table);
+                        foreach ($columns as $col) {
+                            $parsedColumns[] = [
+                                'name' => $col['name'],
+                                'type' => $col['type'],
+                                'nullable' => $col['nullable']
+                            ];
+                        }
+                    } catch (\\Throwable $schemaErr) {
+                        if ($reflection->hasProperty('fillable')) {
+                            $fillableProp = $reflection->getProperty('fillable');
+                            $fillableProp->setAccessible(true);
+                            $fillable = $fillableProp->getValue($model);
+                            if (is_array($fillable)) {
+                                foreach ($fillable as $colName) {
+                                    $parsedColumns[] = [
+                                        'name' => $colName,
+                                        'type' => 'varchar',
+                                        'nullable' => true
+                                    ];
+                                }
+                            }
+                        }
+                        $hasId = false;
+                        foreach ($parsedColumns as $pc) {
+                            if ($pc['name'] === 'id') { $hasId = true; break; }
+                        }
+                        if (!$hasId) {
+                            array_unshift($parsedColumns, ['name' => 'id', 'type' => 'bigint', 'nullable' => false]);
+                        }
                     }
 
                     $relations = [];

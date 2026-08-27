@@ -661,13 +661,14 @@ export class TypeScriptGenerator implements IGenerator<ContractGraph, TSFile> {
             return new TSTypeReference(syntheticName);
         }
 
-        // Simple objects: Return 'object' for now
-        // TODO: Implement TSObjectLiteralType untuk inline representations
-        // Example: { id: number; name: string }
-
-        // Still need to collect imports untuk property types
-        for (const [, propType] of type.properties.entries()) {
-            this.collectPropertyTypeImports(propType);
+        if (type.properties.entries().length > 0) {
+            const propLines: string[] = [];
+            for (const [propName, propType] of type.properties.entries()) {
+                this.collectPropertyTypeImports(propType);
+                const tsType = this.semanticTypeToTSType(propType);
+                propLines.push(`  ${propName}: ${tsType.name};`);
+            }
+            return new TSTypeReference(`{\n${propLines.join('\n')}\n}`);
         }
 
         return new TSTypeReference('object');

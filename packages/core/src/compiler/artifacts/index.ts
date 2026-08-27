@@ -43,6 +43,7 @@ export { CompilationResultArtifact } from './CompilationResultArtifact';
 export * from './GeneratedTypeScriptArtifact';
 export * from './GeneratedFormArtifact';
 export * from './GeneratedContractArtifact';
+export * from './GeneratedApiFieldArtifact';
 export * from './RequestTypesArtifact';
 export { RouteManifestArtifact } from './RouteManifestArtifact';
 export { ResponseAnalysisArtifact } from './ResponseAnalysisArtifact';

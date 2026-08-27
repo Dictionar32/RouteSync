@@ -537,14 +537,21 @@
       "confidence": 1,
       "table": "categories",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "nama": "varchar(255)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "nama": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "produkItems"
-      ]
+      "relations": {
+        "produkItems": {
+          "type": "hasMany",
+          "model": "ProdukItem"
+        }
+      }
     },
     "Order": {
       "kind": "model_node",
@@ -553,24 +560,61 @@
       "confidence": 1,
       "table": "orders",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "user_id": "bigint(20) unsigned",
-        "total_harga": "int(11)",
-        "status": "enum('pending','paid','canceled')",
-        "order_number": "varchar(32)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "user_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "total_harga": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "status": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "order_number": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "user",
-        "details",
-        "payment",
-        "shipping",
-        "promotion",
-        "amount",
-        "financial",
-        "fulfillment"
-      ]
+      "relations": {
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        },
+        "details": {
+          "type": "hasMany",
+          "model": "OrderDetail"
+        },
+        "payment": {
+          "type": "hasOne",
+          "model": "Payment"
+        },
+        "shipping": {
+          "type": "hasOne",
+          "model": "OrderShipping"
+        },
+        "promotion": {
+          "type": "hasOne",
+          "model": "OrderPromotion"
+        },
+        "amount": {
+          "type": "hasOne",
+          "model": "OrderAmount"
+        },
+        "financial": {
+          "type": "hasOne",
+          "model": "OrderFinancial"
+        },
+        "fulfillment": {
+          "type": "hasOne",
+          "model": "OrderFulfillment"
+        }
+      }
     },
     "OrderAmount": {
       "kind": "model_node",
@@ -579,19 +623,41 @@
       "confidence": 1,
       "table": "order_amounts",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "subtotal_minor": "bigint(20) unsigned",
-        "shipping_minor": "bigint(20) unsigned",
-        "discount_minor": "bigint(20) unsigned",
-        "tax_minor": "bigint(20) unsigned",
-        "total_minor": "bigint(20) unsigned",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "subtotal_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "shipping_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "discount_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "tax_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "total_minor": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "order"
-      ]
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      }
     },
     "OrderDetail": {
       "kind": "model_node",
@@ -600,21 +666,37 @@
       "confidence": 1,
       "table": "order_details",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "produk_item_id": "bigint(20) unsigned",
-        "qty": "int(11)",
-        "harga": "int(11)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp",
-        "banana": "varchar(255)",
-        "potato": "int(11)",
-        "flying_dog": "tinyint(1)"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "produk_item_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "qty": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "harga": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "order",
-        "produkItem"
-      ]
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        },
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        }
+      }
     },
     "OrderFinancial": {
       "kind": "model_node",
@@ -623,17 +705,33 @@
       "confidence": 1,
       "table": "order_financials",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "financial_status": "enum('pending','paid','partially_refunded','refunded','failed','cancelled')",
-        "refunded_at": "timestamp",
-        "refund_reason": "text",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "financial_status": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "refunded_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "refund_reason": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "order"
-      ]
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      }
     },
     "OrderFulfillment": {
       "kind": "model_node",
@@ -642,20 +740,45 @@
       "confidence": 1,
       "table": "order_fulfillments",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "fulfillment_status": "enum('unfulfilled','processing','shipped','completed','cancelled','returned')",
-        "processing_at": "timestamp",
-        "shipped_at": "timestamp",
-        "completed_at": "timestamp",
-        "canceled_at": "timestamp",
-        "cancel_reason": "text",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "fulfillment_status": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "processing_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "shipped_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "completed_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "canceled_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "cancel_reason": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "order"
-      ]
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      }
     },
     "OrderPromotion": {
       "kind": "model_node",
@@ -664,19 +787,41 @@
       "confidence": 1,
       "table": "order_promotions",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "promo_code_id": "bigint(20) unsigned",
-        "promo_code": "varchar(64)",
-        "discount_minor": "bigint(20) unsigned",
-        "metadata": "longtext",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "promo_code_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "promo_code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "discount_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "metadata": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "order",
-        "promoCode"
-      ]
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        },
+        "promoCode": {
+          "type": "belongsTo",
+          "model": "PromoCode"
+        }
+      }
     },
     "OrderShipping": {
       "kind": "model_node",
@@ -685,19 +830,65 @@
       "confidence": 1,
       "table": "order_shippings",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "nama": "varchar(255)",
-        "telepon": "varchar(255)",
-        "alamat": "text",
-        "kota": "varchar(255)",
-        "kode_pos": "varchar(255)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "nama": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "telepon": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "alamat": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "kota": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "kode_pos": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "courier_code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "service_level": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "tracking_number": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "estimated_arrival_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "shipped_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "delivered_at": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "order"
-      ]
+      "relations": {
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        }
+      }
     },
     "Payment": {
       "kind": "model_node",
@@ -706,20 +897,45 @@
       "confidence": 1,
       "table": "payments",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "order_id": "bigint(20) unsigned",
-        "metode": "varchar(255)",
-        "status": "enum('pending','success','failed')",
-        "paid_at": "timestamp",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "order_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "metode": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "status": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "paid_at": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "paymentDetail",
-        "order",
-        "paymentAmount",
-        "paymentGateways"
-      ]
+      "relations": {
+        "paymentDetail": {
+          "type": "hasOne",
+          "model": "PaymentDetail"
+        },
+        "order": {
+          "type": "belongsTo",
+          "model": "Order"
+        },
+        "paymentAmount": {
+          "type": "hasMany",
+          "model": "PaymentAmount"
+        },
+        "paymentGateways": {
+          "type": "hasMany",
+          "model": "PaymentGateway"
+        }
+      }
     },
     "PaymentAmount": {
       "kind": "model_node",
@@ -728,19 +944,41 @@
       "confidence": 1,
       "table": "payment_amounts",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "payment_id": "bigint(20) unsigned",
-        "currency_code": "varchar(3)",
-        "amount_minor": "bigint(20) unsigned",
-        "fee_minor": "bigint(20) unsigned",
-        "net_amount_minor": "bigint(20) unsigned",
-        "refund_amount_minor": "bigint(20) unsigned",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "payment_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "currency_code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "amount_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "fee_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "net_amount_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "refund_amount_minor": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "payment"
-      ]
+      "relations": {
+        "payment": {
+          "type": "belongsTo",
+          "model": "Payment"
+        }
+      }
     },
     "PaymentDetail": {
       "kind": "model_node",
@@ -749,17 +987,33 @@
       "confidence": 1,
       "table": "payment_details",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "payment_id": "bigint(20) unsigned",
-        "detail": "longtext",
-        "payload_hash": "varchar(255)",
-        "payload_received_at": "timestamp",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "payment_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "detail": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "payload_hash": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "payload_received_at": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "payment"
-      ]
+      "relations": {
+        "payment": {
+          "type": "belongsTo",
+          "model": "Payment"
+        }
+      }
     },
     "PaymentGateway": {
       "kind": "model_node",
@@ -768,26 +1022,69 @@
       "confidence": 1,
       "table": "payment_gateways",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "payment_id": "bigint(20) unsigned",
-        "provider": "varchar(255)",
-        "provider_txn_id": "varchar(255)",
-        "idempotency_key": "varchar(255)",
-        "gateway_status": "varchar(255)",
-        "gateway_code": "varchar(255)",
-        "gateway_message": "text",
-        "authorized_at": "timestamp",
-        "captured_at": "timestamp",
-        "failed_at": "timestamp",
-        "refunded_at": "timestamp",
-        "reconciled_at": "timestamp",
-        "reconciliation_batch_id": "varchar(255)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "payment_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "provider": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "provider_txn_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "idempotency_key": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "gateway_status": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "gateway_code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "gateway_message": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "authorized_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "captured_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "failed_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "refunded_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "reconciled_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "reconciliation_batch_id": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "payment"
-      ]
+      "relations": {
+        "payment": {
+          "type": "belongsTo",
+          "model": "Payment"
+        }
+      }
     },
     "ProductReview": {
       "kind": "model_node",
@@ -796,20 +1093,45 @@
       "confidence": 1,
       "table": "product_reviews",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "produk_item_id": "bigint(20) unsigned",
-        "user_id": "bigint(20) unsigned",
-        "rating": "tinyint(3) unsigned",
-        "title": "varchar(255)",
-        "comment": "text",
-        "is_verified_purchase": "tinyint(1)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "produk_item_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "user_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "rating": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "title": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "comment": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "is_verified_purchase": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "produkItem",
-        "user"
-      ]
+      "relations": {
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        },
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        }
+      }
     },
     "ProdukItem": {
       "kind": "model_node",
@@ -818,22 +1140,61 @@
       "confidence": 1,
       "table": "produk_items",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "nama": "varchar(255)",
-        "deskripsi": "text",
-        "category_id": "bigint(20) unsigned",
-        "harga": "int(11)",
-        "stok": "int(11)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "nama": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "deskripsi": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "category_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "currency_code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "harga": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "harga_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "stok": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "orderDetails",
-        "category",
-        "frontend",
-        "wishlists",
-        "reviews"
-      ]
+      "relations": {
+        "orderDetails": {
+          "type": "hasMany",
+          "model": "OrderDetail"
+        },
+        "category": {
+          "type": "belongsTo",
+          "model": "Category"
+        },
+        "frontend": {
+          "type": "hasOne",
+          "model": "ProdukItemFrontend"
+        },
+        "wishlists": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "reviews": {
+          "type": "hasMany",
+          "model": "ProductReview"
+        }
+      }
     },
     "ProdukItemFrontend": {
       "kind": "model_node",
@@ -842,17 +1203,33 @@
       "confidence": 1,
       "table": "produk_item_frontends",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "produk_item_id": "bigint(20) unsigned",
-        "gambar": "varchar(255)",
-        "rating": "decimal(3,2)",
-        "jumlah_review": "int(10) unsigned",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "produk_item_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "gambar": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "rating": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "jumlah_review": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "produkItem"
-      ]
+      "relations": {
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        }
+      }
     },
     "PromoCode": {
       "kind": "model_node",
@@ -861,23 +1238,57 @@
       "confidence": 1,
       "table": "promo_codes",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "code": "varchar(64)",
-        "discount_type": "enum('fixed_minor','percent')",
-        "discount_value": "bigint(20) unsigned",
-        "max_discount_minor": "bigint(20) unsigned",
-        "min_order_minor": "bigint(20) unsigned",
-        "usage_limit": "int(10) unsigned",
-        "used_count": "int(10) unsigned",
-        "is_active": "tinyint(1)",
-        "starts_at": "timestamp",
-        "ends_at": "timestamp",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "code": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "discount_type": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "discount_value": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "max_discount_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "min_order_minor": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "usage_limit": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "used_count": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "is_active": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "starts_at": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "ends_at": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "orderPromotions"
-      ]
+      "relations": {
+        "orderPromotions": {
+          "type": "hasMany",
+          "model": "OrderPromotion"
+        }
+      }
     },
     "SocialAccount": {
       "kind": "model_node",
@@ -886,18 +1297,37 @@
       "confidence": 1,
       "table": "social_accounts",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "user_id": "bigint(20) unsigned",
-        "provider": "varchar(32)",
-        "provider_user_id": "varchar(191)",
-        "email": "varchar(255)",
-        "avatar_url": "varchar(255)",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "user_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "provider": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "provider_user_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "email": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "avatar_url": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "user"
-      ]
+      "relations": {
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        }
+      }
     },
     "User": {
       "kind": "model_node",
@@ -906,23 +1336,57 @@
       "confidence": 1,
       "table": "users",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "name": "varchar(255)",
-        "email": "varchar(255)",
-        "password": "varchar(255)",
-        "role": "enum('admin','user')",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "email": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "password": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "role": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "orders",
-        "wishlists",
-        "socialAccounts",
-        "productReviews",
-        "newFactory",
-        "unreadNotifications",
-        "tokens"
-      ]
+      "relations": {
+        "orders": {
+          "type": "hasMany",
+          "model": "Order"
+        },
+        "wishlists": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "socialAccounts": {
+          "type": "hasMany",
+          "model": "SocialAccount"
+        },
+        "productReviews": {
+          "type": "hasMany",
+          "model": "ProductReview"
+        },
+        "newFactory": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "unreadNotifications": {
+          "type": "hasMany",
+          "model": "Wishlist"
+        },
+        "tokens": {
+          "type": "hasMany",
+          "model": "Order"
+        }
+      }
     },
     "Wishlist": {
       "kind": "model_node",
@@ -931,16 +1395,29 @@
       "confidence": 1,
       "table": "wishlists",
       "fields": {
-        "id": "bigint(20) unsigned",
-        "user_id": "bigint(20) unsigned",
-        "produk_item_id": "bigint(20) unsigned",
-        "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "id": {
+          "type": "bigint",
+          "nullable": false
+        },
+        "user_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "produk_item_id": {
+          "type": "varchar",
+          "nullable": true
+        }
       },
-      "relations": [
-        "user",
-        "produkItem"
-      ]
+      "relations": {
+        "user": {
+          "type": "belongsTo",
+          "model": "User"
+        },
+        "produkItem": {
+          "type": "belongsTo",
+          "model": "ProdukItem"
+        }
+      }
     },
     "RegisterResponse": {
       "kind": "model_node",
@@ -949,9 +1426,18 @@
       "confidence": 1,
       "table": null,
       "fields": {
-        "success": "boolean",
-        "message": "string",
-        "data": "mixed"
+        "success": {
+          "type": "boolean",
+          "nullable": false
+        },
+        "message": {
+          "type": "string",
+          "nullable": false
+        },
+        "data": {
+          "type": "mixed",
+          "nullable": true
+        }
       },
       "relations": []
     }
@@ -961,258 +1447,301 @@
       "from": "Category",
       "to": "ProdukItem",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "User",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "OrderDetail",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "Payment",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "OrderShipping",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "OrderPromotion",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "OrderAmount",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "OrderFinancial",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "Order",
       "to": "OrderFulfillment",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "OrderAmount",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderDetail",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderDetail",
       "to": "ProdukItem",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderFinancial",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderFulfillment",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderPromotion",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderPromotion",
       "to": "PromoCode",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "OrderShipping",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "Payment",
       "to": "PaymentDetail",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "Payment",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "Payment",
       "to": "PaymentAmount",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "Payment",
       "to": "PaymentGateway",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "PaymentAmount",
       "to": "Payment",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "PaymentDetail",
       "to": "Payment",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "PaymentGateway",
       "to": "Payment",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "ProductReview",
       "to": "ProdukItem",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "ProductReview",
       "to": "User",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "ProdukItem",
       "to": "OrderDetail",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "ProdukItem",
       "to": "Category",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "ProdukItem",
       "to": "ProdukItemFrontend",
       "type": "depends_on_model",
+      "relationKind": "hasOne",
       "weight": 1
     },
     {
       "from": "ProdukItem",
       "to": "Wishlist",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "ProdukItem",
       "to": "ProductReview",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "ProdukItemFrontend",
       "to": "ProdukItem",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "PromoCode",
       "to": "OrderPromotion",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "SocialAccount",
       "to": "User",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "User",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "User",
       "to": "Wishlist",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "User",
       "to": "SocialAccount",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "User",
       "to": "ProductReview",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "User",
       "to": "Wishlist",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "User",
       "to": "Wishlist",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "User",
       "to": "Order",
       "type": "depends_on_model",
+      "relationKind": "hasMany",
       "weight": 1
     },
     {
       "from": "Wishlist",
       "to": "User",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
       "from": "Wishlist",
       "to": "ProdukItem",
       "type": "depends_on_model",
+      "relationKind": "belongsTo",
       "weight": 1
     },
     {
@@ -1246,20 +1775,8 @@
       "weight": 1
     },
     {
-      "from": "ProdukController",
-      "to": "ProdukItem",
-      "type": "depends_on_model",
-      "weight": 1
-    },
-    {
       "from": "Produk_idController",
       "to": "ProdukItem",
-      "type": "depends_on_model",
-      "weight": 1
-    },
-    {
-      "from": "OrdersController",
-      "to": "Order",
       "type": "depends_on_model",
       "weight": 1
     },
@@ -1314,12 +1831,6 @@
     {
       "from": "KeranjangController",
       "to": "Order",
-      "type": "depends_on_model",
-      "weight": 1
-    },
-    {
-      "from": "WishlistController",
-      "to": "ProdukItem",
       "type": "depends_on_model",
       "weight": 1
     },

@@ -114,16 +114,19 @@ export class ContractCodeBuilder {
             });
         }
 
+        // Filter contracts that actually have request payload actions (POST/PUT/PATCH)
+        const requestContracts = contracts.filter(c => c.actions.length > 0);
+
         // Section 1: Zod Schemas (REQUEST schemas)
         const schemasStart = lines.length;
         lines.push('// ========== REQUEST SCHEMAS ==========');
 
-        if (contracts.length === 0) {
-            lines.push('// No contracts generated');
+        if (requestContracts.length === 0) {
+            lines.push('// No request schemas generated');
         } else {
-            contracts.forEach((contract, index) => {
+            requestContracts.forEach((contract, index) => {
                 this.buildSchemaSection(lines, contract);
-                if (index < contracts.length - 1) {
+                if (index < requestContracts.length - 1) {
                     lines.push('');
                 }
             });
@@ -137,21 +140,21 @@ export class ContractCodeBuilder {
         const typesStart = lines.length;
         lines.push('// ========== INFERRED TYPES ==========');
 
-        if (contracts.length === 0 && responseSchemas.length === 0) {
+        if (requestContracts.length === 0 && responseSchemas.length === 0) {
             lines.push('// No types generated');
         } else {
             // Response types first (show/index)
             if (responseSchemas.length > 0) {
                 this.buildResponseTypesSection(lines, responseSchemas);
-                if (contracts.length > 0) {
+                if (requestContracts.length > 0) {
                     lines.push('');
                 }
             }
 
             // Request types
-            contracts.forEach((contract, index) => {
+            requestContracts.forEach((contract, index) => {
                 this.buildTypeSection(lines, contract);
-                if (index < contracts.length - 1) {
+                if (index < requestContracts.length - 1) {
                     lines.push('');
                 }
             });
@@ -165,19 +168,19 @@ export class ContractCodeBuilder {
         const validatorsStart = lines.length;
         lines.push('// ========== VALIDATORS ==========');
 
-        if (contracts.length === 0 && responseSchemas.length === 0) {
+        if (requestContracts.length === 0 && responseSchemas.length === 0) {
             lines.push('// No validators generated');
         } else {
             // Response validators first
             if (responseSchemas.length > 0) {
                 this.buildResponseValidatorsSection(lines, responseSchemas);
-                if (contracts.length > 0) {
+                if (requestContracts.length > 0) {
                     lines.push('');
                 }
             }
 
             // Request validators
-            contracts.forEach(contract => {
+            requestContracts.forEach(contract => {
                 this.buildValidatorSection(lines, contract);
             });
         }
@@ -190,10 +193,10 @@ export class ContractCodeBuilder {
         const exportsStart = lines.length;
         lines.push('// ========== EXPORTS ==========');
 
-        if (contracts.length === 0 && responseSchemas.length === 0) {
+        if (requestContracts.length === 0 && responseSchemas.length === 0) {
             lines.push('// No exports generated');
         } else {
-            this.buildExportsSection(lines, contracts, responseSchemas);
+            this.buildExportsSection(lines, requestContracts, responseSchemas);
         }
 
         const exportsEnd = lines.length - 1;
@@ -388,11 +391,11 @@ export class ContractCodeBuilder {
     ): void {
         const { resourceName, actions } = contract;
 
-        lines.push(`export type ${resourceName}Contract = {`);
+        lines.push(`export type ${this.capitalize(resourceName)}Contract = {`);
 
         actions.forEach((action, index) => {
             // Type inference from schema
-            const actionName = action.name;
+            const actionName = this.capitalize(action.name);
             const schemaRef = `typeof ${resourceName}ContractSchema.${actionName}`;
             lines.push(`  ${actionName}: z.infer<${schemaRef}>${index < actions.length - 1 ? ',' : ''}`);
         });
@@ -415,7 +418,7 @@ export class ContractCodeBuilder {
             // tetap lowercase (cartContractSchema).
             const functionName = `validate${toPascalCase(resourceName)}${this.capitalize(action.name)}`;
             lines.push(`export const ${functionName} = (data: unknown) => {`);
-            lines.push(`  return ${resourceName}ContractSchema.${action.name}.parse(data);`);
+            lines.push(`  return ${resourceName}ContractSchema.${this.capitalize(action.name)}.parse(data);`);
             lines.push('};');
             lines.push('');
         });

@@ -82,7 +82,7 @@ describe('Jalur A — ContractGeneratorPass Integration Tests', () => {
 
     expect(artifact.typeId).toBe('RequestTypes')
     expect(artifact.requestTypes).toHaveLength(1)
-    expect(artifact.requestTypes[0].resourceName).toBe('cart')
+    expect(artifact.requestTypes[0].resourceName).toBe('cartItems')
 
     const createAction = artifact.requestTypes[0].actions.find(a => a.name === 'create')
     expect(createAction).toBeDefined()
@@ -189,8 +189,8 @@ describe('Jalur A — ContractGeneratorPass Integration Tests', () => {
     const output = await CompilerBridge.generateContractTypes(mockManifest)
 
     expect(output.code).toContain('export const usersContractSchema')
-    expect(output.code).toContain('create:')
-    expect(output.code).toContain('update:')
+    expect(output.code).toContain('Create:')
+    expect(output.code).toContain('Update:')
     expect(output.code).toContain('email: z.string()')
     expect(output.code).toContain('full_name: z.string()')
   })

@@ -12,6 +12,10 @@
 import type { RequestField } from '../../artifacts/RequestTypesArtifact';
 import type { SemanticType } from '../../types/SemanticType';
 
+function toCamelCase(str: string): string {
+    return str.replace(/_([a-z0-9])/g, (_, letter) => letter.toUpperCase());
+}
+
 /**
  * Generated action block
  */
@@ -60,7 +64,7 @@ export class FormActionGenerator {
         const lines: string[] = [];
 
         // Action header
-        lines.push(`  ${actionName.toLowerCase()}: {`);
+        lines.push(`  ${actionName.charAt(0).toUpperCase() + actionName.slice(1)}: {`);
 
         // Generate fields
         if (fields.length === 0) {
@@ -71,7 +75,8 @@ export class FormActionGenerator {
                 const optional = !field.required ? '?' : '';
                 const nullable = field.nullable ? ' | null' : '';
 
-                lines.push(`    ${field.transformedName}${optional}: ${tsType}${nullable}`);
+                const name = toCamelCase(field.transformedName);
+                lines.push(`    ${name}${optional}: ${tsType}${nullable}`);
             }
         }
 
@@ -115,8 +120,14 @@ export class FormActionGenerator {
                     .map((m: SemanticType) => this.convertSemanticTypeToString(m))
                     .join(' | ');
 
-            case 'object':
-                return 'object';
+            case 'object': {
+                const props = Array.from(type.properties.entries());
+                if (props.length === 0) return 'Record<string, unknown>';
+                const propLines = props.map(([propName, propType]) => {
+                    return `${toCamelCase(propName)}: ${this.convertSemanticTypeToString(propType)}`;
+                });
+                return `{ ${propLines.join('; ')} }`;
+            }
 
             case 'intersection':
                 return type.members.values()

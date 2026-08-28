@@ -69,12 +69,12 @@ sebelum menjalankan test.
 
 ### 8. Flow-Based Structured Code Refactoring Workflow
 Saat merapikan/refactor pass atau modul compiler di RouteSync menjadi Structured TypeScript, **wajib** mengikuti 8 langkah eksplisit:
-1. **Trace actual flow & origin boundary**: Jika downstream code masih defensif (`?.`, `??`, `Array.isArray`), trace 1 tingkat ke atas untuk memindahkan resolusi/komposisi ke **Origin Boundary** agar downstream pass menerima *Complete Contract* yang 100% utuh.
+1. **Trace actual flow & origin boundary**: Pindahkan resolusi/komposisi dependensi ke **Origin Boundary** (menggunakan named options object contract + destructuring defaults). Targetnya **bukan sekadar menghilangkan sintaks `??`/`?.` secara dogmatis**, melainkan mengeliminasi kebutuhan *defensive fallback* di downstream code tempat contract-nya seharusnya sudah guaranteed.
 2. **Tentukan type family** yang benar-benar muncul dari flow (hindari wrapper buatan yang tidak memberi nilai semantic).
 3. **Buat TTD (Type Vocabulary Design) kecil** khusus boundary tersebut tanpa over-engineering struktur folder.
 4. **Buat type contract test** untuk `extends` / `implements` / `composition`.
 5. **Buat flow test & origin test** untuk jalur data per-stage dan keutuhan dependensi.
-6. **Baru refactor implementation** (ubah method `run()` / entry point menjadi *flow declaration* murni).
+6. **Baru refactor implementation** (ubah method `run()` / entry point menjadi *flow declaration* murni yang mengkonsumsi *Complete Contract*).
 7. **Jalankan seluruh regression test** yang sudah ada (wajib 100% GREEN).
 8. **Bandingkan output sebelum vs sesudah** (pastikan determinisme dan eksaktitas output).
 

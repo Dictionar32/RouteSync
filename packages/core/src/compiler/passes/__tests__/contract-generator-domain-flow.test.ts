@@ -14,7 +14,10 @@ import {
     formatContractFile,
     buildContractArtifact,
     convertSingleResponseField,
-    convertResponseFields
+    convertResponseFields,
+    mapContractField,
+    generateContractAction,
+    extractResourceContract
 } from '../contract-generator-domain'
 import { ContractActionGenerator } from '../../generators/contract-generation/ContractActionGenerator'
 import { ContractSchemaMapper } from '../../generators/contract-generation/ContractSchemaMapper'
@@ -55,6 +58,53 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
             }
         ]
     }
+
+    test('Granular Flow 1a: mapContractField maps RequestField -> ContractField', () => {
+        const field: import('../../artifacts/RequestTypesArtifact').RequestField = {
+            originalName: 'email_address',
+            transformedName: 'emailAddress',
+            type: new PrimitiveType(PrimitiveKind.STRING),
+            required: true,
+            nullable: false
+        }
+
+        const contractField = mapContractField(field)
+
+        expect(contractField.name).toBe('email_address')
+        expect(contractField.required).toBe(true)
+        expect(contractField.nullable).toBe(false)
+    })
+
+    test('Granular Flow 1b: generateContractAction maps FormAction -> GeneratedContractAction', () => {
+        const actionGenerator = new ContractActionGenerator(new ContractSchemaMapper())
+        const action: import('../../artifacts/RequestTypesArtifact').FormAction = {
+            name: 'create',
+            fields: [
+                {
+                    originalName: 'username',
+                    transformedName: 'username',
+                    type: new PrimitiveType(PrimitiveKind.STRING),
+                    required: true,
+                    nullable: false
+                }
+            ]
+        }
+
+        const generatedAction = generateContractAction(action, actionGenerator)
+
+        expect(generatedAction.name).toBe('create')
+        expect(generatedAction.fieldCount).toBe(1)
+    })
+
+    test('Granular Flow 1c: extractResourceContract maps RequestType -> ResourceContract', () => {
+        const actionGenerator = new ContractActionGenerator(new ContractSchemaMapper())
+        const requestType = sampleArtifact.requestTypes[0]
+
+        const resourceContract = extractResourceContract(requestType, actionGenerator)
+
+        expect(resourceContract.resourceName).toBe('User')
+        expect(resourceContract.actions).toHaveLength(1)
+    })
 
     test('Stage 1: extractRequestContracts transforms RequestTypesArtifact -> ResourceContractCollection', () => {
         const actionGenerator = new ContractActionGenerator(new ContractSchemaMapper())

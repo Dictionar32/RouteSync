@@ -49,4 +49,11 @@ describe('ContractGenerator Domain Type Contract Assertions', () => {
         expectTypeOf<ExtractedResponseSchemaResult>().toHaveProperty('fields')
         expectTypeOf<ExtractedResponseSchemaResult>().toHaveProperty('warnings')
     })
+
+    test('6. ContractField vocabulary interface defines explicit field input contract', () => {
+        expectTypeOf<import('../contract-generator-domain').ContractField>().toHaveProperty('name')
+        expectTypeOf<import('../contract-generator-domain').ContractField>().toHaveProperty('type')
+        expectTypeOf<import('../contract-generator-domain').ContractField>().toHaveProperty('required')
+        expectTypeOf<import('../contract-generator-domain').ContractField>().toHaveProperty('nullable')
+    })
 })

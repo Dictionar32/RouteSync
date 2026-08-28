@@ -25,7 +25,7 @@
  * @module compiler/passes
  */
 
-import type { FileValidationConstraints, RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
+import type { FileValidationConstraints, FormAction, RequestField, RequestType, RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 import type { GeneratedContractArtifact, GeneratedContractInfo } from '../artifacts/GeneratedContractArtifact';
 import type { FieldCollection } from '../domain/common/FieldCollection';
 import type { GeneratedContractAction } from '../generators/contract-generation/ContractActionGenerator';
@@ -43,16 +43,18 @@ import { computeFingerprintHash, type CompilerFingerprint } from '../fingerprint
 // 1. CAPABILITY INTERFACES & COMPLETE CONTRACT ORIGIN
 // ============================================================================
 
+export interface ContractField {
+    readonly name: string;
+    readonly type: SemanticType;
+    readonly fileConstraints?: FileValidationConstraints;
+    readonly required: boolean;
+    readonly nullable: boolean;
+}
+
 export interface ContractActionGeneratorLike {
     generateAction(
         actionName: string,
-        fields: readonly {
-            readonly name: string;
-            readonly type: SemanticType;
-            readonly fileConstraints?: FileValidationConstraints;
-            readonly required: boolean;
-            readonly nullable: boolean;
-        }[]
+        fields: readonly ContractField[]
     ): GeneratedContractAction;
 }
 
@@ -130,35 +132,49 @@ export interface ExtractedResponseSchemaResult {
 // 3. PURE STAGE OPERATIONS (PURE FLOW PIPELINE)
 // ============================================================================
 
+/** Maps individual RequestField to ContractField */
+export function mapContractField(field: RequestField): ContractField {
+    return {
+        name: field.originalName,
+        type: field.type,
+        fileConstraints: field.fileConstraints,
+        required: field.required,
+        nullable: field.nullable
+    };
+}
+
+/** Generates a contract action for a single FormAction */
+export function generateContractAction(
+    action: FormAction,
+    actionGenerator: ContractActionGeneratorLike
+): GeneratedContractAction {
+    const fields = action.fields.map(mapContractField);
+    return actionGenerator.generateAction(action.name, fields);
+}
+
+/** Extracts resource contract for a single RequestType */
+export function extractResourceContract(
+    requestType: RequestType,
+    actionGenerator: ContractActionGeneratorLike
+): ResourceContract {
+    const actions = requestType.actions.map(action =>
+        generateContractAction(action, actionGenerator)
+    );
+
+    return {
+        resourceName: requestType.resourceName,
+        actions
+    };
+}
+
 /** Stage 1: Extract request validation contracts */
 export function extractRequestContracts(
     artifact: RequestTypesArtifact,
     actionGenerator: ContractActionGeneratorLike
 ): ResourceContractCollection {
-    const requestTypes = artifact.requestTypes;
-    const resourceContracts: ResourceContract[] = [];
-
-    for (const requestType of requestTypes) {
-        const actions: GeneratedContractAction[] = [];
-
-        for (const action of requestType.actions || []) {
-            const contractFields = (action.fields || []).map(field => ({
-                name: field.originalName,
-                type: field.type,
-                fileConstraints: field.fileConstraints,
-                required: field.required,
-                nullable: field.nullable
-            }));
-
-            const generated = actionGenerator.generateAction(action.name, contractFields);
-            actions.push(generated);
-        }
-
-        resourceContracts.push({
-            resourceName: requestType.resourceName,
-            actions
-        });
-    }
+    const resourceContracts = artifact.requestTypes.map(requestType =>
+        extractResourceContract(requestType, actionGenerator)
+    );
 
     return { fields: resourceContracts };
 }

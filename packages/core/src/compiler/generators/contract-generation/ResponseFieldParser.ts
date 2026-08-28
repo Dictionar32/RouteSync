@@ -35,7 +35,7 @@ export interface ParsedResponseField {
     type: string;
     nullable: boolean;
     optional: boolean;
-    fields?: ParsedResponseField[];  // For objects
+    fields?: readonly ParsedResponseField[];  // For objects
     itemType?: ParsedResponseField;  // For arrays
 }
 

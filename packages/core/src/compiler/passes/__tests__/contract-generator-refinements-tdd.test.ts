@@ -140,12 +140,15 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
     describe('Audit 3: convertSingleResponseField Pattern Matching on SemanticType.kind', () => {
         test('matches "primitive" kind correctly', () => {
             const semanticType: SemanticType = new PrimitiveType(PrimitiveKind.STRING)
-            const field = convertSingleResponseField('title', semanticType)
+            const result = convertSingleResponseField('title', semanticType)
 
-            expect(field.name).toBe('title')
-            expect(field.kind).toBe('primitive')
-            expect(field.type).toBe('string')
-            expect(field.nullable).toBe(false)
+            expect(result.success).toBe(true)
+            if (result.success) {
+                expect(result.field.name).toBe('title')
+                expect(result.field.kind).toBe('primitive')
+                expect(result.field.type).toBe('string')
+                expect(result.field.nullable).toBe(false)
+            }
         })
 
         test('matches "nullable_wrapper" object annotation correctly', () => {
@@ -160,11 +163,14 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
                 [],
                 annotations
             )
-            const field = convertSingleResponseField('age', semanticType)
+            const result = convertSingleResponseField('age', semanticType)
 
-            expect(field.name).toBe('age')
-            expect(field.type).toBe('number')
-            expect(field.nullable).toBe(true)
+            expect(result.success).toBe(true)
+            if (result.success) {
+                expect(result.field.name).toBe('age')
+                expect(result.field.type).toBe('number')
+                expect(result.field.nullable).toBe(true)
+            }
         })
 
         test('matches "readonly_collection" / "mutable_collection" array kind correctly', () => {
@@ -173,22 +179,28 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
                 new PrimitiveType(PrimitiveKind.STRING)
             )
 
-            const field = convertSingleResponseField('tags', semanticType)
+            const result = convertSingleResponseField('tags', semanticType)
 
-            expect(field.name).toBe('tags')
-            expect(field.kind).toBe('array')
-            expect(field.type).toBe('array')
-            expect(field.itemType).toBeDefined()
-            expect(field.itemType?.type).toBe('string')
+            expect(result.success).toBe(true)
+            if (result.success) {
+                expect(result.field.name).toBe('tags')
+                expect(result.field.kind).toBe('array')
+                expect(result.field.type).toBe('array')
+                expect(result.field.itemType).toBeDefined()
+                expect(result.field.itemType?.type).toBe('string')
+            }
         })
 
         test('matches "reference" kind correctly', () => {
             const semanticType: SemanticType = new ReferenceType('App\\Http\\Resources', 'CategoryResource')
-            const field = convertSingleResponseField('category', semanticType)
+            const result = convertSingleResponseField('category', semanticType)
 
-            expect(field.name).toBe('category')
-            expect(field.kind).toBe('primitive')
-            expect(field.type).toBe('CategoryResource')
+            expect(result.success).toBe(true)
+            if (result.success) {
+                expect(result.field.name).toBe('category')
+                expect(result.field.kind).toBe('primitive')
+                expect(result.field.type).toBe('CategoryResource')
+            }
         })
     })
 

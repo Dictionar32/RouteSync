@@ -61,4 +61,43 @@ describe('ContractGenerator Domain Type Contract Assertions', () => {
         expectTypeOf<import('../contract-generator-domain').ResourceResponseSchemasResult>().toHaveProperty('schemas')
         expectTypeOf<import('../contract-generator-domain').ResourceResponseSchemasResult>().toHaveProperty('warnings')
     })
+
+    test('8. SingleResponseFieldResult is a discriminated union of success and failure results', () => {
+        expectTypeOf<import('../contract-generator-domain').SingleResponseFieldResult>().toHaveProperty('success')
+    })
+
+    test('9. partitionFieldResults maps SingleResponseFieldResult[] -> ResponseFieldConversionResult', () => {
+        expectTypeOf<typeof import('../contract-generator-domain').partitionFieldResults>().toEqualTypeOf<(results: readonly import('../contract-generator-domain').SingleResponseFieldResult[]) => ResponseFieldConversionResult>()
+    })
+
+    test('10. extractItemType extracts ParsedResponseField from SingleResponseFieldResult via switch', () => {
+        expectTypeOf<typeof import('../contract-generator-domain').extractItemType>().toEqualTypeOf<(result: import('../contract-generator-domain').SingleResponseFieldResult) => import('../../generators/contract-generation/ResponseFieldParser').ParsedResponseField | undefined>()
+    })
+
+    test('11. NullableWrapperResult is a discriminated union of isNullableWrapper true and false', () => {
+        expectTypeOf<import('../contract-generator-domain').NullableWrapperResult>().toHaveProperty('isNullableWrapper')
+    })
+
+    test('12. resolveNullableWrapper and convertObjectType signatures match pure boundary contracts', () => {
+        expectTypeOf<typeof import('../contract-generator-domain').resolveNullableWrapper>().toEqualTypeOf<(objectType: import('../../types/SemanticType').ObjectType) => import('../contract-generator-domain').NullableWrapperResult>()
+        expectTypeOf<typeof import('../contract-generator-domain').convertObjectType>().toEqualTypeOf<(fieldName: string, objectType: import('../../types/SemanticType').ObjectType) => import('../contract-generator-domain').SingleResponseFieldResult>()
+    })
+
+    test('13. ObjectType.annotations is guaranteed required ImmutableMap at Origin Boundary', () => {
+        expectTypeOf<import('../../types/SemanticType').ObjectType>().toHaveProperty('annotations')
+        expectTypeOf<import('../../types/SemanticType').ObjectType['annotations']>().toEqualTypeOf<import('../../utils/ImmutableCollections').ImmutableMap<string, string>>()
+    })
+
+    test('14. RequestTypeResponseSchemasResult is a discriminated union of hasResponse true and false', () => {
+        expectTypeOf<import('../contract-generator-domain').RequestTypeResponseSchemasResult>().toHaveProperty('hasResponse')
+    })
+
+    test('15. extractRequestTypeResponseSchemas and partitionResponseSchemaResults signatures match pure Stage 2 boundary contracts', () => {
+        expectTypeOf<typeof import('../contract-generator-domain').extractRequestTypeResponseSchemas>().toEqualTypeOf<(requestType: import('../../artifacts/RequestTypesArtifact').RequestType, responseActionBuilder: import('../contract-generator-domain').ResponseActionBuilderLike) => import('../contract-generator-domain').RequestTypeResponseSchemasResult>()
+        expectTypeOf<typeof import('../contract-generator-domain').partitionResponseSchemaResults>().toEqualTypeOf<(results: readonly import('../contract-generator-domain').RequestTypeResponseSchemasResult[]) => ExtractedResponseSchemaResult>()
+    })
+
+    test('16. extractResponseDataSchemas signature accepts ResponseData | undefined without !== comparison', () => {
+        expectTypeOf<typeof import('../contract-generator-domain').extractResponseDataSchemas>().toEqualTypeOf<(responseData: import('../../artifacts/RequestTypesArtifact').ResponseData | undefined, responseActionBuilder: import('../contract-generator-domain').ResponseActionBuilderLike) => import('../contract-generator-domain').RequestTypeResponseSchemasResult>()
+    })
 })

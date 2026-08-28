@@ -285,16 +285,21 @@ export class GenericType extends SemanticTypeBase {
  * );
  * ```
  */
+const EMPTY_ANNOTATIONS = new ImmutableMap<string, string>(new Map());
+
 export class ObjectType extends SemanticTypeBase {
     readonly kind = 'object';
+    readonly annotations: ImmutableMap<string, string>;
+
     constructor(
         readonly properties: ImmutableMap<string, SemanticType>,
         readonly requiredProperties: ImmutableSet<string>,
         readonly baseObject?: SemanticType,
-        readonly interfaces?: readonly SemanticType[],
-        readonly annotations?: ImmutableMap<string, string>
+        readonly interfaces: readonly SemanticType[] = [],
+        annotations: ImmutableMap<string, string> = EMPTY_ANNOTATIONS
     ) {
         super();
+        this.annotations = annotations;
     }
 }
 

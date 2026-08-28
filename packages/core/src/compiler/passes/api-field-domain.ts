@@ -19,6 +19,9 @@
 
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 import type { GeneratedApiFieldArtifact } from '../artifacts/GeneratedApiFieldArtifact';
+import type { FieldCollection } from '../domain/common/FieldCollection';
+
+export type { FieldCollection };
 
 // ============================================================================
 // 1. DOMAIN TYPE VOCABULARY
@@ -37,13 +40,6 @@ export interface ExtractedApiField {
  */
 export interface DerivedApiField extends ExtractedApiField {
     readonly derivedKey: string;
-}
-
-/**
- * Reusable generic field collection contract
- */
-export interface FieldCollection<TField = string> {
-    readonly fields: readonly TField[];
 }
 
 /**

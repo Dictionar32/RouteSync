@@ -76,12 +76,17 @@ export interface RequestType {
      * 
      * Fields are flattened + camelCase (consistent with frontend model).
      */
-    readonly responseData?: {
-        /** Resource name that provides response structure */
-        readonly resourceName: string;
-        /** Response body fields (flattened + camelCase) */
-        readonly fields: Record<string, SemanticType>;
-    };
+    readonly responseData?: ResponseData;
+}
+
+/**
+ * Response data structure for a resource response
+ */
+export interface ResponseData {
+    /** Resource name that provides response structure */
+    readonly resourceName: string;
+    /** Response body fields (flattened + camelCase) */
+    readonly fields: Record<string, SemanticType>;
 }
 
 /**

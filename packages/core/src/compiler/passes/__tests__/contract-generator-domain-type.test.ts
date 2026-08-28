@@ -56,4 +56,9 @@ describe('ContractGenerator Domain Type Contract Assertions', () => {
         expectTypeOf<import('../contract-generator-domain').ContractField>().toHaveProperty('required')
         expectTypeOf<import('../contract-generator-domain').ContractField>().toHaveProperty('nullable')
     })
+
+    test('7. ResourceResponseSchemasResult guarantees tuple schemas and warnings', () => {
+        expectTypeOf<import('../contract-generator-domain').ResourceResponseSchemasResult>().toHaveProperty('schemas')
+        expectTypeOf<import('../contract-generator-domain').ResourceResponseSchemasResult>().toHaveProperty('warnings')
+    })
 })

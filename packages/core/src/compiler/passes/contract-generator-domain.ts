@@ -25,7 +25,7 @@
  * @module compiler/passes
  */
 
-import type { FileValidationConstraints, FormAction, RequestField, RequestType, RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
+import type { FileValidationConstraints, FormAction, RequestField, RequestType, RequestTypesArtifact, ResponseData } from '../artifacts/RequestTypesArtifact';
 import type { GeneratedContractArtifact, GeneratedContractInfo } from '../artifacts/GeneratedContractArtifact';
 import type { FieldCollection } from '../domain/common/FieldCollection';
 import type { GeneratedContractAction } from '../generators/contract-generation/ContractActionGenerator';
@@ -122,6 +122,12 @@ export interface ResponseFieldConversionResult {
     readonly warnings: readonly string[];
 }
 
+/** Observable result container for single resource response schemas */
+export interface ResourceResponseSchemasResult {
+    readonly schemas: readonly [ActionResponseSchema, ActionResponseSchema];
+    readonly warnings: readonly string[];
+}
+
 /** Observable result container for response schema extraction stage */
 export interface ExtractedResponseSchemaResult {
     readonly fields: ActionResponseSchemaCollection;
@@ -179,38 +185,55 @@ export function extractRequestContracts(
     return { fields: resourceContracts };
 }
 
-/** Stage 2: Extract response schemas with observable warnings (no silent catch) */
+/** Pure deterministic schema builder for a single resource (Tuple [show, index]) */
+export function buildResourceResponseSchemas(
+    resourceName: string,
+    fields: readonly ParsedResponseField[],
+    responseActionBuilder: ResponseActionBuilderLike
+): readonly [ActionResponseSchema, ActionResponseSchema] {
+    const showSchema = responseActionBuilder.buildShowSchema(resourceName, fields);
+    const indexSchema = responseActionBuilder.buildIndexSchema(resourceName, showSchema.schemaName);
+    return [showSchema, indexSchema];
+}
+
+/** Extracts response schemas for a single ResponseData */
+export function extractSingleResourceResponseSchemas(
+    responseData: ResponseData,
+    responseActionBuilder: ResponseActionBuilderLike
+): ResourceResponseSchemasResult {
+    const conversionResult = convertResponseFields(responseData.fields);
+    const schemas = buildResourceResponseSchemas(
+        responseData.resourceName,
+        conversionResult.fields,
+        responseActionBuilder
+    );
+
+    return {
+        schemas,
+        warnings: conversionResult.warnings
+    };
+}
+
+/** Stage 2: Extract response schemas with observable warnings */
 export function extractResponseSchemas(
     artifact: RequestTypesArtifact,
     responseActionBuilder: ResponseActionBuilderLike
 ): ExtractedResponseSchemaResult {
-    const requestTypes = artifact.requestTypes;
     const responseSchemas: ActionResponseSchema[] = [];
     const warnings: string[] = [];
 
-    for (const requestType of requestTypes) {
+    for (const requestType of artifact.requestTypes) {
         if (!requestType.responseData) {
             continue;
         }
 
-        const { resourceName, fields } = requestType.responseData;
-        const conversionResult = convertResponseFields(fields);
+        const result = extractSingleResourceResponseSchemas(
+            requestType.responseData,
+            responseActionBuilder
+        );
 
-        if (conversionResult.warnings.length > 0) {
-            warnings.push(...conversionResult.warnings);
-        }
-
-        try {
-            const showSchema = responseActionBuilder.buildShowSchema(resourceName, conversionResult.fields);
-            responseSchemas.push(showSchema);
-
-            const indexSchema = responseActionBuilder.buildIndexSchema(resourceName, showSchema.schemaName);
-            responseSchemas.push(indexSchema);
-        } catch (error) {
-            warnings.push(
-                `Failed to build response schema for ${resourceName}: ${error instanceof Error ? error.message : String(error)}`
-            );
-        }
+        responseSchemas.push(...result.schemas);
+        warnings.push(...result.warnings);
     }
 
     return {

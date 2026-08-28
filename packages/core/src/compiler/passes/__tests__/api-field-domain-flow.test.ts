@@ -7,6 +7,7 @@ import {
     buildApiFieldArtifact
 } from '../api-field-domain'
 import type { RequestTypesArtifact } from '../../artifacts/RequestTypesArtifact'
+import { PrimitiveKind, PrimitiveType } from '../../types/SemanticType'
 
 function createMockRequestTypesArtifact(): RequestTypesArtifact {
     return {
@@ -24,19 +25,19 @@ function createMockRequestTypesArtifact(): RequestTypesArtifact {
                 formTypeName: 'AuthForm',
                 actions: [
                     {
-                        name: 'login',
+                        name: 'create',
                         fields: [
                             {
                                 originalName: 'email',
                                 transformedName: 'email',
-                                type: { kind: 'primitive', type: 'string' } as any,
+                                type: new PrimitiveType(PrimitiveKind.STRING),
                                 required: true,
                                 nullable: false
                             },
                             {
                                 originalName: 'password',
                                 transformedName: 'password',
-                                type: { kind: 'primitive', type: 'string' } as any,
+                                type: new PrimitiveType(PrimitiveKind.STRING),
                                 required: true,
                                 nullable: false
                             }
@@ -54,14 +55,14 @@ function createMockRequestTypesArtifact(): RequestTypesArtifact {
                             {
                                 originalName: 'email', // Duplicate field across resources
                                 transformedName: 'email',
-                                type: { kind: 'primitive', type: 'string' } as any,
+                                type: new PrimitiveType(PrimitiveKind.STRING),
                                 required: false,
                                 nullable: true
                             },
                             {
                                 originalName: 'redirect_to', // Field with underscores
                                 transformedName: 'redirectTo',
-                                type: { kind: 'primitive', type: 'string' } as any,
+                                type: new PrimitiveType(PrimitiveKind.STRING),
                                 required: false,
                                 nullable: true
                             }

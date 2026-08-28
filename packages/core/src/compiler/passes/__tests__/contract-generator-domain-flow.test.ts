@@ -17,7 +17,9 @@ import {
     convertResponseFields,
     mapContractField,
     generateContractAction,
-    extractResourceContract
+    extractResourceContract,
+    buildResourceResponseSchemas,
+    extractSingleResourceResponseSchemas
 } from '../contract-generator-domain'
 import { ContractActionGenerator } from '../../generators/contract-generation/ContractActionGenerator'
 import { ContractSchemaMapper } from '../../generators/contract-generation/ContractSchemaMapper'
@@ -114,6 +116,32 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         expect(contracts.fields[0].resourceName).toBe('User')
         expect(contracts.fields[0].actions).toHaveLength(1)
         expect(contracts.fields[0].actions[0].name).toBe('create')
+    })
+
+    test('Granular Flow 2a: buildResourceResponseSchemas builds pure [showSchema, indexSchema] tuple without try-catch', () => {
+        const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
+        const parsedFields = [
+            { name: 'id', kind: 'primitive' as const, type: 'number', nullable: false, optional: false },
+            { name: 'name', kind: 'primitive' as const, type: 'string', nullable: false, optional: false }
+        ]
+
+        const schemas = buildResourceResponseSchemas('Product', parsedFields, responseBuilder)
+
+        expect(schemas).toHaveLength(2)
+        expect(schemas[0].schemaName).toBe('productShowSchema')
+        expect(schemas[1].schemaName).toBe('productIndexSchema')
+    })
+
+    test('Granular Flow 2b: extractSingleResourceResponseSchemas maps ResponseData -> ResourceResponseSchemasResult', () => {
+        const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
+        const responseData = sampleArtifact.requestTypes[0].responseData!
+
+        const result = extractSingleResourceResponseSchemas(responseData, responseBuilder)
+
+        expect(result.schemas).toHaveLength(2)
+        expect(result.schemas[0].schemaName).toBe('userShowSchema')
+        expect(result.schemas[1].schemaName).toBe('userIndexSchema')
+        expect(result.warnings).toEqual([])
     })
 
     test('Stage 2: extractResponseSchemas transforms RequestTypesArtifact -> ExtractedResponseSchemaResult', () => {

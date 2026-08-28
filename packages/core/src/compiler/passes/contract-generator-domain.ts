@@ -116,32 +116,26 @@ export interface GeneratedContractCode {
     readonly lineCount: number;
 }
 
-/** Discriminated union result type for single response field conversion */
-export type SingleResponseFieldResult =
-    | { readonly success: true; readonly field: ParsedResponseField }
-    | { readonly success: false; readonly warning: string };
+/** Shared frozen immutable empty arrays (0% redundant [] allocations) */
+export const EMPTY_WARNINGS: readonly string[] = Object.freeze([]);
+export const EMPTY_FIELDS: readonly never[] = Object.freeze([]);
+
+/** Unified Cross-Domain Generic Observable Result Container Vocabulary (aligned with FieldCollection<T> SSOT) */
+export interface ConversionResult<T> {
+    readonly fields: readonly T[];
+    readonly warnings: readonly string[];
+}
 
 /** Discriminated union result type for nullable wrapper resolution */
 export type NullableWrapperResult =
-    | { readonly isNullableWrapper: true; readonly field: ParsedResponseField }
+    | { readonly isNullableWrapper: true; readonly field: ParsedResponseField; readonly warnings: readonly string[] }
     | { readonly isNullableWrapper: false };
 
-/** Discriminated union result type for request type response schema extraction */
-export type RequestTypeResponseSchemasResult =
-    | { readonly hasResponse: true; readonly schemas: readonly [ActionResponseSchema, ActionResponseSchema]; readonly warnings: readonly string[] }
-    | { readonly hasResponse: false };
+/** Type alias for field conversion stage result */
+export type ResponseFieldConversionResult = ConversionResult<ParsedResponseField>;
 
-/** Observable result container for response field conversion */
-export interface ResponseFieldConversionResult {
-    readonly fields: readonly ParsedResponseField[];
-    readonly warnings: readonly string[];
-}
-
-/** Observable result container for single resource response schemas */
-export interface ResourceResponseSchemasResult {
-    readonly schemas: readonly [ActionResponseSchema, ActionResponseSchema];
-    readonly warnings: readonly string[];
-}
+/** Type alias for resource response schemas stage result */
+export type ResourceResponseSchemasResult = ConversionResult<ActionResponseSchema>;
 
 /** Observable result container for response schema extraction stage */
 export interface ExtractedResponseSchemaResult {
@@ -153,7 +147,7 @@ export interface ExtractedResponseSchemaResult {
 // 3. PURE STAGE OPERATIONS (PURE FLOW PIPELINE)
 // ============================================================================
 
-/** Maps individual RequestField to ContractField */
+/** Pure Granular Contract Field Mapper (0% fallback, 0% ternary ?) */
 export function mapContractField(field: RequestField): ContractField {
     return {
         name: field.originalName,
@@ -164,7 +158,7 @@ export function mapContractField(field: RequestField): ContractField {
     };
 }
 
-/** Generates a contract action for a single FormAction */
+/** Pure Granular FormAction Mapper (0% fallback, 0% ternary ?) */
 export function generateContractAction(
     action: FormAction,
     actionGenerator: ContractActionGeneratorLike
@@ -173,7 +167,7 @@ export function generateContractAction(
     return actionGenerator.generateAction(action.name, fields);
 }
 
-/** Extracts resource contract for a single RequestType */
+/** Pure Granular RequestType Contract Extractor (0% fallback, 0% ternary ?) */
 export function extractResourceContract(
     requestType: RequestType,
     actionGenerator: ContractActionGeneratorLike
@@ -188,7 +182,7 @@ export function extractResourceContract(
     };
 }
 
-/** Stage 1: Extract request validation contracts */
+/** Stage 1 Pure Pipeline Entry (0% if, 0% for-loop, 0% continue) */
 export function extractRequestContracts(
     artifact: RequestTypesArtifact,
     actionGenerator: ContractActionGeneratorLike
@@ -211,7 +205,7 @@ export function buildResourceResponseSchemas(
     return [showSchema, indexSchema];
 }
 
-/** Extracts response schemas for a single ResponseData */
+/** Extracts response schemas for a single ResponseData (0% array spread [...schemas]) */
 export function extractSingleResourceResponseSchemas(
     responseData: ResponseData,
     responseActionBuilder: ResponseActionBuilderLike
@@ -224,7 +218,7 @@ export function extractSingleResourceResponseSchemas(
     );
 
     return {
-        schemas,
+        fields: schemas,
         warnings: conversionResult.warnings
     };
 }
@@ -233,18 +227,17 @@ export function extractSingleResourceResponseSchemas(
 export function extractResponseDataSchemas(
     responseData: ResponseData | undefined,
     responseActionBuilder: ResponseActionBuilderLike
-): RequestTypeResponseSchemasResult {
+): ConversionResult<ActionResponseSchema> {
     switch (responseData) {
         case undefined:
-            return { hasResponse: false };
+            return { fields: EMPTY_FIELDS, warnings: EMPTY_WARNINGS };
         default: {
             const result = extractSingleResourceResponseSchemas(
                 responseData,
                 responseActionBuilder
             );
             return {
-                hasResponse: true,
-                schemas: result.schemas,
+                fields: result.fields,
                 warnings: result.warnings
             };
         }
@@ -255,31 +248,17 @@ export function extractResponseDataSchemas(
 export function extractRequestTypeResponseSchemas(
     requestType: RequestType,
     responseActionBuilder: ResponseActionBuilderLike
-): RequestTypeResponseSchemasResult {
+): ConversionResult<ActionResponseSchema> {
     return extractResponseDataSchemas(requestType.responseData, responseActionBuilder);
 }
 
-/** Pure Stage 2 Partitioner via Switch (0% if, 0% for-loop in pipeline) */
-export function partitionResponseSchemaResults(
-    results: readonly RequestTypeResponseSchemasResult[]
-): ExtractedResponseSchemaResult {
-    const responseSchemas: ActionResponseSchema[] = [];
-    const warnings: string[] = [];
-
-    for (const res of results) {
-        switch (res.hasResponse) {
-            case true:
-                responseSchemas.push(...res.schemas);
-                warnings.push(...res.warnings);
-                break;
-            case false:
-                break;
-        }
-    }
-
+/** Single Cross-Domain Generic Partitioner Operation via 1-line flatMap (0% helper, 0% switch, 0% if, 0% for-loop, 0% push) */
+export function partitionResults<T>(
+    results: readonly ConversionResult<T>[]
+): ConversionResult<T> {
     return {
-        fields: { fields: responseSchemas },
-        warnings
+        fields: results.flatMap(r => r.fields),
+        warnings: results.flatMap(r => r.warnings)
     };
 }
 
@@ -291,32 +270,15 @@ export function extractResponseSchemas(
     const results = artifact.requestTypes.map(requestType =>
         extractRequestTypeResponseSchemas(requestType, responseActionBuilder)
     );
+    const partitioned = partitionResults(results);
 
-    return partitionResponseSchemaResults(results);
+    return {
+        fields: { fields: partitioned.fields },
+        warnings: partitioned.warnings
+    };
 }
 
-/** Pure Partitioning Operation: SingleResponseFieldResult[] -> ResponseFieldConversionResult */
-export function partitionFieldResults(
-    results: readonly SingleResponseFieldResult[]
-): ResponseFieldConversionResult {
-    const fields: ParsedResponseField[] = [];
-    const warnings: string[] = [];
-
-    for (const result of results) {
-        switch (result.success) {
-            case true:
-                fields.push(result.field);
-                break;
-            case false:
-                warnings.push(result.warning);
-                break;
-        }
-    }
-
-    return { fields, warnings };
-}
-
-/** Observable convertResponseFields via Pure Map + Switch Partition Pipeline */
+/** Observable convertResponseFields via Pure Map + flatMap Partition Pipeline */
 export function convertResponseFields(
     fields: Record<string, SemanticType>
 ): ResponseFieldConversionResult {
@@ -324,21 +286,12 @@ export function convertResponseFields(
         convertSingleResponseField(name, type)
     );
 
-    return partitionFieldResults(results);
-}
-
-/** Pure helper to extract itemType field from conversion result (0% ternary ?) */
-export function extractItemType(result: SingleResponseFieldResult): ParsedResponseField | undefined {
-    switch (result.success) {
-        case true:
-            return result.field;
-        case false:
-            return undefined;
-    }
+    return partitionResults(results);
 }
 
 /** Helper to resolve nullable wrapper object annotation via pure switch (0% ternary ?, 0% if, 0% ||) */
 export function resolveNullableWrapper(
+    fieldName: string,
     objectType: ObjectType
 ): NullableWrapperResult {
     switch (objectType.annotations.get('kind')) {
@@ -348,20 +301,25 @@ export function resolveNullableWrapper(
                 case undefined:
                     return { isNullableWrapper: false };
                 default: {
-                    switch (innerType.kind) {
-                        case 'primitive':
+                    const innerResult = convertSingleResponseField(fieldName, innerType);
+                    const itemType = innerResult.fields[0];
+                    switch (itemType) {
+                        case undefined:
+                            return { isNullableWrapper: false };
+                        default:
                             return {
                                 isNullableWrapper: true,
                                 field: {
-                                    name: '',
-                                    kind: 'primitive',
-                                    type: innerType.type,
+                                    name: itemType.name,
+                                    kind: itemType.kind,
+                                    type: itemType.type,
                                     nullable: true,
-                                    optional: false
-                                }
+                                    optional: itemType.optional,
+                                    fields: itemType.fields,
+                                    itemType: itemType.itemType
+                                },
+                                warnings: innerResult.warnings
                             };
-                        default:
-                            return { isNullableWrapper: false };
                     }
                 }
             }
@@ -375,31 +333,31 @@ export function resolveNullableWrapper(
 export function convertObjectType(
     fieldName: string,
     objectType: ObjectType
-): SingleResponseFieldResult {
-    const wrapperResult = resolveNullableWrapper(objectType);
+): ConversionResult<ParsedResponseField> {
+    const wrapperResult = resolveNullableWrapper(fieldName, objectType);
     switch (wrapperResult.isNullableWrapper) {
         case true:
             return {
-                success: true,
-                field: { ...wrapperResult.field, name: fieldName }
+                fields: [wrapperResult.field],
+                warnings: wrapperResult.warnings
             };
 
         case false: {
             const conversionResults = Array.from(objectType.properties.entries()).map(
                 ([propName, propType]) => convertSingleResponseField(propName, propType)
             );
-            const { fields: nestedFields } = partitionFieldResults(conversionResults);
+            const { fields: nestedFields, warnings: nestedWarnings } = partitionResults(conversionResults);
 
             return {
-                success: true,
-                field: {
+                fields: [{
                     name: fieldName,
                     kind: 'object',
                     type: 'object',
                     nullable: false,
                     optional: false,
                     fields: nestedFields
-                }
+                }],
+                warnings: nestedWarnings
             };
         }
     }
@@ -409,18 +367,20 @@ export function convertObjectType(
 export function convertSingleResponseField(
     fieldName: string,
     semanticType: SemanticType
-): SingleResponseFieldResult {
-    switch (semanticType.kind) {
+): ConversionResult<ParsedResponseField> {
+    const kind = semanticType.kind;
+
+    switch (kind) {
         case 'primitive':
             return {
-                success: true,
-                field: {
+                fields: [{
                     name: fieldName,
                     kind: 'primitive',
                     type: semanticType.type,
                     nullable: false,
                     optional: false
-                }
+                }],
+                warnings: EMPTY_WARNINGS
             };
 
         case 'object':
@@ -429,40 +389,37 @@ export function convertSingleResponseField(
         case 'readonly_collection':
         case 'mutable_collection': {
             const innerResult = convertSingleResponseField('item', semanticType.elementType);
-            const itemType = extractItemType(innerResult);
 
             return {
-                success: true,
-                field: {
+                fields: [{
                     name: fieldName,
                     kind: 'array',
                     type: 'array',
                     nullable: false,
                     optional: false,
-                    itemType
-                }
+                    itemType: innerResult.fields[0]
+                }],
+                warnings: innerResult.warnings
             };
         }
 
         case 'reference':
             return {
-                success: true,
-                field: {
+                fields: [{
                     name: fieldName,
                     kind: 'primitive',
                     type: semanticType.name,
                     nullable: false,
                     optional: false
-                }
+                }],
+                warnings: EMPTY_WARNINGS
             };
 
-        default: {
-            const unknownKind = (semanticType as { kind?: unknown }).kind;
+        default:
             return {
-                success: false,
-                warning: `Skipped field '${fieldName}': unsupported SemanticType kind '${String(unknownKind)}'`
+                fields: EMPTY_FIELDS,
+                warnings: [`Skipped field '${fieldName}': unsupported SemanticType kind '${kind}'`]
             };
-        }
     }
 }
 
@@ -474,9 +431,9 @@ export function formatContractFile(
 ): GeneratedContractCode {
     const rawContracts = contracts.fields.map(c => ({
         resourceName: c.resourceName,
-        actions: [...c.actions]
+        actions: c.actions
     }));
-    const rawSchemas = [...responseSchemas.fields];
+    const rawSchemas = responseSchemas.fields;
 
     return codeBuilder.buildContractFile(rawContracts, rawSchemas);
 }
@@ -487,7 +444,7 @@ export function buildContractArtifact(
     contracts: ResourceContractCollection,
     responseSchemas: ActionResponseSchemaCollection,
     producerName: string,
-    warnings: readonly string[] = []
+    warnings: readonly string[] = EMPTY_WARNINGS
 ): GeneratedContractArtifact {
     const fingerprint: CompilerFingerprint = {
         compilerVersion: '1.0.0',

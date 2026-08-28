@@ -108,7 +108,7 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
         })
 
         test('extractResponseSchemas returns observable warnings when schema extraction encounters skipped fields', () => {
-            const artifact: RequestTypesArtifact = {
+            const requestTypesArtifact: RequestTypesArtifact = {
                 typeId: 'RequestTypes',
                 metadata: { hash: 'hash1', producer: 'test', dependencies: [], timestamp: Date.now(), revision: '1.0' },
                 requestTypes: [
@@ -119,7 +119,8 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
                         responseData: {
                             resourceName: 'Product',
                             fields: {
-                                title: new PrimitiveType(PrimitiveKind.STRING)
+                                validField: new PrimitiveType(PrimitiveKind.STRING),
+                                invalidField: new ErrorType('Field type could not be resolved')
                             }
                         }
                     }
@@ -127,10 +128,11 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
             }
 
             const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
-            const result = extractResponseSchemas(artifact, responseBuilder)
+            const result = extractResponseSchemas(requestTypesArtifact, responseBuilder)
 
-            expect(result.fields.fields).toHaveLength(2) // show & index schemas
-            expect(result.warnings).toEqual([])
+            expect(result.fields.fields).toHaveLength(2)
+            expect(result.warnings.length).toBeGreaterThan(0)
+            expect(result.warnings[0]).toContain('invalidField')
         })
     })
 
@@ -142,13 +144,12 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
             const semanticType: SemanticType = new PrimitiveType(PrimitiveKind.STRING)
             const result = convertSingleResponseField('title', semanticType)
 
-            expect(result.success).toBe(true)
-            if (result.success) {
-                expect(result.field.name).toBe('title')
-                expect(result.field.kind).toBe('primitive')
-                expect(result.field.type).toBe('string')
-                expect(result.field.nullable).toBe(false)
-            }
+            expect(result.fields).toHaveLength(1)
+            expect(result.fields[0].name).toBe('title')
+            expect(result.fields[0].kind).toBe('primitive')
+            expect(result.fields[0].type).toBe('string')
+            expect(result.fields[0].nullable).toBe(false)
+            expect(result.warnings).toHaveLength(0)
         })
 
         test('matches "nullable_wrapper" object annotation correctly', () => {
@@ -165,12 +166,11 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
             )
             const result = convertSingleResponseField('age', semanticType)
 
-            expect(result.success).toBe(true)
-            if (result.success) {
-                expect(result.field.name).toBe('age')
-                expect(result.field.type).toBe('number')
-                expect(result.field.nullable).toBe(true)
-            }
+            expect(result.fields).toHaveLength(1)
+            expect(result.fields[0].name).toBe('age')
+            expect(result.fields[0].type).toBe('number')
+            expect(result.fields[0].nullable).toBe(true)
+            expect(result.warnings).toHaveLength(0)
         })
 
         test('matches "readonly_collection" / "mutable_collection" array kind correctly', () => {
@@ -181,26 +181,24 @@ describe('Comprehensive TDD Test Suite for 5 Audit Findings', () => {
 
             const result = convertSingleResponseField('tags', semanticType)
 
-            expect(result.success).toBe(true)
-            if (result.success) {
-                expect(result.field.name).toBe('tags')
-                expect(result.field.kind).toBe('array')
-                expect(result.field.type).toBe('array')
-                expect(result.field.itemType).toBeDefined()
-                expect(result.field.itemType?.type).toBe('string')
-            }
+            expect(result.fields).toHaveLength(1)
+            expect(result.fields[0].name).toBe('tags')
+            expect(result.fields[0].kind).toBe('array')
+            expect(result.fields[0].type).toBe('array')
+            expect(result.fields[0].itemType).toBeDefined()
+            expect(result.fields[0].itemType?.type).toBe('string')
+            expect(result.warnings).toHaveLength(0)
         })
 
         test('matches "reference" kind correctly', () => {
             const semanticType: SemanticType = new ReferenceType('App\\Http\\Resources', 'CategoryResource')
             const result = convertSingleResponseField('category', semanticType)
 
-            expect(result.success).toBe(true)
-            if (result.success) {
-                expect(result.field.name).toBe('category')
-                expect(result.field.kind).toBe('primitive')
-                expect(result.field.type).toBe('CategoryResource')
-            }
+            expect(result.fields).toHaveLength(1)
+            expect(result.fields[0].name).toBe('category')
+            expect(result.fields[0].kind).toBe('primitive')
+            expect(result.fields[0].type).toBe('CategoryResource')
+            expect(result.warnings).toHaveLength(0)
         })
     })
 

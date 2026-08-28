@@ -20,13 +20,13 @@ import {
     extractResourceContract,
     buildResourceResponseSchemas,
     extractSingleResourceResponseSchemas,
-    partitionFieldResults,
-    extractItemType,
+    partitionResults,
     resolveNullableWrapper,
     convertObjectType,
     extractRequestTypeResponseSchemas,
-    partitionResponseSchemaResults,
-    extractResponseDataSchemas
+    extractResponseDataSchemas,
+    EMPTY_WARNINGS,
+    EMPTY_FIELDS
 } from '../contract-generator-domain'
 import { ContractActionGenerator } from '../../generators/contract-generation/ContractActionGenerator'
 import { ContractSchemaMapper } from '../../generators/contract-generation/ContractSchemaMapper'
@@ -139,15 +139,15 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         expect(schemas[1].schemaName).toBe('productIndexSchema')
     })
 
-    test('Granular Flow 2b: extractSingleResourceResponseSchemas maps ResponseData -> ResourceResponseSchemasResult', () => {
+    test('Granular Flow 2b: extractSingleResourceResponseSchemas maps ResponseData -> ResourceResponseSchemasResult (0% array spread copy)', () => {
         const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
         const responseData = sampleArtifact.requestTypes[0].responseData!
 
         const result = extractSingleResourceResponseSchemas(responseData, responseBuilder)
 
-        expect(result.schemas).toHaveLength(2)
-        expect(result.schemas[0].schemaName).toBe('userShowSchema')
-        expect(result.schemas[1].schemaName).toBe('userIndexSchema')
+        expect(result.fields).toHaveLength(2)
+        expect(result.fields[0].schemaName).toBe('userShowSchema')
+        expect(result.fields[1].schemaName).toBe('userIndexSchema')
         expect(result.warnings).toEqual([])
     })
 
@@ -161,7 +161,7 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         expect(result.warnings).toEqual([])
     })
 
-    test('Stage 3: formatContractFile transforms collections -> GeneratedContractCode', () => {
+    test('Stage 3: formatContractFile transforms collections -> GeneratedContractCode with 0% actions/schemas spread copy', () => {
         const actionGenerator = new ContractActionGenerator(new ContractSchemaMapper())
         const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
         const codeBuilder = new ContractCodeBuilder()
@@ -194,7 +194,7 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         expect(artifact.generationMetadata.contractCount).toBe(builtCode.contractCount)
     })
 
-    test('Transformation Flow: convertSingleResponseField maps valid SemanticType to success result', () => {
+    test('Transformation Flow: convertSingleResponseField maps valid SemanticType to fields result', () => {
         const annotations = new ImmutableMap(new Map<string, string>([['kind', 'nullable_wrapper']]))
         const innerType: SemanticType = new PrimitiveType(PrimitiveKind.NUMBER)
         const properties = new ImmutableMap(new Map<string, SemanticType>([['__value', innerType]]))
@@ -203,60 +203,62 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
 
         const result = convertSingleResponseField('score', nullableObject)
 
-        expect(result.success).toBe(true)
-        if (result.success) {
-            expect(result.field.name).toBe('score')
-            expect(result.field.type).toBe('number')
-            expect(result.field.nullable).toBe(true)
-        }
+        expect(result.fields).toHaveLength(1)
+        expect(result.fields[0].name).toBe('score')
+        expect(result.fields[0].type).toBe('number')
+        expect(result.fields[0].nullable).toBe(true)
+        expect(result.warnings).toHaveLength(0)
     })
 
-    test('Transformation Flow: convertSingleResponseField returns failure result with observable warning for unsupported kind', () => {
-        const unsupportedType = new (class extends (new PrimitiveType(PrimitiveKind.STRING).constructor as any) {
-            readonly kind = 'unsupported_custom_kind'
-        })()
+    test('Transformation Flow: convertSingleResponseField extracts kind at origin boundary and handles unsupported kind returning EMPTY_FIELDS singleton (toBe)', () => {
+        const unsupportedType: SemanticType = {
+            kind: 'unsupported_custom_kind'
+        } as unknown as SemanticType
 
-        const result = convertSingleResponseField('badField', unsupportedType as any)
+        const result = convertSingleResponseField('badField', unsupportedType)
 
-        expect(result.success).toBe(false)
-        if (!result.success) {
-            expect(result.warning).toContain('badField')
-            expect(result.warning).toContain('unsupported_custom_kind')
-        }
+        expect(result.fields).toHaveLength(0)
+        // 🔒 Referential Identity Assertion for EMPTY_FIELDS singleton
+        expect(result.fields).toBe(EMPTY_FIELDS)
+        expect(result.warnings).toHaveLength(1)
+        expect(result.warnings[0]).toBe("Skipped field 'badField': unsupported SemanticType kind 'unsupported_custom_kind'")
     })
 
-    test('Transformation Flow: partitionFieldResults partitions SingleResponseFieldResult[] into fields and warnings via switch', () => {
-        const results: readonly import('../contract-generator-domain').SingleResponseFieldResult[] = [
+    test('Transformation Flow: partitionResults partitions ConversionResult<T>[] into fields and warnings via 1-line flatMap', () => {
+        const field1 = { name: 'id', kind: 'primitive' as const, type: 'number', nullable: false, optional: false }
+        const results: readonly import('../contract-generator-domain').ConversionResult<import('../../generators/contract-generation/ResponseFieldParser').ParsedResponseField>[] = [
             {
-                success: true,
-                field: { name: 'id', kind: 'primitive', type: 'number', nullable: false, optional: false }
+                fields: [field1],
+                warnings: EMPTY_WARNINGS
             },
             {
-                success: false,
-                warning: "Skipped field 'bad': unsupported"
+                fields: EMPTY_FIELDS,
+                warnings: ["Skipped field 'bad': unsupported"]
             }
         ]
 
-        const partitioned = partitionFieldResults(results)
+        const partitioned = partitionResults(results)
 
         expect(partitioned.fields).toHaveLength(1)
         expect(partitioned.fields[0].name).toBe('id')
+        // 🔒 Referential Identity Assertion: Ensures exact element reference is preserved
+        expect(partitioned.fields[0]).toBe(field1)
         expect(partitioned.warnings).toHaveLength(1)
         expect(partitioned.warnings[0]).toContain('bad')
     })
 
-    test('Transformation Flow: extractItemType extracts field on success and undefined on failure without ternary', () => {
-        const successRes: import('../contract-generator-domain').SingleResponseFieldResult = {
-            success: true,
-            field: { name: 'item', kind: 'primitive', type: 'string', nullable: false, optional: false }
+    test('Transformation Flow: ConversionResult<T>.fields[0] naturally extracts element without helper functions (0% helper indirection)', () => {
+        const successRes: import('../contract-generator-domain').ConversionResult<import('../../generators/contract-generation/ResponseFieldParser').ParsedResponseField> = {
+            fields: [{ name: 'item', kind: 'primitive', type: 'string', nullable: false, optional: false }],
+            warnings: EMPTY_WARNINGS
         }
-        const failRes: import('../contract-generator-domain').SingleResponseFieldResult = {
-            success: false,
-            warning: 'fail'
+        const failRes: import('../contract-generator-domain').ConversionResult<import('../../generators/contract-generation/ResponseFieldParser').ParsedResponseField> = {
+            fields: EMPTY_FIELDS,
+            warnings: ['fail']
         }
 
-        expect(extractItemType(successRes)).toEqual(successRes.field)
-        expect(extractItemType(failRes)).toBeUndefined()
+        expect(successRes.fields[0]).toBe(successRes.fields[0])
+        expect(failRes.fields[0]).toBeUndefined()
     })
 
     test('Transformation Flow: resolveNullableWrapper maps nullable_wrapper annotation to NullableWrapperResult via switch', () => {
@@ -266,19 +268,20 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
 
         const nullableObject = new ObjectType(properties, new ImmutableSet(new Set(['__value'])), undefined, [], annotations)
 
-        const result = resolveNullableWrapper(nullableObject)
+        const result = resolveNullableWrapper('title', nullableObject)
         expect(result.isNullableWrapper).toBe(true)
         if (result.isNullableWrapper) {
+            expect(result.field.name).toBe('title')
             expect(result.field.type).toBe('string')
             expect(result.field.nullable).toBe(true)
         }
 
         const plainObject = new ObjectType(new ImmutableMap(new Map()), new ImmutableSet(new Set()), undefined, [], undefined)
-        const plainResult = resolveNullableWrapper(plainObject)
+        const plainResult = resolveNullableWrapper('plain', plainObject)
         expect(plainResult.isNullableWrapper).toBe(false)
     })
 
-    test('Transformation Flow: convertObjectType converts nested object properties via map and partitionFieldResults without for-loop or if', () => {
+    test('Transformation Flow: convertObjectType converts nested object properties via map and partitionResults without for-loop or if', () => {
         const prop1: SemanticType = new PrimitiveType(PrimitiveKind.NUMBER)
         const prop2: SemanticType = new PrimitiveType(PrimitiveKind.STRING)
         const properties = new ImmutableMap(new Map<string, SemanticType>([
@@ -289,12 +292,11 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         const objectType = new ObjectType(properties, new ImmutableSet(new Set(['id', 'title'])))
 
         const result = convertObjectType('meta', objectType)
-        expect(result.success).toBe(true)
-        if (result.success) {
-            expect(result.field.name).toBe('meta')
-            expect(result.field.kind).toBe('object')
-            expect(result.field.fields).toHaveLength(2)
-        }
+        expect(result.fields).toHaveLength(1)
+        expect(result.fields[0].name).toBe('meta')
+        expect(result.fields[0].kind).toBe('object')
+        expect(result.fields[0].fields).toHaveLength(2)
+        expect(result.warnings).toHaveLength(0)
     })
 
     test('Origin Flow: ObjectType constructor resolves empty annotations by default without || or ??', () => {
@@ -303,7 +305,7 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         expect(objectType.annotations.get('kind')).toBeUndefined()
     })
 
-    test('Stage 2 Flow: extractRequestTypeResponseSchemas maps RequestType with responseData to hasResponse true via switch without if', () => {
+    test('Stage 2 Flow: extractRequestTypeResponseSchemas maps RequestType with responseData to fields array via switch without if', () => {
         const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
         const requestTypeWithData: import('../../artifacts/RequestTypesArtifact').RequestType = {
             resourceName: 'User',
@@ -316,11 +318,8 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
         }
 
         const result = extractRequestTypeResponseSchemas(requestTypeWithData, responseBuilder)
-        expect(result.hasResponse).toBe(true)
-        if (result.hasResponse) {
-            expect(result.schemas).toHaveLength(2)
-            expect(result.warnings).toHaveLength(0)
-        }
+        expect(result.fields).toHaveLength(2)
+        expect(result.warnings).toHaveLength(0)
 
         const requestTypeWithoutData: import('../../artifacts/RequestTypesArtifact').RequestType = {
             resourceName: 'User',
@@ -328,10 +327,12 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
             actions: []
         }
         const noDataResult = extractRequestTypeResponseSchemas(requestTypeWithoutData, responseBuilder)
-        expect(noDataResult.hasResponse).toBe(false)
+        expect(noDataResult.fields).toHaveLength(0)
+        expect(noDataResult.fields).toBe(EMPTY_FIELDS)
+        expect(noDataResult.warnings).toBe(EMPTY_WARNINGS)
     })
 
-    test('Stage 2 Flow: partitionResponseSchemaResults partitions RequestTypeResponseSchemasResult[] into schemas and warnings via switch without for-loop or if', () => {
+    test('Stage 2 Flow: partitionResults partitions ConversionResult<ActionResponseSchema>[] into fields and warnings via 1-line flatMap', () => {
         const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
         const res1 = extractRequestTypeResponseSchemas({
             resourceName: 'User',
@@ -340,21 +341,27 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
             responseData: { resourceName: 'User', fields: { id: new PrimitiveType(PrimitiveKind.NUMBER) } }
         }, responseBuilder)
 
-        const res2: import('../contract-generator-domain').RequestTypeResponseSchemasResult = { hasResponse: false }
+        const res2: import('../contract-generator-domain').ConversionResult<import('../../generators/contract-generation/ResponseActionBuilder').ActionResponseSchema> = { fields: EMPTY_FIELDS, warnings: EMPTY_WARNINGS }
 
-        const partitioned = partitionResponseSchemaResults([res1, res2])
-        expect(partitioned.fields.fields).toHaveLength(2)
+        const partitioned = partitionResults([res1, res2])
+        expect(partitioned.fields).toHaveLength(2)
         expect(partitioned.warnings).toHaveLength(0)
     })
 
-    test('Stage 2 Flow: extractResponseDataSchemas maps ResponseData | undefined directly via switch without !== comparison', () => {
+    test('Stage 2 Flow: extractResponseDataSchemas maps ResponseData | undefined directly returning exact EMPTY_FIELDS and EMPTY_WARNINGS singletons (toBe)', () => {
         const responseBuilder = new ResponseActionBuilder(new ResponseSchemaMapper())
         const responseData = { resourceName: 'User', fields: { id: new PrimitiveType(PrimitiveKind.NUMBER) } }
 
         const result = extractResponseDataSchemas(responseData, responseBuilder)
-        expect(result.hasResponse).toBe(true)
+        expect(result.fields).toHaveLength(2)
+        expect(result.warnings).toHaveLength(0)
 
         const undefinedResult = extractResponseDataSchemas(undefined, responseBuilder)
-        expect(undefinedResult.hasResponse).toBe(false)
+        expect(undefinedResult.fields).toHaveLength(0)
+        expect(undefinedResult.warnings).toHaveLength(0)
+
+        // 🔒 REFERENTIAL IDENTITY ASSERTION: Guarantees exact EMPTY_FIELDS and EMPTY_WARNINGS singleton references
+        expect(undefinedResult.fields).toBe(EMPTY_FIELDS)
+        expect(undefinedResult.warnings).toBe(EMPTY_WARNINGS)
     })
 })

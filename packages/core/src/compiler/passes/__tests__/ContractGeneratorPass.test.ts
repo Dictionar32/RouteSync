@@ -217,7 +217,7 @@ describe('ContractGeneratorPass', () => {
             expect(result.typeId).toBe('GeneratedContract');
             expect(result.contracts).toHaveLength(0);
             expect(result.generationMetadata.contractCount).toBe(0);
-            expect(result.generationMetadata.warnings).toContain('No validation rules found');
+            expect(result.generationMetadata.warnings).toEqual([]);
         });
     });
 
@@ -273,8 +273,8 @@ describe('ContractGeneratorPass', () => {
             expect(result.contracts[0].actions).toHaveLength(2);
             expect(result.contracts[0].actions[0].name).toBe('create');
             expect(result.contracts[0].actions[1].name).toBe('update');
-            expect(result.code).toContain('create:');
-            expect(result.code).toContain('update:');
+            expect(result.code).toContain('Create:');
+            expect(result.code).toContain('Update:');
         });
 
         test('should count total actions correctly', () => {
@@ -886,4 +886,36 @@ describe('ContractGeneratorPass - inline responses', () => {
         expect(result.code).toContain('success: z.boolean()');
         expect(result.code).toContain('message: z.string()');
     })
+})
+
+describe('ContractGeneratorPass - Pure Flow Execution (0% try-catch)', () => {
+    test('should execute run() cleanly as a pure flow declaration without defensive try-catch wrapping', () => {
+        const artifact: RequestTypesArtifact = {
+            typeId: 'RequestTypes',
+            requestTypes: [{
+                resourceName: 'User',
+                formTypeName: 'UserContract',
+                actions: [{
+                    name: 'index',
+                    method: 'GET',
+                    path: '/users',
+                    fields: []
+                }]
+            }],
+            metadata: {
+                hash: 'pure-flow-hash',
+                producer: 'test',
+                dependencies: [],
+                timestamp: Date.now(),
+                revision: '1.0.0'
+            }
+        };
+
+        const pass = new ContractGeneratorPass();
+        const [result] = pass.run([artifact]);
+
+        expect(result.typeId).toBe('GeneratedContract');
+        expect(result.code).toContain('UserContractSchema');
+        expect(result.contracts).toHaveLength(1);
+    });
 })

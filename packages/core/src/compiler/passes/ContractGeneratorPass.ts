@@ -62,46 +62,20 @@ export class ContractGeneratorPass
     public run(
         inputs: ResolveArtifacts<readonly ['RequestTypes']>
     ): ResolveArtifacts<readonly ['GeneratedContract']> {
-        try {
-            const [requestTypesArtifact] = inputs;
+        const [requestTypesArtifact] = inputs;
 
-            // Pure flow consuming guaranteed complete contract dependencies
-            const contracts = extractRequestContracts(requestTypesArtifact, this.deps.actionGenerator);
-            const responseResult = extractResponseSchemas(requestTypesArtifact, this.deps.responseActionBuilder);
-            const builtCode = formatContractFile(contracts, responseResult.fields, this.deps.codeBuilder);
-            const artifact = buildContractArtifact(
-                builtCode,
-                contracts,
-                responseResult.fields,
-                this.name,
-                responseResult.warnings
-            );
+        // Pure flow consuming guaranteed complete contract dependencies
+        const contracts = extractRequestContracts(requestTypesArtifact, this.deps.actionGenerator);
+        const responseResult = extractResponseSchemas(requestTypesArtifact, this.deps.responseActionBuilder);
+        const builtCode = formatContractFile(contracts, responseResult.fields, this.deps.codeBuilder);
+        const artifact = buildContractArtifact(
+            builtCode,
+            contracts,
+            responseResult.fields,
+            this.name,
+            responseResult.warnings
+        );
 
-            return [artifact];
-        } catch (error) {
-            throw new ContractGeneratorPassError(
-                `Contract generation failed: ${error instanceof Error ? error.message : String(error)}`,
-                error instanceof Error ? error : undefined
-            );
-        }
-    }
-}
-
-export class ContractGeneratorPassError extends Error {
-    constructor(
-        message: string,
-        public readonly cause?: Error
-    ) {
-        super(message);
-        this.name = 'ContractGeneratorPassError';
-        Object.freeze(this);
-    }
-
-    public getDetailedMessage(): string {
-        let msg = `${this.name}: ${this.message}`;
-        if (this.cause) {
-            msg += `\n Caused by: ${this.cause.message}`;
-        }
-        return msg;
+        return [artifact];
     }
 }

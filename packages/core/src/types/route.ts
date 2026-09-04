@@ -98,6 +98,7 @@ export interface RouteManifest {
   readonly version: string;
   readonly baseURL: string;
   readonly routes: readonly ParsedRoute[];
+  readonly contracts: readonly EndpointContract[];           // ✅ Pure CDA Top-Level Manifest Contracts SSOT
   readonly resources: readonly ParsedResource[];
   readonly models: readonly ParsedModel[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
@@ -5754,6 +5755,7 @@ export class ScannedRouteRegistry implements RouteCollectionRegistry {
 // ============================================================================
 
 export interface EndpointRequestContract {
+  readonly hasBody: boolean;
   readonly pathParameters: readonly RouteParameter[];
   readonly queryParameters: readonly RouteQueryParameter[];
   readonly contentType: RequestContentType;
@@ -5869,7 +5871,10 @@ export class ScannedEndpointContract implements EndpointContract {
       shape: route.response?.shape ?? ResponseShape.Single
     };
 
+    const hasBody = Boolean(route.schema?.rules && (Array.isArray(route.schema.rules) ? route.schema.rules.length > 0 : Object.keys(route.schema.rules).length > 0));
+
     const requestContract: EndpointRequestContract = {
+      hasBody,
       pathParameters: route.pathParameters ?? [],
       queryParameters: route.queryParameters ?? [],
       contentType: route.requestContentType,
@@ -5878,17 +5883,23 @@ export class ScannedEndpointContract implements EndpointContract {
       security: route.security
     };
 
+    const group = route.groupName || route.resourceName || 'App';
+    const action = route.actionName || 'action';
+    const isMutating = route.isMutating ?? (HTTP_METHOD_REGISTRY[route.method as HttpMethod]?.isMutating ?? false);
+    const hookKind = route.hookKind ?? (isMutating ? RouteHookKind.Mutation : RouteHookKind.Query);
+    const crudRole = route.crudRole ?? CrudRole.Custom;
+
     return new ScannedEndpointContract({
-      id: route.name || `${route.groupName}.${route.actionName}`,
-      name: route.actionName,
+      id: route.name || `${group}.${action}`,
+      name: action,
       method: route.method as HttpMethod,
       path: route.path,
-      runtimePath: route.runtimePath,
-      groupName: route.groupName,
-      resourceName: route.resourceName,
-      crudRole: route.crudRole,
-      isMutating: route.isMutating,
-      hookKind: route.hookKind,
+      runtimePath: route.runtimePath ?? route.path,
+      groupName: group,
+      resourceName: route.resourceName ?? group,
+      crudRole,
+      isMutating,
+      hookKind,
       request: requestContract,
       response: {
         success: successContract,
@@ -5916,6 +5927,25 @@ export function matchEndpointResponse<R>(
   visitor: EndpointResponseVisitor<R>
 ): R {
   return visitor.success(responseContract.success);
+}
+
+/**
+ * Guarantees a non-null EndpointContract from any ParsedRoute.
+ */
+export function getRouteContract(route: ParsedRoute): EndpointContract {
+  return route.contract ?? ScannedEndpointContract.fromRoute(route);
+}
+
+/**
+ * Builds an O(1) Map of contracts keyed by contract id / action name.
+ */
+export function getManifestContractMap(manifest: RouteManifest): Map<string, EndpointContract> {
+  const map = new Map<string, EndpointContract>();
+  const contracts = manifest.contracts ?? manifest.routes.map(r => getRouteContract(r));
+  for (const c of contracts) {
+    map.set(c.id, c);
+  }
+  return map;
 }
 
 /**

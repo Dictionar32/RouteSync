@@ -160,7 +160,9 @@ export {
   matchRoutePolicy,
   PageEndpointKind,
   PAGE_ENDPOINT_REGISTRY,
-  matchPageEndpoint
+  matchPageEndpoint,
+  getRouteContract,
+  getManifestContractMap
 } from './types/route'
 export type {
   RouteManifest,

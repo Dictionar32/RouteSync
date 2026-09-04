@@ -29,7 +29,7 @@
  *   Collisions (two GETs, two POSTs, etc.) are resolved with a numeric suffix.
  */
 
-import { ParsedRoute, matchHttpMethod, CrudRole, CRUD_ROLE_REGISTRY, matchCrudRole } from '@routesync/core'
+import { ParsedRoute, matchHttpMethod, CrudRole, CRUD_ROLE_REGISTRY, matchCrudRole, EndpointContract, getRouteContract } from '@routesync/core'
 import { toIdentifier, toTypeName } from './names'
 
 // ─── Public types ─────────────────────────────────────────────────────────────
@@ -38,6 +38,7 @@ export { CrudRole } from '@routesync/core'
 
 export interface ClassifiedRoute {
   raw: ParsedRoute
+  contract: EndpointContract // ✅ Pure CDA Direct Contract SSOT
   /** e.g. "produk", "cartItems", "adminProduk", "produkReviews" */
   groupName: string
   /** e.g. "get", "getById", "post", "patch", "delete" */
@@ -54,6 +55,7 @@ export interface ClassifiedRoute {
 
 export interface ScannedClassifiedRouteParams {
   readonly raw: ParsedRoute
+  readonly contract?: EndpointContract
   readonly groupName: string
   readonly actionName: string
   readonly runtimePath: string
@@ -68,6 +70,7 @@ export interface ScannedClassifiedRouteParams {
  */
 export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {
   public readonly raw: ParsedRoute
+  public readonly contract: EndpointContract
   public readonly groupName: string
   public readonly actionName: string
   public readonly runtimePath: string
@@ -78,6 +81,7 @@ export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {
 
   constructor(params: ScannedClassifiedRouteParams) {
     this.raw = params.raw
+    this.contract = params.contract ?? getRouteContract(params.raw)
     this.groupName = params.groupName
     this.actionName = params.actionName
     this.runtimePath = params.runtimePath

@@ -5,6 +5,18 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **`pureContractDrivenArchitectureSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi pencapaian 100% Pure Contract-Driven Architecture (CDA) across entire RouteSync compiler pipeline:
+  - **Top-Level Manifest Contracts SSOT**:
+    - Penambahan `readonly contracts: readonly EndpointContract[];` pada `RouteManifest` dan `ScannedRouteManifestDescriptor` yang dijamin selalu beku (frozen) dan utuh sejak Origin Boundary.
+    - Penambahan helper `getManifestContractMap(manifest)` untuk resolusi O(1) kontrak endpoint terstruktur berbasis contract ID / action name.
+    - Penambahan helper `getRouteContract(route)` untuk penjaminan complete `EndpointContract` pada seluruh varian rute (termasuk partial mock routes).
+  - **Origin Boundary Contract Binding pada Classified Routes**:
+    - `ClassifiedRoute` dan `ScannedClassifiedRouteDescriptor` kini mengikat `contract: EndpointContract` secara non-nullable dan terjamin sejak awal klasifikasi rute.
+  - **Direct Downstream Contract Consumption**:
+    - `SDKGenerator.ts`: Murni mengonsumsi `route.contract` (`contract.request.hasBody`, `contract.response.success.validatorName`, `contract.response.success.readTypeName`, `contract.response.success.mapperName`, `contract.runtimePath`) tanpa defensive fallback atau inspeksi heuristik objek legacy.
+    - `HookGenerator.ts`: Murni mengonsumsi `route.contract` untuk resolusi read type, form type, error responses union, dan query cache invalidations.
+  - **Extended Request Contract Guarantees**:
+    - Penambahan properti `readonly hasBody: boolean;` pada `EndpointRequestContract` serta jaminan penanganan fallback otomatis untuk `isMutating`, `hookKind`, dan `crudRole` di `ScannedEndpointContract.fromRoute`.
 - **`policyAndPageEndpointAdtFlowSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi arsitektur ADT Flow Data untuk Route Authorization Policies dan Page Route Endpoints (Mencapai 100% Pemetaan ADT Domain RouteSync):
   - **Route Authorization Policy ADT**:
     - `RoutePolicyKind` discriminator (`AbilityModel`, `Gate`, `Custom`) dengan mapped registry `ROUTE_POLICY_REGISTRY` yang mengunci metadata `requiresModel` dan deskripsi domain.

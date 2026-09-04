@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, EndpointContract } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
@@ -18,32 +18,23 @@ export class SDKGenerator {
     const usedPayloadContracts = new Set<string>()
     const usedMappers = new Set<string>()
 
-    // Authoritative SSOT from ResponseDescriptor
-    const resolveResponseInfo = (rawRoute: any, keyName: string): { type: string, schema: string, mapper: string | null } => {
+    // Authoritative SSOT from EndpointContract
+    const resolveResponseInfo = (contract: EndpointContract, keyName: string): { type: string, schema: string, mapper: string | null } => {
       let schemaStr = 'undefined'
-      if (rawRoute.response && usesZod) {
-        schemaStr = rawRoute.response.validatorName ?? `validate${keyName}Response`
+      if (contract.response?.success?.validatorName && usesZod) {
+        schemaStr = contract.response.success.validatorName
       }
 
-      if (rawRoute.response?.readTypeName && rawRoute.response?.mapperName) {
-        const isVoid = rawRoute.response.readTypeName === 'void'
-        const typeStr = isVoid ? 'void' : `Read.${rawRoute.response.readTypeName}`
-        const mapperStr = rawRoute.response.mapperName === 'identity' ? null : rawRoute.response.mapperName
+      if (contract.response?.success?.readTypeName) {
+        const isVoid = contract.response.success.readTypeName === 'void'
+        const typeStr = isVoid ? 'void' : `Read.${contract.response.success.readTypeName}`
+        const mapperName = contract.response.success.mapperName
+        const mapperStr = (!mapperName || mapperName === 'identity') ? null : mapperName
         if (mapperStr) usedMappers.add(mapperStr)
         return { type: typeStr, schema: schemaStr, mapper: mapperStr }
       }
 
-      if (!rawRoute.response) return { type: 'unknown', schema: schemaStr, mapper: null }
-
-      // Deterministic fallback for legacy plain JSON manifests
-      const rawResp = rawRoute.response
-      const rawTarget = rawResp.resource || rawResp.model || rawResp.resolved?.resource || rawResp.resolved?.model
-      const baseModel = rawTarget ? toTypeName(rawTarget) : toTypeName(rawRoute.groupName || keyName)
-      const isCollection = Boolean(rawResp.collection ?? rawResp.resolved?.collection)
-      const typeStr = isCollection ? `Read.${baseModel}Index` : `Read.${baseModel}Show`
-      const mapperStr = isCollection ? `to${keyName}ResponseRead` : `to${baseModel}Read`
-      if (mapperStr) usedMappers.add(mapperStr)
-      return { type: typeStr, schema: schemaStr, mapper: mapperStr }
+      return { type: 'unknown', schema: schemaStr, mapper: null }
     }
 
     // Generate api object body
@@ -57,7 +48,7 @@ export class SDKGenerator {
         const rawAction = (CANONICAL_ACTION_MAP as Record<string, string>)[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
         const KeyName = `${TitleCaseGroup}${rawAction}`
 
-        const respInfo = resolveResponseInfo(route.raw, KeyName)
+        const respInfo = resolveResponseInfo(route.contract, KeyName)
 
         apiBodyLines.push(`    ${route.actionName}: endpoint({`)
         apiBodyLines.push(`      method: '${route.method}',`)
@@ -66,8 +57,8 @@ export class SDKGenerator {
         apiBodyLines.push(`      path: API_ENDPOINTS.${routeKey},`)
         if (route.raw.auth) apiBodyLines.push(`      auth: true,`)
         
-        const hasBodyContract = Boolean(options.zod && route.raw.schema && route.raw.schema.rules);
-        const hasRespContract = Boolean(options.zod && route.raw.response);
+        const hasBodyContract = Boolean(options.zod && route.contract.request.hasBody);
+        const hasRespContract = Boolean(options.zod && route.contract.response.success);
 
         switch (hasBodyContract || hasRespContract) {
           case true: {

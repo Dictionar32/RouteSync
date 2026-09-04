@@ -42,11 +42,11 @@ export class HookGenerator {
       }
 
       const resolveResponseType = (route?: any): string => {
-        if (!route || !route.raw?.response) return 'never'
+        if (!route) return 'never'
 
-        // 1. Authoritative SSOT from ResponseDescriptor
-        if (route.raw.response.readTypeName) {
-          const readType = route.raw.response.readTypeName
+        // 1. Authoritative SSOT from EndpointContract / ResponseDescriptor
+        const readType = route.contract?.response?.success?.readTypeName ?? route.raw?.response?.readTypeName
+        if (readType) {
           if (readType !== 'void' && readType !== 'unknown') {
             importedTypes.add(readType)
           }
@@ -54,13 +54,14 @@ export class HookGenerator {
         }
 
         // 2. Deterministic fallback for legacy plain JSON manifests
-        const rawResp = route.raw.response
+        const rawResp = route.raw?.response
+        if (!rawResp) return 'never'
         const rawTarget = rawResp.resource || rawResp.model || rawResp.resolved?.resource || rawResp.resolved?.model
         const base = rawTarget ? toTypeName(rawTarget) : toTypeName(route.groupName)
         const isCollection = Boolean(rawResp.collection ?? rawResp.resolved?.collection)
-        const readType = isCollection ? `${base}Index` : `${base}Show`
-        importedTypes.add(readType)
-        return readType
+        const fallbackReadType = isCollection ? `${base}Index` : `${base}Show`
+        importedTypes.add(fallbackReadType)
+        return fallbackReadType
       }
 
       const pushUnique = (items: string[], item: string): void => {
@@ -127,15 +128,7 @@ export class HookGenerator {
             break;
         }
 
-        switch (route?.raw !== undefined) {
-          case true:
-            route = route.raw;
-            break;
-          case false:
-            break;
-        }
-
-        const expressions = route?.invalidation?.queryKeyExpressions;
+        const expressions = route?.contract?.invalidation?.queryKeyExpressions ?? route?.raw?.invalidation?.queryKeyExpressions ?? route?.invalidation?.queryKeyExpressions;
         switch (expressions !== undefined) {
           case true:
             for (const expr of expressions) {
@@ -200,7 +193,7 @@ export class HookGenerator {
 
       const errorTypes = new Set<string>()
       for (const route of resource.all) {
-        const errorList = route.raw?.contract?.response?.errors ?? route.raw?.errorResponses ?? []
+        const errorList = route.contract?.response?.errors ?? route.raw?.contract?.response?.errors ?? route.raw?.errorResponses ?? []
         for (const err of errorList) {
           if (err.typeName) {
             errorTypes.add(err.typeName)

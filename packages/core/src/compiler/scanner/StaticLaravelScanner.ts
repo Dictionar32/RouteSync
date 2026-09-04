@@ -2028,6 +2028,7 @@ export interface ScannedRouteManifestParams {
     readonly version: string;
     readonly baseURL: string;
     readonly routes: readonly ParsedRoute[];
+    readonly contracts?: readonly EndpointContract[];
     readonly resources: readonly ParsedResource[];
     readonly models: readonly ParsedModel[];
     readonly routeGroups: readonly ResourceRouteGroup[];
@@ -2046,6 +2047,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
     public readonly version: string;
     public readonly baseURL: string;
     public readonly routes: readonly ParsedRoute[];
+    public readonly contracts: readonly EndpointContract[];
     public readonly resources: readonly ParsedResource[];
     public readonly models: readonly ParsedModel[];
     public readonly routeGroups: readonly ResourceRouteGroup[];
@@ -2060,6 +2062,10 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
         this.version = params.version;
         this.baseURL = params.baseURL;
         this.routes = Object.freeze(params.routes);
+        const assembledContracts = params.contracts && params.contracts.length > 0
+            ? params.contracts
+            : params.routes.map(r => r.contract ?? ScannedEndpointContract.fromRoute(r));
+        this.contracts = Object.freeze([...assembledContracts]);
         this.resources = Object.freeze(params.resources);
         this.models = Object.freeze(params.models);
         this.routeGroups = Object.freeze(params.routeGroups);
@@ -2076,6 +2082,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
         version = '6.0.0',
         baseURL = 'http://localhost/api',
         routes = [],
+        contracts = [],
         resources = [],
         models = [],
         routeGroups = [],
@@ -2089,6 +2096,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
         readonly version?: string;
         readonly baseURL?: string;
         readonly routes?: readonly ParsedRoute[];
+        readonly contracts?: readonly EndpointContract[];
         readonly resources?: readonly ParsedResource[];
         readonly models?: readonly ParsedModel[];
         readonly routeGroups?: readonly ResourceRouteGroup[];
@@ -2111,6 +2119,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
             version,
             baseURL,
             routes,
+            contracts,
             resources,
             models,
             routeGroups,
@@ -2128,6 +2137,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
             version,
             baseURL,
             routes: [],
+            contracts: [],
             resources: [],
             models: [],
             routeGroups: [],
@@ -3455,8 +3465,8 @@ export class StaticLaravelScanner {
                 const routeActionDesc = (route as any).action || route.actionName || route.resourceName || (route as any).controllerAction || '';
                 const rawRules = route.schema.rules;
                 const ruleEntries: readonly [string, string][] = Array.isArray(rawRules)
-                    ? (rawRules as readonly RouteValidationRuleEntry[]).map(r => [r.fieldName, Array.isArray(r.rules) ? r.rules.join('|') : String(r.rules)])
-                    : Object.entries((rawRules as any) || {}).map(([key, val]) => [key, Array.isArray(val) ? val.join('|') : String(val)]);
+                    ? (rawRules as readonly any[]).map(r => [String(r.fieldName || r.field || ''), Array.isArray(r.rules) ? r.rules.join('|') : String(r.rules || '')])
+                    : Object.entries((rawRules as any) || {}).map(([key, val]) => [String(key || ''), Array.isArray(val) ? val.join('|') : String(val || '')]);
 
                 for (const [key, ruleStr] of ruleEntries) {
                     if (key.includes('.*')) {

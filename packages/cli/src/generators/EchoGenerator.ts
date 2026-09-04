@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { BroadcastChannelDescriptor, BroadcastChannelKind } from '@routesync/core'
+import { BroadcastChannelDescriptor, BROADCAST_CHANNEL_REGISTRY } from '@routesync/core'
 import { toTypeName } from './names'
 
 export class EchoGenerator {
@@ -31,23 +31,7 @@ export class EchoGenerator {
         : ''
 
       const runtimeChannelName = channel.runtimePattern || (channel.name || '').replace(/\{([^}]+)\}/g, '${$1}')
-
-      let channelMethod = 'channel'
-      switch (channel.kind) {
-        case BroadcastChannelKind.Presence:
-        case 'presence':
-          channelMethod = 'join'
-          break
-        case BroadcastChannelKind.Private:
-        case 'private':
-          channelMethod = 'private'
-          break
-        case BroadcastChannelKind.Public:
-        case 'public':
-        default:
-          channelMethod = 'channel'
-          break
-      }
+      const channelMethod = BROADCAST_CHANNEL_REGISTRY[channel.kind].echoMethod
 
       lines.push(`export function ${hookName}<TEvent = unknown>(${paramArgs}eventName: string, callback: (event: TEvent) => void) {`)
       lines.push(`  useEffect(() => {`)

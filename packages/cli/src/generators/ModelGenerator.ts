@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind } from '@routesync/core'
+import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind, matchRelation } from '@routesync/core'
 
 export class ModelGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -65,7 +65,10 @@ export class ModelGenerator {
       // 3. Eloquent Relations (SSOT: relations)
       if (model.relations && model.relations.length > 0) {
         for (const rel of model.relations) {
-          const relType = rel.isCollection ? `${rel.modelName}[]` : rel.modelName
+          const relType = matchRelation(rel, {
+            one: (r) => r.modelName,
+            many: (r) => `${r.modelName}[]`
+          })
           lines.push(`  ${rel.name}?: ${relType}`)
         }
       }

@@ -481,6 +481,7 @@ export interface EloquentRelationDescriptor<T extends EloquentRelationType = Elo
   readonly type: T;
   readonly cardinality: EloquentRelationCardinality;
   readonly isCollection: boolean;
+  readonly isPolymorphic: boolean;
 }
 
 /**
@@ -494,57 +495,68 @@ export const ELOQUENT_RELATION_REGISTRY: EloquentRelationRegistry = Object.freez
   [EloquentRelationType.HasOne]: {
     type: EloquentRelationType.HasOne,
     cardinality: 'one',
-    isCollection: false
+    isCollection: false,
+    isPolymorphic: false
   },
   [EloquentRelationType.HasMany]: {
     type: EloquentRelationType.HasMany,
     cardinality: 'many',
-    isCollection: true
+    isCollection: true,
+    isPolymorphic: false
   },
   [EloquentRelationType.BelongsTo]: {
     type: EloquentRelationType.BelongsTo,
     cardinality: 'one',
-    isCollection: false
+    isCollection: false,
+    isPolymorphic: false
   },
   [EloquentRelationType.BelongsToMany]: {
     type: EloquentRelationType.BelongsToMany,
     cardinality: 'many',
-    isCollection: true
+    isCollection: true,
+    isPolymorphic: false
   },
   [EloquentRelationType.HasOneThrough]: {
     type: EloquentRelationType.HasOneThrough,
     cardinality: 'one',
-    isCollection: false
+    isCollection: false,
+    isPolymorphic: false
   },
   [EloquentRelationType.HasManyThrough]: {
     type: EloquentRelationType.HasManyThrough,
     cardinality: 'many',
-    isCollection: true
+    isCollection: true,
+    isPolymorphic: false
   },
   [EloquentRelationType.MorphTo]: {
     type: EloquentRelationType.MorphTo,
     cardinality: 'one',
-    isCollection: false
+    isCollection: false,
+    isPolymorphic: true
   },
   [EloquentRelationType.MorphOne]: {
     type: EloquentRelationType.MorphOne,
     cardinality: 'one',
-    isCollection: false
+    isCollection: false,
+    isPolymorphic: true
   },
   [EloquentRelationType.MorphMany]: {
     type: EloquentRelationType.MorphMany,
     cardinality: 'many',
-    isCollection: true
+    isCollection: true,
+    isPolymorphic: true
   },
   [EloquentRelationType.MorphToMany]: {
     type: EloquentRelationType.MorphToMany,
     cardinality: 'many',
-    isCollection: true
+    isCollection: true,
+    isPolymorphic: true
   },
   [EloquentRelationType.MorphedByMany]: {
     type: EloquentRelationType.MorphedByMany,
     cardinality: 'many',
-    isCollection: true
+    isCollection: true,
+    isPolymorphic: true
   }
 });
 
@@ -566,6 +578,10 @@ export class EloquentRelationClassifier {
   public static isCollection(type: EloquentRelationType): boolean {
     return ELOQUENT_RELATION_REGISTRY[type]?.isCollection ?? false;
   }
+
+  public static isPolymorphic(type: EloquentRelationType): boolean {
+    return ELOQUENT_RELATION_REGISTRY[type]?.isPolymorphic ?? false;
+  }
 }
 
 /**
@@ -579,6 +595,62 @@ export interface ParsedRelation {
   readonly cardinality: EloquentRelationCardinality;
   readonly isCollection: boolean;
   readonly foreignKey: string | null;
+}
+
+export interface SingleRelationDescriptor extends ParsedRelation {
+  readonly cardinality: 'one';
+  readonly isCollection: false;
+}
+
+export interface CollectionRelationDescriptor extends ParsedRelation {
+  readonly cardinality: 'many';
+  readonly isCollection: true;
+}
+
+export type RelationCardinalityDescriptor =
+  | SingleRelationDescriptor
+  | CollectionRelationDescriptor;
+
+export interface RelationCardinalityVisitor<R> {
+  readonly one: (relation: SingleRelationDescriptor) => R;
+  readonly many: (relation: CollectionRelationDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik kardinalitas relasi Eloquent
+ */
+export function matchRelationCardinality<R>(
+  relation: ParsedRelation,
+  visitor: RelationCardinalityVisitor<R>
+): R {
+  const cardinality = relation.cardinality ?? (relation.isCollection ? 'many' : 'one');
+  return visitor[cardinality](relation as any);
+}
+
+export const matchRelation = matchRelationCardinality;
+
+export interface EloquentRelationTypeVisitor<R> {
+  readonly hasOne: (rel: ParsedRelation) => R;
+  readonly hasMany: (rel: ParsedRelation) => R;
+  readonly belongsTo: (rel: ParsedRelation) => R;
+  readonly belongsToMany: (rel: ParsedRelation) => R;
+  readonly hasOneThrough: (rel: ParsedRelation) => R;
+  readonly hasManyThrough: (rel: ParsedRelation) => R;
+  readonly morphTo: (rel: ParsedRelation) => R;
+  readonly morphOne: (rel: ParsedRelation) => R;
+  readonly morphMany: (rel: ParsedRelation) => R;
+  readonly morphToMany: (rel: ParsedRelation) => R;
+  readonly morphedByMany: (rel: ParsedRelation) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik tipe relasi Eloquent
+ */
+export function matchRelationType<R>(
+  relation: ParsedRelation,
+  visitor: EloquentRelationTypeVisitor<R>
+): R {
+  return visitor[relation.type](relation);
 }
 
 /**
@@ -1153,6 +1225,74 @@ export interface RouteParameter {
   readonly in: RouteParameterLocation;
   readonly required: boolean;
   readonly type: RouteParameterType; // ✅ 100% Guaranteed Canonical Vocabulary
+}
+
+export interface PathParameterDescriptor extends RouteParameter {
+  readonly in: 'path';
+}
+
+export interface QueryParameterDescriptor extends RouteParameter {
+  readonly in: 'query';
+}
+
+export interface HeaderParameterDescriptor extends RouteParameter {
+  readonly in: 'header';
+}
+
+export type AnyRouteParameter =
+  | PathParameterDescriptor
+  | QueryParameterDescriptor
+  | HeaderParameterDescriptor;
+
+export interface RouteParameterLocationSpecification<K extends RouteParameterLocation = RouteParameterLocation> {
+  readonly location: K;
+  readonly defaultRequired: boolean;
+  readonly isUrlSegment: boolean;
+  readonly isTransportHeader: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key RouteParameterLocation.
+ */
+export type RouteParameterLocationRegistry = {
+  readonly [K in RouteParameterLocation]: RouteParameterLocationSpecification<K>;
+};
+
+export const PARAMETER_LOCATION_REGISTRY: RouteParameterLocationRegistry = Object.freeze({
+  [RouteParameterLocation.Path]: {
+    location: RouteParameterLocation.Path,
+    defaultRequired: true,
+    isUrlSegment: true,
+    isTransportHeader: false,
+  },
+  [RouteParameterLocation.Query]: {
+    location: RouteParameterLocation.Query,
+    defaultRequired: false,
+    isUrlSegment: true,
+    isTransportHeader: false,
+  },
+  [RouteParameterLocation.Header]: {
+    location: RouteParameterLocation.Header,
+    defaultRequired: true,
+    isUrlSegment: false,
+    isTransportHeader: true,
+  },
+});
+
+export interface RouteParameterVisitor<R> {
+  readonly path: (param: PathParameterDescriptor) => R;
+  readonly query: (param: QueryParameterDescriptor) => R;
+  readonly header: (param: HeaderParameterDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik lokasi parameter dengan exhaustive type safety
+ */
+export function matchRouteParameter<R>(
+  param: RouteParameter,
+  visitor: RouteParameterVisitor<R>
+): R {
+  return visitor[param.in](param as any);
 }
 
 /**
@@ -1923,6 +2063,75 @@ export interface BroadcastChannelDescriptor {
   readonly isPresence: boolean;
 }
 
+export interface PublicBroadcastChannelDescriptor extends BroadcastChannelDescriptor {
+  readonly kind: 'public';
+  readonly isPrivate: false;
+  readonly isPresence: false;
+}
+
+export interface PrivateBroadcastChannelDescriptor extends BroadcastChannelDescriptor {
+  readonly kind: 'private';
+  readonly isPrivate: true;
+  readonly isPresence: false;
+}
+
+export interface PresenceBroadcastChannelDescriptor extends BroadcastChannelDescriptor {
+  readonly kind: 'presence';
+  readonly isPrivate: true;
+  readonly isPresence: true;
+}
+
+export interface BroadcastChannelSpecification<K extends BroadcastChannelKind = BroadcastChannelKind> {
+  readonly kind: K;
+  readonly echoMethod: 'channel' | 'private' | 'join';
+  readonly requiresAuth: boolean;
+  readonly supportsPresenceData: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key BroadcastChannelKind.
+ */
+export type BroadcastChannelRegistry = {
+  readonly [K in BroadcastChannelKind]: BroadcastChannelSpecification<K>;
+};
+
+export const BROADCAST_CHANNEL_REGISTRY: BroadcastChannelRegistry = Object.freeze({
+  [BroadcastChannelKind.Public]: {
+    kind: BroadcastChannelKind.Public,
+    echoMethod: 'channel',
+    requiresAuth: false,
+    supportsPresenceData: false,
+  },
+  [BroadcastChannelKind.Private]: {
+    kind: BroadcastChannelKind.Private,
+    echoMethod: 'private',
+    requiresAuth: true,
+    supportsPresenceData: false,
+  },
+  [BroadcastChannelKind.Presence]: {
+    kind: BroadcastChannelKind.Presence,
+    echoMethod: 'join',
+    requiresAuth: true,
+    supportsPresenceData: true,
+  },
+});
+
+export interface BroadcastChannelVisitor<R> {
+  readonly public: (channel: PublicBroadcastChannelDescriptor) => R;
+  readonly private: (channel: PrivateBroadcastChannelDescriptor) => R;
+  readonly presence: (channel: PresenceBroadcastChannelDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian BroadcastChannelDescriptor dengan exhaustive type safety
+ */
+export function matchBroadcastChannel<R>(
+  channel: BroadcastChannelDescriptor,
+  visitor: BroadcastChannelVisitor<R>
+): R {
+  return visitor[channel.kind](channel as any);
+}
+
 // =========================================================================
 // EXPLICIT COMPILER ENUMS & DOMAIN MODELS (SSOT ORIGIN BOUNDARY)
 // =========================================================================
@@ -1963,6 +2172,81 @@ export interface InvalidationTarget {
   readonly queryKeyExpression: string;
 }
 
+export interface SelfListInvalidationTarget extends InvalidationTarget {
+  readonly kind: 'self_list';
+}
+
+export interface ParentListInvalidationTarget extends InvalidationTarget {
+  readonly kind: 'parent_list';
+}
+
+export interface ParentDetailInvalidationTarget extends InvalidationTarget {
+  readonly kind: 'parent_detail';
+}
+
+export interface AuthResourceInvalidationTarget extends InvalidationTarget {
+  readonly kind: 'auth_resource';
+}
+
+export type AnyInvalidationTarget =
+  | SelfListInvalidationTarget
+  | ParentListInvalidationTarget
+  | ParentDetailInvalidationTarget
+  | AuthResourceInvalidationTarget;
+
+export interface InvalidationTargetSpecification<K extends InvalidationTargetKind = InvalidationTargetKind> {
+  readonly kind: K;
+  readonly queryKeySuffix: 'all' | 'lists' | 'detail';
+  readonly computeQueryKey: (groupName: string) => string;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key InvalidationTargetKind.
+ */
+export type InvalidationTargetRegistry = {
+  readonly [K in InvalidationTargetKind]: InvalidationTargetSpecification<K>;
+};
+
+export const INVALIDATION_TARGET_REGISTRY: InvalidationTargetRegistry = Object.freeze({
+  [InvalidationTargetKind.SelfList]: {
+    kind: InvalidationTargetKind.SelfList,
+    queryKeySuffix: 'all',
+    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.all`,
+  },
+  [InvalidationTargetKind.ParentList]: {
+    kind: InvalidationTargetKind.ParentList,
+    queryKeySuffix: 'lists',
+    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.lists`,
+  },
+  [InvalidationTargetKind.ParentDetail]: {
+    kind: InvalidationTargetKind.ParentDetail,
+    queryKeySuffix: 'detail',
+    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.detail`,
+  },
+  [InvalidationTargetKind.AuthResource]: {
+    kind: InvalidationTargetKind.AuthResource,
+    queryKeySuffix: 'all',
+    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.all`,
+  },
+});
+
+export interface InvalidationTargetVisitor<R> {
+  readonly self_list: (target: SelfListInvalidationTarget) => R;
+  readonly parent_list: (target: ParentListInvalidationTarget) => R;
+  readonly parent_detail: (target: ParentDetailInvalidationTarget) => R;
+  readonly auth_resource: (target: AuthResourceInvalidationTarget) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian InvalidationTarget dengan exhaustive type safety
+ */
+export function matchInvalidationTarget<R>(
+  target: InvalidationTarget,
+  visitor: InvalidationTargetVisitor<R>
+): R {
+  return visitor[target.kind](target as any);
+}
+
 export class ScannedInvalidationTarget implements InvalidationTarget {
   public readonly groupName: string;
   public readonly kind: InvalidationTargetKind;
@@ -1981,59 +2265,44 @@ export class ScannedInvalidationTarget implements InvalidationTarget {
     Object.freeze(this);
   }
 
-  private static computeQueryKey(groupName: string, kind: InvalidationTargetKind): string {
-    switch (kind) {
-      case InvalidationTargetKind.SelfList:
-        return `QueryKey.${groupName}.all`;
-      case InvalidationTargetKind.ParentList:
-        return `QueryKey.${groupName}.lists`;
-      case InvalidationTargetKind.ParentDetail:
-        return `QueryKey.${groupName}.detail`;
-      case InvalidationTargetKind.AuthResource:
-        return `QueryKey.${groupName}.all`;
-    }
+  public static computeQueryKey(groupName: string, kind: InvalidationTargetKind): string {
+    return INVALIDATION_TARGET_REGISTRY[kind].computeQueryKey(groupName);
   }
 
-  public static selfList(groupName: string): ScannedInvalidationTarget {
+  public static selfList(groupName: string): SelfListInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.SelfList
-    });
+    }) as SelfListInvalidationTarget;
   }
 
-  public static parentList(groupName: string): ScannedInvalidationTarget {
+  public static parentList(groupName: string): ParentListInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.ParentList
-    });
+    }) as ParentListInvalidationTarget;
   }
 
-  public static parentDetail(groupName: string): ScannedInvalidationTarget {
+  public static parentDetail(groupName: string): ParentDetailInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.ParentDetail
-    });
+    }) as ParentDetailInvalidationTarget;
   }
 
-  public static authResource(groupName: string): ScannedInvalidationTarget {
+  public static authResource(groupName: string): AuthResourceInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.AuthResource
-    });
+    }) as AuthResourceInvalidationTarget;
   }
 
-  public static resourceList(groupName: string): ScannedInvalidationTarget {
-    return new ScannedInvalidationTarget({
-      groupName,
-      kind: InvalidationTargetKind.ParentList
-    });
+  public static resourceList(groupName: string): ParentListInvalidationTarget {
+    return ScannedInvalidationTarget.parentList(groupName);
   }
 
-  public static resourceItem(groupName: string): ScannedInvalidationTarget {
-    return new ScannedInvalidationTarget({
-      groupName,
-      kind: InvalidationTargetKind.ParentDetail
-    });
+  public static resourceItem(groupName: string): ParentDetailInvalidationTarget {
+    return ScannedInvalidationTarget.parentDetail(groupName);
   }
 }
 
@@ -2149,6 +2418,117 @@ export interface SdkResponseResolution {
   readonly mapperExpression: string;
 }
 
+export interface VoidSdkResponseResolution extends SdkResponseResolution {
+  readonly kind: 'void';
+  readonly type: 'void';
+  readonly hasSchema: false;
+  readonly schemaExpression: '';
+  readonly hasMapper: false;
+  readonly mapperExpression: '';
+}
+
+export interface RawSdkResponseResolution extends SdkResponseResolution {
+  readonly kind: 'raw';
+  readonly hasSchema: false;
+  readonly schemaExpression: '';
+  readonly hasMapper: false;
+  readonly mapperExpression: '';
+}
+
+export interface ValidatedSdkResponseResolution extends SdkResponseResolution {
+  readonly kind: 'validated';
+  readonly hasSchema: true;
+  readonly hasMapper: false;
+  readonly mapperExpression: '';
+}
+
+export interface MappedSdkResponseResolution extends SdkResponseResolution {
+  readonly kind: 'mapped';
+  readonly hasSchema: false;
+  readonly schemaExpression: '';
+  readonly hasMapper: true;
+}
+
+export interface ValidatedAndMappedSdkResponseResolution extends SdkResponseResolution {
+  readonly kind: 'validated_and_mapped';
+  readonly hasSchema: true;
+  readonly hasMapper: true;
+}
+
+export type AnySdkResponseResolution =
+  | VoidSdkResponseResolution
+  | RawSdkResponseResolution
+  | ValidatedSdkResponseResolution
+  | MappedSdkResponseResolution
+  | ValidatedAndMappedSdkResponseResolution;
+
+export interface SdkResponseKindSpecification<K extends SdkResponseKind = SdkResponseKind> {
+  readonly kind: K;
+  readonly hasSchema: boolean;
+  readonly hasMapper: boolean;
+  readonly isTransformed: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key SdkResponseKind.
+ */
+export type SdkResponseKindRegistry = {
+  readonly [K in SdkResponseKind]: SdkResponseKindSpecification<K>;
+};
+
+export const SDK_RESPONSE_KIND_REGISTRY: SdkResponseKindRegistry = Object.freeze({
+  [SdkResponseKind.Void]: {
+    kind: SdkResponseKind.Void,
+    hasSchema: false,
+    hasMapper: false,
+    isTransformed: false
+  },
+  [SdkResponseKind.Raw]: {
+    kind: SdkResponseKind.Raw,
+    hasSchema: false,
+    hasMapper: false,
+    isTransformed: false
+  },
+  [SdkResponseKind.Validated]: {
+    kind: SdkResponseKind.Validated,
+    hasSchema: true,
+    hasMapper: false,
+    isTransformed: false
+  },
+  [SdkResponseKind.Mapped]: {
+    kind: SdkResponseKind.Mapped,
+    hasSchema: false,
+    hasMapper: true,
+    isTransformed: true
+  },
+  [SdkResponseKind.ValidatedAndMapped]: {
+    kind: SdkResponseKind.ValidatedAndMapped,
+    hasSchema: true,
+    hasMapper: true,
+    isTransformed: true
+  }
+});
+
+export interface SdkResponseResolutionVisitor<R> {
+  readonly void: (res: VoidSdkResponseResolution) => R;
+  readonly raw: (res: RawSdkResponseResolution) => R;
+  readonly validated: (res: ValidatedSdkResponseResolution) => R;
+  readonly mapped: (res: MappedSdkResponseResolution) => R;
+  readonly validated_and_mapped: (res: ValidatedAndMappedSdkResponseResolution) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian SdkResponseResolution dengan exhaustive type safety
+ */
+export function matchSdkResponseResolution<R>(
+  resolution: SdkResponseResolution,
+  visitor: SdkResponseResolutionVisitor<R>
+): R {
+  return visitor[resolution.kind](resolution as any);
+}
+
+export const matchSdkResponse = matchSdkResponseResolution;
+
 export class ScannedSdkResponseResolution implements SdkResponseResolution {
   public readonly kind: SdkResponseKind;
   public readonly type: string;
@@ -2181,7 +2561,7 @@ export class ScannedSdkResponseResolution implements SdkResponseResolution {
     Object.freeze(this);
   }
 
-  public static voidResponse(): ScannedSdkResponseResolution {
+  public static voidResponse(): VoidSdkResponseResolution {
     return new ScannedSdkResponseResolution({
       kind: SdkResponseKind.Void,
       type: 'void',
@@ -2189,10 +2569,10 @@ export class ScannedSdkResponseResolution implements SdkResponseResolution {
       schemaExpression: '',
       hasMapper: false,
       mapperExpression: ''
-    });
+    }) as VoidSdkResponseResolution;
   }
 
-  public static raw(readTypeName: string): ScannedSdkResponseResolution {
+  public static raw(readTypeName: string): RawSdkResponseResolution {
     return new ScannedSdkResponseResolution({
       kind: SdkResponseKind.Raw,
       type: readTypeName,
@@ -2200,10 +2580,10 @@ export class ScannedSdkResponseResolution implements SdkResponseResolution {
       schemaExpression: '',
       hasMapper: false,
       mapperExpression: ''
-    });
+    }) as RawSdkResponseResolution;
   }
 
-  public static validated(readTypeName: string, schemaExpression: string): ScannedSdkResponseResolution {
+  public static validated(readTypeName: string, schemaExpression: string): ValidatedSdkResponseResolution {
     return new ScannedSdkResponseResolution({
       kind: SdkResponseKind.Validated,
       type: readTypeName,
@@ -2211,10 +2591,10 @@ export class ScannedSdkResponseResolution implements SdkResponseResolution {
       schemaExpression,
       hasMapper: false,
       mapperExpression: ''
-    });
+    }) as ValidatedSdkResponseResolution;
   }
 
-  public static mapped(readTypeName: string, mapperExpression: string): ScannedSdkResponseResolution {
+  public static mapped(readTypeName: string, mapperExpression: string): MappedSdkResponseResolution {
     return new ScannedSdkResponseResolution({
       kind: SdkResponseKind.Mapped,
       type: readTypeName,
@@ -2222,14 +2602,14 @@ export class ScannedSdkResponseResolution implements SdkResponseResolution {
       schemaExpression: '',
       hasMapper: true,
       mapperExpression
-    });
+    }) as MappedSdkResponseResolution;
   }
 
   public static validatedAndMapped(
     readTypeName: string,
     schemaExpression: string,
     mapperExpression: string
-  ): ScannedSdkResponseResolution {
+  ): ValidatedAndMappedSdkResponseResolution {
     return new ScannedSdkResponseResolution({
       kind: SdkResponseKind.ValidatedAndMapped,
       type: readTypeName,
@@ -2237,7 +2617,7 @@ export class ScannedSdkResponseResolution implements SdkResponseResolution {
       schemaExpression,
       hasMapper: true,
       mapperExpression
-    });
+    }) as ValidatedAndMappedSdkResponseResolution;
   }
 }
 

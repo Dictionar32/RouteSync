@@ -10,7 +10,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
+import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
 import { RequestType, FormAction, RequestField, ResponseData, FileValidationConstraints } from '../artifacts/RequestTypesArtifact';
 import { ObjectType, ObjectProperty, ScannedObjectProperty, PrimitiveType, PrimitiveKind, NullableType, ReadonlyCollectionType, CollectionKind, ReferenceType, SemanticType } from '../types/SemanticType';
 import { TypeInterner } from '../types/TypeInterner';
@@ -864,7 +864,7 @@ export class ScannedRouteParameterDescriptor implements RouteParameter {
         });
     }
 
-    public static fromPathSegment(rawSegment: string): ScannedRouteParameterDescriptor {
+    public static fromPathSegment(rawSegment: string): PathParameterDescriptor {
         const [rawName, bindingField] = rawSegment.split(':');
         const isOptional = rawName.endsWith('?');
         const name = isOptional ? rawName.slice(0, -1) : rawName;
@@ -878,7 +878,76 @@ export class ScannedRouteParameterDescriptor implements RouteParameter {
             in: 'path',
             required: !isOptional,
             type: isNumeric ? RouteParameterType.Number : RouteParameterType.String
-        });
+        }) as PathParameterDescriptor;
+    }
+
+    public static path({
+        name,
+        propertyName = toCamelCase(name),
+        bindingField = null,
+        required = true,
+        type
+    }: {
+        readonly name: string;
+        readonly propertyName?: string;
+        readonly bindingField?: string | null;
+        readonly required?: boolean;
+        readonly type?: RouteParameterType;
+    }): PathParameterDescriptor {
+        const bField = bindingField ?? null;
+        const isNumeric = bField
+            ? (bField === 'id' || bField.endsWith('_id') || bField.endsWith('Id'))
+            : (name === 'id' || name.endsWith('_id') || name.endsWith('Id'));
+        return new ScannedRouteParameterDescriptor({
+            name,
+            propertyName,
+            bindingField: bField,
+            in: 'path',
+            required,
+            type: type ?? (isNumeric ? RouteParameterType.Number : RouteParameterType.String)
+        }) as PathParameterDescriptor;
+    }
+
+    public static query({
+        name,
+        propertyName = toCamelCase(name),
+        required = false,
+        type = RouteParameterType.String
+    }: {
+        readonly name: string;
+        readonly propertyName?: string;
+        readonly required?: boolean;
+        readonly type?: RouteParameterType;
+    }): QueryParameterDescriptor {
+        return new ScannedRouteParameterDescriptor({
+            name,
+            propertyName,
+            bindingField: null,
+            in: 'query',
+            required,
+            type
+        }) as QueryParameterDescriptor;
+    }
+
+    public static header({
+        name,
+        propertyName = toCamelCase(name),
+        required = true,
+        type = RouteParameterType.String
+    }: {
+        readonly name: string;
+        readonly propertyName?: string;
+        readonly required?: boolean;
+        readonly type?: RouteParameterType;
+    }): HeaderParameterDescriptor {
+        return new ScannedRouteParameterDescriptor({
+            name,
+            propertyName,
+            bindingField: null,
+            in: 'header',
+            required,
+            type
+        }) as HeaderParameterDescriptor;
     }
 }
 
@@ -1176,6 +1245,54 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
             foreignKey
         });
     }
+
+    public static single({
+        name,
+        type,
+        modelName,
+        targetModel = modelName,
+        foreignKey = null
+    }: {
+        readonly name: string;
+        readonly type: EloquentRelationType;
+        readonly modelName: string;
+        readonly targetModel?: string;
+        readonly foreignKey?: string | null;
+    }): SingleRelationDescriptor {
+        return new ScannedModelRelationDescriptor({
+            name,
+            type,
+            modelName,
+            targetModel,
+            cardinality: 'one',
+            isCollection: false,
+            foreignKey
+        }) as SingleRelationDescriptor;
+    }
+
+    public static collection({
+        name,
+        type,
+        modelName,
+        targetModel = modelName,
+        foreignKey = null
+    }: {
+        readonly name: string;
+        readonly type: EloquentRelationType;
+        readonly modelName: string;
+        readonly targetModel?: string;
+        readonly foreignKey?: string | null;
+    }): CollectionRelationDescriptor {
+        return new ScannedModelRelationDescriptor({
+            name,
+            type,
+            modelName,
+            targetModel,
+            cardinality: 'many',
+            isCollection: true,
+            foreignKey
+        }) as CollectionRelationDescriptor;
+    }
 }
 
 export interface ScannedBroadcastChannelParams {
@@ -1258,6 +1375,84 @@ export class ScannedBroadcastChannelDescriptor implements BroadcastChannelDescri
         readonly parameters?: readonly RouteParameter[];
     }): ScannedBroadcastChannelDescriptor {
         return ScannedBroadcastChannelDescriptor.create({ name, pattern, kind, parameters });
+    }
+
+    public static public({
+        name,
+        pattern,
+        parameters = []
+    }: {
+        readonly name: string;
+        readonly pattern?: string;
+        readonly parameters?: readonly RouteParameter[];
+    }): PublicBroadcastChannelDescriptor {
+        const resolvedPattern = pattern ?? name;
+        const runtimePattern = resolvedPattern.replace(/\{([^}]+)\}/g, (_, pName) => {
+            const cleanName = pName.split(':')[0];
+            const matched = parameters.find(p => p.name === cleanName);
+            return `\${${matched?.propertyName || cleanName}}`;
+        });
+        return Object.freeze({
+            name,
+            kind: BroadcastChannelKind.Public,
+            pattern: resolvedPattern,
+            runtimePattern,
+            parameters: Object.freeze([...parameters]),
+            isPrivate: false as const,
+            isPresence: false as const
+        });
+    }
+
+    public static private({
+        name,
+        pattern,
+        parameters = []
+    }: {
+        readonly name: string;
+        readonly pattern?: string;
+        readonly parameters?: readonly RouteParameter[];
+    }): PrivateBroadcastChannelDescriptor {
+        const resolvedPattern = pattern ?? name;
+        const runtimePattern = resolvedPattern.replace(/\{([^}]+)\}/g, (_, pName) => {
+            const cleanName = pName.split(':')[0];
+            const matched = parameters.find(p => p.name === cleanName);
+            return `\${${matched?.propertyName || cleanName}}`;
+        });
+        return Object.freeze({
+            name,
+            kind: BroadcastChannelKind.Private,
+            pattern: resolvedPattern,
+            runtimePattern,
+            parameters: Object.freeze([...parameters]),
+            isPrivate: true as const,
+            isPresence: false as const
+        });
+    }
+
+    public static presence({
+        name,
+        pattern,
+        parameters = []
+    }: {
+        readonly name: string;
+        readonly pattern?: string;
+        readonly parameters?: readonly RouteParameter[];
+    }): PresenceBroadcastChannelDescriptor {
+        const resolvedPattern = pattern ?? name;
+        const runtimePattern = resolvedPattern.replace(/\{([^}]+)\}/g, (_, pName) => {
+            const cleanName = pName.split(':')[0];
+            const matched = parameters.find(p => p.name === cleanName);
+            return `\${${matched?.propertyName || cleanName}}`;
+        });
+        return Object.freeze({
+            name,
+            kind: BroadcastChannelKind.Presence,
+            pattern: resolvedPattern,
+            runtimePattern,
+            parameters: Object.freeze([...parameters]),
+            isPrivate: true as const,
+            isPresence: true as const
+        });
     }
 }
 

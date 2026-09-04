@@ -148,21 +148,255 @@ export const ResourceExpressionKind = Object.freeze({
 
 export type ResourceExpressionKind = typeof ResourceExpressionKind[keyof typeof ResourceExpressionKind];
 
+export interface BaseResourceFieldExpression<K extends ResourceExpressionKind = ResourceExpressionKind> {
+  readonly kind: K;
+}
+
+export interface PrimitiveResourceExpression extends BaseResourceFieldExpression<'primitive'> {
+  readonly kind: 'primitive';
+  readonly type: string;
+}
+
+export interface ModelResourceExpression extends BaseResourceFieldExpression<'model'> {
+  readonly kind: 'model';
+  readonly model: string;
+  readonly collection: boolean;
+}
+
+export interface ResourceResourceExpression extends BaseResourceFieldExpression<'resource'> {
+  readonly kind: 'resource';
+  readonly resource: string;
+  readonly model: string | null;
+  readonly collection: boolean;
+}
+
+export interface ObjectResourceExpression extends BaseResourceFieldExpression<'object'> {
+  readonly kind: 'object';
+  readonly fields: readonly ResourceFieldDescriptor[];
+}
+
+export interface ArrayResourceExpression extends BaseResourceFieldExpression<'array'> {
+  readonly kind: 'array';
+  readonly element: ResourceFieldDescriptor;
+}
+
+export interface PropertyAccessResourceExpression extends BaseResourceFieldExpression<'property_access'> {
+  readonly kind: 'property_access';
+  readonly target: string;
+  readonly property: string;
+}
+
+export interface NullsafePropertyAccessResourceExpression extends BaseResourceFieldExpression<'nullsafe_property_access'> {
+  readonly kind: 'nullsafe_property_access';
+  readonly target: string;
+  readonly property: string;
+}
+
+export interface VariableResourceExpression extends BaseResourceFieldExpression<'variable'> {
+  readonly kind: 'variable';
+  readonly name: string;
+}
+
+export interface TypeCastResourceExpression extends BaseResourceFieldExpression<'type_cast'> {
+  readonly kind: 'type_cast';
+  readonly type: string;
+  readonly expression: ResourceFieldDescriptor;
+}
+
+export interface BinaryResourceExpression extends BaseResourceFieldExpression<'binary_expression'> {
+  readonly kind: 'binary_expression';
+  readonly operator: string;
+  readonly left: ResourceFieldDescriptor;
+  readonly right: ResourceFieldDescriptor;
+}
+
+export interface MethodCallResourceExpression extends BaseResourceFieldExpression<'method_call'> {
+  readonly kind: 'method_call';
+  readonly method: string;
+}
+
+export interface StaticMethodCallResourceExpression extends BaseResourceFieldExpression<'static_method_call'> {
+  readonly kind: 'static_method_call';
+  readonly class: string;
+  readonly method: string;
+}
+
+export interface LiteralResourceExpression extends BaseResourceFieldExpression<'literal'> {
+  readonly kind: 'literal';
+  readonly value: unknown;
+}
+
+export interface UnknownResourceExpression extends BaseResourceFieldExpression<'unknown'> {
+  readonly kind: 'unknown';
+}
+
 export type ResourceFieldExpression =
-  | { readonly kind: typeof ResourceExpressionKind.Primitive; readonly type: string }
-  | { readonly kind: typeof ResourceExpressionKind.Model; readonly model: string; readonly collection: boolean }
-  | { readonly kind: typeof ResourceExpressionKind.Resource; readonly resource: string; readonly model: string | null; readonly collection: boolean }
-  | { readonly kind: typeof ResourceExpressionKind.Object; readonly fields: readonly ResourceFieldDescriptor[] }
-  | { readonly kind: typeof ResourceExpressionKind.Array; readonly element: ResourceFieldDescriptor }
-  | { readonly kind: typeof ResourceExpressionKind.PropertyAccess; readonly target: string; readonly property: string }
-  | { readonly kind: typeof ResourceExpressionKind.NullsafePropertyAccess; readonly target: string; readonly property: string }
-  | { readonly kind: typeof ResourceExpressionKind.Variable; readonly name: string }
-  | { readonly kind: typeof ResourceExpressionKind.TypeCast; readonly type: string; readonly expression: ResourceFieldDescriptor }
-  | { readonly kind: typeof ResourceExpressionKind.BinaryExpression; readonly operator: string; readonly left: ResourceFieldDescriptor; readonly right: ResourceFieldDescriptor }
-  | { readonly kind: typeof ResourceExpressionKind.MethodCall; readonly method: string }
-  | { readonly kind: typeof ResourceExpressionKind.StaticMethodCall; readonly class: string; readonly method: string }
-  | { readonly kind: typeof ResourceExpressionKind.Literal; readonly value: unknown }
-  | { readonly kind: typeof ResourceExpressionKind.Unknown };
+  | PrimitiveResourceExpression
+  | ModelResourceExpression
+  | ResourceResourceExpression
+  | ObjectResourceExpression
+  | ArrayResourceExpression
+  | PropertyAccessResourceExpression
+  | NullsafePropertyAccessResourceExpression
+  | VariableResourceExpression
+  | TypeCastResourceExpression
+  | BinaryResourceExpression
+  | MethodCallResourceExpression
+  | StaticMethodCallResourceExpression
+  | LiteralResourceExpression
+  | UnknownResourceExpression;
+
+export type AnyResourceFieldExpression = ResourceFieldExpression;
+
+export type ResourceExpressionCategory =
+  | 'primitive'
+  | 'model_ref'
+  | 'container'
+  | 'traversal'
+  | 'computation'
+  | 'fallback';
+
+export interface ResourceExpressionSpecification<K extends ResourceExpressionKind = ResourceExpressionKind> {
+  readonly kind: K;
+  readonly category: ResourceExpressionCategory;
+  readonly isTerminal: boolean;
+  readonly isResolvableToModel: boolean;
+  readonly description: string;
+}
+
+export type ResourceExpressionRegistry = {
+  readonly [K in ResourceExpressionKind]: ResourceExpressionSpecification<K>;
+};
+
+export const RESOURCE_EXPRESSION_REGISTRY: ResourceExpressionRegistry = Object.freeze({
+  [ResourceExpressionKind.Primitive]: {
+    kind: ResourceExpressionKind.Primitive,
+    category: 'primitive',
+    isTerminal: true,
+    isResolvableToModel: false,
+    description: 'Raw primitive PHP or scalar type'
+  },
+  [ResourceExpressionKind.Model]: {
+    kind: ResourceExpressionKind.Model,
+    category: 'model_ref',
+    isTerminal: false,
+    isResolvableToModel: true,
+    description: 'Direct Eloquent model reference'
+  },
+  [ResourceExpressionKind.Resource]: {
+    kind: ResourceExpressionKind.Resource,
+    category: 'model_ref',
+    isTerminal: false,
+    isResolvableToModel: true,
+    description: 'Nested Laravel JsonResource reference'
+  },
+  [ResourceExpressionKind.Object]: {
+    kind: ResourceExpressionKind.Object,
+    category: 'container',
+    isTerminal: false,
+    isResolvableToModel: false,
+    description: 'Nested object fields container'
+  },
+  [ResourceExpressionKind.Array]: {
+    kind: ResourceExpressionKind.Array,
+    category: 'container',
+    isTerminal: false,
+    isResolvableToModel: false,
+    description: 'Homogeneous array collection container'
+  },
+  [ResourceExpressionKind.PropertyAccess]: {
+    kind: ResourceExpressionKind.PropertyAccess,
+    category: 'traversal',
+    isTerminal: false,
+    isResolvableToModel: true,
+    description: 'Direct model property or relation traversal ($this->user->name)'
+  },
+  [ResourceExpressionKind.NullsafePropertyAccess]: {
+    kind: ResourceExpressionKind.NullsafePropertyAccess,
+    category: 'traversal',
+    isTerminal: false,
+    isResolvableToModel: true,
+    description: 'Nullsafe property traversal ($this->user?->name)'
+  },
+  [ResourceExpressionKind.Variable]: {
+    kind: ResourceExpressionKind.Variable,
+    category: 'traversal',
+    isTerminal: true,
+    isResolvableToModel: false,
+    description: 'Local variable evaluation'
+  },
+  [ResourceExpressionKind.TypeCast]: {
+    kind: ResourceExpressionKind.TypeCast,
+    category: 'computation',
+    isTerminal: false,
+    isResolvableToModel: false,
+    description: 'Explicit type cast expression ((int) $this->total)'
+  },
+  [ResourceExpressionKind.BinaryExpression]: {
+    kind: ResourceExpressionKind.BinaryExpression,
+    category: 'computation',
+    isTerminal: false,
+    isResolvableToModel: false,
+    description: 'Binary operator expression ($a . $b, $x + $y)'
+  },
+  [ResourceExpressionKind.MethodCall]: {
+    kind: ResourceExpressionKind.MethodCall,
+    category: 'computation',
+    isTerminal: false,
+    isResolvableToModel: false,
+    description: 'Method invocation on target'
+  },
+  [ResourceExpressionKind.StaticMethodCall]: {
+    kind: ResourceExpressionKind.StaticMethodCall,
+    category: 'computation',
+    isTerminal: false,
+    isResolvableToModel: false,
+    description: 'Static helper or class invocation'
+  },
+  [ResourceExpressionKind.Literal]: {
+    kind: ResourceExpressionKind.Literal,
+    category: 'primitive',
+    isTerminal: true,
+    isResolvableToModel: false,
+    description: 'Constant literal value (string, number, boolean, null)'
+  },
+  [ResourceExpressionKind.Unknown]: {
+    kind: ResourceExpressionKind.Unknown,
+    category: 'fallback',
+    isTerminal: true,
+    isResolvableToModel: false,
+    description: 'Unresolved or dynamic expression fallback'
+  }
+});
+
+export type ResourceFieldExpressionVisitor<R> = {
+  readonly primitive: (expr: PrimitiveResourceExpression) => R;
+  readonly model: (expr: ModelResourceExpression) => R;
+  readonly resource: (expr: ResourceResourceExpression) => R;
+  readonly object: (expr: ObjectResourceExpression) => R;
+  readonly array: (expr: ArrayResourceExpression) => R;
+  readonly property_access: (expr: PropertyAccessResourceExpression) => R;
+  readonly nullsafe_property_access: (expr: NullsafePropertyAccessResourceExpression) => R;
+  readonly variable: (expr: VariableResourceExpression) => R;
+  readonly type_cast: (expr: TypeCastResourceExpression) => R;
+  readonly binary_expression: (expr: BinaryResourceExpression) => R;
+  readonly method_call: (expr: MethodCallResourceExpression) => R;
+  readonly static_method_call: (expr: StaticMethodCallResourceExpression) => R;
+  readonly literal: (expr: LiteralResourceExpression) => R;
+  readonly unknown: (expr: UnknownResourceExpression) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ResourceFieldExpression dengan exhaustive type safety
+ */
+export function matchResourceFieldExpression<R>(
+  expression: ResourceFieldExpression,
+  visitor: ResourceFieldExpressionVisitor<R>
+): R {
+  return visitor[expression.kind](expression as any);
+}
+
+export const matchResourceExpression = matchResourceFieldExpression;
 
 /**
  * ResourceFieldExpressionFactory
@@ -170,34 +404,46 @@ export type ResourceFieldExpression =
  * Canonical Factory for Structured ResourceFieldExpression AST Nodes.
  */
 export class ResourceFieldExpressionFactory {
-  public static primitive(type: string = 'string'): ResourceFieldExpression {
+  public static primitive(type: string = 'string'): PrimitiveResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Primitive, type });
   }
-  public static model(model: string, collection: boolean = false): ResourceFieldExpression {
+  public static model(model: string, collection: boolean = false): ModelResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Model, model, collection });
   }
-  public static resource(resource: string, collection: boolean = false, model: string | null = null): ResourceFieldExpression {
+  public static resource(resource: string, collection: boolean = false, model: string | null = null): ResourceResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Resource, resource, model, collection });
   }
-  public static object(fields: readonly ResourceFieldDescriptor[]): ResourceFieldExpression {
+  public static object(fields: readonly ResourceFieldDescriptor[]): ObjectResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Object, fields: Object.freeze([...fields]) });
   }
-  public static array(element: ResourceFieldDescriptor): ResourceFieldExpression {
+  public static array(element: ResourceFieldDescriptor): ArrayResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Array, element });
   }
-  public static propertyAccess(target: string, property: string): ResourceFieldExpression {
+  public static propertyAccess(target: string, property: string): PropertyAccessResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.PropertyAccess, target, property });
   }
-  public static nullsafePropertyAccess(target: string, property: string): ResourceFieldExpression {
+  public static nullsafePropertyAccess(target: string, property: string): NullsafePropertyAccessResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.NullsafePropertyAccess, target, property });
   }
-  public static variable(name: string): ResourceFieldExpression {
+  public static variable(name: string): VariableResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Variable, name });
   }
-  public static literal(value: unknown): ResourceFieldExpression {
+  public static typeCast(type: string, expression: ResourceFieldDescriptor): TypeCastResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.TypeCast, type, expression });
+  }
+  public static binary(operator: string, left: ResourceFieldDescriptor, right: ResourceFieldDescriptor): BinaryResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.BinaryExpression, operator, left, right });
+  }
+  public static methodCall(method: string): MethodCallResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.MethodCall, method });
+  }
+  public static staticMethodCall(className: string, method: string): StaticMethodCallResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.StaticMethodCall, class: className, method });
+  }
+  public static literal(value: unknown): LiteralResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Literal, value });
   }
-  public static unknown(): ResourceFieldExpression {
+  public static unknown(): UnknownResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Unknown });
   }
 }
@@ -1172,17 +1418,147 @@ export function matchPaginatedEnvelope<R>(
 export const matchPaginationKind = matchPaginatedEnvelope;
 
 /**
- * PolymorphicRelationDescriptor
+ * PolymorphicMorphType
  *
- * Explicit Domain Model for Eloquent Polymorphic ORM Relations (Discriminated Union).
+ * Canonical Domain Vocabulary for Eloquent Polymorphic ORM Relations.
  */
-export interface PolymorphicRelationDescriptor {
-  readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+export const PolymorphicMorphType = Object.freeze({
+  MorphTo: 'morphTo',
+  MorphOne: 'morphOne',
+  MorphMany: 'morphMany',
+  MorphToMany: 'morphToMany',
+  MorphedByMany: 'morphedByMany'
+} as const);
+
+export type PolymorphicMorphType = typeof PolymorphicMorphType[keyof typeof PolymorphicMorphType];
+
+export interface BasePolymorphicRelationDescriptor<T extends PolymorphicMorphType = PolymorphicMorphType> {
+  readonly morphType: T;
   readonly idColumn: string;          // 'commentable_id'
   readonly typeColumn: string;        // 'commentable_type'
   readonly targetModels: readonly string[]; // ['Post', 'Video']
   readonly unionTypeName: string;     // 'CommentableTarget'
+  readonly isCollection?: boolean;
+  readonly cardinality?: EloquentRelationCardinality;
 }
+
+export interface MorphToRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphTo'> {
+  readonly morphType: 'morphTo';
+  readonly isCollection?: false;
+  readonly cardinality?: 'one';
+}
+
+export interface MorphOneRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphOne'> {
+  readonly morphType: 'morphOne';
+  readonly isCollection?: false;
+  readonly cardinality?: 'one';
+}
+
+export interface MorphManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphMany'> {
+  readonly morphType: 'morphMany';
+  readonly isCollection?: true;
+  readonly cardinality?: 'many';
+}
+
+export interface MorphToManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphToMany'> {
+  readonly morphType: 'morphToMany';
+  readonly isCollection?: true;
+  readonly cardinality?: 'many';
+}
+
+export interface MorphedByManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphedByMany'> {
+  readonly morphType: 'morphedByMany';
+  readonly isCollection?: true;
+  readonly cardinality?: 'many';
+}
+
+export type PolymorphicRelationDescriptor<T extends PolymorphicMorphType = PolymorphicMorphType> =
+  T extends 'morphTo' ? MorphToRelationDescriptor :
+  T extends 'morphOne' ? MorphOneRelationDescriptor :
+  T extends 'morphMany' ? MorphManyRelationDescriptor :
+  T extends 'morphToMany' ? MorphToManyRelationDescriptor :
+  T extends 'morphedByMany' ? MorphedByManyRelationDescriptor :
+  BasePolymorphicRelationDescriptor<T>;
+
+export type AnyPolymorphicRelationDescriptor =
+  | MorphToRelationDescriptor
+  | MorphOneRelationDescriptor
+  | MorphManyRelationDescriptor
+  | MorphToManyRelationDescriptor
+  | MorphedByManyRelationDescriptor;
+
+export interface PolymorphicRelationSpecification<T extends PolymorphicMorphType = PolymorphicMorphType> {
+  readonly morphType: T;
+  readonly cardinality: EloquentRelationCardinality;
+  readonly isCollection: boolean;
+  readonly defaultIdColumn: string;
+  readonly defaultTypeColumn: string;
+  readonly defaultUnionTypeName: string;
+}
+
+export type PolymorphicRelationRegistry = {
+  readonly [K in PolymorphicMorphType]: PolymorphicRelationSpecification<K>;
+};
+
+export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object.freeze({
+  [PolymorphicMorphType.MorphTo]: {
+    morphType: PolymorphicMorphType.MorphTo,
+    cardinality: 'one',
+    isCollection: false,
+    defaultIdColumn: 'commentable_id',
+    defaultTypeColumn: 'commentable_type',
+    defaultUnionTypeName: 'CommentableTarget'
+  },
+  [PolymorphicMorphType.MorphOne]: {
+    morphType: PolymorphicMorphType.MorphOne,
+    cardinality: 'one',
+    isCollection: false,
+    defaultIdColumn: 'commentable_id',
+    defaultTypeColumn: 'commentable_type',
+    defaultUnionTypeName: 'CommentableTarget'
+  },
+  [PolymorphicMorphType.MorphMany]: {
+    morphType: PolymorphicMorphType.MorphMany,
+    cardinality: 'many',
+    isCollection: true,
+    defaultIdColumn: 'commentable_id',
+    defaultTypeColumn: 'commentable_type',
+    defaultUnionTypeName: 'CommentableTarget'
+  },
+  [PolymorphicMorphType.MorphToMany]: {
+    morphType: PolymorphicMorphType.MorphToMany,
+    cardinality: 'many',
+    isCollection: true,
+    defaultIdColumn: 'taggable_id',
+    defaultTypeColumn: 'taggable_type',
+    defaultUnionTypeName: 'TaggableTarget'
+  },
+  [PolymorphicMorphType.MorphedByMany]: {
+    morphType: PolymorphicMorphType.MorphedByMany,
+    cardinality: 'many',
+    isCollection: true,
+    defaultIdColumn: 'taggable_id',
+    defaultTypeColumn: 'taggable_type',
+    defaultUnionTypeName: 'TaggableTarget'
+  }
+});
+
+export type PolymorphicRelationVisitor<R> = {
+  readonly [K in PolymorphicMorphType]: (relation: PolymorphicRelationDescriptor<K>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian PolymorphicRelationDescriptor dengan exhaustive type safety
+ */
+export function matchPolymorphicRelation<R>(
+  relation: PolymorphicRelationDescriptor,
+  visitor: PolymorphicRelationVisitor<R>
+): R {
+  return visitor[relation.morphType](relation as any);
+}
+
+export const matchPolymorphicMorphType = matchPolymorphicRelation;
+
 
 export interface ScannedPaginatedEnvelopeParams {
   readonly kind: PaginationKind;
@@ -1262,8 +1638,8 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
   }
 }
 
-export interface ScannedPolymorphicRelationParams {
-  readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+export interface ScannedPolymorphicRelationParams<T extends PolymorphicMorphType = PolymorphicMorphType> {
+  readonly morphType: T;
   readonly idColumn: string;
   readonly typeColumn: string;
   readonly targetModels: readonly string[];
@@ -1273,12 +1649,14 @@ export interface ScannedPolymorphicRelationParams {
 /**
  * Reusable Constructor: Scanned Polymorphic Relation Descriptor.
  */
-export class ScannedPolymorphicRelationDescriptor implements PolymorphicRelationDescriptor {
-  public readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRelationDescriptor {
+  public readonly morphType: PolymorphicMorphType;
   public readonly idColumn: string;
   public readonly typeColumn: string;
   public readonly targetModels: readonly string[];
   public readonly unionTypeName: string;
+  public readonly isCollection: boolean;
+  public readonly cardinality: EloquentRelationCardinality;
 
   constructor(params: ScannedPolymorphicRelationParams) {
     this.morphType = params.morphType;
@@ -1286,29 +1664,109 @@ export class ScannedPolymorphicRelationDescriptor implements PolymorphicRelation
     this.typeColumn = params.typeColumn;
     this.targetModels = Object.freeze([...params.targetModels]);
     this.unionTypeName = params.unionTypeName;
+    const spec = POLYMORPHIC_RELATION_REGISTRY[params.morphType];
+    this.isCollection = spec.isCollection;
+    this.cardinality = spec.cardinality;
     Object.freeze(this);
   }
 
   public static create({
-    morphType,
-    idColumn = 'commentable_id',
-    typeColumn = 'commentable_type',
+    morphType = PolymorphicMorphType.MorphTo,
+    idColumn,
+    typeColumn,
     targetModels = [],
-    unionTypeName = 'CommentableTarget'
+    unionTypeName
   }: {
-    readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+    readonly morphType?: PolymorphicMorphType;
     readonly idColumn?: string;
     readonly typeColumn?: string;
     readonly targetModels?: readonly string[];
     readonly unionTypeName?: string;
-  }): ScannedPolymorphicRelationDescriptor {
+  } = {}): ScannedPolymorphicRelationDescriptor {
+    const effectiveType = morphType ?? PolymorphicMorphType.MorphTo;
+    const spec = POLYMORPHIC_RELATION_REGISTRY[effectiveType];
     return new ScannedPolymorphicRelationDescriptor({
-      morphType,
+      morphType: effectiveType,
+      idColumn: idColumn ?? spec.defaultIdColumn,
+      typeColumn: typeColumn ?? spec.defaultTypeColumn,
+      targetModels,
+      unionTypeName: unionTypeName ?? spec.defaultUnionTypeName
+    });
+  }
+
+  public static morphTo(
+    targetModels: readonly string[] = [],
+    idColumn: string = 'commentable_id',
+    typeColumn: string = 'commentable_type',
+    unionTypeName: string = 'CommentableTarget'
+  ): MorphToRelationDescriptor {
+    return new ScannedPolymorphicRelationDescriptor({
+      morphType: PolymorphicMorphType.MorphTo,
       idColumn,
       typeColumn,
       targetModels,
       unionTypeName
-    });
+    }) as unknown as MorphToRelationDescriptor;
+  }
+
+  public static morphOne(
+    targetModels: readonly string[] = [],
+    idColumn: string = 'commentable_id',
+    typeColumn: string = 'commentable_type',
+    unionTypeName: string = 'CommentableTarget'
+  ): MorphOneRelationDescriptor {
+    return new ScannedPolymorphicRelationDescriptor({
+      morphType: PolymorphicMorphType.MorphOne,
+      idColumn,
+      typeColumn,
+      targetModels,
+      unionTypeName
+    }) as unknown as MorphOneRelationDescriptor;
+  }
+
+  public static morphMany(
+    targetModels: readonly string[] = [],
+    idColumn: string = 'commentable_id',
+    typeColumn: string = 'commentable_type',
+    unionTypeName: string = 'CommentableTarget'
+  ): MorphManyRelationDescriptor {
+    return new ScannedPolymorphicRelationDescriptor({
+      morphType: PolymorphicMorphType.MorphMany,
+      idColumn,
+      typeColumn,
+      targetModels,
+      unionTypeName
+    }) as unknown as MorphManyRelationDescriptor;
+  }
+
+  public static morphToMany(
+    targetModels: readonly string[] = [],
+    idColumn: string = 'taggable_id',
+    typeColumn: string = 'taggable_type',
+    unionTypeName: string = 'TaggableTarget'
+  ): MorphToManyRelationDescriptor {
+    return new ScannedPolymorphicRelationDescriptor({
+      morphType: PolymorphicMorphType.MorphToMany,
+      idColumn,
+      typeColumn,
+      targetModels,
+      unionTypeName
+    }) as unknown as MorphToManyRelationDescriptor;
+  }
+
+  public static morphedByMany(
+    targetModels: readonly string[] = [],
+    idColumn: string = 'taggable_id',
+    typeColumn: string = 'taggable_type',
+    unionTypeName: string = 'TaggableTarget'
+  ): MorphedByManyRelationDescriptor {
+    return new ScannedPolymorphicRelationDescriptor({
+      morphType: PolymorphicMorphType.MorphedByMany,
+      idColumn,
+      typeColumn,
+      targetModels,
+      unionTypeName
+    }) as unknown as MorphedByManyRelationDescriptor;
   }
 }
 
@@ -2749,9 +3207,152 @@ export function matchBroadcastChannel<R>(
 
 export const RouteHookKind = Object.freeze({
   Query: 'query',
-  Mutation: 'mutation'
+  Mutation: 'mutation',
+  InfiniteQuery: 'infinite_query'
 } as const);
 export type RouteHookKind = typeof RouteHookKind[keyof typeof RouteHookKind];
+
+export interface BaseRouteHookDescriptor<K extends RouteHookKind = RouteHookKind> {
+  readonly kind: K;
+  readonly hookPrefix: string;          // 'use'
+  readonly tanstackHookName: string;    // 'useQuery' | 'useMutation' | 'useInfiniteQuery'
+  readonly isMutating: boolean;         // false | true | false
+  readonly requiresQueryKey: boolean;   // true | false | true
+  readonly supportsPagination: boolean; // false | false | true
+}
+
+export interface QueryHookDescriptor extends BaseRouteHookDescriptor<'query'> {
+  readonly kind: 'query';
+  readonly tanstackHookName: 'useQuery';
+  readonly isMutating: false;
+  readonly requiresQueryKey: true;
+  readonly supportsPagination: false;
+}
+
+export interface MutationHookDescriptor extends BaseRouteHookDescriptor<'mutation'> {
+  readonly kind: 'mutation';
+  readonly tanstackHookName: 'useMutation';
+  readonly isMutating: true;
+  readonly requiresQueryKey: false;
+  readonly supportsPagination: false;
+}
+
+export interface InfiniteQueryHookDescriptor extends BaseRouteHookDescriptor<'infinite_query'> {
+  readonly kind: 'infinite_query';
+  readonly tanstackHookName: 'useInfiniteQuery';
+  readonly isMutating: false;
+  readonly requiresQueryKey: true;
+  readonly supportsPagination: true;
+}
+
+export type AnyRouteHookDescriptor =
+  | QueryHookDescriptor
+  | MutationHookDescriptor
+  | InfiniteQueryHookDescriptor;
+
+export type RouteHookDescriptor<K extends RouteHookKind = RouteHookKind> =
+  K extends 'query' ? QueryHookDescriptor :
+  K extends 'mutation' ? MutationHookDescriptor :
+  K extends 'infinite_query' ? InfiniteQueryHookDescriptor :
+  BaseRouteHookDescriptor<K>;
+
+export interface HookKindSpecification<K extends RouteHookKind = RouteHookKind> {
+  readonly kind: K;
+  readonly hookPrefix: string;
+  readonly tanstackHookName: string;
+  readonly isMutating: boolean;
+  readonly requiresQueryKey: boolean;
+  readonly supportsPagination: boolean;
+  readonly defaultOptionsTypeName: string;
+}
+
+export type HookKindRegistry = {
+  readonly [K in RouteHookKind]: HookKindSpecification<K>;
+};
+
+export const HOOK_KIND_REGISTRY: HookKindRegistry = Object.freeze({
+  [RouteHookKind.Query]: {
+    kind: RouteHookKind.Query,
+    hookPrefix: 'use',
+    tanstackHookName: 'useQuery',
+    isMutating: false,
+    requiresQueryKey: true,
+    supportsPagination: false,
+    defaultOptionsTypeName: 'UseQueryOptions'
+  },
+  [RouteHookKind.Mutation]: {
+    kind: RouteHookKind.Mutation,
+    hookPrefix: 'use',
+    tanstackHookName: 'useMutation',
+    isMutating: true,
+    requiresQueryKey: false,
+    supportsPagination: false,
+    defaultOptionsTypeName: 'UseMutationOptions'
+  },
+  [RouteHookKind.InfiniteQuery]: {
+    kind: RouteHookKind.InfiniteQuery,
+    hookPrefix: 'use',
+    tanstackHookName: 'useInfiniteQuery',
+    isMutating: false,
+    requiresQueryKey: true,
+    supportsPagination: true,
+    defaultOptionsTypeName: 'UseInfiniteQueryOptions'
+  }
+});
+
+export type RouteHookKindVisitor<R> = {
+  readonly [K in RouteHookKind]: (spec: HookKindSpecification<K>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian RouteHookKind dengan exhaustive type safety
+ */
+export function matchRouteHookKind<R>(
+  kind: RouteHookKind,
+  visitor: RouteHookKindVisitor<R>
+): R {
+  const spec = HOOK_KIND_REGISTRY[kind] ?? HOOK_KIND_REGISTRY[RouteHookKind.Query];
+  return visitor[kind](spec as any);
+}
+
+export const matchHookKind = matchRouteHookKind;
+
+export class ScannedRouteHookDescriptor implements BaseRouteHookDescriptor {
+  public readonly kind: RouteHookKind;
+  public readonly hookPrefix: string;
+  public readonly tanstackHookName: string;
+  public readonly isMutating: boolean;
+  public readonly requiresQueryKey: boolean;
+  public readonly supportsPagination: boolean;
+
+  constructor(kind: RouteHookKind = RouteHookKind.Query) {
+    this.kind = kind;
+    const spec = HOOK_KIND_REGISTRY[kind] ?? HOOK_KIND_REGISTRY[RouteHookKind.Query];
+    this.hookPrefix = spec.hookPrefix;
+    this.tanstackHookName = spec.tanstackHookName;
+    this.isMutating = spec.isMutating;
+    this.requiresQueryKey = spec.requiresQueryKey;
+    this.supportsPagination = spec.supportsPagination;
+    Object.freeze(this);
+  }
+
+  public static query(): QueryHookDescriptor {
+    return new ScannedRouteHookDescriptor(RouteHookKind.Query) as unknown as QueryHookDescriptor;
+  }
+
+  public static mutation(): MutationHookDescriptor {
+    return new ScannedRouteHookDescriptor(RouteHookKind.Mutation) as unknown as MutationHookDescriptor;
+  }
+
+  public static infiniteQuery(): InfiniteQueryHookDescriptor {
+    return new ScannedRouteHookDescriptor(RouteHookKind.InfiniteQuery) as unknown as InfiniteQueryHookDescriptor;
+  }
+
+  public static fromKind(kind: RouteHookKind): ScannedRouteHookDescriptor {
+    return new ScannedRouteHookDescriptor(kind);
+  }
+}
+
 
 export const RoutePayloadMode = Object.freeze({
   None: 'none',
@@ -3458,6 +4059,7 @@ export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.
     const CUSTOM_DISPATCH: Record<RouteHookKind, RouteClassifier> = {
       [RouteHookKind.Query]: CRUD_DISPATCH_REGISTRY.index,
       [RouteHookKind.Mutation]: CRUD_DISPATCH_REGISTRY.create,
+      [RouteHookKind.InfiniteQuery]: CRUD_DISPATCH_REGISTRY.index,
     };
     return CUSTOM_DISPATCH[route.hookKind](route);
   },

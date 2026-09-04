@@ -2098,6 +2098,7 @@ export class StaticLaravelScanner {
         return routes.map(route => {
             switch (route.hookKind) {
                 case RouteHookKind.Query:
+                case RouteHookKind.InfiniteQuery:
                     return route;
 
                 case RouteHookKind.Mutation: {

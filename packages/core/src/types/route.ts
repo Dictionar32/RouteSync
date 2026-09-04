@@ -627,6 +627,152 @@ export const EloquentCastKind = Object.freeze({
 
 export type EloquentCastKind = typeof EloquentCastKind[keyof typeof EloquentCastKind];
 
+export interface EloquentCastKindSpecification<K extends EloquentCastKind = EloquentCastKind> {
+  readonly kind: K;
+  readonly tsType: string;
+  readonly semanticType: PrimitiveKind;
+  readonly isNumeric: boolean;
+  readonly isDateTime: boolean;
+  readonly isJsonOrCollection: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key EloquentCastKind.
+ */
+export type EloquentCastKindRegistry = {
+  readonly [K in EloquentCastKind]: EloquentCastKindSpecification<K>;
+};
+
+export const ELOQUENT_CAST_REGISTRY: EloquentCastKindRegistry = Object.freeze({
+  [EloquentCastKind.Integer]: {
+    kind: EloquentCastKind.Integer,
+    tsType: 'number',
+    semanticType: PrimitiveKind.NUMBER,
+    isNumeric: true,
+    isDateTime: false,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Float]: {
+    kind: EloquentCastKind.Float,
+    tsType: 'number',
+    semanticType: PrimitiveKind.NUMBER,
+    isNumeric: true,
+    isDateTime: false,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Decimal]: {
+    kind: EloquentCastKind.Decimal,
+    tsType: 'number',
+    semanticType: PrimitiveKind.NUMBER,
+    isNumeric: true,
+    isDateTime: false,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Boolean]: {
+    kind: EloquentCastKind.Boolean,
+    tsType: 'boolean',
+    semanticType: PrimitiveKind.BOOLEAN,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.String]: {
+    kind: EloquentCastKind.String,
+    tsType: 'string',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.DateTime]: {
+    kind: EloquentCastKind.DateTime,
+    tsType: 'string',
+    semanticType: PrimitiveKind.DATETIME,
+    isNumeric: false,
+    isDateTime: true,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Date]: {
+    kind: EloquentCastKind.Date,
+    tsType: 'string',
+    semanticType: PrimitiveKind.DATETIME,
+    isNumeric: false,
+    isDateTime: true,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Timestamp]: {
+    kind: EloquentCastKind.Timestamp,
+    tsType: 'string',
+    semanticType: PrimitiveKind.DATETIME,
+    isNumeric: false,
+    isDateTime: true,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Array]: {
+    kind: EloquentCastKind.Array,
+    tsType: 'Record<string, unknown>',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: true
+  },
+  [EloquentCastKind.Json]: {
+    kind: EloquentCastKind.Json,
+    tsType: 'Record<string, unknown>',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: true
+  },
+  [EloquentCastKind.Object]: {
+    kind: EloquentCastKind.Object,
+    tsType: 'Record<string, unknown>',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: true
+  },
+  [EloquentCastKind.Collection]: {
+    kind: EloquentCastKind.Collection,
+    tsType: 'unknown[]',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: true
+  },
+  [EloquentCastKind.Encrypted]: {
+    kind: EloquentCastKind.Encrypted,
+    tsType: 'string',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: false
+  },
+  [EloquentCastKind.Custom]: {
+    kind: EloquentCastKind.Custom,
+    tsType: 'unknown',
+    semanticType: PrimitiveKind.STRING,
+    isNumeric: false,
+    isDateTime: false,
+    isJsonOrCollection: false
+  }
+});
+
+export type EloquentCastKindVisitor<R> = {
+  readonly [K in EloquentCastKind]: (spec: EloquentCastKindSpecification<K>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian EloquentCastKind dengan exhaustive type safety
+ */
+export function matchEloquentCastKind<R>(
+  kind: EloquentCastKind,
+  visitor: EloquentCastKindVisitor<R>
+): R {
+  const spec = ELOQUENT_CAST_REGISTRY[kind] ?? ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom];
+  return visitor[kind](spec as any);
+}
+
 /**
  * EloquentCastMapper
  *
@@ -634,30 +780,32 @@ export type EloquentCastKind = typeof EloquentCastKind[keyof typeof EloquentCast
  * Pure O(1) dictionary lookup (0 regex, 0 .includes()).
  */
 export class EloquentCastMapper {
-  private static readonly CAST_MAP: Readonly<Record<string, { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind }>> = Object.freeze({
-    'int': { castKind: EloquentCastKind.Integer, semanticType: PrimitiveKind.NUMBER },
-    'integer': { castKind: EloquentCastKind.Integer, semanticType: PrimitiveKind.NUMBER },
-    'real': { castKind: EloquentCastKind.Float, semanticType: PrimitiveKind.NUMBER },
-    'float': { castKind: EloquentCastKind.Float, semanticType: PrimitiveKind.NUMBER },
-    'double': { castKind: EloquentCastKind.Float, semanticType: PrimitiveKind.NUMBER },
-    'decimal': { castKind: EloquentCastKind.Decimal, semanticType: PrimitiveKind.NUMBER },
-    'string': { castKind: EloquentCastKind.String, semanticType: PrimitiveKind.STRING },
-    'bool': { castKind: EloquentCastKind.Boolean, semanticType: PrimitiveKind.BOOLEAN },
-    'boolean': { castKind: EloquentCastKind.Boolean, semanticType: PrimitiveKind.BOOLEAN },
-    'object': { castKind: EloquentCastKind.Object, semanticType: PrimitiveKind.STRING },
-    'array': { castKind: EloquentCastKind.Array, semanticType: PrimitiveKind.STRING },
-    'json': { castKind: EloquentCastKind.Json, semanticType: PrimitiveKind.STRING },
-    'collection': { castKind: EloquentCastKind.Collection, semanticType: PrimitiveKind.STRING },
-    'date': { castKind: EloquentCastKind.Date, semanticType: PrimitiveKind.DATETIME },
-    'datetime': { castKind: EloquentCastKind.DateTime, semanticType: PrimitiveKind.DATETIME },
-    'custom_datetime': { castKind: EloquentCastKind.DateTime, semanticType: PrimitiveKind.DATETIME },
-    'timestamp': { castKind: EloquentCastKind.Timestamp, semanticType: PrimitiveKind.DATETIME },
-    'encrypted': { castKind: EloquentCastKind.Encrypted, semanticType: PrimitiveKind.STRING }
+  private static readonly CAST_MAP: Readonly<Record<string, EloquentCastKind>> = Object.freeze({
+    'int': EloquentCastKind.Integer,
+    'integer': EloquentCastKind.Integer,
+    'real': EloquentCastKind.Float,
+    'float': EloquentCastKind.Float,
+    'double': EloquentCastKind.Float,
+    'decimal': EloquentCastKind.Decimal,
+    'string': EloquentCastKind.String,
+    'bool': EloquentCastKind.Boolean,
+    'boolean': EloquentCastKind.Boolean,
+    'object': EloquentCastKind.Object,
+    'array': EloquentCastKind.Array,
+    'json': EloquentCastKind.Json,
+    'collection': EloquentCastKind.Collection,
+    'date': EloquentCastKind.Date,
+    'datetime': EloquentCastKind.DateTime,
+    'custom_datetime': EloquentCastKind.DateTime,
+    'timestamp': EloquentCastKind.Timestamp,
+    'encrypted': EloquentCastKind.Encrypted
   });
 
   public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind } {
     const clean = (rawTargetType || '').split(':')[0].trim().toLowerCase();
-    return this.CAST_MAP[clean] ?? { castKind: EloquentCastKind.Custom, semanticType: PrimitiveKind.STRING };
+    const kind = this.CAST_MAP[clean] ?? EloquentCastKind.Custom;
+    const spec = ELOQUENT_CAST_REGISTRY[kind];
+    return { castKind: spec.kind, semanticType: spec.semanticType };
   }
 }
 

@@ -115,7 +115,9 @@ export {
   matchRouteExecutionSignature,
   matchRoutePayloadMode,
   DATABASE_COLUMN_KIND_REGISTRY,
-  matchDatabaseColumnKind
+  matchDatabaseColumnKind,
+  ELOQUENT_CAST_REGISTRY,
+  matchEloquentCastKind
 } from './types/route'
 export type {
   RouteManifest,
@@ -193,6 +195,9 @@ export type {
   DatabaseColumnKindRegistry,
   DatabaseColumnKindVisitor,
   ParsedCast,
+  EloquentCastKindSpecification,
+  EloquentCastKindRegistry,
+  EloquentCastKindVisitor,
   ParsedAccessor,
   ParsedRelation,
   SingleRelationDescriptor,

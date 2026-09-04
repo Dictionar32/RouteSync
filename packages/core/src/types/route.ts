@@ -3975,7 +3975,142 @@ export interface RouteQueryParameter {
   readonly default: unknown;
 }
 
+/**
+ * Canonical Laravel Error Types (SSOT)
+ */
+export interface LaravelValidationError {
+  readonly message: string;
+  readonly errors: Record<string, readonly string[]>;
+}
+
+export interface LaravelUnauthorizedError {
+  readonly message: string;
+}
+
+export interface LaravelForbiddenError {
+  readonly message: string;
+}
+
+export interface LaravelNotFoundError {
+  readonly message: string;
+}
+
+export interface LaravelServerError {
+  readonly message: string;
+}
+
+/**
+ * HttpErrorKind
+ *
+ * Canonical Domain Vocabulary for HTTP Error Response Categories.
+ */
+export const HttpErrorKind = Object.freeze({
+  Validation: 'validation',
+  Unauthorized: 'unauthorized',
+  Forbidden: 'forbidden',
+  NotFound: 'notFound',
+  ServerError: 'serverError',
+  Custom: 'custom'
+} as const);
+
+export type HttpErrorKind = typeof HttpErrorKind[keyof typeof HttpErrorKind];
+
+export interface HttpErrorKindSpecification<K extends HttpErrorKind = HttpErrorKind> {
+  readonly kind: K;
+  readonly defaultStatusCode: HttpStatusCode;
+  readonly defaultName: string;
+  readonly defaultTypeName: string;
+  readonly isClientError: boolean;
+  readonly isServerError: boolean;
+}
+
+export type HttpErrorKindRegistry = {
+  readonly [K in HttpErrorKind]: HttpErrorKindSpecification<K>;
+};
+
+export const HTTP_ERROR_KIND_REGISTRY: HttpErrorKindRegistry = Object.freeze({
+  [HttpErrorKind.Validation]: {
+    kind: HttpErrorKind.Validation,
+    defaultStatusCode: HttpStatusCode.UnprocessableEntity,
+    defaultName: 'UnprocessableEntity',
+    defaultTypeName: 'LaravelValidationError',
+    isClientError: true,
+    isServerError: false
+  },
+  [HttpErrorKind.Unauthorized]: {
+    kind: HttpErrorKind.Unauthorized,
+    defaultStatusCode: HttpStatusCode.Unauthorized,
+    defaultName: 'Unauthorized',
+    defaultTypeName: 'LaravelUnauthorizedError',
+    isClientError: true,
+    isServerError: false
+  },
+  [HttpErrorKind.Forbidden]: {
+    kind: HttpErrorKind.Forbidden,
+    defaultStatusCode: HttpStatusCode.Forbidden,
+    defaultName: 'Forbidden',
+    defaultTypeName: 'LaravelForbiddenError',
+    isClientError: true,
+    isServerError: false
+  },
+  [HttpErrorKind.NotFound]: {
+    kind: HttpErrorKind.NotFound,
+    defaultStatusCode: HttpStatusCode.NotFound,
+    defaultName: 'NotFound',
+    defaultTypeName: 'LaravelNotFoundError',
+    isClientError: true,
+    isServerError: false
+  },
+  [HttpErrorKind.ServerError]: {
+    kind: HttpErrorKind.ServerError,
+    defaultStatusCode: HttpStatusCode.InternalServerError,
+    defaultName: 'InternalServerError',
+    defaultTypeName: 'LaravelServerError',
+    isClientError: false,
+    isServerError: true
+  },
+  [HttpErrorKind.Custom]: {
+    kind: HttpErrorKind.Custom,
+    defaultStatusCode: HttpStatusCode.BadRequest,
+    defaultName: 'BadRequest',
+    defaultTypeName: 'LaravelError',
+    isClientError: true,
+    isServerError: false
+  }
+});
+
+export interface HttpErrorVisitor<R> {
+  readonly validation: (desc: HttpErrorResponseDescriptor) => R;
+  readonly unauthorized: (desc: HttpErrorResponseDescriptor) => R;
+  readonly forbidden: (desc: HttpErrorResponseDescriptor) => R;
+  readonly notFound: (desc: HttpErrorResponseDescriptor) => R;
+  readonly serverError: (desc: HttpErrorResponseDescriptor) => R;
+  readonly custom: (desc: HttpErrorResponseDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian HttpErrorResponseDescriptor dengan exhaustive type safety
+ */
+export function matchHttpError<R>(
+  error: HttpErrorResponseDescriptor | HttpErrorKind,
+  visitor: HttpErrorVisitor<R>
+): R {
+  const isKindString = typeof error === 'string';
+  const kind = isKindString ? error : (error.kind ?? HttpErrorKind.Custom);
+  const descriptor: HttpErrorResponseDescriptor = isKindString
+    ? {
+        kind,
+        statusCode: HTTP_ERROR_KIND_REGISTRY[kind].defaultStatusCode,
+        name: HTTP_ERROR_KIND_REGISTRY[kind].defaultName,
+        typeName: HTTP_ERROR_KIND_REGISTRY[kind].defaultTypeName,
+        schema: Object.freeze({})
+      }
+    : error;
+  return visitor[kind](descriptor);
+}
+
 export interface HttpErrorResponseDescriptor {
+  readonly kind: HttpErrorKind;
   readonly statusCode: HttpStatusCode;
   readonly name: string;
   readonly typeName: string;
@@ -4107,13 +4242,154 @@ export const CrudRole = Object.freeze({
 export type CrudRole = typeof CrudRole[keyof typeof CrudRole];
 
 /**
+ * RoutePolicyKind
+ *
+ * Canonical ADT discriminator for Laravel route authorization policies.
+ */
+export const RoutePolicyKind = Object.freeze({
+  AbilityModel: 'ability_model',
+  Gate: 'gate',
+  Custom: 'custom'
+} as const);
+
+export type RoutePolicyKind = typeof RoutePolicyKind[keyof typeof RoutePolicyKind];
+
+export interface RoutePolicyKindSpecification<K extends RoutePolicyKind = RoutePolicyKind> {
+  readonly kind: K;
+  readonly requiresModel: boolean;
+  readonly description: string;
+}
+
+export type RoutePolicyKindRegistry = {
+  readonly [K in RoutePolicyKind]: RoutePolicyKindSpecification<K>;
+};
+
+export const ROUTE_POLICY_REGISTRY: RoutePolicyKindRegistry = Object.freeze({
+  [RoutePolicyKind.AbilityModel]: {
+    kind: RoutePolicyKind.AbilityModel,
+    requiresModel: true,
+    description: 'Laravel Model Policy checking ability against a model parameter'
+  },
+  [RoutePolicyKind.Gate]: {
+    kind: RoutePolicyKind.Gate,
+    requiresModel: false,
+    description: 'Laravel Gate authorization checking ability without model parameter'
+  },
+  [RoutePolicyKind.Custom]: {
+    kind: RoutePolicyKind.Custom,
+    requiresModel: false,
+    description: 'Custom authorization policy or middleware rule'
+  }
+});
+
+export interface RoutePolicyVisitor<R> {
+  readonly ability_model: (desc: RoutePolicyDescriptor) => R;
+  readonly gate: (desc: RoutePolicyDescriptor) => R;
+  readonly custom: (desc: RoutePolicyDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian RoutePolicyDescriptor dengan exhaustive type safety
+ */
+export function matchRoutePolicy<R>(
+  policy: RoutePolicyDescriptor | RoutePolicyKind,
+  visitor: RoutePolicyVisitor<R>
+): R {
+  const isKindString = typeof policy === 'string';
+  const kind = isKindString ? policy : (policy.kind ?? (policy.modelParameter ? RoutePolicyKind.AbilityModel : RoutePolicyKind.Gate));
+  const descriptor: RoutePolicyDescriptor = isKindString
+    ? {
+        kind,
+        ability: '',
+        modelParameter: ROUTE_POLICY_REGISTRY[kind].requiresModel ? 'model' : null
+      }
+    : policy;
+  return visitor[kind](descriptor);
+}
+
+/**
  * RoutePolicyDescriptor
  *
  * Explicit Domain Model for Laravel Route Authorization Policies.
  */
 export interface RoutePolicyDescriptor {
+  readonly kind: RoutePolicyKind;
   readonly ability: string;        // e.g. 'update', 'view'
   readonly modelParameter: string | null;// e.g. 'order'
+}
+
+/**
+ * PageEndpointKind
+ *
+ * Canonical ADT discriminator for Page Route Endpoints.
+ */
+export const PageEndpointKind = Object.freeze({
+  Static: 'static',
+  Parameterized: 'parameterized',
+  QueryFiltered: 'query_filtered'
+} as const);
+
+export type PageEndpointKind = typeof PageEndpointKind[keyof typeof PageEndpointKind];
+
+export interface PageEndpointKindSpecification<K extends PageEndpointKind = PageEndpointKind> {
+  readonly kind: K;
+  readonly isCallable: boolean;
+  readonly description: string;
+}
+
+export type PageEndpointKindRegistry = {
+  readonly [K in PageEndpointKind]: PageEndpointKindSpecification<K>;
+};
+
+export const PAGE_ENDPOINT_REGISTRY: PageEndpointKindRegistry = Object.freeze({
+  [PageEndpointKind.Static]: {
+    kind: PageEndpointKind.Static,
+    isCallable: false,
+    description: 'Static page route without path or query parameters'
+  },
+  [PageEndpointKind.Parameterized]: {
+    kind: PageEndpointKind.Parameterized,
+    isCallable: true,
+    description: 'Parameterized page route with required path parameters'
+  },
+  [PageEndpointKind.QueryFiltered]: {
+    kind: PageEndpointKind.QueryFiltered,
+    isCallable: true,
+    description: 'Page route with optional query parameters and optional/required path parameters'
+  }
+});
+
+export interface PageEndpointDescriptor {
+  readonly kind: PageEndpointKind;
+  readonly path: string;
+  readonly query: readonly string[];
+  readonly params: readonly string[];
+}
+
+export interface PageEndpointVisitor<R> {
+  readonly static: (endpoint: PageEndpointDescriptor) => R;
+  readonly parameterized: (endpoint: PageEndpointDescriptor) => R;
+  readonly query_filtered: (endpoint: PageEndpointDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian PageEndpointDescriptor dengan exhaustive type safety
+ */
+export function matchPageEndpoint<R>(
+  endpoint: PageEndpointDescriptor | PageEndpointKind,
+  visitor: PageEndpointVisitor<R>
+): R {
+  const isKindString = typeof endpoint === 'string';
+  const kind = isKindString ? endpoint : endpoint.kind;
+  const descriptor: PageEndpointDescriptor = isKindString
+    ? {
+        kind,
+        path: '/',
+        query: kind === PageEndpointKind.QueryFiltered ? ['filter'] : [],
+        params: kind === PageEndpointKind.Parameterized ? ['id'] : []
+      }
+    : endpoint;
+  return visitor[kind](descriptor);
 }
 
 /**

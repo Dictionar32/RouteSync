@@ -198,6 +198,20 @@ export class HookGenerator {
         }
       }
 
+      const errorTypes = new Set<string>()
+      for (const route of resource.all) {
+        const errorList = route.raw?.contract?.response?.errors ?? route.raw?.errorResponses ?? []
+        for (const err of errorList) {
+          if (err.typeName) {
+            errorTypes.add(err.typeName)
+            importedTypes.add(err.typeName)
+          }
+        }
+      }
+      const errorUnionType = errorTypes.size > 0
+        ? Array.from(errorTypes).sort().join(' | ')
+        : 'ApiError'
+
       const blockLines: string[] = []
       blockLines.push(`  ${groupName}: {`)
       blockLines.push(`    types: {`)
@@ -205,6 +219,9 @@ export class HookGenerator {
       blockLines.push(`      detail: typeOf<${detailType}>(),`)
       blockLines.push(`      create: typeOf<${createType}>(),`)
       blockLines.push(`      update: typeOf<${updateType}>(),`)
+      if (errorUnionType !== 'ApiError') {
+        blockLines.push(`      error: typeOf<${errorUnionType}>(),`)
+      }
       blockLines.push(`    },`)
       blockLines.push(``)
       blockLines.push(`    queryKey: QueryKey.${groupName},`)

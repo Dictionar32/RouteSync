@@ -151,7 +151,16 @@ export {
   ScannedCrudRoleDescriptor,
   ScannedEndpointContract,
   createEndpointContract,
-  matchEndpointResponse
+  matchEndpointResponse,
+  HttpErrorKind,
+  HTTP_ERROR_KIND_REGISTRY,
+  matchHttpError,
+  RoutePolicyKind,
+  ROUTE_POLICY_REGISTRY,
+  matchRoutePolicy,
+  PageEndpointKind,
+  PAGE_ENDPOINT_REGISTRY,
+  matchPageEndpoint
 } from './types/route'
 export type {
   RouteManifest,
@@ -231,6 +240,13 @@ export type {
   CrudRoleRegistry,
   CrudRoleVisitor,
   RoutePolicyDescriptor,
+  RoutePolicyKindSpecification,
+  RoutePolicyKindRegistry,
+  RoutePolicyVisitor,
+  PageEndpointDescriptor,
+  PageEndpointKindSpecification,
+  PageEndpointKindRegistry,
+  PageEndpointVisitor,
   RateLimitDescriptor,
   BroadcastChannelDescriptor,
   PublicBroadcastChannelDescriptor,
@@ -381,7 +397,15 @@ export type {
   HttpStatusCodeCategory,
   HttpStatusCodeSpecification,
   HttpStatusCodeRegistry,
-  HttpStatusCodeVisitor
+  HttpStatusCodeVisitor,
+  HttpErrorKindRegistry,
+  HttpErrorKindSpecification,
+  HttpErrorVisitor,
+  LaravelValidationError,
+  LaravelUnauthorizedError,
+  LaravelForbiddenError,
+  LaravelNotFoundError,
+  LaravelServerError
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'

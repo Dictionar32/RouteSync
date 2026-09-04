@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, PageEndpointKind, PAGE_ENDPOINT_REGISTRY, matchPageEndpoint, PageEndpointDescriptor } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 
@@ -22,39 +22,66 @@ export interface ScannedPageEndpointParams {
   readonly path: string
   readonly query: readonly string[]
   readonly params: readonly string[]
+  readonly kind?: PageEndpointKind
 }
 
 /**
  * Reusable Constructor: Scanned Page Endpoint Descriptor.
  */
-export class ScannedPageEndpointDescriptor {
+export class ScannedPageEndpointDescriptor implements PageEndpointDescriptor {
+  public readonly kind: PageEndpointKind
   public readonly path: string
   public readonly query: readonly string[]
   public readonly params: readonly string[]
 
   constructor(params: ScannedPageEndpointParams);
-  constructor(params: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[] });
-  constructor({ path, query = [], params = [] }: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[] }) {
+  constructor(params: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[]; readonly kind?: PageEndpointKind });
+  constructor({ path, query = [], params = [], kind }: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[]; readonly kind?: PageEndpointKind }) {
     this.path = path
     this.query = Object.freeze([...query])
     this.params = Object.freeze([...params])
+    this.kind = kind ?? (this.query.length > 0 ? PageEndpointKind.QueryFiltered : (this.params.length > 0 ? PageEndpointKind.Parameterized : PageEndpointKind.Static))
     Object.freeze(this)
   }
 
-  public static create(params: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[] }): ScannedPageEndpointDescriptor {
+  public static static(path: string): ScannedPageEndpointDescriptor {
+    return new ScannedPageEndpointDescriptor({
+      path,
+      query: [],
+      params: [],
+      kind: PageEndpointKind.Static
+    })
+  }
+
+  public static parameterized(path: string, params: readonly string[]): ScannedPageEndpointDescriptor {
+    return new ScannedPageEndpointDescriptor({
+      path,
+      query: [],
+      params,
+      kind: PageEndpointKind.Parameterized
+    })
+  }
+
+  public static queryFiltered(path: string, query: readonly string[], params: readonly string[] = []): ScannedPageEndpointDescriptor {
+    return new ScannedPageEndpointDescriptor({
+      path,
+      query,
+      params,
+      kind: PageEndpointKind.QueryFiltered
+    })
+  }
+
+  public static create(params: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[]; readonly kind?: PageEndpointKind }): ScannedPageEndpointDescriptor {
     return new ScannedPageEndpointDescriptor({
       path: params.path,
       query: params.query ?? [],
-      params: params.params ?? []
+      params: params.params ?? [],
+      kind: params.kind
     })
   }
 
   public static simple(path: string): ScannedPageEndpointDescriptor {
-    return new ScannedPageEndpointDescriptor({
-      path,
-      query: [],
-      params: []
-    })
+    return ScannedPageEndpointDescriptor.static(path)
   }
 }
 
@@ -99,11 +126,11 @@ export class RoutesGenerator {
           params.push(match[1] || match[2])
         }
 
-        current[lastSeg] = new ScannedPageEndpointDescriptor({
-          path: pagePath,
-          query: queryKeys,
-          params
-        })
+        current[lastSeg] = queryKeys.length > 0
+          ? ScannedPageEndpointDescriptor.queryFiltered(pagePath, queryKeys, params)
+          : (params.length > 0
+              ? ScannedPageEndpointDescriptor.parameterized(pagePath, params)
+              : ScannedPageEndpointDescriptor.static(pagePath))
       }
 
       const serializeTree = (tree: any, indent: string = '  '): { js: string[], dts: string[] } => {
@@ -113,16 +140,29 @@ export class RoutesGenerator {
         for (const [key, val] of Object.entries(tree)) {
           if (val instanceof ScannedPageEndpointDescriptor || (val && typeof val === 'object' && 'path' in val)) {
             const page = val as ScannedPageEndpointDescriptor
-            const allKeys = [...page.params, ...page.query]
-            
-            if (allKeys.length > 0) {
-              const signature = `(params: { ${allKeys.map(k => `${k}${page.query.includes(k) ? '?:' : ':'} string | number | null`).join('; ')} })`
-              jsLines.push(`${indent}${key}: (params) => PathResolver.resolveUrl('${page.path}', params),`)
-              dtsLines.push(`${indent}readonly ${key}: ${signature} => string;`)
-            } else {
-              jsLines.push(`${indent}${key}: '${page.path}',`)
-              dtsLines.push(`${indent}readonly ${key}: '${page.path}';`)
-            }
+            const rendered = matchPageEndpoint(page, {
+              static: (p) => ({
+                js: `${indent}${key}: '${p.path}',`,
+                dts: `${indent}readonly ${key}: '${p.path}';`
+              }),
+              parameterized: (p) => {
+                const signature = `(params: { ${p.params.map(k => `${k}: string | number | null`).join('; ')} })`
+                return {
+                  js: `${indent}${key}: (params) => PathResolver.resolveUrl('${p.path}', params),`,
+                  dts: `${indent}readonly ${key}: ${signature} => string;`
+                }
+              },
+              query_filtered: (p) => {
+                const allKeys = [...p.params, ...p.query]
+                const signature = `(params: { ${allKeys.map(k => `${k}${p.query.includes(k) ? '?:' : ':'} string | number | null`).join('; ')} })`
+                return {
+                  js: `${indent}${key}: (params) => PathResolver.resolveUrl('${p.path}', params),`,
+                  dts: `${indent}readonly ${key}: ${signature} => string;`
+                }
+              }
+            })
+            jsLines.push(rendered.js)
+            dtsLines.push(rendered.dts)
           } else {
             jsLines.push(`${indent}${key}: {`)
             dtsLines.push(`${indent}readonly ${key}: {`)

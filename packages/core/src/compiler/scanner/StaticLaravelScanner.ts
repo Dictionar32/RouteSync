@@ -10,7 +10,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, matchHttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition, EndpointContract, ScannedEndpointContract } from '../../types/route';
+import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, matchHttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, HttpErrorKind, HTTP_ERROR_KIND_REGISTRY, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, RoutePolicyKind, ROUTE_POLICY_REGISTRY, matchRoutePolicy, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition, EndpointContract, ScannedEndpointContract } from '../../types/route';
 import { RequestType, FormAction, RequestField, ResponseData, FileValidationConstraints } from '../artifacts/RequestTypesArtifact';
 import { ObjectType, ObjectProperty, ScannedObjectProperty, PrimitiveType, PrimitiveKind, NullableType, ReadonlyCollectionType, CollectionKind, ReferenceType, SemanticType } from '../types/SemanticType';
 import { TypeInterner } from '../types/TypeInterner';
@@ -584,10 +584,13 @@ export class ScannedRouteDescriptor implements ParsedRoute {
             const trimmed = m.trim();
             if (trimmed.startsWith('can:')) {
                 const parts = trimmed.slice(4).split(',');
-                policies.push(new ScannedRoutePolicyDescriptor({
-                    ability: parts[0]?.trim() || '',
-                    modelParameter: parts[1]?.trim() ?? null
-                }));
+                const ability = parts[0]?.trim() || '';
+                const modelParameter = parts[1]?.trim() ?? null;
+                policies.push(
+                    modelParameter
+                        ? ScannedRoutePolicyDescriptor.abilityModel(ability, modelParameter)
+                        : ScannedRoutePolicyDescriptor.gate(ability)
+                );
             } else if (trimmed.toLowerCase().startsWith('throttle:')) {
                 const parts = trimmed.slice(9).split(',');
                 const maxAttempts = parseInt(parts[0], 10);
@@ -1011,32 +1014,62 @@ export class ScannedRouteQueryParameterDescriptor implements RouteQueryParameter
 
 export interface ScannedRoutePolicyParams {
     readonly ability: string;
-    readonly modelParameter: string | null;
+    readonly modelParameter?: string | null;
+    readonly kind?: RoutePolicyKind;
 }
 
 /**
  * Reusable Constructor: Scanned Route Policy Descriptor.
  */
 export class ScannedRoutePolicyDescriptor implements RoutePolicyDescriptor {
+    public readonly kind: RoutePolicyKind;
     public readonly ability: string;
     public readonly modelParameter: string | null;
 
-    constructor({ ability, modelParameter }: ScannedRoutePolicyParams) {
+    constructor({ ability, modelParameter = null, kind }: ScannedRoutePolicyParams) {
         this.ability = ability;
-        this.modelParameter = modelParameter;
+        this.modelParameter = modelParameter ?? null;
+        this.kind = kind ?? (this.modelParameter ? RoutePolicyKind.AbilityModel : RoutePolicyKind.Gate);
         Object.freeze(this);
+    }
+
+    public static abilityModel(ability: string, modelParameter: string): ScannedRoutePolicyDescriptor {
+        return new ScannedRoutePolicyDescriptor({
+            ability,
+            modelParameter,
+            kind: RoutePolicyKind.AbilityModel
+        });
+    }
+
+    public static gate(ability: string): ScannedRoutePolicyDescriptor {
+        return new ScannedRoutePolicyDescriptor({
+            ability,
+            modelParameter: null,
+            kind: RoutePolicyKind.Gate
+        });
+    }
+
+    public static custom(ability: string, modelParameter: string | null = null): ScannedRoutePolicyDescriptor {
+        return new ScannedRoutePolicyDescriptor({
+            ability,
+            modelParameter,
+            kind: RoutePolicyKind.Custom
+        });
     }
 
     public static create({
         ability,
-        modelParameter = null
+        modelParameter = null,
+        kind
     }: {
         readonly ability: string;
         readonly modelParameter?: string | null;
+        readonly kind?: RoutePolicyKind;
     }): ScannedRoutePolicyDescriptor {
         return new ScannedRoutePolicyDescriptor({
             ability,
-            modelParameter: modelParameter ?? null
+            modelParameter: modelParameter ?? null,
+            kind
         });
     }
 }
@@ -1074,33 +1107,39 @@ export class ScannedRateLimitDescriptor implements RateLimitDescriptor {
 }
 
 export interface ScannedHttpErrorResponseParams {
-    readonly statusCode: HttpStatusCode;
-    readonly name: string;
-    readonly typeName: string;
-    readonly schema: Record<string, unknown>;
+    readonly kind?: HttpErrorKind;
+    readonly statusCode?: HttpStatusCode;
+    readonly name?: string;
+    readonly typeName?: string;
+    readonly schema?: Record<string, unknown>;
 }
 
 /**
  * Reusable Constructor: Scanned HTTP Error Response Descriptor.
  */
 export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDescriptor {
+    public readonly kind: HttpErrorKind;
     public readonly statusCode: HttpStatusCode;
     public readonly name: string;
     public readonly typeName: string;
     public readonly schema: Record<string, unknown>;
 
-    constructor({ statusCode, name, typeName, schema }: ScannedHttpErrorResponseParams) {
-        this.statusCode = statusCode;
-        this.name = name;
-        this.typeName = typeName;
-        this.schema = schema;
+    constructor({ kind, statusCode, name, typeName, schema }: ScannedHttpErrorResponseParams) {
+        const resolvedKind = kind ?? HttpErrorKind.Custom;
+        const spec = HTTP_ERROR_KIND_REGISTRY[resolvedKind];
+        this.kind = resolvedKind;
+        this.statusCode = statusCode ?? spec.defaultStatusCode;
+        this.name = name ?? spec.defaultName;
+        this.typeName = typeName ?? spec.defaultTypeName;
+        this.schema = Object.freeze({ ...(schema ?? {}) });
         Object.freeze(this);
     }
 
     public static create({
+        kind = HttpErrorKind.Custom,
         statusCode,
         name,
-        typeName = `${name}Error`,
+        typeName,
         schema = {
             type: 'object',
             properties: {
@@ -1108,21 +1147,25 @@ export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDesc
             }
         }
     }: {
-        readonly statusCode: HttpStatusCode;
-        readonly name: string;
+        readonly kind?: HttpErrorKind;
+        readonly statusCode?: HttpStatusCode;
+        readonly name?: string;
         readonly typeName?: string;
         readonly schema?: Record<string, unknown>;
     }): ScannedHttpErrorResponseDescriptor {
+        const spec = HTTP_ERROR_KIND_REGISTRY[kind];
         return new ScannedHttpErrorResponseDescriptor({
-            statusCode,
-            name,
-            typeName,
+            kind,
+            statusCode: statusCode ?? spec.defaultStatusCode,
+            name: name ?? spec.defaultName,
+            typeName: typeName ?? (name ? `${name}Error` : spec.defaultTypeName),
             schema
         });
     }
 
-    public static unprocessableEntity(): ScannedHttpErrorResponseDescriptor {
+    public static validation(): ScannedHttpErrorResponseDescriptor {
         return new ScannedHttpErrorResponseDescriptor({
+            kind: HttpErrorKind.Validation,
             statusCode: HttpStatusCode.UnprocessableEntity,
             name: 'UnprocessableEntity',
             typeName: 'LaravelValidationError',
@@ -1136,12 +1179,82 @@ export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDesc
         });
     }
 
+    public static unprocessableEntity(): ScannedHttpErrorResponseDescriptor {
+        return ScannedHttpErrorResponseDescriptor.validation();
+    }
+
     public static unauthorized(): ScannedHttpErrorResponseDescriptor {
         return new ScannedHttpErrorResponseDescriptor({
+            kind: HttpErrorKind.Unauthorized,
             statusCode: HttpStatusCode.Unauthorized,
             name: 'Unauthorized',
             typeName: 'LaravelUnauthorizedError',
             schema: {
+                type: 'object',
+                properties: {
+                    message: { typeName: 'string', nullable: false }
+                }
+            }
+        });
+    }
+
+    public static forbidden(): ScannedHttpErrorResponseDescriptor {
+        return new ScannedHttpErrorResponseDescriptor({
+            kind: HttpErrorKind.Forbidden,
+            statusCode: HttpStatusCode.Forbidden,
+            name: 'Forbidden',
+            typeName: 'LaravelForbiddenError',
+            schema: {
+                type: 'object',
+                properties: {
+                    message: { typeName: 'string', nullable: false }
+                }
+            }
+        });
+    }
+
+    public static notFound(): ScannedHttpErrorResponseDescriptor {
+        return new ScannedHttpErrorResponseDescriptor({
+            kind: HttpErrorKind.NotFound,
+            statusCode: HttpStatusCode.NotFound,
+            name: 'NotFound',
+            typeName: 'LaravelNotFoundError',
+            schema: {
+                type: 'object',
+                properties: {
+                    message: { typeName: 'string', nullable: false }
+                }
+            }
+        });
+    }
+
+    public static serverError(): ScannedHttpErrorResponseDescriptor {
+        return new ScannedHttpErrorResponseDescriptor({
+            kind: HttpErrorKind.ServerError,
+            statusCode: HttpStatusCode.InternalServerError,
+            name: 'InternalServerError',
+            typeName: 'LaravelServerError',
+            schema: {
+                type: 'object',
+                properties: {
+                    message: { typeName: 'string', nullable: false }
+                }
+            }
+        });
+    }
+
+    public static custom(
+        statusCode: HttpStatusCode,
+        name: string,
+        typeName?: string,
+        schema?: Record<string, unknown>
+    ): ScannedHttpErrorResponseDescriptor {
+        return new ScannedHttpErrorResponseDescriptor({
+            kind: HttpErrorKind.Custom,
+            statusCode,
+            name,
+            typeName: typeName ?? `${name}Error`,
+            schema: schema ?? {
                 type: 'object',
                 properties: {
                     message: { typeName: 'string', nullable: false }

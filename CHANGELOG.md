@@ -5,6 +5,25 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **`policyAndPageEndpointAdtFlowSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi arsitektur ADT Flow Data untuk Route Authorization Policies dan Page Route Endpoints (Mencapai 100% Pemetaan ADT Domain RouteSync):
+  - **Route Authorization Policy ADT**:
+    - `RoutePolicyKind` discriminator (`AbilityModel`, `Gate`, `Custom`) dengan mapped registry `ROUTE_POLICY_REGISTRY` yang mengunci metadata `requiresModel` dan deskripsi domain.
+    - `matchRoutePolicy` pure catamorphism pattern matcher tanpa statement `if`/`switch` yang mendukung polimorfik input descriptor maupun kind string.
+    - `ScannedRoutePolicyDescriptor` dengan semantic factory constructors (`.abilityModel()`, `.gate()`, `.custom()`, `.create()`) menghasilkan frozen complete contract.
+    - `StaticLaravelScanner.ts` memetakan middleware `can:` langsung ke semantic factory yang tepat di Origin Boundary.
+  - **Page Route Endpoint ADT**:
+    - `PageEndpointKind` discriminator (`Static`, `Parameterized`, `QueryFiltered`) dengan mapped registry `PAGE_ENDPOINT_REGISTRY` yang mengunci callable signature dan parameter requirements.
+    - `matchPageEndpoint` pure catamorphism pattern matcher tanpa branching `if`/`switch`.
+    - `ScannedPageEndpointDescriptor` dengan semantic factory constructors (`.static()`, `.parameterized()`, `.queryFiltered()`).
+    - `RoutesGenerator.ts` merefaktor `serializeTree` murni mendispatch emisi kode rute JavaScript dan TypeScript via `matchPageEndpoint` dengan zero ternary & zero defensive conditional.
+- **`httpErrorAdtFlowSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi arsitektur ADT Flow Data untuk Canonical HTTP Error Responses:
+  - **Canonical HTTP Error ADT**:
+    - `HttpErrorKind` discriminator (`Validation`, `Unauthorized`, `Forbidden`, `NotFound`, `ServerError`, `Custom`) dengan mapped registry `HTTP_ERROR_KIND_REGISTRY` yang mengunci status code default (`422`, `401`, `403`, `404`, `500`, `400`), nama tipe interface, client vs server error classifications.
+    - `matchHttpError` pure catamorphism pattern matcher tanpa statement `if`/`switch` yang mendukung descriptor maupun kind string.
+    - `ScannedHttpErrorResponseDescriptor` dengan semantic factory constructors (`.validation()`, `.unauthorized()`, `.forbidden()`, `.notFound()`, `.serverError()`, `.custom()`).
+    - `ContractCodeBuilder.ts` men-generate Zod schemas (`laravelValidationErrorSchema`, `laravelUnauthorizedErrorSchema`) dan typed validators (`validateLaravelValidationError`, `validateLaravelUnauthorizedError`).
+    - `TypeGenerator.ts` mengekspor interface kanonikal `LaravelValidationError` dan `LaravelUnauthorizedError` di `types/index.ts`.
+    - `HookGenerator.ts` mengonsumsi error responses dari SSOT kontrak rute dan menghasilkan slot `error: typeOf<ErrorType>()` strongly typed pada TanStack query/mutation hooks.
 - **Contract-Driven Architecture (CDA) — Unified Compiler Pipeline & Downstream Pure Consumer SSOT**:
   - **Core Guaranteed Contract**: Penambahan abstract property `validatorName: string` pada `ResponseDescriptorBase` dan implementasi kanonikal pada seluruh varian respons (`ResourceResponseDescriptor`, `ModelResponseDescriptor`, `VoidResponseDescriptor`, `InlineResponseDescriptor`) sehingga kontrak validator response (`validate{Resource}Schema`, `validate{Resource}Index`, atau `'undefined'`) dijamin 100% sejak Origin Boundary tanpa tebak-tebakan string di hilir.
   - **HookGenerator Simplification (Peluang A)**: Eliminasi total ketergantungan `ResponseAnalysisHelper`, pemanggilan runtime `ResponseArtifactMap`, lookup set `knownModels`/`knownResources`, serta 30-baris recursive helper `resolveResponseInfo()` dari `HookGenerator.ts`. Seluruh penentuan tipe read (`list`, `detail`, `never`) murni mengonsumsi SSOT `route.response.readTypeName`.

@@ -5,6 +5,7 @@ import fs from 'fs-extra'
 import { toTypeName } from './names'
 import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-classifier'
 import { ResponseAnalysisHelper } from './response-analysis-helper'
+import { CANONICAL_ACTION_MAP } from './canonical-names'
 
 export class HookGenerator {
   static async generate(manifest: RouteManifest, outputDir?: string): Promise<string> {
@@ -17,8 +18,6 @@ export class HookGenerator {
 
     const knownModels = new Set(manifest.models?.map(m => m.name) || [])
     const knownResources = new Set(manifest.resources?.map(r => r.name) || [])
-
-
 
     const importedTypes = new Set<string>()
     const contractImportedTypes = new Set<string>()
@@ -35,15 +34,10 @@ export class HookGenerator {
       const hasSchema = (route?: any): boolean =>
         !!(route?.raw.schema?.rules && Object.keys(route.raw.schema.rules).length > 0)
 
-      // CRUD mapping untuk action names
-      const ACTION_TO_CRUD_HOOK: Record<string, string> = {
-        post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
-      }
-
       const resolveFormType = (route?: any): string | null => {
         if (!route || !hasSchema(route)) return null
         const rawAction = route.actionName
-        const actionKey = ACTION_TO_CRUD_HOOK[rawAction] || capitalize(rawAction)
+        const actionKey = (CANONICAL_ACTION_MAP as Record<string, string>)[rawAction] || capitalize(rawAction)
         // Standard form actions that are guaranteed to exist in the generated Form type
         const standardFormActions = ['Create', 'Update', 'Get']
         if (standardFormActions.includes(actionKey)) {

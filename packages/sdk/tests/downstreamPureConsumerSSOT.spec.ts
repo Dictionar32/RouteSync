@@ -55,7 +55,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
     expect(morphRel.unionTypeName).toBe('CommentableTarget')
   })
 
-  it('3. SDKGenerator should consume route.response.readTypeName and mapperName directly without string heuristics', async () => {
+  it('3. SDKGenerator should consume route.response.readTypeName, mapperName, and validatorName directly without string heuristics', async () => {
     const mockRoute = ScannedRouteDescriptor.create({
       method: 'GET',
       path: '/api/users/{id}',
@@ -68,6 +68,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
 
     expect(mockRoute.response.readTypeName).toBe('UserResourceTransformed')
     expect(mockRoute.response.mapperName).toBe('toUserResourceRead')
+    expect(mockRoute.response.validatorName).toBe('validateUserResourceSchema')
 
     const manifest: any = {
       baseURL: 'http://localhost/api',
@@ -77,6 +78,10 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
     const sdkCode = await SDKGenerator.generate(manifest)
     expect(sdkCode).toContain('toUserResourceRead')
     expect(sdkCode).toContain('response: toUserResourceRead')
+
+    const sdkZodCode = await SDKGenerator.generate(manifest, undefined, { zod: true })
+    expect(sdkZodCode).toContain('validateUserResourceSchema')
+    expect(sdkZodCode).toContain('response: validateUserResourceSchema')
   })
 
   it('4. HookGenerator should consume route.response.readTypeName directly from SSOT', async () => {

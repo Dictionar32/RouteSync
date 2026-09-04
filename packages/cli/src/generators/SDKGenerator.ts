@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import { classifyRoutes, buildGroupedRoutes } from './route-classifier'
 import { ConstantsGenerator } from './ConstantsGenerator'
+import { CANONICAL_ACTION_MAP } from './canonical-names'
 
 export class SDKGenerator {
   static async generate(manifest: RouteManifest, outputDir?: string, options: Record<string, unknown> = {}): Promise<string> {
@@ -10,20 +11,9 @@ export class SDKGenerator {
     const grouped = buildGroupedRoutes(classified)
     const apiBodyLines: string[] = []
 
-    let usesZod = false
-    let usesTypes = false
+    const usesZod = Boolean(options.zod);
 
-    for (const routes of Object.values(grouped)) {
-      for (const route of routes) {
-        if (options.zod && route.raw.schema?.rules) usesZod = true
-        if (route.raw.response) usesTypes = true
-      }
-    }
-
-    // CRUD mapping + response counting (sama dengan contract)
-    const SDK_ACTION_MAP: Record<string, string> = {
-      post: 'Create', put: 'Update', patch: 'Update', delete: 'Delete',
-    }
+    // Response counting (sama dengan contract)
     const sdkRespCount = new Map<string, number>()
     for (const route of classified) {
       if (route.raw.response) {
@@ -44,7 +34,7 @@ export class SDKGenerator {
     const getResponseInfo = (rawMeta: any, rawRoute: any, keyName: string): { type: string, schema: string, mapper: string | null } => {
       let schemaStr = 'undefined'
       if (rawRoute.response && usesZod) {
-        schemaStr = `validate${keyName}Response`
+        schemaStr = rawRoute.response.validatorName ?? `validate${keyName}Response`
       }
 
       if (rawRoute.response?.readTypeName && rawRoute.response?.mapperName) {
@@ -160,7 +150,7 @@ export class SDKGenerator {
 
       for (const route of routes) {
         const TitleCaseGroup = groupName.charAt(0).toUpperCase() + groupName.slice(1)
-        const rawAction = SDK_ACTION_MAP[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
+        const rawAction = (CANONICAL_ACTION_MAP as Record<string, string>)[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1))
         const KeyName = `${TitleCaseGroup}${rawAction}`
 
         // Response naming: LoginResponse (single) atau ProfileUpdateResponse (multiple)

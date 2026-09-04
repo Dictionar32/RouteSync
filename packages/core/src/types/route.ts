@@ -5,6 +5,7 @@ import type { ResponseBody } from '../compiler/ir/ResponseArtifact';
 import type { FormAction, RequestType } from '../compiler/artifacts/RequestTypesArtifact';
 import type { ObjectType } from '../compiler/types/SemanticType';
 import { PrimitiveKind } from '../compiler/types/SemanticType';
+import { toPascalCase } from '../utils/resource-naming';
 
 /**
  * First-Class Domain Operation Entry (Ordered).
@@ -1948,6 +1949,7 @@ export abstract class ResponseDescriptorBase {
   abstract readonly shape: ResponseShape;
   abstract readonly readTypeName: string; // ✅ Guaranteed Read Type Name ('UserResourceTransformed')
   abstract readonly mapperName: string;   // ✅ Guaranteed Mapper Function Name ('toUserResourceRead')
+  abstract readonly validatorName: string; // ✅ Guaranteed Contract Validator Name ('validateUserResourceSchema')
 
   abstract toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis;
   abstract toResponseBody(): ResponseBody;
@@ -1964,6 +1966,7 @@ export class ResourceResponseDescriptor extends ResponseDescriptorBase {
   public readonly resourceName: string;
   public readonly readTypeName: string;
   public readonly mapperName: string;
+  public readonly validatorName: string;
 
   constructor(params: ResourceResponseParams) {
     super();
@@ -1971,6 +1974,9 @@ export class ResourceResponseDescriptor extends ResponseDescriptorBase {
     this.shape = params.shape;
     this.readTypeName = `${params.resourceName}Transformed`;
     this.mapperName = `to${params.resourceName}Read`;
+    this.validatorName = (params.shape === 'collection' || params.shape === 'paginated')
+      ? `validate${toPascalCase(params.resourceName)}Index`
+      : `validate${toPascalCase(params.resourceName)}Schema`;
     Object.freeze(this);
   }
 
@@ -2027,6 +2033,7 @@ export class ModelResponseDescriptor extends ResponseDescriptorBase {
   public readonly modelName: string;
   public readonly readTypeName: string;
   public readonly mapperName: string;
+  public readonly validatorName: string;
 
   constructor(params: ModelResponseParams) {
     super();
@@ -2034,6 +2041,9 @@ export class ModelResponseDescriptor extends ResponseDescriptorBase {
     this.shape = params.shape;
     this.readTypeName = `${params.modelName}Transformed`;
     this.mapperName = `to${params.modelName}Read`;
+    this.validatorName = (params.shape === 'collection' || params.shape === 'paginated')
+      ? `validate${toPascalCase(params.modelName)}Index`
+      : `validate${toPascalCase(params.modelName)}Schema`;
     Object.freeze(this);
   }
 
@@ -2084,6 +2094,7 @@ export class VoidResponseDescriptor extends ResponseDescriptorBase {
   public readonly shape = 'single' as const;
   public readonly readTypeName = 'void';
   public readonly mapperName = 'identity';
+  public readonly validatorName = 'undefined';
 
   constructor() {
     super();
@@ -2130,6 +2141,7 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
   public readonly typeName: string;
   public readonly readTypeName: string;
   public readonly mapperName: string;
+  public readonly validatorName: string;
   public readonly fields: readonly ResourceFieldDescriptor[];
 
   constructor(params: InlineResponseDescriptorParams) {
@@ -2139,6 +2151,9 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
     this.typeName = params.typeName;
     this.readTypeName = params.typeName;
     this.mapperName = `to${params.baseName}Read`;
+    this.validatorName = (params.shape === 'collection' || params.shape === 'paginated')
+      ? `validate${toPascalCase(params.baseName)}Index`
+      : `validate${toPascalCase(params.baseName)}Schema`;
     this.fields = Object.freeze([...params.fields]);
     this.shape = params.shape;
     Object.freeze(this);

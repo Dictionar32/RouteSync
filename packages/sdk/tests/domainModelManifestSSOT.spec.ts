@@ -5,7 +5,9 @@ import {
   ScannedResourceFieldDescriptor,
   ScannedRouteParameterDescriptor,
   ResourceResponseDescriptor,
+  ModelResponseDescriptor,
   InlineResponseDescriptor,
+  VoidResponseDescriptor,
   PrimitiveKind,
   ParsedColumn,
   ParsedAccessor,
@@ -94,10 +96,29 @@ describe('Domain Model Manifest SSOT Suite', () => {
     expect(param.in).toBe('path');
   });
 
-  it('7. ResponseDescriptors guarantee canonical readTypeName and mapperName contracts', () => {
+  it('7. ResponseDescriptors guarantee canonical readTypeName, mapperName, and validatorName contracts', () => {
     const resResponse = ResourceResponseDescriptor.create({ resourceName: 'UserResource' });
     expect(resResponse.readTypeName).toBe('UserResourceTransformed');
     expect(resResponse.mapperName).toBe('toUserResourceRead');
+    expect(resResponse.validatorName).toBe('validateUserResourceSchema');
+
+    const resCollection = ResourceResponseDescriptor.collection('UserResource');
+    expect(resCollection.readTypeName).toBe('UserResourceTransformed');
+    expect(resCollection.mapperName).toBe('toUserResourceRead');
+    expect(resCollection.validatorName).toBe('validateUserResourceIndex');
+
+    const modelResponse = ModelResponseDescriptor.single('Product');
+    expect(modelResponse.readTypeName).toBe('ProductTransformed');
+    expect(modelResponse.mapperName).toBe('toProductRead');
+    expect(modelResponse.validatorName).toBe('validateProductSchema');
+
+    const modelCollection = ModelResponseDescriptor.collection('Product');
+    expect(modelCollection.validatorName).toBe('validateProductIndex');
+
+    const voidResponse = new VoidResponseDescriptor();
+    expect(voidResponse.readTypeName).toBe('void');
+    expect(voidResponse.mapperName).toBe('identity');
+    expect(voidResponse.validatorName).toBe('undefined');
 
     const inlineResponse = InlineResponseDescriptor.create({
       domain: 'profile',
@@ -105,5 +126,6 @@ describe('Domain Model Manifest SSOT Suite', () => {
     });
     expect(inlineResponse.readTypeName).toBe('profileTransformed');
     expect(inlineResponse.mapperName).toBe('toprofileRead');
+    expect(inlineResponse.validatorName).toBe('validateProfileSchema');
   });
 });

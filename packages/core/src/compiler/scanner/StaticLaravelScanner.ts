@@ -10,7 +10,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, matchHttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
+import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, matchHttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition, EndpointContract, ScannedEndpointContract } from '../../types/route';
 import { RequestType, FormAction, RequestField, ResponseData, FileValidationConstraints } from '../artifacts/RequestTypesArtifact';
 import { ObjectType, ObjectProperty, ScannedObjectProperty, PrimitiveType, PrimitiveKind, NullableType, ReadonlyCollectionType, CollectionKind, ReferenceType, SemanticType } from '../types/SemanticType';
 import { TypeInterner } from '../types/TypeInterner';
@@ -413,6 +413,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
     public readonly assignments: readonly ResourceAssignment[];
     public readonly uri: string;
     public readonly controllerName: string | null;
+    public readonly contract: EndpointContract;
 
     public static create({
         name,
@@ -610,6 +611,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         this.assignments = Object.freeze([]);
         this.uri = params.path;
         this.controllerName = null;
+        this.contract = ScannedEndpointContract.fromRoute(this);
         Object.freeze(this);
     }
 
@@ -827,11 +829,11 @@ export class ScannedRouteParameterDescriptor implements RouteParameter {
 
     constructor(params: ScannedRouteParameterParams) {
         this.name = params.name;
-        this.propertyName = params.propertyName;
-        this.bindingField = params.bindingField;
-        this.in = params.in;
-        this.required = params.required;
-        this.type = params.type;
+        this.propertyName = params.propertyName ?? toCamelCase(params.name);
+        this.bindingField = params.bindingField ?? null;
+        this.in = params.in ?? 'path';
+        this.required = params.required ?? true;
+        this.type = params.type ?? ((params.name === 'id' || params.name.endsWith('_id') || params.name.endsWith('Id')) ? 'number' : 'string');
         Object.freeze(this);
     }
 

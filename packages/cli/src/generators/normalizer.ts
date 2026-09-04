@@ -1,4 +1,4 @@
-import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder } from '@routesync/core'
+import { RouteManifest, camelCase, SemanticResolutionKernel, ServiceGraphBuilder, DATABASE_COLUMN_KIND_REGISTRY } from '@routesync/core'
 import type { FieldNode } from '@routesync/core'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
 
@@ -231,9 +231,13 @@ function buildModelGraph(manifest: RouteManifest, kernel: SemanticResolutionKern
       const fields: Record<string, { type: string; nullable: boolean }> = {}
       m.columns.forEach(col => {
         let type = 'string'
-        const lower = col.type.toLowerCase()
-        if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
-        else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+        if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
+          type = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType
+        } else {
+          const lower = col.type.toLowerCase()
+          if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
+          else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+        }
         fields[col.name] = { type, nullable: !!col.nullable }
       })
       // ServiceGraphBuilder's ModelNode exposes mutable data fields on the
@@ -345,9 +349,16 @@ export function normalizeModels(manifest: RouteManifest, kernel: SemanticResolut
     
     m.columns.forEach(col => {
       let type: "string" | "number" | "boolean" | "null" = "string"
-      const lower = col.type.toLowerCase()
-      if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
-      else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+      if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
+        const regType = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType
+        if (regType === 'number' || regType === 'boolean') {
+          type = regType
+        }
+      } else {
+        const lower = col.type.toLowerCase()
+        if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
+        else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+      }
 
       const castType = casts[col.name]
       if (castType) {

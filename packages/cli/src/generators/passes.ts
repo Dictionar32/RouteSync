@@ -1,4 +1,4 @@
-import { RouteManifest, SemanticResolutionKernel, ServiceGraphBuilder, SemanticModelNode } from '@routesync/core'
+import { RouteManifest, SemanticResolutionKernel, ServiceGraphBuilder, SemanticModelNode, DATABASE_COLUMN_KIND_REGISTRY } from '@routesync/core'
 import { PhpCodeParser } from '../parsers/PhpCodeParser'
 import { CompilerPass, CompilerContext } from './pipeline'
 import {
@@ -35,9 +35,13 @@ export class ModelGraphBuilderPass implements CompilerPass<RouteManifest, { mani
         const fields: Record<string, unknown> = {}
         m.columns.forEach(col => {
           let type = 'string'
-          const lower = col.type.toLowerCase()
-          if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
-          else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+          if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
+            type = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType
+          } else {
+            const lower = col.type.toLowerCase()
+            if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number'
+            else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean'
+          }
           fields[col.name] = { type, nullable: !!col.nullable }
         })
         

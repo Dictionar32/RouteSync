@@ -5250,6 +5250,7 @@ export interface ParsedRoute {
   readonly uri: string;
   readonly actionName: string;
   readonly controllerName: string | null;
+  readonly contract?: EndpointContract; // ✅ Complete Contract-Driven Architecture SSOT
 }
 
 // ============================================================================

@@ -16,9 +16,15 @@ import {
   ResourceResponseDescriptor,
   ScannedRouteCacheInvalidationDescriptor,
   ScannedInvalidationTarget,
-  ScannedHttpErrorResponseDescriptor
+  ScannedHttpErrorResponseDescriptor,
+  DatabaseColumnKind,
+  PrimitiveKind,
+  PublicBroadcastChannelDescriptor
 } from '@routesync/core'
 import { CompilerBridge } from '@routesync/cli/src/generators/CompilerBridge'
+import { ConstantsGenerator } from '@routesync/cli/src/generators/ConstantsGenerator'
+import { EchoGenerator } from '@routesync/cli/src/generators/EchoGenerator'
+import { ModelGenerator } from '@routesync/cli/src/generators/ModelGenerator'
 
 describe('EndpointContract ADT & Unified Compiler Pipeline SSOT', () => {
   const tmpDir = path.join(__dirname, 'tmp-endpoint-cda-test')
@@ -195,6 +201,132 @@ describe('EndpointContract ADT & Unified Compiler Pipeline SSOT', () => {
     expect(fs.existsSync(path.join(tmpDir, 'actions.ts'))).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'mocks.ts'))).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'hooks.ts'))).toBe(false)
+
+    await fs.remove(tmpDir)
+  })
+
+  it('5. ScannedRouteDescriptor.contract should be directly bound and immutable on route descriptor', () => {
+    const mockRoute = ScannedRouteDescriptor.create({
+      name: 'products.show',
+      method: 'GET',
+      path: '/api/products/{id}',
+      resourceName: 'Product',
+      groupName: 'products',
+      actionName: 'show',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Show,
+      hookKind: RouteHookKind.Query,
+      response: ResourceResponseDescriptor.single('ProductResource'),
+      errorResponses: [
+        ScannedHttpErrorResponseDescriptor.unprocessableEntity()
+      ]
+    })
+
+    expect(mockRoute.contract).toBeDefined()
+    expect(mockRoute.contract.id).toBe('products.show')
+    expect(mockRoute.contract.crudRole).toBe(CrudRole.Show)
+    expect(mockRoute.contract.response.success.readTypeName).toBe('ProductResourceTransformed')
+    expect(mockRoute.contract.response.errors.length).toBe(1)
+    expect(mockRoute.contract.response.errorUnionType).toBe('LaravelValidationError')
+    expect(Object.isFrozen(mockRoute.contract)).toBe(true)
+  })
+
+  it('6. ConstantsGenerator should directly consume col.enumValues SSOT', () => {
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [],
+      models: [
+        {
+          name: 'Order',
+          shortName: 'Order',
+          columns: [
+            {
+              name: 'status',
+              propertyName: 'status',
+              type: 'enum',
+              columnKind: DatabaseColumnKind.Enum,
+              nullable: false,
+              semanticType: PrimitiveKind.STRING,
+              enumValues: ['pending', 'processing', 'completed', 'cancelled']
+            }
+          ]
+        }
+      ]
+    }
+
+    const lines = ConstantsGenerator.getConstantLines(manifest)
+    const content = lines.join('\n')
+
+    expect(content).toContain('export const Enums = {')
+    expect(content).toContain('Order: {')
+    expect(content).toContain('Status: {')
+    expect(content).toContain("PENDING: 'pending'")
+    expect(content).toContain("COMPLETED: 'completed'")
+  })
+
+  it('7. EchoGenerator should use ROUTE_PARAMETER_TYPE_REGISTRY and runtimePattern SSOT', async () => {
+    const channel: PublicBroadcastChannelDescriptor = {
+      name: 'orders.{orderId}',
+      kind: 'public',
+      pattern: 'orders.{orderId}',
+      runtimePattern: 'orders.${orderId}',
+      parameters: [
+        {
+          name: 'orderId',
+          propertyName: 'orderId',
+          type: 'number',
+          location: 'path',
+          required: true
+        }
+      ],
+      isPrivate: false,
+      isPresence: false
+    }
+
+    const code = await EchoGenerator.generate([channel])
+    expect(code).toContain('useListenOrdersChannel<TEvent = unknown>(orderId: number,')
+    expect(code).toContain('`orders.${orderId}`')
+  })
+
+  it('8. ModelGenerator should use DATABASE_COLUMN_KIND_REGISTRY tsType mapping', async () => {
+    const manifest: any = {
+      models: [
+        {
+          name: 'Product',
+          shortName: 'Product',
+          columns: [
+            {
+              name: 'id',
+              propertyName: 'id',
+              type: 'bigint(20) unsigned',
+              columnKind: DatabaseColumnKind.BigInt,
+              nullable: false,
+              semanticType: PrimitiveKind.NUMBER,
+              enumValues: []
+            },
+            {
+              name: 'is_active',
+              propertyName: 'isActive',
+              type: 'tinyint(1)',
+              columnKind: DatabaseColumnKind.Boolean,
+              nullable: false,
+              semanticType: PrimitiveKind.BOOLEAN,
+              enumValues: []
+            }
+          ]
+        }
+      ]
+    }
+
+    await fs.remove(tmpDir)
+    await fs.ensureDir(tmpDir)
+    await ModelGenerator.generate(manifest, tmpDir)
+
+    const modelFile = await fs.readFile(path.join(tmpDir, 'core', 'models.ts'), 'utf-8')
+    expect(modelFile).toContain('export interface Product {')
+    expect(modelFile).toContain('id: number')
+    expect(modelFile).toContain('isActive: boolean')
 
     await fs.remove(tmpDir)
   })

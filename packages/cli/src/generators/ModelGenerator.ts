@@ -30,6 +30,8 @@ export class ModelGenerator {
         let tsType = 'string'
         if (col.enumValues && col.enumValues.length > 0) {
           tsType = col.enumValues.map(v => `'${v}'`).join(' | ')
+        } else if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
+          tsType = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType
         } else if (col.semanticType) {
           tsType = col.semanticType === PrimitiveKind.NUMBER ? 'number'
             : col.semanticType === PrimitiveKind.BOOLEAN ? 'boolean'

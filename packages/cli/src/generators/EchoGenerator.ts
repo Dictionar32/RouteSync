@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { BroadcastChannelDescriptor, BROADCAST_CHANNEL_REGISTRY } from '@routesync/core'
+import { BroadcastChannelDescriptor, BROADCAST_CHANNEL_REGISTRY, ROUTE_PARAMETER_TYPE_REGISTRY } from '@routesync/core'
 import { toTypeName } from './names'
 
 export class EchoGenerator {
@@ -25,9 +25,15 @@ export class EchoGenerator {
       const nameParts = channel.name.replace(/\{[^}]+\}/g, '').split('.').filter(Boolean)
       const hookName = 'useListen' + toTypeName(nameParts.join(' ')) + 'Channel'
 
-      const parameters = channel.parameters
+      const parameters = channel.parameters ?? []
       const paramArgs = parameters.length > 0
-        ? parameters.map(p => `${p.propertyName}: ${p.type === 'number' ? 'number' : 'string'}`).join(', ') + ', '
+        ? parameters.map(p => {
+            const tsType = (p.type && ROUTE_PARAMETER_TYPE_REGISTRY[p.type])
+              ? ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType
+              : (p.type === 'number' ? 'number' : 'string')
+            const propName = p.propertyName || p.name
+            return `${propName}: ${tsType}`
+          }).join(', ') + ', '
         : ''
 
       const runtimeChannelName = channel.runtimePattern || (channel.name || '').replace(/\{([^}]+)\}/g, '${$1}')

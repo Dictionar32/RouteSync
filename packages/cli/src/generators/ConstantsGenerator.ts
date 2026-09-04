@@ -196,11 +196,15 @@ export class ConstantsGenerator {
         if (!model.columns || !Array.isArray(model.columns)) continue
 
         for (const col of model.columns) {
-          const type = col.type.toLowerCase()
-          const enumMatch = type.match(/^enum\((.*)\)$/)
-          if (enumMatch && enumMatch[1]) {
-            const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""))
-            addEnum(model.name, col.name, values)
+          if (col.enumValues && col.enumValues.length > 0) {
+            addEnum(model.name, col.name, [...col.enumValues])
+          } else {
+            const type = col.type.toLowerCase()
+            const enumMatch = type.match(/^enum\((.*)\)$/)
+            if (enumMatch && enumMatch[1]) {
+              const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""))
+              addEnum(model.name, col.name, values)
+            }
           }
         }
       }

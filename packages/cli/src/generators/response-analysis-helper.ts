@@ -34,6 +34,9 @@ import {
  * 
  * All downstream generators (ZodTierGenerator, SDKEmitter, HookGenerator)
  * should read from this map instead of re-computing.
+ * 
+ * @deprecated Use `CompilerBridge.emitFullBundle` or PassManager pipeline instead.
+ * @internal Kept for backwards-compatibility with legacy standalone callers.
  */
 export class ResponseAnalysisHelper {
     static buildResponseArtifactMap(manifest: RouteManifest): Map<string, ResponseArtifact> {

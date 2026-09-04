@@ -12,11 +12,15 @@ import {
   CrudRole,
   ScannedRouteCacheInvalidationDescriptor,
   ScannedInvalidationTarget,
+  RouteParameterType,
+  ScannedRouteParameterDescriptor,
   ScannedRouteDescriptor
 } from '../../core/src'
 import { HookGenerator } from '../../cli/src/generators/HookGenerator'
 import { SDKGenerator } from '../../cli/src/generators/SDKGenerator'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
+import { QueryKeyGenerator } from '../../cli/src/generators/QueryKeyGenerator'
+import { TypeGenerator } from '../../cli/src/generators/TypeGenerator'
 import path from 'path'
 import fs from 'fs-extra'
 
@@ -256,6 +260,74 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
 
       const readCode = await fs.readFile(path.join(tempDir, 'types', 'api-read.ts'), 'utf-8')
       expect(readCode).toContain('OrderResourceTransformed')
+    } finally {
+      await fs.remove(tempDir)
+    }
+  })
+
+  it('9. QueryKeyGenerator should resolve primary key type from route pathParameters SSOT without fuzzy model matching', async () => {
+    const indexRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/devices',
+      resourceName: 'Device',
+      actionName: 'index',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Index,
+      response: ResourceResponseDescriptor.collection('DeviceResource')
+    })
+
+    const showRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/devices/{id}',
+      resourceName: 'Device',
+      actionName: 'show',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Show,
+      pathParameters: [
+        ScannedRouteParameterDescriptor.path({
+          name: 'id',
+          propertyName: 'id',
+          type: RouteParameterType.Uuid
+        })
+      ],
+      response: ResourceResponseDescriptor.single('DeviceResource')
+    })
+
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [indexRoute, showRoute],
+      models: [] // No models defined, relies 100% on route pathParameters SSOT
+    }
+
+    let writtenCode = ''
+    const originalWriteFile = fs.writeFile
+    ;(fs as any).writeFile = async (_file: string, content: string) => {
+      writtenCode = content
+    }
+
+    try {
+      await QueryKeyGenerator.generate(manifest, '/tmp')
+      // Since type is RouteParameterType.Uuid, tsType is 'string'
+      expect(writtenCode).toContain('createBaseQueryKey<typeof Entity.DEVICE, string>(Entity.DEVICE)')
+    } finally {
+      ;(fs as any).writeFile = originalWriteFile
+    }
+  })
+
+  it('10. TypeGenerator should re-export forms from ../forms/api-form and read from ./api-read', async () => {
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: []
+    }
+
+    const tempDir = path.join(__dirname, 'temp_type_gen')
+    try {
+      await TypeGenerator.generate(manifest, tempDir)
+      const indexCode = await fs.readFile(path.join(tempDir, 'types', 'index.ts'), 'utf-8')
+      expect(indexCode).toContain("export * from './api-read'")
+      expect(indexCode).toContain("export * from '../forms/api-form'")
     } finally {
       await fs.remove(tempDir)
     }

@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, ROUTE_PARAMETER_TYPE_REGISTRY } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
@@ -54,16 +54,26 @@ export class QueryKeyGenerator {
       const Title = toTypeName(groupName)
       const isCrud = !!(resource.index && resource.show)
 
-      const matchedModel = manifest.models?.find(m => {
-        const mTitle = toTypeName(m.name)
-        const mShort = toTypeName(m.shortName ?? '')
-        return mTitle === Title || mShort === Title
-          || mTitle + 's' === Title || mShort + 's' === Title
-          || Title + 's' === mTitle || Title.replace(/s$/, '') === mTitle.replace(/s$/, '')
-      })
-      const idType = matchedModel?.keySemanticType === 'number'
-        ? 'number'
-        : (matchedModel?.keySemanticType === 'string' ? 'string' : 'string | number')
+      // 1. Authoritative primary key from route path parameters (SSOT)
+      const primaryParam = (resource.show?.raw?.pathParameters ?? resource.update?.raw?.pathParameters ?? resource.delete?.raw?.pathParameters)?.[0]
+      let idType = 'string | number'
+
+      if (primaryParam && primaryParam.type && ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]) {
+        idType = ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type].tsType
+      } else {
+        const matchedModel = manifest.models?.find(m => {
+          const mTitle = toTypeName(m.name)
+          const mShort = toTypeName(m.shortName ?? '')
+          return mTitle === Title || mShort === Title
+            || mTitle + 's' === Title || mShort + 's' === Title
+            || Title + 's' === mTitle || Title.replace(/s$/, '') === mTitle.replace(/s$/, '')
+        })
+        if (matchedModel?.keySemanticType === 'number') {
+          idType = 'number'
+        } else if (matchedModel?.keySemanticType === 'string') {
+          idType = 'string'
+        }
+      }
 
       backwardExports.push(`export const ${groupName}Keys = QueryKey.${groupName}`)
 

@@ -42,7 +42,7 @@ export class TypeGenerator {
 
     // Re-export generated types (model types sudah di api-read.ts)
     lines.push(`export * from './api-read'`)
-    lines.push(`export * from './api-form'`)
+    lines.push(`export * from '../forms/api-form'`)
 
     await fs.ensureDir(path.join(outputDir, 'types'))
     await fs.writeFile(path.join(outputDir, 'types', 'index.ts'), lines.join('\n'))

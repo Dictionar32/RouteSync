@@ -142,7 +142,13 @@ export {
   HTTP_METHOD_REGISTRY,
   matchHttpMethod,
   ROUTE_ACTION_KIND_REGISTRY,
-  matchRouteActionKind
+  matchRouteActionKind,
+  HTTP_STATUS_CODE_REGISTRY,
+  matchHttpStatusCode,
+  CrudRole,
+  CRUD_ROLE_REGISTRY,
+  matchCrudRole,
+  ScannedCrudRoleDescriptor
 } from './types/route'
 export type {
   RouteManifest,
@@ -210,7 +216,17 @@ export type {
   RequestContentTypeSpecification,
   RequestContentTypeRegistry,
   RequestContentTypeVisitor,
-  CrudRole,
+  BaseCrudRoleDescriptor,
+  IndexCrudRoleDescriptor,
+  ShowCrudRoleDescriptor,
+  CreateCrudRoleDescriptor,
+  UpdateCrudRoleDescriptor,
+  DeleteCrudRoleDescriptor,
+  CustomCrudRoleDescriptor,
+  AnyCrudRoleDescriptor,
+  CrudRoleSpecification,
+  CrudRoleRegistry,
+  CrudRoleVisitor,
   RoutePolicyDescriptor,
   RateLimitDescriptor,
   BroadcastChannelDescriptor,
@@ -351,7 +367,12 @@ export type {
   HttpMethodVisitor,
   RouteActionKindSpecification,
   RouteActionKindRegistry,
-  RouteActionKindVisitor
+  RouteActionKindVisitor,
+  KnownHttpStatusCode,
+  HttpStatusCodeCategory,
+  HttpStatusCodeSpecification,
+  HttpStatusCodeRegistry,
+  HttpStatusCodeVisitor
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'
@@ -422,7 +443,24 @@ export {
   ResolvedObjectType,
   ResolvedOptionalType,
   ResolvedCollectionType,
-  ResolvedPrimitiveType
+  ResolvedPrimitiveType,
+  ResolvedReferenceType,
+  ResolvedNullableType,
+  ResolvedUnionType,
+  ResolvedIntersectionType,
+  ResolvedUnknownType,
+  ResolvedSemanticTypeKind,
+  RESOLVED_SEMANTIC_TYPE_REGISTRY,
+  matchResolvedSemanticType
+} from './compiler/domain/common/ResolvedSemanticType'
+export type {
+  ResolvedSemanticType,
+  ResolvedPrimitiveKind,
+  ObjectKind,
+  ResolvedField,
+  ResolvedSemanticTypeSpecification,
+  ResolvedSemanticTypeRegistry,
+  ResolvedSemanticTypeVisitor
 } from './compiler/domain/common/ResolvedSemanticType'
 
 

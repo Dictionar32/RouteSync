@@ -3549,6 +3549,228 @@ export const HttpStatusCode = Object.freeze({
 
 export type HttpStatusCode = typeof HttpStatusCode[keyof typeof HttpStatusCode] | number;
 
+export type KnownHttpStatusCode = typeof HttpStatusCode[keyof typeof HttpStatusCode];
+
+export type HttpStatusCodeCategory = 'informational' | 'success' | 'redirection' | 'client_error' | 'server_error';
+
+export interface HttpStatusCodeSpecification<C extends number = number> {
+  readonly code: C;
+  readonly name: string;
+  readonly category: HttpStatusCodeCategory;
+  readonly isSuccess: boolean;
+  readonly isError: boolean;
+  readonly isClientError: boolean;
+  readonly isServerError: boolean;
+  readonly hasResponseBody: boolean;
+  readonly statusText: string;
+  readonly description: string;
+}
+
+export type HttpStatusCodeRegistry = {
+  readonly [K in KnownHttpStatusCode]: HttpStatusCodeSpecification<K>;
+};
+
+export const HTTP_STATUS_CODE_REGISTRY: HttpStatusCodeRegistry = Object.freeze({
+  [HttpStatusCode.Ok]: {
+    code: HttpStatusCode.Ok,
+    name: 'Ok',
+    category: 'success',
+    isSuccess: true,
+    isError: false,
+    isClientError: false,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'OK',
+    description: 'Standard successful HTTP response'
+  },
+  [HttpStatusCode.Created]: {
+    code: HttpStatusCode.Created,
+    name: 'Created',
+    category: 'success',
+    isSuccess: true,
+    isError: false,
+    isClientError: false,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Created',
+    description: 'Resource successfully created'
+  },
+  [HttpStatusCode.Accepted]: {
+    code: HttpStatusCode.Accepted,
+    name: 'Accepted',
+    category: 'success',
+    isSuccess: true,
+    isError: false,
+    isClientError: false,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Accepted',
+    description: 'Request accepted for processing but processing has not completed'
+  },
+  [HttpStatusCode.NoContent]: {
+    code: HttpStatusCode.NoContent,
+    name: 'NoContent',
+    category: 'success',
+    isSuccess: true,
+    isError: false,
+    isClientError: false,
+    isServerError: false,
+    hasResponseBody: false,
+    statusText: 'No Content',
+    description: 'Request successfully processed, no payload content returned'
+  },
+  [HttpStatusCode.BadRequest]: {
+    code: HttpStatusCode.BadRequest,
+    name: 'BadRequest',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Bad Request',
+    description: 'Server could not understand the request due to invalid syntax'
+  },
+  [HttpStatusCode.Unauthorized]: {
+    code: HttpStatusCode.Unauthorized,
+    name: 'Unauthorized',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Unauthorized',
+    description: 'Authentication is required and has failed or has not been provided'
+  },
+  [HttpStatusCode.Forbidden]: {
+    code: HttpStatusCode.Forbidden,
+    name: 'Forbidden',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Forbidden',
+    description: 'Client does not have access rights to the content'
+  },
+  [HttpStatusCode.NotFound]: {
+    code: HttpStatusCode.NotFound,
+    name: 'NotFound',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Not Found',
+    description: 'Server cannot find the requested resource'
+  },
+  [HttpStatusCode.MethodNotAllowed]: {
+    code: HttpStatusCode.MethodNotAllowed,
+    name: 'MethodNotAllowed',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Method Not Allowed',
+    description: 'Request HTTP method is not supported for the target resource'
+  },
+  [HttpStatusCode.Conflict]: {
+    code: HttpStatusCode.Conflict,
+    name: 'Conflict',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Conflict',
+    description: 'Request conflicts with the current state of the server'
+  },
+  [HttpStatusCode.UnprocessableEntity]: {
+    code: HttpStatusCode.UnprocessableEntity,
+    name: 'UnprocessableEntity',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Unprocessable Entity',
+    description: 'Request was well-formed but was unable to be followed due to semantic errors (Laravel validation failure)'
+  },
+  [HttpStatusCode.TooManyRequests]: {
+    code: HttpStatusCode.TooManyRequests,
+    name: 'TooManyRequests',
+    category: 'client_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: true,
+    isServerError: false,
+    hasResponseBody: true,
+    statusText: 'Too Many Requests',
+    description: 'User has sent too many requests in a given amount of time (rate limited)'
+  },
+  [HttpStatusCode.InternalServerError]: {
+    code: HttpStatusCode.InternalServerError,
+    name: 'InternalServerError',
+    category: 'server_error',
+    isSuccess: false,
+    isError: true,
+    isClientError: false,
+    isServerError: true,
+    hasResponseBody: true,
+    statusText: 'Internal Server Error',
+    description: 'Server encountered an unexpected condition that prevented it from fulfilling the request'
+  }
+});
+
+export type HttpStatusCodeVisitor<R> = {
+  readonly 200: (spec: HttpStatusCodeSpecification<200>) => R;
+  readonly 201: (spec: HttpStatusCodeSpecification<201>) => R;
+  readonly 202: (spec: HttpStatusCodeSpecification<202>) => R;
+  readonly 204: (spec: HttpStatusCodeSpecification<204>) => R;
+  readonly 400: (spec: HttpStatusCodeSpecification<400>) => R;
+  readonly 401: (spec: HttpStatusCodeSpecification<401>) => R;
+  readonly 403: (spec: HttpStatusCodeSpecification<403>) => R;
+  readonly 404: (spec: HttpStatusCodeSpecification<404>) => R;
+  readonly 405: (spec: HttpStatusCodeSpecification<405>) => R;
+  readonly 409: (spec: HttpStatusCodeSpecification<409>) => R;
+  readonly 422: (spec: HttpStatusCodeSpecification<422>) => R;
+  readonly 429: (spec: HttpStatusCodeSpecification<429>) => R;
+  readonly 500: (spec: HttpStatusCodeSpecification<500>) => R;
+  readonly other?: (code: number) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik HttpStatusCode dengan exhaustive type safety
+ */
+export function matchHttpStatusCode<R>(
+  codeOrObject: number | { readonly status: number } | { readonly statusCode: number },
+  visitor: HttpStatusCodeVisitor<R>
+): R {
+  const code: number = typeof codeOrObject === 'number'
+    ? codeOrObject
+    : 'status' in codeOrObject
+      ? codeOrObject.status
+      : (codeOrObject as any).statusCode;
+
+  const handler = (visitor as any)[code];
+  if (handler) {
+    const spec = (HTTP_STATUS_CODE_REGISTRY as any)[code];
+    return handler(spec);
+  }
+  if (visitor.other) {
+    return visitor.other(code);
+  }
+  throw new Error(`Unhandled HttpStatusCode: ${code}`);
+}
+
+
 /**
  * RateLimitDescriptor
  *
@@ -3858,7 +4080,16 @@ export function foldValidationField<R>(
  *
  * Canonical REST CRUD Role Vocabulary.
  */
-export type CrudRole = 'index' | 'show' | 'create' | 'update' | 'delete' | 'custom';
+export const CrudRole = Object.freeze({
+  Index: 'index',
+  Show: 'show',
+  Create: 'create',
+  Update: 'update',
+  Delete: 'delete',
+  Custom: 'custom'
+} as const);
+
+export type CrudRole = typeof CrudRole[keyof typeof CrudRole];
 
 /**
  * RoutePolicyDescriptor
@@ -4111,6 +4342,258 @@ export class ScannedRouteHookDescriptor implements BaseRouteHookDescriptor {
 
   public static fromKind(kind: RouteHookKind): ScannedRouteHookDescriptor {
     return new ScannedRouteHookDescriptor(kind);
+  }
+}
+
+// =========================================================================
+// CRUD ROLE ADT FLOW DATA & DOMAIN SPECIFICATION (SSOT)
+// =========================================================================
+
+export interface BaseCrudRoleDescriptor<R extends CrudRole = CrudRole> {
+  readonly role: R;
+  readonly isMutating: boolean;
+  readonly isCollection: boolean;
+  readonly isItem: boolean;
+  readonly affectsSingleResource: boolean;
+  readonly defaultActionName: string;
+  readonly defaultHttpMethod: HttpMethod;
+  readonly defaultHookKind: RouteHookKind;
+  readonly defaultActionKind: RouteActionKind;
+  readonly description: string;
+}
+
+export interface IndexCrudRoleDescriptor extends BaseCrudRoleDescriptor<'index'> {
+  readonly role: 'index';
+  readonly isMutating: false;
+  readonly isCollection: true;
+  readonly isItem: false;
+  readonly affectsSingleResource: false;
+  readonly defaultActionName: 'list';
+  readonly defaultHttpMethod: typeof HttpMethod.GET;
+  readonly defaultHookKind: typeof RouteHookKind.Query;
+  readonly defaultActionKind: typeof RouteActionKind.Read;
+}
+
+export interface ShowCrudRoleDescriptor extends BaseCrudRoleDescriptor<'show'> {
+  readonly role: 'show';
+  readonly isMutating: false;
+  readonly isCollection: false;
+  readonly isItem: true;
+  readonly affectsSingleResource: true;
+  readonly defaultActionName: 'get';
+  readonly defaultHttpMethod: typeof HttpMethod.GET;
+  readonly defaultHookKind: typeof RouteHookKind.Query;
+  readonly defaultActionKind: typeof RouteActionKind.Read;
+}
+
+export interface CreateCrudRoleDescriptor extends BaseCrudRoleDescriptor<'create'> {
+  readonly role: 'create';
+  readonly isMutating: true;
+  readonly isCollection: false;
+  readonly isItem: false;
+  readonly affectsSingleResource: false;
+  readonly defaultActionName: 'create';
+  readonly defaultHttpMethod: typeof HttpMethod.POST;
+  readonly defaultHookKind: typeof RouteHookKind.Mutation;
+  readonly defaultActionKind: typeof RouteActionKind.Create;
+}
+
+export interface UpdateCrudRoleDescriptor extends BaseCrudRoleDescriptor<'update'> {
+  readonly role: 'update';
+  readonly isMutating: true;
+  readonly isCollection: false;
+  readonly isItem: true;
+  readonly affectsSingleResource: true;
+  readonly defaultActionName: 'update';
+  readonly defaultHttpMethod: typeof HttpMethod.PUT;
+  readonly defaultHookKind: typeof RouteHookKind.Mutation;
+  readonly defaultActionKind: typeof RouteActionKind.Update;
+}
+
+export interface DeleteCrudRoleDescriptor extends BaseCrudRoleDescriptor<'delete'> {
+  readonly role: 'delete';
+  readonly isMutating: true;
+  readonly isCollection: false;
+  readonly isItem: true;
+  readonly affectsSingleResource: true;
+  readonly defaultActionName: 'remove';
+  readonly defaultHttpMethod: typeof HttpMethod.DELETE;
+  readonly defaultHookKind: typeof RouteHookKind.Mutation;
+  readonly defaultActionKind: typeof RouteActionKind.Delete;
+}
+
+export interface CustomCrudRoleDescriptor extends BaseCrudRoleDescriptor<'custom'> {
+  readonly role: 'custom';
+  readonly isMutating: false;
+  readonly isCollection: false;
+  readonly isItem: false;
+  readonly affectsSingleResource: false;
+  readonly defaultActionName: 'call';
+  readonly defaultHttpMethod: typeof HttpMethod.POST;
+  readonly defaultHookKind: typeof RouteHookKind.Mutation;
+  readonly defaultActionKind: typeof RouteActionKind.Create;
+}
+
+export type AnyCrudRoleDescriptor =
+  | IndexCrudRoleDescriptor
+  | ShowCrudRoleDescriptor
+  | CreateCrudRoleDescriptor
+  | UpdateCrudRoleDescriptor
+  | DeleteCrudRoleDescriptor
+  | CustomCrudRoleDescriptor;
+
+export interface CrudRoleSpecification<R extends CrudRole = CrudRole> extends BaseCrudRoleDescriptor<R> {}
+
+export type CrudRoleRegistry = {
+  readonly [K in CrudRole]: CrudRoleSpecification<K>;
+};
+
+export const CRUD_ROLE_REGISTRY: CrudRoleRegistry = Object.freeze({
+  [CrudRole.Index]: {
+    role: CrudRole.Index,
+    isMutating: false,
+    isCollection: true,
+    isItem: false,
+    affectsSingleResource: false,
+    defaultActionName: 'list',
+    defaultHttpMethod: HttpMethod.GET,
+    defaultHookKind: RouteHookKind.Query,
+    defaultActionKind: RouteActionKind.Read,
+    description: 'Collection retrieval of multiple resources'
+  },
+  [CrudRole.Show]: {
+    role: CrudRole.Show,
+    isMutating: false,
+    isCollection: false,
+    isItem: true,
+    affectsSingleResource: true,
+    defaultActionName: 'get',
+    defaultHttpMethod: HttpMethod.GET,
+    defaultHookKind: RouteHookKind.Query,
+    defaultActionKind: RouteActionKind.Read,
+    description: 'Single resource retrieval by identifier'
+  },
+  [CrudRole.Create]: {
+    role: CrudRole.Create,
+    isMutating: true,
+    isCollection: false,
+    isItem: false,
+    affectsSingleResource: false,
+    defaultActionName: 'create',
+    defaultHttpMethod: HttpMethod.POST,
+    defaultHookKind: RouteHookKind.Mutation,
+    defaultActionKind: RouteActionKind.Create,
+    description: 'Creation of a new resource'
+  },
+  [CrudRole.Update]: {
+    role: CrudRole.Update,
+    isMutating: true,
+    isCollection: false,
+    isItem: true,
+    affectsSingleResource: true,
+    defaultActionName: 'update',
+    defaultHttpMethod: HttpMethod.PUT,
+    defaultHookKind: RouteHookKind.Mutation,
+    defaultActionKind: RouteActionKind.Update,
+    description: 'Modification of an existing resource'
+  },
+  [CrudRole.Delete]: {
+    role: CrudRole.Delete,
+    isMutating: true,
+    isCollection: false,
+    isItem: true,
+    affectsSingleResource: true,
+    defaultActionName: 'remove',
+    defaultHttpMethod: HttpMethod.DELETE,
+    defaultHookKind: RouteHookKind.Mutation,
+    defaultActionKind: RouteActionKind.Delete,
+    description: 'Deletion of an existing resource'
+  },
+  [CrudRole.Custom]: {
+    role: CrudRole.Custom,
+    isMutating: false,
+    isCollection: false,
+    isItem: false,
+    affectsSingleResource: false,
+    defaultActionName: 'call',
+    defaultHttpMethod: HttpMethod.POST,
+    defaultHookKind: RouteHookKind.Mutation,
+    defaultActionKind: RouteActionKind.Create,
+    description: 'Custom endpoint outside canonical CRUD operations'
+  }
+});
+
+export type CrudRoleVisitor<R> = {
+  readonly [K in CrudRole]: (spec: CrudRoleSpecification<K>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian CrudRole dengan exhaustive type safety
+ */
+export function matchCrudRole<R>(
+  roleOrRoute: CrudRole | { readonly crudRole: CrudRole } | string,
+  visitor: CrudRoleVisitor<R>
+): R {
+  const rawRole = typeof roleOrRoute === 'string'
+    ? roleOrRoute
+    : (roleOrRoute as any).crudRole;
+  const spec = (CRUD_ROLE_REGISTRY as Record<string, CrudRoleSpecification>)[rawRole] ?? CRUD_ROLE_REGISTRY[CrudRole.Custom];
+  return visitor[spec.role](spec as any);
+}
+
+export class ScannedCrudRoleDescriptor implements BaseCrudRoleDescriptor {
+  public readonly role: CrudRole;
+  public readonly isMutating: boolean;
+  public readonly isCollection: boolean;
+  public readonly isItem: boolean;
+  public readonly affectsSingleResource: boolean;
+  public readonly defaultActionName: string;
+  public readonly defaultHttpMethod: HttpMethod;
+  public readonly defaultHookKind: RouteHookKind;
+  public readonly defaultActionKind: RouteActionKind;
+  public readonly description: string;
+
+  constructor(role: CrudRole = CrudRole.Custom) {
+    this.role = role;
+    const spec = (CRUD_ROLE_REGISTRY as Record<string, CrudRoleSpecification>)[role] ?? CRUD_ROLE_REGISTRY[CrudRole.Custom];
+    this.isMutating = spec.isMutating;
+    this.isCollection = spec.isCollection;
+    this.isItem = spec.isItem;
+    this.affectsSingleResource = spec.affectsSingleResource;
+    this.defaultActionName = spec.defaultActionName;
+    this.defaultHttpMethod = spec.defaultHttpMethod;
+    this.defaultHookKind = spec.defaultHookKind;
+    this.defaultActionKind = spec.defaultActionKind;
+    this.description = spec.description;
+    Object.freeze(this);
+  }
+
+  public static index(): IndexCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(CrudRole.Index) as unknown as IndexCrudRoleDescriptor;
+  }
+
+  public static show(): ShowCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(CrudRole.Show) as unknown as ShowCrudRoleDescriptor;
+  }
+
+  public static create(): CreateCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(CrudRole.Create) as unknown as CreateCrudRoleDescriptor;
+  }
+
+  public static update(): UpdateCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(CrudRole.Update) as unknown as UpdateCrudRoleDescriptor;
+  }
+
+  public static delete(): DeleteCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(CrudRole.Delete) as unknown as DeleteCrudRoleDescriptor;
+  }
+
+  public static custom(): CustomCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(CrudRole.Custom) as unknown as CustomCrudRoleDescriptor;
+  }
+
+  public static fromRole(role: CrudRole): ScannedCrudRoleDescriptor {
+    return new ScannedCrudRoleDescriptor(role);
   }
 }
 

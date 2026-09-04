@@ -29,12 +29,12 @@
  *   Collisions (two GETs, two POSTs, etc.) are resolved with a numeric suffix.
  */
 
-import { ParsedRoute } from '@routesync/core'
+import { ParsedRoute, matchHttpMethod, CrudRole, CRUD_ROLE_REGISTRY, matchCrudRole } from '@routesync/core'
 import { toIdentifier, toTypeName } from './names'
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
-export type CrudRole = 'index' | 'show' | 'create' | 'update' | 'delete' | 'custom'
+export { CrudRole } from '@routesync/core'
 
 export interface ClassifiedRoute {
   raw: ParsedRoute
@@ -162,35 +162,29 @@ export function deriveGroupName(path: string): string {
  * No path string inspection, no model lookup.
  */
 function classifyCrudRole(method: string, hasTrailingParam: boolean, paramCount: number): CrudRole {
-  switch (method) {
-    case 'GET':
-      if (hasTrailingParam && paramCount === 1) return 'show'
-      if (!hasTrailingParam && paramCount === 0) return 'index'
-      return 'custom'
-    case 'POST':
-      return (!hasTrailingParam && paramCount === 0) ? 'create' : 'custom'
-    case 'PUT':
-    case 'PATCH':
-      return (hasTrailingParam && paramCount === 1) ? 'update' : 'custom'
-    case 'DELETE':
-      return (hasTrailingParam && paramCount === 1) ? 'delete' : 'custom'
-    default:
-      return 'custom'
-  }
+  return matchHttpMethod(method, {
+    GET: () => {
+      if (hasTrailingParam && paramCount === 1) return CrudRole.Show
+      if (!hasTrailingParam && paramCount === 0) return CrudRole.Index
+      return CrudRole.Custom
+    },
+    POST: () => (!hasTrailingParam && paramCount === 0) ? CrudRole.Create : CrudRole.Custom,
+    PUT: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Update : CrudRole.Custom,
+    PATCH: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Update : CrudRole.Custom,
+    DELETE: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Delete : CrudRole.Custom,
+    OPTIONS: () => CrudRole.Custom,
+    HEAD: () => CrudRole.Custom
+  })
 }
 
 /**
- * Canonical base action name for a CRUD role.
- * These are kept short and consistent so SDK callers have a stable API.
+ * Canonical base action name for a CRUD role (SSOT derived from CRUD_ROLE_REGISTRY).
  */
-const ROLE_ACTION: Record<CrudRole, string> = {
-  index:  'list',
-  show:   'get',
-  create: 'create',
-  update: 'update',
-  delete: 'remove',
-  custom: 'call',
-}
+const ROLE_ACTION: Record<CrudRole, string> = Object.freeze(
+  Object.fromEntries(
+    Object.values(CRUD_ROLE_REGISTRY).map(spec => [spec.role, spec.defaultActionName])
+  ) as Record<CrudRole, string>
+)
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -208,14 +202,21 @@ export function classifyRoutes(
   return routes.map(route => {
     const method = route.method.toUpperCase()
     const groupName = groupAliases?.[route.groupName] ?? route.groupName
-    const role = (route.crudRole as CrudRole) || 'custom'
+    const role = (route.crudRole as CrudRole) || CrudRole.Custom
     const runtimePath = route.runtimePath
     const hasParams = route.pathParameters ? route.pathParameters.length > 0 : false
-    const hasTrailingParam = role === 'show' || role === 'update' || role === 'delete'
+    const roleSpec = CRUD_ROLE_REGISTRY[role] ?? CRUD_ROLE_REGISTRY[CrudRole.Custom]
+    const hasTrailingParam = roleSpec.affectsSingleResource
 
-    // Build action name: start from role canonical name
-    let baseAction = ROLE_ACTION[role]
-    if (role === 'custom') baseAction = method.toLowerCase()
+    // Build action name: start from role canonical name via matchCrudRole catamorphism
+    const baseAction = matchCrudRole(role, {
+      index: spec => spec.defaultActionName,
+      show: spec => spec.defaultActionName,
+      create: spec => spec.defaultActionName,
+      update: spec => spec.defaultActionName,
+      delete: spec => spec.defaultActionName,
+      custom: () => method.toLowerCase(),
+    })
 
     if (!usedActions.has(groupName)) usedActions.set(groupName, new Set())
     const used = usedActions.get(groupName)!

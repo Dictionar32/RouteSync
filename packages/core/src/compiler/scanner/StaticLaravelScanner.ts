@@ -10,7 +10,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
+import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, matchHttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
 import { RequestType, FormAction, RequestField, ResponseData, FileValidationConstraints } from '../artifacts/RequestTypesArtifact';
 import { ObjectType, ObjectProperty, ScannedObjectProperty, PrimitiveType, PrimitiveKind, NullableType, ReadonlyCollectionType, CollectionKind, ReferenceType, SemanticType } from '../types/SemanticType';
 import { TypeInterner } from '../types/TypeInterner';
@@ -505,17 +505,17 @@ export class ScannedRouteDescriptor implements ParsedRoute {
             const paramCount = segments.filter(s => s.startsWith('{') || s.startsWith(':')).length;
             const isSimpleResourcePath = staticSegments.length <= 1;
 
-            let computedRole: CrudRole = 'custom';
+            let computedRole: CrudRole = CrudRole.Custom;
             if (isSimpleResourcePath) {
-                if (upperMethod === 'GET') {
-                    computedRole = (hasTrailingParam && paramCount === 1) ? 'show' : (!hasTrailingParam && paramCount === 0) ? 'index' : 'custom';
-                } else if (upperMethod === 'POST') {
-                    computedRole = (!hasTrailingParam && paramCount === 0) ? 'create' : 'custom';
-                } else if (upperMethod === 'PUT' || upperMethod === 'PATCH') {
-                    computedRole = (hasTrailingParam && paramCount === 1) ? 'update' : 'custom';
-                } else if (upperMethod === 'DELETE') {
-                    computedRole = (hasTrailingParam && paramCount === 1) ? 'delete' : 'custom';
-                }
+                computedRole = matchHttpMethod(upperMethod, {
+                    GET: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Show : (!hasTrailingParam && paramCount === 0) ? CrudRole.Index : CrudRole.Custom,
+                    POST: () => (!hasTrailingParam && paramCount === 0) ? CrudRole.Create : CrudRole.Custom,
+                    PUT: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Update : CrudRole.Custom,
+                    PATCH: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Update : CrudRole.Custom,
+                    DELETE: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Delete : CrudRole.Custom,
+                    OPTIONS: () => CrudRole.Custom,
+                    HEAD: () => CrudRole.Custom,
+                });
             }
             resolvedCrudRole = computedRole;
         }

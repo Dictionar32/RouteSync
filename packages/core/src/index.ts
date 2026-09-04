@@ -113,7 +113,9 @@ export {
   matchPaginationKind,
   ROUTE_PAYLOAD_MODE_REGISTRY,
   matchRouteExecutionSignature,
-  matchRoutePayloadMode
+  matchRoutePayloadMode,
+  DATABASE_COLUMN_KIND_REGISTRY,
+  matchDatabaseColumnKind
 } from './types/route'
 export type {
   RouteManifest,
@@ -186,6 +188,10 @@ export type {
   ParsedChannel,
   ParsedModel,
   ParsedColumn,
+  SqlTypeFamily,
+  DatabaseColumnKindSpecification,
+  DatabaseColumnKindRegistry,
+  DatabaseColumnKindVisitor,
   ParsedCast,
   ParsedAccessor,
   ParsedRelation,

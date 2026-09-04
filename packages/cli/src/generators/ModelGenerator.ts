@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind, matchRelation } from '@routesync/core'
+import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind, DATABASE_COLUMN_KIND_REGISTRY, matchRelation } from '@routesync/core'
 
 export class ModelGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -81,23 +81,6 @@ export class ModelGenerator {
   }
 
   private static mapColumnKindToTs(kind: DatabaseColumnKind): string {
-    switch (kind) {
-      case DatabaseColumnKind.Boolean:
-        return 'boolean'
-      case DatabaseColumnKind.BigInt:
-      case DatabaseColumnKind.Integer:
-      case DatabaseColumnKind.SmallInt:
-      case DatabaseColumnKind.TinyInt:
-      case DatabaseColumnKind.Float:
-      case DatabaseColumnKind.Double:
-      case DatabaseColumnKind.Decimal:
-        return 'number'
-      case DatabaseColumnKind.Json:
-        return 'Record<string, unknown>'
-      case DatabaseColumnKind.Unknown:
-        return 'unknown'
-      default:
-        return 'string'
-    }
+    return DATABASE_COLUMN_KIND_REGISTRY[kind]?.tsType ?? 'unknown'
   }
 }

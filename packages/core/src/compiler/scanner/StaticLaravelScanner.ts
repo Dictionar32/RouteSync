@@ -10,7 +10,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
+import { RouteManifest, ParsedRoute, ParsedResource, ParsedModel, ResourceFieldDescriptor, ResourceFieldExpressionFactory, RouteParameter, PathParameterDescriptor, QueryParameterDescriptor, HeaderParameterDescriptor, RouteParameterLocation, RouteParameterType, ResponseDescriptor, ResourceResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldExpression, ResourceRouteGroup, ParsedColumn, ParsedCast, EloquentCastKind, EloquentCastMapper, ParsedAccessor, ParsedRelation, SingleRelationDescriptor, CollectionRelationDescriptor, EloquentRelationClassifier, EloquentRelationType, EloquentRelationCardinality, RouteSchemaPayload, RouteValidationRuleEntry, RouteMessageEntry, RouteAttributeEntry, ValidationRuleKind, ValidationRuleNode, ValidationRuleParser, ValidationRuleNodeFactory, HttpMethod, HTTP_METHOD_REGISTRY, RouteActionKind, ResponseShape, DatabaseColumnTypeMapper, SecuritySchemeKind, RouteSecurityDescriptor, RouteSecurityClassifier, ScannedRouteSecurityDescriptor, ModelKeyType, ModelKeyTypeMapper, MODEL_KEY_TYPE_REGISTRY, RequestContentType, RouteQueryParameter, HttpErrorResponseDescriptor, ValidationFieldNode, CrudRole, RoutePolicyDescriptor, DatabaseColumnKind, HttpStatusCode, RateLimitDescriptor, PaginatedEnvelopeDescriptor, ScannedPaginatedEnvelopeDescriptor, PolymorphicRelationDescriptor, ScannedPolymorphicRelationDescriptor, BroadcastChannelKind, BroadcastChannelDescriptor, PublicBroadcastChannelDescriptor, PrivateBroadcastChannelDescriptor, PresenceBroadcastChannelDescriptor, ParsedChannel, RouteHookKind, RoutePayloadMode, SdkResponseKind, InvalidationTarget, ScannedInvalidationTarget, RouteCacheInvalidationDescriptor, ScannedRouteCacheInvalidationDescriptor, ScannedRouteInvalidationPayload, RouteExecutionSignature, ScannedRouteExecutionSignature, SdkResponseResolution, ScannedSdkResponseResolution, ResourceAssignment, FrontendConfig, PageConfig, ActionDefinition } from '../../types/route';
 import { RequestType, FormAction, RequestField, ResponseData, FileValidationConstraints } from '../artifacts/RequestTypesArtifact';
 import { ObjectType, ObjectProperty, ScannedObjectProperty, PrimitiveType, PrimitiveKind, NullableType, ReadonlyCollectionType, CollectionKind, ReferenceType, SemanticType } from '../types/SemanticType';
 import { TypeInterner } from '../types/TypeInterner';
@@ -1840,25 +1840,8 @@ export class ScannedModelDescriptor implements ParsedModel {
         const defaultShortName = extractClassBasename(name);
         const resolvedShortName = shortName ?? defaultShortName;
         const resolvedTable = table ?? inferLaravelTableName(defaultShortName);
-        let normalizedKeyType: ModelKeyType = ModelKeyType.Int;
-        if (keyType === 'string' || keyType === ModelKeyType.String) {
-            normalizedKeyType = ModelKeyType.String;
-        } else if (keyType === 'uuid' || keyType === ModelKeyType.Uuid) {
-            normalizedKeyType = ModelKeyType.Uuid;
-        } else if (keyType === 'ulid' || keyType === ModelKeyType.Ulid) {
-            normalizedKeyType = ModelKeyType.Ulid;
-        } else if (keyType === 'bigint' || keyType === ModelKeyType.BigInt) {
-            normalizedKeyType = ModelKeyType.BigInt;
-        }
-
-        let resolvedKeySemantic = keySemanticType;
-        if (!resolvedKeySemantic) {
-            if (normalizedKeyType === ModelKeyType.Int || normalizedKeyType === ModelKeyType.BigInt) {
-                resolvedKeySemantic = PrimitiveKind.NUMBER;
-            } else {
-                resolvedKeySemantic = PrimitiveKind.STRING;
-            }
-        }
+        const normalizedKeyType: ModelKeyType = ModelKeyTypeMapper.normalize(keyType);
+        const resolvedKeySemantic: PrimitiveKind = keySemanticType ?? MODEL_KEY_TYPE_REGISTRY[normalizedKeyType].primitiveKind;
 
         return new ScannedModelDescriptor({
             name,
@@ -2290,13 +2273,8 @@ export class StaticLaravelScanner {
 
         const mapMethodDetails = (method: string): { method: HttpMethod; actionKind: RouteActionKind; isMutating: boolean } => {
             const m = method.toUpperCase() as HttpMethod;
-            switch (m) {
-                case 'POST':   return { method: m, actionKind: 'create', isMutating: true };
-                case 'PUT':
-                case 'PATCH':  return { method: m, actionKind: 'update', isMutating: true };
-                case 'DELETE': return { method: m, actionKind: 'delete', isMutating: true };
-                default:       return { method: m, actionKind: 'read', isMutating: false };
-            }
+            const spec = HTTP_METHOD_REGISTRY[m] ?? HTTP_METHOD_REGISTRY.GET;
+            return { method: spec.method, actionKind: spec.actionKind, isMutating: spec.isMutating };
         };
 
         for (let i = 0; i < tokens.length; i++) {

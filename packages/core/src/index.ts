@@ -131,7 +131,18 @@ export {
   matchResourceExpression,
   VALIDATION_RULE_REGISTRY,
   matchValidationRule,
-  matchRule
+  matchRule,
+  MODEL_KEY_TYPE_REGISTRY,
+  matchModelKeyType,
+  ModelKeyTypeMapper,
+  ROUTE_PARAMETER_TYPE_REGISTRY,
+  matchRouteParameterType,
+  RESPONSE_SHAPE_REGISTRY,
+  matchResponseShape,
+  HTTP_METHOD_REGISTRY,
+  matchHttpMethod,
+  ROUTE_ACTION_KIND_REGISTRY,
+  matchRouteActionKind
 } from './types/route'
 export type {
   RouteManifest,
@@ -212,6 +223,9 @@ export type {
   RouteSecurityDescriptor,
   ParsedChannel,
   ParsedModel,
+  ModelKeyTypeSpecification,
+  ModelKeyTypeRegistry,
+  ModelKeyTypeVisitor,
   ParsedColumn,
   SqlTypeFamily,
   DatabaseColumnKindSpecification,
@@ -231,6 +245,9 @@ export type {
   EloquentRelationDescriptor,
   EloquentRelationRegistry,
   EloquentRelationCardinality,
+  ResponseShapeSpecification,
+  ResponseShapeRegistry,
+  ResponseShapeVisitor,
   PaginatedEnvelopeDescriptor,
   BasePaginatedEnvelopeDescriptor,
   LengthAwarePaginatedEnvelopeDescriptor,
@@ -280,6 +297,9 @@ export type {
   RouteParameterLocationSpecification,
   RouteParameterLocationRegistry,
   RouteParameterVisitor,
+  RouteParameterTypeSpecification,
+  RouteParameterTypeRegistry,
+  RouteParameterTypeVisitor,
   RouteQueryParameter,
   HttpErrorResponseDescriptor,
   ValidationFieldNode,
@@ -325,7 +345,13 @@ export type {
   ZodNode,
   ExtractRule,
   ConstraintHandler,
-  ConstraintRegistry
+  ConstraintRegistry,
+  HttpMethodSpecification,
+  HttpMethodRegistry,
+  HttpMethodVisitor,
+  RouteActionKindSpecification,
+  RouteActionKindRegistry,
+  RouteActionKindVisitor
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'

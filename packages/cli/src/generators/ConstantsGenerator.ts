@@ -1,4 +1,4 @@
-import { RouteManifest, RouteParameterType, ValidationRuleKind } from '@routesync/core'
+import { RouteManifest, RouteParameterType, ROUTE_PARAMETER_TYPE_REGISTRY, ValidationRuleKind } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 
@@ -69,7 +69,7 @@ export class ConstantsGenerator {
       let pathParams: Array<{ name: string; propertyName: string; type: string }> = (route.pathParameters ?? []).map(p => ({
         name: p.name,
         propertyName: p.propertyName,
-        type: p.type === RouteParameterType.Number ? 'number' : 'string'
+        type: ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType
       }))
 
       if (pathParams.length === 0) {
@@ -136,7 +136,7 @@ export class ConstantsGenerator {
       let pathParams: Array<{ name: string; propertyName: string; type: string }> = (route.pathParameters ?? []).map(p => ({
         name: p.name,
         propertyName: p.propertyName,
-        type: p.type === RouteParameterType.Number ? 'number' : 'string'
+        type: ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType
       }))
 
       if (pathParams.length === 0) {

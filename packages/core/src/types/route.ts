@@ -1290,6 +1290,110 @@ export const ModelKeyType = Object.freeze({
 
 export type ModelKeyType = typeof ModelKeyType[keyof typeof ModelKeyType];
 
+export interface ModelKeyTypeSpecification<T extends ModelKeyType = ModelKeyType> {
+  readonly type: T;
+  readonly tsType: 'number' | 'string';
+  readonly isNumeric: boolean;
+  readonly isStringLike: boolean;
+  readonly primitiveKind: PrimitiveKind;
+  readonly sampleValue: number | string;
+  readonly description: string;
+}
+
+export type ModelKeyTypeRegistry = {
+  readonly [K in ModelKeyType]: ModelKeyTypeSpecification<K>;
+};
+
+export const MODEL_KEY_TYPE_REGISTRY: ModelKeyTypeRegistry = Object.freeze({
+  [ModelKeyType.Int]: {
+    type: ModelKeyType.Int,
+    tsType: 'number',
+    isNumeric: true,
+    isStringLike: false,
+    primitiveKind: PrimitiveKind.NUMBER,
+    sampleValue: 1,
+    description: 'Integer primary key (auto-incrementing)'
+  },
+  [ModelKeyType.BigInt]: {
+    type: ModelKeyType.BigInt,
+    tsType: 'number',
+    isNumeric: true,
+    isStringLike: false,
+    primitiveKind: PrimitiveKind.NUMBER,
+    sampleValue: 1,
+    description: 'BigInteger primary key'
+  },
+  [ModelKeyType.String]: {
+    type: ModelKeyType.String,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    primitiveKind: PrimitiveKind.STRING,
+    sampleValue: 'id_sample',
+    description: 'String primary key'
+  },
+  [ModelKeyType.Uuid]: {
+    type: ModelKeyType.Uuid,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    primitiveKind: PrimitiveKind.STRING,
+    sampleValue: '00000000-0000-0000-0000-000000000000',
+    description: 'UUID primary key'
+  },
+  [ModelKeyType.Ulid]: {
+    type: ModelKeyType.Ulid,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    primitiveKind: PrimitiveKind.STRING,
+    sampleValue: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+    description: 'ULID primary key'
+  }
+});
+
+export type ModelKeyTypeVisitor<R> = {
+  readonly int: (spec: ModelKeyTypeSpecification<'int'>) => R;
+  readonly bigint: (spec: ModelKeyTypeSpecification<'bigint'>) => R;
+  readonly string: (spec: ModelKeyTypeSpecification<'string'>) => R;
+  readonly uuid: (spec: ModelKeyTypeSpecification<'uuid'>) => R;
+  readonly ulid: (spec: ModelKeyTypeSpecification<'ulid'>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik ModelKeyType dengan exhaustive type safety
+ */
+export function matchModelKeyType<R>(
+  typeOrModel: ModelKeyType | { readonly keyType: ModelKeyType },
+  visitor: ModelKeyTypeVisitor<R>
+): R {
+  const type = typeof typeOrModel === 'string' ? typeOrModel : typeOrModel.keyType;
+  const spec = MODEL_KEY_TYPE_REGISTRY[type];
+  return visitor[type](spec as any);
+}
+
+/**
+ * ModelKeyTypeMapper
+ *
+ * O(1) canonical dictionary normalization for model primary key types.
+ */
+export class ModelKeyTypeMapper {
+  private static readonly NORMALIZATION_MAP: Readonly<Record<string, ModelKeyType>> = Object.freeze({
+    int: ModelKeyType.Int,
+    integer: ModelKeyType.Int,
+    bigint: ModelKeyType.BigInt,
+    string: ModelKeyType.String,
+    uuid: ModelKeyType.Uuid,
+    ulid: ModelKeyType.Ulid
+  });
+
+  public static normalize(rawKeyType?: string | null): ModelKeyType {
+    if (!rawKeyType) return ModelKeyType.Int;
+    return this.NORMALIZATION_MAP[rawKeyType.toLowerCase()] ?? ModelKeyType.Int;
+  }
+}
+
+
 /**
  * Pure Ordered Eloquent Model AST (0 Record, 0 Object.entries).
  */
@@ -1320,6 +1424,65 @@ export const ResponseShape = Object.freeze({
 } as const);
 
 export type ResponseShape = typeof ResponseShape[keyof typeof ResponseShape];
+
+export interface ResponseShapeSpecification<S extends ResponseShape = ResponseShape> {
+  readonly shape: S;
+  readonly isCollection: boolean;
+  readonly isPaginated: boolean;
+  readonly isSingle: boolean;
+  readonly defaultWrapperKey: string | null;
+  readonly description: string;
+}
+
+export type ResponseShapeRegistry = {
+  readonly [K in ResponseShape]: ResponseShapeSpecification<K>;
+};
+
+export const RESPONSE_SHAPE_REGISTRY: ResponseShapeRegistry = Object.freeze({
+  [ResponseShape.Paginated]: {
+    shape: ResponseShape.Paginated,
+    isCollection: true,
+    isPaginated: true,
+    isSingle: false,
+    defaultWrapperKey: 'data',
+    description: 'Paginated envelope containing a collection of records with pagination metadata'
+  },
+  [ResponseShape.Collection]: {
+    shape: ResponseShape.Collection,
+    isCollection: true,
+    isPaginated: false,
+    isSingle: false,
+    defaultWrapperKey: 'data',
+    description: 'Direct array or collection of records'
+  },
+  [ResponseShape.Single]: {
+    shape: ResponseShape.Single,
+    isCollection: false,
+    isPaginated: false,
+    isSingle: true,
+    defaultWrapperKey: null,
+    description: 'Single item or record object'
+  }
+});
+
+export type ResponseShapeVisitor<R> = {
+  readonly paginated: (spec: ResponseShapeSpecification<'paginated'>) => R;
+  readonly collection: (spec: ResponseShapeSpecification<'collection'>) => R;
+  readonly single: (spec: ResponseShapeSpecification<'single'>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik ResponseShape dengan exhaustive type safety
+ */
+export function matchResponseShape<R>(
+  shapeOrDescriptor: ResponseShape | { readonly shape: ResponseShape },
+  visitor: ResponseShapeVisitor<R>
+): R {
+  const shape = typeof shapeOrDescriptor === 'string' ? shapeOrDescriptor : shapeOrDescriptor.shape;
+  const spec = RESPONSE_SHAPE_REGISTRY[shape];
+  return visitor[shape](spec as any);
+}
+
 
 /**
  * PaginationKind
@@ -2131,6 +2294,117 @@ export const RouteParameterType = Object.freeze({
 
 export type RouteParameterType = typeof RouteParameterType[keyof typeof RouteParameterType];
 
+export interface RouteParameterTypeSpecification<T extends RouteParameterType = RouteParameterType> {
+  readonly type: T;
+  readonly tsType: 'number' | 'string' | 'boolean';
+  readonly isNumeric: boolean;
+  readonly isStringLike: boolean;
+  readonly isIdentifier: boolean;
+  readonly pattern: string;
+  readonly zodValidator: string;
+  readonly description: string;
+}
+
+export type RouteParameterTypeRegistry = {
+  readonly [K in RouteParameterType]: RouteParameterTypeSpecification<K>;
+};
+
+export const ROUTE_PARAMETER_TYPE_REGISTRY: RouteParameterTypeRegistry = Object.freeze({
+  [RouteParameterType.Number]: {
+    type: RouteParameterType.Number,
+    tsType: 'number',
+    isNumeric: true,
+    isStringLike: false,
+    isIdentifier: true,
+    pattern: '^\\d+$',
+    zodValidator: 'z.coerce.number()',
+    description: 'Numeric path or query parameter'
+  },
+  [RouteParameterType.String]: {
+    type: RouteParameterType.String,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    isIdentifier: false,
+    pattern: '.*',
+    zodValidator: 'z.string()',
+    description: 'Generic string parameter'
+  },
+  [RouteParameterType.Boolean]: {
+    type: RouteParameterType.Boolean,
+    tsType: 'boolean',
+    isNumeric: false,
+    isStringLike: false,
+    isIdentifier: false,
+    pattern: '^(true|false|1|0)$',
+    zodValidator: 'z.coerce.boolean()',
+    description: 'Boolean flag parameter'
+  },
+  [RouteParameterType.Uuid]: {
+    type: RouteParameterType.Uuid,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    isIdentifier: true,
+    pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    zodValidator: 'z.string().uuid()',
+    description: 'RFC 4122 Universally Unique Identifier'
+  },
+  [RouteParameterType.Ulid]: {
+    type: RouteParameterType.Ulid,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    isIdentifier: true,
+    pattern: '^[0-7][0-9A-HJKMNP-TV-Z]{25}$',
+    zodValidator: 'z.string().ulid()',
+    description: 'Universally Unique Lexicographically Sortable Identifier'
+  },
+  [RouteParameterType.Date]: {
+    type: RouteParameterType.Date,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    isIdentifier: false,
+    pattern: '^\\d{4}-\\d{2}-\\d{2}$',
+    zodValidator: 'z.string().date()',
+    description: 'ISO-8601 date parameter'
+  },
+  [RouteParameterType.Slug]: {
+    type: RouteParameterType.Slug,
+    tsType: 'string',
+    isNumeric: false,
+    isStringLike: true,
+    isIdentifier: true,
+    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+    zodValidator: 'z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)',
+    description: 'URL-friendly slug identifier'
+  }
+});
+
+export type RouteParameterTypeVisitor<R> = {
+  readonly number: (spec: RouteParameterTypeSpecification<'number'>) => R;
+  readonly string: (spec: RouteParameterTypeSpecification<'string'>) => R;
+  readonly boolean: (spec: RouteParameterTypeSpecification<'boolean'>) => R;
+  readonly uuid: (spec: RouteParameterTypeSpecification<'uuid'>) => R;
+  readonly ulid: (spec: RouteParameterTypeSpecification<'ulid'>) => R;
+  readonly date: (spec: RouteParameterTypeSpecification<'date'>) => R;
+  readonly slug: (spec: RouteParameterTypeSpecification<'slug'>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik RouteParameterType dengan exhaustive type safety
+ */
+export function matchRouteParameterType<R>(
+  typeOrParam: RouteParameterType | { readonly type: RouteParameterType },
+  visitor: RouteParameterTypeVisitor<R>
+): R {
+  const type = typeof typeOrParam === 'string' ? typeOrParam : typeOrParam.type;
+  const spec = ROUTE_PARAMETER_TYPE_REGISTRY[type];
+  return visitor[type](spec as any);
+}
+
+
 export interface RouteParameter {
   readonly name: string;
   readonly propertyName: string; // ✅ Canonical TS Identifier ('orderId', 0 toCamelCase in downstream)
@@ -2892,6 +3166,180 @@ export const RouteActionKind = Object.freeze({
 } as const);
 
 export type RouteActionKind = typeof RouteActionKind[keyof typeof RouteActionKind];
+
+export interface HttpMethodSpecification<M extends HttpMethod = HttpMethod> {
+  readonly method: M;
+  readonly actionKind: RouteActionKind;
+  readonly isMutating: boolean;
+  readonly isSafe: boolean;
+  readonly isIdempotent: boolean;
+  readonly hasBody: boolean;
+  readonly defaultCrudRole: CrudRole;
+  readonly description: string;
+}
+
+export type HttpMethodRegistry = {
+  readonly [K in HttpMethod]: HttpMethodSpecification<K>;
+};
+
+export const HTTP_METHOD_REGISTRY: HttpMethodRegistry = Object.freeze({
+  [HttpMethod.GET]: {
+    method: HttpMethod.GET,
+    actionKind: RouteActionKind.Read,
+    isMutating: false,
+    isSafe: true,
+    isIdempotent: true,
+    hasBody: false,
+    defaultCrudRole: 'show',
+    description: 'Safe, idempotent retrieval of resources'
+  },
+  [HttpMethod.POST]: {
+    method: HttpMethod.POST,
+    actionKind: RouteActionKind.Create,
+    isMutating: true,
+    isSafe: false,
+    isIdempotent: false,
+    hasBody: true,
+    defaultCrudRole: 'create',
+    description: 'Non-idempotent resource creation or action execution'
+  },
+  [HttpMethod.PUT]: {
+    method: HttpMethod.PUT,
+    actionKind: RouteActionKind.Update,
+    isMutating: true,
+    isSafe: false,
+    isIdempotent: true,
+    hasBody: true,
+    defaultCrudRole: 'update',
+    description: 'Idempotent complete replacement/update of a resource'
+  },
+  [HttpMethod.PATCH]: {
+    method: HttpMethod.PATCH,
+    actionKind: RouteActionKind.Update,
+    isMutating: true,
+    isSafe: false,
+    isIdempotent: false,
+    hasBody: true,
+    defaultCrudRole: 'update',
+    description: 'Partial modification/update of a resource'
+  },
+  [HttpMethod.DELETE]: {
+    method: HttpMethod.DELETE,
+    actionKind: RouteActionKind.Delete,
+    isMutating: true,
+    isSafe: false,
+    isIdempotent: true,
+    hasBody: false,
+    defaultCrudRole: 'delete',
+    description: 'Idempotent removal of a resource'
+  },
+  [HttpMethod.OPTIONS]: {
+    method: HttpMethod.OPTIONS,
+    actionKind: RouteActionKind.Read,
+    isMutating: false,
+    isSafe: true,
+    isIdempotent: true,
+    hasBody: false,
+    defaultCrudRole: 'show',
+    description: 'Describes the communication options for the target resource'
+  },
+  [HttpMethod.HEAD]: {
+    method: HttpMethod.HEAD,
+    actionKind: RouteActionKind.Read,
+    isMutating: false,
+    isSafe: true,
+    isIdempotent: true,
+    hasBody: false,
+    defaultCrudRole: 'show',
+    description: 'Same as GET but returns headers only without response body'
+  }
+});
+
+export type HttpMethodVisitor<R> = {
+  readonly GET: (spec: HttpMethodSpecification<'GET'>) => R;
+  readonly POST: (spec: HttpMethodSpecification<'POST'>) => R;
+  readonly PUT: (spec: HttpMethodSpecification<'PUT'>) => R;
+  readonly PATCH: (spec: HttpMethodSpecification<'PATCH'>) => R;
+  readonly DELETE: (spec: HttpMethodSpecification<'DELETE'>) => R;
+  readonly OPTIONS: (spec: HttpMethodSpecification<'OPTIONS'>) => R;
+  readonly HEAD: (spec: HttpMethodSpecification<'HEAD'>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik HttpMethod dengan exhaustive type safety
+ */
+export function matchHttpMethod<R>(
+  methodOrRoute: HttpMethod | { readonly method: HttpMethod } | string,
+  visitor: HttpMethodVisitor<R>
+): R {
+  const raw = typeof methodOrRoute === 'string' ? methodOrRoute : methodOrRoute.method;
+  const upper = raw.toUpperCase() as HttpMethod;
+  const spec = HTTP_METHOD_REGISTRY[upper] ?? HTTP_METHOD_REGISTRY.GET;
+  return visitor[spec.method](spec as any);
+}
+
+export interface RouteActionKindSpecification<A extends RouteActionKind = RouteActionKind> {
+  readonly actionKind: A;
+  readonly isMutating: boolean;
+  readonly defaultMethod: HttpMethod;
+  readonly defaultCrudRole: CrudRole;
+  readonly description: string;
+}
+
+export type RouteActionKindRegistry = {
+  readonly [K in RouteActionKind]: RouteActionKindSpecification<K>;
+};
+
+export const ROUTE_ACTION_KIND_REGISTRY: RouteActionKindRegistry = Object.freeze({
+  [RouteActionKind.Create]: {
+    actionKind: RouteActionKind.Create,
+    isMutating: true,
+    defaultMethod: HttpMethod.POST,
+    defaultCrudRole: 'create',
+    description: 'Creation of a new entity or resource'
+  },
+  [RouteActionKind.Update]: {
+    actionKind: RouteActionKind.Update,
+    isMutating: true,
+    defaultMethod: HttpMethod.PUT,
+    defaultCrudRole: 'update',
+    description: 'Modification or mutation of an existing entity'
+  },
+  [RouteActionKind.Read]: {
+    actionKind: RouteActionKind.Read,
+    isMutating: false,
+    defaultMethod: HttpMethod.GET,
+    defaultCrudRole: 'show',
+    description: 'Retrieval or query of an entity or collection'
+  },
+  [RouteActionKind.Delete]: {
+    actionKind: RouteActionKind.Delete,
+    isMutating: true,
+    defaultMethod: HttpMethod.DELETE,
+    defaultCrudRole: 'delete',
+    description: 'Deletion or destruction of an entity'
+  }
+});
+
+export type RouteActionKindVisitor<R> = {
+  readonly create: (spec: RouteActionKindSpecification<'create'>) => R;
+  readonly update: (spec: RouteActionKindSpecification<'update'>) => R;
+  readonly read: (spec: RouteActionKindSpecification<'read'>) => R;
+  readonly delete: (spec: RouteActionKindSpecification<'delete'>) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik RouteActionKind dengan exhaustive type safety
+ */
+export function matchRouteActionKind<R>(
+  kindOrAction: RouteActionKind | { readonly actionKind: RouteActionKind },
+  visitor: RouteActionKindVisitor<R>
+): R {
+  const kind = typeof kindOrAction === 'string' ? kindOrAction : kindOrAction.actionKind;
+  const spec = ROUTE_ACTION_KIND_REGISTRY[kind];
+  return visitor[kind](spec as any);
+}
+
 
 /**
  * Canonical Domain Vocabulary for Route Authentication Schemes.

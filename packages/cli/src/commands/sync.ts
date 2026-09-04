@@ -118,72 +118,10 @@ export const syncCommand = new Command('sync')
       spinner.start(steps[1].text)
       await TypeGenerator.generate(resolvedManifest, options.output)
       
-      if (options.zod) {
-        const { CompilerBridge } = require('../generators/CompilerBridge')
-        await CompilerBridge.emitAll(resolvedManifest, options.output)
-      }
-      spinner.succeed(chalk.green(`✔ ${steps[1].text}`))
-
-      // Step 3: SDK
-      spinner.start(steps[2].text)
-      await SDKGenerator.generate(resolvedManifest, options.output, options)
-      spinner.succeed(chalk.green(`✔ ${steps[2].text}`))
-
-      // Step 4: Hooks
-      if (options.hooks !== false) {
-        spinner.start(steps[3].text)
-        await QueryKeyGenerator.generate(resolvedManifest, options.output)
-        await ValuesGenerator.generate(resolvedManifest, options.output)
-        await HookGenerator.generate(resolvedManifest, options.output)
-        spinner.succeed(chalk.green(`✔ ${steps[3].text}`))
-        console.warn(chalk.yellow('\n  [DEPRECATED] Hook generation will be disabled by default in v2. Please migrate to useApiQuery().\n'))
-      }
-      
-      // Step 5: Server Actions
-      if (options.nextActions) {
-        spinner.start(steps[4].text)
-        await NextActionGenerator.generate(resolvedManifest, options.output)
-        spinner.succeed(chalk.green(`✔ ${steps[4].text}`))
-      }
-
-      // Step 6: MSW
-      if (options.msw) {
-        spinner.start('Generating MSW Mocks')
-        await MswGenerator.generate(manifest, options.output)
-        spinner.succeed(chalk.green(`✔ Generating MSW Mocks`))
-      }
-
-      // Step 7: Echo
-      if (options.echo && manifest.channels) {
-        spinner.start('Generating Echo Hooks')
-        await EchoGenerator.generate(manifest.channels, options.output)
-        spinner.succeed(chalk.green(`✔ Generating Echo Hooks`))
-      }
-
-      // Step 7.5: Models
-      if (options.models && manifest.models) {
-        spinner.start('Generating DB Models')
-        await ModelGenerator.generate(manifest, options.output)
-        spinner.succeed(chalk.green(`✔ Generating DB Models`))
-      }
-
-      // Step 7.8: Frontend Routes
-      spinner.start('Generating Frontend Routes')
-      const routesGenerated = await RoutesGenerator.generate(manifest, options.output)
-      if (routesGenerated) {
-        spinner.succeed(chalk.green(`✔ Generating Frontend Routes`))
-      } else {
-        spinner.info(chalk.yellow(`Skipped Frontend Routes (no pages config in manifest)`))
-      }
-
-      // Step 8: Index Files
-      spinner.start('Generating Constants and Enums')
-      await ConstantsGenerator.generate(manifest, options.output)
-      spinner.succeed(chalk.green(`✔ Generating Constants and Enums`))
-
-      spinner.start('Generating Index Files')
-      await IndexGenerator.generate(manifest, options.output, { ...options, routesGenerated })
-      spinner.succeed(chalk.green(`✔ Generating Index Files`))
+      spinner.start('Compiling and emitting full contract bundle...')
+      const { CompilerBridge } = require('../generators/CompilerBridge')
+      const emitted = await CompilerBridge.emitFullBundle(resolvedManifest, options.output, options)
+      spinner.succeed(chalk.green(`✔ Emitted ${emitted.allWrittenPaths.length} compiler & client artifacts successfully`))
 
       console.log(chalk.bold.green('\n  Sync complete!\n'))
       console.log(`  Output: ${chalk.cyan(options.output)}`)

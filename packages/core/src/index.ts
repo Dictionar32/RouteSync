@@ -148,7 +148,10 @@ export {
   CrudRole,
   CRUD_ROLE_REGISTRY,
   matchCrudRole,
-  ScannedCrudRoleDescriptor
+  ScannedCrudRoleDescriptor,
+  ScannedEndpointContract,
+  createEndpointContract,
+  matchEndpointResponse
 } from './types/route'
 export type {
   RouteManifest,
@@ -318,6 +321,12 @@ export type {
   RouteParameterTypeVisitor,
   RouteQueryParameter,
   HttpErrorResponseDescriptor,
+  EndpointContract,
+  EndpointRequestContract,
+  EndpointSuccessResponseContract,
+  EndpointErrorResponseContract,
+  EndpointResponseContract,
+  EndpointResponseVisitor,
   ValidationFieldNode,
   ScalarValidationFieldNode,
   ArrayValidationFieldNode,

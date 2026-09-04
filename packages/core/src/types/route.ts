@@ -5472,6 +5472,175 @@ export class ScannedRouteRegistry implements RouteCollectionRegistry {
   }
 }
 
+// ============================================================================
+// ENDPOINT CONTRACT ADT & COMPLETE CONTRACT ARCHITECTURE (CDA)
+// ============================================================================
+
+export interface EndpointRequestContract {
+  readonly pathParameters: readonly RouteParameter[];
+  readonly queryParameters: readonly RouteQueryParameter[];
+  readonly contentType: RequestContentType;
+  readonly schema: RouteSchemaPayload;
+  readonly executionSignature: RouteExecutionSignature;
+  readonly security: RouteSecurityDescriptor;
+}
+
+export interface EndpointSuccessResponseContract {
+  readonly statusCode: HttpStatusCode;
+  readonly descriptor: ResponseDescriptor;
+  readonly readTypeName: string;
+  readonly validatorName: string;
+  readonly mapperName: string;
+  readonly shape: ResponseShape;
+}
+
+export interface EndpointErrorResponseContract {
+  readonly statusCode: HttpStatusCode;
+  readonly name: string;
+  readonly typeName: string;
+  readonly schema: Record<string, unknown>;
+}
+
+export interface EndpointResponseContract {
+  readonly success: EndpointSuccessResponseContract;
+  readonly errors: readonly EndpointErrorResponseContract[];
+  readonly errorUnionType: string;
+}
+
+export interface EndpointContract<
+  TMethod extends HttpMethod = HttpMethod,
+  TRole extends CrudRole = CrudRole
+> {
+  readonly id: string;
+  readonly name: string;
+  readonly method: TMethod;
+  readonly path: string;
+  readonly runtimePath: string;
+  readonly groupName: string;
+  readonly resourceName: string;
+  readonly crudRole: TRole;
+  readonly isMutating: boolean;
+  readonly hookKind: RouteHookKind;
+  readonly request: EndpointRequestContract;
+  readonly response: EndpointResponseContract;
+  readonly invalidation: RouteCacheInvalidationDescriptor;
+  readonly policies: readonly RoutePolicyDescriptor[];
+  readonly raw: ParsedRoute;
+}
+
+export class ScannedEndpointContract implements EndpointContract {
+  public readonly id: string;
+  public readonly name: string;
+  public readonly method: HttpMethod;
+  public readonly path: string;
+  public readonly runtimePath: string;
+  public readonly groupName: string;
+  public readonly resourceName: string;
+  public readonly crudRole: CrudRole;
+  public readonly isMutating: boolean;
+  public readonly hookKind: RouteHookKind;
+  public readonly request: EndpointRequestContract;
+  public readonly response: EndpointResponseContract;
+  public readonly invalidation: RouteCacheInvalidationDescriptor;
+  public readonly policies: readonly RoutePolicyDescriptor[];
+  public readonly raw: ParsedRoute;
+
+  constructor(params: EndpointContract) {
+    this.id = params.id;
+    this.name = params.name;
+    this.method = params.method;
+    this.path = params.path;
+    this.runtimePath = params.runtimePath;
+    this.groupName = params.groupName;
+    this.resourceName = params.resourceName;
+    this.crudRole = params.crudRole;
+    this.isMutating = params.isMutating;
+    this.hookKind = params.hookKind;
+    this.request = Object.freeze({ ...params.request });
+    this.response = Object.freeze({
+      ...params.response,
+      errors: Object.freeze([...params.response.errors])
+    });
+    this.invalidation = params.invalidation;
+    this.policies = Object.freeze([...params.policies]);
+    this.raw = params.raw;
+    Object.freeze(this);
+  }
+
+  public static fromRoute(route: ParsedRoute): ScannedEndpointContract {
+    const errorList: EndpointErrorResponseContract[] = (route.errorResponses ?? []).map(err => ({
+      statusCode: err.statusCode,
+      name: err.name,
+      typeName: err.typeName,
+      schema: err.schema
+    }));
+
+    const errorUnionType = errorList.length > 0
+      ? Array.from(new Set(errorList.map(e => e.typeName))).join(' | ')
+      : 'ApiError';
+
+    const defaultStatusCode = route.method.toUpperCase() === 'POST'
+      ? HttpStatusCode.Created
+      : (route.response?.readTypeName === 'void' ? HttpStatusCode.NoContent : HttpStatusCode.Ok);
+
+    const successContract: EndpointSuccessResponseContract = {
+      statusCode: defaultStatusCode,
+      descriptor: route.response,
+      readTypeName: route.response?.readTypeName ?? 'unknown',
+      validatorName: route.response?.validatorName ?? 'undefined',
+      mapperName: route.response?.mapperName ?? 'identity',
+      shape: route.response?.shape ?? ResponseShape.Single
+    };
+
+    const requestContract: EndpointRequestContract = {
+      pathParameters: route.pathParameters ?? [],
+      queryParameters: route.queryParameters ?? [],
+      contentType: route.requestContentType,
+      schema: route.schema,
+      executionSignature: route.executionSignature,
+      security: route.security
+    };
+
+    return new ScannedEndpointContract({
+      id: route.name || `${route.groupName}.${route.actionName}`,
+      name: route.actionName,
+      method: route.method as HttpMethod,
+      path: route.path,
+      runtimePath: route.runtimePath,
+      groupName: route.groupName,
+      resourceName: route.resourceName,
+      crudRole: route.crudRole,
+      isMutating: route.isMutating,
+      hookKind: route.hookKind,
+      request: requestContract,
+      response: {
+        success: successContract,
+        errors: errorList,
+        errorUnionType
+      },
+      invalidation: route.invalidation,
+      policies: route.policies ?? [],
+      raw: route
+    });
+  }
+}
+
+export function createEndpointContract(route: ParsedRoute): EndpointContract {
+  return ScannedEndpointContract.fromRoute(route);
+}
+
+export interface EndpointResponseVisitor<R> {
+  success: (success: EndpointSuccessResponseContract) => R;
+  error?: (errors: readonly EndpointErrorResponseContract[], errorUnion: string) => R;
+}
+
+export function matchEndpointResponse<R>(
+  responseContract: EndpointResponseContract,
+  visitor: EndpointResponseVisitor<R>
+): R {
+  return visitor.success(responseContract.success);
+}
+
 /**
  * Backward compatibility type aliases for legacy adapters.
  */

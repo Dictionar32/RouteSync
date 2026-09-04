@@ -20,6 +20,17 @@ import { ApiFieldGeneratorPass } from '../../../core/src/compiler/passes/ApiFiel
 import { MapperGeneratorPass } from '../../../core/src/compiler/passes/MapperGeneratorPass'
 
 import { manifestToSemanticTypes, manifestToRequestTypes, manifestToContractInput } from './utils/manifest-to-types'
+import { TypeGenerator } from './TypeGenerator'
+import { SDKGenerator } from './SDKGenerator'
+import { QueryKeyGenerator } from './QueryKeyGenerator'
+import { ConstantsGenerator } from './ConstantsGenerator'
+import { HookGenerator } from './HookGenerator'
+import { NextActionGenerator } from './NextActionGenerator'
+import { MswGenerator } from './MswGenerator'
+import { EchoGenerator } from './EchoGenerator'
+import { ModelGenerator } from './ModelGenerator'
+import { RoutesGenerator } from './RoutesGenerator'
+import { IndexGenerator } from './IndexGenerator'
 
 export interface CompiledContractsBundle {
     readonly readTypes: CompilerOutput
@@ -31,6 +42,22 @@ export interface CompiledContractsBundle {
 
 export interface EmittedCompilerArtifacts extends CompiledContractsBundle {
     readonly writtenPaths: readonly string[]
+}
+
+export interface CompilerBundleOptions {
+    readonly zod?: boolean
+    readonly hooks?: boolean
+    readonly nextActions?: boolean
+    readonly msw?: boolean
+    readonly echo?: boolean
+    readonly models?: boolean
+    readonly routesGenerated?: boolean
+    readonly [key: string]: unknown
+}
+
+export interface FullBundleEmittedArtifacts extends EmittedCompilerArtifacts {
+    readonly clientArtifacts: readonly string[]
+    readonly allWrittenPaths: readonly string[]
 }
 
 export interface CompilerOutput {
@@ -189,6 +216,89 @@ export class CompilerBridge {
         return {
             ...bundle,
             writtenPaths
+        }
+    }
+
+    /**
+     * Complete CDA & client emitter: atomically compiles and writes all core contract
+     * passes, client SDK, hooks, query keys, constants, models, actions, and mocks.
+     */
+    static async emitFullBundle(
+        manifest: RouteManifest,
+        outputDir: string,
+        options: CompilerBundleOptions = {}
+    ): Promise<FullBundleEmittedArtifacts> {
+        console.log('[CompilerBridge] Emitting full CDA contract & client bundle...')
+
+        // 1. Core compiler passes (types/api-read, forms/api-form, contracts/api-contract, contracts/api-field, mappers/api-mapper)
+        const coreArtifacts = await this.emitAll(manifest, outputDir)
+        const clientArtifacts: string[] = []
+
+        // 2. Client type barrel
+        await TypeGenerator.generate(manifest, outputDir)
+        clientArtifacts.push(path.join(outputDir, 'types', 'index.ts'))
+
+        // 3. SDK client
+        await SDKGenerator.generate(manifest, outputDir, options)
+        clientArtifacts.push(path.join(outputDir, 'api.ts'))
+
+        // 4. Constants
+        await ConstantsGenerator.generate(manifest, outputDir)
+        clientArtifacts.push(path.join(outputDir, 'constants.ts'))
+
+        // 5. Query keys & hooks
+        if (options.hooks !== false) {
+            await QueryKeyGenerator.generate(manifest, outputDir)
+            clientArtifacts.push(path.join(outputDir, 'query-key.ts'))
+
+            await HookGenerator.generate(manifest, outputDir)
+            clientArtifacts.push(path.join(outputDir, 'hooks.ts'))
+            clientArtifacts.push(path.join(outputDir, 'routesync.runtime.ts'))
+        }
+
+        // 6. Next.js Server Actions
+        if (options.nextActions) {
+            await NextActionGenerator.generate(manifest, outputDir)
+            clientArtifacts.push(path.join(outputDir, 'actions.ts'))
+        }
+
+        // 7. MSW Mock Handlers
+        if (options.msw) {
+            await MswGenerator.generate(manifest, outputDir)
+            clientArtifacts.push(path.join(outputDir, 'mocks.ts'))
+        }
+
+        // 8. Laravel Echo Hooks
+        if (options.echo && manifest.channels) {
+            await EchoGenerator.generate(manifest.channels, outputDir)
+            clientArtifacts.push(path.join(outputDir, 'echo.ts'))
+        }
+
+        // 9. Eloquent DB Models
+        if (options.models && manifest.models) {
+            await ModelGenerator.generate(manifest, outputDir)
+            clientArtifacts.push(path.join(outputDir, 'core', 'models.ts'))
+        }
+
+        // 10. Frontend Routes
+        let routesGenerated = false
+        if (manifest.pages && typeof manifest.pages === 'object') {
+            routesGenerated = await RoutesGenerator.generate(manifest, outputDir)
+            if (routesGenerated) {
+                clientArtifacts.push(path.join(outputDir, 'routes.ts'))
+            }
+        }
+
+        // 11. Root barrel index.ts
+        await IndexGenerator.generate(manifest, outputDir, { ...options, routesGenerated })
+        clientArtifacts.push(path.join(outputDir, 'index.ts'))
+
+        const allWrittenPaths = [...coreArtifacts.writtenPaths, ...clientArtifacts]
+
+        return {
+            ...coreArtifacts,
+            clientArtifacts,
+            allWrittenPaths
         }
     }
 

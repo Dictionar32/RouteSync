@@ -31,36 +31,42 @@ type FlattenOptions<T> = T extends { $def: RouteDefinition<unknown, infer P, inf
       : P & B
   : unknown
 
-type HookForEndpoint<T> =
+type ResolveError<TTypes> = [TTypes] extends [{ error: infer E }]
+  ? [E] extends [never]
+    ? ApiError
+    : E
+  : ApiError
+
+type HookForEndpoint<T, TError = ApiError> =
   InferMethod<T> extends 'GET'
-    ? (options?: FlattenOptions<T>) => UseQueryResult<InferResponse<T>, Error>
+    ? (options?: FlattenOptions<T>) => UseQueryResult<InferResponse<T>, TError>
     : () => UseMutationResult<
         InferResponse<T>,
-        Error,
+        TError,
         FlattenOptions<T>
       >
 
 // Map all endpoint keys to use{Name} hooks
-type EndpointHooks<TEndpoint> = {
-  [K in keyof TEndpoint as `use${Capitalize<string & K>}`]: HookForEndpoint<TEndpoint[K]>
+type EndpointHooks<TEndpoint, TError = ApiError> = {
+  [K in keyof TEndpoint as `use${Capitalize<string & K>}`]: HookForEndpoint<TEndpoint[K], TError>
 }
 
 // CRUD convenience hooks — only present when the slot is populated
-type CrudHooks<TTypes, TEndpoint, TGroupName extends string> = {
+type CrudHooks<TTypes, TEndpoint, TGroupName extends string, TError = ResolveError<TTypes>> = {
   useIndex: [TTypes] extends [{ list: infer L }]
-    ? [L] extends [never] ? never : (options?: unknown) => UseQueryResult<L, Error> & { [Key in TGroupName]: L | undefined }
+    ? [L] extends [never] ? never : (options?: unknown) => UseQueryResult<L, TError> & { [Key in TGroupName]: L | undefined }
     : TEndpoint extends { list: EndpointCallable<infer L, unknown, unknown, HttpMethod> }
-      ? (options?: unknown) => UseQueryResult<L, Error> & { [Key in TGroupName]: L | undefined }
+      ? (options?: unknown) => UseQueryResult<L, TError> & { [Key in TGroupName]: L | undefined }
       : never
 
   useShow: [TTypes] extends [{ detail: infer D }]
-    ? [D] extends [never] ? never : (id: number, options?: unknown) => UseQueryResult<D, Error> & { [Key in TGroupName]: D | undefined }
+    ? [D] extends [never] ? never : (id: number, options?: unknown) => UseQueryResult<D, TError> & { [Key in TGroupName]: D | undefined }
     : never
 
   useCreate: [TTypes] extends [{ create: infer C }]
     ? [C] extends [never] ? never : () => UseMutationResult<
         TEndpoint extends { create: infer TC } ? InferResponse<TC> : unknown,
-        Error,
+        TError,
         C
       >
     : never
@@ -68,7 +74,7 @@ type CrudHooks<TTypes, TEndpoint, TGroupName extends string> = {
   useUpdate: [TTypes] extends [{ update: infer U }]
     ? [U] extends [never] ? never : () => UseMutationResult<
         TEndpoint extends { update: infer TU } ? InferResponse<TU> : unknown,
-        Error,
+        TError,
         { id: number; data: U }
       >
     : never
@@ -76,52 +82,52 @@ type CrudHooks<TTypes, TEndpoint, TGroupName extends string> = {
   useUpdateSelf: [TTypes] extends [{ update: infer U }]
     ? [U] extends [never] ? never : () => UseMutationResult<
         TEndpoint extends { updateSelf: infer TU } ? InferResponse<TU> : TEndpoint extends { update: infer TU } ? InferResponse<TU> : TEndpoint extends { put: infer TU } ? InferResponse<TU> : TEndpoint extends { patch: infer TU } ? InferResponse<TU> : unknown,
-        Error,
+        TError,
         U
       >
     : never
 
-  usePatch: CrudHooks<TTypes, TEndpoint, TGroupName>['useUpdateSelf']
-  usePut: CrudHooks<TTypes, TEndpoint, TGroupName>['useUpdateSelf']
+  usePatch: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useUpdateSelf']
+  usePut: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useUpdateSelf']
 
   useRemove: TEndpoint extends { delete: unknown } | { remove: unknown }
-    ? () => UseMutationResult<void, Error, number>
+    ? () => UseMutationResult<void, TError, number>
     : never
 
-  useDelete: CrudHooks<TTypes, TEndpoint, TGroupName>['useRemove']
+  useDelete: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useRemove']
 
   useDeleteSelf: TEndpoint extends { delete: unknown }
-    ? () => UseMutationResult<void, Error, void>
+    ? () => UseMutationResult<void, TError, void>
     : never
 
   // short aliases
-  index: CrudHooks<TTypes, TEndpoint, TGroupName>['useIndex']
-  show: CrudHooks<TTypes, TEndpoint, TGroupName>['useShow']
-  create: CrudHooks<TTypes, TEndpoint, TGroupName>['useCreate']
-  update: CrudHooks<TTypes, TEndpoint, TGroupName>['useUpdate']
-  updateSelf: CrudHooks<TTypes, TEndpoint, TGroupName>['useUpdateSelf']
-  patch: CrudHooks<TTypes, TEndpoint, TGroupName>['useUpdateSelf']
-  put: CrudHooks<TTypes, TEndpoint, TGroupName>['useUpdateSelf']
-  remove: CrudHooks<TTypes, TEndpoint, TGroupName>['useRemove']
-  delete: CrudHooks<TTypes, TEndpoint, TGroupName>['useRemove']
-  deleteSelf: CrudHooks<TTypes, TEndpoint, TGroupName>['useDeleteSelf']
+  index: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useIndex']
+  show: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useShow']
+  create: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useCreate']
+  update: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useUpdate']
+  updateSelf: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useUpdateSelf']
+  patch: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useUpdateSelf']
+  put: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useUpdateSelf']
+  remove: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useRemove']
+  delete: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useRemove']
+  deleteSelf: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useDeleteSelf']
 }
 
-type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string> = {
+type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string, TError = ResolveError<TTypes>> = {
   list: [TTypes] extends [{ list: infer L }]
-    ? [L] extends [never] ? undefined : UseQueryResult<L, Error>
+    ? [L] extends [never] ? undefined : UseQueryResult<L, TError>
     : TEndpoint extends { list: EndpointCallable<infer L, unknown, unknown, HttpMethod> }
-      ? UseQueryResult<L, Error>
+      ? UseQueryResult<L, TError>
       : undefined
 
   detail: [TTypes] extends [{ detail: infer D }]
-    ? [D] extends [never] ? undefined : UseQueryResult<D, Error>
+    ? [D] extends [never] ? undefined : UseQueryResult<D, TError>
     : undefined
 
   create: [TTypes] extends [{ create: infer C }]
     ? [C] extends [never] ? undefined : UseMutationResult<
         TEndpoint extends { create: infer TC } ? InferResponse<TC> : unknown,
-        Error,
+        TError,
         C
       >
     : undefined
@@ -129,7 +135,7 @@ type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string> = {
   update: [TTypes] extends [{ update: infer U }]
     ? [U] extends [never] ? undefined : UseMutationResult<
         TEndpoint extends { update: infer TU } ? InferResponse<TU> : unknown,
-        Error,
+        TError,
         { id: number; data: U }
       >
     : undefined
@@ -137,17 +143,17 @@ type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string> = {
   updateSelf: [TTypes] extends [{ update: infer U }]
     ? [U] extends [never] ? undefined : UseMutationResult<
         TEndpoint extends { updateSelf: infer TU } ? InferResponse<TU> : TEndpoint extends { update: infer TU } ? InferResponse<TU> : TEndpoint extends { put: infer TU } ? InferResponse<TU> : TEndpoint extends { patch: infer TU } ? InferResponse<TU> : unknown,
-        Error,
+        TError,
         U
       >
     : undefined
 
   delete: TEndpoint extends { delete: unknown } | { remove: unknown }
-    ? UseMutationResult<void, Error, number>
+    ? UseMutationResult<void, TError, number>
     : undefined
 
   deleteSelf: TEndpoint extends { delete: unknown }
-    ? UseMutationResult<void, Error, void>
+    ? UseMutationResult<void, TError, void>
     : undefined
 } & {
   [Key in TGroupName]: [TTypes] extends [{ detail: infer D }]
@@ -161,7 +167,7 @@ type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string> = {
       : undefined
 } & {
   isLoading: boolean
-  error: Error | null
+  error: TError | null
 }
 
 type ResolveActionMutation<TConfig, TRes, TAct> =

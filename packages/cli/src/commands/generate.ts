@@ -48,63 +48,11 @@ export const generateCommand = new Command('generate')
       const kernel = new SemanticResolutionKernel()
       const normalizedManifest = normalizeManifest(manifest, kernel)
 
-      spinner.text = 'Generating types...'
-
-      let compilerBridgeSuccess = false
-      try {
-        const { CompilerBridge } = await import('../generators/CompilerBridge')
-        spinner.text = 'Compiling and emitting contract artifacts (read, forms, contracts, fields, mappers)...'
-        const emitted = await CompilerBridge.emitAll(manifest, options.output)
-        console.log(`  [CompilerBridge] Emitted ${emitted.writtenPaths.length} compiler artifacts successfully:`)
-        emitted.writtenPaths.forEach(p => console.log(`    ✓ ${path.relative(options.output, p)}`))
-        compilerBridgeSuccess = true
-      } catch (compilerError) {
-        console.warn(`  [CompilerBridge] Warning: ${compilerError instanceof Error ? compilerError.message : String(compilerError)}`)
-        console.warn(`  Falling back to legacy generator...`)
-      }
-
-      // Keep existing generator (parallel execution for validation)
-      await TypeGenerator.generate(manifest, options.output)
-      spinner.text = 'Generating SDK...'
-      await SDKGenerator.generate(manifest, options.output, options)
-
-      if (options.hooks !== false) {
-        spinner.text = 'Generating query keys...'
-        await QueryKeyGenerator.generate(manifest, options.output)
-        spinner.text = 'Generating hooks...'
-        await HookGenerator.generate(manifest, options.output)
-      }
-
-      if (options.nextActions) {
-        spinner.text = 'Generating Server Actions...'
-        await NextActionGenerator.generate(manifest, options.output)
-      }
-
-      if (options.msw) {
-        spinner.text = 'Generating MSW Mocks...'
-        await MswGenerator.generate(manifest, options.output)
-      }
-
-      if (options.echo && manifest.channels) {
-        spinner.text = 'Generating Echo Hooks...'
-        await EchoGenerator.generate(manifest.channels, options.output)
-      }
-
-      if (manifest.models) {
-        spinner.text = 'Generating DB Models...'
-        await ModelGenerator.generate(manifest, options.output)
-      }
-
-
-      // Generate routes.ts if pages exists in manifest
-      spinner.text = 'Generating Frontend Routes...'
-      const routesGenerated = await RoutesGenerator.generate(manifest, options.output)
-
-      spinner.text = 'Generating Constants and Enums...'
-      await ConstantsGenerator.generate(manifest, options.output)
-
-      spinner.text = 'Generating Index Files...'
-      await IndexGenerator.generate(manifest, options.output, { ...options, routesGenerated })
+      spinner.text = 'Compiling and emitting full contract bundle...'
+      const { CompilerBridge } = await import('../generators/CompilerBridge')
+      const emitted = await CompilerBridge.emitFullBundle(manifest, options.output, options)
+      console.log(`  [CompilerBridge] Emitted ${emitted.allWrittenPaths.length} compiler & client artifacts successfully:`)
+      emitted.allWrittenPaths.forEach(p => console.log(`    ✓ ${path.relative(options.output, p)}`))
 
       spinner.succeed(chalk.green(`SDK generated → ${options.output}`))
       console.log(`  ${chalk.cyan('api.ts')}     Typed API client`)

@@ -3340,7 +3340,7 @@ export class StaticLaravelScanner {
                 const routeActionDesc = (route as any).action || route.actionName || route.resourceName || (route as any).controllerAction || '';
                 const rawRules = route.schema.rules;
                 const ruleEntries: readonly [string, string][] = Array.isArray(rawRules)
-                    ? (rawRules as readonly RouteValidationRuleEntry[]).map(r => [r.fieldName, r.rules.join('|')])
+                    ? (rawRules as readonly RouteValidationRuleEntry[]).map(r => [r.fieldName, Array.isArray(r.rules) ? r.rules.join('|') : String(r.rules)])
                     : Object.entries((rawRules as any) || {}).map(([key, val]) => [key, Array.isArray(val) ? val.join('|') : String(val)]);
 
                 for (const [key, ruleStr] of ruleEntries) {

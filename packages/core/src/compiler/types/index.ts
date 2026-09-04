@@ -52,6 +52,7 @@
 export {
     PrimitiveKind,
     CollectionKind,
+    SemanticTypeKind,
     SemanticTypeBase,
     PrimitiveType,
     NeverType,
@@ -64,6 +65,7 @@ export {
     GenericVariance,
     GenericParameter,
     GenericType,
+    ObjectProperty,
     ObjectType,
     SemanticType
 } from './SemanticType';

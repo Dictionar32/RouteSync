@@ -822,10 +822,8 @@ describe('TypeScriptGenerator', () => {
 
             const result = generator.semanticTypeToTSType(objectType);
 
-            // Small objects currently fallback to 'object'
-            // TODO: Will use inline object literal in future
             expect(result).toBeInstanceOf(TSTypeReference);
-            expect((result as TSTypeReference).name).toBe('object');
+            expect((result as TSTypeReference).name).toContain('id: number;');
         });
 
         it('should convert object dengan optional properties', () => {
@@ -841,8 +839,7 @@ describe('TypeScriptGenerator', () => {
             const result = generator.semanticTypeToTSType(objectType);
 
             expect(result).toBeInstanceOf(TSTypeReference);
-            // Small object (≤3 props) → 'object' fallback
-            expect((result as TSTypeReference).name).toBe('object');
+            expect((result as TSTypeReference).name).toContain('id: number;');
         });
 
         it('should track imports untuk reference type properties', () => {

@@ -114,33 +114,18 @@ export class TypeHasher {
                 return `intersection[${interHashes.join(',')}]`;
             }
 
+            case 'nullable':
+                return `nullable<${this.hash(type.innerType, context)}>`;
+
             case 'object': {
-                // Hash all object components
-                const propHashes = Array.from(type.properties.entries())
-                    .map(([k, v]) => `${k}:${this.hash(v, context)}`)
-                    .sort();
-
-                const baseHash = type.baseObject
-                    ? this.hash(type.baseObject, context)
-                    : 'none';
-
-                const interfaceHash = type.interfaces
-                    ? type.interfaces.map(i => this.hash(i, context)).sort().join(',')
-                    : 'none';
-
-                const requiredHash = Array.from(type.requiredProperties.values())
-                    .sort()
-                    .join(',');
-
-                const annoHash = type.annotations
-                    ? Array.from(type.annotations.entries())
-                        .map(([k, v]) => `${k}=${v}`)
-                        .sort()
-                        .join(',')
-                    : 'none';
-
-                return `object{props:${propHashes.join(',')};req:${requiredHash};base:${baseHash};iface:${interfaceHash};ann:${annoHash}}`;
+                const propHashes = type.properties.map(
+                    p => `${p.name}:${p.required ? 'req' : 'opt'}:${p.nullable ? 'null' : 'notnull'}:${this.hash(p.type, context)}`
+                );
+                return `object:${type.name || 'anonymous'}{${propHashes.join(',')}}`;
             }
+
+            default:
+                return 'unknown';
         }
     }
 }

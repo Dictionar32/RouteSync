@@ -37,9 +37,9 @@ export const auditCommand = new Command('audit')
         }
 
         const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as ScannedManifest
-        const { LaravelRouteParser } = require('../parsers/LaravelRouteParser')
-        const parser = new LaravelRouteParser()
-        const { routes } = await parser.parse(options.input, { extractModels: false })
+        const { StaticLaravelScanner } = require('@routesync/core')
+        const freshManifest = await StaticLaravelScanner.scan(process.cwd())
+        const routes = (freshManifest.routes || []) as any[]
 
         const freshRoutes = new Map<string, ScannedRoute>()
         routes.forEach((r: ScannedRoute) => {

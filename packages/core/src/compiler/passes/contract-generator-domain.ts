@@ -27,7 +27,8 @@
 
 import type { FileValidationConstraints, FormAction, RequestField, RequestType, RequestTypesArtifact, ResponseData } from '../artifacts/RequestTypesArtifact';
 import type { GeneratedContractArtifact, GeneratedContractInfo } from '../artifacts/GeneratedContractArtifact';
-import type { FieldCollection } from '../domain/common/FieldCollection';
+import { FieldCollection } from '../domain/common/FieldCollection';
+import { partitionResults, convertResponseFields } from '../domain/common/ResponseFieldLowering';
 import type { GeneratedContractAction } from '../generators/contract-generation/ContractActionGenerator';
 import { ContractActionGenerator } from '../generators/contract-generation/ContractActionGenerator';
 import { ContractSchemaMapper } from '../generators/contract-generation/ContractSchemaMapper';
@@ -116,15 +117,14 @@ export interface GeneratedContractCode {
     readonly lineCount: number;
 }
 
-/** Shared frozen immutable empty arrays (0% redundant [] allocations) */
-export const EMPTY_WARNINGS: readonly string[] = Object.freeze([]);
-export const EMPTY_FIELDS: readonly never[] = Object.freeze([]);
+import { ConversionResult } from '../domain/common/ConversionResult';
 
-/** Unified Cross-Domain Generic Observable Result Container Vocabulary (aligned with FieldCollection<T> SSOT) */
-export interface ConversionResult<T> {
-    readonly fields: readonly T[];
-    readonly warnings: readonly string[];
-}
+export { ConversionResult };
+export const EMPTY_WARNINGS = ConversionResult.EMPTY_WARNINGS;
+export const EMPTY_FIELDS = ConversionResult.EMPTY_FIELDS;
+
+/** Alias for stage result container */
+export type StageResult<T> = ConversionResult<T>;
 
 /** Discriminated union result type for nullable wrapper resolution */
 export type NullableWrapperResult =
@@ -252,15 +252,7 @@ export function extractRequestTypeResponseSchemas(
     return extractResponseDataSchemas(requestType.responseData, responseActionBuilder);
 }
 
-/** Single Cross-Domain Generic Partitioner Operation via 1-line flatMap (0% helper, 0% switch, 0% if, 0% for-loop, 0% push) */
-export function partitionResults<T>(
-    results: readonly ConversionResult<T>[]
-): ConversionResult<T> {
-    return {
-        fields: results.flatMap(r => r.fields),
-        warnings: results.flatMap(r => r.warnings)
-    };
-}
+
 
 /** Stage 2 Pure Pipeline Entry (0% if, 0% for-loop, 0% continue) */
 export function extractResponseSchemas(
@@ -278,150 +270,15 @@ export function extractResponseSchemas(
     };
 }
 
-/** Observable convertResponseFields via Pure Map + flatMap Partition Pipeline */
-export function convertResponseFields(
-    fields: Record<string, SemanticType>
-): ResponseFieldConversionResult {
-    const results = Object.entries(fields).map(([name, type]) =>
-        convertSingleResponseField(name, type)
-    );
-
-    return partitionResults(results);
-}
-
-/** Helper to resolve nullable wrapper object annotation via pure switch (0% ternary ?, 0% if, 0% ||) */
-export function resolveNullableWrapper(
-    fieldName: string,
-    objectType: ObjectType
-): NullableWrapperResult {
-    switch (objectType.annotations.get('kind')) {
-        case 'nullable_wrapper': {
-            const innerType = objectType.properties.get('__value');
-            switch (innerType) {
-                case undefined:
-                    return { isNullableWrapper: false };
-                default: {
-                    const innerResult = convertSingleResponseField(fieldName, innerType);
-                    const itemType = innerResult.fields[0];
-                    switch (itemType) {
-                        case undefined:
-                            return { isNullableWrapper: false };
-                        default:
-                            return {
-                                isNullableWrapper: true,
-                                field: {
-                                    name: itemType.name,
-                                    kind: itemType.kind,
-                                    type: itemType.type,
-                                    nullable: true,
-                                    optional: itemType.optional,
-                                    fields: itemType.fields,
-                                    itemType: itemType.itemType
-                                },
-                                warnings: innerResult.warnings
-                            };
-                    }
-                }
-            }
-        }
-        default:
-            return { isNullableWrapper: false };
-    }
-}
-
-/** Pure helper to convert ObjectType without if or for-loops */
-export function convertObjectType(
-    fieldName: string,
-    objectType: ObjectType
-): ConversionResult<ParsedResponseField> {
-    const wrapperResult = resolveNullableWrapper(fieldName, objectType);
-    switch (wrapperResult.isNullableWrapper) {
-        case true:
-            return {
-                fields: [wrapperResult.field],
-                warnings: wrapperResult.warnings
-            };
-
-        case false: {
-            const conversionResults = Array.from(objectType.properties.entries()).map(
-                ([propName, propType]) => convertSingleResponseField(propName, propType)
-            );
-            const { fields: nestedFields, warnings: nestedWarnings } = partitionResults(conversionResults);
-
-            return {
-                fields: [{
-                    name: fieldName,
-                    kind: 'object',
-                    type: 'object',
-                    nullable: false,
-                    optional: false,
-                    fields: nestedFields
-                }],
-                warnings: nestedWarnings
-            };
-        }
-    }
-}
-
-/** Pattern matching on SemanticType.kind (0% if statements, 0% for loops, 0% ternary ?, 0% ?. optional chaining, 0% type casting) */
-export function convertSingleResponseField(
-    fieldName: string,
-    semanticType: SemanticType
-): ConversionResult<ParsedResponseField> {
-    const kind = semanticType.kind;
-
-    switch (kind) {
-        case 'primitive':
-            return {
-                fields: [{
-                    name: fieldName,
-                    kind: 'primitive',
-                    type: semanticType.type,
-                    nullable: false,
-                    optional: false
-                }],
-                warnings: EMPTY_WARNINGS
-            };
-
-        case 'object':
-            return convertObjectType(fieldName, semanticType);
-
-        case 'readonly_collection':
-        case 'mutable_collection': {
-            const innerResult = convertSingleResponseField('item', semanticType.elementType);
-
-            return {
-                fields: [{
-                    name: fieldName,
-                    kind: 'array',
-                    type: 'array',
-                    nullable: false,
-                    optional: false,
-                    itemType: innerResult.fields[0]
-                }],
-                warnings: innerResult.warnings
-            };
-        }
-
-        case 'reference':
-            return {
-                fields: [{
-                    name: fieldName,
-                    kind: 'primitive',
-                    type: semanticType.name,
-                    nullable: false,
-                    optional: false
-                }],
-                warnings: EMPTY_WARNINGS
-            };
-
-        default:
-            return {
-                fields: EMPTY_FIELDS,
-                warnings: [`Skipped field '${fieldName}': unsupported SemanticType kind '${kind}'`]
-            };
-    }
-}
+export {
+    convertObjectType,
+    convertSingleResponseField,
+    convertResponseFields,
+    resolveNullableWrapper,
+    partitionResults,
+    type NullableWrapperResult,
+    type ResponseFieldConversionResult
+} from '../domain/common/ResponseFieldLowering';
 
 /** Stage 3: Format contracts into TypeScript Zod source code */
 export function formatContractFile(
@@ -466,9 +323,9 @@ export function buildContractArtifact(
         schemaName: `${contract.resourceName}ContractSchema`,
         actions: contract.actions.map(a => ({
             name: a.name,
-            zodSchema: a.schemaLines.join('\n'),
+            zodSchema: (a as any).schemaLines ? (a as any).schemaLines.join('\n') : ((a as any).schemaCode ?? ''),
             validatorName: `validate${toPascalCase(contract.resourceName)}${capitalize(a.name)}`,
-            fieldCount: a.fieldCount
+            fieldCount: (a as any).fieldCount ?? 0
         })),
         lineRange: [0, 0] as const
     }));

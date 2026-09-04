@@ -1,151 +1,2087 @@
-import { SemanticResolution } from './contract'
-import { ManifestMetadata } from './ir'
-import { SemanticType } from './semantic'
+import { SemanticResolution } from './contract';
+import { ManifestMetadata } from './ir';
+import { SemanticType } from './semantic';
+import type { ResponseBody } from '../compiler/ir/ResponseArtifact';
+import type { FormAction, RequestType } from '../compiler/artifacts/RequestTypesArtifact';
+import type { ObjectType } from '../compiler/types/SemanticType';
+import { PrimitiveKind } from '../compiler/types/SemanticType';
 
 /**
- * Resolved domain intent config, produced by `IntentResolver` and consumed at runtime by
- * `defineHooks()` (see `@routesync/react`). A domain entry starts life as either a plain string
- * shorthand (`"cart"`) authored by hand in `routesync.manifest.json`, or gets replaced in-place
- * by `IntentResolver.resolve()` with the fully-resolved object shape below. The `string` variant
- * is kept in the union for backward compatibility with hand-authored manifests written before
- * `IntentResolver` existed.
+ * First-Class Domain Operation Entry (Ordered).
  */
-export interface DomainIntentConfig {
-  type: string
-  operations: Record<string, string>
-  config: Record<string, string>
+export interface DomainOperationEntry {
+  readonly name: string;
+  readonly operation: string;
 }
 
+/**
+ * First-Class Domain Config Key-Value Entry (Ordered).
+ */
+export interface DomainConfigEntry {
+  readonly key: string;
+  readonly value: string;
+}
+
+/**
+ * Resolved domain intent config (Ordered).
+ */
+export interface DomainIntentConfig {
+  readonly type: string;
+  readonly operations: readonly DomainOperationEntry[];
+  readonly config: readonly DomainConfigEntry[];
+}
+
+/**
+ * First-Class Route Group Alias Entry (Ordered).
+ */
+export interface GroupAliasEntry {
+  readonly alias: string;
+  readonly targetGroup: string;
+}
+
+/**
+ * First-Class Domain Definition Entry (Ordered).
+ */
+export interface DomainDefinitionEntry {
+  readonly name: string;
+  readonly intent: string | DomainIntentConfig;
+}
+
+/**
+ * First-Class Frontend Configuration (0 Record).
+ */
+export interface FrontendConfig {
+  readonly router: string;
+  readonly groupAliases: readonly GroupAliasEntry[];
+  readonly domains: readonly DomainDefinitionEntry[];
+}
+
+/**
+ * First-Class Page Property Definition (Ordered).
+ */
+export interface PagePropEntry {
+  readonly key: string;
+  readonly value: unknown;
+}
+
+/**
+ * First-Class Page Metadata Entry (Ordered).
+ */
+export interface PageMetaEntry {
+  readonly key: string;
+  readonly value: unknown;
+}
+
+/**
+ * Pure Ordered Page Configuration (0 Record, 0 Object.entries).
+ */
 export interface PageConfig {
-  component?: string
-  layout?: string
-  props?: Record<string, unknown>
-  meta?: Record<string, unknown>
+  readonly pageName: string;
+  readonly component: string;
+  readonly layout: string;
+  readonly props: readonly PagePropEntry[];
+  readonly meta: readonly PageMetaEntry[];
+}
+
+/**
+ * ResourceRouteGroup: Kelompok rute yang terikat pada satu nama resource kanonikal.
+ */
+export interface ResourceRouteGroup {
+  readonly resourceName: string;
+  readonly formTypeName: string;
+  readonly routes: readonly ParsedRoute[];
+  readonly formActions: readonly FormAction[]; // ✅ Guaranteed directly from Upstream PHP Scanner
 }
 
 export interface RouteManifest {
-  version: string
-  baseURL: string
-  routes: ParsedRoute[]
-  channels?: ParsedChannel[]
-  models?: ParsedModel[]
-  resources?: ParsedResource[]
-  generatedAt: string
-  frontend?: {
-    router?: string
-    groupAliases?: Record<string, string>
-    domains?: Record<string, string | DomainIntentConfig>
+  readonly version: string;
+  readonly baseURL: string;
+  readonly routes: readonly ParsedRoute[];
+  readonly resources: readonly ParsedResource[];
+  readonly models: readonly ParsedModel[];
+  readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
+  readonly requestTypes: readonly RequestType[];              // ✅ 100% Guaranteed directly from Upstream Scanner!
+  readonly semanticTypes: readonly ObjectType[];              // ✅ SATU ALIRAN UTUH (0 Fragmentasi, 0 Penyambungan Manual)!
+  readonly generatedAt: string;
+  readonly channels: readonly BroadcastChannelDescriptor[];
+  readonly frontend: FrontendConfig | null;
+  readonly pages: readonly PageConfig[];
+}
+
+/**
+ * ParsedChannel
+ *
+ * Canonical Alias to BroadcastChannelDescriptor SSOT.
+ */
+export type ParsedChannel = BroadcastChannelDescriptor;
+
+export interface ResourceFieldDescriptor {
+  readonly name: string;
+  readonly propertyName: string; // ✅ Canonical TS Identifier ('productId')
+  readonly expression: ResourceFieldExpression;
+  readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
+  readonly nullable: boolean; // ✅ 100% Guaranteed boolean (true | false, 0 undefined)
+}
+
+/**
+ * ResourceExpressionKind
+ *
+ * Canonical Domain Vocabulary for Resource Field AST Expressions.
+ */
+export const ResourceExpressionKind = Object.freeze({
+  Primitive: 'primitive',
+  Model: 'model',
+  Resource: 'resource',
+  Object: 'object',
+  Array: 'array',
+  PropertyAccess: 'property_access',
+  NullsafePropertyAccess: 'nullsafe_property_access',
+  Variable: 'variable',
+  TypeCast: 'type_cast',
+  BinaryExpression: 'binary_expression',
+  MethodCall: 'method_call',
+  StaticMethodCall: 'static_method_call',
+  Literal: 'literal',
+  Unknown: 'unknown'
+} as const);
+
+export type ResourceExpressionKind = typeof ResourceExpressionKind[keyof typeof ResourceExpressionKind];
+
+export type ResourceFieldExpression =
+  | { readonly kind: typeof ResourceExpressionKind.Primitive; readonly type: string }
+  | { readonly kind: typeof ResourceExpressionKind.Model; readonly model: string; readonly collection: boolean }
+  | { readonly kind: typeof ResourceExpressionKind.Resource; readonly resource: string; readonly model: string | null; readonly collection: boolean }
+  | { readonly kind: typeof ResourceExpressionKind.Object; readonly fields: readonly ResourceFieldDescriptor[] }
+  | { readonly kind: typeof ResourceExpressionKind.Array; readonly element: ResourceFieldDescriptor }
+  | { readonly kind: typeof ResourceExpressionKind.PropertyAccess; readonly target: string; readonly property: string }
+  | { readonly kind: typeof ResourceExpressionKind.NullsafePropertyAccess; readonly target: string; readonly property: string }
+  | { readonly kind: typeof ResourceExpressionKind.Variable; readonly name: string }
+  | { readonly kind: typeof ResourceExpressionKind.TypeCast; readonly type: string; readonly expression: ResourceFieldDescriptor }
+  | { readonly kind: typeof ResourceExpressionKind.BinaryExpression; readonly operator: string; readonly left: ResourceFieldDescriptor; readonly right: ResourceFieldDescriptor }
+  | { readonly kind: typeof ResourceExpressionKind.MethodCall; readonly method: string }
+  | { readonly kind: typeof ResourceExpressionKind.StaticMethodCall; readonly class: string; readonly method: string }
+  | { readonly kind: typeof ResourceExpressionKind.Literal; readonly value: unknown }
+  | { readonly kind: typeof ResourceExpressionKind.Unknown };
+
+/**
+ * ResourceFieldExpressionFactory
+ *
+ * Canonical Factory for Structured ResourceFieldExpression AST Nodes.
+ */
+export class ResourceFieldExpressionFactory {
+  public static primitive(type: string = 'string'): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Primitive, type });
   }
-  pages?: Record<string, PageConfig>
+  public static model(model: string, collection: boolean = false): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Model, model, collection });
+  }
+  public static resource(resource: string, collection: boolean = false, model: string | null = null): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Resource, resource, model, collection });
+  }
+  public static object(fields: readonly ResourceFieldDescriptor[]): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Object, fields: Object.freeze([...fields]) });
+  }
+  public static array(element: ResourceFieldDescriptor): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Array, element });
+  }
+  public static propertyAccess(target: string, property: string): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.PropertyAccess, target, property });
+  }
+  public static nullsafePropertyAccess(target: string, property: string): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.NullsafePropertyAccess, target, property });
+  }
+  public static variable(name: string): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Variable, name });
+  }
+  public static literal(value: unknown): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Literal, value });
+  }
+  public static unknown(): ResourceFieldExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Unknown });
+  }
 }
 
-export interface ParsedChannel {
-  name: string
-  isPrivate: boolean
-  isPresence: boolean
-}
-
-export type ResourceFieldKind = (
-  | { kind: 'primitive'; type: string }
-  | { kind: 'model'; model: string; collection: boolean }
-  | { kind: 'resource'; resource: string; model?: string; collection: boolean }
-  | { kind: 'object'; fields: Record<string, ResourceFieldKind> }
-  | { kind: 'array'; element: ResourceFieldKind }
-  | { kind: 'property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Real manifest data
-  | { kind: 'nullsafe_property_access'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Nullsafe operator
-  | { kind: 'variable'; resolved?: { type: string }; nullable?: boolean }         // ✅ Phase 2: Real manifest data
-  | { kind: 'type_cast'; resolved?: { type: string }; nullable?: boolean }        // ✅ Phase 2: Type casting
-  | { kind: 'binary_expression'; resolved?: { type: string }; nullable?: boolean }  // ✅ Phase 2: Binary operators
-  | { kind: 'method_call'; resolved?: { type: string }; nullable?: boolean }      // ✅ Phase 2: Method calls
-  | { kind: 'static_method_call'; resolved?: { type: string }; nullable?: boolean } // ✅ Phase 2: Static method calls
-  | { kind: 'literal'; resolved?: { type: string }; nullable?: boolean }          // ✅ Phase 2: Literals
-  | { kind: 'unknown' }
-) & {
-  resolved?: SemanticResolution
-  semantic?: SemanticResolution
-  /** Whether this field can be null in the response payload. */
-  nullable?: boolean
-  /** A paginator serializes as an object containing a collection in `data`. */
-  paginated?: boolean
+/**
+ * First-Class Variable Assignment Node (Ordered & Self-Contained).
+ */
+export interface ResourceAssignment {
+  readonly name: string;
+  readonly expression: ResourceFieldExpression;
+  readonly nullable: boolean;
 }
 
 export interface ParsedResource {
-  name: string // e.g., UserResource
-  sanitizedName?: string // Sanitized identifier name
-  baseModel?: string // Base model name  
-  actions?: ActionDefinition[] // Available CRUD actions
-  endpoints?: string[] // Associated route endpoints
-  fields: Record<string, ResourceFieldKind>
-  assignments?: Record<string, string>
-  sourceFile?: string | null
-  sourceLine?: number | null
-  isSynthetic?: boolean // True if this is a synthetic nested object resource (not a real Laravel Resource)
+  readonly name: string;
+  readonly baseName: string;
+  readonly typeName: string;
+  readonly sanitizedName: string;
+  readonly baseModel: string | null;
+  readonly actions: readonly ActionDefinition[];
+  readonly endpoints: readonly string[];
+  /**
+   * Guaranteed Ordered Resource Fields (0 Record, 0 Object.entries).
+   */
+  readonly fields: readonly ResourceFieldDescriptor[];
+  /**
+   * Local variable assignments tracked during semantic analysis (Ordered Array).
+   */
+  readonly assignments: readonly ResourceAssignment[];
+  readonly sourceFile: string;
+  readonly sourceLine: number;
+  readonly isSynthetic: boolean;
 }
 
-// Add ActionDefinition interface for ParsedResource
 export interface ActionDefinition {
-  name: string
-  method: string
-  hasBody: boolean
-  hasResponse: boolean
-  routes: string[]
+  readonly name: string;
+  readonly method: HttpMethod;
+  readonly hasBody: boolean;
+  readonly hasResponse: boolean;
+  readonly routes: readonly string[];
 }
 
-export type ResponseMetadata = (
-  | { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
-  | { kind: 'resource'; resource: string; collection: boolean; paginated?: boolean }
-  | { kind: 'object'; fields: Record<string, ResponseMetadata | ResourceFieldKind>; collection?: boolean; paginated?: boolean }
-  | { kind: 'array'; element: ResourceFieldKind; paginated?: boolean }
-  | { kind: 'unknown' }
-) & {
-  resolved?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }
-  semantic?: SemanticResolution & { kind?: string; type?: string; fields?: Record<string, SemanticType>; wrapped?: boolean }
-  /** Runtime-enriched by SemanticKernelV2 — present on all variants via intersection */
-  collection?: boolean
-  paginated?: boolean
-  type?: string
-  /** Set by LaravelRouteParser when the JsonResource is subject to Laravel's default $wrap behaviour (wraps payload in `{ data: ... }`). */
-  wrapped?: boolean
+/**
+ * Canonical Mapping of Database & Migration Column Types to PrimitiveKind.
+ * Pure Zero-Regex, Direct O(1) Dictionary Lookup (0 .includes string searching).
+ */
+export class DatabaseColumnTypeMapper {
+  private static readonly TYPE_MAP: Readonly<Record<string, PrimitiveKind>> = Object.freeze({
+    'int': PrimitiveKind.NUMBER,
+    'integer': PrimitiveKind.NUMBER,
+    'tinyint': PrimitiveKind.NUMBER,
+    'smallint': PrimitiveKind.NUMBER,
+    'mediumint': PrimitiveKind.NUMBER,
+    'bigint': PrimitiveKind.NUMBER,
+    'unsignedbigint': PrimitiveKind.NUMBER,
+    'unsignedinteger': PrimitiveKind.NUMBER,
+    'unsignedmediumint': PrimitiveKind.NUMBER,
+    'unsignedsmallint': PrimitiveKind.NUMBER,
+    'unsignedtinyint': PrimitiveKind.NUMBER,
+    'decimal': PrimitiveKind.NUMBER,
+    'float': PrimitiveKind.NUMBER,
+    'double': PrimitiveKind.NUMBER,
+    'numeric': PrimitiveKind.NUMBER,
+    'real': PrimitiveKind.NUMBER,
+    'number': PrimitiveKind.NUMBER,
+    'bool': PrimitiveKind.BOOLEAN,
+    'boolean': PrimitiveKind.BOOLEAN,
+    'datetime': PrimitiveKind.DATETIME,
+    'date': PrimitiveKind.DATETIME,
+    'timestamp': PrimitiveKind.DATETIME,
+    'time': PrimitiveKind.STRING,
+    'file': PrimitiveKind.FILE,
+    'image': PrimitiveKind.FILE,
+    'string': PrimitiveKind.STRING,
+    'varchar': PrimitiveKind.STRING,
+    'char': PrimitiveKind.STRING,
+    'text': PrimitiveKind.STRING,
+    'mediumtext': PrimitiveKind.STRING,
+    'longtext': PrimitiveKind.STRING,
+    'tinytext': PrimitiveKind.STRING,
+    'json': PrimitiveKind.STRING,
+    'jsonb': PrimitiveKind.STRING,
+    'uuid': PrimitiveKind.STRING,
+    'ulid': PrimitiveKind.STRING
+  });
+
+  /**
+   * Resolves raw database/migration column type into PrimitiveKind.
+   * Guaranteed O(1) direct dictionary resolution.
+   */
+  public static toPrimitiveKind(rawType: string): PrimitiveKind {
+    const rawLower = (rawType || '').trim().toLowerCase();
+    if (rawLower === 'tinyint(1)' || rawLower.startsWith('tinyint(1)')) {
+      return PrimitiveKind.BOOLEAN;
+    }
+    const cleanType = (rawType || '').split('(')[0].split(' ')[0].trim().toLowerCase();
+    return (this.TYPE_MAP[cleanType] as PrimitiveKind) ?? 'string';
+  }
+
+  public static toColumnKind(rawType: string): DatabaseColumnKind {
+    const cleanType = (rawType || '').split('(')[0].split(' ')[0].trim().toLowerCase();
+    switch (cleanType) {
+      case 'bigint': return DatabaseColumnKind.BigInt;
+      case 'int':
+      case 'integer': return DatabaseColumnKind.Integer;
+      case 'smallint': return DatabaseColumnKind.SmallInt;
+      case 'tinyint': return DatabaseColumnKind.TinyInt;
+      case 'float': return DatabaseColumnKind.Float;
+      case 'double': return DatabaseColumnKind.Double;
+      case 'decimal':
+      case 'numeric': return DatabaseColumnKind.Decimal;
+      case 'bool':
+      case 'boolean': return DatabaseColumnKind.Boolean;
+      case 'varchar':
+      case 'char':
+      case 'string': return DatabaseColumnKind.String;
+      case 'text': return DatabaseColumnKind.Text;
+      case 'mediumtext': return DatabaseColumnKind.MediumText;
+      case 'longtext': return DatabaseColumnKind.LongText;
+      case 'date': return DatabaseColumnKind.Date;
+      case 'datetime': return DatabaseColumnKind.DateTime;
+      case 'timestamp': return DatabaseColumnKind.Timestamp;
+      case 'time': return DatabaseColumnKind.Time;
+      case 'json':
+      case 'jsonb': return DatabaseColumnKind.Json;
+      case 'enum': return DatabaseColumnKind.Enum;
+      case 'blob':
+      case 'binary': return DatabaseColumnKind.Binary;
+      case 'uuid': return DatabaseColumnKind.Uuid;
+      case 'ulid': return DatabaseColumnKind.Ulid;
+      default: return DatabaseColumnKind.Unknown;
+    }
+  }
+}
+
+/**
+ * DatabaseColumnKind
+ *
+ * Canonical Domain Vocabulary for Database Column Engine Types.
+ */
+export const DatabaseColumnKind = Object.freeze({
+  BigInt: 'bigint',
+  Integer: 'integer',
+  SmallInt: 'smallint',
+  TinyInt: 'tinyint',
+  Float: 'float',
+  Double: 'double',
+  Decimal: 'decimal',
+  Boolean: 'boolean',
+  String: 'string',
+  Text: 'text',
+  MediumText: 'mediumtext',
+  LongText: 'longtext',
+  Date: 'date',
+  DateTime: 'datetime',
+  Timestamp: 'timestamp',
+  Time: 'time',
+  Json: 'json',
+  Enum: 'enum',
+  Binary: 'binary',
+  Uuid: 'uuid',
+  Ulid: 'ulid',
+  Unknown: 'unknown'
+} as const);
+
+export type DatabaseColumnKind = typeof DatabaseColumnKind[keyof typeof DatabaseColumnKind];
+
+export interface ParsedColumn {
+  readonly name: string;
+  readonly propertyName: string; // ✅ Canonical TS Identifier ('createdAt')
+  readonly type: string;         // SQL Type ('bigint(20) unsigned' | 'enum')
+  readonly columnKind: DatabaseColumnKind; // ✅ Canonical Database Column Kind (Guaranteed)
+  readonly nullable: boolean;    // Guaranteed boolean
+  readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
+  readonly enumValues: readonly string[]; // ✅ Preserved literal enum values (e.g. ['pending', 'completed'])
+}
+
+/**
+ * EloquentCastKind
+ *
+ * Canonical Domain Vocabulary for Eloquent Attribute Casts.
+ */
+export const EloquentCastKind = Object.freeze({
+  Integer: 'integer',
+  Float: 'float',
+  Decimal: 'decimal',
+  Boolean: 'boolean',
+  String: 'string',
+  DateTime: 'datetime',
+  Date: 'date',
+  Timestamp: 'timestamp',
+  Array: 'array',
+  Json: 'json',
+  Object: 'object',
+  Collection: 'collection',
+  Encrypted: 'encrypted',
+  Custom: 'custom'
+} as const);
+
+export type EloquentCastKind = typeof EloquentCastKind[keyof typeof EloquentCastKind];
+
+/**
+ * EloquentCastMapper
+ *
+ * Canonical Mapper from Laravel $casts string to EloquentCastKind and PrimitiveKind.
+ * Pure O(1) dictionary lookup (0 regex, 0 .includes()).
+ */
+export class EloquentCastMapper {
+  private static readonly CAST_MAP: Readonly<Record<string, { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind }>> = Object.freeze({
+    'int': { castKind: EloquentCastKind.Integer, semanticType: PrimitiveKind.NUMBER },
+    'integer': { castKind: EloquentCastKind.Integer, semanticType: PrimitiveKind.NUMBER },
+    'real': { castKind: EloquentCastKind.Float, semanticType: PrimitiveKind.NUMBER },
+    'float': { castKind: EloquentCastKind.Float, semanticType: PrimitiveKind.NUMBER },
+    'double': { castKind: EloquentCastKind.Float, semanticType: PrimitiveKind.NUMBER },
+    'decimal': { castKind: EloquentCastKind.Decimal, semanticType: PrimitiveKind.NUMBER },
+    'string': { castKind: EloquentCastKind.String, semanticType: PrimitiveKind.STRING },
+    'bool': { castKind: EloquentCastKind.Boolean, semanticType: PrimitiveKind.BOOLEAN },
+    'boolean': { castKind: EloquentCastKind.Boolean, semanticType: PrimitiveKind.BOOLEAN },
+    'object': { castKind: EloquentCastKind.Object, semanticType: PrimitiveKind.STRING },
+    'array': { castKind: EloquentCastKind.Array, semanticType: PrimitiveKind.STRING },
+    'json': { castKind: EloquentCastKind.Json, semanticType: PrimitiveKind.STRING },
+    'collection': { castKind: EloquentCastKind.Collection, semanticType: PrimitiveKind.STRING },
+    'date': { castKind: EloquentCastKind.Date, semanticType: PrimitiveKind.DATETIME },
+    'datetime': { castKind: EloquentCastKind.DateTime, semanticType: PrimitiveKind.DATETIME },
+    'custom_datetime': { castKind: EloquentCastKind.DateTime, semanticType: PrimitiveKind.DATETIME },
+    'timestamp': { castKind: EloquentCastKind.Timestamp, semanticType: PrimitiveKind.DATETIME },
+    'encrypted': { castKind: EloquentCastKind.Encrypted, semanticType: PrimitiveKind.STRING }
+  });
+
+  public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind } {
+    const clean = (rawTargetType || '').split(':')[0].trim().toLowerCase();
+    return this.CAST_MAP[clean] ?? { castKind: EloquentCastKind.Custom, semanticType: PrimitiveKind.STRING };
+  }
+}
+
+/**
+ * First-Class Eloquent Attribute Cast Entry (Ordered & Guaranteed Complete Model).
+ */
+export interface ParsedCast {
+  readonly column: string;
+  readonly targetType: string;
+  readonly castKind: EloquentCastKind;
+  readonly semanticType: PrimitiveKind;
+}
+
+/**
+ * First-Class Eloquent Accessor Definition (Ordered).
+ */
+export interface ParsedAccessor {
+  readonly name: string;
+  readonly propertyName: string; // ✅ Canonical TS Identifier ('fullName')
+  readonly type: string;         // PHP return type
+  readonly nullable: boolean;    // Guaranteed boolean
+  readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
+}
+
+/**
+ * EloquentRelationType
+ *
+ * Canonical Domain Vocabulary for Eloquent ORM Relationships.
+ */
+export const EloquentRelationType = Object.freeze({
+  HasOne: 'hasOne',
+  HasMany: 'hasMany',
+  BelongsTo: 'belongsTo',
+  BelongsToMany: 'belongsToMany',
+  HasOneThrough: 'hasOneThrough',
+  HasManyThrough: 'hasManyThrough',
+  MorphTo: 'morphTo',
+  MorphOne: 'morphOne',
+  MorphMany: 'morphMany',
+  MorphToMany: 'morphToMany',
+  MorphedByMany: 'morphedByMany'
+} as const);
+
+export type EloquentRelationType = typeof EloquentRelationType[keyof typeof EloquentRelationType];
+
+export type EloquentRelationCardinality = 'one' | 'many';
+
+export interface EloquentRelationDescriptor<T extends EloquentRelationType = EloquentRelationType> {
+  readonly type: T;
+  readonly cardinality: EloquentRelationCardinality;
+  readonly isCollection: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key EloquentRelationType (0 string key).
+ */
+export type EloquentRelationRegistry = {
+  readonly [K in EloquentRelationType]: EloquentRelationDescriptor<K>;
+};
+
+export const ELOQUENT_RELATION_REGISTRY: EloquentRelationRegistry = Object.freeze({
+  [EloquentRelationType.HasOne]: {
+    type: EloquentRelationType.HasOne,
+    cardinality: 'one',
+    isCollection: false
+  },
+  [EloquentRelationType.HasMany]: {
+    type: EloquentRelationType.HasMany,
+    cardinality: 'many',
+    isCollection: true
+  },
+  [EloquentRelationType.BelongsTo]: {
+    type: EloquentRelationType.BelongsTo,
+    cardinality: 'one',
+    isCollection: false
+  },
+  [EloquentRelationType.BelongsToMany]: {
+    type: EloquentRelationType.BelongsToMany,
+    cardinality: 'many',
+    isCollection: true
+  },
+  [EloquentRelationType.HasOneThrough]: {
+    type: EloquentRelationType.HasOneThrough,
+    cardinality: 'one',
+    isCollection: false
+  },
+  [EloquentRelationType.HasManyThrough]: {
+    type: EloquentRelationType.HasManyThrough,
+    cardinality: 'many',
+    isCollection: true
+  },
+  [EloquentRelationType.MorphTo]: {
+    type: EloquentRelationType.MorphTo,
+    cardinality: 'one',
+    isCollection: false
+  },
+  [EloquentRelationType.MorphOne]: {
+    type: EloquentRelationType.MorphOne,
+    cardinality: 'one',
+    isCollection: false
+  },
+  [EloquentRelationType.MorphMany]: {
+    type: EloquentRelationType.MorphMany,
+    cardinality: 'many',
+    isCollection: true
+  },
+  [EloquentRelationType.MorphToMany]: {
+    type: EloquentRelationType.MorphToMany,
+    cardinality: 'many',
+    isCollection: true
+  },
+  [EloquentRelationType.MorphedByMany]: {
+    type: EloquentRelationType.MorphedByMany,
+    cardinality: 'many',
+    isCollection: true
+  }
+});
+
+/**
+ * EloquentRelationClassifier
+ *
+ * Canonical Classifier for Eloquent ORM Relationships.
+ * Strict Type Guard & Mapped Lookup (0 Record<string, ...>).
+ */
+export class EloquentRelationClassifier {
+  public static isRelationMethod(name: string): name is EloquentRelationType {
+    return Object.prototype.hasOwnProperty.call(ELOQUENT_RELATION_REGISTRY, name);
+  }
+
+  public static getDescriptor<K extends EloquentRelationType>(type: K): EloquentRelationDescriptor<K> {
+    return ELOQUENT_RELATION_REGISTRY[type];
+  }
+
+  public static isCollection(type: EloquentRelationType): boolean {
+    return ELOQUENT_RELATION_REGISTRY[type]?.isCollection ?? false;
+  }
+}
+
+/**
+ * First-Class Eloquent Model Relationship Definition (Ordered & Complete Contract).
+ */
+export interface ParsedRelation {
+  readonly name: string;
+  readonly type: EloquentRelationType;
+  readonly modelName: string;
+  readonly targetModel: string;
+  readonly cardinality: EloquentRelationCardinality;
+  readonly isCollection: boolean;
+  readonly foreignKey: string | null;
+}
+
+/**
+ * ModelKeyType
+ *
+ * Canonical Domain Vocabulary for Eloquent Model Primary Keys.
+ */
+export const ModelKeyType = Object.freeze({
+  Int: 'int',
+  BigInt: 'bigint',
+  String: 'string',
+  Uuid: 'uuid',
+  Ulid: 'ulid'
+} as const);
+
+export type ModelKeyType = typeof ModelKeyType[keyof typeof ModelKeyType];
+
+/**
+ * Pure Ordered Eloquent Model AST (0 Record, 0 Object.entries).
+ */
+export interface ParsedModel {
+  readonly name: string;       // e.g. 'App\\Models\\User'
+  readonly shortName: string;  // e.g. 'User' (Guaranteed from class_basename in PHP)
+  readonly table: string;
+  readonly primaryKey: string; // ✅ Guaranteed ('id')
+  readonly keyType: ModelKeyType; // ✅ Guaranteed ('int' | 'bigint' | 'uuid')
+  readonly keySemanticType: PrimitiveKind; // ✅ Guaranteed (PrimitiveKind.NUMBER | STRING)
+  readonly incrementing: boolean; // ✅ Guaranteed boolean
+  readonly softDeletes: boolean;  // ✅ Guaranteed boolean (true if SoftDeletes trait or deleted_at column present)
+  readonly timestamps: boolean;   // ✅ Guaranteed boolean (true if created_at & updated_at columns present)
+  readonly columns: readonly ParsedColumn[];
+  readonly fillable: readonly string[];
+  readonly guarded: readonly string[];
+  readonly hidden: readonly string[];
+  readonly appends: readonly string[];
+  readonly casts: readonly ParsedCast[];
+  readonly accessors: readonly ParsedAccessor[];
+  readonly relations: readonly ParsedRelation[];
+}
+
+export const ResponseShape = Object.freeze({
+  Paginated: 'paginated',
+  Collection: 'collection',
+  Single: 'single'
+} as const);
+
+export type ResponseShape = typeof ResponseShape[keyof typeof ResponseShape];
+
+/**
+ * PaginationKind
+ *
+ * Canonical Domain Vocabulary for Laravel Pagination Envelopes.
+ */
+export const PaginationKind = Object.freeze({
+  LengthAware: 'length_aware',
+  Cursor: 'cursor'
+} as const);
+
+export type PaginationKind = typeof PaginationKind[keyof typeof PaginationKind];
+
+/**
+ * PaginatedEnvelopeDescriptor
+ *
+ * Explicit Domain Model for Laravel Pagination JSON Envelope.
+ */
+export interface PaginatedEnvelopeDescriptor {
+  readonly kind: PaginationKind;
+  readonly dataKey: string;     // 'data'
+  readonly metaKey: string;     // 'meta'
+  readonly linksKey: string | null;   // 'links'
+  readonly envelopeTypeName: string; // e.g. 'PaginatedResponse<T>'
+}
+
+/**
+ * PolymorphicRelationDescriptor
+ *
+ * Explicit Domain Model for Eloquent Polymorphic ORM Relations (Discriminated Union).
+ */
+export interface PolymorphicRelationDescriptor {
+  readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+  readonly idColumn: string;          // 'commentable_id'
+  readonly typeColumn: string;        // 'commentable_type'
+  readonly targetModels: readonly string[]; // ['Post', 'Video']
+  readonly unionTypeName: string;     // 'CommentableTarget'
+}
+
+export interface ScannedPaginatedEnvelopeParams {
+  readonly kind: PaginationKind;
+  readonly dataKey: string;
+  readonly metaKey: string;
+  readonly linksKey: string | null;
+  readonly envelopeTypeName: string;
+}
+
+/**
+ * Reusable Constructor: Scanned Paginated Envelope Descriptor.
+ */
+export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDescriptor {
+  public readonly kind: PaginationKind;
+  public readonly dataKey: string;
+  public readonly metaKey: string;
+  public readonly linksKey: string | null;
+  public readonly envelopeTypeName: string;
+
+  constructor(params: ScannedPaginatedEnvelopeParams) {
+    this.kind = params.kind;
+    this.dataKey = params.dataKey;
+    this.metaKey = params.metaKey;
+    this.linksKey = params.linksKey;
+    this.envelopeTypeName = params.envelopeTypeName;
+    Object.freeze(this);
+  }
+
+  public static create({
+    kind = PaginationKind.LengthAware,
+    dataKey = 'data',
+    metaKey = 'meta',
+    linksKey = 'links',
+    envelopeTypeName
+  }: {
+    readonly kind?: PaginationKind;
+    readonly dataKey?: string;
+    readonly metaKey?: string;
+    readonly linksKey?: string | null;
+    readonly envelopeTypeName?: string;
+  } = {}): ScannedPaginatedEnvelopeDescriptor {
+    return new ScannedPaginatedEnvelopeDescriptor({
+      kind,
+      dataKey,
+      metaKey,
+      linksKey: kind === PaginationKind.LengthAware ? (linksKey ?? 'links') : null,
+      envelopeTypeName: envelopeTypeName ?? (kind === PaginationKind.Cursor ? 'CursorPaginatedResponse<T>' : 'PaginatedResponse<T>')
+    });
+  }
+
+  public static lengthAware(dataKey: string = 'data'): ScannedPaginatedEnvelopeDescriptor {
+    return new ScannedPaginatedEnvelopeDescriptor({
+      kind: PaginationKind.LengthAware,
+      dataKey,
+      metaKey: 'meta',
+      linksKey: 'links',
+      envelopeTypeName: 'PaginatedResponse<T>'
+    });
+  }
+
+  public static cursor(dataKey: string = 'data'): ScannedPaginatedEnvelopeDescriptor {
+    return new ScannedPaginatedEnvelopeDescriptor({
+      kind: PaginationKind.Cursor,
+      dataKey,
+      metaKey: 'meta',
+      linksKey: null,
+      envelopeTypeName: 'CursorPaginatedResponse<T>'
+    });
+  }
+}
+
+export interface ScannedPolymorphicRelationParams {
+  readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+  readonly idColumn: string;
+  readonly typeColumn: string;
+  readonly targetModels: readonly string[];
+  readonly unionTypeName: string;
+}
+
+/**
+ * Reusable Constructor: Scanned Polymorphic Relation Descriptor.
+ */
+export class ScannedPolymorphicRelationDescriptor implements PolymorphicRelationDescriptor {
+  public readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+  public readonly idColumn: string;
+  public readonly typeColumn: string;
+  public readonly targetModels: readonly string[];
+  public readonly unionTypeName: string;
+
+  constructor(params: ScannedPolymorphicRelationParams) {
+    this.morphType = params.morphType;
+    this.idColumn = params.idColumn;
+    this.typeColumn = params.typeColumn;
+    this.targetModels = Object.freeze([...params.targetModels]);
+    this.unionTypeName = params.unionTypeName;
+    Object.freeze(this);
+  }
+
+  public static create({
+    morphType,
+    idColumn = 'commentable_id',
+    typeColumn = 'commentable_type',
+    targetModels = [],
+    unionTypeName = 'CommentableTarget'
+  }: {
+    readonly morphType: 'morphTo' | 'morphMany' | 'morphToMany';
+    readonly idColumn?: string;
+    readonly typeColumn?: string;
+    readonly targetModels?: readonly string[];
+    readonly unionTypeName?: string;
+  }): ScannedPolymorphicRelationDescriptor {
+    return new ScannedPolymorphicRelationDescriptor({
+      morphType,
+      idColumn,
+      typeColumn,
+      targetModels,
+      unionTypeName
+    });
+  }
+}
+
+export interface RouteResponseAnalysis {
+  readonly routeName: string;
+  readonly responseType: string;
+  readonly shape: ResponseShape;
+  readonly resourceName: string | null;
+  readonly modelName: string | null;
+  readonly confidence: number;
+  readonly reasons: readonly string[];
+}
+
+export abstract class ResponseDescriptorBase {
+  abstract readonly kind: string;
+  abstract readonly shape: ResponseShape;
+  abstract readonly readTypeName: string; // ✅ Guaranteed Read Type Name ('UserResourceTransformed')
+  abstract readonly mapperName: string;   // ✅ Guaranteed Mapper Function Name ('toUserResourceRead')
+
+  abstract toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis;
+  abstract toResponseBody(): ResponseBody;
+}
+
+export interface ResourceResponseParams {
+  readonly resourceName: string;
+  readonly shape: ResponseShape;
+}
+
+export class ResourceResponseDescriptor extends ResponseDescriptorBase {
+  public readonly kind = 'resource' as const;
+  public readonly shape: ResponseShape;
+  public readonly resourceName: string;
+  public readonly readTypeName: string;
+  public readonly mapperName: string;
+
+  constructor(params: ResourceResponseParams) {
+    super();
+    this.resourceName = params.resourceName;
+    this.shape = params.shape;
+    this.readTypeName = `${params.resourceName}Transformed`;
+    this.mapperName = `to${params.resourceName}Read`;
+    Object.freeze(this);
+  }
+
+  public static create({
+    resourceName = 'UnknownResource',
+    shape = 'single'
+  }: {
+    readonly resourceName?: string;
+    readonly shape?: ResponseShape;
+  } = {}): ResourceResponseDescriptor {
+    return new ResourceResponseDescriptor({ resourceName, shape });
+  }
+
+  public static single(resourceName: string): ResourceResponseDescriptor {
+    return new ResourceResponseDescriptor({ resourceName, shape: 'single' });
+  }
+
+  public static collection(resourceName: string): ResourceResponseDescriptor {
+    return new ResourceResponseDescriptor({ resourceName, shape: 'collection' });
+  }
+
+  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+    return {
+      routeName,
+      responseType: this.kind,
+      shape: this.shape,
+      resourceName: this.resourceName,
+      modelName: null,
+      confidence,
+      reasons: [
+        `Response kind: ${this.kind}`,
+        `Response shape: ${this.shape}`
+      ]
+    };
+  }
+
+  toResponseBody(): ResponseBody {
+    return {
+      type: 'resource',
+      resource: this.resourceName,
+      shape: this.shape
+    };
+  }
+}
+
+export interface ModelResponseParams {
+  readonly modelName: string;
+  readonly shape: ResponseShape;
+}
+
+export class ModelResponseDescriptor extends ResponseDescriptorBase {
+  public readonly kind = 'model' as const;
+  public readonly shape: ResponseShape;
+  public readonly modelName: string;
+  public readonly readTypeName: string;
+  public readonly mapperName: string;
+
+  constructor(params: ModelResponseParams) {
+    super();
+    this.modelName = params.modelName;
+    this.shape = params.shape;
+    this.readTypeName = `${params.modelName}Transformed`;
+    this.mapperName = `to${params.modelName}Read`;
+    Object.freeze(this);
+  }
+
+  public static create({
+    modelName = 'UnknownModel',
+    shape = 'single'
+  }: {
+    readonly modelName?: string;
+    readonly shape?: ResponseShape;
+  } = {}): ModelResponseDescriptor {
+    return new ModelResponseDescriptor({ modelName, shape });
+  }
+
+  public static single(modelName: string): ModelResponseDescriptor {
+    return new ModelResponseDescriptor({ modelName, shape: 'single' });
+  }
+
+  public static collection(modelName: string): ModelResponseDescriptor {
+    return new ModelResponseDescriptor({ modelName, shape: 'collection' });
+  }
+
+  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+    return {
+      routeName,
+      responseType: this.kind,
+      shape: this.shape,
+      resourceName: null,
+      modelName: this.modelName,
+      confidence,
+      reasons: [
+        `Response kind: ${this.kind}`,
+        `Response shape: ${this.shape}`
+      ]
+    };
+  }
+
+  toResponseBody(): ResponseBody {
+    return {
+      type: 'model',
+      model: this.modelName,
+      shape: this.shape
+    };
+  }
+}
+
+export class VoidResponseDescriptor extends ResponseDescriptorBase {
+  public readonly kind = 'void' as const;
+  public readonly shape = 'single' as const;
+  public readonly readTypeName = 'void';
+  public readonly mapperName = 'identity';
+
+  constructor() {
+    super();
+    Object.freeze(this);
+  }
+
+  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+    return {
+      routeName,
+      responseType: this.kind,
+      shape: this.shape,
+      resourceName: null,
+      modelName: null,
+      confidence,
+      reasons: [
+        `Response kind: ${this.kind}`,
+        `Response shape: ${this.shape}`
+      ]
+    };
+  }
+
+  toResponseBody(): ResponseBody {
+    return {
+      type: 'primitive',
+      primitiveType: 'void',
+      shape: 'single'
+    };
+  }
+}
+
+export interface InlineResponseDescriptorParams {
+  readonly domain: string;
+  readonly baseName: string;
+  readonly typeName: string;
+  readonly fields: readonly ResourceFieldDescriptor[];
+  readonly shape: ResponseShape;
+}
+
+export class InlineResponseDescriptor extends ResponseDescriptorBase {
+  public readonly kind = 'inline' as const;
+  public readonly shape: ResponseShape;
+  public readonly domain: string;
+  public readonly baseName: string;
+  public readonly typeName: string;
+  public readonly readTypeName: string;
+  public readonly mapperName: string;
+  public readonly fields: readonly ResourceFieldDescriptor[];
+
+  constructor(params: InlineResponseDescriptorParams) {
+    super();
+    this.domain = params.domain;
+    this.baseName = params.baseName;
+    this.typeName = params.typeName;
+    this.readTypeName = params.typeName;
+    this.mapperName = `to${params.baseName}Read`;
+    this.fields = Object.freeze([...params.fields]);
+    this.shape = params.shape;
+    Object.freeze(this);
+  }
+
+  public static create({
+    domain,
+    baseName = domain,
+    typeName = `${baseName}Transformed`,
+    fields,
+    shape = ResponseShape.Single
+  }: {
+    readonly domain: string;
+    readonly baseName?: string;
+    readonly typeName?: string;
+    readonly fields: readonly ResourceFieldDescriptor[];
+    readonly shape?: ResponseShape;
+  }): InlineResponseDescriptor {
+    return new InlineResponseDescriptor({
+      domain,
+      baseName,
+      typeName,
+      fields,
+      shape
+    });
+  }
+
+  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+    return {
+      routeName,
+      responseType: this.typeName,
+      shape: this.shape,
+      resourceName: null,
+      modelName: null,
+      confidence,
+      reasons: [
+        `Inline response with ${this.fields.length} fields`,
+        `Response shape: ${this.shape}`
+      ]
+    };
+  }
+
+  toResponseBody(): ResponseBody {
+    const properties: Record<string, { readonly typeName: string; readonly nullable: boolean }> = {};
+    for (const f of this.fields) {
+      properties[f.name] = { typeName: 'string', nullable: f.nullable };
+    }
+    return {
+      type: 'object',
+      schema: {
+        properties
+      },
+      shape: this.shape
+    };
+  }
+}
+
+export const ResponseKind = Object.freeze({
+  Resource: 'resource',
+  Model: 'model',
+  Inline: 'inline',
+  Void: 'void'
+} as const);
+
+export type ResponseKind = typeof ResponseKind[keyof typeof ResponseKind];
+
+export type ResponseDescriptor =
+  | ResourceResponseDescriptor
+  | ModelResponseDescriptor
+  | InlineResponseDescriptor
+  | VoidResponseDescriptor;
+
+export const RouteParameterLocation = Object.freeze({
+  Path: 'path',
+  Query: 'query',
+  Header: 'header'
+} as const);
+
+export type RouteParameterLocation = typeof RouteParameterLocation[keyof typeof RouteParameterLocation];
+
+/**
+ * RouteParameterType
+ *
+ * Canonical Domain Vocabulary for HTTP Route Parameter Data Types.
+ */
+export const RouteParameterType = Object.freeze({
+  String: 'string',
+  Number: 'number',
+  Boolean: 'boolean',
+  Uuid: 'uuid',
+  Ulid: 'ulid',
+  Date: 'date',
+  Slug: 'slug'
+} as const);
+
+export type RouteParameterType = typeof RouteParameterType[keyof typeof RouteParameterType];
+
+export interface RouteParameter {
+  readonly name: string;
+  readonly propertyName: string; // ✅ Canonical TS Identifier ('orderId', 0 toCamelCase in downstream)
+  readonly bindingField: string | null; // ✅ Canonical Bound Field ('slug', 'uuid', from Laravel {post:slug})
+  readonly in: RouteParameterLocation;
+  readonly required: boolean;
+  readonly type: RouteParameterType; // ✅ 100% Guaranteed Canonical Vocabulary
+}
+
+/**
+ * ValidationRuleKind
+ *
+ * Canonical Domain Vocabulary for Laravel Validation Rules.
+ */
+export const ValidationRuleKind = Object.freeze({
+  Required: 'required',
+  Nullable: 'nullable',
+  Optional: 'optional',
+  String: 'string',
+  Number: 'number',
+  Boolean: 'boolean',
+  Array: 'array',
+  Email: 'email',
+  Url: 'url',
+  Uuid: 'uuid',
+  Date: 'date',
+  Min: 'min',
+  Max: 'max',
+  Between: 'between',
+  In: 'in',
+  Exists: 'exists',
+  Unique: 'unique',
+  File: 'file',
+  Image: 'image',
+  Custom: 'custom'
+} as const);
+
+export type ValidationRuleKind = typeof ValidationRuleKind[keyof typeof ValidationRuleKind];
+
+/**
+ * ValidationRuleNode
+ *
+ * First-Class AST Node for Laravel Validation Rules (Discriminated Union).
+ */
+export type ValidationRuleNode =
+  | { readonly kind: typeof ValidationRuleKind.Required }
+  | { readonly kind: typeof ValidationRuleKind.Nullable }
+  | { readonly kind: typeof ValidationRuleKind.Optional }
+  | { readonly kind: typeof ValidationRuleKind.String }
+  | { readonly kind: typeof ValidationRuleKind.Number }
+  | { readonly kind: typeof ValidationRuleKind.Boolean }
+  | { readonly kind: typeof ValidationRuleKind.Array; readonly elementType: string | null }
+  | { readonly kind: typeof ValidationRuleKind.Email }
+  | { readonly kind: typeof ValidationRuleKind.Url }
+  | { readonly kind: typeof ValidationRuleKind.Uuid }
+  | { readonly kind: typeof ValidationRuleKind.Date; readonly format: string | null }
+  | { readonly kind: typeof ValidationRuleKind.Min; readonly value: number }
+  | { readonly kind: typeof ValidationRuleKind.Max; readonly value: number }
+  | { readonly kind: typeof ValidationRuleKind.Between; readonly min: number; readonly max: number }
+  | { readonly kind: typeof ValidationRuleKind.In; readonly values: readonly (string | number)[] }
+  | { readonly kind: typeof ValidationRuleKind.Exists; readonly table: string; readonly column: string | null }
+  | { readonly kind: typeof ValidationRuleKind.Unique; readonly table: string; readonly column: string | null }
+  | { readonly kind: typeof ValidationRuleKind.File }
+  | { readonly kind: typeof ValidationRuleKind.Image }
+  | { readonly kind: typeof ValidationRuleKind.Custom; readonly rule: string; readonly parameters: readonly string[] };
+
+/**
+ * ValidationRuleNodeFactory
+ *
+ * Canonical Reusable Factory for Structured ValidationRuleNode AST.
+ */
+export class ValidationRuleNodeFactory {
+  public static required(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Required });
+  }
+  public static nullable(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Nullable });
+  }
+  public static optional(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Optional });
+  }
+  public static string(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.String });
+  }
+  public static number(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Number });
+  }
+  public static boolean(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Boolean });
+  }
+  public static array(elementType: string | null = null): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Array, elementType });
+  }
+  public static email(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Email });
+  }
+  public static url(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Url });
+  }
+  public static uuid(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Uuid });
+  }
+  public static date(format: string | null = null): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Date, format });
+  }
+  public static min(value: number): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Min, value });
+  }
+  public static max(value: number): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Max, value });
+  }
+  public static between(min: number, max: number): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Between, min, max });
+  }
+  public static in(values: readonly (string | number)[]): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.In, values: Object.freeze([...values]) });
+  }
+  public static exists(table: string, column: string | null = null): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Exists, table, column });
+  }
+  public static unique(table: string, column: string | null = null): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Unique, table, column });
+  }
+  public static file(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.File });
+  }
+  public static image(): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Image });
+  }
+  public static custom(rule: string, parameters: readonly string[] = []): ValidationRuleNode {
+    return Object.freeze({ kind: ValidationRuleKind.Custom, rule, parameters: Object.freeze([...parameters]) });
+  }
+}
+
+/**
+ * ValidationRuleParser
+ *
+ * Pure Deterministic AST Parser for Laravel Validation Rule Strings.
+ * Transforms raw Laravel rule strings into strongly-typed ValidationRuleNode AST.
+ */
+export class ValidationRuleParser {
+  public static parse(ruleStr: string): ValidationRuleNode {
+    const trimmed = (ruleStr || '').trim();
+    const colonIdx = trimmed.indexOf(':');
+    const name = (colonIdx === -1 ? trimmed : trimmed.slice(0, colonIdx)).toLowerCase();
+    const paramStr = colonIdx === -1 ? '' : trimmed.slice(colonIdx + 1);
+    const params = paramStr ? paramStr.split(',').map(s => s.trim()) : [];
+
+    switch (name) {
+      case 'required':
+        return ValidationRuleNodeFactory.required();
+      case 'nullable':
+        return ValidationRuleNodeFactory.nullable();
+      case 'sometimes':
+      case 'optional':
+        return ValidationRuleNodeFactory.optional();
+      case 'string':
+        return ValidationRuleNodeFactory.string();
+      case 'integer':
+      case 'int':
+      case 'numeric':
+      case 'digits':
+        return ValidationRuleNodeFactory.number();
+      case 'boolean':
+      case 'bool':
+        return ValidationRuleNodeFactory.boolean();
+      case 'array':
+        return ValidationRuleNodeFactory.array();
+      case 'email':
+        return ValidationRuleNodeFactory.email();
+      case 'url':
+        return ValidationRuleNodeFactory.url();
+      case 'uuid':
+        return ValidationRuleNodeFactory.uuid();
+      case 'date':
+      case 'datetime':
+      case 'timestamp':
+        return ValidationRuleNodeFactory.date(params[0] ?? null);
+      case 'min':
+        return ValidationRuleNodeFactory.min(Number(params[0]) || 0);
+      case 'max':
+        return ValidationRuleNodeFactory.max(Number(params[0]) || 0);
+      case 'between':
+        return ValidationRuleNodeFactory.between(Number(params[0]) || 0, Number(params[1]) || 0);
+      case 'in':
+        return ValidationRuleNodeFactory.in(params);
+      case 'exists':
+        return ValidationRuleNodeFactory.exists(params[0] || '', params[1] ?? null);
+      case 'unique':
+        return ValidationRuleNodeFactory.unique(params[0] || '', params[1] ?? null);
+      case 'file':
+        return ValidationRuleNodeFactory.file();
+      case 'image':
+        return ValidationRuleNodeFactory.image();
+      default:
+        return ValidationRuleNodeFactory.custom(name, params);
+    }
+  }
+
+  public static parseAll(rules: readonly (string | ValidationRuleNode)[]): readonly ValidationRuleNode[] {
+    return Object.freeze(
+      rules.map(r => typeof r === 'string' ? this.parse(r) : r)
+    );
+  }
+
+  /**
+   * Directly lowers ValidationRuleNode AST to Zod schema string expression.
+   * Pure deterministic compiler method (0 regex, 0 string matching, 0 if).
+   */
+  public static toZodExpression(rules: readonly ValidationRuleNode[]): string {
+    const isRequired = rules.some(r => r.kind === ValidationRuleKind.Required);
+    const hasOptional = rules.some(r => r.kind === ValidationRuleKind.Optional);
+    const initialNode: ZodNode = { expression: 'z.string()' };
+    let finalNode = ZodSchemaReducer.reduceConstraints(initialNode, rules);
+    if (!isRequired && !hasOptional) {
+      finalNode = { expression: `${finalNode.expression}.optional()` };
+    }
+    return finalNode.expression;
+  }
+}
+
+export interface ZodNode {
+  readonly expression: string;
+}
+
+/**
+ * Ekstrak node spesifik berdasarkan kind dari discriminated union.
+ */
+export type ExtractRule<K extends ValidationRuleKind> = Extract<
+  ValidationRuleNode,
+  { readonly kind: K }
+>;
+
+/**
+ * Handler strictly-typed: parameter constraint DIJAMIN cocok dengan K (0 any).
+ */
+export type ConstraintHandler<K extends ValidationRuleKind> = (
+  base: ZodNode,
+  constraint: ExtractRule<K>
+) => ZodNode;
+
+/**
+ * Registry Mapped Type: Semua key K terpetakan ke handler yang eksak.
+ */
+export type ConstraintRegistry = {
+  readonly [K in ValidationRuleKind]: ConstraintHandler<K>;
+};
+
+export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
+  [ValidationRuleKind.Min]: (base, c) => ({
+    expression: `${base.expression}.min(${c.value})`
+  }),
+  [ValidationRuleKind.Max]: (base, c) => ({
+    expression: `${base.expression}.max(${c.value})`
+  }),
+  [ValidationRuleKind.In]: (base, c) => ({
+    expression: `z.enum([${c.values.map(v => JSON.stringify(v)).join(', ')}])`
+  }),
+  [ValidationRuleKind.Between]: (base, c) => ({
+    expression: `${base.expression}.min(${c.min}).max(${c.max})`
+  }),
+  [ValidationRuleKind.Email]: (base) => ({
+    expression: `${base.expression}.email()`
+  }),
+  [ValidationRuleKind.Url]: (base) => ({
+    expression: `${base.expression}.url()`
+  }),
+  [ValidationRuleKind.Uuid]: (base) => ({
+    expression: `${base.expression}.uuid()`
+  }),
+  [ValidationRuleKind.Nullable]: (base) => ({
+    expression: `${base.expression}.nullable()`
+  }),
+  [ValidationRuleKind.Optional]: (base) => ({
+    expression: `${base.expression}.optional()`
+  }),
+  [ValidationRuleKind.Number]: () => ({
+    expression: 'z.number()'
+  }),
+  [ValidationRuleKind.Boolean]: () => ({
+    expression: 'z.boolean()'
+  }),
+  [ValidationRuleKind.Array]: () => ({
+    expression: 'z.array(z.unknown())'
+  }),
+  [ValidationRuleKind.String]: () => ({
+    expression: 'z.string()'
+  }),
+  [ValidationRuleKind.Date]: (base) => ({
+    expression: `${base.expression}.datetime()`
+  }),
+  [ValidationRuleKind.File]: () => ({
+    expression: 'z.instanceof(File)'
+  }),
+  [ValidationRuleKind.Image]: () => ({
+    expression: 'z.instanceof(File)'
+  }),
+  [ValidationRuleKind.Required]: (base) => base,
+  [ValidationRuleKind.Exists]: (base) => base,
+  [ValidationRuleKind.Unique]: (base) => base,
+  [ValidationRuleKind.Custom]: (base) => base
+});
+
+export class ZodSchemaReducer {
+  public static reduceConstraints(
+    initialNode: ZodNode,
+    constraints: readonly ValidationRuleNode[]
+  ): ZodNode {
+    return constraints.reduce<ZodNode>((base, constraint) => {
+      const handler = ZOD_CONSTRAINT_REGISTRY[constraint.kind] as (
+        b: ZodNode,
+        c: ValidationRuleNode
+      ) => ZodNode;
+      return handler(base, constraint);
+    }, initialNode);
+  }
+}
+
+/**
+ * First-Class Route Validation Rule Entry (Ordered & Guaranteed Complete Model).
+ * Pure JSON-serializable AST node: 0 loose strings, 0 split('|'), 0 typeof checks in downstream.
+ */
+export interface RouteValidationRuleEntry {
+  readonly fieldName: string;
+  readonly propertyName: string;
+  readonly ast: readonly ValidationRuleNode[];
+  readonly rules: readonly string[];
+}
+
+/**
+ * First-Class Route Custom Error Message Entry.
+ */
+export interface RouteMessageEntry {
+  readonly ruleKey: string;
+  readonly message: string;
+}
+
+/**
+ * First-Class Route Custom Attribute Name Entry.
+ */
+export interface RouteAttributeEntry {
+  readonly fieldName: string;
+  readonly label: string;
+}
+
+/**
+ * Pure Ordered Validation Schema Payload (0 Record, 0 Object.entries).
+ */
+export interface RouteSchemaPayload {
+  readonly rules: readonly RouteValidationRuleEntry[];
+  readonly messages: readonly RouteMessageEntry[];
+  readonly attributes: readonly RouteAttributeEntry[];
+}
+
+/**
+ * Canonical Domain Vocabulary for HTTP Methods.
+ */
+export const HttpMethod = Object.freeze({
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  PATCH: 'PATCH',
+  DELETE: 'DELETE',
+  OPTIONS: 'OPTIONS',
+  HEAD: 'HEAD'
+} as const);
+
+export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod];
+
+/**
+ * Canonical Domain Vocabulary for Route Action Kinds.
+ */
+export const RouteActionKind = Object.freeze({
+  Create: 'create',
+  Update: 'update',
+  Read: 'read',
+  Delete: 'delete'
+} as const);
+
+export type RouteActionKind = typeof RouteActionKind[keyof typeof RouteActionKind];
+
+/**
+ * Canonical Domain Vocabulary for Route Authentication Schemes.
+ */
+export const SecuritySchemeKind = Object.freeze({
+  Sanctum: 'sanctum',
+  Bearer: 'bearer',
+  Cookie: 'cookie',
+  Public: 'public'
+} as const);
+
+export type SecuritySchemeKind = typeof SecuritySchemeKind[keyof typeof SecuritySchemeKind];
+
+/**
+ * First-Class Route Security & Authentication Descriptor (Guaranteed Complete Model).
+ * Eliminates downstream middleware.some(m => m.startsWith('auth')).
+ */
+export interface RouteSecurityDescriptor {
+  readonly isProtected: boolean;
+  readonly scheme: SecuritySchemeKind;
+  readonly guards: readonly string[];
+  readonly abilities: readonly string[]; // ✅ Dedicated Sanctum/Passport Abilities SSOT
+}
+
+export interface ScannedRouteSecurityParams {
+  readonly isProtected: boolean;
+  readonly scheme: SecuritySchemeKind;
+  readonly guards: readonly string[];
+  readonly abilities: readonly string[];
+}
+
+/**
+ * Reusable Constructor: Scanned Route Security Descriptor.
+ */
+export class ScannedRouteSecurityDescriptor implements RouteSecurityDescriptor {
+  public readonly isProtected: boolean;
+  public readonly scheme: SecuritySchemeKind;
+  public readonly guards: readonly string[];
+  public readonly abilities: readonly string[];
+
+  constructor(params: ScannedRouteSecurityParams) {
+    this.isProtected = params.isProtected;
+    this.scheme = params.scheme;
+    this.guards = Object.freeze([...params.guards]);
+    this.abilities = Object.freeze([...params.abilities]);
+    Object.freeze(this);
+  }
+
+  public static create({
+    isProtected = false,
+    scheme = SecuritySchemeKind.Public,
+    guards = [],
+    abilities = []
+  }: {
+    readonly isProtected?: boolean;
+    readonly scheme?: SecuritySchemeKind;
+    readonly guards?: readonly string[];
+    readonly abilities?: readonly string[];
+  } = {}): ScannedRouteSecurityDescriptor {
+    return new ScannedRouteSecurityDescriptor({
+      isProtected,
+      scheme,
+      guards,
+      abilities
+    });
+  }
+
+  public static public(): ScannedRouteSecurityDescriptor {
+    return new ScannedRouteSecurityDescriptor({
+      isProtected: false,
+      scheme: SecuritySchemeKind.Public,
+      guards: [],
+      abilities: []
+    });
+  }
+
+  public static protected(
+    scheme: SecuritySchemeKind = SecuritySchemeKind.Bearer,
+    guards: readonly string[] = [],
+    abilities: readonly string[] = []
+  ): ScannedRouteSecurityDescriptor {
+    return new ScannedRouteSecurityDescriptor({
+      isProtected: true,
+      scheme,
+      guards,
+      abilities
+    });
+  }
+}
+
+export class RouteSecurityClassifier {
+  public static classify(middleware: readonly string[]): RouteSecurityDescriptor {
+    const guards: string[] = [];
+    const abilities: string[] = [];
+    let isProtected = false;
+    let scheme: SecuritySchemeKind = SecuritySchemeKind.Public;
+
+    for (const m of middleware) {
+      const trimmed = m.trim();
+      const lower = trimmed.toLowerCase();
+      if (lower === 'auth:sanctum') {
+        isProtected = true;
+        scheme = SecuritySchemeKind.Sanctum;
+        guards.push('sanctum');
+      } else if (lower === 'auth:api' || lower === 'auth:bearer') {
+        isProtected = true;
+        scheme = SecuritySchemeKind.Bearer;
+        guards.push('api');
+      } else if (lower === 'auth' || lower.startsWith('auth:')) {
+        isProtected = true;
+        scheme = SecuritySchemeKind.Cookie;
+        guards.push('web');
+      } else if (lower.startsWith('ability:') || lower.startsWith('abilities:')) {
+        const colonIdx = trimmed.indexOf(':');
+        const items = trimmed.slice(colonIdx + 1).split(',').map(s => s.trim()).filter(Boolean);
+        abilities.push(...items);
+      }
+    }
+
+    return new ScannedRouteSecurityDescriptor({
+      isProtected,
+      scheme,
+      guards,
+      abilities
+    });
+  }
+}
+
+/**
+ * HttpStatusCode
+ *
+ * Canonical Domain Vocabulary for Standard HTTP Status Codes.
+ */
+export const HttpStatusCode = Object.freeze({
+  Ok: 200,
+  Created: 201,
+  Accepted: 202,
+  NoContent: 204,
+  BadRequest: 400,
+  Unauthorized: 401,
+  Forbidden: 403,
+  NotFound: 404,
+  MethodNotAllowed: 405,
+  Conflict: 409,
+  UnprocessableEntity: 422,
+  TooManyRequests: 429,
+  InternalServerError: 500
+} as const);
+
+export type HttpStatusCode = typeof HttpStatusCode[keyof typeof HttpStatusCode] | number;
+
+/**
+ * RateLimitDescriptor
+ *
+ * Explicit Domain Model for Laravel Route Rate Limiting (throttle middleware).
+ */
+export interface RateLimitDescriptor {
+  readonly maxAttempts: number;
+  readonly decayMinutes: number;
+}
+
+/**
+ * RequestContentType
+ *
+ * Canonical Domain Vocabulary for HTTP Request Payloads.
+ */
+export const RequestContentType = Object.freeze({
+  Json: 'application/json',
+  Multipart: 'multipart/form-data',
+  UrlEncoded: 'application/x-www-form-urlencoded',
+  None: 'none'
+} as const);
+
+export type RequestContentType = typeof RequestContentType[keyof typeof RequestContentType];
+
+export interface RouteQueryParameter {
+  readonly name: string;
+  readonly propertyName: string;
+  readonly required: boolean;
+  readonly type: RouteParameterType;
+  readonly isArray: boolean;
+  readonly default: unknown;
+}
+
+export interface HttpErrorResponseDescriptor {
+  readonly statusCode: HttpStatusCode;
+  readonly name: string;
+  readonly typeName: string;
+  readonly schema: Record<string, unknown>;
+}
+
+export type ValidationFieldNode =
+  | {
+      readonly kind: 'scalar';
+      readonly fieldName: string;
+      readonly propertyName: string;
+      readonly rules: readonly ValidationRuleNode[];
+    }
+  | {
+      readonly kind: 'array';
+      readonly fieldName: string;
+      readonly propertyName: string;
+      readonly rules: readonly ValidationRuleNode[];
+      readonly element: ValidationFieldNode;
+    }
+  | {
+      readonly kind: 'object';
+      readonly fieldName: string;
+      readonly propertyName: string;
+      readonly fields: readonly ValidationFieldNode[];
+    };
+
+/**
+ * CrudRole
+ *
+ * Canonical REST CRUD Role Vocabulary.
+ */
+export type CrudRole = 'index' | 'show' | 'create' | 'update' | 'delete' | 'custom';
+
+/**
+ * RoutePolicyDescriptor
+ *
+ * Explicit Domain Model for Laravel Route Authorization Policies.
+ */
+export interface RoutePolicyDescriptor {
+  readonly ability: string;        // e.g. 'update', 'view'
+  readonly modelParameter: string | null;// e.g. 'order'
+}
+
+/**
+ * BroadcastChannelDescriptor
+ *
+ * Explicit Domain Model for Laravel Broadcast Channels (routes/channels.php).
+ */
+export const BroadcastChannelKind = Object.freeze({
+  Public: 'public',
+  Private: 'private',
+  Presence: 'presence'
+} as const);
+
+export type BroadcastChannelKind = typeof BroadcastChannelKind[keyof typeof BroadcastChannelKind];
+
+export interface BroadcastChannelDescriptor {
+  readonly name: string;
+  readonly kind: BroadcastChannelKind;
+  readonly pattern: string;
+  readonly runtimePattern: string;
+  readonly parameters: readonly RouteParameter[];
+  readonly isPrivate: boolean;
+  readonly isPresence: boolean;
+}
+
+// =========================================================================
+// EXPLICIT COMPILER ENUMS & DOMAIN MODELS (SSOT ORIGIN BOUNDARY)
+// =========================================================================
+
+export const RouteHookKind = Object.freeze({
+  Query: 'query',
+  Mutation: 'mutation'
+} as const);
+export type RouteHookKind = typeof RouteHookKind[keyof typeof RouteHookKind];
+
+export const RoutePayloadMode = Object.freeze({
+  None: 'none',
+  Required: 'required',
+  Optional: 'optional'
+} as const);
+export type RoutePayloadMode = typeof RoutePayloadMode[keyof typeof RoutePayloadMode];
+
+export const SdkResponseKind = Object.freeze({
+  Void: 'void',
+  Raw: 'raw',
+  Validated: 'validated',
+  Mapped: 'mapped',
+  ValidatedAndMapped: 'validated_and_mapped'
+} as const);
+export type SdkResponseKind = typeof SdkResponseKind[keyof typeof SdkResponseKind];
+
+export const InvalidationTargetKind = Object.freeze({
+  SelfList: 'self_list',
+  ParentList: 'parent_list',
+  ParentDetail: 'parent_detail',
+  AuthResource: 'auth_resource'
+} as const);
+export type InvalidationTargetKind = typeof InvalidationTargetKind[keyof typeof InvalidationTargetKind];
+
+export interface InvalidationTarget {
+  readonly groupName: string;
+  readonly kind: InvalidationTargetKind;
+  readonly queryKeyExpression: string;
+}
+
+export class ScannedInvalidationTarget implements InvalidationTarget {
+  public readonly groupName: string;
+  public readonly kind: InvalidationTargetKind;
+  public readonly queryKeyExpression: string;
+
+  constructor({
+    groupName,
+    kind
+  }: {
+    readonly groupName: string;
+    readonly kind: InvalidationTargetKind;
+  }) {
+    this.groupName = groupName;
+    this.kind = kind;
+    this.queryKeyExpression = ScannedInvalidationTarget.computeQueryKey(groupName, kind);
+    Object.freeze(this);
+  }
+
+  private static computeQueryKey(groupName: string, kind: InvalidationTargetKind): string {
+    switch (kind) {
+      case InvalidationTargetKind.SelfList:
+        return `QueryKey.${groupName}.all`;
+      case InvalidationTargetKind.ParentList:
+        return `QueryKey.${groupName}.lists`;
+      case InvalidationTargetKind.ParentDetail:
+        return `QueryKey.${groupName}.detail`;
+      case InvalidationTargetKind.AuthResource:
+        return `QueryKey.${groupName}.all`;
+    }
+  }
+
+  public static selfList(groupName: string): ScannedInvalidationTarget {
+    return new ScannedInvalidationTarget({
+      groupName,
+      kind: InvalidationTargetKind.SelfList
+    });
+  }
+
+  public static parentList(groupName: string): ScannedInvalidationTarget {
+    return new ScannedInvalidationTarget({
+      groupName,
+      kind: InvalidationTargetKind.ParentList
+    });
+  }
+
+  public static parentDetail(groupName: string): ScannedInvalidationTarget {
+    return new ScannedInvalidationTarget({
+      groupName,
+      kind: InvalidationTargetKind.ParentDetail
+    });
+  }
+
+  public static authResource(groupName: string): ScannedInvalidationTarget {
+    return new ScannedInvalidationTarget({
+      groupName,
+      kind: InvalidationTargetKind.AuthResource
+    });
+  }
+
+  public static resourceList(groupName: string): ScannedInvalidationTarget {
+    return new ScannedInvalidationTarget({
+      groupName,
+      kind: InvalidationTargetKind.ParentList
+    });
+  }
+
+  public static resourceItem(groupName: string): ScannedInvalidationTarget {
+    return new ScannedInvalidationTarget({
+      groupName,
+      kind: InvalidationTargetKind.ParentDetail
+    });
+  }
+}
+
+export interface RouteCacheInvalidationDescriptor {
+  readonly targets: readonly InvalidationTarget[];
+  readonly queryKeyExpressions: readonly string[];
+}
+
+const EMPTY_INVALIDATION_TARGETS: readonly InvalidationTarget[] = Object.freeze([]);
+
+export class ScannedRouteCacheInvalidationDescriptor implements RouteCacheInvalidationDescriptor {
+  public readonly targets: readonly InvalidationTarget[];
+  public readonly queryKeyExpressions: readonly string[];
+
+  constructor({
+    targets
+  }: {
+    readonly targets: readonly InvalidationTarget[];
+  }) {
+    this.targets = Object.freeze(targets);
+    this.queryKeyExpressions = Object.freeze(targets.map(t => t.queryKeyExpression));
+    Object.freeze(this);
+  }
+
+  public static empty(): ScannedRouteCacheInvalidationDescriptor {
+    return new ScannedRouteCacheInvalidationDescriptor({ targets: EMPTY_INVALIDATION_TARGETS });
+  }
+
+  public static none(): ScannedRouteCacheInvalidationDescriptor {
+    return ScannedRouteCacheInvalidationDescriptor.empty();
+  }
+
+  public static fromTargets(targets: readonly InvalidationTarget[]): ScannedRouteCacheInvalidationDescriptor {
+    return new ScannedRouteCacheInvalidationDescriptor({ targets });
+  }
+}
+
+export const ScannedRouteInvalidationPayload = ScannedRouteCacheInvalidationDescriptor;
+export type ScannedRouteInvalidationPayload = ScannedRouteCacheInvalidationDescriptor;
+
+export interface RouteExecutionSignature {
+  readonly payloadMode: RoutePayloadMode;
+  readonly parameterDeclaration: string;
+  readonly callArgumentsExpression: string;
+}
+
+export class ScannedRouteExecutionSignature implements RouteExecutionSignature {
+  public readonly payloadMode: RoutePayloadMode;
+  public readonly parameterDeclaration: string;
+  public readonly callArgumentsExpression: string;
+
+  constructor({
+    payloadMode,
+    parameterDeclaration,
+    callArgumentsExpression
+  }: {
+    readonly payloadMode: RoutePayloadMode;
+    readonly parameterDeclaration: string;
+    readonly callArgumentsExpression: string;
+  }) {
+    this.payloadMode = payloadMode;
+    this.parameterDeclaration = parameterDeclaration;
+    this.callArgumentsExpression = callArgumentsExpression;
+    Object.freeze(this);
+  }
+
+  public static noPayload(): ScannedRouteExecutionSignature {
+    return new ScannedRouteExecutionSignature({
+      payloadMode: RoutePayloadMode.None,
+      parameterDeclaration: '',
+      callArgumentsExpression: ''
+    });
+  }
+
+  public static authOnly(): ScannedRouteExecutionSignature {
+    return new ScannedRouteExecutionSignature({
+      payloadMode: RoutePayloadMode.None,
+      parameterDeclaration: '',
+      callArgumentsExpression: ''
+    });
+  }
+
+  public static requiredPayload(typeName: string): ScannedRouteExecutionSignature {
+    return new ScannedRouteExecutionSignature({
+      payloadMode: RoutePayloadMode.Required,
+      parameterDeclaration: `payload: ${typeName}`,
+      callArgumentsExpression: 'payload'
+    });
+  }
+
+  public static optionalPayload(typeName: string): ScannedRouteExecutionSignature {
+    return new ScannedRouteExecutionSignature({
+      payloadMode: RoutePayloadMode.Optional,
+      parameterDeclaration: `payload: ${typeName} = {}`,
+      callArgumentsExpression: 'payload'
+    });
+  }
+
+  public static create(hookKind: RouteHookKind, hasParams: boolean, hasPayload: boolean = false, typeName: string = 'any'): ScannedRouteExecutionSignature {
+    if (hasPayload) {
+      return ScannedRouteExecutionSignature.requiredPayload(typeName);
+    }
+    return ScannedRouteExecutionSignature.noPayload();
+  }
+}
+
+export interface SdkResponseResolution {
+  readonly kind: SdkResponseKind;
+  readonly type: string;
+  readonly hasSchema: boolean;
+  readonly schemaExpression: string;
+  readonly hasMapper: boolean;
+  readonly mapperExpression: string;
+}
+
+export class ScannedSdkResponseResolution implements SdkResponseResolution {
+  public readonly kind: SdkResponseKind;
+  public readonly type: string;
+  public readonly hasSchema: boolean;
+  public readonly schemaExpression: string;
+  public readonly hasMapper: boolean;
+  public readonly mapperExpression: string;
+
+  constructor({
+    kind,
+    type,
+    hasSchema,
+    schemaExpression,
+    hasMapper,
+    mapperExpression
+  }: {
+    readonly kind: SdkResponseKind;
+    readonly type: string;
+    readonly hasSchema: boolean;
+    readonly schemaExpression: string;
+    readonly hasMapper: boolean;
+    readonly mapperExpression: string;
+  }) {
+    this.kind = kind;
+    this.type = type;
+    this.hasSchema = hasSchema;
+    this.schemaExpression = schemaExpression;
+    this.hasMapper = hasMapper;
+    this.mapperExpression = mapperExpression;
+    Object.freeze(this);
+  }
+
+  public static voidResponse(): ScannedSdkResponseResolution {
+    return new ScannedSdkResponseResolution({
+      kind: SdkResponseKind.Void,
+      type: 'void',
+      hasSchema: false,
+      schemaExpression: '',
+      hasMapper: false,
+      mapperExpression: ''
+    });
+  }
+
+  public static raw(readTypeName: string): ScannedSdkResponseResolution {
+    return new ScannedSdkResponseResolution({
+      kind: SdkResponseKind.Raw,
+      type: readTypeName,
+      hasSchema: false,
+      schemaExpression: '',
+      hasMapper: false,
+      mapperExpression: ''
+    });
+  }
+
+  public static validated(readTypeName: string, schemaExpression: string): ScannedSdkResponseResolution {
+    return new ScannedSdkResponseResolution({
+      kind: SdkResponseKind.Validated,
+      type: readTypeName,
+      hasSchema: true,
+      schemaExpression,
+      hasMapper: false,
+      mapperExpression: ''
+    });
+  }
+
+  public static mapped(readTypeName: string, mapperExpression: string): ScannedSdkResponseResolution {
+    return new ScannedSdkResponseResolution({
+      kind: SdkResponseKind.Mapped,
+      type: readTypeName,
+      hasSchema: false,
+      schemaExpression: '',
+      hasMapper: true,
+      mapperExpression
+    });
+  }
+
+  public static validatedAndMapped(
+    readTypeName: string,
+    schemaExpression: string,
+    mapperExpression: string
+  ): ScannedSdkResponseResolution {
+    return new ScannedSdkResponseResolution({
+      kind: SdkResponseKind.ValidatedAndMapped,
+      type: readTypeName,
+      hasSchema: true,
+      schemaExpression,
+      hasMapper: true,
+      mapperExpression
+    });
+  }
 }
 
 export interface ParsedRoute {
-  name: string
-  method: string
-  path: string
-  auth: boolean
-  middleware: string[]
-  schema?: Record<string, unknown>
-  group?: string
-  action?: string
-  response?: ResponseMetadata
-  assignments?: Record<string, string>
-  stableHash?: string
-  /** Real file/line of the controller action, from ReflectionMethod. Null for closures. */
-  sourceFile?: string | null
-  sourceLine?: number | null
+  readonly name: string;
+  readonly method: HttpMethod;
+  readonly path: string;
+  readonly resourceName: string;      // ✅ Guaranteed from PHP scanner
+  readonly groupName: string;         // ✅ Canonical Route Group SSOT ('users', 'orderItems')
+  readonly crudRole: CrudRole;        // ✅ Canonical REST CRUD Role SSOT ('index' | 'show' | 'create' | 'update' | 'delete' | 'custom')
+  readonly runtimePath: string;       // ✅ Express/React Runtime Path SSOT ('/users/:userId')
+  readonly responseTypeName: string;  // ✅ Guaranteed from PHP scanner (e.g. 'UsersResponse')
+  readonly actionKind: RouteActionKind; // ✅ Guaranteed Action Intent (0 ternary '? :')
+  readonly isMutating: boolean;                      // ✅ Guaranteed Mutating Flag (0 '||' checks)
+  readonly hookKind: RouteHookKind;                  // ✅ Guaranteed Hook Kind SSOT (Query vs Mutation)
+  readonly invalidation: RouteCacheInvalidationDescriptor; // ✅ Guaranteed Cache Invalidation SSOT
+  readonly executionSignature: RouteExecutionSignature;   // ✅ Guaranteed Signature SSOT
+  readonly requestContentType: RequestContentType;   // ✅ Guaranteed Transport Content-Type SSOT
+  readonly parameters: readonly RouteParameter[];    // Backwards-compatible path parameters
+  readonly pathParameters: readonly RouteParameter[];// ✅ Dedicated Path Parameters SSOT
+  readonly queryParameters: readonly RouteQueryParameter[]; // ✅ Dedicated Query Parameters SSOT
+  readonly auth: boolean;
+  readonly security: RouteSecurityDescriptor;        // ✅ Guaranteed Security SSOT (0 middleware.some)
+  readonly middleware: readonly string[];
+  readonly policies: readonly RoutePolicyDescriptor[];// ✅ Dedicated Laravel Policies SSOT ('can:update,order')
+  readonly rateLimit: RateLimitDescriptor | null;    // ✅ Dedicated Laravel Rate Limit SSOT ('throttle:60,1')
+  readonly response: ResponseDescriptor;             // ◄── 100% Guaranteed Value Object!
+  readonly errorResponses: readonly HttpErrorResponseDescriptor[]; // ✅ First-Class Error Descriptors (422, etc.)
+
   /**
-   * Legacy/hand-authored manifest naming convention (predates `path`/`action`).
-   * Still used by some fixtures and by the stateless normalizer pipeline —
-   * kept alongside `path`/`action` rather than removed.
+   * Strongly-typed Laravel validation rules payload.
    */
-  uri?: string
-  actionName?: string
-  controllerName?: string
+  readonly schema: RouteSchemaPayload;
+
+  /**
+   * Local variable assignments tracked during semantic analysis (Ordered Array).
+   */
+  readonly assignments: readonly ResourceAssignment[];
+
+  readonly sourceFile: string;
+  readonly sourceLine: number;
+  readonly uri: string;
+  readonly actionName: string;
+  readonly controllerName: string | null;
 }
 
-export interface ParsedColumn {
-  name: string
-  type: string // SQL type like varchar, int, bigint, etc.
-  nullable: boolean
-}
-
-export interface ParsedModel {
-  name: string // Model class name (e.g. User)
-  table: string
-  columns: ParsedColumn[]
-  hidden?: string[]
-  appends?: string[]
-  casts?: Record<string, string>
-  accessors?: Record<string, any>
-  relations?: Record<string, { type: string; model: string }>
-}
+/**
+ * Backward compatibility type aliases for legacy adapters.
+ */
+export type ResourceFieldKind = ResourceFieldDescriptor;
+export type ResponseMetadata = ResponseDescriptor;

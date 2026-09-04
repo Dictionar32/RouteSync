@@ -83,20 +83,11 @@ describe('Order Resource Null-Safe Resolution (reproduction)', () => {
     expect(codeField.nullable).toBe(true)
   })
 
-  it('should generate z.string().nullable() for a nullable resolved node in ZodTierGenerator', async () => {
-    const { ZodTierGenerator } = await import('../../cli/src/generators/ZodTierGenerator')
-    const payload = {
-      kind: 'nullsafe_property_access',
-      originalCode: '$promotion?->promo_code',
-      resolved: {
-        status: 'resolved',
-        type: 'string',
-        nullable: true,
-        confidence: 100
-      }
-    }
-    const zodTypeStr = (ZodTierGenerator as any).buildResponseZodType(payload)
-    expect(zodTypeStr).toBe('z.string().nullable()')
+  it('should generate z.string().nullable() for a nullable resolved node in ZodSchemaLowerer', async () => {
+    const { toZodSchemaExpression } = await import('../../core/src/compiler/domain/common/ZodSchemaLowerer')
+    const { ResolvedPrimitiveType, ResolvedNullableType } = await import('../../core/src/compiler/domain/common/ResolvedSemanticType')
+    const zodTypeStr = toZodSchemaExpression(new ResolvedNullableType({ innerType: new ResolvedPrimitiveType({ primitiveKind: 'string' }) }))
+    expect(zodTypeStr).toBe('z.nullable(z.string())')
   })
 
   it('should resolve ternary expression to nullable: true when one branch is null', () => {

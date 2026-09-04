@@ -8,7 +8,8 @@
  */
 
 import type { ArtifactMetadata } from './Artifact';
-import type { SemanticType } from '../types/SemanticType';
+import type { SemanticType, ObjectProperty } from '../types/SemanticType';
+import type { ValidationRuleNode } from '../../types/route';
 
 /**
  * File-specific Laravel validation metadata retained after type lowering.
@@ -42,14 +43,29 @@ export interface RequestField {
 
     /** Is this field nullable? */
     readonly nullable: boolean;
+
+    /** Optional strongly typed validation rules AST */
+    readonly validationAst?: readonly ValidationRuleNode[];
 }
+
+/**
+ * FormActionName
+ *
+ * Canonical Domain Vocabulary for Form Actions in Request Types.
+ */
+export const FormActionName = Object.freeze({
+    Create: 'create',
+    Update: 'update'
+} as const);
+
+export type FormActionName = typeof FormActionName[keyof typeof FormActionName] | string;
 
 /**
  * Form action (create atau update)
  */
 export interface FormAction {
     /** Action name (create, update) */
-    readonly name: 'create' | 'update';
+    readonly name: FormActionName;
 
     /** Fields untuk action ini */
     readonly fields: readonly RequestField[];
@@ -85,8 +101,10 @@ export interface RequestType {
 export interface ResponseData {
     /** Resource name that provides response structure */
     readonly resourceName: string;
-    /** Response body fields (flattened + camelCase) */
-    readonly fields: Record<string, SemanticType>;
+    /** Response body fields */
+    readonly fields: Record<string, SemanticType> | readonly ObjectProperty[] | any;
+    readonly collection?: boolean;
+    readonly wrapped?: boolean;
 }
 
 /**

@@ -185,13 +185,9 @@ built, so it can conditionally include `export * from './actions'` only when
 conditioned on which other generators ran, rather than purely on manifest content — it reads
 CLI flags directly rather than manifest fields.
 
-## `SchemaGenerator` (162 lines) → `schemas.ts` (legacy)
+## `SchemaGenerator` → `schemas.ts` (DEPRECATED & REMOVED)
 
-Still runs on every `generate` (unconditionally, not behind `--zod`) inspite of `ZodTierGenerator`
-having fully superseded its purpose. Per `.claude/skills/run-routesync/SKILL.md`: **"can be
-deprecated once the new Zod tier fully covers all validation needs."** It coexists in the
-output tree with `contract/api-schema.ts` with no cross-reference between the two — a real,
-acknowledged duplication rather than a hidden one. See `ZeroBoilerplate.md` §4.
+Deprecated and completely removed. Superseded by `ZodTierGenerator` / `ContractGeneratorPass` which generates `contract/api-schema.ts` and `contract/api-contract.ts` via pure Explicit Model Data Flow.
 
 ## `ValuesGenerator` (8 lines)
 

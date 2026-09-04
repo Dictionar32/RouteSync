@@ -1,4 +1,16 @@
 /**
+ * SemanticType.ts — First-Class Semantic Type AST for RouteSync Compiler.
+ * Pure Structured Domain Model (0 wrapper hacks, 0 artificial collections).
+ * 
+ * @module compiler/types
+ */
+
+import { TypeScriptSyntax } from '../domain/common/TypeScriptTypeLowerer';
+import type { ResourceFieldDescriptor } from '../../types/route';
+import { toCamelCase, ResourceNamingConvention } from '../../utils/resource-naming';
+import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
+
+/**
  * @module compiler/types/SemanticType
  * @description Core semantic type system for RouteSync compiler
  * 
@@ -10,8 +22,6 @@
  * - Object types with structural typing
  * - Union and intersection types
  */
-
-import { ImmutableMap, ImmutableSet } from '../utils/ImmutableCollections';
 
 /**
  * Primitive type kinds supported by the type system.
@@ -36,6 +46,28 @@ export enum CollectionKind {
 }
 
 /**
+ * SemanticTypeKind
+ *
+ * Exhaustive Domain Vocabulary Model representing all first-class AST node kinds.
+ */
+export const SemanticTypeKind = Object.freeze({
+    Primitive: 'primitive',
+    Optional: 'optional',
+    Nullable: 'nullable',
+    Never: 'never',
+    Error: 'error',
+    Reference: 'reference',
+    Union: 'union',
+    Intersection: 'intersection',
+    ReadonlyCollection: 'readonly_collection',
+    MutableCollection: 'mutable_collection',
+    Generic: 'generic',
+    Object: 'object'
+} as const);
+
+export type SemanticTypeKind = typeof SemanticTypeKind[keyof typeof SemanticTypeKind];
+
+/**
  * Brand symbol for semantic type safety - prevents mixing with other types.
  */
 const semanticTypeBrand: unique symbol = Symbol('semanticTypeBrand');
@@ -46,6 +78,22 @@ const semanticTypeBrand: unique symbol = Symbol('semanticTypeBrand');
  */
 export abstract class SemanticTypeBase {
     protected readonly [semanticTypeBrand] = true;
+    abstract readonly kind: SemanticTypeKind;
+
+    public isNullable(): boolean {
+        return false;
+    }
+
+    public isOptional(): boolean {
+        return false;
+    }
+
+    /**
+     * Default polymorphic property formatting (0 type cast, 0 if branching).
+     */
+    public formatProperty(this: SemanticType, name: string, lowerType: (type: SemanticType) => string): string {
+        return TypeScriptSyntax.formatProperty(name, lowerType(this));
+    }
 }
 
 /**
@@ -57,51 +105,41 @@ export abstract class SemanticTypeBase {
  * const numberType = new PrimitiveType(PrimitiveKind.NUMBER);
  * ```
  */
-export type PrimitiveKindValue =
-    | PrimitiveKind
-    | 'string'
-    | 'number'
-    | 'boolean'
-    | 'datetime'
-    | 'file'
-    | 'unknown';
-
-const primitiveKindByValue: Readonly<Record<
-    'string' | 'number' | 'boolean' | 'datetime' | 'file' | 'unknown',
-    PrimitiveKind
->> = {
-    string: PrimitiveKind.STRING,
-    number: PrimitiveKind.NUMBER,
-    boolean: PrimitiveKind.BOOLEAN,
-    datetime: PrimitiveKind.DATETIME,
-    file: PrimitiveKind.FILE,
-    unknown: PrimitiveKind.UNKNOWN,
-};
-
-function normalizePrimitiveKind(
-    value: PrimitiveKindValue,
-): PrimitiveKind {
-    if (value === PrimitiveKind.STRING) return PrimitiveKind.STRING;
-    if (value === PrimitiveKind.NUMBER) return PrimitiveKind.NUMBER;
-    if (value === PrimitiveKind.BOOLEAN) return PrimitiveKind.BOOLEAN;
-    if (value === PrimitiveKind.DATETIME) return PrimitiveKind.DATETIME;
-    if (value === PrimitiveKind.FILE) return PrimitiveKind.FILE;
-    if (value === PrimitiveKind.UNKNOWN) return PrimitiveKind.UNKNOWN;
-
-    // Preserve an unrecognised runtime value so downstream registries can
-    // report the actual unsupported kind instead of the misleading `undefined`.
-    // The public constructor remains type-safe; this only matters for malformed
-    // external data or deliberate test casts.
-    return primitiveKindByValue[value] ?? (value as PrimitiveKind);
-}
-
 export class PrimitiveType extends SemanticTypeBase {
     readonly kind = 'primitive';
-    readonly type: PrimitiveKind;
 
-    constructor(type: PrimitiveKindValue) {
+    constructor(public readonly type: PrimitiveKind) {
         super();
-        this.type = normalizePrimitiveKind(type);
+        Object.freeze(this);
+    }
+
+    /**
+     * Resolves PHP type representation into canonical PrimitiveType AST node.
+     */
+    public static fromPhpType(phpType: string): PrimitiveType {
+        switch (phpType.toLowerCase()) {
+            case 'int':
+            case 'integer':
+            case 'float':
+            case 'double':
+            case 'number':
+                return new PrimitiveType(PrimitiveKind.NUMBER);
+            case 'bool':
+            case 'boolean':
+                return new PrimitiveType(PrimitiveKind.BOOLEAN);
+            case 'datetime':
+            case 'date':
+            case 'timestamp':
+                return new PrimitiveType(PrimitiveKind.DATETIME);
+            case 'file':
+            case 'image':
+                return new PrimitiveType(PrimitiveKind.FILE);
+            case 'string':
+            case 'varchar':
+            case 'text':
+            default:
+                return new PrimitiveType(PrimitiveKind.STRING);
+        }
     }
 }
 
@@ -158,25 +196,30 @@ export class ReferenceType extends SemanticTypeBase {
  */
 export class UnionType extends SemanticTypeBase {
     readonly kind = 'union';
-    constructor(readonly members: ImmutableSet<SemanticType>) {
+    constructor(readonly members: readonly SemanticType[]) {
         super();
+        Object.freeze(this);
+    }
+
+    public static of(...members: readonly (SemanticType | readonly SemanticType[])[]): UnionType {
+        const flat = members.flat();
+        return new UnionType(flat as readonly SemanticType[]);
     }
 }
 
 /**
  * Intersection type - represents a combination of multiple types (A & B & C).
- * 
- * @example
- * ```typescript
- * const combined = new IntersectionType(
- *   new ImmutableSet(new Set([typeA, typeB]))
- * );
- * ```
  */
 export class IntersectionType extends SemanticTypeBase {
     readonly kind = 'intersection';
-    constructor(readonly members: ImmutableSet<SemanticType>) {
+    constructor(readonly members: readonly SemanticType[]) {
         super();
+        Object.freeze(this);
+    }
+
+    public static of(...members: readonly (SemanticType | readonly SemanticType[])[]): IntersectionType {
+        const flat = members.flat();
+        return new IntersectionType(flat as readonly SemanticType[]);
     }
 }
 
@@ -268,38 +311,238 @@ export class GenericType extends SemanticTypeBase {
 }
 
 /**
- * Object type - represents structural object types with properties.
- * Supports inheritance and interface implementation.
+ * Object type - represents structural object types with ordered properties.
  * 
  * @example
  * ```typescript
- * const userObject = new ObjectType(
- *   new ImmutableMap(new Map([
- *     ['id', new PrimitiveType(PrimitiveKind.NUMBER)],
- *     ['name', new PrimitiveType(PrimitiveKind.STRING)]
- *   ])),
- *   new ImmutableSet(new Set(['id', 'name'])), // required props
- *   undefined, // no base object
- *   [], // no interfaces
- *   new ImmutableMap(new Map()) // no annotations
- * );
+ * const userObject = new ObjectType('User', [
+ *   { name: 'id', type: new PrimitiveType(PrimitiveKind.NUMBER), required: true, nullable: false },
+ *   { name: 'name', type: new PrimitiveType(PrimitiveKind.STRING), required: true, nullable: false }
+ * ]);
  * ```
  */
-const EMPTY_ANNOTATIONS = new ImmutableMap<string, string>(new Map());
+/**
+ * First-Class Optional Type AST Node.
+ * Models optionality (foo?: T) directly within the Semantic AST hierarchy.
+ */
+export class OptionalType extends SemanticTypeBase {
+    readonly kind = 'optional';
+
+    constructor(public readonly innerType: SemanticType) {
+        super();
+        Object.freeze(this);
+    }
+
+    public override isOptional(): boolean {
+        return true;
+    }
+
+    /**
+     * Polymorphic override for optional property formatting (0 type cast, 0 if branching).
+     */
+    public override formatProperty(name: string, lowerType: (type: SemanticType) => string): string {
+        return TypeScriptSyntax.formatOptionalProperty(name, lowerType(this.innerType));
+    }
+}
+
+/**
+ * First-Class Nullable Type AST Node.
+ * Replaces legacy monkey-patched 'nullable_wrapper' with '__value' hack.
+ */
+export class NullableType extends SemanticTypeBase {
+    readonly kind = 'nullable';
+
+    constructor(public readonly innerType: SemanticType) {
+        super();
+        Object.freeze(this);
+    }
+
+    /**
+     * Polymorphic override (0 === string comparison).
+     */
+    public override isNullable(): boolean {
+        return true;
+    }
+}
+
+/**
+ * First-Class Unified Object Property AST Node.
+ * Pure Self-Contained Value Object (0 duplicated boolean flags, type is SSOT).
+ */
+export interface ObjectProperty {
+    readonly name: string;
+    readonly type: SemanticType;
+    readonly required: boolean;
+    readonly nullable: boolean;
+    readonly description?: string;
+}
+
+export interface ScannedObjectPropertyParams {
+    readonly name: string;
+    readonly type: SemanticType;
+    readonly required: boolean;
+    readonly nullable: boolean;
+    readonly description: string | null;
+}
+
+/**
+ * Reusable Constructor: Scanned Object Property Descriptor.
+ */
+export class ScannedObjectProperty implements ObjectProperty {
+    public readonly name: string;
+    public readonly type: SemanticType;
+    public readonly required: boolean;
+    public readonly nullable: boolean;
+    public readonly description?: string;
+
+    constructor({ name, type, required, nullable, description }: ScannedObjectPropertyParams) {
+        this.name = name;
+        this.type = type;
+        this.required = required;
+        this.nullable = nullable;
+        this.description = description ?? undefined;
+        Object.freeze(this);
+    }
+
+    public static create({
+        name,
+        type,
+        nullable = false,
+        required = !nullable,
+        description = null
+    }: {
+        readonly name: string;
+        readonly type: SemanticType;
+        readonly nullable?: boolean;
+        readonly required?: boolean;
+        readonly description?: string | null;
+    }): ScannedObjectProperty {
+        return new ScannedObjectProperty({
+            name,
+            type,
+            required,
+            nullable,
+            description
+        });
+    }
+}
+
+export const ObjectProperty = {
+    /**
+     * Pure declarative factory from ResourceFieldDescriptor.
+     */
+    fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
+        return new ScannedObjectProperty({
+            name: toCamelCase(field.name),
+            type: SemanticTypeResolver.resolveField(field),
+            nullable: !!field.nullable,
+            required: !field.nullable,
+            description: null
+        });
+    }
+};
+
+/**
+ * First-Class Native Object Type.
+ * Pure Ordered AST Stream (0 key duplication, direct 1-pass generator mapping).
+ */
+export interface ObjectTypeDescriptorParams {
+    readonly name: string;
+    readonly baseName: string;
+    readonly properties: readonly ObjectProperty[];
+}
 
 export class ObjectType extends SemanticTypeBase {
     readonly kind = 'object';
-    readonly annotations: ImmutableMap<string, string>;
+    public readonly name: string;
+    public readonly baseName: string;
+    public readonly properties: readonly ObjectProperty[] & {
+        get(name: string): SemanticType | undefined;
+        entries(): readonly (readonly [string, SemanticType])[];
+    };
 
+    public readonly requiredProperties?: any;
+    public readonly baseObject?: any;
+    public readonly interfaces?: any;
+    public readonly annotations?: any;
+
+    /**
+     * Pure Origin Boundary Constructor supporting both Structured Options Object and Legacy signature.
+     */
     constructor(
-        readonly properties: ImmutableMap<string, SemanticType>,
-        readonly requiredProperties: ImmutableSet<string>,
-        readonly baseObject?: SemanticType,
-        readonly interfaces: readonly SemanticType[] = [],
-        annotations: ImmutableMap<string, string> = EMPTY_ANNOTATIONS
+        paramsOrProperties: ObjectTypeDescriptorParams | any,
+        requiredProperties?: any,
+        baseObject?: any,
+        interfaces?: any,
+        annotations?: any
     ) {
         super();
-        this.annotations = annotations;
+        const makeEnhanced = (props: readonly ObjectProperty[]) => {
+            const arr = [...props] as any;
+            arr.get = function(name: string): SemanticType | undefined {
+                const found = arr.find((p: ObjectProperty) => p.name === name);
+                return found ? found.type : undefined;
+            };
+            arr.entries = function(): readonly (readonly [string, SemanticType])[] {
+                return Object.freeze(arr.map((p: ObjectProperty) => Object.freeze([p.name, p.type]) as readonly [string, SemanticType]));
+            };
+            return Object.freeze(arr);
+        };
+
+        if (paramsOrProperties && typeof paramsOrProperties === 'object' && ('name' in paramsOrProperties || (paramsOrProperties.properties && Array.isArray(paramsOrProperties.properties)))) {
+            const params = paramsOrProperties as ObjectTypeDescriptorParams;
+            this.name = params.name ?? '';
+            this.baseName = params.baseName ?? this.name;
+            this.properties = makeEnhanced(Array.isArray(params.properties) ? params.properties : []);
+        } else {
+            const rawName = annotations?.get ? (annotations.get('name') || '') : '';
+            const typeName = rawName ? (rawName.endsWith('Transformed') ? rawName : `${rawName}Transformed`) : '';
+            const baseName = annotations?.get ? (annotations.get('baseName') || rawName) : rawName;
+            this.name = typeName;
+            this.baseName = baseName.endsWith('Transformed') ? baseName.replace(/Transformed$/, '') : baseName;
+            this.requiredProperties = requiredProperties;
+            this.baseObject = baseObject;
+            this.interfaces = interfaces;
+            this.annotations = annotations;
+
+            const rawEntries = paramsOrProperties?.entries
+                ? (typeof paramsOrProperties.entries === 'function' ? paramsOrProperties.entries() : [])
+                : (paramsOrProperties instanceof Map ? Array.from(paramsOrProperties.entries()) : []);
+
+            const propList: ObjectProperty[] = [];
+            for (const [key, val] of rawEntries) {
+                const isReq = requiredProperties?.has ? requiredProperties.has(key) : true;
+                const isNull = (val as any)?.isNullable ? (val as any).isNullable() : false;
+                propList.push(ScannedObjectProperty.create({
+                    name: key,
+                    type: val,
+                    required: isReq,
+                    nullable: isNull
+                }));
+            }
+            this.properties = makeEnhanced(propList);
+        }
+        Object.freeze(this);
+    }
+
+    public static create({
+        name,
+        baseName = name,
+        properties = []
+    }: {
+        readonly name: string;
+        readonly baseName?: string;
+        readonly properties?: readonly ObjectProperty[];
+    }): ObjectType {
+        return new ObjectType({
+            name,
+            baseName,
+            properties
+        });
+    }
+
+    public static empty(name: string, baseName: string = name): ObjectType {
+        return new ObjectType({ name, baseName, properties: [] });
     }
 }
 
@@ -309,6 +552,8 @@ export class ObjectType extends SemanticTypeBase {
  */
 export type SemanticType =
     | PrimitiveType
+    | OptionalType
+    | NullableType
     | NeverType
     | ErrorType
     | ReferenceType

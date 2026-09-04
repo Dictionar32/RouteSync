@@ -1,5 +1,65 @@
 # Known Issues & Bug History
 
+### Issue 32: Nested Array-of-Objects Item Transformation in Form Mappers (`toApiOrderCreate`) & Constant Extraction in `ApiApiField`
+**Symptom** → Array-of-object form fields (such as `items` in `toApiOrderCreate`) were emitted directly as `[ApiApiField.ITEMS]: form.items,` without transforming inner elements to the API contract payload shape (`{ [ApiApiField.PRODUKITEMID]: item.produkItemId, [ApiApiField.QTY]: item.qty }`). Additionally, nested property names were omitted from `api-field.ts` constants.
+**Where** → `packages/core/src/compiler/passes/MapperGeneratorPass.ts` (`buildFormFieldLine`), `packages/core/src/compiler/passes/api-field-domain.ts` (`extractFieldNames`).
+**Root cause** → 
+1. `MapperGeneratorPass.buildFormFieldLine` only checked `field.type instanceof ReadonlyCollectionType`, which failed for deserialized manifest objects where `field.type` is a plain JSON object (`(field.type as any).kind === 'readonly_collection'`). Additionally, it assumed `properties` was a `Map` rather than an array of property descriptors.
+2. `api-field-domain.ts.extractFieldNames` did not recursively traverse object properties or collection element properties, omitting nested child property keys.
+**Fix** → 
+1. Enhanced `buildFormFieldLine` in `MapperGeneratorPass.ts` to support both class instances and raw manifest JSON ASTs for collections of objects, emitting `form.${propName}?.map(item => ({ [ApiApiField.${key}]: item.${camelKey}, ... }))`.
+2. Enhanced `extractFieldNames` in `api-field-domain.ts` to recursively collect child property names from nested objects and collection elements into `ApiApiField`.
+**Regression test** → `packages/sdk/tests/orderItemsArrayHierarchy.spec.ts` › `Regression Test: Order Items Array Hierarchy (orderItemsArrayHierarchy)`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 31: Nested Array-of-Objects Rules Assembly & ObjectType Lowering (`items.*.prop` in Form & Contract Generation)
+**Symptom** → Laravel FormRequest validation rules with array wildcards (`items`, `items.*.produk_item_id`, `items.*.qty`) resulted in flat scalar `items: z.string()` in contracts, flat `items.*` fields, or threw `TypeError: key.startsWith is not a function` during contract generation.
+**Where** → `packages/core/src/compiler/scanner/StaticLaravelScanner.ts`, `packages/core/src/compiler/scanner/LaravelSourceLexer.ts`, `packages/core/src/compiler/domain/common/SemanticTypeResolver.ts`, & `packages/core/src/compiler/domain/common/ResolvedObjectType.ts`.
+**Root cause** → 
+1. `LaravelSourceLexer.parseArray` treated `return [` as subscript access because `return` was tagged as `IDENTIFIER`.
+2. `scanFormRequests` did not group child array properties (`parent.*.child`) into nested `ReadonlyCollectionType(ARRAY, ObjectType)`.
+3. `DefaultObjectHandler` in `SemanticTypeResolver` invoked `.entries()` on `obj.properties` assuming it was a `Map`, returning array index numbers `[0, prop]` when `properties` was an Array, causing `key.startsWith` to throw.
+4. `convertResolvedTypeToResponseField` in `ResponseFieldLowering` lacked a handler for `ResolvedOptionalType`.
+**Fix** → 
+1. Excluded `return` and `yield` keywords from subscript checks in `LaravelSourceLexer.parseArray`.
+2. Implemented hierarchical array grouping (`arrayProps`) in `StaticLaravelScanner.ts` to assemble child array properties into `ReadonlyCollectionType(ARRAY, ObjectType({ name: key, baseName: key, properties: childProps }))`.
+3. Updated `DefaultObjectHandler` and `NullableWrapperHandler` in `SemanticTypeResolver.ts` and `ResolvedObjectType.ts` to natively support array properties.
+4. Added `case 'optional':` handling in `ResponseFieldLowering.ts`.
+**Regression test** → `packages/sdk/tests/orderItemsArrayHierarchy.spec.ts` › `Order Items Array Hierarchy Regression (Issue #18)`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 30: Property Deduplication & Quoted Object Keys in TypeScript and Zod Emission
+**Symptom** → CLI `generate` produced syntax errors when validation rules contained wildcard characters (`items.*.qty`), duplicate identifiers (`orderId: number; orderId: string;`) in `types/api-read.ts`, and runtime crash in `ModelGenerator` when accessors lacked names (`cannot read properties of undefined (reading 'replace')`).
+**Where** → `packages/core/src/compiler/domain/common/ZodSchemaLowerer.ts`, `packages/core/src/compiler/domain/common/TypeScriptTypeLowerer.ts`, `packages/cli/src/generators/ModelGenerator.ts`, & `packages/core/src/compiler/passes/api-field-domain.ts`.
+**Root cause** → 
+1. `ZodSchemaLowerer` emitted raw unquoted keys in `z.object({ items.*.qty: z.number() })`.
+2. `TypeScriptCodeBuilder` did not filter out duplicate property names per interface or duplicate top-level alias names.
+3. `ModelGenerator` passed undefined accessor names to `camelCase`.
+4. `ApiFieldGeneratorPass` and `MapperGeneratorPass` had misaligned field key derivation regexes for non-alphanumeric keys.
+**Fix** → 
+1. Safely quoted non-identifier property keys with `JSON.stringify(name)` in `ZodSchemaLowerer`.
+2. Deduplicated interface properties and top-level aliases with `Set` filters in `TypeScriptCodeBuilder`.
+3. Guarded against undefined property/accessor names in `ModelGenerator`.
+4. Unified field key derivation using `deriveApiFieldKey` in `MapperGeneratorPass` and aligned `ApiApiField` table formatting.
+**Regression test** → `packages/core/src/compiler/passes/__tests__/api-field-generator-pass.test.ts`, `packages/sdk/tests/formMapperDiagnosticAndTypeSafety.spec.ts`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 29: Unification of Domain Keying & Resource Enrichment in ContractInputPipeline (`Array.from(groups.values())`)
+**Symptom** → Grouping routes and resources produced fragmented entries in `Array.from(groups.values())` (e.g. `'order'` with actions and empty response fields, vs `'orderResource'` with response fields and fake dummy `Show` actions).
+**Where** → `packages/cli/src/generators/utils/ContractInputPipeline.ts` (`execute`).
+**Root cause** → Routes were keyed by `pascalDomain.toLowerCase()` while resources were keyed by `res.name`, causing `groups.has()` lookup failure, duplicate entries, and failure to link `route.response.resource` with `manifest.resources`.
+**Fix** → Pre-indexed `manifest.resources` in `resourceIndex`, unified canonical grouping keys to `bareDomain`, resolved resource schemas for route responses in-place, and avoided generating dummy `Show` actions for standalone resources.
+**Regression test** → `packages/sdk/tests/eloquentOnlyReadMappers.spec.ts`, `packages/sdk/tests/resourceAliasDedup.spec.ts`
+**Status** → Diagnosed & Fixed
+
+---
+
 ### Issue 28: Elimination of Empty `export const *ContractSchema = {};` Boilerplate for GET-Only Resources
 **Symptom** → Resources with zero request payload actions (such as GET-only endpoints `/categories` and `/produk`) generated empty object declarations `export const categoriesContractSchema = {};` in `api-contract.ts`.
 **Where** → `packages/core/src/compiler/generators/contract-generation/ContractCodeBuilder.ts` (`buildContractFile`).

@@ -1,11 +1,16 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { ParsedChannel } from '@routesync/core'
-import { toIdentifier, toTypeName } from './names'
+import { BroadcastChannelDescriptor, BroadcastChannelKind } from '@routesync/core'
+import { toTypeName } from './names'
 
 export class EchoGenerator {
-  static async generate(channels: ParsedChannel[], outputDir: string): Promise<void> {
-    if (channels.length === 0) return
+  static async generate(channels: readonly BroadcastChannelDescriptor[], outputDir?: string): Promise<string> {
+    switch (channels.length === 0) {
+      case true:
+        return ''
+      case false:
+        break
+    }
 
     const lines: string[] = []
 
@@ -17,43 +22,57 @@ export class EchoGenerator {
     lines.push(``)
 
     for (const channel of channels) {
-      // channel.name could be 'order.{id}'
-      // We want to generate 'useListenOrder'
-      const nameParts = channel.name.replace(/\\{[^}]+\\}/g, '').split('.').filter(Boolean)
+      const nameParts = channel.name.replace(/\{[^}]+\}/g, '').split('.').filter(Boolean)
       const hookName = 'useListen' + toTypeName(nameParts.join(' ')) + 'Channel'
-      
-      // Extract parameters from path, e.g. 'order.{id}' -> 'id: string | number'
-      const params = [...channel.name.matchAll(/\\{([^}]+)\\}/g)].map(m => m[1])
-      const paramArgs = params.length > 0 
-        ? params.map(p => p + ': string | number').join(', ') + ', ' 
-        : ''
-      
-      const runtimeChannelName = channel.name.replace(/\\{([^}]+)\\}/g, '${$1}')
 
-      lines.push('export function ' + hookName + '(' + paramArgs + 'eventName: string, callback: (event: unknown) => void) {')
+      const parameters = channel.parameters
+      const paramArgs = parameters.length > 0
+        ? parameters.map(p => `${p.propertyName}: ${p.type === 'number' ? 'number' : 'string'}`).join(', ') + ', '
+        : ''
+
+      const runtimeChannelName = channel.runtimePattern || (channel.name || '').replace(/\{([^}]+)\}/g, '${$1}')
+
+      let channelMethod = 'channel'
+      switch (channel.kind) {
+        case BroadcastChannelKind.Presence:
+        case 'presence':
+          channelMethod = 'join'
+          break
+        case BroadcastChannelKind.Private:
+        case 'private':
+          channelMethod = 'private'
+          break
+        case BroadcastChannelKind.Public:
+        case 'public':
+        default:
+          channelMethod = 'channel'
+          break
+      }
+
+      lines.push(`export function ${hookName}<TEvent = unknown>(${paramArgs}eventName: string, callback: (event: TEvent) => void) {`)
       lines.push(`  useEffect(() => {`)
       lines.push(`    if (typeof window === 'undefined' || !(window as unknown as { Echo?: Echo }).Echo) return`)
       lines.push(`    `)
       lines.push(`    const echo: Echo = (window as unknown as { Echo: Echo }).Echo`)
-      
-      const channelMethod = channel.isPrivate ? 'private' : 'channel'
-      lines.push('    const channelInstance = echo.' + channelMethod + '(`' + runtimeChannelName + '`)')
-      lines.push(`    channelInstance.listen(eventName, callback)`)
+      lines.push(`    const channelInstance = echo.${channelMethod}(\`${runtimeChannelName}\`)`)
+      lines.push(`    channelInstance.listen(eventName, callback as (event: unknown) => void)`)
       lines.push(`    `)
       lines.push(`    return () => {`)
-      lines.push(`      channelInstance.stopListening(eventName, callback)`)
-      lines.push(`      // Optionally echo.leave(...)`)
+      lines.push(`      channelInstance.stopListening(eventName, callback as (event: unknown) => void)`)
       lines.push(`    }`)
       
-      // Add dependencies array for useEffect
-      const deps = params.join(', ')
-      const allDeps = deps ? '[' + deps + ', eventName, callback]' : '[eventName, callback]'
+      const deps = parameters.map(p => p.propertyName).join(', ')
+      const allDeps = deps ? `[${deps}, eventName, callback]` : '[eventName, callback]'
       
-      lines.push('  }, ' + allDeps + ')')
+      lines.push(`  }, ${allDeps})`)
       lines.push(`}`)
       lines.push(``)
     }
 
-    await fs.writeFile(path.join(outputDir, 'echo.ts'), lines.join('\n'))
+    const output = lines.join('\n')
+    if (outputDir) {
+      await fs.writeFile(path.join(outputDir, 'echo.ts'), output)
+    }
+    return output
   }
 }

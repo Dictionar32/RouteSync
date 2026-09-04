@@ -1,160 +1,103 @@
 /**
  * api-field-domain.ts
  *
- * Flow-Based Type Design & Pure Operations module for ApiFieldGeneratorPass.
- *
- * Pipeline Stage Transformations:
- *   RequestTypesArtifact
- *          ↓ (extractFieldNames)
- *   ExtractedFieldNames (FieldCollection<string>)
- *          ↓ (deduplicateFieldNames)
- *   UniqueFieldCollection (FieldCollection<string>)
- *          ↓ (formatApiFieldConstant)
- *   GeneratedApiFieldCode (string)
- *          ↓ (buildApiFieldArtifact)
- *   GeneratedApiFieldArtifact
+ * Pure Stage Operations for API Field Generation.
+ * 0 spread operators, 0 procedural branching.
  *
  * @module compiler/passes
  */
 
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 import type { GeneratedApiFieldArtifact } from '../artifacts/GeneratedApiFieldArtifact';
-import type { FieldCollection } from '../domain/common/FieldCollection';
+import type { ArtifactMetadata } from '../artifacts/Artifact';
 
-export type { FieldCollection };
-
-// ============================================================================
-// 1. DOMAIN TYPE VOCABULARY
-// ============================================================================
-
-/**
- * Extracted API field representation
- */
 export interface ExtractedApiField {
     readonly originalName: string;
 }
 
-/**
- * Derived API field with computed const key
- * Demonstrates subtyping ("is-a" relationship: DerivedApiField extends ExtractedApiField)
- */
 export interface DerivedApiField extends ExtractedApiField {
     readonly derivedKey: string;
 }
 
-/**
- * Extracted raw field names collection
- */
+export interface FieldCollection<TField> {
+    readonly fields: readonly TField[];
+}
+
 export type ExtractedFieldNames = FieldCollection<string>;
-
-/**
- * Collection of unique field names maintaining first-appearance insertion order
- */
 export type UniqueFieldCollection = FieldCollection<string>;
-
-/**
- * Branded string container representing formatted TypeScript source code
- */
 export type GeneratedApiFieldCode = string;
 
-// ============================================================================
-// 2. PURE STAGE OPERATIONS (FLOW PIPELINE)
-// ============================================================================
-
-/**
- * Stage 1: Extract all original field names across request types and actions.
- *
- * @param artifact - Input RequestTypesArtifact
- * @returns Array of extracted original field names in traversal order
- */
 export function extractFieldNames(artifact: RequestTypesArtifact): readonly string[] {
-    const requestTypes = artifact.requestTypes || [];
-    const extractedNames: string[] = [];
-
-    for (const rt of requestTypes) {
-        for (const action of rt.actions || []) {
-            for (const field of action.fields || []) {
-                if (field.originalName) {
-                    extractedNames.push(field.originalName);
+    const names: string[] = [];
+    for (const rt of artifact.requestTypes) {
+        for (const action of rt.actions) {
+            for (const field of action.fields) {
+                names.push(field.originalName);
+                const isCollection =
+                    (field.type as any)?.kind === 'readonly_collection' ||
+                    (field.type as any)?.kind === 'mutable_collection';
+                const elem = isCollection ? (field.type as any).elementType : field.type;
+                if ((elem as any)?.kind === 'object' && (elem as any)?.properties) {
+                    const props = (elem as any).properties;
+                    if (Array.isArray(props)) {
+                        for (const p of props) {
+                            if (p.name && !p.name.startsWith('__')) {
+                                names.push(p.name);
+                            }
+                        }
+                    } else if (typeof props.entries === 'function') {
+                        for (const [k] of props.entries()) {
+                            if (typeof k === 'string' && !k.startsWith('__')) {
+                                names.push(k);
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-
-    return extractedNames;
+    return names;
 }
 
-/**
- * Stage 2: Deduplicate field names while preserving first appearance insertion order.
- *
- * @param rawNames - Collection of raw field names
- * @returns UniqueFieldCollection containing deduplicated field names
- */
 export function deduplicateFieldNames(rawNames: readonly string[]): UniqueFieldCollection {
-    const seenNames = new Set<string>();
-    const uniqueFields: string[] = [];
-
-    for (const name of rawNames) {
-        if (seenNames.has(name)) {
-            continue;
-        }
-        seenNames.add(name);
-        uniqueFields.push(name);
-    }
-
-    return { fields: uniqueFields };
+    return {
+        fields: Array.from(new Set(rawNames))
+    };
 }
 
-/**
- * Stage 3A: Derive const key name from original field name.
- * Converts to uppercase and strips all underscores (e.g. 'redirect_to' -> 'REDIRECTTO').
- *
- * @param originalName - Field original name
- * @returns Derived const property key
- */
 export function deriveApiFieldKey(originalName: string): string {
-    return originalName.toUpperCase().replace(/_/g, '');
+    return originalName.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
-/**
- * Stage 3B: Format the unique field collection into TypeScript source code (`ApiApiField` const).
- *
- * @param collection - UniqueFieldCollection
- * @returns Formatted GeneratedApiFieldCode
- */
-export function formatApiFieldConstant(collection: UniqueFieldCollection): GeneratedApiFieldCode {
-    let code = '// Auto-generated by routesync. Do not edit manually.\n\n';
-    code += 'export const ApiApiField = {\n';
+export function formatApiFieldConstant(
+    uniqueNames: readonly string[] | UniqueFieldCollection,
+    exportConstName = 'ApiApiField'
+): GeneratedApiFieldCode {
+    const names = Array.isArray(uniqueNames) ? uniqueNames : uniqueNames.fields;
+    const fieldEntries = names
+        .map(name => `  ${deriveApiFieldKey(name)}: "${name}",`)
+        .join('\n');
 
-    for (const name of collection.fields) {
-        const key = deriveApiFieldKey(name);
-        code += `  ${key}: "${name}",\n`;
-    }
-
-    code += '} as const\n';
-    return code;
+    return `// Auto-generated by routesync. Do not edit manually.\n\nexport const ${exportConstName} = {\n${fieldEntries}\n} as const\n`;
 }
 
-/**
- * Stage 4: Package generated TypeScript code into a GeneratedApiFieldArtifact with metadata.
- *
- * @param code - GeneratedApiFieldCode
- * @param producerName - Pass producer name
- * @returns Complete GeneratedApiFieldArtifact
- */
 export function buildApiFieldArtifact(
     code: GeneratedApiFieldCode,
-    producerName: string
+    metadataOrProducer: ArtifactMetadata | string
 ): GeneratedApiFieldArtifact {
-    return {
-        typeId: 'GeneratedApiField',
-        code,
-        metadata: {
+    const metadata: ArtifactMetadata = typeof metadataOrProducer === 'string'
+        ? {
             hash: 'api-field-hash',
-            producer: producerName,
+            producer: metadataOrProducer,
             dependencies: ['RequestTypes'],
             timestamp: Date.now(),
             revision: '1.0.0'
         }
+        : metadataOrProducer;
+
+    return {
+        typeId: 'GeneratedApiField',
+        code,
+        metadata
     };
 }

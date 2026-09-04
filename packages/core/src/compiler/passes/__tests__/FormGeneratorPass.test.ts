@@ -272,8 +272,8 @@ describe('FormGeneratorPass', () => {
             expect(result.formTypes[0].actions).toHaveLength(2);
             expect(result.formTypes[0].actions[0].name).toBe('create');
             expect(result.formTypes[0].actions[1].name).toBe('update');
-            expect(result.code).toContain('create:');
-            expect(result.code).toContain('update:');
+            expect(result.code).toContain('Create:');
+            expect(result.code).toContain('Update:');
         });
 
         test('should count total actions correctly', () => {

@@ -1,8 +1,8 @@
-import { RouteManifest, ParsedRoute, GeneratedSDKModule, RequestContract, ResponseContract, ZodContract, ReactQueryHooks, SemanticIRNode, ParsedResource, ZodAST } from '@routesync/core'
+import { RouteManifest, ParsedRoute, GeneratedSDKModule, RequestContract, ResponseContract, ZodContract, ReactQueryHooks, SemanticIRNode, ParsedResource, ResourceFieldDescriptor, ZodAST } from '@routesync/core'
 import { isObject, hasProperty, isString } from '../../core/src/utils/type-guards'
 
 export class ZodEmitter {
-  static from(node: SemanticIRNode | undefined, resources: ParsedResource[] = []): ZodAST {
+  static from(node: SemanticIRNode | undefined, resources: readonly ParsedResource[] = []): ZodAST {
     if (!node || !node.semantic) return { kind: "zod_unknown" };
 
     // Safe type checking untuk semantic type
@@ -29,8 +29,14 @@ export class ZodEmitter {
     return { kind: "zod_unknown" };
   }
 
-  static fromObject(fields: Record<string, unknown>, resources: ParsedResource[]): Record<string, ZodAST> {
+  static fromObject(fields: readonly ResourceFieldDescriptor[] | Record<string, unknown>, resources: readonly ParsedResource[] = []): Record<string, ZodAST> {
     const shape: Record<string, ZodAST> = {};
+    if (Array.isArray(fields)) {
+      for (const field of fields) {
+        shape[field.name] = { kind: "zod_unknown" };
+      }
+      return shape;
+    }
     for (const [key, value] of Object.entries(fields)) {
       if (value && typeof value === 'object' && 'semantic' in value) {
         shape[key] = this.from(value as SemanticIRNode, resources);
@@ -73,7 +79,7 @@ export class SdkGenerator {
     return modules;
   }
 
-  private static generateForRoute(route: ParsedRoute, resources: ParsedResource[]): GeneratedSDKModule | null {
+  private static generateForRoute(route: ParsedRoute, resources: readonly ParsedResource[]): GeneratedSDKModule | null {
     const routeName = route.name || route.path.replace(/[^a-zA-Z0-9_]/g, '_');
 
     // Request Contract (Params from path)
@@ -114,15 +120,12 @@ export class SdkGenerator {
         responseContract.type = 'model'
         zodContract.ast = ZodEmitter.from(irNode, resources)
       } else if (route.response.kind === 'resource') {
-        const resourceName = route.response.resource;
+        const resourceName = route.response.resourceName;
         const resourceDef = resources.find(r => r.name === resourceName);
         if (resourceDef) {
           zodContract.ast = { kind: "zod_object", shape: ZodEmitter.fromObject(resourceDef.fields, resources) };
-          responseContract.type = route.response.collection ? 'array' : 'object';
+          responseContract.type = route.response.shape === 'collection' || route.response.shape === 'paginated' ? 'array' : 'object';
         }
-      } else if (route.response.kind === 'object') {
-        zodContract.ast = { kind: "zod_object", shape: ZodEmitter.fromObject(route.response.fields, resources) };
-        responseContract.type = 'object';
       }
     }
 

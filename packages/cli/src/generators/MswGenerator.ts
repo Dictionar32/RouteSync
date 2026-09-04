@@ -13,15 +13,12 @@ export class MswGenerator {
     lines.push(`export const handlers = [`)
 
     for (const route of manifest.routes) {
-      // route.method is GET, POST, etc.
-      // MSW uses http.get, http.post
       const mswMethod = route.method.toLowerCase()
-      // route.path might have {id} or :id, MSW uses :id
-      // toRuntimePath converts it to :id if it's not already
-      // Wait, we need to apply toRuntimePath locally or import it.
-      // Let's do a simple regex replace: /\{([^}/]+)\}/g -> ':$1'
-      const mswPath = manifest.baseURL + route.path.replace(/\{([^}]+)\}/g, ':$1')
+      const runtimePath = route.runtimePath || route.path
+      const mswPath = manifest.baseURL + (runtimePath.startsWith('/') ? runtimePath : '/' + runtimePath)
       const actionName = toMethodName(route)
+      const isCollection = route.response?.shape === 'collection' || route.response?.shape === 'paginated'
+      const readType = route.response?.readTypeName
 
       lines.push('  http.' + mswMethod + '(\'' + mswPath + '\', async ({ request, params }) => {')
       lines.push(`    await delay(300) // Simulated network latency`)
@@ -29,10 +26,11 @@ export class MswGenerator {
       lines.push(`    return HttpResponse.json({`)
       lines.push(`      success: true,`)
       lines.push(`      message: 'Mocked response for ${actionName} at ' + url.pathname,`)
-      lines.push(`      data: {`)
-      lines.push(`        params,`)
-      lines.push(`        // TODO: Add mock data based on your schema`)
-      lines.push(`      }`)
+      if (isCollection) {
+        lines.push(`      data: []`)
+      } else {
+        lines.push(`      data: { id: 1, ...params }`)
+      }
       lines.push(`    })`)
       lines.push(`  }),`)
     }

@@ -1,11 +1,11 @@
 import { RouteManifest } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
-import { classifyRoutes, buildGroupedRoutes, deriveGroupName } from './route-classifier'
+import { classifyRoutes, buildGroupedRoutes } from './route-classifier'
 import { ConstantsGenerator } from './ConstantsGenerator'
 
 export class SDKGenerator {
-  static async generate(manifest: RouteManifest, outputDir: string, options: Record<string, unknown> = {}): Promise<void> {
+  static async generate(manifest: RouteManifest, outputDir?: string, options: Record<string, unknown> = {}): Promise<string> {
     const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const grouped = buildGroupedRoutes(classified)
     const apiBodyLines: string[] = []
@@ -27,7 +27,7 @@ export class SDKGenerator {
     const sdkRespCount = new Map<string, number>()
     for (const route of classified) {
       if (route.raw.response) {
-        const r = route.groupName || deriveGroupName(route.raw.path)
+        const r = route.groupName
         sdkRespCount.set(r, (sdkRespCount.get(r) || 0) + 1)
       }
     }
@@ -45,6 +45,14 @@ export class SDKGenerator {
       let schemaStr = 'undefined'
       if (rawRoute.response && usesZod) {
         schemaStr = `validate${keyName}Response`
+      }
+
+      if (rawRoute.response?.readTypeName && rawRoute.response?.mapperName) {
+        const isVoid = rawRoute.response.readTypeName === 'void'
+        const typeStr = isVoid ? 'void' : `Read.${rawRoute.response.readTypeName}`
+        const mapperStr = rawRoute.response.mapperName === 'identity' ? null : rawRoute.response.mapperName
+        if (mapperStr) usedMappers.add(mapperStr)
+        return { type: typeStr, schema: schemaStr, mapper: mapperStr }
       }
 
       if (!rawMeta) return { type: 'unknown', schema: schemaStr, mapper: null }
@@ -156,7 +164,7 @@ export class SDKGenerator {
         const KeyName = `${TitleCaseGroup}${rawAction}`
 
         // Response naming: LoginResponse (single) atau ProfileUpdateResponse (multiple)
-        const resourceGroup = route.groupName || deriveGroupName(route.raw.path)
+        const resourceGroup = route.groupName
         const respCount = sdkRespCount.get(resourceGroup) || 1
         const respKey = respCount === 1 ? TitleCaseGroup : KeyName
 
@@ -165,57 +173,89 @@ export class SDKGenerator {
 
         apiBodyLines.push(`    ${route.actionName}: endpoint({`)
         apiBodyLines.push(`      method: '${route.method}',`)
-        const params: string[] = []
-        let match
-        const paramRegex = /\{([^}]+)\}|:([a-zA-Z0-9_]+)/g
-        while ((match = paramRegex.exec(route.raw.path)) !== null) {
-          params.push(match[1] || match[2])
-        }
 
         const routeKey = ConstantsGenerator.getRouteKey(route.raw.path)
         apiBodyLines.push(`      path: API_ENDPOINTS.${routeKey},`)
         if (route.raw.auth) apiBodyLines.push(`      auth: true,`)
         
-        const hasBodyContract = !!(options.zod && route.raw.schema?.rules)
-        const hasRespContract = !!(options.zod && route.raw.response)
+        const hasBodyContract = Boolean(options.zod && route.raw.schema && route.raw.schema.rules);
+        const hasRespContract = Boolean(options.zod && route.raw.response);
 
-        if (hasBodyContract || hasRespContract) {
-          apiBodyLines.push(`      contract: {`)
-          if (hasBodyContract) {
-            const bodyValidator = `validate${KeyName}Payload`
-            apiBodyLines.push(`        body: ${bodyValidator},`)
-            usedPayloadContracts.add(bodyValidator)
-          }
-          if (hasRespContract) {
-            apiBodyLines.push(`        response: ${respInfo.schema},`)
-            if (respInfo.schema !== 'undefined') {
-              usedContracts.add(respInfo.schema)
-            }
-          }
-          apiBodyLines.push(`      },`)
-        }
-        
-        const hasBodyMapper = route.raw.schema?.rules && usesZod
-        const hasRespMapper = !!respInfo.mapper
-        
-        if (hasBodyMapper || hasRespMapper) {
-          apiBodyLines.push(`      mapper: {`)
-          if (hasRespMapper) {
-            apiBodyLines.push(`        response: ${respInfo.mapper},`)
-            if (respInfo.mapper) {
-              if (respInfo.mapper.startsWith('(')) {
-                // Lambda, handled inside getResponseInfo
-              } else {
-                usedMappers.add(respInfo.mapper)
+        switch (hasBodyContract || hasRespContract) {
+          case true: {
+            apiBodyLines.push(`      contract: {`);
+            switch (hasBodyContract) {
+              case true: {
+                const bodyValidator = `validate${KeyName}Payload`;
+                apiBodyLines.push(`        body: ${bodyValidator},`);
+                usedPayloadContracts.add(bodyValidator);
+                break;
               }
+              case false:
+                break;
             }
+            switch (hasRespContract) {
+              case true:
+                apiBodyLines.push(`        response: ${respInfo.schema},`);
+                switch (respInfo.schema !== 'undefined') {
+                  case true:
+                    usedContracts.add(respInfo.schema);
+                    break;
+                  case false:
+                    break;
+                }
+                break;
+              case false:
+                break;
+            }
+            apiBodyLines.push(`      },`);
+            break;
           }
-          if (hasBodyMapper) {
-            const bodyMapperName = `toApi${KeyName}`
-            apiBodyLines.push(`        body: ${bodyMapperName},`)
-            usedMappers.add(bodyMapperName)
+          case false:
+            break;
+        }
+
+        const hasBodyMapper = Boolean(route.raw.schema && route.raw.schema.rules && usesZod);
+        const hasRespMapper = Boolean(respInfo.mapper);
+
+        switch (hasBodyMapper || hasRespMapper) {
+          case true: {
+            apiBodyLines.push(`      mapper: {`);
+            switch (hasRespMapper) {
+              case true:
+                apiBodyLines.push(`        response: ${respInfo.mapper},`);
+                switch (Boolean(respInfo.mapper)) {
+                  case true:
+                    switch (respInfo.mapper.startsWith('(')) {
+                      case true:
+                        break;
+                      case false:
+                        usedMappers.add(respInfo.mapper);
+                        break;
+                    }
+                    break;
+                  case false:
+                    break;
+                }
+                break;
+              case false:
+                break;
+            }
+            switch (hasBodyMapper) {
+              case true: {
+                const bodyMapperName = `toApi${KeyName}`;
+                apiBodyLines.push(`        body: ${bodyMapperName},`);
+                usedMappers.add(bodyMapperName);
+                break;
+              }
+              case false:
+                break;
+            }
+            apiBodyLines.push(`      },`);
+            break;
           }
-          apiBodyLines.push(`      },`)
+          case false:
+            break;
         }
         
         apiBodyLines.push(`    }),`)
@@ -250,6 +290,10 @@ export class SDKGenerator {
     lines.push(`export default api`)
     lines.push(``)
 
-    await fs.writeFile(path.join(outputDir, 'api.ts'), lines.join('\n'))
+    const result = lines.join('\n')
+    if (outputDir) {
+      await fs.writeFile(path.join(outputDir, 'api.ts'), result)
+    }
+    return result
   }
 }

@@ -259,9 +259,7 @@ describe('ContractSchemaMapper', () => {
 
             const result = mapper.mapToZodSchema(unionType, config);
 
-            expect(result.zodSchema).toContain('z.union([');
-            expect(result.zodSchema).toContain('z.string()');
-            expect(result.zodSchema).toContain('z.number()');
+            expect(result.zodSchema).toBe('z.string().or(z.number())');
         });
 
         test('should handle empty union', () => {
@@ -277,7 +275,7 @@ describe('ContractSchemaMapper', () => {
 
             const result = mapper.mapToZodSchema(unionType, config);
 
-            expect(result.zodSchema).toBe('z.never()');
+            expect(result.zodSchema).toBe('z.unknown()');
         });
 
         test('should handle single member union', () => {

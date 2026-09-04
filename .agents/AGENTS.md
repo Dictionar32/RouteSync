@@ -80,6 +80,14 @@ Saat merapikan/refactor pass atau modul compiler di RouteSync menjadi Structured
 
 *Catatan*: Test-plan yang ditulis tidak boleh dibuang atau diganti — itu menjadi *baseline behavioral map* untuk refactoring.
 
+### 9. Eksplorasi Flow & Representasi Explicit Model
+Gunakan control flow (type guard, branching, ternary) untuk mengeksplorasi behavior yang belum dipahami; setelah struktur domain dan data flow diketahui, representasikan aturan yang stabil sebagai explicit model bila memungkinkan.
+
+### 10. Larangan Interface Parameter Serba Opsional (`?`)
+Jika interface parameter dibuat serba opsional (`?`), dampaknya adalah downstream compiler passes dan generators akan terus-menerus dipaksa melakukan defensive guard `if (x)`, fallback `x ?? []`, atau type narrowing berulang-ulang karena datanya tidak pernah dijamin utuh sejak Origin Boundary.
+- **Wajib Complete Contract**: Setiap domain descriptor dan parameter constructor harus menuntut kontrak data yang lengkap dan guaranteed non-nullable untuk state yang sudah seharusnya ter-resolve di Origin Boundary.
+- **Gunakan Explicit Semantic Factory**: Jika ada variasi state domain (misal objek kosong, rute tanpa validasi, atau pembuatan dari migration schema/path segment), sediakan factory method eksplisit (seperti `.empty()`, `.fromRules()`, `.fromPathSegment()`, `.fromSchema()`), bukan melubangi contract parameter dengan tanda tanya `?`.
+
 ---
 
 ## Pola Bug yang Sering Muncul

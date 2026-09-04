@@ -49,6 +49,13 @@ export class MapperGeneratorPass
     ];
 
     public readonly producesPass: readonly string[] = [];
+    private static readonly defaultPass = new MapperGeneratorPass();
+
+    public static run(
+        artifact: RequestTypesArtifact
+    ): ResolveArtifacts<readonly ['GeneratedMapper']> {
+        return MapperGeneratorPass.defaultPass.run([artifact]);
+    }
 
     public run(
         inputs: ResolveArtifacts<readonly ['RequestTypes']>
@@ -309,15 +316,49 @@ export class MapperGeneratorPass
         const key = this.toApiFieldKey(field.originalName);
         const propName = toCamelCase(field.originalName);
 
-        if (field.type instanceof ReadonlyCollectionType || field.type instanceof MutableCollectionType) {
-            const elem = field.type.elementType;
-            if (elem instanceof ObjectType && elem.properties.entries().length > 0) {
-                const innerLines = elem.properties
-                    .entries()
-                    .filter(([k]) => !k.startsWith('__'))
-                    .map(([k]) => `  [ApiApiField.${this.toApiFieldKey(k)}]: item.${toCamelCase(k)}`)
+        const isCollection =
+            field.type instanceof ReadonlyCollectionType ||
+            field.type instanceof MutableCollectionType ||
+            (field.type as any)?.kind === 'readonly_collection' ||
+            (field.type as any)?.kind === 'mutable_collection';
+
+        if (isCollection) {
+            const elem = (field.type as any).elementType;
+            const isObject = elem instanceof ObjectType || elem?.kind === 'object';
+            if (isObject && elem?.properties) {
+                let propNames: string[] = [];
+                if (Array.isArray(elem.properties)) {
+                    propNames = elem.properties.map((p: any) => p.name);
+                } else if (typeof elem.properties.entries === 'function') {
+                    propNames = Array.from(elem.properties.entries()).map(([k]: any) => k);
+                }
+
+                const cleanProps = propNames.filter(k => typeof k === 'string' && !k.startsWith('__'));
+                if (cleanProps.length > 0) {
+                    const innerLines = cleanProps
+                        .map(k => `  [ApiApiField.${this.toApiFieldKey(k)}]: item.${toCamelCase(k)}`)
+                        .join(',\n');
+                    return `  [ApiApiField.${key}]: form.${propName}?.map(item => ({\n${this.indent(innerLines)}\n  })),`;
+                }
+            }
+        }
+
+        const isObject = field.type instanceof ObjectType || (field.type as any)?.kind === 'object';
+        if (isObject && (field.type as any)?.properties) {
+            const elem = field.type as any;
+            let propNames: string[] = [];
+            if (Array.isArray(elem.properties)) {
+                propNames = elem.properties.map((p: any) => p.name);
+            } else if (typeof elem.properties.entries === 'function') {
+                propNames = Array.from(elem.properties.entries()).map(([k]: any) => k);
+            }
+
+            const cleanProps = propNames.filter(k => typeof k === 'string' && !k.startsWith('__'));
+            if (cleanProps.length > 0) {
+                const innerLines = cleanProps
+                    .map(k => `  [ApiApiField.${this.toApiFieldKey(k)}]: form.${propName}?.${toCamelCase(k)}`)
                     .join(',\n');
-                return `  [ApiApiField.${key}]: form.${propName}?.map(item => ({\n${this.indent(innerLines, 2)}\n  })),`;
+                return `  [ApiApiField.${key}]: form.${propName} ? {\n${this.indent(innerLines)}\n  } : undefined,`;
             }
         }
 
@@ -325,7 +366,7 @@ export class MapperGeneratorPass
     }
 
     private toApiFieldKey(originalName: string): string {
-        return originalName.toUpperCase().replace(/_/g, '');
+        return originalName.toUpperCase().replace(/[^A-Z0-9]/g, '');
     }
 
     // ------------------------------------------------------------------

@@ -30,7 +30,7 @@ describe('FormActionGenerator', () => {
             expect(action.name).toBe('create');
             expect(action.fieldCount).toBe(1);
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    productId: number',
                 '  }'
             ]);
@@ -59,7 +59,7 @@ describe('FormActionGenerator', () => {
             expect(action.name).toBe('update');
             expect(action.fieldCount).toBe(2);
             expect(action.lines).toEqual([
-                '  update: {',
+                '  Update: {',
                 '    name: string',
                 '    email: string',
                 '  }'
@@ -86,7 +86,7 @@ describe('FormActionGenerator', () => {
             expect(action.name).toBe('create');
             expect(action.fieldCount).toBe(0);
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    // No fields',
                 '  }'
             ]);
@@ -108,7 +108,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    description?: string',
                 '  }'
             ]);
@@ -128,7 +128,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    name: string',
                 '  }'
             ]);
@@ -155,7 +155,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    name: string',
                 '    description?: string',
                 '  }'
@@ -178,7 +178,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    price: number | null',
                 '  }'
             ]);
@@ -198,7 +198,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    discount?: number | null',
                 '  }'
             ]);
@@ -218,7 +218,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    quantity: number',
                 '  }'
             ]);
@@ -356,7 +356,7 @@ describe('FormActionGenerator', () => {
 
             const action = generator.generateAction('CREATE', fields);
 
-            expect(action.lines[0]).toBe('  create: {');
+            expect(action.lines[0]).toBe('  Create: {');
         });
 
         test('should handle mixed case action names', () => {
@@ -372,7 +372,7 @@ describe('FormActionGenerator', () => {
 
             const action = generator.generateAction('Update', fields);
 
-            expect(action.lines[0]).toBe('  update: {');
+            expect(action.lines[0]).toBe('  Update: {');
         });
     });
 
@@ -412,7 +412,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    name: string',
                 '    email: string',
                 '    password: string',
@@ -457,7 +457,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    name: string',
                 '    price: number',
                 '    description?: string | null',
@@ -487,7 +487,7 @@ describe('FormActionGenerator', () => {
             const action = generator.generateAction('create', fields);
 
             expect(action.lines).toEqual([
-                '  create: {',
+                '  Create: {',
                 '    produkItemId: string',
                 '    qty: number',
                 '  }'

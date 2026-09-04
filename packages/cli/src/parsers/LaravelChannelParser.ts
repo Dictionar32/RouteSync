@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { ParsedChannel } from '@routesync/core'
+import { ParsedChannel, ScannedRouteParameterDescriptor, ScannedBroadcastChannelDescriptor } from '@routesync/core'
 
 export class LaravelChannelParser {
   async parse(channelFilePath: string = 'routes/channels.php'): Promise<ParsedChannel[]> {
@@ -10,20 +10,19 @@ export class LaravelChannelParser {
     const content = await fs.readFile(channelFilePath, 'utf-8')
     const channels: ParsedChannel[] = []
 
-    // regex to find Broadcast::channel('channel-name', function() { ... })
-    const regex = new RegExp(`Broadcast::channel\\(\\s*['"]([^'"]+)['"]`, 'g')
-    let match
+    const regex = /Broadcast::channel\(\s*['"]([^'"]+)['"]/g
+    let match: RegExpExecArray | null
 
     while ((match = regex.exec(content)) !== null) {
-      const name = match[1]
-      // Simple heuristic: if the channel name has {id} or requires auth, we can assume it's private.
-      // Laravel Echo actually listens to .private('name') or .presence('name') but the channel definition name is just 'name'.
-      // For generation, we will just pass the raw name and let the user decide if it's private or not in the hook.
-      channels.push({
-        name,
-        isPrivate: true, // we default to private for now as most channels are authenticated
-        isPresence: false
-      })
+      const pattern = match[1]
+      const paramMatches = Array.from(pattern.matchAll(/\{([^}]+)\}/g))
+      const parameters = paramMatches.map(m => new ScannedRouteParameterDescriptor({ name: m[1] }))
+
+      channels.push(new ScannedBroadcastChannelDescriptor({
+        name: pattern,
+        pattern,
+        parameters
+      }))
     }
 
     return channels

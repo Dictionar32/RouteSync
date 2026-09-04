@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, RouteParameterType, ValidationRuleKind } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 
@@ -66,28 +66,45 @@ export class ConstantsGenerator {
 
     lines.push(`export const API_ENDPOINTS = {`)
     for (const { route, endpointKey } of routeKeys) {
-      const params: string[] = []
-      let match
-      const paramRegex = /\{([^}]+)\}|:([a-zA-Z0-9_]+)/g
-      while ((match = paramRegex.exec(route.path)) !== null) {
-        params.push(match[1] || match[2])
+      let pathParams: Array<{ name: string; propertyName: string; type: string }> = (route.pathParameters ?? []).map(p => ({
+        name: p.name,
+        propertyName: p.propertyName,
+        type: p.type === RouteParameterType.Number ? 'number' : 'string'
+      }))
+
+      if (pathParams.length === 0) {
+        const matches = [...route.path.matchAll(/\{([^}]+)\}/g)]
+        if (matches.length > 0) {
+          pathParams = matches.map(m => {
+            const rawParam = m[1].split(':')[0]
+            return {
+              name: rawParam,
+              propertyName: rawParam,
+              type: 'string | number'
+            }
+          })
+        }
       }
 
-      let normalizedPath = route.path.replace(/{([^}/]+)}/g, ':$1')
+      let normalizedPath = route.runtimePath || route.path
       if (!normalizedPath.startsWith('/')) {
         normalizedPath = '/' + normalizedPath
       }
 
-      if (params.length > 0) {
-        let bodyTemplate = route.path
-        for (const p of params) {
-          bodyTemplate = bodyTemplate.replace(`{${p}}`, `\${${p}}`).replace(`:${p}`, `\${${p}}`)
+      if (pathParams.length > 0) {
+        let bodyTemplate = normalizedPath
+        for (const p of pathParams) {
+          if (bodyTemplate.includes(`:${p.name}`)) {
+            bodyTemplate = bodyTemplate.split(`:${p.name}`).join('${' + p.propertyName + '}')
+          } else if (bodyTemplate.includes(`{${p.name}}`)) {
+            bodyTemplate = bodyTemplate.split(`{${p.name}}`).join('${' + p.propertyName + '}')
+          }
         }
         if (!bodyTemplate.startsWith('/')) {
           bodyTemplate = '/' + bodyTemplate
         }
 
-        const argsStr = params.map(p => `${p}: string | number`).join(', ')
+        const argsStr = pathParams.map(p => `${p.propertyName}: ${p.type}`).join(', ')
         lines.push(`  ${endpointKey}: (${argsStr}) => \`${bodyTemplate}\`,`)
       } else {
         lines.push(`  ${endpointKey}: '${normalizedPath}',`)
@@ -116,22 +133,39 @@ export class ConstantsGenerator {
         return s.toUpperCase().replace(/[^A-Z0-9]/g, '_')
       }).filter(Boolean).join('_')
 
-      const params: string[] = []
-      let match
-      const paramRegex = /\{([^}]+)\}|:([a-zA-Z0-9_]+)/g
-      while ((match = paramRegex.exec(route.path)) !== null) {
-        params.push(match[1] || match[2])
+      let pathParams: Array<{ name: string; propertyName: string; type: string }> = (route.pathParameters ?? []).map(p => ({
+        name: p.name,
+        propertyName: p.propertyName,
+        type: p.type === RouteParameterType.Number ? 'number' : 'string'
+      }))
+
+      if (pathParams.length === 0) {
+        const matches = [...route.path.matchAll(/\{([^}]+)\}/g)]
+        if (matches.length > 0) {
+          pathParams = matches.map(m => {
+            const rawParam = m[1].split(':')[0]
+            return {
+              name: rawParam,
+              propertyName: rawParam,
+              type: 'string | number'
+            }
+          })
+        }
       }
 
-      if (params.length > 0) {
-        let bodyTemplate = route.path
-        for (const p of params) {
-          bodyTemplate = bodyTemplate.replace(`{${p}}`, `\${${p}}`).replace(`:${p}`, `\${${p}}`)
+      if (pathParams.length > 0) {
+        let bodyTemplate = route.runtimePath || route.path
+        for (const p of pathParams) {
+          if (bodyTemplate.includes(`:${p.name}`)) {
+            bodyTemplate = bodyTemplate.split(`:${p.name}`).join('${' + p.propertyName + '}')
+          } else if (bodyTemplate.includes(`{${p.name}}`)) {
+            bodyTemplate = bodyTemplate.split(`{${p.name}}`).join('${' + p.propertyName + '}')
+          }
         }
         if (!bodyTemplate.startsWith('/')) {
           bodyTemplate = '/' + bodyTemplate
         }
-        const argsStr = params.map(p => `${p}: string | number`).join(', ')
+        const argsStr = pathParams.map(p => `${p.propertyName}: ${p.type}`).join(', ')
         lines.push(`  ${routeKey}: (${argsStr}) => \`${bodyTemplate}\`,`)
       } else {
         lines.push(`  ${routeKey}: '/${cleanPath}',`)
@@ -143,7 +177,6 @@ export class ConstantsGenerator {
 
     // 4. Status Enums (Extracted from manifest models columns & validation rules)
     const enumGroups: Record<string, Record<string, string[]>> = {}
-
     const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
     const camelCase = (s: string): string => s.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
 
@@ -176,15 +209,24 @@ export class ConstantsGenerator {
     if (manifest.routes && Array.isArray(manifest.routes)) {
       for (const route of manifest.routes) {
         if (!route.schema?.rules) continue
-        const rules = route.schema.rules as Record<string, unknown>
-        for (const [field, ruleVal] of Object.entries(rules)) {
-          const ruleStr = String(ruleVal)
-          const match = ruleStr.match(/\bin:([a-zA-Z0-9_,-]+)/)
-          if (match && match[1]) {
-            const values = match[1].split(',').map(v => v.trim())
-            const pathSegments = route.path.replace(/^\/|\/$/g, '').split('/')
-            const group = pathSegments[0] || 'App'
-            addEnum(group, field, values)
+        const group = route.groupName || 'App'
+        if (Array.isArray(route.schema.rules)) {
+          for (const ruleEntry of route.schema.rules) {
+            const field = ruleEntry.fieldName
+            const inRule = ruleEntry.ast?.find((r: any) => r.kind === ValidationRuleKind.In)
+            if (inRule && inRule.kind === ValidationRuleKind.In && inRule.values && inRule.values.length > 0) {
+              addEnum(group, field, [...inRule.values])
+            }
+          }
+        } else {
+          const rules = route.schema.rules as Record<string, unknown>
+          for (const [field, ruleVal] of Object.entries(rules)) {
+            const ruleStr = String(ruleVal)
+            const match = ruleStr.match(/\bin:([a-zA-Z0-9_,-]+)/)
+            if (match && match[1]) {
+              const values = match[1].split(',').map(v => v.trim())
+              addEnum(group, field, values)
+            }
           }
         }
       }

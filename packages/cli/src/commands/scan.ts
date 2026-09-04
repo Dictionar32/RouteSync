@@ -1,10 +1,9 @@
 import { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { LaravelRouteParser } from '../parsers/LaravelRouteParser'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { ScannedModel } from '../utils/incremental'
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
 
 export const scanCommand = new Command('scan')
   .description('Scan Laravel/PHP routes and output a route manifest')
@@ -18,18 +17,17 @@ export const scanCommand = new Command('scan')
 
     const path = require('path')
     const targetDir = projectDir ? path.resolve(process.cwd(), projectDir) : process.cwd()
-    const inputPath = path.isAbsolute(options.input) ? options.input : path.resolve(targetDir, options.input)
     const outputPath = path.isAbsolute(options.output) ? options.output : path.resolve(targetDir, options.output)
 
     try {
-      const parser = new LaravelRouteParser()
-      const { routes, models, resources } = await parser.parse(inputPath, { extractModels: !!options.models })
-
-      const manifest = ManifestGenerator.generate(routes, options.baseURL)
-      if (options.models) {
-        manifest.models = models
-        manifest.resources = resources
-      }
+      const scannedManifest = await StaticLaravelScanner.scan(targetDir, {
+        baseURL: options.baseURL,
+        version: '6.0.0'
+      })
+      const manifest: any = scannedManifest
+      const routes = (scannedManifest.routes || []) as any[]
+      const models = (scannedManifest.models || []) as any[]
+      const resources = (scannedManifest.resources || []) as any[]
       
       const { SemanticKernelV2Impl } = await import('@routesync/core')
       const kernel = new SemanticKernelV2Impl()

@@ -64,29 +64,23 @@ export class ResponseAnalysisHelper {
         const artifactId = `${route.name}.Response`;
         const builder = new ResponseArtifactBuilder().id(artifactId);
 
-        // Determine response characteristics
-        const responseKind = route.response?.kind || route.response?.type || 'unknown';
-        const arrayElement = responseKind === 'array' ? route.response?.element : undefined;
-        const elementKind = arrayElement?.kind;
-        const isPaginated = !!(route.response?.paginated || route.response?.resolved?.paginated);
-        const isCollectionFromType = responseKind === 'array' || !!(route.response?.collection || route.response?.resolved?.collection);
+        // Determine response characteristics directly from explicit ResponseDescriptor SSOT
+        const responseShape = route.response?.shape;
+        const isPaginated = responseShape === 'paginated';
+        const isCollection = isPaginated || responseShape === 'collection';
+        const responseKind = route.response?.kind || 'unknown';
 
         // Collect analysis reasons
         const reasons: string[] = [];
-        let confidence = 0.75;
-        let isCollection = false;
+        let confidence = 0.85;
 
-        // KEY DECISION: Determine if collection based on return type, NOT action name
-        if (isCollectionFromType) {
-            isCollection = true;
-            reasons.push('Collection detected from return type');
-            confidence = 0.95;
-        } else if (isPaginated) {
-            isCollection = true;
+        if (isPaginated) {
             reasons.push('Paginated response implies collection');
             confidence = 0.95;
+        } else if (isCollection) {
+            reasons.push('Collection detected from explicit shape');
+            confidence = 0.95;
         } else {
-            isCollection = false;
             reasons.push('Single response detected');
             confidence = 0.85;
         }
@@ -94,28 +88,33 @@ export class ResponseAnalysisHelper {
         // Set transport type
         if (responseKind === 'resource' || responseKind === 'model') {
             builder.transport(responseKind);
-        } else if (responseKind === 'array' && (elementKind === 'resource' || elementKind === 'model')) {
-            builder.transport(elementKind);
         } else {
             builder.transport('json');
         }
 
-        // Build response body
-        const resourceName = route.response?.resource || route.response?.model || arrayElement?.resource || arrayElement?.model;
-        const modelName = route.response?.model || arrayElement?.model;
+        // Build response body from explicit SSOT
+        const resourceName = (route.response as any)?.resourceName || (route.response as any)?.resource || (route.response as any)?.modelName;
+        const modelName = (route.response as any)?.modelName || (route.response as any)?.model;
+
+        let shapeName: 'paginated' | 'collection' | 'single' = 'single';
+        if (isPaginated) {
+            shapeName = 'paginated';
+        } else if (isCollection) {
+            shapeName = 'collection';
+        }
 
         if ((responseKind === 'resource' || (responseKind === 'array' && elementKind === 'resource')) && resourceName) {
             builder.resource(
                 resourceName,
                 modelName,
-                isPaginated ? 'paginated' : isCollection ? 'collection' : 'single',
+                shapeName,
                 confidence,
                 reasons.join('; ')
             );
         } else if ((responseKind === 'model' || (responseKind === 'array' && elementKind === 'model')) && modelName) {
             builder.model(
                 modelName,
-                isPaginated ? 'paginated' : isCollection ? 'collection' : 'single',
+                shapeName,
                 confidence,
                 reasons.join('; ')
             );
@@ -124,7 +123,7 @@ export class ResponseAnalysisHelper {
             builder.object(
                 route.name,
                 { name: route.name, properties: {}, required: [] },
-                isPaginated ? 'paginated' : isCollection ? 'collection' : 'single',
+                shapeName,
                 Math.max(confidence - 0.1, 0.5),
                 `Fallback analysis: ${reasons.join('; ')}`
             );

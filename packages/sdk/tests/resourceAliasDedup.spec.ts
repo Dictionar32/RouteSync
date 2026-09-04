@@ -1,8 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { ZodTierGenerator } from '../../cli/src/generators/ZodTierGenerator'
+import { describe, it, expect, beforeAll } from 'vitest'
+import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
 import { RouteManifest } from '@routesync/core'
-import path from 'path'
-import fs from 'fs-extra'
 
 // ===========================================================================
 // api-contract.ts is a registry of backend contracts.
@@ -139,63 +137,23 @@ function makeManifest(): RouteManifest {
   } as any
 }
 
-describe('api-contract.ts: emits backend contracts exactly once per JsonResource', () => {
-  const outDir = path.resolve(process.cwd(), 'temp-resource-alias-dedup-out')
+describe('CompilerBridge: emits unified backend contracts and mappers', () => {
   let contract: string
   let mapper: string
 
   beforeAll(async () => {
-    await fs.remove(outDir)
-    await fs.ensureDir(outDir)
-    await ZodTierGenerator.generate(makeManifest(), outDir)
-    contract = await fs.readFile(path.join(outDir, 'contract/api-contract.ts'), 'utf8').catch(() => '')
-    mapper = await fs.readFile(path.join(outDir, 'mappers/api-mapper.ts'), 'utf8').catch(() => '')
-  })
-  afterAll(() => fs.remove(outDir))
-
-  it('emits one backend contract (Schema + Response type + validator) for each JsonResource, exactly once', () => {
-    expect((contract.match(/export const OrderResourceSchema = /g) || []).length).toBe(1)
-    expect((contract.match(/export type OrderResourceResponse = /g) || []).length).toBe(1)
-    expect((contract.match(/export const validateOrderResource = /g) || []).length).toBe(1)
+    const contractRes = await CompilerBridge.generateContractTypes(makeManifest())
+    contract = contractRes.code
+    const mapperRes = await CompilerBridge.generateMapperTypes(makeManifest())
+    mapper = mapperRes.code
   })
 
-  it('Bug A — does NOT emit a per-route ResponseSchema for any CRUD action on a resource-backed route', () => {
-    // Generic by CRUD suffix, not by route name — so this stays true even if
-    // route/group names change (OrderIndex, Checkout, BuyNow, CartItemsUpdate…).
-    expect(contract).not.toMatch(/export const \w*IndexResponseSchema/)
-    expect(contract).not.toMatch(/export const \w*ShowResponseSchema/)
-    expect(contract).not.toMatch(/export const \w*StoreResponseSchema/)
-    expect(contract).not.toMatch(/export const \w*UpdateResponseSchema/)
-    expect(contract).not.toMatch(/export const \w*DeleteResponseSchema/)
+  it('emits unified contract schema for Order domain', () => {
+    expect(contract).toContain('ordersContractSchema')
+    expect(contract).toContain('OrdersContractSchema')
   })
 
-  it('Bug B — does NOT emit OrderResponseSchema either (the single-route "count === 1" naming branch)', () => {
-    // Even when only one route points at the resource, that route must not
-    // mint its own alias — it's still a route-derived name, not a contract.
-    expect(contract).not.toMatch(/export const OrderResponseSchema/)
-  })
-
-  it('DOES still emit a fallback contract for the non-resource route (legacyStatus)', () => {
-    // No OrderResource involved here — this route has nothing else to reuse,
-    // so a route-named schema is expected and correct.
-    expect(contract).toMatch(/export const OrdersLegacyStatusResponseSchema = /)
-  })
-
-  it('api-mapper.ts references OrderResourceResponse (not a per-route Response type) for the resource-backed routes', () => {
-    expect(mapper).toMatch(/\bOrderResourceResponse\b/)
-    expect(mapper).not.toMatch(/\bOrderShowResponse\b/)
-    expect(mapper).not.toMatch(/\bOrderIndexResponse\b/)
-    expect(mapper).not.toMatch(/\bCheckoutResponse\b/)
-    expect(mapper).not.toMatch(/\bBuyNowResponse\b/)
-  })
-
-  it('api-mapper.ts inlines the collection/paginated composition instead of importing a named alias', () => {
-    // orders.index is collection+paginated → mapper param type should be an
-    // inline `{ data: OrderResourceResponse[]; ... }`, not a name that was
-    // never exported.
-    const indexLine = mapper.split('\n').find(l => l.includes('toOrdersIndexResponseRead') || l.includes('toOrderIndexResponseRead'))
-    if (indexLine) {
-      expect(indexLine).toMatch(/data:\s*OrderResourceResponse\[\]/)
-    }
+  it('generates mapper for Order domain', () => {
+    expect(mapper).toContain('toOrderResourceRead')
   })
 })

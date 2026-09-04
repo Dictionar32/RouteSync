@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { RouteManifest, ParsedModel, camelCase } from '@routesync/core'
+import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind } from '@routesync/core'
 
 export class ModelGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -10,40 +10,66 @@ export class ModelGenerator {
     await fs.ensureDir(coreDir)
 
     const lines: string[] = []
-    lines.push(`// Auto-generated. Do not edit.`)
+    lines.push(`// Auto-generated TypeScript Eloquent Models. Do not edit manually.`)
     lines.push(``)
 
     for (const model of manifest.models) {
-      lines.push(`export interface ${model.name} {`)
-      
+      const interfaceName = model.shortName
+      lines.push(`export interface ${interfaceName} {`)
+
       const hidden = Array.isArray(model.hidden) ? model.hidden : []
-      const casts = model.casts || {}
-      
-      // 1. Database Columns
+
+      // 1. Database Columns (SSOT: propertyName & semanticType)
       for (const col of model.columns) {
-        // If it's hidden, we can make it optional or omit it. Usually omitted or optional.
-        // Let's make it optional so frontend devs can still type it if they somehow fetch it.
-        const isHidden = hidden.includes(col.name)
+        const rawName = col.propertyName || col.name
+        if (!rawName) continue
+        const isHidden = col.name ? hidden.includes(col.name) : false
         const isOptional = isHidden ? '?' : ''
-        
-        // Use cast if available, else SQL type
-        const castType = casts[col.name]
-        let tsType = this.mapSqlTypeToTs(col.type)
-        if (castType) {
-          tsType = this.mapCastToTs(castType, tsType)
+        const propName = col.propertyName || camelCase(rawName)
+
+        let tsType = 'string'
+        if (col.enumValues && col.enumValues.length > 0) {
+          tsType = col.enumValues.map(v => `'${v}'`).join(' | ')
+        } else if (col.semanticType) {
+          tsType = col.semanticType === PrimitiveKind.NUMBER ? 'number'
+            : col.semanticType === PrimitiveKind.BOOLEAN ? 'boolean'
+            : 'string'
+        } else {
+          tsType = this.mapColumnKindToTs(col.columnKind)
         }
-        
+
         const nullable = col.nullable ? ' | null' : ''
-        
-        lines.push(`  ${camelCase(col.name)}${isOptional}: ${tsType}${nullable}`)
+        lines.push(`  ${propName}${isOptional}: ${tsType}${nullable}`)
       }
 
-      // 2. Appended Attributes
-      const appends = Array.isArray(model.appends) ? model.appends : []
-      for (const append of appends) {
-        lines.push(`  ${camelCase(append)}: unknown // appended attribute`)
+      // 2. Appended Accessor Attributes (SSOT: accessors)
+      if (model.accessors && model.accessors.length > 0) {
+        for (const acc of model.accessors) {
+          const rawName = acc.propertyName || acc.name
+          if (!rawName) continue
+          const propName = acc.propertyName || camelCase(rawName)
+          const tsType = acc.semanticType === PrimitiveKind.NUMBER ? 'number'
+            : acc.semanticType === PrimitiveKind.BOOLEAN ? 'boolean'
+            : 'string'
+          const nullable = acc.nullable ? ' | null' : ''
+          lines.push(`  ${propName}?: ${tsType}${nullable}`)
+        }
+      } else {
+        const appends = Array.isArray(model.appends) ? model.appends : []
+        for (const append of appends) {
+          if (!append) continue
+          lines.push(`  ${camelCase(append)}?: unknown`)
+        }
       }
-      
+
+      // 3. Eloquent Relations (SSOT: relations)
+      if (model.relations && model.relations.length > 0) {
+        for (const rel of model.relations) {
+          const relType = rel.isCollection ? `${rel.modelName}[]` : rel.modelName
+          lines.push(`  ${rel.name}?: ${relType}`)
+        }
+      }
+
       lines.push(`}`)
       lines.push(``)
     }
@@ -51,52 +77,24 @@ export class ModelGenerator {
     await fs.writeFile(path.join(coreDir, 'models.ts'), lines.join('\n'))
   }
 
-  private static mapSqlTypeToTs(sqlType: string): string {
-    const type = sqlType.toLowerCase()
-    
-    if (type === 'mixed' || type === 'unknown') {
-      return 'unknown'
+  private static mapColumnKindToTs(kind: DatabaseColumnKind): string {
+    switch (kind) {
+      case DatabaseColumnKind.Boolean:
+        return 'boolean'
+      case DatabaseColumnKind.BigInt:
+      case DatabaseColumnKind.Integer:
+      case DatabaseColumnKind.SmallInt:
+      case DatabaseColumnKind.TinyInt:
+      case DatabaseColumnKind.Float:
+      case DatabaseColumnKind.Double:
+      case DatabaseColumnKind.Decimal:
+        return 'number'
+      case DatabaseColumnKind.Json:
+        return 'Record<string, unknown>'
+      case DatabaseColumnKind.Unknown:
+        return 'unknown'
+      default:
+        return 'string'
     }
-    
-    if (type.includes('bool') || type.includes('tinyint(1)')) {
-      return 'boolean'
-    }
-    
-    if (type.includes('int') || type.includes('float') || type.includes('double') || type.includes('decimal') || type.includes('numeric')) {
-      return 'number'
-    }
-    
-    if (type.includes('json')) {
-      return 'Record<string, unknown>'
-    }
-    
-    // Parse MySQL enum: enum('admin','user')
-    const enumMatch = type.match(/^enum\((.*)\)$/);
-    if (enumMatch && enumMatch[1]) {
-      // enumMatch[1] is "'admin','user'"
-      // Split by comma, but be careful with spaces, although MySQL usually doesn't have spaces inside enum values unless specified
-      const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""));
-      // map to union type string: 'admin' | 'user'
-      return values.map(v => `'${v}'`).join(' | ');
-    }
-    
-    return 'string'
-  }
-
-  private static mapCastToTs(castType: string, defaultType: string): string {
-    const type = castType.toLowerCase()
-    if (type.includes('int') || type.includes('float') || type.includes('decimal') || type.includes('double')) {
-      return 'number'
-    }
-    if (type.includes('bool')) {
-      return 'boolean'
-    }
-    if (type.includes('array') || type.includes('json') || type.includes('collection') || type.includes('object')) {
-      return 'Record<string, unknown>'
-    }
-    if (type.includes('date') || type.includes('datetime') || type.includes('string')) {
-      return 'string'
-    }
-    return defaultType
   }
 }

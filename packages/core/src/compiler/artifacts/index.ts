@@ -21,6 +21,7 @@ export {
 export {
     ArtifactRegistry,
     ArtifactKey,
+    ArtifactTypeId,
     ArtifactStorage
 } from './types';
 
@@ -36,7 +37,6 @@ export { LoweredTypeArtifact } from './LoweredTypeArtifact';
 export { DiagnosticArtifact } from './DiagnosticArtifact';
 export { DependencyGraphArtifact } from './DependencyGraphArtifact';
 export { SemanticIRArtifact } from './SemanticIRArtifact';
-export { ContractGraphArtifact } from './ContractGraphArtifact';
 export { CompilationResultArtifact } from './CompilationResultArtifact';
 
 // Existing exports...

@@ -103,8 +103,8 @@ describe('MapperGeneratorPass', () => {
             const [result] = pass.run([input])
 
             expect(result.code).toContain('token: api.token')
-            expect(result.code).toContain('userId: api.user?.id')
-            expect(result.code).toContain('userName: api.user?.name')
+            expect(result.code).toContain('userId: api.user.id')
+            expect(result.code).toContain('userName: api.user.name')
         })
 
         test('route without responseData produces no read mapper for that resource', () => {
@@ -161,7 +161,7 @@ describe('MapperGeneratorPass', () => {
             )
 
             expect(result.code).toContain("import { ApiApiField } from '../contracts/api-field';")
-            expect(result.code).toContain("import type {\n  RegisterForm\n} from '../types/api-form';")
+            expect(result.code).toContain("import type {\n  RegisterForm\n} from '../forms/api-form';")
             expect(result.code).toContain('[ApiApiField.NAME]: form.name')
             expect(result.code).toContain('[ApiApiField.REDIRECTTO]: form.redirectTo')
         })

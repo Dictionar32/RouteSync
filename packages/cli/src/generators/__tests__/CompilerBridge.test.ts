@@ -45,20 +45,6 @@ vi.mock('../../../../core/src/compiler/passes/TypeScriptGeneratorPass', () => ({
     }
 }))
 
-vi.mock('../utils/PrimitiveTypeFactory', () => ({
-    PrimitiveTypeFactory: {
-        fromString: vi.fn().mockReturnValue({ kind: 'primitive', name: 'string' }),
-        fromSqlType: vi.fn().mockReturnValue({ kind: 'primitive', name: 'string' })
-    }
-}))
-
-vi.mock('../utils/resource-flattening', () => ({
-    flattenResourceFields: vi.fn().mockReturnValue(new Map([
-        ['id', { kind: 'primitive', name: 'number' }],
-        ['name', { kind: 'primitive', name: 'string' }]
-    ]))
-}))
-
 describe('CompilerBridge - Refactored', () => {
     let mockManifest: RouteManifest
 
@@ -84,6 +70,17 @@ describe('CompilerBridge - Refactored', () => {
                         id: { kind: 'primitive', type: 'number' },
                         name: { kind: 'primitive', type: 'string' }
                     }
+                }
+            ],
+            routeGroups: [],
+            requestTypes: [],
+            semanticTypes: [
+                {
+                    name: 'UserResource',
+                    properties: [
+                        { name: 'id', type: { kind: 'primitive', type: 'number' }, required: true, nullable: false },
+                        { name: 'name', type: { kind: 'primitive', type: 'string' }, required: true, nullable: false }
+                    ]
                 }
             ],
             generatedAt: new Date().toISOString()

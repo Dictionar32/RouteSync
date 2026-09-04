@@ -1,11 +1,9 @@
 import { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { LaravelRouteParser } from '../parsers/LaravelRouteParser'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { SDKGenerator } from '../generators/SDKGenerator'
 import { TypeGenerator } from '../generators/TypeGenerator'
-import { ZodTierGenerator } from '../generators/ZodTierGenerator'
 import { HookGenerator } from '../generators/HookGenerator'
 import { ValuesGenerator } from '../generators/ValuesGenerator'
 import { NextActionGenerator } from '../generators/NextActionGenerator'
@@ -18,6 +16,7 @@ import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
 import { ScannedModel } from '../utils/incremental'
+import { StaticLaravelScanner } from '@routesync/core'
 
 import fs from 'fs-extra'
 
@@ -46,16 +45,16 @@ export const syncCommand = new Command('sync')
     const spinner = ora(steps[0].text).start()
 
     try {
-      // Step 1: Scan
-      const parser = new LaravelRouteParser()
-      const { routes, models, resources } = await parser.parse(options.input, { extractModels: !!options.models })
-      const channelParser = new LaravelChannelParser()
-      const channels = options.echo ? await channelParser.parse('routes/channels.php') : []
-      const manifest = ManifestGenerator.generate(routes, options.baseURL, channels)
-      if (options.models) {
-        manifest.models = models
-        manifest.resources = resources
-      }
+      // Step 1: Scan via StaticLaravelScanner (0 PHP subprocess)
+      const targetDir = process.cwd()
+      const manifest: any = await StaticLaravelScanner.scan(targetDir, {
+        baseURL: options.baseURL,
+        version: '6.0.0'
+      })
+      const routes = (manifest.routes || []) as any[]
+      const models = (manifest.models || []) as any[]
+      const resources = (manifest.resources || []) as any[]
+      const channels = (manifest.channels || []) as any[]
 
       // Semantic Kernel V2 resolution
       const { SemanticKernelV2Impl } = await import('@routesync/core')
@@ -120,10 +119,11 @@ export const syncCommand = new Command('sync')
       await TypeGenerator.generate(resolvedManifest, options.output)
       
       if (options.zod) {
-        await ZodTierGenerator.generate(resolvedManifest, options.output)
-      } else {
-        const { SchemaGenerator } = require('../generators/SchemaGenerator')
-        await SchemaGenerator.generate(resolvedManifest, options.output)
+        const { CompilerBridge } = require('../generators/CompilerBridge')
+        const contractOutput = await CompilerBridge.generateContractTypes(resolvedManifest)
+        const contractPath = require('path').join(options.output, 'contracts', 'api-contract.ts')
+        await fs.ensureDir(require('path').dirname(contractPath))
+        await fs.writeFile(contractPath, contractOutput.code)
       }
       spinner.succeed(chalk.green(`✔ ${steps[1].text}`))
 

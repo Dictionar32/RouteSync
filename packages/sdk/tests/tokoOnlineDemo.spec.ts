@@ -1,18 +1,10 @@
-import { describe, it } from 'vitest'
-import { ZodTierGenerator } from '../../cli/src/generators/ZodTierGenerator'
-import { RouteManifest } from '@routesync/core'
-import fs from 'fs-extra'
-import path from 'path'
+import { describe, it, expect } from 'vitest'
+import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
+import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
 
 describe('RouteSync - Toko Online Demo', () => {
   it('should compile online store models and generate type-safe frontend APIs', async () => {
-    const manifest: RouteManifest = {
-      version: '1.0.0',
-      baseURL: 'https://api.toko-online-cuy.com/v1',
-      generatedAt: new Date().toISOString(),
-      routes: [],
-      channels: [],
-      models: [
+    const models = [
         {
           name: 'Product',
           table: 'products',
@@ -102,25 +94,24 @@ describe('RouteSync - Toko Online Demo', () => {
             }
           }
         }
-      ]
+      ] as any[]
+
+    const manifest: RouteManifest = {
+      version: '1.0.0',
+      baseURL: 'https://api.toko-online-cuy.com/v1',
+      generatedAt: new Date().toISOString(),
+      routes: [],
+      channels: [],
+      models,
+      resources: [],
+      routeGroups: [],
+      requestTypes: [],
+      semanticTypes: StaticLaravelScanner.deriveSemanticTypes([], models)
     }
 
-    const outputDir = path.join(__dirname, 'toko-online-generated')
-    await fs.ensureDir(outputDir)
-
-    try {
-      await ZodTierGenerator.generate(manifest, outputDir)
-
-      const typesFilePath = path.join(outputDir, 'types/api-read.ts')
-      const typesContent = await fs.readFile(typesFilePath, 'utf-8')
-
-      console.log('\n======================================================')
-      console.log('🎉 HASIL GENERASI TIPE FRONTEND (types/api-read.ts) 🎉')
-      console.log('======================================================')
-      console.log(typesContent.trim())
-      console.log('======================================================\n')
-    } finally {
-      await fs.remove(outputDir)
-    }
+    const result = await CompilerBridge.generateTypeScript(manifest)
+    expect(result.code).toContain('export interface ProductTransformed {')
+    expect(result.code).toContain('imageUrl: string')
+    expect(result.code).toContain('averageRating: number')
   })
 })

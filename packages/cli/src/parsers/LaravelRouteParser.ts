@@ -1,13 +1,75 @@
 import fs from 'fs-extra'
-import { ParsedRoute, ParsedModel } from '@routesync/core'
+import { ParsedRoute, ParsedModel, ParsedResource } from '@routesync/core'
 import { execSync } from 'child_process'
 import path from 'path'
 import os from 'os'
 
+/**
+ * Explicit Upstream Data Model for Raw PHP Route Extraction.
+ */
+export interface ExtractedRoutePayload {
+  readonly name: string
+  readonly method: string
+  readonly path: string
+  readonly auth: boolean
+  readonly middleware: readonly string[]
+  readonly schema: { readonly rules: Record<string, unknown> } | null
+  readonly response: Record<string, unknown> | null
+  readonly assignments: Record<string, string> | null
+  readonly sourceFile: string | null
+  readonly sourceLine: number | null
+}
+
+/**
+ * Explicit Upstream Data Model for Raw PHP Column Extraction.
+ */
+export interface ExtractedColumnPayload {
+  readonly name: string
+  readonly type: string
+  readonly nullable: boolean
+}
+
+/**
+ * Explicit Upstream Data Model for Raw PHP Model Extraction.
+ */
+export interface ExtractedModelPayload {
+  readonly name: string
+  readonly table: string | null
+  readonly columns: readonly ExtractedColumnPayload[]
+  readonly hidden: readonly string[]
+  readonly appends: readonly string[]
+  readonly casts: Record<string, string>
+  readonly relations: Record<string, unknown>
+  readonly accessors: Record<string, unknown>
+}
+
+/**
+ * Explicit Upstream Data Model for Raw PHP Resource Extraction.
+ */
+export interface ExtractedResourcePayload {
+  readonly name: string
+  readonly fields: unknown
+  readonly assignments: unknown
+  readonly sourceFile: string | null
+  readonly sourceLine: number | null
+}
+
+/**
+ * Explicit Upstream Data Model for Raw PHP Extractor Subprocess Output.
+ */
+export interface ExtractedPhpOutput {
+  readonly routes: readonly ExtractedRoutePayload[]
+  readonly models: readonly ExtractedModelPayload[]
+  readonly resources: readonly ExtractedResourcePayload[]
+}
+
+/**
+ * Explicit Upstream Parser Result Contract (0 '?', 100% Guaranteed Arrays).
+ */
 export interface ParserResult {
-  routes: ParsedRoute[]
-  models: ParsedModel[]
-  resources?: any[]
+  readonly routes: readonly ParsedRoute[]
+  readonly models: readonly ParsedModel[]
+  readonly resources: readonly ParsedResource[]
 }
 
 export class LaravelRouteParser {
@@ -1265,18 +1327,22 @@ echo json_encode($result);
         throw new Error('No JSON output from PHP script' + stderrHint + stdoutHint)
       }
 
-      const parsed = JSON.parse(cleaned.slice(jsonStart))
+      const parsed = JSON.parse(cleaned.slice(jsonStart)) as ExtractedPhpOutput
       return {
-        routes: parsed.routes || [],
-        models: parsed.models || [],
-        resources: parsed.resources || []
+        routes: Object.freeze(parsed.routes || []) as unknown as readonly ParsedRoute[],
+        models: Object.freeze(parsed.models || []) as unknown as readonly ParsedModel[],
+        resources: Object.freeze(parsed.resources || []) as unknown as readonly ParsedResource[]
       }
     } catch (err) {
       if (fs.existsSync(scriptPath)) {
         // await fs.remove(scriptPath)
       }
       console.error('Failed to parse Laravel routes via PHP script:', err)
-      return { routes: [], models: [], resources: [] }
+      return {
+        routes: Object.freeze([]),
+        models: Object.freeze([]),
+        resources: Object.freeze([])
+      }
     }
   }
 }

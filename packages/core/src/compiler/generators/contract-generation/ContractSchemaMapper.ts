@@ -2,24 +2,19 @@
  * ContractSchemaMapper.ts
  * 
  * Maps SemanticType to complete Zod schema strings.
- * Delegates to PrimitiveTypeRegistry and ZodModifierBuilder.
- * 
- * Responsibility: Transform type system to Zod schemas
+ * Consumes SemanticTypeResolver SSOT and ZodSchemaLowerer domain engine.
  * 
  * @module compiler/generators/contract-generation
  */
 
-import type { SemanticType } from '../../types/SemanticType';
+import type { SemanticType, PrimitiveType } from '../../types/SemanticType';
 import type { FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
-import {
-    PrimitiveType,
-    ObjectType,
-    ReadonlyCollectionType,
-    UnionType,
-    ReferenceType
-} from '../../types/SemanticType';
+import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
+import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
+import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
+import type { ResolvedSemanticType } from '../../domain/common/ResolvedSemanticType';
 import { PrimitiveTypeRegistry } from './PrimitiveTypeRegistry';
-import { ZodModifierBuilder, type ModifierConfig } from './ZodModifierBuilder';
+import { ZodModifierBuilder } from './ZodModifierBuilder';
 
 /**
  * Field configuration for schema mapping
@@ -40,52 +35,29 @@ export interface MappedSchema {
     readonly referencedTypes: readonly string[];
 }
 
-/**
- * ContractSchemaMapper - Transform SemanticType to Zod schemas
- * 
- * Delegates to:
- * - PrimitiveTypeRegistry for primitive types
- * - ZodModifierBuilder for modifiers
- * 
- * Handles:
- * - Primitive types (string, number, boolean, etc.)
- * - Object types with nested fields
- * - Array/collection types
- * - Union types
- * - Reference types
- * 
- * @example
- * ```typescript
- * const mapper = new ContractSchemaMapper(
- *   new PrimitiveTypeRegistry(),
- *   new ZodModifierBuilder()
- * );
- * 
- * const result = mapper.mapToZodSchema(
- *   new PrimitiveType(PrimitiveKind.STRING),
- *   { fieldName: 'nama', required: true, nullable: false }
- * );
- * // result.zodSchema = "z.string()"
- * ```
- */
 export class ContractSchemaMapper {
     constructor(
         private readonly primitiveRegistry: PrimitiveTypeRegistry = new PrimitiveTypeRegistry(),
-        private readonly modifierBuilder: ZodModifierBuilder = new ZodModifierBuilder()
+        private readonly modifierBuilder: ZodModifierBuilder = new ZodModifierBuilder(),
+        private readonly resolver: SemanticTypeResolver = defaultTypeResolver
     ) { }
 
     /**
      * Map SemanticType to complete Zod schema string
-     * 
-     * @param type - Semantic type to map
-     * @param config - Field configuration
-     * @returns Mapped schema with metadata
      */
     mapToZodSchema(type: SemanticType, config: FieldConfig): MappedSchema {
-        // Get base schema without modifiers
-        const baseSchema = this.mapBaseType(type, config.fileConstraints);
+        const resolved = this.resolver.resolve(type);
+        let baseSchema = toZodSchemaExpression(resolved, { singleLine: true, referenceFallbackToUnknown: true });
 
-        // Add modifiers if needed
+        if (type.kind === 'reference') {
+            baseSchema = 'z.unknown()';
+        } else if (resolved.kind === 'primitive' && resolved.primitiveKind === 'file') {
+            baseSchema = "z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)";
+            if (config.fileConstraints) {
+                baseSchema = this.applyFileConstraints(baseSchema, config.fileConstraints);
+            }
+        }
+
         const modifiers = this.modifierBuilder.buildModifiers({
             required: config.required,
             nullable: config.nullable
@@ -98,76 +70,6 @@ export class ContractSchemaMapper {
         };
     }
 
-    /**
-     * Map base type (without modifiers)
-     */
-    private mapBaseType(type: SemanticType, fileConstraints?: FileValidationConstraints): string {
-        if (type instanceof PrimitiveType) {
-            const schema = this.primitiveRegistry.getZodSchema(type);
-            return type.type === 'file'
-                ? this.applyFileConstraints(schema, fileConstraints)
-                : schema;
-        }
-
-        if (type instanceof ObjectType) {
-            return this.mapObjectType(type);
-        }
-
-        if (type instanceof ReadonlyCollectionType) {
-            return this.mapCollectionType(type, fileConstraints);
-        }
-
-        if (type instanceof UnionType) {
-            return this.mapUnionType(type);
-        }
-
-        if (type instanceof ReferenceType) {
-            return this.mapReferenceType(type);
-        }
-
-        // Default fallback for unsupported types
-        return 'z.unknown()';
-    }
-
-    /**
-     * Map object type with nested fields
-     */
-    private mapObjectType(type: ObjectType): string {
-        const fields: string[] = [];
-
-        // ImmutableMap requires .entries() for iteration
-        for (const [fieldName, fieldType] of type.properties.entries()) {
-            const isRequired = type.requiredProperties.has(fieldName);
-            const isNullable = false; // Objects don't have nullable flag by default
-
-            const fieldSchema = this.mapToZodSchema(fieldType, {
-                fieldName,
-                required: isRequired,
-                nullable: isNullable
-            });
-
-            fields.push(`${fieldName}: ${fieldSchema.zodSchema}`);
-        }
-
-        if (fields.length === 0) {
-            return 'z.object({})';
-        }
-
-        return `z.object({ ${fields.join(', ')} })`;
-    }
-
-    /**
-     * Map collection type (array)
-     */
-    private mapCollectionType(
-        type: ReadonlyCollectionType,
-        fileConstraints?: FileValidationConstraints
-    ): string {
-        const elementSchema = this.mapBaseType(type.elementType, fileConstraints);
-        return `z.array(${elementSchema})`;
-    }
-
-    /** Convert retained Laravel upload constraints into browser File refinements. */
     private applyFileConstraints(
         schema: string,
         constraints?: FileValidationConstraints
@@ -201,85 +103,51 @@ export class ContractSchemaMapper {
     }
 
     private mimeTypeForExtension(extension: string): string | undefined {
-        const normalized = extension.toLowerCase().replace(/^\./, '');
-        const mimeTypes: Readonly<Record<string, string>> = {
+        const ext = extension.toLowerCase().replace(/^\./, '');
+        const map: Record<string, string> = {
             jpg: 'image/jpeg',
             jpeg: 'image/jpeg',
             png: 'image/png',
-            webp: 'image/webp',
             gif: 'image/gif',
-            pdf: 'application/pdf',
+            webp: 'image/webp',
+            pdf: 'application/pdf'
         };
-        return mimeTypes[normalized];
+        return map[ext];
     }
 
-    /**
-     * Map union type
-     */
-    private mapUnionType(type: UnionType): string {
-        // ImmutableSet requires .values() for iteration
-        const memberSchemas = type.members.values().map(member =>
-            this.mapBaseType(member)
-        );
-
-        if (memberSchemas.length === 0) {
-            return 'z.never()';
-        }
-
-        if (memberSchemas.length === 1) {
-            return memberSchemas[0];
-        }
-
-        return `z.union([${memberSchemas.join(', ')}])`;
-    }
-
-    /**
-     * Map reference type (named type)
-     */
-    private mapReferenceType(type: ReferenceType): string {
-        // For now, treat references as unknown
-        // In future, could resolve to actual type
-        return 'z.unknown()';
-    }
-
-    /**
-     * Check if type needs Zod import
-     */
     private needsImport(type: SemanticType): boolean {
-        // All Zod schemas need 'z' import
-        return true;
+        if (type.kind === 'primitive' && this.primitiveRegistry && typeof this.primitiveRegistry.supports === 'function') {
+            return this.primitiveRegistry.supports(type as PrimitiveType);
+        }
+        const resolved = this.resolver.resolve(type);
+        return resolved.kind === 'reference';
     }
 
-    /**
-     * Get referenced type names
-     */
     private getReferencedTypes(type: SemanticType): readonly string[] {
-        if (type instanceof ReferenceType) {
-            return [type.name];
-        }
+        const resolved = this.resolver.resolve(type);
+        return this.collectReferencedTypes(resolved);
+    }
 
-        if (type instanceof ObjectType) {
-            const refs: string[] = [];
-            // ImmutableMap requires .entries() for iteration
-            for (const [, fieldType] of type.properties.entries()) {
-                refs.push(...this.getReferencedTypes(fieldType));
+    private collectReferencedTypes(resolved: ResolvedSemanticType): readonly string[] {
+        switch (resolved.kind) {
+            case 'reference':
+                return [resolved.name];
+            case 'object': {
+                const refs: string[] = [];
+                for (const [, fieldType] of resolved.fields) {
+                    refs.push(...this.collectReferencedTypes(fieldType));
+                }
+                return refs;
             }
-            return refs;
+            case 'collection':
+                return this.collectReferencedTypes(resolved.elementType);
+            case 'nullable':
+                return this.collectReferencedTypes(resolved.innerType);
+            case 'union':
+            case 'intersection':
+                return resolved.members.flatMap(m => this.collectReferencedTypes(m));
+            default:
+                return [];
         }
-
-        if (type instanceof ReadonlyCollectionType) {
-            return this.getReferencedTypes(type.elementType);
-        }
-
-        if (type instanceof UnionType) {
-            const refs: string[] = [];
-            // ImmutableSet requires .values() for iteration
-            for (const member of type.members.values()) {
-                refs.push(...this.getReferencedTypes(member));
-            }
-            return refs;
-        }
-
-        return [];
     }
 }

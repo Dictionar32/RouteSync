@@ -4,7 +4,7 @@
  */
 
 import type { RouteManifest } from '../../../core/src/types/route'
-import type { SemanticTypesArtifact } from '../../../core/src/compiler/passes/TypeScriptGeneratorPass'
+import type { SemanticTypesArtifact } from '../../../core/src/compiler/artifacts/SemanticTypesArtifact'
 import type { GeneratedTypeScriptArtifact } from '../../../core/src/compiler/artifacts/GeneratedTypeScriptArtifact'
 import type { RequestTypesArtifact } from '../../../core/src/compiler/artifacts/RequestTypesArtifact'
 import type { GeneratedFormArtifact } from '../../../core/src/compiler/artifacts/GeneratedFormArtifact'
@@ -105,7 +105,7 @@ export class CompilerBridge {
     static async generateFormTypes(manifest: RouteManifest): Promise<FormOutput> {
         console.log('[CompilerBridge] Starting form generation...')
 
-        const requestTypesArtifact = manifestToRequestTypes(manifest)
+        const requestTypesArtifact = manifestToContractInput(manifest)
         console.log(`[CompilerBridge] Extracted ${requestTypesArtifact.requestTypes.length} request types`)
 
         const pass = new FormGeneratorPass()

@@ -15,7 +15,6 @@ import {
     UnionType,
     NeverType
 } from './SemanticType';
-import { ImmutableSet } from '../utils/ImmutableCollections';
 import { TypeHasher, HashContext } from './TypeHasher';
 import { TypeHierarchy } from './TypeHierarchy';
 
@@ -77,7 +76,7 @@ export class TypeSystem {
         if (b.kind === 'never') return a;
 
         // General case: create union
-        return new UnionType(new ImmutableSet(new Set([a, b])));
+        return UnionType.of(a, b);
     }
 
     /**

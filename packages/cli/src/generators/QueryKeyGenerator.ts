@@ -31,13 +31,13 @@ export class QueryKeyGenerator {
     lines.push(`/* =========================`)
     lines.push(`   BASE FACTORY (GENERIC)`)
     lines.push(`========================= */`)
-    lines.push(`const createBaseQueryKey = <T extends EntityValue>(entity: T) => ({`)
+    lines.push(`const createBaseQueryKey = <T extends EntityValue, TId = string | number, TFilter = Record<string, unknown>>(entity: T) => ({`)
     lines.push(`  all:     ()                         => [entity] as const,`)
     lines.push(`  lists:   ()                         => [entity, "list"] as const,`)
-    lines.push(`  list:    (filters?: Record<string, unknown>) =>`)
+    lines.push(`  list:    (filters?: TFilter)        =>`)
     lines.push(`             [entity, "list", filters ?? {}] as const,`)
     lines.push(`  details: ()                         => [entity, "detail"] as const,`)
-    lines.push(`  detail:  (id: string | number)      => [entity, "detail", id] as const,`)
+    lines.push(`  detail:  (id: TId)                  => [entity, "detail", id] as const,`)
     lines.push(`})`)
     lines.push(``)
 
@@ -54,6 +54,17 @@ export class QueryKeyGenerator {
       const Title = toTypeName(groupName)
       const isCrud = !!(resource.index && resource.show)
 
+      const matchedModel = manifest.models?.find(m => {
+        const mTitle = toTypeName(m.name)
+        const mShort = toTypeName(m.shortName ?? '')
+        return mTitle === Title || mShort === Title
+          || mTitle + 's' === Title || mShort + 's' === Title
+          || Title + 's' === mTitle || Title.replace(/s$/, '') === mTitle.replace(/s$/, '')
+      })
+      const idType = matchedModel?.keySemanticType === 'number'
+        ? 'number'
+        : (matchedModel?.keySemanticType === 'string' ? 'string' : 'string | number')
+
       backwardExports.push(`export const ${groupName}Keys = QueryKey.${groupName}`)
 
       lines.push(`  /* ===== ${Title.toUpperCase()} ===== */`)
@@ -66,7 +77,7 @@ export class QueryKeyGenerator {
 
       if (isCrud) {
         lines.push(`  ${groupName}: {`)
-        lines.push(`    ...createBaseQueryKey(Entity.${KEY}),`)
+        lines.push(`    ...createBaseQueryKey<typeof Entity.${KEY}, ${idType}>(Entity.${KEY}),`)
         lines.push(...actionKeyLines)
         lines.push(`  },`)
       } else {

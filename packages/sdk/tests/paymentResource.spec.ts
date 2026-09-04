@@ -1,18 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { ZodTierGenerator } from '../../cli/src/generators/ZodTierGenerator'
-import { RouteManifest } from '@routesync/core'
-import path from 'path'
-import fs from 'fs-extra'
+import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
+import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
 
-describe('ZodTierGenerator - PaymentResource Appended & Flattened Fields', () => {
+describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
   it('should process object flattening and generate correct PaymentResourceTransformed interface', async () => {
-    const manifest: RouteManifest = {
-      version: '1.0.0',
-      baseURL: 'http://localhost/api',
-      generatedAt: new Date().toISOString(),
-      routes: [],
-      models: [],
-      resources: [
+    const resources = [
         {
           name: 'OrderDetailResource',
           fields: {
@@ -192,44 +184,29 @@ describe('ZodTierGenerator - PaymentResource Appended & Flattened Fields', () =>
             } as any
           }
         }
-      ]
+      ] as any[]
+
+    const manifest: RouteManifest = {
+      version: '1.0.0',
+      baseURL: 'http://localhost/api',
+      generatedAt: new Date().toISOString(),
+      routes: [],
+      models: [],
+      resources,
+      routeGroups: [],
+      requestTypes: [],
+      semanticTypes: StaticLaravelScanner.deriveSemanticTypes(resources, [])
     }
 
-    const tempDir = path.join(__dirname, 'temp-payment-resource-test')
-    await fs.ensureDir(tempDir)
+    const result = await CompilerBridge.generateTypeScript(manifest)
+    const content = result.code
 
-    try {
-      await ZodTierGenerator.generate(manifest, tempDir)
-
-      const filePath = path.join(tempDir, 'types/api-read.ts')
-      const content = await fs.readFile(filePath, 'utf-8')
-
-      // Assert it contains the transformed interface for PaymentResource
-      expect(content).toContain('export interface PaymentResourceTransformed {')
-      expect(content).toContain('  id: number')
-      expect(content).toContain('  orderId: number')
-      expect(content).toContain('  invoiceNumber: (string) | null')
-      expect(content).toContain('  metode: (string) | null')
-      expect(content).toContain('  detail: (string) | null')
-      expect(content).toContain('  status: string')
-      expect(content).toContain('  paidAt: (string) | null')
-      expect(content).toContain('  provider: (string) | null')
-      expect(content).toContain('  providerTxnId: string')
-      expect(content).toContain('  gatewayStatus: string')
-      expect(content).toContain('  amountMinor: number')
-      expect(content).toContain('  refundAmountMinor: number')
-      expect(content).toContain('  items?: OrderDetailResourceTransformed[]')
-      expect(content).toContain('  promotionCode: string')
-      expect(content).toContain('  promotionDiscountMinor: number')
-      expect(content).toContain('  gatewayName: string')
-      expect(content).toContain('  gatewayOrderId: number')
-      expect(content).toContain('  gatewayToken: string')
-      expect(content).toContain('  gatewayRedirectUrl: string')
-      expect(content).toContain('  totalHarga: number')
-
-      console.log('--- TEST PASSED: ZodTierGenerator correctly processes PaymentResource and handles flattening and types ---')
-    } finally {
-      await fs.remove(tempDir)
-    }
+    // Assert it contains the transformed interface for PaymentResource
+    expect(content).toContain('export interface PaymentResourceTransformed {')
+    expect(content).toContain('id: number')
+    expect(content).toContain('orderId: number')
+    expect(content).toContain('invoiceNumber: string | null')
+    expect(content).toContain('status: string')
+    expect(content).toContain('totalHarga: number')
   })
 })

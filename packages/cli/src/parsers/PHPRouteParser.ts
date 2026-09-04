@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { ParsedRoute } from '@routesync/core'
+import { ParsedRoute, ScannedRouteDescriptor, HttpMethod } from '@routesync/core'
 
 /**
  * Parser for simple native PHP routing patterns.
@@ -21,13 +21,30 @@ export class PHPRouteParser {
     let match
 
     while ((match = arrowPattern.exec(content)) !== null) {
-      routes.push({
-        name: match[2].replace(/^\//, '').replace(/\//g, '.'),
-        method: match[1].toUpperCase(),
-        path: match[2],
+      const rawPath = match[2]
+      const method = match[1].toUpperCase() as HttpMethod
+      const cleanPath = rawPath.replace(/^\/api\/?/i, '').replace(/^\//, '')
+      const resourceName = cleanPath.split('/')[0] || 'App'
+
+      let actionKind: RouteActionKind = 'read'
+      if (method === 'POST') {
+        actionKind = 'create'
+      } else if (method === 'PUT' || method === 'PATCH') {
+        actionKind = 'update'
+      } else if (method === 'DELETE') {
+        actionKind = 'delete'
+      }
+
+      routes.push(new ScannedRouteDescriptor({
+        method,
+        path: rawPath,
+        resourceName,
+        actionName: method.toLowerCase(),
+        actionKind,
+        isMutating: method !== 'GET',
         auth: false,
         middleware: []
-      })
+      }))
     }
 
     return routes

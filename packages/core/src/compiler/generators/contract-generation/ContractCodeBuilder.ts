@@ -368,7 +368,8 @@ export class ContractCodeBuilder {
         lines.push(`export const ${resourceName}ContractSchema = {`);
 
         actions.forEach((action, index) => {
-            action.schemaLines.forEach(line => {
+            const schemaLines = (action as any).schemaLines ?? ((action as any).schemaCode ? [(action as any).schemaCode] : []);
+            schemaLines.forEach((line: string) => {
                 lines.push(line);
             });
 
@@ -380,6 +381,10 @@ export class ContractCodeBuilder {
         });
 
         lines.push('};');
+        const pascalSchema = `${toPascalCase(resourceName)}ContractSchema`;
+        if (pascalSchema !== `${resourceName}ContractSchema`) {
+            lines.push(`export const ${pascalSchema} = ${resourceName}ContractSchema;`);
+        }
     }
 
     /**

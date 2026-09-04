@@ -102,7 +102,12 @@ export class ExpressionResolver implements ResolverPlugin {
     }
 
     if (meta.kind === 'literal') {
-      const t = meta.type === 'number' ? 'number' : meta.type === 'boolean' ? 'boolean' : 'string';
+      let t = 'string';
+      if (meta.type === 'number') {
+        t = 'number';
+      } else if (meta.type === 'boolean') {
+        t = 'boolean';
+      }
       return {
         status: 'resolved',
         type: t,
@@ -148,7 +153,12 @@ export class ExpressionResolver implements ResolverPlugin {
     }
 
     if (meta.kind === 'type_cast') {
-      const t = meta.type === 'number' ? 'number' : meta.type === 'boolean' ? 'boolean' : 'string';
+      let t = 'string';
+      if (meta.type === 'number') {
+        t = 'number';
+      } else if (meta.type === 'boolean') {
+        t = 'boolean';
+      }
       const trace: TraceNode[] = [{
         source: 'ExpressionResolver',
         rule: `Type cast to ${meta.type}`,

@@ -5,6 +5,7 @@ import {
     PrimitiveType,
     ReferenceType,
     ObjectType,
+    SemanticTypeBase,
     type SemanticType
 } from '../../types/SemanticType'
 import { ImmutableMap, ImmutableSet } from '../../utils/ImmutableCollections'
@@ -211,9 +212,9 @@ describe('ContractGenerator Domain Stage-by-Stage Flow Boundary Tests', () => {
     })
 
     test('Transformation Flow: convertSingleResponseField extracts kind at origin boundary and handles unsupported kind returning EMPTY_FIELDS singleton (toBe)', () => {
-        const unsupportedType: SemanticType = {
-            kind: 'unsupported_custom_kind'
-        } as unknown as SemanticType
+        const unsupportedType = new class extends SemanticTypeBase {
+            public override readonly kind = 'unsupported_custom_kind' as unknown as SemanticType['kind']
+        }() as SemanticType
 
         const result = convertSingleResponseField('badField', unsupportedType)
 

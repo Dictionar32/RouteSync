@@ -52,6 +52,43 @@ export interface ClassifiedRoute {
   crudRole: CrudRole
 }
 
+export interface ScannedClassifiedRouteParams {
+  readonly raw: ParsedRoute
+  readonly groupName: string
+  readonly actionName: string
+  readonly runtimePath: string
+  readonly method: string
+  readonly hasParams: boolean
+  readonly hasTrailingParam: boolean
+  readonly crudRole: CrudRole
+}
+
+/**
+ * Reusable Constructor: Scanned Classified Route Descriptor.
+ */
+export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {
+  public readonly raw: ParsedRoute
+  public readonly groupName: string
+  public readonly actionName: string
+  public readonly runtimePath: string
+  public readonly method: string
+  public readonly hasParams: boolean
+  public readonly hasTrailingParam: boolean
+  public readonly crudRole: CrudRole
+
+  constructor(params: ScannedClassifiedRouteParams) {
+    this.raw = params.raw
+    this.groupName = params.groupName
+    this.actionName = params.actionName
+    this.runtimePath = params.runtimePath
+    this.method = params.method
+    this.hasParams = params.hasParams
+    this.hasTrailingParam = params.hasTrailingParam
+    this.crudRole = params.crudRole
+    Object.freeze(this)
+  }
+}
+
 export interface ResourceCrudMap {
   groupName: string
   /** GET /resource */
@@ -127,7 +164,9 @@ export function deriveGroupName(path: string): string {
 function classifyCrudRole(method: string, hasTrailingParam: boolean, paramCount: number): CrudRole {
   switch (method) {
     case 'GET':
-      return (hasTrailingParam && paramCount === 1) ? 'show' : (!hasTrailingParam && paramCount === 0) ? 'index' : 'custom'
+      if (hasTrailingParam && paramCount === 1) return 'show'
+      if (!hasTrailingParam && paramCount === 0) return 'index'
+      return 'custom'
     case 'POST':
       return (!hasTrailingParam && paramCount === 0) ? 'create' : 'custom'
     case 'PUT':
@@ -168,18 +207,14 @@ export function classifyRoutes(
 
   return routes.map(route => {
     const method = route.method.toUpperCase()
-    const segments = route.path.replace(/^\//, '').split('/').filter(Boolean)
-    const hasParams = segments.some(isDynamic)
-    const hasTrailingParam = segments.length > 0 && isDynamic(segments[segments.length - 1])
-    const paramCount = segments.filter(isDynamic).length
-
-    const derivedGroup = deriveGroupName(route.path)
-    const groupName = groupAliases?.[derivedGroup] ?? derivedGroup
-    const role = classifyCrudRole(method, hasTrailingParam, paramCount)
+    const groupName = groupAliases?.[route.groupName] ?? route.groupName
+    const role = (route.crudRole as CrudRole) || 'custom'
+    const runtimePath = route.runtimePath
+    const hasParams = route.pathParameters ? route.pathParameters.length > 0 : false
+    const hasTrailingParam = role === 'show' || role === 'update' || role === 'delete'
 
     // Build action name: start from role canonical name
     let baseAction = ROLE_ACTION[role]
-    // For "custom" routes, prefer the lowercased method as base
     if (role === 'custom') baseAction = method.toLowerCase()
 
     if (!usedActions.has(groupName)) usedActions.set(groupName, new Set())
@@ -193,16 +228,16 @@ export function classifyRoutes(
     }
     used.add(actionName)
 
-    return {
+    return new ScannedClassifiedRouteDescriptor({
       raw: route,
       groupName,
       actionName,
-      runtimePath: toRuntimePath(route.path),
+      runtimePath,
       method,
       hasParams,
       hasTrailingParam,
       crudRole: role,
-    }
+    })
   })
 }
 

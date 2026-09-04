@@ -20,7 +20,6 @@ import type { LoweredTypeArtifact } from './LoweredTypeArtifact';
 import type { DiagnosticArtifact } from './DiagnosticArtifact';
 import type { DependencyGraphArtifact } from './DependencyGraphArtifact';
 import type { SemanticIRArtifact } from './SemanticIRArtifact';
-import type { ContractGraphArtifact } from './ContractGraphArtifact';
 import type { CompilationResultArtifact } from './CompilationResultArtifact';
 
 // Response analysis artifacts (Laravel-specific)
@@ -30,9 +29,6 @@ import type { ResponseAnalysisArtifact } from './ResponseAnalysisArtifact';
 
 // TypeScript generation artifact
 import type { GeneratedTypeScriptArtifact } from './GeneratedTypeScriptArtifact';
-
-// Import at top
-import type { SemanticTypesArtifact } from '../passes/TypeScriptGeneratorPass';
 
 // Form generation artifacts
 import type { RequestTypesArtifact } from './RequestTypesArtifact';
@@ -45,6 +41,11 @@ import type { GeneratedApiFieldArtifact } from './GeneratedApiFieldArtifact';
 // Mapper generation artifact
 import type { GeneratedMapperArtifact } from './GeneratedMapperArtifact';
 
+import type { ResourceTypesArtifact } from './ResourceTypesArtifact';
+
+import type { ResourceMappersArtifact } from './ResourceMappersArtifact';
+
+import type { SemanticTypesArtifact } from './SemanticTypesArtifact';
 /**
  * Central artifact registry mapping keys to concrete artifact types.
  * 
@@ -63,7 +64,6 @@ export interface ArtifactRegistry {
     DiagnosticSnapshot: DiagnosticArtifact;
     DependencyGraph: DependencyGraphArtifact;
     SemanticIR: SemanticIRArtifact;
-    ContractGraph: ContractGraphArtifact;
     CompilationResult: CompilationResultArtifact;
 
     // Laravel/HTTP Response Analysis Artifacts
@@ -76,7 +76,8 @@ export interface ArtifactRegistry {
     RouteAnalysis: RouteArtifact;
 
     // ✨ NEW: TypeScript Generation Artifact
-    SemanticTypes: SemanticTypesArtifact;
+    SemanticTypes: SemanticTypesArtifact; 
+    ResourceTypes: ResourceTypesArtifact;
     GeneratedTypeScript: GeneratedTypeScriptArtifact;
 
     // ✨ NEW: Form Generation Artifacts
@@ -88,8 +89,28 @@ export interface ArtifactRegistry {
     GeneratedApiField: GeneratedApiFieldArtifact;
 
     // ✨ NEW: Mapper Generation Artifact
+    ResourceMappers: ResourceMappersArtifact;
     GeneratedMapper: GeneratedMapperArtifact;
 }
+
+/**
+ * ArtifactTypeId
+ *
+ * Canonical Domain Vocabulary for Compiler Artifact Type Identifiers.
+ */
+export const ArtifactTypeId = Object.freeze({
+    SemanticTypes: 'SemanticTypes',
+    RequestTypes: 'RequestTypes',
+    GeneratedTypeScript: 'GeneratedTypeScript',
+    GeneratedForm: 'GeneratedForm',
+    GeneratedContract: 'GeneratedContract',
+    GeneratedMapper: 'GeneratedMapper',
+    ResourceTypes: 'ResourceTypes',
+    ResourceMappers: 'ResourceMappers',
+    RouteManifest: 'RouteManifest'
+} as const);
+
+export type ArtifactTypeId = typeof ArtifactTypeId[keyof typeof ArtifactTypeId];
 
 /**
  * Valid artifact keys (string literal union)

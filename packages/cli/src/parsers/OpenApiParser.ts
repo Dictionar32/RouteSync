@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { ParsedRoute } from '@routesync/core'
+import { ParsedRoute, ScannedRouteDescriptor, HttpMethod } from '@routesync/core'
 
 export class OpenApiParser {
   async parse(filePath: string): Promise<ParsedRoute[]> {
@@ -16,15 +16,30 @@ export class OpenApiParser {
         for (const [method, operation] of Object.entries(methods as Record<string, unknown>)) {
           if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
             const op = operation as Record<string, unknown>
-            const auth = Object.keys(op.security as Record<string, unknown> ?? {}).length > 0
+            const auth = Object.keys((op.security as Record<string, unknown>) ?? {}).length > 0
+            const upperMethod = method.toUpperCase() as HttpMethod
+            const cleanPath = path.replace(/^\/api\/?/i, '').replace(/^\//, '')
+            const resourceName = cleanPath.split('/')[0] || 'App'
 
-            routes.push({
-              name: (op.operationId as string) ?? `${method}.${path}`,
-              method: method.toUpperCase(),
+            let actionKind: RouteActionKind = 'read'
+            if (upperMethod === 'POST') {
+              actionKind = 'create'
+            } else if (upperMethod === 'PUT' || upperMethod === 'PATCH') {
+              actionKind = 'update'
+            } else if (upperMethod === 'DELETE') {
+              actionKind = 'delete'
+            }
+
+            routes.push(new ScannedRouteDescriptor({
+              method: upperMethod,
               path,
+              resourceName,
+              actionName: (op.operationId as string) || upperMethod.toLowerCase(),
+              actionKind,
+              isMutating: upperMethod !== 'GET',
               auth,
               middleware: []
-            })
+            }))
           }
         }
       }

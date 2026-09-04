@@ -1,8 +1,9 @@
 /**
  * ApiFieldGeneratorPass.ts
  *
- * Compiler pass that collects field names across RequestTypes and generates contracts/api-field.ts.
- * 
+ * Compiler pass that collects unique field names across RequestTypes and generates api-field.ts constants.
+ * Flow-based pipeline consuming pure domain operations.
+ *
  * @module compiler/passes
  */
 
@@ -16,6 +17,10 @@ import {
     formatApiFieldConstant,
     buildApiFieldArtifact
 } from './api-field-domain';
+
+export interface ApiFieldGeneratorPassDependencies {
+    readonly exportConstName?: string;
+}
 
 export class ApiFieldGeneratorPass
     implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedApiField']> {
@@ -38,17 +43,21 @@ export class ApiFieldGeneratorPass
 
     public readonly requires: readonly PassDependency<'RequestTypes'>[] = [
         {
-            artifact: 'RequestTypes',
-            producer: undefined
+            artifact: 'RequestTypes'
         }
     ];
 
     public readonly producesPass: readonly string[] = [];
 
-    /**
-     * Flow Declaration:
-     *   inputs → extractFieldNames → deduplicateFieldNames → formatApiFieldConstant → buildApiFieldArtifact
-     */
+    public readonly exportConstName: string;
+
+    constructor({
+        exportConstName = 'ApiApiField'
+    }: ApiFieldGeneratorPassDependencies = {}) {
+        this.exportConstName = exportConstName;
+        Object.freeze(this);
+    }
+
     public run(
         inputs: ResolveArtifacts<readonly ['RequestTypes']>
     ): ResolveArtifacts<readonly ['GeneratedApiField']> {
@@ -56,8 +65,8 @@ export class ApiFieldGeneratorPass
 
         const extracted = extractFieldNames(requestTypesArtifact);
         const unique = deduplicateFieldNames(extracted);
-        const code = formatApiFieldConstant(unique);
-        const artifact = buildApiFieldArtifact(code, this.name);
+        const code = formatApiFieldConstant(unique, this.exportConstName);
+        const artifact = buildApiFieldArtifact(code, requestTypesArtifact.metadata);
 
         return [artifact];
     }

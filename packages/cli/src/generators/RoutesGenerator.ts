@@ -18,6 +18,46 @@ function findNodeModulesRouteSync(outputDir: string): string | null {
   return null
 }
 
+export interface ScannedPageEndpointParams {
+  readonly path: string
+  readonly query: readonly string[]
+  readonly params: readonly string[]
+}
+
+/**
+ * Reusable Constructor: Scanned Page Endpoint Descriptor.
+ */
+export class ScannedPageEndpointDescriptor {
+  public readonly path: string
+  public readonly query: readonly string[]
+  public readonly params: readonly string[]
+
+  constructor(params: ScannedPageEndpointParams);
+  constructor(params: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[] });
+  constructor({ path, query = [], params = [] }: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[] }) {
+    this.path = path
+    this.query = Object.freeze([...query])
+    this.params = Object.freeze([...params])
+    Object.freeze(this)
+  }
+
+  public static create(params: { readonly path: string; readonly query?: readonly string[]; readonly params?: readonly string[] }): ScannedPageEndpointDescriptor {
+    return new ScannedPageEndpointDescriptor({
+      path: params.path,
+      query: params.query ?? [],
+      params: params.params ?? []
+    })
+  }
+
+  public static simple(path: string): ScannedPageEndpointDescriptor {
+    return new ScannedPageEndpointDescriptor({
+      path,
+      query: [],
+      params: []
+    })
+  }
+}
+
 export class RoutesGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<boolean> {
     try {
@@ -59,11 +99,11 @@ export class RoutesGenerator {
           params.push(match[1] || match[2])
         }
 
-        current[lastSeg] = {
+        current[lastSeg] = new ScannedPageEndpointDescriptor({
           path: pagePath,
           query: queryKeys,
           params
-        }
+        })
       }
 
       const serializeTree = (tree: any, indent: string = '  '): { js: string[], dts: string[] } => {
@@ -71,8 +111,8 @@ export class RoutesGenerator {
         const dtsLines: string[] = []
         
         for (const [key, val] of Object.entries(tree)) {
-          if (val && typeof val === 'object' && 'path' in val) {
-            const page = val as { path: string; query: string[]; params: string[] }
+          if (val instanceof ScannedPageEndpointDescriptor || (val && typeof val === 'object' && 'path' in val)) {
+            const page = val as ScannedPageEndpointDescriptor
             const allKeys = [...page.params, ...page.query]
             
             if (allKeys.length > 0) {

@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, RoutePayloadMode } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { classifyRoutes } from './route-classifier'
@@ -37,34 +37,86 @@ export class NextActionGenerator {
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const actionFnName = `${groupName}${TitleCaseAction}Action`
 
-        const pathParams = Array.from(route.runtimePath.matchAll(/:([a-zA-Z0-9_]+)/g)).map(m => m[1])
+        const pathParams = route.raw.pathParameters ? route.raw.pathParameters.map(p => p.propertyName) : []
         const hasParams = pathParams.length > 0
-        const hasBody = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(route.method)
-          && route.raw.schema?.rules
-          && Object.keys(route.raw.schema.rules).length > 0
-        const hasQuery = route.method === 'GET' || route.method === 'DELETE'
+        const hasBody = Boolean(
+          (route.raw.requestContentType && route.raw.requestContentType !== 'none') ||
+          (route.raw.isMutating && route.raw.schema && route.raw.schema.rules)
+        )
+        const hasQuery = Boolean(
+          (route.raw.queryParameters && route.raw.queryParameters.length > 0) ||
+          route.method === 'GET' ||
+          route.method === 'DELETE'
+        )
 
-        const requiresPayload = hasParams || hasBody || hasQuery
-        const payloadRequired = hasParams || hasBody
-        
-        const fnParam = requiresPayload
-          ? `payload${payloadRequired ? '' : '?'}: Parameters<typeof api.${groupName}.${route.actionName}>[0]`
-          : ''
+        let payloadMode: RoutePayloadMode = RoutePayloadMode.None
+        switch (hasParams || hasBody) {
+          case true:
+            payloadMode = RoutePayloadMode.Required
+            break;
+          case false: {
+            switch (hasQuery) {
+              case true:
+                payloadMode = RoutePayloadMode.Optional
+                break;
+              case false:
+                payloadMode = RoutePayloadMode.None
+                break;
+            }
+            break;
+          }
+        }
 
         const callArgs: string[] = []
-        if (hasParams) callArgs.push(`params: payload.params`)
-        if (hasQuery) callArgs.push(`query: payload?.query`)
-        if (hasBody) callArgs.push(`body: payload.body`)
-        if (route.raw.auth) callArgs.push(`headers: await getAuthHeaders()`)
+        switch (hasParams) {
+          case true:
+            callArgs.push(`params: payload.params`)
+            break;
+          case false:
+            break;
+        }
+        switch (hasQuery) {
+          case true:
+            callArgs.push(`query: payload?.query`)
+            break;
+          case false:
+            break;
+        }
+        switch (hasBody) {
+          case true:
+            callArgs.push(`body: payload.body`)
+            break;
+          case false:
+            break;
+        }
+        switch (Boolean(route.raw.auth)) {
+          case true:
+            callArgs.push(`headers: await getAuthHeaders()`)
+            break;
+          case false:
+            break;
+        }
 
         const argsStr = callArgs.length > 0 ? `{ ${callArgs.join(', ')} }` : ''
 
-        lines.push(`export async function ${actionFnName}(${fnParam}) {`)
+        switch (payloadMode) {
+          case RoutePayloadMode.None:
+            lines.push(`export async function ${actionFnName}() {`)
+            break;
+          case RoutePayloadMode.Required:
+            lines.push(`export async function ${actionFnName}(payload: Parameters<typeof api.${groupName}.${route.actionName}>[0]) {`)
+            break;
+          case RoutePayloadMode.Optional:
+            lines.push(`export async function ${actionFnName}(payload?: Parameters<typeof api.${groupName}.${route.actionName}>[0]) {`)
+            break;
+        }
+
         lines.push(`  try {`)
         lines.push(`    const data = await api.${groupName}.${route.actionName}(${argsStr})`)
         lines.push(`    return { success: true, data }`)
         lines.push(`  } catch (error: unknown) {`)
-        lines.push(`    return { success: false, error: error instanceof Error ? error.message : String(error) }`)
+        lines.push(`    const message = error instanceof Error ? error.message : String(error)`)
+        lines.push(`    return { success: false, error: message }`)
         lines.push(`  }`)
         lines.push(`}`)
         lines.push(``)

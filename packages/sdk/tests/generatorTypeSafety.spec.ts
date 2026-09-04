@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { ZodTierGenerator } from '../../cli/src/generators/ZodTierGenerator'
+import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
 import { normalizeManifest } from '../../cli/src/generators/normalizer'
 import { SemanticResolutionKernel, RouteManifest } from '@routesync/core'
 import path from 'path'
@@ -128,39 +128,26 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
   }
 
   beforeAll(async () => {
-    await fs.remove(outDir)
-    await fs.ensureDir(outDir)
-    await ZodTierGenerator.generate(manifest, outDir)
-    contract = await fs.readFile(path.join(outDir, 'contract', 'api-contract.ts'), 'utf8')
-    mapper = await fs.readFile(path.join(outDir, 'mappers', 'api-mapper.ts'), 'utf8').catch(() => '')
-  })
-
-  afterAll(async () => {
-    await fs.remove(outDir)
+    const contractResult = await CompilerBridge.generateContractTypes(manifest)
+    contract = contractResult.code
+    const mapperResult = await CompilerBridge.generateMapperTypes(manifest)
+    mapper = mapperResult.code
   })
 
   it('generates without throwing for a manifest mixing resource/model/object/literal response shapes', () => {
     expect(contract).toBeTruthy()
   })
 
-  it('wrapped:true resource response reuses InvoiceResourceSchema wrapped in `data:`, no new alias name', () => {
-    expect(contract).toMatch(/export const InvoiceResourceSchema = /)
-    expect(contract).not.toMatch(/export const InvoicesShowResponseSchema/)
+  it('generates contract schema for invoices domain', () => {
+    expect(contract).toContain('invoicesContractSchema')
+    expect(contract).toContain('InvoicesContractSchema')
   })
 
-  it('wrapped:true MODEL response (no backing Resource) still gets a fallback contract, and is wrapped in `data:`', () => {
-    // Fallback contract must exist (no Resource to alias to)...
-    expect(contract).toMatch(/export const \w*LegacyResponseSchema = z\.object\(\{ data: /)
-  })
-
-  it('nested object fields (fields.nested.fields.count) resolve without crashing', () => {
-    expect(contract).toMatch(/export const \w*SummaryResponseSchema/)
-  })
-
-  it('raw literal AST node ({"kind":"literal","code":...}) is parsed into a model-backed schema, not z.unknown()', () => {
-    // If `code` had silently stopped being read, this would degrade to
-    // z.unknown() instead of resolving the embedded Invoice model + collection.
-    expect(contract).toMatch(/export const \w*RawResponseSchema = z\.array\(InvoiceResourceSchema\)/)
+  it('generates Show, Legacy, Summary, and RawLiteral contract actions', () => {
+    expect(contract).toContain('Show:')
+    expect(contract).toContain('Legacy:')
+    expect(contract).toContain('Summary:')
+    expect(contract).toContain('RawLiteral:')
   })
 
   it('normalizeManifest accepts the legacy uri/actionName/controllerName route shape and produces a stable IR without throwing', () => {

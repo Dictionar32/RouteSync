@@ -56,3 +56,9 @@ export {
     PassResult,
     AnalysisKey
 } from './PassResult';
+
+// Concrete compiler passes
+export {
+    TypeScriptGeneratorPass,
+    CompilerPassName
+} from './TypeScriptGeneratorPass';

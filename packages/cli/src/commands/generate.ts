@@ -170,15 +170,6 @@ export const generateCommand = new Command('generate')
         await ModelGenerator.generate(manifest, options.output)
       }
 
-      if (options.zod && !compilerBridgeSuccess) {
-        spinner.text = 'Generating Zod Tier (Contract, Types, Mappers)...'
-        const { ZodTierGenerator } = require('../generators/ZodTierGenerator')
-        await ZodTierGenerator.generate(manifest, options.output)
-      } else if (!compilerBridgeSuccess) {
-        spinner.text = 'Generating legacy schemas.ts...'
-        const { SchemaGenerator } = require('../generators/SchemaGenerator')
-        await SchemaGenerator.generate(manifest, options.output)
-      }
 
       // Generate routes.ts if pages exists in manifest
       spinner.text = 'Generating Frontend Routes...'

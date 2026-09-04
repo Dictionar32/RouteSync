@@ -3,10 +3,11 @@ import { manifestToSemanticTypes, manifestToContractInput } from '../../cli/src/
 import { TypeScriptGeneratorPass } from '../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import { MapperGeneratorPass } from '../../core/src/compiler/passes/MapperGeneratorPass'
 import { RouteManifest } from '../../core/src/types/route'
+import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/StaticLaravelScanner'
 
 describe('Regression Test: Structure Preserved snake_case -> camelCase Transformation (inlineModelCollectionCamelCase)', () => {
     test('should preserve object nesting & array topology while converting snake_case fields to camelCase', () => {
-        const manifest: RouteManifest = {
+        const manifest: RouteManifest = ScannedRouteManifestDescriptor.create({
             routes: [
                 {
                     domain: 'ProdukReviews',
@@ -57,12 +58,11 @@ describe('Regression Test: Structure Preserved snake_case -> camelCase Transform
                     ]
                 }
             ]
-        }
+        })
 
         // 1. Run TypeScriptGeneratorPass for api-read.ts
         const semanticTypes = manifestToSemanticTypes(manifest)
-        const tsPass = new TypeScriptGeneratorPass()
-        const [tsArtifact] = tsPass.run([semanticTypes])
+        const [tsArtifact] = TypeScriptGeneratorPass.run(semanticTypes)
 
         // Verify Object Flattening & Array Preservation in api-read.ts
         expect(tsArtifact.code).toContain('export interface ProdukReviewsTransformed {')
@@ -80,8 +80,7 @@ describe('Regression Test: Structure Preserved snake_case -> camelCase Transform
 
         // 2. Run MapperGeneratorPass for api-mapper.ts
         const contractInput = manifestToContractInput(manifest)
-        const mapperPass = new MapperGeneratorPass()
-        const [mapperArtifact] = mapperPass.run([contractInput])
+        const [mapperArtifact] = MapperGeneratorPass.run(contractInput)
 
         // Verify Mapper transformation in api-mapper.ts
         expect(mapperArtifact.code).toContain('export const toProdukReviewsRead = (api: ProdukReviewsApiResponse): ProdukReviewsTransformed => ({')

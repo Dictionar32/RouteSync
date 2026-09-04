@@ -47,6 +47,20 @@ import { TypedArtifact } from '../artifacts/Artifact';
  * }
  * ```
  */
+/**
+ * InferenceMethod
+ *
+ * Canonical Domain Vocabulary identifying the response analysis inference method.
+ */
+export const InferenceMethod = Object.freeze({
+    Explicit: 'explicit',
+    Inferred: 'inferred',
+    Heuristic: 'heuristic',
+    Fallback: 'fallback'
+} as const);
+
+export type InferenceMethod = typeof InferenceMethod[keyof typeof InferenceMethod];
+
 export interface ConfidenceScore {
     /** Score 0.0-1.0 (1.0 = fully confident, 0.0 = pure guess) */
     readonly score: number;
@@ -55,12 +69,30 @@ export interface ConfidenceScore {
     readonly reasons: readonly string[];
 
     /** Inference method used */
-    readonly method: 'explicit' | 'inferred' | 'heuristic' | 'fallback';
+    readonly method: InferenceMethod;
 }
 
 // ============================================================================
 // RESPONSE DESCRIPTOR (Pure HTTP Transport)
 // ============================================================================
+
+/**
+ * TransportKind
+ *
+ * Canonical Domain Vocabulary identifying the HTTP response transport mechanism.
+ */
+export const TransportKind = Object.freeze({
+    Resource: 'resource',
+    Model: 'model',
+    Json: 'json',
+    Primitive: 'primitive',
+    Binary: 'binary',
+    Stream: 'stream',
+    Redirect: 'redirect',
+    Empty: 'empty'
+} as const);
+
+export type TransportKind = typeof TransportKind[keyof typeof TransportKind];
 
 /**
  * ResponseDescriptor: Pure HTTP transport metadata
@@ -72,15 +104,7 @@ export interface ResponseDescriptor {
     /**
      * Transport mechanism type
      */
-    readonly transport:
-    | "resource"    // Laravel Resource transformation
-    | "model"       // Eloquent model mentah
-    | "json"        // response()->json([...])
-    | "primitive"   // return string/bool/int
-    | "binary"      // file/download (unified!)
-    | "stream"      // chunked transfer
-    | "redirect"    // route redirect
-    | "empty";      // no content
+    readonly transport: TransportKind;
 
     /** HTTP status code */
     readonly status?: number;
@@ -174,7 +198,7 @@ export interface ObjectBody {
  */
 export interface PrimitiveBody {
     readonly type: "primitive";
-    readonly primitiveType: "string" | "number" | "boolean" | "null";
+    readonly primitiveType: "string" | "number" | "boolean" | "null" | "void";
 
     /** Primitives always single */
     readonly shape: "single";
@@ -270,6 +294,14 @@ export class ResponseArtifact extends TypedArtifact<'ResponseArtifact'> {
         public readonly metadata: ArtifactMetadata,
     ) {
         super();
+    }
+
+    public get responseBody(): ResponseBody {
+        return this.body!;
+    }
+
+    public isCollection(): boolean {
+        return this.body?.shape === 'collection' || this.body?.shape === 'paginated';
     }
 }
 

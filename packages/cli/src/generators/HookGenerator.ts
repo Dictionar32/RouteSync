@@ -7,7 +7,7 @@ import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-class
 import { ResponseAnalysisHelper } from './response-analysis-helper'
 
 export class HookGenerator {
-  static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
+  static async generate(manifest: RouteManifest, outputDir?: string): Promise<string> {
     const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const resources = buildResourceMap(classified)
 
@@ -18,35 +18,7 @@ export class HookGenerator {
     const knownModels = new Set(manifest.models?.map(m => m.name) || [])
     const knownResources = new Set(manifest.resources?.map(r => r.name) || [])
 
-    function resolveBaseResponseName(rawMeta: any): string | null {
-      if (!rawMeta) return null
-      const meta = {
-        ...(rawMeta.resolved || rawMeta.semantic || rawMeta),
-        collection: rawMeta.collection ?? rawMeta.resolved?.collection ?? rawMeta.semantic?.collection,
-        paginated: rawMeta.paginated ?? rawMeta.resolved?.paginated ?? rawMeta.semantic?.paginated
-      }
-      if (meta.kind === 'unknown') return null
 
-      const resolvedKind = meta.kind || meta.type
-      if (resolvedKind === 'model') {
-        const modelName = meta.model
-        const resourceName = `${meta.model}Resource`
-        if (knownResources.has(resourceName)) {
-          return resourceName
-        } else if (knownModels.has(modelName)) {
-          return modelName
-        }
-        return modelName
-      } else if (resolvedKind === 'resource') {
-        return meta.resource || null
-      } else if (resolvedKind === 'object' && meta.fields) {
-        for (const val of Object.values(meta.fields)) {
-          const name = resolveBaseResponseName(val)
-          if (name) return name
-        }
-      }
-      return null
-    }
 
     const importedTypes = new Set<string>()
     const contractImportedTypes = new Set<string>()
@@ -117,6 +89,14 @@ export class HookGenerator {
       const resolveResponseType = (route?: any): string => {
         if (!route) return 'never'
 
+        if (route.raw?.response?.readTypeName) {
+          const readType = route.raw.response.readTypeName
+          if (readType !== 'void' && readType !== 'unknown') {
+            importedTypes.add(readType)
+          }
+          return readType
+        }
+
         const responseInfo = resolveResponseInfo(route.raw.response)
         if (!responseInfo) {
           if (!route.raw.response) return 'never'
@@ -179,97 +159,52 @@ export class HookGenerator {
         }
       }
 
-      const addCrossResourceInvalidations = (actionName: string, invs: string[]): void => {
-        // 1. Self-invalidation: mutasi → invalidate read queries resource sendiri
-        const selfRes = resources.get(groupName)
-        if (selfRes && actionName !== 'get' && actionName !== 'list') {
-          if (selfRes.index) {
-            const suffix = selfRes.show ? 'lists' : 'list'
-            pushUnique(invs, `          QueryKey.${groupName}.${suffix},`)
-          }
-          // Custom GET routes (e.g., produkReviews.get) juga di-invalidate
-          for (const r of (selfRes.all || [])) {
-            if (r.method === 'GET' && r.actionName !== 'list') {
-              pushUnique(invs, `          QueryKey.${groupName}.${r.actionName},`)
-            }
-          }
-        }
-
-        // 2. Cross-resource via shared response model
-        const myModel = resourceResponseModels.get(groupName)
-        if (myModel) {
-          for (const [otherGroup, otherModel] of resourceResponseModels) {
-            if (otherGroup !== groupName && otherModel === myModel) {
-              const otherRes = resources.get(otherGroup)
-              if (otherRes?.index) {
-                const s = otherRes.show ? 'lists' : 'list'
-                pushUnique(invs, `          QueryKey.${otherGroup}.${s},`)
-              }
-            }
-          }
-        }
-
-        // 3. Sub-resource: adminProduk → produk (groupName prefix match)
-        for (const [otherGroup, otherRes] of resources) {
-          if (otherGroup !== groupName && groupName.includes(otherGroup) && otherRes.index) {
-            const s = otherRes.show ? 'lists' : 'list'
-            pushUnique(invs, `          QueryKey.${otherGroup}.${s},`)
-          }
-        }
-
-        // 4. Logout → invalidate semua resource yang auth-protected
-        if (groupName === 'logout') {
-          for (const g of authGroups) {
-            if (g === groupName) continue
-            const res = resources.get(g)
-            if (!res || !res.index) continue
-            const suffix = res.show ? 'lists' : 'list'
-            pushUnique(invs, `          QueryKey.${g}.${suffix},`)
-          }
-        }
-
-        // 5. Eloquent relation traversal — belongsTo/hasOne/hasMany
-        //    When mutating a model, invalidate queries that return related models
-        const responseModel = resourceResponseModels.get(groupName)
-        if (responseModel && modelRelations[responseModel]) {
-          const relations = modelRelations[responseModel]
-          for (const [, rel] of Object.entries(relations)) {
-            // belongsTo: this model belongs to Parent → invalidate parent queries
-            // e.g., Payment belongsTo Order → payment.post invalidates orders.*
-            if (rel.type === 'belongsTo' && rel.model !== responseModel) {
-              const parentGroups = modelToGroups.get(rel.model)
-              if (parentGroups) {
-                for (const pg of parentGroups) {
-                  if (pg === groupName) continue
-                  const parentRes = resources.get(pg)
-                  if (parentRes?.index) {
-                    const s = parentRes.show ? 'lists' : 'list'
-                    pushUnique(invs, `          QueryKey.${pg}.${s},`)
-                  }
-                  if (parentRes?.show) {
-                    pushUnique(invs, `          QueryKey.${pg}.detail,`)
-                  }
+      const addCrossResourceInvalidations = (actionRouteOrName: any, invs: string[]): void => {
+        let route = actionRouteOrName;
+        switch (typeof actionRouteOrName === 'string') {
+          case true: {
+            const byKey = resource[actionRouteOrName];
+            switch (byKey !== undefined) {
+              case true:
+                route = byKey;
+                break;
+              case false: {
+                const found = resource.all?.find((r: any) => r.actionName === actionRouteOrName);
+                switch (found !== undefined) {
+                  case true:
+                    route = found;
+                    break;
+                  case false:
+                    break;
                 }
+                break;
               }
             }
-            // hasOne / hasMany: this model has children → invalidate child queries
-            // e.g., ProdukItem hasMany Wishlist → adminProduk.create invalidates wishlist.*
-            if ((rel.type === 'hasOne' || rel.type === 'hasMany') && rel.model !== responseModel) {
-              const childGroups = modelToGroups.get(rel.model)
-              if (childGroups) {
-                for (const cg of childGroups) {
-                  if (cg === groupName) continue
-                  const childRes = resources.get(cg)
-                  if (childRes?.index) {
-                    const s = childRes.show ? 'lists' : 'list'
-                    pushUnique(invs, `          QueryKey.${cg}.${s},`)
-                  }
-                }
-              }
-            }
+            break;
           }
+          case false:
+            break;
         }
-      }
+
+        switch (route?.raw !== undefined) {
+          case true:
+            route = route.raw;
+            break;
+          case false:
+            break;
+        }
+
+        const expressions = route?.invalidation?.queryKeyExpressions;
+        switch (expressions !== undefined) {
+          case true:
+            for (const expr of expressions) {
+              pushUnique(invs, `          ${expr},`);
+            }
+            break;
+          case false:
+            break;
+        }
+      };
 
       // 1. Resolve list (index) type
       let listType = 'never'
@@ -465,7 +400,9 @@ export class HookGenerator {
     runtimeConfigLines.push(`  intents: {}`)
     runtimeConfigLines.push(`} as const`)
     runtimeConfigLines.push(``)
-    await fs.writeFile(path.join(outputDir, 'routesync.runtime.ts'), runtimeConfigLines.join('\n'))
+    if (outputDir) {
+      await fs.writeFile(path.join(outputDir, 'routesync.runtime.ts'), runtimeConfigLines.join('\n'))
+    }
 
     const lines: string[] = []
     lines.push(`// Auto-generated by routesync. Do not edit manually.`)
@@ -512,6 +449,10 @@ export class HookGenerator {
     lines.push(`export * from './query-key'`)
     lines.push(``)
 
-    await fs.writeFile(path.join(outputDir, 'hooks.ts'), lines.join('\n'))
+    const result = lines.join('\n')
+    if (outputDir) {
+      await fs.writeFile(path.join(outputDir, 'hooks.ts'), result)
+    }
+    return result
   }
 }

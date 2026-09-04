@@ -3,10 +3,11 @@ import { manifestToSemanticTypes, manifestToContractInput } from '../../cli/src/
 import { TypeScriptGeneratorPass } from '../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import { MapperGeneratorPass } from '../../core/src/compiler/passes/MapperGeneratorPass'
 import { RouteManifest } from '../../core/src/types/route'
+import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/StaticLaravelScanner'
 
 describe('Regression Test: Object Flattening ALLOWED & Array Preservation MANDATORY (inlineResponseObjectFlattenArrayPreserve)', () => {
     test('should flatten nested scalar objects into summaryAvgRating while preserving array topology reviewsData T[]', () => {
-        const manifest: RouteManifest = {
+        const manifest: RouteManifest = ScannedRouteManifestDescriptor.create({
             routes: [
                 {
                     domain: 'ProdukReviews',
@@ -57,12 +58,11 @@ describe('Regression Test: Object Flattening ALLOWED & Array Preservation MANDAT
                     ]
                 }
             ]
-        }
+        })
 
         // 1. Run TypeScriptGeneratorPass for api-read.ts
         const semanticTypes = manifestToSemanticTypes(manifest)
-        const tsPass = new TypeScriptGeneratorPass()
-        const [tsArtifact] = tsPass.run([semanticTypes])
+        const [tsArtifact] = TypeScriptGeneratorPass.run(semanticTypes)
 
         // Verify Object Flattening (summary.avg_rating -> summaryAvgRating) in api-read.ts
         expect(tsArtifact.code).toContain('export interface ProdukReviewsTransformed {')
@@ -82,8 +82,7 @@ describe('Regression Test: Object Flattening ALLOWED & Array Preservation MANDAT
 
         // 2. Run MapperGeneratorPass for api-mapper.ts
         const contractInput = manifestToContractInput(manifest)
-        const mapperPass = new MapperGeneratorPass()
-        const [mapperArtifact] = mapperPass.run([contractInput])
+        const [mapperArtifact] = MapperGeneratorPass.run(contractInput)
 
         // Verify Mapper transformation in api-mapper.ts
         expect(mapperArtifact.code).toContain('export const toProdukReviewsRead = (api: ProdukReviewsApiResponse): ProdukReviewsTransformed => ({')

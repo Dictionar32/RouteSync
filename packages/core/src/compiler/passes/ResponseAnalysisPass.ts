@@ -1,13 +1,10 @@
 /**
- * ResponseAnalysisPass
+ * ResponseAnalysisPass.ts
  *
- * Analyzes the response metadata already present in the route manifest and
- * produces one aggregate ResponseAnalysis artifact containing the per-route
- * ResponseArtifact entries used by downstream consumers.
+ * Analyzes route response metadata and produces aggregate ResponseAnalysisArtifact.
+ * Pure direct flow coordinator consuming strongly-typed route.response Value Objects.
  *
- * The route manifest is an explicit artifact dependency. CompilationContext is
- * reserved for compilation environment/services and is not used to smuggle
- * semantic compiler inputs into the pass.
+ * @module compiler/passes
  */
 
 import type { CompilerPass } from './CompilerPass';
@@ -17,18 +14,70 @@ import type { CompilationContext } from './CompilationContext';
 import {
     ResponseArtifactBuilder,
     type ResponseArtifact,
-    type ResponseBody,
-    type ConfidenceScore,
+    type ConfidenceScore
 } from '../ir/ResponseArtifact';
 import { ResponseAnalysisArtifact } from '../artifacts/ResponseAnalysisArtifact';
-import type { ParsedRoute, ResponseMetadata } from '../../types/route';
+import type { ParsedRoute, ResponseDescriptor, RouteResponseAnalysis } from '../../types/route';
+
+export interface ResponseAnalysisPassDependencies {
+    readonly defaultConfidence?: number;
+    readonly revision?: string;
+}
+
+export function analyzeRouteResponse(
+    route: ParsedRoute,
+    confidence: number
+): RouteResponseAnalysis {
+    return route.response.toAnalysis(route.name, confidence);
+}
+
+export function buildResponseArtifact(
+    routeName: string,
+    descriptor: ResponseDescriptor,
+    confidenceScore: number,
+    producerName: string,
+    revision: string
+): ResponseArtifact {
+    const artifactId = `${routeName}.Response`;
+    const responseBody = descriptor.toResponseBody();
+    const confidence: ConfidenceScore = {
+        score: confidenceScore,
+        reasons: [
+            `Response kind: ${descriptor.kind}`,
+            `Response shape: ${descriptor.shape}`
+        ],
+        method: 'inferred'
+    };
+
+    return new ResponseArtifactBuilder()
+        .id(artifactId)
+        .body(responseBody)
+        .confidence(confidence)
+        .metadata({
+            producer: producerName,
+            dependencies: ['RouteManifest'],
+            revision
+        })
+        .build();
+}
+
+export function computeAggregateHash(artifacts: ReadonlyMap<string, ResponseArtifact>): string {
+    let acc = 0;
+    for (const [id] of artifacts) {
+        for (let i = 0; i < id.length; i++) {
+            acc = (acc * 31 + id.charCodeAt(i)) >>> 0;
+        }
+    }
+    return `resp_analysis_${acc.toString(16)}`;
+}
 
 export class ResponseAnalysisPass
     implements CompilerPass<readonly ['RouteManifest'], readonly ['ResponseAnalysis']> {
+
     public readonly name = 'ResponseAnalysis';
 
     public readonly inputWitnesses = [
-        new ArtifactKeyWitness('RouteManifest'),
+        new ArtifactKeyWitness('RouteManifest')
     ] as const;
 
     public readonly outputKeys = ['ResponseAnalysis'] as const;
@@ -38,236 +87,48 @@ export class ResponseAnalysisPass
         readonly ['ResponseAnalysis']
     > = {
             consumes: ['RouteManifest'],
-            produces: ['ResponseAnalysis'],
+            produces: ['ResponseAnalysis']
         };
 
     public readonly requires: readonly PassDependency<'RouteManifest'>[] = [
-        { artifact: 'RouteManifest' },
+        { artifact: 'RouteManifest' }
     ];
 
     public readonly producesPass: readonly string[] = [];
 
+    public readonly defaultConfidence: number;
+    public readonly revision: string;
+
+    constructor({
+        defaultConfidence = 0.95,
+        revision = '1.0.0'
+    }: ResponseAnalysisPassDependencies = {}) {
+        this.defaultConfidence = defaultConfidence;
+        this.revision = revision;
+        Object.freeze(this);
+    }
+
     public async run(
         [routeManifestArtifact]: ResolveArtifacts<readonly ['RouteManifest']>,
-        _context: CompilationContext,
+        _context?: CompilationContext
     ): Promise<ResolveArtifacts<readonly ['ResponseAnalysis']>> {
         const responseArtifacts = new Map<string, ResponseArtifact>();
 
         for (const route of routeManifestArtifact.manifest.routes) {
-            try {
-                const analysis = this.analyzeRouteResponse(route);
-                const artifact = this.buildResponseArtifact(route, analysis);
-                responseArtifacts.set(artifact.id, artifact);
-            } catch {
-                // A single malformed route must not invalidate successfully
-                // analyzed routes. Diagnostics belong to the compiler context
-                // when a caller needs user-facing error reporting.
-            }
+            const artifact = buildResponseArtifact(route.name, route.response, this.defaultConfidence, this.name, this.revision);
+            responseArtifacts.set(artifact.id, artifact);
         }
 
         const metadata = {
-            hash: this.computeAggregateHash(responseArtifacts),
+            hash: computeAggregateHash(responseArtifacts),
             producer: this.name,
             dependencies: ['RouteManifest'],
             timestamp: Date.now(),
-            revision: '1.0.0',
+            revision: this.revision
         } as const;
 
         return [
-            new ResponseAnalysisArtifact(responseArtifacts, metadata),
+            new ResponseAnalysisArtifact(responseArtifacts, metadata)
         ];
     }
-
-    private analyzeRouteResponse(route: ParsedRoute): RouteResponseAnalysis {
-        const response = route.response;
-        const reasons: string[] = [];
-        const responseType = response?.kind ?? 'unknown';
-        const collection = response?.kind === 'array' || response?.collection === true;
-        const isPaginated = response?.paginated === true;
-        const isCollection = collection || isPaginated;
-
-        reasons.push(`Response kind: ${responseType}`);
-
-        if (collection) {
-            reasons.push(response?.kind === 'array'
-                ? 'Collection detected from canonical array descriptor'
-                : 'Collection detected from response metadata');
-        } else if (isPaginated) {
-            reasons.push('Paginated response implies collection');
-        } else {
-            reasons.push('Single response detected');
-        }
-
-        const names = this.extractResponseNames(response);
-
-        return {
-            routeName: route.name,
-            responseType,
-            isCollection,
-            isPaginated,
-            resourceName: names.resourceName,
-            modelName: names.modelName,
-            confidence: response ? 0.95 : 0.5,
-            reasons,
-        };
-    }
-
-    private extractResponseNames(response: ResponseMetadata | undefined): {
-        resourceName?: string;
-        modelName?: string;
-    } {
-        if (!response) {
-            return {};
-        }
-
-        if (response.kind === 'resource') {
-            return { resourceName: response.resource };
-        }
-
-        if (response.kind === 'model') {
-            return { modelName: response.model };
-        }
-
-        if (response.kind === 'array') {
-            if (response.element.kind === 'resource') {
-                return { resourceName: response.element.resource, modelName: response.element.model };
-            }
-            if (response.element.kind === 'model') {
-                return { modelName: response.element.model };
-            }
-        }
-
-        return {};
-    }
-
-    private buildResponseArtifact(
-        route: ParsedRoute,
-        analysis: RouteResponseAnalysis,
-    ): ResponseArtifact {
-        const artifactId = `${route.name}.Response`;
-        const responseBody = this.buildResponseBody(analysis);
-        const confidence: ConfidenceScore = {
-            score: analysis.confidence,
-            reasons: analysis.reasons,
-            method: 'inferred',
-        };
-
-        return new ResponseArtifactBuilder()
-            .id(artifactId)
-            .body(responseBody)
-            .confidence(confidence)
-            .metadata({
-                producer: this.name,
-                dependencies: ['RouteManifest'],
-                revision: '1.0.0',
-            })
-            .build();
-    }
-
-    private buildResponseBody(analysis: RouteResponseAnalysis): ResponseBody {
-        const shape = analysis.isPaginated
-            ? 'paginated'
-            : analysis.isCollection
-                ? 'collection'
-                : 'single';
-
-        switch (analysis.responseType) {
-            case 'resource':
-                return {
-                    type: 'resource',
-                    resource: analysis.resourceName ?? 'UnknownResource',
-                    model: analysis.modelName,
-                    shape,
-                };
-
-            case 'model':
-                return {
-                    type: 'model',
-                    model: analysis.modelName ?? 'UnknownModel',
-                    shape,
-                };
-
-            case 'array':
-                if (analysis.resourceName) {
-                    return {
-                        type: 'resource',
-                        resource: analysis.resourceName,
-                        model: analysis.modelName,
-                        shape,
-                    };
-                }
-                if (analysis.modelName) {
-                    return {
-                        type: 'model',
-                        model: analysis.modelName,
-                        shape,
-                    };
-                }
-                return {
-                    type: 'object',
-                    schemaName: analysis.routeName,
-                    schema: { name: analysis.routeName, properties: {}, required: [] },
-                    shape,
-                };
-
-            case 'primitive':
-                return {
-                    type: 'primitive',
-                    primitiveType: this.resolvePrimitiveType(),
-                    shape: 'single',
-                };
-
-            case 'object':
-            case 'unknown':
-            default:
-                return {
-                    type: 'object',
-                    schemaName: analysis.routeName,
-                    schema: {
-                        name: analysis.routeName,
-                        properties: {},
-                        required: [],
-                    },
-                    shape,
-                };
-        }
-    }
-
-    private resolvePrimitiveType(): 'string' | 'number' | 'boolean' | 'null' {
-        return 'string';
-    }
-
-    private computeAggregateHash(
-        artifacts: ReadonlyMap<string, ResponseArtifact>,
-    ): string {
-        let hash = 0;
-        const content = Array.from(artifacts.values())
-            .sort((a, b) => a.id.localeCompare(b.id))
-            .map((artifact) => `${artifact.id}:${artifact.metadata.hash}`)
-            .join('|');
-
-        for (let i = 0; i < content.length; i += 1) {
-            hash = ((hash << 5) - hash) + content.charCodeAt(i);
-            hash |= 0;
-        }
-
-        return Math.abs(hash).toString(16);
-    }
-}
-
-interface RouteResponseAnalysis {
-    readonly routeName: string;
-    readonly responseType:
-    | 'resource'
-    | 'model'
-    | 'object'
-    | 'array'
-    | 'primitive'
-    | 'unknown';
-    readonly isCollection: boolean;
-    readonly isPaginated: boolean;
-    readonly resourceName?: string;
-    readonly modelName?: string;
-    readonly confidence: number;
-    readonly reasons: readonly string[];
 }

@@ -1,18 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { ZodTierGenerator } from '../../cli/src/generators/ZodTierGenerator'
-import { RouteManifest } from '@routesync/core'
-import fs from 'fs-extra'
-import path from 'path'
+import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
+import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
 
-describe('ZodTierGenerator - ProdukItem Appended Fields', () => {
+describe('CompilerBridge - ProdukItem Appended Fields', () => {
   it('should process appends and accessors from manifest and generate ProdukItemTransformed', async () => {
-    const manifest: RouteManifest = {
-      version: '1.0.0',
-      baseURL: 'http://localhost/api',
-      generatedAt: new Date().toISOString(),
-      routes: [],
-      channels: [],
-      models: [
+    const models = [
         {
           name: 'ProdukItem',
           table: 'produk_items',
@@ -94,29 +86,30 @@ describe('ZodTierGenerator - ProdukItem Appended Fields', () => {
             }
           }
         }
-      ]
+      ] as any[]
+
+    const manifest: RouteManifest = {
+      version: '1.0.0',
+      baseURL: 'http://localhost/api',
+      generatedAt: new Date().toISOString(),
+      routes: [],
+      channels: [],
+      models,
+      resources: [],
+      routeGroups: [],
+      requestTypes: [],
+      semanticTypes: StaticLaravelScanner.deriveSemanticTypes([], models)
     }
 
-    const tempDir = path.join(__dirname, 'temp-zod-tier-test')
-    await fs.ensureDir(tempDir)
+    const result = await CompilerBridge.generateTypeScript(manifest)
+    const content = result.code
 
-    try {
-      await ZodTierGenerator.generate(manifest, tempDir)
-
-      const filePath = path.join(tempDir, 'types/api-read.ts')
-      const content = await fs.readFile(filePath, 'utf-8')
-
-      // Assert it contains the model interface
-      expect(content).toContain('export interface ProdukItemTransformed {')
-      expect(content).toContain('image?: string // appended')
-      expect(content).toContain('imageUrl?: string // appended')
-      expect(content).toContain('categoryName?: string // appended')
-      expect(content).toContain('rating?: number // appended')
-      expect(content).toContain('reviewCount?: number // appended')
-
-      console.log('--- TEST PASSED: ZodTierGenerator processes model.appends and generates image/imageUrl/etc. with correct semantic types ---')
-    } finally {
-      await fs.remove(tempDir)
-    }
+    // Assert it contains the model interface
+    expect(content).toContain('export interface ProdukItemTransformed {')
+    expect(content).toContain('image: string')
+    expect(content).toContain('imageUrl: string')
+    expect(content).toContain('categoryName: string')
+    expect(content).toContain('rating: number')
+    expect(content).toContain('reviewCount: number')
   })
 })

@@ -189,7 +189,6 @@ export { LoweredTypeArtifact } from './artifacts/LoweredTypeArtifact';
 export { DiagnosticArtifact } from './artifacts/DiagnosticArtifact';
 export { DependencyGraphArtifact } from './artifacts/DependencyGraphArtifact';
 export { SemanticIRArtifact } from './artifacts/SemanticIRArtifact';
-export { ContractGraphArtifact } from './artifacts/ContractGraphArtifact';
 export { CompilationResultArtifact } from './artifacts/CompilationResultArtifact';
 
 // ============================================================================
@@ -252,6 +251,7 @@ export {
 export {
     PrimitiveKind,
     CollectionKind,
+    SemanticTypeKind,
     SemanticTypeBase,
     PrimitiveType,
     NeverType,
@@ -264,6 +264,7 @@ export {
     GenericVariance,
     GenericParameter,
     GenericType,
+    ObjectProperty,
     ObjectType,
     SemanticType,
     ImmutableMap,
@@ -329,3 +330,9 @@ export {
     PropertyDeclaration,
     CallExpression
 } from './artifacts/ASTArtifact';
+
+// ============================================================================
+// Scanner Module
+// ============================================================================
+export * from './scanner/LaravelSourceLexer';
+export * from './scanner/StaticLaravelScanner';

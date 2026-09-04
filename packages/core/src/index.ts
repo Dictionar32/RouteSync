@@ -1,5 +1,6 @@
 // Utils
 export { camelCase, camelCaseKeys, snakeCase, snakeCaseKeys } from './utils'
+export { ResourceNamingConvention, toPascalCase, toCamelCase, toSnakeCase } from './utils/resource-naming'
 
 // Client
 export { HttpClient } from './client/HttpClient'
@@ -23,7 +24,6 @@ export { ErrorHandler } from './errors/ErrorHandler'
 export type { ServiceConfig, RetryConfig, AuthConfig } from './types/config'
 export type { ApiResponse, PaginationMeta } from './types/response'
 export type {
-  HttpMethod,
   RequestOptions,
   RouteDefinition,
   ApiDefinition,
@@ -36,15 +36,96 @@ export type {
   RouteTransformMap,
   ResponseSchema
 } from './types/request'
-export type { RouteManifest, ParsedRoute, ParsedChannel, ParsedModel, ParsedColumn, ResponseMetadata, ParsedResource } from './types/route'
+export {
+  HttpMethod,
+  RouteActionKind,
+  RouteParameterLocation,
+  RouteParameterType,
+  ResponseShape,
+  ResponseKind,
+  ResourceResponseDescriptor,
+  ModelResponseDescriptor,
+  InlineResponseDescriptor,
+  VoidResponseDescriptor,
+  ResourceExpressionKind,
+  EloquentRelationType,
+  EloquentRelationClassifier,
+  ELOQUENT_RELATION_REGISTRY,
+  DatabaseColumnTypeMapper,
+  ValidationRuleKind,
+  ValidationRuleParser,
+  ZOD_CONSTRAINT_REGISTRY,
+  ZodSchemaReducer,
+  EloquentCastKind,
+  EloquentCastMapper,
+  SecuritySchemeKind,
+  RouteSecurityClassifier,
+  ModelKeyType,
+  RequestContentType,
+  PaginationKind,
+  BroadcastChannelKind,
+  DatabaseColumnKind,
+  HttpStatusCode,
+  RouteHookKind,
+  RoutePayloadMode,
+  SdkResponseKind,
+  InvalidationTargetKind,
+  ScannedInvalidationTarget,
+  ScannedRouteCacheInvalidationDescriptor,
+  ScannedRouteExecutionSignature,
+  ScannedSdkResponseResolution,
+  ScannedPaginatedEnvelopeDescriptor,
+  ScannedPolymorphicRelationDescriptor,
+  ResourceFieldExpressionFactory,
+  ValidationRuleNodeFactory,
+  ScannedRouteSecurityDescriptor
+} from './types/route'
+export type {
+  RouteManifest,
+  ParsedRoute,
+  InvalidationTarget,
+  RouteCacheInvalidationDescriptor,
+  RouteExecutionSignature,
+  SdkResponseResolution,
+  CrudRole,
+  RoutePolicyDescriptor,
+  RateLimitDescriptor,
+  BroadcastChannelDescriptor,
+  RouteSecurityDescriptor,
+  ParsedChannel,
+  ParsedModel,
+  ParsedColumn,
+  ParsedCast,
+  ParsedAccessor,
+  ParsedRelation,
+  EloquentRelationDescriptor,
+  EloquentRelationRegistry,
+  EloquentRelationCardinality,
+  PaginatedEnvelopeDescriptor,
+  PolymorphicRelationDescriptor,
+  ResourceFieldDescriptor,
+  ParsedResource,
+  RouteParameter,
+  RouteQueryParameter,
+  HttpErrorResponseDescriptor,
+  ValidationFieldNode,
+  InlineResponseDescriptorParams,
+  ValidationRuleNode,
+  RouteValidationRuleEntry,
+  RouteMessageEntry,
+  RouteAttributeEntry,
+  RouteSchemaPayload,
+  ZodNode,
+  ExtractRule,
+  ConstraintHandler,
+  ConstraintRegistry
+} from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'
 export type { ModelNode as SemanticModelNode, ResolverMeta, ResolutionContext, ResolverPlugin } from './semantic/types'
 export * from './types/semantic'
 export * from './types/emit'
 export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'
-export { ContractGraph, isResolvedField } from './graph/ContractGraph'
-export type { ControllerNode } from './graph/ContractGraph'
 
 // IR v3 (CompilerRoadmap.md Stage 2)
 export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
@@ -52,7 +133,6 @@ export type { BuildIRNodeInput } from './ir/buildIRNode'
 
 // Unified FieldNode model (compiler/CompilerBacklog.md H1/H3 follow-up) — phase 1 of 3
 export * from './types/field'
-export { fieldFromResourceFieldKind, fieldFromResponseMetadata, fieldFromParsedASTNode } from './types/legacyFieldAdapter'
 
 // SymbolTable — O(1) model/member lookup (roadmap: next after ResolverMeta unification)
 export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
@@ -61,7 +141,12 @@ export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
 export * as v6 from './compiler'
 
 // ResponseArtifact and related types (SSOT for response analysis)
-export { ResponseArtifact, ResponseArtifactBuilder } from './compiler/ir/ResponseArtifact'
+export {
+  ResponseArtifact,
+  ResponseArtifactBuilder,
+  InferenceMethod,
+  TransportKind
+} from './compiler/ir/ResponseArtifact'
 export { RouteManifestArtifact } from './compiler/artifacts/RouteManifestArtifact'
 export { ResponseAnalysisArtifact } from './compiler/artifacts/ResponseAnalysisArtifact'
 export type {
@@ -77,4 +162,35 @@ export type {
   PropertyDescriptor,
   ModelAttribute
 } from './compiler/ir/ResponseArtifact'
+
+// Scanner Module & Resource Naming
+export * from './compiler/scanner/LaravelSourceLexer'
+export * from './compiler/scanner/StaticLaravelScanner'
+export { IdentifierCase, extractClassBasename, inferLaravelTableName } from './utils/resource-naming'
+export {
+  ScannedObjectProperty,
+  PrimitiveKind,
+  PrimitiveType,
+  ObjectType,
+  ReferenceType,
+  UnionType,
+  IntersectionType,
+  ReadonlyCollectionType,
+  MutableCollectionType,
+  OptionalType,
+  NullableType,
+  CollectionKind
+} from './compiler/types/SemanticType'
+
+export { ContractActionGenerator } from './compiler/generators/contract-generation/ContractActionGenerator'
+export { FormActionGenerator } from './compiler/generators/form-generation/FormActionGenerator'
+export { defaultTypeResolver } from './compiler/domain/common/ResponseFieldLowering'
+export {
+  ResolvedObjectType,
+  ResolvedOptionalType,
+  ResolvedCollectionType,
+  ResolvedPrimitiveType
+} from './compiler/domain/common/ResolvedSemanticType'
+
+
 

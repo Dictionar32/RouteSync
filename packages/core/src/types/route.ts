@@ -124,6 +124,7 @@ export interface ResourceFieldDescriptor {
 }
 
 /**
+ * 
  * ResourceExpressionKind
  *
  * Canonical Domain Vocabulary for Resource Field AST Expressions.
@@ -1062,6 +1063,64 @@ export type ResponseDescriptor =
   | InlineResponseDescriptor
   | VoidResponseDescriptor;
 
+export interface ResponseKindSpecification<K extends ResponseKind = ResponseKind> {
+  readonly kind: K;
+  readonly hasSchema: boolean;
+  readonly hasMapper: boolean;
+  readonly defaultStatusCode: number;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key ResponseKind.
+ */
+export type ResponseDescriptorRegistry = {
+  readonly [K in ResponseKind]: ResponseKindSpecification<K>;
+};
+
+export const RESPONSE_DESCRIPTOR_REGISTRY: ResponseDescriptorRegistry = Object.freeze({
+  [ResponseKind.Resource]: {
+    kind: ResponseKind.Resource,
+    hasSchema: true,
+    hasMapper: true,
+    defaultStatusCode: 200,
+  },
+  [ResponseKind.Model]: {
+    kind: ResponseKind.Model,
+    hasSchema: true,
+    hasMapper: false,
+    defaultStatusCode: 200,
+  },
+  [ResponseKind.Inline]: {
+    kind: ResponseKind.Inline,
+    hasSchema: true,
+    hasMapper: true,
+    defaultStatusCode: 200,
+  },
+  [ResponseKind.Void]: {
+    kind: ResponseKind.Void,
+    hasSchema: false,
+    hasMapper: false,
+    defaultStatusCode: 204,
+  },
+});
+
+export interface ResponseVisitor<R> {
+  readonly resource: (desc: ResourceResponseDescriptor) => R;
+  readonly model: (desc: ModelResponseDescriptor) => R;
+  readonly inline: (desc: InlineResponseDescriptor) => R;
+  readonly void: (desc: VoidResponseDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ResponseDescriptor dengan exhaustive type safety
+ */
+export function matchResponse<R>(
+  descriptor: ResponseDescriptor,
+  visitor: ResponseVisitor<R>
+): R {
+  return visitor[descriptor.kind](descriptor as any);
+}
+
 export const RouteParameterLocation = Object.freeze({
   Path: 'path',
   Query: 'query',
@@ -1595,6 +1654,64 @@ export class RouteSecurityClassifier {
   }
 }
 
+export interface SecuritySchemeSpecification<K extends SecuritySchemeKind = SecuritySchemeKind> {
+  readonly scheme: K;
+  readonly isProtected: boolean;
+  readonly requiresAuthorizationHeader: boolean;
+  readonly defaultHeaderName: string | null;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key SecuritySchemeKind.
+ */
+export type SecuritySchemeRegistry = {
+  readonly [K in SecuritySchemeKind]: SecuritySchemeSpecification<K>;
+};
+
+export const SECURITY_SCHEME_REGISTRY: SecuritySchemeRegistry = Object.freeze({
+  [SecuritySchemeKind.Sanctum]: {
+    scheme: SecuritySchemeKind.Sanctum,
+    isProtected: true,
+    requiresAuthorizationHeader: true,
+    defaultHeaderName: 'Authorization',
+  },
+  [SecuritySchemeKind.Bearer]: {
+    scheme: SecuritySchemeKind.Bearer,
+    isProtected: true,
+    requiresAuthorizationHeader: true,
+    defaultHeaderName: 'Authorization',
+  },
+  [SecuritySchemeKind.Cookie]: {
+    scheme: SecuritySchemeKind.Cookie,
+    isProtected: true,
+    requiresAuthorizationHeader: false,
+    defaultHeaderName: null,
+  },
+  [SecuritySchemeKind.Public]: {
+    scheme: SecuritySchemeKind.Public,
+    isProtected: false,
+    requiresAuthorizationHeader: false,
+    defaultHeaderName: null,
+  },
+});
+
+export interface RouteSecurityVisitor<R> {
+  readonly sanctum: (security: RouteSecurityDescriptor) => R;
+  readonly bearer: (security: RouteSecurityDescriptor) => R;
+  readonly cookie: (security: RouteSecurityDescriptor) => R;
+  readonly public: (security: RouteSecurityDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik skema keamanan RouteSecurityDescriptor dengan exhaustive type safety
+ */
+export function matchRouteSecurity<R>(
+  security: RouteSecurityDescriptor,
+  visitor: RouteSecurityVisitor<R>
+): R {
+  return visitor[security.scheme](security);
+}
+
 /**
  * HttpStatusCode
  *
@@ -1658,26 +1775,113 @@ export interface HttpErrorResponseDescriptor {
   readonly schema: Record<string, unknown>;
 }
 
+export interface ScalarValidationFieldNode {
+  readonly kind: 'scalar';
+  readonly fieldName: string;
+  readonly propertyName: string;
+  readonly rules: readonly ValidationRuleNode[];
+}
+
+export interface ArrayValidationFieldNode {
+  readonly kind: 'array';
+  readonly fieldName: string;
+  readonly propertyName: string;
+  readonly rules: readonly ValidationRuleNode[];
+  readonly element: ValidationFieldNode;
+}
+
+export interface ObjectValidationFieldNode {
+  readonly kind: 'object';
+  readonly fieldName: string;
+  readonly propertyName: string;
+  readonly fields: readonly ValidationFieldNode[];
+}
+
 export type ValidationFieldNode =
-  | {
-      readonly kind: 'scalar';
-      readonly fieldName: string;
-      readonly propertyName: string;
-      readonly rules: readonly ValidationRuleNode[];
-    }
-  | {
-      readonly kind: 'array';
-      readonly fieldName: string;
-      readonly propertyName: string;
-      readonly rules: readonly ValidationRuleNode[];
-      readonly element: ValidationFieldNode;
-    }
-  | {
-      readonly kind: 'object';
-      readonly fieldName: string;
-      readonly propertyName: string;
-      readonly fields: readonly ValidationFieldNode[];
-    };
+  | ScalarValidationFieldNode
+  | ArrayValidationFieldNode
+  | ObjectValidationFieldNode;
+
+/**
+ * ValidationFieldKind
+ *
+ * Canonical Domain Vocabulary for Validation Tree Node Kinds.
+ */
+export const ValidationFieldKind = Object.freeze({
+  Scalar: 'scalar',
+  Array: 'array',
+  Object: 'object'
+} as const);
+
+export type ValidationFieldKind = typeof ValidationFieldKind[keyof typeof ValidationFieldKind];
+
+export interface ValidationFieldSpecification<K extends ValidationFieldKind = ValidationFieldKind> {
+  readonly kind: K;
+  readonly isContainer: boolean;
+  readonly allowsChildren: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key ValidationFieldKind.
+ */
+export type ValidationFieldRegistry = {
+  readonly [K in ValidationFieldKind]: ValidationFieldSpecification<K>;
+};
+
+export const VALIDATION_FIELD_REGISTRY: ValidationFieldRegistry = Object.freeze({
+  [ValidationFieldKind.Scalar]: {
+    kind: ValidationFieldKind.Scalar,
+    isContainer: false,
+    allowsChildren: false
+  },
+  [ValidationFieldKind.Array]: {
+    kind: ValidationFieldKind.Array,
+    isContainer: true,
+    allowsChildren: true
+  },
+  [ValidationFieldKind.Object]: {
+    kind: ValidationFieldKind.Object,
+    isContainer: true,
+    allowsChildren: true
+  }
+});
+
+export interface ValidationFieldVisitor<R> {
+  readonly scalar: (node: ScalarValidationFieldNode) => R;
+  readonly array: (node: ArrayValidationFieldNode) => R;
+  readonly object: (node: ObjectValidationFieldNode) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ValidationFieldNode dengan exhaustive type safety
+ */
+export function matchValidationField<R>(
+  node: ValidationFieldNode,
+  visitor: ValidationFieldVisitor<R>
+): R {
+  return visitor[node.kind](node as any);
+}
+
+export interface ValidationFieldFolder<R> {
+  readonly scalar: (node: ScalarValidationFieldNode) => R;
+  readonly array: (node: ArrayValidationFieldNode, foldedElement: R) => R;
+  readonly object: (node: ObjectValidationFieldNode, foldedFields: readonly R[]) => R;
+}
+
+/**
+ * 0 `if` Recursive Tree Fold: Mengakumulasi seluruh subtree ValidationFieldNode dari bawah ke atas secara fungsional murni
+ */
+export function foldValidationField<R>(
+  node: ValidationFieldNode,
+  folder: ValidationFieldFolder<R>
+): R {
+  const FOLD_DISPATCH: ValidationFieldVisitor<R> = {
+    scalar: (s) => folder.scalar(s),
+    array: (a) => folder.array(a, foldValidationField(a.element, folder)),
+    object: (o) => folder.object(o, o.fields.map(child => foldValidationField(child, folder)))
+  };
+  return FOLD_DISPATCH[node.kind](node as any);
+}
 
 /**
  * CrudRole
@@ -2078,6 +2282,225 @@ export interface ParsedRoute {
   readonly uri: string;
   readonly actionName: string;
   readonly controllerName: string | null;
+}
+
+// ============================================================================
+// ROUTE DESCRIPTOR ADT (Direct Extension of ParsedRoute — 100% Data Connected)
+// ============================================================================
+
+export interface GetCollectionRouteDescriptor extends ParsedRoute {
+  readonly kind: 'get_collection';
+  readonly method: 'GET';
+}
+
+export interface GetItemRouteDescriptor extends ParsedRoute {
+  readonly kind: 'get_item';
+  readonly method: 'GET';
+}
+
+export interface MutationRouteDescriptor extends ParsedRoute {
+  readonly kind: 'mutation';
+  readonly method: 'POST' | 'PUT' | 'PATCH';
+}
+
+export interface DeletionRouteDescriptor extends ParsedRoute {
+  readonly kind: 'deletion';
+  readonly method: 'DELETE';
+}
+
+export type RouteDescriptor =
+  | GetCollectionRouteDescriptor
+  | GetItemRouteDescriptor
+  | MutationRouteDescriptor
+  | DeletionRouteDescriptor;
+
+export type RouteClassifier = (route: ParsedRoute) => RouteDescriptor;
+
+export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.freeze({
+  index: (route): GetCollectionRouteDescriptor => ({
+    ...route,
+    kind: 'get_collection',
+    method: 'GET',
+  }),
+
+  show: (route): GetItemRouteDescriptor => ({
+    ...route,
+    kind: 'get_item',
+    method: 'GET',
+  }),
+
+  create: (route): MutationRouteDescriptor => ({
+    ...route,
+    kind: 'mutation',
+    method: route.method as 'POST' | 'PUT' | 'PATCH',
+  }),
+
+  update: (route): MutationRouteDescriptor => ({
+    ...route,
+    kind: 'mutation',
+    method: route.method as 'POST' | 'PUT' | 'PATCH',
+  }),
+
+  delete: (route): DeletionRouteDescriptor => ({
+    ...route,
+    kind: 'deletion',
+    method: 'DELETE',
+  }),
+
+  custom: (route): RouteDescriptor => {
+    const CUSTOM_DISPATCH: Record<RouteHookKind, RouteClassifier> = {
+      [RouteHookKind.Query]: CRUD_DISPATCH_REGISTRY.index,
+      [RouteHookKind.Mutation]: CRUD_DISPATCH_REGISTRY.create,
+    };
+    return CUSTOM_DISPATCH[route.hookKind](route);
+  },
+});
+
+/**
+ * 0 `if` Classifier: Mengonversi ParsedRoute menjadi RouteDescriptor ADT utuh
+ */
+export const classifyRoute = (route: ParsedRoute): RouteDescriptor =>
+  CRUD_DISPATCH_REGISTRY[route.crudRole](route);
+
+export interface RouteVisitor<R> {
+  readonly get_collection: (desc: GetCollectionRouteDescriptor) => R;
+  readonly get_item: (desc: GetItemRouteDescriptor) => R;
+  readonly mutation: (desc: MutationRouteDescriptor) => R;
+  readonly deletion: (desc: DeletionRouteDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian dengan exhaustive type safety
+ */
+export function matchRoute<R>(
+  descriptor: RouteDescriptor,
+  visitor: RouteVisitor<R>
+): R {
+  return visitor[descriptor.kind](descriptor as any);
+}
+
+/**
+ * RouteDescriptorKind
+ *
+ * Canonical Domain Vocabulary for Route ADT Discriminator Tags.
+ */
+export const RouteDescriptorKind = Object.freeze({
+  GetCollection: 'get_collection',
+  GetItem: 'get_item',
+  Mutation: 'mutation',
+  Deletion: 'deletion',
+} as const);
+
+export type RouteDescriptorKind = typeof RouteDescriptorKind[keyof typeof RouteDescriptorKind];
+
+export interface RouteKindSpecification<K extends RouteDescriptorKind = RouteDescriptorKind> {
+  readonly kind: K;
+  readonly hookKind: RouteHookKind;
+  readonly isMutating: boolean;
+  readonly allowsPayload: boolean;
+}
+
+export type RouteDescriptorRegistry = {
+  readonly [K in RouteDescriptorKind]: RouteKindSpecification<K>;
+};
+
+export const ROUTE_DESCRIPTOR_REGISTRY: RouteDescriptorRegistry = Object.freeze({
+  [RouteDescriptorKind.GetCollection]: {
+    kind: RouteDescriptorKind.GetCollection,
+    hookKind: RouteHookKind.Query,
+    isMutating: false,
+    allowsPayload: false,
+  },
+  [RouteDescriptorKind.GetItem]: {
+    kind: RouteDescriptorKind.GetItem,
+    hookKind: RouteHookKind.Query,
+    isMutating: false,
+    allowsPayload: false,
+  },
+  [RouteDescriptorKind.Mutation]: {
+    kind: RouteDescriptorKind.Mutation,
+    hookKind: RouteHookKind.Mutation,
+    isMutating: true,
+    allowsPayload: true,
+  },
+  [RouteDescriptorKind.Deletion]: {
+    kind: RouteDescriptorKind.Deletion,
+    hookKind: RouteHookKind.Mutation,
+    isMutating: true,
+    allowsPayload: false,
+  },
+});
+
+/**
+ * RouteCollectionRegistry
+ *
+ * Immutable First-Class Partition Registry for Scanned Route Descriptors.
+ */
+export interface RouteCollectionRegistry {
+  readonly all: readonly RouteDescriptor[];
+  readonly collections: readonly GetCollectionRouteDescriptor[];
+  readonly items: readonly GetItemRouteDescriptor[];
+  readonly mutations: readonly MutationRouteDescriptor[];
+  readonly deletions: readonly DeletionRouteDescriptor[];
+  matchAll<R>(visitor: RouteVisitor<R>): readonly R[];
+}
+
+export class ScannedRouteRegistry implements RouteCollectionRegistry {
+  public readonly all: readonly RouteDescriptor[];
+  public readonly collections: readonly GetCollectionRouteDescriptor[];
+  public readonly items: readonly GetItemRouteDescriptor[];
+  public readonly mutations: readonly MutationRouteDescriptor[];
+  public readonly deletions: readonly DeletionRouteDescriptor[];
+
+  constructor({
+    all,
+    collections,
+    items,
+    mutations,
+    deletions
+  }: {
+    readonly all: readonly RouteDescriptor[];
+    readonly collections: readonly GetCollectionRouteDescriptor[];
+    readonly items: readonly GetItemRouteDescriptor[];
+    readonly mutations: readonly MutationRouteDescriptor[];
+    readonly deletions: readonly DeletionRouteDescriptor[];
+  }) {
+    this.all = all;
+    this.collections = collections;
+    this.items = items;
+    this.mutations = mutations;
+    this.deletions = deletions;
+    Object.freeze(this);
+  }
+
+  public static fromRoutes(routes: readonly ParsedRoute[]): ScannedRouteRegistry {
+    const all = routes.map(classifyRoute);
+    const collections: GetCollectionRouteDescriptor[] = [];
+    const items: GetItemRouteDescriptor[] = [];
+    const mutations: MutationRouteDescriptor[] = [];
+    const deletions: DeletionRouteDescriptor[] = [];
+
+    const PARTITION_DISPATCH: RouteVisitor<void> = {
+      get_collection: (d) => { collections.push(d); },
+      get_item: (d) => { items.push(d); },
+      mutation: (d) => { mutations.push(d); },
+      deletion: (d) => { deletions.push(d); }
+    };
+
+    all.forEach(desc => matchRoute(desc, PARTITION_DISPATCH));
+
+    return new ScannedRouteRegistry({
+      all: Object.freeze(all),
+      collections: Object.freeze(collections),
+      items: Object.freeze(items),
+      mutations: Object.freeze(mutations),
+      deletions: Object.freeze(deletions)
+    });
+  }
+
+  public matchAll<R>(visitor: RouteVisitor<R>): readonly R[] {
+    return this.all.map(desc => matchRoute(desc, visitor));
+  }
 }
 
 /**

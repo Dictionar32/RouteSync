@@ -107,7 +107,10 @@ export {
   matchSdkResponse,
   REQUEST_CONTENT_TYPE_REGISTRY,
   ScannedRequestContentTypeDescriptor,
-  matchRequestContentType
+  matchRequestContentType,
+  PAGINATION_KIND_REGISTRY,
+  matchPaginatedEnvelope,
+  matchPaginationKind
 } from './types/route'
 export type {
   RouteManifest,
@@ -184,6 +187,13 @@ export type {
   EloquentRelationRegistry,
   EloquentRelationCardinality,
   PaginatedEnvelopeDescriptor,
+  BasePaginatedEnvelopeDescriptor,
+  LengthAwarePaginatedEnvelopeDescriptor,
+  CursorPaginatedEnvelopeDescriptor,
+  AnyPaginatedEnvelopeDescriptor,
+  PaginationKindSpecification,
+  PaginationKindRegistry,
+  PaginatedEnvelopeVisitor,
   PolymorphicRelationDescriptor,
   ResourceFieldDescriptor,
   ParsedResource,

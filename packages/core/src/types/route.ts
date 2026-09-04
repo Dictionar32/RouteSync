@@ -716,13 +716,84 @@ export type PaginationKind = typeof PaginationKind[keyof typeof PaginationKind];
  *
  * Explicit Domain Model for Laravel Pagination JSON Envelope.
  */
-export interface PaginatedEnvelopeDescriptor {
+export interface BasePaginatedEnvelopeDescriptor {
   readonly kind: PaginationKind;
   readonly dataKey: string;     // 'data'
   readonly metaKey: string;     // 'meta'
-  readonly linksKey: string | null;   // 'links'
+  readonly linksKey?: string | null;   // 'links' | null | undefined
   readonly envelopeTypeName: string; // e.g. 'PaginatedResponse<T>'
 }
+
+export interface LengthAwarePaginatedEnvelopeDescriptor extends BasePaginatedEnvelopeDescriptor {
+  readonly kind: 'length_aware';
+  readonly linksKey: string;
+}
+
+export interface CursorPaginatedEnvelopeDescriptor extends BasePaginatedEnvelopeDescriptor {
+  readonly kind: 'cursor';
+  readonly linksKey?: null;
+}
+
+export type AnyPaginatedEnvelopeDescriptor =
+  | LengthAwarePaginatedEnvelopeDescriptor
+  | CursorPaginatedEnvelopeDescriptor;
+
+export interface PaginatedEnvelopeDescriptor extends BasePaginatedEnvelopeDescriptor {}
+
+export interface PaginationKindSpecification<K extends PaginationKind = PaginationKind> {
+  readonly kind: K;
+  readonly defaultDataKey: string;
+  readonly defaultMetaKey: string;
+  readonly defaultLinksKey: string | null;
+  readonly defaultEnvelopeTypeName: string;
+  readonly hasPageLinks: boolean;
+  readonly isCursorBased: boolean;
+}
+
+/**
+ * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key PaginationKind.
+ */
+export type PaginationKindRegistry = {
+  readonly [K in PaginationKind]: PaginationKindSpecification<K>;
+};
+
+export const PAGINATION_KIND_REGISTRY: PaginationKindRegistry = Object.freeze({
+  [PaginationKind.LengthAware]: {
+    kind: PaginationKind.LengthAware,
+    defaultDataKey: 'data',
+    defaultMetaKey: 'meta',
+    defaultLinksKey: 'links',
+    defaultEnvelopeTypeName: 'PaginatedResponse<T>',
+    hasPageLinks: true,
+    isCursorBased: false
+  },
+  [PaginationKind.Cursor]: {
+    kind: PaginationKind.Cursor,
+    defaultDataKey: 'data',
+    defaultMetaKey: 'meta',
+    defaultLinksKey: null,
+    defaultEnvelopeTypeName: 'CursorPaginatedResponse<T>',
+    hasPageLinks: false,
+    isCursorBased: true
+  }
+});
+
+export interface PaginatedEnvelopeVisitor<R> {
+  readonly length_aware: (desc: LengthAwarePaginatedEnvelopeDescriptor) => R;
+  readonly cursor: (desc: CursorPaginatedEnvelopeDescriptor) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik tipe PaginatedEnvelopeDescriptor dengan exhaustive type safety
+ */
+export function matchPaginatedEnvelope<R>(
+  envelope: PaginatedEnvelopeDescriptor,
+  visitor: PaginatedEnvelopeVisitor<R>
+): R {
+  return visitor[envelope.kind](envelope as any);
+}
+
+export const matchPaginationKind = matchPaginatedEnvelope;
 
 /**
  * PolymorphicRelationDescriptor
@@ -766,9 +837,9 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
 
   public static create({
     kind = PaginationKind.LengthAware,
-    dataKey = 'data',
-    metaKey = 'meta',
-    linksKey = 'links',
+    dataKey,
+    metaKey,
+    linksKey,
     envelopeTypeName
   }: {
     readonly kind?: PaginationKind;
@@ -776,34 +847,42 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
     readonly metaKey?: string;
     readonly linksKey?: string | null;
     readonly envelopeTypeName?: string;
-  } = {}): ScannedPaginatedEnvelopeDescriptor {
+  } = {}): PaginatedEnvelopeDescriptor {
+    const spec = PAGINATION_KIND_REGISTRY[kind];
     return new ScannedPaginatedEnvelopeDescriptor({
       kind,
-      dataKey,
-      metaKey,
-      linksKey: kind === PaginationKind.LengthAware ? (linksKey ?? 'links') : null,
-      envelopeTypeName: envelopeTypeName ?? (kind === PaginationKind.Cursor ? 'CursorPaginatedResponse<T>' : 'PaginatedResponse<T>')
+      dataKey: dataKey ?? spec.defaultDataKey,
+      metaKey: metaKey ?? spec.defaultMetaKey,
+      linksKey: linksKey !== undefined ? linksKey : spec.defaultLinksKey,
+      envelopeTypeName: envelopeTypeName ?? spec.defaultEnvelopeTypeName
     });
   }
 
-  public static lengthAware(dataKey: string = 'data'): ScannedPaginatedEnvelopeDescriptor {
+  public static lengthAware(
+    dataKey: string = 'data',
+    linksKey: string = 'links',
+    envelopeTypeName: string = 'PaginatedResponse<T>'
+  ): LengthAwarePaginatedEnvelopeDescriptor {
     return new ScannedPaginatedEnvelopeDescriptor({
       kind: PaginationKind.LengthAware,
       dataKey,
       metaKey: 'meta',
-      linksKey: 'links',
-      envelopeTypeName: 'PaginatedResponse<T>'
-    });
+      linksKey,
+      envelopeTypeName
+    }) as LengthAwarePaginatedEnvelopeDescriptor;
   }
 
-  public static cursor(dataKey: string = 'data'): ScannedPaginatedEnvelopeDescriptor {
+  public static cursor(
+    dataKey: string = 'data',
+    envelopeTypeName: string = 'CursorPaginatedResponse<T>'
+  ): CursorPaginatedEnvelopeDescriptor {
     return new ScannedPaginatedEnvelopeDescriptor({
       kind: PaginationKind.Cursor,
       dataKey,
       metaKey: 'meta',
       linksKey: null,
-      envelopeTypeName: 'CursorPaginatedResponse<T>'
-    });
+      envelopeTypeName
+    }) as CursorPaginatedEnvelopeDescriptor;
   }
 }
 

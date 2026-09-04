@@ -2238,32 +2238,345 @@ export const ValidationRuleKind = Object.freeze({
 
 export type ValidationRuleKind = typeof ValidationRuleKind[keyof typeof ValidationRuleKind];
 
-/**
- * ValidationRuleNode
- *
- * First-Class AST Node for Laravel Validation Rules (Discriminated Union).
- */
+export interface BaseValidationRuleNode<K extends ValidationRuleKind = ValidationRuleKind> {
+  readonly kind: K;
+}
+
+export interface RequiredValidationRuleNode extends BaseValidationRuleNode<'required'> {
+  readonly kind: 'required';
+}
+
+export interface NullableValidationRuleNode extends BaseValidationRuleNode<'nullable'> {
+  readonly kind: 'nullable';
+}
+
+export interface OptionalValidationRuleNode extends BaseValidationRuleNode<'optional'> {
+  readonly kind: 'optional';
+}
+
+export interface StringValidationRuleNode extends BaseValidationRuleNode<'string'> {
+  readonly kind: 'string';
+}
+
+export interface NumberValidationRuleNode extends BaseValidationRuleNode<'number'> {
+  readonly kind: 'number';
+}
+
+export interface BooleanValidationRuleNode extends BaseValidationRuleNode<'boolean'> {
+  readonly kind: 'boolean';
+}
+
+export interface ArrayValidationRuleNode extends BaseValidationRuleNode<'array'> {
+  readonly kind: 'array';
+  readonly elementType: string | null;
+}
+
+export interface EmailValidationRuleNode extends BaseValidationRuleNode<'email'> {
+  readonly kind: 'email';
+}
+
+export interface UrlValidationRuleNode extends BaseValidationRuleNode<'url'> {
+  readonly kind: 'url';
+}
+
+export interface UuidValidationRuleNode extends BaseValidationRuleNode<'uuid'> {
+  readonly kind: 'uuid';
+}
+
+export interface DateValidationRuleNode extends BaseValidationRuleNode<'date'> {
+  readonly kind: 'date';
+  readonly format: string | null;
+}
+
+export interface MinValidationRuleNode extends BaseValidationRuleNode<'min'> {
+  readonly kind: 'min';
+  readonly value: number;
+}
+
+export interface MaxValidationRuleNode extends BaseValidationRuleNode<'max'> {
+  readonly kind: 'max';
+  readonly value: number;
+}
+
+export interface BetweenValidationRuleNode extends BaseValidationRuleNode<'between'> {
+  readonly kind: 'between';
+  readonly min: number;
+  readonly max: number;
+}
+
+export interface InValidationRuleNode extends BaseValidationRuleNode<'in'> {
+  readonly kind: 'in';
+  readonly values: readonly (string | number)[];
+}
+
+export interface ExistsValidationRuleNode extends BaseValidationRuleNode<'exists'> {
+  readonly kind: 'exists';
+  readonly table: string;
+  readonly column: string | null;
+}
+
+export interface UniqueValidationRuleNode extends BaseValidationRuleNode<'unique'> {
+  readonly kind: 'unique';
+  readonly table: string;
+  readonly column: string | null;
+}
+
+export interface FileValidationRuleNode extends BaseValidationRuleNode<'file'> {
+  readonly kind: 'file';
+}
+
+export interface ImageValidationRuleNode extends BaseValidationRuleNode<'image'> {
+  readonly kind: 'image';
+}
+
+export interface CustomValidationRuleNode extends BaseValidationRuleNode<'custom'> {
+  readonly kind: 'custom';
+  readonly rule: string;
+  readonly parameters: readonly string[];
+}
+
 export type ValidationRuleNode =
-  | { readonly kind: typeof ValidationRuleKind.Required }
-  | { readonly kind: typeof ValidationRuleKind.Nullable }
-  | { readonly kind: typeof ValidationRuleKind.Optional }
-  | { readonly kind: typeof ValidationRuleKind.String }
-  | { readonly kind: typeof ValidationRuleKind.Number }
-  | { readonly kind: typeof ValidationRuleKind.Boolean }
-  | { readonly kind: typeof ValidationRuleKind.Array; readonly elementType: string | null }
-  | { readonly kind: typeof ValidationRuleKind.Email }
-  | { readonly kind: typeof ValidationRuleKind.Url }
-  | { readonly kind: typeof ValidationRuleKind.Uuid }
-  | { readonly kind: typeof ValidationRuleKind.Date; readonly format: string | null }
-  | { readonly kind: typeof ValidationRuleKind.Min; readonly value: number }
-  | { readonly kind: typeof ValidationRuleKind.Max; readonly value: number }
-  | { readonly kind: typeof ValidationRuleKind.Between; readonly min: number; readonly max: number }
-  | { readonly kind: typeof ValidationRuleKind.In; readonly values: readonly (string | number)[] }
-  | { readonly kind: typeof ValidationRuleKind.Exists; readonly table: string; readonly column: string | null }
-  | { readonly kind: typeof ValidationRuleKind.Unique; readonly table: string; readonly column: string | null }
-  | { readonly kind: typeof ValidationRuleKind.File }
-  | { readonly kind: typeof ValidationRuleKind.Image }
-  | { readonly kind: typeof ValidationRuleKind.Custom; readonly rule: string; readonly parameters: readonly string[] };
+  | RequiredValidationRuleNode
+  | NullableValidationRuleNode
+  | OptionalValidationRuleNode
+  | StringValidationRuleNode
+  | NumberValidationRuleNode
+  | BooleanValidationRuleNode
+  | ArrayValidationRuleNode
+  | EmailValidationRuleNode
+  | UrlValidationRuleNode
+  | UuidValidationRuleNode
+  | DateValidationRuleNode
+  | MinValidationRuleNode
+  | MaxValidationRuleNode
+  | BetweenValidationRuleNode
+  | InValidationRuleNode
+  | ExistsValidationRuleNode
+  | UniqueValidationRuleNode
+  | FileValidationRuleNode
+  | ImageValidationRuleNode
+  | CustomValidationRuleNode;
+
+export type AnyValidationRuleNode = ValidationRuleNode;
+
+export type ValidationRuleCategory =
+  | 'modifier'
+  | 'type'
+  | 'format'
+  | 'constraint'
+  | 'database'
+  | 'custom';
+
+export interface ValidationRuleSpecification<K extends ValidationRuleKind = ValidationRuleKind> {
+  readonly kind: K;
+  readonly category: ValidationRuleCategory;
+  readonly isTypeAssertion: boolean;
+  readonly isConstraint: boolean;
+  readonly isModifier: boolean;
+  readonly description: string;
+}
+
+export type ValidationRuleRegistry = {
+  readonly [K in ValidationRuleKind]: ValidationRuleSpecification<K>;
+};
+
+export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
+  [ValidationRuleKind.Required]: {
+    kind: ValidationRuleKind.Required,
+    category: 'modifier',
+    isTypeAssertion: false,
+    isConstraint: false,
+    isModifier: true,
+    description: 'Field must be present and not empty'
+  },
+  [ValidationRuleKind.Nullable]: {
+    kind: ValidationRuleKind.Nullable,
+    category: 'modifier',
+    isTypeAssertion: false,
+    isConstraint: false,
+    isModifier: true,
+    description: 'Field may be null'
+  },
+  [ValidationRuleKind.Optional]: {
+    kind: ValidationRuleKind.Optional,
+    category: 'modifier',
+    isTypeAssertion: false,
+    isConstraint: false,
+    isModifier: true,
+    description: 'Field may be omitted/sometimes'
+  },
+  [ValidationRuleKind.String]: {
+    kind: ValidationRuleKind.String,
+    category: 'type',
+    isTypeAssertion: true,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Field must be a string'
+  },
+  [ValidationRuleKind.Number]: {
+    kind: ValidationRuleKind.Number,
+    category: 'type',
+    isTypeAssertion: true,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Field must be numeric'
+  },
+  [ValidationRuleKind.Boolean]: {
+    kind: ValidationRuleKind.Boolean,
+    category: 'type',
+    isTypeAssertion: true,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Field must be a boolean'
+  },
+  [ValidationRuleKind.Array]: {
+    kind: ValidationRuleKind.Array,
+    category: 'type',
+    isTypeAssertion: true,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Field must be an array'
+  },
+  [ValidationRuleKind.Email]: {
+    kind: ValidationRuleKind.Email,
+    category: 'format',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be formatted as an e-mail address'
+  },
+  [ValidationRuleKind.Url]: {
+    kind: ValidationRuleKind.Url,
+    category: 'format',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be formatted as a valid URL'
+  },
+  [ValidationRuleKind.Uuid]: {
+    kind: ValidationRuleKind.Uuid,
+    category: 'format',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be a valid UUID'
+  },
+  [ValidationRuleKind.Date]: {
+    kind: ValidationRuleKind.Date,
+    category: 'format',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be a valid date'
+  },
+  [ValidationRuleKind.Min]: {
+    kind: ValidationRuleKind.Min,
+    category: 'constraint',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must have minimum value or length'
+  },
+  [ValidationRuleKind.Max]: {
+    kind: ValidationRuleKind.Max,
+    category: 'constraint',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must have maximum value or length'
+  },
+  [ValidationRuleKind.Between]: {
+    kind: ValidationRuleKind.Between,
+    category: 'constraint',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be between min and max values'
+  },
+  [ValidationRuleKind.In]: {
+    kind: ValidationRuleKind.In,
+    category: 'constraint',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be included in given list of values'
+  },
+  [ValidationRuleKind.Exists]: {
+    kind: ValidationRuleKind.Exists,
+    category: 'database',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must exist in specified database table'
+  },
+  [ValidationRuleKind.Unique]: {
+    kind: ValidationRuleKind.Unique,
+    category: 'database',
+    isTypeAssertion: false,
+    isConstraint: true,
+    isModifier: false,
+    description: 'Field must be unique in specified database table'
+  },
+  [ValidationRuleKind.File]: {
+    kind: ValidationRuleKind.File,
+    category: 'type',
+    isTypeAssertion: true,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Field must be an uploaded file'
+  },
+  [ValidationRuleKind.Image]: {
+    kind: ValidationRuleKind.Image,
+    category: 'type',
+    isTypeAssertion: true,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Field must be an uploaded image file'
+  },
+  [ValidationRuleKind.Custom]: {
+    kind: ValidationRuleKind.Custom,
+    category: 'custom',
+    isTypeAssertion: false,
+    isConstraint: false,
+    isModifier: false,
+    description: 'Custom or unhandled Laravel validation rule'
+  }
+});
+
+export type ValidationRuleVisitor<R> = {
+  readonly required: (rule: RequiredValidationRuleNode) => R;
+  readonly nullable: (rule: NullableValidationRuleNode) => R;
+  readonly optional: (rule: OptionalValidationRuleNode) => R;
+  readonly string: (rule: StringValidationRuleNode) => R;
+  readonly number: (rule: NumberValidationRuleNode) => R;
+  readonly boolean: (rule: BooleanValidationRuleNode) => R;
+  readonly array: (rule: ArrayValidationRuleNode) => R;
+  readonly email: (rule: EmailValidationRuleNode) => R;
+  readonly url: (rule: UrlValidationRuleNode) => R;
+  readonly uuid: (rule: UuidValidationRuleNode) => R;
+  readonly date: (rule: DateValidationRuleNode) => R;
+  readonly min: (rule: MinValidationRuleNode) => R;
+  readonly max: (rule: MaxValidationRuleNode) => R;
+  readonly between: (rule: BetweenValidationRuleNode) => R;
+  readonly in: (rule: InValidationRuleNode) => R;
+  readonly exists: (rule: ExistsValidationRuleNode) => R;
+  readonly unique: (rule: UniqueValidationRuleNode) => R;
+  readonly file: (rule: FileValidationRuleNode) => R;
+  readonly image: (rule: ImageValidationRuleNode) => R;
+  readonly custom: (rule: CustomValidationRuleNode) => R;
+};
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ValidationRuleNode dengan exhaustive type safety
+ */
+export function matchValidationRule<R>(
+  rule: ValidationRuleNode,
+  visitor: ValidationRuleVisitor<R>
+): R {
+  return visitor[rule.kind](rule as any);
+}
+
+export const matchRule = matchValidationRule;
 
 /**
  * ValidationRuleNodeFactory
@@ -2271,64 +2584,64 @@ export type ValidationRuleNode =
  * Canonical Reusable Factory for Structured ValidationRuleNode AST.
  */
 export class ValidationRuleNodeFactory {
-  public static required(): ValidationRuleNode {
+  public static required(): RequiredValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Required });
   }
-  public static nullable(): ValidationRuleNode {
+  public static nullable(): NullableValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Nullable });
   }
-  public static optional(): ValidationRuleNode {
+  public static optional(): OptionalValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Optional });
   }
-  public static string(): ValidationRuleNode {
+  public static string(): StringValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.String });
   }
-  public static number(): ValidationRuleNode {
+  public static number(): NumberValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Number });
   }
-  public static boolean(): ValidationRuleNode {
+  public static boolean(): BooleanValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Boolean });
   }
-  public static array(elementType: string | null = null): ValidationRuleNode {
+  public static array(elementType: string | null = null): ArrayValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Array, elementType });
   }
-  public static email(): ValidationRuleNode {
+  public static email(): EmailValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Email });
   }
-  public static url(): ValidationRuleNode {
+  public static url(): UrlValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Url });
   }
-  public static uuid(): ValidationRuleNode {
+  public static uuid(): UuidValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Uuid });
   }
-  public static date(format: string | null = null): ValidationRuleNode {
+  public static date(format: string | null = null): DateValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Date, format });
   }
-  public static min(value: number): ValidationRuleNode {
+  public static min(value: number): MinValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Min, value });
   }
-  public static max(value: number): ValidationRuleNode {
+  public static max(value: number): MaxValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Max, value });
   }
-  public static between(min: number, max: number): ValidationRuleNode {
+  public static between(min: number, max: number): BetweenValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Between, min, max });
   }
-  public static in(values: readonly (string | number)[]): ValidationRuleNode {
+  public static in(values: readonly (string | number)[]): InValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.In, values: Object.freeze([...values]) });
   }
-  public static exists(table: string, column: string | null = null): ValidationRuleNode {
+  public static exists(table: string, column: string | null = null): ExistsValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Exists, table, column });
   }
-  public static unique(table: string, column: string | null = null): ValidationRuleNode {
+  public static unique(table: string, column: string | null = null): UniqueValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Unique, table, column });
   }
-  public static file(): ValidationRuleNode {
+  public static file(): FileValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.File });
   }
-  public static image(): ValidationRuleNode {
+  public static image(): ImageValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Image });
   }
-  public static custom(rule: string, parameters: readonly string[] = []): ValidationRuleNode {
+  public static custom(rule: string, parameters: readonly string[] = []): CustomValidationRuleNode {
     return Object.freeze({ kind: ValidationRuleKind.Custom, rule, parameters: Object.freeze([...parameters]) });
   }
 }

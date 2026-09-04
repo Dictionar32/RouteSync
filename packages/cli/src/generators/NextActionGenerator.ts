@@ -1,4 +1,4 @@
-import { RouteManifest, RoutePayloadMode } from '@routesync/core'
+import { RouteManifest, RoutePayloadMode, matchRoutePayloadMode } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { classifyRoutes } from './route-classifier'
@@ -49,23 +49,10 @@ export class NextActionGenerator {
           route.method === 'DELETE'
         )
 
-        let payloadMode: RoutePayloadMode = RoutePayloadMode.None
-        switch (hasParams || hasBody) {
-          case true:
-            payloadMode = RoutePayloadMode.Required
-            break;
-          case false: {
-            switch (hasQuery) {
-              case true:
-                payloadMode = RoutePayloadMode.Optional
-                break;
-              case false:
-                payloadMode = RoutePayloadMode.None
-                break;
-            }
-            break;
-          }
-        }
+        // 1. Authoritative payload mode from executionSignature SSOT
+        const effectivePayloadMode = route.raw.executionSignature
+          ? route.raw.executionSignature.payloadMode
+          : (hasParams || hasBody ? RoutePayloadMode.Required : (hasQuery ? RoutePayloadMode.Optional : RoutePayloadMode.None))
 
         const callArgs: string[] = []
         switch (hasParams) {
@@ -99,17 +86,17 @@ export class NextActionGenerator {
 
         const argsStr = callArgs.length > 0 ? `{ ${callArgs.join(', ')} }` : ''
 
-        switch (payloadMode) {
-          case RoutePayloadMode.None:
+        matchRoutePayloadMode(effectivePayloadMode, {
+          none: () => {
             lines.push(`export async function ${actionFnName}() {`)
-            break;
-          case RoutePayloadMode.Required:
+          },
+          required: () => {
             lines.push(`export async function ${actionFnName}(payload: Parameters<typeof api.${groupName}.${route.actionName}>[0]) {`)
-            break;
-          case RoutePayloadMode.Optional:
+          },
+          optional: () => {
             lines.push(`export async function ${actionFnName}(payload?: Parameters<typeof api.${groupName}.${route.actionName}>[0]) {`)
-            break;
-        }
+          }
+        })
 
         lines.push(`  try {`)
         lines.push(`    const data = await api.${groupName}.${route.actionName}(${argsStr})`)

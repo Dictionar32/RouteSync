@@ -21,6 +21,8 @@ import { SDKGenerator } from '../../cli/src/generators/SDKGenerator'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
 import { QueryKeyGenerator } from '../../cli/src/generators/QueryKeyGenerator'
 import { TypeGenerator } from '../../cli/src/generators/TypeGenerator'
+import { MswGenerator } from '../../cli/src/generators/MswGenerator'
+import { NextActionGenerator } from '../../cli/src/generators/NextActionGenerator'
 import path from 'path'
 import fs from 'fs-extra'
 
@@ -330,6 +332,80 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
       expect(indexCode).toContain("export * from '../forms/api-form'")
     } finally {
       await fs.remove(tempDir)
+    }
+  })
+
+  it('11. MswGenerator should consume matchResponseShape pure catamorphism for collection vs single responses', async () => {
+    const listRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/items',
+      resourceName: 'Item',
+      actionName: 'index',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Index,
+      response: ResourceResponseDescriptor.collection('ItemResource')
+    })
+    const singleRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/items/{id}',
+      resourceName: 'Item',
+      actionName: 'show',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Show,
+      response: ResourceResponseDescriptor.single('ItemResource')
+    })
+
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [listRoute, singleRoute]
+    }
+
+    let writtenCode = ''
+    const originalWriteFile = fs.writeFile
+    ;(fs as any).writeFile = async (_file: string, content: string) => {
+      writtenCode = content
+    }
+
+    try {
+      await MswGenerator.generate(manifest, '/tmp')
+      expect(writtenCode).toContain("data: []")
+      expect(writtenCode).toContain("data: { id: 1, ...params }")
+    } finally {
+      ;(fs as any).writeFile = originalWriteFile
+    }
+  })
+
+  it('12. NextActionGenerator should consume executionSignature SSOT to generate typed server action signatures', async () => {
+    const mutatingRoute = ScannedRouteDescriptor.create({
+      method: 'POST',
+      path: '/api/items',
+      resourceName: 'Item',
+      actionName: 'store',
+      actionKind: 'create',
+      isMutating: true,
+      crudRole: CrudRole.Create,
+      response: ResourceResponseDescriptor.single('ItemResource')
+    })
+
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [mutatingRoute]
+    }
+
+    let writtenCode = ''
+    const originalWriteFile = fs.writeFile
+    ;(fs as any).writeFile = async (_file: string, content: string) => {
+      writtenCode = content
+    }
+
+    try {
+      await NextActionGenerator.generate(manifest, '/tmp')
+      expect(writtenCode).toContain('export async function itemCreateAction(payload: Parameters<typeof api.item.create>[0])')
+      expect(writtenCode).toContain('await api.item.create({ body: payload.body })')
+    } finally {
+      ;(fs as any).writeFile = originalWriteFile
     }
   })
 })

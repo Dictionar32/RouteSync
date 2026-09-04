@@ -4902,10 +4902,11 @@ export interface RouteExecutionSignatureVisitor<R> {
  * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian RouteExecutionSignature dengan exhaustive type safety
  */
 export function matchRouteExecutionSignature<R>(
-  signature: RouteExecutionSignature,
+  signature: RouteExecutionSignature | RoutePayloadMode,
   visitor: RouteExecutionSignatureVisitor<R>
 ): R {
-  return visitor[signature.payloadMode](signature as any);
+  const mode = typeof signature === 'string' ? signature : signature.payloadMode;
+  return visitor[mode](signature as any);
 }
 
 export const matchRoutePayloadMode = matchRouteExecutionSignature;

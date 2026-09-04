@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, matchResponseShape } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toMethodName } from './names'
@@ -17,8 +17,14 @@ export class MswGenerator {
       const runtimePath = route.runtimePath || route.path
       const mswPath = manifest.baseURL + (runtimePath.startsWith('/') ? runtimePath : '/' + runtimePath)
       const actionName = toMethodName(route)
-      const isCollection = route.response?.shape === 'collection' || route.response?.shape === 'paginated'
-      const readType = route.response?.readTypeName
+
+      const dataExpression = route.response
+        ? matchResponseShape(route.response.shape, {
+            collection: () => '[]',
+            paginated: () => '[]',
+            single: () => '{ id: 1, ...params }'
+          })
+        : '{ id: 1, ...params }'
 
       lines.push('  http.' + mswMethod + '(\'' + mswPath + '\', async ({ request, params }) => {')
       lines.push(`    await delay(300) // Simulated network latency`)
@@ -26,11 +32,7 @@ export class MswGenerator {
       lines.push(`    return HttpResponse.json({`)
       lines.push(`      success: true,`)
       lines.push(`      message: 'Mocked response for ${actionName} at ' + url.pathname,`)
-      if (isCollection) {
-        lines.push(`      data: []`)
-      } else {
-        lines.push(`      data: { id: 1, ...params }`)
-      }
+      lines.push(`      data: ${dataExpression}`)
       lines.push(`    })`)
       lines.push(`  }),`)
     }

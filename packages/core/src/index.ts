@@ -104,7 +104,10 @@ export {
   matchRelationType,
   SDK_RESPONSE_KIND_REGISTRY,
   matchSdkResponseResolution,
-  matchSdkResponse
+  matchSdkResponse,
+  REQUEST_CONTENT_TYPE_REGISTRY,
+  ScannedRequestContentTypeDescriptor,
+  matchRequestContentType
 } from './types/route'
 export type {
   RouteManifest,
@@ -146,6 +149,15 @@ export type {
   SdkResponseKindSpecification,
   SdkResponseKindRegistry,
   SdkResponseResolutionVisitor,
+  BaseRequestContentTypeDescriptor,
+  JsonRequestContentTypeDescriptor,
+  MultipartRequestContentTypeDescriptor,
+  UrlEncodedRequestContentTypeDescriptor,
+  NoneRequestContentTypeDescriptor,
+  RequestContentTypeDescriptor,
+  RequestContentTypeSpecification,
+  RequestContentTypeRegistry,
+  RequestContentTypeVisitor,
   CrudRole,
   RoutePolicyDescriptor,
   RateLimitDescriptor,

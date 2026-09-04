@@ -110,7 +110,10 @@ export {
   matchRequestContentType,
   PAGINATION_KIND_REGISTRY,
   matchPaginatedEnvelope,
-  matchPaginationKind
+  matchPaginationKind,
+  ROUTE_PAYLOAD_MODE_REGISTRY,
+  matchRouteExecutionSignature,
+  matchRoutePayloadMode
 } from './types/route'
 export type {
   RouteManifest,
@@ -142,6 +145,14 @@ export type {
   InvalidationTargetVisitor,
   RouteCacheInvalidationDescriptor,
   RouteExecutionSignature,
+  BaseRouteExecutionSignature,
+  NoPayloadExecutionSignature,
+  RequiredPayloadExecutionSignature,
+  OptionalPayloadExecutionSignature,
+  AnyRouteExecutionSignature,
+  RoutePayloadModeSpecification,
+  RoutePayloadModeRegistry,
+  RouteExecutionSignatureVisitor,
   SdkResponseResolution,
   VoidSdkResponseResolution,
   RawSdkResponseResolution,

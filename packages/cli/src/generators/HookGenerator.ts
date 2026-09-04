@@ -1,23 +1,14 @@
 import { RouteManifest } from '@routesync/core'
-import type { ResponseArtifact } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
 import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-classifier'
-import { ResponseAnalysisHelper } from './response-analysis-helper'
 import { CANONICAL_ACTION_MAP } from './canonical-names'
 
 export class HookGenerator {
   static async generate(manifest: RouteManifest, outputDir?: string): Promise<string> {
     const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const resources = buildResourceMap(classified)
-
-    // BUILD SSOT: ResponseArtifactMap from manifest
-    console.log('🔨 HookGenerator: Building ResponseArtifactMap (SSOT)...')
-    const responseArtifactMap = ResponseAnalysisHelper.buildResponseArtifactMap(manifest)
-
-    const knownModels = new Set(manifest.models?.map(m => m.name) || [])
-    const knownResources = new Set(manifest.resources?.map(r => r.name) || [])
 
     const importedTypes = new Set<string>()
     const contractImportedTypes = new Set<string>()
@@ -50,40 +41,11 @@ export class HookGenerator {
         return contractType
       }
 
-      const resolveResponseInfo = (rawMeta: unknown): { baseName: string; collection: boolean } | null => {
-        if (!rawMeta || typeof rawMeta !== 'object') return null
-        const raw = rawMeta as Record<string, unknown>
-        const resolved = (raw.resolved || raw.semantic || raw) as Record<string, unknown>
-        const meta: Record<string, unknown> = {
-          ...resolved,
-          collection: raw.collection ?? (raw.resolved as Record<string, unknown> | undefined)?.collection ?? (raw.semantic as Record<string, unknown> | undefined)?.collection,
-          fields: raw.fields ?? (raw.resolved as Record<string, unknown> | undefined)?.fields ?? (raw.semantic as Record<string, unknown> | undefined)?.fields,
-        }
-        if (meta.kind === 'unknown') return null
-
-        const resolvedKind = meta.kind || meta.type
-        if (resolvedKind === 'model') {
-          const modelName = meta.model as string
-          const resourceName = `${modelName}Resource`
-          const baseName = knownResources.has(resourceName)
-            ? resourceName
-            : knownModels.has(modelName)
-              ? modelName
-              : modelName
-          return { baseName, collection: !!meta.collection }
-        }
-        if (resolvedKind === 'resource' && meta.resource) {
-          return { baseName: meta.resource as string, collection: !!meta.collection }
-        }
-        // object-kind: ZodTierGenerator membungkusnya dalam {GroupName}Transformed
-        // Jangan rekursi ke inner model — gunakan tipe berbasis groupName dari api-read
-        return null
-      }
-
       const resolveResponseType = (route?: any): string => {
-        if (!route) return 'never'
+        if (!route || !route.raw?.response) return 'never'
 
-        if (route.raw?.response?.readTypeName) {
+        // 1. Authoritative SSOT from ResponseDescriptor
+        if (route.raw.response.readTypeName) {
           const readType = route.raw.response.readTypeName
           if (readType !== 'void' && readType !== 'unknown') {
             importedTypes.add(readType)
@@ -91,29 +53,14 @@ export class HookGenerator {
           return readType
         }
 
-        const responseInfo = resolveResponseInfo(route.raw.response)
-        if (!responseInfo) {
-          if (!route.raw.response) return 'never'
-          // Object response bukan model/resource → pakai Transformed type dari api-read
-          const resourceName = toTypeName(route.groupName)
-
-          // SSOT: Use ResponseArtifact instead of action name heuristic
-          // Old way: const isList = route.actionName === 'list' || route.crudRole === 'index'  ❌
-          // New way: Read from artifact
-          const artifactId = `${route.name}.Response`
-          const artifact = responseArtifactMap?.get(artifactId)
-          const isList = artifact?.body && 'shape' in artifact.body
-            ? (artifact.body.shape === 'collection' || artifact.body.shape === 'paginated')
-            : false
-
-          const readType = isList ? `${resourceName}Index` : `${resourceName}Show`
-          importedTypes.add(readType)
-          return readType
-        }
-
-        const responseType = responseInfo.collection ? `${responseInfo.baseName}Index` : `${responseInfo.baseName}Show`
-        importedTypes.add(responseType)
-        return responseType
+        // 2. Deterministic fallback for legacy plain JSON manifests
+        const rawResp = route.raw.response
+        const rawTarget = rawResp.resource || rawResp.model || rawResp.resolved?.resource || rawResp.resolved?.model
+        const base = rawTarget ? toTypeName(rawTarget) : toTypeName(route.groupName)
+        const isCollection = Boolean(rawResp.collection ?? rawResp.resolved?.collection)
+        const readType = isCollection ? `${base}Index` : `${base}Show`
+        importedTypes.add(readType)
+        return readType
       }
 
       const pushUnique = (items: string[], item: string): void => {

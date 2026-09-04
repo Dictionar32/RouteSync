@@ -53,86 +53,11 @@ export const generateCommand = new Command('generate')
       let compilerBridgeSuccess = false
       try {
         const { CompilerBridge } = await import('../generators/CompilerBridge')
-
-        // Generate api-read.ts (resource types)
-        const compilerOutput = await CompilerBridge.generateTypeScript(manifest)
-
-        // Write compiler-generated types to api-read.ts
-        const compilerTypesPath = path.join(options.output, 'types', 'api-read.ts')
-        await fs.ensureDir(path.dirname(compilerTypesPath))
-        await fs.writeFile(compilerTypesPath, compilerOutput.code)
-
-        console.log(`  [CompilerBridge] Generated api-read.ts:`)
-        console.log(`    - Types: ${compilerOutput.metadata.typeCount}`)
-        console.log(`    - Interfaces: ${compilerOutput.metadata.interfaceCount}`)
-        console.log(`    - LOC: ${compilerOutput.metadata.linesOfCode}`)
-        if (compilerOutput.metadata.warnings.length > 0) {
-          console.log(`    - Warnings: ${compilerOutput.metadata.warnings.length}`)
-        }
-
-        // Generate api-form.ts (form types from validation rules)
-        spinner.text = 'Generating form types...'
-        try {
-          const formOutput = await CompilerBridge.generateFormTypes(manifest)
-
-          // Write compiler-generated form types to api-form.ts
-          const formTypesPath = path.join(options.output, 'forms', 'api-form.ts')
-          await fs.ensureDir(path.dirname(formTypesPath))
-          await fs.writeFile(formTypesPath, formOutput.code)
-
-          console.log(`  [CompilerBridge] Generated api-form.ts:`)
-          console.log(`    - Form Types: ${formOutput.metadata.formTypeCount}`)
-          console.log(`    - Total Actions: ${formOutput.metadata.totalActions}`)
-          console.log(`    - LOC: ${formOutput.metadata.linesOfCode}`)
-          if (formOutput.metadata.warnings.length > 0) {
-            console.log(`    - Warnings: ${formOutput.metadata.warnings.length}`)
-          }
-        } catch (formError) {
-          console.warn(`  [CompilerBridge] Warning: Form generation failed - ${formError instanceof Error ? formError.message : String(formError)}`)
-        }
-
-        // Generate api-contract.ts (Zod schemas for runtime validation)
-        spinner.text = 'Generating contract types...'
-        try {
-          const contractOutput = await CompilerBridge.generateContractTypes(manifest)
-
-          // Write compiler-generated contract to api-contract.ts
-          const contractPath = path.join(options.output, 'contracts', 'api-contract.ts')
-          await fs.ensureDir(path.dirname(contractPath))
-          await fs.writeFile(contractPath, contractOutput.code)
-
-          console.log(`  [CompilerBridge] Generated api-contract.ts:`)
-          console.log(`    - Contracts: ${contractOutput.metadata.contractCount}`)
-          console.log(`    - Total Actions: ${contractOutput.metadata.totalActions}`)
-          console.log(`    - Zod Schemas: ${contractOutput.metadata.zodSchemasCount}`)
-          console.log(`    - Validators: ${contractOutput.metadata.validatorsCount}`)
-          console.log(`    - LOC: ${contractOutput.metadata.linesOfCode}`)
-          if (contractOutput.metadata.warnings.length > 0) {
-            console.log(`    - Warnings: ${contractOutput.metadata.warnings.length}`)
-          }
-
-          // Generate api-field.ts (ApiApiField table)
-          const apiFieldOutput = await CompilerBridge.generateApiFieldTypes(manifest)
-          const apiFieldPath = path.join(options.output, 'contracts', 'api-field.ts')
-          await fs.ensureDir(path.dirname(apiFieldPath))
-          await fs.writeFile(apiFieldPath, apiFieldOutput.code)
-
-          console.log(`  [CompilerBridge] Generated api-field.ts:`)
-          console.log(`    - LOC: ${apiFieldOutput.metadata.linesOfCode}`)
-
-          // Generate api-mapper.ts (Read & Form Mapper functions)
-          const mapperOutput = await CompilerBridge.generateMapperTypes(manifest)
-          const mapperPath = path.join(options.output, 'mappers', 'api-mapper.ts')
-          await fs.ensureDir(path.dirname(mapperPath))
-          await fs.writeFile(mapperPath, mapperOutput.code)
-
-          console.log(`  [CompilerBridge] Generated api-mapper.ts:`)
-          console.log(`    - LOC: ${mapperOutput.metadata.linesOfCode}`)
-
-          compilerBridgeSuccess = true
-        } catch (contractError) {
-          console.warn(`  [CompilerBridge] Warning: Contract generation failed - ${contractError instanceof Error ? contractError.message : String(contractError)}`)
-        }
+        spinner.text = 'Compiling and emitting contract artifacts (read, forms, contracts, fields, mappers)...'
+        const emitted = await CompilerBridge.emitAll(manifest, options.output)
+        console.log(`  [CompilerBridge] Emitted ${emitted.writtenPaths.length} compiler artifacts successfully:`)
+        emitted.writtenPaths.forEach(p => console.log(`    ✓ ${path.relative(options.output, p)}`))
+        compilerBridgeSuccess = true
       } catch (compilerError) {
         console.warn(`  [CompilerBridge] Warning: ${compilerError instanceof Error ? compilerError.message : String(compilerError)}`)
         console.warn(`  Falling back to legacy generator...`)

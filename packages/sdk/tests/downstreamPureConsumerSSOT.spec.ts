@@ -9,12 +9,16 @@ import {
   RequestContentType,
   RouteSecurityClassifier,
   RouteHookKind,
+  CrudRole,
   ScannedRouteCacheInvalidationDescriptor,
   ScannedInvalidationTarget,
   ScannedRouteDescriptor
 } from '../../core/src'
 import { HookGenerator } from '../../cli/src/generators/HookGenerator'
 import { SDKGenerator } from '../../cli/src/generators/SDKGenerator'
+import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
+import path from 'path'
+import fs from 'fs-extra'
 
 describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   it('1. PaginatedEnvelopeDescriptor should preserve length-aware and cursor pagination metadata', () => {
@@ -127,5 +131,133 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
     const hooksCode = await HookGenerator.generate(manifest)
     expect(hooksCode).toContain('QueryKey.orders.all')
     expect(hooksCode).toContain('QueryKey.users.lists')
+  })
+
+  it('6. HookGenerator should resolve list and detail types purely from response descriptors without intermediate artifact maps', async () => {
+    const indexRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/products',
+      resourceName: 'Product',
+      actionName: 'index',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Index,
+      response: ResourceResponseDescriptor.collection('ProductResource')
+    })
+    const showRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/products/{id}',
+      resourceName: 'Product',
+      actionName: 'show',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Show,
+      response: ResourceResponseDescriptor.single('ProductResource')
+    })
+
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [indexRoute, showRoute]
+    }
+
+    const hooksCode = await HookGenerator.generate(manifest)
+    expect(hooksCode).toContain('ProductResourceTransformed')
+    expect(hooksCode).toContain('list: typeOf<ProductResourceTransformed>()')
+    expect(hooksCode).toContain('detail: typeOf<ProductResourceTransformed>()')
+  })
+
+  it('7. CompilerBridge.compileAll should execute all 5 passes and return a coherent CompiledContractsBundle', async () => {
+    const mockRoute = {
+      name: 'orders.store',
+      method: 'POST',
+      path: '/api/orders',
+      actionName: 'store',
+      groupName: 'orders',
+      schema: {
+        rules: {
+          product_id: 'required|integer',
+          quantity: 'required|integer|min:1'
+        }
+      },
+      response: {
+        kind: 'resource',
+        resource: 'OrderResource',
+        readTypeName: 'OrderResourceTransformed',
+        mapperName: 'toOrderResourceRead',
+        validatorName: 'validateOrderResourceSchema'
+      }
+    }
+
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [mockRoute],
+      models: [
+        {
+          name: 'Order',
+          table: 'orders',
+          columns: [
+            { name: 'id', type: 'bigint', nullable: false },
+            { name: 'product_id', type: 'bigint', nullable: false },
+            { name: 'quantity', type: 'integer', nullable: false }
+          ],
+          casts: {},
+          relations: {},
+          accessors: {}
+        }
+      ],
+      resources: [
+        {
+          name: 'OrderResource',
+          model: 'Order',
+          fields: {
+            id: { type: 'number' },
+            productId: { type: 'number' },
+            quantity: { type: 'number' }
+          }
+        }
+      ]
+    }
+
+    const bundle = await CompilerBridge.compileAll(manifest)
+    expect(bundle.readTypes.code).toContain('OrderResourceTransformed')
+    expect(bundle.formTypes.code).toContain('OrdersForm')
+    expect(bundle.contracts.code).toContain('ordersContractSchema')
+    expect(bundle.apiFields.code).toBeDefined()
+    expect(bundle.mappers.code).toBeDefined()
+  })
+
+  it('8. CompilerBridge.emitAll should write all 5 compiler artifacts to target directory', async () => {
+    const mockRoute = ScannedRouteDescriptor.create({
+      method: 'GET',
+      path: '/api/orders',
+      resourceName: 'Order',
+      actionName: 'index',
+      actionKind: 'read',
+      isMutating: false,
+      crudRole: CrudRole.Index,
+      response: ResourceResponseDescriptor.collection('OrderResource')
+    })
+
+    const manifest: any = {
+      baseURL: 'http://localhost/api',
+      routes: [mockRoute],
+      models: [],
+      resources: []
+    }
+
+    const tempDir = path.join(__dirname, 'temp_cda_emit')
+    try {
+      const result = await CompilerBridge.emitAll(manifest, tempDir)
+      expect(result.writtenPaths.length).toBe(5)
+
+      for (const writtenPath of result.writtenPaths) {
+        expect(await fs.pathExists(writtenPath)).toBe(true)
+      }
+
+      const readCode = await fs.readFile(path.join(tempDir, 'types', 'api-read.ts'), 'utf-8')
+      expect(readCode).toContain('OrderResourceTransformed')
+    } finally {
+      await fs.remove(tempDir)
+    }
   })
 })

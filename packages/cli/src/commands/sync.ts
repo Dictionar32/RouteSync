@@ -120,10 +120,7 @@ export const syncCommand = new Command('sync')
       
       if (options.zod) {
         const { CompilerBridge } = require('../generators/CompilerBridge')
-        const contractOutput = await CompilerBridge.generateContractTypes(resolvedManifest)
-        const contractPath = require('path').join(options.output, 'contracts', 'api-contract.ts')
-        await fs.ensureDir(require('path').dirname(contractPath))
-        await fs.writeFile(contractPath, contractOutput.code)
+        await CompilerBridge.emitAll(resolvedManifest, options.output)
       }
       spinner.succeed(chalk.green(`✔ ${steps[1].text}`))
 

@@ -15,7 +15,13 @@ import {
   ScannedCustomResourceGroupDescriptor,
   ScannedCrudResourceGroupDescriptor,
   MutationCapability,
-  ScannedResourceGroupTypeSignature
+  ScannedResourceGroupTypeSignature,
+  AbstractResourceGroupDescriptor,
+  AbstractCrudResourceGroupDescriptor,
+  BaseCrudResourceGroupDescriptor,
+  CrudEndpointsTrait,
+  StrictMutationEndpointsTrait,
+  FlexibleMutationEndpointsTrait
 } from "@routesync/core"
 import {
   classifyDomainGraph,
@@ -538,6 +544,65 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(crudDesc.update.available).toBe(false)
     expect(crudDesc.delete.available).toBe(false)
     expect(Object.isFrozen(crudDesc)).toBe(true)
+  })
+
+  it("enforces Algebraic Trait Composition and Abstract Base Class inheritance", () => {
+    const dummyIndex = ScannedRouteDescriptor.create({
+      method: "GET",
+      path: "/api/v1/orders",
+      groupName: "orders",
+      crudRole: "index"
+    })
+    const dummyShow = ScannedRouteDescriptor.create({
+      method: "GET",
+      path: "/api/v1/orders/{id}",
+      groupName: "orders",
+      crudRole: "show"
+    })
+    const dummyCreate = ScannedRouteDescriptor.create({
+      method: "POST",
+      path: "/api/v1/orders",
+      groupName: "orders",
+      crudRole: "create"
+    })
+
+    const fullCrud = new ScannedFullCrudResourceGroupDescriptor({
+      groupName: "orders",
+      keyName: "ORDERS",
+      titleName: "Orders",
+      primaryKeyType: "number",
+      types: ScannedResourceGroupTypeSignature.createDefault(),
+      index: dummyIndex,
+      show: dummyShow,
+      create: dummyCreate,
+      update: dummyCreate,
+      delete: dummyCreate,
+      all: [dummyIndex, dummyShow, dummyCreate]
+    })
+
+    // 1. Verify prototype and inheritance hierarchy
+    expect(fullCrud instanceof AbstractResourceGroupDescriptor).toBe(true)
+    expect(fullCrud instanceof AbstractCrudResourceGroupDescriptor).toBe(true)
+    expect(fullCrud instanceof ScannedFullCrudResourceGroupDescriptor).toBe(true)
+
+    // 2. Verify trait compliance (polymorphic consumer of BaseCrudResourceGroupDescriptor)
+    const consumeCrudTrait = (desc: BaseCrudResourceGroupDescriptor): { isCrud: true; indexMethod: string } => ({
+      isCrud: desc.isCrud,
+      indexMethod: desc.index.method
+    })
+
+    const result = consumeCrudTrait(fullCrud)
+    expect(result.isCrud).toBe(true)
+    expect(result.indexMethod).toBe("GET")
+
+    // 3. Verify unified match dispatch from abstract base class
+    const unifiedResult = fullCrud.matchUnified({
+      crud: g => `CRUD:${g.groupName}`,
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(unifiedResult).toBe("CRUD:orders")
+    expect(Object.isFrozen(fullCrud)).toBe(true)
   })
 })
 

@@ -6404,17 +6404,60 @@ export class ScannedResourceGroupTypeSignature implements BaseResourceGroupTypeS
   }
 }
 
-export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute> {
-  readonly kind: ResourceGroupKind;
+/**
+ * Resource Group Core Identity Trait.
+ * Encapsulates immutable naming, identification, and entity route collection.
+ */
+export interface ResourceGroupIdentityTrait<TRoute = ParsedRoute> {
   readonly groupName: string;
   readonly keyName: string;
   readonly titleName: string;
-  readonly isCrud: boolean;
+  readonly primaryKeyType: string;
+  readonly all: readonly TRoute[];
+}
+
+/**
+ * Resource Group Query Key Accessors Trait.
+ */
+export interface ResourceGroupQueryKeysTrait {
   readonly listKeyFn: string;
   readonly detailKeyFn: string;
-  readonly primaryKeyType: string;
-  readonly types: BaseResourceGroupTypeSignature;
-  readonly all: readonly TRoute[];
+}
+
+/**
+ * Resource Group Read Endpoints Trait.
+ * Guaranteed present on all CRUD variants (index, show).
+ */
+export interface CrudEndpointsTrait<TRoute = ParsedRoute> {
+  readonly index: TRoute;
+  readonly show: TRoute;
+}
+
+/**
+ * Resource Group Strict Mutation Endpoints Trait.
+ * Guaranteed present on Full CRUD (create, update, delete).
+ */
+export interface StrictMutationEndpointsTrait<TRoute = ParsedRoute> {
+  readonly create: TRoute;
+  readonly update: TRoute;
+  readonly delete: TRoute;
+}
+
+/**
+ * Resource Group Flexible Mutation Endpoints Trait.
+ * Expressed via the explicit MutationCapability ADT.
+ */
+export interface FlexibleMutationEndpointsTrait<TRoute = ParsedRoute> {
+  readonly create: MutationCapability<TRoute>;
+  readonly update: MutationCapability<TRoute>;
+  readonly delete: MutationCapability<TRoute>;
+}
+
+/**
+ * Resource Group Visitor Capability Trait.
+ * Enables zero-switch, zero-if polymorphic catamorphism.
+ */
+export interface ResourceGroupVisitorCapability<TRoute = ParsedRoute> {
   readonly matchFineGrained: <R>(
     visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
   ) => R;
@@ -6423,34 +6466,59 @@ export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute> {
   ) => R;
 }
 
-export interface FullCrudResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+/**
+ * Base Resource Group Descriptor.
+ * Composes core identity, query key metadata, and polymorphic visitor capabilities.
+ */
+export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends ResourceGroupIdentityTrait<TRoute>,
+    ResourceGroupQueryKeysTrait,
+    ResourceGroupVisitorCapability<TRoute> {
+  readonly kind: ResourceGroupKind;
+  readonly isCrud: boolean;
+  readonly types: BaseResourceGroupTypeSignature;
+}
+
+/**
+ * Base CRUD Resource Group Descriptor.
+ * Guaranteed isCrud: true and mandatory read endpoints (index, show).
+ */
+export interface BaseCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends BaseResourceGroupDescriptor<TRoute>,
+    CrudEndpointsTrait<TRoute> {
+  readonly isCrud: true;
+}
+
+/**
+ * Full CRUD Resource Group Descriptor.
+ * Composes Base CRUD with strict non-nullable mutation endpoints.
+ */
+export interface FullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends BaseCrudResourceGroupDescriptor<TRoute>,
+    StrictMutationEndpointsTrait<TRoute> {
   readonly kind: typeof ResourceGroupKind.FullCrud;
-  readonly isCrud: true;
   readonly types: FullCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly create: TRoute;
-  readonly update: TRoute;
-  readonly delete: TRoute;
 }
 
-export interface ReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+/**
+ * Read-Only CRUD Resource Group Descriptor.
+ * Composes Base CRUD with Read-Only type signatures.
+ */
+export interface ReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends BaseCrudResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.ReadOnlyCrud;
-  readonly isCrud: true;
   readonly types: ReadOnlyCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
 }
 
-export interface FlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+/**
+ * Flexible CRUD Resource Group Descriptor.
+ * Composes Base CRUD with MutationCapability ADTs.
+ */
+export interface FlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends BaseCrudResourceGroupDescriptor<TRoute>,
+    FlexibleMutationEndpointsTrait<TRoute> {
   readonly kind: typeof ResourceGroupKind.FlexibleCrud;
-  readonly isCrud: true;
   readonly types: FlexibleCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly create: MutationCapability<TRoute>;
-  readonly update: MutationCapability<TRoute>;
-  readonly delete: MutationCapability<TRoute>;
 }
 
 export type CrudResourceGroupDescriptor<TRoute = ParsedRoute> =
@@ -6458,13 +6526,23 @@ export type CrudResourceGroupDescriptor<TRoute = ParsedRoute> =
   | ReadOnlyCrudResourceGroupDescriptor<TRoute>
   | FlexibleCrudResourceGroupDescriptor<TRoute>;
 
-export interface SingletonResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+/**
+ * Singleton Resource Group Descriptor.
+ * Composes Base Descriptor with isCrud: false.
+ */
+export interface SingletonResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends BaseResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.Singleton;
   readonly isCrud: false;
   readonly types: SingletonTypeSignature;
 }
 
-export interface CustomResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+/**
+ * Custom Resource Group Descriptor.
+ * Composes Base Descriptor with isCrud: false.
+ */
+export interface CustomResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends BaseResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.Custom;
   readonly isCrud: false;
   readonly types: CustomTypeSignature;
@@ -6477,53 +6555,144 @@ export type ResourceGroupDescriptor<TRoute = ParsedRoute> =
   | SingletonResourceGroupDescriptor<TRoute>
   | CustomResourceGroupDescriptor<TRoute>;
 
-export interface FullCrudParams<TRoute = ParsedRoute> {
+/**
+ * Common parameter traits for constructor initialization.
+ */
+export interface BaseResourceGroupParams<TRoute = ParsedRoute> {
   readonly groupName: string;
   readonly keyName: string;
   readonly titleName: string;
-  readonly primaryKeyType: string;
-  readonly types: FullCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly create: TRoute;
-  readonly update: TRoute;
-  readonly delete: TRoute;
   readonly all: readonly TRoute[];
 }
 
-export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
-  implements FullCrudResourceGroupDescriptor<TRoute>
+export interface BaseCrudParams<TRoute = ParsedRoute>
+  extends BaseResourceGroupParams<TRoute>,
+    CrudEndpointsTrait<TRoute> {
+  readonly primaryKeyType: string;
+}
+
+export interface FullCrudParams<TRoute = ParsedRoute>
+  extends BaseCrudParams<TRoute>,
+    StrictMutationEndpointsTrait<TRoute> {
+  readonly types: FullCrudTypeSignature;
+}
+
+export interface ReadOnlyCrudParams<TRoute = ParsedRoute>
+  extends BaseCrudParams<TRoute> {
+  readonly types: ReadOnlyCrudTypeSignature;
+}
+
+export interface FlexibleCrudParams<TRoute = ParsedRoute>
+  extends BaseCrudParams<TRoute>,
+    FlexibleMutationEndpointsTrait<TRoute> {
+  readonly types: FlexibleCrudTypeSignature;
+}
+
+/**
+ * Backward-compatibility alias for FlexibleCrudParams.
+ */
+export type CrudResourceGroupDescriptorParams<TRoute = ParsedRoute> = FlexibleCrudParams<TRoute>;
+
+export interface SingletonResourceGroupDescriptorParams<TRoute = ParsedRoute>
+  extends BaseResourceGroupParams<TRoute> {
+  readonly types: SingletonTypeSignature;
+}
+
+export interface CustomResourceGroupDescriptorParams<TRoute = ParsedRoute>
+  extends BaseResourceGroupParams<TRoute> {
+  readonly detailKeyFn: string;
+  readonly types: CustomTypeSignature;
+}
+
+/**
+ * Abstract Base Class for Resource Group Descriptors.
+ * Implements common identity, query key metadata, and frozen immutability.
+ */
+export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
+  implements BaseResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.FullCrud;
-  public readonly isCrud = true as const;
+  public abstract readonly kind: ResourceGroupKind;
+  public abstract readonly isCrud: boolean;
+  public abstract readonly types: BaseResourceGroupTypeSignature;
+
   public readonly groupName: string;
   public readonly keyName: string;
   public readonly titleName: string;
   public readonly listKeyFn: string;
   public readonly detailKeyFn: string;
   public readonly primaryKeyType: string;
-  public readonly types: FullCrudTypeSignature;
-  public readonly index: TRoute;
-  public readonly show: TRoute;
-  public readonly create: TRoute;
-  public readonly update: TRoute;
-  public readonly delete: TRoute;
   public readonly all: readonly TRoute[];
 
-  constructor(params: FullCrudParams<TRoute>) {
+  constructor(
+    params: BaseResourceGroupParams<TRoute>,
+    queryKeys: ResourceGroupQueryKeysTrait,
+    primaryKeyType: string
+  ) {
     this.groupName = params.groupName;
     this.keyName = params.keyName;
     this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FullCrud].listKeyFn;
-    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FullCrud].defaultDetailKeyFn;
-    this.primaryKeyType = params.primaryKeyType;
-    this.types = params.types;
+    this.listKeyFn = queryKeys.listKeyFn;
+    this.detailKeyFn = queryKeys.detailKeyFn;
+    this.primaryKeyType = primaryKeyType;
+    this.all = Object.freeze(params.all);
+  }
+
+  public abstract matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R;
+
+  public abstract matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R;
+}
+
+/**
+ * Abstract Base Class for CRUD Resource Group Descriptors.
+ * Implements index, show, isCrud: true, and the unified CRUD visitor dispatcher.
+ */
+export abstract class AbstractCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends AbstractResourceGroupDescriptor<TRoute>
+  implements BaseCrudResourceGroupDescriptor<TRoute>
+{
+  public readonly isCrud = true as const;
+  public readonly index: TRoute;
+  public readonly show: TRoute;
+
+  constructor(
+    params: BaseCrudParams<TRoute>,
+    queryKeys: ResourceGroupQueryKeysTrait
+  ) {
+    super(params, queryKeys, params.primaryKeyType);
     this.index = params.index;
     this.show = params.show;
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.crud(this as unknown as CrudResourceGroupDescriptor<TRoute>);
+  }
+}
+
+export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends AbstractCrudResourceGroupDescriptor<TRoute>
+  implements FullCrudResourceGroupDescriptor<TRoute>
+{
+  public readonly kind = ResourceGroupKind.FullCrud;
+  public readonly types: FullCrudTypeSignature;
+  public readonly create: TRoute;
+  public readonly update: TRoute;
+  public readonly delete: TRoute;
+
+  constructor(params: FullCrudParams<TRoute>) {
+    super(params, {
+      listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FullCrud].listKeyFn,
+      detailKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FullCrud].defaultDetailKeyFn
+    });
+    this.types = params.types;
     this.create = params.create;
     this.update = params.update;
     this.delete = params.delete;
-    this.all = params.all;
     Object.freeze(this);
   }
 
@@ -6532,52 +6701,21 @@ export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   ): R {
     return visitor.full_crud(this);
   }
-
-  public matchUnified<R>(
-    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
-  ): R {
-    return visitor.crud(this);
-  }
-}
-
-export interface ReadOnlyCrudParams<TRoute = ParsedRoute> {
-  readonly groupName: string;
-  readonly keyName: string;
-  readonly titleName: string;
-  readonly primaryKeyType: string;
-  readonly types: ReadOnlyCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly all: readonly TRoute[];
 }
 
 export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements ReadOnlyCrudResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.ReadOnlyCrud;
-  public readonly isCrud = true as const;
-  public readonly groupName: string;
-  public readonly keyName: string;
-  public readonly titleName: string;
-  public readonly listKeyFn: string;
-  public readonly detailKeyFn: string;
-  public readonly primaryKeyType: string;
   public readonly types: ReadOnlyCrudTypeSignature;
-  public readonly index: TRoute;
-  public readonly show: TRoute;
-  public readonly all: readonly TRoute[];
 
   constructor(params: ReadOnlyCrudParams<TRoute>) {
-    this.groupName = params.groupName;
-    this.keyName = params.keyName;
-    this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.ReadOnlyCrud].listKeyFn;
-    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.ReadOnlyCrud].defaultDetailKeyFn;
-    this.primaryKeyType = params.primaryKeyType;
+    super(params, {
+      listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.ReadOnlyCrud].listKeyFn,
+      detailKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.ReadOnlyCrud].defaultDetailKeyFn
+    });
     this.types = params.types;
-    this.index = params.index;
-    this.show = params.show;
-    this.all = params.all;
     Object.freeze(this);
   }
 
@@ -6586,61 +6724,27 @@ export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   ): R {
     return visitor.read_only_crud(this);
   }
-
-  public matchUnified<R>(
-    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
-  ): R {
-    return visitor.crud(this);
-  }
-}
-
-export interface FlexibleCrudParams<TRoute = ParsedRoute> {
-  readonly groupName: string;
-  readonly keyName: string;
-  readonly titleName: string;
-  readonly primaryKeyType: string;
-  readonly types: FlexibleCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly create: MutationCapability<TRoute>;
-  readonly update: MutationCapability<TRoute>;
-  readonly delete: MutationCapability<TRoute>;
-  readonly all: readonly TRoute[];
 }
 
 export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements FlexibleCrudResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.FlexibleCrud;
-  public readonly isCrud = true as const;
-  public readonly groupName: string;
-  public readonly keyName: string;
-  public readonly titleName: string;
-  public readonly listKeyFn: string;
-  public readonly detailKeyFn: string;
-  public readonly primaryKeyType: string;
   public readonly types: FlexibleCrudTypeSignature;
-  public readonly index: TRoute;
-  public readonly show: TRoute;
   public readonly create: MutationCapability<TRoute>;
   public readonly update: MutationCapability<TRoute>;
   public readonly delete: MutationCapability<TRoute>;
-  public readonly all: readonly TRoute[];
 
   constructor(params: FlexibleCrudParams<TRoute>) {
-    this.groupName = params.groupName;
-    this.keyName = params.keyName;
-    this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].listKeyFn;
-    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].defaultDetailKeyFn;
-    this.primaryKeyType = params.primaryKeyType;
+    super(params, {
+      listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].listKeyFn,
+      detailKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].defaultDetailKeyFn
+    });
     this.types = params.types;
-    this.index = params.index;
-    this.show = params.show;
     this.create = params.create;
     this.update = params.update;
     this.delete = params.delete;
-    this.all = params.all;
     Object.freeze(this);
   }
 
@@ -6649,64 +6753,11 @@ export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   ): R {
     return visitor.flexible_crud(this);
   }
-
-  public matchUnified<R>(
-    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
-  ): R {
-    return visitor.crud(this);
-  }
-}
-
-export interface CrudResourceGroupDescriptorParams<TRoute = ParsedRoute> {
-  readonly groupName: string;
-  readonly keyName: string;
-  readonly titleName: string;
-  readonly primaryKeyType: string;
-  readonly types: FlexibleCrudTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly all: readonly TRoute[];
-  readonly create: MutationCapability<TRoute>;
-  readonly update: MutationCapability<TRoute>;
-  readonly delete: MutationCapability<TRoute>;
 }
 
 export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
-  implements FlexibleCrudResourceGroupDescriptor<TRoute>
+  extends ScannedFlexibleCrudResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.FlexibleCrud;
-  public readonly isCrud = true as const;
-  public readonly groupName: string;
-  public readonly keyName: string;
-  public readonly titleName: string;
-  public readonly listKeyFn: string;
-  public readonly detailKeyFn: string;
-  public readonly primaryKeyType: string;
-  public readonly types: FlexibleCrudTypeSignature;
-  public readonly index: TRoute;
-  public readonly show: TRoute;
-  public readonly create: MutationCapability<TRoute>;
-  public readonly update: MutationCapability<TRoute>;
-  public readonly delete: MutationCapability<TRoute>;
-  public readonly all: readonly TRoute[];
-
-  constructor(params: CrudResourceGroupDescriptorParams<TRoute>) {
-    this.groupName = params.groupName;
-    this.keyName = params.keyName;
-    this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].listKeyFn;
-    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].defaultDetailKeyFn;
-    this.primaryKeyType = params.primaryKeyType;
-    this.types = params.types;
-    this.index = params.index;
-    this.show = params.show;
-    this.create = params.create;
-    this.update = params.update;
-    this.delete = params.delete;
-    this.all = Object.freeze(params.all);
-    Object.freeze(this);
-  }
-
   public static fromRoutes<TRoute = ParsedRoute>(params: {
     readonly groupName: string;
     readonly keyName: string;
@@ -6734,51 +6785,26 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
       delete: MutationCapability.fromNullable(params.delete)
     });
   }
-
-  public matchFineGrained<R>(
-    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
-  ): R {
-    return visitor.flexible_crud(this);
-  }
-
-  public matchUnified<R>(
-    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
-  ): R {
-    return visitor.crud(this);
-  }
-}
-
-export interface SingletonResourceGroupDescriptorParams<TRoute = ParsedRoute> {
-  readonly groupName: string;
-  readonly keyName: string;
-  readonly titleName: string;
-  readonly types: SingletonTypeSignature;
-  readonly all: readonly TRoute[];
 }
 
 export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends AbstractResourceGroupDescriptor<TRoute>
   implements SingletonResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.Singleton;
   public readonly isCrud = false as const;
-  public readonly groupName: string;
-  public readonly keyName: string;
-  public readonly titleName: string;
-  public readonly listKeyFn: string;
-  public readonly detailKeyFn: string;
-  public readonly primaryKeyType: string;
   public readonly types: SingletonTypeSignature;
-  public readonly all: readonly TRoute[];
 
   constructor(params: SingletonResourceGroupDescriptorParams<TRoute>) {
-    this.groupName = params.groupName;
-    this.keyName = params.keyName;
-    this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].listKeyFn;
-    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].defaultDetailKeyFn;
-    this.primaryKeyType = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].defaultPrimaryKeyType;
+    super(
+      params,
+      {
+        listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].listKeyFn,
+        detailKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].defaultDetailKeyFn
+      },
+      RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].defaultPrimaryKeyType
+    );
     this.types = params.types;
-    this.all = params.all;
     Object.freeze(this);
   }
 
@@ -6795,38 +6821,24 @@ export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export interface CustomResourceGroupDescriptorParams<TRoute = ParsedRoute> {
-  readonly groupName: string;
-  readonly keyName: string;
-  readonly titleName: string;
-  readonly detailKeyFn: string;
-  readonly types: CustomTypeSignature;
-  readonly all: readonly TRoute[];
-}
-
 export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
+  extends AbstractResourceGroupDescriptor<TRoute>
   implements CustomResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.Custom;
   public readonly isCrud = false as const;
-  public readonly groupName: string;
-  public readonly keyName: string;
-  public readonly titleName: string;
-  public readonly listKeyFn: string;
-  public readonly detailKeyFn: string;
-  public readonly primaryKeyType: string;
   public readonly types: CustomTypeSignature;
-  public readonly all: readonly TRoute[];
 
   constructor(params: CustomResourceGroupDescriptorParams<TRoute>) {
-    this.groupName = params.groupName;
-    this.keyName = params.keyName;
-    this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].listKeyFn;
-    this.detailKeyFn = params.detailKeyFn;
-    this.primaryKeyType = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].defaultPrimaryKeyType;
+    super(
+      params,
+      {
+        listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].listKeyFn,
+        detailKeyFn: params.detailKeyFn
+      },
+      RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].defaultPrimaryKeyType
+    );
     this.types = params.types;
-    this.all = params.all;
     Object.freeze(this);
   }
 

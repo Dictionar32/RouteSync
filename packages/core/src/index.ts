@@ -166,7 +166,10 @@ export {
   DataProvenanceKind,
   DATA_PROVENANCE_REGISTRY,
   matchDataProvenance,
-  ScannedEndpointProvenanceDescriptor
+  ScannedEndpointProvenanceDescriptor,
+  ResourceGroupKind,
+  RESOURCE_GROUP_REGISTRY,
+  matchResourceGroup
 } from './types/route'
 export type {
   RouteManifest,
@@ -416,7 +419,16 @@ export type {
   DataProvenanceKindRegistry,
   ProvenanceSourceRef,
   DataProvenanceVisitor,
-  EndpointProvenanceDescriptor
+  EndpointProvenanceDescriptor,
+  ResourceGroupSpecification,
+  ResourceGroupRegistry,
+  BaseResourceGroupDescriptor,
+  CrudResourceGroupDescriptor,
+  SingletonResourceGroupDescriptor,
+  CustomResourceGroupDescriptor,
+  ResourceGroupDescriptor,
+  ResourceGroupVisitor,
+  ClassifiedDomainGraph
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'

@@ -5,6 +5,16 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **`domainGraphClassifierADT.spec.ts`** — Suite unit & regression test yang memverifikasi arsitektur **33rd ADT Registry: ResourceGroupDescriptor & ClassifiedDomainGraph**:
+  - **33rd ADT Registry (`ResourceGroupKind`, `RESOURCE_GROUP_REGISTRY`, `matchResourceGroup`)**:
+    - Mendefinisikan discriminator ADT kanonikal (`Crud`, `Singleton`, `Custom`) dengan registry spesifikasi yang mengunci perilaku layout (`isCrud`, `listKeyFn`, `defaultDetailKeyFn`, `defaultPrimaryKeyType`).
+    - Catamorphism murni 0-if `matchResourceGroup(group, visitor)` untuk mengeksekusi percabangan struktural domain tanpa defensive `if` / `switch`.
+  - **Single Origin Boundary Domain Graph Classification (`classifyDomainGraph`)**:
+    - Mengeliminasi kalkulasi berulang `classifyRoutes` dan `buildResourceMap` yang sebelumnya dipanggil 3x di setiap downstream generator (`QueryKeyGenerator`, `HookGenerator`, `SDKGenerator`).
+    - Mengintegrasikan resolusi tipe primary key (`primaryKeyType`) secara authoritative dari `ROUTE_PARAMETER_TYPE_REGISTRY` dan Model AST di Origin Boundary, bukan ditebak di hilir.
+  - **0-If Downstream Emitters (`QueryKeyGenerator.ts`, `HookGenerator.ts`)**:
+    - `QueryKeyGenerator.ts`: Mengeliminasi `if (isCrud)` dan ternary fallback primary key; rendering factory query key dipandu 100% oleh `matchResourceGroup(group, ...)`.
+    - `HookGenerator.ts`: Mengeliminasi ternary berulang `isCrudKey ? 'lists' : 'list'` dan `isCrudKey ? 'detail' : ...`, kini langsung mengonsumsi `group.listKeyFn` dan `group.detailKeyFn` dari SSOT domain graph.
 - **`correctByConstructionSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi arsitektur **Rule 12: Typed, Contract-Driven, Correct-by-Construction Dataflow**:
   - **Eliminasi Defensive Chaining pada `SDKGenerator.ts`**: Mengeliminasi seluruh defensive optional chaining `?.` dan pemeriksaan `contract.response?.success?.readTypeName` dengan langsung mengonsumsi non-nullable complete contract SSOT.
   - **Pure Catamorphism Action Normalization pada `HookGenerator.ts`**: Normalisasi action key CRUD (`update`, `remove`) kini 100% dipandu oleh pure catamorphism `matchCrudRole` tanpa percabangan if string manual.

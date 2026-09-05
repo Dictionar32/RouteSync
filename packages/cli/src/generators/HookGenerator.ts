@@ -2,11 +2,16 @@ import { RouteManifest, matchCrudRole } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
-import { classifyRoutes, buildResourceMap, ClassifiedRoute } from './route-classifier'
+import { classifyRoutes, buildResourceMap, ClassifiedRoute, classifyDomainGraph, ClassifiedDomainGraph } from './route-classifier'
 import { CANONICAL_ACTION_MAP } from './canonical-names'
 
 export class HookGenerator {
-  static async generate(manifest: RouteManifest, outputDir?: string): Promise<string> {
+  static async generate(
+    manifest: RouteManifest,
+    outputDir?: string,
+    domainGraph?: ClassifiedDomainGraph<ClassifiedRoute>
+  ): Promise<string> {
+    const graph = domainGraph ?? classifyDomainGraph(manifest)
     const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
     const resources = buildResourceMap(classified)
 
@@ -16,6 +21,7 @@ export class HookGenerator {
     const hasResource = (name: string): boolean => resources.has(name)
 
     for (const [groupName, resource] of resources) {
+      const groupDesc = graph.resourceGroupMap.get(groupName)
       const TitleGroup = toTypeName(groupName)
       const formName = `${TitleGroup}Form`
 
@@ -225,21 +231,19 @@ export class HookGenerator {
       }
       blockLines.push(`    endpoint: api.${groupName},`)
 
-      const isCrudKey = !!(resource.index && resource.show)
+      const listKeyFn = groupDesc?.listKeyFn ?? 'list'
+      const detailKeyFn = groupDesc?.detailKeyFn ?? (resource.show?.actionName ?? 'detail')
 
       const cacheLines: string[] = []
       if (resource.index) {
-        const listKeyFn = isCrudKey ? 'lists' : 'list'
         cacheLines.push(`      list: QueryKey.${groupName}.${listKeyFn},`)
       }
       if (resource.show) {
-        const detailKeyFn = isCrudKey ? 'detail' : resource.show.actionName
         cacheLines.push(`      detail: QueryKey.${groupName}.${detailKeyFn},`)
       }
       if (resource.create) {
         const invs: string[] = []
         if (resource.index) {
-          const listKeyFn = isCrudKey ? 'lists' : 'list'
           pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         addCrossResourceInvalidations('create', invs)
@@ -255,11 +259,9 @@ export class HookGenerator {
       if (resource.update) {
         const invs: string[] = []
         if (resource.index) {
-          const listKeyFn = isCrudKey ? 'lists' : 'list'
           pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         if (resource.show) {
-          const detailKeyFn = isCrudKey ? 'detail' : resource.show.actionName
           pushUnique(invs, `          QueryKey.${groupName}.${detailKeyFn},`)
         }
         addCrossResourceInvalidations('update', invs)
@@ -277,7 +279,6 @@ export class HookGenerator {
       if (hasDelete) {
         const invs: string[] = []
         if (resource.index) {
-          const listKeyFn = isCrudKey ? 'lists' : 'list'
           pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         addCrossResourceInvalidations('delete', invs)

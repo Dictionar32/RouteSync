@@ -1,13 +1,15 @@
-import { RouteManifest, ROUTE_PARAMETER_TYPE_REGISTRY } from '@routesync/core'
+import { RouteManifest, matchResourceGroup } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
-import { toTypeName } from './names'
-import { classifyRoutes, buildResourceMap, buildGroupedRoutes } from './route-classifier'
+import { classifyDomainGraph, ClassifiedDomainGraph, ClassifiedRoute } from './route-classifier'
 
 export class QueryKeyGenerator {
-  static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
-    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
-    const resources  = buildResourceMap(classified)
+  static async generate(
+    manifest: RouteManifest,
+    outputDir: string,
+    domainGraph?: ClassifiedDomainGraph<ClassifiedRoute>
+  ): Promise<void> {
+    const graph = domainGraph ?? classifyDomainGraph(manifest)
 
     const lines: string[] = []
 
@@ -19,8 +21,8 @@ export class QueryKeyGenerator {
     lines.push(`   ENTITY CONSTANTS`)
     lines.push(`========================= */`)
     lines.push(`export const Entity = {`)
-    for (const groupName of resources.keys()) {
-      lines.push(`  ${groupName.toUpperCase()}: "${groupName}",`)
+    for (const group of graph.resourceGroups) {
+      lines.push(`  ${group.keyName}: "${group.groupName}",`)
     }
     lines.push(`} as const`)
     lines.push(``)
@@ -49,54 +51,42 @@ export class QueryKeyGenerator {
 
     const backwardExports: string[] = []
 
-    for (const [groupName, resource] of resources) {
-      const KEY   = groupName.toUpperCase()
-      const Title = toTypeName(groupName)
-      const isCrud = !!(resource.index && resource.show)
+    for (const group of graph.resourceGroups) {
+      const KEY   = group.keyName
+      const Title = group.titleName
+      const idType = group.primaryKeyType
 
-      // 1. Authoritative primary key from route path parameters (SSOT)
-      const primaryParam = (resource.show?.raw?.pathParameters ?? resource.update?.raw?.pathParameters ?? resource.delete?.raw?.pathParameters)?.[0]
-      let idType = 'string | number'
-
-      if (primaryParam && primaryParam.type && ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]) {
-        idType = ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type].tsType
-      } else {
-        const matchedModel = manifest.models?.find(m => {
-          const mTitle = toTypeName(m.name)
-          const mShort = toTypeName(m.shortName ?? '')
-          return mTitle === Title || mShort === Title
-            || mTitle + 's' === Title || mShort + 's' === Title
-            || Title + 's' === mTitle || Title.replace(/s$/, '') === mTitle.replace(/s$/, '')
-        })
-        if (matchedModel?.keySemanticType === 'number') {
-          idType = 'number'
-        } else if (matchedModel?.keySemanticType === 'string') {
-          idType = 'string'
-        }
-      }
-
-      backwardExports.push(`export const ${groupName}Keys = QueryKey.${groupName}`)
+      backwardExports.push(`export const ${group.groupName}Keys = QueryKey.${group.groupName}`)
 
       lines.push(`  /* ===== ${Title.toUpperCase()} ===== */`)
-      const actionKeyLines = resource.all.map(route => {
+      const actionKeyLines = group.all.map(route => {
         if (route.hasParams) {
           return `    ${route.actionName}: (params?: string | number | Record<string, unknown>) => [Entity.${KEY}, "${route.actionName}", params ?? {}] as const,`
         }
         return `    ${route.actionName}: () => [Entity.${KEY}, "${route.actionName}"] as const,`
       })
 
-      if (isCrud) {
-        lines.push(`  ${groupName}: {`)
-        lines.push(`    ...createBaseQueryKey<typeof Entity.${KEY}, ${idType}>(Entity.${KEY}),`)
-        lines.push(...actionKeyLines)
-        lines.push(`  },`)
-      } else {
-        // Singleton / action-based resource (e.g. cart, profile, auth)
-        lines.push(`  ${groupName}: {`)
-        lines.push(`    all: () => [Entity.${KEY}] as const,`)
-        lines.push(...actionKeyLines)
-        lines.push(`  },`)
-      }
+      // 0-if catamorphic rendering via matchResourceGroup
+      matchResourceGroup(group, {
+        crud: () => {
+          lines.push(`  ${group.groupName}: {`)
+          lines.push(`    ...createBaseQueryKey<typeof Entity.${KEY}, ${idType}>(Entity.${KEY}),`)
+          lines.push(...actionKeyLines)
+          lines.push(`  },`)
+        },
+        singleton: () => {
+          lines.push(`  ${group.groupName}: {`)
+          lines.push(`    all: () => [Entity.${KEY}] as const,`)
+          lines.push(...actionKeyLines)
+          lines.push(`  },`)
+        },
+        custom: () => {
+          lines.push(`  ${group.groupName}: {`)
+          lines.push(`    all: () => [Entity.${KEY}] as const,`)
+          lines.push(...actionKeyLines)
+          lines.push(`  },`)
+        }
+      })
 
       lines.push(``)
     }

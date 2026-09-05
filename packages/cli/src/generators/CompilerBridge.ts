@@ -31,6 +31,7 @@ import { EchoGenerator } from './EchoGenerator'
 import { ModelGenerator } from './ModelGenerator'
 import { RoutesGenerator } from './RoutesGenerator'
 import { IndexGenerator } from './IndexGenerator'
+import { classifyDomainGraph } from './route-classifier'
 
 export interface CompiledContractsBundle {
     readonly readTypes: CompilerOutput
@@ -246,12 +247,13 @@ export class CompilerBridge {
         await ConstantsGenerator.generate(manifest, outputDir)
         clientArtifacts.push(path.join(outputDir, 'constants.ts'))
 
-        // 5. Query keys & hooks
+        // 5. Query keys & hooks (Single Origin Boundary Domain Graph Classification)
         if (options.hooks !== false) {
-            await QueryKeyGenerator.generate(manifest, outputDir)
+            const domainGraph = classifyDomainGraph(manifest)
+            await QueryKeyGenerator.generate(manifest, outputDir, domainGraph)
             clientArtifacts.push(path.join(outputDir, 'query-key.ts'))
 
-            await HookGenerator.generate(manifest, outputDir)
+            await HookGenerator.generate(manifest, outputDir, domainGraph)
             clientArtifacts.push(path.join(outputDir, 'hooks.ts'))
             clientArtifacts.push(path.join(outputDir, 'routesync.runtime.ts'))
         }

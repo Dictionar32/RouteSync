@@ -29,12 +29,42 @@
  *   Collisions (two GETs, two POSTs, etc.) are resolved with a numeric suffix.
  */
 
-import { ParsedRoute, matchHttpMethod, CrudRole, CRUD_ROLE_REGISTRY, matchCrudRole, EndpointContract, getRouteContract } from '@routesync/core'
+import {
+  ParsedRoute,
+  matchHttpMethod,
+  CrudRole,
+  CRUD_ROLE_REGISTRY,
+  matchCrudRole,
+  EndpointContract,
+  getRouteContract,
+  ResourceGroupKind,
+  RESOURCE_GROUP_REGISTRY,
+  matchResourceGroup,
+  CrudResourceGroupDescriptor,
+  SingletonResourceGroupDescriptor,
+  CustomResourceGroupDescriptor,
+  ResourceGroupDescriptor,
+  ClassifiedDomainGraph,
+  RouteManifest,
+  ROUTE_PARAMETER_TYPE_REGISTRY
+} from '@routesync/core'
 import { toIdentifier, toTypeName } from './names'
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
-export { CrudRole } from '@routesync/core'
+export {
+  CrudRole,
+  ResourceGroupKind,
+  RESOURCE_GROUP_REGISTRY,
+  matchResourceGroup
+} from '@routesync/core'
+export type {
+  ResourceGroupDescriptor,
+  CrudResourceGroupDescriptor,
+  SingletonResourceGroupDescriptor,
+  CustomResourceGroupDescriptor,
+  ClassifiedDomainGraph
+} from '@routesync/core'
 
 export interface ClassifiedRoute {
   raw: ParsedRoute
@@ -281,3 +311,96 @@ export function buildGroupedRoutes(classified: ClassifiedRoute[]): Record<string
 }
 
 export { toTypeName }
+
+/**
+ * Top-Level Domain Graph Classifier (Origin Boundary).
+ *
+ * Atomically classifies all routes into deterministic SSOT ResourceGroupDescriptors
+ * (Crud, Singleton, or Custom) with guaranteed non-nullable primaryKeyType,
+ * listKeyFn, detailKeyFn, and layout keys.
+ */
+export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> {
+  const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
+  const rawResources = buildResourceMap(classified)
+
+  const resourceGroups: ResourceGroupDescriptor<ClassifiedRoute>[] = []
+
+  for (const [groupName, res] of rawResources) {
+    const KEY = groupName.toUpperCase()
+    const Title = toTypeName(groupName)
+
+    const isCrud = Boolean(res.index && res.show)
+
+    if (isCrud) {
+      // 1. Authoritative primary key from route path parameters (SSOT)
+      const targetRoute = res.show ?? res.update ?? res.delete
+      const primaryParam = targetRoute?.contract.request.pathParameters?.[0]
+      let idType = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType
+
+      if (primaryParam && primaryParam.type && ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]) {
+        idType = ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type].tsType
+      } else {
+        const matchedModel = manifest.models?.find(m => {
+          const mTitle = toTypeName(m.name)
+          const mShort = toTypeName(m.shortName ?? '')
+          return mTitle === Title || mShort === Title
+            || mTitle + 's' === Title || mShort + 's' === Title
+            || Title + 's' === mTitle || Title.replace(/s$/, '') === mTitle.replace(/s$/, '')
+        })
+        if (matchedModel?.keySemanticType === 'number') {
+          idType = 'number'
+        } else if (matchedModel?.keySemanticType === 'string') {
+          idType = 'string'
+        }
+      }
+
+      const crudDescriptor: CrudResourceGroupDescriptor<ClassifiedRoute> = Object.freeze({
+        kind: ResourceGroupKind.Crud,
+        groupName,
+        keyName: KEY,
+        titleName: Title,
+        isCrud: true,
+        listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].listKeyFn,
+        detailKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultDetailKeyFn,
+        primaryKeyType: idType,
+        all: Object.freeze(res.all),
+        index: res.index!,
+        show: res.show!,
+        create: res.create,
+        update: res.update,
+        delete: res.delete
+      })
+      resourceGroups.push(crudDescriptor)
+    } else {
+      // Singleton or Custom
+      const hasAnyTrailingParam = res.all.some(r => r.hasTrailingParam)
+      const kind = hasAnyTrailingParam ? ResourceGroupKind.Custom : ResourceGroupKind.Singleton
+
+      const descriptor: ResourceGroupDescriptor<ClassifiedRoute> = Object.freeze({
+        kind,
+        groupName,
+        keyName: KEY,
+        titleName: Title,
+        isCrud: false,
+        listKeyFn: RESOURCE_GROUP_REGISTRY[kind].listKeyFn,
+        detailKeyFn: res.show?.actionName ?? RESOURCE_GROUP_REGISTRY[kind].defaultDetailKeyFn,
+        primaryKeyType: RESOURCE_GROUP_REGISTRY[kind].defaultPrimaryKeyType,
+        all: Object.freeze(res.all)
+      })
+      resourceGroups.push(descriptor)
+    }
+  }
+
+  const resourceGroupMap = new Map<string, ResourceGroupDescriptor<ClassifiedRoute>>(
+    resourceGroups.map(group => [group.groupName, group])
+  )
+
+  return Object.freeze({
+    manifest,
+    contracts: Object.freeze(classified.map(c => c.contract)),
+    resourceGroups: Object.freeze(resourceGroups),
+    resourceGroupMap,
+    models: Object.freeze(manifest.models ?? [])
+  })
+}
+

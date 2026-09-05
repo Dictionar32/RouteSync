@@ -6202,6 +6202,138 @@ export function getManifestContractMap(manifest: RouteManifest): Map<string, End
 }
 
 /**
+ * ResourceGroupKind
+ *
+ * Canonical ADT discriminator for classifying Route Resource Groups.
+ */
+export const ResourceGroupKind = Object.freeze({
+  Crud: 'crud',
+  Singleton: 'singleton',
+  Custom: 'custom'
+} as const);
+
+export type ResourceGroupKind = typeof ResourceGroupKind[keyof typeof ResourceGroupKind];
+
+export interface ResourceGroupSpecification<K extends ResourceGroupKind = ResourceGroupKind> {
+  readonly kind: K;
+  readonly isCrud: boolean;
+  readonly listKeyFn: string;
+  readonly defaultDetailKeyFn: string;
+  readonly defaultPrimaryKeyType: string;
+  readonly description: string;
+}
+
+export type ResourceGroupRegistry = {
+  readonly [K in ResourceGroupKind]: ResourceGroupSpecification<K>;
+};
+
+export const RESOURCE_GROUP_REGISTRY: ResourceGroupRegistry = Object.freeze({
+  [ResourceGroupKind.Crud]: {
+    kind: ResourceGroupKind.Crud,
+    isCrud: true,
+    listKeyFn: 'lists',
+    defaultDetailKeyFn: 'detail',
+    defaultPrimaryKeyType: 'number',
+    description: 'Standard RESTful CRUD resource with both collection (index) and item (show) endpoints'
+  },
+  [ResourceGroupKind.Singleton]: {
+    kind: ResourceGroupKind.Singleton,
+    isCrud: false,
+    listKeyFn: 'list',
+    defaultDetailKeyFn: 'show',
+    defaultPrimaryKeyType: 'string | number',
+    description: 'Singleton or action-oriented resource without item parameter (e.g. cart, profile, auth)'
+  },
+  [ResourceGroupKind.Custom]: {
+    kind: ResourceGroupKind.Custom,
+    isCrud: false,
+    listKeyFn: 'list',
+    defaultDetailKeyFn: 'detail',
+    defaultPrimaryKeyType: 'string | number',
+    description: 'Custom or non-standard route group'
+  }
+});
+
+export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute> {
+  readonly kind: ResourceGroupKind;
+  readonly groupName: string;
+  readonly keyName: string;
+  readonly titleName: string;
+  readonly isCrud: boolean;
+  readonly listKeyFn: string;
+  readonly detailKeyFn: string;
+  readonly primaryKeyType: string;
+  readonly all: readonly TRoute[];
+}
+
+export interface CrudResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+  readonly kind: typeof ResourceGroupKind.Crud;
+  readonly isCrud: true;
+  readonly index: TRoute;
+  readonly show: TRoute;
+  readonly create?: TRoute;
+  readonly update?: TRoute;
+  readonly delete?: TRoute;
+}
+
+export interface SingletonResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+  readonly kind: typeof ResourceGroupKind.Singleton;
+  readonly isCrud: false;
+}
+
+export interface CustomResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
+  readonly kind: typeof ResourceGroupKind.Custom;
+  readonly isCrud: false;
+}
+
+export type ResourceGroupDescriptor<TRoute = ParsedRoute> =
+  | CrudResourceGroupDescriptor<TRoute>
+  | SingletonResourceGroupDescriptor<TRoute>
+  | CustomResourceGroupDescriptor<TRoute>;
+
+export interface ResourceGroupVisitor<R, TRoute = ParsedRoute> {
+  readonly crud: (group: CrudResourceGroupDescriptor<TRoute>) => R;
+  readonly singleton: (group: SingletonResourceGroupDescriptor<TRoute>) => R;
+  readonly custom: (group: CustomResourceGroupDescriptor<TRoute>) => R;
+}
+
+/**
+ * Pure 0-if catamorphism pattern matcher for ResourceGroupDescriptor.
+ */
+export function matchResourceGroup<R, TRoute = ParsedRoute>(
+  group: ResourceGroupDescriptor<TRoute> | ResourceGroupKind,
+  visitor: ResourceGroupVisitor<R, TRoute>
+): R {
+  const isKindString = typeof group === 'string';
+  const kind = isKindString ? group : group.kind;
+  const descriptor: ResourceGroupDescriptor<TRoute> = isKindString
+    ? {
+        kind,
+        groupName: kind,
+        keyName: kind.toUpperCase(),
+        titleName: kind,
+        isCrud: RESOURCE_GROUP_REGISTRY[kind].isCrud,
+        listKeyFn: RESOURCE_GROUP_REGISTRY[kind].listKeyFn,
+        detailKeyFn: RESOURCE_GROUP_REGISTRY[kind].defaultDetailKeyFn,
+        primaryKeyType: RESOURCE_GROUP_REGISTRY[kind].defaultPrimaryKeyType,
+        all: []
+      } as any
+    : group;
+  return visitor[kind](descriptor as any);
+}
+
+/**
+ * Top-Level Classified Domain Graph (SSOT Data Carrier).
+ */
+export interface ClassifiedDomainGraph<TRoute = ParsedRoute> {
+  readonly manifest: RouteManifest;
+  readonly contracts: readonly EndpointContract[];
+  readonly resourceGroups: readonly ResourceGroupDescriptor<TRoute>[];
+  readonly resourceGroupMap: ReadonlyMap<string, ResourceGroupDescriptor<TRoute>>;
+  readonly models: readonly ParsedModel[];
+}
+
+/**
  * Backward compatibility type aliases for legacy adapters.
  */
 export type ResourceFieldKind = ResourceFieldDescriptor;

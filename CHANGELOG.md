@@ -5,11 +5,14 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Refactored
-- **Modularisasi Monolitik `StaticLaravelScanner.ts`**:
-  - Memecah berkas monolitik `StaticLaravelScanner.ts` (4.108 baris) menjadi 2 sub-direktori kohesif dengan prinsip *Single Responsibility*:
+- **Modularisasi Monolitik `StaticLaravelScanner.ts` & `LaravelSourceLexer.ts`**:
+  - Memecah berkas monolitik `StaticLaravelScanner.ts` (4.108 baris) menjadi 2 sub-direktori kohesif:
     - `packages/core/src/compiler/scanner/descriptors/`: AST descriptors (`types.ts`, `validationDescriptors.ts`, `routeDescriptors.ts`, `resourceDescriptors.ts`, `modelDescriptors.ts`, `channelDescriptors.ts`, `requestDescriptors.ts`, `manifestDescriptors.ts`).
     - `packages/core/src/compiler/scanner/subscanners/`: Domain scanners & passes (`ChannelScanner.ts`, `ControllerScanner.ts`, `ResourceScanner.ts`, `FormRequestScanner.ts`, `ModelScanner.ts`, `RouteScanner.ts`, `InvalidationResolver.ts`, `TypeDeriver.ts`, `scannerUtils.ts`).
-  - Merampingkan `StaticLaravelScanner.ts` menjadi orchestrator facade ramping (213 baris, reduksi ~95%) dengan **100% backward compatibility** via barrel re-exports (`export * from './descriptors'`, `export * from './subscanners'`).
+  - Memecah `LaravelSourceLexer.ts` ke dalam sub-modul `packages/core/src/compiler/scanner/lexer/`:
+    - `PhpAst.ts`: AST shapes, token types, and expression factory.
+    - `SourceStream.ts`: Cursor stream reader and character scanner.
+  - Merampingkan `StaticLaravelScanner.ts` (213 baris, reduksi ~95%) dan `LaravelSourceLexer.ts` dengan **100% backward compatibility** via barrel re-exports.
   - Seluruh 99 test files (489 tests) di Vitest lolos 100% GREEN.
 
 ### Added

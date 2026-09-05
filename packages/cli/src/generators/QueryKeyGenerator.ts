@@ -75,9 +75,6 @@ export class QueryKeyGenerator {
       }
 
       matchResourceGroup(group, {
-        full_crud: emitCrudKey,
-        read_only_crud: emitCrudKey,
-        flexible_crud: emitCrudKey,
         crud: emitCrudKey,
         singleton: () => {
           lines.push(`  ${group.groupName}: {`)

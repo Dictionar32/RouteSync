@@ -373,4 +373,75 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       await fs.remove(tempDir)
     }
   })
+
+  it("guarantees ResourceGroupVisitor ADT discrimination and HookGenerator direct domain graph consumption", async () => {
+    const routes = [
+      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/posts", groupName: "posts", crudRole: "index" }),
+      ScannedRouteDescriptor.create({
+        method: "GET",
+        path: "/api/v1/posts/{id}",
+        groupName: "posts",
+        crudRole: "show",
+        pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
+      }),
+      ScannedRouteDescriptor.create({ method: "POST", path: "/api/v1/posts", groupName: "posts", crudRole: "create" }),
+      ScannedRouteDescriptor.create({
+        method: "PUT",
+        path: "/api/v1/posts/{id}",
+        groupName: "posts",
+        crudRole: "update",
+        pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
+      }),
+      ScannedRouteDescriptor.create({
+        method: "DELETE",
+        path: "/api/v1/posts/{id}",
+        groupName: "posts",
+        crudRole: "delete",
+        pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
+      })
+    ]
+
+    const manifest: RouteManifest = {
+      routes,
+      baseURL: "http://localhost/api",
+      generatedAt: "2026-09-05T07:30:00.000Z"
+    }
+
+    const graph = classifyDomainGraph(manifest)
+    expect(graph.resourceGroups).toHaveLength(1)
+    const postGroup = graph.resourceGroups[0]
+
+    // 1. Fine-grained visitor with 0 optional (?) handlers
+    const fineGrainedResult = matchResourceGroup(postGroup, {
+      full_crud: (fg) => `FULL:${fg.create.actionName}:${fg.update.actionName}:${fg.delete.actionName}`,
+      read_only_crud: () => "READ_ONLY",
+      flexible_crud: () => "FLEXIBLE",
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(fineGrainedResult).toBe("FULL:create:update:remove")
+
+    // 2. Unified CRUD visitor with single mandatory crud handler
+    const unifiedResult = matchResourceGroup(postGroup, {
+      crud: (cg) => `UNIFIED_CRUD:${cg.kind}`,
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(unifiedResult).toBe("UNIFIED_CRUD:full_crud")
+
+    // 3. HookGenerator direct consumption of ClassifiedDomainGraph
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "routesync-visitor-test-"))
+    try {
+      const hookCode = await HookGenerator.generate(manifest, tempDir, graph)
+      expect(hookCode).toContain("usePosts = hooks.posts")
+      expect(hookCode).toContain("QueryKey.posts.lists")
+      expect(hookCode).toContain("QueryKey.posts.detail")
+      expect(hookCode).toContain("create: {")
+      expect(hookCode).toContain("update: {")
+      expect(hookCode).toContain("remove: {")
+    } finally {
+      await fs.remove(tempDir)
+    }
+  })
 })
+

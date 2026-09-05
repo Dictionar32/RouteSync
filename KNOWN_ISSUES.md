@@ -1,5 +1,19 @@
 # Known Issues & Bug History
 
+### Issue 33: Sound Discriminated Union ADT for Resource Groups & Zero-Fallback Generator Pipeline
+**Symptom** → `CrudResourceGroupDescriptor` contained optional properties (`create?:`, `update?:`, `delete?:`) and `ResourceGroupVisitor` contained optional `crud?:` handlers, forcing downstream generators like `HookGenerator.ts` to implement defensive fallback checks (`if (groupDesc)`, dynamic property access `(resource as any)[actionRouteOrName]`, redundant `buildResourceMap` loops, and defensive mutation slot checking).
+**Where** → `packages/core/src/types/route.ts` (`CrudResourceGroupDescriptor`, `ExhaustiveFineGrainedResourceGroupVisitor`, `matchResourceGroup`), `packages/cli/src/generators/HookGenerator.ts`, `packages/cli/src/generators/QueryKeyGenerator.ts`.
+**Root cause** → The domain graph abstraction allowed partially initialized CRUD structures and non-exhaustive visitors instead of enforcing strict Discriminated Union sum types (`FullCrudResourceGroupDescriptor | ReadOnlyCrudResourceGroupDescriptor | FlexibleCrudResourceGroupDescriptor`) and Discriminated Union Visitors (`ExhaustiveFineGrainedResourceGroupVisitor | UnifiedCrudResourceGroupVisitor`).
+**Fix** → 
+1. Refactored `CrudResourceGroupDescriptor` into a pure Discriminated Union (`FullCrud | ReadOnlyCrud | FlexibleCrud`) with zero optional `?` mutation slots.
+2. Formed strict `ResourceGroupVisitor` ADT (`ExhaustiveFineGrainedResourceGroupVisitor` with 5 mandatory fine-grained handlers vs `UnifiedCrudResourceGroupVisitor` with 3 mandatory unified handlers), eliminating `crud?:`.
+3. Guaranteed non-null `invalidation` initialized with `ScannedRouteCacheInvalidationDescriptor.empty()` on `ScannedEndpointContract` at Origin Boundary.
+4. Refactored `HookGenerator` and `QueryKeyGenerator` to consume `graph.resourceGroups` directly with zero intermediate maps, zero dynamic string lookups, zero `any` assertions, and pure catamorphisms.
+**Regression test** → `packages/sdk/tests/domainGraphClassifierADT.spec.ts` › `guarantees ResourceGroupVisitor ADT discrimination and HookGenerator direct domain graph consumption`
+**Status** → Diagnosed & Fixed
+
+---
+
 ### Issue 32: Nested Array-of-Objects Item Transformation in Form Mappers (`toApiOrderCreate`) & Constant Extraction in `ApiApiField`
 **Symptom** → Array-of-object form fields (such as `items` in `toApiOrderCreate`) were emitted directly as `[ApiApiField.ITEMS]: form.items,` without transforming inner elements to the API contract payload shape (`{ [ApiApiField.PRODUKITEMID]: item.produkItemId, [ApiApiField.QTY]: item.qty }`). Additionally, nested property names were omitted from `api-field.ts` constants.
 **Where** → `packages/core/src/compiler/passes/MapperGeneratorPass.ts` (`buildFormFieldLine`), `packages/core/src/compiler/passes/api-field-domain.ts` (`extractFieldNames`).

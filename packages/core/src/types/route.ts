@@ -6018,7 +6018,7 @@ export class ScannedEndpointContract implements EndpointContract {
       ...params.response,
       errors: Object.freeze([...params.response.errors])
     });
-    this.invalidation = params.invalidation;
+    this.invalidation = params.invalidation ?? ScannedRouteCacheInvalidationDescriptor.empty();
     this.policies = Object.freeze([...params.policies]);
     this.provenance = params.provenance;
     this.raw = params.raw;
@@ -6173,7 +6173,7 @@ export class ScannedEndpointContract implements EndpointContract {
         errors: errorList,
         errorUnionType
       },
-      invalidation: route.invalidation,
+      invalidation: route.invalidation ?? ScannedRouteCacheInvalidationDescriptor.empty(),
       policies: route.policies ?? [],
       provenance,
       raw: route
@@ -6186,8 +6186,8 @@ export function createEndpointContract(route: ParsedRoute): EndpointContract {
 }
 
 export interface EndpointResponseVisitor<R> {
-  success: (success: EndpointSuccessResponseContract) => R;
-  error?: (errors: readonly EndpointErrorResponseContract[], errorUnion: string) => R;
+  readonly success: (success: EndpointSuccessResponseContract) => R;
+  readonly error: (errors: readonly EndpointErrorResponseContract[], errorUnion: string) => R;
 }
 
 export function matchEndpointResponse<R>(
@@ -6439,16 +6439,10 @@ export interface FlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute> exten
   readonly delete: MutationCapability<TRoute>;
 }
 
-export interface CrudResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
-  readonly kind: typeof ResourceGroupKind.Crud | typeof ResourceGroupKind.FullCrud | typeof ResourceGroupKind.ReadOnlyCrud | typeof ResourceGroupKind.FlexibleCrud;
-  readonly isCrud: true;
-  readonly types: BaseResourceGroupTypeSignature;
-  readonly index: TRoute;
-  readonly show: TRoute;
-  readonly create?: TRoute;
-  readonly update?: TRoute;
-  readonly delete?: TRoute;
-}
+export type CrudResourceGroupDescriptor<TRoute = ParsedRoute> =
+  | FullCrudResourceGroupDescriptor<TRoute>
+  | ReadOnlyCrudResourceGroupDescriptor<TRoute>
+  | FlexibleCrudResourceGroupDescriptor<TRoute>;
 
 export interface SingletonResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.Singleton;
@@ -6466,7 +6460,6 @@ export type ResourceGroupDescriptor<TRoute = ParsedRoute> =
   | FullCrudResourceGroupDescriptor<TRoute>
   | ReadOnlyCrudResourceGroupDescriptor<TRoute>
   | FlexibleCrudResourceGroupDescriptor<TRoute>
-  | CrudResourceGroupDescriptor<TRoute>
   | SingletonResourceGroupDescriptor<TRoute>
   | CustomResourceGroupDescriptor<TRoute>;
 
@@ -6629,9 +6622,9 @@ export interface CrudResourceGroupDescriptorParams<TRoute = ParsedRoute> {
 }
 
 export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
-  implements CrudResourceGroupDescriptor<TRoute>
+  implements FlexibleCrudResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.Crud;
+  public readonly kind = ResourceGroupKind.FlexibleCrud;
   public readonly isCrud = true as const;
   public readonly groupName: string;
   public readonly keyName: string;
@@ -6639,28 +6632,28 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   public readonly listKeyFn: string;
   public readonly detailKeyFn: string;
   public readonly primaryKeyType: string;
-  public readonly types: BaseResourceGroupTypeSignature;
+  public readonly types: FlexibleCrudTypeSignature;
   public readonly index: TRoute;
   public readonly show: TRoute;
-  public readonly create?: TRoute;
-  public readonly update?: TRoute;
-  public readonly delete?: TRoute;
+  public readonly create: MutationCapability<TRoute>;
+  public readonly update: MutationCapability<TRoute>;
+  public readonly delete: MutationCapability<TRoute>;
   public readonly all: readonly TRoute[];
 
   constructor(params: CrudResourceGroupDescriptorParams<TRoute>) {
     this.groupName = params.groupName;
     this.keyName = params.keyName;
     this.titleName = params.titleName;
-    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].listKeyFn;
-    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultDetailKeyFn;
+    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].listKeyFn;
+    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.FlexibleCrud].defaultDetailKeyFn;
     this.primaryKeyType = params.primaryKeyType;
-    this.types = params.types ?? ScannedResourceGroupTypeSignature.createDefault();
+    this.types = (params.types as FlexibleCrudTypeSignature) ?? ScannedResourceGroupTypeSignature.createDefault();
     this.index = params.index;
     this.show = params.show;
-    this.create = params.create;
-    this.update = params.update;
-    this.delete = params.delete;
-    this.all = params.all;
+    this.create = params.create ? { available: true, route: params.create } : { available: false };
+    this.update = params.update ? { available: true, route: params.update } : { available: false };
+    this.delete = params.delete ? { available: true, route: params.delete } : { available: false };
+    this.all = Object.freeze(params.all);
     Object.freeze(this);
   }
 }
@@ -6743,7 +6736,6 @@ export interface ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute = ParsedRou
   readonly full_crud: (group: FullCrudResourceGroupDescriptor<TRoute>) => R;
   readonly read_only_crud: (group: ReadOnlyCrudResourceGroupDescriptor<TRoute>) => R;
   readonly flexible_crud: (group: FlexibleCrudResourceGroupDescriptor<TRoute>) => R;
-  readonly crud?: (group: CrudResourceGroupDescriptor<TRoute>) => R;
   readonly singleton: (group: SingletonResourceGroupDescriptor<TRoute>) => R;
   readonly custom: (group: CustomResourceGroupDescriptor<TRoute>) => R;
 }
@@ -6800,11 +6792,8 @@ export function matchResourceGroup<R, TRoute = ParsedRoute>(
       case ResourceGroupKind.ReadOnlyCrud:
         return v.read_only_crud(descriptor as ReadOnlyCrudResourceGroupDescriptor<TRoute>);
       case ResourceGroupKind.FlexibleCrud:
-        return v.flexible_crud(descriptor as FlexibleCrudResourceGroupDescriptor<TRoute>);
       case ResourceGroupKind.Crud:
-        return v.crud
-          ? v.crud(descriptor as CrudResourceGroupDescriptor<TRoute>)
-          : v.full_crud(descriptor as any);
+        return v.flexible_crud(descriptor as FlexibleCrudResourceGroupDescriptor<TRoute>);
       case ResourceGroupKind.Singleton:
         return v.singleton(descriptor as SingletonResourceGroupDescriptor<TRoute>);
       case ResourceGroupKind.Custom:

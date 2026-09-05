@@ -6861,68 +6861,62 @@ export interface ResourceGroupGraph<TRoute = ParsedRoute> {
 }
 
 /**
- * Concrete Immutable Partitioned Graph Constructor for Resource Groups.
+ * Pure Functional Dataflow Partitioning for Resource Groups.
  *
- * Enforces the Correct-by-Construction guarantee:
- * Partitions raw resource groups in a single O(N) pass at the Origin Boundary,
- * ensuring each subgraph contains exclusively its verified domain variant.
+ * Transforms an immutable collection of ResourceGroupDescriptors
+ * into a partitioned ResourceGroupGraph in a single O(N) pass.
+ * Pure function: Zero `new`, zero object lifecycle ceremony, zero duplicate copying.
  */
-export class ScannedResourceGroupGraph<TRoute = ParsedRoute> implements ResourceGroupGraph<TRoute> {
-  public readonly fullCrud: readonly FullCrudResourceGroupDescriptor<TRoute>[];
-  public readonly readOnlyCrud: readonly ReadOnlyCrudResourceGroupDescriptor<TRoute>[];
-  public readonly flexibleCrud: readonly FlexibleCrudResourceGroupDescriptor<TRoute>[];
-  public readonly singleton: readonly SingletonResourceGroupDescriptor<TRoute>[];
-  public readonly custom: readonly CustomResourceGroupDescriptor<TRoute>[];
-  public readonly crud: readonly CrudResourceGroupDescriptor<TRoute>[];
-  public readonly all: readonly ResourceGroupDescriptor<TRoute>[];
+export function createResourceGroupGraph<TRoute = ParsedRoute>(
+  groups: readonly ResourceGroupDescriptor<TRoute>[]
+): ResourceGroupGraph<TRoute> {
+  const fullCrud: FullCrudResourceGroupDescriptor<TRoute>[] = [];
+  const readOnlyCrud: ReadOnlyCrudResourceGroupDescriptor<TRoute>[] = [];
+  const flexibleCrud: FlexibleCrudResourceGroupDescriptor<TRoute>[] = [];
+  const singleton: SingletonResourceGroupDescriptor<TRoute>[] = [];
+  const custom: CustomResourceGroupDescriptor<TRoute>[] = [];
+  const crud: CrudResourceGroupDescriptor<TRoute>[] = [];
 
-  constructor(groups: readonly ResourceGroupDescriptor<TRoute>[]) {
-    const fullCrud: FullCrudResourceGroupDescriptor<TRoute>[] = [];
-    const readOnlyCrud: ReadOnlyCrudResourceGroupDescriptor<TRoute>[] = [];
-    const flexibleCrud: FlexibleCrudResourceGroupDescriptor<TRoute>[] = [];
-    const singleton: SingletonResourceGroupDescriptor<TRoute>[] = [];
-    const custom: CustomResourceGroupDescriptor<TRoute>[] = [];
-    const crud: CrudResourceGroupDescriptor<TRoute>[] = [];
-
-    for (const group of groups) {
-      switch (group.kind) {
-        case ResourceGroupKind.FullCrud:
-          fullCrud.push(group);
-          crud.push(group);
-          break;
-        case ResourceGroupKind.ReadOnlyCrud:
-          readOnlyCrud.push(group);
-          crud.push(group);
-          break;
-        case ResourceGroupKind.FlexibleCrud:
-          flexibleCrud.push(group);
-          crud.push(group);
-          break;
-        case ResourceGroupKind.Singleton:
-          singleton.push(group);
-          break;
-        case ResourceGroupKind.Custom:
-          custom.push(group);
-          break;
-      }
+  for (const group of groups) {
+    switch (group.kind) {
+      case ResourceGroupKind.FullCrud:
+        fullCrud.push(group);
+        crud.push(group);
+        break;
+      case ResourceGroupKind.ReadOnlyCrud:
+        readOnlyCrud.push(group);
+        crud.push(group);
+        break;
+      case ResourceGroupKind.FlexibleCrud:
+        flexibleCrud.push(group);
+        crud.push(group);
+        break;
+      case ResourceGroupKind.Singleton:
+        singleton.push(group);
+        break;
+      case ResourceGroupKind.Custom:
+        custom.push(group);
+        break;
     }
-
-    this.fullCrud = Object.freeze(fullCrud);
-    this.readOnlyCrud = Object.freeze(readOnlyCrud);
-    this.flexibleCrud = Object.freeze(flexibleCrud);
-    this.singleton = Object.freeze(singleton);
-    this.custom = Object.freeze(custom);
-    this.crud = Object.freeze(crud);
-    this.all = groups;
-    Object.freeze(this);
   }
 
-  public static from<TRoute = ParsedRoute>(
-    groups: readonly ResourceGroupDescriptor<TRoute>[]
-  ): ResourceGroupGraph<TRoute> {
-    return new ScannedResourceGroupGraph(groups);
-  }
+  return Object.freeze({
+    fullCrud: Object.freeze(fullCrud),
+    readOnlyCrud: Object.freeze(readOnlyCrud),
+    flexibleCrud: Object.freeze(flexibleCrud),
+    singleton: Object.freeze(singleton),
+    custom: Object.freeze(custom),
+    crud: Object.freeze(crud),
+    all: groups
+  });
 }
+
+/**
+ * Backward compatibility alias for ScannedResourceGroupGraph.
+ */
+export const ScannedResourceGroupGraph = Object.freeze({
+  from: createResourceGroupGraph
+});
 
 /**
  * Top-Level Classified Domain Graph (SSOT Data Carrier).

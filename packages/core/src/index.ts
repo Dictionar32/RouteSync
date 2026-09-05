@@ -178,7 +178,8 @@ export {
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
   ScannedResourceGroupTypeSignature,
-  ScannedResourceGroupGraph
+  ScannedResourceGroupGraph,
+  createResourceGroupGraph
 } from './types/route'
 export type {
   RouteManifest,

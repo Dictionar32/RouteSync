@@ -59,6 +59,7 @@ import {
   ScannedCustomResourceGroupDescriptor,
   ScannedResourceGroupTypeSignature,
   ScannedResourceGroupGraph,
+  createResourceGroupGraph,
   MutationCapability,
   ParsedModel
 } from '@routesync/core'
@@ -79,7 +80,8 @@ export {
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
   ScannedResourceGroupTypeSignature,
-  ScannedResourceGroupGraph
+  ScannedResourceGroupGraph,
+  createResourceGroupGraph
 } from '@routesync/core'
 export type {
   ResourceGroupDescriptor,
@@ -645,7 +647,7 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
     frozenResourceGroups.map(group => [group.groupName, group])
   )
 
-  const resourceGroupGraph = ScannedResourceGroupGraph.from<ClassifiedRoute>(frozenResourceGroups)
+  const resourceGroupGraph = createResourceGroupGraph<ClassifiedRoute>(frozenResourceGroups)
 
   return Object.freeze({
     manifest,

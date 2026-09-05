@@ -246,6 +246,8 @@ Pindahkan invariant ke dalam Type System:
 > **Bukan:** *"Bagaimana menghilangkan switch?"*  
 > **Tetapi:** *"Bagaimana membuat input ke tahap berikutnya sudah cukup terstruktur sehingga tahap tersebut tidak perlu melakukan discovery lagi?"*  
 > Itulah pergeseran dari **runtime discovery $\to$ typed dataflow**.
+>
+> **Keputusan klasifikasi dibuat satu kali di Origin Boundary (`classifyDomainGraph`), hasilnya dibekukan menjadi `ResourceGroupGraph`, dan tahap selanjutnya murni berupa transformasi data bertipe tinggi.**
 
 ---
 

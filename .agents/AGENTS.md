@@ -249,6 +249,20 @@ Pindahkan invariant ke dalam Type System:
 >
 > **Keputusan klasifikasi dibuat satu kali di Origin Boundary (`classifyDomainGraph`), hasilnya dibekukan menjadi `ResourceGroupGraph`, dan tahap selanjutnya murni berupa transformasi data bertipe tinggi.**
 
+#### Eliminasi Materialisasi Perantara (Zero Intermediate Staging):
+- **"Setiap tahap sebaiknya menghasilkan bentuk data yang memang dibutuhkan tahap berikutnya, bukan menghasilkan collection sementara yang kemudian harus dikumpulkan ulang."**
+- **Dua Konsep yang Harus Dipisahkan**:
+  1. **Polymorphic Dispatch / ADT Eliminator (`matchFineGrained`, `matchUnified`)**:
+     - `Group × Visitor → R`. Beroperasi pada satu item heterogen yang jenis variannya belum di-eliminate.
+     - Merupakan *control-flow dispatch* polimorfik, bukan dataflow murni. Berperan murni sebagai *escape hatch* saat berhadapan dengan item individual di luar pipeline utama.
+  2. **Partitioned Dataflow (`ResourceGroupGraph`)**:
+     - `Origin Boundary → ResourceGroupGraph (fullCrud[], singleton[], custom[]) → Lowerers → Emit`.
+     - Data yang masuk sudah menentukan jalurnya. Downstream passes menerima stream data bertipe homogen dan langsung mengalirkannya ke lowerer tanpa conditional branching.
+- **Pipelining ke Emitter / Sink vs Intermediate Buffering**:
+  - **Anti-Pattern (Unnecessary Intermediate Staging)**: Lowerer menghasilkan `Line[]`, ditampung di `TempArrayA`, di-`concat` / di-`spread` ke `TempArrayB`, lalu baru di-`join`. Terlalu banyak alokasi wadah perantara yang memutus aliran data langsung.
+  - **True Dataflow (Direct Pipelining)**: Mengalirkan data langsung ke target Emitter / Sink / Writer (`lowerCrud(group, sink)`), atau mentransformasikan sequence tanpa alokasi wadah perantara.
+  - **Final Contract Aggregation**: Penggabungan sah hanya terjadi di boundary terluar jika kontrak artefak domain memang berupa berkas kode tunggal (`string` / file artifact).
+
 ---
 
 ## Pola Bug yang Sering Muncul

@@ -5764,6 +5764,14 @@ export interface EndpointRequestContract {
   readonly security: RouteSecurityDescriptor;
 }
 
+export interface ItemEndpointRequestContract extends EndpointRequestContract {
+  readonly primaryPathParameter: RouteParameter;
+}
+
+export interface ItemEndpointContract extends EndpointContract {
+  readonly request: ItemEndpointRequestContract;
+}
+
 export interface EndpointSuccessResponseContract {
   readonly statusCode: HttpStatusCode;
   readonly descriptor: ResponseDescriptor;
@@ -6290,6 +6298,119 @@ export type ResourceGroupDescriptor<TRoute = ParsedRoute> =
   | CrudResourceGroupDescriptor<TRoute>
   | SingletonResourceGroupDescriptor<TRoute>
   | CustomResourceGroupDescriptor<TRoute>;
+
+export interface CrudResourceGroupDescriptorParams<TRoute = ParsedRoute> {
+  readonly groupName: string;
+  readonly keyName: string;
+  readonly titleName: string;
+  readonly primaryKeyType: string;
+  readonly index: TRoute;
+  readonly show: TRoute;
+  readonly all: readonly TRoute[];
+  readonly create?: TRoute;
+  readonly update?: TRoute;
+  readonly delete?: TRoute;
+}
+
+export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+  implements CrudResourceGroupDescriptor<TRoute>
+{
+  public readonly kind = ResourceGroupKind.Crud;
+  public readonly isCrud = true as const;
+  public readonly groupName: string;
+  public readonly keyName: string;
+  public readonly titleName: string;
+  public readonly listKeyFn: string;
+  public readonly detailKeyFn: string;
+  public readonly primaryKeyType: string;
+  public readonly index: TRoute;
+  public readonly show: TRoute;
+  public readonly create?: TRoute;
+  public readonly update?: TRoute;
+  public readonly delete?: TRoute;
+  public readonly all: readonly TRoute[];
+
+  constructor(params: CrudResourceGroupDescriptorParams<TRoute>) {
+    this.groupName = params.groupName;
+    this.keyName = params.keyName;
+    this.titleName = params.titleName;
+    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].listKeyFn;
+    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultDetailKeyFn;
+    this.primaryKeyType = params.primaryKeyType;
+    this.index = params.index;
+    this.show = params.show;
+    this.create = params.create;
+    this.update = params.update;
+    this.delete = params.delete;
+    this.all = params.all;
+    Object.freeze(this);
+  }
+}
+
+export interface SingletonResourceGroupDescriptorParams<TRoute = ParsedRoute> {
+  readonly groupName: string;
+  readonly keyName: string;
+  readonly titleName: string;
+  readonly all: readonly TRoute[];
+}
+
+export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
+  implements SingletonResourceGroupDescriptor<TRoute>
+{
+  public readonly kind = ResourceGroupKind.Singleton;
+  public readonly isCrud = false as const;
+  public readonly groupName: string;
+  public readonly keyName: string;
+  public readonly titleName: string;
+  public readonly listKeyFn: string;
+  public readonly detailKeyFn: string;
+  public readonly primaryKeyType: string;
+  public readonly all: readonly TRoute[];
+
+  constructor(params: SingletonResourceGroupDescriptorParams<TRoute>) {
+    this.groupName = params.groupName;
+    this.keyName = params.keyName;
+    this.titleName = params.titleName;
+    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].listKeyFn;
+    this.detailKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].defaultDetailKeyFn;
+    this.primaryKeyType = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Singleton].defaultPrimaryKeyType;
+    this.all = params.all;
+    Object.freeze(this);
+  }
+}
+
+export interface CustomResourceGroupDescriptorParams<TRoute = ParsedRoute> {
+  readonly groupName: string;
+  readonly keyName: string;
+  readonly titleName: string;
+  readonly detailKeyFn: string;
+  readonly all: readonly TRoute[];
+}
+
+export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
+  implements CustomResourceGroupDescriptor<TRoute>
+{
+  public readonly kind = ResourceGroupKind.Custom;
+  public readonly isCrud = false as const;
+  public readonly groupName: string;
+  public readonly keyName: string;
+  public readonly titleName: string;
+  public readonly listKeyFn: string;
+  public readonly detailKeyFn: string;
+  public readonly primaryKeyType: string;
+  public readonly all: readonly TRoute[];
+
+  constructor(params: CustomResourceGroupDescriptorParams<TRoute>) {
+    this.groupName = params.groupName;
+    this.keyName = params.keyName;
+    this.titleName = params.titleName;
+    this.listKeyFn = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].listKeyFn;
+    this.detailKeyFn = params.detailKeyFn;
+    this.primaryKeyType = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].defaultPrimaryKeyType;
+    this.all = params.all;
+    Object.freeze(this);
+  }
+}
 
 export interface ResourceGroupVisitor<R, TRoute = ParsedRoute> {
   readonly crud: (group: CrudResourceGroupDescriptor<TRoute>) => R;

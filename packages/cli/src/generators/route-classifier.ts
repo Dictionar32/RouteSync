@@ -46,7 +46,11 @@ import {
   ResourceGroupDescriptor,
   ClassifiedDomainGraph,
   RouteManifest,
-  ROUTE_PARAMETER_TYPE_REGISTRY
+  ROUTE_PARAMETER_TYPE_REGISTRY,
+  ScannedCrudResourceGroupDescriptor,
+  ScannedSingletonResourceGroupDescriptor,
+  ScannedCustomResourceGroupDescriptor,
+  ParsedModel
 } from '@routesync/core'
 import { toIdentifier, toTypeName } from './names'
 
@@ -56,7 +60,10 @@ export {
   CrudRole,
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
-  matchResourceGroup
+  matchResourceGroup,
+  ScannedCrudResourceGroupDescriptor,
+  ScannedSingletonResourceGroupDescriptor,
+  ScannedCustomResourceGroupDescriptor
 } from '@routesync/core'
 export type {
   ResourceGroupDescriptor,
@@ -312,6 +319,29 @@ export function buildGroupedRoutes(classified: ClassifiedRoute[]): Record<string
 
 export { toTypeName }
 
+function resolveItemPrimaryKeyType(
+  targetRoute: ClassifiedRoute,
+  models?: readonly ParsedModel[],
+  titleName?: string
+): string {
+  const primaryParam = targetRoute.contract.request.pathParameters[0]
+  if (primaryParam && primaryParam.type && ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]) {
+    return ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type].tsType
+  }
+  if (models && titleName) {
+    const matchedModel = models.find(m => {
+      const mTitle = toTypeName(m.name)
+      const mShort = toTypeName(m.shortName ?? '')
+      return mTitle === titleName || mShort === titleName
+        || mTitle + 's' === titleName || mShort + 's' === titleName
+        || titleName + 's' === mTitle || titleName.replace(/s$/, '') === mTitle.replace(/s$/, '')
+    })
+    if (matchedModel?.keySemanticType === 'number') return 'number'
+    if (matchedModel?.keySemanticType === 'string') return 'string'
+  }
+  return RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType
+}
+
 /**
  * Top-Level Domain Graph Classifier (Origin Boundary).
  *
@@ -329,65 +359,39 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
     const KEY = groupName.toUpperCase()
     const Title = toTypeName(groupName)
 
-    const isCrud = Boolean(res.index && res.show)
-
-    if (isCrud) {
-      // 1. Authoritative primary key from route path parameters (SSOT)
-      const targetRoute = res.show ?? res.update ?? res.delete
-      const primaryParam = targetRoute?.contract.request.pathParameters?.[0]
-      let idType = RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType
-
-      if (primaryParam && primaryParam.type && ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]) {
-        idType = ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type].tsType
-      } else {
-        const matchedModel = manifest.models?.find(m => {
-          const mTitle = toTypeName(m.name)
-          const mShort = toTypeName(m.shortName ?? '')
-          return mTitle === Title || mShort === Title
-            || mTitle + 's' === Title || mShort + 's' === Title
-            || Title + 's' === mTitle || Title.replace(/s$/, '') === mTitle.replace(/s$/, '')
-        })
-        if (matchedModel?.keySemanticType === 'number') {
-          idType = 'number'
-        } else if (matchedModel?.keySemanticType === 'string') {
-          idType = 'string'
-        }
-      }
-
-      const crudDescriptor: CrudResourceGroupDescriptor<ClassifiedRoute> = Object.freeze({
-        kind: ResourceGroupKind.Crud,
+    if (res.index && res.show) {
+      const primaryKeyType = resolveItemPrimaryKeyType(res.show, manifest.models, Title)
+      resourceGroups.push(new ScannedCrudResourceGroupDescriptor<ClassifiedRoute>({
         groupName,
         keyName: KEY,
         titleName: Title,
-        isCrud: true,
-        listKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].listKeyFn,
-        detailKeyFn: RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultDetailKeyFn,
-        primaryKeyType: idType,
+        primaryKeyType,
+        index: res.index,
+        show: res.show,
         all: Object.freeze(res.all),
-        index: res.index!,
-        show: res.show!,
         create: res.create,
         update: res.update,
         delete: res.delete
-      })
-      resourceGroups.push(crudDescriptor)
+      }))
     } else {
-      // Singleton or Custom
       const hasAnyTrailingParam = res.all.some(r => r.hasTrailingParam)
-      const kind = hasAnyTrailingParam ? ResourceGroupKind.Custom : ResourceGroupKind.Singleton
-
-      const descriptor: ResourceGroupDescriptor<ClassifiedRoute> = Object.freeze({
-        kind,
-        groupName,
-        keyName: KEY,
-        titleName: Title,
-        isCrud: false,
-        listKeyFn: RESOURCE_GROUP_REGISTRY[kind].listKeyFn,
-        detailKeyFn: res.show?.actionName ?? RESOURCE_GROUP_REGISTRY[kind].defaultDetailKeyFn,
-        primaryKeyType: RESOURCE_GROUP_REGISTRY[kind].defaultPrimaryKeyType,
-        all: Object.freeze(res.all)
-      })
-      resourceGroups.push(descriptor)
+      if (hasAnyTrailingParam) {
+        const detailKeyFn = res.show ? res.show.actionName : RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].defaultDetailKeyFn
+        resourceGroups.push(new ScannedCustomResourceGroupDescriptor<ClassifiedRoute>({
+          groupName,
+          keyName: KEY,
+          titleName: Title,
+          detailKeyFn,
+          all: Object.freeze(res.all)
+        }))
+      } else {
+        resourceGroups.push(new ScannedSingletonResourceGroupDescriptor<ClassifiedRoute>({
+          groupName,
+          keyName: KEY,
+          titleName: Title,
+          all: Object.freeze(res.all)
+        }))
+      }
     }
   }
 

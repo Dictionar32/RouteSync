@@ -5,7 +5,10 @@ import {
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
   ScannedRouteDescriptor,
-  RouteParameterType
+  RouteParameterType,
+  ScannedCrudResourceGroupDescriptor,
+  ScannedSingletonResourceGroupDescriptor,
+  ScannedCustomResourceGroupDescriptor
 } from "@routesync/core"
 import {
   classifyDomainGraph,
@@ -51,6 +54,8 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(graph.resourceGroups).toHaveLength(1)
 
     const group = graph.resourceGroups[0]
+    expect(group instanceof ScannedCrudResourceGroupDescriptor).toBe(true)
+    expect(Object.isFrozen(group)).toBe(true)
     expect(group.kind).toBe(ResourceGroupKind.Crud)
     expect(group.isCrud).toBe(true)
     expect(group.listKeyFn).toBe("lists")
@@ -94,6 +99,8 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(graph.resourceGroups).toHaveLength(1)
 
     const group = graph.resourceGroups[0]
+    expect(group instanceof ScannedSingletonResourceGroupDescriptor).toBe(true)
+    expect(Object.isFrozen(group)).toBe(true)
     expect(group.kind).toBe(ResourceGroupKind.Singleton)
     expect(group.isCrud).toBe(false)
     expect(group.listKeyFn).toBe("list")
@@ -106,6 +113,57 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       custom: () => "CUSTOM"
     })
     expect(result).toBe("SINGLETON:list:show")
+  })
+
+  it("guarantees constructors enforce invariant-preserving contracts with 0 if and 0 ternary", () => {
+    const fakeRoute = ScannedRouteDescriptor.create({
+      method: "GET",
+      path: "/test",
+      groupName: "test",
+      crudRole: "index"
+    })
+
+    const crud = new ScannedCrudResourceGroupDescriptor({
+      groupName: "orders",
+      keyName: "ORDERS",
+      titleName: "Orders",
+      primaryKeyType: "string",
+      index: fakeRoute,
+      show: fakeRoute,
+      all: [fakeRoute]
+    })
+    expect(crud.kind).toBe("crud")
+    expect(crud.isCrud).toBe(true)
+    expect(crud.primaryKeyType).toBe("string")
+    expect(crud.listKeyFn).toBe("lists")
+    expect(crud.detailKeyFn).toBe("detail")
+    expect(Object.isFrozen(crud)).toBe(true)
+
+    const singleton = new ScannedSingletonResourceGroupDescriptor({
+      groupName: "auth",
+      keyName: "AUTH",
+      titleName: "Auth",
+      all: [fakeRoute]
+    })
+    expect(singleton.kind).toBe("singleton")
+    expect(singleton.isCrud).toBe(false)
+    expect(singleton.primaryKeyType).toBe("string | number")
+    expect(singleton.listKeyFn).toBe("list")
+    expect(singleton.detailKeyFn).toBe("show")
+    expect(Object.isFrozen(singleton)).toBe(true)
+
+    const custom = new ScannedCustomResourceGroupDescriptor({
+      groupName: "webhook",
+      keyName: "WEBHOOK",
+      titleName: "Webhook",
+      detailKeyFn: "handle",
+      all: [fakeRoute]
+    })
+    expect(custom.kind).toBe("custom")
+    expect(custom.isCrud).toBe(false)
+    expect(custom.detailKeyFn).toBe("handle")
+    expect(custom.primaryKeyType).toBe("string | number")
+    expect(Object.isFrozen(custom)).toBe(true)
   })
 
   it("guarantees QueryKeyGenerator and HookGenerator consume ClassifiedDomainGraph with 0 downstream if", async () => {

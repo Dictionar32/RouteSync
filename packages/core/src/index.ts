@@ -169,7 +169,10 @@ export {
   ScannedEndpointProvenanceDescriptor,
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
-  matchResourceGroup
+  matchResourceGroup,
+  ScannedCrudResourceGroupDescriptor,
+  ScannedSingletonResourceGroupDescriptor,
+  ScannedCustomResourceGroupDescriptor
 } from './types/route'
 export type {
   RouteManifest,
@@ -428,7 +431,12 @@ export type {
   CustomResourceGroupDescriptor,
   ResourceGroupDescriptor,
   ResourceGroupVisitor,
-  ClassifiedDomainGraph
+  ClassifiedDomainGraph,
+  ItemEndpointRequestContract,
+  ItemEndpointContract,
+  CrudResourceGroupDescriptorParams,
+  SingletonResourceGroupDescriptorParams,
+  CustomResourceGroupDescriptorParams
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'

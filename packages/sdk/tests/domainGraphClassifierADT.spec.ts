@@ -10,7 +10,10 @@ import {
   ScannedReadOnlyCrudResourceGroupDescriptor,
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
-  ScannedCustomResourceGroupDescriptor
+  ScannedCustomResourceGroupDescriptor,
+  ScannedCrudResourceGroupDescriptor,
+  MutationCapability,
+  ScannedResourceGroupTypeSignature
 } from "@routesync/core"
 import {
   classifyDomainGraph,
@@ -442,6 +445,61 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     } finally {
       await fs.remove(tempDir)
     }
+
+    // 4. Partitioned Subgraphs verification (Correct-by-Construction)
+    expect(graph.resourceGroupGraph).toBeDefined()
+    expect(graph.resourceGroupGraph.fullCrud).toHaveLength(1)
+    expect(graph.resourceGroupGraph.readOnlyCrud).toHaveLength(0)
+    expect(graph.resourceGroupGraph.flexibleCrud).toHaveLength(0)
+    expect(graph.resourceGroupGraph.singleton).toHaveLength(0)
+    expect(graph.resourceGroupGraph.custom).toHaveLength(0)
+    expect(graph.resourceGroupGraph.crud).toHaveLength(1)
+    expect(graph.resourceGroupGraph.fullCrud[0].create.actionName).toBe("create")
+  })
+
+  it("enforces Complete Contracts with MutationCapability helper factories and ScannedCrudResourceGroupDescriptor", () => {
+    const dummyRoute = ScannedRouteDescriptor.create({
+      method: "POST",
+      path: "/api/v1/items",
+      groupName: "items",
+      crudRole: "create"
+    })
+
+    const avail = MutationCapability.available(dummyRoute)
+    expect(avail.available).toBe(true)
+    expect(avail.route).toBe(dummyRoute)
+    expect(Object.isFrozen(avail)).toBe(true)
+
+    const absent = MutationCapability.absent()
+    expect(absent.available).toBe(false)
+    expect(Object.isFrozen(absent)).toBe(true)
+
+    const fromNull = MutationCapability.fromNullable(null)
+    expect(fromNull.available).toBe(false)
+
+    const fromVal = MutationCapability.fromNullable(dummyRoute)
+    expect(fromVal.available).toBe(true)
+
+    const crudDesc = ScannedCrudResourceGroupDescriptor.fromRoutes({
+      groupName: "items",
+      keyName: "ITEMS",
+      titleName: "Items",
+      primaryKeyType: "number",
+      types: ScannedResourceGroupTypeSignature.createDefault(),
+      index: dummyRoute,
+      show: dummyRoute,
+      all: [dummyRoute],
+      create: dummyRoute,
+      update: null,
+      delete: null
+    })
+
+    expect(crudDesc.kind).toBe(ResourceGroupKind.FlexibleCrud)
+    expect(crudDesc.create.available).toBe(true)
+    expect(crudDesc.update.available).toBe(false)
+    expect(crudDesc.delete.available).toBe(false)
+    expect(Object.isFrozen(crudDesc)).toBe(true)
   })
 })
+
 

@@ -48,6 +48,7 @@ import {
   CustomResourceGroupDescriptor,
   ResourceGroupDescriptor,
   ClassifiedDomainGraph,
+  ResourceGroupGraph,
   RouteManifest,
   ROUTE_PARAMETER_TYPE_REGISTRY,
   ScannedCrudResourceGroupDescriptor,
@@ -551,9 +552,6 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
           contractImportedTypes: Object.freeze(Array.from(contractImportedTypes).sort())
         })
 
-        const toMutationCapability = (route?: ClassifiedRoute): MutationCapability<ClassifiedRoute> =>
-          route ? { available: true, route } : { available: false }
-
         resourceGroups.push(new ScannedFlexibleCrudResourceGroupDescriptor<ClassifiedRoute>({
           groupName,
           keyName: KEY,
@@ -562,9 +560,9 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
           types,
           index: res.index,
           show: res.show,
-          create: toMutationCapability(res.create),
-          update: toMutationCapability(res.update),
-          delete: toMutationCapability(res.delete),
+          create: MutationCapability.fromNullable(res.create),
+          update: MutationCapability.fromNullable(res.update),
+          delete: MutationCapability.fromNullable(res.delete),
           all: Object.freeze(res.all)
         }))
       }
@@ -643,11 +641,48 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
     resourceGroups.map(group => [group.groupName, group])
   )
 
+  const fullCrud: FullCrudResourceGroupDescriptor<ClassifiedRoute>[] = []
+  const readOnlyCrud: ReadOnlyCrudResourceGroupDescriptor<ClassifiedRoute>[] = []
+  const flexibleCrud: FlexibleCrudResourceGroupDescriptor<ClassifiedRoute>[] = []
+  const singleton: SingletonResourceGroupDescriptor<ClassifiedRoute>[] = []
+  const custom: CustomResourceGroupDescriptor<ClassifiedRoute>[] = []
+
+  for (const g of resourceGroups) {
+    switch (g.kind) {
+      case ResourceGroupKind.FullCrud:
+        fullCrud.push(g)
+        break
+      case ResourceGroupKind.ReadOnlyCrud:
+        readOnlyCrud.push(g)
+        break
+      case ResourceGroupKind.FlexibleCrud:
+        flexibleCrud.push(g)
+        break
+      case ResourceGroupKind.Singleton:
+        singleton.push(g)
+        break
+      case ResourceGroupKind.Custom:
+        custom.push(g)
+        break
+    }
+  }
+
+  const resourceGroupGraph: ResourceGroupGraph<ClassifiedRoute> = Object.freeze({
+    fullCrud: Object.freeze(fullCrud),
+    readOnlyCrud: Object.freeze(readOnlyCrud),
+    flexibleCrud: Object.freeze(flexibleCrud),
+    singleton: Object.freeze(singleton),
+    custom: Object.freeze(custom),
+    crud: Object.freeze([...fullCrud, ...readOnlyCrud, ...flexibleCrud]),
+    all: Object.freeze(resourceGroups)
+  })
+
   return Object.freeze({
     manifest,
     contracts: Object.freeze(classified.map(c => c.contract)),
     resourceGroups: Object.freeze(resourceGroups),
     resourceGroupMap,
+    resourceGroupGraph,
     models: Object.freeze(manifest.models ?? [])
   })
 }

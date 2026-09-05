@@ -170,6 +170,7 @@ export {
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
+  MutationCapability,
   ScannedCrudResourceGroupDescriptor,
   ScannedFullCrudResourceGroupDescriptor,
   ScannedReadOnlyCrudResourceGroupDescriptor,
@@ -449,6 +450,7 @@ export type {
   ExhaustiveFineGrainedResourceGroupVisitor,
   UnifiedCrudResourceGroupVisitor,
   ClassifiedDomainGraph,
+  ResourceGroupGraph,
   ItemEndpointRequestContract,
   ItemEndpointContract,
   CrudResourceGroupDescriptorParams,
@@ -457,7 +459,6 @@ export type {
   FlexibleCrudParams,
   SingletonResourceGroupDescriptorParams,
   CustomResourceGroupDescriptorParams,
-  MutationCapability,
   AvailableMutation,
   AbsentMutation
 } from './types/route'

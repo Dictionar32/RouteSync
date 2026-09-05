@@ -162,7 +162,7 @@ menjadi:
     ```
   - Validity dan keutuhan tipe sudah dibentuk dan dijamin di Origin Boundary.
 
-#### Type-Level Architecture:
+#### Type-Level Architecture & Data-Flow Graph:
 Pindahkan invariant ke dalam Type System:
 - **Bukan tipe serba opsional yang memaksa defensive fallback downstream**:
   ```typescript
@@ -172,11 +172,41 @@ Pindahkan invariant ke dalam Type System:
   ```typescript
   type ValidField = { readonly name: FieldName; readonly type: SemanticType; }; // GOOD: guaranteed non-nullable
   ```
-- **Alur Data Murni**:
+- **Type Signature Sebagai Deklarasi Aliran Data (Type-Level Data-Flow Graph)**:
+  Interface bukan sekadar daftar method pasif, melainkan deklarasi edge pada graph transformasi data:
   ```
-  Raw external data ──► Validation / Normalization ──► ValidDomain ──► Seluruh Downstream Pipeline
+  scan()
+    │
+    │ RouteManifest
+    ▼
+  resolve(manifest)
+    │
+    │ ResolvedSemanticType
+    ▼
+  lower(type)
+    │
+    │ TypeScriptContract
+    ▼
+  emit(contract)
+    │
+    │ string
+    ▼
+  Output
   ```
-  *Aksioma*: **Data harus mengalir, bukan dicari ulang atau ditebak ulang di setiap layer.**
+  - **Compiler Sangat Tipis (*Thin Orchestrator*)**:
+    ```typescript
+    function compile(scanner: Scanner, resolver: Resolver, lowerer: Lowerer, emitter: Emitter): string {
+      return emitter.emit(lowerer.lower(resolver.resolve(scanner.scan())));
+    }
+    ```
+  - **Hierarki Konseptual**:
+    1. **ADT** $\to$ Mendefinisikan bentuk data (*Domain Shapes*).
+    2. **Interface** $\to$ Mendefinisikan boundary + arah transformasi (*Graph Edges*).
+    3. **Composition** $\to$ Menyambungkan boundary (*Dataflow Pipeline*).
+    4. **Compiler** $\to$ Menjalankan graph (*Thin Runner* tanpa `if`).
+    5. **Invariant** $\to$ Menjamin setiap node hanya menerima dan menghasilkan state sah.
+  - Jika Tahap A menghasilkan $X$ dan Tahap B membutuhkan $Y$ di mana $X \neq Y$, type system **menolak secara statis saat compile time**.
+  *Aksioma*: **Data harus mengalir dari interface ke interface, bukan dicari ulang atau ditebak ulang di setiap layer.**
 
 #### Peta Arsitektur RouteSync:
 ```
@@ -201,7 +231,7 @@ Pindahkan invariant ke dalam Type System:
                   Registry
                       │
                       ▼
-                  Compiler
+                  Compiler (Thin Orchestrator)
                       │
                       ▼
                     Output (Traceable Code)
@@ -211,7 +241,7 @@ Pindahkan invariant ke dalam Type System:
 > **"Invalid state should be eliminated at the earliest boundary possible."**
 >
 > Target akhir pipeline bukan cuma *"pipeline kita selalu diperiksa"*, melainkan:
-> **"Pipeline dirancang sedemikian rupa sehingga setiap tahap hanya menerima dan menghasilkan state yang memang sah."**
+> **"Pipeline dirancang sedemikian rupa sehingga setiap tahap hanya menerima dan menghasilkan state yang memang sah — flow sudah dipaksa oleh type contract."**
 
 ---
 

@@ -125,6 +125,96 @@ Setiap pipeline kompilasi, generator, dan transformasi data di RouteSync **wajib
 
 ---
 
+### 12. Correct-by-Construction Architecture (Typed, Contract-Driven, Correct-by-Construction Dataflow)
+
+Saat arsitektur RouteSync naik tingkat melampaui sekadar *Invariant-Driven / Verified Data Pipeline*, fokus bergeser dari:
+> *"Apakah setiap tahap benar?"* (Verified)
+menjadi:
+> *"Bisakah seluruh sistem dibangun sehingga ketidakbenaran tertentu memang tidak mungkin terjadi?"* (Correct-by-Construction)
+
+#### Hierarki Kematangan Arsitektur RouteSync:
+```
+1. Structured Code
+        ↓
+2. Typed Data Flow
+        ↓
+3. Contract-Driven Architecture (CDA)
+        ↓
+4. Invariant-Driven Pipeline
+        ↓
+5. Verified Data Pipeline
+        ↓
+6. Correct-by-Construction  <── [RouteSync Target Standard]
+        ↓
+7. Proof-Carrying / Formally Verified System
+```
+
+#### Perbedaan Konseptual Verified vs Correct-by-Construction:
+- **Verified Pipeline**: *"Setelah dibuat, kita periksa apakah benar."* (Input → Transformation → Verification boundary check → Error/Pass).
+- **Correct-by-Construction**: *"Strukturnya membuat keadaan salah sulit atau tidak mungkin dibuat sejak hulu."*
+  - Constructor setiap varian ADT dan domain descriptor secara ketat menjaga invariant-nya.
+  - Downstream compiler passes tidak perlu terus-menerus bertanya defensif:
+    ```typescript
+    // DILARANG di downstream compiler:
+    if (...)
+    ?? fallback
+    ?. sesuatu
+    ```
+  - Validity dan keutuhan tipe sudah dibentuk dan dijamin di Origin Boundary.
+
+#### Type-Level Architecture:
+Pindahkan invariant ke dalam Type System:
+- **Bukan tipe serba opsional yang memaksa defensive fallback downstream**:
+  ```typescript
+  type Field = { name?: string; type?: string; }; // BAD: memaksa field.name ?? ...
+  ```
+- **Melainkan Complete Guaranteed Contract**:
+  ```typescript
+  type ValidField = { readonly name: FieldName; readonly type: SemanticType; }; // GOOD: guaranteed non-nullable
+  ```
+- **Alur Data Murni**:
+  ```
+  Raw external data ──► Validation / Normalization ──► ValidDomain ──► Seluruh Downstream Pipeline
+  ```
+  *Aksioma*: **Data harus mengalir, bukan dicari ulang atau ditebak ulang di setiap layer.**
+
+#### Peta Arsitektur RouteSync:
+```
+             RouteSync Architecture
+
+                 Domain Model
+                      │
+                      ▼
+                     ADT (32 Registries)
+                      │
+                      ▼
+             Explicit Contracts (SSOT)
+                      │
+                      ▼
+             Invariant-Preserving
+                 Transformations (Catamorphisms)
+                      │
+                      ▼
+                 Capabilities
+                      │
+                      ▼
+                  Registry
+                      │
+                      ▼
+                  Compiler
+                      │
+                      ▼
+                    Output (Traceable Code)
+```
+
+#### Prinsip Inti:
+> **"Invalid state should be eliminated at the earliest boundary possible."**
+>
+> Target akhir pipeline bukan cuma *"pipeline kita selalu diperiksa"*, melainkan:
+> **"Pipeline dirancang sedemikian rupa sehingga setiap tahap hanya menerima dan menghasilkan state yang memang sah."**
+
+---
+
 ## Pola Bug yang Sering Muncul
 
 ### Pattern A: `z.unknown()` pada field yang seharusnya typed

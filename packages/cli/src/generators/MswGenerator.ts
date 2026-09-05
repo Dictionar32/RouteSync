@@ -13,21 +13,19 @@ export class MswGenerator {
     lines.push(`export const handlers = [`)
 
     for (const route of manifest.routes) {
-      const mswMethod = route.method.toLowerCase()
-      const runtimePath = route.runtimePath || route.path
+      const contract = route.contract ?? getRouteContract(route)
+      const mswMethod = contract.method.toLowerCase()
+      const runtimePath = contract.runtimePath
       const mswPath = manifest.baseURL + (runtimePath.startsWith('/') ? runtimePath : '/' + runtimePath)
       const actionName = toMethodName(route)
 
-      const dataExpression = route.response
-        ? matchResponseShape(route.response.shape, {
-            collection: () => '[]',
-            paginated: () => '[]',
-            single: () => '{ id: 1, ...params }'
-          })
-        : '{ id: 1, ...params }'
+      const dataExpression = matchResponseShape(contract.response.success.shape, {
+        collection: () => '[]',
+        paginated: () => '[]',
+        single: () => '{ id: 1, ...params }'
+      })
 
-      const contract = route.contract ?? getRouteContract(route)
-      if (contract?.provenance) {
+      if (contract.provenance) {
         lines.push(`  /**`)
         lines.push(`   * @provenance ${contract.provenance.summary}`)
         if (contract.provenance.route?.file) {

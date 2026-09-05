@@ -6029,9 +6029,16 @@ export class ScannedEndpointContract implements EndpointContract {
       ? Array.from(new Set(errorList.map(e => e.typeName))).join(' | ')
       : 'ApiError';
 
-    const defaultStatusCode = route.method.toUpperCase() === 'POST'
-      ? HttpStatusCode.Created
-      : (route.response?.readTypeName === 'void' ? HttpStatusCode.NoContent : HttpStatusCode.Ok);
+    const upperMethod = route.method.toUpperCase() as HttpMethod;
+    const defaultStatusCode = matchHttpMethod(upperMethod, {
+      POST: () => HttpStatusCode.Created,
+      GET: () => (route.response?.readTypeName === 'void' ? HttpStatusCode.NoContent : HttpStatusCode.Ok),
+      DELETE: () => HttpStatusCode.NoContent,
+      PUT: () => HttpStatusCode.Ok,
+      PATCH: () => HttpStatusCode.Ok,
+      OPTIONS: () => HttpStatusCode.NoContent,
+      HEAD: () => HttpStatusCode.Ok
+    });
 
     const successContract: EndpointSuccessResponseContract = {
       statusCode: defaultStatusCode,

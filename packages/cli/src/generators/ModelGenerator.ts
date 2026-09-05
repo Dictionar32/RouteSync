@@ -2,6 +2,15 @@ import fs from 'fs-extra'
 import path from 'path'
 import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind, DATABASE_COLUMN_KIND_REGISTRY, matchRelation } from '@routesync/core'
 
+const PRIMITIVE_KIND_MAP: Record<string, string> = {
+  [PrimitiveKind.NUMBER]: 'number',
+  [PrimitiveKind.BOOLEAN]: 'boolean',
+  [PrimitiveKind.STRING]: 'string',
+  [PrimitiveKind.ANY]: 'unknown',
+  [PrimitiveKind.NULL]: 'null',
+  [PrimitiveKind.UNDEFINED]: 'undefined'
+}
+
 export class ModelGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
     if (!manifest.models || manifest.models.length === 0) return
@@ -33,9 +42,7 @@ export class ModelGenerator {
         } else if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
           tsType = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType
         } else if (col.semanticType) {
-          tsType = col.semanticType === PrimitiveKind.NUMBER ? 'number'
-            : col.semanticType === PrimitiveKind.BOOLEAN ? 'boolean'
-            : 'string'
+          tsType = PRIMITIVE_KIND_MAP[col.semanticType] ?? 'string'
         } else {
           tsType = this.mapColumnKindToTs(col.columnKind)
         }
@@ -50,9 +57,7 @@ export class ModelGenerator {
           const rawName = acc.propertyName || acc.name
           if (!rawName) continue
           const propName = acc.propertyName || camelCase(rawName)
-          const tsType = acc.semanticType === PrimitiveKind.NUMBER ? 'number'
-            : acc.semanticType === PrimitiveKind.BOOLEAN ? 'boolean'
-            : 'string'
+          const tsType = acc.semanticType ? (PRIMITIVE_KIND_MAP[acc.semanticType] ?? 'string') : 'string'
           const nullable = acc.nullable ? ' | null' : ''
           lines.push(`  ${propName}?: ${tsType}${nullable}`)
         }

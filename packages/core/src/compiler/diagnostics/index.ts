@@ -15,8 +15,18 @@
 export {
     Diagnostic,
     DiagnosticSeverity,
+    DiagnosticCategory,
+    DIAGNOSTIC_CATEGORY_REGISTRY,
+    matchDiagnosticCategory,
     DiagnosticFix,
     TextEdit,
 } from './Diagnostic';
 
-export { DiagnosticBag } from './DiagnosticBag';
+export type {
+    DiagnosticCategorySpecification,
+    DiagnosticCategoryRegistry,
+    DiagnosticCategoryVisitor
+} from './Diagnostic';
+
+export { DiagnosticBag, CompilerValidationError } from './DiagnosticBag';
+

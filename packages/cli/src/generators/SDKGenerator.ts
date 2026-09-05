@@ -50,6 +50,15 @@ export class SDKGenerator {
 
         const respInfo = resolveResponseInfo(route.contract, KeyName)
 
+        if (route.contract?.provenance) {
+          apiBodyLines.push(`    /**`)
+          apiBodyLines.push(`     * @provenance ${route.contract.provenance.summary}`)
+          if (route.contract.provenance.route?.file) {
+            apiBodyLines.push(`     * @see ${route.contract.provenance.route.file}#L${route.contract.provenance.route.line}`)
+          }
+          apiBodyLines.push(`     */`)
+        }
+
         apiBodyLines.push(`    ${route.actionName}: endpoint({`)
         apiBodyLines.push(`      method: '${route.method}',`)
 

@@ -39,6 +39,11 @@ export class EchoGenerator {
       const runtimeChannelName = channel.runtimePattern || (channel.name || '').replace(/\{([^}]+)\}/g, '${$1}')
       const channelMethod = BROADCAST_CHANNEL_REGISTRY[channel.kind].echoMethod
 
+      lines.push(`/**`)
+      lines.push(` * Broadcast Channel: ${channel.name} (${channel.kind})`)
+      lines.push(` * @provenance BroadcastChannel: routes/channels.php (${channel.name})`)
+      lines.push(` * @see routes/channels.php`)
+      lines.push(` */`)
       lines.push(`export function ${hookName}<TEvent = unknown>(${paramArgs}eventName: string, callback: (event: TEvent) => void) {`)
       lines.push(`  useEffect(() => {`)
       lines.push(`    if (typeof window === 'undefined' || !(window as unknown as { Echo?: Echo }).Echo) return`)

@@ -88,6 +88,41 @@ Jika interface parameter dibuat serba opsional (`?`), dampaknya adalah downstrea
 - **Wajib Complete Contract**: Setiap domain descriptor dan parameter constructor harus menuntut kontrak data yang lengkap dan guaranteed non-nullable untuk state yang sudah seharusnya ter-resolve di Origin Boundary.
 - **Gunakan Explicit Semantic Factory**: Jika ada variasi state domain (misal objek kosong, rute tanpa validasi, atau pembuatan dari migration schema/path segment), sediakan factory method eksplisit (seperti `.empty()`, `.fromRules()`, `.fromPathSegment()`, `.fromSchema()`), bukan melubangi contract parameter dengan tanda tanya `?`.
 
+### 11. Invariant-Driven / Verified Data Pipeline
+Setiap pipeline kompilasi, generator, dan transformasi data di RouteSync **wajib** beroperasi sebagai **Verified Data Pipeline** yang dipandu oleh Single Source of Truth (SSOT) Data Contract:
+
+```
+                DATA CONTRACT (SSOT)
+                         │
+                         ▼
+    UPSTREAM ───► VALIDATION ───► DOMAIN ───► LOWERING ───► BOUNDARY
+                    │               │
+                    │               │
+                 reject          transform
+                    │               │
+                    ▼               ▼
+                  ERROR           OUTPUT
+```
+
+#### 5 Tahap Wajib Pipeline:
+1. **UPSTREAM (Lexing & Extraction)**:
+   - Mengekstrak source code PHP Laravel murni (`routes/api.php`, Controllers, FormRequests, Models, JsonResources).
+   - Dilarang keras melakukan manipulasi domain, re-inferensi tipe hilir, atau peredaman error di tahap ini.
+2. **VALIDATION (Fail-Fast Gatekeeper)**:
+   - Memvalidasi integritas data mentah di batas terluar (*boundary check*).
+   - Jika payload input rusak, tidak lengkap, atau melanggar skema: **wajib tolak (*reject*) ke ERROR** secara eksplisit.
+   - Dilarang membiarkan data cacat mencemari memori domain compiler atau menambalnya dengan fallback diam-diam (*silent fallback*).
+3. **DOMAIN (Invariant-Preserving Semantic Models)**:
+   - Representasi domain murni berbasis **Complete Data Contract** ([`EndpointContract`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/types/route.ts#L5957-L5977), 31 ADT Registries, dan `EndpointProvenanceDescriptor`).
+   - Setiap entitas domain **wajib beku (*frozen*)** via `Object.freeze()` dengan field non-nullable yang dijamin utuh sejak Origin Boundary.
+   - Wajib menyertakan End-to-End Data Provenance (`ProvenanceSourceRef`) yang melacak file, nomor baris, dan simbol asal.
+4. **LOWERING (Pure IR Transformation)**:
+   - Transformasi dari model domain semantik ke Intermediate Representation (IR Zod, IR TypeScript, QueryKey, Invalidation) **wajib murni menggunakan catamorphism pattern matchers** (`match*` dengan 0 `if`/0 `switch`).
+   - Dilarang menebak-nebak tipe dengan regex string atau defensive null checks di tahap transformasi.
+5. **BOUNDARY (Verified Emitters & Traceability)**:
+   - Generator hilir (`CompilerBridge`, `SDKGenerator`, `HookGenerator`, `ContractCodeBuilder`) murni mengonsumsi data yang sudah tervalidasi dan terjamin dari kontrak SSOT.
+   - Wajib menyematkan JSDoc `@provenance` dan `@see` pada setiap artefak kode akhir (`OUTPUT`) untuk menjamin keterlacakan 100% dari TypeScript kembali ke baris file Laravel aslinya.
+
 ---
 
 ## Pola Bug yang Sering Muncul

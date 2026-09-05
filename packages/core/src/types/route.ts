@@ -5786,6 +5786,174 @@ export interface EndpointResponseContract {
   readonly errorUnionType: string;
 }
 
+/**
+ * DataProvenanceKind
+ *
+ * Canonical ADT discriminator for tracking the source origin of API entities.
+ */
+export const DataProvenanceKind = Object.freeze({
+  RouteDefinition: 'route_definition',
+  ControllerAction: 'controller_action',
+  FormRequest: 'form_request',
+  EloquentModel: 'eloquent_model',
+  JsonResource: 'json_resource',
+  Inferred: 'inferred'
+} as const);
+
+export type DataProvenanceKind = typeof DataProvenanceKind[keyof typeof DataProvenanceKind];
+
+export interface DataProvenanceKindSpecification<K extends DataProvenanceKind = DataProvenanceKind> {
+  readonly kind: K;
+  readonly category: string;
+  readonly isSourceLinked: boolean;
+  readonly description: string;
+}
+
+export type DataProvenanceKindRegistry = {
+  readonly [K in DataProvenanceKind]: DataProvenanceKindSpecification<K>;
+};
+
+export const DATA_PROVENANCE_REGISTRY: DataProvenanceKindRegistry = Object.freeze({
+  [DataProvenanceKind.RouteDefinition]: {
+    kind: DataProvenanceKind.RouteDefinition,
+    category: 'route',
+    isSourceLinked: true,
+    description: 'Originates from Laravel route declaration in routes/api.php or routes/web.php'
+  },
+  [DataProvenanceKind.ControllerAction]: {
+    kind: DataProvenanceKind.ControllerAction,
+    category: 'controller',
+    isSourceLinked: true,
+    description: 'Originates from Laravel controller action method'
+  },
+  [DataProvenanceKind.FormRequest]: {
+    kind: DataProvenanceKind.FormRequest,
+    category: 'request',
+    isSourceLinked: true,
+    description: 'Originates from Laravel FormRequest rules method'
+  },
+  [DataProvenanceKind.EloquentModel]: {
+    kind: DataProvenanceKind.EloquentModel,
+    category: 'model',
+    isSourceLinked: true,
+    description: 'Originates from Laravel Eloquent Model schema, casts, or relations'
+  },
+  [DataProvenanceKind.JsonResource]: {
+    kind: DataProvenanceKind.JsonResource,
+    category: 'response',
+    isSourceLinked: true,
+    description: 'Originates from Laravel JsonResource toArray method'
+  },
+  [DataProvenanceKind.Inferred]: {
+    kind: DataProvenanceKind.Inferred,
+    category: 'compiler',
+    isSourceLinked: false,
+    description: 'Inferred or synthesized by RouteSync Semantic Kernel'
+  }
+});
+
+export interface ProvenanceSourceRef {
+  readonly kind: DataProvenanceKind;
+  readonly file: string;
+  readonly line: number;
+  readonly symbol: string;
+}
+
+export interface DataProvenanceVisitor<R> {
+  readonly route_definition: (ref: ProvenanceSourceRef) => R;
+  readonly controller_action: (ref: ProvenanceSourceRef) => R;
+  readonly form_request: (ref: ProvenanceSourceRef) => R;
+  readonly eloquent_model: (ref: ProvenanceSourceRef) => R;
+  readonly json_resource: (ref: ProvenanceSourceRef) => R;
+  readonly inferred: (ref: ProvenanceSourceRef) => R;
+}
+
+/**
+ * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ProvenanceSourceRef dengan exhaustive type safety
+ */
+export function matchDataProvenance<R>(
+  source: ProvenanceSourceRef | DataProvenanceKind,
+  visitor: DataProvenanceVisitor<R>
+): R {
+  const isKindString = typeof source === 'string';
+  const kind = isKindString ? source : source.kind;
+  const descriptor: ProvenanceSourceRef = isKindString
+    ? {
+        kind,
+        file: '',
+        line: 1,
+        symbol: DATA_PROVENANCE_REGISTRY[kind].description
+      }
+    : source;
+  return visitor[kind](descriptor);
+}
+
+export interface EndpointProvenanceDescriptor {
+  readonly route: ProvenanceSourceRef;
+  readonly controller: ProvenanceSourceRef | null;
+  readonly request: ProvenanceSourceRef | null;
+  readonly response: ProvenanceSourceRef | null;
+  readonly summary: string;
+}
+
+export class ScannedEndpointProvenanceDescriptor implements EndpointProvenanceDescriptor {
+  public readonly route: ProvenanceSourceRef;
+  public readonly controller: ProvenanceSourceRef | null;
+  public readonly request: ProvenanceSourceRef | null;
+  public readonly response: ProvenanceSourceRef | null;
+  public readonly summary: string;
+
+  constructor(params: EndpointProvenanceDescriptor) {
+    this.route = Object.freeze({ ...params.route });
+    this.controller = params.controller ? Object.freeze({ ...params.controller }) : null;
+    this.request = params.request ? Object.freeze({ ...params.request }) : null;
+    this.response = params.response ? Object.freeze({ ...params.response }) : null;
+    this.summary = params.summary;
+    Object.freeze(this);
+  }
+
+  public static create(params: {
+    readonly route: ProvenanceSourceRef;
+    readonly controller?: ProvenanceSourceRef | null;
+    readonly request?: ProvenanceSourceRef | null;
+    readonly response?: ProvenanceSourceRef | null;
+  }): ScannedEndpointProvenanceDescriptor {
+    const parts: string[] = [`Route: ${params.route.file}:${params.route.line}`];
+    if (params.controller) {
+      parts.push(`Controller: ${params.controller.file}:${params.controller.line} (${params.controller.symbol})`);
+    }
+    if (params.request) {
+      parts.push(`Request: ${params.request.file}:${params.request.line} (${params.request.symbol})`);
+    }
+    if (params.response) {
+      parts.push(`Response: ${params.response.file}:${params.response.line} (${params.response.symbol})`);
+    }
+    return new ScannedEndpointProvenanceDescriptor({
+      route: params.route,
+      controller: params.controller ?? null,
+      request: params.request ?? null,
+      response: params.response ?? null,
+      summary: parts.join(' | ')
+    });
+  }
+
+  public static inferred(routePath: string, method: string): ScannedEndpointProvenanceDescriptor {
+    const routeRef: ProvenanceSourceRef = {
+      kind: DataProvenanceKind.Inferred,
+      file: 'routes/api.php',
+      line: 1,
+      symbol: `${method.toUpperCase()} ${routePath}`
+    };
+    return new ScannedEndpointProvenanceDescriptor({
+      route: routeRef,
+      controller: null,
+      request: null,
+      response: null,
+      summary: `Inferred: ${method.toUpperCase()} ${routePath}`
+    });
+  }
+}
+
 export interface EndpointContract<
   TMethod extends HttpMethod = HttpMethod,
   TRole extends CrudRole = CrudRole
@@ -5804,6 +5972,7 @@ export interface EndpointContract<
   readonly response: EndpointResponseContract;
   readonly invalidation: RouteCacheInvalidationDescriptor;
   readonly policies: readonly RoutePolicyDescriptor[];
+  readonly provenance: EndpointProvenanceDescriptor; // ✅ Pure End-to-End Data Provenance SSOT
   readonly raw: ParsedRoute;
 }
 
@@ -5822,6 +5991,7 @@ export class ScannedEndpointContract implements EndpointContract {
   public readonly response: EndpointResponseContract;
   public readonly invalidation: RouteCacheInvalidationDescriptor;
   public readonly policies: readonly RoutePolicyDescriptor[];
+  public readonly provenance: EndpointProvenanceDescriptor;
   public readonly raw: ParsedRoute;
 
   constructor(params: EndpointContract) {
@@ -5842,6 +6012,7 @@ export class ScannedEndpointContract implements EndpointContract {
     });
     this.invalidation = params.invalidation;
     this.policies = Object.freeze([...params.policies]);
+    this.provenance = params.provenance;
     this.raw = params.raw;
     Object.freeze(this);
   }
@@ -5885,9 +6056,63 @@ export class ScannedEndpointContract implements EndpointContract {
 
     const group = route.groupName || route.resourceName || 'App';
     const action = route.actionName || 'action';
+    const crudRole = route.crudRole ?? CrudRole.Custom;
     const isMutating = route.isMutating ?? (HTTP_METHOD_REGISTRY[route.method as HttpMethod]?.isMutating ?? false);
     const hookKind = route.hookKind ?? (isMutating ? RouteHookKind.Mutation : RouteHookKind.Query);
-    const crudRole = route.crudRole ?? CrudRole.Custom;
+
+    const routeSource: ProvenanceSourceRef = {
+      kind: DataProvenanceKind.RouteDefinition,
+      file: route.sourceFile || 'routes/api.php',
+      line: route.sourceLine || 1,
+      symbol: `${route.method.toUpperCase()} ${route.path}`
+    };
+
+    const controllerSource: ProvenanceSourceRef | null = route.controllerName
+      ? {
+          kind: DataProvenanceKind.ControllerAction,
+          file: route.sourceFile || `app/Http/Controllers/${route.controllerName}.php`,
+          line: route.sourceLine || 1,
+          symbol: `${route.controllerName}@${route.actionName || 'action'}`
+        }
+      : null;
+
+    const requestSource: ProvenanceSourceRef | null = (route.schema?.rules && (route as any).formRequestName)
+      ? {
+          kind: DataProvenanceKind.FormRequest,
+          file: `app/Http/Requests/${(route as any).formRequestName}.php`,
+          line: 1,
+          symbol: (route as any).formRequestName
+        }
+      : null;
+
+    let responseSource: ProvenanceSourceRef | null = null;
+    const resp = route.response as any;
+    if (resp) {
+      if (resp.kind === 'resource' || resp.resourceName || resp.resource) {
+        const resName = resp.resourceName || resp.resource;
+        responseSource = {
+          kind: DataProvenanceKind.JsonResource,
+          file: `app/Http/Resources/${resName}.php`,
+          line: 1,
+          symbol: resName
+        };
+      } else if (resp.kind === 'model' || resp.modelName || resp.model) {
+        const modName = resp.modelName || resp.model;
+        responseSource = {
+          kind: DataProvenanceKind.EloquentModel,
+          file: `app/Models/${modName}.php`,
+          line: 1,
+          symbol: modName
+        };
+      }
+    }
+
+    const provenance = ScannedEndpointProvenanceDescriptor.create({
+      route: routeSource,
+      controller: controllerSource,
+      request: requestSource,
+      response: responseSource
+    });
 
     return new ScannedEndpointContract({
       id: route.name || `${group}.${action}`,
@@ -5908,6 +6133,7 @@ export class ScannedEndpointContract implements EndpointContract {
       },
       invalidation: route.invalidation,
       policies: route.policies ?? [],
+      provenance,
       raw: route
     });
   }

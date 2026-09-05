@@ -260,15 +260,22 @@ export class ContractCodeBuilder {
 
             // Emit Show schema (base schema)
             if (showSchema) {
+                lines.push(`/**`);
+                lines.push(` * @provenance JsonResponse: ${resourceName}`);
+                lines.push(` */`);
                 lines.push(`export const ${showSchema.schemaName} = ${showSchema.zodSchema};`);
             }
 
             // ✅ FIX: Index schema references show schema (Bug #4 - DRY principle)
             if (indexSchema && showSchema) {
-                // Reference show schema instead of duplicating field definitions
+                lines.push(`/**`);
+                lines.push(` * @provenance JsonResponseIndex: ${resourceName}`);
+                lines.push(` */`);
                 lines.push(`export const ${indexSchema.schemaName} = z.array(${showSchema.schemaName});`);
             } else if (indexSchema && !showSchema) {
-                // Fallback: no show schema available (edge case)
+                lines.push(`/**`);
+                lines.push(` * @provenance JsonResponseIndex: ${resourceName}`);
+                lines.push(` */`);
                 lines.push(`export const ${indexSchema.schemaName} = ${indexSchema.zodSchema};`);
             }
 
@@ -380,10 +387,14 @@ export class ContractCodeBuilder {
     ): void {
         const { resourceName, actions } = contract;
 
+        lines.push(`/**`);
+        lines.push(` * Runtime contract validation schemas for ${resourceName}`);
+        lines.push(` * @provenance ContractSchema: ${resourceName}`);
+        lines.push(` */`);
         lines.push(`export const ${resourceName}ContractSchema = {`);
 
         actions.forEach((action, index) => {
-            const schemaLines = (action as any).schemaLines ?? ((action as any).schemaCode ? [(action as any).schemaCode] : []);
+            const schemaLines = (action as any).schemaLines ?? [action.schemaCode];
             schemaLines.forEach((line: string) => {
                 lines.push(line);
             });

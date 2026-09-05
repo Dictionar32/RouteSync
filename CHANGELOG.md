@@ -5,6 +5,26 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **`verifiedDataPipelineSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi pencapaian **100% Invariant-Driven / Verified Data Pipeline**:
+  - **Stage 2: Validation Fail-Fast Gatekeeper**:
+    - `DiagnosticCategory` discriminator (`Syntax`, `Schema`, `TypeMismatch`, `UnresolvedReference`, `InvariantViolation`) dengan mapped registry `DIAGNOSTIC_CATEGORY_REGISTRY` dan `matchDiagnosticCategory` catamorphism.
+    - `DiagnosticBag`: Method `hasErrors()`, `getErrors()`, `getWarnings()`, `merge()`, dan fail-fast boundary gatekeeper `assertNoErrors()` yang melempar `CompilerValidationError` saat input cacat mencoba menembus boundary.
+  - **Stage 5: Boundary Emitters Provenance Annotations**:
+    - `EchoGenerator.ts`: Menyematkan tag JSDoc `@provenance` dan `@see` pada broadcast channel hook listeners.
+    - `MswGenerator.ts`: Menyematkan tag JSDoc `@provenance` dan `@see` pada setiap mocked HTTP handler sesuai `route.contract.provenance`.
+  - **Stage 4: Pure IR Lowering & Contract Code Builder**:
+    - `ContractCodeBuilder.ts`: Men-generate JSDoc `@provenance` pada schema kontrak runtime dan response schemas, serta menuntaskan pembersihan residual `schemaLines` fallback.
+- **`endToEndDataProvenanceSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi arsitektur **End-to-End Data Provenance SSOT**:
+  - **Canonical Data Provenance ADT**:
+    - `DataProvenanceKind` discriminator (`RouteDefinition`, `ControllerAction`, `FormRequest`, `EloquentModel`, `JsonResource`, `Inferred`) dengan mapped registry `DATA_PROVENANCE_REGISTRY` yang mengunci metadata `category`, `isSourceLinked`, dan `description`.
+    - `matchDataProvenance` pure 0-if catamorphism pattern matcher dengan exhaustive type safety.
+    - `ProvenanceSourceRef` dan immutable container `EndpointProvenanceDescriptor` / `ScannedEndpointProvenanceDescriptor` dengan factory `.create()` dan `.inferred()`.
+  - **Origin Boundary Contract Binding**:
+    - `ScannedEndpointContract.fromRoute(route)` secara otomatis merakit pelacakan sumber rute (`routes/api.php:line`), controller method (`Controller@action`), form request validation schema, dan Eloquent model / JsonResource response.
+    - `StaticLaravelScanner.ts` melacak dan mengalirkan `controllerName` langsung ke `ScannedRouteDescriptor` dan `EndpointContract.provenance`.
+  - **Downstream Emitter Annotations**:
+    - `SDKGenerator.ts`: Men-generate JSDoc annotation `@provenance` dan `@see` di atas setiap deklarasi API endpoint.
+    - `HookGenerator.ts`: Men-generate JSDoc annotation `@provenance` dan `@see` di atas setiap custom hook export.
 - **`pureContractDrivenArchitectureSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi pencapaian 100% Pure Contract-Driven Architecture (CDA) across entire RouteSync compiler pipeline:
   - **Top-Level Manifest Contracts SSOT**:
     - Penambahan `readonly contracts: readonly EndpointContract[];` pada `RouteManifest` dan `ScannedRouteManifestDescriptor` yang dijamin selalu beku (frozen) dan utuh sejak Origin Boundary.

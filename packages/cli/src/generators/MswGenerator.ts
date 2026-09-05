@@ -1,4 +1,4 @@
-import { RouteManifest, matchResponseShape } from '@routesync/core'
+import { RouteManifest, matchResponseShape, getRouteContract } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toMethodName } from './names'
@@ -25,6 +25,16 @@ export class MswGenerator {
             single: () => '{ id: 1, ...params }'
           })
         : '{ id: 1, ...params }'
+
+      const contract = route.contract ?? getRouteContract(route)
+      if (contract?.provenance) {
+        lines.push(`  /**`)
+        lines.push(`   * @provenance ${contract.provenance.summary}`)
+        if (contract.provenance.route?.file) {
+          lines.push(`   * @see ${contract.provenance.route.file}#L${contract.provenance.route.line}`)
+        }
+        lines.push(`   */`)
+      }
 
       lines.push('  http.' + mswMethod + '(\'' + mswPath + '\', async ({ request, params }) => {')
       lines.push(`    await delay(300) // Simulated network latency`)

@@ -375,6 +375,7 @@ export interface ScannedRouteParams {
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
     readonly sourceFile: string;
     readonly sourceLine: number;
+    readonly controllerName?: string | null;
     readonly schema: RouteSchemaPayload;
 }
 
@@ -439,6 +440,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         errorResponses,
         sourceFile = '',
         sourceLine = 0,
+        controllerName = null,
         schema = ScannedRouteSchemaPayload.empty()
     }: {
         readonly name?: string;
@@ -464,6 +466,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
         readonly sourceFile?: string;
         readonly sourceLine?: number;
+        readonly controllerName?: string | null;
         readonly schema?: RouteSchemaPayload;
     }): ScannedRouteDescriptor {
         const resolvedActionKind = actionKind ?? (method.toUpperCase() === 'GET' ? 'read' : 'create');
@@ -549,6 +552,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
             ),
             sourceFile,
             sourceLine,
+            controllerName,
             schema
         });
     }
@@ -613,7 +617,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         this.schema = params.schema;
         this.assignments = Object.freeze([]);
         this.uri = params.path;
-        this.controllerName = null;
+        this.controllerName = params.controllerName ?? null;
         this.contract = ScannedEndpointContract.fromRoute(this);
         Object.freeze(this);
     }
@@ -2524,11 +2528,11 @@ export class StaticLaravelScanner {
 
                         if (httpMethod === 'apiresource') {
                             routes.push(
-                                ScannedRouteDescriptor.create({ method: 'GET', path: normalizedPath, resourceName, actionName: 'index', actionKind: 'read', isMutating: false, parameters: this.extractPathParams(normalizedPath), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, schema: routeSchema }),
-                                ScannedRouteDescriptor.create({ method: 'POST', path: normalizedPath, resourceName, actionName: 'store', actionKind: 'create', isMutating: true, parameters: this.extractPathParams(normalizedPath), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, schema: routeSchema }),
-                                ScannedRouteDescriptor.create({ method: 'GET', path: `${normalizedPath}/{id}`, resourceName, actionName: 'show', actionKind: 'read', isMutating: false, parameters: this.extractPathParams(`${normalizedPath}/{id}`), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, schema: routeSchema }),
-                                ScannedRouteDescriptor.create({ method: 'PUT', path: `${normalizedPath}/{id}`, resourceName, actionName: 'update', actionKind: 'update', isMutating: true, parameters: this.extractPathParams(`${normalizedPath}/{id}`), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, schema: routeSchema }),
-                                ScannedRouteDescriptor.create({ method: 'DELETE', path: `${normalizedPath}/{id}`, resourceName, actionName: 'destroy', actionKind: 'delete', isMutating: true, parameters: this.extractPathParams(`${normalizedPath}/{id}`), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, schema: routeSchema })
+                                ScannedRouteDescriptor.create({ method: 'GET', path: normalizedPath, resourceName, actionName: 'index', actionKind: 'read', isMutating: false, parameters: this.extractPathParams(normalizedPath), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, controllerName, schema: routeSchema }),
+                                ScannedRouteDescriptor.create({ method: 'POST', path: normalizedPath, resourceName, actionName: 'store', actionKind: 'create', isMutating: true, parameters: this.extractPathParams(normalizedPath), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, controllerName, schema: routeSchema }),
+                                ScannedRouteDescriptor.create({ method: 'GET', path: `${normalizedPath}/{id}`, resourceName, actionName: 'show', actionKind: 'read', isMutating: false, parameters: this.extractPathParams(`${normalizedPath}/{id}`), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, controllerName, schema: routeSchema }),
+                                ScannedRouteDescriptor.create({ method: 'PUT', path: `${normalizedPath}/{id}`, resourceName, actionName: 'update', actionKind: 'update', isMutating: true, parameters: this.extractPathParams(`${normalizedPath}/{id}`), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, controllerName, schema: routeSchema }),
+                                ScannedRouteDescriptor.create({ method: 'DELETE', path: `${normalizedPath}/{id}`, resourceName, actionName: 'destroy', actionKind: 'delete', isMutating: true, parameters: this.extractPathParams(`${normalizedPath}/{id}`), auth: isAuth, middleware: currentMiddlewares, response: resolvedResponse, sourceFile: actionInfo?.sourceFile, sourceLine: actionInfo?.sourceLine, controllerName, schema: routeSchema })
                             );
                         } else {
                             for (const method of targetMethods) {
@@ -2546,6 +2550,7 @@ export class StaticLaravelScanner {
                                     response: resolvedResponse,
                                     sourceFile: actionInfo?.sourceFile,
                                     sourceLine: actionInfo?.sourceLine,
+                                    controllerName,
                                     schema: routeSchema
                                 }));
                             }

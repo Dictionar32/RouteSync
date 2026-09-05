@@ -393,6 +393,15 @@ export class HookGenerator {
     for (const [, resource] of resources) {
       const { groupName } = resource
       const TitleGroup = toTypeName(groupName)
+      const primaryRoute = resource.show ?? resource.index ?? resource.all[0]
+      if (primaryRoute?.contract?.provenance) {
+        lines.push(`/**`)
+        lines.push(` * @provenance ${primaryRoute.contract.provenance.summary}`)
+        if (primaryRoute.contract.provenance.route?.file) {
+          lines.push(` * @see ${primaryRoute.contract.provenance.route.file}#L${primaryRoute.contract.provenance.route.line}`)
+        }
+        lines.push(` */`)
+      }
       lines.push(`export const use${TitleGroup} = hooks.${groupName}`)
     }
 

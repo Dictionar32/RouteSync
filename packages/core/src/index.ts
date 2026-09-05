@@ -162,7 +162,11 @@ export {
   PAGE_ENDPOINT_REGISTRY,
   matchPageEndpoint,
   getRouteContract,
-  getManifestContractMap
+  getManifestContractMap,
+  DataProvenanceKind,
+  DATA_PROVENANCE_REGISTRY,
+  matchDataProvenance,
+  ScannedEndpointProvenanceDescriptor
 } from './types/route'
 export type {
   RouteManifest,
@@ -407,7 +411,12 @@ export type {
   LaravelUnauthorizedError,
   LaravelForbiddenError,
   LaravelNotFoundError,
-  LaravelServerError
+  LaravelServerError,
+  DataProvenanceKindSpecification,
+  DataProvenanceKindRegistry,
+  ProvenanceSourceRef,
+  DataProvenanceVisitor,
+  EndpointProvenanceDescriptor
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'
@@ -497,6 +506,25 @@ export type {
   ResolvedSemanticTypeRegistry,
   ResolvedSemanticTypeVisitor
 } from './compiler/domain/common/ResolvedSemanticType'
+
+// Compiler Diagnostics (Stage 2: Validation Gatekeeper)
+export {
+  DiagnosticBag,
+  CompilerValidationError,
+  DiagnosticCategory,
+  DIAGNOSTIC_CATEGORY_REGISTRY,
+  matchDiagnosticCategory
+} from './compiler/diagnostics'
+export type {
+  Diagnostic,
+  DiagnosticSeverity,
+  DiagnosticFix,
+  TextEdit,
+  DiagnosticCategorySpecification,
+  DiagnosticCategoryRegistry,
+  DiagnosticCategoryVisitor
+} from './compiler/diagnostics'
+
 
 
 

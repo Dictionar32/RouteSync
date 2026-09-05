@@ -60,4 +60,60 @@ export class DiagnosticBag {
     public getDiagnostics(): readonly Diagnostic[] {
         return this.items;
     }
+
+    /**
+     * Checks if any error-level diagnostics are recorded.
+     */
+    public hasErrors(): boolean {
+        return this.items.some(d => d.severity === 'error');
+    }
+
+    /**
+     * Returns all error-level diagnostics.
+     */
+    public getErrors(): readonly Diagnostic[] {
+        return this.items.filter(d => d.severity === 'error');
+    }
+
+    /**
+     * Returns all warning-level diagnostics.
+     */
+    public getWarnings(): readonly Diagnostic[] {
+        return this.items.filter(d => d.severity === 'warning');
+    }
+
+    /**
+     * Merges another diagnostic bag into a new immutable bag.
+     */
+    public merge(other: DiagnosticBag): DiagnosticBag {
+        return new DiagnosticBag([...this.items, ...other.getDiagnostics()]);
+    }
+
+    /**
+     * Fail-fast boundary gatekeeper: Throws CompilerValidationError if any errors exist.
+     */
+    public assertNoErrors(stageName: string = 'Validation'): void {
+        const errors = this.getErrors();
+        if (errors.length > 0) {
+            const errorMessages = errors.map(e => `[${e.code}] ${e.message}`).join('\n');
+            throw new CompilerValidationError(
+                `[Verified Pipeline - ${stageName} Gatekeeper] Rejected ${errors.length} diagnostic error(s):\n${errorMessages}`,
+                errors
+            );
+        }
+    }
+}
+
+/**
+ * Fail-fast compiler validation error representing rejected input at pipeline boundary.
+ */
+export class CompilerValidationError extends Error {
+    public readonly diagnostics: readonly Diagnostic[];
+
+    constructor(message: string, diagnostics: readonly Diagnostic[]) {
+        super(message);
+        this.name = 'CompilerValidationError';
+        this.diagnostics = Object.freeze([...diagnostics]);
+        Object.setPrototypeOf(this, CompilerValidationError.prototype);
+    }
 }

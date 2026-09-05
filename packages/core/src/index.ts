@@ -175,7 +175,8 @@ export {
   ScannedReadOnlyCrudResourceGroupDescriptor,
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
-  ScannedCustomResourceGroupDescriptor
+  ScannedCustomResourceGroupDescriptor,
+  ScannedResourceGroupTypeSignature
 } from './types/route'
 export type {
   RouteManifest,
@@ -429,6 +430,14 @@ export type {
   ResourceGroupSpecification,
   ResourceGroupRegistry,
   BaseResourceGroupDescriptor,
+  BaseResourceGroupTypeSignature,
+  FullCrudTypeSignature,
+  ReadOnlyCrudTypeSignature,
+  FlexibleCrudTypeSignature,
+  SingletonTypeSignature,
+  CustomTypeSignature,
+  ResourceGroupTypeSignature,
+  ResourceGroupTypeSignatureParams,
   CrudResourceGroupDescriptor,
   FullCrudResourceGroupDescriptor,
   ReadOnlyCrudResourceGroupDescriptor,

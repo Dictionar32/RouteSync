@@ -493,7 +493,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         let detectedContentType: RequestContentType = RequestContentType.Json;
         if (upperMethod === 'GET' || upperMethod === 'HEAD') {
             detectedContentType = RequestContentType.None;
-        } else if (schema?.rules?.some(r => {
+        } else if (Array.isArray(schema?.rules) && schema.rules.some(r => {
             const ruleList = (r as any).rules || r.ast || [];
             return Array.isArray(ruleList) && ruleList.some((rule: any) => {
                 const kind = typeof rule === 'string' ? rule : rule?.kind;

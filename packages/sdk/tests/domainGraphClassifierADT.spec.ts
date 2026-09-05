@@ -65,6 +65,16 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(fg.update).toBeDefined()
     expect(fg.delete).toBeDefined()
 
+    // Origin Boundary guarantees complete frozen ResourceGroupTypeSignature
+    expect(fg.types).toBeDefined()
+    expect(Object.isFrozen(fg.types)).toBe(true)
+    expect(fg.types.list).toBe("ProductsResourceTransformed")
+    expect(fg.types.detail).toBe("ProductsResourceTransformed")
+    expect(fg.types.create).toBe("void")
+    expect(fg.types.update).toBe("void")
+    expect(fg.types.error).toBe("LaravelValidationError")
+    expect(fg.types.hasCustomError).toBe(true)
+
     // Test 0-if catamorphism for full_crud
     const result = matchResourceGroup(group, {
       full_crud: g => "FULL_CRUD:" + g.primaryKeyType + ":" + g.create.actionName,
@@ -102,6 +112,12 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(group.kind).toBe(ResourceGroupKind.ReadOnlyCrud)
     expect(group.isCrud).toBe(true)
     expect(group.primaryKeyType).toBe("string")
+
+    const rg = group as ScannedReadOnlyCrudResourceGroupDescriptor
+    expect(rg.types).toBeDefined()
+    expect(Object.isFrozen(rg.types)).toBe(true)
+    expect(rg.types.create).toBe("never")
+    expect(rg.types.update).toBe("never")
 
     const result = matchResourceGroup(group, {
       full_crud: () => "FULL",
@@ -248,6 +264,110 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       expect(hookCode).toContain("update: {")
       expect(hookCode).toContain("remove: {")
       expect(hookCode).toContain("QueryKey.profile.list")
+    } finally {
+      await fs.remove(tempDir)
+    }
+  })
+
+  it("resolves exact response, form, and error types at Origin Boundary with zero AST digging in HookGenerator", async () => {
+    const productIndex = ScannedRouteDescriptor.create({
+      method: "GET",
+      path: "/api/v1/products",
+      groupName: "products",
+      crudRole: "index",
+      response: {
+        kind: "resource",
+        resource: "ProductResource",
+        shape: "collection",
+        semantic: {
+          kind: "resource",
+          resource: "ProductResource",
+          shape: "collection",
+          readTypeName: "ProductResourceTransformed"
+        }
+      }
+    })
+
+    const productShow = ScannedRouteDescriptor.create({
+      method: "GET",
+      path: "/api/v1/products/{id}",
+      groupName: "products",
+      crudRole: "show",
+      pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }],
+      response: {
+        kind: "resource",
+        resource: "ProductResource",
+        shape: "single",
+        semantic: {
+          kind: "resource",
+          resource: "ProductResource",
+          shape: "single",
+          readTypeName: "ProductResourceTransformed"
+        }
+      }
+    })
+
+    const productCreate = ScannedRouteDescriptor.create({
+      method: "POST",
+      path: "/api/v1/products",
+      groupName: "products",
+      crudRole: "create",
+      schema: {
+        rules: {
+          name: ["required", "string"]
+        }
+      }
+    })
+
+    const productUpdate = ScannedRouteDescriptor.create({
+      method: "PUT",
+      path: "/api/v1/products/{id}",
+      groupName: "products",
+      crudRole: "update",
+      pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }],
+      schema: {
+        rules: {
+          name: ["string"]
+        }
+      }
+    })
+
+    const productDelete = ScannedRouteDescriptor.create({
+      method: "DELETE",
+      path: "/api/v1/products/{id}",
+      groupName: "products",
+      crudRole: "delete",
+      pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
+    })
+
+    const manifest: RouteManifest = {
+      routes: [productIndex, productShow, productCreate, productUpdate, productDelete],
+      baseURL: "http://localhost/api",
+      generatedAt: "2026-09-05T07:30:00.000Z"
+    }
+
+    const graph = classifyDomainGraph(manifest)
+    const productGroup = graph.resourceGroups[0]
+
+    // Verify types are resolved at Origin Boundary
+    expect(productGroup.types.list).toBe("ProductResourceTransformed")
+    expect(productGroup.types.detail).toBe("ProductResourceTransformed")
+    expect(productGroup.types.create).toBe("ProductsForm['Create']")
+    expect(productGroup.types.update).toBe("ProductsForm['Update']")
+    expect(productGroup.types.importedTypes).toContain("ProductResourceTransformed")
+    expect(productGroup.types.importedTypes).toContain("ProductsForm")
+
+    // Verify HookGenerator emits exact types directly from productGroup.types
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "routesync-test-"))
+    try {
+      const hookCode = await HookGenerator.generate(manifest, tempDir, graph)
+      expect(hookCode).toContain("list: typeOf<ProductResourceTransformed>()")
+      expect(hookCode).toContain("detail: typeOf<ProductResourceTransformed>()")
+      expect(hookCode).toContain("create: typeOf<ProductsForm['Create']>()")
+      expect(hookCode).toContain("update: typeOf<ProductsForm['Update']>()")
+      expect(hookCode).toContain("import type {")
+      expect(hookCode).toContain("ProductResourceTransformed,")
+      expect(hookCode).toContain("ProductsForm,")
     } finally {
       await fs.remove(tempDir)
     }

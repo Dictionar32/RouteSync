@@ -56,10 +56,12 @@ import {
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
+  ScannedResourceGroupTypeSignature,
   MutationCapability,
   ParsedModel
 } from '@routesync/core'
 import { toIdentifier, toTypeName } from './names'
+import { CANONICAL_ACTION_MAP } from './canonical-names'
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -73,7 +75,8 @@ export {
   ScannedReadOnlyCrudResourceGroupDescriptor,
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
-  ScannedCustomResourceGroupDescriptor
+  ScannedCustomResourceGroupDescriptor,
+  ScannedResourceGroupTypeSignature
 } from '@routesync/core'
 export type {
   ResourceGroupDescriptor,
@@ -83,6 +86,13 @@ export type {
   FlexibleCrudResourceGroupDescriptor,
   SingletonResourceGroupDescriptor,
   CustomResourceGroupDescriptor,
+  BaseResourceGroupTypeSignature,
+  FullCrudTypeSignature,
+  ReadOnlyCrudTypeSignature,
+  FlexibleCrudTypeSignature,
+  SingletonTypeSignature,
+  CustomTypeSignature,
+  ResourceGroupTypeSignature,
   ClassifiedDomainGraph,
   MutationCapability
 } from '@routesync/core'
@@ -356,12 +366,75 @@ function resolveItemPrimaryKeyType(
   return RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType
 }
 
+interface ResolvedTypeInfo {
+  readonly typeName: string
+  readonly importedType: string | null
+  readonly contractImportedType: string | null
+}
+
+function resolveRouteResponseType(route?: ClassifiedRoute): { readonly typeName: string; readonly importedType: string | null } {
+  if (!route) return { typeName: 'never', importedType: null }
+  let readType = route.contract.response.success.readTypeName
+  if (!readType || readType === 'unknown') {
+    const rawResp = route.raw.response as any
+    readType = rawResp?.semantic?.readTypeName
+      ?? (rawResp?.resource ? `${rawResp.resource}Transformed` : undefined)
+      ?? (rawResp?.model ? `${rawResp.model}Transformed` : undefined)
+      ?? 'never'
+  }
+  if (readType && readType !== 'void' && readType !== 'unknown' && readType !== 'never') {
+    return { typeName: readType, importedType: readType }
+  }
+  return { typeName: readType || 'never', importedType: null }
+}
+
+function resolveRouteFormType(route?: ClassifiedRoute): ResolvedTypeInfo {
+  if (!route) return { typeName: 'never', importedType: null, contractImportedType: null }
+  const hasSchema = !!(route.raw.schema?.rules && Object.keys(route.raw.schema.rules).length > 0)
+  if (!hasSchema) return { typeName: 'void', importedType: null, contractImportedType: null }
+
+  const rawAction = route.actionName
+  const actionKey = (CANONICAL_ACTION_MAP as Record<string, string>)[rawAction] || (rawAction.charAt(0).toUpperCase() + rawAction.slice(1))
+  const standardFormActions = ['Create', 'Update', 'Get']
+  if (standardFormActions.includes(actionKey)) {
+    const formName = `${toTypeName(route.groupName)}Form`
+    return { typeName: `${formName}['${actionKey}']`, importedType: formName, contractImportedType: null }
+  }
+  const contractType = `${toTypeName(route.groupName)}${actionKey}Payload`
+  return { typeName: contractType, importedType: null, contractImportedType: contractType }
+}
+
+function resolveGroupErrorType(allRoutes: readonly ClassifiedRoute[]): {
+  readonly errorUnionType: string
+  readonly errorTypes: readonly string[]
+  readonly hasCustomError: boolean
+} {
+  const errorTypes = new Set<string>()
+  for (const route of allRoutes) {
+    const errorList = route.contract?.response?.errors ?? route.raw?.contract?.response?.errors ?? route.raw?.errorResponses ?? []
+    for (const err of errorList) {
+      if (err.typeName) {
+        errorTypes.add(err.typeName)
+      }
+    }
+  }
+  const hasCustomError = errorTypes.size > 0
+  const errorUnionType = hasCustomError
+    ? Array.from(errorTypes).sort().join(' | ')
+    : 'ApiError'
+  return {
+    errorUnionType,
+    errorTypes: Object.freeze(Array.from(errorTypes).sort()),
+    hasCustomError
+  }
+}
+
 /**
  * Top-Level Domain Graph Classifier (Origin Boundary).
  *
  * Atomically classifies all routes into deterministic SSOT ResourceGroupDescriptors
  * (Crud, Singleton, or Custom) with guaranteed non-nullable primaryKeyType,
- * listKeyFn, detailKeyFn, and layout keys.
+ * listKeyFn, detailKeyFn, layout keys, and pre-resolved TypeScript types.
  */
 export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> {
   const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
@@ -372,15 +445,44 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
   for (const [groupName, res] of rawResources) {
     const KEY = groupName.toUpperCase()
     const Title = toTypeName(groupName)
+    const errorRes = resolveGroupErrorType(res.all)
 
     if (res.index && res.show) {
       const primaryKeyType = resolveItemPrimaryKeyType(res.show, manifest.models, Title)
       if (res.create && res.update && res.delete) {
+        const listRes = resolveRouteResponseType(res.index)
+        const detailRes = resolveRouteResponseType(res.show)
+        const createRes = resolveRouteFormType(res.create)
+        const updateRes = resolveRouteFormType(res.update)
+
+        const importedTypes = new Set<string>()
+        if (listRes.importedType) importedTypes.add(listRes.importedType)
+        if (detailRes.importedType) importedTypes.add(detailRes.importedType)
+        if (createRes.importedType) importedTypes.add(createRes.importedType)
+        if (updateRes.importedType) importedTypes.add(updateRes.importedType)
+        for (const e of errorRes.errorTypes) importedTypes.add(e)
+
+        const contractImportedTypes = new Set<string>()
+        if (createRes.contractImportedType) contractImportedTypes.add(createRes.contractImportedType)
+        if (updateRes.contractImportedType) contractImportedTypes.add(updateRes.contractImportedType)
+
+        const types: FullCrudTypeSignature = new ScannedResourceGroupTypeSignature({
+          list: listRes.typeName,
+          detail: detailRes.typeName,
+          create: createRes.typeName,
+          update: updateRes.typeName,
+          error: errorRes.errorUnionType,
+          hasCustomError: errorRes.hasCustomError,
+          importedTypes: Object.freeze(Array.from(importedTypes).sort()),
+          contractImportedTypes: Object.freeze(Array.from(contractImportedTypes).sort())
+        })
+
         resourceGroups.push(new ScannedFullCrudResourceGroupDescriptor<ClassifiedRoute>({
           groupName,
           keyName: KEY,
           titleName: Title,
           primaryKeyType,
+          types,
           index: res.index,
           show: res.show,
           create: res.create,
@@ -389,16 +491,63 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
           all: Object.freeze(res.all)
         }))
       } else if (!res.create && !res.update && !res.delete) {
+        const listRes = resolveRouteResponseType(res.index)
+        const detailRes = resolveRouteResponseType(res.show)
+
+        const importedTypes = new Set<string>()
+        if (listRes.importedType) importedTypes.add(listRes.importedType)
+        if (detailRes.importedType) importedTypes.add(detailRes.importedType)
+        for (const e of errorRes.errorTypes) importedTypes.add(e)
+
+        const types: ReadOnlyCrudTypeSignature = new ScannedResourceGroupTypeSignature({
+          list: listRes.typeName,
+          detail: detailRes.typeName,
+          create: 'never',
+          update: 'never',
+          error: errorRes.errorUnionType,
+          hasCustomError: errorRes.hasCustomError,
+          importedTypes: Object.freeze(Array.from(importedTypes).sort()),
+          contractImportedTypes: Object.freeze([])
+        }) as ReadOnlyCrudTypeSignature
+
         resourceGroups.push(new ScannedReadOnlyCrudResourceGroupDescriptor<ClassifiedRoute>({
           groupName,
           keyName: KEY,
           titleName: Title,
           primaryKeyType,
+          types,
           index: res.index,
           show: res.show,
           all: Object.freeze(res.all)
         }))
       } else {
+        const listRes = resolveRouteResponseType(res.index)
+        const detailRes = resolveRouteResponseType(res.show)
+        const createRes = res.create ? resolveRouteFormType(res.create) : { typeName: 'never', importedType: null, contractImportedType: null }
+        const updateRes = res.update ? resolveRouteFormType(res.update) : { typeName: 'never', importedType: null, contractImportedType: null }
+
+        const importedTypes = new Set<string>()
+        if (listRes.importedType) importedTypes.add(listRes.importedType)
+        if (detailRes.importedType) importedTypes.add(detailRes.importedType)
+        if (createRes.importedType) importedTypes.add(createRes.importedType)
+        if (updateRes.importedType) importedTypes.add(updateRes.importedType)
+        for (const e of errorRes.errorTypes) importedTypes.add(e)
+
+        const contractImportedTypes = new Set<string>()
+        if (createRes.contractImportedType) contractImportedTypes.add(createRes.contractImportedType)
+        if (updateRes.contractImportedType) contractImportedTypes.add(updateRes.contractImportedType)
+
+        const types: FlexibleCrudTypeSignature = new ScannedResourceGroupTypeSignature({
+          list: listRes.typeName,
+          detail: detailRes.typeName,
+          create: createRes.typeName,
+          update: updateRes.typeName,
+          error: errorRes.errorUnionType,
+          hasCustomError: errorRes.hasCustomError,
+          importedTypes: Object.freeze(Array.from(importedTypes).sort()),
+          contractImportedTypes: Object.freeze(Array.from(contractImportedTypes).sort())
+        })
+
         const toMutationCapability = (route?: ClassifiedRoute): MutationCapability<ClassifiedRoute> =>
           route ? { available: true, route } : { available: false }
 
@@ -407,6 +556,7 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
           keyName: KEY,
           titleName: Title,
           primaryKeyType,
+          types,
           index: res.index,
           show: res.show,
           create: toMutationCapability(res.create),
@@ -416,6 +566,53 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
         }))
       }
     } else {
+      const hasSchema = (route?: ClassifiedRoute): boolean =>
+        !!(route?.raw.schema?.rules && Object.keys(route.raw.schema.rules).length > 0)
+
+      const listRes = res.index ? resolveRouteResponseType(res.index) : { typeName: 'never', importedType: null }
+
+      let detailRes = res.show ? resolveRouteResponseType(res.show) : null
+      if (!detailRes) {
+        const customGet = res.all.find(r => r.method === 'GET' && r.crudRole === 'custom')
+        detailRes = customGet ? resolveRouteResponseType(customGet) : { typeName: 'never', importedType: null }
+      }
+
+      let createRes = res.create ? resolveRouteFormType(res.create) : null
+      if (!createRes) {
+        const customPost = res.all.find(r => r.method === 'POST' && r.crudRole === 'custom' && hasSchema(r))
+        const customGet = res.all.find(r => r.method === 'GET' && r.crudRole === 'custom' && hasSchema(r))
+        const fallback = customPost ?? customGet
+        createRes = fallback ? resolveRouteFormType(fallback) : { typeName: 'never', importedType: null, contractImportedType: null }
+      }
+
+      let updateRes = res.update ? resolveRouteFormType(res.update) : null
+      if (!updateRes) {
+        const customUpdate = res.all.find(r => ['PUT', 'PATCH'].includes(r.method) && r.crudRole === 'custom' && hasSchema(r))
+        updateRes = customUpdate ? resolveRouteFormType(customUpdate) : { typeName: 'never', importedType: null, contractImportedType: null }
+      }
+
+      const importedTypes = new Set<string>()
+      if (listRes.importedType) importedTypes.add(listRes.importedType)
+      if (detailRes.importedType) importedTypes.add(detailRes.importedType)
+      if (createRes.importedType) importedTypes.add(createRes.importedType)
+      if (updateRes.importedType) importedTypes.add(updateRes.importedType)
+      for (const e of errorRes.errorTypes) importedTypes.add(e)
+
+      const contractImportedTypes = new Set<string>()
+      if (createRes.contractImportedType) contractImportedTypes.add(createRes.contractImportedType)
+      if (updateRes.contractImportedType) contractImportedTypes.add(updateRes.contractImportedType)
+
+      const groupTypes = new ScannedResourceGroupTypeSignature({
+        list: listRes.typeName,
+        detail: detailRes.typeName,
+        create: createRes.typeName,
+        update: updateRes.typeName,
+        error: errorRes.errorUnionType,
+        hasCustomError: errorRes.hasCustomError,
+        importedTypes: Object.freeze(Array.from(importedTypes).sort()),
+        contractImportedTypes: Object.freeze(Array.from(contractImportedTypes).sort())
+      })
+
       const hasAnyTrailingParam = res.all.some(r => r.hasTrailingParam)
       if (hasAnyTrailingParam) {
         const detailKeyFn = res.show ? res.show.actionName : RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].defaultDetailKeyFn
@@ -424,6 +621,7 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
           keyName: KEY,
           titleName: Title,
           detailKeyFn,
+          types: groupTypes,
           all: Object.freeze(res.all)
         }))
       } else {
@@ -431,6 +629,7 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
           groupName,
           keyName: KEY,
           titleName: Title,
+          types: groupTypes as SingletonTypeSignature,
           all: Object.freeze(res.all)
         }))
       }

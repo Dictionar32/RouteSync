@@ -4,6 +4,8 @@ import {
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
+  matchFineGrainedResourceGroup,
+  matchUnifiedResourceGroup,
   ScannedRouteDescriptor,
   RouteParameterType,
   ScannedFullCrudResourceGroupDescriptor,
@@ -414,23 +416,58 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(graph.resourceGroups).toHaveLength(1)
     const postGroup = graph.resourceGroups[0]
 
-    // 1. Fine-grained visitor with 0 optional (?) handlers
-    const fineGrainedResult = matchResourceGroup(postGroup, {
+    // 1. Direct typed capability: matchFineGrained with 0 if, 0 switch, 0 in
+    const directFineGrained = postGroup.matchFineGrained({
       full_crud: (fg) => `FULL:${fg.create.actionName}:${fg.update.actionName}:${fg.delete.actionName}`,
       read_only_crud: () => "READ_ONLY",
       flexible_crud: () => "FLEXIBLE",
       singleton: () => "SINGLETON",
       custom: () => "CUSTOM"
     })
-    expect(fineGrainedResult).toBe("FULL:create:update:remove")
+    expect(directFineGrained).toBe("FULL:create:update:remove")
 
-    // 2. Unified CRUD visitor with single mandatory crud handler
-    const unifiedResult = matchResourceGroup(postGroup, {
+    // 2. Dedicated matcher function: matchFineGrainedResourceGroup
+    const fineGrainedFnResult = matchFineGrainedResourceGroup(postGroup, {
+      full_crud: (fg) => `FULL:${fg.create.actionName}:${fg.update.actionName}:${fg.delete.actionName}`,
+      read_only_crud: () => "READ_ONLY",
+      flexible_crud: () => "FLEXIBLE",
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(fineGrainedFnResult).toBe("FULL:create:update:remove")
+
+    // 3. Direct typed capability: matchUnified with 0 if, 0 switch, 0 in
+    const directUnified = postGroup.matchUnified({
       crud: (cg) => `UNIFIED_CRUD:${cg.kind}`,
       singleton: () => "SINGLETON",
       custom: () => "CUSTOM"
     })
-    expect(unifiedResult).toBe("UNIFIED_CRUD:full_crud")
+    expect(directUnified).toBe("UNIFIED_CRUD:full_crud")
+
+    // 4. Dedicated matcher function: matchUnifiedResourceGroup
+    const unifiedFnResult = matchUnifiedResourceGroup(postGroup, {
+      crud: (cg) => `UNIFIED_CRUD:${cg.kind}`,
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(unifiedFnResult).toBe("UNIFIED_CRUD:full_crud")
+
+    // 5. Backward-compatibility bridge: matchResourceGroup
+    const legacyFineGrained = matchResourceGroup(postGroup, {
+      full_crud: (fg) => `FULL:${fg.create.actionName}:${fg.update.actionName}:${fg.delete.actionName}`,
+      read_only_crud: () => "READ_ONLY",
+      flexible_crud: () => "FLEXIBLE",
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(legacyFineGrained).toBe("FULL:create:update:remove")
+
+    const legacyUnified = matchResourceGroup(postGroup, {
+      crud: (cg) => `UNIFIED_CRUD:${cg.kind}`,
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(legacyUnified).toBe("UNIFIED_CRUD:full_crud")
 
     // 3. HookGenerator direct consumption of ClassifiedDomainGraph
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "routesync-visitor-test-"))

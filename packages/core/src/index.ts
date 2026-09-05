@@ -170,6 +170,8 @@ export {
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
+  matchFineGrainedResourceGroup,
+  matchUnifiedResourceGroup,
   MutationCapability,
   ScannedCrudResourceGroupDescriptor,
   ScannedFullCrudResourceGroupDescriptor,

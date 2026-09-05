@@ -6415,6 +6415,12 @@ export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute> {
   readonly primaryKeyType: string;
   readonly types: BaseResourceGroupTypeSignature;
   readonly all: readonly TRoute[];
+  readonly matchFineGrained: <R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ) => R;
+  readonly matchUnified: <R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ) => R;
 }
 
 export interface FullCrudResourceGroupDescriptor<TRoute = ParsedRoute> extends BaseResourceGroupDescriptor<TRoute> {
@@ -6520,6 +6526,18 @@ export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
     this.all = params.all;
     Object.freeze(this);
   }
+
+  public matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.full_crud(this);
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.crud(this);
+  }
 }
 
 export interface ReadOnlyCrudParams<TRoute = ParsedRoute> {
@@ -6561,6 +6579,18 @@ export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
     this.show = params.show;
     this.all = params.all;
     Object.freeze(this);
+  }
+
+  public matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.read_only_crud(this);
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.crud(this);
   }
 }
 
@@ -6612,6 +6642,18 @@ export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
     this.delete = params.delete;
     this.all = params.all;
     Object.freeze(this);
+  }
+
+  public matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.flexible_crud(this);
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.crud(this);
   }
 }
 
@@ -6692,6 +6734,18 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
       delete: MutationCapability.fromNullable(params.delete)
     });
   }
+
+  public matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.flexible_crud(this);
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.crud(this);
+  }
 }
 
 export interface SingletonResourceGroupDescriptorParams<TRoute = ParsedRoute> {
@@ -6726,6 +6780,18 @@ export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
     this.types = params.types;
     this.all = params.all;
     Object.freeze(this);
+  }
+
+  public matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.singleton(this);
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.singleton(this);
   }
 }
 
@@ -6763,6 +6829,18 @@ export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
     this.all = params.all;
     Object.freeze(this);
   }
+
+  public matchFineGrained<R>(
+    visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.custom(this);
+  }
+
+  public matchUnified<R>(
+    visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+  ): R {
+    return visitor.custom(this);
+  }
 }
 
 /**
@@ -6797,8 +6875,30 @@ export type ResourceGroupVisitor<R, TRoute = ParsedRoute> =
   | UnifiedCrudResourceGroupVisitor<R, TRoute>;
 
 /**
+ * Pure catamorphism pattern matcher for ResourceGroupDescriptor (Fine-Grained).
+ * Delegates directly to the descriptor's intrinsic matchFineGrained capability with 0 if, 0 switch.
+ */
+export function matchFineGrainedResourceGroup<R, TRoute = ParsedRoute>(
+  group: ResourceGroupDescriptor<TRoute>,
+  visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+): R {
+  return group.matchFineGrained(visitor);
+}
+
+/**
+ * Pure catamorphism pattern matcher for ResourceGroupDescriptor (Unified CRUD).
+ * Delegates directly to the descriptor's intrinsic matchUnified capability with 0 if, 0 switch.
+ */
+export function matchUnifiedResourceGroup<R, TRoute = ParsedRoute>(
+  group: ResourceGroupDescriptor<TRoute>,
+  visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
+): R {
+  return group.matchUnified(visitor);
+}
+
+/**
  * Pure catamorphism pattern matcher for ResourceGroupDescriptor.
- * Employs static TypeScript discriminated union narrowing with 0 type casting assertions (as).
+ * Backward-compatibility bridge delegating directly to descriptor's intrinsic capabilities.
  */
 export function matchResourceGroup<R, TRoute = ParsedRoute>(
   group: ResourceGroupDescriptor<TRoute>,
@@ -6812,31 +6912,9 @@ export function matchResourceGroup<R, TRoute = ParsedRoute>(
   group: ResourceGroupDescriptor<TRoute>,
   visitor: ResourceGroupVisitor<R, TRoute>
 ): R {
-  if ('full_crud' in visitor) {
-    switch (group.kind) {
-      case ResourceGroupKind.FullCrud:
-        return visitor.full_crud(group);
-      case ResourceGroupKind.ReadOnlyCrud:
-        return visitor.read_only_crud(group);
-      case ResourceGroupKind.FlexibleCrud:
-        return visitor.flexible_crud(group);
-      case ResourceGroupKind.Singleton:
-        return visitor.singleton(group);
-      case ResourceGroupKind.Custom:
-        return visitor.custom(group);
-    }
-  }
-
-  switch (group.kind) {
-    case ResourceGroupKind.FullCrud:
-    case ResourceGroupKind.ReadOnlyCrud:
-    case ResourceGroupKind.FlexibleCrud:
-      return visitor.crud(group);
-    case ResourceGroupKind.Singleton:
-      return visitor.singleton(group);
-    case ResourceGroupKind.Custom:
-      return visitor.custom(group);
-  }
+  return 'full_crud' in visitor
+    ? group.matchFineGrained(visitor)
+    : group.matchUnified(visitor);
 }
 
 /**

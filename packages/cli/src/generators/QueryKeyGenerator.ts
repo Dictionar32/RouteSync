@@ -67,13 +67,18 @@ export class QueryKeyGenerator {
       })
 
       // 0-if catamorphic rendering via matchResourceGroup
+      const emitCrudKey = () => {
+        lines.push(`  ${group.groupName}: {`)
+        lines.push(`    ...createBaseQueryKey<typeof Entity.${KEY}, ${idType}>(Entity.${KEY}),`)
+        lines.push(...actionKeyLines)
+        lines.push(`  },`)
+      }
+
       matchResourceGroup(group, {
-        crud: () => {
-          lines.push(`  ${group.groupName}: {`)
-          lines.push(`    ...createBaseQueryKey<typeof Entity.${KEY}, ${idType}>(Entity.${KEY}),`)
-          lines.push(...actionKeyLines)
-          lines.push(`  },`)
-        },
+        full_crud: emitCrudKey,
+        read_only_crud: emitCrudKey,
+        flexible_crud: emitCrudKey,
+        crud: emitCrudKey,
         singleton: () => {
           lines.push(`  ${group.groupName}: {`)
           lines.push(`    all: () => [Entity.${KEY}] as const,`)

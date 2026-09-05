@@ -171,6 +171,9 @@ export {
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
   ScannedCrudResourceGroupDescriptor,
+  ScannedFullCrudResourceGroupDescriptor,
+  ScannedReadOnlyCrudResourceGroupDescriptor,
+  ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor
 } from './types/route'
@@ -427,6 +430,9 @@ export type {
   ResourceGroupRegistry,
   BaseResourceGroupDescriptor,
   CrudResourceGroupDescriptor,
+  FullCrudResourceGroupDescriptor,
+  ReadOnlyCrudResourceGroupDescriptor,
+  FlexibleCrudResourceGroupDescriptor,
   SingletonResourceGroupDescriptor,
   CustomResourceGroupDescriptor,
   ResourceGroupDescriptor,
@@ -435,8 +441,14 @@ export type {
   ItemEndpointRequestContract,
   ItemEndpointContract,
   CrudResourceGroupDescriptorParams,
+  FullCrudParams,
+  ReadOnlyCrudParams,
+  FlexibleCrudParams,
   SingletonResourceGroupDescriptorParams,
-  CustomResourceGroupDescriptorParams
+  CustomResourceGroupDescriptorParams,
+  MutationCapability,
+  AvailableMutation,
+  AbsentMutation
 } from './types/route'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'

@@ -1,4 +1,4 @@
-import { RouteManifest, matchCrudRole } from '@routesync/core'
+import { RouteManifest, matchCrudRole, matchResourceGroup } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
@@ -235,60 +235,147 @@ export class HookGenerator {
       const detailKeyFn = groupDesc?.detailKeyFn ?? (resource.show?.actionName ?? 'detail')
 
       const cacheLines: string[] = []
-      if (resource.index) {
-        cacheLines.push(`      list: QueryKey.${groupName}.${listKeyFn},`)
-      }
-      if (resource.show) {
-        cacheLines.push(`      detail: QueryKey.${groupName}.${detailKeyFn},`)
-      }
-      if (resource.create) {
-        const invs: string[] = []
-        if (resource.index) {
-          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
-        }
-        addCrossResourceInvalidations('create', invs)
 
-        if (invs.length > 0) {
-          cacheLines.push(`      create: {`)
-          cacheLines.push(`        invalidate: [`)
-          cacheLines.push(invs.join('\n'))
-          cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-        }
-      }
-      if (resource.update) {
-        const invs: string[] = []
+      if (groupDesc) {
+        matchResourceGroup(groupDesc, {
+          full_crud: (fg) => {
+            cacheLines.push(`      list: QueryKey.${groupName}.${fg.listKeyFn},`)
+            cacheLines.push(`      detail: QueryKey.${groupName}.${fg.detailKeyFn},`)
+
+            const createInvs: string[] = [`          QueryKey.${groupName}.${fg.listKeyFn},`]
+            addCrossResourceInvalidations('create', createInvs)
+            cacheLines.push(`      create: {`)
+            cacheLines.push(`        invalidate: [`)
+            cacheLines.push(createInvs.join('\n'))
+            cacheLines.push(`        ],`)
+            cacheLines.push(`      },`)
+
+            const updateInvs: string[] = [
+              `          QueryKey.${groupName}.${fg.listKeyFn},`,
+              `          QueryKey.${groupName}.${fg.detailKeyFn},`
+            ]
+            addCrossResourceInvalidations('update', updateInvs)
+            cacheLines.push(`      update: {`)
+            cacheLines.push(`        invalidate: [`)
+            cacheLines.push(updateInvs.join('\n'))
+            cacheLines.push(`        ],`)
+            cacheLines.push(`      },`)
+
+            const deleteInvs: string[] = [`          QueryKey.${groupName}.${fg.listKeyFn},`]
+            addCrossResourceInvalidations('delete', deleteInvs)
+            cacheLines.push(`      remove: {`)
+            cacheLines.push(`        invalidate: [`)
+            cacheLines.push(deleteInvs.join('\n'))
+            cacheLines.push(`        ],`)
+            cacheLines.push(`      },`)
+          },
+          read_only_crud: (rg) => {
+            cacheLines.push(`      list: QueryKey.${groupName}.${rg.listKeyFn},`)
+            cacheLines.push(`      detail: QueryKey.${groupName}.${rg.detailKeyFn},`)
+          },
+          flexible_crud: (flg) => {
+            cacheLines.push(`      list: QueryKey.${groupName}.${flg.listKeyFn},`)
+            cacheLines.push(`      detail: QueryKey.${groupName}.${flg.detailKeyFn},`)
+            if (flg.create.available) {
+              const invs: string[] = [`          QueryKey.${groupName}.${flg.listKeyFn},`]
+              addCrossResourceInvalidations('create', invs)
+              cacheLines.push(`      create: {`)
+              cacheLines.push(`        invalidate: [`)
+              cacheLines.push(invs.join('\n'))
+              cacheLines.push(`        ],`)
+              cacheLines.push(`      },`)
+            }
+            if (flg.update.available) {
+              const invs: string[] = [
+                `          QueryKey.${groupName}.${flg.listKeyFn},`,
+                `          QueryKey.${groupName}.${flg.detailKeyFn},`
+              ]
+              addCrossResourceInvalidations('update', invs)
+              cacheLines.push(`      update: {`)
+              cacheLines.push(`        invalidate: [`)
+              cacheLines.push(invs.join('\n'))
+              cacheLines.push(`        ],`)
+              cacheLines.push(`      },`)
+            }
+            if (flg.delete.available) {
+              const invs: string[] = [`          QueryKey.${groupName}.${flg.listKeyFn},`]
+              addCrossResourceInvalidations('delete', invs)
+              cacheLines.push(`      remove: {`)
+              cacheLines.push(`        invalidate: [`)
+              cacheLines.push(invs.join('\n'))
+              cacheLines.push(`        ],`)
+              cacheLines.push(`      },`)
+            }
+          },
+          crud: (cg) => {
+            if (cg.index) cacheLines.push(`      list: QueryKey.${groupName}.${cg.listKeyFn},`)
+            if (cg.show) cacheLines.push(`      detail: QueryKey.${groupName}.${cg.detailKeyFn},`)
+            const addMutationSlot = (actionKey: string, route?: ClassifiedRoute) => {
+              if (!route) return
+              const invs: string[] = []
+              if (resource.index) {
+                pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
+              }
+              addCrossResourceInvalidations(actionKey, invs)
+              if (invs.length > 0) {
+                cacheLines.push(`      ${actionKey}: {`)
+                cacheLines.push(`        invalidate: [`)
+                cacheLines.push(invs.join('\n'))
+                cacheLines.push(`        ],`)
+                cacheLines.push(`      },`)
+              }
+            }
+            if (resource.create) addMutationSlot('create', resource.create)
+            if (resource.update) addMutationSlot('update', resource.update)
+            if (resource.delete) addMutationSlot('remove', resource.delete)
+          },
+          singleton: () => {
+            const addMutationSlot = (actionKey: string, route?: ClassifiedRoute) => {
+              if (!route) return
+              const invs: string[] = []
+              if (resource.index) {
+                pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
+              }
+              addCrossResourceInvalidations(actionKey, invs)
+              if (invs.length > 0) {
+                cacheLines.push(`      ${actionKey}: {`)
+                cacheLines.push(`        invalidate: [`)
+                cacheLines.push(invs.join('\n'))
+                cacheLines.push(`        ],`)
+                cacheLines.push(`      },`)
+              }
+            }
+            if (resource.create) addMutationSlot('create', resource.create)
+            if (resource.update) addMutationSlot('update', resource.update)
+            if (resource.delete) addMutationSlot('remove', resource.delete)
+          },
+          custom: () => {
+            const addMutationSlot = (actionKey: string, route?: ClassifiedRoute) => {
+              if (!route) return
+              const invs: string[] = []
+              if (resource.index) {
+                pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
+              }
+              addCrossResourceInvalidations(actionKey, invs)
+              if (invs.length > 0) {
+                cacheLines.push(`      ${actionKey}: {`)
+                cacheLines.push(`        invalidate: [`)
+                cacheLines.push(invs.join('\n'))
+                cacheLines.push(`        ],`)
+                cacheLines.push(`      },`)
+              }
+            }
+            if (resource.create) addMutationSlot('create', resource.create)
+            if (resource.update) addMutationSlot('update', resource.update)
+            if (resource.delete) addMutationSlot('remove', resource.delete)
+          }
+        })
+      } else {
         if (resource.index) {
-          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
+          cacheLines.push(`      list: QueryKey.${groupName}.${listKeyFn},`)
         }
         if (resource.show) {
-          pushUnique(invs, `          QueryKey.${groupName}.${detailKeyFn},`)
-        }
-        addCrossResourceInvalidations('update', invs)
-
-        if (invs.length > 0) {
-          cacheLines.push(`      update: {`)
-          cacheLines.push(`        invalidate: [`)
-          cacheLines.push(invs.join('\n'))
-          cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-        }
-      }
-
-      const hasDelete = resource.delete
-      if (hasDelete) {
-        const invs: string[] = []
-        if (resource.index) {
-          pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
-        }
-        addCrossResourceInvalidations('delete', invs)
-
-        if (invs.length > 0) {
-          cacheLines.push(`      remove: {`)
-          cacheLines.push(`        invalidate: [`)
-          cacheLines.push(invs.join('\n'))
-          cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
+          cacheLines.push(`      detail: QueryKey.${groupName}.${detailKeyFn},`)
         }
       }
 
@@ -302,12 +389,11 @@ export class HookGenerator {
 
         const invs: string[] = []
         if (resource.index) {
-          const listKeyFn = isCrudKey ? 'lists' : 'list'
           pushUnique(invs, `          QueryKey.${groupName}.${listKeyFn},`)
         }
         const customGets = resource.all.filter(r => r.method === 'GET')
         for (const getRoute of customGets) {
-          const hasKey = !isCrudKey || getRoute.crudRole === 'custom'
+          const hasKey = !(groupDesc?.isCrud ?? false) || getRoute.crudRole === 'custom'
           if (hasKey) {
             pushUnique(invs, `          QueryKey.${groupName}.${getRoute.actionName},`)
           }

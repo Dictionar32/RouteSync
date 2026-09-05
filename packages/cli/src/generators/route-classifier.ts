@@ -41,6 +41,9 @@ import {
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
   CrudResourceGroupDescriptor,
+  FullCrudResourceGroupDescriptor,
+  ReadOnlyCrudResourceGroupDescriptor,
+  FlexibleCrudResourceGroupDescriptor,
   SingletonResourceGroupDescriptor,
   CustomResourceGroupDescriptor,
   ResourceGroupDescriptor,
@@ -48,8 +51,12 @@ import {
   RouteManifest,
   ROUTE_PARAMETER_TYPE_REGISTRY,
   ScannedCrudResourceGroupDescriptor,
+  ScannedFullCrudResourceGroupDescriptor,
+  ScannedReadOnlyCrudResourceGroupDescriptor,
+  ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
+  MutationCapability,
   ParsedModel
 } from '@routesync/core'
 import { toIdentifier, toTypeName } from './names'
@@ -62,15 +69,22 @@ export {
   RESOURCE_GROUP_REGISTRY,
   matchResourceGroup,
   ScannedCrudResourceGroupDescriptor,
+  ScannedFullCrudResourceGroupDescriptor,
+  ScannedReadOnlyCrudResourceGroupDescriptor,
+  ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor
 } from '@routesync/core'
 export type {
   ResourceGroupDescriptor,
   CrudResourceGroupDescriptor,
+  FullCrudResourceGroupDescriptor,
+  ReadOnlyCrudResourceGroupDescriptor,
+  FlexibleCrudResourceGroupDescriptor,
   SingletonResourceGroupDescriptor,
   CustomResourceGroupDescriptor,
-  ClassifiedDomainGraph
+  ClassifiedDomainGraph,
+  MutationCapability
 } from '@routesync/core'
 
 export interface ClassifiedRoute {
@@ -361,18 +375,46 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
 
     if (res.index && res.show) {
       const primaryKeyType = resolveItemPrimaryKeyType(res.show, manifest.models, Title)
-      resourceGroups.push(new ScannedCrudResourceGroupDescriptor<ClassifiedRoute>({
-        groupName,
-        keyName: KEY,
-        titleName: Title,
-        primaryKeyType,
-        index: res.index,
-        show: res.show,
-        all: Object.freeze(res.all),
-        create: res.create,
-        update: res.update,
-        delete: res.delete
-      }))
+      if (res.create && res.update && res.delete) {
+        resourceGroups.push(new ScannedFullCrudResourceGroupDescriptor<ClassifiedRoute>({
+          groupName,
+          keyName: KEY,
+          titleName: Title,
+          primaryKeyType,
+          index: res.index,
+          show: res.show,
+          create: res.create,
+          update: res.update,
+          delete: res.delete,
+          all: Object.freeze(res.all)
+        }))
+      } else if (!res.create && !res.update && !res.delete) {
+        resourceGroups.push(new ScannedReadOnlyCrudResourceGroupDescriptor<ClassifiedRoute>({
+          groupName,
+          keyName: KEY,
+          titleName: Title,
+          primaryKeyType,
+          index: res.index,
+          show: res.show,
+          all: Object.freeze(res.all)
+        }))
+      } else {
+        const toMutationCapability = (route?: ClassifiedRoute): MutationCapability<ClassifiedRoute> =>
+          route ? { available: true, route } : { available: false }
+
+        resourceGroups.push(new ScannedFlexibleCrudResourceGroupDescriptor<ClassifiedRoute>({
+          groupName,
+          keyName: KEY,
+          titleName: Title,
+          primaryKeyType,
+          index: res.index,
+          show: res.show,
+          create: toMutationCapability(res.create),
+          update: toMutationCapability(res.update),
+          delete: toMutationCapability(res.delete),
+          all: Object.freeze(res.all)
+        }))
+      }
     } else {
       const hasAnyTrailingParam = res.all.some(r => r.hasTrailingParam)
       if (hasAnyTrailingParam) {

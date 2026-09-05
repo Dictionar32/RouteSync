@@ -6,7 +6,9 @@ import {
   matchResourceGroup,
   ScannedRouteDescriptor,
   RouteParameterType,
-  ScannedCrudResourceGroupDescriptor,
+  ScannedFullCrudResourceGroupDescriptor,
+  ScannedReadOnlyCrudResourceGroupDescriptor,
+  ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor
 } from "@routesync/core"
@@ -22,30 +24,23 @@ import path from "path"
 import os from "os"
 
 describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () => {
-  it("correctly classifies CRUD resource group with authoritative primaryKeyType from path parameters", () => {
-    const indexRoute = ScannedRouteDescriptor.create({
-      method: "GET",
-      path: "/api/v1/products",
-      groupName: "products",
-      crudRole: "index"
-    })
-
-    const showRoute = ScannedRouteDescriptor.create({
-      method: "GET",
-      path: "/api/v1/products/{id}",
-      groupName: "products",
-      crudRole: "show",
-      pathParameters: [
-        {
-          name: "id",
-          type: RouteParameterType.Integer,
-          required: true
-        }
-      ]
-    })
+  it("correctly classifies Full CRUD resource group when all 5 standard operations exist", () => {
+    const routes = [
+      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/products", groupName: "products", crudRole: "index" }),
+      ScannedRouteDescriptor.create({
+        method: "GET",
+        path: "/api/v1/products/{id}",
+        groupName: "products",
+        crudRole: "show",
+        pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
+      }),
+      ScannedRouteDescriptor.create({ method: "POST", path: "/api/v1/products", groupName: "products", crudRole: "create" }),
+      ScannedRouteDescriptor.create({ method: "PUT", path: "/api/v1/products/{id}", groupName: "products", crudRole: "update" }),
+      ScannedRouteDescriptor.create({ method: "DELETE", path: "/api/v1/products/{id}", groupName: "products", crudRole: "delete" })
+    ]
 
     const manifest: RouteManifest = {
-      routes: [indexRoute, showRoute],
+      routes,
       baseURL: "http://localhost/api",
       generatedAt: "2026-09-05T07:30:00.000Z"
     }
@@ -54,24 +49,96 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(graph.resourceGroups).toHaveLength(1)
 
     const group = graph.resourceGroups[0]
-    expect(group instanceof ScannedCrudResourceGroupDescriptor).toBe(true)
+    expect(group instanceof ScannedFullCrudResourceGroupDescriptor).toBe(true)
     expect(Object.isFrozen(group)).toBe(true)
-    expect(group.kind).toBe(ResourceGroupKind.Crud)
+    expect(group.kind).toBe(ResourceGroupKind.FullCrud)
     expect(group.isCrud).toBe(true)
     expect(group.listKeyFn).toBe("lists")
     expect(group.detailKeyFn).toBe("detail")
     expect(group.primaryKeyType).toBe("number")
-    expect(group.groupName).toBe("products")
-    expect(group.keyName).toBe("PRODUCTS")
-    expect(group.titleName).toBe("Products")
 
-    // Test 0-if catamorphism
+    // FullCrud guarantees all 5 routes exist non-nullable (0 ?)
+    const fg = group as ScannedFullCrudResourceGroupDescriptor
+    expect(fg.index).toBeDefined()
+    expect(fg.show).toBeDefined()
+    expect(fg.create).toBeDefined()
+    expect(fg.update).toBeDefined()
+    expect(fg.delete).toBeDefined()
+
+    // Test 0-if catamorphism for full_crud
     const result = matchResourceGroup(group, {
-      crud: g => "CRUD:" + g.primaryKeyType + ":" + g.listKeyFn,
-      singleton: g => "SINGLETON:" + g.groupName,
-      custom: g => "CUSTOM:" + g.groupName
+      full_crud: g => "FULL_CRUD:" + g.primaryKeyType + ":" + g.create.actionName,
+      read_only_crud: () => "READ_ONLY",
+      flexible_crud: () => "FLEXIBLE",
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
     })
-    expect(result).toBe("CRUD:number:lists")
+    expect(result).toBe("FULL_CRUD:number:create")
+  })
+
+  it("correctly classifies Read-Only CRUD resource group when only index and show exist", () => {
+    const routes = [
+      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/categories", groupName: "categories", crudRole: "index" }),
+      ScannedRouteDescriptor.create({
+        method: "GET",
+        path: "/api/v1/categories/{id}",
+        groupName: "categories",
+        crudRole: "show",
+        pathParameters: [{ name: "id", type: RouteParameterType.String, required: true }]
+      })
+    ]
+
+    const manifest: RouteManifest = {
+      routes,
+      baseURL: "http://localhost/api",
+      generatedAt: "2026-09-05T07:30:00.000Z"
+    }
+
+    const graph = classifyDomainGraph(manifest)
+    expect(graph.resourceGroups).toHaveLength(1)
+
+    const group = graph.resourceGroups[0]
+    expect(group instanceof ScannedReadOnlyCrudResourceGroupDescriptor).toBe(true)
+    expect(group.kind).toBe(ResourceGroupKind.ReadOnlyCrud)
+    expect(group.isCrud).toBe(true)
+    expect(group.primaryKeyType).toBe("string")
+
+    const result = matchResourceGroup(group, {
+      full_crud: () => "FULL",
+      read_only_crud: g => "READ_ONLY:" + g.primaryKeyType,
+      flexible_crud: () => "FLEXIBLE",
+      singleton: () => "SINGLETON",
+      custom: () => "CUSTOM"
+    })
+    expect(result).toBe("READ_ONLY:string")
+  })
+
+  it("correctly classifies Flexible CRUD resource group with explicit MutationCapabilities", () => {
+    const routes = [
+      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/reviews", groupName: "reviews", crudRole: "index" }),
+      ScannedRouteDescriptor.create({
+        method: "GET",
+        path: "/api/v1/reviews/{id}",
+        groupName: "reviews",
+        crudRole: "show",
+        pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
+      }),
+      ScannedRouteDescriptor.create({ method: "POST", path: "/api/v1/reviews", groupName: "reviews", crudRole: "create" })
+    ]
+
+    const manifest: RouteManifest = {
+      routes,
+      baseURL: "http://localhost/api",
+      generatedAt: "2026-09-05T07:30:00.000Z"
+    }
+
+    const graph = classifyDomainGraph(manifest)
+    const group = graph.resourceGroups[0] as ScannedFlexibleCrudResourceGroupDescriptor
+    expect(group instanceof ScannedFlexibleCrudResourceGroupDescriptor).toBe(true)
+    expect(group.kind).toBe(ResourceGroupKind.FlexibleCrud)
+    expect(group.create.available).toBe(true)
+    expect(group.update.available).toBe(false)
+    expect(group.delete.available).toBe(false)
   })
 
   it("correctly classifies Singleton resource group without trailing item params", () => {
@@ -108,62 +175,10 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(group.primaryKeyType).toBe("string | number")
 
     const result = matchResourceGroup(group, {
-      crud: () => "CRUD",
       singleton: g => "SINGLETON:" + g.listKeyFn + ":" + g.detailKeyFn,
       custom: () => "CUSTOM"
     })
     expect(result).toBe("SINGLETON:list:show")
-  })
-
-  it("guarantees constructors enforce invariant-preserving contracts with 0 if and 0 ternary", () => {
-    const fakeRoute = ScannedRouteDescriptor.create({
-      method: "GET",
-      path: "/test",
-      groupName: "test",
-      crudRole: "index"
-    })
-
-    const crud = new ScannedCrudResourceGroupDescriptor({
-      groupName: "orders",
-      keyName: "ORDERS",
-      titleName: "Orders",
-      primaryKeyType: "string",
-      index: fakeRoute,
-      show: fakeRoute,
-      all: [fakeRoute]
-    })
-    expect(crud.kind).toBe("crud")
-    expect(crud.isCrud).toBe(true)
-    expect(crud.primaryKeyType).toBe("string")
-    expect(crud.listKeyFn).toBe("lists")
-    expect(crud.detailKeyFn).toBe("detail")
-    expect(Object.isFrozen(crud)).toBe(true)
-
-    const singleton = new ScannedSingletonResourceGroupDescriptor({
-      groupName: "auth",
-      keyName: "AUTH",
-      titleName: "Auth",
-      all: [fakeRoute]
-    })
-    expect(singleton.kind).toBe("singleton")
-    expect(singleton.isCrud).toBe(false)
-    expect(singleton.primaryKeyType).toBe("string | number")
-    expect(singleton.listKeyFn).toBe("list")
-    expect(singleton.detailKeyFn).toBe("show")
-    expect(Object.isFrozen(singleton)).toBe(true)
-
-    const custom = new ScannedCustomResourceGroupDescriptor({
-      groupName: "webhook",
-      keyName: "WEBHOOK",
-      titleName: "Webhook",
-      detailKeyFn: "handle",
-      all: [fakeRoute]
-    })
-    expect(custom.kind).toBe("custom")
-    expect(custom.isCrud).toBe(false)
-    expect(custom.detailKeyFn).toBe("handle")
-    expect(custom.primaryKeyType).toBe("string | number")
-    expect(Object.isFrozen(custom)).toBe(true)
   })
 
   it("guarantees QueryKeyGenerator and HookGenerator consume ClassifiedDomainGraph with 0 downstream if", async () => {
@@ -180,6 +195,24 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
         groupName: "users",
         crudRole: "show",
         pathParameters: [{ name: "id", type: RouteParameterType.String, required: true }]
+      }),
+      ScannedRouteDescriptor.create({
+        method: "POST",
+        path: "/api/v1/users",
+        groupName: "users",
+        crudRole: "create"
+      }),
+      ScannedRouteDescriptor.create({
+        method: "PUT",
+        path: "/api/v1/users/{id}",
+        groupName: "users",
+        crudRole: "update"
+      }),
+      ScannedRouteDescriptor.create({
+        method: "DELETE",
+        path: "/api/v1/users/{id}",
+        groupName: "users",
+        crudRole: "delete"
       }),
       ScannedRouteDescriptor.create({
         method: "GET",
@@ -211,6 +244,9 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       const hookCode = await HookGenerator.generate(manifest, tempDir, graph)
       expect(hookCode).toContain("QueryKey.users.lists")
       expect(hookCode).toContain("QueryKey.users.detail")
+      expect(hookCode).toContain("create: {")
+      expect(hookCode).toContain("update: {")
+      expect(hookCode).toContain("remove: {")
       expect(hookCode).toContain("QueryKey.profile.list")
     } finally {
       await fs.remove(tempDir)

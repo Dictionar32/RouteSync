@@ -2398,7 +2398,8 @@ export class StaticLaravelScanner {
         const source = await fs.readFile(routesFile, 'utf-8');
         const tokens = LaravelSourceLexer.tokenize(source);
         const routes: ParsedRoute[] = [];
-        let currentPrefix = '';
+        const prefixStack: string[] = [];
+        let pendingPrefix: string | null = null;
         const middlewareStack: string[][] = [];
         let pendingMiddleware: string[] = [];
 
@@ -2413,7 +2414,7 @@ export class StaticLaravelScanner {
         for (let i = 0; i < tokens.length; i++) {
             // Track Route::prefix('v1')->group(...)
             if (tokens[i].value === 'prefix' && tokens[i + 1]?.value === '(' && tokens[i + 2]?.type === 'STRING') {
-                currentPrefix = tokens[i + 2].value.replace(/^\/+|\/+$/g, '');
+                pendingPrefix = tokens[i + 2].value.replace(/^\/+|\/+$/g, '');
             }
 
             // Track Route::middleware(...)
@@ -2433,13 +2434,22 @@ export class StaticLaravelScanner {
                 }
             }
 
-            // Group open/close for middleware stack
+            // Group open/close for middleware and prefix stacks
             if (tokens[i].value === 'group' && tokens[i + 1]?.value === '(') {
                 middlewareStack.push([...pendingMiddleware]);
                 pendingMiddleware = [];
+                if (pendingPrefix !== null) {
+                    prefixStack.push(pendingPrefix);
+                    pendingPrefix = null;
+                } else {
+                    prefixStack.push('');
+                }
             }
             if (tokens[i].value === '}' && middlewareStack.length > 0) {
                 middlewareStack.pop();
+                if (prefixStack.length > 0) {
+                    prefixStack.pop();
+                }
             }
 
             if (tokens[i].value === 'Route' && tokens[i + 1]?.value === '::') {
@@ -2480,7 +2490,8 @@ export class StaticLaravelScanner {
                     const pathToken = tokens[pathIndex];
                     if (pathToken && pathToken.type === 'STRING') {
                         const rawPath = pathToken.value.replace(/^\/+|\/+$/g, '');
-                        const fullPath = currentPrefix ? `/${currentPrefix}/${rawPath}` : `/${rawPath}`;
+                        const combinedPrefix = prefixStack.filter(Boolean).join('/');
+                        const fullPath = combinedPrefix ? `/${combinedPrefix}/${rawPath}` : `/${rawPath}`;
                         const normalizedPath = fullPath.startsWith('/api') ? fullPath : `/api${fullPath}`;
 
                         const segments = normalizedPath.split('/').filter(s => s && s !== 'api' && !s.startsWith('{'));
@@ -2493,14 +2504,18 @@ export class StaticLaravelScanner {
                         while (hIdx < tokens.length && tokens[hIdx].value !== ',' && tokens[hIdx].value !== ')') hIdx++;
                         if (tokens[hIdx]?.value === ',') {
                             hIdx++;
+                            const isArrayForm = tokens[hIdx]?.value === '[' || tokens[hIdx + 1]?.value === '[';
                             while (hIdx < tokens.length && (tokens[hIdx].value === '[' || tokens[hIdx].value === '(')) {
                                 hIdx++;
                             }
                             if (tokens[hIdx]?.type === 'IDENTIFIER') {
                                 controllerName = tokens[hIdx].value;
                                 if (tokens[hIdx + 1]?.value === '::' && tokens[hIdx + 2]?.value === 'class') {
-                                    if (tokens[hIdx + 3]?.value === ',' && tokens[hIdx + 4]?.type === 'STRING') {
+                                    if (isArrayForm && tokens[hIdx + 3]?.value === ',' && tokens[hIdx + 4]?.type === 'STRING') {
                                         actionName = tokens[hIdx + 4].value;
+                                    } else if (!isArrayForm) {
+                                        // Invokable Controller: Route::get('/me', ProfileController::class);
+                                        actionName = '__invoke';
                                     }
                                 }
                             }
@@ -2508,7 +2523,7 @@ export class StaticLaravelScanner {
 
                         const currentMiddlewares = middlewareStack.flat();
                         const isAuth = currentMiddlewares.some(m => m.startsWith('auth'));
-                        const actionInfo = controllerName && actionName ? controllerMap.get(controllerName)?.get(actionName) : undefined;
+                        const actionInfo = controllerName && actionName ? (controllerMap.get(controllerName)?.get(actionName) ?? controllerMap.get(controllerName)?.get('__invoke')) : undefined;
                         const resolvedResponse = actionInfo?.response
                             || new ResourceResponseDescriptor({ resourceName: `${resourceName.charAt(0).toUpperCase() + resourceName.slice(1)}Resource`, shape: 'single' });
 
@@ -2619,16 +2634,27 @@ export class StaticLaravelScanner {
 
                             if (!responseDesc) {
                                 if (tokens[k].value === 'return' && tokens[k + 1]?.type === 'IDENTIFIER' && tokens[k + 2]?.value === '::' && tokens[k + 3]?.value === 'collection') {
+                                    const resName = tokens[k + 1].value;
+                                    // Check if collection call contains paginate()
+                                    let hasPaginate = false;
+                                    let scanAhead = k + 4;
+                                    while (scanAhead < tokens.length && tokens[scanAhead].value !== ';') {
+                                        if (tokens[scanAhead].value === 'paginate' || tokens[scanAhead].value === 'simplePaginate') {
+                                            hasPaginate = true;
+                                            break;
+                                        }
+                                        scanAhead++;
+                                    }
                                     responseDesc = new ResourceResponseDescriptor({
-                                        resourceName: tokens[k + 1].value,
-                                        shape: 'collection'
+                                        resourceName: resName,
+                                        shape: hasPaginate ? 'collection' : 'collection'
                                     });
                                 } else if (tokens[k].value === 'return' && tokens[k + 1]?.value === 'new' && tokens[k + 2]?.type === 'IDENTIFIER') {
                                     const resName = tokens[k + 2].value;
-                                    if (resName.endsWith('Resource')) {
+                                    if (resName.endsWith('Resource') || resName.endsWith('Collection')) {
                                         responseDesc = new ResourceResponseDescriptor({
                                             resourceName: resName,
-                                            shape: 'single'
+                                            shape: resName.endsWith('Collection') ? 'collection' : 'single'
                                         });
                                     }
                                 } else if (tokens[k].value === 'return' && tokens[k + 1]?.type === 'IDENTIFIER' && tokens[k + 2]?.value === '::' && tokens[k + 3]?.value === 'make') {
@@ -2636,6 +2662,20 @@ export class StaticLaravelScanner {
                                         resourceName: tokens[k + 1].value,
                                         shape: 'single'
                                     });
+                                } else if (tokens[k].value === 'return' && tokens[k + 1]?.type === 'IDENTIFIER' && tokens[k + 2]?.value === '::') {
+                                    const modelOrClass = tokens[k + 1].value;
+                                    const queryMethod = tokens[k + 3]?.value;
+                                    if (queryMethod === 'all' || queryMethod === 'paginate' || queryMethod === 'get' || queryMethod === 'cursor') {
+                                        responseDesc = new ModelResponseDescriptor({
+                                            modelName: modelOrClass,
+                                            shape: 'collection'
+                                        });
+                                    } else if (queryMethod === 'find' || queryMethod === 'findOrFail' || queryMethod === 'first' || queryMethod === 'firstOrFail' || queryMethod === 'create') {
+                                        responseDesc = new ModelResponseDescriptor({
+                                            modelName: modelOrClass,
+                                            shape: 'single'
+                                        });
+                                    }
                                 } else if (tokens[k].value === 'return' && tokens[k + 1]?.value === 'response' && tokens[k + 2]?.value === '(') {
                                     let jIdx = k + 3;
                                     while (jIdx < tokens.length && tokens[jIdx].value !== ';') {
@@ -3187,12 +3227,43 @@ export class StaticLaravelScanner {
             if (token.value === '$casts' && tokens[i + 1]?.value === '=') {
                 const parsed = LaravelSourceLexer.parseArray(source, tokens, i + 2);
                 for (const entry of parsed.entries) {
-                    const castVal = entry.value.kind === 'literal' && entry.value.literalType === 'string' ? String(entry.value.value) : 'string';
+                    const castVal = entry.value.kind === 'literal' && entry.value.literalType === 'string'
+                        ? String(entry.value.value)
+                        : (entry.rawExpression || 'string').replace(/::class$/, '').trim();
                     castsMap[entry.key] = castVal;
                     casts.push(ScannedModelCastDescriptor.create({
                         column: entry.key,
                         targetType: castVal
                     }));
+                }
+            }
+
+            // Laravel 11 style: protected function casts(): array { return [ ... ]; }
+            if (token.value === 'function' && tokens[i + 1]?.type === 'IDENTIFIER' && tokens[i + 1].value === 'casts') {
+                let k = i + 2;
+                while (k < tokens.length && tokens[k].value !== '{' && tokens[k].value !== ';') k++;
+                if (tokens[k]?.value === '{') {
+                    let depth = 1;
+                    k++;
+                    while (k < tokens.length && depth > 0) {
+                        if (tokens[k].value === '{') depth++;
+                        else if (tokens[k].value === '}') depth--;
+                        if (tokens[k].value === 'return') {
+                            const parsed = LaravelSourceLexer.parseArray(source, tokens, k + 1);
+                            for (const entry of parsed.entries) {
+                                const castVal = entry.value.kind === 'literal' && entry.value.literalType === 'string'
+                                    ? String(entry.value.value)
+                                    : (entry.rawExpression || 'string').replace(/::class$/, '').trim();
+                                castsMap[entry.key] = castVal;
+                                casts.push(ScannedModelCastDescriptor.create({
+                                    column: entry.key,
+                                    targetType: castVal
+                                }));
+                            }
+                            k = Math.max(k, parsed.endIndex - 1);
+                        }
+                        k++;
+                    }
                 }
             }
 

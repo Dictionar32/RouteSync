@@ -1046,7 +1046,13 @@ export class EloquentCastMapper {
     'datetime': EloquentCastKind.DateTime,
     'custom_datetime': EloquentCastKind.DateTime,
     'timestamp': EloquentCastKind.Timestamp,
-    'encrypted': EloquentCastKind.Encrypted
+    'encrypted': EloquentCastKind.Encrypted,
+    'hashed': EloquentCastKind.String,
+    'asarrayobject': EloquentCastKind.Object,
+    'ascollection': EloquentCastKind.Collection,
+    'asenumcollection': EloquentCastKind.Collection,
+    'immutable_date': EloquentCastKind.Date,
+    'immutable_datetime': EloquentCastKind.DateTime
   });
 
   public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind } {
@@ -2995,8 +3001,29 @@ export class ValidationRuleParser {
         return ValidationRuleNodeFactory.file();
       case 'image':
         return ValidationRuleNodeFactory.image();
-      default:
+      default: {
+        // Fluent Laravel Rules: Rule::in([...]), Rule::unique('table', 'col'), Rule::exists('table', 'col')
+        if (trimmed.includes('Rule::in') || trimmed.startsWith('in(')) {
+          const match = trimmed.match(/(?:Rule::in|in)\s*\(\s*\[?([^\]\)]*)\]?\s*\)/);
+          if (match && match[1]) {
+            const values = match[1].split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+            return ValidationRuleNodeFactory.in(values);
+          }
+        }
+        if (trimmed.includes('Rule::unique') || trimmed.startsWith('unique(')) {
+          const match = trimmed.match(/(?:Rule::unique|unique)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
+          if (match && match[1]) {
+            return ValidationRuleNodeFactory.unique(match[1], match[2] ?? null);
+          }
+        }
+        if (trimmed.includes('Rule::exists') || trimmed.startsWith('exists(')) {
+          const match = trimmed.match(/(?:Rule::exists|exists)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
+          if (match && match[1]) {
+            return ValidationRuleNodeFactory.exists(match[1], match[2] ?? null);
+          }
+        }
         return ValidationRuleNodeFactory.custom(name, params);
+      }
     }
   }
 

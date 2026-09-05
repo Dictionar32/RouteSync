@@ -1,5 +1,19 @@
 # Known Issues & Bug History
 
+### Issue 34: Upstream StaticLaravelScanner Enhancements (Laravel 11 Casts, Nested Prefixes, Invokables, Fluent Rules & Model Returns)
+**Symptom** → Upstream project scanner omitted Laravel 11 `protected function casts(): array` casts (falling back to generic string/number column heuristics), flattened multi-nested route group prefixes into single-level prefixes, missed invokable controllers (`Route::get('/me', ProfileController::class)` omitting `__invoke`), failed to parse fluent validation rules (`Rule::in`, `Rule::unique`, `Rule::exists`) falling back to `custom`, and failed to detect direct Eloquent query builder returns (`Model::all()`, `Model::find()`).
+**Where** → `packages/core/src/compiler/scanner/StaticLaravelScanner.ts` (`parseModelFile`, `scanRoutes`, `scanControllers`), `packages/core/src/types/route.ts` (`ValidationRuleParser.parse`, `EloquentCastMapper`).
+**Root cause** → The static AST scanner lacked patterns for method-based `casts()` declaration, single-class invokable action route definitions, a hierarchical prefix stack for nested groups, fluent `Rule::` class regex extraction in `ValidationRuleParser`, and Eloquent query invocation returns in controller scanning.
+**Fix** → 
+1. Added scanner for Laravel 11 `protected function casts(): array` and enriched `EloquentCastMapper` with modern casts (`hashed`, `asarrayobject`, `ascollection`, `asenumcollection`, `immutable_date`, `immutable_datetime`).
+2. Replaced scalar `currentPrefix` with `prefixStack: string[]` in `scanRoutes` and added single-class invokable controller resolution targeting `__invoke`.
+3. Extended `ValidationRuleParser.parse` to extract `Rule::in(...)`, `Rule::unique(...)`, and `Rule::exists(...)` directly into strongly-typed `InValidationRuleNode`, `UniqueValidationRuleNode`, and `ExistsValidationRuleNode`.
+4. Enhanced `scanControllers` to recognize `Model::all()`, `Model::paginate()`, and `Model::find()` as `ModelResponseDescriptor` with shape `'collection'` or `'single'`.
+**Regression test** → `packages/sdk/tests/staticLaravelScannerUpstream.spec.ts` › `StaticLaravelScanner Upstream Enhancements (Pillars A, B, C, D)`
+**Status** → Diagnosed & Fixed
+
+---
+
 ### Issue 33: Sound Discriminated Union ADT for Resource Groups & Zero-Fallback Generator Pipeline
 **Symptom** → `CrudResourceGroupDescriptor` contained optional properties (`create?:`, `update?:`, `delete?:`) and `ResourceGroupVisitor` contained optional `crud?:` handlers, forcing downstream generators like `HookGenerator.ts` to implement defensive fallback checks (`if (groupDesc)`, dynamic property access `(resource as any)[actionRouteOrName]`, redundant `buildResourceMap` loops, and defensive mutation slot checking).
 **Where** → `packages/core/src/types/route.ts` (`CrudResourceGroupDescriptor`, `ExhaustiveFineGrainedResourceGroupVisitor`, `matchResourceGroup`), `packages/cli/src/generators/HookGenerator.ts`, `packages/cli/src/generators/QueryKeyGenerator.ts`.

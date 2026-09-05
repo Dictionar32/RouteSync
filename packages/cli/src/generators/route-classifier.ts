@@ -58,6 +58,7 @@ import {
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
   ScannedResourceGroupTypeSignature,
+  ScannedResourceGroupGraph,
   MutationCapability,
   ParsedModel
 } from '@routesync/core'
@@ -77,7 +78,8 @@ export {
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
-  ScannedResourceGroupTypeSignature
+  ScannedResourceGroupTypeSignature,
+  ScannedResourceGroupGraph
 } from '@routesync/core'
 export type {
   ResourceGroupDescriptor,
@@ -641,41 +643,7 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
     resourceGroups.map(group => [group.groupName, group])
   )
 
-  const fullCrud: FullCrudResourceGroupDescriptor<ClassifiedRoute>[] = []
-  const readOnlyCrud: ReadOnlyCrudResourceGroupDescriptor<ClassifiedRoute>[] = []
-  const flexibleCrud: FlexibleCrudResourceGroupDescriptor<ClassifiedRoute>[] = []
-  const singleton: SingletonResourceGroupDescriptor<ClassifiedRoute>[] = []
-  const custom: CustomResourceGroupDescriptor<ClassifiedRoute>[] = []
-
-  for (const g of resourceGroups) {
-    switch (g.kind) {
-      case ResourceGroupKind.FullCrud:
-        fullCrud.push(g)
-        break
-      case ResourceGroupKind.ReadOnlyCrud:
-        readOnlyCrud.push(g)
-        break
-      case ResourceGroupKind.FlexibleCrud:
-        flexibleCrud.push(g)
-        break
-      case ResourceGroupKind.Singleton:
-        singleton.push(g)
-        break
-      case ResourceGroupKind.Custom:
-        custom.push(g)
-        break
-    }
-  }
-
-  const resourceGroupGraph: ResourceGroupGraph<ClassifiedRoute> = Object.freeze({
-    fullCrud: Object.freeze(fullCrud),
-    readOnlyCrud: Object.freeze(readOnlyCrud),
-    flexibleCrud: Object.freeze(flexibleCrud),
-    singleton: Object.freeze(singleton),
-    custom: Object.freeze(custom),
-    crud: Object.freeze([...fullCrud, ...readOnlyCrud, ...flexibleCrud]),
-    all: Object.freeze(resourceGroups)
-  })
+  const resourceGroupGraph = ScannedResourceGroupGraph.from<ClassifiedRoute>(resourceGroups)
 
   return Object.freeze({
     manifest,

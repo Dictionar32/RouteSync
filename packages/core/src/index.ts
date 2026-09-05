@@ -177,7 +177,8 @@ export {
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
-  ScannedResourceGroupTypeSignature
+  ScannedResourceGroupTypeSignature,
+  ScannedResourceGroupGraph
 } from './types/route'
 export type {
   RouteManifest,

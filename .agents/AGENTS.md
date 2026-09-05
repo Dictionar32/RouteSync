@@ -12,9 +12,10 @@ Workspace-scoped rules for AI agents working on this repository.
 Laravel routes/api.php, Controllers, Models, FormRequests
   └─► StaticLaravelScanner (TypeScript AST / 0 PHP subprocess)
         └─► routesync.manifest.json
-              └─► SemanticKernelV2 (TypeScript)
-                    ├─► ZodTierGenerator  → api-contract.ts / api-schema.ts
-                    └─► HookGenerator     → hooks.ts / sdk.ts
+              └─► CompilerBridge / SemanticKernelV2 (TypeScript IR)
+                    ├─► ContractGeneratorPass   → contract/api-contract.ts / api-schema.ts
+                    ├─► TypeScriptGeneratorPass → types/api-read.ts / forms/api-form.ts
+                    └─► HookGenerator           → hooks.ts / api.ts
 ```
 
 ### Package Layout

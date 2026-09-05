@@ -191,6 +191,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
     expect(group.primaryKeyType).toBe("string | number")
 
     const result = matchResourceGroup(group, {
+      crud: () => "CRUD",
       singleton: g => "SINGLETON:" + g.listKeyFn + ":" + g.detailKeyFn,
       custom: () => "CUSTOM"
     })

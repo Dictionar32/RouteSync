@@ -93,6 +93,9 @@ export type {
   SingletonTypeSignature,
   CustomTypeSignature,
   ResourceGroupTypeSignature,
+  ResourceGroupVisitor,
+  ExhaustiveFineGrainedResourceGroupVisitor,
+  UnifiedCrudResourceGroupVisitor,
   ClassifiedDomainGraph,
   MutationCapability
 } from '@routesync/core'

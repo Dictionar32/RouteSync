@@ -6736,14 +6736,37 @@ export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export interface ResourceGroupVisitor<R, TRoute = ParsedRoute> {
-  readonly full_crud?: (group: FullCrudResourceGroupDescriptor<TRoute>) => R;
-  readonly read_only_crud?: (group: ReadOnlyCrudResourceGroupDescriptor<TRoute>) => R;
-  readonly flexible_crud?: (group: FlexibleCrudResourceGroupDescriptor<TRoute>) => R;
+/**
+ * Exhaustive Fine-Grained Resource Group Visitor (0 optional ?, 100% complete contract).
+ */
+export interface ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute = ParsedRoute> {
+  readonly full_crud: (group: FullCrudResourceGroupDescriptor<TRoute>) => R;
+  readonly read_only_crud: (group: ReadOnlyCrudResourceGroupDescriptor<TRoute>) => R;
+  readonly flexible_crud: (group: FlexibleCrudResourceGroupDescriptor<TRoute>) => R;
   readonly crud?: (group: CrudResourceGroupDescriptor<TRoute>) => R;
   readonly singleton: (group: SingletonResourceGroupDescriptor<TRoute>) => R;
   readonly custom: (group: CustomResourceGroupDescriptor<TRoute>) => R;
 }
+
+/**
+ * Unified CRUD Resource Group Visitor (Collapses all CRUD variants into single mandatory crud handler).
+ */
+export interface UnifiedCrudResourceGroupVisitor<R, TRoute = ParsedRoute> {
+  readonly crud: (group: CrudResourceGroupDescriptor<TRoute>) => R;
+  readonly singleton: (group: SingletonResourceGroupDescriptor<TRoute>) => R;
+  readonly custom: (group: CustomResourceGroupDescriptor<TRoute>) => R;
+}
+
+/**
+ * Discriminated Union Visitor ADT for Resource Groups.
+ *
+ * Eliminates optional ? and guarantees compile-time exhaustiveness:
+ * - Either you supply all 5 fine-grained handlers (full_crud, read_only_crud, flexible_crud, singleton, custom)
+ * - Or you supply unified CRUD handler (crud, singleton, custom)
+ */
+export type ResourceGroupVisitor<R, TRoute = ParsedRoute> =
+  | ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
+  | UnifiedCrudResourceGroupVisitor<R, TRoute>;
 
 /**
  * Pure 0-if catamorphism pattern matcher for ResourceGroupDescriptor.
@@ -6764,29 +6787,42 @@ export function matchResourceGroup<R, TRoute = ParsedRoute>(
         listKeyFn: RESOURCE_GROUP_REGISTRY[kind].listKeyFn,
         detailKeyFn: RESOURCE_GROUP_REGISTRY[kind].defaultDetailKeyFn,
         primaryKeyType: RESOURCE_GROUP_REGISTRY[kind].defaultPrimaryKeyType,
+        types: ScannedResourceGroupTypeSignature.createDefault(),
         all: []
       } as any
     : group;
 
+  if ('full_crud' in visitor) {
+    const v = visitor as ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>;
+    switch (kind) {
+      case ResourceGroupKind.FullCrud:
+        return v.full_crud(descriptor as FullCrudResourceGroupDescriptor<TRoute>);
+      case ResourceGroupKind.ReadOnlyCrud:
+        return v.read_only_crud(descriptor as ReadOnlyCrudResourceGroupDescriptor<TRoute>);
+      case ResourceGroupKind.FlexibleCrud:
+        return v.flexible_crud(descriptor as FlexibleCrudResourceGroupDescriptor<TRoute>);
+      case ResourceGroupKind.Crud:
+        return v.crud
+          ? v.crud(descriptor as CrudResourceGroupDescriptor<TRoute>)
+          : v.full_crud(descriptor as any);
+      case ResourceGroupKind.Singleton:
+        return v.singleton(descriptor as SingletonResourceGroupDescriptor<TRoute>);
+      case ResourceGroupKind.Custom:
+        return v.custom(descriptor as CustomResourceGroupDescriptor<TRoute>);
+    }
+  }
+
+  const v = visitor as UnifiedCrudResourceGroupVisitor<R, TRoute>;
   switch (kind) {
     case ResourceGroupKind.FullCrud:
-      return visitor.full_crud
-        ? visitor.full_crud(descriptor as FullCrudResourceGroupDescriptor<TRoute>)
-        : visitor.crud!(descriptor as CrudResourceGroupDescriptor<TRoute>);
     case ResourceGroupKind.ReadOnlyCrud:
-      return visitor.read_only_crud
-        ? visitor.read_only_crud(descriptor as ReadOnlyCrudResourceGroupDescriptor<TRoute>)
-        : visitor.crud!(descriptor as CrudResourceGroupDescriptor<TRoute>);
     case ResourceGroupKind.FlexibleCrud:
-      return visitor.flexible_crud
-        ? visitor.flexible_crud(descriptor as FlexibleCrudResourceGroupDescriptor<TRoute>)
-        : visitor.crud!(descriptor as CrudResourceGroupDescriptor<TRoute>);
     case ResourceGroupKind.Crud:
-      return visitor.crud!(descriptor as CrudResourceGroupDescriptor<TRoute>);
+      return v.crud(descriptor as CrudResourceGroupDescriptor<TRoute>);
     case ResourceGroupKind.Singleton:
-      return visitor.singleton(descriptor as SingletonResourceGroupDescriptor<TRoute>);
+      return v.singleton(descriptor as SingletonResourceGroupDescriptor<TRoute>);
     case ResourceGroupKind.Custom:
-      return visitor.custom(descriptor as CustomResourceGroupDescriptor<TRoute>);
+      return v.custom(descriptor as CustomResourceGroupDescriptor<TRoute>);
   }
 }
 

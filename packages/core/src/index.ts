@@ -446,6 +446,8 @@ export type {
   CustomResourceGroupDescriptor,
   ResourceGroupDescriptor,
   ResourceGroupVisitor,
+  ExhaustiveFineGrainedResourceGroupVisitor,
+  UnifiedCrudResourceGroupVisitor,
   ClassifiedDomainGraph,
   ItemEndpointRequestContract,
   ItemEndpointContract,

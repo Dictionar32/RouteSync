@@ -9,8 +9,8 @@ Workspace-scoped rules for AI agents working on this repository.
 **RouteSync** adalah CLI tool yang melakukan static analysis terhadap project Laravel PHP dan men-generate TypeScript Zod schema + React Query hooks secara otomatis. Pipeline utamanya:
 
 ```
-Laravel routes/api.php
-  └─► LaravelRouteParser (PHP subprocess)
+Laravel routes/api.php, Controllers, Models, FormRequests
+  └─► StaticLaravelScanner (TypeScript AST / 0 PHP subprocess)
         └─► routesync.manifest.json
               └─► SemanticKernelV2 (TypeScript)
                     ├─► ZodTierGenerator  → api-contract.ts / api-schema.ts
@@ -21,8 +21,8 @@ Laravel routes/api.php
 
 | Package | Path | Deskripsi |
 |---|---|---|
-| `@routesync/cli` | `packages/cli/` | Scanner PHP, generators, `scan`/`generate`/`sync` commands |
-| `@routesync/core` | `packages/core/` | Semantic kernel, resolvers, types |
+| `@routesync/cli` | `packages/cli/` | Generators, emitters, command CLI (`scan`/`generate`/`sync`/`audit`/`watch`) |
+| `@routesync/core` | `packages/core/` | `StaticLaravelScanner` (Upstream Lexer), semantic kernel, resolvers, types |
 | `@routesync/sdk` | `packages/sdk/` | Tests, shared utilities |
 
 ---
@@ -37,7 +37,7 @@ cd packages/sdk && npx vitest run --reporter=verbose
 Target: **semua test lulus**. Jangan tinggalkan test yang failing.
 
 ### 2. Setiap Bug Fix → Regression Test
-Setiap kali memperbaiki bug, **wajib tambahkan** regression test di `packages/sdk/tests/`. Nama file test harus mencerminkan komponen yang ditest (contoh: `laravelParserAssignments.spec.ts` untuk fix di `LaravelRouteParser`).
+Setiap kali memperbaiki bug, **wajib tambahkan** regression test di `packages/sdk/tests/`. Nama file test harus mencerminkan komponen yang ditest (contoh: `staticLaravelScannerUpstream.spec.ts` untuk scanner atau `accessorResolver.spec.ts` untuk resolver).
 
 ### 3. Setiap Issue → Tulis ke KNOWN_ISSUES.md
 Format per entry (append, newest first, sebelum issue sebelumnya):
@@ -57,8 +57,8 @@ Tambahkan entry di bagian `### Fixed` dalam `## [Unreleased]`. Sertakan referens
 ### 5. Jangan Ubah File PHP yang Di-generate
 File `routesync.manifest.json` dan `api-contract.ts`/`api-schema.ts` di project toko-online adalah **output** — jangan diedit langsung. Perbaiki source generator-nya.
 
-### 6. `String.raw` untuk PHP Templates
-Semua PHP code block di dalam `LaravelRouteParser.ts` **harus** menggunakan `String.raw\`...\`` agar backslash tidak di-escape JS. Jangan embed PHP langsung di template literal biasa.
+### 6. Zero PHP Subprocess & Pure TypeScript AST
+Semua parsing route, model, controller, dan FormRequest **harus** melalui `StaticLaravelScanner` / `LaravelSourceLexer` murni TypeScript (0 PHP subprocess). Dilarang mengeksekusi subprocess `php -r` atau PHP reflection runtime di pipeline produksi.
 
 ### 7. Build Setelah Ubah `packages/core` atau `packages/cli`
 `packages/sdk/tests` mengkonsumsi dari `dist/`. Setelah mengubah source core/cli, jalankan:
@@ -290,21 +290,21 @@ Pindahkan invariant ke dalam Type System:
 
 ### Pattern A: `z.unknown()` pada field yang seharusnya typed
 **Kemungkinan penyebab (cek berurutan):**
-1. Method Eloquent tidak ada di Level 90/80 regex → tambahkan ke alternation di `LaravelRouteParser.ts`
+1. Method Eloquent tidak ada di subscanner model / type deriver → tambahkan penanganan di `ModelScanner.ts` atau `TypeDeriver.ts`
 2. Variabel plural tidak bisa di-resolve ke model → cek `VariableResolver.ts` heuristic
 3. Accessor di model tidak ter-resolve → cek `AccessorResolver.ts` early-return guard
 4. Kolom `nullable: true` tapi bukan dari `?->` → cek `ExpressionResolver.ts` nullsafe handler
-5. Assignment di dalam closure discarded → cek `assignmentsScannerPhp` skip guard
+5. Assignment di dalam closure discarded → cek assignment scanning di `ControllerActionScanner.ts`
 
 ### Pattern B: Schema field wrapped/unwrapped salah
 **Kemungkinan penyebab:**
-1. `JsonResource` pakai default `$wrap = 'data'` → cek `wrapDetectionPhp` di `LaravelRouteParser.ts`
-2. `use X as Y` alias tidak ter-resolve → cek regex alias di wrap detection block
+1. `JsonResource` pakai default `$wrap = 'data'` → cek `ResourceScanner.ts` wrap detection
+2. `use X as Y` alias tidak ter-resolve → cek alias resolver di scanner
 
-### Pattern C: Test PHP integration gagal
+### Pattern C: Build & Type Check
 **Kemungkinan penyebab:**
 1. Build belum dijalankan setelah ubah source → `npm run build`
-2. Backslash escape salah di PHP template → pakai `String.raw`
+2. Modul domain belum di-re-export dari `types/domain/index.ts`
 
 ---
 

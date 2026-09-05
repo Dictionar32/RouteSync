@@ -11,7 +11,7 @@
  *     (is this a Resource? a collection call?) live exclusively in
  *     `resolved`, decided by ResourceGraphResolver and nothing upstream.
  *   - `PrimitiveField`/`ModelField` are the exception: they're genuinely
- *     declared by LaravelRouteParser.ts's attribute/JSON-literal scan,
+ *     declared by StaticLaravelScanner's attribute/JSON-literal scan,
  *     not inferred, so they stay as raw kinds.
  *
  * MIGRATION STATUS (phase 1 of 3 — see compiler/CompilerBacklog.md):
@@ -38,7 +38,7 @@ export interface ParsedField extends BaseField {
 }
 
 /* ---------- declared kinds (known without parsing PHP code) ----------
-   Constructed directly by LaravelRouteParser.ts's attribute/JSON-literal
+   Constructed directly by StaticLaravelScanner's attribute/JSON-literal
    scan — never by PhpCodeParser. */
 
 export interface PrimitiveField extends BaseField { kind: 'primitive'; type: string }

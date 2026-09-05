@@ -4,6 +4,13 @@ All notable changes to RouteSync will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+- **Retirement of Legacy `LaravelRouteParser.ts` (1.348 baris) & PHP Subprocess Tests**:
+  - Menghapus parser legacy berbasis `php -r` subprocess (`packages/cli/src/parsers/LaravelRouteParser.ts`).
+  - Menghapus file scratch sementara `packages/cli/src/parsers/test_method_return.php`.
+  - Menghapus test legacy PHP subprocess (`packages/cli/src/parsers/__tests__/LaravelRouteParser.*.test.ts`, `packages/sdk/tests/laravelParser.spec.ts`, `packages/sdk/tests/jsonResourceWrap.spec.ts`).
+  - Seluruh pipeline produksi (`routesync scan`, `routesync sync`, `routesync audit`) kini 100% dipandu oleh `StaticLaravelScanner` (TypeScript static analysis murni, 0 PHP subprocess).
+
 ### Refactored
 - **Modularisasi Monolitik `StaticLaravelScanner.ts`, `LaravelSourceLexer.ts`, & `route.ts`**:
   - Memecah 5 berkas domain yang berukuran besar (> 800 baris) ke dalam sub-modul terfokus berukuran ideal (150 – 500 baris):

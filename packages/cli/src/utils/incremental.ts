@@ -20,7 +20,7 @@ export interface ScannedRoute {
 export interface ScannedModel {
   name: string;
   accessors?: Record<string, {
-    // input, from the PHP scanner (LaravelRouteParser.ts emits 'expression', not 'expression_code'):
+    // input, from the scanner (StaticLaravelScanner emits 'expression' or 'expression_code'):
     type?: string;
     expression?: string | null;
     expression_code?: string | null;
@@ -465,7 +465,7 @@ export function resolveManifestIncrementally(
         }
       }
 
-      // Real source location from ReflectionMethod (packages/cli/src/parsers/LaravelRouteParser.ts),
+      // Real source location from StaticLaravelScanner,
       // not a placeholder — null only when the action genuinely has no
       // reflectable location (e.g. a route closure).
       const routeSource: SourceRef = {

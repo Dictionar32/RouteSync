@@ -4,6 +4,14 @@ All notable changes to RouteSync will be documented in this file.
 
 ## [Unreleased]
 
+### Refactored
+- **Modularisasi Monolitik `StaticLaravelScanner.ts`**:
+  - Memecah berkas monolitik `StaticLaravelScanner.ts` (4.108 baris) menjadi 2 sub-direktori kohesif dengan prinsip *Single Responsibility*:
+    - `packages/core/src/compiler/scanner/descriptors/`: AST descriptors (`types.ts`, `validationDescriptors.ts`, `routeDescriptors.ts`, `resourceDescriptors.ts`, `modelDescriptors.ts`, `channelDescriptors.ts`, `requestDescriptors.ts`, `manifestDescriptors.ts`).
+    - `packages/core/src/compiler/scanner/subscanners/`: Domain scanners & passes (`ChannelScanner.ts`, `ControllerScanner.ts`, `ResourceScanner.ts`, `FormRequestScanner.ts`, `ModelScanner.ts`, `RouteScanner.ts`, `InvalidationResolver.ts`, `TypeDeriver.ts`, `scannerUtils.ts`).
+  - Merampingkan `StaticLaravelScanner.ts` menjadi orchestrator facade ramping (213 baris, reduksi ~95%) dengan **100% backward compatibility** via barrel re-exports (`export * from './descriptors'`, `export * from './subscanners'`).
+  - Seluruh 99 test files (489 tests) di Vitest lolos 100% GREEN.
+
 ### Added
 - **`domainGraphClassifierADT.spec.ts`** — Suite unit & regression test yang memverifikasi arsitektur **33rd ADT Registry: ResourceGroupDescriptor & ClassifiedDomainGraph**:
   - **33rd ADT Registry (`ResourceGroupKind`, `RESOURCE_GROUP_REGISTRY`, `matchResourceGroup`)**:

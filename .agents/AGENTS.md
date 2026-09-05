@@ -263,6 +263,27 @@ Pindahkan invariant ke dalam Type System:
   - **True Dataflow (Direct Pipelining)**: Mengalirkan data langsung ke target Emitter / Sink / Writer (`lowerCrud(group, sink)`), atau mentransformasikan sequence tanpa alokasi wadah perantara.
   - **Final Contract Aggregation**: Penggabungan sah hanya terjadi di boundary terluar jika kontrak artefak domain memang berupa berkas kode tunggal (`string` / file artifact).
 
+#### Pure Dataflow Standard (Single Stream, Single Pass, Zero Branching):
+- **Aksioma: "Kalo ada `if`, data flow belum lengkap"**:
+  - Munculnya kondisional branching (`if`, `switch`, atau ternary penyelidik jenis) di hilir (downstream compiler passes, generator, lowerer) adalah tanda cacat arsitektur: data yang dialirkan ke tahap tersebut belum cukup terstruktur atau belum membawa kapabilitas yang utuh sejak Origin Boundary.
+  - Aliran data murni tidak bertanya *"Kamu ini jenis apa?"* di tengah jalan, melainkan setiap item sudah terpolarisasi atau membawa kapabilitas mandiri untuk memproyeksikan dirinya ke tahap berikutnya.
+- **Aksioma: "Banyak `for` berurutan sama saja dengan `if`"**:
+  - Mengurai satu koleksi domain menjadi serangkaian loop imperatif terpisah (`for (const c of crud) ...`, `for (const s of singleton) ...`, `for (const u of custom) ...`) hanyalah branching yang dibuka kedoknya (*unrolled control-flow branching*).
+  - Anti-pattern ini merusak kohesi dan urutan domain alami (*natural domain ordering*), serta memicu perulangan parsial yang rentan *state leakage*.
+- **Persamaan Dataflow Murni (The Single Pipeline Equation)**:
+  $$\text{Stream}(\text{Domain}) \xrightarrow{\text{yield* } x.\text{lower}()} \text{Stream}(\text{Output Lines}) \xrightarrow{\text{write}()} \text{File}$$
+  Standar emas transformasi hilir adalah:
+  **1 Stream, 1 Pass (`for`), 0 `if`, 0 `switch`, 0 multiple `for`**.
+  ```typescript
+  // Target Pure Dataflow di Generator/Emitter:
+  for (const group of groups) {
+    yield* group.lowerHookConfig(); // group memegang self-projecting capability
+  }
+  ```
+- **Pemberian Makna pada `yield*` vs `const`**:
+  - `const`: Digunakan untuk *domain snapshots* atau state konseptual yang bermakna, deterministik, dan immutable (misalnya kontrak, opsi, konfigurasi).
+  - `yield*`: Digunakan untuk *stream delegation* langsung antar-generator tanpa mengalokasikan wadah/buffer perantara ("ember penampung sementara"). Mengalirkan data dari pipa ke pipa langsung ke Emitter / Sink.
+
 ---
 
 ## Pola Bug yang Sering Muncul

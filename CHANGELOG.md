@@ -5,7 +5,23 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Refactored
-- **Modularisasi Monolitik `StaticLaravelScanner.ts` & `LaravelSourceLexer.ts`**:
+- **Modularisasi Monolitik `StaticLaravelScanner.ts`, `LaravelSourceLexer.ts`, & `route.ts`**:
+  - Memecah berkas monolitik `packages/core/src/types/route.ts` (7.054 baris, 492 simbol export, 32 ADT Registries) ke dalam 13 modul domain kohesif di `packages/core/src/types/domain/`:
+    - `base.ts`: Domain intent configs, `FrontendConfig`, `PageConfig`, `RouteManifest`, `ResourceRouteGroup`.
+    - `expressions.ts`: `ResourceExpressionKind` (15 AST variants), factory & matchers, `ResourceFieldDescriptor`.
+    - `database.ts`: `DatabaseColumnKind`, `EloquentRelationType`, `EloquentCastKind`, `ModelKeyType`, `ParsedColumn`, `ParsedModel`.
+    - `responses.ts`: `ResponseShape`, `ResponseDescriptor`, `PaginatedEnvelopeDescriptor`, `SdkResponseKind`, `SdkResponseResolution`.
+    - `parameters.ts`: `RouteParameterType`, `RouteParameterLocation`, `PathParameterDescriptor`, `QueryParameterDescriptor`.
+    - `validation.ts`: `ValidationRuleKind`, `ValidationRuleNode`, concrete rule nodes, `ValidationFieldNode`, `RouteSchemaPayload`.
+    - `security.ts`: `HttpMethod`, `RouteActionKind`, `SecuritySchemeKind`, `HttpStatusCode`, `RequestContentType`, `HttpErrorKind`, `RoutePolicyKind`, `RouteSecurityDescriptor`.
+    - `lifecycle.ts`: `CrudRole`, `PageEndpointKind`, `RouteHookKind`, `RoutePayloadMode`, `InvalidationTargetKind`, `RouteCacheInvalidationDescriptor`, `RouteExecutionSignature`.
+    - `channels.ts`: `BroadcastChannelKind`, `BroadcastChannelDescriptor`, public/private/presence channel descriptors.
+    - `routes.ts`: `ParsedRoute`, `RouteDescriptor`, `classifyRoute`, `RouteVisitor`, `RouteCollectionRegistry`.
+    - `provenance.ts`: `DataProvenanceKind`, `ProvenanceSourceRef`, `EndpointProvenanceDescriptor`.
+    - `contracts.ts`: `EndpointContract`, `ScannedEndpointContract`, `EndpointRequestContract`, `EndpointResponseContract`.
+    - `resourceGroups.ts`: 33rd ADT `ResourceGroupKind`, Crud/Singleton/Custom resource group descriptors, `ResourceGroupGraph`.
+    - `index.ts`: Unified barrel re-exporting all 13 domain modules.
+  - Merampingkan `route.ts` dari 7.054 baris menjadi 5 baris (`export * from './domain';`) dengan **100% backward compatibility** tanpa ada breaking change.
   - Memecah berkas monolitik `StaticLaravelScanner.ts` (4.108 baris) menjadi 2 sub-direktori kohesif:
     - `packages/core/src/compiler/scanner/descriptors/`: AST descriptors (`types.ts`, `validationDescriptors.ts`, `routeDescriptors.ts`, `resourceDescriptors.ts`, `modelDescriptors.ts`, `channelDescriptors.ts`, `requestDescriptors.ts`, `manifestDescriptors.ts`).
     - `packages/core/src/compiler/scanner/subscanners/`: Domain scanners & passes (`ChannelScanner.ts`, `ControllerScanner.ts`, `ResourceScanner.ts`, `FormRequestScanner.ts`, `ModelScanner.ts`, `RouteScanner.ts`, `InvalidationResolver.ts`, `TypeDeriver.ts`, `scannerUtils.ts`).

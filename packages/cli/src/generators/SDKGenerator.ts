@@ -20,21 +20,16 @@ export class SDKGenerator {
 
     // Authoritative SSOT from EndpointContract
     const resolveResponseInfo = (contract: EndpointContract, keyName: string): { type: string, schema: string, mapper: string | null } => {
-      let schemaStr = 'undefined'
-      if (contract.response?.success?.validatorName && usesZod) {
-        schemaStr = contract.response.success.validatorName
-      }
+      const success = contract.response.success
+      const schemaStr = (usesZod && success.validatorName !== 'undefined') ? success.validatorName : 'undefined'
 
-      if (contract.response?.success?.readTypeName) {
-        const isVoid = contract.response.success.readTypeName === 'void'
-        const typeStr = isVoid ? 'void' : `Read.${contract.response.success.readTypeName}`
-        const mapperName = contract.response.success.mapperName
-        const mapperStr = (!mapperName || mapperName === 'identity') ? null : mapperName
-        if (mapperStr) usedMappers.add(mapperStr)
-        return { type: typeStr, schema: schemaStr, mapper: mapperStr }
-      }
-
-      return { type: 'unknown', schema: schemaStr, mapper: null }
+      const isVoid = success.readTypeName === 'void'
+      const isUnknown = success.readTypeName === 'unknown'
+      const typeStr = isVoid ? 'void' : isUnknown ? 'unknown' : `Read.${success.readTypeName}`
+      const mapperName = success.mapperName
+      const mapperStr = (!mapperName || mapperName === 'identity') ? null : mapperName
+      if (mapperStr) usedMappers.add(mapperStr)
+      return { type: typeStr, schema: schemaStr, mapper: mapperStr }
     }
 
     // Generate api object body
@@ -50,11 +45,12 @@ export class SDKGenerator {
 
         const respInfo = resolveResponseInfo(route.contract, KeyName)
 
-        if (route.contract?.provenance) {
+        const provenance = route.contract.provenance
+        if (provenance) {
           apiBodyLines.push(`    /**`)
-          apiBodyLines.push(`     * @provenance ${route.contract.provenance.summary}`)
-          if (route.contract.provenance.route?.file) {
-            apiBodyLines.push(`     * @see ${route.contract.provenance.route.file}#L${route.contract.provenance.route.line}`)
+          apiBodyLines.push(`     * @provenance ${provenance.summary}`)
+          if (provenance.route?.file) {
+            apiBodyLines.push(`     * @see ${provenance.route.file}#L${provenance.route.line}`)
           }
           apiBodyLines.push(`     */`)
         }

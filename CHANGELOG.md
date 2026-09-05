@@ -5,6 +5,11 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **`correctByConstructionSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi arsitektur **Rule 12: Typed, Contract-Driven, Correct-by-Construction Dataflow**:
+  - **Eliminasi Defensive Chaining pada `SDKGenerator.ts`**: Mengeliminasi seluruh defensive optional chaining `?.` dan pemeriksaan `contract.response?.success?.readTypeName` dengan langsung mengonsumsi non-nullable complete contract SSOT.
+  - **Pure Catamorphism Action Normalization pada `HookGenerator.ts`**: Normalisasi action key CRUD (`update`, `remove`) kini 100% dipandu oleh pure catamorphism `matchCrudRole` tanpa percabangan if string manual.
+  - **Zero Regex Fallback pada `ConstantsGenerator.ts`**: Mengeliminasi fallback regex `matchAll` untuk URL parameter dan konsumsi langsung `contract.request.pathParameters` dan `contract.runtimePath`.
+  - **Origin Boundary Path Parameter Invariant pada `route.ts`**: Penjaminan normalisasi `pathParameters` dan `runtimePath` sejak `ScannedEndpointContract.fromRoute(route)` sehingga downstream generator tidak lagi perlu menebak atau merekonstruksi path segment.
 - **`verifiedDataPipelineSSOT.spec.ts`** — Suite unit & contract test yang memverifikasi pencapaian **100% Invariant-Driven / Verified Data Pipeline**:
   - **Stage 2: Validation Fail-Fast Gatekeeper**:
     - `DiagnosticCategory` discriminator (`Syntax`, `Schema`, `TypeMismatch`, `UnresolvedReference`, `InvariantViolation`) dengan mapped registry `DIAGNOSTIC_CATEGORY_REGISTRY` dan `matchDiagnosticCategory` catamorphism.

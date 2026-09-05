@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { RouteManifest, matchCrudRole } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toTypeName } from './names'
@@ -41,27 +41,15 @@ export class HookGenerator {
         return contractType
       }
 
-      const resolveResponseType = (route?: any): string => {
+      const resolveResponseType = (route?: ClassifiedRoute): string => {
         if (!route) return 'never'
 
-        // 1. Authoritative SSOT from EndpointContract / ResponseDescriptor
-        const readType = route.contract?.response?.success?.readTypeName ?? route.raw?.response?.readTypeName
-        if (readType) {
-          if (readType !== 'void' && readType !== 'unknown') {
-            importedTypes.add(readType)
-          }
-          return readType
+        // Authoritative SSOT from guaranteed EndpointContract
+        const readType = route.contract.response.success.readTypeName
+        if (readType && readType !== 'void' && readType !== 'unknown') {
+          importedTypes.add(readType)
         }
-
-        // 2. Deterministic fallback for legacy plain JSON manifests
-        const rawResp = route.raw?.response
-        if (!rawResp) return 'never'
-        const rawTarget = rawResp.resource || rawResp.model || rawResp.resolved?.resource || rawResp.resolved?.model
-        const base = rawTarget ? toTypeName(rawTarget) : toTypeName(route.groupName)
-        const isCollection = Boolean(rawResp.collection ?? rawResp.resolved?.collection)
-        const fallbackReadType = isCollection ? `${base}Index` : `${base}Show`
-        importedTypes.add(fallbackReadType)
-        return fallbackReadType
+        return readType || 'never'
       }
 
       const pushUnique = (items: string[], item: string): void => {
@@ -219,9 +207,14 @@ export class HookGenerator {
       blockLines.push(``)
       blockLines.push(`    queryKey: QueryKey.${groupName},`)
       const toNormalizedActionKey = (route: ClassifiedRoute): string => {
-        if (route.crudRole === 'update') return 'update'
-        if (route.crudRole === 'delete') return 'remove'
-        return route.actionName
+        return matchCrudRole(route.crudRole, {
+          update: () => 'update',
+          delete: () => 'remove',
+          index: () => route.actionName,
+          show: () => route.actionName,
+          create: () => route.actionName,
+          custom: () => route.actionName
+        })
       }
       const actionKeyLines = resource.all
         .map(route => `      ${toNormalizedActionKey(route)}: QueryKey.${groupName}.${route.actionName},`)

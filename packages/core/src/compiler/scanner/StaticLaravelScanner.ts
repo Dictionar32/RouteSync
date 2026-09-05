@@ -472,7 +472,10 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         const resolvedActionKind = actionKind ?? (method.toUpperCase() === 'GET' ? 'read' : 'create');
         const resolvedIsMutating = isMutating ?? (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD');
         const resolvedActionName = actionName ?? (resolvedIsMutating ? 'mutate' : 'query');
-        const resolvedGroupName = groupName ?? toCamelCase(resourceName);
+        const fallbackResource = (resourceName && resourceName.length > 0)
+            ? resourceName
+            : (path.replace(/^\/(?:api\/)?(?:v\d+\/)?/, '').split('/')[0] || 'app');
+        const resolvedGroupName = groupName ?? toCamelCase(fallbackResource);
         const resolvedRuntimePath = runtimePath ?? path.replace(/\{([^}]+)\}/g, ':$1');
         const resolvedHookKind = hookKind ?? (resolvedIsMutating ? RouteHookKind.Mutation : RouteHookKind.Query);
         const resolvedInvalidation = invalidation ?? ScannedRouteCacheInvalidationDescriptor.none();
@@ -484,7 +487,7 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         const resolvedParameters = parameters.length > 0 ? parameters : resolvedPathParams;
         const resolvedHasPayload = resolvedIsMutating || resolvedHookKind === RouteHookKind.Mutation || (schema?.rules && schema.rules.length > 0);
         const resolvedSignature = executionSignature ?? ScannedRouteExecutionSignature.create(resolvedHookKind, resolvedParameters.length > 0, !!resolvedHasPayload);
-        const resolvedResponse = response ?? new ResourceResponseDescriptor({ resourceName: `${resourceName.charAt(0).toUpperCase() + resourceName.slice(1)}Resource`, shape: 'single' });
+        const resolvedResponse = response ?? new ResourceResponseDescriptor({ resourceName: `${fallbackResource.charAt(0).toUpperCase() + fallbackResource.slice(1)}Resource`, shape: 'single' });
 
         const upperMethod = method.toUpperCase() as HttpMethod;
         let detectedContentType: RequestContentType = RequestContentType.Json;
@@ -525,10 +528,10 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         }
 
         return new ScannedRouteDescriptor({
-            name: name ?? `${resourceName}.${resolvedActionName}`,
+            name: name ?? `${fallbackResource}.${resolvedActionName}`,
             method,
             path,
-            resourceName,
+            resourceName: fallbackResource,
             actionName: resolvedActionName,
             actionKind: resolvedActionKind,
             isMutating: resolvedIsMutating,
@@ -561,15 +564,16 @@ export class ScannedRouteDescriptor implements ParsedRoute {
         const params: ScannedRouteParams = (!rawParams || !rawParams.parameters || !rawParams.response || !rawParams.invalidation || !rawParams.executionSignature)
             ? (ScannedRouteDescriptor.create(rawParams ?? {}) as any)
             : rawParams;
-        this.name = params.name ?? `${params.resourceName}.${params.actionName}`;
+        const resName = params.resourceName || 'App';
+        this.resourceName = resName;
+        this.name = params.name ?? `${resName}.${params.actionName}`;
         this.method = params.method.toUpperCase() as HttpMethod;
         this.path = params.path;
-        this.resourceName = params.resourceName;
         this.actionName = params.actionName;
         this.groupName = params.groupName;
         this.crudRole = params.crudRole;
         this.runtimePath = params.runtimePath;
-        this.responseTypeName = `${toPascalCase(params.resourceName)}Response`;
+        this.responseTypeName = `${toPascalCase(resName)}Response`;
         this.actionKind = params.actionKind;
         this.isMutating = params.isMutating;
         this.hookKind = params.hookKind;

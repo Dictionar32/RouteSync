@@ -6051,9 +6051,25 @@ export class ScannedEndpointContract implements EndpointContract {
 
     const hasBody = Boolean(route.schema?.rules && (Array.isArray(route.schema.rules) ? route.schema.rules.length > 0 : Object.keys(route.schema.rules).length > 0));
 
+    const normalizedPathParams: readonly RouteParameter[] = route.pathParameters ?? (
+      route.path
+        ? [...route.path.matchAll(/\{([^}]+)\}/g)].map(m => {
+            const rawParam = m[1].split(':')[0];
+            const isId = rawParam.toLowerCase() === 'id' || rawParam.toLowerCase().endsWith('id');
+            const paramType = isId ? RouteParameterType.Number : RouteParameterType.String;
+            return {
+              name: rawParam,
+              propertyName: rawParam,
+              type: paramType,
+              in: 'path' as const
+            };
+          })
+        : []
+    );
+
     const requestContract: EndpointRequestContract = {
       hasBody,
-      pathParameters: route.pathParameters ?? [],
+      pathParameters: normalizedPathParams,
       queryParameters: route.queryParameters ?? [],
       contentType: route.requestContentType,
       schema: route.schema,
@@ -6121,12 +6137,16 @@ export class ScannedEndpointContract implements EndpointContract {
       response: responseSource
     });
 
+    const normalizedRuntimePath = route.runtimePath ?? (
+      route.path ? route.path.replace(/\{([^}/]+)\}/g, ':$1') : '/'
+    );
+
     return new ScannedEndpointContract({
       id: route.name || `${group}.${action}`,
       name: action,
       method: route.method as HttpMethod,
       path: route.path,
-      runtimePath: route.runtimePath ?? route.path,
+      runtimePath: normalizedRuntimePath,
       groupName: group,
       resourceName: route.resourceName ?? group,
       crudRole,

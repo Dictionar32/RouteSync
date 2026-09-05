@@ -1,4 +1,4 @@
-import { RouteManifest, RouteParameterType, ROUTE_PARAMETER_TYPE_REGISTRY, ValidationRuleKind } from '@routesync/core'
+import { RouteManifest, RouteParameterType, ROUTE_PARAMETER_TYPE_REGISTRY, ValidationRuleKind, getRouteContract } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 
@@ -66,39 +66,22 @@ export class ConstantsGenerator {
 
     lines.push(`export const API_ENDPOINTS = {`)
     for (const { route, endpointKey } of routeKeys) {
-      let pathParams: Array<{ name: string; propertyName: string; type: string }> = (route.pathParameters ?? []).map(p => ({
+      const contract = route.contract ?? getRouteContract(route)
+      const hasExplicitParams = Boolean(route.pathParameters && route.pathParameters.length > 0)
+      const pathParams = contract.request.pathParameters.map(p => ({
         name: p.name,
         propertyName: p.propertyName,
-        type: ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType
+        type: hasExplicitParams ? ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType : 'string | number'
       }))
 
-      if (pathParams.length === 0) {
-        const matches = [...route.path.matchAll(/\{([^}]+)\}/g)]
-        if (matches.length > 0) {
-          pathParams = matches.map(m => {
-            const rawParam = m[1].split(':')[0]
-            return {
-              name: rawParam,
-              propertyName: rawParam,
-              type: 'string | number'
-            }
-          })
-        }
-      }
-
-      let normalizedPath = route.runtimePath || route.path
-      if (!normalizedPath.startsWith('/')) {
-        normalizedPath = '/' + normalizedPath
-      }
+      const normalizedPath = contract.runtimePath.startsWith('/')
+        ? contract.runtimePath
+        : '/' + contract.runtimePath
 
       if (pathParams.length > 0) {
         let bodyTemplate = normalizedPath
         for (const p of pathParams) {
-          if (bodyTemplate.includes(`:${p.name}`)) {
-            bodyTemplate = bodyTemplate.split(`:${p.name}`).join('${' + p.propertyName + '}')
-          } else if (bodyTemplate.includes(`{${p.name}}`)) {
-            bodyTemplate = bodyTemplate.split(`{${p.name}}`).join('${' + p.propertyName + '}')
-          }
+          bodyTemplate = bodyTemplate.split(`:${p.name}`).join('${' + p.propertyName + '}')
         }
         if (!bodyTemplate.startsWith('/')) {
           bodyTemplate = '/' + bodyTemplate
@@ -125,6 +108,7 @@ export class ConstantsGenerator {
       const cleanPath = route.path.replace(/^\/|\/$/g, '')
       if (!cleanPath || addedRoutes.has('/' + cleanPath)) continue
 
+      const contract = route.contract ?? getRouteContract(route)
       const segments = cleanPath.split('/')
       const routeKey = segments.map(s => {
         if ((s.startsWith('{') && s.endsWith('}')) || s.startsWith(':')) {
@@ -133,34 +117,17 @@ export class ConstantsGenerator {
         return s.toUpperCase().replace(/[^A-Z0-9]/g, '_')
       }).filter(Boolean).join('_')
 
-      let pathParams: Array<{ name: string; propertyName: string; type: string }> = (route.pathParameters ?? []).map(p => ({
+      const hasExplicitParams = Boolean(route.pathParameters && route.pathParameters.length > 0)
+      const pathParams = contract.request.pathParameters.map(p => ({
         name: p.name,
         propertyName: p.propertyName,
-        type: ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType
+        type: hasExplicitParams ? ROUTE_PARAMETER_TYPE_REGISTRY[p.type].tsType : 'string | number'
       }))
 
-      if (pathParams.length === 0) {
-        const matches = [...route.path.matchAll(/\{([^}]+)\}/g)]
-        if (matches.length > 0) {
-          pathParams = matches.map(m => {
-            const rawParam = m[1].split(':')[0]
-            return {
-              name: rawParam,
-              propertyName: rawParam,
-              type: 'string | number'
-            }
-          })
-        }
-      }
-
       if (pathParams.length > 0) {
-        let bodyTemplate = route.runtimePath || route.path
+        let bodyTemplate = contract.runtimePath.startsWith('/') ? contract.runtimePath : '/' + contract.runtimePath
         for (const p of pathParams) {
-          if (bodyTemplate.includes(`:${p.name}`)) {
-            bodyTemplate = bodyTemplate.split(`:${p.name}`).join('${' + p.propertyName + '}')
-          } else if (bodyTemplate.includes(`{${p.name}}`)) {
-            bodyTemplate = bodyTemplate.split(`{${p.name}}`).join('${' + p.propertyName + '}')
-          }
+          bodyTemplate = bodyTemplate.split(`:${p.name}`).join('${' + p.propertyName + '}')
         }
         if (!bodyTemplate.startsWith('/')) {
           bodyTemplate = '/' + bodyTemplate

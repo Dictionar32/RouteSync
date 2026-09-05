@@ -1,7 +1,138 @@
-import { RouteManifest, matchCrudRole, matchResourceGroup } from '@routesync/core'
+import {
+  RouteManifest,
+  matchCrudRole,
+  ResourceGroupKind,
+  FullCrudResourceGroupDescriptor,
+  ReadOnlyCrudResourceGroupDescriptor,
+  FlexibleCrudResourceGroupDescriptor,
+  SingletonResourceGroupDescriptor,
+  CustomResourceGroupDescriptor
+} from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { ClassifiedRoute, classifyDomainGraph, ClassifiedDomainGraph } from './route-classifier'
+
+function lowerFullCrudCacheLines(
+  group: FullCrudResourceGroupDescriptor<ClassifiedRoute>,
+  addRouteInvalidations: (route: ClassifiedRoute, invs: string[]) => void
+): string[] {
+  const { groupName, listKeyFn, detailKeyFn } = group
+  const cacheLines: string[] = [
+    `      list: QueryKey.${groupName}.${listKeyFn},`,
+    `      detail: QueryKey.${groupName}.${detailKeyFn},`
+  ]
+
+  const createInvs: string[] = [`          QueryKey.${groupName}.${listKeyFn},`]
+  addRouteInvalidations(group.create, createInvs)
+  cacheLines.push(`      create: {`)
+  cacheLines.push(`        invalidate: [`)
+  cacheLines.push(createInvs.join('\n'))
+  cacheLines.push(`        ],`)
+  cacheLines.push(`      },`)
+
+  const updateInvs: string[] = [
+    `          QueryKey.${groupName}.${listKeyFn},`,
+    `          QueryKey.${groupName}.${detailKeyFn},`
+  ]
+  addRouteInvalidations(group.update, updateInvs)
+  cacheLines.push(`      update: {`)
+  cacheLines.push(`        invalidate: [`)
+  cacheLines.push(updateInvs.join('\n'))
+  cacheLines.push(`        ],`)
+  cacheLines.push(`      },`)
+
+  const deleteInvs: string[] = [`          QueryKey.${groupName}.${listKeyFn},`]
+  addRouteInvalidations(group.delete, deleteInvs)
+  cacheLines.push(`      remove: {`)
+  cacheLines.push(`        invalidate: [`)
+  cacheLines.push(deleteInvs.join('\n'))
+  cacheLines.push(`        ],`)
+  cacheLines.push(`      },`)
+
+  return cacheLines
+}
+
+function lowerReadOnlyCrudCacheLines(
+  group: ReadOnlyCrudResourceGroupDescriptor<ClassifiedRoute>
+): string[] {
+  const { groupName, listKeyFn, detailKeyFn } = group
+  return [
+    `      list: QueryKey.${groupName}.${listKeyFn},`,
+    `      detail: QueryKey.${groupName}.${detailKeyFn},`
+  ]
+}
+
+function lowerFlexibleCrudCacheLines(
+  group: FlexibleCrudResourceGroupDescriptor<ClassifiedRoute>,
+  addRouteInvalidations: (route: ClassifiedRoute, invs: string[]) => void
+): string[] {
+  const { groupName, listKeyFn, detailKeyFn } = group
+  const cacheLines: string[] = [
+    `      list: QueryKey.${groupName}.${listKeyFn},`,
+    `      detail: QueryKey.${groupName}.${detailKeyFn},`
+  ]
+
+  if (group.create.available) {
+    const invs: string[] = [`          QueryKey.${groupName}.${listKeyFn},`]
+    addRouteInvalidations(group.create.route, invs)
+    cacheLines.push(`      create: {`)
+    cacheLines.push(`        invalidate: [`)
+    cacheLines.push(invs.join('\n'))
+    cacheLines.push(`        ],`)
+    cacheLines.push(`      },`)
+  }
+  if (group.update.available) {
+    const invs: string[] = [
+      `          QueryKey.${groupName}.${listKeyFn},`,
+      `          QueryKey.${groupName}.${detailKeyFn},`
+    ]
+    addRouteInvalidations(group.update.route, invs)
+    cacheLines.push(`      update: {`)
+    cacheLines.push(`        invalidate: [`)
+    cacheLines.push(invs.join('\n'))
+    cacheLines.push(`        ],`)
+    cacheLines.push(`      },`)
+  }
+  if (group.delete.available) {
+    const invs: string[] = [`          QueryKey.${groupName}.${listKeyFn},`]
+    addRouteInvalidations(group.delete.route, invs)
+    cacheLines.push(`      remove: {`)
+    cacheLines.push(`        invalidate: [`)
+    cacheLines.push(invs.join('\n'))
+    cacheLines.push(`        ],`)
+    cacheLines.push(`      },`)
+  }
+
+  return cacheLines
+}
+
+function lowerSingletonCacheLines(
+  group: SingletonResourceGroupDescriptor<ClassifiedRoute>,
+  addMutationRouteSlot: (actionKey: string, route: ClassifiedRoute, defaultInvs: string[]) => void
+): void {
+  const indexRoute = group.all.find(r => r.crudRole === 'index')
+  const defaultInvs = indexRoute ? [`          QueryKey.${group.groupName}.${group.listKeyFn},`] : []
+  const createRoute = group.all.find(r => r.crudRole === 'create')
+  const updateRoute = group.all.find(r => r.crudRole === 'update')
+  const deleteRoute = group.all.find(r => r.crudRole === 'delete')
+  if (createRoute) addMutationRouteSlot('create', createRoute, defaultInvs)
+  if (updateRoute) addMutationRouteSlot('update', updateRoute, defaultInvs)
+  if (deleteRoute) addMutationRouteSlot('remove', deleteRoute, defaultInvs)
+}
+
+function lowerCustomCacheLines(
+  group: CustomResourceGroupDescriptor<ClassifiedRoute>,
+  addMutationRouteSlot: (actionKey: string, route: ClassifiedRoute, defaultInvs: string[]) => void
+): void {
+  const indexRoute = group.all.find(r => r.crudRole === 'index')
+  const defaultInvs = indexRoute ? [`          QueryKey.${group.groupName}.${group.listKeyFn},`] : []
+  const createRoute = group.all.find(r => r.crudRole === 'create')
+  const updateRoute = group.all.find(r => r.crudRole === 'update')
+  const deleteRoute = group.all.find(r => r.crudRole === 'delete')
+  if (createRoute) addMutationRouteSlot('create', createRoute, defaultInvs)
+  if (updateRoute) addMutationRouteSlot('update', updateRoute, defaultInvs)
+  if (deleteRoute) addMutationRouteSlot('remove', deleteRoute, defaultInvs)
+}
 
 export class HookGenerator {
   static async generate(
@@ -36,7 +167,7 @@ export class HookGenerator {
       })
     }
 
-    for (const group of graph.resourceGroups) {
+    for (const group of graph.resourceGroupGraph.all) {
       const { groupName } = group
       for (const t of group.types.importedTypes) importedTypes.add(t)
       for (const t of group.types.contractImportedTypes) contractImportedTypes.add(t)
@@ -78,97 +209,24 @@ export class HookGenerator {
         }
       }
 
-      matchResourceGroup(group, {
-        full_crud: (fg) => {
-          cacheLines.push(`      list: QueryKey.${groupName}.${fg.listKeyFn},`)
-          cacheLines.push(`      detail: QueryKey.${groupName}.${fg.detailKeyFn},`)
-
-          const createInvs: string[] = [`          QueryKey.${groupName}.${fg.listKeyFn},`]
-          addRouteInvalidations(fg.create, createInvs)
-          cacheLines.push(`      create: {`)
-          cacheLines.push(`        invalidate: [`)
-          cacheLines.push(createInvs.join('\n'))
-          cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-
-          const updateInvs: string[] = [
-            `          QueryKey.${groupName}.${fg.listKeyFn},`,
-            `          QueryKey.${groupName}.${fg.detailKeyFn},`
-          ]
-          addRouteInvalidations(fg.update, updateInvs)
-          cacheLines.push(`      update: {`)
-          cacheLines.push(`        invalidate: [`)
-          cacheLines.push(updateInvs.join('\n'))
-          cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-
-          const deleteInvs: string[] = [`          QueryKey.${groupName}.${fg.listKeyFn},`]
-          addRouteInvalidations(fg.delete, deleteInvs)
-          cacheLines.push(`      remove: {`)
-          cacheLines.push(`        invalidate: [`)
-          cacheLines.push(deleteInvs.join('\n'))
-          cacheLines.push(`        ],`)
-          cacheLines.push(`      },`)
-        },
-        read_only_crud: (rg) => {
-          cacheLines.push(`      list: QueryKey.${groupName}.${rg.listKeyFn},`)
-          cacheLines.push(`      detail: QueryKey.${groupName}.${rg.detailKeyFn},`)
-        },
-        flexible_crud: (flg) => {
-          cacheLines.push(`      list: QueryKey.${groupName}.${flg.listKeyFn},`)
-          cacheLines.push(`      detail: QueryKey.${groupName}.${flg.detailKeyFn},`)
-          if (flg.create.available) {
-            const invs: string[] = [`          QueryKey.${groupName}.${flg.listKeyFn},`]
-            addRouteInvalidations(flg.create.route, invs)
-            cacheLines.push(`      create: {`)
-            cacheLines.push(`        invalidate: [`)
-            cacheLines.push(invs.join('\n'))
-            cacheLines.push(`        ],`)
-            cacheLines.push(`      },`)
-          }
-          if (flg.update.available) {
-            const invs: string[] = [
-              `          QueryKey.${groupName}.${flg.listKeyFn},`,
-              `          QueryKey.${groupName}.${flg.detailKeyFn},`
-            ]
-            addRouteInvalidations(flg.update.route, invs)
-            cacheLines.push(`      update: {`)
-            cacheLines.push(`        invalidate: [`)
-            cacheLines.push(invs.join('\n'))
-            cacheLines.push(`        ],`)
-            cacheLines.push(`      },`)
-          }
-          if (flg.delete.available) {
-            const invs: string[] = [`          QueryKey.${groupName}.${flg.listKeyFn},`]
-            addRouteInvalidations(flg.delete.route, invs)
-            cacheLines.push(`      remove: {`)
-            cacheLines.push(`        invalidate: [`)
-            cacheLines.push(invs.join('\n'))
-            cacheLines.push(`        ],`)
-            cacheLines.push(`      },`)
-          }
-        },
-        singleton: (sg) => {
-          const indexRoute = sg.all.find(r => r.crudRole === 'index')
-          const defaultInvs = indexRoute ? [`          QueryKey.${groupName}.${sg.listKeyFn},`] : []
-          const createRoute = sg.all.find(r => r.crudRole === 'create')
-          const updateRoute = sg.all.find(r => r.crudRole === 'update')
-          const deleteRoute = sg.all.find(r => r.crudRole === 'delete')
-          if (createRoute) addMutationRouteSlot('create', createRoute, defaultInvs)
-          if (updateRoute) addMutationRouteSlot('update', updateRoute, defaultInvs)
-          if (deleteRoute) addMutationRouteSlot('remove', deleteRoute, defaultInvs)
-        },
-        custom: (cg) => {
-          const indexRoute = cg.all.find(r => r.crudRole === 'index')
-          const defaultInvs = indexRoute ? [`          QueryKey.${groupName}.${cg.listKeyFn},`] : []
-          const createRoute = cg.all.find(r => r.crudRole === 'create')
-          const updateRoute = cg.all.find(r => r.crudRole === 'update')
-          const deleteRoute = cg.all.find(r => r.crudRole === 'delete')
-          if (createRoute) addMutationRouteSlot('create', createRoute, defaultInvs)
-          if (updateRoute) addMutationRouteSlot('update', updateRoute, defaultInvs)
-          if (deleteRoute) addMutationRouteSlot('remove', deleteRoute, defaultInvs)
-        }
-      })
+      // Pure typed dataflow lowering per domain variant (0 matchResourceGroup overhead)
+      switch (group.kind) {
+        case ResourceGroupKind.FullCrud:
+          cacheLines.push(...lowerFullCrudCacheLines(group, addRouteInvalidations))
+          break
+        case ResourceGroupKind.ReadOnlyCrud:
+          cacheLines.push(...lowerReadOnlyCrudCacheLines(group))
+          break
+        case ResourceGroupKind.FlexibleCrud:
+          cacheLines.push(...lowerFlexibleCrudCacheLines(group, addRouteInvalidations))
+          break
+        case ResourceGroupKind.Singleton:
+          lowerSingletonCacheLines(group, addMutationRouteSlot)
+          break
+        case ResourceGroupKind.Custom:
+          lowerCustomCacheLines(group, addMutationRouteSlot)
+          break
+      }
 
       for (const route of group.all) {
         if (route.method === 'GET') continue

@@ -1,7 +1,36 @@
-import { RouteManifest, matchResourceGroup } from '@routesync/core'
+import {
+  RouteManifest,
+  CrudResourceGroupDescriptor,
+  SingletonResourceGroupDescriptor,
+  CustomResourceGroupDescriptor
+} from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { classifyDomainGraph, ClassifiedDomainGraph, ClassifiedRoute } from './route-classifier'
+
+function lowerCrudQueryKeyBlock(
+  group: CrudResourceGroupDescriptor<ClassifiedRoute>,
+  actionKeyLines: readonly string[]
+): readonly string[] {
+  return [
+    `  ${group.groupName}: {`,
+    `    ...createBaseQueryKey<typeof Entity.${group.keyName}, ${group.primaryKeyType}>(Entity.${group.keyName}),`,
+    ...actionKeyLines,
+    `  },`
+  ]
+}
+
+function lowerNonCrudQueryKeyBlock(
+  group: SingletonResourceGroupDescriptor<ClassifiedRoute> | CustomResourceGroupDescriptor<ClassifiedRoute>,
+  actionKeyLines: readonly string[]
+): readonly string[] {
+  return [
+    `  ${group.groupName}: {`,
+    `    all: () => [Entity.${group.keyName}] as const,`,
+    ...actionKeyLines,
+    `  },`
+  ]
+}
 
 export class QueryKeyGenerator {
   static async generate(
@@ -21,7 +50,7 @@ export class QueryKeyGenerator {
     lines.push(`   ENTITY CONSTANTS`)
     lines.push(`========================= */`)
     lines.push(`export const Entity = {`)
-    for (const group of graph.resourceGroups) {
+    for (const group of graph.resourceGroupGraph.all) {
       lines.push(`  ${group.keyName}: "${group.groupName}",`)
     }
     lines.push(`} as const`)
@@ -51,10 +80,9 @@ export class QueryKeyGenerator {
 
     const backwardExports: string[] = []
 
-    for (const group of graph.resourceGroups) {
+    for (const group of graph.resourceGroupGraph.all) {
       const KEY   = group.keyName
       const Title = group.titleName
-      const idType = group.primaryKeyType
 
       backwardExports.push(`export const ${group.groupName}Keys = QueryKey.${group.groupName}`)
 
@@ -66,30 +94,12 @@ export class QueryKeyGenerator {
         return `    ${route.actionName}: () => [Entity.${KEY}, "${route.actionName}"] as const,`
       })
 
-      // 0-if catamorphic rendering via matchResourceGroup
-      const emitCrudKey = () => {
-        lines.push(`  ${group.groupName}: {`)
-        lines.push(`    ...createBaseQueryKey<typeof Entity.${KEY}, ${idType}>(Entity.${KEY}),`)
-        lines.push(...actionKeyLines)
-        lines.push(`  },`)
-      }
+      // Typed dataflow lowering: direct projection based on guaranteed domain discriminator
+      const blockLines = group.isCrud
+        ? lowerCrudQueryKeyBlock(group, actionKeyLines)
+        : lowerNonCrudQueryKeyBlock(group, actionKeyLines)
 
-      matchResourceGroup(group, {
-        crud: emitCrudKey,
-        singleton: () => {
-          lines.push(`  ${group.groupName}: {`)
-          lines.push(`    all: () => [Entity.${KEY}] as const,`)
-          lines.push(...actionKeyLines)
-          lines.push(`  },`)
-        },
-        custom: () => {
-          lines.push(`  ${group.groupName}: {`)
-          lines.push(`    all: () => [Entity.${KEY}] as const,`)
-          lines.push(...actionKeyLines)
-          lines.push(`  },`)
-        }
-      })
-
+      lines.push(...blockLines)
       lines.push(``)
     }
 

@@ -242,6 +242,10 @@ Pindahkan invariant ke dalam Type System:
 >
 > Target akhir pipeline bukan cuma *"pipeline kita selalu diperiksa"*, melainkan:
 > **"Pipeline dirancang sedemikian rupa sehingga setiap tahap hanya menerima dan menghasilkan state yang memang sah — flow sudah dipaksa oleh type contract."**
+>
+> **Bukan:** *"Bagaimana menghilangkan switch?"*  
+> **Tetapi:** *"Bagaimana membuat input ke tahap berikutnya sudah cukup terstruktur sehingga tahap tersebut tidak perlu melakukan discovery lagi?"*  
+> Itulah pergeseran dari **runtime discovery $\to$ typed dataflow**.
 
 ---
 

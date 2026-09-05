@@ -448,6 +448,8 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
 
     // 4. Partitioned Subgraphs verification (Correct-by-Construction)
     expect(graph.resourceGroupGraph).toBeDefined()
+    expect(graph.resourceGroupGraph.all).toBe(graph.resourceGroups)
+    expect(Object.isFrozen(graph.resourceGroupGraph.all)).toBe(true)
     expect(graph.resourceGroupGraph.fullCrud).toHaveLength(1)
     expect(graph.resourceGroupGraph.readOnlyCrud).toHaveLength(0)
     expect(graph.resourceGroupGraph.flexibleCrud).toHaveLength(0)

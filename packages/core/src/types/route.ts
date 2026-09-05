@@ -6913,7 +6913,7 @@ export class ScannedResourceGroupGraph<TRoute = ParsedRoute> implements Resource
     this.singleton = Object.freeze(singleton);
     this.custom = Object.freeze(custom);
     this.crud = Object.freeze(crud);
-    this.all = Object.freeze([...groups]);
+    this.all = groups;
     Object.freeze(this);
   }
 

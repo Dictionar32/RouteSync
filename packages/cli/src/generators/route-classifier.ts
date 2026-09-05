@@ -639,16 +639,18 @@ export function classifyDomainGraph(manifest: RouteManifest): ClassifiedDomainGr
     }
   }
 
+  const frozenResourceGroups = Object.freeze(resourceGroups)
+
   const resourceGroupMap = new Map<string, ResourceGroupDescriptor<ClassifiedRoute>>(
-    resourceGroups.map(group => [group.groupName, group])
+    frozenResourceGroups.map(group => [group.groupName, group])
   )
 
-  const resourceGroupGraph = ScannedResourceGroupGraph.from<ClassifiedRoute>(resourceGroups)
+  const resourceGroupGraph = ScannedResourceGroupGraph.from<ClassifiedRoute>(frozenResourceGroups)
 
   return Object.freeze({
     manifest,
     contracts: Object.freeze(classified.map(c => c.contract)),
-    resourceGroups: Object.freeze(resourceGroups),
+    resourceGroups: frozenResourceGroups,
     resourceGroupMap,
     resourceGroupGraph,
     models: Object.freeze(manifest.models ?? [])

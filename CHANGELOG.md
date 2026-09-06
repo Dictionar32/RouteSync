@@ -12,6 +12,14 @@ All notable changes to RouteSync will be documented in this file.
   - Seluruh pipeline produksi (`routesync scan`, `routesync sync`, `routesync audit`) kini 100% dipandu oleh `StaticLaravelScanner` (TypeScript static analysis murni, 0 PHP subprocess).
 
 ### Refactored
+- **Modularisasi Monolitik `TypeDeriver.ts` & Eliminasi 6x Duplikasi Heuristik Tipe**:
+  - Merampingkan `TypeDeriver.ts` dari 768 baris menjadi 48 baris (Thin Orchestrator Facade) dengan 100% backward compatibility.
+  - Memecah 2 god method ke dalam sub-modul terfokus berukuran ideal (< 300 baris):
+    - `typeDeriverUtils.ts`: Sentralisasi `resolvePrimitiveKind` (mengeliminasi 6x duplikasi pengecekan string manual `.includes('int')`, `.includes('decimal')`, dsb.) dan `resolveRouteDomain` (mengeliminasi tangga 10-tingkat `if (!rawDomain)`).
+    - `ValidationRuleFieldLowerer.ts`: Menangani lowering aturan validasi wildcard (`.*.`), primitive arrays (`.*`), dan regular fields menjadi `RequestField[]`.
+    - `RequestTypeDeriver.ts`: Mengambil alih derivasi `RequestType[]` AST streams.
+    - `SemanticTypeDeriver.ts`: Mengambil alih derivasi `ObjectType[]` AST streams untuk Resource, Inline response, dan Model.
+  - Menambahkan regression & contract test `typeDeriverModularFlowSSOT.spec.ts` (4 test passing, total 98 test files, 481 tests passing 100% GREEN).
 - **Modularisasi Monolitik `StaticLaravelScanner.ts`, `LaravelSourceLexer.ts`, & `route.ts`**:
   - Memecah 5 berkas domain yang berukuran besar (> 800 baris) ke dalam sub-modul terfokus berukuran ideal (150 – 500 baris):
     - `responses.ts` ➔ `responseShapes.ts`, `responseDescriptors.ts`, `sdkResponses.ts`.

@@ -503,7 +503,7 @@ export class ObjectType extends SemanticTypeBase {
             this.requiredProperties = requiredProperties;
             this.baseObject = baseObject;
             this.interfaces = interfaces;
-            this.annotations = annotations;
+            this.annotations = annotations ?? new Map();
 
             const rawEntries = paramsOrProperties?.entries
                 ? (typeof paramsOrProperties.entries === 'function' ? paramsOrProperties.entries() : [])

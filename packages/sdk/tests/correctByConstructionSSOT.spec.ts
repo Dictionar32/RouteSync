@@ -44,38 +44,44 @@ describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
   })
 
   it('guarantees HookGenerator normalizes action keys via pure matchCrudRole catamorphism', () => {
-    const updateRoute = new ScannedClassifiedRouteDescriptor({
-      raw: ScannedRouteDescriptor.create({ method: 'PUT', path: '/api/orders/:id' }),
-      groupName: 'orders',
-      actionName: 'put',
-      runtimePath: '/orders/:id',
-      method: 'PUT',
-      hasParams: true,
-      hasTrailingParam: true,
-      crudRole: CrudRole.Update
-    })
+    const updateRoute = ScannedClassifiedRouteDescriptor.fromRoute(
+      ScannedRouteDescriptor.create({ method: 'PUT', path: '/api/orders/:id' }),
+      {
+        groupName: 'orders',
+        actionName: 'put',
+        runtimePath: '/orders/:id',
+        method: 'PUT',
+        hasParams: true,
+        hasTrailingParam: true,
+        crudRole: CrudRole.Update
+      }
+    )
 
-    const deleteRoute = new ScannedClassifiedRouteDescriptor({
-      raw: ScannedRouteDescriptor.create({ method: 'DELETE', path: '/api/orders/:id' }),
-      groupName: 'orders',
-      actionName: 'delete',
-      runtimePath: '/orders/:id',
-      method: 'DELETE',
-      hasParams: true,
-      hasTrailingParam: true,
-      crudRole: CrudRole.Delete
-    })
+    const deleteRoute = ScannedClassifiedRouteDescriptor.fromRoute(
+      ScannedRouteDescriptor.create({ method: 'DELETE', path: '/api/orders/:id' }),
+      {
+        groupName: 'orders',
+        actionName: 'delete',
+        runtimePath: '/orders/:id',
+        method: 'DELETE',
+        hasParams: true,
+        hasTrailingParam: true,
+        crudRole: CrudRole.Delete
+      }
+    )
 
-    const showRoute = new ScannedClassifiedRouteDescriptor({
-      raw: ScannedRouteDescriptor.create({ method: 'GET', path: '/api/orders/:id' }),
-      groupName: 'orders',
-      actionName: 'getById',
-      runtimePath: '/orders/:id',
-      method: 'GET',
-      hasParams: true,
-      hasTrailingParam: true,
-      crudRole: CrudRole.Show
-    })
+    const showRoute = ScannedClassifiedRouteDescriptor.fromRoute(
+      ScannedRouteDescriptor.create({ method: 'GET', path: '/api/orders/:id' }),
+      {
+        groupName: 'orders',
+        actionName: 'getById',
+        runtimePath: '/orders/:id',
+        method: 'GET',
+        hasParams: true,
+        hasTrailingParam: true,
+        crudRole: CrudRole.Show
+      }
+    )
 
     const toNormalizedKey = (route: ScannedClassifiedRouteDescriptor) => {
       return matchCrudRole(route.crudRole, {

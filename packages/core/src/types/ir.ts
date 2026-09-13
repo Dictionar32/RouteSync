@@ -12,6 +12,7 @@
  */
 
 import { SemanticType, SemanticNode } from './semantic'
+import type { FormRequestDescriptor } from './domain'
 
 /* =========================================================
  *  TYPE IR SYSTEM - RICH TYPE REPRESENTATION
@@ -39,30 +40,197 @@ import { SemanticType, SemanticNode } from './semantic'
  * mentah) harus pakai `SemanticType | ResolvedSemanticType`, bukan
  * `SemanticType` doang.
  */
-export interface ResolvedSemanticType {
-    kind: 'primitive' | 'resource' | 'model' | 'object' | 'array' | 'union' | 'literal'
-    // primitive
-    type?: SemanticType
-    format?: string
-    // resource
-    resource?: string
-    collection?: boolean
-    // model
-    model?: string
-    // object
-    properties?: Record<string, ResolvedSemanticType>
-    // array
-    items?: ResolvedSemanticType
-    // union
-    types?: ResolvedSemanticType[]
-    // literal
-    value?: string | number | boolean
-    // dibawa dari field.resolved manifest (lihat ContractIRBuilder.buildResourceField)
-    resolved?: {
-        type?: SemanticType
-        model?: string
+export interface PrimitiveSemanticTypeIR {
+    readonly kind: 'primitive'
+    readonly type: SemanticType
+    readonly format: string | null
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
     }
 }
+
+export interface ResourceSemanticTypeIR {
+    readonly kind: 'resource'
+    readonly resource: string
+    readonly collection: boolean
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
+    }
+}
+
+export interface ModelSemanticTypeIR {
+    readonly kind: 'model'
+    readonly model: string
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
+    }
+}
+
+export interface ObjectSemanticTypeIR {
+    readonly kind: 'object'
+    readonly properties: Readonly<Record<string, ResolvedSemanticType>>
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
+    }
+}
+
+export interface ArraySemanticTypeIR {
+    readonly kind: 'array'
+    readonly items: ResolvedSemanticType
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
+    }
+}
+
+export interface UnionSemanticTypeIR {
+    readonly kind: 'union'
+    readonly types: readonly ResolvedSemanticType[]
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
+    }
+}
+
+export interface LiteralSemanticTypeIR {
+    readonly kind: 'literal'
+    readonly value: string | number | boolean
+    readonly resolved?: {
+        readonly type?: SemanticType
+        readonly model?: string
+    }
+}
+
+export type ResolvedSemanticType =
+    | PrimitiveSemanticTypeIR
+    | ResourceSemanticTypeIR
+    | ModelSemanticTypeIR
+    | ObjectSemanticTypeIR
+    | ArraySemanticTypeIR
+    | UnionSemanticTypeIR
+    | LiteralSemanticTypeIR
+
+export interface ResolvedSemanticTypeVisitor<R> {
+    readonly primitive: (type: PrimitiveSemanticTypeIR) => R
+    readonly resource: (type: ResourceSemanticTypeIR) => R
+    readonly model: (type: ModelSemanticTypeIR) => R
+    readonly object: (type: ObjectSemanticTypeIR) => R
+    readonly array: (type: ArraySemanticTypeIR) => R
+    readonly union: (type: UnionSemanticTypeIR) => R
+    readonly literal: (type: LiteralSemanticTypeIR) => R
+}
+
+export function matchResolvedSemanticType<R>(
+    type: ResolvedSemanticType,
+    visitor: ResolvedSemanticTypeVisitor<R>
+): R {
+    switch (type.kind) {
+        case 'primitive':
+            return visitor.primitive(type)
+        case 'resource':
+            return visitor.resource(type)
+        case 'model':
+            return visitor.model(type)
+        case 'object':
+            return visitor.object(type)
+        case 'array':
+            return visitor.array(type)
+        case 'union':
+            return visitor.union(type)
+        case 'literal':
+            return visitor.literal(type)
+    }
+}
+
+export const matchResolvedSemanticTypeIR = matchResolvedSemanticType
+
+export class ResolvedSemanticTypeFactory {
+    public static primitive(
+        type: SemanticType,
+        format: string | null = null,
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): PrimitiveSemanticTypeIR {
+        return Object.freeze({
+            kind: 'primitive',
+            type,
+            format,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+
+    public static resource(
+        resource: string,
+        collection = false,
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): ResourceSemanticTypeIR {
+        return Object.freeze({
+            kind: 'resource',
+            resource,
+            collection,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+
+    public static model(
+        model: string,
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): ModelSemanticTypeIR {
+        return Object.freeze({
+            kind: 'model',
+            model,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+
+    public static object(
+        properties: Readonly<Record<string, ResolvedSemanticType>>,
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): ObjectSemanticTypeIR {
+        return Object.freeze({
+            kind: 'object',
+            properties,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+
+    public static array(
+        items: ResolvedSemanticType,
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): ArraySemanticTypeIR {
+        return Object.freeze({
+            kind: 'array',
+            items,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+
+    public static union(
+        types: readonly ResolvedSemanticType[],
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): UnionSemanticTypeIR {
+        return Object.freeze({
+            kind: 'union',
+            types,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+
+    public static literal(
+        value: string | number | boolean,
+        resolved?: { readonly type?: SemanticType; readonly model?: string }
+    ): LiteralSemanticTypeIR {
+        return Object.freeze({
+            kind: 'literal',
+            value,
+            ...(resolved !== undefined ? { resolved } : {})
+        })
+    }
+}
+
 
 /**
  * Enhanced TypeIR dengan utility methods untuk type safety
@@ -587,6 +755,9 @@ export interface ParsedRoute {
     path: string
     controller: string
     action: string
+    domain?: string
+    resourceName?: string
+    formRequests?: readonly FormRequestDescriptor[]
     middleware?: string[]
 }
 

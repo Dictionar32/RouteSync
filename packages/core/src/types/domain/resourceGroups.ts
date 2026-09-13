@@ -1,6 +1,68 @@
 /**
- * Resource Group ADT & Domain Graph Architecture.
- * Re-exported from domain-focused submodules.
+ * Resource Group Descriptors & Domain Graph Architecture.
+ * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
  */
-export * from "./resourceGroupDescriptors";
-export * from "./domainGraph";
+export {
+    ResourceGroupKind,
+    type ResourceGroupSpecification,
+    type ResourceGroupRegistry,
+    RESOURCE_GROUP_REGISTRY,
+    type AvailableMutation,
+    type AbsentMutation,
+    type MutationCapability as MutationCapabilityType,
+    MutationCapability,
+    type BaseResourceGroupTypeSignature,
+    type FullCrudTypeSignature,
+    type ReadOnlyCrudTypeSignature,
+    type FlexibleCrudTypeSignature,
+    type SingletonTypeSignature,
+    type CustomTypeSignature,
+    type ResourceGroupTypeSignature,
+    type ResourceGroupTypeSignatureParams,
+    ScannedResourceGroupTypeSignature,
+    type ResourceGroupIdentityTrait,
+    type ResourceGroupQueryKeysTrait,
+    type CrudEndpointsTrait,
+    type StrictMutationEndpointsTrait,
+    type FlexibleMutationEndpointsTrait,
+    type ResourceGroupVisitorCapability,
+    type ResourceGroupLoweringTrait,
+    type BaseResourceGroupDescriptor,
+    type BaseCrudResourceGroupDescriptor,
+    type FullCrudResourceGroupDescriptor,
+    type ReadOnlyCrudResourceGroupDescriptor,
+    type FlexibleCrudResourceGroupDescriptor,
+    type CrudResourceGroupDescriptor,
+    type SingletonResourceGroupDescriptor,
+    type CustomResourceGroupDescriptor,
+    type ResourceGroupDescriptor,
+    type BaseResourceGroupParams,
+    type BaseCrudParams,
+    type FullCrudParams,
+    type ReadOnlyCrudParams,
+    type FlexibleCrudParams,
+    type CrudResourceGroupDescriptorParams,
+    type SingletonResourceGroupDescriptorParams,
+    type CustomResourceGroupDescriptorParams,
+    AbstractResourceGroupDescriptor,
+    AbstractCrudResourceGroupDescriptor,
+    ScannedFullCrudResourceGroupDescriptor,
+    ScannedReadOnlyCrudResourceGroupDescriptor,
+    ScannedFlexibleCrudResourceGroupDescriptor,
+    ScannedCrudResourceGroupDescriptor,
+    ScannedSingletonResourceGroupDescriptor,
+    ScannedCustomResourceGroupDescriptor,
+    type ExhaustiveFineGrainedResourceGroupVisitor,
+    type UnifiedCrudResourceGroupVisitor,
+    type ResourceGroupVisitor,
+    matchFineGrainedResourceGroup,
+    matchUnifiedResourceGroup,
+    matchResourceGroup
+} from "./resourceGroupDescriptors";
+
+export {
+    type ResourceGroupGraph,
+    createResourceGroupGraph,
+    ScannedResourceGroupGraph,
+    type ClassifiedDomainGraph
+} from "./domainGraph";

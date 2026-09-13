@@ -9,16 +9,20 @@ import {
   StaticLaravelScanner,
   ScannedRouteDescriptor,
   ScannedRouteValidationRuleEntry,
-  ScannedRouteSchemaPayload
+  ScannedRouteSchemaPayload,
+  ScannedFormRequestDescriptor
 } from '@routesync/core'
 
 describe('Ternary Elimination & ScannedControllerAction SSOT', () => {
   it('1. ScannedControllerActionDescriptor should encapsulate action metadata cleanly and freeze', () => {
     const action = ScannedControllerActionDescriptor.create({
+      controllerName: 'OrderController',
+      actionName: 'store',
       sourceFile: '/app/Http/Controllers/OrderController.php',
       sourceLine: 45,
       response: ResourceResponseDescriptor.single('OrderResource'),
-      formRequestName: 'CreateOrderRequest',
+      formRequests: [ScannedFormRequestDescriptor.create('CreateOrderRequest')],
+      schema: ScannedRouteSchemaPayload.empty(),
       schemaRules: [
         ScannedRouteValidationRuleEntry.create('total', ['required', 'numeric'])
       ]
@@ -26,7 +30,8 @@ describe('Ternary Elimination & ScannedControllerAction SSOT', () => {
 
     expect(action.sourceFile).toBe('/app/Http/Controllers/OrderController.php')
     expect(action.sourceLine).toBe(45)
-    expect(action.formRequestName).toBe('CreateOrderRequest')
+    expect(action.formRequests.length).toBe(1)
+    expect(action.formRequests[0].name).toBe('CreateOrderRequest')
     expect(action.schemaRules?.length).toBe(1)
     expect(action.schemaRules?.[0].propertyName).toBe('total')
     expect(Object.isFrozen(action)).toBe(true)

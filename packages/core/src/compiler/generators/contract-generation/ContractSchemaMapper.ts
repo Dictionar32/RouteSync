@@ -11,7 +11,7 @@ import type { SemanticType, PrimitiveType } from '../../types/SemanticType';
 import type { FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
 import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
-import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
+import { toZodSchemaExpression, UNKNOWN_REFERENCE_STRATEGY } from '../../domain/common/ZodSchemaLowerer';
 import type { ResolvedSemanticType } from '../../domain/common/ResolvedSemanticType';
 import { PrimitiveTypeRegistry } from './PrimitiveTypeRegistry';
 import { ZodModifierBuilder } from './ZodModifierBuilder';
@@ -47,7 +47,7 @@ export class ContractSchemaMapper {
      */
     mapToZodSchema(type: SemanticType, config: FieldConfig): MappedSchema {
         const resolved = this.resolver.resolve(type);
-        let baseSchema = toZodSchemaExpression(resolved, { singleLine: true, referenceFallbackToUnknown: true });
+        let baseSchema = toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY });
 
         if (type.kind === 'reference') {
             baseSchema = 'z.unknown()';

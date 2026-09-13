@@ -13,8 +13,15 @@ import {
   type ProvenanceSourceRef,
   ScannedEndpointProvenanceDescriptor
 } from "./provenance";
-import { type ResponseDescriptor, ResponseShape } from "./responses";
-import type { ParsedRoute } from "./routes";
+import { type ResponseDescriptor, ResponseShape, matchResponse, RESPONSE_DESCRIPTOR_REGISTRY } from "./responses";
+import { matchRouteHandler } from "./routeHandlers";
+import type {
+  ParsedRoute,
+  RouteIdentityContract,
+  RouteBindingContract,
+  RouteCapabilityContract,
+  RouteProvenanceContract
+} from "./routes";
 import {
   HTTP_METHOD_REGISTRY,
   type HttpMethod,
@@ -215,45 +222,60 @@ export class ScannedEndpointContract implements EndpointContract {
       symbol: `${route.method.toUpperCase()} ${route.path}`
     };
 
-    const controllerSource: ProvenanceSourceRef | null = route.controllerName
-      ? {
-          kind: DataProvenanceKind.ControllerAction,
-          file: route.sourceFile || `app/Http/Controllers/${route.controllerName}.php`,
-          line: route.sourceLine || 1,
-          symbol: `${route.controllerName}@${route.actionName || 'action'}`
-        }
-      : null;
+    const controllerSource: ProvenanceSourceRef | null = route.handler
+      ? matchRouteHandler(route.handler, {
+          controllerAction: h => ({
+            kind: DataProvenanceKind.ControllerAction,
+            file: route.sourceFile || `app/Http/Controllers/${h.controllerName}.php`,
+            line: route.sourceLine || 1,
+            symbol: h.target
+          }),
+          invokableController: h => ({
+            kind: DataProvenanceKind.ControllerAction,
+            file: route.sourceFile || `app/Http/Controllers/${h.controllerName}.php`,
+            line: route.sourceLine || 1,
+            symbol: h.target
+          }),
+          closure: () => null
+        })
+      : (route.controllerName
+        ? {
+            kind: DataProvenanceKind.ControllerAction,
+            file: route.sourceFile || `app/Http/Controllers/${route.controllerName}.php`,
+            line: route.sourceLine || 1,
+            symbol: `${route.controllerName}@${route.actionName || 'action'}`
+          }
+        : null);
 
-    const requestSource: ProvenanceSourceRef | null = (route.schema?.rules && (route as any).formRequestName)
+    const formRequests = route.formRequests ?? [];
+    const primaryFormRequest = formRequests[0];
+    const requestSource: ProvenanceSourceRef | null = (route.schema?.rules && primaryFormRequest)
       ? {
           kind: DataProvenanceKind.FormRequest,
-          file: `app/Http/Requests/${(route as any).formRequestName}.php`,
+          file: primaryFormRequest.sourceFile,
           line: 1,
-          symbol: (route as any).formRequestName
+          symbol: primaryFormRequest.name
         }
       : null;
 
-    let responseSource: ProvenanceSourceRef | null = null;
-    const resp = route.response as any;
-    if (resp) {
-      if (resp.kind === 'resource' || resp.resourceName || resp.resource) {
-        const resName = resp.resourceName || resp.resource;
-        responseSource = {
-          kind: DataProvenanceKind.JsonResource,
-          file: `app/Http/Resources/${resName}.php`,
-          line: 1,
-          symbol: resName
-        };
-      } else if (resp.kind === 'model' || resp.modelName || resp.model) {
-        const modName = resp.modelName || resp.model;
-        responseSource = {
-          kind: DataProvenanceKind.EloquentModel,
-          file: `app/Models/${modName}.php`,
-          line: 1,
-          symbol: modName
-        };
-      }
-    }
+    const responseSource: ProvenanceSourceRef | null = (route.response && route.response.kind && (route.response.kind in RESPONSE_DESCRIPTOR_REGISTRY))
+      ? matchResponse<ProvenanceSourceRef | null>(route.response, {
+          resource: r => ({
+            kind: DataProvenanceKind.JsonResource,
+            file: `app/Http/Resources/${r.resourceName}.php`,
+            line: 1,
+            symbol: r.resourceName
+          }),
+          model: m => ({
+            kind: DataProvenanceKind.EloquentModel,
+            file: `app/Models/${m.modelName}.php`,
+            line: 1,
+            symbol: m.modelName
+          }),
+          inline: () => null,
+          void: () => null
+        })
+      : null;
 
     const provenance = ScannedEndpointProvenanceDescriptor.create({
       route: routeSource,
@@ -287,6 +309,161 @@ export class ScannedEndpointContract implements EndpointContract {
       policies: route.policies ?? [],
       provenance,
       raw: route
+    });
+  }
+
+  public static fromSubcontracts(subcontracts: {
+    readonly identity: RouteIdentityContract;
+    readonly binding: RouteBindingContract;
+    readonly capability: RouteCapabilityContract;
+    readonly provenance: RouteProvenanceContract;
+  }): ScannedEndpointContract {
+    const errorList: EndpointErrorResponseContract[] = subcontracts.capability.errorResponses.map(err => ({
+      statusCode: err.statusCode,
+      name: err.name,
+      typeName: err.typeName,
+      schema: err.schema
+    }));
+
+    const errorUnionType = errorList.length > 0
+      ? Array.from(new Set(errorList.map(e => e.typeName))).join(' | ')
+      : 'ApiError';
+
+    const upperMethod = subcontracts.identity.method.toUpperCase() as HttpMethod;
+    const resp = subcontracts.binding.response;
+    const defaultStatusCode = matchHttpMethod(upperMethod, {
+      POST: () => HttpStatusCode.Created,
+      GET: () => ((resp && resp.readTypeName === 'void') ? HttpStatusCode.NoContent : HttpStatusCode.Ok),
+      DELETE: () => HttpStatusCode.NoContent,
+      PUT: () => HttpStatusCode.Ok,
+      PATCH: () => HttpStatusCode.Ok,
+      OPTIONS: () => HttpStatusCode.NoContent,
+      HEAD: () => HttpStatusCode.Ok
+    });
+
+    const rawResp = subcontracts.binding.response as any;
+    const readTypeName = (resp && resp.readTypeName)
+      ? resp.readTypeName
+      : (rawResp && rawResp.semantic && rawResp.semantic.readTypeName
+        ? rawResp.semantic.readTypeName
+        : (rawResp && rawResp.resource ? `${rawResp.resource}Transformed` : (rawResp && rawResp.model ? `${rawResp.model}Transformed` : 'unknown')));
+
+    const successContract: EndpointSuccessResponseContract = {
+      statusCode: defaultStatusCode,
+      descriptor: subcontracts.binding.response,
+      readTypeName,
+      validatorName: (resp && resp.validatorName) ? resp.validatorName : 'undefined',
+      mapperName: (resp && resp.mapperName) ? resp.mapperName : 'identity',
+      shape: (resp && resp.shape) ? resp.shape : ResponseShape.Single
+    };
+
+    const hasBody = Boolean(subcontracts.binding.schema && subcontracts.binding.schema.rules && (Array.isArray(subcontracts.binding.schema.rules) ? subcontracts.binding.schema.rules.length > 0 : Object.keys(subcontracts.binding.schema.rules).length > 0));
+
+    const requestContract: EndpointRequestContract = {
+      hasBody,
+      pathParameters: subcontracts.identity.parameters.path,
+      queryParameters: subcontracts.identity.parameters.query,
+      contentType: subcontracts.capability.requestContentType,
+      schema: subcontracts.binding.schema,
+      executionSignature: subcontracts.capability.executionSignature,
+      security: subcontracts.capability.security
+    };
+
+    const group = subcontracts.identity.groupName;
+    const action = subcontracts.binding.actionName;
+
+    const routeSource: ProvenanceSourceRef = {
+      kind: DataProvenanceKind.RouteDefinition,
+      file: subcontracts.provenance.sourceFile ? subcontracts.provenance.sourceFile : 'routes/api.php',
+      line: subcontracts.provenance.sourceLine ? subcontracts.provenance.sourceLine : 1,
+      symbol: `${subcontracts.identity.method.toUpperCase()} ${subcontracts.identity.path}`
+    };
+
+    const controllerSource: ProvenanceSourceRef | null = subcontracts.binding.handler
+      ? matchRouteHandler(subcontracts.binding.handler, {
+          controllerAction: h => ({
+            kind: DataProvenanceKind.ControllerAction,
+            file: subcontracts.provenance.sourceFile ? subcontracts.provenance.sourceFile : `app/Http/Controllers/${h.controllerName}.php`,
+            line: subcontracts.provenance.sourceLine ? subcontracts.provenance.sourceLine : 1,
+            symbol: h.target
+          }),
+          invokableController: h => ({
+            kind: DataProvenanceKind.ControllerAction,
+            file: subcontracts.provenance.sourceFile ? subcontracts.provenance.sourceFile : `app/Http/Controllers/${h.controllerName}.php`,
+            line: subcontracts.provenance.sourceLine ? subcontracts.provenance.sourceLine : 1,
+            symbol: h.target
+          }),
+          closure: () => null
+        })
+      : null;
+
+    const primaryFormRequest = subcontracts.binding.formRequests[0];
+    const requestSource: ProvenanceSourceRef | null = (subcontracts.binding.schema && subcontracts.binding.schema.rules && primaryFormRequest)
+      ? {
+          kind: DataProvenanceKind.FormRequest,
+          file: primaryFormRequest.sourceFile,
+          line: 1,
+          symbol: primaryFormRequest.name
+        }
+      : null;
+
+    const responseSource: ProvenanceSourceRef | null = (subcontracts.binding.response && subcontracts.binding.response.kind && (subcontracts.binding.response.kind in RESPONSE_DESCRIPTOR_REGISTRY))
+      ? matchResponse<ProvenanceSourceRef | null>(subcontracts.binding.response, {
+          resource: r => ({
+            kind: DataProvenanceKind.JsonResource,
+            file: `app/Http/Resources/${r.resourceName}.php`,
+            line: 1,
+            symbol: r.resourceName
+          }),
+          model: m => ({
+            kind: DataProvenanceKind.EloquentModel,
+            file: `app/Models/${m.modelName}.php`,
+            line: 1,
+            symbol: m.modelName
+          }),
+          inline: () => null,
+          void: () => null
+        })
+      : null;
+
+    const provenance = ScannedEndpointProvenanceDescriptor.create({
+      route: routeSource,
+      controller: controllerSource,
+      request: requestSource,
+      response: responseSource
+    });
+
+    return new ScannedEndpointContract({
+      id: subcontracts.identity.name,
+      name: action,
+      method: subcontracts.identity.method,
+      path: subcontracts.identity.path,
+      runtimePath: subcontracts.identity.runtimePath,
+      groupName: group,
+      resourceName: subcontracts.identity.resourceName,
+      crudRole: subcontracts.capability.crudRole,
+      isMutating: subcontracts.capability.isMutating,
+      hookKind: subcontracts.capability.hookKind,
+      request: requestContract,
+      response: {
+        success: successContract,
+        errors: errorList,
+        errorUnionType
+      },
+      invalidation: subcontracts.capability.invalidation,
+      policies: subcontracts.capability.policies,
+      provenance,
+      raw: {
+        ...subcontracts.identity,
+        ...subcontracts.binding,
+        ...subcontracts.capability,
+        ...subcontracts.provenance,
+        identity: subcontracts.identity,
+        binding: subcontracts.binding,
+        capability: subcontracts.capability,
+        provenance: subcontracts.provenance,
+        contract: null as any
+      } as unknown as ParsedRoute
     });
   }
 }

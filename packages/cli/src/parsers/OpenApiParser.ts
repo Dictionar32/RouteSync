@@ -30,7 +30,7 @@ export class OpenApiParser {
               actionKind = 'delete'
             }
 
-            routes.push(new ScannedRouteDescriptor({
+            routes.push(ScannedRouteDescriptor.create({
               method: upperMethod,
               path,
               resourceName,

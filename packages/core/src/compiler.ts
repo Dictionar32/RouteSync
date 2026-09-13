@@ -433,14 +433,38 @@ export interface ArtifactEdge {
   readonly consumer: string;
 }
 
+function getMapValueOrDefault<K, V>(map: ReadonlyMap<K, V>, key: K, fallback: V): V {
+  const val = map.get(key);
+  return val !== undefined ? val : fallback;
+}
+
+function getOrCreateSet<K, V>(map: Map<K, Set<V>>, key: K): Set<V> {
+  const existing = map.get(key);
+  if (existing !== undefined) {
+    return existing;
+  }
+  const newSet = new Set<V>();
+  map.set(key, newSet);
+  return newSet;
+}
+
+function getOrCreateArray<K, V>(map: Map<K, V[]>, key: K): V[] {
+  const existing = map.get(key);
+  if (existing !== undefined) {
+    return existing;
+  }
+  const newArray: V[] = [];
+  map.set(key, newArray);
+  return newArray;
+}
+
 export class PassGraph {
   public static buildAdjacency(passes: readonly ExecutablePass[]): Map<ArtifactKey, Set<ExecutablePass>> {
     const map = new Map<ArtifactKey, Set<ExecutablePass>>();
     for (const pass of passes) {
       for (const req of pass.descriptor.consumes) {
-        const set = map.get(req) ?? new Set();
+        const set = getOrCreateSet(map, req);
         set.add(pass);
-        map.set(req, set);
       }
     }
     return map;
@@ -499,9 +523,9 @@ export class PassGraph {
       
       const currentPass = nodeMap.get(current)!;
       for (const prod of currentPass.descriptor.produces) {
-        const dependents = adj.get(prod) ?? new Set();
+        const dependents = getMapValueOrDefault(adj, prod, new Set<ExecutablePass>());
         for (const dep of dependents) {
-          const nextVal = (indegree.get(dep.name) ?? 0) - 1;
+          const nextVal = getMapValueOrDefault(indegree, dep.name, 0) - 1;
           indegree.set(dep.name, nextVal);
           if (nextVal === 0) {
             queue.push(dep.name);
@@ -538,7 +562,7 @@ export class PassGraph {
 
     while (remaining.size > 0) {
       const currentLayer = Array.from(remaining.values())
-        .filter(name => (indegree.get(name) ?? 0) === 0)
+        .filter(name => getMapValueOrDefault(indegree, name, 0) === 0)
         .map(name => nodeMap.get(name)!);
 
       if (currentLayer.length === 0) {
@@ -549,9 +573,9 @@ export class PassGraph {
       for (const pass of currentLayer) {
         remaining.delete(pass.name);
         for (const prod of pass.descriptor.produces) {
-          const dependents = adj.get(prod) ?? new Set();
+          const dependents = getMapValueOrDefault(adj, prod, new Set<ExecutablePass>());
           for (const dep of dependents) {
-            const val = indegree.get(dep.name) ?? 0;
+            const val = getMapValueOrDefault(indegree, dep.name, 0);
             indegree.set(dep.name, Math.max(0, val - 1));
           }
         }
@@ -1009,7 +1033,8 @@ export class IncrementalInvalidator {
     const queue = [node];
     while (queue.length > 0) {
       const curr = queue.shift()!;
-      for (const dep of this.graph.reverse.get(curr) ?? []) {
+      const reverseDeps = this.graph.reverse.get(curr);
+      for (const dep of reverseDeps !== undefined ? reverseDeps : []) {
         if (!affected.has(dep)) {
           affected.add(dep);
           queue.push(dep);
@@ -1078,8 +1103,8 @@ export class UnionFind {
     const rootB = this.find(b);
     if (rootA === rootB) return;
 
-    const rankA = this.rank.get(rootA) ?? 0;
-    const rankB = this.rank.get(rootB) ?? 0;
+    const rankA = getMapValueOrDefault(this.rank, rootA, 0);
+    const rankB = getMapValueOrDefault(this.rank, rootB, 0);
 
     if (rankA < rankB) {
       this.parent.set(rootA, rootB);
@@ -1120,18 +1145,15 @@ export class ConstraintSolver {
     const neighbors = new Map<number, Set<number>>();
 
     for (const constraint of constraints) {
-      const list = constraintIndex.get(constraint.source.id) ?? [];
+      const list = getOrCreateArray(constraintIndex, constraint.source.id);
       list.push(constraint);
-      constraintIndex.set(constraint.source.id, list);
 
       if (constraint.kind === 'Subtype') {
-        const srcSet = neighbors.get(constraint.source.id) ?? new Set();
+        const srcSet = getOrCreateSet(neighbors, constraint.source.id);
         srcSet.add(constraint.target.id);
-        neighbors.set(constraint.source.id, srcSet);
 
-        const dstSet = neighbors.get(constraint.target.id) ?? new Set();
+        const dstSet = getOrCreateSet(neighbors, constraint.target.id);
         dstSet.add(constraint.source.id);
-        neighbors.set(constraint.target.id, dstSet);
       }
     }
 
@@ -1142,7 +1164,7 @@ export class ConstraintSolver {
       const variable = worklist.pop()!;
       for (const constraint of this.getAffectedConstraints(variable, constraintIndex)) {
         if (this.solveConstraint(constraint, uf, states)) {
-          const adj = neighbors.get(variable) ?? new Set();
+          const adj = getMapValueOrDefault(neighbors, variable, new Set<number>());
           for (const next of adj) {
             worklist.push(next);
           }
@@ -1199,7 +1221,7 @@ export class ConstraintSolver {
   }
 
   private getAffectedConstraints(variable: number, index: Map<number, Constraint[]>): readonly Constraint[] {
-    return index.get(variable) ?? [];
+    return getMapValueOrDefault(index, variable, []);
   }
 
   private solveConstraint(constraint: Constraint, uf: UnionFind, states: Map<number, VariableState>): boolean {
@@ -1908,9 +1930,8 @@ export class SymbolDatabase {
   }
 
   public addReference(fromId: string, toId: string): void {
-    const refs = this.referenceGraph.get(fromId) ?? new Set();
+    const refs = getOrCreateSet(this.referenceGraph, fromId);
     refs.add(toId);
-    this.referenceGraph.set(fromId, refs);
   }
 
   public getSymbol(id: string): SymbolNode | undefined {
@@ -1918,7 +1939,7 @@ export class SymbolDatabase {
   }
 
   public getReferences(fromId: string): ReadonlySet<string> {
-    return this.referenceGraph.get(fromId) ?? new Set();
+    return getMapValueOrDefault(this.referenceGraph, fromId, new Set<string>());
   }
 }
 
@@ -2038,9 +2059,8 @@ export class DominatorTree {
 
     for (const [node, idom] of this.idoms) {
       if (node === startNode) continue;
-      const children = this.domTree.get(idom) ?? new Set();
+      const children = getOrCreateSet(this.domTree, idom);
       children.add(node);
-      this.domTree.set(idom, children);
     }
   }
 
@@ -2050,8 +2070,8 @@ export class DominatorTree {
     const rpoIndex = new Map<number, number>(rpo.map((id, idx) => [id, idx]));
 
     while (finger1 !== finger2) {
-      const idx1 = rpoIndex.get(finger1) ?? -1;
-      const idx2 = rpoIndex.get(finger2) ?? -1;
+      const idx1 = getMapValueOrDefault(rpoIndex, finger1, -1);
+      const idx2 = getMapValueOrDefault(rpoIndex, finger2, -1);
       if (idx1 > idx2) {
         finger1 = this.idoms.get(finger1)!;
       } else {
@@ -2088,7 +2108,7 @@ export class DominatorTree {
   }
 
   public getChildren(blockId: number): ReadonlySet<number> {
-    return this.domTree.get(blockId) ?? new Set();
+    return getMapValueOrDefault(this.domTree, blockId, new Set<number>());
   }
 
   public dominates(ancestor: number, descendant: number): boolean {
@@ -2119,9 +2139,8 @@ export class LoopAnalysis {
     for (const [nodeId, block] of cfg.blocks) {
       for (const succ of block.successors) {
         if (dom.dominates(succ, nodeId)) {
-          const backEdges = loopsMap.get(succ) ?? new Set();
+          const backEdges = getOrCreateSet(loopsMap, succ);
           backEdges.add(nodeId);
-          loopsMap.set(succ, backEdges);
         }
       }
     }
@@ -2197,7 +2216,7 @@ export class DominanceFrontier {
   }
 
   public getFrontier(blockId: number): ReadonlySet<number> {
-    return this.frontiers.get(blockId) ?? new Set();
+    return getMapValueOrDefault(this.frontiers, blockId, new Set<number>());
   }
 }
 
@@ -2210,9 +2229,8 @@ export class UseDefGraph {
   }
 
   public recordUse(valueId: number, instructionId: number): void {
-    const set = this.uses.get(valueId) ?? new Set();
+    const set = getOrCreateSet(this.uses, valueId);
     set.add(instructionId);
-    this.uses.set(valueId, set);
   }
 
   public getDefinition(valueId: number): number | undefined {
@@ -2220,7 +2238,7 @@ export class UseDefGraph {
   }
 
   public getUses(valueId: number): ReadonlySet<number> {
-    return this.uses.get(valueId) ?? new Set();
+    return getMapValueOrDefault(this.uses, valueId, new Set<number>());
   }
 }
 
@@ -2500,7 +2518,7 @@ export class SSARenamer {
       for (const inst of block.instructions) {
         if (inst.kind === 'Phi') {
           const varId = inst.target;
-          const currentCount = (self.count.get(varId) ?? 0) + 1;
+          const currentCount = getMapValueOrDefault(self.count, varId, 0) + 1;
           self.count.set(varId, currentCount);
           self.stack.get(varId)?.push(currentCount);
 
@@ -2518,7 +2536,7 @@ export class SSARenamer {
         let renamedInst = inst;
         if (inst.kind === 'Assign') {
           const varId = inst.target;
-          const currentCount = (self.count.get(varId) ?? 0) + 1;
+          const currentCount = getMapValueOrDefault(self.count, varId, 0) + 1;
           self.count.set(varId, currentCount);
           self.stack.get(varId)?.push(currentCount);
 
@@ -2557,8 +2575,10 @@ export class SSARenamer {
               const incoming = new Map<number, Operand>(inst.incoming);
               for (const [predId, op] of incoming) {
                 if (predId === blockId && op.kind === 'Variable') {
-                  const activeVersions = self.stack.get(op.id) ?? [];
-                  const activeVersion = activeVersions[activeVersions.length - 1] ?? op.id;
+                  const activeVersions = self.stack.get(op.id);
+                  const activeVersion = (activeVersions !== undefined && activeVersions.length > 0)
+                    ? activeVersions[activeVersions.length - 1]
+                    : op.id;
                   incoming.set(predId, { kind: 'SSAValue', id: activeVersion });
                 }
               }
@@ -2589,9 +2609,9 @@ export class SSARenamer {
 
   private renameOperand(op: Operand): Operand {
     if (op.kind === 'Variable') {
-      const activeVersions = this.stack.get(op.id) ?? [];
-      const activeVersion = activeVersions[activeVersions.length - 1];
-      if (activeVersion !== undefined) {
+      const activeVersions = this.stack.get(op.id);
+      if (activeVersions !== undefined && activeVersions.length > 0) {
+        const activeVersion = activeVersions[activeVersions.length - 1];
         return { kind: 'SSAValue', id: activeVersion };
       }
     }
@@ -2772,7 +2792,7 @@ export class CopyCoalescer {
 
     return coalesced.map(inst => {
       if (inst.kind === 'Assign') {
-        const mappedTarget = renamingMap.get(inst.target) ?? inst.target;
+        const mappedTarget = getMapValueOrDefault(renamingMap, inst.target, inst.target);
         return {
           ...inst,
           target: mappedTarget,
@@ -2942,13 +2962,11 @@ export class AnalysisDependencyGraph {
   private dependenciesMap = new Map<AnalysisKey<unknown>, Set<AnalysisKey<unknown>>>();
 
   public addDependency(parent: AnalysisKey<unknown>, child: AnalysisKey<unknown>): void {
-    const deps = this.dependentsMap.get(parent) ?? new Set();
+    const deps = getOrCreateSet(this.dependentsMap, parent);
     deps.add(child);
-    this.dependentsMap.set(parent, deps);
 
-    const revs = this.dependenciesMap.get(child) ?? new Set();
+    const revs = getOrCreateSet(this.dependenciesMap, child);
     revs.add(parent);
-    this.dependenciesMap.set(child, revs);
   }
 
   public removeDependency(parent: AnalysisKey<unknown>, child: AnalysisKey<unknown>): void {
@@ -2966,11 +2984,11 @@ export class AnalysisDependencyGraph {
   }
 
   public dependents(key: AnalysisKey<unknown>): ReadonlySet<AnalysisKey<unknown>> {
-    return this.dependentsMap.get(key) ?? new Set();
+    return getMapValueOrDefault(this.dependentsMap, key, new Set<AnalysisKey<unknown>>());
   }
 
   public dependencies(key: AnalysisKey<unknown>): ReadonlySet<AnalysisKey<unknown>> {
-    return this.dependenciesMap.get(key) ?? new Set();
+    return getMapValueOrDefault(this.dependenciesMap, key, new Set<AnalysisKey<unknown>>());
   }
 
   public clear(): void {

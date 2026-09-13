@@ -19,6 +19,7 @@ import {
     formatContractFile,
     buildContractArtifact
 } from './contract-generator-domain';
+import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
 export class ContractGeneratorPass
     implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedContract']> {
@@ -78,4 +79,14 @@ export class ContractGeneratorPass
 
         return [artifact];
     }
+}
+
+const defaultContractPass = new ContractGeneratorPass();
+
+/**
+ * Pure Dataflow Transform: RequestTypesArtifact → GeneratedContractArtifact
+ * 1 Input, 1 Output, 0 '?', 0 'new' in call site, 0 array wrapping.
+ */
+export function lowerContractArtifact(artifact: RequestTypesArtifact): GeneratedContractArtifact {
+    return defaultContractPass.run([artifact])[0];
 }

@@ -40,10 +40,43 @@ export { SemanticIRArtifact } from './SemanticIRArtifact';
 export { CompilationResultArtifact } from './CompilationResultArtifact';
 
 // Existing exports...
-export * from './GeneratedTypeScriptArtifact';
-export * from './GeneratedFormArtifact';
-export * from './GeneratedContractArtifact';
-export * from './GeneratedApiFieldArtifact';
-export * from './RequestTypesArtifact';
+export {
+    type GeneratedImport,
+    type GeneratedInterface,
+    type GenerationMetadata as TypeScriptGenerationMetadata,
+    type GeneratedTypeScriptArtifact,
+    isGeneratedTypeScriptArtifact
+} from './GeneratedTypeScriptArtifact';
+
+export {
+    type GeneratedFormAction,
+    type GeneratedFormType,
+    type FormGenerationMetadata,
+    type GeneratedFormArtifact,
+    isGeneratedFormArtifact
+} from './GeneratedFormArtifact';
+
+export {
+    type ContractActionInfo,
+    type GeneratedContractInfo,
+    type ContractGenerationMetadata,
+    type GeneratedContractArtifact,
+    isGeneratedContractArtifact
+} from './GeneratedContractArtifact';
+
+export {
+    type GeneratedApiFieldArtifact
+} from './GeneratedApiFieldArtifact';
+
+export {
+    type FileValidationConstraints,
+    type RequestField,
+    FormActionName,
+    type FormAction,
+    type RequestType,
+    type ResponseData,
+    type RequestTypesArtifact,
+    isRequestTypesArtifact
+} from './RequestTypesArtifact';
 export { RouteManifestArtifact } from './RouteManifestArtifact';
 export { ResponseAnalysisArtifact } from './ResponseAnalysisArtifact';

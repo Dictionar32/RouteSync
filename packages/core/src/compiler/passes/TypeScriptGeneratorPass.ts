@@ -92,3 +92,11 @@ export class TypeScriptGeneratorPass implements CompilerPass<readonly ['Semantic
         }]);
     }
 }
+
+/**
+ * Pure Dataflow Transform: SemanticTypesArtifact → GeneratedTypeScriptArtifact
+ * 1 Input, 1 Output, 0 '?', 0 'new' in call site, 0 array wrapping.
+ */
+export function lowerTypeScriptArtifact(artifact: SemanticTypesArtifact): GeneratedTypeScriptArtifact {
+    return TypeScriptGeneratorPass.run(artifact)[0];
+}

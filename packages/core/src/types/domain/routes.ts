@@ -19,12 +19,96 @@ import type {
   RouteSecurityDescriptor
 } from "./security";
 import type { RouteSchemaPayload } from "./validation";
+import type { RouteHandlerDescriptor, FormRequestDescriptor } from "./routeHandlers";
+
+/**
+ * Route Parameter Specification Contract.
+ * Enforces structured partitioning between path and query parameters (0 '?', 0 fallback).
+ */
+export interface RouteParameterSpecification {
+  readonly all: readonly RouteParameter[];
+  readonly path: readonly RouteParameter[];
+  readonly query: readonly RouteQueryParameter[];
+}
+
+/**
+ * Closed Route Identity Sub-Contract.
+ * Enforces guaranteed identity and network coordinates (0 '?', 0 fallback).
+ */
+export interface RouteIdentityContract {
+  readonly name: string;
+  readonly method: HttpMethod;
+  readonly path: string;
+  readonly runtimePath: string;
+  readonly resourceName: string;
+  readonly domain: string;
+  readonly groupName: string;
+  readonly parameters: RouteParameterSpecification;
+}
+
+/**
+ * Closed Route Binding Sub-Contract.
+ * Enforces guaranteed handler binding, schema payload, and controller target (0 '?', 0 fallback).
+ */
+export interface RouteBindingContract {
+  readonly handler: RouteHandlerDescriptor;
+  readonly action: string;
+  readonly actionName: string;
+  readonly controllerName: string;
+  readonly schema: RouteSchemaPayload;
+  readonly response: ResponseDescriptor;
+  readonly responseTypeName: string;
+  readonly formRequests: readonly FormRequestDescriptor[];
+  readonly assignments: readonly ResourceAssignment[];
+}
+
+/**
+ * Closed Route Capability Sub-Contract.
+ * Enforces guaranteed transport capabilities, security, invalidation, and lifecycle semantics (0 '?', 0 fallback).
+ */
+export interface RouteCapabilityContract {
+  readonly auth: boolean;
+  readonly security: RouteSecurityDescriptor;
+  readonly middleware: readonly string[];
+  readonly policies: readonly RoutePolicyDescriptor[];
+  readonly rateLimit: RateLimitDescriptor | null;
+  readonly invalidation: RouteCacheInvalidationDescriptor;
+  readonly crudRole: CrudRole;
+  readonly hookKind: RouteHookKind;
+  readonly actionKind: RouteActionKind;
+  readonly isMutating: boolean;
+  readonly requestContentType: RequestContentType;
+  readonly executionSignature: RouteExecutionSignature;
+  readonly errorResponses: readonly HttpErrorResponseDescriptor[];
+}
+
+/**
+ * Closed Route Provenance Sub-Contract.
+ * Enforces end-to-end traceability back to PHP Laravel source location (0 '?', 0 fallback).
+ */
+export interface RouteProvenanceContract {
+  readonly sourceFile: string;
+  readonly sourceLine: number;
+  readonly uri: string;
+}
 
 export interface ParsedRoute {
+  // ============================================================================
+  // HOLISTIC CLOSED SUB-CONTRACTS (SSOT)
+  // ============================================================================
+  readonly identity: RouteIdentityContract;
+  readonly binding: RouteBindingContract;
+  readonly capability: RouteCapabilityContract;
+  readonly provenance: RouteProvenanceContract;
+
   readonly name: string;
   readonly method: HttpMethod;
   readonly path: string;
   readonly resourceName: string;      // ✅ Guaranteed from PHP scanner
+  readonly domain: string;            // ✅ Guaranteed Domain SSOT ('Order', 'Profile', 0 '?')
+  readonly action: string;            // ✅ Guaranteed Full Action SSOT ('OrderController@index', 0 '?')
+  readonly handler: RouteHandlerDescriptor; // ✅ Guaranteed ADT Handler SSOT (ControllerAction | Invokable | Closure)
+  readonly formRequests: readonly FormRequestDescriptor[]; // ✅ Ordered Array of FormRequests (0 null, 0 undefined, 0 '?')
   readonly groupName: string;         // ✅ Canonical Route Group SSOT ('users', 'orderItems')
   readonly crudRole: CrudRole;        // ✅ Canonical REST CRUD Role SSOT ('index' | 'show' | 'create' | 'update' | 'delete' | 'custom')
   readonly runtimePath: string;       // ✅ Express/React Runtime Path SSOT ('/users/:userId')
@@ -60,8 +144,8 @@ export interface ParsedRoute {
   readonly sourceLine: number;
   readonly uri: string;
   readonly actionName: string;
-  readonly controllerName: string | null;
-  readonly contract?: EndpointContract; // ✅ Complete Contract-Driven Architecture SSOT
+  readonly controllerName: string;
+  readonly contract: EndpointContract; // ✅ Complete Contract-Driven Architecture SSOT
 }
 
 // ============================================================================

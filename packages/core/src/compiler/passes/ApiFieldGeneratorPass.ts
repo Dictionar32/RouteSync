@@ -17,6 +17,8 @@ import {
     formatApiFieldConstant,
     buildApiFieldArtifact
 } from './api-field-domain';
+import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
+import { ApiFieldOutput } from './outputLowerers';
 
 export interface ApiFieldGeneratorPassDependencies {
     readonly exportConstName?: string;
@@ -70,4 +72,33 @@ export class ApiFieldGeneratorPass
 
         return [artifact];
     }
+}
+
+/**
+ * Pure Dataflow Transform: RequestTypesArtifact → GeneratedApiFieldArtifact
+ * 1 Input, 1 Output, 0 '?', 0 'new' in call site, 0 array wrapping.
+ */
+export function lowerApiFieldArtifact(
+    artifact: RequestTypesArtifact,
+    exportConstName: string = 'ApiApiField'
+): GeneratedApiFieldArtifact {
+    const extracted = extractFieldNames(artifact);
+    const unique = deduplicateFieldNames(extracted);
+    const code = formatApiFieldConstant(unique, exportConstName);
+    return buildApiFieldArtifact(code, artifact.metadata);
+}
+
+/**
+ * Pure Output Lowerer: RequestTypesArtifact → ApiFieldOutput
+ * Wraps lowerApiFieldArtifact with output metadata.
+ */
+export function lowerApiFieldsOutput(artifact: RequestTypesArtifact): ApiFieldOutput {
+    const apiFieldArtifact = lowerApiFieldArtifact(artifact);
+    return {
+        code: apiFieldArtifact.code,
+        metadata: {
+            linesOfCode: apiFieldArtifact.code.split('\n').length,
+            warnings: []
+        }
+    };
 }

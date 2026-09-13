@@ -39,8 +39,8 @@ export { CompilationState } from './CompilationState';
 export {
     CompilationContext,
     CompilerOptions,
-    FileSnapshot,
-    VirtualFileSystem
+    VirtualFileWriter,
+    InMemoryFileWriter
 } from './CompilationContext';
 
 // Artifact key witnesses and helpers
@@ -62,3 +62,24 @@ export {
     TypeScriptGeneratorPass,
     CompilerPassName
 } from './TypeScriptGeneratorPass';
+
+// Pure Dataflow Transform Functions (Section A)
+export { lowerTypeScriptArtifact } from './TypeScriptGeneratorPass';
+export { lowerFormArtifact } from './FormGeneratorPass';
+export { lowerContractArtifact } from './ContractGeneratorPass';
+export { lowerApiFieldArtifact } from './ApiFieldGeneratorPass';
+export { lowerMapperArtifact } from './MapperGeneratorPass';
+
+// Pure Output Lowerers (artifact → lower → format → Output)
+export {
+    lowerReadTypesOutput,
+    lowerFormTypesOutput,
+    lowerContractsOutput,
+    lowerApiFieldsOutput,
+    lowerMappersOutput,
+    type CompilerOutput,
+    type FormOutput,
+    type ContractOutput,
+    type ApiFieldOutput,
+    type MapperOutput
+} from './outputLowerers';

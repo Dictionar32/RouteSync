@@ -1,10 +1,43 @@
 /**
- * @file index.ts
- * @description Main export untuk TypeScript Target AST
+ * TypeScript Target AST exports.
+ * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
  */
 
-// Export all node types
-export * from './nodes';
+// Export node types
+export {
+    TSNode,
+    TSNodeKind,
+    type SourceSpan,
+    TSTypeNode,
+    TSFile,
+    type TSDeclaration,
+    TSImportDeclaration,
+    TSExportDeclaration,
+    type TSExportSpecifier,
+    TSInterfaceDeclaration,
+    TSTypeAliasDeclaration,
+    TSFunctionDeclaration,
+    TSTypeParameter,
+    TSPropertySignature,
+    TSMethodSignature,
+    type TSParameter,
+    TSTypeReference,
+    TSArrayType,
+    TSUnionType,
+    TSIntersectionType,
+    TSComment,
+    CommentStyle,
+    type JSDocTag,
+    paramTag,
+    returnsTag,
+    exampleTag,
+    deprecatedTag
+} from './nodes';
 
 // Export visitor pattern
-export * from './visitor';
+export {
+    type TSVisitor,
+    isVisitor,
+    TSBaseVisitor,
+    visitAll
+} from './visitor';

@@ -1,12 +1,9 @@
 /**
  * @file TypeScriptEmitter.ts
- * @description Emit TypeScript code from Target AST using pure visitor pattern
- * 
- * Emitter Phase (Keluaran/Output):
- * - Input: TSFile (Target AST)
- * - Output: string (TypeScript code)
- * - Pure visitor - NO LOGIC, ONLY PRINTING
- * - Uses accept() methods for traversal
+ * @description Emit TypeScript code from Target AST using pure visitor pattern.
+ * Conforms to Rule 14: Active Consumer Orchestrator, 0 wildcard re-exports.
+ *
+ * @module compiler/emitters/typescript
  */
 
 import type { TSVisitor } from '../../target/typescript/visitor/TSVisitor';
@@ -25,214 +22,98 @@ import type {
     TSExportDeclaration,
     TSComment
 } from '../../target/typescript/nodes';
+import {
+    printTypeReference,
+    printArrayType,
+    printUnionType,
+    printIntersectionType,
+    printTypeAliasDeclaration,
+    printImportDeclaration,
+    printExportDeclaration,
+    printInterfaceDeclaration,
+    printPropertySignature,
+    printFunctionDeclaration,
+    printMethodSignature,
+    printComment
+} from './printers';
 
 /**
  * TypeScript Code Emitter
- * 
- * Pure visitor pattern - hanya print AST nodes ke string.
- * NO business logic, NO type resolution, NO formatting decisions.
+ * Pure visitor pattern orchestrator.
  */
 export class TypeScriptEmitter implements TSVisitor<string> {
     private indentLevel = 0;
     private readonly indentSize = 2;
 
-    /**
-     * Emit file
-     */
     public visitFile(file: TSFile): string {
         const parts: string[] = [];
 
-        // Emit imports
         if (file.imports.length > 0) {
             for (const imp of file.imports) {
                 parts.push(imp.accept(this));
             }
-            parts.push(''); // Empty line after imports
+            parts.push('');
         }
 
-        // Emit declarations
         for (const decl of file.declarations) {
             parts.push(decl.accept(this));
-            parts.push(''); // Empty line between declarations
+            parts.push('');
         }
 
         return parts.join('\n');
     }
 
-    /**
-     * Emit import declaration
-     */
     public visitImportDeclaration(node: TSImportDeclaration): string {
-        const typeModifier = node.isType ? 'type ' : '';
-        const names = node.names.join(', ');
-        return `import ${typeModifier}{ ${names} } from '${node.from}';`;
+        return printImportDeclaration(node);
     }
 
-    /**
-     * Emit interface declaration
-     */
     public visitInterfaceDeclaration(node: TSInterfaceDeclaration): string {
-        const parts: string[] = [];
-
-        // Comment
-        if (node.comment) {
-            parts.push(node.comment.accept(this));
-        }
-
-        // Interface header
-        const exportModifier = node.exported ? 'export ' : '';
-        const extendsClause = node.extendsTypes.length > 0
-            ? ` extends ${node.extendsTypes.join(', ')}`
-            : '';
-
-        parts.push(`${exportModifier}interface ${node.name}${extendsClause} {`);
-
-        // Properties
         this.indentLevel++;
-        for (const prop of node.properties) {
-            const propStr = prop.accept(this);
-            parts.push(this.indent(propStr));
-        }
+        const res = printInterfaceDeclaration(node, this, s => this.indent(s));
         this.indentLevel--;
-
-        parts.push('}');
-
-        return parts.join('\n');
+        return res;
     }
 
-    /**
-     * Emit property signature
-     */
     public visitPropertySignature(node: TSPropertySignature): string {
-        const parts: string[] = [];
-
-        // Property comment (same line or above)
-        if (node.comment && !node.comment.isMultiLine) {
-            parts.push(node.comment.accept(this));
-        }
-
-        // Property declaration
-        const readonly = node.readonly ? 'readonly ' : '';
-        const optional = node.optional ? '?' : '';
-        const type = node.type.accept(this);
-
-        const propDecl = `${readonly}${node.name}${optional}: ${type};`;
-
-        if (node.comment && node.comment.isMultiLine) {
-            parts.unshift(node.comment.accept(this));
-        }
-
-        parts.push(propDecl);
-
-        return parts.join('\n');
+        return printPropertySignature(node, this);
     }
 
-    /**
-     * Emit type reference
-     */
     public visitTypeReference(node: TSTypeReference): string {
-        let result = node.name;
-
-        // Type arguments
-        if (node.typeArguments.length > 0) {
-            const args = node.typeArguments.map(arg => arg.accept(this)).join(', ');
-            result += `<${args}>`;
-        }
-
-        // Array suffix
-        if (node.isArray) {
-            result += '[]';
-        }
-
-        return result;
+        return printTypeReference(node, this);
     }
 
-    /**
-     * Emit comment
-     */
     public visitComment(node: TSComment): string {
-        if (node.isMultiline) {
-            return `/**\n * ${node.text}\n */`;
-        }
-        return `/** ${node.text} */`;
+        return printComment(node);
     }
 
-    /**
-     * Emit type alias declaration
-     */
     public visitTypeAliasDeclaration(node: TSTypeAliasDeclaration): string {
-        const exportModifier = node.exported ? 'export ' : '';
-        const typeStr = node.type.accept(this);
-        return `${exportModifier}type ${node.name} = ${typeStr};`;
+        return printTypeAliasDeclaration(node, this);
     }
 
-    /**
-     * Emit function declaration
-     */
     public visitFunctionDeclaration(node: TSFunctionDeclaration): string {
-        const exportModifier = node.exported ? 'export ' : '';
-        const asyncModifier = node.isAsync ? 'async ' : '';
-
-        // Parameters
-        const params = node.parameters
-            .map(p => `${p.name}: ${p.type.accept(this)}`)
-            .join(', ');
-
-        // Return type
-        const returnType = node.returnType.accept(this);
-
-        return `${exportModifier}${asyncModifier}function ${node.name}(${params}): ${returnType} {
-  // TODO: Implementation
-}`;
+        return printFunctionDeclaration(node, this);
     }
 
-    /**
-     * Emit method signature
-     */
     public visitMethodSignature(node: TSMethodSignature): string {
-        const optional = node.optional ? '?' : '';
-        const params = node.parameters
-            .map(p => `${p.name}: ${p.type.accept(this)}`)
-            .join(', ');
-        const returnType = node.returnType.accept(this);
-
-        return `${node.name}${optional}(${params}): ${returnType};`;
+        return printMethodSignature(node, this);
     }
 
-    /**
-     * Emit array type
-     */
     public visitArrayType(node: TSArrayType): string {
-        return `${node.elementType.accept(this)}[]`;
+        return printArrayType(node, this);
     }
 
-    /**
-     * Emit union type
-     */
     public visitUnionType(node: TSUnionType): string {
-        return node.types.map(t => t.accept(this)).join(' | ');
+        return printUnionType(node, this);
     }
 
-    /**
-     * Emit intersection type
-     */
     public visitIntersectionType(node: TSIntersectionType): string {
-        return node.types.map(t => t.accept(this)).join(' & ');
+        return printIntersectionType(node, this);
     }
 
-    /**
-     * Emit export declaration
-     */
     public visitExportDeclaration(node: TSExportDeclaration): string {
-        if (node.isTypeOnly) {
-            return `export type { ${node.names.join(', ')} } from '${node.from}';`;
-        }
-        return `export { ${node.names.join(', ')} } from '${node.from}';`;
+        return printExportDeclaration(node);
     }
 
-    /**
-     * Helper: add indentation
-     */
     private indent(str: string): string {
         const spaces = ' '.repeat(this.indentLevel * this.indentSize);
         return spaces + str;

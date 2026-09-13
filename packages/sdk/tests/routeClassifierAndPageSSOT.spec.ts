@@ -20,8 +20,7 @@ describe('Route Classifier & Page Endpoint SSOT', () => {
       resourceName: 'Order'
     })
 
-    const classified = new ScannedClassifiedRouteDescriptor({
-      raw: route,
+    const classified = ScannedClassifiedRouteDescriptor.fromRoute(route, {
       groupName: 'orders',
       actionName: 'list',
       runtimePath: '/api/orders',

@@ -1,5 +1,6 @@
 import { PrimitiveKind } from "../../compiler/types/SemanticType";
 import type { HttpMethod } from "./security";
+import type { BoundSemanticNode } from "./boundAst";
 
 export interface ResourceFieldDescriptor {
   readonly name: string;
@@ -7,6 +8,7 @@ export interface ResourceFieldDescriptor {
   readonly expression: ResourceFieldExpression;
   readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
   readonly nullable: boolean; // ✅ 100% Guaranteed boolean (true | false, 0 undefined)
+  readonly boundAst?: BoundSemanticNode;
 }
 
 /**

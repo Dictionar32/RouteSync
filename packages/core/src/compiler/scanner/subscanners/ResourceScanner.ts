@@ -21,8 +21,14 @@ import {
 } from "../descriptors/resourceDescriptors";
 import { collectPhpFiles } from "./scannerUtils";
 
+import { ModelSymbolTable } from "../symbols/ModelSymbolTable";
+import { SemanticResourceBinder } from "../binders/SemanticResourceBinder";
+
 export class ResourceScanner {
-    public static async scan(projectRoot: string): Promise<readonly ParsedResource[]> {
+    public static async scan(
+        projectRoot: string,
+        modelSymbolTable: ModelSymbolTable = new ModelSymbolTable([])
+    ): Promise<readonly ParsedResource[]> {
         const resDir = path.join(projectRoot, 'app', 'Http', 'Resources');
         const files = await collectPhpFiles(resDir);
         const resources: ParsedResource[] = [];
@@ -47,21 +53,14 @@ export class ResourceScanner {
             }
             const parsedArray = LaravelSourceLexer.parseArray(source, tokens, returnIndex);
 
-            const fields: ResourceFieldDescriptor[] = [];
-            for (const entry of parsedArray.entries) {
-                const mapped = ResourceScanner.mapAstValueToExpression(entry.value, entry.rawExpression);
-                fields.push(ScannedResourceFieldDescriptor.fromExpression(
-                    entry.key,
-                    mapped.expression,
-                    mapped.nullable
-                ));
-            }
+            const boundResource = SemanticResourceBinder.bindResource({
+                resourceName,
+                entries: parsedArray.entries,
+                sourceFile: fullPath,
+                modelSymbolTable
+            });
 
-            resources.push(ScannedResourceDescriptor.create({
-                name: resourceName,
-                fields,
-                sourceFile: fullPath
-            }));
+            resources.push(boundResource);
         }
 
         return resources;

@@ -9,11 +9,7 @@
 
 import { ParsedRoute } from "../../../types/route";
 import { PrimitiveKind } from "../../types/SemanticType";
-import {
-    toCamelCase,
-    toPascalCase,
-    ResourceNamingConvention
-} from "../../../utils/resource-naming";
+import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
 
 /**
  * Authoritative inference of PrimitiveKind from raw type strings or descriptors.
@@ -69,60 +65,8 @@ export function resolvePrimitiveKind(
 
 /**
  * Authoritative resolution of resource/domain name for a route.
- * Encapsulates the 10-tier fallback hierarchy into a clean deterministic function.
+ * Canonical SSOT is pre-resolved on route.domain at Origin Boundary.
  */
 export function resolveRouteDomain(route: ParsedRoute): string {
-    let rawDomain = route.resourceName;
-    if (rawDomain) {
-        rawDomain = ResourceNamingConvention.stripSuffix(rawDomain);
-    }
-    if (!rawDomain && (route.path === '/register' || route.actionName?.endsWith('register'))) {
-        rawDomain = 'Register';
-    }
-    if (!rawDomain && route.name) {
-        const nameParts = route.name.split('.');
-        rawDomain = nameParts.length > 1
-            ? nameParts.slice(0, -1).map((p, i) => i === 0 ? toCamelCase(p) : toPascalCase(p)).join('')
-            : route.name;
-    }
-    const rawSegments = (route.path || '').replace(/^\//, '').split('/')
-        .filter(segment => segment && segment !== 'api' && segment !== 'v1' && !segment.startsWith('{') && !segment.startsWith(':'));
-    if (!rawDomain && rawSegments.length > 1) {
-        const camelSegments = rawSegments.map((seg, idx) => {
-            const clean = toCamelCase(seg);
-            return idx === 0 ? clean : toPascalCase(clean);
-        });
-        rawDomain = camelSegments.join('');
-    }
-    if (!rawDomain && (route as any).domain) {
-        rawDomain = (route as any).domain;
-    }
-    const routeAction = (route as any).action || route.actionName;
-    if (!rawDomain && routeAction) {
-        const ctrlMatch = String(routeAction).match(/([A-Z][a-zA-Z0-9_]*?)Controller/);
-        if (ctrlMatch) {
-            rawDomain = ctrlMatch[1];
-        }
-    }
-    if (!rawDomain && (route as any).schema?.formTypeName) {
-        rawDomain = (route as any).schema.formTypeName.replace(/Form$/, '');
-    }
-    if (!rawDomain && (route as any).schema?.resourceName) {
-        rawDomain = ResourceNamingConvention.stripSuffix((route as any).schema.resourceName);
-    }
-    if (!rawDomain && route.groupName) {
-        rawDomain = route.groupName;
-    }
-    if (!rawDomain && rawSegments.length > 0) {
-        const camelSegments = rawSegments.map((seg, idx) => {
-            const clean = toCamelCase(seg);
-            return idx === 0 ? clean : toPascalCase(clean);
-        });
-        rawDomain = camelSegments.join('');
-    }
-    if (!rawDomain) {
-        rawDomain = 'App';
-    }
-
-    return rawDomain;
+    return route.domain || ScannedRouteDescriptor.resolveDomain(route);
 }

@@ -40,7 +40,7 @@ export class ValidationRuleFieldLowerer {
         const primitiveArrayProps = new Map<string, SemanticType>();
         const regularRules: [string, string][] = [];
 
-        const routeActionDesc = (route as any).action || route.actionName || route.resourceName || (route as any).controllerAction || '';
+        const routeActionDesc = route.action || route.actionName || route.resourceName || '';
         const rawRules = route.schema.rules;
         const ruleEntries: readonly [string, string][] = Array.isArray(rawRules)
             ? (rawRules as readonly any[]).map(r => [String(r.fieldName || r.field || ''), Array.isArray(r.rules) ? r.rules.join('|') : String(r.rules || '')])

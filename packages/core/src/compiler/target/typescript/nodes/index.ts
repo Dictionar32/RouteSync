@@ -12,7 +12,8 @@ export { TSFile, TSDeclaration } from './TSFile';
 
 // Import/Export nodes
 export { TSImportDeclaration } from './TSImportDeclaration';
-export { TSExportDeclaration, TSExportSpecifier } from './TSExportDeclaration';
+export { TSExportDeclaration } from './TSExportDeclaration';
+export { TSExportSpecifier } from './TSExportSpecifier';
 
 // Declaration nodes
 export { TSInterfaceDeclaration } from './TSInterfaceDeclaration';
@@ -22,7 +23,8 @@ export { TSTypeParameter } from './TSTypeParameter';
 
 // Member nodes
 export { TSPropertySignature } from './TSPropertySignature';
-export { TSMethodSignature, TSParameter } from './TSMethodSignature';
+export { TSMethodSignature } from './TSMethodSignature';
+export { TSParameter } from './TSParameter';
 
 // Type nodes
 export { TSTypeReference } from './TSTypeReference';

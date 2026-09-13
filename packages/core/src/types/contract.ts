@@ -1,3 +1,5 @@
+import type { BoundSemanticNode } from './domain/boundAst';
+
 export type ResolutionStatus = 'resolved' | 'unknown' | 'partial'
 
 export interface TraceNode {
@@ -17,6 +19,8 @@ export interface SemanticResolution {
   nullable?: boolean
   confidence: number
   trace: TraceNode[]
+  /** First-Class Typed Semantic AST Node (Bound AST) representing the derivation tree */
+  boundAst?: BoundSemanticNode
   /** For synthetic `type: 'object'` results (e.g. Sanctum's createToken()) — property name to type, read by ExpressionResolver's property_access handling. */
   fields?: Record<string, string>
 }

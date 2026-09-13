@@ -3,11 +3,12 @@
  *
  * Slim Orchestrator & Backward-Compatible Facade for Laravel Project Scanning.
  * Coordinates specialized sub-scanners and re-exports all AST descriptors.
+ * Active Consumer: Orchestrates Laravel project scanning pipeline.
  *
  * @module core/compiler/scanner
  */
 
-import {
+import type {
     RouteManifest,
     ParsedRoute,
     ParsedResource,
@@ -17,22 +18,95 @@ import {
     RouteParameter,
     ParsedColumn
 } from "../../types/route";
-import { RequestType } from "../artifacts/RequestTypesArtifact";
-import { ObjectType } from "../types/SemanticType";
+import type { RequestType } from "../artifacts/RequestTypesArtifact";
+import type { ObjectType } from "../types/SemanticType";
 import { TypeInterner } from "../types/TypeInterner";
 
-// Re-export all AST Descriptors (100% Backward Compatibility)
-export * from "./descriptors";
-
-// Re-export all Subscanners and Utilities
-export * from "./subscanners";
-
-import {
-    StaticLaravelScannerOptions,
+// Re-export AST Descriptors explicitly (Rule 14: Zero wildcard re-exports)
+export {
+    LaravelValidationType,
+    type LaravelValidationConstraint,
+    type ResourceExpressionDescriptor,
+    type StaticLaravelScannerOptions,
+    ScannedRouteValidationRuleEntry,
+    type ScannedRouteValidationRuleParams,
+    ScannedRouteSchemaPayload,
+    type ScannedRouteSchemaParams,
+    ScannedScalarFieldNode,
+    type ScannedScalarFieldParams,
+    ScannedObjectFieldNode,
+    type ScannedObjectFieldParams,
+    ScannedArrayFieldNode,
+    type ScannedArrayFieldParams,
+    ValidationTreeBuilder,
+    buildValidationTree,
+    ScannedRouteDescriptor,
+    ScannedRouteParameterDescriptor,
+    ScannedRouteQueryParameterDescriptor,
+    ScannedRoutePolicyDescriptor,
+    ScannedRateLimitDescriptor,
+    ScannedHttpErrorResponseDescriptor,
+    type ScannedRouteCompleteContracts,
+    type ScannedRouteConstructorInput,
+    type ScannedRouteParams,
+    type ScannedRouteParameterParams,
+    type ScannedRouteQueryParameterParams,
+    type ScannedRoutePolicyParams,
+    type ScannedRateLimitParams,
+    type ScannedHttpErrorResponseParams,
+    ScannedResourceFieldDescriptor,
+    type ScannedResourceFieldParams,
+    ScannedResourceDescriptor,
+    type ScannedResourceParams,
+    ScannedModelColumnDescriptor,
+    ScannedModelCastDescriptor,
+    ScannedModelRelationDescriptor,
+    ScannedModelAccessorDescriptor,
+    ScannedModelDescriptor,
+    type ScannedModelColumnParams,
+    type ScannedModelCastParams,
+    type ScannedModelRelationParams,
+    type ScannedModelAccessorParams,
+    type ScannedModelParams,
+    ScannedBroadcastChannelDescriptor,
+    type ScannedBroadcastChannelParams,
+    compileBroadcastRuntimePattern,
+    ScannedFormFieldDescriptor,
+    type ScannedFormFieldParams,
+    ScannedFormActionDescriptor,
+    type ScannedFormActionParams,
+    ScannedControllerActionDescriptor,
+    type ScannedControllerActionParams,
+    ScannedRequestTypeDescriptor,
+    type ScannedRequestTypeParams,
+    type ControllerActionInfo,
+    buildRequestTypeWithActions,
     ScannedResourceRouteGroupDescriptor,
-    ScannedRouteManifestDescriptor
+    type ScannedResourceRouteGroupParams,
+    ScannedRouteManifestDescriptor,
+    type ScannedRouteManifestParams
 } from "./descriptors";
 
+// Re-export Subscanners and Utilities explicitly (Rule 14: Zero wildcard re-exports)
+export {
+    collectPhpFiles,
+    ChannelScanner,
+    ControllerScanner,
+    ResourceScanner,
+    FormRequestScanner,
+    ModelScanner,
+    RouteScanner,
+    InvalidationResolver,
+    resolvePrimitiveKind,
+    resolveRouteDomain,
+    ValidationRuleFieldLowerer,
+    RequestTypeDeriver,
+    deriveRequestTypes,
+    SemanticTypeDeriver,
+    TypeDeriver
+} from "./subscanners";
+
+import type { StaticLaravelScannerOptions } from "./descriptors";
 import {
     ChannelScanner,
     ControllerScanner,
@@ -44,6 +118,8 @@ import {
     TypeDeriver,
     collectPhpFiles
 } from "./subscanners";
+import { ModelSymbolTable } from "./symbols/ModelSymbolTable";
+import { executeScanPipeline } from "./orchestrator/index";
 
 export class StaticLaravelScanner {
     public readonly projectRoot: string;
@@ -128,45 +204,11 @@ export class StaticLaravelScanner {
      * Executes the complete scanning pipeline leveraging Core subsystems.
      */
     public async execute(): Promise<RouteManifest> {
-        const resources = await this.scanResources();
-        const models = await this.scanModels();
-        const formRequests = await this.scanFormRequests();
-        const routes = await this.scanRoutes(formRequests);
-        const channels = await this.scanChannels();
-        const derivedRequests = StaticLaravelScanner.deriveRequestTypes(routes, resources, this.interner);
-        const requestTypes = formRequests.length > 0 ? formRequests : derivedRequests;
-        const semanticTypes = StaticLaravelScanner.deriveSemanticTypes(resources, models, this.interner, routes);
-
-        const groupMap = new Map<string, ParsedRoute[]>();
-        for (const route of routes) {
-            const list = groupMap.get(route.resourceName) || [];
-            list.push(route);
-            groupMap.set(route.resourceName, list);
-        }
-        const routeGroups: ResourceRouteGroup[] = Array.from(groupMap.entries()).map(([resName, rList]) =>
-            ScannedResourceRouteGroupDescriptor.create({
-                resourceName: resName,
-                routes: rList,
-                formTypeName: requestTypes.find(rt => rt.resourceName.toLowerCase() === resName.toLowerCase())?.formTypeName,
-                formActions: requestTypes.find(rt => rt.resourceName.toLowerCase() === resName.toLowerCase())?.actions
-            })
-        );
-
-        const resolvedRoutes = StaticLaravelScanner.resolveRouteInvalidations(routes, models, routeGroups);
-
-        return new ScannedRouteManifestDescriptor({
-            version: this.version,
+        return executeScanPipeline({
+            projectRoot: this.projectRoot,
             baseURL: this.baseURL,
-            routes: resolvedRoutes,
-            resources,
-            models,
-            routeGroups,
-            requestTypes,
-            semanticTypes,
-            generatedAt: new Date().toISOString(),
-            channels,
-            frontend: null,
-            pages: []
+            version: this.version,
+            interner: this.interner
         });
     }
 
@@ -191,8 +233,8 @@ export class StaticLaravelScanner {
         return collectPhpFiles(dir);
     }
 
-    private async scanResources(): Promise<readonly ParsedResource[]> {
-        return ResourceScanner.scan(this.projectRoot);
+    private async scanResources(modelSymbolTable?: ModelSymbolTable): Promise<readonly ParsedResource[]> {
+        return ResourceScanner.scan(this.projectRoot, modelSymbolTable);
     }
 
     private async scanFormRequests(): Promise<readonly RequestType[]> {

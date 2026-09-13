@@ -1,5 +1,6 @@
 import { SemanticResolution } from '../../types/contract';
 import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { BoundSemanticFactory } from '../../types/domain/boundAst';
 
 interface ManifestModel {
   name: string;
@@ -21,7 +22,17 @@ export class ConditionalWrapperResolver implements ResolverPlugin {
 
     if (name === 'whenLoaded') {
       if (args.length >= 2) {
-        return context.kernel.resolve(args[1], context.contextModel);
+        const resolvedTarget = context.kernel.resolve(args[1], context.contextModel);
+        const boundAst = BoundSemanticFactory.conditional({
+          wrapper: 'whenLoaded',
+          conditionExpression: `whenLoaded`,
+          target: resolvedTarget.boundAst ? resolvedTarget.boundAst : BoundSemanticFactory.primitive(resolvedTarget.type),
+          isOptional: true
+        });
+        return {
+          ...resolvedTarget,
+          boundAst
+        };
       } else if (args.length === 1 && (args[0].kind === 'primitive' || args[0].kind === 'literal')) {
         const first = args[0];
         const relationName = first.kind === 'literal' ? first.value : first.type;
@@ -35,12 +46,28 @@ export class ConditionalWrapperResolver implements ResolverPlugin {
               const relation = model.relation(relationName)!;
               if (relation.model) {
                 const isCollection = ['hasMany', 'belongsToMany', 'morphMany', 'morphToMany', 'morphedByMany'].includes(relation.type);
+                const innerRelationNode = BoundSemanticFactory.relation({
+                  sourceModel: resolvedThis.model,
+                  relationName,
+                  relationType: relation.type || 'hasOne',
+                  targetModel: relation.model,
+                  isCollection,
+                  nullable: true
+                });
+                const boundAst = BoundSemanticFactory.conditional({
+                  wrapper: 'whenLoaded',
+                  conditionExpression: `whenLoaded('${relationName}')`,
+                  target: innerRelationNode,
+                  relationModel: relation.model,
+                  isOptional: true
+                });
                 return {
                   status: 'resolved',
                   type: 'model',
                   model: relation.model,
                   collection: isCollection || undefined,
                   confidence: 100,
+                  boundAst,
                   trace: [{
                     source: 'ConditionalWrapperResolver',
                     rule: `whenLoaded relation shorthand lookup`,
@@ -55,7 +82,17 @@ export class ConditionalWrapperResolver implements ResolverPlugin {
       }
     } else { // when or mergeWhen
       if (args.length >= 2) {
-        return context.kernel.resolve(args[1], context.contextModel);
+        const resolvedTarget = context.kernel.resolve(args[1], context.contextModel);
+        const boundAst = BoundSemanticFactory.conditional({
+          wrapper: name as 'when' | 'mergeWhen',
+          conditionExpression: name,
+          target: resolvedTarget.boundAst ? resolvedTarget.boundAst : BoundSemanticFactory.primitive(resolvedTarget.type),
+          isOptional: true
+        });
+        return {
+          ...resolvedTarget,
+          boundAst
+        };
       }
     }
 

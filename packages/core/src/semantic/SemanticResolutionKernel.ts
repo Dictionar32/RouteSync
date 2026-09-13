@@ -1,87 +1,57 @@
-import { SemanticResolution } from '../types/contract';
-import { ResolverPlugin, CycleDetector, SemanticResolutionKernelContract, ResolutionContext, ResolverMeta, ModelNode } from './types';
+/**
+ * SemanticResolutionKernel.ts
+ *
+ * Active Consumer: Orchestrator for Semantic Resolution Kernel.
+ * Consumes sub-domain modules and executes resolution workflow.
+ *
+ * @module core/semantic
+ */
+
+import type { SemanticResolution } from '../types/contract';
+import type {
+  ResolverPlugin,
+  SemanticResolutionKernelContract,
+  ResolutionContext,
+  ResolverMeta,
+  ModelNode
+} from './types';
+import { CycleDetector } from './types';
 import { SymbolTable } from './SymbolTable';
-import { isObject, hasProperty, isString } from '../utils/type-guards';
-import { FieldNode } from '../types/field';
-import { PrimitiveResolver } from './plugins/PrimitiveResolver';
-import { ModelColumnResolver } from './plugins/ModelColumnResolver';
-import { AccessorResolver } from './plugins/AccessorResolver';
-import { ResourceGraphResolver } from './plugins/ResourceGraphResolver';
-import { EloquentMethodResolver } from './plugins/EloquentMethodResolver';
-import { ExpressionResolver } from './plugins/ExpressionResolver';
-import { FrameworkRegistryResolver } from './plugins/FrameworkRegistryResolver';
-import { VariableResolver } from './plugins/VariableResolver';
-import { ConditionalWrapperResolver } from './plugins/ConditionalWrapperResolver';
+import {
+  mapSqlTypeToTs,
+  mapCastToTs,
+  buildResolutionContext,
+  createDefaultPlugins
+} from './kernel';
+
+export { mapSqlTypeToTs, mapCastToTs };
 
 export class SemanticResolutionKernel implements SemanticResolutionKernelContract {
-  private plugins: ResolverPlugin[] = [];
+  private plugins: ResolverPlugin[];
   private cycleDetector: CycleDetector;
   private symbolTable: SymbolTable;
-
-  /**
-   * Type guard untuk Record<string, FieldNode>
-   */
-  private isFieldNodeRecord(value: unknown): value is Record<string, FieldNode> {
-    if (!isObject(value)) return false
-    return Object.values(value).every(val =>
-      isObject(val) &&
-      hasProperty(val, 'kind') &&
-      isString(val.kind)
-    )
-  }
-
-  /**
-   * Type guard untuk Record<string, SemanticResolution>
-   */
-  private isSemanticResolutionRecord(value: unknown): value is Record<string, SemanticResolution> {
-    if (!isObject(value)) return false
-    return Object.values(value).every(val =>
-      isObject(val) &&
-      hasProperty(val, 'status') &&
-      hasProperty(val, 'type') &&
-      hasProperty(val, 'confidence') &&
-      hasProperty(val, 'trace')
-    )
-  }
 
   constructor(private models: ModelNode[] = [], private resources: unknown[] = []) {
     this.cycleDetector = new CycleDetector();
     this.symbolTable = new SymbolTable(this.models);
-    this.plugins = [
-      new PrimitiveResolver(),
-      new ModelColumnResolver(),
-      new AccessorResolver(),
-      new ResourceGraphResolver(),
-      new ConditionalWrapperResolver(),
-      new FrameworkRegistryResolver(),
-      new EloquentMethodResolver(),
-      new ExpressionResolver(),
-      new VariableResolver(),
-      // Model transform fallback
-      {
-        canResolve: (meta) => meta && meta.kind === 'model',
-        resolve: (meta) => {
-          const modelVal = meta.kind === 'model' ? meta.model || '' : '';
-          return {
-            status: 'resolved',
-            type: 'model',
-            model: modelVal,
-            confidence: 100,
-            trace: [{ source: 'FallbackResolver', rule: 'Fallback model mapping', input: modelVal, output: `model: ${modelVal}` }]
-          };
-        }
-      }
-    ];
+    this.plugins = createDefaultPlugins();
   }
 
   public getModels(): ModelNode[] {
     return this.models;
   }
 
-  public loadGraph(graph: { models?: Record<string, ModelNode> }) {
+  public loadGraph(graph: { models?: Record<string, ModelNode> | { readonly entries: readonly { readonly name: string; readonly model: ModelNode }[] } }) {
     if (graph && graph.models) {
       let changed = false;
-      for (const [name, node] of Object.entries(graph.models)) {
+      const modelEntries: readonly (readonly [string, ModelNode])[] = 'entries' in graph.models && Array.isArray(graph.models.entries)
+        ? graph.models.entries.map((e: { readonly name: string; readonly model: ModelNode }) => [e.name, e.model] as const)
+        : Object.entries(graph.models as Record<string, ModelNode>);
+
+      for (const [name, node] of modelEntries) {
+        if (!node || typeof node !== 'object' || !('name' in node)) {
+          continue;
+        }
         if (!this.models.some(m => m.name === name)) {
           this.models.push(node);
           changed = true;
@@ -101,26 +71,14 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       };
     }
 
-    const context: ResolutionContext = {
-      models: this.models,
-      resources: this.resources,
-      kernel: this,
-      cycleDetector: this.cycleDetector,
-      symbolTable: this.symbolTable,
+    const context: ResolutionContext = buildResolutionContext(
+      this.models,
+      this.resources,
+      this,
+      this.cycleDetector,
+      this.symbolTable,
       contextModel
-    };
-
-    if (contextModel && isObject(contextModel)) {
-      if (hasProperty(contextModel, 'fileName') && isString(contextModel.fileName)) {
-        context.fileName = contextModel.fileName;
-      }
-      if (hasProperty(contextModel, 'assignments') && this.isFieldNodeRecord(contextModel.assignments)) {
-        context.assignments = contextModel.assignments;
-      }
-      if (hasProperty(contextModel, 'resolvedAssignments') && this.isSemanticResolutionRecord(contextModel.resolvedAssignments)) {
-        context.resolvedAssignments = contextModel.resolvedAssignments;
-      }
-    }
+    );
 
     for (const plugin of this.plugins) {
       if (plugin.canResolve(meta)) {
@@ -137,20 +95,10 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
   }
 
   public mapSqlTypeToTs(sqlType: string): string {
-    const s = sqlType.toLowerCase()
-    if (s === 'number' || s === 'boolean' || s === 'string' || s === 'any' || s === 'unknown' || s === 'void') return s
-    if (s === 'mixed') return 'unknown'
-    if (s.includes('bool') || s.includes('tinyint(1)')) return 'boolean'
-    if (s.includes('int') || s.includes('decimal') || s.includes('float') || s.includes('double') || s.includes('numeric')) return 'number'
-    return 'string'
+    return mapSqlTypeToTs(sqlType);
   }
 
   public mapCastToTs(castType: string, baseType: string): string {
-    const s = castType.toLowerCase()
-    if (s.includes('int') || s.includes('float') || s.includes('double') || s.includes('decimal')) return 'number'
-    if (s.includes('bool')) return 'boolean'
-    if (s.includes('array') || s.includes('json') || s.includes('object') || s.includes('collection')) return 'json-object'
-    if (s.includes('date') || s.includes('datetime')) return 'string'
-    return baseType
+    return mapCastToTs(castType, baseType);
   }
 }

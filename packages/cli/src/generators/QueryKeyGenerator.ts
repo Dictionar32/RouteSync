@@ -1,45 +1,12 @@
-import {
-  RouteManifest,
-  CrudResourceGroupDescriptor,
-  SingletonResourceGroupDescriptor,
-  CustomResourceGroupDescriptor
-} from '@routesync/core'
+import { RouteManifest } from '@routesync/core'
 import path from 'path'
 import { classifyDomainGraph, ClassifiedDomainGraph, ClassifiedRoute } from './route-classifier'
 import { CodeWriter } from './code-writer'
 
-function lowerActionKeyLine(keyName: string, route: ClassifiedRoute): string {
-  if (route.hasParams) {
-    return `    ${route.actionName}: (params?: string | number | Record<string, unknown>) => [Entity.${keyName}, "${route.actionName}", params ?? {}] as const,`
-  }
-  return `    ${route.actionName}: () => [Entity.${keyName}, "${route.actionName}"] as const,`
-}
-
-function* lowerCrudQueryKeyBlock(
-  group: CrudResourceGroupDescriptor<ClassifiedRoute>
-): Iterable<string> {
-  yield `  ${group.groupName}: {`
-  yield `    ...createBaseQueryKey<typeof Entity.${group.keyName}, ${group.primaryKeyType}>(Entity.${group.keyName}),`
-  for (const route of group.all) {
-    yield lowerActionKeyLine(group.keyName, route)
-  }
-  yield `  },`
-}
-
-function* lowerNonCrudQueryKeyBlock(
-  group: SingletonResourceGroupDescriptor<ClassifiedRoute> | CustomResourceGroupDescriptor<ClassifiedRoute>
-): Iterable<string> {
-  yield `  ${group.groupName}: {`
-  yield `    all: () => [Entity.${group.keyName}] as const,`
-  for (const route of group.all) {
-    yield lowerActionKeyLine(group.keyName, route)
-  }
-  yield `  },`
-}
-
 /**
  * Pure generator lowering the entire query-key.ts source file.
  * Streams lines without creating nested staging arrays.
+ * 0 'if', 0 'switch', self-projecting ADT lowerQueryKeyBlock().
  */
 export function* lowerQueryKeySource(
   graph: ClassifiedDomainGraph<ClassifiedRoute>
@@ -82,11 +49,7 @@ export function* lowerQueryKeySource(
 
   for (const group of graph.resourceGroupGraph.all) {
     yield `  /* ===== ${group.titleName.toUpperCase()} ===== */`
-    if (group.isCrud) {
-      yield* lowerCrudQueryKeyBlock(group)
-    } else {
-      yield* lowerNonCrudQueryKeyBlock(group)
-    }
+    yield* group.lowerQueryKeyBlock()
     yield ``
   }
 

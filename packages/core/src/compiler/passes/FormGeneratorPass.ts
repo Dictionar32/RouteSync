@@ -16,6 +16,7 @@ import { FormActionGenerator } from '../generators/form-generation/FormActionGen
 import { FormCodeBuilder, type FormTypeDefinition } from '../generators/form-generation/FormCodeBuilder';
 import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
 import { defaultTypeResolver } from '../domain/common/ResponseFieldLowering';
+import { RouteManifest } from '../../types/domain';
 
 export interface FormGeneratorPassDependencies {
     readonly indentSize?: number;
@@ -101,4 +102,52 @@ export class FormGeneratorPass implements CompilerPass<readonly ['RequestTypes']
             metadata: requestTypesArtifact.metadata
         }];
     }
+}
+
+const defaultFormPass = new FormGeneratorPass();
+
+export interface FormOutput {
+    readonly code: string;
+    readonly formTypes: readonly string[];
+    readonly metadata: {
+        readonly formTypeCount: number;
+        readonly totalActions: number;
+        readonly linesOfCode: number;
+        readonly warnings: readonly string[];
+    };
+}
+
+/**
+ * Pure Dataflow Transform: RequestTypesArtifact → GeneratedFormArtifact
+ * 1 Input, 1 Output, 0 '?', 0 'new' in call site, 0 array wrapping.
+ */
+export function lowerFormArtifact(artifact: RequestTypesArtifact): GeneratedFormArtifact {
+    return defaultFormPass.run([artifact])[0];
+}
+
+export function lowerFormTypesOutput(artifact: RequestTypesArtifact, manifest: RouteManifest): FormOutput {
+    const formArtifact = lowerFormArtifact(artifact);
+
+    const formTypes = formArtifact.formTypes.map(ft => ft.name);
+    const warnings: string[] = [...formArtifact.generationMetadata.warnings];
+
+    // Validate manifest for form generation requirements
+    if (!manifest.routes || manifest.routes.length === 0) {
+        warnings.push('No routes found in manifest');
+    }
+
+    if (formArtifact.generationMetadata.formTypeCount === 0) {
+        warnings.push('No form types generated');
+    }
+
+    return {
+        code: formArtifact.code,
+        formTypes,
+        metadata: {
+            formTypeCount: formArtifact.generationMetadata.formTypeCount,
+            totalActions: formArtifact.generationMetadata.totalActions,
+            linesOfCode: formArtifact.generationMetadata.linesOfCode,
+            warnings
+        }
+    };
 }

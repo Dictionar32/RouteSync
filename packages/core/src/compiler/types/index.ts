@@ -114,3 +114,16 @@ export {
     compareSpans,
     mergeSpans
 } from '../utils/SourceLocation';
+
+// Resolved PHP Types (TTD ADT)
+export {
+    ResolvedPhpType,
+    ResolvedPhpTypeVisitor,
+    PrimitivePhpType,
+    EloquentModelPhpType,
+    ResourceWrapperPhpType,
+    VoidPhpType,
+    UnknownPhpType,
+    matchResolvedPhpType
+} from './ResolvedPhpType';
+

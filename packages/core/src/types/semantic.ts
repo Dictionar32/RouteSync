@@ -1,5 +1,37 @@
 import { TraceNode, SemanticResolution, AccessKind } from './contract';
 import type { FieldNode } from './field';
+import {
+  ModelFieldMap,
+  ModelRelationMap,
+  ModelAccessorMap,
+  ModelServiceMap,
+  ModelControllerMap,
+  ModelNodeMap,
+  SemanticModelMap,
+  SemanticRelationMap
+} from './domain/semanticCollections';
+
+export {
+  type ModelFieldInfo,
+  type ModelFieldEntry,
+  ModelFieldMap,
+  type ModelRelationInfo,
+  type ModelRelationEntry,
+  ModelRelationMap,
+  type ModelAccessorInfo,
+  type ModelAccessorEntry,
+  ModelAccessorMap,
+  type ModelServiceEntry,
+  ModelServiceMap,
+  type ModelControllerEntry,
+  ModelControllerMap,
+  type ModelNodeEntry,
+  ModelNodeMap,
+  type SemanticModelEntry,
+  SemanticModelMap,
+  type SemanticRelationEntry,
+  SemanticRelationMap
+} from './domain/semanticCollections';
 
 /* =========================================================
  *  ROUTESYNC COMPILER CORE — IR v2 SPEC
@@ -26,38 +58,92 @@ export type IRKind =
  *  2. SOURCE LAYER (TRACEABILITY)
  * ========================= */
 
-export interface SourceRef {
-  file: string;
-  line?: number;
-  column?: number;
-
-  context:
+export type SourceContext =
   | "controller"
   | "resource"
   | "model"
   | "route"
   | "service";
+
+export interface SourceRef {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly context: SourceContext;
+}
+
+export class SourceRefFactory {
+  public static create(
+    file: string,
+    context: SourceContext = 'route',
+    line: number = 0,
+    column: number = 0
+  ): SourceRef {
+    return Object.freeze({ file, line, column, context });
+  }
+
+  public static unknown(file: string = '', context: SourceContext = 'route'): SourceRef {
+    return Object.freeze({ file, line: 0, column: 0, context });
+  }
 }
 
 /* =========================
  *  3. RAW LAYER (IMMUTABLE INPUT)
  * ========================= */
 
+export interface RootASTNode {
+  readonly kind: "root";
+  readonly identifier: string;
+  readonly source: SourceRef;
+}
+
+export class RootASTNodeFactory {
+  public static create(
+    identifier: string = '',
+    source: SourceRef = SourceRefFactory.unknown()
+  ): RootASTNode {
+    return Object.freeze({
+      kind: "root",
+      identifier,
+      source
+    });
+  }
+}
+
 export interface IRRawNode {
-  kind: "raw_code";
-  code: string;
+  readonly kind: "raw_code";
+  readonly code: string;
+  readonly hints: IRHints;
+  readonly parsed_ast?: ParsedASTNode;
+}
 
-  hints?: IRHints;
+export class IRRawNodeDescriptor implements IRRawNode {
+  public readonly kind = "raw_code" as const;
+  public readonly code: string;
+  public readonly hints: IRHints;
+  public readonly parsed_ast?: ParsedASTNode;
 
-  parsed_ast?: ParsedASTNode;
+  constructor(code: string, hints: IRHints, parsedAst?: ParsedASTNode) {
+    this.code = code;
+    this.hints = hints;
+    this.parsed_ast = parsedAst;
+    Object.freeze(this);
+  }
+
+  public static fromRawCode(code: string, hints?: IRHints): IRRawNodeDescriptor {
+    return new IRRawNodeDescriptor(code, hints ?? IRHintsFactory.default());
+  }
+
+  public static withAst(code: string, ast: ParsedASTNode, hints?: IRHints): IRRawNodeDescriptor {
+    return new IRRawNodeDescriptor(code, hints ?? IRHintsFactory.default(), ast);
+  }
 }
 
 /* =========================
  *  4. HINT SYSTEM (LIGHTWEIGHT SIGNALING ONLY)
  * ========================= */
 
-export interface IRHints {
-  pattern:
+export type IRHintPattern =
   | "property_access"
   | "method_call"
   | "binary_expression"
@@ -67,11 +153,42 @@ export interface IRHints {
   | "collection"
   | "unknown";
 
-  confidence?: number; // 0..1
+export type IRFrameworkContext = "eloquent" | "resource" | "blade" | "unknown";
 
-  nullable?: boolean;
+export interface IRHints {
+  readonly pattern: IRHintPattern;
+  readonly confidence: number;
+  readonly nullable: boolean;
+  readonly framework_context: IRFrameworkContext;
+}
 
-  framework_context?: "eloquent" | "resource" | "blade" | "unknown";
+export class IRHintsFactory {
+  public static create(
+    pattern: IRHintPattern,
+    confidence: number = 1.0,
+    nullable: boolean = false,
+    frameworkContext: IRFrameworkContext = 'unknown'
+  ): IRHints {
+    return Object.freeze({
+      pattern,
+      confidence,
+      nullable,
+      framework_context: frameworkContext
+    });
+  }
+
+  public static default(pattern: IRHintPattern = 'unknown'): IRHints {
+    return Object.freeze({
+      pattern,
+      confidence: 1.0,
+      nullable: false,
+      framework_context: 'unknown'
+    });
+  }
+
+  public static empty(pattern: IRHintPattern = 'unknown'): IRHints {
+    return this.default(pattern);
+  }
 }
 
 /* =========================
@@ -79,12 +196,14 @@ export interface IRHints {
  * ========================= */
 
 export type ParsedASTNode =
+  | RootASTNode
   | PropertyAccessAST
   | MethodCallAST
   | BinaryExpressionAST
   | TypeCastAST
   | TernaryAST
   | LiteralAST
+  | NullLiteralAST
   | NullsafeChainAST
   | UnknownAST
   | VariableAST
@@ -104,7 +223,7 @@ export interface VariableAST {
 
 export interface PropertyAccessAST {
   kind: "property_access";
-  target: ParsedASTNode | null;
+  target: ParsedASTNode;
   property: string;
   /**
    * Explicit access classification emitted by the parser.
@@ -115,7 +234,7 @@ export interface PropertyAccessAST {
 
 export interface MethodCallAST {
   kind: "method_call";
-  target: ParsedASTNode | null;
+  target: ParsedASTNode;
   name: string;
   args: ParsedASTNode[];
   resource?: string;
@@ -142,10 +261,17 @@ export interface TernaryAST {
   falsy: ParsedASTNode;
 }
 
-export interface LiteralAST {
+export interface ScalarLiteralAST {
   kind: "literal";
-  value: string | number | boolean | null;
+  value: string | number | boolean;
 }
+
+export interface NullLiteralAST {
+  kind: "null_literal";
+}
+
+export type LiteralAST = ScalarLiteralAST;
+export type ParsedLiteralAST = ScalarLiteralAST | NullLiteralAST;
 
 export interface NullsafeChainAST {
   kind: "nullsafe_chain";
@@ -175,21 +301,56 @@ export interface ModelAST {
 
 export interface StaticMethodCallAST {
   kind: "static_method_call";
-  target: ParsedASTNode | null;
+  target: ParsedASTNode;
   name: string;
 }
 
 export interface NullsafePropertyAccessAST {
   kind: "nullsafe_property_access";
-  target: ParsedASTNode | null;
+  target: ParsedASTNode;
   property: string;
 }
 
 export interface NewInstanceAST {
   kind: "new_instance";
-  target: ParsedASTNode | null;
+  target: ParsedASTNode;
   resource?: string;
   collection?: boolean;
+}
+
+/* =========================
+ *  5.1. CATAMORPHISM: PARSED AST VISITOR & MATCHER (0 IF, 0 SWITCH)
+ * ========================= */
+
+export interface ParsedASTVisitor<R> {
+  readonly root: (node: RootASTNode) => R;
+  readonly variable: (node: VariableAST) => R;
+  readonly property_access: (node: PropertyAccessAST) => R;
+  readonly method_call: (node: MethodCallAST) => R;
+  readonly binary_expression: (node: BinaryExpressionAST) => R;
+  readonly type_cast: (node: TypeCastAST) => R;
+  readonly ternary: (node: TernaryAST) => R;
+  readonly literal: (node: LiteralAST) => R;
+  readonly null_literal: (node: NullLiteralAST) => R;
+  readonly nullsafe_chain: (node: NullsafeChainAST) => R;
+  readonly unknown: (node: UnknownAST) => R;
+  readonly primitive: (node: PrimitiveAST) => R;
+  readonly resource: (node: ResourceAST) => R;
+  readonly model: (node: ModelAST) => R;
+  readonly static_method_call: (node: StaticMethodCallAST) => R;
+  readonly nullsafe_property_access: (node: NullsafePropertyAccessAST) => R;
+  readonly new_instance: (node: NewInstanceAST) => R;
+}
+
+/**
+ * 0 `if`, 0 `switch` Catamorphic Eliminator for ParsedASTNode
+ */
+export function matchParsedAST<R>(
+  node: ParsedASTNode,
+  visitor: ParsedASTVisitor<R>
+): R {
+  const handler = visitor[node.kind] as (n: ParsedASTNode) => R;
+  return handler(node);
 }
 
 /* =========================
@@ -213,22 +374,83 @@ export type SemanticType =
   | "NewAccessToken"
   | "unknown";
 
-export interface SemanticNode extends SemanticResolution {
+export interface SemanticFieldEntry {
+  readonly name: string;
+  readonly type: SemanticType;
+}
+
+export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
+  public readonly entries: readonly SemanticFieldEntry[];
+  private readonly _lookup: ReadonlyMap<string, SemanticType>;
+
+  constructor(entries: readonly SemanticFieldEntry[]) {
+    this.entries = Object.freeze([...entries]);
+    const map = new Map<string, SemanticType>();
+    for (const e of entries) {
+      map.set(e.name, e.type);
+    }
+    this._lookup = map;
+    Object.freeze(this);
+  }
+
+  public static empty(): SemanticFieldSet {
+    return new SemanticFieldSet([]);
+  }
+
+  public static fromRecord(record: Readonly<{ readonly [name: string]: SemanticType }>): SemanticFieldSet {
+    const entries: SemanticFieldEntry[] = Object.entries(record).map(([name, type]) => ({ name, type }));
+    return new SemanticFieldSet(entries);
+  }
+
+  public static fromEntries(entries: readonly SemanticFieldEntry[]): SemanticFieldSet {
+    return new SemanticFieldSet(entries);
+  }
+
+  public get(name: string): SemanticType | undefined {
+    return this._lookup.get(name);
+  }
+
+  public getType(name: string): SemanticType | undefined {
+    return this._lookup.get(name);
+  }
+
+  public has(name: string): boolean {
+    return this._lookup.has(name);
+  }
+
+  public hasField(name: string): boolean {
+    return this._lookup.has(name);
+  }
+
+  public get size(): number {
+    return this._lookup.size;
+  }
+
+  public [Symbol.iterator](): Iterator<SemanticFieldEntry> {
+    return this.entries[Symbol.iterator]();
+  }
+
+  public toRecord(): { readonly [name: string]: SemanticType } {
+    return Object.fromEntries(this.entries.map(e => [e.name, e.type]));
+  }
+}
+
+export interface SemanticNode extends Omit<SemanticResolution, 'fields'> {
   type: SemanticType;
 
-  fields?: Record<string, SemanticType>;
+  fields?: SemanticFieldSet;
 }
 
 /**
  * Semantic Relation definition untuk relationMap
  */
 export interface SemanticRelation {
-  type: 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany' | 'morphTo' | 'morphMany'
-  model: string
-  foreignKey?: string
-  localKey?: string
-  table?: string
-  pivot?: Record<string, SemanticType>
+  type: 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany' | 'morphTo' | 'morphMany';
+  model: string;
+  foreignKey?: string;
+  localKey?: string;
+  table?: string;
+  pivot?: SemanticFieldSet;
 }
 
 /* =========================
@@ -320,40 +542,94 @@ export interface ControllerNode {
   confidence: number;
 }
 
+export interface ModelCastEntry {
+  readonly column: string;
+  readonly castType: string;
+}
+
+export class ModelCastCollection implements Iterable<ModelCastEntry> {
+  public readonly casts: readonly ModelCastEntry[];
+  private readonly _lookup: ReadonlyMap<string, string>;
+
+  constructor(casts: readonly ModelCastEntry[]) {
+    this.casts = Object.freeze([...casts]);
+    const map = new Map<string, string>();
+    for (const c of casts) {
+      map.set(c.column, c.castType);
+    }
+    this._lookup = map;
+    Object.freeze(this);
+  }
+
+  public static empty(): ModelCastCollection {
+    return new ModelCastCollection([]);
+  }
+
+  public static fromRecord(record: Readonly<{ readonly [column: string]: string }>): ModelCastCollection {
+    const casts: ModelCastEntry[] = Object.entries(record).map(([column, castType]) => ({ column, castType }));
+    return new ModelCastCollection(casts);
+  }
+
+  public static fromEntries(casts: readonly ModelCastEntry[]): ModelCastCollection {
+    return new ModelCastCollection(casts);
+  }
+
+  public get(column: string): string | undefined {
+    return this._lookup.get(column);
+  }
+
+  public getCast(column: string): string | undefined {
+    return this._lookup.get(column);
+  }
+
+  public has(column: string): boolean {
+    return this._lookup.has(column);
+  }
+
+  public hasCast(column: string): boolean {
+    return this._lookup.has(column);
+  }
+
+  public get size(): number {
+    return this._lookup.size;
+  }
+
+  public [Symbol.iterator](): Iterator<ModelCastEntry> {
+    return this.casts[Symbol.iterator]();
+  }
+
+  public toRecord(): { readonly [column: string]: string } {
+    return Object.fromEntries(this.casts.map(c => [c.column, c.castType]));
+  }
+}
+
 export interface ModelNode {
   kind: "model_node";
   name: string;              // Order
   table?: string;            // orders
   /**
-   * Dulu Record<string, string> (nama field -> tipe doang, nullable
-   * hilang). Diperkaya supaya nullable ikut kebawa dari ParsedColumn
-   * -- data ini sudah ditangkap scanner PHP (Schema::getColumns()),
-   * cuma dibuang di ServiceGraphBuilder sebelumnya.
+   * Strongly-typed ModelFieldMap replacing naked Record.
+   * Carries column type and nullable flag from ParsedColumn.
    */
-  fields?: Record<string, { type: string; nullable: boolean }>;
+  fields?: ModelFieldMap;
   /**
-   * Dulu string[] (nama relasi doang, type & target model hilang).
-   * Diperkaya supaya cardinality (hasMany/belongsTo/dst) dan model
-   * target ikut kebawa -- sama seperti di atas, datanya sudah ada
-   * dari scanner, cuma dibuang.
+   * Strongly-typed ModelRelationMap replacing naked Record.
+   * Carries relation type (hasMany, belongsTo, etc.) and target model.
    */
-  relations?: Record<string, { type: string; model: string }>;
+  relations?: ModelRelationMap;
   /**
-   * Accessors (camelCase getter) dan casts ikut dibawa dari manifest —
-   * SymbolTable membaca keduanya dari node yang di-load
-   * (SymbolTable.ts:31,39), jadi graph node yang tidak membawanya
-   * membuat accessor/JSON-cast column jatuh ke fallback string.
+   * Accessors (camelCase getter) and casts carried from manifest.
    */
-  accessors?: Record<string, { source?: SourceRef; ast?: FieldNode; semantic?: SemanticResolution }>;
-  casts?: Record<string, string>;
+  accessors?: ModelAccessorMap;
+  casts?: ModelCastCollection;
   layer: "model";
   confidence: number;
 }
 
 export interface ServiceGraph {
-  services: Record<string, ServiceNode>;
-  controllers: Record<string, ControllerNode>;
-  models: Record<string, ModelNode>;
+  services: ModelServiceMap<ServiceNode>;
+  controllers: ModelControllerMap<ControllerNode>;
+  models: ModelNodeMap<ModelNode>;
   edges: ServiceDependency[];
 }
 
@@ -362,8 +638,8 @@ export interface ServiceGraph {
  * ========================= */
 
 export interface IRContext {
-  modelMap: Record<string, SemanticType>;
-  relationMap: Record<string, SemanticRelation>;
+  modelMap: SemanticModelMap<SemanticType>;
+  relationMap: SemanticRelationMap<SemanticRelation>;
   config?: {
     strictMode: boolean;
   };
@@ -402,9 +678,66 @@ export type ZodAST =
 
 /* ---------- ZOD NODES ---------- */
 
+export interface ZodPropertyEntry {
+  readonly key: string;
+  readonly schema: ZodAST;
+}
+
+export class ZodObjectShape implements Iterable<ZodPropertyEntry> {
+  public readonly properties: readonly ZodPropertyEntry[];
+  private readonly _lookup: ReadonlyMap<string, ZodAST>;
+
+  constructor(properties: readonly ZodPropertyEntry[]) {
+    this.properties = Object.freeze([...properties]);
+    const map = new Map<string, ZodAST>();
+    for (const p of properties) {
+      map.set(p.key, p.schema);
+    }
+    this._lookup = map;
+    Object.freeze(this);
+  }
+
+  public static empty(): ZodObjectShape {
+    return new ZodObjectShape([]);
+  }
+
+  public static fromRecord(record: Readonly<{ readonly [key: string]: ZodAST }>): ZodObjectShape {
+    const properties: ZodPropertyEntry[] = Object.entries(record).map(([key, schema]) => ({ key, schema }));
+    return new ZodObjectShape(properties);
+  }
+
+  public static fromEntries(properties: readonly ZodPropertyEntry[]): ZodObjectShape {
+    return new ZodObjectShape(properties);
+  }
+
+  public get(key: string): ZodAST | undefined {
+    return this._lookup.get(key);
+  }
+
+  public getProperty(key: string): ZodAST | undefined {
+    return this._lookup.get(key);
+  }
+
+  public has(key: string): boolean {
+    return this._lookup.has(key);
+  }
+
+  public get size(): number {
+    return this._lookup.size;
+  }
+
+  public [Symbol.iterator](): Iterator<ZodPropertyEntry> {
+    return this.properties[Symbol.iterator]();
+  }
+
+  public toRecord(): { readonly [key: string]: ZodAST } {
+    return Object.fromEntries(this.properties.map(p => [p.key, p.schema]));
+  }
+}
+
 export interface ZodObjectNode {
   kind: "zod_object";
-  shape: Record<string, ZodAST>;
+  shape: ZodObjectShape;
 }
 
 export interface ZodStringNode {
@@ -463,10 +796,18 @@ export interface GeneratedSDKModule {
   zod: ZodContract;
 }
 
-export interface RequestContract {
-  params?: Record<string, "string" | "number">;
+export interface RouteParamTypeMap {
+  [param: string]: "string" | "number";
+}
 
-  query?: Record<string, "string" | "number" | "boolean">;
+export interface RouteQueryTypeMap {
+  [query: string]: "string" | "number" | "boolean";
+}
+
+export interface RequestContract {
+  params?: RouteParamTypeMap;
+
+  query?: RouteQueryTypeMap;
 
   body?: ZodAST;
 }
@@ -498,5 +839,11 @@ export interface ReactQueryHooks {
 
   enabled?: boolean;
 }
-
-export * from './contract';
+export {
+  type ResolutionStatus,
+  type TraceNode,
+  type SemanticResolution,
+  type JsonObjectResolution,
+  type AccessKind,
+  type JsonMemberResolution
+} from './contract';

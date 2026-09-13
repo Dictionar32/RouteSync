@@ -252,16 +252,29 @@ export interface ResourceGroupVisitorCapability<TRoute = ParsedRoute> {
 }
 
 /**
+ * Resource Group Lowering Trait.
+ * Self-projecting capability for query key blocks and cache invalidation configs.
+ * 0 switch, 0 branching downstream.
+ */
+export interface ResourceGroupLoweringTrait<TRoute = ParsedRoute> {
+  lowerQueryKeyBlock(): IterableIterator<string>;
+  lowerCacheConfig(addInvs: (route: TRoute, invs: string[]) => void): IterableIterator<string>;
+}
+
+/**
  * Base Resource Group Descriptor.
- * Composes core identity, query key metadata, and polymorphic visitor capabilities.
+ * Composes core identity, query key metadata, lowering traits, and polymorphic visitor capabilities.
  */
 export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute>
   extends ResourceGroupIdentityTrait<TRoute>,
     ResourceGroupQueryKeysTrait,
-    ResourceGroupVisitorCapability<TRoute> {
+    ResourceGroupVisitorCapability<TRoute>,
+    ResourceGroupLoweringTrait<TRoute> {
   readonly kind: ResourceGroupKind;
   readonly isCrud: boolean;
   readonly types: BaseResourceGroupTypeSignature;
+  readonly extraMutations: readonly TRoute[];
+  readonly customQueries: readonly TRoute[];
 }
 
 /**
@@ -348,6 +361,8 @@ export interface BaseResourceGroupParams<TRoute = ParsedRoute> {
   readonly keyName: string;
   readonly titleName: string;
   readonly all: readonly TRoute[];
+  readonly extraMutations: readonly TRoute[];
+  readonly customQueries: readonly TRoute[];
 }
 
 export interface BaseCrudParams<TRoute = ParsedRoute>
@@ -389,6 +404,54 @@ export interface CustomResourceGroupDescriptorParams<TRoute = ParsedRoute>
   readonly types: CustomTypeSignature;
 }
 
+function pushUnique(arr: string[], val: string): void {
+  if (!arr.includes(val)) arr.push(val);
+}
+
+function* lowerMutationSlot<TRoute>(
+  slotName: string,
+  route: TRoute,
+  defaultInvs: readonly string[],
+  addInvs: (route: TRoute, invs: string[]) => void
+): IterableIterator<string> {
+  const invs = [...defaultInvs];
+  addInvs(route, invs);
+
+  if (invs.length > 0) {
+    yield `      ${slotName}: {`;
+    yield `        invalidate: [`;
+    for (const inv of invs) {
+      yield inv;
+    }
+    yield `        ],`;
+    yield `      },`;
+  }
+}
+
+function* lowerExtraMutations<TRoute>(
+  group: AbstractResourceGroupDescriptor<TRoute>,
+  addInvs: (route: TRoute, invs: string[]) => void
+): IterableIterator<string> {
+  for (const route of group.extraMutations as any[]) {
+    const invs: string[] = [];
+    if (group.isCrud) {
+      pushUnique(invs, `          QueryKey.${group.groupName}.${group.listKeyFn},`);
+    }
+    for (const getRoute of group.customQueries as any[]) {
+      pushUnique(invs, `          QueryKey.${group.groupName}.${getRoute.actionName},`);
+    }
+    addInvs(route, invs);
+
+    yield `      ${route.actionName}: {`;
+    yield `        invalidate: [`;
+    for (const inv of invs) {
+      yield inv;
+    }
+    yield `        ],`;
+    yield `      },`;
+  }
+}
+
 /**
  * Abstract Base Class for Resource Group Descriptors.
  * Implements common identity, query key metadata, and frozen immutability.
@@ -407,6 +470,8 @@ export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
   public readonly detailKeyFn: string;
   public readonly primaryKeyType: string;
   public readonly all: readonly TRoute[];
+  public readonly extraMutations: readonly TRoute[];
+  public readonly customQueries: readonly TRoute[];
 
   constructor(
     params: BaseResourceGroupParams<TRoute>,
@@ -420,6 +485,8 @@ export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
     this.detailKeyFn = queryKeys.detailKeyFn;
     this.primaryKeyType = primaryKeyType;
     this.all = Object.freeze(params.all);
+    this.extraMutations = Object.freeze(params.extraMutations);
+    this.customQueries = Object.freeze(params.customQueries);
   }
 
   public abstract matchFineGrained<R>(
@@ -429,6 +496,12 @@ export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
   public abstract matchUnified<R>(
     visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
   ): R;
+
+  public abstract lowerQueryKeyBlock(): IterableIterator<string>;
+
+  public abstract lowerCacheConfig(
+    addInvs: (route: TRoute, invs: string[]) => void
+  ): IterableIterator<string>;
 }
 
 /**
@@ -456,6 +529,19 @@ export abstract class AbstractCrudResourceGroupDescriptor<TRoute = ParsedRoute>
     visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
   ): R {
     return visitor.crud(this as unknown as CrudResourceGroupDescriptor<TRoute>);
+  }
+
+  public *lowerQueryKeyBlock(): IterableIterator<string> {
+    yield `  ${this.groupName}: {`;
+    yield `    ...createBaseQueryKey<typeof Entity.${this.keyName}, ${this.primaryKeyType}>(Entity.${this.keyName}),`;
+    for (const route of this.all as any[]) {
+      if (route.hasParams) {
+        yield `    ${route.actionName}: (params?: string | number | Record<string, unknown>) => [Entity.${this.keyName}, "${route.actionName}", params ?? {}] as const,`;
+      } else {
+        yield `    ${route.actionName}: () => [Entity.${this.keyName}, "${route.actionName}"] as const,`;
+      }
+    }
+    yield `  },`;
   }
 }
 
@@ -486,6 +572,22 @@ export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   ): R {
     return visitor.full_crud(this);
   }
+
+  public *lowerCacheConfig(
+    addInvs: (route: TRoute, invs: string[]) => void
+  ): IterableIterator<string> {
+    yield `      list: QueryKey.${this.groupName}.${this.listKeyFn},`;
+    yield `      detail: QueryKey.${this.groupName}.${this.detailKeyFn},`;
+
+    yield* lowerMutationSlot('create', this.create, [`          QueryKey.${this.groupName}.${this.listKeyFn},`], addInvs);
+    yield* lowerMutationSlot('update', this.update, [
+      `          QueryKey.${this.groupName}.${this.listKeyFn},`,
+      `          QueryKey.${this.groupName}.${this.detailKeyFn},`,
+    ], addInvs);
+    yield* lowerMutationSlot('remove', this.delete, [`          QueryKey.${this.groupName}.${this.listKeyFn},`], addInvs);
+
+    yield* lowerExtraMutations(this, addInvs);
+  }
 }
 
 export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
@@ -508,6 +610,15 @@ export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
     visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
   ): R {
     return visitor.read_only_crud(this);
+  }
+
+  public *lowerCacheConfig(
+    addInvs: (route: TRoute, invs: string[]) => void
+  ): IterableIterator<string> {
+    yield `      list: QueryKey.${this.groupName}.${this.listKeyFn},`;
+    yield `      detail: QueryKey.${this.groupName}.${this.detailKeyFn},`;
+
+    yield* lowerExtraMutations(this, addInvs);
   }
 }
 
@@ -538,6 +649,28 @@ export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   ): R {
     return visitor.flexible_crud(this);
   }
+
+  public *lowerCacheConfig(
+    addInvs: (route: TRoute, invs: string[]) => void
+  ): IterableIterator<string> {
+    yield `      list: QueryKey.${this.groupName}.${this.listKeyFn},`;
+    yield `      detail: QueryKey.${this.groupName}.${this.detailKeyFn},`;
+
+    if (this.create.available) {
+      yield* lowerMutationSlot('create', this.create.route, [`          QueryKey.${this.groupName}.${this.listKeyFn},`], addInvs);
+    }
+    if (this.update.available) {
+      yield* lowerMutationSlot('update', this.update.route, [
+        `          QueryKey.${this.groupName}.${this.listKeyFn},`,
+        `          QueryKey.${this.groupName}.${this.detailKeyFn},`,
+      ], addInvs);
+    }
+    if (this.delete.available) {
+      yield* lowerMutationSlot('remove', this.delete.route, [`          QueryKey.${this.groupName}.${this.listKeyFn},`], addInvs);
+    }
+
+    yield* lowerExtraMutations(this, addInvs);
+  }
 }
 
 export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
@@ -555,6 +688,8 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
     readonly create: TRoute | null;
     readonly update: TRoute | null;
     readonly delete: TRoute | null;
+    readonly extraMutations?: readonly TRoute[];
+    readonly customQueries?: readonly TRoute[];
   }): ScannedCrudResourceGroupDescriptor<TRoute> {
     return new ScannedCrudResourceGroupDescriptor<TRoute>({
       groupName: params.groupName,
@@ -567,7 +702,9 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
       all: params.all,
       create: MutationCapability.fromNullable(params.create),
       update: MutationCapability.fromNullable(params.update),
-      delete: MutationCapability.fromNullable(params.delete)
+      delete: MutationCapability.fromNullable(params.delete),
+      extraMutations: params.extraMutations ?? [],
+      customQueries: params.customQueries ?? []
     });
   }
 }
@@ -604,6 +741,40 @@ export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
   ): R {
     return visitor.singleton(this);
   }
+
+  public *lowerQueryKeyBlock(): IterableIterator<string> {
+    yield `  ${this.groupName}: {`;
+    yield `    all: () => [Entity.${this.keyName}] as const,`;
+    for (const route of this.all as any[]) {
+      if (route.hasParams) {
+        yield `    ${route.actionName}: (params?: string | number | Record<string, unknown>) => [Entity.${this.keyName}, "${route.actionName}", params ?? {}] as const,`;
+      } else {
+        yield `    ${route.actionName}: () => [Entity.${this.keyName}, "${route.actionName}"] as const,`;
+      }
+    }
+    yield `  },`;
+  }
+
+  public *lowerCacheConfig(
+    addInvs: (route: TRoute, invs: string[]) => void
+  ): IterableIterator<string> {
+    const indexRoute = this.all.find((r: any) => r.crudRole === 'index');
+    const defaultInvs = indexRoute ? [`          QueryKey.${this.groupName}.${this.listKeyFn},`] : [];
+    const createRoute = this.all.find((r: any) => r.crudRole === 'create');
+    const updateRoute = this.all.find((r: any) => r.crudRole === 'update');
+    const deleteRoute = this.all.find((r: any) => r.crudRole === 'delete');
+    if (createRoute) {
+      yield* lowerMutationSlot('create', createRoute, defaultInvs, addInvs);
+    }
+    if (updateRoute) {
+      yield* lowerMutationSlot('update', updateRoute, defaultInvs, addInvs);
+    }
+    if (deleteRoute) {
+      yield* lowerMutationSlot('remove', deleteRoute, defaultInvs, addInvs);
+    }
+
+    yield* lowerExtraMutations(this, addInvs);
+  }
 }
 
 export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
@@ -637,6 +808,40 @@ export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
     visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
   ): R {
     return visitor.custom(this);
+  }
+
+  public *lowerQueryKeyBlock(): IterableIterator<string> {
+    yield `  ${this.groupName}: {`;
+    yield `    all: () => [Entity.${this.keyName}] as const,`;
+    for (const route of this.all as any[]) {
+      if (route.hasParams) {
+        yield `    ${route.actionName}: (params?: string | number | Record<string, unknown>) => [Entity.${this.keyName}, "${route.actionName}", params ?? {}] as const,`;
+      } else {
+        yield `    ${route.actionName}: () => [Entity.${this.keyName}, "${route.actionName}"] as const,`;
+      }
+    }
+    yield `  },`;
+  }
+
+  public *lowerCacheConfig(
+    addInvs: (route: TRoute, invs: string[]) => void
+  ): IterableIterator<string> {
+    const indexRoute = this.all.find((r: any) => r.crudRole === 'index');
+    const defaultInvs = indexRoute ? [`          QueryKey.${this.groupName}.${this.listKeyFn},`] : [];
+    const createRoute = this.all.find((r: any) => r.crudRole === 'create');
+    const updateRoute = this.all.find((r: any) => r.crudRole === 'update');
+    const deleteRoute = this.all.find((r: any) => r.crudRole === 'delete');
+    if (createRoute) {
+      yield* lowerMutationSlot('create', createRoute, defaultInvs, addInvs);
+    }
+    if (updateRoute) {
+      yield* lowerMutationSlot('update', updateRoute, defaultInvs, addInvs);
+    }
+    if (deleteRoute) {
+      yield* lowerMutationSlot('remove', deleteRoute, defaultInvs, addInvs);
+    }
+
+    yield* lowerExtraMutations(this, addInvs);
   }
 }
 

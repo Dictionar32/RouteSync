@@ -6,5 +6,9 @@
  * Public API exports untuk TypeScript generation
  */
 
-export { TypeScriptGenerator } from './TypeScriptGenerator';
+export {
+    TypeScriptGenerator,
+    TypeConversionError,
+    InterfaceGenerationError
+} from './TypeScriptGenerator';
 export { ImportCollector, type ImportSpec } from './ImportCollector';

@@ -1,83 +1,27 @@
 /**
- * Represents a file that was written
+ * Writer.ts
+ *
+ * Active Consumer: Core Writer interface definition.
+ *
+ * @module compiler/writers
  */
-export interface WrittenFile {
-    /**
-     * File path (absolute or relative)
-     */
-    readonly path: string;
 
-    /**
-     * File content
-     */
-    readonly content: string;
+import {
+    type WrittenFile,
+    type FileToWrite,
+    type WriterOptions,
+    type WriteResult,
+    DEFAULT_WRITER_OPTIONS
+} from './writerTypes';
 
-    /**
-     * File size in bytes
-     */
-    readonly byteSize: number;
-
-    /**
-     * Timestamp when file was written
-     */
-    readonly timestamp: Date;
-}
-
-/**
- * File to be written
- */
-export interface FileToWrite {
-    /**
-     * File path (relative to base directory)
-     */
-    readonly path: string;
-
-    /**
-     * File content
-     */
-    readonly content: string;
-}
-
-/**
- * Writer configuration options
- */
-export interface WriterOptions {
-    /**
-     * Base directory for file operations
-     */
-    readonly baseDir?: string;
-
-    /**
-     * Overwrite existing files
-     */
-    readonly overwrite?: boolean;
-
-    /**
-     * Create directories if they don't exist
-     */
-    readonly createDirs?: boolean;
-
-    /**
-     * File encoding
-     */
-    readonly encoding?: BufferEncoding;
-
-    /**
-     * Dry run (don't actually write files)
-     */
-    readonly dryRun?: boolean;
-}
-
-/**
- * Default writer options
- */
-export const DEFAULT_WRITER_OPTIONS: WriterOptions = {
-    baseDir: process.cwd(),
-    overwrite: true,
-    createDirs: true,
-    encoding: 'utf-8',
-    dryRun: false
+export type {
+    WrittenFile,
+    FileToWrite,
+    WriterOptions,
+    WriteResult
 };
+
+export { DEFAULT_WRITER_OPTIONS };
 
 /**
  * Base interface for code writers
@@ -86,11 +30,6 @@ export const DEFAULT_WRITER_OPTIONS: WriterOptions = {
  * - Persist generated code to storage
  * - Handle file system operations
  * - Provide write feedback/stats
- * 
- * Does NOT handle:
- * - Code generation (handled by Emitter)
- * - Code formatting (handled by Formatter)
- * - Template rendering (handled by Template)
  */
 export interface Writer {
     /**
@@ -126,34 +65,4 @@ export interface Writer {
      * Get writer options
      */
     getOptions(): WriterOptions;
-}
-
-/**
- * Write result with statistics
- */
-export interface WriteResult {
-    /**
-     * Files that were written successfully
-     */
-    readonly written: WrittenFile[];
-
-    /**
-     * Files that were skipped
-     */
-    readonly skipped: string[];
-
-    /**
-     * Files that failed to write
-     */
-    readonly errors: Array<{ path: string; error: Error }>;
-
-    /**
-     * Total bytes written
-     */
-    readonly totalBytes: number;
-
-    /**
-     * Execution duration in milliseconds
-     */
-    readonly durationMs: number;
 }

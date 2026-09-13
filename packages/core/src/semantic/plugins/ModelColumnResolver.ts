@@ -1,5 +1,6 @@
 import { SemanticResolution, TraceNode } from '../../types/contract';
 import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { BoundSemanticFactory } from '../../types/domain/boundAst';
 
 export class ModelColumnResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
@@ -58,12 +59,21 @@ export class ModelColumnResolver implements ResolverPlugin {
             output: tsType
           });
       }
+      const boundAst = BoundSemanticFactory.modelColumn({
+        model: symbol.name,
+        column: colName,
+        dbType: colType,
+        castType: castType || null,
+        semanticType: tsType,
+        nullable: isNullable
+      });
       return {
         status: 'resolved',
         type: tsType,
         nullable: isNullable || undefined,
         confidence: 100,
         trace,
+        boundAst,
         ...(tsType === 'json-object' ? { sourceModel: symbol.name, sourceColumn: colName } : {})
       };
     }
@@ -83,12 +93,21 @@ export class ModelColumnResolver implements ResolverPlugin {
     const rel = symbol.relation(colName);
     if (rel && rel.model) {
       const isCollection = rel.type?.includes('many') || rel.type?.includes('Many') || false;
+      const boundAst = BoundSemanticFactory.relation({
+        sourceModel: symbol.name,
+        relationName: colName,
+        relationType: rel.type || 'hasOne',
+        targetModel: rel.model,
+        isCollection,
+        nullable: false
+      });
       return {
         status: 'resolved',
         type: 'model',
         model: rel.model,
         collection: isCollection || undefined,
         confidence: 100,
+        boundAst,
         trace: [{
           source: 'ModelColumnResolver',
           rule: `Relation model lookup`,

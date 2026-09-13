@@ -35,7 +35,7 @@ export class PHPRouteParser {
         actionKind = 'delete'
       }
 
-      routes.push(new ScannedRouteDescriptor({
+      routes.push(ScannedRouteDescriptor.create({
         method,
         path: rawPath,
         resourceName,

@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import type { SemanticIRNode, SourceRef, IRRawNode, SemanticNode, IRContext, ParsedASTNode } from '../types/semantic'
+import { type SemanticIRNode, type SourceRef, type IRRawNode, type SemanticNode, type IRContext, type ParsedASTNode, IRHintsFactory } from '../types/semantic'
 import { isObject, hasProperty, isString } from '../utils/type-guards'
 
 /**
@@ -73,7 +73,7 @@ export function buildSemanticIRNode(input: BuildIRNodeInput): SemanticIRNode {
   const node: IRRawNode = {
     kind: 'raw_code',
     code: input.rawCode,
-    hints: input.hints,
+    hints: input.hints ?? IRHintsFactory.default(),
     parsed_ast: isParsedASTNode(input.parsedAst) ? input.parsedAst : undefined,
   }
 

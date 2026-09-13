@@ -15,10 +15,21 @@ import { ResolvedObjectType, ResolvedOptionalType } from '../../domain/common/Re
 import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
 import { toPascalCase } from '../../../utils/resource-naming';
 
+export interface ActionField {
+    readonly name?: string;
+    readonly originalName?: string;
+    readonly transformedName?: string;
+    readonly type: SemanticType;
+    readonly required: boolean;
+    readonly nullable: boolean;
+    readonly fileConstraints?: FileValidationConstraints;
+}
+
 export interface GeneratedContractAction {
     readonly name: string;
     readonly schemaCode: string;
     readonly typeCode: string;
+    readonly fieldCount?: number;
 }
 
 export interface ContractActionGeneratorDependencies {
@@ -34,11 +45,11 @@ export class ContractActionGenerator {
 
     generateAction(
         actionName: string,
-        fields: readonly RequestField[],
+        fields: readonly ActionField[],
         contractSchemaName: string = ''
     ): GeneratedContractAction {
         const resolvedFields = fields.map(f => {
-            const key = (f.originalName ?? (f as any).name ?? f.transformedName);
+            const key = (f.name ?? f.originalName ?? f.transformedName ?? '');
             let resolvedType = this.resolver.resolve(f.type);
             if (!f.required && resolvedType.kind !== 'optional') {
                 resolvedType = ResolvedOptionalType.of(resolvedType);
@@ -53,7 +64,8 @@ export class ContractActionGenerator {
         return {
             name: actionName,
             schemaCode: `  ${formattedAction}: ${schemaExpr}`,
-            typeCode: contractSchemaName ? `  ${formattedAction}: z.infer<typeof ${contractSchemaName}.${formattedAction}>;` : ''
+            typeCode: contractSchemaName ? `  ${formattedAction}: z.infer<typeof ${contractSchemaName}.${formattedAction}>;` : '',
+            fieldCount: fields.length
         };
     }
 }

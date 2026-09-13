@@ -88,6 +88,9 @@ Gunakan control flow (type guard, branching, ternary) untuk mengeksplorasi behav
 Jika interface parameter dibuat serba opsional (`?`), dampaknya adalah downstream compiler passes dan generators akan terus-menerus dipaksa melakukan defensive guard `if (x)`, fallback `x ?? []`, atau type narrowing berulang-ulang karena datanya tidak pernah dijamin utuh sejak Origin Boundary.
 - **Wajib Complete Contract**: Setiap domain descriptor dan parameter constructor harus menuntut kontrak data yang lengkap dan guaranteed non-nullable untuk state yang sudah seharusnya ter-resolve di Origin Boundary.
 - **Gunakan Explicit Semantic Factory**: Jika ada variasi state domain (misal objek kosong, rute tanpa validasi, atau pembuatan dari migration schema/path segment), sediakan factory method eksplisit (seperti `.empty()`, `.fromRules()`, `.fromPathSegment()`, `.fromSchema()`), bukan melubangi contract parameter dengan tanda tanya `?`.
+- **Prinsip Inti CDA vs Anti-Pattern**: **Seharusnya data dibentuk dan divalidasi oleh First-Class Domain Models di Origin Boundary, bukan dikumpulkan lewat parameter serba opsional lalu ditebak-tebak di dalam descriptor.**
+  - *Anti-Pattern (Kebalikan dari CDA)*: `create()` menerima parameter bag 28-field serba opsional (`?:`), lalu descriptor melakukan procedural string hacking (5 `if` membedah `@`, 7 `if` menebak domain, regex + 5 ternary menebak CRUD role, loop rules menebak multipart vs json), dan baru di baris terakhir dibungkus ke sub-contracts.
+  - *Correct Pattern (CDA & Correct-by-Construction)*: Data dibentuk oleh First-Class Domain Models di Origin Boundary (controller di-parse di Lexer, domain di-resolve oleh `RouteDomainResolver`, CRUD role oleh `RouteCrudClassifier`), dan descriptor `create()` murni mengonsumsi 4 Complete Sub-Contracts (`identity`, `binding`, `capability`, `provenance`) dengan **0 `?:`, 0 `if`, 0 `??`, 0 `?.`**.
 
 ### 11. Invariant-Driven / Verified Data Pipeline
 Setiap pipeline kompilasi, generator, dan transformasi data di RouteSync **wajib** beroperasi sebagai **Verified Data Pipeline** yang dipandu oleh Single Source of Truth (SSOT) Data Contract:
@@ -286,6 +289,43 @@ Pindahkan invariant ke dalam Type System:
   - `yield*`: Digunakan untuk *stream delegation* langsung antar-generator tanpa mengalokasikan wadah/buffer perantara ("ember penampung sementara"). Mengalirkan data dari pipa ke pipa langsung ke Emitter / Sink.
 
 ---
+
+### 13. Direct Prompt Output Standard (Zero Redundant Preamble & Rule-Solution Pairing)
+Saat user meminta untuk membuat prompt perbaikan atau refactoring:
+- **Dilarang menyajikan penjelasan berulang** (*zero repetitive preamble / conversational meta-chatter*) baik sebelum maupun sesudah blok prompt.
+- **Wajib langsung menyajikan prompt siap-eksekusi** yang terstruktur, tajam, dan memuat 2 opsi akar masalah (Upstream vs Downstream), strategi perbaikan berbasis Type Vocabulary Design (TTD), constructor kuat (0 `?`), mitigasi risiko fatal, dan verifikasi test.
+- **Wajib Rule & Solution Pairing (Product & Tool Design Engineering)**: Setiap larangan (seperti larangan naked `Record`, larangan fake wrapper, larangan sentinel `null`) WAJIB dipasangkan dengan solusi arsitektural level tinggi yang konkret (First-Class Domain Specifications, Symbol Tables, Discriminated AST Variants, dan Isolated Boundary Adapters).
+
+---
+
+### 14. Orchestrator Sebagai Active Consumer (Zero Wildcard Re-export, Pure Flow Declaration)
+> **"Orchestrator adalah Active Consumer: mengimpor fungsi/spesifikasi dari sub-domain, lalu menggunakannya untuk menjalankan tugas utamanya."**
+>
+> - **Dilarang Menjadi Barrel Pasif**: Orchestrator bukan sekadar tempat `export * from` yang hanya melempar simbol tanpa peran komputasi.
+> - **Active Consumption**: Mengimpor modul-modul sub-domain terfokus (~100 baris per file) dan merakitnya menjadi alur eksekusi konkret.
+> - **Pure Flow Declaration**: Badan method utama orchestrator (`run()` / `generate()`) murni berupa deklarasi aliran data (Dataflow Pipeline) tanpa *inline parsing*, tanpa *conditional branching*, dan tanpa *state mutation* liar:
+>   ```typescript
+>   // Standar Emas SSOT (seperti pada ContractGeneratorPass):
+>   const contracts = extractRequestContracts(requestTypesArtifact, this.deps.actionGenerator);
+>   const responseResult = extractResponseSchemas(requestTypesArtifact, this.deps.responseActionBuilder);
+>   const builtCode = formatContractFile(contracts, responseResult.fields, this.deps.codeBuilder);
+>   const artifact = buildContractArtifact(
+>       builtCode,
+>       contracts,
+>       responseResult.fields,
+>       this.name,
+>       responseResult.warnings
+>   );
+>   return [artifact];
+>   ```
+> - **Active Consumer vs Fake Re-export Wrapper (Larangan Keras)**:
+>   - **BENAR (Active Consumer Sejati)**: File orchestrator memiliki tugas komputasi/flow yang jelas (`run()`, `compile()`, `execute()`, `analyze()`). Ia mengimpor fungsi-fungsi dari sub-domain (`collect*`, `assemble*`, `build*`) lalu mengonsumsinya untuk menjalankan pipeline (contoh: `MapperGeneratorPass` mengonsumsi `collectMapperParts`, `assembleMapperCode`, dan `buildMapperArtifact` di method `run()`).
+>   - **SALAH (Fake Re-export Wrapper / Barrel Terselubung)**: File yang hanya berisi daftar `import { X, Y } from './sub'` lalu langsung `export { X, Y }` tanpa ada fungsi, class, atau alur komputasi yang mengonsumsi simbol-simbol tersebut. Ini bukan Active Consumer, melainkan barrel pasif dengan baju named re-export!
+>   - **Jika sebuah modul adalah Domain Descriptors / Analysis Tool**: File utama harus bertindak sebagai koordinator operasional (misal class analisis yang menjalankan `SSABuilder.insertPhiNodes` lalu `SSARenamer.rename`, atau semantic builder yang merakit descriptor secara terpadu).
+> - **Unifying Composite Entry Point**: Di bagian akhir file, sediakan constructor penyatu atau pure transform lowerer (seperti `lowerContractArtifact(artifact)`) untuk dikonsumsi downstream secara langsung dengan 0 'new' di call site dan 0 defensive fallback.
+
+---
+
 
 ## Pola Bug yang Sering Muncul
 

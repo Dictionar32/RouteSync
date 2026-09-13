@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../../../../.."
+		},
+		{
+			"path": "../../../../../../laragon-docker/www/toko-online"
+		}
+	],
+	"settings": {
+		"editor.unicodeHighlight.nonBasicASCII": true,
+		"editor.unicodeHighlight.invisibleCharacters": false,
+		"editor.trimAutoWhitespace": false,
+		"editor.wrapOnEscapedLineFeeds": false,
+		"editor.wordWrap": "bounded",
+		"editor.aiStats.enabled": true,
+		"accessibility.replEditor.readLastExecutionOutput": false,
+		"output.smartScroll.enabled": false,
+		"notebook.consolidatedOutputButton": false,
+		"kiroAgent.enableDebugLogs": true,
+		"git.verboseCommit": false
+	}
+}

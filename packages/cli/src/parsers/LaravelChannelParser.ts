@@ -16,9 +16,9 @@ export class LaravelChannelParser {
     while ((match = regex.exec(content)) !== null) {
       const pattern = match[1]
       const paramMatches = Array.from(pattern.matchAll(/\{([^}]+)\}/g))
-      const parameters = paramMatches.map(m => new ScannedRouteParameterDescriptor({ name: m[1] }))
+      const parameters = paramMatches.map(m => ScannedRouteParameterDescriptor.fromPathSegment(m[1]))
 
-      channels.push(new ScannedBroadcastChannelDescriptor({
+      channels.push(ScannedBroadcastChannelDescriptor.fromPattern({
         name: pattern,
         pattern,
         parameters

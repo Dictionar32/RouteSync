@@ -1,6 +1,64 @@
 /**
- * Validation Rules, Node AST & Fields Architecture.
- * Re-exported from domain-focused submodules.
+ * Validation Rules, AST Nodes & Field Tree Architecture.
+ * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
  */
-export * from "./validationRules";
-export * from "./validationFields";
+export {
+    ValidationRuleKind,
+    type BaseValidationRuleNode,
+    type RequiredValidationRuleNode,
+    type NullableValidationRuleNode,
+    type OptionalValidationRuleNode,
+    type StringValidationRuleNode,
+    type NumberValidationRuleNode,
+    type BooleanValidationRuleNode,
+    type ArrayValidationRuleNode,
+    type EmailValidationRuleNode,
+    type UrlValidationRuleNode,
+    type UuidValidationRuleNode,
+    type DateValidationRuleNode,
+    type MinValidationRuleNode,
+    type MaxValidationRuleNode,
+    type BetweenValidationRuleNode,
+    type InValidationRuleNode,
+    type ExistsValidationRuleNode,
+    type UniqueValidationRuleNode,
+    type FileValidationRuleNode,
+    type ImageValidationRuleNode,
+    type CustomValidationRuleNode,
+    type ValidationRuleNode,
+    type AnyValidationRuleNode,
+    type ValidationRuleCategory,
+    type ValidationRuleSpecification,
+    type ValidationRuleRegistry,
+    VALIDATION_RULE_REGISTRY,
+    type ValidationRuleVisitor,
+    matchValidationRule,
+    matchRule,
+    ValidationRuleNodeFactory,
+    ValidationRuleParser,
+    type ZodNode,
+    type ExtractRule,
+    type ConstraintHandler,
+    type ConstraintRegistry,
+    ZOD_CONSTRAINT_REGISTRY,
+    ZodSchemaReducer,
+    type RouteValidationRuleEntry,
+    type RouteMessageEntry,
+    type RouteAttributeEntry,
+    type RouteSchemaPayload
+} from "./validationRules";
+
+export {
+    type ScalarValidationFieldNode,
+    type ArrayValidationFieldNode,
+    type ObjectValidationFieldNode,
+    type ValidationFieldNode,
+    ValidationFieldKind,
+    type ValidationFieldSpecification,
+    type ValidationFieldRegistry,
+    VALIDATION_FIELD_REGISTRY,
+    type ValidationFieldVisitor,
+    matchValidationField,
+    type ValidationFieldFolder,
+    foldValidationField
+} from "./validationFields";

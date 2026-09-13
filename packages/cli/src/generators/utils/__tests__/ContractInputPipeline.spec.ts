@@ -102,3 +102,6 @@ describe('ContractInputPipeline Specification (TDD Suite)', () => {
 
         const pipeline = new ContractInputPipeline();
         const artifact = pipeline.execute(manifest);
+        expect(artifact).toBeDefined();
+    });
+});

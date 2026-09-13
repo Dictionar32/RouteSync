@@ -54,3 +54,5 @@ describe('RequestTypesPipeline Specification (TDD Suite)', () => {
         const artifact = pipeline.execute(manifest);
 
         expect(artifact.requestTypes).toHaveLength(1);
+    });
+});

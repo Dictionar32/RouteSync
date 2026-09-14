@@ -1,6 +1,6 @@
 // Utils
 export { camelCase, camelCaseKeys, snakeCase, snakeCaseKeys } from './utils'
-export { ResourceNamingConvention, toPascalCase, toCamelCase, toSnakeCase } from './utils/resource-naming'
+export { ResourceNamingConvention, toPascalCase, toCamelCase, toSnakeCase, capitalize } from './utils/resource-naming'
 
 // Client
 export { HttpClient } from './client/HttpClient'
@@ -938,6 +938,16 @@ export {
 } from './compiler/scanner/resolvers'
 export { ModelSymbolTable, OriginModelSymbol } from './compiler/scanner/symbols/ModelSymbolTable'
 export { SemanticResourceBinder } from './compiler/scanner/binders/SemanticResourceBinder'
+export { ResourceModelResolver } from './compiler/scanner/resolvers/resource'
+export {
+  type ResourceModelBinding,
+  type ResourceModelBindingSource,
+  type MonoModelBinding,
+  type PolyModelBinding,
+  type UnbackedDtoBinding,
+  ResourceModelBindingFactory,
+  matchResourceModelBinding
+} from './compiler/scanner/symbols/resource'
 
 // Contract IR & Semantic Types
 export {
@@ -973,3 +983,24 @@ export {
   isBoolean,
   isArray
 } from './utils/guards'
+
+// Code Sinks & Catamorphic Domain Projectors
+export {
+  type CodeSink,
+  type SinkMetadata,
+  MemoryCodeSink
+} from './compiler/sink'
+
+export {
+  type DomainProjector,
+  type ProjectorOutput,
+  deriveApiFieldKey,
+  extractFieldNamesFromField,
+  streamAllRequestFieldNames,
+  projectApiFieldConstants,
+  type FormProjectorDependencies,
+  FormModelProjector,
+  ContractProjector,
+  ReadModelProjector,
+  MapperProjector
+} from './compiler/projectors'

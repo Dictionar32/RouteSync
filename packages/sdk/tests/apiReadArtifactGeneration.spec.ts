@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { TypeScriptGeneratorPass } from '../../core/src/compiler/passes/TypeScriptGeneratorPass'
+import { lowerTypeScriptArtifact } from '@routesync/core'
 import {
     PrimitiveType,
     ObjectType,
@@ -45,23 +45,17 @@ describe('api-read.ts Artifact Generation Specification', () => {
             )
         )
 
-        const pass = new TypeScriptGeneratorPass()
-        const [artifact] = pass.run(
-            [
-                {
-                    typeId: 'SemanticTypes',
-                    types: [orderResourceType],
-                    metadata: {
-                        hash: 'test-hash',
-                        producer: 'test',
-                        dependencies: [],
-                        timestamp: Date.now(),
-                        revision: '1.0.0'
-                    }
-                }
-            ],
-            {} as any
-        )
+        const artifact = lowerTypeScriptArtifact({
+            typeId: 'SemanticTypes',
+            types: [orderResourceType],
+            metadata: {
+                hash: 'test-hash',
+                producer: 'test',
+                dependencies: [],
+                timestamp: Date.now(),
+                revision: '1.0.0'
+            }
+        })
 
         // Verify generated TypeScript interface in api-read.ts artifact
         expect(artifact.code).toContain('export interface OrderResourceTransformed {')

@@ -7,7 +7,7 @@
  * @module cli/generators/semantic/resource-field
  */
 
-import { camelCase } from '@routesync/core';
+import { camelCase, ResourceNamingConvention } from '@routesync/core';
 import {
     wrapNullableTs,
     wrapNullableZod,
@@ -108,7 +108,7 @@ export function resolveSingleResourceField(
     // Prioritas 3: model-hint LANGSUNG
     const propertyName = extractThisPropertyAccess(fieldDef);
     if (propertyName !== null) {
-        const modelHint = resourceName.replace(/Resource$/, '');
+        const modelHint = ResourceNamingConvention.stripSuffix(resourceName);
         const hintedModel = context.modelsByName.get(modelHint);
         if (hintedModel !== undefined) {
             const column = hintedModel.columnsByName.get(propertyName);

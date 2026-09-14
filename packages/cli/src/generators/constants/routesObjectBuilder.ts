@@ -28,7 +28,7 @@ export function buildRoutesLines(manifest: RouteManifest): string[] {
 
     const contract = route.contract ?? getRouteContract(route);
     const segments = cleanPath.split('/');
-    const routeKey = segments.map(s => {
+    const routeKey = route.identity?.constantKey || segments.map(s => {
       if ((s.startsWith('{') && s.endsWith('}')) || s.startsWith(':')) {
         return 'DETAIL';
       }

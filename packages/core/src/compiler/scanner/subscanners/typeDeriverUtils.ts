@@ -13,7 +13,7 @@ import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
 
 /**
  * Authoritative inference of PrimitiveKind from raw type strings or descriptors.
- * Eliminates 6x duplicated .includes('int') / .includes('decimal') checking across the compiler.
+ * Eliminates duplicated .includes('int') / .includes('decimal') checking across the compiler.
  */
 export function resolvePrimitiveKind(
     rawType: unknown,
@@ -39,12 +39,18 @@ export function resolvePrimitiveKind(
         typeStr.includes('int') ||
         typeStr.includes('decimal') ||
         typeStr.includes('float') ||
-        typeStr.includes('numeric')
+        typeStr.includes('numeric') ||
+        typeStr.includes('digits')
     ) {
         return PrimitiveKind.NUMBER;
     }
 
-    if (typeStr === 'boolean' || typeStr === 'bool') {
+    if (
+        typeStr === 'boolean' ||
+        typeStr === 'bool' ||
+        typeStr.includes('accepted') ||
+        typeStr.includes('declined')
+    ) {
         return PrimitiveKind.BOOLEAN;
     }
 
@@ -63,10 +69,20 @@ export function resolvePrimitiveKind(
     return fallback;
 }
 
+export type RouteDomainInput = {
+    readonly domain?: string;
+    readonly resourceName?: string;
+    readonly controllerName?: string;
+    readonly path?: string;
+    readonly actionName?: string;
+    readonly name?: string;
+};
+
 /**
  * Authoritative resolution of resource/domain name for a route.
  * Canonical SSOT is pre-resolved on route.domain at Origin Boundary.
  */
-export function resolveRouteDomain(route: ParsedRoute): string {
+export function resolveRouteDomain(route: RouteDomainInput): string {
     return route.domain || ScannedRouteDescriptor.resolveDomain(route);
 }
+

@@ -7,41 +7,23 @@
  */
 
 import {
-    ResponseDescriptor,
     ResourceResponseDescriptor,
     RouteValidationRuleEntry,
     FormRequestDescriptor,
     RouteHandlerDescriptor,
-    RouteHandlerKind,
-    RouteSchemaPayload
+    RouteSchemaPayload,
+    ResponseDescriptor,
+    HttpErrorResponseDescriptor
 } from "../../../../types/route";
 import { ScannedRouteSchemaPayload } from "../validationDescriptors";
+import {
+    ControllerActionInfo,
+    ScannedControllerActionParams,
+    ControllerActionCreateOptions,
+    buildRouteHandler
+} from "./controllerActionTypes";
 
-export interface ControllerActionInfo {
-    readonly controllerName: string;
-    readonly actionName: string;
-    readonly target: string;
-    readonly handler: RouteHandlerDescriptor;
-    readonly response: ResponseDescriptor;
-    readonly sourceFile: string;
-    readonly sourceLine: number;
-    readonly formRequests: readonly FormRequestDescriptor[];
-    readonly schema: RouteSchemaPayload;
-    readonly schemaRules: readonly RouteValidationRuleEntry[];
-}
-
-export interface ScannedControllerActionParams {
-    readonly controllerName: string;
-    readonly actionName: string;
-    readonly target: string;
-    readonly handler: RouteHandlerDescriptor;
-    readonly sourceFile: string;
-    readonly sourceLine: number;
-    readonly response: ResponseDescriptor;
-    readonly formRequests: readonly FormRequestDescriptor[];
-    readonly schema: RouteSchemaPayload;
-    readonly schemaRules: readonly RouteValidationRuleEntry[];
-}
+export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
 
 /**
  * Reusable Constructor: Scanned Controller Action Descriptor.
@@ -57,29 +39,22 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
     public readonly formRequests: readonly FormRequestDescriptor[];
     public readonly schema: RouteSchemaPayload;
     public readonly schemaRules: readonly RouteValidationRuleEntry[];
+    public readonly resourceModelMap: ReadonlyMap<string, string>;
+    public readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 
-    constructor({
-        controllerName,
-        actionName,
-        target,
-        handler,
-        sourceFile,
-        sourceLine,
-        response,
-        formRequests,
-        schema,
-        schemaRules
-    }: ScannedControllerActionParams) {
-        this.controllerName = controllerName;
-        this.actionName = actionName;
-        this.target = target;
-        this.handler = handler;
-        this.sourceFile = sourceFile;
-        this.sourceLine = sourceLine;
-        this.response = response;
-        this.formRequests = formRequests;
-        this.schema = schema;
-        this.schemaRules = schemaRules;
+    constructor(params: ScannedControllerActionParams) {
+        this.controllerName = params.controllerName;
+        this.actionName = params.actionName;
+        this.target = params.target;
+        this.handler = params.handler;
+        this.sourceFile = params.sourceFile;
+        this.sourceLine = params.sourceLine;
+        this.response = params.response;
+        this.formRequests = params.formRequests;
+        this.schema = params.schema;
+        this.schemaRules = params.schemaRules;
+        this.resourceModelMap = params.resourceModelMap ? Object.freeze(new Map(params.resourceModelMap)) : Object.freeze(new Map());
+        this.errorResponses = params.errorResponses ? Object.freeze([...params.errorResponses]) : Object.freeze([]);
         Object.freeze(this);
     }
 
@@ -91,45 +66,24 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
         response = new ResourceResponseDescriptor({ resourceName: "GeneralResource", shape: "single" }),
         formRequests = [],
         schema = ScannedRouteSchemaPayload.empty(),
-        schemaRules = []
-    }: {
-        readonly controllerName?: string;
-        readonly actionName?: string;
-        readonly sourceFile: string;
-        readonly sourceLine?: number;
-        readonly response?: ResponseDescriptor;
-        readonly formRequests?: readonly FormRequestDescriptor[];
-        readonly schema?: RouteSchemaPayload;
-        readonly schemaRules?: readonly RouteValidationRuleEntry[];
-    }): ScannedControllerActionDescriptor {
+        schemaRules = [],
+        resourceModelMap,
+        errorResponses
+    }: ControllerActionCreateOptions): ScannedControllerActionDescriptor {
         const target = `${controllerName}@${actionName}`;
-        const handler: RouteHandlerDescriptor = Object.freeze(
-            actionName === '__invoke'
-                ? {
-                    kind: RouteHandlerKind.InvokableController,
-                    controllerName,
-                    actionName: '__invoke',
-                    target
-                }
-                : {
-                    kind: RouteHandlerKind.ControllerAction,
-                    controllerName,
-                    actionName,
-                    target
-                }
-        );
-
         return new ScannedControllerActionDescriptor({
             controllerName,
             actionName,
             target,
-            handler,
+            handler: buildRouteHandler(controllerName, actionName, target),
             sourceFile,
             sourceLine,
             response,
             formRequests: Object.freeze([...formRequests]),
             schema,
-            schemaRules: Object.freeze([...schemaRules])
+            schemaRules: Object.freeze([...schemaRules]),
+            resourceModelMap,
+            errorResponses
         });
     }
 
@@ -138,11 +92,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             controllerName,
             actionName,
             sourceFile,
-            sourceLine: 1,
-            response: new ResourceResponseDescriptor({ resourceName: "GeneralResource", shape: "single" }),
-            formRequests: [],
-            schema: ScannedRouteSchemaPayload.empty(),
-            schemaRules: []
+            sourceLine: 1
         });
     }
 }

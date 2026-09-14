@@ -54,11 +54,14 @@ function toActionName(route: ParsedRoute, restSegments: string[]): string {
 }
 
 function normalizeSegment(segment: string): string {
-  return segment.replace(/^{([^}/]+)}$/, '$1')
+  if (segment.startsWith('{') && segment.endsWith('}')) {
+    return segment.slice(1, -1);
+  }
+  return segment;
 }
 
 function getPathSegments(path: string): string[] {
-  return path.replace(/^\//, '').split('/').filter(Boolean)
+  return path.split('/').filter(Boolean);
 }
 
 function splitWords(value: string): string[] {

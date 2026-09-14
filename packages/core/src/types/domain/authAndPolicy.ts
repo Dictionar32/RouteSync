@@ -115,6 +115,12 @@ export class RouteSecurityClassifier {
         const colonIdx = trimmed.indexOf(':');
         const items = trimmed.slice(colonIdx + 1).split(',').map(s => s.trim()).filter(Boolean);
         abilities.push(...items);
+      } else if (lower.startsWith('role:') || lower.startsWith('roles:')) {
+        const colonIdx = trimmed.indexOf(':');
+        const items = trimmed.slice(colonIdx + 1).split(',').map(s => s.trim()).filter(Boolean);
+        abilities.push(...items.map(r => `role:${r}`));
+      } else if (lower === 'admin' || lower === 'superadmin') {
+        abilities.push(`role:${lower}`);
       }
     }
 

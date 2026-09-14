@@ -87,7 +87,7 @@ export class ModelGenerator {
     await fs.writeFile(path.join(coreDir, 'models.ts'), lines.join('\n'))
   }
 
-  private static mapColumnKindToTs(kind: DatabaseColumnKind): string {
+  public static mapColumnKindToTs(kind: DatabaseColumnKind): string {
     return DATABASE_COLUMN_KIND_REGISTRY[kind]?.tsType ?? 'unknown'
   }
 }

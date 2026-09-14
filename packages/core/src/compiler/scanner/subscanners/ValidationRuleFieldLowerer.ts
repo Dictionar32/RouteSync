@@ -2,7 +2,7 @@
  * ValidationRuleFieldLowerer.ts
  *
  * Lowers raw route validation rules into structured RequestField[] descriptors.
- * Handles nested wildcards (.*.), primitive arrays (.*), and standard form fields.
+ * Active Consumer orchestrating rule parsing, wildcard accumulation, and field emission.
  *
  * @module core/compiler/scanner/subscanners/ValidationRuleFieldLowerer
  */
@@ -10,7 +10,6 @@
 import { ParsedRoute } from "../../../types/route";
 import { RequestField } from "../../artifacts/RequestTypesArtifact";
 import {
-    ObjectType,
     ObjectProperty,
     ScannedObjectProperty,
     PrimitiveType,
@@ -19,9 +18,12 @@ import {
     SemanticType
 } from "../../types/SemanticType";
 import { TypeInterner } from "../../types/TypeInterner";
-import { toCamelCase } from "../../../utils/resource-naming";
-import { ScannedFormFieldDescriptor } from "../descriptors/requestDescriptors";
 import { resolvePrimitiveKind } from "./typeDeriverUtils";
+import { warnIfTypeNotExplicit } from "./validationRuleChecker";
+import {
+    buildRegularField,
+    appendUnprocessedArrayProps
+} from "./validationArrayPropLowerer";
 
 export class ValidationRuleFieldLowerer {
     /**
@@ -47,17 +49,7 @@ export class ValidationRuleFieldLowerer {
             : Object.entries((rawRules as any) || {}).map(([key, val]) => [String(key || ''), Array.isArray(val) ? val.join('|') : String(val || '')]);
 
         for (const [key, ruleStr] of ruleEntries) {
-            if (key.includes('.*')) {
-                const hasExplicitType = ruleStr.includes('string') || ruleStr.includes('integer') || ruleStr.includes('numeric') || ruleStr.includes('boolean') || ruleStr.includes('file') || ruleStr.includes('image');
-                if (!hasExplicitType) {
-                    console.warn(`[RouteSync Compiler Warning] Tipe elemen untuk wildcard '${key}' pada route ${route.path} (${routeActionDesc}) belum eksplisit.`);
-                }
-            } else {
-                const hasExplicitType = ruleStr.includes('string') || ruleStr.includes('integer') || ruleStr.includes('numeric') || ruleStr.includes('boolean') || ruleStr.includes('array') || ruleStr.includes('file') || ruleStr.includes('image');
-                if (!hasExplicitType) {
-                    console.warn(`[RouteSync Compiler Warning] Tipe field untuk '${key}' pada route ${route.path} (${routeActionDesc}) belum eksplisit.`);
-                }
-            }
+            warnIfTypeNotExplicit(key, ruleStr, route.path, routeActionDesc);
 
             if (key.includes('.*.')) {
                 const [parentKey, childKey] = key.split('.*.');
@@ -87,69 +79,10 @@ export class ValidationRuleFieldLowerer {
         const processedKeys = new Set<string>();
         for (const [key, ruleStr] of regularRules) {
             processedKeys.add(key);
-            if (arrayProps.has(key)) {
-                const childProperties = arrayProps.get(key)!;
-                const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties });
-                const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
-
-                fields.push(ScannedFormFieldDescriptor.create({
-                    name: key,
-                    originalName: key,
-                    type: arrayType,
-                    required: ruleStr.includes('required') || !ruleStr.includes('sometimes'),
-                    nullable: ruleStr.includes('nullable')
-                }));
-            } else if (primitiveArrayProps.has(key)) {
-                fields.push(ScannedFormFieldDescriptor.create({
-                    name: key,
-                    originalName: key,
-                    type: primitiveArrayProps.get(key)!,
-                    required: ruleStr.includes('required') || !ruleStr.includes('sometimes'),
-                    nullable: ruleStr.includes('nullable')
-                }));
-            } else {
-                const primKind = resolvePrimitiveKind(ruleStr);
-                const semanticType = interner.intern(new PrimitiveType(primKind));
-
-                fields.push(ScannedFormFieldDescriptor.create({
-                    name: key,
-                    originalName: key,
-                    type: semanticType,
-                    required: ruleStr.includes('required') || !ruleStr.includes('sometimes'),
-                    nullable: ruleStr.includes('nullable')
-                }));
-            }
+            fields.push(buildRegularField(key, ruleStr, arrayProps, primitiveArrayProps, interner));
         }
 
-        for (const [parentKey, childProperties] of arrayProps.entries()) {
-            if (!processedKeys.has(parentKey)) {
-                processedKeys.add(parentKey);
-                const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties });
-                const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
-
-                fields.push(ScannedFormFieldDescriptor.create({
-                    name: parentKey,
-                    originalName: parentKey,
-                    type: arrayType,
-                    required: true,
-                    nullable: false
-                }));
-            }
-        }
-
-        for (const [baseKey, arrayType] of primitiveArrayProps.entries()) {
-            if (!processedKeys.has(baseKey)) {
-                processedKeys.add(baseKey);
-                fields.push(ScannedFormFieldDescriptor.create({
-                    name: baseKey,
-                    originalName: baseKey,
-                    type: arrayType,
-                    required: false,
-                    nullable: false
-                }));
-            }
-        }
-
+        appendUnprocessedArrayProps(fields, arrayProps, primitiveArrayProps, processedKeys, interner);
         return fields;
     }
 }

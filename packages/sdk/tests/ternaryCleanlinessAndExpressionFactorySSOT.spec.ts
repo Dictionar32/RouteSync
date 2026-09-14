@@ -12,18 +12,18 @@ describe('Ternary Cleanliness & Expression Factory SSOT', () => {
   it('1. ResourceFieldExpressionFactory generates structured and frozen AST nodes', () => {
     const prim = ResourceFieldExpressionFactory.primitive('int')
     expect(prim.kind).toBe(ResourceExpressionKind.Primitive)
-    expect((prim as any).type).toBe('int')
+    expect(prim.type).toBe('int')
     expect(Object.isFrozen(prim)).toBe(true)
 
     const modelNode = ResourceFieldExpressionFactory.model('Product', true)
     expect(modelNode.kind).toBe(ResourceExpressionKind.Model)
-    expect((modelNode as any).model).toBe('Product')
-    expect((modelNode as any).collection).toBe(true)
+    expect(modelNode.model).toBe('Product')
+    expect(modelNode.collection).toBe(true)
     expect(Object.isFrozen(modelNode)).toBe(true)
 
     const resNode = ResourceFieldExpressionFactory.resource('ProductResource')
     expect(resNode.kind).toBe(ResourceExpressionKind.Resource)
-    expect((resNode as any).resource).toBe('ProductResource')
+    expect(resNode.resource).toBe('ProductResource')
     expect(Object.isFrozen(resNode)).toBe(true)
   })
 

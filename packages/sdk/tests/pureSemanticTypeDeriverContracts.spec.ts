@@ -12,7 +12,11 @@ import {
     ResourceWrapperPhpType,
     VoidPhpType,
     UnknownPhpType,
-    matchResolvedPhpType
+    matchResolvedPhpType,
+    ScannedModelDescriptor,
+    ScannedResourceDescriptor,
+    ScannedResourceFieldDescriptor,
+    ScannedRouteDescriptor
 } from '@routesync/core';
 
 describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
@@ -120,7 +124,13 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
         it('indexes models by exact and lowercase name for O(1) lookup', () => {
             const ctx = SemanticDerivationContext.create(
                 [],
-                [{ name: 'App\\Models\\Order', shortName: 'Order', table: 'orders' } as any]
+                [
+                ScannedModelDescriptor.create({
+                    name: 'App\\Models\\Order',
+                    table: 'orders',
+                    columns: []
+                })
+            ]
             );
             expect(ctx.modelsByName.get('App\\Models\\Order')).toBeDefined();
             expect(ctx.modelsByName.get('app\\models\\order')).toBeDefined();
@@ -136,14 +146,14 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
         });
 
         it('derives resource object types with correct property types and nullability', () => {
-            const mockResource = {
+            const mockResource = ScannedResourceDescriptor.create({
                 name: 'ProductResource',
                 fields: [
-                    { name: 'id', semanticType: 'int', nullable: false },
-                    { name: 'title', semanticType: 'string', nullable: false },
-                    { name: 'description', semanticType: 'string', nullable: true }
+                    ScannedResourceFieldDescriptor.create({ name: 'id', expression: { kind: 'primitive', type: 'int' } }),
+                    ScannedResourceFieldDescriptor.create({ name: 'title', expression: { kind: 'primitive', type: 'string' } }),
+                    ScannedResourceFieldDescriptor.create({ name: 'description', nullable: true, expression: { kind: 'primitive', type: 'string' } })
                 ]
-            } as any;
+            });
 
             const types = SemanticTypeDeriver.derive([mockResource]);
             expect(types.length).toBe(1);
@@ -160,22 +170,21 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
         });
 
         it('derives model object types with casts and accessors', () => {
-            const mockModel = {
+            const mockModel = ScannedModelDescriptor.create({
                 name: 'User',
-                shortName: 'User',
                 table: 'users',
                 columns: [
-                    { name: 'id', type: 'bigint', semanticType: 'number', nullable: false },
-                    { name: 'is_active', type: 'tinyint', semanticType: 'number', nullable: false }
+                    { name: 'id', type: 'bigint', nullable: false, semanticType: PrimitiveKind.NUMBER },
+                    { name: 'is_active', type: 'tinyint', nullable: false, semanticType: PrimitiveKind.NUMBER }
                 ],
                 casts: [
                     { column: 'is_active', targetType: 'boolean', semanticType: PrimitiveKind.BOOLEAN }
                 ],
                 accessors: [
-                    { name: 'full_name', propertyName: 'fullName', type: 'string', nullable: false, semanticType: PrimitiveKind.STRING }
+                    { name: 'full_name', propertyName: 'fullName', type: 'string', nullable: false, targetType: 'string', semanticType: PrimitiveKind.STRING }
                 ],
                 appends: ['full_name']
-            } as any;
+            });
 
             const types = SemanticTypeDeriver.derive([], [mockModel]);
             expect(types.length).toBe(1);
@@ -193,7 +202,8 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
         });
 
         it('derives inline response types from routes', () => {
-            const mockRoute = {
+            const mockRoute = ScannedRouteDescriptor.fromSparse({
+                method: 'GET',
                 path: '/api/stats',
                 actionName: 'StatsController@index',
                 response: {
@@ -205,7 +215,7 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
                         { name: 'total_orders', semanticType: 'number', nullable: false }
                     ]
                 }
-            } as any;
+            });
 
             const types = SemanticTypeDeriver.derive([], [], undefined, [mockRoute]);
             expect(types.length).toBe(1);

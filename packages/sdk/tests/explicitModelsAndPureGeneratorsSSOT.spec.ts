@@ -50,9 +50,9 @@ describe('Explicit Models & Pure Generators SSOT', () => {
     expect(colJson.columnKind).toBe(DatabaseColumnKind.Json)
 
     // Verify mapColumnKindToTs mapping behavior
-    expect((ModelGenerator as any).mapColumnKindToTs(colInt.columnKind)).toBe('number')
-    expect((ModelGenerator as any).mapColumnKindToTs(colBool.columnKind)).toBe('boolean')
-    expect((ModelGenerator as any).mapColumnKindToTs(colJson.columnKind)).toBe('Record<string, unknown>')
+    expect(ModelGenerator.mapColumnKindToTs(colInt.columnKind)).toBe('number')
+    expect(ModelGenerator.mapColumnKindToTs(colBool.columnKind)).toBe('boolean')
+    expect(ModelGenerator.mapColumnKindToTs(colJson.columnKind)).toBe('Record<string, unknown>')
   })
 
   it('3. ResponseAnalysisHelper purely consumes route.response.shape from manifest', () => {

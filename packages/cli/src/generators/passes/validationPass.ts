@@ -27,17 +27,19 @@ export class ValidationPass implements CompilerPass<NormalizedManifest, Normaliz
         });
 
         // 2. Validate resource models exist
-        const modelNames = new Set(manifest.models.map(m => m.name));
-        manifest.resources.forEach(res => {
-            const modelName = res.name.replace(/Resource$/, '');
-            if (modelName && !modelNames.has(modelName)) {
-                context.reportDiagnostic({
-                    severity: "info",
-                    message: `Resource "${res.name}" does not have a matching Eloquent model "${modelName}".`,
-                    loc: res.loc
-                });
-            }
-        });
+        if (manifest.models.length > 0) {
+            const modelNames = new Set(manifest.models.map(m => m.name));
+            manifest.resources.forEach(res => {
+                const modelName = res.modelName;
+                if (!modelName || !modelNames.has(modelName)) {
+                    context.reportDiagnostic({
+                        severity: "warning",
+                        message: `[RouteSync Compiler Warning] Resource "${res.name}" is a DTO without a matching Eloquent model. Non-model DTO resources have limited automatic relation/column derivation support.`,
+                        loc: res.loc
+                    });
+                }
+            });
+        }
 
         return manifest;
     }

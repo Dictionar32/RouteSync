@@ -16,7 +16,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any
+            }
           }
         },
         {
@@ -30,7 +30,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             order_id: {
               kind: 'property_access',
               resolved: {
@@ -39,7 +39,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             invoice_number: {
               kind: 'variable',
               resolved: {
@@ -49,7 +49,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             metode: {
               kind: 'property_access',
               resolved: {
@@ -59,7 +59,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             detail: {
               kind: 'variable',
               resolved: {
@@ -69,7 +69,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             status: {
               kind: 'property_access',
               resolved: {
@@ -78,7 +78,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             paid_at: {
               kind: 'property_access',
               resolved: {
@@ -88,7 +88,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             provider: {
               kind: 'property_access',
               resolved: {
@@ -98,7 +98,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             provider_txn_id: {
               kind: 'property_access',
               resolved: {
@@ -107,7 +107,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             gateway_status: {
               kind: 'property_access',
               resolved: {
@@ -116,7 +116,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             amount_minor: {
               kind: 'property_access',
               resolved: {
@@ -125,11 +125,11 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             refund_amount_minor: {
               kind: 'property_access'
               // unresolved field (no resolved object)
-            } as any,
+            },
             items: {
               kind: 'static_method_call',
               resolved: {
@@ -140,7 +140,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any,
+            },
             promotion: {
               kind: 'object',
               fields: {
@@ -163,7 +163,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                   }
                 }
               }
-            } as any,
+            },
             gateway: {
               kind: 'object',
               fields: {
@@ -172,7 +172,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 token: { kind: 'ternary' },
                 redirect_url: { kind: 'ternary' }
               }
-            } as any,
+            },
             total_harga: {
               kind: 'method_call',
               resolved: {
@@ -181,10 +181,10 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
                 confidence: 100,
                 trace: []
               }
-            } as any
+            }
           }
         }
-      ] as any[]
+      ]
 
     const manifest: RouteManifest = {
       version: '1.0.0',

@@ -34,6 +34,7 @@ export interface EmittedCompilerArtifacts extends CompiledContractsBundle {
 export interface FullBundleEmittedArtifacts extends CompiledContractsBundle {
     readonly writtenPaths: readonly string[]
     readonly clientArtifacts: readonly (readonly string[])[]
+    readonly allWrittenPaths: readonly string[]
 }
 
 export interface CompilerBundleOptions {

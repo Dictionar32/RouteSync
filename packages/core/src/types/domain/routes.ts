@@ -40,6 +40,7 @@ export interface RouteIdentityContract {
   readonly method: HttpMethod;
   readonly path: string;
   readonly runtimePath: string;
+  readonly constantKey: string;
   readonly resourceName: string;
   readonly domain: string;
   readonly groupName: string;

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { LaravelSourceLexer } from '@routesync/core'
 
 /**
  * Regression test for mergeAssignmentShape trailing comma fix in LaravelRouteParser:
@@ -45,5 +46,16 @@ describe('LaravelRouteParser: mergeAssignmentShape trailing comma handling', () 
 
         expect(merged).toBe("['message' => 'Link reset password telah dibuat.', 'reset_token' => $token]")
         expect(merged).not.toContain(',,')
+    })
+
+    it('should parse PHP array with trailing comma into valid AST without bogus 0 index', () => {
+        const source = `[ 'message' => 'Link reset password telah dibuat.', ]`
+        const tokens = LaravelSourceLexer.tokenize(source)
+        const parsed = LaravelSourceLexer.parseArray(source, tokens)
+
+        expect(parsed.entries).toHaveLength(1)
+        expect(parsed.entries[0].key).toBe('message')
+        expect(parsed.entries[0].value.kind).toBe('literal')
+        expect(parsed.entries[0].value.value).toBe('Link reset password telah dibuat.')
     })
 })

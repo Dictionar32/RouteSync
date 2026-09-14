@@ -25,6 +25,7 @@ export interface SparseRouteParams {
     readonly groupName?: string;
     readonly crudRole?: any;
     readonly runtimePath?: string;
+    readonly constantKey?: string;
     readonly hookKind?: any;
     readonly invalidation?: any;
     readonly executionSignature?: any;

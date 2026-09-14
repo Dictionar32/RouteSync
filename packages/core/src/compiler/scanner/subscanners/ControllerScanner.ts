@@ -13,6 +13,8 @@ import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import type { ControllerActionInfo } from "../descriptors/requestDescriptors";
 import { collectPhpFiles } from "./scannerUtils";
 import { scanControllerAction } from "./controller";
+import type { ModelSymbolTable } from "../symbols/ModelSymbolTable";
+import { extractResourceDataflow } from "./controller/resourceDataflowAggregator";
 
 export class ControllerScanner {
     public static async scan(
@@ -48,5 +50,12 @@ export class ControllerScanner {
         }
 
         return controllerMap;
+    }
+
+    public static extractResourceDataflow(
+        controllerMap: ReadonlyMap<string, ReadonlyMap<string, ControllerActionInfo>>,
+        modelSymbolTable?: ModelSymbolTable
+    ): Map<string, string> {
+        return extractResourceDataflow(controllerMap, modelSymbolTable);
     }
 }

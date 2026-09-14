@@ -37,24 +37,35 @@ export class RouteSecurityResolver {
             const trimmed = m.trim();
             if (trimmed.startsWith("can:")) {
                 const parts = trimmed.slice(4).split(",");
-                const firstPart = parts[0];
-                const ability = firstPart ? firstPart.trim() : "";
-                const secondPart = parts[1];
-                const modelParameter = (secondPart && secondPart.trim().length > 0) ? secondPart.trim() : null;
+                const ability = parts[0]?.trim() || "";
+                const secondPart = parts[1]?.trim();
+                const modelParameter = secondPart && secondPart.length > 0 ? secondPart : null;
                 policies.push(Object.freeze({
                     ability,
                     modelParameter,
                     kind: modelParameter ? RoutePolicyKind.AbilityModel : RoutePolicyKind.Gate
+                }));
+            } else if (trimmed.startsWith("role:")) {
+                const roles = trimmed.slice(5).split(",").map(r => r.trim()).filter(Boolean);
+                for (const role of roles) {
+                    policies.push(Object.freeze({
+                        ability: `role:${role}`,
+                        modelParameter: null,
+                        kind: RoutePolicyKind.Gate
+                    }));
+                }
+            } else if (trimmed === "admin" || trimmed === "superadmin") {
+                policies.push(Object.freeze({
+                    ability: `role:${trimmed}`,
+                    modelParameter: null,
+                    kind: RoutePolicyKind.Gate
                 }));
             } else if (trimmed.toLowerCase().startsWith("throttle:")) {
                 const parts = trimmed.slice(9).split(",");
                 const maxAttempts = parseInt(parts[0], 10);
                 const decayMinutes = parts[1] ? parseFloat(parts[1]) : 1;
                 if (!isNaN(maxAttempts)) {
-                    rateLimit = Object.freeze({
-                        maxAttempts,
-                        decayMinutes
-                    });
+                    rateLimit = Object.freeze({ maxAttempts, decayMinutes });
                 }
             }
         }

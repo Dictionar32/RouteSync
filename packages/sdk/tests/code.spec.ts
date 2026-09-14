@@ -57,13 +57,13 @@ describe('Manifest shape — data nyata toko-online', () => {
   it('routes kind=model seharusnya dapat di-compose dengan envelope', () => {
     expect(modelRoutes.length).toBe(15)
     // semua punya field model
-    modelRoutes.forEach(r => expect((r.response as any).model).toBeTruthy())
+    modelRoutes.forEach(r => expect(r.response.model).toBeTruthy())
   })
 
   it('routes kind=object harus tetap inline (tidak ada resource backing)', () => {
     expect(objectRoutes.length).toBe(3)
     // semua punya fields
-    objectRoutes.forEach(r => expect((r.response as any).fields).toBeTruthy())
+    objectRoutes.forEach(r => expect(r.response.fields).toBeTruthy())
   })
 })
 
@@ -204,16 +204,16 @@ describe('Q2: Deteksi envelope — heuristic dari flags manifest', () => {
 
   // Verifikasi dengan data nyata dari manifest toko-online
   it('GET /produk → withCollection (collection=true)', () => {
-    expect(selectEnvelope({ method: 'GET', response: { kind: 'model', model: 'ProdukItem', collection: true, wrapped: null, paginated: null } as any })).toBe('withCollection')
+    expect(selectEnvelope({ method: 'GET', response: { kind: 'model', model: 'ProdukItem', collection: true, wrapped: null, paginated: null } })).toBe('withCollection')
   })
   it('GET /produk/{id} → withData (wrapped=true, GET)', () => {
-    expect(selectEnvelope({ method: 'GET', response: { kind: 'model', model: 'ProdukItem', collection: false, wrapped: true, paginated: null } as any })).toBe('withData')
+    expect(selectEnvelope({ method: 'GET', response: { kind: 'model', model: 'ProdukItem', collection: false, wrapped: true, paginated: null } })).toBe('withData')
   })
   it('POST /payment/{orderId} → withMessage (wrapped=true, POST)', () => {
-    expect(selectEnvelope({ method: 'POST', response: { kind: 'model', model: 'Payment', collection: false, wrapped: true, paginated: null } as any })).toBe('withMessage')
+    expect(selectEnvelope({ method: 'POST', response: { kind: 'model', model: 'Payment', collection: false, wrapped: true, paginated: null } })).toBe('withMessage')
   })
   it('GET /orders/{id} → flat (collection=false, wrapped=null)', () => {
-    expect(selectEnvelope({ method: 'GET', response: { kind: 'model', model: 'Order', collection: false, wrapped: null, paginated: null } as any })).toBe('flat')
+    expect(selectEnvelope({ method: 'GET', response: { kind: 'model', model: 'Order', collection: false, wrapped: null, paginated: null } })).toBe('flat')
   })
 })
 

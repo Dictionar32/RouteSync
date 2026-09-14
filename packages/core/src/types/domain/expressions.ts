@@ -351,6 +351,7 @@ export interface ParsedResource {
   readonly typeName: string;
   readonly sanitizedName: string;
   readonly baseModel: string | null;
+  readonly modelName: string | null;
   readonly actions: readonly ActionDefinition[];
   readonly endpoints: readonly string[];
   /**

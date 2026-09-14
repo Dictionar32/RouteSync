@@ -5,7 +5,12 @@ import {
   resolveRouteDomain,
   ValidationRuleFieldLowerer,
   PrimitiveKind,
-  ReadonlyCollectionType
+  ReadonlyCollectionType,
+  ScannedRouteDescriptor,
+  ScannedRouteSchemaPayload,
+  ScannedRouteValidationRuleEntry,
+  ScannedResourceDescriptor,
+  ScannedResourceFieldDescriptor
 } from '@routesync/core';
 
 describe('TypeDeriver Modular Flow & SSOT Architecture', () => {
@@ -34,37 +39,38 @@ describe('TypeDeriver Modular Flow & SSOT Architecture', () => {
 
   it('2. resolveRouteDomain resolves domain names through deterministic hierarchy', () => {
     // 1. Explicit resourceName
-    expect(resolveRouteDomain({ path: '/api/items', resourceName: 'ItemResource' } as any)).toBe('Item');
+    expect(resolveRouteDomain({ path: '/api/items', resourceName: 'ItemResource' })).toBe('Item');
 
     // 2. /register path convention
-    expect(resolveRouteDomain({ path: '/register' } as any)).toBe('Register');
+    expect(resolveRouteDomain({ path: '/register' })).toBe('Register');
 
     // 3. Dot-separated route name (camelCase first segment)
-    expect(resolveRouteDomain({ path: '/api/v1/user/profile', name: 'user.profile.show' } as any)).toBe('userProfile');
+    expect(resolveRouteDomain({ path: '/api/v1/user/profile', name: 'user.profile.show' })).toBe('userProfile');
 
     // 4. Multi-segment path
-    expect(resolveRouteDomain({ path: '/api/order-details' } as any)).toBe('orderDetails');
+    expect(resolveRouteDomain({ path: '/api/order-details' })).toBe('orderDetails');
 
     // 5. Controller action pattern
-    expect(resolveRouteDomain({ path: '', actionName: 'App\\Http\\Controllers\\ProductCategoryController@index' } as any)).toBe('ProductCategory');
+    expect(resolveRouteDomain({ path: '', actionName: 'App\\Http\\Controllers\\ProductCategoryController@index' })).toBe('ProductCategory');
 
     // 6. Fallback
-    expect(resolveRouteDomain({ path: '' } as any)).toBe('App');
+    expect(resolveRouteDomain({ path: '' })).toBe('App');
   });
 
   it('3. ValidationRuleFieldLowerer processes nested wildcards (.*.) and primitive arrays (.*) cleanly', () => {
-    const route = {
+    const rulesList = [
+      ScannedRouteValidationRuleEntry.create('items', ['required', 'array']),
+      ScannedRouteValidationRuleEntry.create('items.*.product_id', ['required', 'integer']),
+      ScannedRouteValidationRuleEntry.create('items.*.quantity', ['required', 'numeric']),
+      ScannedRouteValidationRuleEntry.create('tags.*', ['string']),
+      ScannedRouteValidationRuleEntry.create('notes', ['nullable', 'string'])
+    ];
+
+    const route = ScannedRouteDescriptor.fromSparse({
+      method: 'POST',
       path: '/api/orders',
-      schema: {
-        rules: {
-          'items': 'required|array',
-          'items.*.product_id': 'required|integer',
-          'items.*.quantity': 'required|numeric',
-          'tags.*': 'string',
-          'notes': 'nullable|string'
-        }
-      }
-    } as any;
+      schema: ScannedRouteSchemaPayload.fromRules(rulesList)
+    });
 
     const fields = ValidationRuleFieldLowerer.lower(route);
     expect(fields.length).toBeGreaterThanOrEqual(3);
@@ -83,18 +89,16 @@ describe('TypeDeriver Modular Flow & SSOT Architecture', () => {
   });
 
   it('4. TypeDeriver facade transparently delegates to RequestTypeDeriver and SemanticTypeDeriver', () => {
-    const mockRoute = {
+    const mockRoute = ScannedRouteDescriptor.fromSparse({
       path: '/api/users',
       resourceName: 'UserResource',
       method: 'POST',
       actionName: 'store',
-      schema: {
-        rules: {
-          'name': 'required|string',
-          'email': 'required|string'
-        }
-      }
-    } as any;
+      schema: ScannedRouteSchemaPayload.fromRules([
+        ScannedRouteValidationRuleEntry.create('name', ['required', 'string']),
+        ScannedRouteValidationRuleEntry.create('email', ['required', 'string'])
+      ])
+    });
 
     const requestTypes = TypeDeriver.deriveRequestTypes([mockRoute], []);
     expect(requestTypes.length).toBe(1);
@@ -103,13 +107,19 @@ describe('TypeDeriver Modular Flow & SSOT Architecture', () => {
     expect(requestTypes[0].actions.length).toBe(1);
     expect(requestTypes[0].actions[0].name).toBe('create');
 
-    const mockResource = {
+    const mockResource = ScannedResourceDescriptor.create({
       name: 'UserResource',
       fields: [
-        { name: 'id', type: 'integer' },
-        { name: 'name', type: 'string' }
+        ScannedResourceFieldDescriptor.create({
+          name: 'id',
+          expression: { kind: 'primitive', type: 'integer' }
+        }),
+        ScannedResourceFieldDescriptor.create({
+          name: 'name',
+          expression: { kind: 'primitive', type: 'string' }
+        })
       ]
-    } as any;
+    });
 
     const semanticTypes = TypeDeriver.deriveSemanticTypes([mockResource], []);
     expect(semanticTypes.length).toBe(1);

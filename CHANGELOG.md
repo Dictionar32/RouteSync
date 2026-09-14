@@ -4,7 +4,46 @@ All notable changes to RouteSync will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Intermediate Representation (IR) Accuracy & Semantic Rule Enhancements**:
+  - **Eliminasi False Warnings pada Validasi Laravel**: Menambahkan semantic format rules validator (`email`, `url`, `uuid`, `ip`, `json`, `date`, `in:`, `digits`, `alpha`, etc.) di `ValidationRuleFieldLowerer` sehingga tidak lagi memicu warning palsu `"Field 'x' has no type specified"`. Warning pada proyek nyata `toko-online` turun dari 6 menjadi 0.
+  - **Strongly-Typed Route Execution Signatures**: Parameter form/mutation pada `executionSignature.parameterDeclaration` kini mengekstrak tipe FormRequest atau DTO form konkret (e.g. `payload: StoreOrderRequest`) alih-alih fallback generik `payload: any`.
+  - **Ekstraksi HTTP Error Responses dari Controller Action**: Mendeteksi pemanggilan `abort(401, '...')`, `abort(403)`, `abort(404)`, dan `response()->json(..., status)` pada controller method dan memasukkannya ke dalam `route.errorResponses` (e.g. `LaravelUnauthorizedError`, `LaravelNotFoundError`).
+  - **Ekstraksi Role & Custom Middleware Policy**: Mendeteksi middleware custom seperti `'role:admin'` dan `'admin'` dan memetakannya ke `route.security.abilities` (`role:admin`) serta `policies: [{ ability: "role:admin", kind: "gate" }]`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/improvedIrDataflow.spec.ts` (4 tests lulus, total 115 test files, 654 tests 100% GREEN).
+- **True Eloquent Model Resolution & DTO Warning System**:
+  - **Resolusi Model dari ModelSymbolTable Asli**: Memastikan `modelName` pada Resource hanya terikat ke Eloquent Model Laravel asli (`modelSymbol.name` dari `ModelSymbolTable`). Mengeliminasi fallback tebakan berbasis string nama file Resource.
+  - **Peringatan Kompilator untuk DTO Unbacked**: Menambahkan compiler warning eksplisit jika Resource merupakan DTO tanpa model Eloquent pendukung: `[RouteSync Compiler Warning] Resource '${resourceName}' is a DTO without a matching Eloquent model. Non-model DTO resources have limited automatic relation/column derivation support.`
+  - **Penandaan Sintetis Eksplisit**: Resource DTO yang tidak memiliki backing model Eloquent ditandai secara eksplisit dengan `modelName: null`, `baseModel: null`, dan `isSynthetic: true`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/dtoResourceWarningAndModelResolution.spec.ts` (4 tests lulus, 113 test files, 636 tests 100% GREEN).
+
 ### Added
+- **Semantic AST Dataflow, Relation Propagation & Structural Type Inference (Rule 10, Rule 11, Rule 12)**:
+  - **Tier 1 (Controller AST Dataflow)**: Menelusuri parameter type-hint controller (`show(Order $order)`), rantai assignment variabel lokal (`$orders = Order::query()->paginate(...)`), dan query builder `DB::table(...)` via indeks `byTableName` baru pada `ModelSymbolTable`. Menangani multi-arity constructor arguments (`new Res($order, $flag)`) dan return wrappers (`response()->json(new Res($order))`).
+  - **Tier 2 (Two-Pass Fixpoint Relation Propagation)**: Menyelesaikan ketergantungan urutan abjad file sistem (`OrderDetailResource.php` sebelum `OrderResource.php`) dengan arsitektur Two-Pass Fixpoint. Menelusuri relasi Eloquent parent (`$this->items`) langsung ke `targetModel` model parent pada `collectionArrayBinders.ts`.
+  - **Tier 3 (Weighted Structural Type Unification)**: Algoritma pencocokan struktural kolom model berbasis bobot: kolom unik / foreign key berbobot `1.0`, kolom generik (`id`, `created_at`, `status`) berbobot `0.1` dengan ambang batas coverage minimum `40%` untuk mencegah salah tebak.
+  - **Guaranteed ADT Model Binding Contract**: Memperkenalkan ADT discriminated union `ResourceModelBinding` (`MonoModelBinding`, `PolyModelBinding`, `UnbackedDtoBinding`) dengan catamorphic eliminator `matchResourceModelBinding` (0 `if`, 0 `switch`).
+  - **Comprehensive Verification Suite**: Menambahkan `packages/sdk/tests/semanticAstDataflowAndRelationPropagation.spec.ts` (9 tests baru, total 114 test files, 645 tests 100% GREEN).
+- **Zero-Regex Manifest SSOT & Complete Guaranteed Contracts (Rule 10, Rule 11, Rule 12 RouteSync)**:
+  - **Larangan Tanda Tanya `?` & Guaranteed Non-Nullable Contracts (Rule 10)**: Menghilangkan seluruh `modelName?` dan `constantKey?` opsional. Menuntut `readonly modelName: string` pada `ParsedResource` & `ScannedResourceDescriptor`, serta `readonly constantKey: string` pada `RouteIdentityContract`, dihitung dan dijamin utuh 100% sejak Origin Boundary.
+  - **Eliminasi Regex di Seluruh Generator Hilir**:
+    - Menghapus string stripping `res.name.replace(/Resource$/, '')` pada `validationPass.ts` dan `singleFieldResolver.ts` digantikan dengan `res.modelName` SSOT.
+    - Menghapus string splitting regex pada `routesObjectBuilder.ts` digantikan dengan `route.identity.constantKey` SSOT.
+    - Menghapus regex fallback `replace(/\{([^}]+)\}/g, ...)` pada `EchoGenerator.ts` digantikan dengan `compileBroadcastRuntimePattern` dari `@routesync/core`.
+    - Menghapus inline regex casing pada `enumConstantsBuilder.ts` digantikan dengan `ValidationRuleParser.parseAll` dan `toCamelCase`.
+    - Menghapus regex `replace(/Transformed$/, '')` pada `readMapperBuilder.ts` digantikan dengan string slicing murni.
+    - Menghapus regex path formatting pada `names.ts` dan `pathClassifier.ts`.
+  - **Comprehensive Verification Suite**: Menambahkan `packages/sdk/tests/zeroRegexManifestSSOT.spec.ts` (4 tests baru, total 112 file test, 632 tests 100% GREEN).
+- **Catamorphic Projectors & Dual-Mode CodeSink Architecture (Rule 11, Rule 12 RouteSync)**:
+  - **`CodeSink` Stream Writer**: Diperkenalkannya `CodeSink` dan `MemoryCodeSink` (`packages/core/src/compiler/sink/`) untuk decoupling emisi kode dari domain models dan formatting passes, dengan pelacakan baris, indentasi, metadata, dan eliminasi buffer array perantara.
+  - **Catamorphic Domain Projectors**: Ditambahkannya modul proyektor domain terfokus (~40–80 baris) di `packages/core/src/compiler/projectors/`:
+    - `ApiFieldProjector.ts`: Single-pass stream generator tanpa nested loops untuk ekstraksi konstanta `ApiField`.
+    - `FormModelProjector.ts`: Proyektor model form langsung ke `CodeSink` dan `GeneratedFormArtifact`.
+    - `ContractProjector.ts`: Proyektor tipe kontrak dan skema Zod langsung ke `CodeSink` dan `GeneratedContractArtifact`.
+    - `ReadModelProjector.ts`: Proyektor model pembacaan TypeScript langsung ke `CodeSink` dan `GeneratedTypeScriptArtifact`.
+    - `MapperProjector.ts`: Proyektor fungsi mapper dua arah langsung ke `CodeSink` dan `GeneratedMapperArtifact`.
+  - **Pembersihan Passes & Builder**: Refactoring `api-field-domain.ts`, `formMapperBuilder.ts`, dan `readMapperBuilder.ts` mengeliminasi loop berlapis dan `as any`.
+  - **Comprehensive Verification Suite**: Menambahkan `packages/sdk/tests/catamorphicProjectorsSSOT.spec.ts` (8 tests baru, total 111 file test, 628 tests 100% GREEN).
 - **Direct Semantic Binding di Origin Boundary & Bound AST SSOT (Compiler Binder Architecture)**:
   - **`ModelSymbolTable` di Origin Boundary**: Menyediakan indeks simbolik $O(1)$ untuk seluruh Eloquent Models, Columns, Casts, Accessors, dan Relations dari hasil scanning upstream.
   - **`SemanticResourceBinder` (Direct Semantic Binding)**: Mengikat syntax AST file JsonResource langsung ke Model Symbols saat scanning berlangsung (`ResourceScanner`), menghasilkan `BoundSemanticNode` (`boundAst`) lengkap dan frozen, mengeliminasi string heuristics (`prop.endsWith('_id')`) dan puluhan `if` di plugin kernel.

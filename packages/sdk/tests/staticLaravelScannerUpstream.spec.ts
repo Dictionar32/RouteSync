@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   StaticLaravelScanner,
+  ModelScanner,
   ValidationRuleParser,
   ValidationRuleKind,
   InValidationRuleNode,
@@ -33,9 +34,8 @@ class Order extends Model
     }
 }
 `;
-      const scanner = StaticLaravelScanner.create({ projectRoot: '/fake/root' });
-      // Call parseModelFile directly via instance method reflection
-      const model = (scanner as any).parseModelFile(modelSource, 'Order');
+      // Call ModelScanner.parseModelFile directly via public AST model scanner API
+      const model = ModelScanner.parseModelFile(modelSource, 'Order');
 
       expect(model.name).toBe('Order');
       expect(model.casts).toBeDefined();

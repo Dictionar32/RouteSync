@@ -35,7 +35,7 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
       { name: 'InvoiceResource', fields: { id: { kind: 'primitive', type: 'number' } } },
     ],
     models: [
-      { name: 'Invoice', table: 'invoices', columns: [{ name: 'id', type: 'bigint', nullable: false }] } as any,
+      { name: 'Invoice', table: 'invoices', columns: [{ name: 'id', type: 'bigint', nullable: false }] },
     ],
     routes: [
       // Hits: respMeta.wrapped read (ZodTierGenerator.ts ~358-360) via `resolved`.
@@ -52,7 +52,7 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
         response: {
           kind: 'resource', resource: 'InvoiceResource', collection: false, wrapped: true,
           resolved: { status: 'resolved', type: 'resource', resource: 'InvoiceResource', wrapped: true, confidence: 100 },
-        } as any,
+        },
       },
       // Hits: respMeta.wrapped === true read directly off route.response (no
       // .resolved/.semantic wrapper) — the third branch of the `isWrapped` check.
@@ -66,7 +66,7 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
         middleware: ['api'],
         actionName: 'legacy',
         groupName: 'invoices',
-        response: { kind: 'model', model: 'Invoice', collection: false, wrapped: true } as any,
+        response: { kind: 'model', model: 'Invoice', collection: false, wrapped: true },
       },
       // Hits: normalizeManifest's patchField/resolveResponse recursion over
       // nested `kind: 'object'` fields with a `fields` map — the exact shape
@@ -90,7 +90,7 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
               },
             },
           },
-        } as any,
+        },
       },
       // Hits: raw literal AST node from the PHP extractor —
       // `{ kind: 'literal', code: '{"kind":"model",...}' }` — the exact shape
@@ -108,7 +108,7 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
         response: {
           kind: 'literal',
           code: '{"kind":"model","model":"Invoice","collection":true,"paginated":false}',
-        } as any,
+        },
       },
       // Hits: ParsedRoute's legacy uri/actionName/controllerName fields
       // (rather than path/action) — the shape normalizer.spec.ts's fixture
@@ -122,9 +122,9 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
         controllerName: 'LegacyController',
         auth: false,
         middleware: [],
-        response: { kind: 'model', model: 'Invoice', collection: false } as any,
+        response: { kind: 'model', model: 'Invoice', collection: false },
       },
-    ] as any,
+    ],
   }
 
   beforeAll(async () => {

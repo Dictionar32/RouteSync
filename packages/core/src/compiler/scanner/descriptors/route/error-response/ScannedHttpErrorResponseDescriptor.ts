@@ -72,6 +72,14 @@ export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDesc
         return new ScannedHttpErrorResponseDescriptor(createServerErrorParams());
     }
 
+    public static badRequest(): ScannedHttpErrorResponseDescriptor {
+        return ScannedHttpErrorResponseDescriptor.custom(400 as HttpStatusCode, "BadRequest", "LaravelBadRequestError");
+    }
+
+    public static internalServerError(): ScannedHttpErrorResponseDescriptor {
+        return ScannedHttpErrorResponseDescriptor.serverError();
+    }
+
     public static custom(
         statusCode: HttpStatusCode,
         name: string,

@@ -86,6 +86,10 @@ export async function emitFullBundle(
     const clientArtifacts = Object.freeze(
         await Promise.all(clientEmitters.map(e => e.emit(context)))
     )
+    const allWrittenPaths = Object.freeze([
+        ...writtenPaths,
+        ...clientArtifacts.flat()
+    ])
 
     return Object.freeze({
         readTypes: contractsBundle.readTypes,
@@ -94,7 +98,8 @@ export async function emitFullBundle(
         apiFields: contractsBundle.apiFields,
         mappers: contractsBundle.mappers,
         writtenPaths,
-        clientArtifacts
+        clientArtifacts,
+        allWrittenPaths
     })
 }
 

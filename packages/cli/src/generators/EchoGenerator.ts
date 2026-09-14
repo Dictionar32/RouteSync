@@ -1,6 +1,12 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { BroadcastChannelDescriptor, BROADCAST_CHANNEL_REGISTRY, ROUTE_PARAMETER_TYPE_REGISTRY, RouteParameterType } from '@routesync/core'
+import {
+  BroadcastChannelDescriptor,
+  BROADCAST_CHANNEL_REGISTRY,
+  ROUTE_PARAMETER_TYPE_REGISTRY,
+  RouteParameterType,
+  compileBroadcastRuntimePattern
+} from '@routesync/core'
 import { toTypeName } from './names'
 
 export class EchoGenerator {
@@ -35,7 +41,7 @@ export class EchoGenerator {
           }).join(', ') + ', '
         : ''
 
-      const runtimeChannelName = channel.runtimePattern || (channel.name || '').replace(/\{([^}]+)\}/g, '${$1}')
+      const runtimeChannelName = channel.runtimePattern || compileBroadcastRuntimePattern(channel.name || '', parameters);
       const channelMethod = BROADCAST_CHANNEL_REGISTRY[channel.kind].echoMethod
 
       lines.push(`/**`)

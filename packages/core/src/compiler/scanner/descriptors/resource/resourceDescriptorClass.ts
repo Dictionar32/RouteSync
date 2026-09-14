@@ -13,18 +13,9 @@ import type {
   ResourceAssignment
 } from '../../../../types/route';
 import { toCamelCase, ResourceNamingConvention } from '../../../../utils/resource-naming';
+import { ScannedResourceParams, CreateResourceDescriptorOptions } from './resourceDescriptorTypes';
 
-export interface ScannedResourceParams {
-  readonly name: string;
-  readonly baseName: string;
-  readonly typeName: string;
-  readonly baseModel: string | null;
-  readonly fields: readonly ResourceFieldDescriptor[];
-  readonly assignments: readonly ResourceAssignment[];
-  readonly sourceFile: string;
-  readonly sourceLine: number;
-  readonly isSynthetic: boolean;
-}
+export { ScannedResourceParams, CreateResourceDescriptorOptions };
 
 /**
  * Reusable Constructor: Scanned Resource Descriptor.
@@ -35,6 +26,7 @@ export class ScannedResourceDescriptor implements ParsedResource {
   public readonly typeName: string;
   public readonly sanitizedName: string;
   public readonly baseModel: string | null;
+  public readonly modelName: string | null;
   public readonly actions: readonly ActionDefinition[];
   public readonly endpoints: readonly string[];
   public readonly fields: readonly ResourceFieldDescriptor[];
@@ -43,29 +35,20 @@ export class ScannedResourceDescriptor implements ParsedResource {
   public readonly sourceLine: number;
   public readonly isSynthetic: boolean;
 
-  constructor({
-    name,
-    baseName,
-    typeName,
-    baseModel,
-    fields,
-    assignments,
-    sourceFile,
-    sourceLine,
-    isSynthetic
-  }: ScannedResourceParams) {
-    this.name = name;
-    this.baseName = baseName;
-    this.typeName = typeName;
-    this.sanitizedName = toCamelCase(name);
-    this.baseModel = baseModel;
+  constructor(params: ScannedResourceParams) {
+    this.name = params.name;
+    this.baseName = params.baseName;
+    this.typeName = params.typeName;
+    this.sanitizedName = toCamelCase(params.name);
+    this.baseModel = params.baseModel;
+    this.modelName = params.modelName !== undefined ? params.modelName : params.baseModel;
     this.actions = Object.freeze([]);
     this.endpoints = Object.freeze([]);
-    this.fields = Object.freeze(fields);
-    this.assignments = Object.freeze(assignments);
-    this.sourceFile = sourceFile;
-    this.sourceLine = sourceLine;
-    this.isSynthetic = isSynthetic;
+    this.fields = Object.freeze(params.fields);
+    this.assignments = Object.freeze(params.assignments);
+    this.sourceFile = params.sourceFile;
+    this.sourceLine = params.sourceLine;
+    this.isSynthetic = params.isSynthetic;
     Object.freeze(this);
   }
 
@@ -74,25 +57,24 @@ export class ScannedResourceDescriptor implements ParsedResource {
     fields,
     sourceFile = '',
     sourceLine = 0,
-    assignments = []
-  }: {
-    readonly name: string;
-    readonly fields: readonly ResourceFieldDescriptor[];
-    readonly sourceFile?: string;
-    readonly sourceLine?: number;
-    readonly assignments?: readonly ResourceAssignment[];
-  }): ScannedResourceDescriptor {
+    assignments = [],
+    modelName,
+    isSynthetic
+  }: CreateResourceDescriptorOptions): ScannedResourceDescriptor {
     const baseName = ResourceNamingConvention.stripSuffix(name);
+    const resolvedModel = modelName !== undefined ? modelName : baseName;
+    const synthetic = isSynthetic !== undefined ? isSynthetic : resolvedModel === null;
     return new ScannedResourceDescriptor({
       name,
       baseName,
       typeName: ResourceNamingConvention.toTransformedName(baseName),
-      baseModel: baseName,
+      baseModel: resolvedModel,
+      modelName: resolvedModel,
       fields,
       assignments,
       sourceFile,
       sourceLine,
-      isSynthetic: false
+      isSynthetic: synthetic
     });
   }
 }

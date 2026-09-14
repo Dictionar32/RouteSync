@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { LaravelSourceLexer } from '@routesync/core'
+import { scanControllerAction } from '../../core/src/compiler/scanner/subscanners/controller/actionScanner'
 
 /**
  * Tests for LaravelRouteParser assignment scanner fixes:
@@ -212,5 +214,42 @@ describe('LaravelRouteParser: assignment scanner closure return fix', () => {
     const assignments = scanAssignments(methodSource)
     expect(assignments['request']).toBeUndefined()
     expect(assignments['this']).toBeUndefined()
+  })
+})
+
+describe('Laravel AST Controller Action Scanner (True Dataflow Pipeline)', () => {
+  it('should extract local variable assignment and bind to resource response via pure AST', () => {
+    const controllerSource = `<?php
+namespace App\\Http\\Controllers;
+
+use App\\Models\\ProductReview;
+use App\\Http\\Resources\\ProductReviewResource;
+
+class ProductReviewController {
+  public function store(Request $request) {
+    $review = ProductReview::updateOrCreate(
+      ['user_id' => $request->user_id, 'product_id' => $request->product_id],
+      ['rating' => $request->rating, 'comment' => $request->comment]
+    );
+    return new ProductReviewResource($review);
+  }
+}
+`
+    const tokens = LaravelSourceLexer.tokenize(controllerSource)
+    const funcIdx = tokens.findIndex((t, i) => t.value === 'function' && tokens[i + 1]?.value === 'store')
+    expect(funcIdx).toBeGreaterThanOrEqual(0)
+
+    const actionResult = scanControllerAction(
+      controllerSource,
+      tokens,
+      funcIdx,
+      'ProductReviewController',
+      '/app/Http/Controllers/ProductReviewController.php',
+      new Map()
+    )
+
+    expect(actionResult).toBeDefined()
+    expect(actionResult?.actionName).toBe('store')
+    expect(actionResult?.descriptor.resourceModelMap.get('ProductReviewResource')).toBe('ProductReview')
   })
 })

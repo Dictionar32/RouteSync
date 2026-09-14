@@ -35,7 +35,7 @@ export function toRuntimePath(path: string): string {
  * Trailing dynamic segments are ignored (they don't start a new sub-resource).
  */
 export function deriveGroupName(path: string): string {
-  const segments = path.replace(/^\//, '').split('/').filter(Boolean)
+  const segments = path.split('/').filter(Boolean);
 
   const parts: string[] = []
   let current: string[] = []

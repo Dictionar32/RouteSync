@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ModelScanner } from '@routesync/core'
 
 /**
  * Regression tests for LaravelRouteParser:
@@ -92,5 +93,23 @@ describe('LaravelRouteParser: Non-greedy validate() scanner & DB-offline fallbac
         expect(parsedColumns[0].name).toBe('id')
         expect(parsedColumns[1].name).toBe('nama')
         expect(parsedColumns[2].name).toBe('description')
+    })
+
+    it('should infer columns from $fillable via ModelScanner.parseModelFile (True AST Pipeline)', () => {
+        const modelSource = `<?php
+namespace App\\Models;
+
+use Illuminate\\Database\\Eloquent\\Model;
+
+class Product extends Model {
+    protected $fillable = ['nama', 'description'];
+}
+`
+        const model = ModelScanner.parseModelFile(modelSource, 'Product')
+        expect(model.name).toBe('Product')
+        expect(model.columns.length).toBeGreaterThanOrEqual(3) // id, nama, description
+        expect(model.columns.map(c => c.name)).toContain('id')
+        expect(model.columns.map(c => c.name)).toContain('nama')
+        expect(model.columns.map(c => c.name)).toContain('description')
     })
 })

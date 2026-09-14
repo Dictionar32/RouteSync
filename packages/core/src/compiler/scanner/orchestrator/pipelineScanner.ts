@@ -24,6 +24,7 @@ import {
     FormRequestScanner,
     ModelScanner,
     RouteScanner,
+    ControllerScanner,
     InvalidationResolver,
     TypeDeriver
 } from "../subscanners";
@@ -42,9 +43,12 @@ export async function executeScanPipeline({
 }): Promise<RouteManifest> {
     const models = await ModelScanner.scan(projectRoot);
     const modelSymbolTable = new ModelSymbolTable(models);
-    const resources = await ResourceScanner.scan(projectRoot, modelSymbolTable);
     const formRequests = await FormRequestScanner.scan(projectRoot, interner);
-    const routes = await RouteScanner.scan(projectRoot, formRequests);
+    const formRequestMap = new Map<string, RequestType>(formRequests.map(r => [r.formTypeName, r]));
+    const controllerMap = await ControllerScanner.scan(projectRoot, formRequestMap);
+    const controllerDataflow = ControllerScanner.extractResourceDataflow(controllerMap, modelSymbolTable);
+    const resources = await ResourceScanner.scan(projectRoot, modelSymbolTable, controllerDataflow);
+    const routes = await RouteScanner.scan(projectRoot, formRequests, controllerMap);
     const channels = await ChannelScanner.scan(projectRoot);
     const derivedRequests = TypeDeriver.deriveRequestTypes(routes, resources, interner);
     const requestTypes = formRequests.length > 0 ? formRequests : derivedRequests;

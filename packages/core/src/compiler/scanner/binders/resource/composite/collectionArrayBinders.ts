@@ -24,11 +24,14 @@ export function bindResourceCollectionField(
     modelSymbol?: OriginModelSymbol
 ): BoundResourceFieldResult {
     const isCollection = value.kind === 'resource_collection';
+    const rel = modelSymbol ? modelSymbol.relation(key) : undefined;
+    const targetModel = rel ? rel.targetModel : value.resourceName;
+    const relationType = rel ? (rel.isCollection ? 'hasMany' : 'hasOne') : (isCollection ? 'hasMany' : 'hasOne');
     const boundAst = BoundSemanticFactory.relation({
         sourceModel: modelSymbol ? modelSymbol.name : '',
         relationName: key,
-        relationType: isCollection ? 'hasMany' : 'hasOne',
-        targetModel: value.resourceName,
+        relationType,
+        targetModel,
         isCollection,
         nullable: false
     });

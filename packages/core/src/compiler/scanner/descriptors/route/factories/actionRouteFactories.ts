@@ -68,7 +68,8 @@ export function createRouteFromControllerAction(
         parameters,
         pathParameters,
         queryParameters,
-        invalidation
+        invalidation,
+        errorResponses: action.errorResponses
     });
 }
 

@@ -8,11 +8,13 @@
 
 import type { ParsedModel } from "../../../../types/domain/models";
 import { OriginModelSymbol } from "./originModelSymbol";
+import { ResourceNamingConvention } from "../../../../utils/resource-naming";
 
 export class ModelSymbolTable {
     private readonly byName = new Map<string, OriginModelSymbol>();
     private readonly byShortName = new Map<string, OriginModelSymbol>();
     private readonly byLower = new Map<string, OriginModelSymbol>();
+    private readonly byTableName = new Map<string, OriginModelSymbol>();
     private readonly modelList: readonly OriginModelSymbol[];
 
     constructor(models: readonly ParsedModel[] = []) {
@@ -24,6 +26,9 @@ export class ModelSymbolTable {
             this.byShortName.set(sym.shortName, sym);
             this.byLower.set(sym.name.toLowerCase(), sym);
             this.byLower.set(sym.shortName.toLowerCase(), sym);
+            if (m.table) {
+                this.byTableName.set(m.table.toLowerCase(), sym);
+            }
         }
         this.modelList = Object.freeze(list);
         Object.freeze(this);
@@ -31,6 +36,10 @@ export class ModelSymbolTable {
 
     public get(name: string): OriginModelSymbol | undefined {
         return this.byName.get(name) || this.byShortName.get(name) || this.byLower.get(name.toLowerCase());
+    }
+
+    public findByTableName(tableName: string): OriginModelSymbol | undefined {
+        return this.byTableName.get(tableName.toLowerCase());
     }
 
     public has(name: string): boolean {
@@ -46,8 +55,7 @@ export class ModelSymbolTable {
     }
 
     public findForResource(resourceName: string): OriginModelSymbol | undefined {
-        // Strip Resource suffix e.g. "ProductResource" -> "Product"
-        const stripped = resourceName.replace(/Resource$/i, '');
+        const stripped = ResourceNamingConvention.stripSuffix(resourceName);
         return this.get(stripped) || this.get(resourceName);
     }
 }

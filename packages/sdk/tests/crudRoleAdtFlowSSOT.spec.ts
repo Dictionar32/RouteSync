@@ -5,6 +5,7 @@ import {
   matchCrudRole,
   CrudRoleVisitor,
   ScannedCrudRoleDescriptor,
+  ScannedRouteDescriptor,
   HttpMethod,
   RouteHookKind,
   RouteActionKind
@@ -93,7 +94,7 @@ describe('CrudRole ADT Flow SSOT (Pure Functional Catamorphism Suite)', () => {
     })
     expect(fromRawString).toBe('INDEX_SUCCESS')
 
-    const fromUnknown = matchCrudRole('unrecognized_action' as any, {
+    const fromUnknown = matchCrudRole(CrudRole.Custom, {
       index: () => 'NO',
       show: () => 'NO',
       create: () => 'NO',
@@ -153,91 +154,36 @@ describe('CrudRole ADT Flow SSOT (Pure Functional Catamorphism Suite)', () => {
 
   test('6. classifyRoutes integrates seamlessly with CRUD_ROLE_REGISTRY', () => {
     const mockRoutes: ParsedRoute[] = [
-      {
+      ScannedRouteDescriptor.fromSparse({
         name: 'produk.index',
         method: 'GET',
         path: '/produk',
-        runtimePath: '/produk',
-        groupName: 'produk',
-        actionName: 'index',
-        actionKind: RouteActionKind.Read,
-        crudRole: CrudRole.Index,
-        isMutating: false,
-        hookKind: RouteHookKind.Query,
-        pathParameters: [],
-        queryParameters: [],
-        security: [],
-        middleware: [],
-        responses: []
-      } as any,
-      {
+        actionName: 'index'
+      }),
+      ScannedRouteDescriptor.fromSparse({
         name: 'produk.show',
         method: 'GET',
         path: '/produk/{id}',
-        runtimePath: '/produk/:id',
-        groupName: 'produk',
-        actionName: 'show',
-        actionKind: RouteActionKind.Read,
-        crudRole: CrudRole.Show,
-        isMutating: false,
-        hookKind: RouteHookKind.Query,
-        pathParameters: [{ name: 'id', in: 'path', type: 'number', required: true }],
-        queryParameters: [],
-        security: [],
-        middleware: [],
-        responses: []
-      } as any,
-      {
+        actionName: 'show'
+      }),
+      ScannedRouteDescriptor.fromSparse({
         name: 'produk.store',
         method: 'POST',
         path: '/produk',
-        runtimePath: '/produk',
-        groupName: 'produk',
-        actionName: 'store',
-        actionKind: RouteActionKind.Create,
-        crudRole: CrudRole.Create,
-        isMutating: true,
-        hookKind: RouteHookKind.Mutation,
-        pathParameters: [],
-        queryParameters: [],
-        security: [],
-        middleware: [],
-        responses: []
-      } as any,
-      {
+        actionName: 'store'
+      }),
+      ScannedRouteDescriptor.fromSparse({
         name: 'produk.update',
         method: 'PUT',
         path: '/produk/{id}',
-        runtimePath: '/produk/:id',
-        groupName: 'produk',
-        actionName: 'update',
-        actionKind: RouteActionKind.Update,
-        crudRole: CrudRole.Update,
-        isMutating: true,
-        hookKind: RouteHookKind.Mutation,
-        pathParameters: [{ name: 'id', in: 'path', type: 'number', required: true }],
-        queryParameters: [],
-        security: [],
-        middleware: [],
-        responses: []
-      } as any,
-      {
+        actionName: 'update'
+      }),
+      ScannedRouteDescriptor.fromSparse({
         name: 'produk.destroy',
         method: 'DELETE',
         path: '/produk/{id}',
-        runtimePath: '/produk/:id',
-        groupName: 'produk',
-        actionName: 'destroy',
-        actionKind: RouteActionKind.Delete,
-        crudRole: CrudRole.Delete,
-        isMutating: true,
-        hookKind: RouteHookKind.Mutation,
-        pathParameters: [{ name: 'id', in: 'path', type: 'number', required: true }],
-        queryParameters: [],
-        security: [],
-        middleware: [],
-        responses: []
-      } as any
+        actionName: 'destroy'
+      })
     ]
 
     const classified = classifyRoutes(mockRoutes)

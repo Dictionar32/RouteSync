@@ -4,11 +4,29 @@ import {
   ScannedRouteDescriptor,
   RouteParameterType,
   PrimitiveKind,
-  BroadcastChannelKind
+  BroadcastChannelKind,
+  type RouteManifest,
+  type BroadcastChannelDescriptor
 } from '@routesync/core'
 import { ModelGenerator } from '../../cli/src/generators/ModelGenerator'
 import { EchoGenerator } from '../../cli/src/generators/EchoGenerator'
 import { MswGenerator } from '../../cli/src/generators/MswGenerator'
+
+const createMockManifest = (overrides: Partial<RouteManifest> = {}): RouteManifest => ({
+  version: '1.0.0',
+  baseURL: 'http://localhost/api',
+  routes: overrides.routes ?? [],
+  contracts: overrides.contracts ?? [],
+  resources: overrides.resources ?? [],
+  models: overrides.models ?? [],
+  routeGroups: overrides.routeGroups ?? [],
+  requestTypes: overrides.requestTypes ?? [],
+  semanticTypes: overrides.semanticTypes ?? [],
+  generatedAt: new Date().toISOString(),
+  channels: overrides.channels ?? [],
+  frontend: overrides.frontend ?? null,
+  pages: overrides.pages ?? []
+})
 
 describe('Eloquent & Generator Audited Explicit SSOT', () => {
   it('1. ScannedRouteDescriptor should parse Laravel custom route model binding {post:slug}', () => {
@@ -47,9 +65,9 @@ describe('Eloquent & Generator Audited Explicit SSOT', () => {
   })
 
   it('3. ModelGenerator should emit shortName, typed accessors, and typed relations', async () => {
-    const manifest: any = {
+    const manifest = createMockManifest({
       models: [
-        {
+        ScannedModelDescriptor.create({
           name: 'App\\Models\\Order',
           shortName: 'Order',
           columns: [
@@ -57,14 +75,14 @@ describe('Eloquent & Generator Audited Explicit SSOT', () => {
             { name: 'total_minor', propertyName: 'totalMinor', type: 'int', semanticType: PrimitiveKind.NUMBER, nullable: false }
           ],
           accessors: [
-            { name: 'formatted_total', propertyName: 'formattedTotal', semanticType: PrimitiveKind.STRING, nullable: false }
+            { name: 'formatted_total', propertyName: 'formattedTotal', semanticType: PrimitiveKind.STRING, nullable: false, targetType: 'string' }
           ],
           relations: [
             { name: 'items', modelName: 'OrderItem', isCollection: true, type: 'hasMany' }
           ]
-        }
+        })
       ]
-    }
+    })
 
     let writtenContent = ''
     const originalWriteFile = (await import('fs-extra')).default.writeFile
@@ -86,14 +104,14 @@ describe('Eloquent & Generator Audited Explicit SSOT', () => {
   })
 
   it('4. EchoGenerator should emit join() for presence channels and typed parameter signatures', async () => {
-    const channels: any[] = [
+    const channels: readonly BroadcastChannelDescriptor[] = [
       {
         name: 'room.{roomId}',
         kind: BroadcastChannelKind.Presence,
         isPresence: true,
         isPrivate: false,
         parameters: [
-          { name: 'roomId', propertyName: 'roomId', type: 'number', required: true }
+          { name: 'roomId', propertyName: 'roomId', type: RouteParameterType.Number, required: true }
         ]
       }
     ]
@@ -114,18 +132,17 @@ describe('Eloquent & Generator Audited Explicit SSOT', () => {
   })
 
   it('5. MswGenerator should consume route.runtimePath without regex replacement', async () => {
-    const manifest: any = {
-      baseURL: 'http://localhost/api',
+    const manifest = createMockManifest({
       routes: [
-        {
+        ScannedRouteDescriptor.fromSparse({
           method: 'GET',
           path: '/posts/{post}',
           runtimePath: '/posts/:post',
           name: 'posts.show',
           response: { readTypeName: 'PostResourceTransformed', shape: 'single' }
-        }
+        })
       ]
-    }
+    })
 
     let writtenContent = ''
     const originalWriteFile = (await import('fs-extra')).default.writeFile

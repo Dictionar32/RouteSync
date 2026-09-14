@@ -22,6 +22,7 @@ export {
 } from "./RouteSecurityResolver";
 
 export {
+    type RouteBoundaryContract,
     type SparseRouteParams,
     RouteBoundaryAdapter
 } from "./RouteBoundaryAdapter";

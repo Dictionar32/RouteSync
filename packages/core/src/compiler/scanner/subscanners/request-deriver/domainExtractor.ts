@@ -23,7 +23,7 @@ export function extractRouteDomain(route: ParsedRoute): RouteDomainInfo {
         const rawSegments = (route.path || '')
             .replace(/^\//, '')
             .split('/')
-            .filter(s => s && s !== 'api' && s !== 'v1' && !s.startsWith('{') && !s.startsWith(':'));
+            .filter(s => s && s !== 'api' && !/^v\d+$/i.test(s) && !s.startsWith('{') && !s.startsWith(':'));
         if (rawSegments.length > 1) {
             return rawSegments.map(s => toPascalCase(s)).join('');
         }

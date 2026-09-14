@@ -69,14 +69,41 @@ export interface ModelSemanticTypeIR {
     }
 }
 
-export interface ObjectSemanticTypeIR {
-    readonly kind: 'object'
-    readonly properties: Readonly<Record<string, ResolvedSemanticType>>
-    readonly resolved?: {
-        readonly type?: SemanticType
-        readonly model?: string
-    }
+export type SemanticPropertiesMap = Readonly<Record<string, ResolvedSemanticType>>;
+
+export interface BoundSemanticMetaContract {
+    readonly isBound: true;
+    readonly type: SemanticType;
+    readonly model: string;
 }
+
+export interface UnboundSemanticMetaContract {
+    readonly isBound: false;
+}
+
+export type ResolvedSemanticMetaContract =
+    | BoundSemanticMetaContract
+    | UnboundSemanticMetaContract;
+
+export type ResolvedSemanticMeta = {
+    readonly type?: SemanticType;
+    readonly model?: string;
+};
+
+/**
+ * Level 7 Complete Contract for ObjectSemanticTypeIR (0 undefined, 0 null, 0 ?:).
+ */
+export interface ObjectSemanticTypeIRContract {
+    readonly kind: 'object';
+    readonly propertyEntries: readonly (readonly [string, ResolvedSemanticType])[];
+    readonly resolved: ResolvedSemanticMetaContract;
+}
+
+export type ObjectSemanticTypeIR = {
+    readonly kind: 'object';
+    readonly properties: SemanticPropertiesMap;
+    readonly resolved?: ResolvedSemanticMeta;
+};
 
 export interface ArraySemanticTypeIR {
     readonly kind: 'array'
@@ -626,7 +653,13 @@ export interface SharedTypeIR {
     usedBy: string[]              // Which resources/requests use this
 }
 
-export interface TypeDefinition {
+export interface TypeDefinitionContract {
+    readonly fields: Readonly<Record<string, SemanticType>>
+    readonly extends: readonly string[]
+    readonly implements: readonly string[]
+}
+
+export type TypeDefinition = {
     fields?: Record<string, SemanticType>
     extends?: string[]
     implements?: string[]
@@ -672,7 +705,12 @@ export interface ZodValidationIR {
     imports: string[]
 }
 
-export interface LaravelValidationIR {
+export interface LaravelValidationIRContract {
+    readonly rules: Readonly<Record<string, readonly string[]>>
+    readonly messages: Readonly<Record<string, string>>
+}
+
+export type LaravelValidationIR = {
     rules: Record<string, string[]>
     messages?: Record<string, string>
 }
@@ -761,27 +799,52 @@ export interface ParsedRoute {
     middleware?: string[]
 }
 
-export interface ParsedField {
-    name: string
-    resolved?: SemanticNode
-    optional?: boolean
-    nullable?: boolean
-    readonly?: boolean
-    description?: string
-    validation?: Record<string, unknown>
+export type ParsedValidationMap = Readonly<Record<string, unknown>>;
+
+/**
+ * Level 7 Complete Contract for ParsedField (0 undefined, 0 null, 0 ?:).
+ */
+export interface ParsedFieldContract {
+    readonly name: string;
+    readonly resolved: SemanticNode;
+    readonly optional: boolean;
+    readonly nullable: boolean;
+    readonly readonly: boolean;
+    readonly description: string;
+    readonly validationEntries: readonly (readonly [string, unknown])[];
+    readonly semanticType: ResolvedSemanticType;
+}
+
+export type ParsedField = {
+    name: string;
+    resolved?: SemanticNode;
+    optional?: boolean;
+    nullable?: boolean;
+    readonly?: boolean;
+    description?: string;
+    validation?: Record<string, unknown>;
 
     // Same rationale as ResourceFieldIR.semanticType (see below): `resolved` above
     // can only carry a flat SemanticType tag + model name, not enough to represent
     // resource/object/array/union kinds. ContractIRBuilder needs the richer object
     // form for those, so adaptManifest() sets this directly for non-primitive fields.
-    semanticType?: SemanticType | ResolvedSemanticType
+    semanticType?: SemanticType | ResolvedSemanticType;
+};
+
+/**
+ * Level 7 Complete Contract for ParsedAction (0 undefined, 0 null, 0 ?:).
+ */
+export interface ParsedActionContract {
+    readonly name: string;
+    readonly fields: readonly ParsedFieldContract[];
+    readonly validationEntries: readonly (readonly [string, unknown])[];
 }
 
-export interface ParsedAction {
-    name: string
-    fields: ParsedField[]
-    validation?: Record<string, unknown>  // More specific than any
-}
+export type ParsedAction = {
+    name: string;
+    fields: ParsedField[];
+    validation?: Record<string, unknown>;
+};
 
 export interface ManifestMetadata {
     version: string

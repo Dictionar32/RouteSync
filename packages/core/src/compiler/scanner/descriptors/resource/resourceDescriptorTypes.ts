@@ -21,7 +21,20 @@ export interface ScannedResourceParams {
   readonly isSynthetic: boolean;
 }
 
-export interface CreateResourceDescriptorOptions {
+/**
+ * Level 7 Complete Contract for CreateResourceDescriptorOptions (0 undefined, 0 null, 0 ?:).
+ */
+export interface CreateResourceDescriptorOptionsContract {
+  readonly name: string;
+  readonly fields: readonly ResourceFieldDescriptor[];
+  readonly sourceFile: string;
+  readonly sourceLine: number;
+  readonly assignments: readonly ResourceAssignment[];
+  readonly modelName: string;
+  readonly isSynthetic: boolean;
+}
+
+export type CreateResourceDescriptorOptions = {
   readonly name: string;
   readonly fields: readonly ResourceFieldDescriptor[];
   readonly sourceFile?: string;
@@ -29,4 +42,4 @@ export interface CreateResourceDescriptorOptions {
   readonly assignments?: readonly ResourceAssignment[];
   readonly modelName?: string | null;
   readonly isSynthetic?: boolean;
-}
+};

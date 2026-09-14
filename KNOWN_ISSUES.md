@@ -1,5 +1,86 @@
 # Known Issues & Bug History
 
+### Issue 41: Elimination of Sentinel Undefined & Null via Level 7 Subatomic Functors & Closed ADTs
+**Symptom** → Previous hardening passes replaced `?:` with `| undefined` or `| null`, preserving sentinel undefined values and forcing downstream compiler passes into defensive branching (`if (x !== undefined)`).
+**Where** → `packages/core/src/types/contract.ts`, `packages/core/src/types/response.ts`, `packages/core/src/types/semantic.ts`, `packages/core/src/compiler/ir/response/`, `packages/core/src/compiler/generators/contract-generation/response-field/types.ts`, `packages/cli/src/generators/classifier/`, `packages/cli/src/generators/normalizer/`.
+**Root cause** → Primitive optionality encoding using union with `undefined` instead of Level 7 Monadic Functors (`TypeWrapper<Carrier>`), closed Discriminated Union ADT variants, and complete non-nullable sub-contracts.
+**Fix** → 
+1. `ResponseDescriptorContract`: Refactored into closed Discriminated ADT variants (`JsonTransportContract`, `BinaryTransportContract`, `StreamTransportContract`, `RedirectTransportContract`, `EmptyTransportContract`) with 0 `undefined`, 0 `null`, 0 `?:`.
+2. `ResponseFieldContract`: Replaced optional bags with Monadic Functor `TypeWrapper<T>` and closed ADT variants (`PrimitiveResponseFieldContract`, `ObjectResponseFieldContract`, `ArrayResponseFieldContract`, `VariableResponseFieldContract`, `PropertyAccessResponseFieldContract`).
+3. `SemanticRelationContract`: Transformed into closed Relational ADT (`BelongsToManyRelationContract`, `DirectRelationContract`, `MorphRelationContract`).
+4. `RouteDefContract`, `ResourceDefContract`, `ModelDefContract`: Structured into 4 Complete Sub-Contracts (`RouteIdentityContract`, `RouteSecurityContract`, `RoutePayloadContract`, `RouteProvenanceContract`) with 100% non-nullable fields.
+5. Decomposed oversized files into sub-100 line modules per Rule 14 (`routeEntityDefinition.ts`, `modelEntityDefinition.ts`, `responseDescriptorContract.ts`, `objectSchemaContracts.ts`, `frameworkRules.ts`, `classifiedRouteDescriptor.ts`, `resourceCrudMap.ts`, `normalizedEntities.ts`, `normalizedManifest.ts`).
+**Regression test** → `packages/sdk/tests/subatomicLevel7Contracts.spec.ts` › `Level 7 Subatomic Discriminated ADT Contracts (Rule 15)`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 40: Sweeping Hardening of Worst Branching Interfaces (Hall of Shame IPS Cleanup)
+**Symptom** → Multiple domain interfaces across `packages/cli` and `packages/core` had critical porosity scores (IPS 100% - 200%) with sentinel `null`, naked `Record<string, unknown>`, and pervasive optional `?:` fields: `GrammarClosure` (200%), `ScannedManifest` (167%), `LaravelValidationIR` (150%), `TypeDefinition` (133%), `ScannedModel` (120%), `ScannedResource` (117%), `SemanticNode` (100%), `RuntimeAugmented` (89%), and `MinimalRouteDefinitionParams` (100%), forcing downstream modules to introduce defensive `if` guards.
+**Where** → `packages/cli/src/parsers/php/ast/grammar.ts`, `packages/cli/src/commands/audit/driftAuditor.ts`, `packages/cli/src/utils/incremental/incrementalTypes.ts`, `packages/cli/src/generators/normalizer/normalizerTypes.ts`, `packages/core/src/types/request.ts`, `packages/core/src/types/ir.ts`.
+**Root cause** → Loose typing and pervasive partial bags instead of closed contract boundaries and Discriminated Union ADTs.
+**Fix** → 
+1. `GrammarClosure`: eliminated `any[]` and strictly typed children AST nodes.
+2. `ScannedManifest` & `ScannedRoute`: introduced `ScannedManifestContract` (0 `?:`) and eliminated all `| null` sentinels in `incrementalTypes.ts`.
+3. `driftAuditor.ts`: removed duplicate porous `ScannedManifest` interface in favor of central `incrementalTypes`.
+4. `normalizerTypes.ts`: extracted `semanticNormalizerTypes.ts` with `SemanticNodeContract` (0 `?:`), reducing file size to $\le 100$ lines and replacing naked records with strongly typed contracts.
+5. `request.ts`: converted `MinimalRouteDefinitionParams` and `RouteDefinition` from porous interfaces to typed configurations while keeping `RouteDefinitionContract` as the 100% non-nullable SSOT.
+6. `ir.ts`: added `TypeDefinitionContract` and `LaravelValidationIRContract`.
+**Regression test** → `packages/sdk/tests/routeBoundaryContractSSOT.spec.ts`, `packages/sdk/tests/pureContractDrivenArchitectureSSOT.spec.ts`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 39: Porous Route Parameter Bag (SparseRouteParams IPS 137%) & Procedural String Hacking in Route Boundary
+**Symptom** → `SparseRouteParams` interface contained 28 optional fields out of 30 and 13 `any` types (IPS 137%, worst in codebase), triggering defensive parameter guessing and procedural string hacking (`if (action.includes('@'))`) at the route boundary.
+**Where** → `packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts`, `packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts`, `packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts`.
+**Root cause** → Perimeter route parameter bags allowed untyped dictionaries and porous optional bags without complete closed contracts, leading to downstream re-inferencing of controller/action and weak type safety.
+**Fix** → Introduced `RouteBoundaryContract` with 0 optional fields and 0 `any` (IPS 0%), eliminated all 13 `any` in `SparseRouteParams`, decomposed oversized factory files (`actionRouteFactories.ts`, `closureSyntheticFactories.ts`) into focused single-responsibility files under 100 lines (`controllerActionRouteFactory.ts`, `controllerReferenceRouteFactory.ts`, `closureRouteFactory.ts`, `syntheticRouteFactory.ts`), and streamlined `boundaryBasics.ts` from 119 to 79 lines.
+**Regression test** → `packages/sdk/tests/routeBoundaryContractSSOT.spec.ts` › `Route Boundary Contract & Factories SSOT Suite`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 38: Missing PHP Array Literals, Unary Operations, and Class Constants in AST Lowering
+**Symptom** → PHP array literals (`['a' => 1]`), negative numbers/unary operations (`-$amount`), and class constants (`Status::ACTIVE`) in PHP code or JsonResources silently fell back to `unknown` or failed to resolve in `nodeMapper.ts`.
+**Where** → `packages/cli/src/parsers/php/nodeMapper.ts`, `packages/core/src/types/domain/phpAst/`.
+**Root cause** → The AST parser lacked grammar and semantic definitions for array expressions, unary operations, and class constants, dropping unhandled nodes to fallback.
+**Fix** → Added `ArrayAstNode`, `UnaryAstNode`, and `StaticConstantAstNode` to ADT #32 (`PhpAstKind`), implemented catamorphic grammar adapters, and added bottom-up tree folding in `algebra/fieldNodeAlgebra.ts`.
+**Regression test** → `packages/sdk/tests/phpAstAlgebraSSOT.spec.ts` › `folds PhpAstNode bottom-up using pure F-Algebra (foldPhpAstNode)`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 37: Database Column & Eloquent Cast Type Mapping Procedural Branching & Sentinel Null
+**Symptom** → `resolvers.ts` contained 16 procedural `if` branches, returned sentinel `null`, and relied on naked `Record<string, ...>` dictionaries in `DatabaseColumnTypeMapper` and `EloquentTypeMapper`.
+**Where** → `packages/cli/src/generators/canonical/type-mapping/resolvers.ts`, `packages/core/src/types/domain/databaseColumns.ts`, `packages/core/src/types/domain/eloquentTypes.ts`.
+**Root cause** → Type mapping was implemented as procedural regex and string checks with null fallbacks instead of leveraging Level 6 Core ADT catamorphisms and First-Class Symbol Tables.
+**Fix** → Replaced `Record<string, ...>` in `DatabaseColumnTypeMapper` and `EloquentCastMapper` with `ReadonlyMap`, created `visitors.ts` with exhaustive `SQL_TYPE_VISITOR` and `CAST_TYPE_VISITOR`, and reduced `resolvers.ts` from 113 lines (16 `if`s) to 40 lines (0 `if`, 0 `switch`, 0 `Record`).
+**Regression test** → `packages/sdk/tests/resolversZeroBranchingSSOT.spec.ts` › `Zero Branching Code Verification`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 36: Boolean Literal Inversion in PHP AST Node Mapping
+**Symptom** → Parsing PHP boolean literals inverted their values: `true` became `false` and `false` became `true` in generated field schemas.
+**Where** → `packages/cli/src/parsers/php/nodeMapper.ts` (line 132).
+**Root cause** → Line 132 incorrectly used `value: !node.value` instead of `Boolean(node.value)` (or `!!node.value`).
+**Fix** → Fixed in `algebra/fieldNodeAlgebra.ts` by preserving boolean literals using `Boolean(node.value)`.
+**Regression test** → `packages/sdk/tests/phpAstAlgebraSSOT.spec.ts` › `verifies boolean literal preservation without inversion (Issue #36 regression)`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 35: Hardcoded API Version Prefix ("v1") in Route Resolvers and CRUD Classifier
+**Symptom** → Routes with API versioning other than v1 (such as `/api/v2/products` or `/api/v3/orders/{id}`) failed to strip the version prefix, causing `RouteDomainResolver` to emit domain names like `v2Products` instead of `products`, and causing `RouteCrudClassifier` to misclassify standard CRUD index/show routes as `CrudRole.Custom`.
+**Where** → `packages/core/src/compiler/scanner/resolvers/RouteCrudClassifier.ts`, `packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts`, `packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts`, `packages/core/src/compiler/scanner/subscanners/request-deriver/domainExtractor.ts`.
+**Root cause** → The static segment filter hardcoded exact equality check `s !== "v1"` instead of using a universal version regex `!/^v\d+$/i.test(s)`.
+**Fix** → Replaced hardcoded `s !== "v1"` with universal regex check `!/^v\d+$/i.test(s)` across all 4 route boundary resolvers.
+**Regression test** → `packages/sdk/tests/crudRoleAdtFlowSSOT.spec.ts` › `9. Universal API version handling (v1, v2, v3) without hardcoded version strings`
+**Status** → Diagnosed & Fixed
+
+---
+
 ### Issue 34: Upstream StaticLaravelScanner Enhancements (Laravel 11 Casts, Nested Prefixes, Invokables, Fluent Rules & Model Returns)
 **Symptom** → Upstream project scanner omitted Laravel 11 `protected function casts(): array` casts (falling back to generic string/number column heuristics), flattened multi-nested route group prefixes into single-level prefixes, missed invokable controllers (`Route::get('/me', ProfileController::class)` omitting `__invoke`), failed to parse fluent validation rules (`Rule::in`, `Rule::unique`, `Rule::exists`) falling back to `custom`, and failed to detect direct Eloquent query builder returns (`Model::all()`, `Model::find()`).
 **Where** → `packages/core/src/compiler/scanner/StaticLaravelScanner.ts` (`parseModelFile`, `scanRoutes`, `scanControllers`), `packages/core/src/types/route.ts` (`ValidationRuleParser.parse`, `EloquentCastMapper`).

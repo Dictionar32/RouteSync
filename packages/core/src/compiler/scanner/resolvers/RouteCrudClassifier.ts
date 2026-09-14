@@ -16,7 +16,7 @@ export class RouteCrudClassifier {
     public static classify(method: HttpMethod, path: string): CrudRole {
         const upperMethod = method.toUpperCase() as HttpMethod;
         const segments = path.replace(/^\//, "").split("/").filter(Boolean);
-        const staticSegments = segments.filter(s => !s.startsWith("{") && !s.startsWith(":") && s !== "api" && s !== "v1");
+        const staticSegments = segments.filter(s => !s.startsWith("{") && !s.startsWith(":") && s !== "api" && !/^v\d+$/i.test(s));
         const hasTrailingParam = path.endsWith("}") || path.endsWith(":id") || /\{[^}]+\}$/.test(path);
         const paramCount = segments.filter(s => s.startsWith("{") || s.startsWith(":")).length;
         const isSimpleResourcePath = staticSegments.length <= 1;

@@ -5,6 +5,37 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **Level 7 Subatomic Functor & Closed ADT Contracts (Issue #41)**:
+  - Mengeliminasi seluruh sentinel `undefined` dan `null` dari kontrak tipe (`ResponseDescriptorContract`, `ResponseFieldContract`, `SemanticRelationContract`, `RouteDefContract`, `ResourceDefContract`, `ModelDefContract`, `ObjectSchemaContract`, `KernelResolutionResultContract`, `RequestPayloadContract`, `ResponsePayloadContract`).
+  - Mengimplementasikan Monadic Functor `TypeWrapper<Carrier>` (`Identity | Nullable | Collection | Paginated`) dan closed Discriminated Union ADT variants dengan 0 `?:`, 0 `undefined`, 0 `null`, dan 0 naked `Record`.
+  - Memecah seluruh file kontrak dan domain menjadi modul-modul kohesif $\le 100$ baris per Rule 14 (`routeEntityDefinition.ts`, `modelEntityDefinition.ts`, `responseDescriptorContract.ts`, `objectSchemaContracts.ts`, `frameworkRules.ts`, `classifiedRouteDescriptor.ts`, `resourceCrudMap.ts`, `normalizedEntities.ts`, `normalizedManifest.ts`).
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/subatomicLevel7Contracts.spec.ts` (120 test files, 689 tests 100% GREEN).
+- **Sweeping Hardening of Worst Branching Interfaces & Hall of Shame Cleanup (Issue #40)**:
+  - Mengeliminasi antarmuka berporositas kritis (IPS 100% - 200%) pada `GrammarClosure` (200% $\to$ 0%), `ScannedManifest` (167% $\to$ 0%), `LaravelValidationIR` (150% $\to$ 0%), `TypeDefinition` (133% $\to$ 0%), `ScannedModel` (120% $\to$ 0%), `ScannedResource` (117% $\to$ 0%), `SemanticNode` (100% $\to$ 0%), dan `MinimalRouteDefinitionParams` (100% $\to$ 0%).
+  - Menghapus seluruh sentinel `null` (`| null`) dan `any[]` pada model inkremental AST parser.
+  - Memecah `normalizerTypes.ts` menjadi modul modular $\le 100$ baris dengan mengekstrak `semanticNormalizerTypes.ts`.
+  - **Regression Test**: Diverifikasi via `routeBoundaryContractSSOT.spec.ts` dan seluruh test suite (119 test files, 685 tests 100% GREEN).
+- **Porous Route Parameter Bag Elimination & Closed Boundary Contract (Issue #39)**:
+  - Mengeliminasi 13 `any` dan 28 field opsional dari `SparseRouteParams` (IPS turun dari 137% ke level aman) dan menggantikannya dengan `RouteBoundaryContract` bertipe tertutup 100% (IPS 0%).
+  - Memecah file factory rute yang membengkak (`actionRouteFactories.ts` 155 baris, `closureSyntheticFactories.ts` 130 baris) menjadi modul-modul kohesif $\le 100$ baris (`controllerActionRouteFactory.ts`, `controllerReferenceRouteFactory.ts`, `closureRouteFactory.ts`, `syntheticRouteFactory.ts`).
+  - Mengeliminasi procedural string hacking dan guessing pada `boundaryBasics.ts` (berkurang dari 119 menjadi 79 baris) dengan delegasi type contracts ke `boundaryBasicsTypes.ts`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/routeBoundaryContractSSOT.spec.ts` (4 tests lulus, total 119 test files, 685 tests 100% GREEN).
+- **PHP AST Lowering Enhancements: Array Literals, Unary Operations, Class Constants (Issue #38)**:
+  - Menambahkan varian `ArrayAstNode`, `UnaryAstNode`, dan `StaticConstantAstNode` pada ADT #32 (`PhpAstKind`), adapter catamorphic untuk grammar `php-parser`, serta reduksi pohon F-Algebra murni pada `algebra/fieldNodeAlgebra.ts`.
+  - Mengeliminasi fallback diam-diam ke `unknown` saat mengevaluasi array dictionary PHP dan bilangan bertanda negatif.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/phpAstAlgebraSSOT.spec.ts`.
+- **Database Column & Eloquent Cast Type Mapping Zero Branching (Issue #37)**:
+  - Mengganti kamus naked `Record<string, ...>` pada `DatabaseColumnTypeMapper` dan `EloquentCastMapper` dengan First-Class Symbol Table berbasis `ReadonlyMap`.
+  - Merefaktor `resolvers.ts` dari 113 baris (16 `if`s) menjadi 40 baris (0 `if`, 0 `switch`, 0 naked `Record`) melalui catamorphism murni `matchDatabaseColumnKind` dan `matchEloquentCastKind`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/resolversZeroBranchingSSOT.spec.ts`.
+- **Boolean Literal Inversion Elimination in PHP AST Mapping (Issue #36)**:
+  - Memperbaiki bug kritis inversi boolean pada `nodeMapper.ts` di mana `!node.value` membalikkan `true` menjadi `false` dan sebaliknya.
+  - Memastikan boolean dipertahankan secara deterministik menggunakan `Boolean(node.value)`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/phpAstAlgebraSSOT.spec.ts`.
+- **Universal API Version Prefix Detection & Zero Hardcoded Versions (Issue #35)**:
+  - Mengganti pengecekan hardcoded `s !== "v1"` dengan pola universal `!/^v\d+$/i.test(s)` pada 4 modul resolver boundary: `RouteCrudClassifier.ts`, `RouteDomainResolver.ts`, `boundaryBasics.ts`, dan `domainExtractor.ts`.
+  - Memastikan rute dengan versi selain v1 (e.g. `/api/v2/products`, `/api/v3/orders/{id}`) tidak salah diklasifikasikan sebagai `CrudRole.Custom` atau menghasilkan nama domain `v2Products`, melainkan ter-resolve secara universal sebagai domain dan role yang semantik (`products`, `CrudRole.Index`).
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/crudRoleAdtFlowSSOT.spec.ts` (test 9 lulus, total 115 test files, 658 tests 100% GREEN).
 - **Intermediate Representation (IR) Accuracy & Semantic Rule Enhancements**:
   - **Eliminasi False Warnings pada Validasi Laravel**: Menambahkan semantic format rules validator (`email`, `url`, `uuid`, `ip`, `json`, `date`, `in:`, `digits`, `alpha`, etc.) di `ValidationRuleFieldLowerer` sehingga tidak lagi memicu warning palsu `"Field 'x' has no type specified"`. Warning pada proyek nyata `toko-online` turun dari 6 menjadi 0.
   - **Strongly-Typed Route Execution Signatures**: Parameter form/mutation pada `executionSignature.parameterDeclaration` kini mengekstrak tipe FormRequest atau DTO form konkret (e.g. `payload: StoreOrderRequest`) alih-alih fallback generik `payload: any`.

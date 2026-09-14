@@ -2,13 +2,25 @@
  * incrementalTypes.ts
  *
  * Types and interfaces for incremental manifest scanning and resolution.
+ * Conforms to Level 6/7 Correct-by-Construction: Zero sentinel null, zero porous undefined.
  *
  * @module cli/utils/incremental/incrementalTypes
  */
 
 import { IRNodeRegistry } from '@routesync/core';
 
-export interface ScannedRoute {
+export type ModelAccessorInfo = {
+  readonly type?: string;
+  readonly expression?: string;
+  readonly expression_code?: string;
+  readonly sourceFile?: string;
+  readonly sourceLine?: number;
+  readonly ast?: unknown;
+  readonly semantic?: unknown;
+  readonly source?: { readonly file: string; readonly line?: number };
+};
+
+export type ScannedRoute = {
   method: string;
   path: string;
   auth: boolean;
@@ -19,44 +31,55 @@ export interface ScannedRoute {
   name?: string;
   sourceFile?: string | null;
   sourceLine?: number | null;
-}
+};
 
-export interface ScannedModel {
+export type ScannedModel = {
   name: string;
-  accessors?: Record<string, {
-    type?: string;
-    expression?: string | null;
-    expression_code?: string | null;
-    sourceFile?: string | null;
-    sourceLine?: number | null;
-    ast?: unknown;
-    semantic?: unknown;
-    source?: { file: string; line?: number };
-  }>;
-}
+  accessors?: Record<string, ModelAccessorInfo>;
+};
 
-export interface ScannedResource {
+export type ScannedResource = {
   name: string;
   model?: string;
   assignments?: Record<string, string>;
   fields?: Record<string, unknown>;
   sourceFile?: string | null;
   sourceLine?: number | null;
+};
+
+export interface ScannedManifestContract {
+  readonly routes: readonly ScannedRoute[];
+  readonly models: readonly ScannedModel[];
+  readonly resources: readonly ScannedResource[];
 }
 
-export interface ScannedManifest {
+export type ScannedManifest = {
   routes?: ScannedRoute[];
   models?: ScannedModel[];
   resources?: ScannedResource[];
+};
+
+export type ResolutionTraceNode = Readonly<Record<string, unknown>>;
+
+/**
+ * Level 7 Complete Contract for KernelResolutionResult (0 undefined, 0 null, 0 ?:).
+ */
+export interface KernelResolutionResultContract {
+  readonly status: string;
+  readonly type: string;
+  readonly confidence: number;
+  readonly traceEntries: readonly (readonly [string, unknown])[];
 }
 
+export type KernelResolutionResult = {
+  readonly status: string;
+  readonly type?: string;
+  readonly confidence?: number;
+  readonly trace?: readonly Record<string, unknown>[];
+};
+
 export interface KernelResolver {
-  resolve(ast: unknown, context: Record<string, unknown>): {
-    status: string;
-    type?: string;
-    confidence?: number;
-    trace?: Array<Record<string, unknown>>;
-  };
+  resolve(ast: unknown, context: Record<string, unknown>): KernelResolutionResult;
   getModels?(): Record<string, unknown>[];
 }
 

@@ -441,17 +441,48 @@ export interface SemanticNode extends Omit<SemanticResolution, 'fields'> {
   fields?: SemanticFieldSet;
 }
 
+export type SemanticRelationKind = 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany' | 'morphTo' | 'morphMany';
+
+export interface BelongsToManyRelationContract {
+  readonly kind: 'belongsToMany';
+  readonly model: string;
+  readonly foreignKey: string;
+  readonly relatedKey: string;
+  readonly pivotTable: string;
+  readonly pivotFields: readonly (readonly [string, string])[];
+}
+
+export interface DirectRelationContract {
+  readonly kind: 'hasOne' | 'hasMany' | 'belongsTo';
+  readonly model: string;
+  readonly foreignKey: string;
+  readonly localKey: string;
+}
+
+export interface MorphRelationContract {
+  readonly kind: 'morphTo' | 'morphMany';
+  readonly model: string;
+  readonly morphName: string;
+  readonly morphType: string;
+  readonly morphId: string;
+}
+
 /**
- * Semantic Relation definition untuk relationMap
+ * Level 7 Complete Closed ADT for SemanticRelation (0 undefined, 0 null, 0 ?:).
  */
-export interface SemanticRelation {
-  type: 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany' | 'morphTo' | 'morphMany';
+export type SemanticRelationContract =
+  | BelongsToManyRelationContract
+  | DirectRelationContract
+  | MorphRelationContract;
+
+export type SemanticRelation = {
+  type: SemanticRelationKind;
   model: string;
   foreignKey?: string;
   localKey?: string;
   table?: string;
   pivot?: SemanticFieldSet;
-}
+};
 
 /* =========================
  *  8. IR META (INCREMENTAL BUILD + CACHE)
@@ -804,25 +835,44 @@ export interface RouteQueryTypeMap {
   [query: string]: "string" | "number" | "boolean";
 }
 
-export interface RequestContract {
+export interface RequestPayloadContract {
+  readonly params: readonly (readonly [string, 'string' | 'number'])[];
+  readonly query: readonly (readonly [string, 'string' | 'number' | 'boolean'])[];
+  readonly body: ZodAST;
+}
+
+export type RequestContract = {
   params?: RouteParamTypeMap;
-
   query?: RouteQueryTypeMap;
-
   body?: ZodAST;
+};
+
+export interface ModelResponsePayloadContract {
+  readonly type: 'model';
+  readonly model: string;
+  readonly schema: ZodAST;
+  readonly semantic: SemanticNode;
+  readonly confidence: number;
 }
 
-export interface ResponseContract {
+export interface NonModelResponsePayloadContract {
+  readonly type: 'object' | 'array' | 'primitive';
+  readonly schema: ZodAST;
+  readonly semantic: SemanticNode;
+  readonly confidence: number;
+}
+
+export type ResponsePayloadContract =
+  | ModelResponsePayloadContract
+  | NonModelResponsePayloadContract;
+
+export type ResponseContract = {
   type: "object" | "array" | "primitive" | "model";
-
   model?: string;
-
   schema: ZodAST;
-
   semantic: SemanticNode;
-
   confidence: number;
-}
+};
 
 export interface ZodContract {
   ast: ZodAST;
@@ -830,15 +880,30 @@ export interface ZodContract {
   imports: string[];
 }
 
-export interface ReactQueryHooks {
-  key: string[];
-
-  useQuery?: string;
-
-  useMutation?: string;
-
-  enabled?: boolean;
+export interface QueryHookContract {
+  readonly kind: 'query';
+  readonly key: readonly string[];
+  readonly hookName: string;
+  readonly enabled: boolean;
 }
+
+export interface MutationHookContract {
+  readonly kind: 'mutation';
+  readonly key: readonly string[];
+  readonly hookName: string;
+}
+
+/**
+ * Level 7 Complete ADT for ReactQueryHooks (0 undefined, 0 null, 0 ?:).
+ */
+export type ReactQueryHooksContract = QueryHookContract | MutationHookContract;
+
+export type ReactQueryHooks = {
+  key: string[];
+  useQuery?: string;
+  useMutation?: string;
+  enabled?: boolean;
+};
 export {
   type ResolutionStatus,
   type TraceNode,

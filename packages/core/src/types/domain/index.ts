@@ -568,3 +568,71 @@ export {
     BoundSemanticFactory
 } from "./boundAst";
 
+export {
+    PhpAstKind,
+    type PhpAstCategory,
+    type PhpAstKindSpecification,
+    type PhpAstKindRegistry,
+    PHP_AST_KIND_REGISTRY,
+    type PhpAstKindVisitor,
+    matchPhpAstKind,
+    type BasePhpAstNode,
+    type PropertyLookupAstNode,
+    type NullsafePropertyLookupAstNode,
+    type OffsetLookupAstNode,
+    type StaticLookupAstNode,
+    type FunctionCallAstNode,
+    type MethodCallAstNode,
+    type NullsafeMethodCallAstNode,
+    type StaticMethodCallAstNode,
+    type VariableCallAstNode,
+    type NewInstanceAstNode,
+    type ClosureAstNode,
+    type ArrowFuncAstNode,
+    type BinaryAstNode,
+    type UnaryAstNode,
+    type TypeCastAstNode,
+    type TernaryAstNode,
+    type ArrayEntryAstNode,
+    type ArrayAstNode,
+    type LiteralAstNode,
+    type StaticConstantAstNode,
+    type VariableAstNode,
+    type UnknownAstNode,
+    type PhpAstNode,
+    type PhpAstVisitor,
+    matchPhpAstNode,
+    type PhpAstFolder,
+    foldPhpAstNode
+} from "./phpAst";
+
+export {
+    matchFieldNode,
+    normalizeCastType,
+    type FieldNodeVisitor
+} from "./fieldCatamorphism";
+
+export {
+    TypeWrapperKind,
+    type IdentityWrapper,
+    type NullableWrapper,
+    type CollectionWrapper,
+    type PaginatedWrapper,
+    type TypeWrapper,
+    TypeWrapperFactory,
+    DomainCarrierKind,
+    type ScalarCarrier,
+    type ModelCarrier,
+    type ResourceCarrier,
+    type StructuralCarrier,
+    type DomainCarrier,
+    type SchemaFieldMorphism,
+    DomainCarrierFactory,
+    type WrapperAlgebra,
+    type CarrierVisitor,
+    matchDomainCarrier,
+    foldTypeWrapper,
+} from "./schemaMorphism";
+
+
+

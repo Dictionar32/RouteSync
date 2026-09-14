@@ -3,6 +3,7 @@
  *
  * Mapping logic from raw / semantic AST nodes to NormalizedField and NormalizedAccessor.
  * Handles cycle tracking, object recursion, model/resource references, and primitives.
+ * Pure Catamorphic Dispatch: 0 'if', 0 'switch'.
  *
  * @module cli/generators/normalizer
  */
@@ -10,12 +11,33 @@
 import type {
   NormalizedField,
   NormalizedAccessor,
-  RuntimeAugmented
+  RuntimeAugmented,
+  SemanticNode
 } from './normalizerTypes'
 import {
   getSemanticNode,
   inferTypeFromName
 } from './semanticNodeHelpers'
+
+const PRIMITIVE_TYPE_MAP: ReadonlyMap<string, "string" | "number" | "boolean" | "null"> = new Map([
+  ['number', 'number'],
+  ['int', 'number'],
+  ['integer', 'number'],
+  ['float', 'number'],
+  ['double', 'number'],
+  ['decimal', 'number'],
+  ['string', 'string'],
+  ['boolean', 'boolean'],
+  ['bool', 'boolean'],
+  ['null', 'null'],
+]);
+
+function resolvePrimitiveType(rawType: string | undefined, fieldName: string): "string" | "number" | "boolean" | "null" {
+  const mapped = rawType ? PRIMITIVE_TYPE_MAP.get(rawType) : undefined;
+  const inferred = inferTypeFromName(fieldName);
+  const fallback = inferred === 'unknown' ? 'string' : inferred;
+  return mapped ?? fallback;
+}
 
 export function normalizeAccessor(
   name: string,
@@ -23,30 +45,57 @@ export function normalizeAccessor(
   fieldName: string,
   visited: Set<string>
 ): NormalizedAccessor {
-  const augmentedDef = accessorDef as RuntimeAugmented
-  const semantic = augmentedDef?.semantic
-  let returnType: NormalizedField
-  if (semantic && semantic.status === 'resolved') {
-    returnType = mapToNormalizedField(accessorDef, fieldName, visited)
-  } else {
-    const expr = augmentedDef?.expression as { type?: string } | undefined
-    if (!expr) {
-      const inferred = inferTypeFromName(fieldName)
-      returnType = { kind: "primitive", type: inferred === "unknown" ? "string" : inferred, nullable: true }
-    } else {
-      let primitiveType: "string" | "number" | "boolean" | "null" = "string"
-      if (expr.type === 'number') primitiveType = 'number'
-      else if (expr.type === 'string') primitiveType = 'string'
-      else if (expr.type === 'boolean') primitiveType = 'boolean'
+  const augmentedDef = accessorDef as RuntimeAugmented;
+  const semantic = augmentedDef?.semantic;
+  const expr = augmentedDef?.expression as { type?: string } | undefined;
 
-      returnType = { kind: "primitive", type: primitiveType, nullable: true }
-    }
-  }
-  return {
-    name,
-    returnType
-  }
+  const isResolved = semantic?.status === 'resolved';
+  const returnType = isResolved
+    ? mapToNormalizedField(accessorDef, fieldName, visited)
+    : {
+        kind: "primitive" as const,
+        type: resolvePrimitiveType(expr?.type, fieldName),
+        nullable: true,
+      };
+
+  return { name, returnType };
 }
+
+interface NormalizationContext {
+  readonly meta: SemanticNode;
+  readonly fieldName: string;
+  readonly nextVisited: Set<string>;
+  readonly path: string;
+}
+
+const FIELD_DISPATCHERS: Record<string, (ctx: NormalizationContext) => NormalizedField | undefined> = {
+  model: (ctx) => (ctx.meta.model ? {
+    kind: "model",
+    modelName: ctx.meta.model,
+    collection: Boolean(ctx.meta.collection),
+    paginated: Boolean(ctx.meta.paginated),
+    nullable: Boolean(ctx.meta.nullable)
+  } : undefined),
+
+  resource: (ctx) => (ctx.meta.resource ? {
+    kind: "resource",
+    resourceName: ctx.meta.resource,
+    collection: Boolean(ctx.meta.collection),
+    paginated: Boolean(ctx.meta.paginated),
+    nullable: Boolean(ctx.meta.nullable)
+  } : undefined),
+
+  object: (ctx) => ({
+    kind: "object",
+    fields: Object.fromEntries(
+      Object.entries(ctx.meta.fields ?? {}).map(([k, v]) => [
+        k,
+        mapToNormalizedField(v, k, ctx.nextVisited, ctx.path)
+      ])
+    ),
+    nullable: Boolean(ctx.meta.nullable)
+  })
+};
 
 export function mapToNormalizedField(
   fieldDef: unknown,
@@ -54,93 +103,30 @@ export function mapToNormalizedField(
   visited: Set<string>,
   currentPath: string = ''
 ): NormalizedField {
-  if (!fieldDef) {
-    const inferred = inferTypeFromName(fieldName)
-    return {
-      kind: "primitive",
-      type: inferred === "unknown" ? "string" : inferred,
-      nullable: true
-    }
-  }
+  const path = currentPath ? `${currentPath}.${fieldName}` : fieldName;
+  const isCircular = visited.has(path);
+  const nextVisited = new Set(visited).add(path);
+  const meta = fieldDef ? getSemanticNode(fieldDef) : undefined;
+  const isUnknown = !meta || meta.status === 'unknown' || meta.type === 'unknown';
 
-  // Circular reference path tracking
-  const path = currentPath ? `${currentPath}.${fieldName}` : fieldName
-  if (visited.has(path)) {
-    return {
-      kind: "primitive",
-      type: "string",
-      nullable: true
-    }
-  }
+  const typeKey = meta ? (meta.type || meta.kind || '') : '';
+  const dispatched = (!isUnknown && meta)
+    ? FIELD_DISPATCHERS[typeKey]?.({ meta, fieldName, nextVisited, path })
+    : undefined;
 
-  const nextVisited = new Set(visited)
-  nextVisited.add(path)
-
-  const meta = getSemanticNode(fieldDef)
-  if (!meta || meta.status === 'unknown' || meta.type === 'unknown') {
-    const inferred = inferTypeFromName(fieldName)
-    return {
-      kind: "primitive",
-      type: inferred === "unknown" ? "string" : inferred,
-      nullable: true
-    }
-  }
-
-  const type = meta.type || meta.kind
-  const model = meta.model
-  const resource = meta.resource
-  const collection = !!meta.collection
-  const nullable = !!meta.nullable
-
-  if (type === 'model' && model) {
-    return {
-      kind: "model",
-      modelName: model,
-      collection,
-      paginated: !!meta.paginated,
-      nullable
-    }
-  }
-
-  if (type === 'resource' && resource) {
-    return {
-      kind: "resource",
-      resourceName: resource,
-      collection,
-      paginated: !!meta.paginated,
-      nullable
-    }
-  }
-
-  if (type === 'object') {
-    const fields: Record<string, NormalizedField> = {}
-    if (meta.fields) {
-      for (const [k, v] of Object.entries(meta.fields)) {
-        fields[k] = mapToNormalizedField(v, k, nextVisited, path)
-      }
-    }
-    return {
-      kind: "object",
-      fields,
-      nullable
-    }
-  }
-
-  let primitiveType: "string" | "number" | "boolean" | "null" = "string"
-  if (type === 'number') primitiveType = 'number'
-  else if (type === 'string') primitiveType = 'string'
-  else if (type === 'boolean') primitiveType = 'boolean'
-  else if (type === 'null') primitiveType = 'null'
-  else {
-    const inferred = inferTypeFromName(fieldName)
-    if (inferred !== 'unknown') {
-      primitiveType = inferred
-    }
-  }
-
-  return {
+  const primitiveFallback: NormalizedField = {
     kind: "primitive",
-    type: primitiveType,
-    nullable
-  }
+    type: resolvePrimitiveType(meta?.type, fieldName),
+    nullable: Boolean(meta?.nullable ?? true)
+  };
+
+  const circularFallback: NormalizedField = {
+    kind: "primitive",
+    type: "string",
+    nullable: true
+  };
+
+  return isCircular
+    ? circularFallback
+    : (dispatched ?? primitiveFallback);
 }

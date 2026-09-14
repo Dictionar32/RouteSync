@@ -326,6 +326,95 @@ Saat user meminta untuk membuat prompt perbaikan atau refactoring:
 
 ---
 
+### 15. Standar Subatomik Functor & Intrinsic Schema (Level 7 Architecture & Atom-to-Atom Upgrade Path)
+> **"Di level tertinggi, entitas domain tidak dibangun dari kumpulan flag/string mentah, melainkan tersusun dari Monadic Functor Compositions dan Intrinsic Domain Carriers yang membasmi ambiguitas hingga ke partikel terkecil."**
+
+#### A. Prinsip Inti Subatomik
+1. **Penyatuan Bentuk Monadik ($\mathcal{W} \circ \mathcal{C}$)**:
+   - Dilarang memisahkan `nullable`, `collection`, dan `paginated` menjadi sekumpulan boolean/flag terpisah. Kumpulan flag boolean menciptakan $2^n$ ledakan kombinasi cabang kondisi (*state explosion*).
+   - Bentuk data wajib dimodelkan sebagai **Monadic Functor Tree** (`TypeWrapper<Carrier>`):
+     $$\text{Shape} = \mathcal{W}_n(\mathcal{W}_{n-1}(\dots \text{Carrier}))$$
+     - *Array of Nullables*: `Collection(Nullable(Carrier))` $\to$ `z.array(schema.nullable())`
+     - *Nullable Array*: `Nullable(Collection(Carrier))` $\to$ `z.array(schema).nullable()`
+2. **Intrinsic Carrier (Bukan String Mentah)**:
+   - Dilarang merepresentasikan target model/resource dengan `string` mentah.
+   - Carrier wajib berupa **Intrinsic Domain Carrier** (`ScalarCarrier`, `ModelCarrier`, `ResourceCarrier`, `StructuralCarrier`) yang membawa pembuktian langsung ke AST dan Symbol Table compiler.
+3. **Catamorphic Functor Reduction ($fmap$)**:
+   - Transformasi dari pohon Functor ke target emisi (Zod, TS, Form) **wajib murni melalui Catamorphism bottom-up** (`foldTypeWrapper` & `matchDomainCarrier`) dengan **0 `if`, 0 `switch`**.
+
+#### B. Matriks Peningkatan Atom-ke-Atom (Subatomic Upgrade Path)
+
+Saat merapikan modul atau tipe data apa pun di RouteSync, tingkatkan atom-atom penyusunnya mengikuti tangga kematangan berikut:
+
+| Dimensi Atom | Level Rendah (Dilarang) | Level 5 (ADT Standar) | Level 6 (Correct-by-Construction) | Level 7 (Subatomic Functor - Target Mutlak) |
+|---|---|---|---|---|
+| **Atom Bentuk (Shape)** | `isNullable: boolean`, `isCollection: boolean` | Enum terpisah (`FieldCardinality`, `FieldNullability`) | Closed Sub-Contracts (0 `?:`) | **`TypeWrapper<Carrier>`** (`Identity \| Nullable \| Collection \| Paginated`) |
+| **Atom Entitas (Carrier)** | `model?: string`, `resource?: string` (string mentah) | Discriminated union (`kind: 'model'`) | Branded identifier (`ModelIdentifier`) + Ref | **`DomainCarrier`** (`Scalar \| Model \| Resource \| Structural`) |
+| **Atom Wadah (Container)** | `Record<string, unknown>`, property bag | `Record<string, FieldNode>` | `readonly FieldEntryNode[]` | **`SchemaFieldMorphism[]`** (Lens Coordinate $\to$ Functor Shape) |
+| **Atom Proyeksi (Projection)** | 17+ `if/else if`, loop probing | Visitor polymorphic | Catamorphic matchers (`match*`) | **`foldTypeWrapper` (Functor Algebra $fmap$ direct ke `CodeSink`)** |
+| **Atom Bukti (Proof)** | Sentinel `null`, `undefined` | String assertion `as ...` | Constructor freeze + non-nullable | **Intrinsic Symbol Proof (Kompilasi gagal jika simbol tak terdaftar)** |
+
+#### C. Protokol Pencarian & Eliminasi Interface dengan Branching Terburuk (Worst Branching Interface Audit)
+
+> **"Branching di generator hilir bukan salah penulisan kode di hilir, melainkan gejala klinis dari interface hulu yang keropos (*porous leaky interface*)."**
+
+Untuk menemukan interface yang memicu branching terparah di codebase, gunakan **Interface Porosity Score (IPS)**:
+
+$$\text{IPS} = \frac{\text{Field Opsional }(?:) + \text{Field }(any/unknown) + \text{Naked Record}}{\text{Total Field}} \times 100\%$$
+
+- **IPS $\ge 70\%$ (Zona Merah - Biang Kerok Branching)**: Interface wajib dirombak total menjadi Closed Sub-Contracts (Rule 10).
+- **IPS $\ge 30\%$ (Zona Kuning - Rentan Defensif)**: Harus dieliminasi tanda `?:`-nya menggunakan Explicit Semantic Factories (`.empty()`, `.fromRules()`).
+
+##### 1. Skrip Otomatis Pendeteksi Interface Terburuk (Auditor Script)
+Jalankan skrip ini untuk memindai interface dengan branching terburuk di seluruh `packages/core` dan `packages/cli`:
+```bash
+node -e "
+  const fs = require('fs');
+  const path = require('path');
+  function walk(dir) {
+    let r = [];
+    fs.readdirSync(dir).forEach(f => {
+      const p = path.join(dir, f);
+      if (fs.statSync(p).isDirectory()) {
+        if (!p.includes('node_modules') && !p.includes('dist') && !p.includes('tests')) r = r.concat(walk(p));
+      } else if (f.endsWith('.ts') && !f.endsWith('.d.ts')) r.push(p);
+    });
+    return r;
+  }
+  const files = walk('packages/cli/src').concat(walk('packages/core/src'));
+  const stats = [];
+  files.forEach(f => {
+    const c = fs.readFileSync(f, 'utf8');
+    const regex = /(?:export\s+)?interface\s+([A-Za-z0-9_]+)[^{]*\{([^}]+)\}/g;
+    let m;
+    while ((m = regex.exec(c)) !== null) {
+      const name = m[1];
+      const lines = m[2].split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//') && !l.startsWith('*'));
+      const opts = lines.filter(l => /^[a-zA-Z0-9_]+\s*\?:|readonly\s+[a-zA-Z0-9_]+\s*\?:/.test(l)).length;
+      const recs = lines.filter(l => /Record<|any\b|unknown\b/.test(l)).length;
+      const ips = lines.length > 0 ? Math.round(((opts + recs) / lines.length) * 100) : 0;
+      if (opts > 0 || recs > 0) stats.push({ name, file: path.basename(f), total: lines.length, opts, recs, ips });
+    }
+  });
+  stats.sort((a, b) => b.ips - a.ips || b.opts - a.opts);
+  console.log('TOP 10 INTERFACE DENGAN BRANCHING TERBURUK (IPS TERTINGGI):');
+  stats.slice(0, 10).forEach(s => console.log(s.ips.toString().padStart(3) + '% IPS | ' + s.opts + ' ?: | ' + s.recs + ' any/rec | ' + s.total + ' fields | ' + s.name + ' (' + s.file + ')'));
+"
+```
+
+##### 2. Daftar Biang Kerok Terburuk yang Teridentifikasi (Hall of Shame)
+1. **`SparseRouteParams`** (`boundaryBasics.ts`): **IPS 93%** (28 opsional dari 30 field, 13 `any`) $\to$ Pemicu 40+ `if` di route scanner & resolvers.
+2. **`SemanticNode`** (`normalizerTypes.ts`): **IPS 80%** (8 opsional dari 10 field) $\to$ Pemicu 17 `if` di `fieldNormalizer.ts`.
+3. **`RuntimeAugmented`** (`normalizerTypes.ts`): **IPS 89%** (8 opsional, `Record`, `unknown`).
+4. **`RawRoute.response`** (`incrementalTypes.ts`): **IPS 100%** (untyped JSON bag) $\to$ Pemicu 19 `if` di `typeResolver.ts`.
+
+##### 3. Aksi Perbaikan Wajib
+Setiap kali interface dengan IPS $\ge 70\%$ ditemukan:
+1. **Dilarang menambahkan `if` baru** di hilir untuk mengantisipasi `undefined`.
+2. **Wajib potong di hulu (Origin Boundary)**: Ubah interface menjadi **Closed Sub-Contracts dengan IPS = 0%** (0 `?:`, 0 `any`, 0 `Record`).
+3. Seluruh variasi state wajib dibentuk via **Discriminated Union ADT** atau **Static Semantic Factory** (`.empty()`, `.fromValidated()`).
+
+---
 
 ## Pola Bug yang Sering Muncul
 

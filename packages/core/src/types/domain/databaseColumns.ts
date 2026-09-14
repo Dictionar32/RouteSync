@@ -258,77 +258,77 @@ export function matchDatabaseColumnKind<R>(
  * Pure Zero-Regex, Direct O(1) Dictionary Lookup (0 .includes string searching, 0 switch).
  */
 export class DatabaseColumnTypeMapper {
-  private static readonly TYPE_MAP: Readonly<Record<string, PrimitiveKind>> = Object.freeze({
-    'int': PrimitiveKind.NUMBER,
-    'integer': PrimitiveKind.NUMBER,
-    'tinyint': PrimitiveKind.NUMBER,
-    'smallint': PrimitiveKind.NUMBER,
-    'mediumint': PrimitiveKind.NUMBER,
-    'bigint': PrimitiveKind.NUMBER,
-    'unsignedbigint': PrimitiveKind.NUMBER,
-    'unsignedinteger': PrimitiveKind.NUMBER,
-    'unsignedmediumint': PrimitiveKind.NUMBER,
-    'unsignedsmallint': PrimitiveKind.NUMBER,
-    'unsignedtinyint': PrimitiveKind.NUMBER,
-    'decimal': PrimitiveKind.NUMBER,
-    'float': PrimitiveKind.NUMBER,
-    'double': PrimitiveKind.NUMBER,
-    'numeric': PrimitiveKind.NUMBER,
-    'real': PrimitiveKind.NUMBER,
-    'number': PrimitiveKind.NUMBER,
-    'bool': PrimitiveKind.BOOLEAN,
-    'boolean': PrimitiveKind.BOOLEAN,
-    'datetime': PrimitiveKind.DATETIME,
-    'date': PrimitiveKind.DATETIME,
-    'timestamp': PrimitiveKind.DATETIME,
-    'time': PrimitiveKind.STRING,
-    'file': PrimitiveKind.FILE,
-    'image': PrimitiveKind.FILE,
-    'string': PrimitiveKind.STRING,
-    'varchar': PrimitiveKind.STRING,
-    'char': PrimitiveKind.STRING,
-    'text': PrimitiveKind.STRING,
-    'mediumtext': PrimitiveKind.STRING,
-    'longtext': PrimitiveKind.STRING,
-    'tinytext': PrimitiveKind.STRING,
-    'json': PrimitiveKind.STRING,
-    'jsonb': PrimitiveKind.STRING,
-    'uuid': PrimitiveKind.STRING,
-    'ulid': PrimitiveKind.STRING
-  });
+  private static readonly TYPE_MAP: ReadonlyMap<string, PrimitiveKind> = new Map([
+    ['int', PrimitiveKind.NUMBER],
+    ['integer', PrimitiveKind.NUMBER],
+    ['tinyint', PrimitiveKind.NUMBER],
+    ['smallint', PrimitiveKind.NUMBER],
+    ['mediumint', PrimitiveKind.NUMBER],
+    ['bigint', PrimitiveKind.NUMBER],
+    ['unsignedbigint', PrimitiveKind.NUMBER],
+    ['unsignedinteger', PrimitiveKind.NUMBER],
+    ['unsignedmediumint', PrimitiveKind.NUMBER],
+    ['unsignedsmallint', PrimitiveKind.NUMBER],
+    ['unsignedtinyint', PrimitiveKind.NUMBER],
+    ['decimal', PrimitiveKind.NUMBER],
+    ['float', PrimitiveKind.NUMBER],
+    ['double', PrimitiveKind.NUMBER],
+    ['numeric', PrimitiveKind.NUMBER],
+    ['real', PrimitiveKind.NUMBER],
+    ['number', PrimitiveKind.NUMBER],
+    ['bool', PrimitiveKind.BOOLEAN],
+    ['boolean', PrimitiveKind.BOOLEAN],
+    ['datetime', PrimitiveKind.DATETIME],
+    ['date', PrimitiveKind.DATETIME],
+    ['timestamp', PrimitiveKind.DATETIME],
+    ['time', PrimitiveKind.STRING],
+    ['file', PrimitiveKind.FILE],
+    ['image', PrimitiveKind.FILE],
+    ['string', PrimitiveKind.STRING],
+    ['varchar', PrimitiveKind.STRING],
+    ['char', PrimitiveKind.STRING],
+    ['text', PrimitiveKind.STRING],
+    ['mediumtext', PrimitiveKind.STRING],
+    ['longtext', PrimitiveKind.STRING],
+    ['tinytext', PrimitiveKind.STRING],
+    ['json', PrimitiveKind.STRING],
+    ['jsonb', PrimitiveKind.STRING],
+    ['uuid', PrimitiveKind.STRING],
+    ['ulid', PrimitiveKind.STRING]
+  ]);
 
-  private static readonly COLUMN_KIND_MAP: Readonly<Record<string, DatabaseColumnKind>> = Object.freeze({
-    'bigint': DatabaseColumnKind.BigInt,
-    'int': DatabaseColumnKind.Integer,
-    'integer': DatabaseColumnKind.Integer,
-    'smallint': DatabaseColumnKind.SmallInt,
-    'tinyint': DatabaseColumnKind.TinyInt,
-    'float': DatabaseColumnKind.Float,
-    'double': DatabaseColumnKind.Double,
-    'decimal': DatabaseColumnKind.Decimal,
-    'numeric': DatabaseColumnKind.Decimal,
-    'real': DatabaseColumnKind.Float,
-    'bool': DatabaseColumnKind.Boolean,
-    'boolean': DatabaseColumnKind.Boolean,
-    'varchar': DatabaseColumnKind.String,
-    'char': DatabaseColumnKind.String,
-    'string': DatabaseColumnKind.String,
-    'text': DatabaseColumnKind.Text,
-    'mediumtext': DatabaseColumnKind.MediumText,
-    'longtext': DatabaseColumnKind.LongText,
-    'tinytext': DatabaseColumnKind.Text,
-    'date': DatabaseColumnKind.Date,
-    'datetime': DatabaseColumnKind.DateTime,
-    'timestamp': DatabaseColumnKind.Timestamp,
-    'time': DatabaseColumnKind.Time,
-    'json': DatabaseColumnKind.Json,
-    'jsonb': DatabaseColumnKind.Json,
-    'enum': DatabaseColumnKind.Enum,
-    'blob': DatabaseColumnKind.Binary,
-    'binary': DatabaseColumnKind.Binary,
-    'uuid': DatabaseColumnKind.Uuid,
-    'ulid': DatabaseColumnKind.Ulid
-  });
+  private static readonly COLUMN_KIND_MAP: ReadonlyMap<string, DatabaseColumnKind> = new Map([
+    ['bigint', DatabaseColumnKind.BigInt],
+    ['int', DatabaseColumnKind.Integer],
+    ['integer', DatabaseColumnKind.Integer],
+    ['smallint', DatabaseColumnKind.SmallInt],
+    ['tinyint', DatabaseColumnKind.TinyInt],
+    ['float', DatabaseColumnKind.Float],
+    ['double', DatabaseColumnKind.Double],
+    ['decimal', DatabaseColumnKind.Decimal],
+    ['numeric', DatabaseColumnKind.Decimal],
+    ['real', DatabaseColumnKind.Float],
+    ['bool', DatabaseColumnKind.Boolean],
+    ['boolean', DatabaseColumnKind.Boolean],
+    ['varchar', DatabaseColumnKind.String],
+    ['char', DatabaseColumnKind.String],
+    ['string', DatabaseColumnKind.String],
+    ['text', DatabaseColumnKind.Text],
+    ['mediumtext', DatabaseColumnKind.MediumText],
+    ['longtext', DatabaseColumnKind.LongText],
+    ['tinytext', DatabaseColumnKind.Text],
+    ['date', DatabaseColumnKind.Date],
+    ['datetime', DatabaseColumnKind.DateTime],
+    ['timestamp', DatabaseColumnKind.Timestamp],
+    ['time', DatabaseColumnKind.Time],
+    ['json', DatabaseColumnKind.Json],
+    ['jsonb', DatabaseColumnKind.Json],
+    ['enum', DatabaseColumnKind.Enum],
+    ['blob', DatabaseColumnKind.Binary],
+    ['binary', DatabaseColumnKind.Binary],
+    ['uuid', DatabaseColumnKind.Uuid],
+    ['ulid', DatabaseColumnKind.Ulid]
+  ]);
 
   /**
    * Resolves raw database/migration column type into PrimitiveKind.
@@ -340,7 +340,7 @@ export class DatabaseColumnTypeMapper {
       return PrimitiveKind.BOOLEAN;
     }
     const cleanType = (rawType || '').split('(')[0].split(' ')[0].trim().toLowerCase();
-    return (this.TYPE_MAP[cleanType] as PrimitiveKind) ?? 'string';
+    return this.TYPE_MAP.get(cleanType) ?? PrimitiveKind.STRING;
   }
 
   /**
@@ -349,7 +349,7 @@ export class DatabaseColumnTypeMapper {
    */
   public static toColumnKind(rawType: string): DatabaseColumnKind {
     const cleanType = (rawType || '').split('(')[0].split(' ')[0].trim().toLowerCase();
-    return this.COLUMN_KIND_MAP[cleanType] ?? DatabaseColumnKind.Unknown;
+    return this.COLUMN_KIND_MAP.get(cleanType) ?? DatabaseColumnKind.Unknown;
   }
 }
 

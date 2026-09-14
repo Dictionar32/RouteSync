@@ -7,14 +7,9 @@
  */
 
 import {
-    HttpMethod,
-    RouteHookKind,
-    RequestContentType,
-    ValidationRuleKind,
-    RouteCapabilityContract,
-    HttpErrorResponseDescriptor,
-    ScannedRouteCacheInvalidationDescriptor,
-    ScannedRouteExecutionSignature
+    HttpMethod, RouteHookKind, RequestContentType, ValidationRuleKind,
+    RouteCapabilityContract, HttpErrorResponseDescriptor,
+    ScannedRouteCacheInvalidationDescriptor, ScannedRouteExecutionSignature
 } from "../../../../types/route";
 import { ScannedHttpErrorResponseDescriptor } from "../../descriptors/routeDescriptors";
 import { RouteCrudClassifier } from "../RouteCrudClassifier";
@@ -72,8 +67,10 @@ export function buildRouteCapabilityContract(
 }
 
 function resolvePayloadTypeName(params: SparseRouteParams, basics: IntermediateRouteBoundaryBasics, hasValidationRules: boolean): string {
-    if (params.formRequests && params.formRequests.length > 0 && params.formRequests[0].name) {
-        return params.formRequests[0].name;
+    if (params.formRequests && params.formRequests.length > 0) {
+        const first = params.formRequests[0];
+        const name = typeof first === "string" ? first : first.name;
+        if (name) return name;
     }
     if (hasValidationRules) {
         const domain = basics.resolvedDomain || 'General';
@@ -83,14 +80,16 @@ function resolvePayloadTypeName(params: SparseRouteParams, basics: IntermediateR
     return 'any';
 }
 
+function isFileOrImageRule(rule: unknown): boolean {
+    const kind = typeof rule === "string" ? rule : (rule && typeof rule === "object" && "kind" in rule ? (rule as { kind: unknown }).kind : "");
+    return kind === "file" || kind === "image" || kind === ValidationRuleKind.File || kind === ValidationRuleKind.Image;
+}
+
 function detectContentType(upperMethod: HttpMethod, schema: SparseRouteParams['schema']): RequestContentType {
     if (upperMethod === "GET" || upperMethod === "HEAD") return RequestContentType.None;
-    if (schema && Array.isArray(schema.rules) && schema.rules.some((r: any) => {
-        const ruleList = (r as any).rules || r.ast || [];
-        return Array.isArray(ruleList) && ruleList.some((rule: any) => {
-            const kind = typeof rule === "string" ? rule : (rule?.kind || "");
-            return kind === ValidationRuleKind.File || kind === ValidationRuleKind.Image || kind === "file" || kind === "image";
-        });
+    if (schema && Array.isArray(schema.rules) && schema.rules.some(r => {
+        const ruleList = (r as { rules?: unknown; ast?: unknown }).rules || (r as { rules?: unknown; ast?: unknown }).ast;
+        return Array.isArray(ruleList) && ruleList.some(isFileOrImageRule);
     })) {
         return RequestContentType.Multipart;
     }

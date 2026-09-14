@@ -171,14 +171,14 @@ export interface RouteDefinitionContract<
 }
 
 /**
- * Backward-compatible RouteDefinition interface for SDK, React hooks, and CLI generators.
+ * Backward-compatible RouteDefinition type definition for SDK, React hooks, and CLI generators.
  */
-export interface RouteDefinition<
+export type RouteDefinition<
   TResponse = unknown,
   TParams = unknown,
   TBody = unknown,
   TMethod extends HttpMethod = HttpMethod
-> {
+> = {
   method: TMethod;
   path: string | Function;
   auth?: boolean;
@@ -195,7 +195,7 @@ export interface RouteDefinition<
   _typeResponse?: PhantomCarrier<TResponse> | TResponse;
   _typeParams?: PhantomCarrier<TParams> | TParams;
   _typeBody?: PhantomCarrier<TBody> | TBody;
-}
+};
 
 /**
  * Parameter Contract for RouteDefinitionDescriptor Constructor (0 '?', 0 'null')
@@ -224,12 +224,12 @@ export interface RouteDefinitionDescriptorParams<
 /**
  * Minimal Input for RouteDefinitionDescriptor static factory
  */
-export interface MinimalRouteDefinitionParams<
+export type MinimalRouteDefinitionParams<
   TResponse = unknown,
   TParams = unknown,
   TBody = unknown,
   TMethod extends HttpMethod = HttpMethod
-> {
+> = {
   readonly method: TMethod;
   readonly path: string | Function;
   readonly auth?: boolean;
@@ -243,7 +243,7 @@ export interface MinimalRouteDefinitionParams<
   readonly body?: RequestPayload;
   readonly params?: RouteParameters;
   readonly query?: RouteQueryParameters;
-}
+};
 
 /**
  * RouteDefinitionDescriptor: Immutable Complete Contract Implementation

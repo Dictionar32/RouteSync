@@ -8,6 +8,7 @@
  */
 
 export {
+    type RouteBoundaryContract,
     type SparseRouteParams,
     type IntermediateRouteBoundaryBasics,
     resolveRouteBoundaryBasics

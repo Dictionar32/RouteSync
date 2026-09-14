@@ -45,7 +45,11 @@ export interface PrimitiveField extends BaseField { kind: 'primitive'; type: str
 
 export interface ModelField extends BaseField { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
 
-export interface ObjectField extends BaseField { kind: 'object'; fields: Record<string, FieldNode> }
+export interface FieldEntryNode { readonly key: string; readonly value: FieldNode }
+
+export interface ObjectField extends BaseField { kind: 'object'; fields: Record<string, FieldNode>; entries?: readonly FieldEntryNode[] }
+
+export interface ArrayField extends BaseField { kind: 'array'; elements: readonly FieldNode[] }
 
 export interface UnknownField extends BaseField { kind: 'unknown'; code?: string }
 
@@ -76,46 +80,16 @@ export interface NullsafePropertyAccessField extends ParsedField { kind: 'nullsa
 export interface NewInstanceField extends ParsedField { kind: 'new_instance'; className: string; args: FieldNode[] }
 
 export type FieldNode =
-  | PrimitiveField | ModelField | ObjectField | UnknownField
+  | PrimitiveField | ModelField | ObjectField | ArrayField | UnknownField
   | RawCodeField | LiteralField | VariableField | PropertyAccessField
   | MethodCallField | StaticMethodCallField | BinaryExpressionField
   | TypeCastField | TernaryField | NullsafeChainField
   | NullsafePropertyAccessField | NewInstanceField
 
+export { matchFieldNode, normalizeCastType, type FieldNodeVisitor } from './domain/fieldCatamorphism'
+
 /* ---------- unified route/resource/model definitions ---------- */
 /* (*Def, not *Node: semantic.ts already has ServiceNode/ControllerNode/
    ModelNode for the service-graph layer.) */
 
-export interface RouteDef {
-  name: string
-  method: string
-  path: string
-  auth: boolean
-  middleware: string[]
-  schema?: Record<string, unknown> | null
-  response?: FieldNode | null
-  assignments?: Record<string, string> | null
-  stableHash?: string
-  sourceFile?: string | null
-  sourceLine?: number | null
-}
-
-export interface ResourceDef {
-  name: string
-  model?: string
-  fields: Record<string, FieldNode>
-  assignments?: Record<string, string>
-  sourceFile?: string | null
-  sourceLine?: number | null
-}
-
-export interface ModelDef {
-  name: string
-  table?: string
-  columns?: { name: string; type: string; nullable: boolean }[]
-  hidden?: string[]
-  appends?: string[]
-  casts?: Record<string, string>
-  relations?: Record<string, { type: string; model: string }>
-  accessors?: Record<string, FieldNode>
-}
+export * from './domain/entityDefinitions';

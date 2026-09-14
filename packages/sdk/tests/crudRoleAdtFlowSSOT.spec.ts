@@ -199,4 +199,20 @@ describe('CrudRole ADT Flow SSOT (Pure Functional Catamorphism Suite)', () => {
     expect(classified[4].actionName).toBe('remove')
     expect(classified[4].crudRole).toBe(CrudRole.Delete)
   })
+
+  test('9. Universal API version handling (v1, v2, v3) without hardcoded version strings', () => {
+    const v2Route = ScannedRouteDescriptor.fromSparse({
+      method: 'GET',
+      path: '/api/v2/products'
+    })
+    expect(v2Route.crudRole).toBe(CrudRole.Index)
+    expect(v2Route.domain).toBe('products')
+
+    const v3Route = ScannedRouteDescriptor.fromSparse({
+      method: 'GET',
+      path: '/api/v3/orders/{id}'
+    })
+    expect(v3Route.crudRole).toBe(CrudRole.Show)
+    expect(v3Route.domain).toBe('orders')
+  })
 })

@@ -15,6 +15,7 @@ import {
     ScannedRouteDescriptor
 } from "../descriptors/routeDescriptors";
 import {
+    RouteBoundaryContract,
     SparseRouteParams,
     resolveRouteBoundaryBasics,
     buildRouteIdentityContract,
@@ -23,7 +24,7 @@ import {
     buildRouteProvenanceContract
 } from "./boundary";
 
-export type { SparseRouteParams };
+export type { RouteBoundaryContract, SparseRouteParams };
 
 export class RouteBoundaryAdapter {
     /**

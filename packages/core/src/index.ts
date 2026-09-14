@@ -127,6 +127,8 @@ export {
   ResourceExpressionKind,
   ResourceFieldDescriptor,
   ResourceFieldExpressionFactory,
+  PHP_AST_KIND_REGISTRY,
+  PhpAstKind,
   ResourceGroupKind,
   ResourceResponseDescriptor,
   ResponseDescriptorBase,
@@ -200,8 +202,13 @@ export {
   matchInvalidationTarget,
   matchModelKeyType,
   matchPageEndpoint,
+  foldPhpAstNode,
+  matchFieldNode,
   matchPaginatedEnvelope,
   matchPaginationKind,
+  matchPhpAstKind,
+  matchPhpAstNode,
+  normalizeCastType,
   matchPolymorphicMorphType,
   matchPolymorphicRelation,
   matchRelation,
@@ -432,6 +439,13 @@ export type {
   ParsedResource,
   ParsedRoute,
   PathParameterDescriptor,
+  PhpAstCategory,
+  PhpAstFolder,
+  PhpAstKindRegistry,
+  PhpAstKindSpecification,
+  PhpAstNode,
+  PhpAstVisitor,
+  FieldNodeVisitor,
   PolymorphicRelationDescriptor,
   PolymorphicRelationRegistry,
   PolymorphicRelationSpecification,
@@ -699,10 +713,42 @@ export type {
   NullsafePropertyAccessField,
   NewInstanceField,
   FieldNode,
+  FieldEntryNode,
+  ArrayField,
   RouteDef,
+  RouteDefContract,
   ResourceDef,
-  ModelDef
-} from './types/field'
+  ResourceDefContract,
+  ModelDef,
+  ModelDefContract,
+  ColumnDefinitionContract,
+  ModelRelationDefinitionContract
+} from './types/field';
+
+export type {
+  ResponseDescriptorContract,
+  JsonTransportContract,
+  BinaryTransportContract,
+  StreamTransportContract,
+  RedirectTransportContract,
+  EmptyTransportContract
+} from './compiler/ir/response/responseDescriptorContract';
+
+export type {
+  ResponseFieldContract,
+  PrimitiveResponseFieldContract,
+  ObjectResponseFieldContract,
+  ArrayResponseFieldContract,
+  VariableResponseFieldContract,
+  PropertyAccessResponseFieldContract
+} from './compiler/generators/contract-generation/response-field/types';
+
+export type {
+  SemanticRelationContract,
+  BelongsToManyRelationContract,
+  DirectRelationContract,
+  MorphRelationContract
+} from './types/semantic';
 
 // SymbolTable — O(1) model/member lookup (roadmap: next after ResolverMeta unification)
 export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
@@ -933,6 +979,7 @@ export {
   RouteCrudClassifier,
   type RouteSecurityResolution,
   RouteSecurityResolver,
+  type RouteBoundaryContract,
   type SparseRouteParams,
   RouteBoundaryAdapter
 } from './compiler/scanner/resolvers'
@@ -1004,3 +1051,27 @@ export {
   ReadModelProjector,
   MapperProjector
 } from './compiler/projectors'
+
+// Schema Morphisms & Functor Composition (Level 7 Architecture)
+export {
+  TypeWrapperKind,
+  type IdentityWrapper,
+  type NullableWrapper,
+  type CollectionWrapper,
+  type PaginatedWrapper,
+  type TypeWrapper,
+  TypeWrapperFactory,
+  DomainCarrierKind,
+  type ScalarCarrier,
+  type ModelCarrier,
+  type ResourceCarrier,
+  type StructuralCarrier,
+  type DomainCarrier,
+  type SchemaFieldMorphism,
+  DomainCarrierFactory,
+  type WrapperAlgebra,
+  type CarrierVisitor,
+  matchDomainCarrier,
+  foldTypeWrapper,
+} from './types/domain'
+

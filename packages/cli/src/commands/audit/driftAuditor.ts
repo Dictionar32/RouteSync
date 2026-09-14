@@ -12,22 +12,7 @@ import crypto from 'crypto';
 import chalk from 'chalk';
 import { StaticLaravelScanner } from '@routesync/core';
 
-interface ScannedRoute {
-  method: string;
-  path: string;
-  auth: boolean;
-  schema?: Record<string, unknown> | null;
-  response?: Record<string, unknown> | null;
-  assignments?: Record<string, string> | null;
-  stableHash?: string;
-  name?: string;
-}
-
-interface ScannedManifest {
-  routes?: ScannedRoute[];
-  models?: Array<Record<string, unknown>>;
-  resources?: Array<Record<string, unknown>>;
-}
+import type { ScannedRoute, ScannedManifest } from '../../utils/incremental/incrementalTypes';
 
 export async function auditManifestDrift(manifestOption: string, cwd: string = process.cwd()): Promise<void> {
   const manifestPath = path.resolve(cwd, manifestOption);

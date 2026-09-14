@@ -45,7 +45,7 @@ export class RouteDomainResolver {
         }
 
         const rawSegments = path.replace(/^\/+/, "").split("/")
-            .filter(s => s.length > 0 && s !== "api" && s !== "v1" && !s.startsWith("{") && !s.startsWith(":"));
+            .filter(s => s.length > 0 && s !== "api" && !/^v\d+$/i.test(s) && !s.startsWith("{") && !s.startsWith(":"));
         if (rawSegments.length > 0) {
             return rawSegments.map((seg, idx) => idx === 0 ? toCamelCase(seg) : toPascalCase(toCamelCase(seg))).join("");
         }

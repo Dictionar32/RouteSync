@@ -26,35 +26,28 @@ import { SemanticType } from '../types/semantic'
  *     whichever plugin ran first silently won). One entry, one place now.
  */
 
-export interface FrameworkMethodRule {
-  returns: SemanticType | 'model'
-  /** Only meaningful when returns === 'model'. */
-  model?: string
-  collection?: boolean
-  paginated?: boolean
-  /** For synthetic object results — see SemanticResolution.fields. */
-  fields?: Record<string, string>
-  confidence?: number
-}
+export * from './frameworkRules';
+
+export type FrameworkMethodRule = {
+  returns: SemanticType | 'model';
+  model?: string;
+  collection?: boolean;
+  paginated?: boolean;
+  fields?: Record<string, string>;
+  confidence?: number;
+};
 
 export const GLOBAL_FUNCTIONS: Record<string, FrameworkMethodRule> = {
-  strtoupper: { returns: 'string' },
-  strtolower: { returns: 'string' },
-  ucfirst: { returns: 'string' },
-  ucwords: { returns: 'string' },
-  asset: { returns: 'string' },
-  url: { returns: 'string' },
-  route: { returns: 'string' },
-  ltrim: { returns: 'string' },
-  trim: { returns: 'string' },
-  strval: { returns: 'string' },
-  now: { returns: 'string' },
-  intval: { returns: 'number' },
-  floatval: { returns: 'number' },
-  doubleval: { returns: 'number' },
-  count: { returns: 'number' },
+  ...Object.fromEntries(
+    ['strtoupper', 'strtolower', 'ucfirst', 'ucwords', 'asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'now']
+      .map(fn => [fn, { returns: 'string' as const }])
+  ),
+  ...Object.fromEntries(
+    ['intval', 'floatval', 'doubleval', 'count']
+      .map(fn => [fn, { returns: 'number' as const }])
+  ),
   boolval: { returns: 'boolean' },
-}
+};
 
 const CARBON_DATE_METHODS = ['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime']
 

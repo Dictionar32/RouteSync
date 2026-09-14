@@ -177,36 +177,36 @@ export function matchEloquentCastKind<R>(
  * Pure O(1) dictionary lookup (0 regex, 0 .includes()).
  */
 export class EloquentCastMapper {
-  private static readonly CAST_MAP: Readonly<Record<string, EloquentCastKind>> = Object.freeze({
-    'int': EloquentCastKind.Integer,
-    'integer': EloquentCastKind.Integer,
-    'real': EloquentCastKind.Float,
-    'float': EloquentCastKind.Float,
-    'double': EloquentCastKind.Float,
-    'decimal': EloquentCastKind.Decimal,
-    'string': EloquentCastKind.String,
-    'bool': EloquentCastKind.Boolean,
-    'boolean': EloquentCastKind.Boolean,
-    'object': EloquentCastKind.Object,
-    'array': EloquentCastKind.Array,
-    'json': EloquentCastKind.Json,
-    'collection': EloquentCastKind.Collection,
-    'date': EloquentCastKind.Date,
-    'datetime': EloquentCastKind.DateTime,
-    'custom_datetime': EloquentCastKind.DateTime,
-    'timestamp': EloquentCastKind.Timestamp,
-    'encrypted': EloquentCastKind.Encrypted,
-    'hashed': EloquentCastKind.String,
-    'asarrayobject': EloquentCastKind.Object,
-    'ascollection': EloquentCastKind.Collection,
-    'asenumcollection': EloquentCastKind.Collection,
-    'immutable_date': EloquentCastKind.Date,
-    'immutable_datetime': EloquentCastKind.DateTime
-  });
+  private static readonly CAST_MAP: ReadonlyMap<string, EloquentCastKind> = new Map([
+    ['int', EloquentCastKind.Integer],
+    ['integer', EloquentCastKind.Integer],
+    ['real', EloquentCastKind.Float],
+    ['float', EloquentCastKind.Float],
+    ['double', EloquentCastKind.Float],
+    ['decimal', EloquentCastKind.Decimal],
+    ['string', EloquentCastKind.String],
+    ['bool', EloquentCastKind.Boolean],
+    ['boolean', EloquentCastKind.Boolean],
+    ['object', EloquentCastKind.Object],
+    ['array', EloquentCastKind.Array],
+    ['json', EloquentCastKind.Json],
+    ['collection', EloquentCastKind.Collection],
+    ['date', EloquentCastKind.Date],
+    ['datetime', EloquentCastKind.DateTime],
+    ['custom_datetime', EloquentCastKind.DateTime],
+    ['timestamp', EloquentCastKind.Timestamp],
+    ['encrypted', EloquentCastKind.Encrypted],
+    ['hashed', EloquentCastKind.String],
+    ['asarrayobject', EloquentCastKind.Object],
+    ['ascollection', EloquentCastKind.Collection],
+    ['asenumcollection', EloquentCastKind.Collection],
+    ['immutable_date', EloquentCastKind.Date],
+    ['immutable_datetime', EloquentCastKind.DateTime]
+  ]);
 
   public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind } {
     const clean = (rawTargetType || '').split(':')[0].trim().toLowerCase();
-    const kind = this.CAST_MAP[clean] ?? EloquentCastKind.Custom;
+    const kind = this.CAST_MAP.get(clean) ?? EloquentCastKind.Custom;
     const spec = ELOQUENT_CAST_REGISTRY[kind];
     return { castKind: spec.kind, semanticType: spec.semanticType };
   }
@@ -535,17 +535,17 @@ export function matchModelKeyType<R>(
  * O(1) canonical dictionary normalization for model primary key types.
  */
 export class ModelKeyTypeMapper {
-  private static readonly NORMALIZATION_MAP: Readonly<Record<string, ModelKeyType>> = Object.freeze({
-    int: ModelKeyType.Int,
-    integer: ModelKeyType.Int,
-    bigint: ModelKeyType.BigInt,
-    string: ModelKeyType.String,
-    uuid: ModelKeyType.Uuid,
-    ulid: ModelKeyType.Ulid
-  });
+  private static readonly NORMALIZATION_MAP: ReadonlyMap<string, ModelKeyType> = new Map([
+    ['int', ModelKeyType.Int],
+    ['integer', ModelKeyType.Int],
+    ['bigint', ModelKeyType.BigInt],
+    ['string', ModelKeyType.String],
+    ['uuid', ModelKeyType.Uuid],
+    ['ulid', ModelKeyType.Ulid]
+  ]);
 
   public static normalize(rawKeyType?: string | null): ModelKeyType {
     if (!rawKeyType) return ModelKeyType.Int;
-    return this.NORMALIZATION_MAP[rawKeyType.toLowerCase()] ?? ModelKeyType.Int;
+    return this.NORMALIZATION_MAP.get(rawKeyType.toLowerCase()) ?? ModelKeyType.Int;
   }
 }

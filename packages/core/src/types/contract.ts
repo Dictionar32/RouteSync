@@ -1,51 +1,99 @@
+/**
+ * contract.ts
+ *
+ * Semantic resolution contracts and Level 7 Subatomic ADT variants.
+ * Zero sentinel undefined, zero null, zero optional fields (0% porosity).
+ *
+ * @module core/types
+ */
+
 import type { BoundSemanticNode } from './domain/boundAst';
 
-export type ResolutionStatus = 'resolved' | 'unknown' | 'partial'
+export type ResolutionStatus = 'resolved' | 'unknown' | 'partial';
 
-export interface TraceNode {
-  source: string   // 'ModelColumnResolver' | 'AccessorResolver' | 'SemanticKernelV2' | ...
-  rule: string     // 'Field lookup from Schema Model Order.status'
-  input?: string   // 'status'
-  output?: string  // 'string'
+export interface TraceNodeContract {
+  readonly source: string;
+  readonly rule: string;
+  readonly input: string;
+  readonly output: string;
 }
 
-export interface SemanticResolution {
-  status: ResolutionStatus
-  type: string
-  model?: string
-  resource?: string
-  collection?: boolean
-  paginated?: boolean
-  nullable?: boolean
-  confidence: number
-  trace: TraceNode[]
-  /** First-Class Typed Semantic AST Node (Bound AST) representing the derivation tree */
-  boundAst?: BoundSemanticNode
-  /** For synthetic `type: 'object'` results (e.g. Sanctum's createToken()) — property name to type, read by ExpressionResolver's property_access handling. */
-  fields?: Record<string, string>
+export type TraceNode = {
+  source: string;
+  rule: string;
+  input?: string;
+  output?: string;
+};
+
+export interface BaseResolutionContract {
+  readonly status: ResolutionStatus;
+  readonly confidence: number;
+  readonly trace: readonly TraceNodeContract[];
+}
+
+export interface ScalarResolutionContract extends BaseResolutionContract {
+  readonly kind: 'scalar';
+  readonly type: string;
+  readonly nullable: boolean;
+}
+
+export interface ModelResolutionContract extends BaseResolutionContract {
+  readonly kind: 'model';
+  readonly model: string;
+  readonly isCollection: boolean;
+  readonly isPaginated: boolean;
+}
+
+export interface ResourceResolutionContract extends BaseResolutionContract {
+  readonly kind: 'resource';
+  readonly resource: string;
+  readonly isCollection: boolean;
+}
+
+export interface SyntheticObjectResolutionContract extends BaseResolutionContract {
+  readonly kind: 'object';
+  readonly fields: readonly (readonly [string, string])[];
+}
+
+export interface UnknownResolutionContract extends BaseResolutionContract {
+  readonly kind: 'unknown';
 }
 
 /**
- * Resolution for a column with array/json/object cast.
- * Represents a structured JSON object whose internal schema is unknown
- * but whose source is traceable.
+ * Level 7 Complete Closed ADT for SemanticResolution (0 undefined, 0 null, 0 ?:).
  */
+export type SemanticResolutionContract =
+  | ScalarResolutionContract
+  | ModelResolutionContract
+  | ResourceResolutionContract
+  | SyntheticObjectResolutionContract
+  | UnknownResolutionContract;
+
+export type SemanticResolution = {
+  status: ResolutionStatus;
+  type: string;
+  model?: string;
+  resource?: string;
+  collection?: boolean;
+  paginated?: boolean;
+  nullable?: boolean;
+  confidence: number;
+  trace: TraceNode[];
+  boundAst?: BoundSemanticNode;
+  fields?: Record<string, string>;
+};
+
 export interface JsonObjectResolution extends SemanticResolution {
-  type: 'json-object'
-  sourceModel: string
-  sourceColumn: string
+  type: 'json-object';
+  sourceModel: string;
+  sourceColumn: string;
 }
 
-export type AccessKind = 'array_access' | 'property_access' | 'optional_access'
+export type AccessKind = 'array_access' | 'property_access' | 'optional_access';
 
-/**
- * Resolution for a property/key access on a json-object or another json-member.
- * Maintains a linked-list chain back to the source JsonObjectResolution,
- * enabling full path reconstruction (e.g. detail → gateway → name).
- */
 export interface JsonMemberResolution extends SemanticResolution {
-  type: 'json-member'
-  parent: SemanticResolution
-  key: string
-  accessKind: AccessKind
+  type: 'json-member';
+  parent: SemanticResolution;
+  key: string;
+  accessKind: AccessKind;
 }

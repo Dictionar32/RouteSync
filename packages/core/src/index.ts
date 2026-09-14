@@ -599,11 +599,12 @@ export {
   SemanticFieldSet,
   SourceRefFactory,
   ZodObjectShape,
-  matchParsedAST
-} from './types/semantic'
-
-export type {
-
+  matchParsedAST,
+  createSourceColumnNumber,
+  createConfidenceScore,
+  createModelNodeName,
+  createServiceNodeName,
+  createControllerNodeName
 } from './types/semantic'
 
 export type {
@@ -721,8 +722,18 @@ export type {
   ResourceDefContract,
   ModelDef,
   ModelDefContract,
+  RoutePath,
+  HttpVerb,
   ColumnDefinitionContract,
   ModelRelationDefinitionContract
+} from './types/field';
+
+export {
+  RouteDefDescriptor,
+  ResourceDefDescriptor,
+  ModelDefDescriptor,
+  createRoutePath,
+  createHttpVerb
 } from './types/field';
 
 export type {
@@ -782,8 +793,17 @@ export type {
 export {
   type TokenType,
   type TokenDescriptor,
+  type SourceOffset,
+  type SourceLineNumber,
+  type AstIdentifier,
+  createSourceOffset,
+  createSourceLineNumber,
+  createAstIdentifier,
   type PhpLiteralValue,
   type PhpAstValue,
+  type PhpAstValueVisitor,
+  type PhpMicroAstVisitor,
+  matchPhpAstValue,
   type PhpArrayEntry,
   type ParsedPhpArrayResult,
   PhpAstFactory,
@@ -980,7 +1000,9 @@ export {
   type RouteSecurityResolution,
   RouteSecurityResolver,
   type RouteBoundaryContract,
+  type RouteBoundaryOptions,
   type SparseRouteParams,
+  RouteBoundaryContractFactory,
   RouteBoundaryAdapter
 } from './compiler/scanner/resolvers'
 export { ModelSymbolTable, OriginModelSymbol } from './compiler/scanner/symbols/ModelSymbolTable'
@@ -1000,7 +1022,11 @@ export {
 export {
   ResolvedSemanticTypeFactory,
   matchResolvedSemanticTypeIR,
-  TypeIRUtils
+  TypeIRUtils,
+  createEndpointId,
+  createResourceId,
+  createRequestId,
+  createHttpHeaderName
 } from './types/ir'
 export type {
   ContractIR,
@@ -1017,7 +1043,11 @@ export type {
   UnionSemanticTypeIR,
   LiteralSemanticTypeIR,
   ResolvedSemanticType as ResolvedSemanticTypeIR,
-  ResolvedSemanticTypeVisitor as ResolvedSemanticTypeIRVisitor
+  ResolvedSemanticTypeVisitor as ResolvedSemanticTypeIRVisitor,
+  EndpointId,
+  ResourceId,
+  RequestId,
+  HttpHeaderName
 } from './types/ir'
 export { OptimizedContractIRBuilder } from './ir/ContractIRBuilder'
 

@@ -9,10 +9,17 @@
 
 import type { FieldNode } from '../field';
 
+export type RoutePath = string & { readonly __brand: unique symbol };
+export type HttpVerb = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+export type HttpStatus = 200 | 201 | 204 | 301 | 302 | 400 | 401 | 403 | 404 | 422 | 500;
+
+export const createRoutePath = (path: string): RoutePath => path as RoutePath;
+export const createHttpVerb = (verb: string): HttpVerb => verb.toUpperCase() as HttpVerb;
+
 export interface RouteIdentityContract {
   readonly name: string;
-  readonly method: string;
-  readonly path: string;
+  readonly method: HttpVerb;
+  readonly path: RoutePath;
 }
 
 export interface RouteSecurityContract {

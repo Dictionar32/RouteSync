@@ -9,11 +9,13 @@
 
 export {
     type RouteBoundaryContract,
+    type RouteBoundaryOptions,
     type SparseRouteParams,
     type IntermediateRouteBoundaryBasics,
     resolveRouteBoundaryBasics
 } from "./boundaryBasics";
 
+export { RouteBoundaryContractFactory } from "./boundaryContractFactory";
 export { buildRouteIdentityContract } from "./identityBuilder";
 export { buildRouteBindingContract } from "./bindingBuilder";
 export { buildRouteCapabilityContract } from "./capabilityBuilder";

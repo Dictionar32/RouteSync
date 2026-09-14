@@ -6,12 +6,13 @@
  * @module cli/utils/incremental/routeResolver
  */
 
-import { SourceRef, SemanticIRNode, IRNodeRegistry } from '@routesync/core';
+import { SemanticIRNode, IRNodeRegistry } from '@routesync/core';
 import { PhpCodeParser } from '../../parsers/PhpCodeParser';
 import { ScannedManifest, ScannedRoute, ScannedModel, KernelResolver } from './incrementalTypes';
 import { calculateRouteHash } from './routeHasher';
 import { canonicalizeCollectionDescriptor } from './collectionCanonicalizer';
 import { FieldResolverFn } from './fieldResolver';
+import { resolveRouteResponse } from './routeResponseResolver';
 
 export interface ResolveRoutesParams {
   manifest: ScannedManifest;
@@ -78,43 +79,6 @@ export function resolveRoutes({
       }
     }
 
-    const routeSource: SourceRef = {
-      file: route.sourceFile ?? '',
-      line: route.sourceLine ?? undefined,
-      context: 'route',
-    };
-    const routeId = `route:${route.method}:${route.path}`;
-
-    if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
-      route.response = resolveField(
-        route.response as Record<string, unknown>,
-        null,
-        parsedAssignments,
-        resolvedAssignments,
-        `${routeId}#response`,
-        routeSource,
-        [routeId]
-      ) as Record<string, unknown>;
-    } else if (route.response && route.response.kind === 'object' && route.response.fields) {
-      const fields = route.response.fields as Record<string, unknown>;
-      for (const key in fields) {
-        const field = fields[key] as Record<string, unknown>;
-        if (field.kind && field.kind !== 'primitive') {
-          fields[key] = resolveField(
-            field,
-            null,
-            parsedAssignments,
-            resolvedAssignments,
-            `${routeId}#response.fields.${key}`,
-            routeSource,
-            [routeId]
-          ) as Record<string, unknown>;
-        }
-      }
-    }
-
-    if (route.response && typeof route.response === 'object') {
-      route.response = canonicalizeCollectionDescriptor(route.response);
-    }
+    resolveRouteResponse(route, parsedAssignments, resolvedAssignments, resolveField);
   });
 }

@@ -2,6 +2,7 @@
  * resourceAstExpressionMapper.ts
  *
  * Maps PHP AST expression values to RouteSync ResourceFieldExpression objects.
+ * Pure Catamorphic Mapper: 0 'switch', 0 type assertions.
  *
  * @module core/compiler/scanner/subscanners/resource/resourceAstExpressionMapper
  */
@@ -11,8 +12,30 @@ import {
     ResourceFieldExpression,
     ResourceFieldExpressionFactory
 } from "../../../../types/route";
-import type { PhpAstValue } from "../../LaravelSourceLexer";
+import { type PhpAstValue, matchPhpAstValue } from "../../LaravelSourceLexer";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+
+function mapPropertyType(prop: string, nullsafe: boolean): { expression: ResourceFieldExpression; nullable: boolean } {
+    const lower = prop.toLowerCase();
+    const isNumeric = lower.endsWith('_id') || lower === 'id' || lower.endsWith('_count') || lower.endsWith('_amount') || lower.endsWith('_minor') || lower === 'qty' || lower === 'harga' || lower === 'subtotal';
+    const isBool = lower.startsWith('is_') || lower.startsWith('has_');
+    const primitiveType = isNumeric ? 'int' : isBool ? 'boolean' : 'string';
+    return { expression: ResourceFieldExpressionFactory.primitive(primitiveType), nullable: nullsafe };
+}
+
+function mapRawFallback(raw: string): { expression: ResourceFieldExpression; nullable: boolean } {
+    const cleanRaw = (raw || '').trim();
+    if (cleanRaw.includes("['") || cleanRaw.includes('["') || cleanRaw.includes('$detail[') || cleanRaw.includes('$gateway[')) {
+        return { expression: ResourceFieldExpressionFactory.unknown(), nullable: true };
+    }
+    if (cleanRaw.startsWith('(int)') || cleanRaw.startsWith('(float)') || /\b(int|float)\b/.test(cleanRaw) || /[+\-*\/]/.test(cleanRaw)) {
+        return { expression: ResourceFieldExpressionFactory.primitive('int'), nullable: cleanRaw.includes('null') };
+    }
+    if (cleanRaw.startsWith('(bool)')) {
+        return { expression: ResourceFieldExpressionFactory.primitive('boolean'), nullable: false };
+    }
+    return { expression: ResourceFieldExpressionFactory.primitive('string'), nullable: false };
+}
 
 /**
  * Maps a PhpAstValue node into a ResourceFieldExpression with nullability.
@@ -21,63 +44,28 @@ export function mapAstValueToExpression(
     value: PhpAstValue,
     raw: string
 ): { expression: ResourceFieldExpression; nullable: boolean } {
-    switch (value.kind) {
-        case 'resource_collection':
-            return { expression: ResourceFieldExpressionFactory.resource(value.resourceName, true), nullable: false };
-        case 'resource_single':
-            return { expression: ResourceFieldExpressionFactory.resource(value.resourceName, false), nullable: false };
-        case 'nested_array': {
-            const childFields: ResourceFieldDescriptor[] = value.entries.map(e => {
+    return matchPhpAstValue(value, {
+        resourceCollection: (v) => ({ expression: ResourceFieldExpressionFactory.resource(v.resourceName, true), nullable: false }),
+        resourceSingle: (v) => ({ expression: ResourceFieldExpressionFactory.resource(v.resourceName, false), nullable: false }),
+        nestedArray: (v) => {
+            const childFields: ResourceFieldDescriptor[] = v.entries.map(e => {
                 const mappedChild = mapAstValueToExpression(e.value, e.rawExpression);
-                return ScannedResourceFieldDescriptor.fromExpression(
-                    e.key,
-                    mappedChild.expression,
-                    mappedChild.nullable
-                );
+                return ScannedResourceFieldDescriptor.fromExpression(e.key, mappedChild.expression, mappedChild.nullable);
             });
             return { expression: ResourceFieldExpressionFactory.object(childFields), nullable: false };
-        }
-        case 'method_chain':
-        case 'property_access': {
-            const prop = value.property.toLowerCase();
-            const isNumeric = prop.endsWith('_id') || prop === 'id' || prop.endsWith('_count') || prop.endsWith('_amount') || prop.endsWith('_minor') || prop === 'qty' || prop === 'harga' || prop === 'subtotal';
-            const isBool = prop.startsWith('is_') || prop.startsWith('has_');
-            let primitiveType = 'string';
-            if (isNumeric) {
-                primitiveType = 'int';
-            } else if (isBool) {
-                primitiveType = 'boolean';
-            }
-            return { expression: ResourceFieldExpressionFactory.primitive(primitiveType), nullable: value.nullsafe };
-        }
-        case 'literal': {
-            let primitiveType = 'string';
-            if (value.literalType === 'number') {
-                primitiveType = 'int';
-            } else if (value.literalType === 'boolean') {
-                primitiveType = 'boolean';
-            }
-            return { expression: ResourceFieldExpressionFactory.primitive(primitiveType), nullable: value.literalType === 'null' };
-        }
-        case 'variable_reference': {
-            const varName = value.name.toLowerCase();
+        },
+        methodChain: (v) => mapPropertyType(v.property, v.nullsafe),
+        propertyAccess: (v) => mapPropertyType(v.property, v.nullsafe),
+        literal: (v) => {
+            const primitiveType = v.literalType === 'number' ? 'int' : v.literalType === 'boolean' ? 'boolean' : 'string';
+            return { expression: ResourceFieldExpressionFactory.primitive(primitiveType), nullable: v.literalType === 'null' };
+        },
+        variableReference: (v) => {
+            const varName = v.name.toLowerCase();
             const isNumeric = varName.endsWith('_id') || varName === 'id' || varName.endsWith('_minor') || varName === 'qty' || varName === 'harga' || varName === 'subtotal';
             return { expression: ResourceFieldExpressionFactory.primitive(isNumeric ? 'int' : 'string'), nullable: false };
-        }
-        case 'ternary_expression':
-            return { expression: ResourceFieldExpressionFactory.primitive('string'), nullable: true };
-        default: {
-            const cleanRaw = (raw || '').trim();
-            if (cleanRaw.includes("['") || cleanRaw.includes('["') || cleanRaw.includes('$detail[') || cleanRaw.includes('$gateway[')) {
-                return { expression: ResourceFieldExpressionFactory.unknown(), nullable: true };
-            }
-            if (cleanRaw.startsWith('(int)') || cleanRaw.startsWith('(float)') || /\b(int|float)\b/.test(cleanRaw) || /[+\-*\/]/.test(cleanRaw)) {
-                return { expression: ResourceFieldExpressionFactory.primitive('int'), nullable: cleanRaw.includes('null') };
-            }
-            if (cleanRaw.startsWith('(bool)')) {
-                return { expression: ResourceFieldExpressionFactory.primitive('boolean'), nullable: false };
-            }
-            return { expression: ResourceFieldExpressionFactory.primitive('string'), nullable: false };
-        }
-    }
+        },
+        ternaryExpression: () => ({ expression: ResourceFieldExpressionFactory.primitive('string'), nullable: true }),
+        rawExpression: (v) => mapRawFallback(v.raw || raw)
+    });
 }

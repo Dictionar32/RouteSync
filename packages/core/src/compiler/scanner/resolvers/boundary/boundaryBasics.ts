@@ -11,17 +11,19 @@ import type { RouteActionKind } from "../../../../types/route";
 import { RouteDomainResolver } from "../RouteDomainResolver";
 import type {
     RouteBoundaryContract,
+    RouteBoundaryOptions,
     SparseRouteParams,
     IntermediateRouteBoundaryBasics
 } from "./boundaryBasicsTypes";
 
 export type {
     RouteBoundaryContract,
+    RouteBoundaryOptions,
     SparseRouteParams,
     IntermediateRouteBoundaryBasics
 };
 
-export function resolveRouteBoundaryBasics(params: SparseRouteParams): IntermediateRouteBoundaryBasics {
+export function resolveRouteBoundaryBasics(params: RouteBoundaryOptions): IntermediateRouteBoundaryBasics {
     let resolvedControllerName = params.controllerName ?? "";
     let resolvedActionName = params.actionName;
     let resolvedAction = params.action;

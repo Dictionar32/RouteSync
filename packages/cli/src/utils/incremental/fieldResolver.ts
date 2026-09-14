@@ -29,18 +29,9 @@ export type FieldResolverFn = (
   lineage: string[]
 ) => Record<string, unknown> | undefined | null;
 
-export function createFieldResolver(
-  kernel: KernelResolver,
-  registerIRNode: IRNodeRegistrar
-): FieldResolverFn {
+export function createFieldResolver(kernel: KernelResolver, registerIRNode: IRNodeRegistrar): FieldResolverFn {
   const resolveField: FieldResolverFn = (
-    field: Record<string, unknown> | undefined | null,
-    contextModel: ScannedModel | ScannedResource | undefined | null,
-    assignments: Record<string, unknown> | undefined,
-    resolvedAssignments: Record<string, unknown> | undefined,
-    idPath: string,
-    source: SourceRef,
-    lineage: string[]
+    field, contextModel, assignments, resolvedAssignments, idPath, source, lineage
   ): Record<string, unknown> | undefined | null => {
     if (!field) return field;
 
@@ -48,13 +39,8 @@ export function createFieldResolver(
       const fields = field.fields as Record<string, unknown>;
       for (const key in fields) {
         fields[key] = resolveField(
-          fields[key] as Record<string, unknown>,
-          contextModel,
-          assignments,
-          resolvedAssignments,
-          `${idPath}.fields.${key}`,
-          source,
-          [...lineage, idPath]
+          fields[key] as Record<string, unknown>, contextModel, assignments,
+          resolvedAssignments, `${idPath}.fields.${key}`, source, [...lineage, idPath]
         );
       }
       return field;
@@ -62,13 +48,8 @@ export function createFieldResolver(
 
     if (field.kind === 'array' && field.element && typeof field.element === 'object') {
       field.element = resolveField(
-        field.element as Record<string, unknown>,
-        contextModel,
-        assignments,
-        resolvedAssignments,
-        `${idPath}.element`,
-        source,
-        [...lineage, idPath]
+        field.element as Record<string, unknown>, contextModel, assignments,
+        resolvedAssignments, `${idPath}.element`, source, [...lineage, idPath]
       );
       return canonicalizeCollectionDescriptor(field);
     }

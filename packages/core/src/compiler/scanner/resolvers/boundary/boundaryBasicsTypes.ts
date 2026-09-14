@@ -47,10 +47,10 @@ export interface RouteBoundaryContract {
     readonly handler: RouteHandlerDescriptor;
 }
 
-export type SparseRouteParams = {
-    readonly name?: string;
+export type RouteBoundaryOptions = {
     readonly method: HttpMethod;
     readonly path: string;
+    readonly name?: string;
     readonly resourceName?: string;
     readonly domain?: string;
     readonly action?: string;
@@ -79,6 +79,11 @@ export type SparseRouteParams = {
     readonly formRequests?: readonly (string | FormRequestDescriptor)[];
     readonly handler?: RouteHandlerDescriptor;
 };
+
+/**
+ * Backward-compatibility alias for RouteBoundaryOptions.
+ */
+export type SparseRouteParams = RouteBoundaryOptions;
 
 export interface IntermediateRouteBoundaryBasics {
     readonly resolvedControllerName: string;

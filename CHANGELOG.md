@@ -5,6 +5,38 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **Elevation of Upstream Incremental Scanner to Level 7 Higher-Level Domain Models (Issue #46)**:
+  - Mengeliminasi porositas tinggi (12 `?:`, 7 `| null`, 5 naked `Record<string, unknown>`) pada antarmuka pemindaian bertahap (`ScannedRoute`, `ScannedResource`, `ScannedModel`, `ScannedManifest`).
+  - Memperkuat atom primitif dengan nominal branding (`types/nominalAtoms.ts`, $\le 45$ baris): `ScannedRouteMethod`, `ScannedRoutePath`, `ScannedRouteName`, `ScannedStableHash`, `SourceFilePath`, `SourceLineNumber`.
+  - Mengimplementasikan catamorphic Response Payload ADT (`types/responsePayloadTypes.ts`, $\le 58$ baris) dengan 5 varian (`primitive`, `object`, `array`, `resource`, `unknown`) dan table dispatcher $O(1)$ `matchRouteResponsePayload` (0 `if`, 0 `switch`).
+  - Mengganti seluruh naked `Record` dan `| null` dengan Complete Contracts bertipe kuat (`ScannedRouteContract`, `ScannedResourceContract`, `ScannedManifestContract`) berbasis entry tuple `readonly (readonly [K, V])[]`.
+  - Mengimplementasikan domain descriptor kelas satu (`ScannedRouteDescriptor`, `ScannedResourceDescriptor`, `ScannedManifestDescriptor`) dengan 100% direct assignment constructor, static semantic factories (`.create()`, `.fromRaw()`, `.empty()`), dan backward-compatible facade properties.
+  - Memecah dan merampingkan modul (`routeResolver.ts`, `fieldResolver.ts`, `incremental.ts`) agar seluruhnya strictly $\le 100$ baris per Rule 14.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/incrementalHigherLevelModelsSSOT.spec.ts` (10 tests, 125 test files, 714 tests 100% GREEN).
+- **Elimination of Repository Worst Porosity Interface `SparseRouteParams` (Issue #45)**:
+  - Mengeliminasi antarmuka dengan skor porositas tertinggi di repositori (`SparseRouteParams`, skor 56 dengan 28 field `?:` dari 31 field).
+  - Menyediakan pabrik Origin Boundary `RouteBoundaryContractFactory` (`boundaryContractFactory.ts`, 80 baris, Rule 14) yang menyerap variasi parameter di batas perimeter dan menghasilkan kontrak beku non-nullable `RouteBoundaryContract` (0 `?:`).
+  - Menggantikan kamus perimeter bebas dengan opsi terstruktur bertipe kuat `RouteBoundaryOptions`, mempertahankan kompatibilitas alias `SparseRouteParams`.
+  - Menambahkan method `fromBoundary(contract: RouteBoundaryContract)` pada `RouteBoundaryAdapter`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/routeBoundaryHardeningSSOT.spec.ts` (3 tests, 124 test files, 704 tests 100% GREEN).
+- **Decomposition and Level 7 Hardening of Monolithic Semantic Types `semantic.ts` (Issue #44)**:
+  - Memecah antarmuka monolitik `packages/core/src/types/semantic.ts` (914 baris, skor porositas 90 dengan 42 field `?:`) menjadi 13 sub-modul kohesif di `packages/core/src/types/semantic/` yang masing-masing strictly $\le 99$ baris (Rule 14).
+  - Memperkuat atom primitif dengan nominal branding (`nominalVocabulary.ts`): `SourceLineNumber`, `SourceColumnNumber`, `ModelNodeName`, `ServiceNodeName`, `ControllerNodeName`, `ConfidenceScore`.
+  - Mengisolasi micro-AST ke `parsedAstTypes.ts` dan menyediakan proyektor catamorphic $O(1)$ table dispatch `matchParsedAST` (0 `if`, 0 `switch`).
+  - Menjaga 100% kompatibilitas mundur dengan mengekspor kembali simbol melalui barrel ringkas 9 baris di `semantic.ts`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/semanticTypeHardeningSSOT.spec.ts` (4 tests, 123 test files, 701 tests 100% GREEN).
+- **Decomposition and Level 7 Hardening of Worst Branching Interface `ir.ts` (Issue #43)**:
+  - Memecah antarmuka monolitik `packages/core/src/types/ir.ts` (1028 baris, skor porositas tertinggi #1 dengan 125 field `?:`, 13 naked `Record`, 4 sentinel `null`) menjadi 15 sub-modul kohesif di `packages/core/src/types/ir/` yang masing-masing strictly $\le 95$ baris (Rule 14).
+  - Memperkuat atom primitif dengan nominal branding (`nominalVocabulary.ts`): `EndpointId`, `ResourceId`, `RequestId`, `RoutePath`, `HttpHeaderName`, `SourceLineNumber`, `HttpStatus`.
+  - Mengeliminasi naked `Record<string, unknown>` pada `ResolvedSemanticType` dan menggantikannya dengan pasangan entry tuple `propertyEntries: readonly (readonly [string, T])[]`.
+  - Membekukan struktur via `ResolvedSemanticTypeFactory` (`Object.freeze`) dan menyediakan catamorphism pattern matcher murni `matchResolvedSemanticTypeIR` berbasis dispatch table $O(1)$ (0 `if`, 0 `switch`).
+  - Menjaga 100% kompatibilitas mundur dengan mengekspor kembali simbol IR melalui barrel ringkas 10 baris di `ir.ts`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/irTypeHardeningSSOT.spec.ts` (4 tests, 122 test files, 697 tests 100% GREEN).
+- **Upstream Lexer Micro-AST Catamorphism & Level 7 Frozen ADT Descriptors (Issue #42)**:
+  - Memecah upstream lexer `PhpAst.ts` (>100 baris) menjadi 3 modul kohesif $\le 100$ baris: `phpAstTypes.ts` (branded nominal atoms `SourceOffset`, `SourceLineNumber`, `AstIdentifier`), `phpAstFactory.ts` (frozen constructor factory dengan `Object.freeze`), dan `phpAstAlgebra.ts` ($O(1)$ table-driven catamorphic projector `matchPhpAstValue`).
+  - Mengeliminasi 7 branching `if` pada `fieldBinder.ts` dan `switch` pada `resourceAstExpressionMapper.ts` dengan beralih ke pure catamorphism pattern matchers (0 `if`, 0 `switch`).
+  - Mengimplementasikan Level 7 frozen ADT descriptors: `RouteDefDescriptor` dengan branded `RoutePath` dan `HttpVerb` (0 `undefined`, 0 `null`, 0 `?:`), `ResourceDefDescriptor`, dan `ModelDefDescriptor` dengan pasangan tuple `readonly (readonly [K, V])[]` menggantikan naked `Record`.
+  - **Regression Test**: Ditambahkan di `packages/sdk/tests/upstreamLexerAdtAndDescriptorsSSOT.spec.ts` (4 tests lulus, total 121 test files, 693 tests 100% GREEN).
 - **Level 7 Subatomic Functor & Closed ADT Contracts (Issue #41)**:
   - Mengeliminasi seluruh sentinel `undefined` dan `null` dari kontrak tipe (`ResponseDescriptorContract`, `ResponseFieldContract`, `SemanticRelationContract`, `RouteDefContract`, `ResourceDefContract`, `ModelDefContract`, `ObjectSchemaContract`, `KernelResolutionResultContract`, `RequestPayloadContract`, `ResponsePayloadContract`).
   - Mengimplementasikan Monadic Functor `TypeWrapper<Carrier>` (`Identity | Nullable | Collection | Paginated`) dan closed Discriminated Union ADT variants dengan 0 `?:`, 0 `undefined`, 0 `null`, dan 0 naked `Record`.

@@ -16,7 +16,9 @@ import {
 } from "../descriptors/routeDescriptors";
 import {
     RouteBoundaryContract,
+    RouteBoundaryOptions,
     SparseRouteParams,
+    RouteBoundaryContractFactory,
     resolveRouteBoundaryBasics,
     buildRouteIdentityContract,
     buildRouteBindingContract,
@@ -24,14 +26,14 @@ import {
     buildRouteProvenanceContract
 } from "./boundary";
 
-export type { RouteBoundaryContract, SparseRouteParams };
+export type { RouteBoundaryContract, RouteBoundaryOptions, SparseRouteParams };
 
 export class RouteBoundaryAdapter {
     /**
-     * Converts a sparse parameter bag into 4 Complete Sub-Contracts and an EndpointContract.
+     * Converts a perimeter options bag into 4 Complete Sub-Contracts and an EndpointContract.
      * Pure Flow Declaration (Active Consumer Orchestrator).
      */
-    public static toSubcontracts(params: SparseRouteParams): ScannedRouteCompleteContracts {
+    public static toSubcontracts(params: RouteBoundaryOptions): ScannedRouteCompleteContracts {
         const basics = resolveRouteBoundaryBasics(params);
         const identity = buildRouteIdentityContract(params, basics);
         const binding = buildRouteBindingContract(params, basics);
@@ -57,8 +59,15 @@ export class RouteBoundaryAdapter {
     /**
      * Constructs a full ScannedRouteDescriptor directly from sparse perimeter parameters.
      */
-    public static fromSparse(params: SparseRouteParams): ScannedRouteDescriptor {
+    public static fromSparse(params: RouteBoundaryOptions): ScannedRouteDescriptor {
         const contracts = RouteBoundaryAdapter.toSubcontracts(params);
         return new ScannedRouteDescriptor(contracts);
+    }
+
+    /**
+     * Constructs a full ScannedRouteDescriptor from a complete non-nullable RouteBoundaryContract.
+     */
+    public static fromBoundary(contract: RouteBoundaryContract): ScannedRouteDescriptor {
+        return RouteBoundaryAdapter.fromSparse(contract);
     }
 }

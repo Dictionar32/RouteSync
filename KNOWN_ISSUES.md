@@ -1,5 +1,78 @@
 # Known Issues & Bug History
 
+### Issue 46: Elevation of Upstream Incremental Scanner (`ScannedRoute` & `ScannedResource`) to Level 7 Higher-Level Domain Models
+**Symptom** → `ScannedRoute` and `ScannedResource` in `packages/cli/src/utils/incremental/incrementalTypes.ts` suffered from high porosity (12 `?:`, 7 `| null`, 5 naked `Record<string, unknown>`), forcing downstream files (`fieldResolver.ts`, `routeResolver.ts`, `incrementalEngine.ts`, and `driftAuditor.ts`) into defensive null guards and type assertions.
+**Where** → `packages/cli/src/utils/incremental/` and `packages/cli/src/index.ts`.
+**Root cause** → Incremental cache and route scanning models relied on loose JSON-like property bags with sentinel `null` unions and unbranded primitive atoms.
+**Fix** → 
+1. Created nominal branded atoms in `nominalAtoms.ts` (`ScannedRouteMethod`, `ScannedRoutePath`, `ScannedRouteName`, `ScannedStableHash`, `SourceFilePath`, `SourceLineNumber`) with `NominalAtomFactory`.
+2. Created catamorphic Response Payload ADT (`PrimitiveResponsePayloadContract`, `ObjectResponsePayloadContract`, `ArrayResponsePayloadContract`, `ResourceResponsePayloadContract`, `UnknownResponsePayloadContract`) and $O(1)$ table dispatcher `matchRouteResponsePayload` (0 `if`, 0 `switch`).
+3. Replaced naked `Record`s and `| null` sentinels with Complete Contracts (`ScannedRouteContract`, `ScannedResourceContract`, `ScannedManifestContract`) utilizing immutable entry tuples `readonly (readonly [K, V])[]`.
+4. Implemented first-class frozen descriptors (`ScannedRouteDescriptor`, `ScannedResourceDescriptor`, `ScannedManifestDescriptor`) with 100% direct assignment constructors, static semantic factories (`.create()`, `.fromRaw()`, `.empty()`), and synchronized backward-compatible facade getters.
+5. Decomposed and slimmed `routeResolver.ts`, `fieldResolver.ts`, and `incremental.ts` down to strictly $\le 100$ lines per Rule 14.
+**Regression test** → `packages/sdk/tests/incrementalHigherLevelModelsSSOT.spec.ts` › `Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)`
+**Status** → Diagnosed & Fixed
+
+---
+
+
+### Issue 45: Elimination of Repository Worst Porosity Interface (`SparseRouteParams`, Score 56) via Level 7 RouteBoundaryContractFactory
+**Symptom** → `SparseRouteParams` had the highest porosity score in the repository (Score 56, 28 optional fields out of 31 fields), forcing downstream boundary builders (`boundaryBasics.ts`, `identityBuilder.ts`, `bindingBuilder.ts`, `capabilityBuilder.ts`, `provenanceBuilder.ts`, and `RouteBoundaryAdapter.ts`) into defensive fallback branching and null-checks.
+**Where** → `packages/core/src/compiler/scanner/resolvers/boundary/` and `packages/core/src/compiler/scanner/resolvers/RouteBoundaryAdapter.ts`.
+**Root cause** → Perimeter parameter bag allowed 28 optional fields without an origin boundary factory to guarantee complete, non-nullable contract values.
+**Fix** → 
+1. Created `RouteBoundaryContractFactory` in `boundaryContractFactory.ts` strictly $\le 80$ lines per Rule 14, which absorbs options at the origin boundary, applies deterministic defaults, and returns a 100% complete, non-nullable, frozen `RouteBoundaryContract` (0 `?:`).
+2. Replaced the loose 28-field porous `SparseRouteParams` with strongly-typed `RouteBoundaryOptions` requiring explicit `method` and `path`, preserving backward compatibility.
+3. Enhanced `RouteBoundaryAdapter` with `fromBoundary(contract: RouteBoundaryContract)` alongside `fromSparse`.
+4. Exported `RouteBoundaryContractFactory` and `RouteBoundaryOptions` across resolver sub-domain and core entry points.
+**Regression test** → `packages/sdk/tests/routeBoundaryHardeningSSOT.spec.ts` › `Route Boundary Hardening & Level 7 Contract SSOT (Issue #45)`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 44: Decomposition and Level 7 Hardening of Monolithic Semantic Types (`semantic.ts`)
+**Symptom** → `packages/core/src/types/semantic.ts` was the #1 worst monolithic interface file in the codebase (914 lines violating Rule 14, Porosity Score 90 with 42 optional `?:` fields), containing porous models (`ModelNode`, `RouteNode`, `SemanticRelation`, `IRContext`) that leaked undefined and unbranded values across compiler graph and semantic resolution layers.
+**Where** → `packages/core/src/types/semantic.ts` and `packages/core/src/types/semantic/`.
+**Root cause** → Accumulation of legacy micro-AST definitions, unbranded nominal coordinates, and porous graph descriptors in a single monolithic 914-line file without modular single-responsibility decomposition.
+**Fix** → 
+1. Decomposed monolithic `semantic.ts` (914 lines) into 13 cohesive sub-modules in `packages/core/src/types/semantic/`, each strictly $\le 99$ lines per Rule 14.
+2. Introduced branded nominal atoms in `nominalVocabulary.ts` (`SourceLineNumber`, `SourceColumnNumber`, `ModelNodeName`, `ServiceNodeName`, `ControllerNodeName`, `ConfidenceScore`) with validation creators.
+3. Structured micro-AST nodes in `parsedAstTypes.ts` and created pure catamorphic table dispatcher `matchParsedAST` in `parsedAstAlgebra.ts` ($O(1)$ constant-time resolution with 0 `if`, 0 `switch`).
+4. Replaced monolithic `semantic.ts` with a 9-line coordinating barrel preserving 100% backward compatibility for all existing imports.
+**Regression test** → `packages/sdk/tests/semanticTypeHardeningSSOT.spec.ts` › `Semantic Type Hardening & Level 7 Constructors SSOT`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 43: Decomposition and Level 7 Hardening of Worst Branching Interface (`ir.ts`)
+**Symptom** → `packages/core/src/types/ir.ts` was ranked as the #1 worst interface file across the entire repository (Porosity Score 297, 125 optional `?:` fields, 13 naked `Record`s, 4 sentinel `null`s, and 1028 lines violating Rule 14), forcing downstream compilers and generators into defensive fallback branching and null-checks.
+**Where** → `packages/core/src/types/ir.ts` and `packages/core/src/types/ir/`.
+**Root cause** → Giant monolithic IR interface definition that accumulated loose bags, unbranded string identifiers, naked dictionary records, and sentinel nulls/undefined across RouteSync's intermediate representation layer.
+**Fix** → 
+1. Decomposed monolithic `ir.ts` (1028 lines) into 15 cohesive sub-modules in `packages/core/src/types/ir/`, each strictly $\le 95$ lines per Rule 14.
+2. Introduced branded nominal atoms in `nominalVocabulary.ts` (`EndpointId`, `ResourceId`, `RequestId`, `RoutePath`, `HttpHeaderName`, `SourceLineNumber`, `HttpStatus`) with explicit creators.
+3. Upgraded `ResolvedSemanticType` to closed ADT variants in `resolvedSemanticTypes.ts` with immutable entry tuples `propertyEntries: readonly (readonly [string, T])[]` replacing naked `Record<string, unknown>`.
+4. Created frozen factory `ResolvedSemanticTypeFactory` with `Object.freeze` and pure catamorphic table dispatcher `matchResolvedSemanticTypeIR` with $O(1)$ constant-time resolution (0 `if`, 0 `switch`).
+5. Replaced monolithic `ir.ts` with a clean 10-line coordinating barrel preserving 100% backward compatibility for all existing imports.
+**Regression test** → `packages/sdk/tests/irTypeHardeningSSOT.spec.ts` › `IR Type Hardening & Level 7 Constructors SSOT`
+**Status** → Diagnosed & Fixed
+
+---
+
+### Issue 42: Upstream Lexer Micro-AST Catamorphism & Level 7 Frozen ADT Descriptors with Branded Nominal Types
+**Symptom** → Upstream lexer micro-AST (`PhpAst.ts`) was monolithic (>100 lines) with plain unfrozen object factories, naked numbers/strings, and lack of catamorphic algebra, forcing downstream binders (`fieldBinder.ts`, `resourceAstExpressionMapper.ts`) to use cascading `if` and `switch` statements. In addition, `RouteDef`, `ModelDef`, and `ResourceDef` lacked Level 7 frozen constructors with branded nominal atoms (`RoutePath`, `HttpVerb`, `HttpStatus`), leaving perimeter entities dependent on naked strings and property bags.
+**Where** → `packages/core/src/compiler/scanner/lexer/`, `packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts`, `packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts`, `packages/core/src/types/domain/`.
+**Root cause** → Porous upstream models without branded nominal atoms, unfrozen micro-AST factory nodes, and lack of table-driven catamorphism pattern matchers at the lexer boundary.
+**Fix** → 
+1. Modularized `PhpAst.ts` into 3 single-responsibility files strictly $\le 100$ lines: `phpAstTypes.ts` (branded types `SourceOffset`, `SourceLineNumber`, `AstIdentifier`), `phpAstFactory.ts` (frozen constructors with `Object.freeze`), and `phpAstAlgebra.ts` (constant-time $O(1)$ table-driven catamorphic projector `matchPhpAstValue`).
+2. Converted downstream `fieldBinder.ts` (7 cascading `if` branches) and `resourceAstExpressionMapper.ts` (`switch (value.kind)`) to pure catamorphic projectors consuming `matchPhpAstValue` with 0 `if` and 0 `switch`.
+3. Created Level 7 frozen ADT descriptors with explicit semantic factories: `RouteDefDescriptor` with branded `RoutePath` and `HttpVerb` (0 `undefined`, 0 `null`, 0 `?:`), `ResourceDefDescriptor`, and `ModelDefDescriptor` with immutable entry tuples replacing naked `Record<string, unknown>`.
+4. Exported runtime descriptor classes and helpers cleanly in `packages/core/src/index.ts` and verified modular line counts ($\le 100$ lines).
+**Regression test** → `packages/sdk/tests/upstreamLexerAdtAndDescriptorsSSOT.spec.ts` › `Upstream Lexer ADT & Level 7 Constructors SSOT`
+**Status** → Diagnosed & Fixed
+
+---
+
 ### Issue 41: Elimination of Sentinel Undefined & Null via Level 7 Subatomic Functors & Closed ADTs
 **Symptom** → Previous hardening passes replaced `?:` with `| undefined` or `| null`, preserving sentinel undefined values and forcing downstream compiler passes into defensive branching (`if (x !== undefined)`).
 **Where** → `packages/core/src/types/contract.ts`, `packages/core/src/types/response.ts`, `packages/core/src/types/semantic.ts`, `packages/core/src/compiler/ir/response/`, `packages/core/src/compiler/generators/contract-generation/response-field/types.ts`, `packages/cli/src/generators/classifier/`, `packages/cli/src/generators/normalizer/`.

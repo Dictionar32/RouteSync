@@ -1,90 +1,78 @@
 /**
  * incrementalTypes.ts
  *
- * Types and interfaces for incremental manifest scanning and resolution.
- * Conforms to Level 6/7 Correct-by-Construction: Zero sentinel null, zero porous undefined.
+ * Coordinating Active Consumer Barrel for Incremental RouteSync Scanner.
+ * Level 7 Architecture: Nominal Branded Atoms, Catamorphisms, and Complete Contracts.
+ * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
  *
  * @module cli/utils/incremental/incrementalTypes
  */
 
-import { IRNodeRegistry } from '@routesync/core';
+export {
+  type ScannedRouteMethod,
+  type ScannedRoutePath,
+  type ScannedRouteName,
+  type ScannedStableHash,
+  type SourceFilePath,
+  type SourceLineNumber,
+  NominalAtomFactory
+} from './types/nominalAtoms';
 
-export type ModelAccessorInfo = {
-  readonly type?: string;
-  readonly expression?: string;
-  readonly expression_code?: string;
-  readonly sourceFile?: string;
-  readonly sourceLine?: number;
-  readonly ast?: unknown;
-  readonly semantic?: unknown;
-  readonly source?: { readonly file: string; readonly line?: number };
-};
+export {
+  type PrimitiveResponsePayloadContract,
+  type ObjectResponsePayloadContract,
+  type ArrayResponsePayloadContract,
+  type ResourceResponsePayloadContract,
+  type UnknownResponsePayloadContract,
+  type RouteResponsePayloadContract,
+  type RouteResponsePayloadVisitor,
+  matchRouteResponsePayload
+} from './types/responsePayloadTypes';
 
-export type ScannedRoute = {
-  method: string;
-  path: string;
-  auth: boolean;
-  schema?: Record<string, unknown> | null;
-  response?: Record<string, unknown> | null;
-  assignments?: Record<string, string> | null;
-  stableHash?: string;
-  name?: string;
-  sourceFile?: string | null;
-  sourceLine?: number | null;
-};
+export {
+  type ScannedRouteContract,
+  type ScannedRouteOptions,
+  type ScannedRouteLegacy
+} from './types/scannedRouteTypes';
 
-export type ScannedModel = {
-  name: string;
-  accessors?: Record<string, ModelAccessorInfo>;
-};
+export {
+  type ScannedResourceContract,
+  type ScannedResourceOptions,
+  type ScannedResourceLegacy
+} from './types/scannedResourceTypes';
 
-export type ScannedResource = {
-  name: string;
-  model?: string;
-  assignments?: Record<string, string>;
-  fields?: Record<string, unknown>;
-  sourceFile?: string | null;
-  sourceLine?: number | null;
-};
+export {
+  type ModelAccessorInfoContract,
+  type ModelAccessorInfo,
+  type ScannedModelContract,
+  type ScannedModelLegacy
+} from './types/scannedModelTypes';
 
-export interface ScannedManifestContract {
-  readonly routes: readonly ScannedRoute[];
-  readonly models: readonly ScannedModel[];
-  readonly resources: readonly ScannedResource[];
-}
+export {
+  type ScannedManifestContract,
+  type ScannedManifestOptions,
+  type ScannedManifestLegacy,
+  type ResolutionTraceNode,
+  type KernelResolutionResultContract,
+  type KernelResolutionResult,
+  type KernelResolver,
+  type ResolveManifestResult
+} from './types/scannedManifestTypes';
 
-export type ScannedManifest = {
-  routes?: ScannedRoute[];
-  models?: ScannedModel[];
-  resources?: ScannedResource[];
-};
+export { ScannedRouteDescriptor } from './descriptors/scannedRouteDescriptor';
+export { ScannedResourceDescriptor } from './descriptors/scannedResourceDescriptor';
+export { ScannedManifestDescriptor } from './descriptors/scannedManifestDescriptor';
 
-export type ResolutionTraceNode = Readonly<Record<string, unknown>>;
+// Legacy Type Aliases for 100% Backwards Compatibility
+import type { ScannedRouteLegacy } from './types/scannedRouteTypes';
+import type { ScannedResourceLegacy } from './types/scannedResourceTypes';
+import type { ScannedModelLegacy } from './types/scannedModelTypes';
+import type { ScannedManifestLegacy } from './types/scannedManifestTypes';
+import type { ScannedRouteDescriptor } from './descriptors/scannedRouteDescriptor';
+import type { ScannedResourceDescriptor } from './descriptors/scannedResourceDescriptor';
+import type { ScannedManifestDescriptor } from './descriptors/scannedManifestDescriptor';
 
-/**
- * Level 7 Complete Contract for KernelResolutionResult (0 undefined, 0 null, 0 ?:).
- */
-export interface KernelResolutionResultContract {
-  readonly status: string;
-  readonly type: string;
-  readonly confidence: number;
-  readonly traceEntries: readonly (readonly [string, unknown])[];
-}
-
-export type KernelResolutionResult = {
-  readonly status: string;
-  readonly type?: string;
-  readonly confidence?: number;
-  readonly trace?: readonly Record<string, unknown>[];
-};
-
-export interface KernelResolver {
-  resolve(ast: unknown, context: Record<string, unknown>): KernelResolutionResult;
-  getModels?(): Record<string, unknown>[];
-}
-
-export interface ResolveManifestResult {
-  manifest: ScannedManifest;
-  /** Stage 2 (IR v3) output — every resolved field as a real, addressable SemanticIRNode. */
-  irRegistry: IRNodeRegistry;
-}
+export type ScannedRoute = ScannedRouteLegacy | ScannedRouteDescriptor;
+export type ScannedResource = ScannedResourceLegacy | ScannedResourceDescriptor;
+export type ScannedModel = ScannedModelLegacy;
+export type ScannedManifest = ScannedManifestLegacy | ScannedManifestDescriptor;

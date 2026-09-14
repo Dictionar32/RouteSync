@@ -10,9 +10,18 @@
 export {
     TokenType,
     type TokenDescriptor,
+    type SourceOffset,
+    type SourceLineNumber,
+    type AstIdentifier,
+    createSourceOffset,
+    createSourceLineNumber,
+    createAstIdentifier,
     type PhpLiteralValue,
     type PhpAstValue,
     PhpAstFactory,
+    type PhpAstValueVisitor,
+    type PhpMicroAstVisitor,
+    matchPhpAstValue,
     type PhpArrayEntry,
     type ParsedPhpArrayResult
 } from "./PhpAst";

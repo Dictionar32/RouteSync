@@ -24,11 +24,7 @@ export class ResourceMapperBuilder {
         const mappings: MapperFieldIR[] = fields.map(field => ({
             source: field.name,
             target: field.transformedName,
-            transform: this.detectTransformFunction(field),
-            conditional: field.source?.type === 'computed' ? {
-                condition: 'field_exists',
-                parameters: { field: field.name }
-            } : undefined
+            transform: this.detectTransformFunction(field)
         }));
 
         return {

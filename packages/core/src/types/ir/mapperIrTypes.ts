@@ -15,17 +15,14 @@ export type TransformFunction =
     | 'enum_value'
     | 'custom';
 
-export interface ConditionalRule {
-    readonly condition: string;
-    readonly parameters?: Record<string, unknown>;
-    readonly parameterEntries?: readonly (readonly [string, unknown])[];
-}
-
+/**
+ * Mapper field mapping definition.
+ * Removed: conditional field (dead code, never consumed by MapperGeneratorPass).
+ */
 export interface MapperFieldIR {
     readonly source: string;
     readonly target: string;
-    readonly transform?: TransformFunction;
-    readonly conditional?: ConditionalRule;
+    readonly transform: TransformFunction;
 }
 
 export interface CustomTransformIR {

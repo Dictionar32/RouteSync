@@ -59,11 +59,11 @@ export class ContractInputBoundary {
             case 'object':
                 return {
                     kind: 'object',
-                    properties: Object.fromEntries(
-                        Object.entries(value.properties).map(([name, property]) => [
+                    properties: Object.entries(value.properties).map(
+                        ([name, property]) => ({
                             name,
-                            this.resolve(property),
-                        ]),
+                            type: this.resolve(property),
+                        }),
                     ),
                 };
 

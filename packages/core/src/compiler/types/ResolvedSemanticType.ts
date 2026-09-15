@@ -29,9 +29,14 @@ export interface ResolvedModelType {
     readonly model: string;
 }
 
+export interface ResolvedProperty {
+    readonly name: string;
+    readonly type: ResolvedSemanticType;
+}
+
 export interface ResolvedObjectType {
     readonly kind: 'object';
-    readonly properties: Readonly<Record<string, ResolvedSemanticType>>;
+    readonly properties: readonly ResolvedProperty[];
 }
 
 export interface ResolvedArrayType {

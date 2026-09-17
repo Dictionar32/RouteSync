@@ -7,12 +7,12 @@
  */
 
 import { RouteProvenanceContract } from "../../../../types/route";
-import { SparseRouteParams } from "./boundaryBasics";
+import { RouteBoundaryOptions } from "./boundaryBasics";
 
-export function buildRouteProvenanceContract(params: SparseRouteParams): RouteProvenanceContract {
+export function buildRouteProvenanceContract(params: RouteBoundaryOptions): RouteProvenanceContract {
     return Object.freeze({
-        sourceFile: params.sourceFile ? params.sourceFile : "",
-        sourceLine: params.sourceLine ? params.sourceLine : 0,
+        sourceFile: params.sourceFile,
+        sourceLine: params.sourceLine,
         uri: params.path
     });
 }

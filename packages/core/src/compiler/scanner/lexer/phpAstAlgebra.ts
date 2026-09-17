@@ -1,14 +1,5 @@
-/**
- * phpAstAlgebra.ts
- *
- * Pure Catamorphism Eliminator / Visitor Algebra for PhpAstValue.
- * Constant-time O(1) table dispatch: 0 'if', 0 'switch', 0 type casts.
- * Conforms to Rule 12 & Rule 14 (<= 100 lines).
- *
- * @module core/compiler/scanner/lexer/phpAstAlgebra
- */
-
-import type { PhpAstValue } from "./phpAstTypes";
+/** Exhaustive eliminator for scanner-level PHP syntax AST. */
+import type { PhpAstValue } from './phpAstTypes';
 
 export interface PhpAstValueVisitor<R> {
     readonly literal: (node: Extract<PhpAstValue, { kind: 'literal' }>) => R;
@@ -19,33 +10,28 @@ export interface PhpAstValueVisitor<R> {
     readonly variableReference: (node: Extract<PhpAstValue, { kind: 'variable_reference' }>) => R;
     readonly ternaryExpression: (node: Extract<PhpAstValue, { kind: 'ternary_expression' }>) => R;
     readonly nestedArray: (node: Extract<PhpAstValue, { kind: 'nested_array' }>) => R;
-    readonly rawExpression: (node: Extract<PhpAstValue, { kind: 'raw_expression' }>) => R;
+    readonly staticCall: (node: Extract<PhpAstValue, { kind: 'static_call' }>) => R;
+    readonly classReference: (node: Extract<PhpAstValue, { kind: 'class_reference' }>) => R;
+    readonly closure: (node: Extract<PhpAstValue, { kind: 'closure' }>) => R;
+    readonly arrowFunction: (node: Extract<PhpAstValue, { kind: 'arrow_function' }>) => R;
+    readonly unsupported: (node: Extract<PhpAstValue, { kind: 'unsupported' }>) => R;
 }
-
 export type PhpMicroAstVisitor<R> = PhpAstValueVisitor<R>;
 
-const DISPATCH_TABLE: {
-    readonly [K in PhpAstValue['kind']]: <R>(
-        ast: Extract<PhpAstValue, { kind: K }>,
-        visitor: PhpAstValueVisitor<R>
-    ) => R;
-} = Object.freeze({
-    literal: (ast, visitor) => visitor.literal(ast),
-    resource_single: (ast, visitor) => visitor.resourceSingle(ast),
-    resource_collection: (ast, visitor) => visitor.resourceCollection(ast),
-    method_chain: (ast, visitor) => visitor.methodChain(ast),
-    property_access: (ast, visitor) => visitor.propertyAccess(ast),
-    variable_reference: (ast, visitor) => visitor.variableReference(ast),
-    ternary_expression: (ast, visitor) => visitor.ternaryExpression(ast),
-    nested_array: (ast, visitor) => visitor.nestedArray(ast),
-    raw_expression: (ast, visitor) => visitor.rawExpression(ast)
-});
-
-/**
- * Pure Catamorphic Projector for PhpAstValue.
- * 1 Input, 1 Visitor, 1 Output, 0 'if', 0 'switch'.
- */
 export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {
-    const handler = DISPATCH_TABLE[ast.kind];
-    return handler(ast as any, visitor);
+    switch (ast.kind) {
+        case 'literal': return visitor.literal(ast);
+        case 'resource_single': return visitor.resourceSingle(ast);
+        case 'resource_collection': return visitor.resourceCollection(ast);
+        case 'method_chain': return visitor.methodChain(ast);
+        case 'property_access': return visitor.propertyAccess(ast);
+        case 'variable_reference': return visitor.variableReference(ast);
+        case 'ternary_expression': return visitor.ternaryExpression(ast);
+        case 'nested_array': return visitor.nestedArray(ast);
+        case 'static_call': return visitor.staticCall(ast);
+        case 'class_reference': return visitor.classReference(ast);
+        case 'closure': return visitor.closure(ast);
+        case 'arrow_function': return visitor.arrowFunction(ast);
+        case 'unsupported': return visitor.unsupported(ast);
+    }
 }

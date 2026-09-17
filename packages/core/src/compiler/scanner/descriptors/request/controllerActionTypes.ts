@@ -37,20 +37,7 @@ export interface ScannedControllerActionParamsContract {
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 
-export type ScannedControllerActionParams = {
-    readonly controllerName: string;
-    readonly actionName: string;
-    readonly target: string;
-    readonly handler: RouteHandlerDescriptor;
-    readonly sourceFile: string;
-    readonly sourceLine: number;
-    readonly response: ResponseDescriptor;
-    readonly formRequests: readonly FormRequestDescriptor[];
-    readonly schema: RouteSchemaPayload;
-    readonly schemaRules: readonly RouteValidationRuleEntry[];
-    readonly resourceModelMap?: ReadonlyMap<string, string>;
-    readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
-};
+export type ScannedControllerActionParams = ScannedControllerActionParamsContract;
 
 /**
  * Level 7 Complete Contract for ControllerActionCreateOptions (0 undefined, 0 null, 0 ?:).
@@ -68,18 +55,7 @@ export interface ControllerActionCreateOptionsContract {
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 
-export type ControllerActionCreateOptions = {
-    readonly controllerName?: string;
-    readonly actionName?: string;
-    readonly sourceFile: string;
-    readonly sourceLine?: number;
-    readonly response?: ResponseDescriptor;
-    readonly formRequests?: readonly FormRequestDescriptor[];
-    readonly schema?: RouteSchemaPayload;
-    readonly schemaRules?: readonly RouteValidationRuleEntry[];
-    readonly resourceModelMap?: ReadonlyMap<string, string>;
-    readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
-};
+
 
 export function buildRouteHandler(controllerName: string, actionName: string, target: string): RouteHandlerDescriptor {
     return Object.freeze(

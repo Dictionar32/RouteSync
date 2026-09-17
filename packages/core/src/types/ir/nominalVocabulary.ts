@@ -8,10 +8,11 @@
  * @module core/types/ir/nominalVocabulary
  */
 
+import type { RoutePath } from '../domain/routeEntityDefinition';
+
 export type EndpointId = string & { readonly __brand: unique symbol };
 export type ResourceId = string & { readonly __brand: unique symbol };
 export type RequestId = string & { readonly __brand: unique symbol };
-export type RoutePath = string & { readonly __brand: unique symbol };
 export type HttpHeaderName = string & { readonly __brand: unique symbol };
 export type SourceLineNumber = number & { readonly __brand: unique symbol };
 
@@ -24,6 +25,5 @@ export type HttpStatus =
 export const createEndpointId = (id: string): EndpointId => id as EndpointId;
 export const createResourceId = (id: string): ResourceId => id as ResourceId;
 export const createRequestId = (id: string): RequestId => id as RequestId;
-export const createRoutePath = (path: string): RoutePath => path as RoutePath;
 export const createHttpHeaderName = (name: string): HttpHeaderName => name as HttpHeaderName;
 export const createSourceLineNumber = (line: number): SourceLineNumber => Math.max(1, line) as SourceLineNumber;

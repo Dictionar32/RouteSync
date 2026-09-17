@@ -1,5 +1,6 @@
-import { SemanticResolution, TraceNode } from '../../types/contract';
-import { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode, ModelAccessor } from '../types';
+import type { SemanticResolution, SemanticTraceNode } from '../../types/domain/semanticResolution';
+import { unknownResolution, resolutionLabel } from '../semanticResolutionSupport';
+import type { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode, ModelAccessor } from '../types';
 
 export class AccessorResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
@@ -8,61 +9,35 @@ export class AccessorResolver implements ResolverPlugin {
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
     if (meta.kind !== 'model_accessor') {
-      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+      return unknownResolution('AccessorResolver', 'Unsupported accessor metadata', 'model_accessor', 'invalid_boundary_input');
     }
     const symbol = context.symbolTable.get(meta.model);
     if (!symbol) {
-      return {
-        status: 'unknown',
-        type: 'unknown',
-        confidence: 0,
-        trace: [{ source: 'AccessorResolver', rule: `Model ${meta.model || 'unknown'} not found in manifest` }]
-      };
+      return unknownResolution('AccessorResolver', `Model ${meta.model} not found in manifest`, meta.model, 'unresolved_symbol');
     }
 
-    const colName = meta.column || '';
+    const colName = meta.column;
     const acc = symbol.accessor(colName);
     if (acc) {
       const model = symbol.node;
       const nodeId = `${model.name}.${colName}`;
       if (!context.cycleDetector.enter(nodeId)) {
-         return {
-           status: 'unknown',
-           type: 'unknown',
-           confidence: 0,
-           trace: [{ source: 'AccessorResolver', rule: `Cycle detected at accessor ${nodeId}` }]
-         };
+         return unknownResolution('AccessorResolver', `Cycle detected at accessor ${nodeId}`, nodeId, 'invalid_boundary_input');
       }
       
       const res = this.resolveAccessor(acc, model, context);
       context.cycleDetector.leave(nodeId);
       
-      const trace: TraceNode[] = [{
+      const trace: SemanticTraceNode[] = [{
         source: 'AccessorResolver',
         rule: `Accessor lookup: ${model.name}.${colName}`,
         input: colName,
-        output: res.type
-      }];
-      if (res.trace) trace.push(...res.trace);
-      return {
-         status: res.status,
-         type: res.type,
-         model: res.model,
-         resource: res.resource,
-         collection: res.collection,
-         paginated: res.paginated,
-         nullable: res.nullable,
-         confidence: res.confidence,
-         trace
-      };
+        output: resolutionLabel(res),
+      }, ...res.trace];
+      return { ...res, trace };
     }
 
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: [{ source: 'AccessorResolver', rule: `Accessor ${colName} not found on model ${symbol.name}` }]
-    };
+    return unknownResolution('AccessorResolver', `Accessor ${colName} not found on model ${symbol.name}`, colName, 'unresolved_property');
   }
 
   private resolveAccessor(acc: ModelAccessor, currentModel: ModelNode, context: ResolutionContext): SemanticResolution {
@@ -77,11 +52,6 @@ export class AccessorResolver implements ResolverPlugin {
       return context.kernel.resolve(acc.ast, currentModel);
     }
 
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: [{ source: 'AccessorResolver', rule: 'Accessor has no expression or static resolution' }]
-    };
+    return unknownResolution('AccessorResolver', 'Accessor has no expression or static resolution', currentModel.name, 'unsupported_syntax');
   }
 }

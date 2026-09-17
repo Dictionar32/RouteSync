@@ -7,30 +7,24 @@
  */
 
 import { ParsedResource, ParsedRoute } from "../../../../types/route";
-import { RequestType, ResponseData } from "../../../artifacts/RequestTypesArtifact";
-import { SemanticType } from "../../../types/SemanticType";
+import { RequestType } from "../../../artifacts/RequestTypesArtifact";
 import { TypeInterner } from "../../../types/TypeInterner";
 import { toCamelCase, toPascalCase } from "../../../../utils/resource-naming";
 import { ScannedRequestTypeDescriptor } from "../../descriptors/requestDescriptors";
-import { convertRawToSemanticType } from "./rawTypeConverter";
 import { extractRouteDomain } from "./domainExtractor";
 import { deriveRouteAction } from "./actionDeriver";
 import {
     deriveActionResponseData,
-    deriveFallbackResponseData,
     extractResourceResponseFields
 } from "./responseDeriver";
 
 export interface DerivationContext {
     readonly resourceIndex: ReadonlyMap<string, ParsedResource>;
-    readonly modelIndex: ReadonlyMap<string, any>;
     readonly interner: TypeInterner;
-    readonly toSemanticType: (raw: any) => SemanticType;
 }
 
 export function createDerivationContext(
     resources: readonly ParsedResource[],
-    models: readonly any[],
     interner: TypeInterner
 ): DerivationContext {
     const resourceIndex = new Map<string, ParsedResource>();
@@ -41,20 +35,9 @@ export function createDerivationContext(
         resourceIndex.set(bare, res);
     }
 
-    const modelIndex = new Map<string, any>();
-    for (const m of models) {
-        modelIndex.set(m.name, m);
-        modelIndex.set(m.name.toLowerCase(), m);
-    }
-
-    const toSemanticType = (raw: any): SemanticType =>
-        convertRawToSemanticType(raw, modelIndex, interner);
-
     return {
         resourceIndex,
-        modelIndex,
-        interner,
-        toSemanticType
+        interner
     };
 }
 
@@ -73,8 +56,6 @@ export function aggregateRequestTypeGroups(
         const actionRespData = deriveActionResponseData(
             route,
             ctx.resourceIndex,
-            rawDomain,
-            ctx.toSemanticType
         );
 
         if (groups.has(bareDomain)) {
@@ -91,59 +72,60 @@ export function aggregateRequestTypeGroups(
                 }
             }
 
-            let newRespData = existing.responseData;
-            if (actionRespData && (!existing.responseData || !existing.responseData.fields || Object.keys(existing.responseData.fields).length === 0)) {
-                newRespData = actionRespData;
+            let response = existing.response;
+            if (actionRespData && (existing.response.kind === "none" || existing.response.value.contract.fields.length === 0)) {
+                response = { kind: "data", value: actionRespData };
             }
 
             groups.set(bareDomain, ScannedRequestTypeDescriptor.create({
                 resourceName: existing.resourceName,
                 formTypeName: existing.formTypeName,
                 actions: newActions,
-                responseData: newRespData
+                response: response
             }));
         } else {
-            const respData: ResponseData | undefined = actionRespData ||
-                deriveFallbackResponseData(rawDomain, bareDomain, ctx.resourceIndex, ctx.toSemanticType);
+            const respData = actionRespData;
 
             groups.set(bareDomain, ScannedRequestTypeDescriptor.create({
                 resourceName: toCamelCase(rawDomain),
                 formTypeName: `${toPascalCase(rawDomain)}Form`,
                 actions: isReadRouteWithoutFields ? [] : [actionObj],
-                responseData: respData
+                response: respData
+                    ? { kind: "data", value: respData }
+                    : { kind: "none" }
             }));
         }
     }
 
     for (const res of resources) {
         const cleanKey = res.name.replace(/Resource$/, '').toLowerCase();
-        const respFields = extractResourceResponseFields(res, ctx.toSemanticType);
+        const respFields = extractResourceResponseFields(res);
 
         if (!groups.has(cleanKey)) {
             groups.set(cleanKey, ScannedRequestTypeDescriptor.create({
                 resourceName: res.name,
                 formTypeName: `${res.name}Form`,
                 actions: [],
-                responseData: {
+                response: { kind: "data", value: {
                     resourceName: res.name,
                     fields: respFields,
                     collection: false,
                     wrapped: false
-                }
+                } }
             }));
         } else {
             const existing = groups.get(cleanKey)!;
-            if (!existing.responseData || !existing.responseData.fields || Object.keys(existing.responseData.fields).length === 0) {
+            if (existing.response.kind === "none" || existing.response.value.contract.fields.length === 0) {
                 groups.set(cleanKey, ScannedRequestTypeDescriptor.create({
                     resourceName: existing.resourceName,
                     formTypeName: existing.formTypeName,
                     actions: existing.actions,
-                    responseData: {
+                    response: { kind: "data", value: {
                         resourceName: res.name,
                         fields: respFields,
                         collection: false,
                         wrapped: false
-                    }
+                    } }
                 }));
             }
         }

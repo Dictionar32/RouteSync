@@ -64,7 +64,7 @@ export function convertResolvedTypeToResponseField(
         }
 
         case 'optional': {
-            const innerResult = convertResolvedTypeToResponseField(fieldName, (resolved as any).innerType, resolver);
+            const innerResult = convertResolvedTypeToResponseField(fieldName, resolved.innerType, resolver);
             const itemType = innerResult.fields[0];
             switch (itemType) {
                 case undefined:
@@ -96,9 +96,20 @@ export function convertResolvedTypeToResponseField(
         }
 
         case 'object': {
-            const conversionResults = resolved.fields.map(
-                ([propName, propType]) => convertResolvedTypeToResponseField(propName, propType, resolver)
-            );
+            const conversionResults = resolved.fields.map(({ name: propName, type: propType, presence }) => {
+                const fieldResult = convertResolvedTypeToResponseField(propName, propType, resolver);
+                if (presence === 'required') {
+                    return fieldResult;
+                }
+                const item = fieldResult.fields[0];
+                if (!item) {
+                    return fieldResult;
+                }
+                return new ConversionResult({
+                    fields: [{ ...item, optional: true }],
+                    warnings: fieldResult.warnings
+                });
+            });
             const { fields: nestedFields, warnings: nestedWarnings } = partitionResults(conversionResults);
 
             return new ConversionResult({

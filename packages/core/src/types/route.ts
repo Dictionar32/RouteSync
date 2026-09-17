@@ -529,7 +529,7 @@ export {
     type PropertyLookupAstNode,
     type NullsafePropertyLookupAstNode,
     type OffsetLookupAstNode,
-    type StaticLookupAstNode,
+    type StaticPropertyLookupAstNode,
     type FunctionCallAstNode,
     type MethodCallAstNode,
     type NullsafeMethodCallAstNode,

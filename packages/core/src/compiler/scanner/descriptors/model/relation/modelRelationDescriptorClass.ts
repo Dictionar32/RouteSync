@@ -30,7 +30,6 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
     public readonly modelName: string;
     public readonly targetModel: string;
     public readonly cardinality: EloquentRelationCardinality;
-    public readonly isCollection: boolean;
     public readonly foreignKey: string | null;
 
     constructor(params: ScannedModelRelationParams) {
@@ -39,7 +38,6 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         this.modelName = params.modelName;
         this.targetModel = params.targetModel;
         this.cardinality = params.cardinality;
-        this.isCollection = params.isCollection;
         this.foreignKey = params.foreignKey;
         Object.freeze(this);
     }
@@ -50,7 +48,6 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly modelName: string;
         readonly targetModel?: string;
         readonly cardinality?: EloquentRelationCardinality;
-        readonly isCollection?: boolean;
         readonly foreignKey?: string | null;
     }): ScannedModelRelationDescriptor {
         return new ScannedModelRelationDescriptor(computeRelationParams(params));

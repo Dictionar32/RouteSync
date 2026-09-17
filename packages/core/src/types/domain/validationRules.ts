@@ -1,3 +1,6 @@
+import type { SemanticType } from "../../compiler/types/SemanticType";
+import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, ValidationParameter, ValidationRuleName } from "./semanticValues";
+
 /**
  * ValidationRuleKind
  *
@@ -56,9 +59,13 @@ export interface BooleanValidationRuleNode extends BaseValidationRuleNode<'boole
   readonly kind: 'boolean';
 }
 
+export type ArrayElementType =
+  | { readonly kind: 'unspecified' }
+  | { readonly kind: 'specified'; readonly type: SemanticType };
+
 export interface ArrayValidationRuleNode extends BaseValidationRuleNode<'array'> {
   readonly kind: 'array';
-  readonly elementType: string | null;
+  readonly elementType: ArrayElementType;
 }
 
 export interface EmailValidationRuleNode extends BaseValidationRuleNode<'email'> {
@@ -73,42 +80,50 @@ export interface UuidValidationRuleNode extends BaseValidationRuleNode<'uuid'> {
   readonly kind: 'uuid';
 }
 
+export type DateFormatSpecification =
+  | { readonly kind: 'unspecified' }
+  | { readonly kind: 'specified'; readonly format: DateFormat };
+
 export interface DateValidationRuleNode extends BaseValidationRuleNode<'date'> {
   readonly kind: 'date';
-  readonly format: string | null;
+  readonly format: DateFormatSpecification;
 }
 
 export interface MinValidationRuleNode extends BaseValidationRuleNode<'min'> {
   readonly kind: 'min';
-  readonly value: number;
+  readonly value: ValidationConstraintValue;
 }
 
 export interface MaxValidationRuleNode extends BaseValidationRuleNode<'max'> {
   readonly kind: 'max';
-  readonly value: number;
+  readonly value: ValidationConstraintValue;
 }
 
 export interface BetweenValidationRuleNode extends BaseValidationRuleNode<'between'> {
   readonly kind: 'between';
-  readonly min: number;
-  readonly max: number;
+  readonly min: ValidationConstraintValue;
+  readonly max: ValidationConstraintValue;
 }
 
 export interface InValidationRuleNode extends BaseValidationRuleNode<'in'> {
   readonly kind: 'in';
-  readonly values: readonly (string | number)[];
+  readonly values: readonly ValidationParameter[];
 }
+
+export type ValidationDatabaseColumn =
+  | { readonly kind: 'default_column' }
+  | { readonly kind: 'explicit_column'; readonly column: ColumnName };
 
 export interface ExistsValidationRuleNode extends BaseValidationRuleNode<'exists'> {
   readonly kind: 'exists';
-  readonly table: string;
-  readonly column: string | null;
+  readonly table: TableName;
+  readonly column: ValidationDatabaseColumn;
 }
 
 export interface UniqueValidationRuleNode extends BaseValidationRuleNode<'unique'> {
   readonly kind: 'unique';
-  readonly table: string;
-  readonly column: string | null;
+  readonly table: TableName;
+  readonly column: ValidationDatabaseColumn;
 }
 
 export interface FileValidationRuleNode extends BaseValidationRuleNode<'file'> {
@@ -121,8 +136,8 @@ export interface ImageValidationRuleNode extends BaseValidationRuleNode<'image'>
 
 export interface CustomValidationRuleNode extends BaseValidationRuleNode<'custom'> {
   readonly kind: 'custom';
-  readonly rule: string;
-  readonly parameters: readonly string[];
+  readonly rule: ValidationRuleName;
+  readonly parameters: readonly ValidationParameter[];
 }
 
 export type ValidationRuleNode =
@@ -160,9 +175,6 @@ export type ValidationRuleCategory =
 export interface ValidationRuleSpecification<K extends ValidationRuleKind = ValidationRuleKind> {
   readonly kind: K;
   readonly category: ValidationRuleCategory;
-  readonly isTypeAssertion: boolean;
-  readonly isConstraint: boolean;
-  readonly isModifier: boolean;
   readonly description: string;
 }
 
@@ -174,161 +186,101 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
   [ValidationRuleKind.Required]: {
     kind: ValidationRuleKind.Required,
     category: 'modifier',
-    isTypeAssertion: false,
-    isConstraint: false,
-    isModifier: true,
     description: 'Field must be present and not empty'
   },
   [ValidationRuleKind.Nullable]: {
     kind: ValidationRuleKind.Nullable,
     category: 'modifier',
-    isTypeAssertion: false,
-    isConstraint: false,
-    isModifier: true,
     description: 'Field may be null'
   },
   [ValidationRuleKind.Optional]: {
     kind: ValidationRuleKind.Optional,
     category: 'modifier',
-    isTypeAssertion: false,
-    isConstraint: false,
-    isModifier: true,
     description: 'Field may be omitted/sometimes'
   },
   [ValidationRuleKind.String]: {
     kind: ValidationRuleKind.String,
     category: 'type',
-    isTypeAssertion: true,
-    isConstraint: false,
-    isModifier: false,
     description: 'Field must be a string'
   },
   [ValidationRuleKind.Number]: {
     kind: ValidationRuleKind.Number,
     category: 'type',
-    isTypeAssertion: true,
-    isConstraint: false,
-    isModifier: false,
     description: 'Field must be numeric'
   },
   [ValidationRuleKind.Boolean]: {
     kind: ValidationRuleKind.Boolean,
     category: 'type',
-    isTypeAssertion: true,
-    isConstraint: false,
-    isModifier: false,
     description: 'Field must be a boolean'
   },
   [ValidationRuleKind.Array]: {
     kind: ValidationRuleKind.Array,
     category: 'type',
-    isTypeAssertion: true,
-    isConstraint: false,
-    isModifier: false,
     description: 'Field must be an array'
   },
   [ValidationRuleKind.Email]: {
     kind: ValidationRuleKind.Email,
     category: 'format',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be formatted as an e-mail address'
   },
   [ValidationRuleKind.Url]: {
     kind: ValidationRuleKind.Url,
     category: 'format',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be formatted as a valid URL'
   },
   [ValidationRuleKind.Uuid]: {
     kind: ValidationRuleKind.Uuid,
     category: 'format',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be a valid UUID'
   },
   [ValidationRuleKind.Date]: {
     kind: ValidationRuleKind.Date,
     category: 'format',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be a valid date'
   },
   [ValidationRuleKind.Min]: {
     kind: ValidationRuleKind.Min,
     category: 'constraint',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must have minimum value or length'
   },
   [ValidationRuleKind.Max]: {
     kind: ValidationRuleKind.Max,
     category: 'constraint',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must have maximum value or length'
   },
   [ValidationRuleKind.Between]: {
     kind: ValidationRuleKind.Between,
     category: 'constraint',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be between min and max values'
   },
   [ValidationRuleKind.In]: {
     kind: ValidationRuleKind.In,
     category: 'constraint',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be included in given list of values'
   },
   [ValidationRuleKind.Exists]: {
     kind: ValidationRuleKind.Exists,
     category: 'database',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must exist in specified database table'
   },
   [ValidationRuleKind.Unique]: {
     kind: ValidationRuleKind.Unique,
     category: 'database',
-    isTypeAssertion: false,
-    isConstraint: true,
-    isModifier: false,
     description: 'Field must be unique in specified database table'
   },
   [ValidationRuleKind.File]: {
     kind: ValidationRuleKind.File,
     category: 'type',
-    isTypeAssertion: true,
-    isConstraint: false,
-    isModifier: false,
     description: 'Field must be an uploaded file'
   },
   [ValidationRuleKind.Image]: {
     kind: ValidationRuleKind.Image,
     category: 'type',
-    isTypeAssertion: true,
-    isConstraint: false,
-    isModifier: false,
     description: 'Field must be an uploaded image file'
   },
   [ValidationRuleKind.Custom]: {
     kind: ValidationRuleKind.Custom,
     category: 'custom',
-    isTypeAssertion: false,
-    isConstraint: false,
-    isModifier: false,
     description: 'Custom or unhandled Laravel validation rule'
   }
 });
@@ -672,6 +624,8 @@ export interface RouteAttributeEntry {
  * Pure Ordered Validation Schema Payload (0 Record, 0 Object.entries).
  */
 export interface RouteSchemaPayload {
+  /** Canonical semantic request fields. Scanner populates these once; downstream never re-infers them. */
+  readonly fields: readonly RequestField[];
   readonly rules: readonly RouteValidationRuleEntry[];
   readonly messages: readonly RouteMessageEntry[];
   readonly attributes: readonly RouteAttributeEntry[];

@@ -41,7 +41,8 @@ export function solveConstraintStep(
             if (srcState) {
                 for (const type of srcState.lowerBounds) {
                     if (type.kind === 'object') {
-                        const propType = type.properties.get(constraint.property);
+                        const property = type.properties.find(item => item.name === constraint.property);
+                        const propType = property ? property.type : undefined;
                         if (propType) {
                             const expState = states.get(constraint.expected.id) || { lowerBounds: new Set(), upperBounds: new Set() };
                             expState.lowerBounds.add(propType);

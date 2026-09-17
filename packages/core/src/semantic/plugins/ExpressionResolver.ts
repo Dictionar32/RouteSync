@@ -7,7 +7,8 @@
  * @module semantic/plugins
  */
 
-import type { SemanticResolution } from '../../types/contract';
+import type { SemanticResolution } from '../../types/domain/semanticResolution';
+import { unknownResolution } from '../semanticResolutionSupport';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import {
     resolveLiteral,
@@ -53,16 +54,12 @@ export class ExpressionResolver implements ResolverPlugin {
                 return resolvePropertyAccess(meta, context, currentModel);
 
             default:
-                return {
-                    status: 'unknown',
-                    type: 'unknown',
-                    confidence: 0,
-                    trace: [{
-                        source: 'ExpressionResolver',
-                        rule: 'Unsupported expression kind',
-                        input: meta.kind
-                    }]
-                };
+                return unknownResolution(
+                    'ExpressionResolver',
+                    'Unsupported expression kind',
+                    meta.kind,
+                    'unsupported_syntax',
+                );
         }
     }
 }

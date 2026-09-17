@@ -1,127 +1,66 @@
-import { SemanticResolution, TraceNode } from '../../types/contract';
-import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import type { SemanticResolution } from '../../types/domain/semanticResolution';
+import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { ModelSymbol } from '../SymbolTable';
 import { BoundSemanticFactory } from '../../types/domain/boundAst';
+import { SemanticValueFactory } from '../../types/domain/semanticValues';
+import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
+import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
+import type { ParsedColumn } from '../../types/domain/databaseColumns';
+
+function primitiveFor(type: string): SemanticType {
+  switch (type) {
+    case 'number': return new PrimitiveType(PrimitiveKind.NUMBER);
+    case 'boolean': return new PrimitiveType(PrimitiveKind.BOOLEAN);
+    case 'datetime': return new PrimitiveType(PrimitiveKind.DATETIME);
+    case 'file': return new PrimitiveType(PrimitiveKind.FILE);
+    case 'string': return new PrimitiveType(PrimitiveKind.STRING);
+    default: return new PrimitiveType(PrimitiveKind.UNKNOWN);
+  }
+}
 
 export class ModelColumnResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
-    return !!(meta && (meta.kind === 'model_column' || meta.kind === 'model'));
+    return !!(meta && meta.kind === 'model_column');
   }
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    if (meta.kind === 'model') {
-      const modelVal = meta.model || '';
-      return {
-        status: 'resolved',
-        type: 'model',
-        model: modelVal,
-        confidence: 100,
-        trace: [{ source: 'ModelColumnResolver', rule: 'Fallback model mapping', input: modelVal, output: `model: ${modelVal}` }]
-      };
-    }
+    if (meta.kind !== 'model_column') return unknown();
 
-    if (meta.kind !== 'model_column') {
-      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
-    }
+    const symbol = context.symbolTable.get(meta.model.value);
+    if (!symbol) return unknown(`Model ${meta.model} not found in manifest`);
 
-    const modelName = meta.model || '';
-    const symbol = context.symbolTable.get(modelName);
-    if (!symbol) {
-      return {
-        status: 'unknown',
-        type: 'unknown',
-        confidence: 0,
-        trace: [{ source: 'ModelColumnResolver', rule: `Model ${modelName} not found in manifest` }]
-      };
-    }
+    const column = symbol.column(meta.column.value);
+    if (column) return this.resolveColumn(symbol, meta.column.value, column, context);
 
-    const colName = meta.column || '';
-    const col = symbol.column(colName);
-    let colType: string | null = col ? col.type : null;
-    let isNullable = col ? col.nullable : false;
+    const accessor = symbol.accessor(meta.column.value);
+    if (accessor) return context.kernel.resolve({ kind: 'model_accessor', model: SemanticValueFactory.modelName(symbol.name), column: SemanticValueFactory.columnName(meta.column.value) }, symbol.node);
 
-    if (colType) {
-      let tsType = context.kernel.mapSqlTypeToTs(colType);
-      const trace: TraceNode[] = [{
-        source: 'ModelColumnResolver',
-        rule: `Column type lookup from database schema`,
-        input: `${symbol.name}.${colName}`,
-        output: tsType
-      }];
-
-      const castType = symbol.cast(colName);
-      if (castType) {
-          const oldType = tsType;
-          tsType = context.kernel.mapCastToTs(castType, tsType);
-          trace.push({
-            source: 'ModelColumnResolver',
-            rule: `Cast type override`,
-            input: `cast: ${castType} (base: ${oldType})`,
-            output: tsType
-          });
-      }
-      const boundAst = BoundSemanticFactory.modelColumn({
-        model: symbol.name,
-        column: colName,
-        dbType: colType,
-        castType: castType || null,
-        semanticType: tsType,
-        nullable: isNullable
-      });
-      return {
-        status: 'resolved',
-        type: tsType,
-        nullable: isNullable || undefined,
-        confidence: 100,
-        trace,
-        boundAst,
-        ...(tsType === 'json-object' ? { sourceModel: symbol.name, sourceColumn: colName } : {})
-      };
-    }
-
-    // 2. Accessors
-    if (symbol.accessor(colName)) {
-      return context.kernel.resolve({ kind: 'model_accessor', model: symbol.name, column: colName }, symbol.node);
-    }
-
-    // 2b. Accessor fallback: snake_case → camelCase (Laravel accessors are camelCase)
-    const camelName = colName.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
-    if (camelName !== colName && symbol.accessor(camelName)) {
-      return context.kernel.resolve({ kind: 'model_accessor', model: symbol.name, column: camelName }, symbol.node);
-    }
-
-    // 3. Relations
-    const rel = symbol.relation(colName);
-    if (rel && rel.model) {
-      const isCollection = rel.type?.includes('many') || rel.type?.includes('Many') || false;
-      const boundAst = BoundSemanticFactory.relation({
-        sourceModel: symbol.name,
-        relationName: colName,
-        relationType: rel.type || 'hasOne',
-        targetModel: rel.model,
-        isCollection,
-        nullable: false
-      });
-      return {
-        status: 'resolved',
-        type: 'model',
-        model: rel.model,
-        collection: isCollection || undefined,
-        confidence: 100,
-        boundAst,
-        trace: [{
-          source: 'ModelColumnResolver',
-          rule: `Relation model lookup`,
-          input: `${symbol.name}.${colName}`,
-          output: `model: ${rel.model} (type: ${rel.type})`
-        }]
-      };
-    }
-
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: [{ source: 'ModelColumnResolver', rule: `Property ${colName} not found on model ${symbol.name}` }]
-    };
+    return unknown(`Property ${meta.column} not found on model ${symbol.name}`);
   }
+
+  private resolveColumn(symbol: ModelSymbol, name: string, column: ParsedColumn, context: ResolutionContext) {
+    const tsType = column.semanticType.kind === 'primitive' ? column.semanticType.type : 'unknown';
+    const castType = symbol.cast(name);
+    const resolvedType = castType ? context.kernel.mapCastToTs(castType.castKind, tsType) : tsType;
+    const boundAst = BoundSemanticFactory.modelColumn({
+      model: SemanticValueFactory.modelName(symbol.name),
+      column: SemanticValueFactory.columnName(name),
+      dbType: SemanticValueFactory.databaseTypeName(column.type.kind),
+      castType: castType ? { kind: 'cast', type: SemanticValueFactory.castTypeName(castType.castKind) } : { kind: 'no_cast' },
+      semanticType: primitiveFor(resolvedType),
+    });
+    return SemanticResolutionFactory.scalar({
+      status: 'resolved', confidence: 100,
+      trace: [{ source: 'ModelColumnResolver', rule: 'Column type lookup from database schema', input: `${symbol.name}.${name}`, output: resolvedType }],
+      boundAst, semanticType: primitiveFor(resolvedType), nullability: column.nullability,
+    });
+  }
+}
+
+function unknown(message = 'Unknown semantic resolution') {
+  return SemanticResolutionFactory.unknown({
+    status: 'unknown', confidence: 0,
+    trace: [{ source: 'ModelColumnResolver', rule: message, input: '', output: 'unknown' }],
+    boundAst: BoundSemanticFactory.unsupported('unresolved_symbol'),
+  });
 }

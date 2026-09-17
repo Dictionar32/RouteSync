@@ -36,30 +36,21 @@ describe('ContractIRTypeBuilder — structured semantic union', () => {
     it('recursively builds object properties', () => {
         const input: ResolvedSemanticType = {
             kind: 'object',
-            properties: [
-                {
-                    name: 'totalHarga',
-                    type: {
-                        kind: 'primitive',
-                        type: 'number',
+            properties: {
+                totalHarga: {
+                    kind: 'primitive',
+                    type: 'number',
+                },
+                gateway: {
+                    kind: 'object',
+                    properties: {
+                        token: {
+                            kind: 'primitive',
+                            type: 'string',
+                        },
                     },
                 },
-                {
-                    name: 'gateway',
-                    type: {
-                        kind: 'object',
-                        properties: [
-                            {
-                                name: 'token',
-                                type: {
-                                    kind: 'primitive',
-                                    type: 'string',
-                                },
-                            },
-                        ],
-                    },
-                },
-            ],
+            },
         };
 
         expect(builder.buildType(input)).toEqual({

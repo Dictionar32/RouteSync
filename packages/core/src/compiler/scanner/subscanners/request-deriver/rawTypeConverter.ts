@@ -17,7 +17,6 @@ import {
     SemanticType
 } from "../../../types/SemanticType";
 import { TypeInterner } from "../../../types/TypeInterner";
-import { ImmutableMap, ImmutableSet } from "../../../utils/ImmutableCollections";
 import { resolvePrimitiveKind } from "../typeDeriverUtils";
 
 export function convertRawToSemanticType(
@@ -35,12 +34,11 @@ export function convertRawToSemanticType(
     if (raw.kind === 'model') {
         const m = modelIndex.get(raw.model) || modelIndex.get(String(raw.model).toLowerCase());
         if (m && m.columns) {
-            const propMap = new Map<string, SemanticType>();
-            for (const col of m.columns) {
+            const properties = m.columns.map(col => {
                 const primKind = col.semanticType ?? DatabaseColumnTypeMapper.toPrimitiveKind(col.type);
-                propMap.set(col.name, interner.intern(new PrimitiveType(primKind)));
-            }
-            return new ObjectType(new ImmutableMap(propMap), new ImmutableSet(new Set()));
+                return { name: col.name, type: interner.intern(new PrimitiveType(primKind)), required: true, nullable: false, description: '' };
+            });
+            return new ObjectType({ name: raw.model, baseName: raw.model, properties, role: 'model' });
         }
         return new ReferenceType('App\\Models', raw.model);
     }
@@ -69,11 +67,14 @@ export function convertRawToSemanticType(
 
     if (raw.kind === 'object' || raw.fields) {
         const childFields = raw.fields || {};
-        const propMap = new Map<string, SemanticType>();
-        for (const [k, v] of Object.entries(childFields)) {
-            propMap.set(k, convertRawToSemanticType(v, modelIndex, interner));
-        }
-        return new ObjectType(new ImmutableMap(propMap), new ImmutableSet(new Set()));
+        const properties = Object.entries(childFields).map(([name, value]) => ({
+            name,
+            type: convertRawToSemanticType(value, modelIndex, interner),
+            required: true,
+            nullable: false,
+            description: ''
+        }));
+        return new ObjectType({ name: 'InlineObject', baseName: 'InlineObject', properties, role: 'plain' });
     }
 
     return interner.intern(new PrimitiveType(PrimitiveKind.STRING));

@@ -41,7 +41,7 @@ export class ScannedResourceDescriptor implements ParsedResource {
     this.typeName = params.typeName;
     this.sanitizedName = toCamelCase(params.name);
     this.baseModel = params.baseModel;
-    this.modelName = params.modelName !== undefined ? params.modelName : params.baseModel;
+    this.modelName = params.modelName;
     this.actions = Object.freeze([]);
     this.endpoints = Object.freeze([]);
     this.fields = Object.freeze(params.fields);
@@ -62,8 +62,8 @@ export class ScannedResourceDescriptor implements ParsedResource {
     isSynthetic
   }: CreateResourceDescriptorOptions): ScannedResourceDescriptor {
     const baseName = ResourceNamingConvention.stripSuffix(name);
-    const resolvedModel = modelName !== undefined ? modelName : baseName;
-    const synthetic = isSynthetic !== undefined ? isSynthetic : resolvedModel === null;
+    const resolvedModel = modelName === undefined ? baseName : modelName;
+    const synthetic = isSynthetic === undefined ? resolvedModel === null : isSynthetic;
     return new ScannedResourceDescriptor({
       name,
       baseName,

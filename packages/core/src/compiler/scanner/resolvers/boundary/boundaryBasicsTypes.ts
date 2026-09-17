@@ -14,25 +14,108 @@ import type {
     FormRequestDescriptor, RouteHandlerDescriptor
 } from "../../../../types/route";
 
-export interface RouteBoundaryContract {
-    readonly name: string;
+import type { ScannedRouteCompleteContracts } from "../../descriptors/route/routeContracts";
+
+export type RouteBoundaryContract = ScannedRouteCompleteContracts;
+
+export interface RouteBoundaryCommonOptions {
     readonly method: HttpMethod;
     readonly path: string;
-    readonly resourceName: string;
-    readonly domain: string;
-    readonly groupName: string;
-    readonly runtimePath: string;
-    readonly constantKey: string;
+    readonly resourceName?: string;
+    readonly domain?: string;
+    readonly auth?: boolean;
+    readonly middleware?: readonly string[];
+    readonly parameters?: readonly RouteParameter[];
+    readonly pathParameters?: readonly RouteParameter[];
+    readonly queryParameters?: readonly RouteQueryParameter[];
+    readonly response: ResponseDescriptor;
+    readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
+    readonly invalidation?: RouteCacheInvalidationDescriptor;
+    readonly executionSignature?: RouteExecutionSignature;
+    readonly requestContentType?: RequestContentType;
+    readonly hookKind?: RouteHookKind;
+    readonly crudRole?: CrudRole;
+    readonly constantKey?: string;
+    readonly runtimePath?: string;
+    readonly groupName?: string;
+    readonly schema: RouteSchemaPayload;
+    readonly formRequests: readonly (string | FormRequestDescriptor)[];
+}
+
+export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOptions {
+    readonly origin: "controller_action";
+    readonly name?: string;
     readonly controllerName: string;
     readonly actionName: string;
-    readonly actionTarget: string;
+    readonly action: string;
+    readonly actionKind?: RouteActionKind;
+    readonly isMutating?: boolean;
+    readonly sourceFile: string;
+    readonly sourceLine: number;
+    readonly handler: RouteHandlerDescriptor;
+}
+
+export interface ControllerReferenceBoundaryOptions extends RouteBoundaryCommonOptions {
+    readonly origin: "controller_reference";
+    readonly name?: string;
+    readonly controllerName: string;
+    readonly actionName: string;
+    readonly action: string;
+    readonly actionKind?: RouteActionKind;
+    readonly isMutating?: boolean;
+    readonly sourceFile: string;
+    readonly sourceLine: number;
+    readonly handler: RouteHandlerDescriptor;
+}
+
+export interface ClosureBoundaryOptions extends RouteBoundaryCommonOptions {
+    readonly origin: "closure";
+    readonly name?: string;
+    readonly controllerName?: string;
+    readonly actionName: string;
+    readonly action?: string;
+    readonly actionKind?: RouteActionKind;
+    readonly isMutating?: boolean;
+    readonly sourceFile: string;
+    readonly sourceLine: number;
+    readonly handler: RouteHandlerDescriptor;
+}
+
+export interface SyntheticBoundaryOptions extends RouteBoundaryCommonOptions {
+    readonly origin: "synthetic";
+    readonly name?: string;
+    readonly controllerName?: string;
+    readonly actionName?: string;
+    readonly action?: string;
+    readonly actionKind?: RouteActionKind;
+    readonly isMutating?: boolean;
+    readonly sourceFile: string;
+    readonly sourceLine: number;
+    readonly handler: RouteHandlerDescriptor;
+}
+
+export type RouteBoundaryOptions =
+    | ControllerActionBoundaryOptions
+    | ControllerReferenceBoundaryOptions
+    | ClosureBoundaryOptions
+    | SyntheticBoundaryOptions;
+
+
+export interface ResolvedRouteBoundaryOptions {
+    readonly origin: RouteBoundaryOptions["origin"];
+    readonly method: HttpMethod;
+    readonly path: string;
+    readonly name: string;
+    readonly resourceName: string;
+    readonly domain: string;
+    readonly controllerName: string;
+    readonly actionName: string;
+    readonly action: string;
     readonly actionKind: RouteActionKind;
     readonly isMutating: boolean;
-    readonly crudRole: CrudRole;
-    readonly hookKind: RouteHookKind;
-    readonly invalidation: RouteCacheInvalidationDescriptor;
-    readonly executionSignature: RouteExecutionSignature;
-    readonly requestContentType: RequestContentType;
+    readonly sourceFile: string;
+    readonly sourceLine: number;
+    readonly handler: RouteHandlerDescriptor;
     readonly auth: boolean;
     readonly middleware: readonly string[];
     readonly parameters: readonly RouteParameter[];
@@ -40,50 +123,17 @@ export interface RouteBoundaryContract {
     readonly queryParameters: readonly RouteQueryParameter[];
     readonly response: ResponseDescriptor;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
-    readonly sourceFile: string;
-    readonly sourceLine: number;
+    readonly invalidation: RouteCacheInvalidationDescriptor;
+    readonly executionSignature: RouteExecutionSignature;
+    readonly requestContentType: RequestContentType;
+    readonly hookKind: RouteHookKind;
+    readonly crudRole: CrudRole;
+    readonly constantKey: string;
+    readonly runtimePath: string;
+    readonly groupName: string;
     readonly schema: RouteSchemaPayload;
-    readonly formRequests: readonly (string | FormRequestDescriptor)[];
-    readonly handler: RouteHandlerDescriptor;
+    readonly formRequests: readonly FormRequestDescriptor[];
 }
-
-export type RouteBoundaryOptions = {
-    readonly method: HttpMethod;
-    readonly path: string;
-    readonly name?: string;
-    readonly resourceName?: string;
-    readonly domain?: string;
-    readonly action?: string;
-    readonly actionName?: string;
-    readonly actionKind?: RouteActionKind;
-    readonly isMutating?: boolean;
-    readonly groupName?: string;
-    readonly crudRole?: CrudRole;
-    readonly runtimePath?: string;
-    readonly constantKey?: string;
-    readonly hookKind?: RouteHookKind;
-    readonly invalidation?: RouteCacheInvalidationDescriptor;
-    readonly executionSignature?: RouteExecutionSignature;
-    readonly requestContentType?: RequestContentType;
-    readonly auth?: boolean;
-    readonly middleware?: readonly string[];
-    readonly parameters?: readonly RouteParameter[];
-    readonly pathParameters?: readonly RouteParameter[];
-    readonly queryParameters?: readonly RouteQueryParameter[];
-    readonly response?: ResponseDescriptor;
-    readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
-    readonly sourceFile?: string;
-    readonly sourceLine?: number;
-    readonly controllerName?: string;
-    readonly schema?: RouteSchemaPayload;
-    readonly formRequests?: readonly (string | FormRequestDescriptor)[];
-    readonly handler?: RouteHandlerDescriptor;
-};
-
-/**
- * Backward-compatibility alias for RouteBoundaryOptions.
- */
-export type SparseRouteParams = RouteBoundaryOptions;
 
 export interface IntermediateRouteBoundaryBasics {
     readonly resolvedControllerName: string;
@@ -94,5 +144,12 @@ export interface IntermediateRouteBoundaryBasics {
     readonly resolvedActionKind: RouteActionKind;
     readonly resolvedIsMutating: boolean;
     readonly resolvedDomain: string;
-    readonly fallbackResource: string;
+    readonly resolvedResourceName: string;
+    readonly resolvedParameters: readonly RouteParameter[];
+    readonly resolvedPathParameters: readonly RouteParameter[];
+    readonly resolvedQueryParameters: readonly RouteQueryParameter[];
+    readonly resolvedGroupName: string;
+    readonly resolvedRuntimePath: string;
+    readonly resolvedConstantKey: string;
+    readonly resolvedRouteName: string;
 }

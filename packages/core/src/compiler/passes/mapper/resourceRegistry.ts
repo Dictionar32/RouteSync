@@ -19,6 +19,13 @@ import type { RequestType } from '../../artifacts/RequestTypesArtifact';
 import { buildReadMapperFromFields } from './readMapperBuilder';
 import { buildFormMapper } from './formMapperBuilder';
 
+function resourceElementType(fieldType: SemanticType): SemanticType {
+    if (fieldType instanceof ReadonlyCollectionType || fieldType instanceof MutableCollectionType) {
+        return fieldType.elementType;
+    }
+    return fieldType;
+}
+
 export interface CollectedMapperParts {
     readonly readMapperBlocks: readonly string[];
     readonly formMapperBlocks: readonly string[];
@@ -44,14 +51,14 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
     // Pre-build set of all available API response type names from requestTypes
     const availableContractTypes = new Set<string>();
     for (const requestType of requestTypes) {
-        if (requestType.responseData) {
-            const resName = toPascalCase(requestType.responseData.resourceName);
+        if (requestType.response.kind === 'data') {
+            const resName = toPascalCase(requestType.response.value.contract.name.value);
             availableContractTypes.add(`${resName}ApiResponse`);
         }
     }
 
     // Helper to register an Eloquent Resource mapper (top-level or child)
-    const registerResource = (resourceName: string, fields: Record<string, SemanticType>) => {
+    const registerResource = (resourceName: string, fields: readonly ObjectProperty[]) => {
         const resource = toPascalCase(resourceName);
         if (processedResources.has(resource)) return;
         processedResources.add(resource);
@@ -67,20 +74,16 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
         contractImports.add(apiResponseType);
         readTypeImports.add(`${resource}Transformed`);
 
-        readMapperBlocks.push(buildReadMapperFromFields(resource, fields, isEloquentResource, apiResponseType));
+        const fieldMap = Object.fromEntries(fields.map(field => [field.name, field.type]));
+        readMapperBlocks.push(buildReadMapperFromFields(resource, fieldMap, isEloquentResource, apiResponseType));
 
         // Scan child fields recursively for embedded child resources
-        for (const [, fieldType] of Object.entries(fields)) {
-            let targetType: SemanticType | undefined = fieldType;
-            if (fieldType instanceof ReadonlyCollectionType || fieldType instanceof MutableCollectionType) {
-                targetType = fieldType.elementType;
-            }
+        for (const field of fields) {
+            const targetType = resourceElementType(field.type);
             if (targetType instanceof ObjectType) {
-                const childName = targetType.annotations?.get('name') ?? (targetType as any).metadata?.get('name');
-                if (childName && childName.endsWith('Resource')) {
-                    const childFields = Object.fromEntries(
-                        (targetType.properties as readonly ObjectProperty[]).map(p => [p.name, p.type])
-                    );
+                const childName = targetType.name;
+                if (targetType.role === 'resource') {
+                    const childFields = targetType.properties as readonly ObjectProperty[];
                     registerResource(childName, childFields);
                 }
             }
@@ -88,8 +91,8 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
     };
 
     for (const requestType of requestTypes) {
-        if (requestType.responseData) {
-            registerResource(requestType.responseData.resourceName, requestType.responseData.fields);
+        if (requestType.response.kind === 'data') {
+            registerResource(requestType.response.value.contract.name.value, requestType.response.value.fields);
         }
 
         for (const action of requestType.actions) {

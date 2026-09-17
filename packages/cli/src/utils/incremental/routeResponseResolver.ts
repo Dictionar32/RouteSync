@@ -23,8 +23,13 @@ export function resolveRouteResponse(
     context: 'route'
   };
   const routeId = `route:${route.method}:${route.path}`;
+  const responseKind = route.response.kind;
+  const isSemanticResponse = responseKind === 'resource'
+    || responseKind === 'model'
+    || responseKind === 'inline'
+    || responseKind === 'void';
 
-  if (route.response && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
+  if (route.response && !isSemanticResponse && route.response.kind !== 'primitive' && route.response.kind !== 'object' && route.response.kind !== 'array') {
     route.response = resolveField(
       route.response as Record<string, unknown>,
       null,

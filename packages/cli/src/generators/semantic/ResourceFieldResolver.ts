@@ -1,102 +1,78 @@
-/**
- * @file ResourceFieldResolver.ts
- * @description Sub-domain for recursive resource field resolution and AST property matching.
- * Active Consumer orchestrating recursive traversal and field mapping.
- *
- * @module cli/generators/semantic/ResourceFieldResolver
- */
-
-import type {
-    CompilerIR,
-    ResolvedField,
-    FieldResolutionMeta
-} from './semanticTypes';
+/** Resource/model field lowering from verified manifest descriptors. */
+import { NullableType, SemanticTypeResolver, camelCase } from '@routesync/core';
+import { toTypeScriptTypeExpression } from '@routesync/core';
+import { toZodSchemaExpression } from '@routesync/core';
+import type { ParsedModel, ParsedResource, ResourceFieldDescriptor } from '@routesync/core';
+import type { CompilerIR, ResolvedField } from './semanticTypes';
 import type { SemanticResolutionContext } from './SemanticResolutionContext';
-import { FieldTypeMapper } from './FieldTypeMapper';
-import { resolveSingleResourceField, buildFieldMap } from './resource-field';
+import { resolveSingleResourceField } from './resource-field';
+
+const resolver = SemanticTypeResolver.default();
 
 export class ResourceFieldResolver {
-    public static resolveFieldMappings(
-        context: SemanticResolutionContext,
-        ir: CompilerIR
-    ): void {
-        for (const model of context.modelsByName.values()) {
-            for (const column of model.columns) {
-                const mappingKey = `${model.name}.${column.name}`;
-                if (ir.fieldMappings.has(mappingKey)) continue;
-
-                try {
-                    const cast = model.casts.get(column.name);
-                    const meta: FieldResolutionMeta = {
-                        type: column.type,
-                        cast,
-                        nullable: column.nullable,
-                    };
-                    const resolved = FieldTypeMapper.resolveField(column.name, meta);
-                    ir.fieldMappings.set(mappingKey, resolved);
-                } catch (error) {
-                    ir.metadata.warnings.push(`Failed to resolve field ${mappingKey}: ${error}`);
-                }
-            }
+    public static resolveFieldMappings(context: SemanticResolutionContext, ir: CompilerIR): void {
+        for (const model of context.models) {
+            this.resolveModelFields(model, ir);
         }
-
         for (const resource of context.resources) {
-            if (!resource.fields || typeof resource.fields !== 'object') continue;
-            this.resolveResourceFieldsRecursive(
-                resource.name,
-                resource.fields as Record<string, unknown>,
-                context,
-                ir,
-                resource.name
-            );
+            this.resolveResourceFieldsRecursive(resource.fields, ir.fieldMappings, resource.name);
         }
     }
 
-    public static resolveResourceFieldsRecursive(
-        resourceName: string,
-        fields: Record<string, unknown>,
-        context: SemanticResolutionContext,
-        ir: CompilerIR,
+    public static buildResponseFields(resource: ParsedResource): Map<string, ResolvedField> {
+        const fields = new Map<string, ResolvedField>();
+        this.resolveResourceFieldsRecursive(resource.fields, fields, resource.name);
+        return fields;
+    }
+
+    public static buildModelFields(model: ParsedModel): Map<string, ResolvedField> {
+        const fields = new Map<string, ResolvedField>();
+        for (const column of model.columns) {
+            fields.set(column.name, this.resolveModelField(column));
+        }
+        return fields;
+    }
+
+    public static resolve(field: ResourceFieldDescriptor): ResolvedField {
+        return resolveSingleResourceField(field);
+    }
+
+    private static resolveModelFields(model: ParsedModel, ir: CompilerIR): void {
+        for (const column of model.columns) {
+            const key = `${model.name}.${column.name}`;
+            if (ir.fieldMappings.has(key)) continue;
+            ir.fieldMappings.set(key, this.resolveModelField(column));
+        }
+    }
+
+    private static resolveModelField(column: ParsedModel['columns'][number]): ResolvedField {
+        const semanticType = column.nullability.kind === 'nullable'
+            ? new NullableType(column.semanticType)
+            : column.semanticType;
+        const resolved = resolver.resolve(semanticType);
+        return Object.freeze({
+            name: camelCase(column.name),
+            sourceName: column.name,
+            semanticType: resolved,
+            zodType: toZodSchemaExpression(resolved),
+            tsType: toTypeScriptTypeExpression(resolved),
+            origin: { kind: 'model_column', columnName: column.name } as const,
+        });
+    }
+
+    private static resolveResourceFieldsRecursive(
+        fields: readonly ResourceFieldDescriptor[],
+        fieldMappings: Map<string, ResolvedField>,
         pathPrefix: string,
     ): void {
-        for (const [fieldName, fieldDefRaw] of Object.entries(fields)) {
-            const fieldPath = `${pathPrefix}.${fieldName}`;
-            if (!fieldDefRaw || typeof fieldDefRaw !== 'object') continue;
-            const fieldDef = fieldDefRaw as Record<string, unknown>;
-
-            if (fieldDef.kind === 'object' && fieldDef.fields && typeof fieldDef.fields === 'object') {
-                this.resolveResourceFieldsRecursive(
-                    resourceName,
-                    fieldDef.fields as Record<string, unknown>,
-                    context,
-                    ir,
-                    fieldPath,
-                );
+        for (const field of fields) {
+            const fieldPath = `${pathPrefix}.${field.name}`;
+            if (field.expression.kind === 'object') {
+                this.resolveResourceFieldsRecursive(field.expression.fields, fieldMappings, fieldPath);
                 continue;
             }
-
-            if (ir.fieldMappings.has(fieldPath)) continue;
-
-            try {
-                const resolved = this.resolveResourceField(fieldName, fieldDef, context, resourceName, fieldPath);
-                ir.fieldMappings.set(fieldPath, resolved);
-            } catch (error) {
-                ir.metadata.warnings.push(`Failed to resolve resource field ${fieldPath}: ${error}`);
-            }
+            if (fieldMappings.has(fieldPath)) continue;
+            fieldMappings.set(fieldPath, resolveSingleResourceField(field));
         }
-    }
-
-    public static resolveResourceField(
-        fieldName: string,
-        fieldDef: Record<string, unknown>,
-        context: SemanticResolutionContext,
-        resourceName: string,
-        fieldPath: string,
-    ): ResolvedField {
-        return resolveSingleResourceField(fieldName, fieldDef, context, resourceName, fieldPath);
-    }
-
-    public static buildFieldMap(meta: unknown): Map<string, ResolvedField> {
-        return buildFieldMap(meta);
     }
 }

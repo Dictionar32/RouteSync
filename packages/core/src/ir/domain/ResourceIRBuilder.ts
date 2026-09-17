@@ -10,13 +10,12 @@ import type {
     ResourceIR,
     ResourceVariantIR,
     ParsedResource,
-    ParsedField,
+    ManifestField,
     ResourceAliasIR,
     ResolvedSemanticType
 } from '../../types/ir';
 
 import { ResolvedSemanticTypeFactory } from '../../types/ir';
-import type { SemanticType, SemanticNode } from '../../types/semantic';
 import { resourceBaseName } from '../../utils/resource-naming';
 import type { FieldTypeResolver } from './FieldTypeResolver';
 import type { ResourceMapperBuilder } from './ResourceMapperBuilder';
@@ -29,15 +28,14 @@ export class ResourceIRBuilder {
 
     public extractNestedObjectResource(
         parentResourceName: string,
-        field: ParsedField,
+        field: ManifestField,
         resources: Map<string, ResourceIR>
-    ): ParsedField {
-        const semanticType = field.semanticType as { kind?: string; properties?: Record<string, unknown> } | undefined;
-        if (!semanticType || semanticType.kind !== 'object' || !semanticType.properties) {
+    ): ManifestField {
+        const semanticType = field.semanticType;
+        if (typeof semanticType !== 'object' || semanticType.kind !== 'object') {
             return field;
         }
-        const propertyEntries = Object.entries(semanticType.properties);
-        if (propertyEntries.length === 0) {
+        if (semanticType.properties.length === 0) {
             return field;
         }
 
@@ -48,18 +46,22 @@ export class ResourceIRBuilder {
         if (!resources.has(syntheticName)) {
             const subFields: Array<{
                 name: string;
-                resolved?: SemanticNode;
-                semanticType?: SemanticType | ResolvedSemanticType;
-                optional?: boolean;
-                nullable?: boolean;
-                readonly?: boolean;
-            }> = propertyEntries.map(([key, value]) => ({
-                name: key,
-                resolved: undefined,
-                semanticType: value as SemanticType | ResolvedSemanticType,
-                optional: false,
-                nullable: false,
-                readonly: false
+                type: string;
+                semanticType: ResolvedSemanticType;
+                optional: boolean;
+                nullable: boolean;
+                format: string;
+                validationRules: readonly string[];
+            }> = semanticType.properties.map(property => ({
+                name: property.name,
+                type: property.type.kind,
+                semanticType: property.type,
+                optional: property.presence === 'optional',
+                nullable: property.type.kind === 'nullable',
+                format: '',
+                validationRules: [],
+                description: property.description || '',
+                validation: false
             }));
 
             const subResource: ParsedResource = {
@@ -71,7 +73,6 @@ export class ResourceIRBuilder {
                 isSynthetic: true
             };
 
-            resources.set(syntheticName, undefined as unknown as ResourceIR);
             resources.set(syntheticName, this.buildResourceIR(subResource, resources));
         }
 
@@ -114,7 +115,7 @@ export class ResourceIRBuilder {
             metadata: {
                 sourceFile: resource.name,
                 controller: resource.controller,
-                routes: resource.routes || [],
+                routes: resource.routes,
                 dependencies: this.mapperBuilder.extractDependencies(fields)
             }
         };

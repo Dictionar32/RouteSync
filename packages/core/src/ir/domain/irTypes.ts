@@ -6,13 +6,10 @@
  */
 
 import type { TypeIR, ValidationRules } from '../../types/ir';
+import type { ResolvedSemanticType } from '../../types/ir/resolvedSemanticTypes';
 
 export const IR_VERSION = 'v1.0.0' as const;
 export const GENERATOR_VERSION = '1.0.0' as const;
-
-export const PRIMITIVE_RESOLVED_TYPES = new Set([
-    'string', 'number', 'boolean', 'date', 'datetime', 'json', 'unknown'
-]);
 
 /**
  * Projection hints for emitters - lightweight metadata instead of duplicated TypeIR trees
@@ -33,6 +30,7 @@ export interface OptimizedResourceFieldIR {
     readonly name: string;
     readonly transformedName: string;
     readonly type: TypeIR;
+    readonly semanticType: ResolvedSemanticType;
     readonly hints: ProjectionHints;
     readonly description?: string;
     readonly validation?: ValidationRules;

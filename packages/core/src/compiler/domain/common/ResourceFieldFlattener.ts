@@ -1,22 +1,20 @@
 /**
  * ResourceFieldFlattener.ts
  *
- * Structured Origin Boundary Flattener for Resource Fields.
- * Recursively flattens nested object fields into compound camelCase target properties
- * and tracks full dot-paths for source expressions.
- *
- * Pure Structured Reusable Constructor (0 '?', 0 '??', 0 'undefined').
- *
- * @module compiler/domain/common
+ * Flattens verified ResourceFieldDescriptor trees.
+ * The flattener never inspects unknown runtime shapes: the semantic ADT
+ * established by the scanner is the only input vocabulary.
  */
 
 import { toCamelCase, toPascalCase } from '../../../utils/resource-naming';
+import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
+import type { SemanticType } from '../../../types/SemanticType';
+import { matchResourceFieldExpression } from '../../../types/domain/expressions';
+import { SemanticTypeResolver } from './SemanticTypeResolver';
 import {
     ResolvedSemanticType,
-    ResolvedPrimitiveType,
     ResolvedNullableType,
-    ResolvedCollectionType,
-    ResolvedReferenceType
+    ResolvedCollectionType
 } from './ResolvedSemanticType';
 
 export interface FlattenedFieldParams {
@@ -26,103 +24,123 @@ export interface FlattenedFieldParams {
     readonly nullable: boolean;
 }
 
-/**
- * Domain Value Object: Flattened Field mapping specification.
- */
 export class FlattenedField {
     public readonly targetProperty: string;
     public readonly sourcePath: string;
     public readonly type: ResolvedSemanticType;
     public readonly nullable: boolean;
 
-    constructor({ targetProperty, sourcePath, type, nullable }: FlattenedFieldParams) {
-        this.targetProperty = targetProperty;
-        this.sourcePath = sourcePath;
-        this.type = type;
-        this.nullable = nullable;
+    constructor(params: FlattenedFieldParams) {
+        this.targetProperty = params.targetProperty;
+        this.sourcePath = params.sourcePath;
+        this.type = params.type;
+        this.nullable = params.nullable;
         Object.freeze(this);
     }
 }
 
 export interface ResourceFieldFlattenerDependencies {
     readonly maxDepth?: number;
+    readonly typeResolver?: SemanticTypeResolver;
 }
 
-/**
- * Upstream Origin Boundary Flattener.
- */
 export class ResourceFieldFlattener {
     public readonly maxDepth: number;
+    private readonly typeResolver: SemanticTypeResolver;
 
-    constructor({ maxDepth = 5 }: ResourceFieldFlattenerDependencies = {}) {
+    constructor({ maxDepth = 5, typeResolver = SemanticTypeResolver.default() }: ResourceFieldFlattenerDependencies = {}) {
         this.maxDepth = maxDepth;
+        this.typeResolver = typeResolver;
         Object.freeze(this);
     }
 
     flatten(
-        rawFields: Record<string, any> | readonly any[],
+        fields: readonly ResourceFieldDescriptor[],
         parentTarget = '',
         parentSource = '',
         depth = 0
     ): readonly FlattenedField[] {
-        if (depth >= this.maxDepth) {
-            return Object.freeze([]);
-        }
-
-        const entries: readonly [string, any][] = Array.isArray(rawFields)
-            ? rawFields.map(f => [f.name, f.expression ?? f])
-            : Object.entries(rawFields || {});
+        if (depth >= this.maxDepth) return Object.freeze([]);
 
         const result: FlattenedField[] = [];
-
-        for (const [key, rawExpr] of entries) {
-            const camelKey = toCamelCase(key);
-            const targetProp = parentTarget.length > 0
-                ? `${parentTarget}${camelKey.charAt(0).toUpperCase()}${camelKey.slice(1)}`
-                : camelKey;
-            const sourcePath = parentSource.length > 0
-                ? `${parentSource}.${key}`
-                : key;
-
-            const expr = rawExpr ?? {};
-            const isObject = typeof expr === 'object' && (expr.kind === 'object' || expr.fields);
-
-            if (isObject) {
-                const childFields = expr.fields || {};
-                const nested = this.flatten(childFields, targetProp, sourcePath, depth + 1);
-                result.push(...nested);
-            } else {
-                const isNullable = !!(expr.nullable || expr.resolved?.nullable || (typeof expr.resolved?.type === 'string' && expr.resolved.type.includes('null')));
-                const baseType = this.resolveType(expr);
-                const finalType = isNullable ? ResolvedNullableType.of(baseType) : baseType;
-
-                result.push(new FlattenedField({
-                    targetProperty: targetProp,
-                    sourcePath,
-                    type: finalType,
-                    nullable: isNullable
-                }));
-            }
+        for (const field of fields) {
+            this.flattenField(field, parentTarget, parentSource, depth, result);
         }
-
         return Object.freeze(result);
     }
 
-    private resolveType(expr: any): ResolvedSemanticType {
-        const rawType = String(expr?.semanticType ?? expr?.resolved?.type ?? expr?.type ?? '').toLowerCase();
-        if (rawType === 'number' || rawType === 'int' || rawType.includes('int') || rawType.includes('decimal') || rawType.includes('float') || rawType.includes('numeric')) {
-            return new ResolvedPrimitiveType({ primitiveKind: 'number' });
-        }
-        if (rawType === 'boolean' || rawType === 'bool') {
-            return new ResolvedPrimitiveType({ primitiveKind: 'boolean' });
-        }
-        if (expr?.kind === 'collection' || expr?.kind === 'array' || expr?.collection) {
-            const targetRes = expr?.resolved?.resource ?? expr?.resource;
-            const elemType = targetRes
-                ? ResolvedReferenceType.create(`${toPascalCase(targetRes)}Transformed`)
-                : new ResolvedPrimitiveType({ primitiveKind: 'string' });
-            return ResolvedCollectionType.of(elemType);
-        }
-        return new ResolvedPrimitiveType({ primitiveKind: 'string' });
+    private flattenField(
+        field: ResourceFieldDescriptor,
+        parentTarget: string,
+        parentSource: string,
+        depth: number,
+        result: FlattenedField[]
+    ): void {
+        const camelKey = toCamelCase(field.name);
+        const targetProperty = parentTarget.length > 0
+            ? `${parentTarget}${camelKey.charAt(0).toUpperCase()}${camelKey.slice(1)}`
+            : camelKey;
+        const sourcePath = parentSource.length > 0
+            ? `${parentSource}.${field.name}`
+            : field.name;
+
+        matchResourceFieldExpression(field.expression, {
+            primitive: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            model: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            resource: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            object: expression => this.flatten(expression.fields, targetProperty, sourcePath, depth + 1)
+                .forEach(flattened => result.push(flattened)),
+            array: expression => this.pushArray(field, expression.element, targetProperty, sourcePath, result),
+            property_access: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            nullsafe_property_access: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            variable: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            type_cast: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            binary_expression: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            method_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            nullsafe_method_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            static_method_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            literal: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            unsupported: () => this.pushLeaf(field, targetProperty, sourcePath, result)
+        });
     }
+
+    private pushArray(
+        field: ResourceFieldDescriptor,
+        element: ResourceFieldDescriptor,
+        targetProperty: string,
+        sourcePath: string,
+        result: FlattenedField[]
+    ): void {
+        const elementType = this.resolveSemanticType(element.semanticType);
+        const collection = ResolvedCollectionType.of(elementType);
+        const type = field.nullable ? ResolvedNullableType.of(collection) : collection;
+        result.push(new FlattenedField({
+            targetProperty,
+            sourcePath,
+            type,
+            nullable: field.nullable
+        }));
+    }
+
+    private pushLeaf(
+        field: ResourceFieldDescriptor,
+        targetProperty: string,
+        sourcePath: string,
+        result: FlattenedField[]
+    ): void {
+        const type = field.nullable
+            ? ResolvedNullableType.of(this.resolveSemanticType(field.semanticType))
+            : this.resolveSemanticType(field.semanticType);
+        result.push(new FlattenedField({
+            targetProperty,
+            sourcePath,
+            type,
+            nullable: field.nullable
+        }));
+    }
+
+    private resolveSemanticType(type: SemanticType): ResolvedSemanticType {
+        return this.typeResolver.resolve(type);
+    }
+
 }

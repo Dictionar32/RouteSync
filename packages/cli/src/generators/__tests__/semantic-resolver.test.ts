@@ -150,7 +150,7 @@ describe('SemanticResolver', () => {
             const ir = SemanticResolver.resolve(manifest)
             const response = ir.responseTypes.get('items.listResponse')
 
-            expect(response?.isCollection).toBe(true)
+            expect(response?.cardinality.kind).toBe('collection')
         })
 
         it('should detect paginated responses', () => {
@@ -178,7 +178,7 @@ describe('SemanticResolver', () => {
             const ir = SemanticResolver.resolve(manifest)
             const response = ir.responseTypes.get('items.listResponse')
 
-            expect(response?.isPaginated).toBe(true)
+            expect(response?.cardinality.kind).toBe('paginated_collection')
         })
     })
 

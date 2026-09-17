@@ -11,6 +11,7 @@ import fs from "fs-extra";
 import type { RequestType } from "../../artifacts/RequestTypesArtifact";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import type { ControllerActionInfo } from "../descriptors/requestDescriptors";
+import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from "./scannerUtils";
 import { scanControllerAction } from "./controller";
 import type { ModelSymbolTable } from "../symbols/ModelSymbolTable";
@@ -30,21 +31,21 @@ export class ControllerScanner {
             const source = await fs.readFile(fullPath, 'utf-8');
             const tokens = LaravelSourceLexer.tokenize(source);
             const actionMap = new Map<string, ControllerActionInfo>();
+            const declaration = LaravelSourceLexer.parseControllerDeclaration(
+                source,
+                tokens,
+                createAstIdentifier(controllerName)
+            );
 
-            for (let i = 0; i < tokens.length; i++) {
-                if (tokens[i].value === 'function' && tokens[i + 1]?.type === 'IDENTIFIER') {
-                    const result = scanControllerAction(
-                        source,
-                        tokens,
-                        i,
-                        controllerName,
-                        fullPath,
-                        formRequestMap
-                    );
-                    if (result) {
-                        actionMap.set(result.actionName, result.descriptor);
-                    }
-                }
+            for (const method of declaration.methods) {
+                const result = scanControllerAction(
+                    method,
+                    controllerName,
+                    fullPath,
+                    formRequestMap,
+                    projectRoot
+                );
+                actionMap.set(result.actionName, result.descriptor);
             }
             controllerMap.set(controllerName, actionMap);
         }

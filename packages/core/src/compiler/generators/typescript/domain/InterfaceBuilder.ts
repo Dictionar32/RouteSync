@@ -106,12 +106,11 @@ export class InterfaceBuilder {
 
     private extractPropertiesFromObjectType(type: ObjectType): PropertyDefinition[] {
         const properties: PropertyDefinition[] = [];
-        for (const [propName, propType] of type.properties.entries()) {
-            const isRequired = type.requiredProperties.has(propName);
+        for (const property of type.properties) {
             properties.push({
-                name: propName,
-                type: propType,
-                optional: !isRequired,
+                name: property.name,
+                type: property.type,
+                optional: !property.required,
                 readonly: false,
                 description: undefined
             });

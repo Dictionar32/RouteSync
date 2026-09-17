@@ -1,13 +1,14 @@
-import { PrimitiveKind } from "../../compiler/types/SemanticType";
+import { PrimitiveKind, type SemanticType } from "../../compiler/types/SemanticType";
+import type { ModelBinding, Nullability } from './modelContracts';
+import type { ModelName, PropertyName, ResourceName, ResponseFieldName, ResponseTypeName, MethodName, CastTypeName, SemanticOperator, VariableName } from './semanticValues';
 import type { HttpMethod } from "./security";
 import type { BoundSemanticNode } from "./boundAst";
 
 export interface ResourceFieldDescriptor {
-  readonly name: string;
-  readonly propertyName: string; // ✅ Canonical TS Identifier ('productId')
+  readonly name: ResponseFieldName;
+  readonly propertyName: PropertyName; // Canonical generated property identifier
   readonly expression: ResourceFieldExpression;
-  readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
-  readonly nullable: boolean; // ✅ 100% Guaranteed boolean (true | false, 0 undefined)
+  readonly semanticType: SemanticType; // First-class semantic type; no primitive compression
   readonly boundAst?: BoundSemanticNode;
 }
 
@@ -29,9 +30,10 @@ export const ResourceExpressionKind = Object.freeze({
   TypeCast: 'type_cast',
   BinaryExpression: 'binary_expression',
   MethodCall: 'method_call',
+  NullsafeMethodCall: 'nullsafe_method_call',
   StaticMethodCall: 'static_method_call',
   Literal: 'literal',
-  Unknown: 'unknown'
+  Unsupported: 'unsupported'
 } as const);
 
 export type ResourceExpressionKind = typeof ResourceExpressionKind[keyof typeof ResourceExpressionKind];
@@ -40,22 +42,25 @@ export interface BaseResourceFieldExpression<K extends ResourceExpressionKind = 
   readonly kind: K;
 }
 
+export type ResourceExpressionCardinality =
+  | { readonly kind: 'single' }
+  | { readonly kind: 'collection' };
+
 export interface PrimitiveResourceExpression extends BaseResourceFieldExpression<'primitive'> {
   readonly kind: 'primitive';
-  readonly type: string;
+  readonly type: PrimitiveKind;
 }
 
 export interface ModelResourceExpression extends BaseResourceFieldExpression<'model'> {
   readonly kind: 'model';
-  readonly model: string;
-  readonly collection: boolean;
+  readonly model: ModelName;
+  readonly cardinality: ResourceExpressionCardinality;
 }
 
 export interface ResourceResourceExpression extends BaseResourceFieldExpression<'resource'> {
   readonly kind: 'resource';
-  readonly resource: string;
-  readonly model: string | null;
-  readonly collection: boolean;
+  readonly resource: ResourceName;
+  readonly cardinality: ResourceExpressionCardinality;
 }
 
 export interface ObjectResourceExpression extends BaseResourceFieldExpression<'object'> {
@@ -70,52 +75,75 @@ export interface ArrayResourceExpression extends BaseResourceFieldExpression<'ar
 
 export interface PropertyAccessResourceExpression extends BaseResourceFieldExpression<'property_access'> {
   readonly kind: 'property_access';
-  readonly target: string;
-  readonly property: string;
+  readonly target: ResourceFieldExpression;
+  readonly property: PropertyName;
 }
 
 export interface NullsafePropertyAccessResourceExpression extends BaseResourceFieldExpression<'nullsafe_property_access'> {
   readonly kind: 'nullsafe_property_access';
-  readonly target: string;
-  readonly property: string;
+  readonly target: ResourceFieldExpression;
+  readonly property: PropertyName;
 }
 
 export interface VariableResourceExpression extends BaseResourceFieldExpression<'variable'> {
   readonly kind: 'variable';
-  readonly name: string;
+  readonly name: VariableName;
 }
 
 export interface TypeCastResourceExpression extends BaseResourceFieldExpression<'type_cast'> {
   readonly kind: 'type_cast';
-  readonly type: string;
-  readonly expression: ResourceFieldDescriptor;
+  readonly type: CastTypeName;
+  readonly expression: ResourceFieldExpression;
 }
 
 export interface BinaryResourceExpression extends BaseResourceFieldExpression<'binary_expression'> {
   readonly kind: 'binary_expression';
-  readonly operator: string;
-  readonly left: ResourceFieldDescriptor;
-  readonly right: ResourceFieldDescriptor;
+  readonly operator: SemanticOperator;
+  readonly left: ResourceFieldExpression;
+  readonly right: ResourceFieldExpression;
 }
 
 export interface MethodCallResourceExpression extends BaseResourceFieldExpression<'method_call'> {
   readonly kind: 'method_call';
-  readonly method: string;
+  readonly target: ResourceFieldExpression;
+  readonly method: MethodName;
+  readonly arguments: readonly ResourceFieldExpression[];
+}
+
+export interface NullsafeMethodCallResourceExpression extends BaseResourceFieldExpression<'nullsafe_method_call'> {
+  readonly kind: 'nullsafe_method_call';
+  readonly target: ResourceFieldExpression;
+  readonly method: MethodName;
+  readonly arguments: readonly ResourceFieldExpression[];
 }
 
 export interface StaticMethodCallResourceExpression extends BaseResourceFieldExpression<'static_method_call'> {
   readonly kind: 'static_method_call';
-  readonly class: string;
-  readonly method: string;
+  readonly class: ModelName;
+  readonly method: MethodName;
+  readonly arguments: readonly ResourceFieldExpression[];
 }
+
+export type ResourceLiteralValue =
+  | { readonly kind: 'string'; readonly value: string }
+  | { readonly kind: 'number'; readonly value: number }
+  | { readonly kind: 'boolean'; readonly value: boolean }
+  | { readonly kind: 'null'; readonly value: null };
 
 export interface LiteralResourceExpression extends BaseResourceFieldExpression<'literal'> {
   readonly kind: 'literal';
-  readonly value: unknown;
+  readonly value: ResourceLiteralValue;
 }
 
-export interface UnknownResourceExpression extends BaseResourceFieldExpression<'unknown'> {
-  readonly kind: 'unknown';
+export type UnsupportedResourceExpressionReason =
+  | 'parser_gap'
+  | 'unsupported_syntax'
+  | 'invalid_boundary_input'
+  | 'missing_expression';
+
+export interface UnsupportedResourceExpression extends BaseResourceFieldExpression<'unsupported'> {
+  readonly kind: 'unsupported';
+  readonly reason: UnsupportedResourceExpressionReason;
 }
 
 export type ResourceFieldExpression =
@@ -132,7 +160,7 @@ export type ResourceFieldExpression =
   | MethodCallResourceExpression
   | StaticMethodCallResourceExpression
   | LiteralResourceExpression
-  | UnknownResourceExpression;
+  | UnsupportedResourceExpression;
 
 export type AnyResourceFieldExpression = ResourceFieldExpression;
 
@@ -248,8 +276,8 @@ export const RESOURCE_EXPRESSION_REGISTRY: ResourceExpressionRegistry = Object.f
     isResolvableToModel: false,
     description: 'Constant literal value (string, number, boolean, null)'
   },
-  [ResourceExpressionKind.Unknown]: {
-    kind: ResourceExpressionKind.Unknown,
+  [ResourceExpressionKind.Unsupported]: {
+    kind: ResourceExpressionKind.Unsupported,
     category: 'fallback',
     isTerminal: true,
     isResolvableToModel: false,
@@ -269,9 +297,10 @@ export type ResourceFieldExpressionVisitor<R> = {
   readonly type_cast: (expr: TypeCastResourceExpression) => R;
   readonly binary_expression: (expr: BinaryResourceExpression) => R;
   readonly method_call: (expr: MethodCallResourceExpression) => R;
+  readonly nullsafe_method_call: (expr: NullsafeMethodCallResourceExpression) => R;
   readonly static_method_call: (expr: StaticMethodCallResourceExpression) => R;
   readonly literal: (expr: LiteralResourceExpression) => R;
-  readonly unknown: (expr: UnknownResourceExpression) => R;
+  readonly unsupported: (expr: UnsupportedResourceExpression) => R;
 };
 
 /**
@@ -281,7 +310,23 @@ export function matchResourceFieldExpression<R>(
   expression: ResourceFieldExpression,
   visitor: ResourceFieldExpressionVisitor<R>
 ): R {
-  return visitor[expression.kind](expression as any);
+  switch (expression.kind) {
+    case 'primitive': return visitor.primitive(expression);
+    case 'model': return visitor.model(expression);
+    case 'resource': return visitor.resource(expression);
+    case 'object': return visitor.object(expression);
+    case 'array': return visitor.array(expression);
+    case 'property_access': return visitor.property_access(expression);
+    case 'nullsafe_property_access': return visitor.nullsafe_property_access(expression);
+    case 'variable': return visitor.variable(expression);
+    case 'type_cast': return visitor.type_cast(expression);
+    case 'binary_expression': return visitor.binary_expression(expression);
+    case 'method_call': return visitor.method_call(expression);
+    case 'nullsafe_method_call': return visitor.nullsafe_method_call(expression);
+    case 'static_method_call': return visitor.static_method_call(expression);
+    case 'literal': return visitor.literal(expression);
+    case 'unsupported': return visitor.unsupported(expression);
+  }
 }
 
 export const matchResourceExpression = matchResourceFieldExpression;
@@ -292,14 +337,14 @@ export const matchResourceExpression = matchResourceFieldExpression;
  * Canonical Factory for Structured ResourceFieldExpression AST Nodes.
  */
 export class ResourceFieldExpressionFactory {
-  public static primitive(type: string = 'string'): PrimitiveResourceExpression {
+  public static primitive(type: PrimitiveKind): PrimitiveResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Primitive, type });
   }
-  public static model(model: string, collection: boolean = false): ModelResourceExpression {
-    return Object.freeze({ kind: ResourceExpressionKind.Model, model, collection });
+  public static model(model: ModelName, cardinality: ResourceExpressionCardinality = { kind: 'single' }): ModelResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Model, model, cardinality });
   }
-  public static resource(resource: string, collection: boolean = false, model: string | null = null): ResourceResourceExpression {
-    return Object.freeze({ kind: ResourceExpressionKind.Resource, resource, model, collection });
+  public static resource(resource: ResourceName, cardinality: ResourceExpressionCardinality = { kind: 'single' }): ResourceResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Resource, resource, cardinality });
   }
   public static object(fields: readonly ResourceFieldDescriptor[]): ObjectResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Object, fields: Object.freeze([...fields]) });
@@ -307,32 +352,35 @@ export class ResourceFieldExpressionFactory {
   public static array(element: ResourceFieldDescriptor): ArrayResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Array, element });
   }
-  public static propertyAccess(target: string, property: string): PropertyAccessResourceExpression {
+  public static propertyAccess(target: ResourceFieldExpression, property: PropertyName): PropertyAccessResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.PropertyAccess, target, property });
   }
-  public static nullsafePropertyAccess(target: string, property: string): NullsafePropertyAccessResourceExpression {
+  public static nullsafePropertyAccess(target: ResourceFieldExpression, property: PropertyName): NullsafePropertyAccessResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.NullsafePropertyAccess, target, property });
   }
-  public static variable(name: string): VariableResourceExpression {
+  public static variable(name: VariableName): VariableResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Variable, name });
   }
-  public static typeCast(type: string, expression: ResourceFieldDescriptor): TypeCastResourceExpression {
+  public static typeCast(type: CastTypeName, expression: ResourceFieldExpression): TypeCastResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.TypeCast, type, expression });
   }
-  public static binary(operator: string, left: ResourceFieldDescriptor, right: ResourceFieldDescriptor): BinaryResourceExpression {
+  public static binary(operator: SemanticOperator, left: ResourceFieldExpression, right: ResourceFieldExpression): BinaryResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.BinaryExpression, operator, left, right });
   }
-  public static methodCall(method: string): MethodCallResourceExpression {
-    return Object.freeze({ kind: ResourceExpressionKind.MethodCall, method });
+  public static methodCall(target: ResourceFieldExpression, method: MethodName, arguments_: readonly ResourceFieldExpression[] = []): MethodCallResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.MethodCall, target, method, arguments: Object.freeze([...arguments_]) });
   }
-  public static staticMethodCall(className: string, method: string): StaticMethodCallResourceExpression {
-    return Object.freeze({ kind: ResourceExpressionKind.StaticMethodCall, class: className, method });
+  public static nullsafeMethodCall(target: ResourceFieldExpression, method: MethodName, arguments_: readonly ResourceFieldExpression[] = []): NullsafeMethodCallResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.NullsafeMethodCall, target, method, arguments: Object.freeze([...arguments_]) });
   }
-  public static literal(value: unknown): LiteralResourceExpression {
+  public static staticMethodCall(className: ModelName, method: MethodName, arguments_: readonly ResourceFieldExpression[] = []): StaticMethodCallResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.StaticMethodCall, class: className, method, arguments: Object.freeze([...arguments_]) });
+  }
+  public static literal(value: ResourceLiteralValue): LiteralResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Literal, value });
   }
-  public static unknown(): UnknownResourceExpression {
-    return Object.freeze({ kind: ResourceExpressionKind.Unknown });
+  public static unsupported(reason: UnsupportedResourceExpressionReason): UnsupportedResourceExpression {
+    return Object.freeze({ kind: ResourceExpressionKind.Unsupported, reason });
   }
 }
 
@@ -340,18 +388,17 @@ export class ResourceFieldExpressionFactory {
  * First-Class Variable Assignment Node (Ordered & Self-Contained).
  */
 export interface ResourceAssignment {
-  readonly name: string;
+  readonly name: PropertyName;
   readonly expression: ResourceFieldExpression;
-  readonly nullable: boolean;
+  readonly nullability: Nullability;
 }
 
 export interface ParsedResource {
-  readonly name: string;
-  readonly baseName: string;
-  readonly typeName: string;
-  readonly sanitizedName: string;
-  readonly baseModel: string | null;
-  readonly modelName: string | null;
+  readonly name: ResourceName;
+  readonly baseName: ResourceName;
+  readonly typeName: ResponseTypeName;
+  readonly sanitizedName: PropertyName;
+  readonly modelBinding: ModelBinding;
   readonly actions: readonly ActionDefinition[];
   readonly endpoints: readonly string[];
   /**

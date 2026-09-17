@@ -16,6 +16,7 @@ export {
 
 export type {
     ObjectSchema,
+    ObjectSchemaProperty,
     PropertyType,
     PropertyDescriptor,
     ModelAttribute

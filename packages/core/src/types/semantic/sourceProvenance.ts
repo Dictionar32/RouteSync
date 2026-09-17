@@ -35,21 +35,3 @@ export class SourceRefFactory {
   }
 }
 
-export interface RootASTNode {
-  readonly kind: "root";
-  readonly identifier: string;
-  readonly source: SourceRef;
-}
-
-export class RootASTNodeFactory {
-  public static create(
-    identifier: string = '',
-    source: SourceRef = SourceRefFactory.unknown()
-  ): RootASTNode {
-    return Object.freeze({
-      kind: "root",
-      identifier,
-      source
-    });
-  }
-}

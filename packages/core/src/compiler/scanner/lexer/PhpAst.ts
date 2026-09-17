@@ -15,7 +15,13 @@ export type {
     TokenDescriptor,
     PhpLiteralValue,
     PhpAstValue,
+    PhpPropertyPath,
     PhpArrayEntry,
+    PhpArgument,
+    PhpParameter,
+    PhpClosureCapture,
+    PhpStatement,
+    PhpBlock,
     ParsedPhpArrayResult
 } from "./phpAstTypes";
 

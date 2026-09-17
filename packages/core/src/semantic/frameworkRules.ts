@@ -11,15 +11,14 @@ import type { SemanticType } from '../types/semantic';
 
 export interface ModelMethodRuleContract {
   readonly kind: 'model';
-  readonly model: string;
-  readonly collection: boolean;
-  readonly paginated: boolean;
+  readonly model: import('../types/domain/semanticValues').ModelName;
+  readonly cardinality: import('../types/domain/semanticResolution').ResolutionCardinality;
   readonly confidence: number;
 }
 
 export interface ObjectMethodRuleContract {
   readonly kind: 'object';
-  readonly fields: readonly (readonly [string, string])[];
+  readonly fields: readonly (readonly [import('../types/domain/semanticValues').ResponseFieldName, SemanticType])[];
   readonly confidence: number;
 }
 
@@ -29,9 +28,6 @@ export interface ScalarMethodRuleContract {
   readonly confidence: number;
 }
 
-/**
- * Level 7 Complete Closed ADT for FrameworkMethodRule (0 undefined, 0 null, 0 ?:).
- */
 export type FrameworkMethodRuleContract =
   | ModelMethodRuleContract
   | ObjectMethodRuleContract

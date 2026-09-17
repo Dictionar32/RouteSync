@@ -7,7 +7,8 @@
  * @module semantic/plugins/VariableResolver
  */
 
-import type { SemanticResolution } from '../../types/contract';
+import type { SemanticResolution } from '../../types/domain/semanticResolution';
+import { unknownResolution } from '../semanticResolutionSupport';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import {
   resolveThisVariable,
@@ -28,9 +29,9 @@ export class VariableResolver implements ResolverPlugin {
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
     if (meta.kind !== 'variable') {
-      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+      return unknownResolution('VariableResolver', 'Unsupported variable metadata', 'variable', 'invalid_boundary_input');
     }
-    const name = meta.name || '';
+    const name = meta.name.value;
     const currentModel = context.contextModel;
 
     // 1. Resolve 'this'
@@ -47,15 +48,6 @@ export class VariableResolver implements ResolverPlugin {
     const modelRes = resolveModelByName(name, context.symbolTable);
     if (modelRes) return modelRes;
 
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: [{
-        source: 'VariableResolver',
-        rule: 'Unknown variable',
-        input: name
-      }]
-    };
+    return unknownResolution('VariableResolver', 'Unknown variable', name, 'unresolved_symbol');
   }
 }

@@ -17,7 +17,7 @@ import {
   ScannedObjectProperty
 } from '../../../types/SemanticType';
 import type { TypeInterner } from '../../../types/TypeInterner';
-import type { ParsedArrayEntry } from '../lexer/types';
+import type { PhpArrayEntry, PhpAstValue } from '../../lexer/PhpAst';
 
 export interface RegularRuleItem {
   readonly key: string;
@@ -34,7 +34,7 @@ export interface PartitionedRules {
 }
 
 export function partitionValidationRules(
-  entries: readonly ParsedArrayEntry[],
+  entries: readonly PhpArrayEntry[],
   interner: TypeInterner
 ): PartitionedRules {
   const arrayProps = new Map<string, ObjectProperty[]>();
@@ -42,11 +42,7 @@ export function partitionValidationRules(
   const regularRules: RegularRuleItem[] = [];
 
   for (const entry of entries) {
-    const ruleStr = entry.value.kind === 'literal' && entry.value.literalType === 'string'
-      ? entry.value.value
-      : (entry.value.kind === 'nested_array'
-        ? entry.value.entries.map(e => e.rawExpression).join('|')
-        : entry.rawExpression);
+    const ruleStr = readRuleExpression(entry.value);
 
     const rulesList = (ruleStr || '').split('|').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
     const validationAst = ValidationRuleParser.parseAll(rulesList);
@@ -87,4 +83,13 @@ export function partitionValidationRules(
   }
 
   return { arrayProps, primitiveArrayProps, regularRules };
+}
+
+
+function readRuleExpression(value: PhpAstValue): string {
+  if (value.kind === 'literal' && value.literalType === 'string') return value.value;
+  if (value.kind === 'nested_array') {
+    return value.entries.map(entry => readRuleExpression(entry.value)).join('|');
+  }
+  throw new Error('Validation rule value must be a string literal or nested array of string literals');
 }

@@ -13,8 +13,9 @@ import {
     ResourceFieldExpressionFactory
 } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
+import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
 import { ScannedResourceFieldDescriptor } from "../../../descriptors/resourceDescriptors";
-import { PrimitiveKind } from "../../../../types/SemanticType";
+import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 
@@ -26,23 +27,32 @@ export function bindResourceCollectionField(
     const isCollection = value.kind === 'resource_collection';
     const rel = modelSymbol ? modelSymbol.relation(key) : undefined;
     const targetModel = rel ? rel.targetModel : value.resourceName;
-    const relationType = rel ? (rel.isCollection ? 'hasMany' : 'hasOne') : (isCollection ? 'hasMany' : 'hasOne');
-    const boundAst = BoundSemanticFactory.relation({
-        sourceModel: modelSymbol ? modelSymbol.name : '',
-        relationName: key,
-        relationType,
-        targetModel,
-        isCollection,
-        nullable: false
-    });
+    const cardinality = isCollection
+        ? { kind: 'collection' as const }
+        : { kind: 'single' as const };
+    const boundAst = rel
+        ? BoundSemanticFactory.relation({
+            sourceModel: SemanticValueFactory.modelName(modelSymbol!.name),
+            relationName: SemanticValueFactory.relationName(key),
+            relationType: rel.type,
+            targetModel: SemanticValueFactory.modelName(rel.targetModel),
+            cardinality,
+            nullability: { kind: 'non_nullable' }
+        })
+        : BoundSemanticFactory.unsupported('unresolved_relation');
 
-    const expression = ResourceFieldExpressionFactory.resource(value.resourceName, isCollection);
+    const expression = ResourceFieldExpressionFactory.resource(
+        { kind: 'resource_name', value: value.resourceName },
+        cardinality
+    );
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
         false,
         toCamelCase(key),
-        PrimitiveKind.STRING,
+        isCollection
+            ? new ReadonlyCollectionType(CollectionKind.ARRAY, new ReferenceType('', value.resourceName))
+            : new ReferenceType('', value.resourceName),
         boundAst
     );
 
@@ -57,7 +67,6 @@ export function bindNestedArrayField(
     bindFieldFn: (params: {
         readonly key: string;
         readonly value: PhpAstValue;
-        readonly rawExpression: string;
         readonly modelSymbol?: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
     }) => BoundResourceFieldResult
@@ -67,20 +76,20 @@ export function bindNestedArrayField(
         const childResult = bindFieldFn({
             key: childEntry.key,
             value: childEntry.value,
-            rawExpression: childEntry.rawExpression,
             modelSymbol,
             modelSymbolTable
         });
         childFields.push(childResult.descriptor);
     }
 
-    const boundAst = BoundSemanticFactory.propertyChain({
-        rootModel: modelSymbol ? modelSymbol.name : 'nested',
-        steps: [],
-        resultingType: 'object',
-        nullable: false,
-        invalidationTags: modelSymbol ? [modelSymbol.name] : []
-    });
+    const boundAst = modelSymbol
+        ? BoundSemanticFactory.propertyChain({
+            rootModel: SemanticValueFactory.modelName(modelSymbol.name),
+            steps: [],
+            resultingType: new ObjectType({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' }),
+            nullability: { kind: 'non_nullable' }
+        })
+        : BoundSemanticFactory.unsupported('invalid_boundary_input');
 
     const expression = ResourceFieldExpressionFactory.object(childFields);
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
@@ -88,7 +97,7 @@ export function bindNestedArrayField(
         expression,
         false,
         toCamelCase(key),
-        PrimitiveKind.STRING,
+        new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: childFields.map(field => ({ name: field.name, type: field.semanticType, required: true, nullable: field.semanticType.isNullable(), description: "" })), role: "plain" }),
         boundAst
     );
 

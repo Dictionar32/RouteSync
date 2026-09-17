@@ -1,7 +1,7 @@
 /**
  * modelGraphTypes.ts
  *
- * Model node descriptors, Eloquent cast collections, and dependencies.
+ * Service-graph model node descriptors, Eloquent cast collections, and dependencies.
  *
  * @module core/types/semantic
  */
@@ -70,7 +70,7 @@ export class ModelCastCollection implements Iterable<ModelCastEntry> {
   }
 }
 
-export interface ModelNode {
+export interface ServiceModelNode {
   kind: "model_node";
   name: string;
   table?: string;

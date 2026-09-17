@@ -31,16 +31,8 @@ export function resolveResourceBaseName(elem: unknown): string | null {
     if (elem instanceof ReferenceType && elem.name.includes('Resource')) {
         return toPascalCase(stripTransformedSuffix(elem.name));
     }
-    if (elem instanceof ObjectType) {
-        const metaName = elem.annotations?.get('name');
-        if (typeof metaName === 'string' && metaName.includes('Resource')) {
-            return toPascalCase(stripTransformedSuffix(metaName));
-        }
-        const objWithMeta = elem as { metadata?: Map<string, unknown> };
-        const fallbackName = objWithMeta.metadata?.get('name');
-        if (typeof fallbackName === 'string' && fallbackName.includes('Resource')) {
-            return toPascalCase(stripTransformedSuffix(fallbackName));
-        }
+    if (elem instanceof ObjectType && elem.role === 'resource') {
+        return toPascalCase(stripTransformedSuffix(elem.name));
     }
     return null;
 }
@@ -59,12 +51,6 @@ export function buildFieldMappingLine(
     const camelProp = toCamelCase(targetPropKey);
 
     if (type instanceof ObjectType) {
-        if (type.annotations?.get('kind') === 'nullable_wrapper') {
-            const innerVal = type.properties.get('__value');
-            if (innerVal) {
-                return buildFieldMappingLine(targetPropKey, innerVal, jsonPath, isEloquentResource);
-            }
-        }
         return (type.properties as readonly ObjectProperty[])
             .filter(p => !p.name.startsWith('__'))
             .map(p => {

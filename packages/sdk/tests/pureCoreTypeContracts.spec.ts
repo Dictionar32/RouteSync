@@ -11,8 +11,6 @@ import {
   SourceRefFactory,
   IRHintsFactory,
   IRRawNodeDescriptor,
-  RootASTNodeFactory,
-  matchParsedAST,
   SemanticFieldSet,
   ModelCastCollection,
   ZodObjectShape,
@@ -23,13 +21,6 @@ import {
   RouteSchemaMapFactory,
   RouteContractConfigFactory,
   RequestOptionsDescriptor,
-  type ParsedASTNode,
-  type VariableAST,
-  type LiteralAST,
-  type NullLiteralAST,
-  type PropertyAccessAST,
-  type MethodCallAST,
-  type ParsedASTVisitor,
   type RouteDefinitionContract
 } from '@routesync/core';
 

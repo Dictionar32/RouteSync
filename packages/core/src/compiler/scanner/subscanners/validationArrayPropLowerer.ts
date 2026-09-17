@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/subscanners/validationArrayPropLowerer
  */
 
-import { RequestField } from "../../artifacts/RequestTypesArtifact";
+import type { RequestField } from "../../../types/domain/request";
 import {
     ObjectType,
     ObjectProperty,
@@ -29,7 +29,7 @@ export function buildRegularField(
 ): RequestField {
     if (arrayProps.has(key)) {
         const childProperties = arrayProps.get(key)!;
-        const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties });
+        const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties, role: 'plain' });
         const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
         return ScannedFormFieldDescriptor.create({
             name: key,
@@ -71,7 +71,7 @@ export function appendUnprocessedArrayProps(
     for (const [parentKey, childProperties] of arrayProps.entries()) {
         if (!processedKeys.has(parentKey)) {
             processedKeys.add(parentKey);
-            const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties });
+            const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties, role: 'plain' });
             const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
             fields.push(ScannedFormFieldDescriptor.create({
                 name: parentKey,

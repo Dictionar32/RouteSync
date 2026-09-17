@@ -5,88 +5,122 @@
  * here. Short version:
  *
  *   - Collapses 3 previously-parallel unions (ResourceFieldKind,
- *     ResponseMetadata, ParsedASTNode) into one, FieldNode.
+ *     ResponseMetadata) into one, FieldNode.
  *   - Parser produces framework-agnostic AST only (no `resource`,
  *     no forced `model` on static calls). Laravel-specific facts
  *     (is this a Resource? a collection call?) live exclusively in
  *     `resolved`, decided by ResourceGraphResolver and nothing upstream.
- *   - `PrimitiveField`/`ModelField` are the exception: they're genuinely
- *     declared by StaticLaravelScanner's attribute/JSON-literal scan,
- *     not inferred, so they stay as raw kinds.
+ *   - declared semantic fields do not belong to this syntax carrier.
+ *     Scanner declarations have their own semantic descriptors and must not
+ *     masquerade as parser-produced FieldNode variants.
  *
  * MIGRATION STATUS (phase 1 of 3 — see compiler/CompilerBacklog.md):
  *   1. [this file] add the new model + adapters from the old one. DONE.
  *   2. migrate PhpCodeParser.ts / incremental.ts / SemanticResolutionKernel
  *      to use FieldNode internally; verify routesync.ir.json output is
  *      unchanged (or changed only as expected). NOT STARTED.
- *   3. delete ResourceFieldKind, ResponseMetadata, ParsedASTNode and the
- *      Scanned-vs-Parsed split once every consumer has moved. NOT STARTED.
- * Old types are untouched by this file and still work exactly as before.
+ *   3. delete ResourceFieldKind, ResponseMetadata and the
+ *      Scanned-vs-Parsed split once every consumer has moved. IN PROGRESS.
+ * Retired ParsedASTNode types are archived and are no longer part of the active public AST contract.
  */
 
-import type { SemanticResolution, AccessKind } from './contract'
-import type { SourceRef, IRHints } from './semantic'
+import type { AccessKind } from './contract'
+import type { SourceRef } from './semantic'
+import type { PhpClassName, PhpFunctionName, PhpMethodName, PhpPropertyName, PhpVariableName, PhpConstantName, PhpCastType, PhpParameter } from './domain/phpAst/astValues'
+import type { UnsupportedAstReason } from './domain/phpAst/nodes'
 
 export interface BaseField {
-  resolved?: SemanticResolution
   source?: SourceRef
 }
 
 /** Base for every kind PhpCodeParser produces from a code string — always carries the original text for debugging, so it isn't repeated on all 12 variants individually. */
 export interface ParsedField extends BaseField {
   originalCode: string
+  source: SourceRef
 }
 
 /* ---------- declared kinds (known without parsing PHP code) ----------
    Constructed directly by StaticLaravelScanner's attribute/JSON-literal
    scan — never by PhpCodeParser. */
 
-export interface PrimitiveField extends BaseField { kind: 'primitive'; type: string }
+export type FieldArrayKey =
+  | { readonly kind: 'implicit' }
+  | { readonly kind: 'explicit'; readonly expression: FieldNode }
 
-export interface ModelField extends BaseField { kind: 'model'; model: string; collection: boolean; paginated?: boolean }
+export interface FieldEntryNode { readonly key: FieldArrayKey; readonly value: FieldNode }
 
-export interface FieldEntryNode { readonly key: string; readonly value: FieldNode }
+export interface ArrayField extends BaseField { kind: 'array'; entries: readonly FieldEntryNode[] }
 
-export interface ObjectField extends BaseField { kind: 'object'; fields: Record<string, FieldNode>; entries?: readonly FieldEntryNode[] }
-
-export interface ArrayField extends BaseField { kind: 'array'; elements: readonly FieldNode[] }
-
-export interface UnknownField extends BaseField { kind: 'unknown'; code?: string }
+export interface UnknownField extends BaseField {
+  kind: 'unknown'
+  reason: UnsupportedAstReason
+}
 
 /* ---------- raw / parsed kinds ---------- */
 
-export interface RawCodeField extends BaseField { kind: 'raw_code'; code: string; hints?: IRHints }
 
 export interface LiteralField extends ParsedField { kind: 'literal'; value: string | number | boolean | null }
 
-export interface VariableField extends ParsedField { kind: 'variable'; name: string }
+export interface VariableField extends ParsedField { kind: 'variable'; name: PhpVariableName }
 
-export interface PropertyAccessField extends ParsedField { kind: 'property_access'; target: FieldNode | null; property: string; accessKind: AccessKind }
+export interface PropertyAccessField extends ParsedField { kind: 'property_access'; target: FieldNode; property: PhpPropertyName; accessKind: AccessKind }
+export interface ArrayAccessField extends ParsedField { kind: 'array_access'; target: FieldNode; offset: FieldNode }
 
-export interface MethodCallField extends ParsedField { kind: 'method_call'; target: FieldNode | null; name: string; args: FieldNode[] }
+export type FieldArgument =
+  | { readonly kind: 'positional'; readonly value: FieldNode }
+  | { readonly kind: 'named'; readonly name: PhpPropertyName; readonly value: FieldNode }
+  | { readonly kind: 'unpacked'; readonly value: FieldNode }
 
-export interface StaticMethodCallField extends ParsedField { kind: 'static_method_call'; className: string; name: string; args: FieldNode[] }
+export type FieldReturnExpression =
+  | { readonly kind: 'value'; readonly value: FieldNode }
+  | { readonly kind: 'void' }
 
-export interface BinaryExpressionField extends ParsedField { kind: 'binary_expression'; operator: string; left: FieldNode; right: FieldNode }
+export type FieldStatement =
+  | { readonly kind: 'expression_statement'; readonly expression: FieldNode }
+  | { readonly kind: 'return_statement'; readonly expression: FieldReturnExpression }
 
-export interface TypeCastField extends ParsedField { kind: 'type_cast'; castType: 'int' | 'float' | 'string' | 'bool'; expression: FieldNode }
+export interface ClosureField extends ParsedField {
+  kind: 'closure'
+  parameters: readonly PhpParameter[]
+  captures: readonly { readonly kind: 'by_value' | 'by_reference'; readonly variable: PhpVariableName }[]
+  body: readonly FieldStatement[]
+}
+
+export interface ArrowFunctionField extends ParsedField {
+  kind: 'arrow_func'
+  parameters: readonly PhpParameter[]
+  body: FieldNode
+}
+
+export interface FunctionCallField extends ParsedField { kind: 'function_call'; name: PhpFunctionName; args: readonly FieldArgument[] }
+export interface MethodCallField extends ParsedField { kind: 'method_call'; target: FieldNode; name: PhpMethodName; args: readonly FieldArgument[] }
+export interface NullsafeMethodCallField extends ParsedField { kind: 'nullsafe_method_call'; target: FieldNode; name: PhpMethodName; args: readonly FieldArgument[] }
+export interface VariableCallField extends ParsedField { kind: 'variable_call'; name: PhpVariableName; args: readonly FieldArgument[] }
+export interface StaticMethodCallField extends ParsedField { kind: 'static_method_call'; className: PhpClassName; name: PhpMethodName; args: readonly FieldArgument[] }
+export interface StaticPropertyAccessField extends ParsedField { kind: 'static_property_access'; className: PhpClassName; property: PhpPropertyName }
+export interface StaticConstantField extends ParsedField { kind: 'static_constant'; className: PhpClassName; constantName: PhpConstantName }
+
+export interface UnaryExpressionField extends ParsedField { kind: 'unary_expression'; operator: import('./domain/phpAst/astValues').PhpUnaryOperator; expression: FieldNode }
+
+export interface BinaryExpressionField extends ParsedField { kind: 'binary_expression'; operator: import('./domain/phpAst/astValues').PhpBinaryOperator; left: FieldNode; right: FieldNode }
+
+export interface TypeCastField extends ParsedField { kind: 'type_cast'; castType: PhpCastType; expression: FieldNode }
 
 export interface TernaryField extends ParsedField { kind: 'ternary'; condition: FieldNode; truthy: FieldNode; falsy: FieldNode }
 
-export interface NullsafeChainField extends ParsedField { kind: 'nullsafe_chain'; chain: FieldNode[] }
+export interface NullsafePropertyAccessField extends ParsedField { kind: 'nullsafe_property_access'; target: FieldNode; property: PhpPropertyName }
 
-export interface NullsafePropertyAccessField extends ParsedField { kind: 'nullsafe_property_access'; target: FieldNode | null; property: string }
-
-export interface NewInstanceField extends ParsedField { kind: 'new_instance'; className: string; args: FieldNode[] }
+export interface NewInstanceField extends ParsedField { kind: 'new_instance'; className: PhpClassName; args: readonly FieldArgument[] }
 
 export type FieldNode =
-  | PrimitiveField | ModelField | ObjectField | ArrayField | UnknownField
-  | RawCodeField | LiteralField | VariableField | PropertyAccessField
-  | MethodCallField | StaticMethodCallField | BinaryExpressionField
-  | TypeCastField | TernaryField | NullsafeChainField
-  | NullsafePropertyAccessField | NewInstanceField
+  | ArrayField | UnknownField
+  | LiteralField | VariableField | PropertyAccessField | ArrayAccessField
+  | FunctionCallField | MethodCallField | NullsafeMethodCallField | VariableCallField
+  | StaticMethodCallField | StaticPropertyAccessField | StaticConstantField | UnaryExpressionField | BinaryExpressionField
+  | TypeCastField | TernaryField
+  | NullsafePropertyAccessField | NewInstanceField | ClosureField | ArrowFunctionField
 
-export { matchFieldNode, normalizeCastType, type FieldNodeVisitor } from './domain/fieldCatamorphism'
+export { matchFieldNode, type FieldNodeVisitor } from './domain/fieldCatamorphism'
 
 /* ---------- unified route/resource/model definitions ---------- */
 /* (*Def, not *Node: semantic.ts already has ServiceNode/ControllerNode/

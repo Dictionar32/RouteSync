@@ -45,7 +45,7 @@ export function lowerTypeExpression(type: SemanticType): string {
 export function lowerProperty(prop: ObjectProperty, includeJsDoc = true): string {
     const isOptional = prop.type.kind === SemanticTypeKind.Optional || prop.required === false;
     const targetType = lowerTypeExpression(
-        prop.type.kind === SemanticTypeKind.Optional ? (prop.type as any).innerType : prop.type
+        prop.type.kind === SemanticTypeKind.Optional ? prop.type.innerType : prop.type
     );
     const propCode = isOptional
         ? TypeScriptSyntax.formatOptionalProperty(prop.name, targetType)

@@ -2,7 +2,7 @@ import type {
   ServiceGraph,
   ServiceNode,
   ControllerNode,
-  ModelNode,
+  ServiceModelNode,
   ExecutionLayer,
   ServiceDependency
 } from '../types/semantic';
@@ -17,7 +17,7 @@ import {
 } from './service';
 
 export class ServiceGraphBuilder {
-  private readonly modelsMap = new Map<string, ModelNode>();
+  private readonly modelsMap = new Map<string, ServiceModelNode>();
   private readonly servicesMap = new Map<string, ServiceNode>();
   private readonly controllersMap = new Map<string, ControllerNode>();
   private readonly edges: ServiceDependency[] = [];
@@ -38,11 +38,11 @@ export class ServiceGraphBuilder {
     return buildControllerNode(name, routes, actions);
   }
 
-  public buildModelNode(name: string): ModelNode {
+  public buildModelNode(name: string): ServiceModelNode {
     return buildModelNode(name);
   }
 
-  public registerModel(name: string, model: ModelNode): void {
+  public registerModel(name: string, model: ServiceModelNode): void {
     this.modelsMap.set(name, model);
   }
 
@@ -54,7 +54,7 @@ export class ServiceGraphBuilder {
     this.controllersMap.set(name, controller);
   }
 
-  public getModel(name: string): ModelNode | undefined {
+  public getModel(name: string): ServiceModelNode | undefined {
     return this.modelsMap.get(name);
   }
 

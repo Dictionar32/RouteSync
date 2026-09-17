@@ -75,10 +75,11 @@ function lowerZodNode(
             return `z.array(${lowerZodNode(resolved.elementType, referenceStrategy)})`;
 
         case 'object': {
-            const properties = resolved.fields.map(([name, type]) => {
+            const properties = resolved.fields.map(({ name, type, presence }) => {
                 const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name);
                 const key = validIdentifier ? name : JSON.stringify(name);
-                return `${key}: ${lowerZodNode(type, referenceStrategy)}`;
+                const schema = lowerZodNode(type, referenceStrategy);
+                return `${key}: ${presence === 'optional' ? `${schema}.optional()` : schema}`;
             });
             return `z.object({ ${properties.join(', ')} })`;
         }

@@ -12,3 +12,4 @@ export {
   detectInlineResponse
 } from './responseDetector';
 export { scanControllerAction } from './actionScanner';
+export { resolveControllerBody } from './controllerBodyResolver';

@@ -1,110 +1,91 @@
-import { SemanticResolution } from '../../types/contract';
-import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import type { SemanticResolution } from '../../types/domain/semanticResolution';
+import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import { BoundSemanticFactory } from '../../types/domain/boundAst';
-
-interface ManifestModel {
-  name: string;
-  relations?: Record<string, { model: string; type: string }>;
-}
+import { SemanticValueFactory } from '../../types/domain/semanticValues';
+import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
+import { semanticResolutionToBoundType } from '../semanticResolutionToBoundType';
 
 export class ConditionalWrapperResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
-    if (!meta || meta.kind !== 'method_call') return false;
-    return ['whenLoaded', 'when', 'mergeWhen'].includes(meta.name);
+    return meta.kind === 'method_call' && ['whenLoaded', 'when', 'mergeWhen'].includes(meta.name.value);
   }
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    if (meta.kind !== 'method_call') {
-      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
-    }
-    const name = meta.name;
-    const args = meta.args;
-
-    if (name === 'whenLoaded') {
-      if (args.length >= 2) {
-        const resolvedTarget = context.kernel.resolve(args[1], context.contextModel);
-        const boundAst = BoundSemanticFactory.conditional({
-          wrapper: 'whenLoaded',
-          conditionExpression: `whenLoaded`,
-          target: resolvedTarget.boundAst ? resolvedTarget.boundAst : BoundSemanticFactory.primitive(resolvedTarget.type),
-          isOptional: true
-        });
-        return {
-          ...resolvedTarget,
-          boundAst
-        };
-      } else if (args.length === 1 && (args[0].kind === 'primitive' || args[0].kind === 'literal')) {
-        const first = args[0];
-        const relationName = first.kind === 'literal' ? first.value : first.type;
-        if (relationName && typeof relationName === 'string') {
-          // Resolve 'this' to get model name
-          const resolvedThis = context.kernel.resolve({ kind: 'variable', name: 'this', originalCode: '$this' }, context.contextModel);
-          if (resolvedThis.status === 'resolved' && resolvedThis.type === 'model' && resolvedThis.model) {
-            // Find model in manifest
-            const model = context.symbolTable.get(resolvedThis.model);
-            if (model && model.relation(relationName)) {
-              const relation = model.relation(relationName)!;
-              if (relation.model) {
-                const isCollection = ['hasMany', 'belongsToMany', 'morphMany', 'morphToMany', 'morphedByMany'].includes(relation.type);
-                const innerRelationNode = BoundSemanticFactory.relation({
-                  sourceModel: resolvedThis.model,
-                  relationName,
-                  relationType: relation.type || 'hasOne',
-                  targetModel: relation.model,
-                  isCollection,
-                  nullable: true
-                });
-                const boundAst = BoundSemanticFactory.conditional({
-                  wrapper: 'whenLoaded',
-                  conditionExpression: `whenLoaded('${relationName}')`,
-                  target: innerRelationNode,
-                  relationModel: relation.model,
-                  isOptional: true
-                });
-                return {
-                  status: 'resolved',
-                  type: 'model',
-                  model: relation.model,
-                  collection: isCollection || undefined,
-                  confidence: 100,
-                  boundAst,
-                  trace: [{
-                    source: 'ConditionalWrapperResolver',
-                    rule: `whenLoaded relation shorthand lookup`,
-                    input: `whenLoaded('${relationName}')`,
-                    output: `model: ${relation.model} (collection: ${isCollection})`
-                  }]
-                };
-              }
-            }
-          }
-        }
-      }
-    } else { // when or mergeWhen
-      if (args.length >= 2) {
-        const resolvedTarget = context.kernel.resolve(args[1], context.contextModel);
-        const boundAst = BoundSemanticFactory.conditional({
-          wrapper: name as 'when' | 'mergeWhen',
-          conditionExpression: name,
-          target: resolvedTarget.boundAst ? resolvedTarget.boundAst : BoundSemanticFactory.primitive(resolvedTarget.type),
-          isOptional: true
-        });
-        return {
-          ...resolvedTarget,
-          boundAst
-        };
-      }
-    }
-
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: [{
-        source: 'ConditionalWrapperResolver',
-        rule: `Conditional wrapper ${name} could not resolve value`,
-        input: name
-      }]
-    };
+    if (meta.kind !== 'method_call') return unsupported(meta.kind);
+    if (meta.args.length >= 2) return resolveValue(meta, context);
+    if (meta.name.value === 'whenLoaded' && meta.args.length === 1) return resolveRelation(meta, context);
+    return unsupported(`Conditional wrapper ${meta.name.value} has insufficient arguments`);
   }
+}
+
+function resolveValue(meta: Extract<ResolverMeta, { kind: 'method_call' }>, context: ResolutionContext): SemanticResolution {
+  const target = context.kernel.resolve(meta.args[1].value, context.contextModel);
+  const boundAst = BoundSemanticFactory.conditional({
+    wrapper: meta.name.value as 'whenLoaded' | 'when' | 'mergeWhen',
+    conditionExpression: SemanticValueFactory.conditionExpression(meta.name.value),
+    target: target.boundAst,
+    relationModel: target.kind === 'model'
+      ? { kind: 'model', name: target.model }
+      : { kind: 'unbound' },
+    semanticType: semanticResolutionToBoundType(target),
+    isOptional: true,
+  });
+  return { ...target, boundAst };
+}
+
+function resolveRelation(
+  meta: Extract<ResolverMeta, { kind: 'method_call' }>,
+  context: ResolutionContext,
+): SemanticResolution {
+  const relationName = relationArgument(meta);
+  const model = context.contextModel;
+  if (model === undefined) return unsupported('whenLoaded relation has no model context');
+  const relation = model.relations.find(candidate => candidate.name === relationName);
+  if (relation === undefined || relation.targetModel === undefined) {
+    return unsupported(`Relation ${relationName} is not declared on ${model.name.value}`);
+  }
+
+  const targetModel = SemanticValueFactory.modelName(relation.targetModel);
+  const cardinality = relation.cardinality === 'many'
+    ? { kind: 'collection' as const }
+    : { kind: 'single' as const };
+  const relationNode = BoundSemanticFactory.relation({
+    sourceModel: model.name,
+    relationName: SemanticValueFactory.relationName(relationName),
+    relationType: relation.type,
+    targetModel,
+    cardinality,
+    nullability: { kind: 'nullable' },
+  });
+  return SemanticResolutionFactory.model({
+    status: 'resolved', confidence: 100,
+    model: targetModel, cardinality,
+    boundAst: BoundSemanticFactory.conditional({
+      wrapper: 'whenLoaded',
+      conditionExpression: SemanticValueFactory.conditionExpression(`whenLoaded('${relationName}')`),
+      target: relationNode,
+      relationModel: { kind: 'model', name: targetModel },
+      semanticType: semanticResolutionToBoundType(SemanticResolutionFactory.model({
+        status: 'resolved', confidence: 100, model: targetModel, cardinality,
+        boundAst: relationNode, trace: [],
+      })),
+      isOptional: true,
+    }),
+    trace: [{ source: 'ConditionalWrapperResolver', rule: 'Relation shorthand lookup', input: relationName, output: targetModel.value }],
+  });
+}
+
+function relationArgument(meta: Extract<ResolverMeta, { kind: 'method_call' }>): string {
+  const first = meta.args[0].value;
+  if (first.kind === 'literal' && typeof first.value === 'string') return first.value;
+  if (first.kind === 'variable') return first.name.value;
+  return 'relation';
+}
+
+function unsupported(rule: string): SemanticResolution {
+  return SemanticResolutionFactory.unknown({
+    status: 'unknown', confidence: 0,
+    trace: [{ source: 'ConditionalWrapperResolver', rule, input: 'conditional', output: 'unknown' }],
+    boundAst: BoundSemanticFactory.unsupported('unsupported_syntax'),
+  });
 }

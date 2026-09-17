@@ -47,7 +47,6 @@ export function bindResource({
         const fieldResult = bindField({
             key: entry.key,
             value: entry.value,
-            rawExpression: entry.rawExpression,
             modelSymbol,
             modelSymbolTable
         });

@@ -1,145 +1,36 @@
-/**
- * Request Types Artifact
- * 
- * Input artifact untuk FormGeneratorPass.
- * Berisi validation rules dari manifest.routes[].validation
- * 
- * @module compiler/artifacts
- */
-
 import type { ArtifactMetadata } from './Artifact';
-import type { SemanticType, ObjectProperty } from '../types/SemanticType';
-import type { ValidationRuleNode } from '../../types/route';
+import type {
+    RequestField,
+    FileValidationConstraints,
+    FormAction,
+    ResponseData,
+    RequestResponse,
+    RequestType
+} from '../../types/domain/request';
 
-/**
- * File-specific Laravel validation metadata retained after type lowering.
- * `max` is converted from Laravel kilobytes to browser `File.size` bytes.
- */
-export interface FileValidationConstraints {
-    readonly image?: boolean;
-    readonly extensions?: readonly string[];
-    readonly mimeTypes?: readonly string[];
-    readonly maxBytes?: number;
-}
+export { FormActionName } from '../../types/domain/request';
+export type {
+    RequestField,
+    FileValidationConstraints,
+    FormAction,
+    ResponseData,
+    RequestResponse,
+    RequestType
+} from '../../types/domain/request';
 
-/**
- * Field definition dengan validation rules
- */
-export interface RequestField {
-    /** Original field name dari Laravel (snake_case) */
-    readonly originalName: string;
-
-    /** Transformed field name untuk TypeScript (camelCase) */
-    readonly transformedName: string;
-
-    /** Semantic type dari validation rules */
-    readonly type: SemanticType;
-
-    /** Optional browser-side constraints for a File or an array of File values. */
-    readonly fileConstraints?: FileValidationConstraints;
-
-    /** Is this field required? */
-    readonly required: boolean;
-
-    /** Is this field nullable? */
-    readonly nullable: boolean;
-
-    /** Optional strongly typed validation rules AST */
-    readonly validationAst?: readonly ValidationRuleNode[];
-}
-
-/**
- * FormActionName
- *
- * Canonical Domain Vocabulary for Form Actions in Request Types.
- */
-export const FormActionName = Object.freeze({
-    Create: 'create',
-    Update: 'update'
-} as const);
-
-export type FormActionName = typeof FormActionName[keyof typeof FormActionName] | string;
-
-/**
- * Form action (create atau update)
- */
-export interface FormAction {
-    /** Action name (create, update) */
-    readonly name: FormActionName;
-
-    /** Fields untuk action ini */
-    readonly fields: readonly RequestField[];
-}
-
-/**
- * Request type untuk specific resource
- */
-export interface RequestType {
-    /** Resource name (e.g., 'CartItems') */
-    readonly resourceName: string;
-
-    /** Form type name (e.g., 'CartItemsForm') */
-    readonly formTypeName: string;
-
-    /** Available actions */
-    readonly actions: readonly FormAction[];
-
-    /**
-     * Response data structure (OPTIONAL - for contracts only)
-     * 
-     * Used by ContractGeneratorPass to generate response validation.
-     * Ignored by FormGeneratorPass.
-     * 
-     * Fields are flattened + camelCase (consistent with frontend model).
-     */
-    readonly responseData?: ResponseData;
-}
-
-/**
- * Response data structure for a resource response
- */
-export interface ResponseData {
-    /** Resource name that provides response structure */
-    readonly resourceName: string;
-    /** Response body fields */
-    readonly fields: Record<string, SemanticType> | readonly ObjectProperty[] | any;
-    readonly collection?: boolean;
-    readonly wrapped?: boolean;
-}
-
-/**
- * Request Types artifact
- * 
- * Input untuk FormGeneratorPass.
- * Extracted dari manifest.routes[].validation dan digroup by resource.
- */
 export interface RequestTypesArtifact {
-    /** Artifact type ID */
     readonly typeId: 'RequestTypes';
-
-    /** Standard artifact metadata */
     readonly metadata: ArtifactMetadata;
-
-    /** Array of request types to generate */
     readonly requestTypes: readonly RequestType[];
 }
 
-/**
- * Type guard untuk RequestTypesArtifact
- */
 export function isRequestTypesArtifact(
     artifact: unknown
 ): artifact is RequestTypesArtifact {
-    if (typeof artifact !== 'object' || artifact === null) {
-        return false;
-    }
-
-    const a = artifact as Partial<RequestTypesArtifact>;
-
-    return (
-        a.typeId === 'RequestTypes' &&
-        Array.isArray(a.requestTypes) &&
-        typeof a.metadata === 'object' &&
-        a.metadata !== null
-    );
+    if (typeof artifact !== 'object' || artifact === null) return false;
+    const candidate = artifact as Partial<RequestTypesArtifact>;
+    return candidate.typeId === 'RequestTypes'
+        && Array.isArray(candidate.requestTypes)
+        && typeof candidate.metadata === 'object'
+        && candidate.metadata !== null;
 }

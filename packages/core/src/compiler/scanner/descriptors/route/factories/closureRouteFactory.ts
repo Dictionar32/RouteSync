@@ -12,18 +12,20 @@ import {
     type RouteParameter,
     type RouteQueryParameter,
     type ResponseDescriptor,
+    ResourceResponseDescriptor,
     type RouteCacheInvalidationDescriptor,
     RouteHandlerKind
 } from "../../../../../types/route";
 import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import type { RouteBoundaryOptions } from "../../../resolvers";
 
 export type ClosureRouteOptions = {
     readonly method: HttpMethod;
     readonly path: string;
     readonly actionName: string;
     readonly sourceFile: string;
-    readonly sourceLine?: number;
+    readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
     readonly domain?: string;
     readonly resourceName?: string;
@@ -36,7 +38,7 @@ export type ClosureRouteOptions = {
 };
 
 export function createRouteFromClosure(
-    createFn: (params: any) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
     options: ClosureRouteOptions
 ): ScannedRouteDescriptor {
     const {
@@ -46,7 +48,7 @@ export function createRouteFromClosure(
         resourceName,
         actionName,
         sourceFile,
-        sourceLine = 1,
+        sourceLine,
         response,
         auth = false,
         middleware = [],
@@ -56,7 +58,12 @@ export function createRouteFromClosure(
         invalidation
     } = options;
 
+    const resolvedResponse = response !== undefined
+        ? response
+        : new ResourceResponseDescriptor({ resourceName: `${resourceName ?? "Closure"}Resource`, shape: "single" });
+
     return createFn({
+        origin: "closure",
         method,
         path,
         domain,
@@ -71,7 +78,7 @@ export function createRouteFromClosure(
         }),
         sourceFile,
         sourceLine,
-        response,
+        response: resolvedResponse,
         formRequests: [],
         schema: ScannedRouteSchemaPayload.empty(),
         auth,

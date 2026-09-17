@@ -22,7 +22,7 @@ export {
     type PropertyLookupAstNode,
     type NullsafePropertyLookupAstNode,
     type OffsetLookupAstNode,
-    type StaticLookupAstNode,
+    type StaticPropertyLookupAstNode,
     type FunctionCallAstNode,
     type MethodCallAstNode,
     type NullsafeMethodCallAstNode,
@@ -40,13 +40,21 @@ export {
     type LiteralAstNode,
     type StaticConstantAstNode,
     type VariableAstNode,
-    type UnknownAstNode,
-    type PhpAstNode
+    type UnsupportedAstNode,
+    type UnsupportedAstReason,
+    type PhpAstNode,
+    type PhpArgument,
+    type PhpBlock,
+    type PhpStatement
 } from './nodes';
 
 export {
+    type PhpReturnExpression,
     type PhpAstVisitor,
     matchPhpAstNode,
     type PhpAstFolder,
+    type FoldedPhpArgument,
+    type FoldedPhpReturnExpression,
+    type FoldedPhpStatement,
     foldPhpAstNode
 } from './algebra';

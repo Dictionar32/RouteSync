@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {"target":"ES2022","module":"CommonJS","moduleResolution":"Node","strict":true,"skipLibCheck":true,"noEmit":true,"types":[]},
+  "files": [
+    "packages/core/src/types/domain/semanticValues.ts",
+    "packages/core/src/types/domain/boundAst.ts",
+    "packages/core/src/types/domain/semanticResolution.ts",
+    "packages/core/src/types/domain/semanticResolutionFactory.ts",
+    "packages/core/src/semantic/semanticResolutionToBoundType.ts",
+    "packages/core/src/semantic/plugins/method-return/selectRawProjection.ts",
+    "packages/core/src/semantic/plugins/method-return/instanceMethodResolver.ts",
+    "packages/core/src/semantic/plugins/expression/property-access/index.ts"
+  ]
+}

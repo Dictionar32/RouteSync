@@ -13,13 +13,15 @@ import { CANONICAL_ACTION_MAP, type ActionType } from '../../canonical-names';
  * Direct O(1) canonical mapping defaulting to 'Get' with 0 '?' operators.
  */
 export function resolveCanonicalAction(method: string | undefined): ActionType {
-    if (typeof method === 'string') {
-        const mapped = CANONICAL_ACTION_MAP[method.toLowerCase()];
-        if (mapped !== undefined) {
-            return mapped;
-        }
+    if (method === undefined) return 'Get';
+    switch (method.toLowerCase()) {
+        case 'post': return CANONICAL_ACTION_MAP.post;
+        case 'put': return CANONICAL_ACTION_MAP.put;
+        case 'patch': return CANONICAL_ACTION_MAP.patch;
+        case 'delete': return CANONICAL_ACTION_MAP.delete;
+        case 'get': return CANONICAL_ACTION_MAP.get;
+        default: return 'Get';
     }
-    return 'Get';
 }
 
 /**

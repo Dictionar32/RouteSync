@@ -1,8 +1,8 @@
 /**
  * objectSchemaContracts.ts
  *
- * Level 7 Subatomic Closed ADT Contracts for ObjectSchema and PropertyType.
- * Zero sentinel undefined, zero null, zero optional fields (0% porosity).
+ * Closed response-schema contracts.
+ * Property order is canonical and represented as an array.
  *
  * @module compiler/ir/response
  */
@@ -35,9 +35,14 @@ export type PropertyTypeContract =
     | NestedObjectPropertyContract
     | ReferencePropertyContract;
 
+export interface ObjectSchemaPropertyContract {
+    readonly name: string;
+    readonly type: PropertyTypeContract;
+    readonly required: boolean;
+}
+
 export interface ObjectSchemaContract {
     readonly name: string;
-    readonly propertyEntries: readonly (readonly [string, PropertyTypeContract])[];
-    readonly requiredProperties: readonly string[];
+    readonly properties: readonly ObjectSchemaPropertyContract[];
     readonly additionalProperties: boolean;
 }

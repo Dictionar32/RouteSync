@@ -11,7 +11,7 @@ import { inferLaravelTableName } from "../../../../utils/resource-naming";
 import { LaravelSourceLexer } from "../../LaravelSourceLexer";
 import { ScannedModelDescriptor } from "../../descriptors/modelDescriptors";
 import { parseModelMembers } from "./modelMemberParser";
-import { inferModelColumns } from "./columnInferrer";
+import { resolveModelColumns } from "./columnInferrer";
 
 /**
  * Parses a single Laravel Eloquent model PHP file into a ParsedModel descriptor.
@@ -19,12 +19,12 @@ import { inferModelColumns } from "./columnInferrer";
 export function parseModelFile(
     source: string,
     modelName: string,
-    migrationMap?: Map<string, ParsedColumn[]>
+    migrationMap: ReadonlyMap<string, readonly ParsedColumn[]>
 ): ParsedModel {
     const tokens = LaravelSourceLexer.tokenize(source);
     const defaultTable = inferLaravelTableName(modelName);
     const members = parseModelMembers(source, tokens, defaultTable);
-    const columns = inferModelColumns(members.table, members.fillable, members.casts, migrationMap);
+    const columns = resolveModelColumns(members.table, migrationMap);
 
     return ScannedModelDescriptor.create({
         name: modelName,

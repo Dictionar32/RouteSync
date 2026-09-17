@@ -6,11 +6,12 @@
  */
 
 import { LaravelSourceLexer, type TokenDescriptor } from "../../LaravelSourceLexer";
+import { ModelKeyTypeMapper, type ModelKeyType } from "../../../../types/domain/eloquentTypes";
 
 export interface ModelPropertiesState {
     table: string;
     primaryKey: string;
-    keyType: string;
+    keyType: ModelKeyType;
     incrementing: boolean;
     fillable: string[];
     guarded: string[];
@@ -38,7 +39,7 @@ export function tryParseModelProperty(
 
     // $keyType = 'string';
     if (token.value === '$keyType' && tokens[i + 1]?.value === '=' && tokens[i + 2]?.type === 'STRING') {
-        state.keyType = tokens[i + 2].value;
+        state.keyType = ModelKeyTypeMapper.normalize(tokens[i + 2].value);
     }
 
     // $incrementing = false;

@@ -8,7 +8,7 @@
 
 import path from "path";
 import fs from "fs-extra";
-import type { RequestType, RequestField } from "../../artifacts/RequestTypesArtifact";
+import type { RequestType, RequestField } from "../../../types/domain/request";
 import { TypeInterner } from "../../types/TypeInterner";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { toCamelCase, toPascalCase } from "../../../utils/resource-naming";
@@ -60,7 +60,7 @@ export class FormRequestScanner {
                     resourceName: existing.resourceName,
                     formTypeName: existing.formTypeName,
                     actions: [...existing.actions, action],
-                    responseData: existing.responseData
+                    response: existing.response
                 }));
             } else {
                 groups.set(resKey, ScannedRequestTypeDescriptor.create({

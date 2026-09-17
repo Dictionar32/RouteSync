@@ -18,7 +18,7 @@ export {
 } from "./modelMemberParser";
 
 export {
-    inferModelColumns
+    resolveModelColumns
 } from "./columnInferrer";
 
 export {

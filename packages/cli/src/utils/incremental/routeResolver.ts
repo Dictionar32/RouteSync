@@ -42,9 +42,9 @@ export function resolveRoutes({
 
     const cachedRoute = prevRouteMap.get(`${route.method}:${route.path}`);
     if (cachedRoute && cachedRoute.stableHash === hash) {
-      route.response = cachedRoute.response && typeof cachedRoute.response === 'object'
-        ? canonicalizeCollectionDescriptor(cachedRoute.response)
-        : cachedRoute.response;
+      if (!route.response && cachedRoute.response) {
+        route.response = canonicalizeCollectionDescriptor(cachedRoute.response);
+      }
       route.assignments = cachedRoute.assignments;
 
       const cachedRouteId = `route:${route.method}:${route.path}`;

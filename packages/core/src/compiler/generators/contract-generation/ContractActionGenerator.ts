@@ -8,17 +8,15 @@
  */
 
 import type { SemanticType } from '../../types/SemanticType';
-import type { RequestField, FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
+import type { RequestField, FileValidationConstraints } from '../../../types/domain/request';
 import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
-import { ResolvedObjectType, ResolvedOptionalType } from '../../domain/common/ResolvedSemanticType';
+import { ResolvedObjectType } from '../../domain/common/ResolvedSemanticType';
 import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
 import { toPascalCase } from '../../../utils/resource-naming';
 
 export interface ActionField {
-    readonly name?: string;
-    readonly originalName?: string;
-    readonly transformedName?: string;
+    readonly name: string;
     readonly type: SemanticType;
     readonly required: boolean;
     readonly nullable: boolean;
@@ -29,7 +27,7 @@ export interface GeneratedContractAction {
     readonly name: string;
     readonly schemaCode: string;
     readonly typeCode: string;
-    readonly fieldCount?: number;
+    readonly fieldCount: number;
 }
 
 export interface ContractActionGeneratorDependencies {
@@ -49,14 +47,13 @@ export class ContractActionGenerator {
         contractSchemaName: string = ''
     ): GeneratedContractAction {
         const resolvedFields = fields.map(f => {
-            const key = (f.name ?? f.originalName ?? f.transformedName ?? '');
-            let resolvedType = this.resolver.resolve(f.type);
-            if (!f.required && resolvedType.kind !== 'optional') {
-                resolvedType = ResolvedOptionalType.of(resolvedType);
-            }
-            return [key, resolvedType] as const;
+            return {
+                name: f.name,
+                type: this.resolver.resolve(f.type),
+                presence: f.required ? 'required' as const : 'optional' as const
+            };
         });
-        const resolvedObject = new ResolvedObjectType({ fields: resolvedFields });
+        const resolvedObject = ResolvedObjectType.plain(resolvedFields);
         const schemaExpr = toZodSchemaExpression(resolvedObject);
 
         const formattedAction = toPascalCase(actionName);

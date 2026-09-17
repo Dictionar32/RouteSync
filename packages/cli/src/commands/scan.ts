@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
+import { validateManifestContract } from '../generators/ManifestContractValidator'
 import { ScannedModel } from '../utils/incremental'
 import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
 
@@ -75,6 +76,7 @@ export const scanCommand = new Command('scan')
       const { resolveManifestIncrementally } = await import('../utils/incremental')
       const { manifest: resolvedManifest, irRegistry } = resolveManifestIncrementally(manifest, outputPath, kernel, models as ScannedModel[] | undefined)
 
+      validateManifestContract(resolvedManifest as unknown as RouteManifest)
       await ManifestGenerator.save(resolvedManifest, outputPath)
       const fs = require('fs')
       const { ServiceGraphBuilder } = await import('@routesync/core')

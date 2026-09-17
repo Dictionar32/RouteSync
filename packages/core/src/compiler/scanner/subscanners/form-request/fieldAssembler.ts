@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/subscanners/form-request
  */
 
-import type { RequestField } from '../../../artifacts/RequestTypesArtifact';
+import type { RequestField } from '../../../types/domain/request';
 import {
   ObjectType,
   PrimitiveType,
@@ -31,7 +31,7 @@ export function assembleFormFields(
     processedKeys.add(key);
     if (partitioned.arrayProps.has(key)) {
       const childProperties = partitioned.arrayProps.get(key)!;
-      const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties });
+      const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties, role: 'plain' });
       const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
 
       fields.push(ScannedFormFieldDescriptor.create({
@@ -80,7 +80,7 @@ export function assembleFormFields(
 
   for (const [parentKey, childProperties] of partitioned.arrayProps.entries()) {
     if (!processedKeys.has(parentKey)) {
-      const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties });
+      const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties, role: 'plain' });
       const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
       fields.push(ScannedFormFieldDescriptor.create({
         name: parentKey,

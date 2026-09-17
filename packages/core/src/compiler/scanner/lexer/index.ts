@@ -23,6 +23,11 @@ export {
     type PhpMicroAstVisitor,
     matchPhpAstValue,
     type PhpArrayEntry,
+    type PhpArgument,
+    type PhpParameter,
+    type PhpClosureCapture,
+    type PhpStatement,
+    type PhpBlock,
     type ParsedPhpArrayResult
 } from "./PhpAst";
 
@@ -42,3 +47,18 @@ export {
 export {
     parsePhpArray
 } from "./arrayParser";
+
+export type {
+    ControllerDeclarationAst,
+    ControllerMethodAst,
+    ControllerParameterAst,
+    ResponseAttributeAst,
+    ReturnStatementAst
+} from './controllerAstTypes';
+
+export { parseControllerDeclaration } from './controllerDeclarationParser';
+export type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, HttpErrorStatusAst, ValidationRuleLiteralAst } from './controllerBodyAstTypes';
+export { parseControllerBody } from './controllerBodyParser';
+
+export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst, PhpPropertyTypeAst } from './responseDtoAstTypes';
+export { parseResponseDtoDeclaration } from './responseDtoDeclarationParser';

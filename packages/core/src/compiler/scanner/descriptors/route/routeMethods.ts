@@ -10,7 +10,7 @@
 import {
     RouteDomainResolver,
     RouteSecurityResolver,
-    type SparseRouteParams
+    type RouteBoundaryOptions
 } from "../../resolvers";
 import type {
     RouteSecurityDescriptor,

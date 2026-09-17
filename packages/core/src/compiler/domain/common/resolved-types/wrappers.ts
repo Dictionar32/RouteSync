@@ -20,20 +20,18 @@ export class ResolvedReferenceType extends ResolvedSemanticTypeBase {
     readonly name: string;
     readonly namespace: string;
 
-    constructor(params: ResolvedReferenceTypeParams);
-    constructor(params: { readonly name: string; readonly namespace?: string | null });
-    constructor({ name, namespace = '' }: any) {
+    constructor({ name, namespace }: ResolvedReferenceTypeParams) {
         super();
         this.name = name;
-        this.namespace = namespace ?? '';
+        this.namespace = namespace;
         Object.freeze(this);
     }
 
-    public static create(name: string, namespace: string | null = null): ResolvedReferenceType {
+    public static create(name: string, namespace: string): ResolvedReferenceType {
         return new ResolvedReferenceType({ name, namespace });
     }
 
-    public static named(name: string, namespace: string | null = null): ResolvedReferenceType {
+    public static named(name: string, namespace: string): ResolvedReferenceType {
         return new ResolvedReferenceType({ name, namespace });
     }
 

@@ -1,91 +1,79 @@
-import { SemanticResolution, TraceNode } from '../../types/contract';
-import { SemanticType } from '../../types/semantic';
-import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import type { SemanticResolution } from '../../types/domain/semanticResolution';
+import type { SemanticTraceNode } from '../../types/domain/semanticResolution';
+import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
+import { BoundSemanticFactory } from '../../types/domain/boundAst';
+import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
+import { SemanticValueFactory } from '../../types/domain/semanticValues';
+import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { unknownResolution } from '../semanticResolutionSupport';
+
+function primitiveType(value: string): SemanticType {
+  switch (value) {
+    case 'number':
+    case 'int':
+    case 'integer':
+    case 'float':
+    case 'double': return new PrimitiveType(PrimitiveKind.NUMBER);
+    case 'string': return new PrimitiveType(PrimitiveKind.STRING);
+    case 'boolean':
+    case 'bool': return new PrimitiveType(PrimitiveKind.BOOLEAN);
+    case 'datetime': return new PrimitiveType(PrimitiveKind.DATETIME);
+    case 'file': return new PrimitiveType(PrimitiveKind.FILE);
+    default: return new PrimitiveType(PrimitiveKind.UNKNOWN);
+  }
+}
+
+function scalar(
+  type: SemanticType,
+  value: string | number | boolean | null,
+  trace: readonly SemanticTraceNode[],
+  nullable: boolean,
+): SemanticResolution {
+  return SemanticResolutionFactory.scalar({
+    status: type.kind === 'primitive' && type.type !== PrimitiveKind.UNKNOWN ? 'resolved' : 'unknown',
+    confidence: 100, trace, nullability: nullable ? { kind: 'nullable' } : { kind: 'non_nullable' }, semanticType: type,
+    boundAst: BoundSemanticFactory.primitive(type, value === null
+      ? SemanticValueFactory.literalValue({ kind: 'null' })
+      : typeof value === 'number'
+        ? SemanticValueFactory.literalValue({ kind: 'number', value })
+        : typeof value === 'boolean'
+          ? SemanticValueFactory.literalValue({ kind: 'boolean', value })
+          : SemanticValueFactory.literalValue({ kind: 'string', value })),
+  });
+}
 
 export class PrimitiveResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
-    return !!(meta && (meta.kind === 'primitive' || meta.kind === 'type_cast' || meta.kind === 'literal'));
+    return meta.kind === 'literal' || meta.kind === 'type_cast';
   }
 
   resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    if (meta.kind === 'primitive') {
-      const typeStr = meta.type || 'unknown';
-
-      let resType: SemanticType = 'unknown';
-      let isNull = false;
-      if (typeStr === 'number' || typeStr === 'string' || typeStr === 'boolean') {
-        resType = typeStr;
-      } else if (typeStr === 'null') {
-        isNull = true;
-      }
-
-      return {
-        status: resType === 'unknown' || isNull ? 'unknown' : 'resolved',
-        type: isNull ? 'unknown' : resType,
-        nullable: isNull ? true : undefined,
-        confidence: 100,
-        trace: [{
-          source: 'PrimitiveResolver',
-          rule: 'Primitive type mapping',
-          input: meta.type,
-          output: isNull ? 'null' : resType
-        }]
-      };
+    if (meta.kind === 'literal') {
+      const value = meta.value;
+      const type = value === null ? new PrimitiveType(PrimitiveKind.UNKNOWN) : primitiveType(typeof value);
+      return scalar(type, value, [{
+        source: 'PrimitiveResolver', rule: 'Literal type mapping', input: String(value), output: type.kind,
+      }], value === null);
     }
 
     if (meta.kind === 'type_cast') {
-      let castedType: SemanticType = 'unknown';
-      if (meta.castType === 'int' || meta.castType === 'float') castedType = 'number';
-      else if (meta.castType === 'string') castedType = 'string';
-      else if (meta.castType === 'bool') castedType = 'boolean';
-
-      const trace: TraceNode[] = [{
-        source: 'PrimitiveResolver',
-        rule: `Type cast to ${meta.castType || 'unknown'}`,
-        input: meta.castType,
-        output: castedType
+      const castType = meta.castType.kind;
+      const casted = castType === 'int' || castType === 'float'
+        ? new PrimitiveType(PrimitiveKind.NUMBER)
+        : castType === 'string'
+          ? new PrimitiveType(PrimitiveKind.STRING)
+          : new PrimitiveType(PrimitiveKind.BOOLEAN);
+      const trace: SemanticTraceNode[] = [{
+        source: 'PrimitiveResolver', rule: `Type cast to ${castType}`, input: castType, output: casted.kind,
       }];
-      if (meta.expression) {
-        const exprRes = context.kernel.resolve(meta.expression, context.contextModel);
-        trace.push(...exprRes.trace);
-      }
-
-      return {
-        status: castedType === 'unknown' ? 'unknown' : 'resolved',
-        type: castedType,
-        confidence: 100,
-        trace
-      };
+      const expression = context.kernel.resolve(meta.expression, context.contextModel);
+      trace.push(...expression.trace);
+      return SemanticResolutionFactory.scalar({
+        status: 'resolved', confidence: 100, trace, nullability: { kind: 'non_nullable' }, semanticType: casted,
+        boundAst: expression.boundAst,
+      });
     }
 
-    if (meta.kind === 'literal') {
-      const v = meta.value;
-      let t: SemanticType = 'unknown';
-      let isNull = false;
-      if (v === null) isNull = true;
-      else if (typeof v === 'number') t = 'number';
-      else if (typeof v === 'boolean') t = 'boolean';
-      else if (typeof v === 'string') t = 'string';
-
-      return {
-        status: isNull ? 'unknown' : 'resolved',
-        type: isNull ? 'unknown' : t,
-        nullable: isNull ? true : undefined,
-        confidence: 100,
-        trace: [{
-          source: 'PrimitiveResolver',
-          rule: 'Literal type mapping',
-          input: String(v),
-          output: isNull ? 'null' : t
-        }]
-      };
-    }
-
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: []
-    };
+    return unknownResolution('PrimitiveResolver', 'Unsupported primitive metadata', meta.kind, 'invalid_boundary_input');
   }
 }

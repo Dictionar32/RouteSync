@@ -1,108 +1,49 @@
-/**
- * specialAccessHandler.ts
- *
- * Handles special property access patterns: object fields, JSON members, and Sanctum tokens.
- *
- * @module semantic/plugins/expression/property-access
- */
-
-import type {
-    SemanticResolution,
-    TraceNode,
-    JsonMemberResolution,
-    AccessKind
-} from '../../../../types/contract';
+import type { SemanticResolution } from '../../../../types/domain/semanticResolution';
 import type { ResolverMeta } from '../../../types';
-
-interface HasFields {
-    fields: Record<string, unknown>;
-}
-
-function hasFields(obj: unknown): obj is HasFields {
-    return !!(obj && typeof obj === 'object' && 'fields' in obj);
-}
-
-interface TypedFieldVal {
-    type: string;
-    nullable?: boolean;
-}
-
-function isTypedFieldVal(val: unknown): val is TypedFieldVal {
-    return typeof val === 'object' && val !== null && 'type' in val;
-}
+import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
+import { SemanticResolutionFactory } from '../../../../types/domain/semanticResolutionFactory';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
+import { PrimitiveKind, PrimitiveType } from '../../../../compiler/types/SemanticType';
 
 export function tryResolveSpecialPropertyAccess(
-    prop: string,
-    meta: ResolverMeta,
-    targetRes: SemanticResolution,
-    trace: TraceNode[]
+  prop: string,
+  meta: ResolverMeta,
+  targetRes: SemanticResolution,
 ): SemanticResolution | null {
-    // 1. Special framework classes / Sanctum / createToken object
-    if (targetRes.type === 'object' && hasFields(targetRes) && targetRes.fields[prop]) {
-        const fieldVal = targetRes.fields[prop];
-        let fieldType = 'unknown';
-        let isNullable = false;
-        if (isTypedFieldVal(fieldVal)) {
-            fieldType = fieldVal.type;
-            isNullable = !!fieldVal.nullable;
-        } else if (typeof fieldVal === 'string') {
-            fieldType = fieldVal;
-        }
-        trace.push({
-            source: 'ExpressionResolver',
-            rule: `Field lookup from resolved object type fields.${prop}`,
-            input: prop,
-            output: fieldType
-        });
-        return {
-            status: 'resolved',
-            type: fieldType,
-            nullable: isNullable || undefined,
-            confidence: targetRes.confidence,
-            trace
-        };
-    }
+  if (targetRes.kind === 'object' || targetRes.kind === 'query_projection') {
+    const field = targetRes.fields.find(([name]) => name.value === prop);
+    if (field === undefined) return null;
+    const [name, semanticType] = field;
+    const boundAst = targetRes.kind === 'query_projection'
+      ? BoundSemanticFactory.projectionField({ sourceModel: targetRes.sourceModel, field: name, semanticType })
+      : targetRes.boundAst;
+    return SemanticResolutionFactory.scalar({
+      status: 'resolved', confidence: targetRes.confidence,
+      trace: [...targetRes.trace, {
+        source: 'SpecialAccessResolver', rule: 'Structured field lookup',
+        input: prop, output: semanticType.kind,
+      }],
+      boundAst,
+      semanticType,
+      nullability: meta.kind === 'nullsafe_property_access'
+        ? { kind: 'nullable' }
+        : { kind: 'non_nullable' },
+    });
+  }
 
-    // 2. JSON member access: target already resolved to a json-object or json-member
-    if (targetRes.type === 'json-object' || targetRes.type === 'json-member') {
-        const accessKind: AccessKind = (meta.kind === 'property_access' ? meta.accessKind : undefined)
-            || (meta.kind === 'nullsafe_property_access' ? 'optional_access' : 'property_access');
+  if (targetRes.kind === 'scalar' && prop === 'plainTextToken') {
+    const tokenType = new PrimitiveType(PrimitiveKind.STRING);
+    return SemanticResolutionFactory.scalar({
+      status: 'resolved', confidence: targetRes.confidence,
+      trace: [...targetRes.trace, {
+        source: 'SpecialAccessResolver', rule: 'Token text property',
+        input: prop, output: PrimitiveKind.STRING,
+      }],
+      boundAst: targetRes.boundAst,
+      semanticType: tokenType,
+      nullability: { kind: 'non_nullable' },
+    });
+  }
 
-        trace.push({
-            source: 'ExpressionResolver',
-            rule: `JSON member access (${accessKind})`,
-            input: `${targetRes.type}['${prop}']`,
-            output: `json-member(${prop})`
-        });
-
-        const memberRes: JsonMemberResolution = {
-            status: 'resolved',
-            type: 'json-member',
-            parent: targetRes,
-            key: prop,
-            accessKind,
-            nullable: meta.kind === 'nullsafe_property_access' ? true : targetRes.nullable,
-            confidence: targetRes.confidence,
-            trace
-        };
-        return memberRes;
-    }
-
-    // 3. Sanctum plainTextToken
-    if (targetRes.type === 'NewAccessToken' && prop === 'plainTextToken') {
-        trace.push({
-            source: 'ExpressionResolver',
-            rule: 'Sanctum token string property access',
-            input: 'plainTextToken',
-            output: 'string'
-        });
-        return {
-            status: 'resolved',
-            type: 'string',
-            confidence: 90,
-            trace
-        };
-    }
-
-    return null;
+  return null;
 }

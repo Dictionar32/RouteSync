@@ -12,15 +12,15 @@ import type {
     EndpointIR,
     ParsedRequest,
     ParsedRoute,
-    ParsedField,
-    ParsedAction,
+    ManifestField,
+    ManifestAction,
     RequestActionIR,
     ParameterIR,
     ResponseReference,
     RequestReference
 } from '../../types/ir';
 
-import type { SemanticType } from '../../types/semantic';
+import type { PrimitiveKind } from '../../compiler/types/SemanticType';
 import type { FieldTypeResolver } from './FieldTypeResolver';
 import type { ResourceMapperBuilder } from './ResourceMapperBuilder';
 import type { DiagnosticCollector } from './irTypes';
@@ -60,7 +60,7 @@ export class RequestEndpointBuilder {
         };
     }
 
-    public buildRequestAction(action: ParsedAction): RequestActionIR {
+    public buildRequestAction(action: ManifestAction): RequestActionIR {
         return {
             name: action.name === 'Create' || action.name === 'Update' || action.name === 'Delete'
                 ? action.name
@@ -68,7 +68,7 @@ export class RequestEndpointBuilder {
             customName: action.name !== 'Create' && action.name !== 'Update' && action.name !== 'Delete'
                 ? action.name
                 : undefined,
-            fields: action.fields.map((field: ParsedField) =>
+            fields: action.fields.map((field: ManifestField) =>
                 this.fieldTypeResolver.convertToLegacyFieldIR(
                     this.fieldTypeResolver.buildOptimizedResourceField(field)
                 )
@@ -91,7 +91,7 @@ export class RequestEndpointBuilder {
             queryParams: [],
             request: this.buildRequestReference(route, requests),
             response: this.buildResponseReference(route, resources),
-            middleware: (route.middleware || []).map((name, index) => ({
+            middleware: route.middleware.map((name, index) => ({
                 name,
                 parameters: [],
                 order: index
@@ -108,7 +108,7 @@ export class RequestEndpointBuilder {
         return extractPathParams(path);
     }
 
-    public inferParamType(name: string): SemanticType {
+    public inferParamType(name: string): PrimitiveKind {
         return inferParamType(name);
     }
 

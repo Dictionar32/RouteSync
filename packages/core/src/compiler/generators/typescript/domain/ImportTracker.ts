@@ -59,8 +59,8 @@ export class ImportTracker {
                 }
                 break;
             case 'object':
-                for (const [, propType] of type.properties.entries()) {
-                    this.collectPropertyTypeImports(propType, generatedTypes);
+                for (const property of type.properties) {
+                    this.collectPropertyTypeImports(property.type, generatedTypes);
                 }
                 break;
             default:

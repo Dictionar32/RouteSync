@@ -10,7 +10,6 @@ import {
     ObjectType,
     type ObjectProperty,
     ScannedObjectProperty,
-    PrimitiveType,
     NullableType,
     type SemanticType
 } from '../../../types/SemanticType';
@@ -18,11 +17,10 @@ import {
     toCamelCase,
     toPascalCase
 } from '../../../../utils/resource-naming';
-import { resolvePrimitiveKind } from '../typeDeriverUtils';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
 import {
     findCastForColumn,
-    resolveModelColumnTypeString,
+    resolveColumnSemanticType,
     extractModelAccessors
 } from './modelExtractors';
 
@@ -41,44 +39,39 @@ export function deriveModelTypes(
             const properties: ObjectProperty[] = [];
             const seenPropNames = new Set<string>();
 
-            const columns = model.columns ? model.columns : [];
+            const columns = model.columns;
             for (const col of columns) {
-                if (model.hidden && model.hidden.includes(col.name)) {
+                if (model.hidden.includes(col.name)) {
                     continue;
                 }
                 const propName = toCamelCase(col.name);
                 seenPropNames.add(propName);
 
                 const cast = findCastForColumn(model.casts, col.name);
-                const colTypeStr = resolveModelColumnTypeString(col, cast);
-                const primKind = resolvePrimitiveKind(colTypeStr);
-
-                let propType: SemanticType = new PrimitiveType(primKind);
-                if (col.nullable) {
+                let propType: SemanticType = resolveColumnSemanticType(col, cast);
+                if (col.nullability.kind === 'nullable') {
                     propType = new NullableType(propType);
                 }
                 properties.push(ScannedObjectProperty.create({
                     name: propName,
                     type: interner.intern(propType),
-                    nullable: Boolean(col.nullable),
+                    nullable: propType.isNullable(),
                     required: true
                 }));
             }
 
-            const appends = model.appends ? model.appends : [];
-            const extractedAccessors = extractModelAccessors(model.accessors, appends);
+            const extractedAccessors = extractModelAccessors(model.accessors);
 
             for (const acc of extractedAccessors) {
-                if (seenPropNames.has(acc.propName)) {
+                if (seenPropNames.has(acc.propertyName)) {
                     continue;
                 }
-                seenPropNames.add(acc.propName);
+                seenPropNames.add(acc.propertyName);
 
-                const primKind = resolvePrimitiveKind(acc.typeStr);
                 properties.push(ScannedObjectProperty.create({
-                    name: acc.propName,
-                    type: interner.intern(new PrimitiveType(primKind)),
-                    nullable: false,
+                    name: acc.propertyName,
+                    type: interner.intern(acc.semanticType),
+                    nullable: acc.semanticType.isNullable(),
                     required: true
                 }));
             }
@@ -86,7 +79,8 @@ export function deriveModelTypes(
             types.push(interner.intern(new ObjectType({
                 name: modelTypeName,
                 baseName: modelBaseName,
-                properties
+                properties,
+                role: 'model'
             })) as ObjectType);
         }
     }

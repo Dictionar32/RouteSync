@@ -15,20 +15,19 @@ import {
 } from "../../../../types/route";
 import { ControllerActionInfo } from "../../descriptors/requestDescriptors";
 import { ScannedRouteDescriptor } from "../../descriptors/routeDescriptors";
-import { extractPathParams } from "./routePathParser";
+import { resolveRoutePath, type ResolvedRoutePath } from "./routePathParser";
 
-export function mapMethodDetails(method: string): {
+export function mapMethodDetails(method: HttpMethod): {
     method: HttpMethod;
     actionKind: RouteActionKind;
     isMutating: boolean;
 } {
-    const m = method.toUpperCase() as HttpMethod;
-    const spec = HTTP_METHOD_REGISTRY[m] ?? HTTP_METHOD_REGISTRY.GET;
+    const spec = HTTP_METHOD_REGISTRY[method];
     return { method: spec.method, actionKind: spec.actionKind, isMutating: spec.isMutating };
 }
 
 export function emitApiResourceRoutes(
-    normalizedPath: string,
+    resolvedBasePath: ResolvedRoutePath,
     resourceName: string,
     controllerName: string | undefined,
     controllerMap: Map<string, Map<string, ControllerActionInfo>>,
@@ -39,29 +38,32 @@ export function emitApiResourceRoutes(
 ): readonly ParsedRoute[] {
     const routes: ParsedRoute[] = [];
     const resourceActions = [
-        { method: 'GET' as const, path: normalizedPath, actionName: 'index' },
-        { method: 'POST' as const, path: normalizedPath, actionName: 'store' },
-        { method: 'GET' as const, path: `${normalizedPath}/{id}`, actionName: 'show' },
-        { method: 'PUT' as const, path: `${normalizedPath}/{id}`, actionName: 'update' },
-        { method: 'DELETE' as const, path: `${normalizedPath}/{id}`, actionName: 'destroy' }
+        { method: 'GET' as const, suffix: '', actionName: 'index' },
+        { method: 'POST' as const, suffix: '', actionName: 'store' },
+        { method: 'GET' as const, suffix: '/{id}', actionName: 'show' },
+        { method: 'PUT' as const, suffix: '/{id}', actionName: 'update' },
+        { method: 'DELETE' as const, suffix: '/{id}', actionName: 'destroy' }
     ];
 
     for (const resAction of resourceActions) {
+        const path = resolveRoutePath(`${resolvedBasePath.path}${resAction.suffix}`, []);
         const action = controllerName ? controllerMap.get(controllerName)?.get(resAction.actionName) : undefined;
         if (action) {
             routes.push(ScannedRouteDescriptor.fromControllerAction({
                 method: resAction.method,
-                path: resAction.path,
+                path: path.path,
                 resourceName,
                 action,
                 auth: isAuth,
                 middleware: currentMiddlewares,
-                parameters: extractPathParams(resAction.path)
+                parameters: path.parameters
             }));
-        } else if (controllerName) {
+            continue;
+        }
+        if (controllerName) {
             routes.push(ScannedRouteDescriptor.fromControllerReference({
                 method: resAction.method,
-                path: resAction.path,
+                path: path.path,
                 resourceName,
                 actionName: resAction.actionName,
                 controllerName,
@@ -69,34 +71,36 @@ export function emitApiResourceRoutes(
                 middleware: currentMiddlewares,
                 response: resolvedResponse,
                 sourceFile: routesFile,
-                parameters: extractPathParams(resAction.path)
+                parameters: path.parameters
             }));
-        } else {
-            routes.push(ScannedRouteDescriptor.fromClosure({
-                method: resAction.method,
-                path: resAction.path,
-                resourceName,
-                actionName: resAction.actionName,
-                sourceFile: routesFile,
-                response: resolvedResponse,
-                auth: isAuth,
-                middleware: currentMiddlewares,
-                parameters: extractPathParams(resAction.path)
-            }));
+            continue;
         }
+        routes.push(ScannedRouteDescriptor.fromClosure({
+            method: resAction.method,
+            path: path.path,
+            resourceName,
+            actionName: resAction.actionName,
+            sourceFile: routesFile,
+            response: resolvedResponse,
+            auth: isAuth,
+            middleware: currentMiddlewares,
+            parameters: path.parameters
+        }));
     }
 
     return routes;
 }
 
+export type StandardRouteTarget =
+    | { readonly kind: "controller_action"; readonly action: ControllerActionInfo }
+    | { readonly kind: "controller_reference"; readonly controllerName: string; readonly actionName: string; readonly response: ResponseDescriptor }
+    | { readonly kind: "closure"; readonly actionName: string; readonly response: ResponseDescriptor };
+
 export function emitStandardRoutes(
-    targetMethods: readonly string[],
-    normalizedPath: string,
+    targetMethods: readonly HttpMethod[],
+    resolvedPath: ResolvedRoutePath,
     resourceName: string,
-    actionName: string | undefined,
-    controllerName: string | undefined,
-    actionInfo: ControllerActionInfo | undefined,
-    resolvedResponse: ResponseDescriptor,
+    target: StandardRouteTarget,
     isAuth: boolean,
     currentMiddlewares: readonly string[],
     routesFile: string
@@ -104,43 +108,47 @@ export function emitStandardRoutes(
     const routes: ParsedRoute[] = [];
 
     for (const method of targetMethods) {
-        const { method: canonicalMethod, actionKind } = mapMethodDetails(method);
-        if (actionInfo) {
+        const { method: canonicalMethod } = mapMethodDetails(method);
+        if (target.kind === "controller_action") {
             routes.push(ScannedRouteDescriptor.fromControllerAction({
                 method: canonicalMethod,
-                path: normalizedPath,
+                path: resolvedPath.path,
                 resourceName,
-                action: actionInfo,
+                action: target.action,
                 auth: isAuth,
                 middleware: currentMiddlewares,
-                parameters: extractPathParams(normalizedPath)
+                parameters: resolvedPath.parameters
             }));
-        } else if (controllerName) {
+            continue;
+        }
+
+        if (target.kind === "controller_reference") {
             routes.push(ScannedRouteDescriptor.fromControllerReference({
                 method: canonicalMethod,
-                path: normalizedPath,
+                path: resolvedPath.path,
                 resourceName,
-                actionName: actionName || actionKind,
-                controllerName,
+                actionName: target.actionName,
+                controllerName: target.controllerName,
                 sourceFile: routesFile,
-                response: resolvedResponse,
+                response: target.response,
                 auth: isAuth,
                 middleware: currentMiddlewares,
-                parameters: extractPathParams(normalizedPath)
+                parameters: resolvedPath.parameters
             }));
-        } else {
-            routes.push(ScannedRouteDescriptor.fromClosure({
-                method: canonicalMethod,
-                path: normalizedPath,
-                resourceName,
-                actionName: actionName || actionKind,
-                sourceFile: routesFile,
-                response: resolvedResponse,
-                auth: isAuth,
-                middleware: currentMiddlewares,
-                parameters: extractPathParams(normalizedPath)
-            }));
+            continue;
         }
+
+        routes.push(ScannedRouteDescriptor.fromClosure({
+            method: canonicalMethod,
+            path: resolvedPath.path,
+            resourceName,
+            actionName: target.actionName,
+            sourceFile: routesFile,
+            response: target.response,
+            auth: isAuth,
+            middleware: currentMiddlewares,
+            parameters: resolvedPath.parameters
+        }));
     }
 
     return routes;

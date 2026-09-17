@@ -6,12 +6,10 @@
  * @module core/compiler/scanner/subscanners/request-deriver
  */
 
-export { convertRawToSemanticType } from "./rawTypeConverter";
 export { extractRouteDomain, type RouteDomainInfo } from "./domainExtractor";
 export { deriveRouteAction, type DerivedActionInfo } from "./actionDeriver";
 export {
     deriveActionResponseData,
-    deriveFallbackResponseData,
     extractResourceResponseFields
 } from "./responseDeriver";
 export {

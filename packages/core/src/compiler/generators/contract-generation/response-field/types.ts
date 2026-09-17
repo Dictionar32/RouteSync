@@ -51,22 +51,37 @@ export type ResponseFieldContract =
 
 export type ResponseFieldKind = 'primitive' | 'object' | 'array' | 'variable' | 'property_access';
 
-export type ResponseFieldResolved = {
-  status: string;
-  type?: string;
-  model?: string;
-  confidence?: number;
-};
+export type ResponseFieldResolved =
+  | { readonly status: 'resolved'; readonly type: string; readonly model?: string }
+  | { readonly status: 'resolved'; readonly model: string; readonly type?: string }
+  | { readonly status: 'unresolved'; readonly reason: string };
 
-export type ResponseFieldData = {
-  kind: ResponseFieldKind;
-  type?: string;
-  fields?: Record<string, ResponseFieldData>;
-  itemType?: ResponseFieldData;
-  nullable?: boolean;
-  optional?: boolean;
-  resolved?: ResponseFieldResolved;
-};
+interface ResponseFieldBase {
+  readonly nullable?: boolean;
+  readonly optional?: boolean;
+}
+
+export type ResponseFieldData =
+  | (ResponseFieldBase & {
+      readonly kind: 'primitive';
+      readonly type: string;
+    })
+  | (ResponseFieldBase & {
+      readonly kind: 'object';
+      readonly fields?: Readonly<Record<string, ResponseFieldData>>;
+    })
+  | (ResponseFieldBase & {
+      readonly kind: 'array';
+      readonly itemType?: ResponseFieldData;
+    })
+  | (ResponseFieldBase & {
+      readonly kind: 'variable';
+      readonly resolved?: ResponseFieldResolved;
+    })
+  | (ResponseFieldBase & {
+      readonly kind: 'property_access';
+      readonly resolved?: ResponseFieldResolved;
+    });
 
 export type ParsedResponseField = {
   name: string;

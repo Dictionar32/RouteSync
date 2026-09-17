@@ -16,7 +16,9 @@ import {
     ScannedRouteCacheInvalidationDescriptor,
     RouteHandlerKind
 } from "../../../../../types/route";
+import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import type { RouteBoundaryOptions } from "../../../resolvers";
 
 export type SyntheticRouteOptions = {
     readonly method?: HttpMethod;
@@ -29,10 +31,12 @@ export type SyntheticRouteOptions = {
     readonly middleware?: readonly string[];
     readonly parameters?: readonly RouteParameter[];
     readonly invalidation?: RouteCacheInvalidationDescriptor;
+    readonly sourceFile?: string;
+    readonly sourceLine?: number;
 };
 
 export function createSyntheticRoute(
-    createFn: (params: any) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
     options: SyntheticRouteOptions = {}
 ): ScannedRouteDescriptor {
     const {
@@ -49,6 +53,7 @@ export function createSyntheticRoute(
     } = options;
 
     return createFn({
+        origin: "synthetic",
         method,
         path,
         domain,
@@ -62,7 +67,11 @@ export function createSyntheticRoute(
             actionName,
             target: `synthetic@${actionName}`
         }),
+        sourceFile,
+        sourceLine,
         response: response ?? new ResourceResponseDescriptor({ resourceName: `${resourceName}Resource`, shape: "single" }),
+        formRequests: [],
+        schema: ScannedRouteSchemaPayload.empty(),
         auth,
         middleware,
         parameters,

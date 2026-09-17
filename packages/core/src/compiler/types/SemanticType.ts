@@ -369,53 +369,54 @@ export class NullableType extends SemanticTypeBase {
  * First-Class Unified Object Property AST Node.
  * Pure Self-Contained Value Object (0 duplicated boolean flags, type is SSOT).
  */
+export type ObjectTypeRole = 'plain' | 'resource' | 'model' | 'response';
+
 export interface ObjectProperty {
     readonly name: string;
     readonly type: SemanticType;
     readonly required: boolean;
     readonly nullable: boolean;
-    readonly description?: string;
+    readonly description: string;
 }
 
 export interface ScannedObjectPropertyParams {
     readonly name: string;
     readonly type: SemanticType;
     readonly required: boolean;
-    readonly nullable: boolean;
-    readonly description: string | null;
+    readonly nullable?: boolean;
+    readonly description?: string;
 }
 
-/**
- * Reusable Constructor: Scanned Object Property Descriptor.
- */
 export class ScannedObjectProperty implements ObjectProperty {
     public readonly name: string;
     public readonly type: SemanticType;
     public readonly required: boolean;
-    public readonly nullable: boolean;
-    public readonly description?: string;
+    public readonly description: string;
 
-    constructor({ name, type, required, nullable, description }: ScannedObjectPropertyParams) {
+    constructor({ name, type, required, nullable = false, description = '' }: ScannedObjectPropertyParams) {
         this.name = name;
-        this.type = type;
+        this.type = nullable && type.kind !== 'nullable' ? new NullableType(type) : type;
         this.required = required;
-        this.nullable = nullable;
-        this.description = description ?? undefined;
+        this.description = description;
         Object.freeze(this);
+    }
+
+    public get nullable(): boolean {
+        return this.type.kind === 'nullable' || this.type.isNullable();
     }
 
     public static create({
         name,
         type,
         nullable = false,
-        required = !nullable,
-        description = null
+        required = true,
+        description = ''
     }: {
         readonly name: string;
         readonly type: SemanticType;
         readonly nullable?: boolean;
         readonly required?: boolean;
-        readonly description?: string | null;
+        readonly description?: string;
     }): ScannedObjectProperty {
         return new ScannedObjectProperty({
             name,
@@ -428,121 +429,54 @@ export class ScannedObjectProperty implements ObjectProperty {
 }
 
 export const ObjectProperty = {
-    /**
-     * Pure declarative factory from ResourceFieldDescriptor.
-     */
     fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
+        const nullable = Boolean(field.nullable);
+        const type = SemanticTypeResolver.resolveField(field);
         return new ScannedObjectProperty({
             name: toCamelCase(field.name),
-            type: SemanticTypeResolver.resolveField(field),
-            nullable: !!field.nullable,
-            required: !field.nullable,
-            description: null
+            type,
+            nullable,
+            required: !nullable,
+            description: ''
         });
     }
 };
 
-/**
- * First-Class Native Object Type.
- * Pure Ordered AST Stream (0 key duplication, direct 1-pass generator mapping).
- */
 export interface ObjectTypeDescriptorParams {
     readonly name: string;
     readonly baseName: string;
     readonly properties: readonly ObjectProperty[];
+    readonly role: ObjectTypeRole;
+    readonly baseObject?: ReferenceType;
+    readonly interfaces?: readonly ReferenceType[];
 }
 
 export class ObjectType extends SemanticTypeBase {
     readonly kind = 'object';
     public readonly name: string;
     public readonly baseName: string;
-    public readonly properties: readonly ObjectProperty[] & {
-        get(name: string): SemanticType | undefined;
-        entries(): readonly (readonly [string, SemanticType])[];
-    };
+    public readonly properties: readonly ObjectProperty[];
+    public readonly role: ObjectTypeRole;
+    public readonly baseObject?: ReferenceType;
+    public readonly interfaces: readonly ReferenceType[];
 
-    public readonly requiredProperties?: any;
-    public readonly baseObject?: any;
-    public readonly interfaces?: any;
-    public readonly annotations?: any;
-
-    /**
-     * Pure Origin Boundary Constructor supporting both Structured Options Object and Legacy signature.
-     */
-    constructor(
-        paramsOrProperties: ObjectTypeDescriptorParams | any,
-        requiredProperties?: any,
-        baseObject?: any,
-        interfaces?: any,
-        annotations?: any
-    ) {
+    constructor(params: ObjectTypeDescriptorParams) {
         super();
-        const makeEnhanced = (props: readonly ObjectProperty[]) => {
-            const arr = [...props] as any;
-            arr.get = function(name: string): SemanticType | undefined {
-                const found = arr.find((p: ObjectProperty) => p.name === name);
-                return found ? found.type : undefined;
-            };
-            arr.entries = function(): readonly (readonly [string, SemanticType])[] {
-                return Object.freeze(arr.map((p: ObjectProperty) => Object.freeze([p.name, p.type]) as readonly [string, SemanticType]));
-            };
-            return Object.freeze(arr);
-        };
-
-        if (paramsOrProperties && typeof paramsOrProperties === 'object' && ('name' in paramsOrProperties || (paramsOrProperties.properties && Array.isArray(paramsOrProperties.properties)))) {
-            const params = paramsOrProperties as ObjectTypeDescriptorParams;
-            this.name = params.name ?? '';
-            this.baseName = params.baseName ?? this.name;
-            this.properties = makeEnhanced(Array.isArray(params.properties) ? params.properties : []);
-        } else {
-            const rawName = annotations?.get ? (annotations.get('name') || '') : '';
-            const typeName = rawName ? (rawName.endsWith('Transformed') ? rawName : `${rawName}Transformed`) : '';
-            const baseName = annotations?.get ? (annotations.get('baseName') || rawName) : rawName;
-            this.name = typeName;
-            this.baseName = baseName.endsWith('Transformed') ? baseName.replace(/Transformed$/, '') : baseName;
-            this.requiredProperties = requiredProperties;
-            this.baseObject = baseObject;
-            this.interfaces = interfaces;
-            this.annotations = annotations ?? new Map();
-
-            const rawEntries = paramsOrProperties?.entries
-                ? (typeof paramsOrProperties.entries === 'function' ? paramsOrProperties.entries() : [])
-                : (paramsOrProperties instanceof Map ? Array.from(paramsOrProperties.entries()) : []);
-
-            const propList: ObjectProperty[] = [];
-            for (const [key, val] of rawEntries) {
-                const isReq = requiredProperties?.has ? requiredProperties.has(key) : true;
-                const isNull = (val as any)?.isNullable ? (val as any).isNullable() : false;
-                propList.push(ScannedObjectProperty.create({
-                    name: key,
-                    type: val,
-                    required: isReq,
-                    nullable: isNull
-                }));
-            }
-            this.properties = makeEnhanced(propList);
-        }
+        this.name = params.name;
+        this.baseName = params.baseName;
+        this.properties = Object.freeze([...params.properties]);
+        this.role = params.role;
+        this.baseObject = params.baseObject;
+        this.interfaces = Object.freeze([...(params.interfaces ?? [])]);
         Object.freeze(this);
     }
 
-    public static create({
-        name,
-        baseName = name,
-        properties = []
-    }: {
-        readonly name: string;
-        readonly baseName?: string;
-        readonly properties?: readonly ObjectProperty[];
-    }): ObjectType {
-        return new ObjectType({
-            name,
-            baseName,
-            properties
-        });
+    public static create(params: ObjectTypeDescriptorParams): ObjectType {
+        return new ObjectType(params);
     }
 
     public static empty(name: string, baseName: string = name): ObjectType {
-        return new ObjectType({ name, baseName, properties: [] });
+        return new ObjectType({ name, baseName, properties: [], role: 'plain' });
     }
 }
 

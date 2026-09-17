@@ -1,0 +1,18 @@
+import type { ClassName, DomainName, ModelName, ResourceName, ResponseTypeName, RouteName, SourceFilePath } from '../packages/core/src/types/domain/semanticValues';
+import type { InlineResponseDescriptorParams, ModelResponseParams, ResourceResponseParams, ResponseDescriptorOrigin, ResponseSemanticContract, RouteResponseAnalysis } from '../packages/core/src/types/domain/responseDescriptors';
+type Assert<T extends true> = T;
+type Extends<A, B> = A extends B ? true : false;
+type _RouteName = Assert<Extends<RouteName, { readonly kind: 'route_name'; readonly value: string }>>;
+type _DomainName = Assert<Extends<DomainName, { readonly kind: 'domain_name'; readonly value: string }>>;
+type _ClassName = Assert<Extends<ClassName, { readonly kind: 'class_name'; readonly value: string }>>;
+type _SourceFilePath = Assert<Extends<SourceFilePath, { readonly kind: 'source_file_path'; readonly value: string }>>;
+type _ResourceName = Assert<Extends<ResourceName, { readonly kind: 'resource_name'; readonly value: string }>>;
+type _ModelName = Assert<Extends<ModelName, { readonly kind: 'model_name'; readonly value: string }>>;
+type _ResponseTypeName = Assert<Extends<ResponseTypeName, { readonly kind: 'response_type_name'; readonly value: string }>>;
+const routeAnalysis: RouteResponseAnalysis = { routeName: {} as RouteName, kind: 'void', shape: 'single' };
+const resourceParams: ResourceResponseParams = { resourceName: {} as ResourceName, shape: 'single' };
+const modelParams: ModelResponseParams = { modelName: {} as ModelName, shape: 'single' };
+const origin: ResponseDescriptorOrigin = { kind: 'attribute', className: {} as ClassName, sourceFile: {} as SourceFilePath, trace: [] };
+const semanticContract: ResponseSemanticContract = { kind: 'object', name: {} as ResponseTypeName, properties: [] };
+const inlineParams: InlineResponseDescriptorParams = { domain: {} as DomainName, baseName: {} as ResourceName, typeName: {} as ResponseTypeName, fields: [], shape: 'single', origin, semanticContract };
+void routeAnalysis; void resourceParams; void modelParams; void inlineParams;

@@ -15,6 +15,7 @@ import type {
 } from "../../../../../types/route";
 import type { ControllerActionInfo } from "../../requestDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import type { RouteBoundaryOptions } from "../../../resolvers";
 
 export type ControllerActionRouteOptions = {
     readonly method: HttpMethod;
@@ -31,7 +32,7 @@ export type ControllerActionRouteOptions = {
 };
 
 export function createRouteFromControllerAction(
-    createFn: (params: any) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
     options: ControllerActionRouteOptions
 ): ScannedRouteDescriptor {
     const {
@@ -49,6 +50,7 @@ export function createRouteFromControllerAction(
     } = options;
 
     return createFn({
+        origin: "controller_action",
         method,
         path,
         domain,

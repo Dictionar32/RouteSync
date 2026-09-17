@@ -33,10 +33,12 @@ export class ContractIRTypeBuilder {
             case 'object':
                 return inlineObjectType(
                     Object.fromEntries(
-                        type.properties.map((property) => [
-                            property.name,
-                            this.buildType(property.type),
-                        ]),
+                        Object.entries(type.properties).map(
+                            ([name, property]) => [
+                                name,
+                                this.buildType(property),
+                            ],
+                        ),
                     ),
                 );
 

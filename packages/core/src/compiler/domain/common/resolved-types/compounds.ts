@@ -14,43 +14,35 @@ import type {
     ResolvedIntersectionTypeParams,
     ResolvedUnknownTypeParams,
     ObjectKind,
-    ResolvedField
+    ResolvedProperty,
+    ResolvedObjectIdentity
 } from './types';
 
 export class ResolvedObjectType extends ResolvedSemanticTypeBase {
     readonly kind = 'object' as const;
-    readonly fields: readonly ResolvedField[];
-    readonly objectKind: ObjectKind;
-    readonly resourceName?: string;
-    readonly typeName?: string;
+    readonly fields: readonly ResolvedProperty[];
+    readonly identity: ResolvedObjectIdentity;
 
-    constructor(params: ResolvedObjectTypeParams);
-    constructor(params?: {
-        readonly fields?: readonly ResolvedField[];
-        readonly objectKind?: ObjectKind;
-        readonly resourceName?: string | null;
-        readonly typeName?: string | null;
-    });
-    constructor({
-        fields = Object.freeze([]),
-        objectKind = 'plain',
-        resourceName = null,
-        typeName = null
-    }: any = {}) {
+    constructor(params: ResolvedObjectTypeParams) {
         super();
-        this.fields = Object.freeze([...fields]);
-        this.objectKind = objectKind;
-        this.resourceName = resourceName ?? undefined;
-        this.typeName = typeName ?? undefined;
+        this.fields = Object.freeze([...params.fields]);
+        this.identity = Object.freeze({ ...params.identity });
         Object.freeze(this);
     }
 
-    public static plain(fields: readonly ResolvedField[] = []): ResolvedObjectType {
-        return new ResolvedObjectType({ fields, objectKind: 'plain', resourceName: null, typeName: null });
+    public static plain(fields: readonly ResolvedProperty[] = []): ResolvedObjectType {
+        return new ResolvedObjectType({
+            fields,
+            identity: { kind: 'plain', name: 'Object' }
+        });
     }
 
-    public static resource(resourceName: string, fields: readonly ResolvedField[] = [], typeName: string | null = null): ResolvedObjectType {
-        return new ResolvedObjectType({ fields, objectKind: 'resource', resourceName, typeName });
+    public static named(
+        kind: Exclude<ObjectKind, 'plain'>,
+        name: string,
+        fields: readonly ResolvedProperty[] = []
+    ): ResolvedObjectType {
+        return new ResolvedObjectType({ fields, identity: { kind, name } });
     }
 }
 
@@ -58,9 +50,7 @@ export class ResolvedUnionType extends ResolvedSemanticTypeBase {
     readonly kind = 'union' as const;
     readonly members: readonly ResolvedSemanticType[];
 
-    constructor(params: ResolvedUnionTypeParams);
-    constructor(params?: { readonly members?: readonly ResolvedSemanticType[] });
-    constructor({ members = Object.freeze([]) }: any = {}) {
+    constructor({ members }: ResolvedUnionTypeParams) {
         super();
         this.members = Object.freeze([...members]);
         Object.freeze(this);
@@ -75,9 +65,7 @@ export class ResolvedIntersectionType extends ResolvedSemanticTypeBase {
     readonly kind = 'intersection' as const;
     readonly members: readonly ResolvedSemanticType[];
 
-    constructor(params: ResolvedIntersectionTypeParams);
-    constructor(params?: { readonly members?: readonly ResolvedSemanticType[] });
-    constructor({ members = Object.freeze([]) }: any = {}) {
+    constructor({ members }: ResolvedIntersectionTypeParams) {
         super();
         this.members = Object.freeze([...members]);
         Object.freeze(this);
@@ -92,9 +80,7 @@ export class ResolvedUnknownType extends ResolvedSemanticTypeBase {
     readonly kind = 'unknown' as const;
     readonly diagnosticMessage: string;
 
-    constructor(params: ResolvedUnknownTypeParams);
-    constructor(params?: { readonly diagnosticMessage?: string });
-    constructor({ diagnosticMessage = 'Unknown semantic type' }: any = {}) {
+    constructor({ diagnosticMessage }: ResolvedUnknownTypeParams) {
         super();
         this.diagnosticMessage = diagnosticMessage;
         Object.freeze(this);

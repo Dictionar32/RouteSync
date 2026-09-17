@@ -133,11 +133,15 @@ export class RouteSecurityClassifier {
   }
 }
 
+export type AuthorizationHeaderName =
+  | { readonly kind: 'authorization'; readonly value: 'Authorization' }
+  | { readonly kind: 'none' };
+
 export interface SecuritySchemeSpecification<K extends SecuritySchemeKind = SecuritySchemeKind> {
   readonly scheme: K;
   readonly isProtected: boolean;
   readonly requiresAuthorizationHeader: boolean;
-  readonly defaultHeaderName: string | null;
+  readonly defaultHeaderName: AuthorizationHeaderName;
 }
 
 /**

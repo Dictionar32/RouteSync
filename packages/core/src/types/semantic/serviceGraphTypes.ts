@@ -11,7 +11,7 @@ import type {
   ModelControllerMap,
   ModelNodeMap
 } from '../domain/semanticCollections';
-import type { ServiceDependency, ModelNode } from './modelGraphTypes';
+import type { ServiceDependency, ServiceModelNode } from './modelGraphTypes';
 
 export interface ServiceNode {
   kind: "service_node";
@@ -40,6 +40,6 @@ export interface ControllerNode {
 export interface ServiceGraph {
   services: ModelServiceMap<ServiceNode>;
   controllers: ModelControllerMap<ControllerNode>;
-  models: ModelNodeMap<ModelNode>;
+  models: ModelNodeMap<ServiceModelNode>;
   edges: ServiceDependency[];
 }

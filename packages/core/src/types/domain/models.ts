@@ -1,25 +1,24 @@
-import { PrimitiveKind } from "../../compiler/types/SemanticType";
-import type { ParsedColumn } from "./databaseColumns";
-import type { ParsedCast, ParsedAccessor, ParsedRelation, ModelKeyType } from "./eloquentTypes";
+import type { ParsedColumn } from './databaseColumns';
+import type { ParsedCast, ParsedAccessor, ParsedRelation } from './eloquentTypes';
+import type { ModelKeySemanticType, ModelKeyType } from './modelContracts';
+import type { ColumnName, ModelName, PropertyName, TableName } from './semanticValues';
 
-/**
- * Pure Ordered Eloquent Model AST (0 Record, 0 Object.entries).
- */
+/** High-model Eloquent representation. Every identity has one explicit shape. */
 export interface ParsedModel {
-  readonly name: string;       // e.g. 'App\\Models\\User'
-  readonly shortName: string;  // e.g. 'User' (Guaranteed from class_basename in PHP)
-  readonly table: string;
-  readonly primaryKey: string; // ✅ Guaranteed ('id')
-  readonly keyType: ModelKeyType; // ✅ Guaranteed ('int' | 'bigint' | 'uuid')
-  readonly keySemanticType: PrimitiveKind; // ✅ Guaranteed (PrimitiveKind.NUMBER | STRING)
-  readonly incrementing: boolean; // ✅ Guaranteed boolean
-  readonly softDeletes: boolean;  // ✅ Guaranteed boolean (true if SoftDeletes trait or deleted_at column present)
-  readonly timestamps: boolean;   // ✅ Guaranteed boolean (true if created_at & updated_at columns present)
+  readonly name: ModelName;
+  readonly shortName: ModelName;
+  readonly table: TableName;
+  readonly primaryKey: ColumnName;
+  readonly keyType: ModelKeyType;
+  readonly keySemanticType: ModelKeySemanticType;
+  readonly incrementing: boolean;
+  readonly softDeletes: boolean;
+  readonly timestamps: boolean;
   readonly columns: readonly ParsedColumn[];
-  readonly fillable: readonly string[];
-  readonly guarded: readonly string[];
-  readonly hidden: readonly string[];
-  readonly appends: readonly string[];
+  readonly fillable: readonly PropertyName[];
+  readonly guarded: readonly PropertyName[];
+  readonly hidden: readonly PropertyName[];
+  readonly appends: readonly PropertyName[];
   readonly casts: readonly ParsedCast[];
   readonly accessors: readonly ParsedAccessor[];
   readonly relations: readonly ParsedRelation[];

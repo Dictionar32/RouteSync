@@ -25,10 +25,7 @@ export function buildSchemaSection(
     lines.push(`export const ${resourceName}ContractSchema = {`);
 
     actions.forEach((action, index) => {
-        const schemaLines = (action as any).schemaLines ?? [(action as any).schemaCode];
-        schemaLines.forEach((line: string) => {
-            lines.push(line);
-        });
+        lines.push(action.schemaCode);
 
         // Add comma after each action except last
         if (index < actions.length - 1) {

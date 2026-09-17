@@ -56,26 +56,21 @@ describe('ContractInputBoundary', () => {
 
         expect(boundary.resolve(value)).toEqual({
             kind: 'object',
-            properties: [
-                {
-                    name: 'totalHarga',
-                    type: {
-                        kind: 'primitive',
-                        type: 'number',
+            properties: {
+                totalHarga: {
+                    kind: 'primitive',
+                    type: 'number',
+                    format: undefined,
+                },
+                items: {
+                    kind: 'array',
+                    items: {
+                        kind: 'resource',
+                        resource: 'OrderItemResource',
+                        collection: false,
                     },
                 },
-                {
-                    name: 'items',
-                    type: {
-                        kind: 'array',
-                        items: {
-                            kind: 'resource',
-                            resource: 'OrderItemResource',
-                            collection: false,
-                        },
-                    },
-                },
-            ],
+            },
         });
     });
 

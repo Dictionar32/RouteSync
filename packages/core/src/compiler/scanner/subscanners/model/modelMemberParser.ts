@@ -25,13 +25,12 @@ import { tryParseModelRelations } from "./memberRelationsParser";
 export interface ParsedModelMembers {
     readonly table: string;
     readonly primaryKey: string;
-    readonly keyType: string;
+    readonly keyType: import("../../../../types/domain/eloquentTypes").ModelKeyType;
     readonly incrementing: boolean;
     readonly fillable: readonly string[];
     readonly guarded: readonly string[];
     readonly hidden: readonly string[];
     readonly appends: readonly string[];
-    readonly castsMap: Record<string, string>;
     readonly casts: readonly ParsedCast[];
     readonly accessors: readonly ParsedAccessor[];
     readonly relations: readonly ParsedRelation[];
@@ -48,7 +47,7 @@ export function parseModelMembers(
     const propState: ModelPropertiesState = {
         table: defaultTable,
         primaryKey: 'id',
-        keyType: 'int',
+        keyType: import("../../../../types/domain/eloquentTypes").ModelKeyType.Int,
         incrementing: true,
         fillable: [],
         guarded: ['*'],
@@ -56,14 +55,13 @@ export function parseModelMembers(
         appends: []
     };
 
-    const castsMap: Record<string, string> = {};
     const casts: ParsedCast[] = [];
     const accessors: ParsedAccessor[] = [];
     const relations: ParsedRelation[] = [];
 
     for (let i = 0; i < tokens.length; i++) {
         tryParseModelProperty(source, tokens, i, propState);
-        tryParseModelCasts(source, tokens, i, castsMap, casts);
+        tryParseModelCasts(source, tokens, i, casts);
         tryParseModelAccessors(tokens, i, accessors);
         tryParseModelRelations(tokens, i, relations);
     }
@@ -77,7 +75,6 @@ export function parseModelMembers(
         guarded: propState.guarded,
         hidden: propState.hidden,
         appends: propState.appends,
-        castsMap,
         casts,
         accessors,
         relations

@@ -7,25 +7,23 @@
  * @module core/types/ir/endpointIrTypes
  */
 
-import type { SemanticType } from '../semantic';
+import type { PrimitiveKind } from '../../compiler/types/SemanticType';
+import type { HttpMethod } from '../domain/httpVocabulary';
 import type { ResourceFieldIR } from './resourceIrTypes';
 import type { ValidationRules } from './requestIrTypes';
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-
 export interface ParameterIR {
     readonly name: string;
-    readonly type: SemanticType;
+    readonly type: PrimitiveKind;
     readonly required: boolean;
     readonly description?: string;
     readonly validation?: ValidationRules;
 }
 
-export interface RequestReference {
-    readonly type: 'request_ir' | 'inline' | 'none';
-    readonly reference?: string;
-    readonly inlineFields?: readonly ResourceFieldIR[];
-}
+export type RequestReference =
+    | { readonly type: 'none' }
+    | { readonly type: 'request_ir'; readonly reference: string }
+    | { readonly type: 'inline'; readonly reference: string; readonly inlineFields: readonly ResourceFieldIR[] };
 
 export interface HeaderIR {
     readonly name: string;
@@ -38,13 +36,12 @@ export interface PaginationIR {
     readonly metaFields: readonly string[];
 }
 
-export interface ResponseReference {
-    readonly type: 'resource' | 'collection' | 'paginated' | 'custom' | 'empty';
-    readonly resource?: string;
-    readonly statusCode: number;
-    readonly headers?: readonly HeaderIR[];
-    readonly pagination?: PaginationIR;
-}
+export type ResponseReference =
+    | { readonly type: 'resource'; readonly resource: string; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null }
+    | { readonly type: 'collection'; readonly resource: string; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null }
+    | { readonly type: 'paginated'; readonly resource: string; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR }
+    | { readonly type: 'custom'; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null }
+    | { readonly type: 'empty'; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null };
 
 export interface MiddlewareIR {
     readonly name: string;
@@ -68,7 +65,7 @@ export interface EndpointIR {
     readonly path: string;
     readonly pathParams: readonly ParameterIR[];
     readonly queryParams: readonly ParameterIR[];
-    readonly request?: RequestReference;
+    readonly request: RequestReference;
     readonly response: ResponseReference;
     readonly middleware: readonly MiddlewareIR[];
     readonly metadata: EndpointMetadata;

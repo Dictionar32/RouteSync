@@ -17,11 +17,7 @@ export type {
     ResolvedResponse,
     ResolvedField,
     ResolvedRoute,
-    NormalizedColumnInfo,
-    NormalizedModelInfo,
-    FieldResolutionMeta,
 } from './semantic/semanticTypes';
-export { toFieldResolutionMeta } from './semantic/semanticTypes';
 
 // Re-exported Sub-domain Extractors & Context
 export {

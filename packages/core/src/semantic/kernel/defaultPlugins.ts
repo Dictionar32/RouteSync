@@ -28,19 +28,5 @@ export function createDefaultPlugins(): ResolverPlugin[] {
         new EloquentMethodResolver(),
         new ExpressionResolver(),
         new VariableResolver(),
-        // Model transform fallback
-        {
-            canResolve: (meta) => meta && meta.kind === 'model',
-            resolve: (meta) => {
-                const modelVal = meta.kind === 'model' ? meta.model || '' : '';
-                return {
-                    status: 'resolved',
-                    type: 'model',
-                    model: modelVal,
-                    confidence: 100,
-                    trace: [{ source: 'FallbackResolver', rule: 'Fallback model mapping', input: modelVal, output: `model: ${modelVal}` }]
-                };
-            }
-        }
     ];
 }

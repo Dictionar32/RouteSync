@@ -14,58 +14,119 @@ import {
 } from "../../../../types/route";
 import { type PhpAstValue, matchPhpAstValue } from "../../LaravelSourceLexer";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { CollectionKind, ErrorType, NullableType, ObjectType, PrimitiveKind, PrimitiveType, ReadonlyCollectionType, ReferenceType, type SemanticType } from "../../../types/SemanticType";
+import type { ModelName, ResourceName, PropertyName, MethodName, VariableName } from "../../../../types/domain/semanticValues";
 
-function mapPropertyType(prop: string, nullsafe: boolean): { expression: ResourceFieldExpression; nullable: boolean } {
-    const lower = prop.toLowerCase();
-    const isNumeric = lower.endsWith('_id') || lower === 'id' || lower.endsWith('_count') || lower.endsWith('_amount') || lower.endsWith('_minor') || lower === 'qty' || lower === 'harga' || lower === 'subtotal';
-    const isBool = lower.startsWith('is_') || lower.startsWith('has_');
-    const primitiveType = isNumeric ? 'int' : isBool ? 'boolean' : 'string';
-    return { expression: ResourceFieldExpressionFactory.primitive(primitiveType), nullable: nullsafe };
+type MappedResourceExpression =
+    | { readonly kind: 'semantic'; readonly expression: ResourceFieldExpression; readonly semanticType: SemanticType }
+    | { readonly kind: 'syntax_only'; readonly expression: ResourceFieldExpression };
+
+function modelName(value: string): ModelName {
+    return { kind: 'model_name', value };
 }
 
-function mapRawFallback(raw: string): { expression: ResourceFieldExpression; nullable: boolean } {
-    const cleanRaw = (raw || '').trim();
-    if (cleanRaw.includes("['") || cleanRaw.includes('["') || cleanRaw.includes('$detail[') || cleanRaw.includes('$gateway[')) {
-        return { expression: ResourceFieldExpressionFactory.unknown(), nullable: true };
-    }
-    if (cleanRaw.startsWith('(int)') || cleanRaw.startsWith('(float)') || /\b(int|float)\b/.test(cleanRaw) || /[+\-*\/]/.test(cleanRaw)) {
-        return { expression: ResourceFieldExpressionFactory.primitive('int'), nullable: cleanRaw.includes('null') };
-    }
-    if (cleanRaw.startsWith('(bool)')) {
-        return { expression: ResourceFieldExpressionFactory.primitive('boolean'), nullable: false };
-    }
-    return { expression: ResourceFieldExpressionFactory.primitive('string'), nullable: false };
+function resourceName(value: string): ResourceName {
+    return { kind: 'resource_name', value };
+}
+
+function propertyName(value: string): PropertyName {
+    return { kind: 'property_name', value };
+}
+
+function methodName(value: string): MethodName {
+    return { kind: 'method_name', value };
+}
+
+function variableName(value: string): VariableName {
+    return { kind: 'variable_name', value };
+}
+
+function mapPropertyAccess(
+    receiver: PhpAstValue,
+    property: string,
+    nullsafe: boolean
+): MappedResourceExpression {
+    const target = mapAstValueToExpression(receiver);
+    const expression = nullsafe
+        ? ResourceFieldExpressionFactory.nullsafePropertyAccess(target.expression, propertyName(property))
+        : ResourceFieldExpressionFactory.propertyAccess(target.expression, propertyName(property));
+    return { kind: 'syntax_only', expression };
+}
+
+function mapMethodCall(
+    receiver: PhpAstValue,
+    method: string,
+    args: readonly PhpAstValue[],
+    nullsafe: boolean
+): MappedResourceExpression {
+    const target = mapAstValueToExpression(receiver);
+    const arguments_ = args.map(mapAstValueToExpression).map(result => result.expression);
+    const expression = nullsafe
+        ? ResourceFieldExpressionFactory.nullsafeMethodCall(target.expression, methodName(method), arguments_)
+        : ResourceFieldExpressionFactory.methodCall(target.expression, methodName(method), arguments_);
+    return { kind: 'syntax_only', expression };
 }
 
 /**
- * Maps a PhpAstValue node into a ResourceFieldExpression with nullability.
+ * Maps a PhpAstValue node into a ResourceFieldExpression with its semantic type.
  */
 export function mapAstValueToExpression(
-    value: PhpAstValue,
-    raw: string
-): { expression: ResourceFieldExpression; nullable: boolean } {
-    return matchPhpAstValue(value, {
-        resourceCollection: (v) => ({ expression: ResourceFieldExpressionFactory.resource(v.resourceName, true), nullable: false }),
-        resourceSingle: (v) => ({ expression: ResourceFieldExpressionFactory.resource(v.resourceName, false), nullable: false }),
+    value: PhpAstValue
+): MappedResourceExpression {
+    return matchPhpAstValue<MappedResourceExpression>(value, {
+        resourceCollection: (v) => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.resource(resourceName(v.resourceName), { kind: 'collection' }), semanticType: new ReadonlyCollectionType(CollectionKind.ARRAY, new ReferenceType('', v.resourceName)) }),
+        resourceSingle: (v) => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.resource(resourceName(v.resourceName), { kind: 'single' }), semanticType: new ReferenceType('', v.resourceName) }),
         nestedArray: (v) => {
             const childFields: ResourceFieldDescriptor[] = v.entries.map(e => {
-                const mappedChild = mapAstValueToExpression(e.value, e.rawExpression);
-                return ScannedResourceFieldDescriptor.fromExpression(e.key, mappedChild.expression, mappedChild.nullable);
+                const mappedChild = mapAstValueToExpression(e.value);
+                const semanticType = mappedChild.kind === 'semantic'
+                    ? mappedChild.semanticType
+                    : new ErrorType('Nested resource field requires semantic binding at origin');
+                return ScannedResourceFieldDescriptor.fromExpression(
+                    e.key,
+                    mappedChild.expression,
+                    semanticType
+                );
             });
-            return { expression: ResourceFieldExpressionFactory.object(childFields), nullable: false };
+            return { kind: 'semantic', expression: ResourceFieldExpressionFactory.object(childFields), semanticType: new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: childFields.map(field => ({ name: field.name, type: field.semanticType, required: true, nullable: field.semanticType.isNullable(), description: "" })), role: "plain" }) };
         },
-        methodChain: (v) => mapPropertyType(v.property, v.nullsafe),
-        propertyAccess: (v) => mapPropertyType(v.property, v.nullsafe),
+        methodChain: (v) => mapMethodCall(v.receiver, v.property, v.arguments, v.nullsafe),
+        propertyAccess: (v) => mapPropertyAccess(v.receiver, v.property, v.nullsafe),
         literal: (v) => {
-            const primitiveType = v.literalType === 'number' ? 'int' : v.literalType === 'boolean' ? 'boolean' : 'string';
-            return { expression: ResourceFieldExpressionFactory.primitive(primitiveType), nullable: v.literalType === 'null' };
+            const literal = v.literalType === 'number'
+                ? { kind: 'number' as const, value: v.value }
+                : v.literalType === 'boolean'
+                    ? { kind: 'boolean' as const, value: v.value }
+                    : v.literalType === 'null'
+                        ? { kind: 'null' as const, value: null }
+                        : { kind: 'string' as const, value: v.value };
+            const semanticType = v.literalType === 'number'
+                ? new PrimitiveType(PrimitiveKind.NUMBER)
+                : v.literalType === 'boolean'
+                    ? new PrimitiveType(PrimitiveKind.BOOLEAN)
+                    : v.literalType === 'string'
+                        ? new PrimitiveType(PrimitiveKind.STRING)
+                        : new ErrorType('Null literal has no non-null inner semantic type');
+            return { kind: 'semantic', expression: ResourceFieldExpressionFactory.literal(literal), semanticType };
         },
-        variableReference: (v) => {
-            const varName = v.name.toLowerCase();
-            const isNumeric = varName.endsWith('_id') || varName === 'id' || varName.endsWith('_minor') || varName === 'qty' || varName === 'harga' || varName === 'subtotal';
-            return { expression: ResourceFieldExpressionFactory.primitive(isNumeric ? 'int' : 'string'), nullable: false };
-        },
-        ternaryExpression: () => ({ expression: ResourceFieldExpressionFactory.primitive('string'), nullable: true }),
-        rawExpression: (v) => mapRawFallback(v.raw || raw)
+        variableReference: (v) => ({
+            kind: 'semantic',
+            expression: ResourceFieldExpressionFactory.variable(variableName(v.name)),
+            semanticType: new ErrorType('Semantic type requires verified origin binding')
+        }),
+        ternaryExpression: () => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.unsupported('unsupported_syntax'), semanticType: new ErrorType('Semantic type requires verified origin binding') }),
+        staticCall: (v) => ({
+            kind: 'semantic',
+            expression: ResourceFieldExpressionFactory.staticMethodCall(
+                modelName(v.className),
+                methodName(v.method),
+                v.arguments.map(mapAstValueToExpression).map(result => result.expression)
+            ),
+            semanticType: new ErrorType('Semantic type requires verified origin binding')
+        }),
+        classReference: () => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.unsupported('unsupported_syntax'), semanticType: new ErrorType('Semantic type requires verified origin binding') }),
+        closure: () => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.unsupported('unsupported_syntax'), semanticType: new ErrorType('Semantic type requires verified origin binding') }),
+        arrowFunction: () => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.unsupported('unsupported_syntax'), semanticType: new ErrorType('Semantic type requires verified origin binding') }),
+        unsupported: () => ({ kind: 'semantic', expression: ResourceFieldExpressionFactory.unsupported('unsupported_syntax'), semanticType: new ErrorType('Semantic type requires verified origin binding') })
     });
 }

@@ -136,10 +136,14 @@ export function matchRouteParameterType<R>(
 }
 
 
+export type RouteBindingField =
+  | { readonly kind: 'convention' }
+  | { readonly kind: 'explicit'; readonly value: string };
+
 export interface RouteParameter {
   readonly name: string;
-  readonly propertyName: string; // ✅ Canonical TS Identifier ('orderId', 0 toCamelCase in downstream)
-  readonly bindingField: string | null; // ✅ Canonical Bound Field ('slug', 'uuid', from Laravel {post:slug})
+  readonly propertyName: string; // Canonical TS Identifier
+  readonly bindingField: RouteBindingField; // Canonical Laravel binding state
   readonly in: RouteParameterLocation;
   readonly required: boolean;
   readonly type: RouteParameterType; // ✅ 100% Guaranteed Canonical Vocabulary

@@ -9,7 +9,6 @@
  * @module core/compiler/scanner/resolvers/RouteBoundaryAdapter
  */
 
-import { ScannedEndpointContract } from "../../../types/route";
 import {
     ScannedRouteCompleteContracts,
     ScannedRouteDescriptor
@@ -17,16 +16,10 @@ import {
 import {
     RouteBoundaryContract,
     RouteBoundaryOptions,
-    SparseRouteParams,
-    RouteBoundaryContractFactory,
-    resolveRouteBoundaryBasics,
-    buildRouteIdentityContract,
-    buildRouteBindingContract,
-    buildRouteCapabilityContract,
-    buildRouteProvenanceContract
+    RouteBoundaryContractFactory
 } from "./boundary";
 
-export type { RouteBoundaryContract, RouteBoundaryOptions, SparseRouteParams };
+export type { RouteBoundaryContract, RouteBoundaryOptions };
 
 export class RouteBoundaryAdapter {
     /**
@@ -34,26 +27,7 @@ export class RouteBoundaryAdapter {
      * Pure Flow Declaration (Active Consumer Orchestrator).
      */
     public static toSubcontracts(params: RouteBoundaryOptions): ScannedRouteCompleteContracts {
-        const basics = resolveRouteBoundaryBasics(params);
-        const identity = buildRouteIdentityContract(params, basics);
-        const binding = buildRouteBindingContract(params, basics);
-        const capability = buildRouteCapabilityContract(params, basics, identity.parameters.all.length);
-        const provenance = buildRouteProvenanceContract(params);
-
-        const contract = ScannedEndpointContract.fromSubcontracts({
-            identity,
-            binding,
-            capability,
-            provenance
-        });
-
-        return Object.freeze({
-            identity,
-            binding,
-            capability,
-            provenance,
-            contract
-        });
+        return RouteBoundaryContractFactory.create(params);
     }
 
     /**
@@ -64,10 +38,4 @@ export class RouteBoundaryAdapter {
         return new ScannedRouteDescriptor(contracts);
     }
 
-    /**
-     * Constructs a full ScannedRouteDescriptor from a complete non-nullable RouteBoundaryContract.
-     */
-    public static fromBoundary(contract: RouteBoundaryContract): ScannedRouteDescriptor {
-        return RouteBoundaryAdapter.fromSparse(contract);
-    }
 }

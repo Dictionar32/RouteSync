@@ -134,8 +134,8 @@ export class ContractSchemaMapper {
                 return [resolved.name];
             case 'object': {
                 const refs: string[] = [];
-                for (const [, fieldType] of resolved.fields) {
-                    refs.push(...this.collectReferencedTypes(fieldType));
+                for (const field of resolved.fields) {
+                    refs.push(...this.collectReferencedTypes(field.type));
                 }
                 return refs;
             }

@@ -11,7 +11,7 @@ import type { PhpAstValue } from "../../../lexer/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { ScannedResourceFieldDescriptor } from "../../../descriptors/resourceDescriptors";
-import { PrimitiveKind } from "../../../../types/SemanticType";
+import { PrimitiveKind, PrimitiveType } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 
@@ -31,14 +31,30 @@ export function bindLiteralField(
             ? PrimitiveKind.BOOLEAN
             : PrimitiveKind.STRING;
 
-    const boundAst = BoundSemanticFactory.primitive(literalType, value.value, false);
-    const expression = ResourceFieldExpressionFactory.literal(value.value);
+    const boundAst = BoundSemanticFactory.primitive(
+        new PrimitiveType(primKind),
+        value.literalType === 'null'
+            ? { kind: 'null', value: null }
+            : value.literalType === 'number'
+                ? { kind: 'number', value: value.value }
+                : value.literalType === 'boolean'
+                    ? { kind: 'boolean', value: value.value }
+                    : { kind: 'string', value: value.value }
+    );
+    const literal = value.literalType === 'number'
+        ? { kind: 'number' as const, value: value.value }
+        : value.literalType === 'boolean'
+            ? { kind: 'boolean' as const, value: value.value }
+            : value.literalType === 'null'
+                ? { kind: 'null' as const, value: null }
+                : { kind: 'string' as const, value: value.value };
+    const expression = ResourceFieldExpressionFactory.literal(literal);
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
         false,
         toCamelCase(key),
-        primKind,
+        new PrimitiveType(primKind),
         boundAst
     );
 
@@ -53,7 +69,6 @@ export function bindTernaryField(
     bindFieldFn: (params: {
         readonly key: string;
         readonly value: PhpAstValue;
-        readonly rawExpression: string;
         readonly modelSymbol?: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
     }) => BoundResourceFieldResult
@@ -61,7 +76,6 @@ export function bindTernaryField(
     const trueBranch = bindFieldFn({
         key,
         value: value.trueBranch,
-        rawExpression: '',
         modelSymbol,
         modelSymbolTable
     });
@@ -69,44 +83,37 @@ export function bindTernaryField(
     const falseBranch = bindFieldFn({
         key,
         value: value.falseBranch,
-        rawExpression: '',
         modelSymbol,
         modelSymbolTable
     });
 
-    const resultingType = trueBranch.descriptor.expression.kind === 'primitive'
-        ? (trueBranch.descriptor.expression as any).type
-        : 'unknown';
-
     const boundAst = BoundSemanticFactory.ternary({
-        conditionExpression: value.condition,
+        conditionExpression: value.condition.kind,
         truthy: trueBranch.boundAst,
         falsy: falseBranch.boundAst,
-        resultingType,
-        nullable: trueBranch.descriptor.nullable || falseBranch.descriptor.nullable
+        resultingType: trueBranch.descriptor.semanticType,
     });
 
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         trueBranch.descriptor.expression,
-        boundAst.nullable,
-        toCamelCase(key),
         trueBranch.descriptor.semanticType,
+        toCamelCase(key),
         boundAst
     );
 
     return { descriptor, boundAst };
 }
 
-export function bindFallbackField(key: string, rawExpression: string): BoundResourceFieldResult {
-    const boundAst = BoundSemanticFactory.unknown(rawExpression, 'Unresolved raw expression');
+export function bindFallbackField(key: string): BoundResourceFieldResult {
+    const boundAst = BoundSemanticFactory.unsupported('unsupported_syntax');
     const expression = ResourceFieldExpressionFactory.primitive('string');
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
         false,
         toCamelCase(key),
-        PrimitiveKind.STRING,
+        new PrimitiveType(PrimitiveKind.STRING),
         boundAst
     );
 

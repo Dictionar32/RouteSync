@@ -7,13 +7,12 @@
  */
 
 import type { RouteManifest } from '../../types/route';
-import type { ServiceGraph, ServiceNode, ControllerNode, ModelNode, ServiceDependency } from '../../types/semantic';
-import { ModelFieldMap } from '../../types/domain/semanticCollections';
+import type { ServiceGraph, ServiceNode, ControllerNode, ServiceModelNode, ServiceDependency } from '../../types/semantic';
 import { buildModelNode, buildServiceNode, buildControllerNode } from './nodeFactories';
 import { assembleServiceGraph } from './graphAssembler';
 
 export interface GraphBuilderContext {
-  readonly modelsMap: Map<string, ModelNode>;
+  readonly modelsMap: Map<string, ServiceModelNode>;
   readonly servicesMap: Map<string, ServiceNode>;
   readonly controllersMap: Map<string, ControllerNode>;
   readonly edges: ServiceDependency[];
@@ -27,13 +26,6 @@ export function compileGraphFromManifest(
   // 1. Models Indexing & Relations Traversal
   for (const m of manifest.models) {
     const modelNode = buildModelNode(m.name);
-    modelNode.table = m.table;
-
-    const fields: Record<string, { type: string; nullable: boolean }> = {};
-    for (const col of m.columns) {
-      fields[col.name] = { type: col.type, nullable: col.nullable };
-    }
-    modelNode.fields = ModelFieldMap.fromRecord(fields);
     builder.modelsMap.set(m.name, modelNode);
 
     if (m.relations) {
@@ -73,19 +65,7 @@ export function compileGraphFromManifest(
       controller.actions.push({ name: actionName });
     }
 
-    if (route.response) {
-      const checkResponseModel = (node: unknown) => {
-        if (!node || typeof node !== 'object') return;
-        const obj = node as Record<string, unknown>;
-        if (typeof obj.model === 'string') {
-          builder.linkGraph(controllerName, obj.model, 'depends_on_model');
-        }
-        if (obj.kind === 'object' && Array.isArray(obj.fields)) {
-          for (const f of obj.fields) checkResponseModel(f);
-        }
-      };
-      checkResponseModel(route.response);
-    }
+
   }
 
   return assembleServiceGraph(builder.modelsMap, builder.servicesMap, builder.controllersMap, builder.edges);

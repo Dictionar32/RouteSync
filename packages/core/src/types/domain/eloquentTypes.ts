@@ -1,3 +1,4 @@
+import type { SemanticType } from "../../compiler/types/SemanticType";
 import { PrimitiveKind } from "../../compiler/types/SemanticType";
 
 /**
@@ -166,8 +167,22 @@ export function matchEloquentCastKind<R>(
   kind: EloquentCastKind,
   visitor: EloquentCastKindVisitor<R>
 ): R {
-  const spec = ELOQUENT_CAST_REGISTRY[kind] ?? ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom];
-  return visitor[kind](spec as any);
+  switch (kind) {
+    case EloquentCastKind.Integer: return visitor.integer(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Integer]);
+    case EloquentCastKind.Float: return visitor.float(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Float]);
+    case EloquentCastKind.Decimal: return visitor.decimal(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Decimal]);
+    case EloquentCastKind.Boolean: return visitor.boolean(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Boolean]);
+    case EloquentCastKind.String: return visitor.string(ELOQUENT_CAST_REGISTRY[EloquentCastKind.String]);
+    case EloquentCastKind.DateTime: return visitor.datetime(ELOQUENT_CAST_REGISTRY[EloquentCastKind.DateTime]);
+    case EloquentCastKind.Date: return visitor.date(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Date]);
+    case EloquentCastKind.Timestamp: return visitor.timestamp(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Timestamp]);
+    case EloquentCastKind.Array: return visitor.array(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Array]);
+    case EloquentCastKind.Json: return visitor.json(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Json]);
+    case EloquentCastKind.Object: return visitor.object(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Object]);
+    case EloquentCastKind.Collection: return visitor.collection(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Collection]);
+    case EloquentCastKind.Encrypted: return visitor.encrypted(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Encrypted]);
+    case EloquentCastKind.Custom: return visitor.custom(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom]);
+  }
 }
 
 /**
@@ -215,22 +230,23 @@ export class EloquentCastMapper {
 /**
  * First-Class Eloquent Attribute Cast Entry (Ordered & Guaranteed Complete Model).
  */
+export type EloquentCastTarget =
+  | { readonly kind: 'builtin'; readonly castKind: EloquentCastKind }
+  | { readonly kind: 'custom'; readonly className: string };
+
+/** First-class Eloquent attribute cast contract. */
 export interface ParsedCast {
   readonly column: string;
-  readonly targetType: string;
+  readonly target: EloquentCastTarget;
   readonly castKind: EloquentCastKind;
-  readonly semanticType: PrimitiveKind;
+  readonly semanticType: SemanticType;
 }
 
-/**
- * First-Class Eloquent Accessor Definition (Ordered).
- */
+/** First-class Eloquent computed/accessor contract. */
 export interface ParsedAccessor {
   readonly name: string;
-  readonly propertyName: string; // ✅ Canonical TS Identifier ('fullName')
-  readonly type: string;         // PHP return type
-  readonly nullable: boolean;    // Guaranteed boolean
-  readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
+  readonly propertyName: string;
+  readonly semanticType: SemanticType;
 }
 
 /**
@@ -355,55 +371,56 @@ export class EloquentRelationClassifier {
   }
 
   public static isCollection(type: EloquentRelationType): boolean {
-    return ELOQUENT_RELATION_REGISTRY[type]?.isCollection ?? false;
+    return ELOQUENT_RELATION_REGISTRY[type].isCollection;
   }
 
   public static isPolymorphic(type: EloquentRelationType): boolean {
-    return ELOQUENT_RELATION_REGISTRY[type]?.isPolymorphic ?? false;
+    return ELOQUENT_RELATION_REGISTRY[type].isPolymorphic;
   }
 }
 
 /**
  * First-Class Eloquent Model Relationship Definition (Ordered & Complete Contract).
  */
+export type RelationForeignKey =
+  | { readonly kind: 'explicit'; readonly column: string }
+  | { readonly kind: 'convention' };
+
 export interface ParsedRelation {
   readonly name: string;
   readonly type: EloquentRelationType;
-  readonly modelName: string;
   readonly targetModel: string;
   readonly cardinality: EloquentRelationCardinality;
-  readonly isCollection: boolean;
-  readonly foreignKey: string | null;
+  readonly foreignKey: RelationForeignKey;
 }
 
 export interface SingleRelationDescriptor extends ParsedRelation {
   readonly cardinality: 'one';
-  readonly isCollection: false;
 }
 
 export interface CollectionRelationDescriptor extends ParsedRelation {
   readonly cardinality: 'many';
-  readonly isCollection: true;
 }
 
 export type RelationCardinalityDescriptor =
   | SingleRelationDescriptor
   | CollectionRelationDescriptor;
 
-export interface RelationCardinalityVisitor<R> {
+export type RelationCardinalityVisitor<R> = {
   readonly one: (relation: SingleRelationDescriptor) => R;
   readonly many: (relation: CollectionRelationDescriptor) => R;
-}
+};
 
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik kardinalitas relasi Eloquent
- */
 export function matchRelationCardinality<R>(
-  relation: ParsedRelation,
+  relation: RelationCardinalityDescriptor,
   visitor: RelationCardinalityVisitor<R>
 ): R {
-  const cardinality = relation.cardinality ?? (relation.isCollection ? 'many' : 'one');
-  return visitor[cardinality](relation as any);
+  switch (relation.cardinality) {
+    case 'one':
+      return visitor.one(relation);
+    case 'many':
+      return visitor.many(relation);
+  }
 }
 
 export const matchRelation = matchRelationCardinality;
@@ -525,8 +542,13 @@ export function matchModelKeyType<R>(
   visitor: ModelKeyTypeVisitor<R>
 ): R {
   const type = typeof typeOrModel === 'string' ? typeOrModel : typeOrModel.keyType;
-  const spec = MODEL_KEY_TYPE_REGISTRY[type];
-  return visitor[type](spec as any);
+  switch (type) {
+    case ModelKeyType.Int: return visitor.int(MODEL_KEY_TYPE_REGISTRY[ModelKeyType.Int]);
+    case ModelKeyType.BigInt: return visitor.bigint(MODEL_KEY_TYPE_REGISTRY[ModelKeyType.BigInt]);
+    case ModelKeyType.String: return visitor.string(MODEL_KEY_TYPE_REGISTRY[ModelKeyType.String]);
+    case ModelKeyType.Uuid: return visitor.uuid(MODEL_KEY_TYPE_REGISTRY[ModelKeyType.Uuid]);
+    case ModelKeyType.Ulid: return visitor.ulid(MODEL_KEY_TYPE_REGISTRY[ModelKeyType.Ulid]);
+  }
 }
 
 /**
@@ -544,8 +566,11 @@ export class ModelKeyTypeMapper {
     ['ulid', ModelKeyType.Ulid]
   ]);
 
-  public static normalize(rawKeyType?: string | null): ModelKeyType {
-    if (!rawKeyType) return ModelKeyType.Int;
-    return this.NORMALIZATION_MAP.get(rawKeyType.toLowerCase()) ?? ModelKeyType.Int;
+  public static normalize(rawKeyType: string): ModelKeyType {
+    const normalized = this.NORMALIZATION_MAP.get(rawKeyType.toLowerCase());
+    if (normalized === undefined) {
+      throw new Error(`Model boundary violation: unsupported Eloquent $keyType "${rawKeyType}".`);
+    }
+    return normalized;
   }
 }

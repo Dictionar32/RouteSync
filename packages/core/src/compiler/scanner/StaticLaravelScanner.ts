@@ -75,7 +75,7 @@ export class StaticLaravelScanner extends ScannerLegacyDelegates {
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
         interner: TypeInterner = new TypeInterner(),
-        models: readonly any[] = []
+        models: readonly ParsedModel[] = []
     ): readonly RequestType[] {
         return TypeDeriver.deriveRequestTypes(routes, resources, interner, models);
     }

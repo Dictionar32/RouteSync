@@ -1,86 +1,47 @@
-import { ModelNode, ModelColumn, ModelAccessor, ModelRelation } from './types'
+import type { ModelNode } from './modelNodes';
+import type { ParsedColumn } from '../types/domain/databaseColumns';
+import type { ParsedCast, ParsedAccessor, ParsedRelation } from '../types/domain/eloquentTypes';
 
-/**
- * Wraps one ModelNode with O(1) member lookup. Built once per model when
- * the SymbolTable is constructed, not per resolve() call — the column/
- * accessor/relation maps are real Maps, not re-scanned arrays.
- */
 export class ModelSymbol {
-  readonly name: string
-  private readonly columnsByName: Map<string, ModelColumn>
+    readonly name: string;
+    private readonly columnsByName = new Map<string, ParsedColumn>();
+    private readonly castsByName = new Map<string, ParsedCast>();
+    private readonly relationsByName = new Map<string, ParsedRelation>();
+    private readonly accessorsByName = new Map<string, ParsedAccessor>();
 
-  constructor(public readonly node: ModelNode) {
-    this.name = node.name
-    this.columnsByName = new Map()
-    if (Array.isArray(node.columns)) {
-      for (const c of node.columns) this.columnsByName.set(c.name, c)
-    } else if (node.fields && typeof node.fields === 'object') {
-      // legacy shape — ModelColumnResolver's old `else if (model.fields)`
-      // branch, preserved so nothing that still produces this shape breaks.
-      for (const [name, f] of Object.entries(node.fields)) {
-        this.columnsByName.set(name, { name, type: f.type, nullable: f.nullable })
-      }
+    constructor(public readonly node: ModelNode) {
+        this.name = node.name.value;
+        for (const column of node.columns) this.columnsByName.set(column.name, column);
+        for (const cast of node.casts) this.castsByName.set(cast.column, cast);
+        for (const relation of node.relations) this.relationsByName.set(relation.name, relation);
+        for (const accessor of node.accessors) this.accessorsByName.set(accessor.name, accessor);
     }
-  }
 
-  column(name: string): ModelColumn | undefined {
-    return this.columnsByName.get(name)
-  }
-
-  accessor(name: string): ModelAccessor | undefined {
-    return this.node.accessors?.[name]
-  }
-
-  relation(name: string): ModelRelation | undefined {
-    return this.node.relations?.[name]
-  }
-
-  cast(columnName: string): string | undefined {
-    return this.node.casts?.[columnName]
-  }
+    column(name: string): ParsedColumn | undefined { return this.columnsByName.get(name); }
+    accessor(name: string): ParsedAccessor | undefined { return this.accessorsByName.get(name); }
+    relation(name: string): ParsedRelation | undefined { return this.relationsByName.get(name); }
+    cast(columnName: string): ParsedCast | undefined { return this.castsByName.get(columnName); }
 }
 
-/**
- * Replaces the `context.models.find(m => m.name === X)` scan repeated in
- * AccessorResolver, ConditionalWrapperResolver, VariableResolver (x2),
- * ExpressionResolver (x2), MethodReturnResolver, ModelColumnResolver —
- * every one of those was re-scanning the same array on every single field
- * resolved. Built once per scan/sync run instead.
- */
 export class SymbolTable {
-  private byName = new Map<string, ModelSymbol>()
-  private byLowerName = new Map<string, ModelSymbol>()
+    private readonly byName = new Map<string, ModelSymbol>();
+    private readonly byLowerName = new Map<string, ModelSymbol>();
 
-  constructor(models: ModelNode[]) {
-    for (const m of models) {
-      const sym = new ModelSymbol(m)
-      this.byName.set(m.name, sym)
-      // first-write-wins on case-insensitive collisions — matches the old
-      // Array.find() behavior, which always returned the first match too.
-      const lower = m.name.toLowerCase()
-      if (!this.byLowerName.has(lower)) this.byLowerName.set(lower, sym)
+    constructor(models: readonly ModelNode[]) {
+        for (const model of models) {
+            const symbol = new ModelSymbol(model);
+            const name = model.name.value;
+            this.byName.set(name, symbol);
+            const lower = name.toLowerCase();
+            if (!this.byLowerName.has(lower)) this.byLowerName.set(lower, symbol);
+        }
     }
-  }
 
-  /** Exact name match — same as `context.models.find(m => m.name === name)`. */
-  get(name: string): ModelSymbol | undefined {
-    return this.byName.get(name)
-  }
-
-  has(name: string): boolean {
-    return this.byName.has(name)
-  }
-
-  /** Case-insensitive match — same as `context.models.find(m => m.name.toLowerCase() === name.toLowerCase())`. */
-  getCaseInsensitive(name: string): ModelSymbol | undefined {
-    return this.byLowerName.get(name.toLowerCase())
-  }
-
-  /** Find the first ModelSymbol matching a predicate */
-  findFirst(predicate: (node: ModelNode) => boolean): ModelSymbol | undefined {
-    for (const sym of this.byName.values()) {
-      if (predicate(sym.node)) return sym
+    get(name: string): ModelSymbol | undefined { return this.byName.get(name); }
+    has(name: string): boolean { return this.byName.has(name); }
+    getCaseInsensitive(name: string): ModelSymbol | undefined { return this.byLowerName.get(name.toLowerCase()); }
+    findFirst(predicate: (node: ModelNode) => boolean): ModelSymbol | undefined {
+        for (const symbol of this.byName.values()) if (predicate(symbol.node)) return symbol;
+        return undefined;
     }
-    return undefined
-  }
 }

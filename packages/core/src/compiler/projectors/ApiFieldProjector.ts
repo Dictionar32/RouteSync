@@ -8,7 +8,8 @@
  */
 
 import type { CodeSink } from '../sink/CodeSink';
-import type { RequestTypesArtifact, RequestField } from '../artifacts/RequestTypesArtifact';
+import type { RequestField } from '../../types/domain/request';
+import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 
 export function deriveApiFieldKey(originalName: string): string {
     return originalName.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -18,7 +19,7 @@ export function deriveApiFieldKey(originalName: string): string {
  * Pure generator stream: extracts field names from RequestField without duck-typing.
  */
 export function* extractFieldNamesFromField(field: RequestField): Generator<string> {
-    yield field.originalName;
+    yield field.sourceName;
     const typeObj = field.type as unknown as {
         readonly kind?: string;
         readonly elementType?: {

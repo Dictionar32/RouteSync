@@ -1,98 +1,119 @@
-import { SemanticResolution, TraceNode } from '../../types/contract';
-import { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
-import { lookupGlobalFunction, lookupMethod, lookupVariableMethod, FrameworkMethodRule } from '../FrameworkRegistry';
+import { ObjectType, PrimitiveKind, PrimitiveType } from '../../../types/semantic';
+import type { SemanticResolution } from '../../../types/domain/semanticResolution';
+import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
+import type { SemanticTraceNode } from '../../../types/domain/semanticResolution';
+import { BoundSemanticFactory } from '../../../types/domain/boundAst';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
+import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../../types';
+import { lookupGlobalFunction, lookupMethod, lookupVariableMethod, type FrameworkMethodRule } from '../FrameworkRegistry';
 
-function ruleToResolution(rule: FrameworkMethodRule, trace: TraceNode[]): SemanticResolution {
-  return {
-    status: 'resolved',
-    type: rule.returns,
-    model: rule.model,
-    collection: rule.collection,
-    paginated: rule.paginated,
-    fields: rule.fields,
-    confidence: rule.confidence ?? 100,
-    trace
-  };
+function trace(input: string, output: string): readonly SemanticTraceNode[] {
+  return Object.freeze([{
+    source: 'FrameworkRegistryResolver',
+    rule: `Framework registry lookup: ${input}`,
+    input,
+    output,
+  }]);
+}
+
+function toResolution(rule: FrameworkMethodRule, input: string): SemanticResolution {
+  switch (rule.returns.kind) {
+    case 'scalar':
+      return SemanticResolutionFactory.scalar({
+        status: 'resolved',
+        confidence: rule.confidence,
+        trace: trace(input, rule.returns.semanticType.kind),
+        boundAst: BoundSemanticFactory.methodCall({
+          targetModel: { kind: 'unbound' },
+          methodName: SemanticValueFactory.methodName(input),
+          returnType: rule.returns.semanticType,
+          cardinality: { kind: 'single' },
+          nullability: { kind: 'non_nullable' },
+        }),
+        semanticType: rule.returns.semanticType,
+        nullability: { kind: 'non_nullable' },
+      });
+    case 'model':
+      return SemanticResolutionFactory.model({
+        status: 'resolved',
+        confidence: rule.confidence,
+        trace: trace(input, `model ${rule.returns.model.value}`),
+        boundAst: BoundSemanticFactory.modelReference(rule.returns.model),
+        model: rule.returns.model,
+        cardinality: { kind: rule.returns.cardinality },
+        cardinality: rule.returns.cardinality,
+      });
+    case 'object':
+      const fields = Object.freeze(rule.returns.fields.map(([name, semanticType]) => Object.freeze({
+        name,
+        type: semanticType,
+        required: true,
+        nullability: { kind: 'non_nullable' },
+        description: 'Framework registry field',
+      })));
+      const objectType = ObjectType.create({
+        name: 'FrameworkObject',
+        baseName: 'FrameworkObject',
+        properties: fields,
+        role: 'plain',
+      });
+      return SemanticResolutionFactory.object({
+        status: 'resolved',
+        confidence: rule.confidence,
+        trace: trace(input, 'object'),
+        boundAst: BoundSemanticFactory.methodCall({
+          targetModel: { kind: 'unbound' },
+          methodName: SemanticValueFactory.methodName(input),
+          returnType: objectType,
+          cardinality: { kind: 'single' },
+          nullability: { kind: 'non_nullable' },
+        }),
+        fields: Object.freeze(rule.returns.fields.map(([name, semanticType]) => [SemanticValueFactory.responseFieldName(name), semanticType] as const)),
+      });
+  }
+}
+
+function selectRule(meta: Extract<ResolverMeta, { kind: 'method_call' | 'static_method_call' }>): FrameworkMethodRule | undefined {
+  if (meta.kind === 'method_call' && meta.target !== null && meta.target.kind === 'variable') {
+    const variableRule = lookupVariableMethod(meta.target.name.value, meta.name.value);
+    if (variableRule !== undefined) return variableRule;
+  }
+
+  if (meta.kind === 'method_call' && meta.target === null) {
+    const globalRule = lookupGlobalFunction(meta.name.value);
+    if (globalRule !== undefined) return globalRule;
+  }
+
+  return lookupMethod(meta.name.value);
 }
 
 export class FrameworkRegistryResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
-    if (!meta || (meta.kind !== 'method_call' && meta.kind !== 'static_method_call')) return false;
-
-    if (meta.kind === 'method_call' && !meta.target && lookupGlobalFunction(meta.name)) return true;
-    if (lookupMethod(meta.name)) return true;
-    if (meta.kind === 'method_call' && meta.target?.kind === 'variable' && lookupVariableMethod(meta.target.name, meta.name)) return true;
-
-    return false;
+    const method = 'kind' in meta && (meta.kind === 'method_call' || meta.kind === 'static_method_call');
+    if (!method) return false;
+    const name = meta.name;
+    const global = meta.kind === 'method_call' && meta.target === null && lookupGlobalFunction(name) !== undefined;
+    const variable = meta.kind === 'method_call' && meta.target !== null && meta.target.kind === 'variable' && lookupVariableMethod(meta.target.name, name) !== undefined;
+    return global || variable || lookupMethod(name) !== undefined;
   }
 
-  resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
+  resolve(meta: ResolverMeta, _context: ResolutionContext): SemanticResolution {
     if (meta.kind !== 'method_call' && meta.kind !== 'static_method_call') {
-      return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
-    }
-    const methodName = meta.name;
-
-    // 1. Variable-keyed helpers (request->user(), pdf->download()) — checked
-    // first since these are the most specific match.
-    if (meta.kind === 'method_call' && meta.target?.kind === 'variable') {
-      const varRule = lookupVariableMethod(meta.target.name, methodName);
-      if (varRule) {
-        return ruleToResolution(varRule, [{
-          source: 'FrameworkRegistryResolver',
-          rule: `Variable-keyed helper: ${meta.target.name}->${methodName}()`,
-          input: `${meta.target.name}->${methodName}()`,
-          output: varRule.returns
-        }]);
-      }
+      return SemanticResolutionFactory.unknown({
+        status: 'unknown', confidence: 0, trace: trace('invalid metadata', 'unknown'),
+        boundAst: BoundSemanticFactory.unsupported('invalid_boundary_input'),
+      });
     }
 
-    // 2. Global targetless helpers — `strtoupper($x)`, bare `now()`. The
-    // parser has no separate function_call kind: both a global helper and
-    // `strtoupper($x)` come through as method_call with target: null.
-    if (meta.kind === 'method_call' && !meta.target) {
-      const globalRule = lookupGlobalFunction(methodName);
-      if (globalRule) {
-        const trace: TraceNode[] = [{
-          source: 'FrameworkRegistryResolver',
-          rule: `Global function lookup: ${methodName}`,
-          input: methodName,
-          output: globalRule.returns
-        }];
-        if (meta.args.length > 0) {
-          const argRes = context.kernel.resolve(meta.args[0], context.contextModel);
-          if (argRes.trace) trace.push(...argRes.trace);
-        }
-        return ruleToResolution(globalRule, trace);
-      }
+    const rule = selectRule(meta);
+
+    if (rule === undefined) {
+      return SemanticResolutionFactory.unknown({
+        status: 'unknown', confidence: 0, trace: trace(meta.name, 'unknown'),
+        boundAst: BoundSemanticFactory.unsupported('unresolved_method'),
+      });
     }
 
-    // 3. Method-name-only registry (Carbon date methods, validated/safe,
-    // createToken) — see FrameworkRegistry.ts's header for why there's no
-    // `owner` scoping yet.
-    const methodRule = lookupMethod(methodName);
-    if (methodRule) {
-      const trace: TraceNode[] = [{
-        source: 'FrameworkRegistryResolver',
-        rule: `Framework method lookup: ${methodName}`,
-        input: methodName,
-        output: methodRule.returns
-      }];
-      if (meta.kind === 'method_call' && meta.target) {
-        const targetRes = context.kernel.resolve(meta.target, context.contextModel);
-        if (targetRes.trace) trace.push(...targetRes.trace);
-      }
-      return ruleToResolution(methodRule, trace);
-    }
-
-    return {
-      status: 'unknown',
-      type: 'unknown',
-      confidence: 0,
-      trace: [{
-        source: 'FrameworkRegistryResolver',
-        rule: `Missing FrameworkResolver for ${methodName}`,
-        input: methodName
-      }]
-    };
+    return toResolution(rule, meta.name.value);
   }
 }

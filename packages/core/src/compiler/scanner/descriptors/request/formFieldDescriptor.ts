@@ -1,51 +1,37 @@
-/**
- * formFieldDescriptor.ts
- *
- * AST descriptors for Scanned Form Fields.
- *
- * @module core/compiler/scanner/descriptors/request/formFieldDescriptor
- */
-
 import { ValidationRuleNode } from "../../../../types/route";
+import { toCamelCase } from "../../../../utils/resource-naming";
 import {
     RequestField,
     FileValidationConstraints
 } from "../../../artifacts/RequestTypesArtifact";
-import { SemanticType, PrimitiveType, PrimitiveKind } from "../../../types/SemanticType";
-
+import { SemanticType, PrimitiveType, PrimitiveKind, NullableType } from "../../../types/SemanticType";
 export interface ScannedFormFieldParams {
     readonly name: string;
     readonly originalName: string;
     readonly type: SemanticType;
     readonly required: boolean;
     readonly nullable: boolean;
-    readonly validationAst: readonly ValidationRuleNode[] | undefined;
-    readonly fileConstraints: FileValidationConstraints | undefined;
+    readonly validationAst: readonly ValidationRuleNode[];
+    readonly fileConstraints: FileValidationConstraints | null;
 }
-
-/**
- * Reusable Constructor: Scanned Form Field Descriptor.
- */
 export class ScannedFormFieldDescriptor implements RequestField {
-    public readonly transformedName: string;
-    public readonly originalName: string;
+    public readonly name: string;
+    public readonly sourceName: string;
     public readonly type: SemanticType;
     public readonly required: boolean;
     public readonly nullable: boolean;
-    public readonly validationAst?: readonly ValidationRuleNode[];
-    public readonly fileConstraints?: FileValidationConstraints;
-
+    public readonly validationAst: readonly ValidationRuleNode[];
+    public readonly fileConstraints: FileValidationConstraints | null;
     constructor({ name, originalName, type, required, nullable, validationAst, fileConstraints }: ScannedFormFieldParams) {
-        this.transformedName = name;
-        this.originalName = originalName;
-        this.type = type;
+        this.name = name;
+        this.sourceName = originalName;
         this.required = required;
         this.nullable = nullable;
-        this.validationAst = validationAst;
+        this.type = nullable && type.kind !== 'nullable' ? new NullableType(type) : type;
+        this.validationAst = Object.freeze([...validationAst]);
         this.fileConstraints = fileConstraints;
         Object.freeze(this);
     }
-
     public static create({
         name,
         transformedName,
@@ -69,16 +55,15 @@ export class ScannedFormFieldDescriptor implements RequestField {
             ? Object.freeze([...validationAst])
             : undefined;
         return new ScannedFormFieldDescriptor({
-            name: transformedName ?? originalName,
+            name: transformedName === undefined ? toCamelCase(originalName) : transformedName,
             originalName,
             type,
             required,
             nullable,
-            validationAst: resolvedValidationAst,
-            fileConstraints: fileConstraints ?? undefined
+            validationAst: resolvedValidationAst ?? [],
+            fileConstraints: fileConstraints === undefined ? null : fileConstraints
         });
     }
-
     public static required(name: string, type: SemanticType, transformedName?: string): ScannedFormFieldDescriptor {
         return new ScannedFormFieldDescriptor({
             name: transformedName ?? name,
@@ -86,11 +71,10 @@ export class ScannedFormFieldDescriptor implements RequestField {
             type,
             required: true,
             nullable: false,
-            validationAst: undefined,
-            fileConstraints: undefined
+            validationAst: [],
+            fileConstraints: null
         });
     }
-
     public static optional(name: string, type: SemanticType, transformedName?: string): ScannedFormFieldDescriptor {
         return new ScannedFormFieldDescriptor({
             name: transformedName ?? name,
@@ -98,11 +82,10 @@ export class ScannedFormFieldDescriptor implements RequestField {
             type,
             required: false,
             nullable: true,
-            validationAst: undefined,
-            fileConstraints: undefined
+            validationAst: [],
+            fileConstraints: null
         });
     }
-
     public static file(name: string, constraints?: FileValidationConstraints, required = true): ScannedFormFieldDescriptor {
         return new ScannedFormFieldDescriptor({
             name,
@@ -110,8 +93,8 @@ export class ScannedFormFieldDescriptor implements RequestField {
             type: new PrimitiveType(PrimitiveKind.FILE),
             required,
             nullable: !required,
-            validationAst: undefined,
-            fileConstraints: constraints ? Object.freeze({ ...constraints }) : undefined
+            validationAst: [],
+            fileConstraints: constraints === undefined ? null : Object.freeze({ ...constraints })
         });
     }
 }

@@ -28,7 +28,7 @@ export class ResourceMapperBuilder {
         }));
 
         return {
-            source: resource.sourceModel || resource.name,
+            source: resource.sourceModel === undefined ? resource.name : resource.sourceModel,
             target: `${resourceBaseName(resource.name)}Transformed`,
             mappings,
             transformations: this.buildTransformationRules(fields)

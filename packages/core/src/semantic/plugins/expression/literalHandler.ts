@@ -1,35 +1,46 @@
-/**
- * literalHandler.ts
- *
- * Resolves literal expressions (number, boolean, null, string).
- *
- * @module semantic/plugins/expression/literalHandler
- */
-
-import type { SemanticResolution } from '../../../types/contract';
-import type { SemanticType } from '../../../types/semantic';
+import type { SemanticResolution } from '../../../types/domain/semanticResolution';
+import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
+import { BoundSemanticFactory } from '../../../types/domain/boundAst';
+import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
+import type { BoundLiteralValue } from '../../../types/domain/semanticValues';
 import type { ResolverMeta } from '../../types';
 
 export function resolveLiteral(meta: ResolverMeta): SemanticResolution {
-    const v = meta.value;
-    const t: SemanticType = typeof v === 'number'
-        ? 'number'
-        : typeof v === 'boolean'
-            ? 'boolean'
-            : v === null
-                ? 'unknown'
-                : 'string';
+  if (meta.kind !== 'literal') {
+    return SemanticResolutionFactory.unknown({
+      status: 'unknown', confidence: 0, trace: [{
+        source: 'ExpressionResolver', rule: 'Invalid literal metadata', input: meta.kind, output: 'unknown',
+      }],
+      boundAst: BoundSemanticFactory.unsupported('invalid_boundary_input'),
+    });
+  }
 
-    return {
-        status: v === null ? 'unknown' : 'resolved',
-        type: t,
-        nullable: v === null ? true : undefined,
-        confidence: 100,
-        trace: [{
-            source: 'ExpressionResolver',
-            rule: 'Literal type mapping',
-            input: String(v),
-            output: t
-        }]
-    };
+  const value = literalValue(meta.value);
+  const semanticType = literalType(value);
+  const nullable = value.kind === 'null';
+  const status = nullable ? 'resolved' : 'resolved';
+  return SemanticResolutionFactory.scalar({
+    status, confidence: 100, nullable, semanticType,
+    trace: [{
+      source: 'ExpressionResolver', rule: 'Literal type mapping',
+      input: value.kind, output: semanticType.type,
+    }],
+    boundAst: BoundSemanticFactory.primitive(semanticType, value),
+  });
+}
+
+function literalValue(value: unknown): BoundLiteralValue {
+  if (typeof value === 'number') return { kind: 'number', value };
+  if (typeof value === 'boolean') return { kind: 'boolean', value };
+  if (typeof value === 'string') return { kind: 'string', value };
+  return { kind: 'null' };
+}
+
+function literalType(value: BoundLiteralValue): PrimitiveType {
+  switch (value.kind) {
+    case 'number': return new PrimitiveType(PrimitiveKind.NUMBER);
+    case 'boolean': return new PrimitiveType(PrimitiveKind.BOOLEAN);
+    case 'string': return new PrimitiveType(PrimitiveKind.STRING);
+    case 'null': return new PrimitiveType(PrimitiveKind.UNKNOWN);
+  }
 }

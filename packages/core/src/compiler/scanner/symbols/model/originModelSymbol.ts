@@ -8,14 +8,8 @@
 
 import type { ParsedModel } from "../../../../types/domain/models";
 import type { ParsedColumn } from "../../../../types/domain/databaseColumns";
-import { DatabaseColumnTypeMapper } from "../../../../types/domain/databaseColumns";
-import type {
-    ParsedCast,
-    ParsedAccessor,
-    ParsedRelation,
-    EloquentCastKind
-} from "../../../../types/domain/eloquentTypes";
-import { ELOQUENT_CAST_REGISTRY } from "../../../../types/domain/eloquentTypes";
+import type { ParsedCast, ParsedAccessor, ParsedRelation } from "../../../../types/domain/eloquentTypes";
+import { CollectionKind, ReadonlyCollectionType, ReferenceType } from "../../../types/SemanticType";
 import type { ResolvedPropertyBinding } from "./types";
 
 export class OriginModelSymbol {
@@ -32,19 +26,19 @@ export class OriginModelSymbol {
         this.name = node.name;
         this.shortName = node.shortName || (node.name.includes('\\') ? node.name.split('\\').pop()! : node.name);
 
-        for (const col of node.columns || []) {
+        for (const col of node.columns) {
             this.columnsByName.set(col.name, col);
         }
 
-        for (const c of node.casts || []) {
+        for (const c of node.casts) {
             this.castsByName.set(c.column, c);
         }
 
-        for (const rel of node.relations || []) {
+        for (const rel of node.relations) {
             this.relationsByName.set(rel.name, rel);
         }
 
-        for (const acc of node.accessors || []) {
+        for (const acc of node.accessors) {
             this.accessorsByName.set(acc.name, acc);
             // Index camelCase and snake_case variations
             const camel = acc.name.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase());
@@ -72,52 +66,37 @@ export class OriginModelSymbol {
     }
 
     public resolveProperty(prop: string): ResolvedPropertyBinding | undefined {
-        // 1. Column lookup
-        const col = this.column(prop);
-        if (col) {
-            const cast = this.cast(prop);
-            let tsType: string;
-            if (cast && cast.targetType) {
-                const castKind = cast.targetType.toLowerCase() as EloquentCastKind;
-                const spec = ELOQUENT_CAST_REGISTRY[castKind];
-                tsType = spec ? spec.tsType : (cast.targetType.includes('int') ? 'number' : 'string');
-            } else if (col.semanticType) {
-                tsType = col.semanticType;
-            } else {
-                const prim = DatabaseColumnTypeMapper.toPrimitiveKind(col.type);
-                tsType = prim === 'number' ? 'number' : prim === 'boolean' ? 'boolean' : 'string';
-            }
-
+        const column = this.column(prop);
+        if (column) {
             return {
                 kind: 'column',
                 propertyName: prop,
-                type: tsType,
-                nullable: col.nullable,
-                cast: cast?.targetType
+                source: column,
+                semanticType: column.semanticType
             };
         }
 
-        // 2. Accessor lookup
-        const acc = this.accessor(prop);
-        if (acc) {
+        const accessor = this.accessor(prop);
+        if (accessor) {
             return {
                 kind: 'accessor',
                 propertyName: prop,
-                type: acc.type || 'string',
-                nullable: acc.nullable ?? false
+                source: accessor,
+                semanticType: accessor.semanticType
             };
         }
 
-        // 3. Relation lookup
-        const rel = this.relation(prop);
-        if (rel) {
+        const relation = this.relation(prop);
+        if (relation) {
+            const reference = new ReferenceType('', relation.targetModel);
+            const semanticType = relation.cardinality === 'many'
+                ? new ReadonlyCollectionType(CollectionKind.ARRAY, reference)
+                : reference;
             return {
                 kind: 'relation',
                 propertyName: prop,
-                type: rel.targetModel,
-                nullable: false,
-                targetModel: rel.targetModel,
-                isCollection: rel.isCollection
+                source: relation,
+                semanticType
             };
         }
 

@@ -14,6 +14,7 @@ import {
 import { buildRouteHandler } from "../../request/controllerActionTypes";
 import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import type { RouteBoundaryOptions } from "../../../resolvers";
 
 export type ControllerReferenceRouteOptions = {
     readonly method: HttpMethod;
@@ -22,8 +23,8 @@ export type ControllerReferenceRouteOptions = {
     readonly actionName: string;
     readonly domain?: string;
     readonly resourceName?: string;
-    readonly sourceFile?: string;
-    readonly sourceLine?: number;
+    readonly sourceFile: string;
+    readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
     readonly formRequests?: readonly (string | FormRequestDescriptor)[];
     readonly schema?: RouteSchemaPayload;
@@ -36,12 +37,12 @@ export type ControllerReferenceRouteOptions = {
 };
 
 export function createRouteFromControllerReference(
-    createFn: (params: any) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
     options: ControllerReferenceRouteOptions
 ): ScannedRouteDescriptor {
     const {
         method, path, controllerName, actionName, domain, resourceName,
-        sourceFile = "", sourceLine = 1, response, formRequests = [],
+        sourceFile, sourceLine, response, formRequests = [],
         schema = ScannedRouteSchemaPayload.empty(), auth = false,
         middleware = [], parameters = [], pathParameters, queryParameters = [], invalidation
     } = options;
@@ -50,6 +51,7 @@ export function createRouteFromControllerReference(
     const handler = buildRouteHandler(controllerName, actionName, target);
 
     return createFn({
+        origin: "controller_reference",
         method, path, domain, resourceName, controllerName, actionName,
         action: target, handler, response, sourceFile, sourceLine,
         formRequests, schema, auth, middleware, parameters,

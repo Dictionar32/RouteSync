@@ -5,6 +5,7 @@ import type { EndpointContract } from "./contracts";
 import type { ParsedModel } from "./database";
 import type { ParsedResource } from "./expressions";
 import type { ParsedRoute } from "./routes";
+import type { PageValue } from "./pageValues";
 
 /**
  * First-Class Domain Operation Entry (Ordered).
@@ -61,7 +62,7 @@ export interface FrontendConfig {
  */
 export interface PagePropEntry {
   readonly key: string;
-  readonly value: unknown;
+  readonly value: PageValue;
 }
 
 /**
@@ -69,7 +70,7 @@ export interface PagePropEntry {
  */
 export interface PageMetaEntry {
   readonly key: string;
-  readonly value: unknown;
+  readonly value: PageValue;
 }
 
 /**
@@ -93,6 +94,10 @@ export interface ResourceRouteGroup {
   readonly formActions: readonly FormAction[]; // ✅ Guaranteed directly from Upstream PHP Scanner
 }
 
+export type FrontendConfiguration =
+  | { readonly kind: 'disabled' }
+  | { readonly kind: 'configured'; readonly config: FrontendConfig };
+
 export interface RouteManifest {
   readonly version: string;
   readonly baseURL: string;
@@ -105,7 +110,7 @@ export interface RouteManifest {
   readonly semanticTypes: readonly ObjectType[];              // ✅ SATU ALIRAN UTUH (0 Fragmentasi, 0 Penyambungan Manual)!
   readonly generatedAt: string;
   readonly channels: readonly BroadcastChannelDescriptor[];
-  readonly frontend: FrontendConfig | null;
+  readonly frontend: FrontendConfiguration;
   readonly pages: readonly PageConfig[];
 }
 

@@ -9,12 +9,6 @@
  */
 
 import {
-    PrimitiveType,
-    ReferenceType,
-    ReadonlyCollectionType,
-    NullableType,
-    PrimitiveKind,
-    CollectionKind,
     type SemanticType
 } from '../../types/SemanticType';
 import type { ResourceFieldDescriptor } from '../../../types/route';
@@ -80,31 +74,11 @@ export class SemanticTypeResolver implements SemanticTypeResolverLike {
             }
         }
         return new ResolvedUnknownType({
-            diagnosticMessage: `unsupported SemanticType kind '${(type as any)?.kind}'`
+            diagnosticMessage: `unsupported SemanticType kind '${type.kind}'`
         });
     }
 
     public static resolveField(field: ResourceFieldDescriptor): SemanticType {
-        let type: SemanticType;
-        switch (field.expression.kind) {
-            case 'primitive':
-                type = PrimitiveType.fromPhpType(field.expression.type);
-                break;
-            case 'resource':
-                type = new ReferenceType('', field.expression.resource);
-                if (field.expression.collection) {
-                    type = new ReadonlyCollectionType(CollectionKind.ARRAY, type);
-                }
-                break;
-            default:
-                type = new PrimitiveType(PrimitiveKind.UNKNOWN);
-                break;
-        }
-
-        if (field.nullable) {
-            type = new NullableType(type);
-        }
-
-        return type;
+        return field.semanticType;
     }
 }

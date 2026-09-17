@@ -7,15 +7,12 @@
  * @module cli/generators/semantic/SemanticResolutionContext
  */
 
-import type { RouteManifest } from '@routesync/core';
+import type { ParsedModel, ParsedResource, ParsedRoute, RouteManifest } from '@routesync/core';
 import type { ActionType } from '../canonical-names';
-import type { NormalizedModelInfo } from './semanticTypes';
 import {
     resolveCanonicalAction,
     extractThisPropertyAccess,
     isNullableTernaryGuard,
-    normalizeModelsFromManifest,
-    normalizeResourcesFromManifest
 } from './context';
 
 export {
@@ -32,18 +29,18 @@ export {
  * and O(1) indexed lookups for models and resources.
  */
 export class SemanticResolutionContext {
-    public readonly routes: readonly any[];
-    public readonly models: readonly any[];
-    public readonly resources: readonly any[];
-    public readonly modelsByName: Map<string, NormalizedModelInfo>;
-    public readonly resourcesByName: Map<string, any>;
+    public readonly routes: readonly ParsedRoute[];
+    public readonly models: readonly ParsedModel[];
+    public readonly resources: readonly ParsedResource[];
+    public readonly modelsByName: ReadonlyMap<string, ParsedModel>;
+    public readonly resourcesByName: ReadonlyMap<string, ParsedResource>;
 
     constructor(
-        routes: readonly any[],
-        models: readonly any[],
-        resources: readonly any[],
-        modelsByName: Map<string, NormalizedModelInfo>,
-        resourcesByName: Map<string, any>
+        routes: readonly ParsedRoute[],
+        models: readonly ParsedModel[],
+        resources: readonly ParsedResource[],
+        modelsByName: ReadonlyMap<string, ParsedModel>,
+        resourcesByName: ReadonlyMap<string, ParsedResource>
     ) {
         this.routes = Object.freeze(routes);
         this.models = Object.freeze(models);
@@ -54,12 +51,12 @@ export class SemanticResolutionContext {
     }
 
     public static fromManifest(manifest: RouteManifest): SemanticResolutionContext {
-        const routes: any[] = Array.isArray(manifest.routes) ? manifest.routes : [];
-        const models: any[] = Array.isArray(manifest.models) ? manifest.models : [];
-        const resources: any[] = Array.isArray(manifest.resources) ? manifest.resources : [];
+        const routes = manifest.routes;
+        const models = manifest.models;
+        const resources = manifest.resources;
 
-        const modelsByName = normalizeModelsFromManifest(models);
-        const resourcesByName = normalizeResourcesFromManifest(resources);
+        const modelsByName = new Map<string, ParsedModel>(models.map((model: ParsedModel) => [model.name.value, model] as const));
+        const resourcesByName = new Map<string, ParsedResource>(resources.map((resource: ParsedResource) => [resource.name.value, resource] as const));
 
         return new SemanticResolutionContext(routes, models, resources, modelsByName, resourcesByName);
     }

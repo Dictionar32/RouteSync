@@ -10,7 +10,7 @@ import type {
   ServiceGraph,
   ServiceNode,
   ControllerNode,
-  ModelNode,
+  ServiceModelNode,
   ServiceDependency
 } from '../../types/semantic';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../../types/domain/semanticCollections';
 
 export function assembleServiceGraph(
-  modelsMap: ReadonlyMap<string, ModelNode>,
+  modelsMap: ReadonlyMap<string, ServiceModelNode>,
   servicesMap: ReadonlyMap<string, ServiceNode>,
   controllersMap: ReadonlyMap<string, ControllerNode>,
   edges: readonly ServiceDependency[]

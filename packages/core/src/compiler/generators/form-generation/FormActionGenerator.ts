@@ -8,7 +8,7 @@
  */
 
 import type { SemanticType } from '../../types/SemanticType';
-import type { RequestField } from '../../artifacts/RequestTypesArtifact';
+import type { RequestField } from '../../../types/domain/request';
 import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { toCamelCase, toPascalCase } from '../../../utils/resource-naming';
@@ -46,8 +46,8 @@ export class FormActionGenerator {
             for (const field of fields) {
                 const tsType = this.convertSemanticTypeToString(field.type);
                 const optional = !field.required ? '?' : '';
-                const nullable = field.nullable ? ' | null' : '';
-                const fieldName = toCamelCase(field.transformedName || (field as any).name || field.originalName || '');
+                const nullable = field.type.isNullable() ? ' | null' : '';
+                const fieldName = field.name;
 
                 lines.push(`    ${fieldName}${optional}: ${tsType}${nullable}`);
             }
@@ -91,14 +91,10 @@ export class FormActionGenerator {
                     .join(' & ');
 
             case 'object': {
-                let propList: readonly [string, SemanticType][] = [];
-                if (Array.isArray((type as any).properties) && (type as any).properties.length > 0) {
-                    propList = (type as any).properties.map((p: any) => [p.name, p.type]);
-                } else if ((type as any).properties && typeof (type as any).properties.entries === 'function') {
-                    propList = Array.from((type as any).properties.entries());
-                }
-                if (propList.length === 0) return 'Record<string, unknown>';
-                const propLines = propList.map(([propName, propType]) => {
+                if (type.properties.length === 0) return 'Record<string, unknown>';
+                const propLines = type.properties.map(property => {
+                    const propName = property.name;
+                    const propType = property.type;
                     return `${toCamelCase(propName)}: ${this.convertSemanticTypeToString(propType)}`;
                 });
                 return `{ ${propLines.join('; ')} }`;

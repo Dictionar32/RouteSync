@@ -15,10 +15,9 @@ import type {
     RouteCapabilityContract,
     RouteProvenanceContract
 } from "../../../../types/route";
-import type { SparseRouteParams } from "../../resolvers";
+import type { RouteBoundaryOptions } from "../../resolvers";
 import type { ScannedRouteCompleteContracts, ScannedRouteConstructorInput } from "./routeContracts";
 import { ScannedRouteFields } from "./routeDeclarations";
-import { assignRouteProperties } from "./routePropertyAssigner";
 import { withRouteInvalidation, projectRouteToHookSource } from "./routeMutations";
 import { resolveRouteDescriptorDomain, resolveRouteDescriptorSecurity } from "./routeMethods";
 import {
@@ -30,33 +29,46 @@ import {
     createSyntheticRoute
 } from "./routeSemanticFactories";
 
+type RouteSubcontracts = {
+    readonly identity: RouteIdentityContract;
+    readonly binding: RouteBindingContract;
+    readonly capability: RouteCapabilityContract;
+    readonly provenance: RouteProvenanceContract;
+};
+
+function isCompleteRouteContracts(
+    params: ScannedRouteCompleteContracts | RouteSubcontracts
+): params is ScannedRouteCompleteContracts {
+    return "contract" in params;
+}
+
+function isRouteSubcontracts(
+    params: ScannedRouteCompleteContracts | RouteSubcontracts
+): params is RouteSubcontracts {
+    return "identity" in params;
+}
+
 export class ScannedRouteDescriptor extends ScannedRouteFields {
     constructor(params: ScannedRouteConstructorInput) {
-        super();
-        assignRouteProperties(this, params);
+        super(params);
         Object.freeze(this);
     }
 
     public static resolveDomain = resolveRouteDescriptorDomain;
     public static resolveSecurityAndPolicies = resolveRouteDescriptorSecurity;
 
+    public static create(params: ScannedRouteCompleteContracts): ScannedRouteDescriptor;
+    public static create(params: RouteSubcontracts): ScannedRouteDescriptor;
     public static create(
-        params: ScannedRouteCompleteContracts | {
-            readonly identity: RouteIdentityContract;
-            readonly binding: RouteBindingContract;
-            readonly capability: RouteCapabilityContract;
-            readonly provenance: RouteProvenanceContract;
-        } | SparseRouteParams
+        params: ScannedRouteCompleteContracts | RouteSubcontracts
     ): ScannedRouteDescriptor {
-        if ("identity" in params && "binding" in params && "capability" in params && "provenance" in params) {
-            return "contract" in params
-                ? new ScannedRouteDescriptor(params as ScannedRouteCompleteContracts)
-                : ScannedRouteDescriptor.fromSubcontracts(params);
+        if (isCompleteRouteContracts(params)) {
+            return new ScannedRouteDescriptor(params);
         }
-        return ScannedRouteDescriptor.fromSparse(params as SparseRouteParams);
+        return ScannedRouteDescriptor.fromSubcontracts(params);
     }
 
-    public static fromSparse = (p: SparseRouteParams) => createRouteFromSparse(ScannedRouteDescriptor, p);
+    public static fromSparse = (p: RouteBoundaryOptions) => createRouteFromSparse(ScannedRouteDescriptor, p);
     public static fromScanned = (c: ScannedRouteCompleteContracts) => new ScannedRouteDescriptor(c);
     public static fromSubcontracts = (s: {
         readonly identity: RouteIdentityContract;
@@ -65,13 +77,13 @@ export class ScannedRouteDescriptor extends ScannedRouteFields {
         readonly provenance: RouteProvenanceContract;
     }) => createRouteFromSubcontracts(ScannedRouteDescriptor, s);
     public static fromControllerAction = (p: Parameters<typeof createRouteFromControllerAction>[1]) =>
-        createRouteFromControllerAction(ScannedRouteDescriptor.create, p);
+        createRouteFromControllerAction(ScannedRouteDescriptor.fromSparse, p);
     public static fromClosure = (p: Parameters<typeof createRouteFromClosure>[1]) =>
-        createRouteFromClosure(ScannedRouteDescriptor.create, p);
+        createRouteFromClosure(ScannedRouteDescriptor.fromSparse, p);
     public static fromControllerReference = (p: Parameters<typeof createRouteFromControllerReference>[1]) =>
-        createRouteFromControllerReference(ScannedRouteDescriptor.create, p);
+        createRouteFromControllerReference(ScannedRouteDescriptor.fromSparse, p);
     public static synthetic = (p?: Parameters<typeof createSyntheticRoute>[1]) =>
-        createSyntheticRoute(ScannedRouteDescriptor.create, p);
+        createSyntheticRoute(ScannedRouteDescriptor.fromSparse, p);
 
     public *projectToHookSource(): Iterable<string> {
         yield* projectRouteToHookSource(this);
@@ -83,7 +95,7 @@ export class ScannedRouteDescriptor extends ScannedRouteFields {
 }
 
 export function createScannedRoute(
-    params: Parameters<typeof ScannedRouteDescriptor.create>[0]
+    params: ScannedRouteCompleteContracts | RouteSubcontracts
 ): ScannedRouteDescriptor {
     return ScannedRouteDescriptor.create(params);
 }

@@ -7,7 +7,7 @@
  */
 
 import { ParsedRoute } from "../../../../types/route";
-import { FormAction, RequestField } from "../../../artifacts/RequestTypesArtifact";
+import type { FormAction, RequestField } from "../../../../types/domain/request";
 import { TypeInterner } from "../../../types/TypeInterner";
 import { ScannedFormActionDescriptor } from "../../descriptors/requestDescriptors";
 import { ValidationRuleFieldLowerer } from "../ValidationRuleFieldLowerer";

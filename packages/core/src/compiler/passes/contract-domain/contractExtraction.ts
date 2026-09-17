@@ -6,11 +6,13 @@
  * @module compiler/passes/contract-domain/contractExtraction
  */
 
-import type { FormAction, RequestField, RequestType, RequestTypesArtifact, ResponseData } from '../../artifacts/RequestTypesArtifact';
+import type { FormAction, RequestField, RequestType, ResponseData } from '../../types/domain/request';
+import type { ResponseContractField, ResponseValueContract } from '../../types/domain/responseContracts';
+import type { RequestTypesArtifact } from '../../artifacts/RequestTypesArtifact';
 import type { GeneratedContractAction } from '../../generators/contract-generation/ContractActionGenerator';
 import type { ActionResponseSchema } from '../../generators/contract-generation/ResponseActionBuilder';
 import type { ParsedResponseField } from '../../generators/contract-generation/ResponseFieldParser';
-import { partitionResults, convertResponseFields } from '../../domain/common/ResponseFieldLowering';
+import { partitionResults } from '../../domain/common/ResponseFieldLowering';
 import type {
     ContractField,
     ContractActionGeneratorLike,
@@ -25,11 +27,11 @@ import { EMPTY_FIELDS, EMPTY_WARNINGS, type ConversionResult } from './contractT
 /** Pure Granular Contract Field Mapper (0% fallback, 0% ternary ?) */
 export function mapContractField(field: RequestField): ContractField {
     return {
-        name: field.originalName,
+        name: field.sourceName,
         type: field.type,
         fileConstraints: field.fileConstraints,
         required: field.required,
-        nullable: field.nullable
+        nullable: field.type.isNullable()
     };
 }
 
@@ -80,35 +82,72 @@ export function buildResourceResponseSchemas(
     return [showSchema, indexSchema];
 }
 
+function responseValueToType(value: ResponseValueContract): string {
+    switch (value.kind) {
+        case 'scalar':
+            switch (value.value.kind) {
+                case 'textual': return 'string';
+                case 'whole_number':
+                case 'decimal_number': return 'number';
+                case 'boolean_flag': return 'boolean';
+            }
+        case 'named_type':
+            return value.name.value;
+        case 'model_reference':
+            return value.model.value;
+        case 'collection':
+            return 'array';
+        case 'unresolved_declaration':
+            return 'unknown';
+    }
+}
+
+function responseContractFieldToParsed(field: ResponseContractField): ParsedResponseField {
+    const type = responseValueToType(field.value);
+    return {
+        name: field.name.value,
+        kind: field.value.kind === 'collection' ? 'array' : 'primitive',
+        type,
+        nullable: field.nullability.kind === 'nullable',
+        optional: false
+    };
+}
+
+function lowerResponseContractFields(
+    fields: readonly ResponseContractField[]
+): readonly ParsedResponseField[] {
+    return fields.map(responseContractFieldToParsed);
+}
+
 /** Extracts response schemas for a single ResponseData (0% array spread [...schemas]) */
 export function extractSingleResourceResponseSchemas(
     responseData: ResponseData,
     responseActionBuilder: ResponseActionBuilderLike
 ): ResourceResponseSchemasResult {
-    const conversionResult = convertResponseFields(responseData.fields);
+    const fields = lowerResponseContractFields(responseData.contract.fields);
     const schemas = buildResourceResponseSchemas(
-        responseData.resourceName,
-        conversionResult.fields,
+        responseData.contract.name.value,
+        fields,
         responseActionBuilder
     );
 
     return {
         fields: schemas,
-        warnings: conversionResult.warnings
+        warnings: []
     };
 }
 
 /** Pure ResponseData Schema Extractor via Switch (0% !==, 0% if, 0% ? :) */
 export function extractResponseDataSchemas(
-    responseData: ResponseData | undefined,
+    response: RequestType['response'],
     responseActionBuilder: ResponseActionBuilderLike
 ): ConversionResult<ActionResponseSchema> {
-    switch (responseData) {
-        case undefined:
+    switch (response.kind) {
+        case 'none':
             return { fields: EMPTY_FIELDS, warnings: EMPTY_WARNINGS };
-        default: {
+        case 'data': {
             const result = extractSingleResourceResponseSchemas(
-                responseData,
+                response.value,
                 responseActionBuilder
             );
             return {
@@ -124,7 +163,7 @@ export function extractRequestTypeResponseSchemas(
     requestType: RequestType,
     responseActionBuilder: ResponseActionBuilderLike
 ): ConversionResult<ActionResponseSchema> {
-    return extractResponseDataSchemas(requestType.responseData, responseActionBuilder);
+    return extractResponseDataSchemas(requestType.response, responseActionBuilder);
 }
 
 /** Stage 2 Pure Pipeline Entry (0% if, 0% for-loop, 0% continue) */

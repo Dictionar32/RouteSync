@@ -118,7 +118,7 @@ export class TypeConverter {
             throw new Error('Expected object type');
         }
 
-        const propertyCount = type.properties.entries().length;
+        const propertyCount = type.properties.length;
         const hasInheritance = type.baseObject !== undefined ||
             (type.interfaces && type.interfaces.length > 0);
 
@@ -134,18 +134,18 @@ export class TypeConverter {
                     }
                 }
             }
-            for (const [, propType] of type.properties.entries()) {
-                this.importTracker.collectPropertyTypeImports(propType, this.generatedTypes);
+            for (const property of type.properties) {
+                this.importTracker.collectPropertyTypeImports(property.type, this.generatedTypes);
             }
             return new TSTypeReference(syntheticName);
         }
 
         if (propertyCount > 0) {
             const propLines: string[] = [];
-            for (const [propName, propType] of type.properties.entries()) {
-                this.importTracker.collectPropertyTypeImports(propType, this.generatedTypes);
-                const tsType = this.semanticTypeToTSType(propType);
-                propLines.push(`  ${propName}: ${tsType.name};`);
+            for (const property of type.properties) {
+                this.importTracker.collectPropertyTypeImports(property.type, this.generatedTypes);
+                const tsType = this.semanticTypeToTSType(property.type);
+                propLines.push(`  ${property.name}: ${tsType.name};`);
             }
             return new TSTypeReference(`{\n${propLines.join('\n')}\n}`);
         }

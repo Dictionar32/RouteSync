@@ -51,7 +51,12 @@ export function tokenizePhpSource(source: string): readonly TokenDescriptor[] {
                 break;
 
             case '#':
-                stream.skipLineComment();
+                if (nextChar === '[') {
+                    stream.advance();
+                    tokens.push(stream.emitToken('PUNCTUATION', tokenMark));
+                } else {
+                    stream.skipLineComment();
+                }
                 break;
 
             case '/':
@@ -90,6 +95,7 @@ export function tokenizePhpSource(source: string): readonly TokenDescriptor[] {
             case '}':
             case ',':
             case ';':
+            case '&':
                 stream.advance();
                 tokens.push(stream.emitToken('PUNCTUATION', tokenMark));
                 break;

@@ -1,7 +1,7 @@
 /**
  * contractRouteFactories.ts
  *
- * Route creation from Complete Sub-Contracts and SparseRouteParams.
+ * Route creation from Complete Sub-Contracts and RouteBoundaryOptions.
  *
  * @module compiler/scanner/descriptors/route/factories
  */
@@ -13,7 +13,7 @@ import {
     type RouteProvenanceContract,
     ScannedEndpointContract
 } from "../../../../../types/route";
-import { RouteBoundaryAdapter, type SparseRouteParams } from "../../../resolvers";
+import { RouteBoundaryAdapter, type RouteBoundaryOptions } from "../../../resolvers";
 import type { ScannedRouteCompleteContracts } from "../routeContracts";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 
@@ -40,7 +40,7 @@ export function createRouteFromSubcontracts(
 
 export function createRouteFromSparse(
     DescriptorClass: RouteDescriptorConstructor,
-    params: SparseRouteParams
+    params: RouteBoundaryOptions
 ): ScannedRouteDescriptor {
     const contracts = RouteBoundaryAdapter.toSubcontracts(params);
     return new DescriptorClass(contracts);

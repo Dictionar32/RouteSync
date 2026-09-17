@@ -33,7 +33,12 @@ export function resolveManifestIncrementally(
   models: ScannedModel[] | undefined
 ): ResolveManifestResult {
   const { prevManifest, prevIRNodes } = loadPreviousIncrementalState(prevManifestPath);
-  const resolvedManifest = JSON.parse(JSON.stringify(newManifest)) as ScannedManifest;
+  const resolvedManifest = {
+    ...newManifest,
+    routes: newManifest.routes.map(route => ({ ...route })),
+    resources: newManifest.resources.map(resource => ({ ...resource })),
+    models: newManifest.models.map(model => ({ ...model }))
+  } as ScannedManifest;
   const irRegistry = new IRNodeRegistry();
 
   const prevRouteMap = new Map<string, ScannedRoute>();

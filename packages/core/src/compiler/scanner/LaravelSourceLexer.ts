@@ -23,12 +23,23 @@ import {
     PhpMicroAstVisitor,
     matchPhpAstValue,
     PhpArrayEntry,
+    PhpArgument,
+    PhpParameter,
+    PhpClosureCapture,
+    PhpStatement,
+    PhpBlock,
     ParsedPhpArrayResult,
     SourceStream
 } from "./lexer";
 import { tokenizePhpSource } from "./lexer/tokenizer";
 import { parsePhpArray } from "./lexer/arrayParser";
 import { classifyAstTokens, classifyAstValue } from "./lexer/astClassifier";
+import { parseRouteDeclarations } from "./lexer/routeAst";
+import type { RouteDeclarationAst } from "./lexer/routeAst";
+import { parseControllerDeclaration } from "./lexer/controllerDeclarationParser";
+import type { ControllerDeclarationAst } from "./lexer/controllerAstTypes";
+import { parseResponseDtoDeclaration } from './lexer/responseDtoDeclarationParser';
+import type { ResponseDtoDeclarationAst } from './lexer/responseDtoAstTypes';
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)
 export type {
@@ -42,7 +53,15 @@ export type {
     PhpAstValueVisitor,
     PhpMicroAstVisitor,
     PhpArrayEntry,
-    ParsedPhpArrayResult
+    PhpArgument,
+    PhpParameter,
+    PhpClosureCapture,
+    PhpStatement,
+    PhpBlock,
+    ParsedPhpArrayResult,
+    RouteDeclarationAst,
+    ControllerDeclarationAst,
+    ResponseDtoDeclarationAst
 };
 export {
     createSourceOffset,
@@ -54,7 +73,10 @@ export {
     tokenizePhpSource,
     parsePhpArray,
     classifyAstTokens,
-    classifyAstValue
+    classifyAstValue,
+    parseRouteDeclarations,
+    parseControllerDeclaration,
+    parseResponseDtoDeclaration
 };
 
 /**
@@ -73,8 +95,27 @@ export class LaravelSourceLexer {
         return classifyAstValue(raw);
     }
 
-    static classifyAstTokens(exprTokens: readonly TokenDescriptor[], raw: string): PhpAstValue {
-        return classifyAstTokens(exprTokens, raw);
+    static classifyAstTokens(exprTokens: readonly TokenDescriptor[]): PhpAstValue {
+        return classifyAstTokens(exprTokens);
+    }
+
+    static parseRouteDeclarations(tokens: readonly TokenDescriptor[]): readonly RouteDeclarationAst[] {
+        return parseRouteDeclarations(tokens);
+    }
+
+    static parseControllerDeclaration(
+        source: string,
+        tokens: readonly TokenDescriptor[],
+        className: AstIdentifier
+    ): ControllerDeclarationAst {
+        return parseControllerDeclaration(source, tokens, className);
+    }
+
+    static parseResponseDtoDeclaration(
+        tokens: readonly TokenDescriptor[],
+        className: AstIdentifier
+    ): ResponseDtoDeclarationAst {
+        return parseResponseDtoDeclaration(tokens, className);
     }
 
     static matchAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {

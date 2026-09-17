@@ -64,9 +64,9 @@ export function buildContractArtifact(
         schemaName: `${contract.resourceName}ContractSchema`,
         actions: contract.actions.map(a => ({
             name: a.name,
-            zodSchema: (a as any).schemaLines ? (a as any).schemaLines.join('\n') : ((a as any).schemaCode ?? ''),
+            zodSchema: a.schemaCode,
             validatorName: `validate${toPascalCase(contract.resourceName)}${capitalize(a.name)}`,
-            fieldCount: (a as any).fieldCount ?? 0
+            fieldCount: a.fieldCount
         })),
         lineRange: [0, 0] as const
     }));

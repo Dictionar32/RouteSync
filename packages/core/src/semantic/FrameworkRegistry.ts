@@ -1,4 +1,8 @@
-import { SemanticType } from '../types/semantic'
+import { PrimitiveKind, PrimitiveType } from '../types/semantic';
+import type { ModelName } from '../types/domain/semanticValues';
+import type { BoundCardinality } from '../types/domain/boundAst';
+import type { SemanticType } from '../types/semantic';
+import { SemanticValueFactory } from '../types/domain/semanticValues';
 
 /**
  * Roadmap: FrameworkRegistry (see design review thread — FrameworkRegistryResolver
@@ -28,55 +32,68 @@ import { SemanticType } from '../types/semantic'
 
 export * from './frameworkRules';
 
+export type FrameworkReturnDescriptor =
+  | { readonly kind: 'scalar'; readonly semanticType: SemanticType }
+  | { readonly kind: 'model'; readonly model: ModelName; readonly cardinality: BoundCardinality }
+  | { readonly kind: 'object'; readonly fields: readonly (readonly [string, SemanticType])[] };
+
 export type FrameworkMethodRule = {
-  returns: SemanticType | 'model';
-  model?: string;
-  collection?: boolean;
-  paginated?: boolean;
-  fields?: Record<string, string>;
-  confidence?: number;
+  readonly returns: FrameworkReturnDescriptor;
+  readonly confidence: number;
 };
 
-export const GLOBAL_FUNCTIONS: Record<string, FrameworkMethodRule> = {
-  ...Object.fromEntries(
-    ['strtoupper', 'strtolower', 'ucfirst', 'ucwords', 'asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'now']
-      .map(fn => [fn, { returns: 'string' as const }])
-  ),
-  ...Object.fromEntries(
-    ['intval', 'floatval', 'doubleval', 'count']
-      .map(fn => [fn, { returns: 'number' as const }])
-  ),
-  boolval: { returns: 'boolean' },
-};
+const scalar = (semanticType: SemanticType): FrameworkMethodRule =>
+  Object.freeze({ returns: Object.freeze({ kind: 'scalar' as const, semanticType }), confidence: 100 });
 
-const CARBON_DATE_METHODS = ['toDateTimeString', 'toISOString', 'toIso8601String', 'format', 'diffForHumans', 'toDateString', 'toDateTime']
+const model = (name: string, confidence = 100): FrameworkMethodRule =>
+  Object.freeze({
+    returns: Object.freeze({
+      kind: 'model' as const,
+      model: SemanticValueFactory.modelName(name),
+      cardinality: { kind: 'single' } as const,
+    }),
+    confidence,
+  });
 
-/** Method-name-only registry — see file header for why there's no `owner` yet. */
-export const METHOD_REGISTRY: Record<string, FrameworkMethodRule> = {
-  validated: { returns: 'object' },
-  safe: { returns: 'object' },
-  createToken: { returns: 'object', fields: { plainTextToken: 'string' } },
-  ...Object.fromEntries(CARBON_DATE_METHODS.map(m => [m, { returns: 'string' as const }])),
-}
+const object = (fields: readonly (readonly [string, SemanticType])[] = []): FrameworkMethodRule =>
+  Object.freeze({ returns: Object.freeze({ kind: 'object' as const, fields: Object.freeze([...fields]) }), confidence: 100 });
 
-/** (variable name -> method name -> rule) for helpers keyed on a conventional variable, not a resolvable class. */
-export const VARIABLE_METHOD_REGISTRY: Record<string, Record<string, FrameworkMethodRule>> = {
-  request: {
-    user: { returns: 'model', model: 'User', confidence: 90 },
-  },
-  pdf: {
-    download: { returns: 'BinaryFile', confidence: 80 },
-  },
-}
+export const GLOBAL_FUNCTIONS: ReadonlyMap<string, FrameworkMethodRule> = new Map([
+  ...['strtoupper', 'strtolower', 'ucfirst', 'ucwords', 'asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'now']
+    .map(name => [name, scalar(new PrimitiveType(PrimitiveKind.STRING))] as const),
+  ...['intval', 'floatval', 'doubleval', 'count']
+    .map(name => [name, scalar(new PrimitiveType(PrimitiveKind.NUMBER))] as const),
+  ['boolval', scalar(new PrimitiveType(PrimitiveKind.BOOLEAN))],
+]);
+
+const CARBON_DATE_METHODS = [
+  'toDateTimeString', 'toISOString', 'toIso8601String', 'format',
+  'diffForHumans', 'toDateString', 'toDateTime',
+] as const;
+
+/** Method-name-only registry. Dynamic lookup remains confined to this boundary. */
+export const METHOD_REGISTRY: ReadonlyMap<string, FrameworkMethodRule> = new Map([
+  ['validated', object()],
+  ['safe', object()],
+  ['createToken', object([['plainTextToken', new PrimitiveType(PrimitiveKind.STRING)]])],
+  ...CARBON_DATE_METHODS.map(name => [name, scalar(new PrimitiveType(PrimitiveKind.STRING))] as const),
+]);
+
+/** Variable helper lookup is also confined to the registry boundary. */
+export const VARIABLE_METHOD_REGISTRY: ReadonlyMap<string, ReadonlyMap<string, FrameworkMethodRule>> = new Map([
+  ['request', new Map([['user', model('User', 90)]])],
+  ['pdf', new Map([['download', scalar(new PrimitiveType(PrimitiveKind.FILE))]])],
+]);
 
 export function lookupGlobalFunction(name: string): FrameworkMethodRule | undefined {
-  return GLOBAL_FUNCTIONS[name]
+  return GLOBAL_FUNCTIONS.get(name)
 }
 
 export function lookupMethod(name: string): FrameworkMethodRule | undefined {
-  return METHOD_REGISTRY[name]
+  return METHOD_REGISTRY.get(name)
 }
 
 export function lookupVariableMethod(variableName: string, methodName: string): FrameworkMethodRule | undefined {
-  return VARIABLE_METHOD_REGISTRY[variableName]?.[methodName]
+  const methods = VARIABLE_METHOD_REGISTRY.get(variableName)
+  return methods === undefined ? undefined : methods.get(methodName)
 }

@@ -16,7 +16,7 @@ import {
     parseMigrationTokens,
     parseModelMembers,
     type ParsedModelMembers,
-    inferModelColumns,
+    resolveModelColumns,
     parseModelFile
 } from "./model";
 
@@ -26,7 +26,7 @@ export {
     scanMigrations,
     parseMigrationTokens,
     parseModelMembers,
-    inferModelColumns,
+    resolveModelColumns,
     parseModelFile
 };
 
@@ -63,7 +63,7 @@ export class ModelScanner {
     public static parseModelFile(
         source: string,
         modelName: string,
-        migrationMap?: Map<string, ParsedColumn[]>
+        migrationMap: ReadonlyMap<string, readonly ParsedColumn[]>
     ): ParsedModel {
         return parseModelFile(source, modelName, migrationMap);
     }

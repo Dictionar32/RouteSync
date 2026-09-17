@@ -7,7 +7,7 @@
  * @module core/types/ir/resolvedSemanticTypes
  */
 
-import type { SemanticType } from '../semantic';
+import type { SemanticType, PrimitiveKind } from '../../compiler/types/SemanticType';
 
 export interface BoundSemanticMetaContract {
     readonly isBound: true;
@@ -21,62 +21,66 @@ export interface UnboundSemanticMetaContract {
 
 export type ResolvedSemanticMetaContract = BoundSemanticMetaContract | UnboundSemanticMetaContract;
 
-export type ResolvedSemanticMeta = {
-    readonly type?: SemanticType;
-    readonly model?: string;
-};
+export type ResolvedSemanticMeta = ResolvedSemanticMetaContract;
 
 export interface PrimitiveSemanticTypeIR {
     readonly kind: 'primitive';
-    readonly type: SemanticType;
+    readonly type: PrimitiveKind;
     readonly format: string | null;
-    readonly resolved?: ResolvedSemanticMeta;
+    readonly resolved: ResolvedSemanticMeta;
 }
 
 export interface ResourceSemanticTypeIR {
     readonly kind: 'resource';
     readonly resource: string;
     readonly collection: boolean;
-    readonly resolved?: ResolvedSemanticMeta;
+    readonly resolved: ResolvedSemanticMeta;
 }
 
 export interface ModelSemanticTypeIR {
     readonly kind: 'model';
     readonly model: string;
-    readonly resolved?: ResolvedSemanticMeta;
+    readonly resolved: ResolvedSemanticMeta;
 }
 
-export type SemanticPropertiesMap = Readonly<Record<string, ResolvedSemanticType>>;
+export type SemanticPropertyPresence = 'required' | 'optional';
+
+export interface ObjectSemanticProperty {
+    readonly name: string;
+    readonly type: ResolvedSemanticType;
+    readonly presence: SemanticPropertyPresence;
+}
 
 export interface ObjectSemanticTypeIRContract {
     readonly kind: 'object';
-    readonly propertyEntries: readonly (readonly [string, ResolvedSemanticType])[];
+    readonly properties: readonly ObjectSemanticProperty[];
     readonly resolved: ResolvedSemanticMetaContract;
 }
 
-export type ObjectSemanticTypeIR = {
-    readonly kind: 'object';
-    readonly properties: SemanticPropertiesMap;
-    readonly propertyEntries?: readonly (readonly [string, ResolvedSemanticType])[];
-    readonly resolved?: ResolvedSemanticMeta;
-};
+export type ObjectSemanticTypeIR = ObjectSemanticTypeIRContract;
+
+export interface NullableSemanticTypeIR {
+    readonly kind: 'nullable';
+    readonly innerType: ResolvedSemanticType;
+    readonly resolved: ResolvedSemanticMeta;
+}
 
 export interface ArraySemanticTypeIR {
     readonly kind: 'array';
     readonly items: ResolvedSemanticType;
-    readonly resolved?: ResolvedSemanticMeta;
+    readonly resolved: ResolvedSemanticMeta;
 }
 
 export interface UnionSemanticTypeIR {
     readonly kind: 'union';
     readonly types: readonly ResolvedSemanticType[];
-    readonly resolved?: ResolvedSemanticMeta;
+    readonly resolved: ResolvedSemanticMeta;
 }
 
 export interface LiteralSemanticTypeIR {
     readonly kind: 'literal';
     readonly value: string | number | boolean;
-    readonly resolved?: ResolvedSemanticMeta;
+    readonly resolved: ResolvedSemanticMeta;
 }
 
 export type ResolvedSemanticType =

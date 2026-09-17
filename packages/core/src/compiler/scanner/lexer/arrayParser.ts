@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/lexer/arrayParser
  */
 
-import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult } from './PhpAst';
+import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, createAstIdentifier } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
 
 /**
@@ -83,15 +83,13 @@ export function parsePhpArray(
             // Nested Array
             if (valToken.value === '[' || valToken.value === 'array') {
                 const nested = parsePhpArray(source, tokens, endIndex);
-                entries.push({ key, value: { kind: 'nested_array', entries: nested.entries }, rawExpression: 'array' });
+                entries.push({ key: createAstIdentifier(key), value: { kind: 'nested_array', entries: nested.entries } });
                 endIndex = nested.endIndex;
                 continue;
             }
 
             // Scalar value / Chained Expression extraction via source.slice()
             const valTokenIndex = endIndex;
-            const exprStartOffset = valToken.startOffset;
-            let exprEndOffset = valToken.endOffset;
             let depth = 0;
 
             while (endIndex < tokens.length) {
@@ -109,13 +107,11 @@ export function parsePhpArray(
                     depth--;
                 }
 
-                exprEndOffset = nextToken.endOffset;
                 endIndex++;
             }
 
-            const rawExpression = source.slice(exprStartOffset, exprEndOffset);
-            const astValue = classifyAstTokens(tokens.slice(valTokenIndex, endIndex), rawExpression);
-            entries.push({ key, value: astValue, rawExpression });
+            const astValue = classifyAstTokens(tokens.slice(valTokenIndex, endIndex));
+            entries.push({ key: createAstIdentifier(key), value: astValue });
         }
     }
 

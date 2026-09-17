@@ -12,7 +12,8 @@ import fs from "fs-extra";
 import {
     ParsedRoute,
     RouteParameter,
-    ResourceResponseDescriptor
+    VoidResponseDescriptor,
+    HttpMethod,
 } from "../../../types/route";
 import { RequestType } from "../../artifacts/RequestTypesArtifact";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
@@ -20,11 +21,25 @@ import { ControllerScanner } from "./ControllerScanner";
 import { ControllerActionInfo } from "../descriptors/requestDescriptors";
 import {
     extractPathParams,
-    normalizeRoutePath,
-    RouteContextTracker,
+    resolveRoutePath,
     emitApiResourceRoutes,
-    emitStandardRoutes
+    emitStandardRoutes,
+    type StandardRouteTarget
 } from "./route-scanner";
+
+function resolveRouteHttpMethod(rawMethod: string): HttpMethod {
+    switch (rawMethod.toUpperCase()) {
+        case HttpMethod.GET: return HttpMethod.GET;
+        case HttpMethod.POST: return HttpMethod.POST;
+        case HttpMethod.PUT: return HttpMethod.PUT;
+        case HttpMethod.PATCH: return HttpMethod.PATCH;
+        case HttpMethod.DELETE: return HttpMethod.DELETE;
+        case HttpMethod.OPTIONS: return HttpMethod.OPTIONS;
+        case HttpMethod.HEAD: return HttpMethod.HEAD;
+        default:
+            throw new Error(`Unsupported HTTP method in Route::match(): ${rawMethod}`);
+    }
+}
 
 export class RouteScanner {
     public static extractPathParams(routePath: string): readonly RouteParameter[] {
@@ -41,115 +56,66 @@ export class RouteScanner {
 
         const source = await fs.readFile(routesFile, 'utf-8');
         const tokens = LaravelSourceLexer.tokenize(source);
-        const routes: ParsedRoute[] = [];
-
-        const tracker = new RouteContextTracker();
+        const declarations = LaravelSourceLexer.parseRouteDeclarations(tokens);
         const formRequestMap = new Map<string, RequestType>(requestTypes.map(r => [r.formTypeName, r]));
         const controllerMap = existingControllerMap ?? await ControllerScanner.scan(projectRoot, formRequestMap);
+        const routes: ParsedRoute[] = [];
 
-        for (let i = 0; i < tokens.length; i++) {
-            tracker.handleToken(tokens, i);
+        for (const declaration of declarations) {
+            const resolvedPath = resolveRoutePath(declaration.path, declaration.prefix);
+            const controllerName = declaration.target.kind === 'closure' ? undefined : declaration.target.controller;
+            const actionName = declaration.target.kind === 'controller_action'
+                ? declaration.target.action
+                : declaration.target.kind === 'controller_invokable' ? '__invoke' : declaration.target.action;
+            const controllerActions = controllerName ? controllerMap.get(controllerName) : undefined;
+            const actionInfo = controllerActions && actionName
+                ? controllerActions.get(actionName)
+                : undefined;
+            const unresolvedResponse = new VoidResponseDescriptor();
+            const middlewares = [...declaration.middleware];
+            const isAuth = middlewares.some(middleware => middleware.startsWith('auth'));
 
-            if (tokens[i].value === 'Route' && tokens[i + 1]?.value === '::') {
-                const methodToken = tokens[i + 2];
-                if (!methodToken) continue;
-
-                const httpMethod = methodToken.value.toLowerCase();
-                if (['get', 'post', 'put', 'patch', 'delete', 'apiresource', 'match', 'any'].includes(httpMethod)) {
-                    let j = i + 3;
-                    while (j < tokens.length && tokens[j].value !== '(') j++;
-                    j++; // Skip '('
-
-                    let targetMethods: string[] = [httpMethod];
-                    let pathIndex = j;
-
-                    if (httpMethod === 'match') {
-                        targetMethods = [];
-                        while (j < tokens.length && tokens[j].value !== '[') j++;
-                        if (j < tokens.length && tokens[j].value === '[') j++;
-                        while (j < tokens.length && tokens[j].value !== ']') {
-                            if (tokens[j].type === 'STRING') {
-                                targetMethods.push(tokens[j].value.toLowerCase());
-                            }
-                            j++;
-                        }
-                        if (j < tokens.length && tokens[j].value === ']') j++;
-                        while (j < tokens.length && tokens[j].value !== ',') j++;
-                        if (j < tokens.length && tokens[j].value === ',') j++;
-                        pathIndex = j;
-                    } else if (httpMethod === 'any') {
-                        targetMethods = ['get', 'post', 'put', 'patch', 'delete'];
-                    }
-
-                    while (pathIndex < tokens.length && tokens[pathIndex].type !== 'STRING') {
-                        pathIndex++;
-                    }
-
-                    const pathToken = tokens[pathIndex];
-                    if (pathToken && pathToken.type === 'STRING') {
-                        const { normalizedPath, resourceName } = normalizeRoutePath(pathToken.value, tracker.prefixStack);
-
-                        // Extract controller and action
-                        let controllerName: string | undefined;
-                        let actionName: string | undefined;
-                        let hIdx = pathIndex + 1;
-                        while (hIdx < tokens.length && tokens[hIdx].value !== ',' && tokens[hIdx].value !== ')') hIdx++;
-                        if (tokens[hIdx]?.value === ',') {
-                            hIdx++;
-                            const isArrayForm = tokens[hIdx]?.value === '[' || tokens[hIdx + 1]?.value === '[';
-                            while (hIdx < tokens.length && (tokens[hIdx].value === '[' || tokens[hIdx].value === '(')) {
-                                hIdx++;
-                            }
-                            if (tokens[hIdx]?.type === 'IDENTIFIER') {
-                                controllerName = tokens[hIdx].value;
-                                if (tokens[hIdx + 1]?.value === '::' && tokens[hIdx + 2]?.value === 'class') {
-                                    if (isArrayForm && tokens[hIdx + 3]?.value === ',' && tokens[hIdx + 4]?.type === 'STRING') {
-                                        actionName = tokens[hIdx + 4].value;
-                                    } else if (!isArrayForm) {
-                                        actionName = '__invoke';
-                                    }
-                                }
-                            }
-                        }
-
-                        const currentMiddlewares = tracker.getCurrentMiddlewares();
-                        const isAuth = tracker.isCurrentAuth();
-                        const actionInfo = controllerName && actionName
-                            ? (controllerMap.get(controllerName)?.get(actionName) ?? controllerMap.get(controllerName)?.get('__invoke'))
-                            : undefined;
-                        const resolvedResponse = actionInfo?.response
-                            || new ResourceResponseDescriptor({ resourceName: `${resourceName.charAt(0).toUpperCase() + resourceName.slice(1)}Resource`, shape: 'single' });
-
-                        if (httpMethod === 'apiresource') {
-                            routes.push(...emitApiResourceRoutes(
-                                normalizedPath,
-                                resourceName,
-                                controllerName,
-                                controllerMap,
-                                resolvedResponse,
-                                isAuth,
-                                currentMiddlewares,
-                                routesFile
-                            ));
-                        } else {
-                            routes.push(...emitStandardRoutes(
-                                targetMethods,
-                                normalizedPath,
-                                resourceName,
-                                actionName,
-                                controllerName,
-                                actionInfo,
-                                resolvedResponse,
-                                isAuth,
-                                currentMiddlewares,
-                                routesFile
-                            ));
-                        }
-                    }
-                }
+            if (declaration.method === 'apiResource') {
+                routes.push(...emitApiResourceRoutes(
+                    resolvedPath,
+                    resolvedPath.resourceName,
+                    controllerName,
+                    controllerMap,
+                    unresolvedResponse,
+                    isAuth,
+                    middlewares,
+                    routesFile
+                ));
+                continue;
             }
+
+            const target: StandardRouteTarget = actionInfo
+                ? { kind: 'controller_action', action: actionInfo }
+                : controllerName
+                    ? {
+                        kind: 'controller_reference',
+                        controllerName,
+                        actionName,
+                        response: unresolvedResponse
+                    }
+                    : {
+                        kind: 'closure',
+                        actionName,
+                        response: unresolvedResponse
+                    };
+
+            routes.push(...emitStandardRoutes(
+                declaration.targetMethods.map(resolveRouteHttpMethod),
+                resolvedPath,
+                resolvedPath.resourceName,
+                target,
+                isAuth,
+                middlewares,
+                routesFile
+            ));
         }
 
         return routes;
     }
+
 }

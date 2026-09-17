@@ -9,7 +9,8 @@
 import {
     RequestType,
     FormAction,
-    ResponseData
+    ResponseData,
+    RequestResponse
 } from "../../../artifacts/RequestTypesArtifact";
 import { toPascalCase } from "../../../../utils/resource-naming";
 
@@ -17,7 +18,7 @@ export interface ScannedRequestTypeParams {
     readonly resourceName: string;
     readonly formTypeName: string;
     readonly actions: readonly FormAction[];
-    readonly responseData: ResponseData | undefined;
+    readonly response: RequestResponse;
 }
 
 /**
@@ -27,13 +28,13 @@ export class ScannedRequestTypeDescriptor implements RequestType {
     public readonly resourceName: string;
     public readonly formTypeName: string;
     public readonly actions: readonly FormAction[];
-    public readonly responseData?: ResponseData;
+    public readonly response: RequestResponse;
 
-    constructor({ resourceName, formTypeName, actions, responseData }: ScannedRequestTypeParams) {
+    constructor({ resourceName, formTypeName, actions, response }: ScannedRequestTypeParams) {
         this.resourceName = resourceName;
         this.formTypeName = formTypeName;
         this.actions = actions;
-        this.responseData = responseData;
+        this.response = response;
         Object.freeze(this);
     }
 
@@ -41,18 +42,18 @@ export class ScannedRequestTypeDescriptor implements RequestType {
         resourceName,
         formTypeName = `${toPascalCase(resourceName)}Form`,
         actions = [],
-        responseData
+        response = { kind: "none" }
     }: {
         readonly resourceName: string;
         readonly formTypeName?: string;
         readonly actions?: readonly FormAction[];
-        readonly responseData?: ResponseData | null;
+        readonly response?: RequestResponse;
     }): ScannedRequestTypeDescriptor {
         return new ScannedRequestTypeDescriptor({
             resourceName,
             formTypeName,
             actions: Object.freeze([...actions]),
-            responseData: responseData ? Object.freeze({ ...responseData }) : undefined
+            response
         });
     }
 
@@ -61,7 +62,7 @@ export class ScannedRequestTypeDescriptor implements RequestType {
             resourceName,
             formTypeName: `${toPascalCase(resourceName)}Form`,
             actions: Object.freeze([]),
-            responseData: undefined
+            response: { kind: "none" }
         });
     }
 }

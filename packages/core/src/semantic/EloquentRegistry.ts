@@ -1,69 +1,53 @@
-/**
- * Eloquent query-builder method knowledge, separated from FrameworkRegistry.ts
- * on purpose — this is ORM/query-builder semantics (chaining, pagination,
- * aggregation), a different concern from general Laravel helpers (Carbon,
- * Sanctum, global functions). Keeping them in one file was already starting
- * to blur "is this a Laravel helper or a query builder method" — see the
- * design review thread's suggestion to eventually split MethodReturnResolver
- * into its own EloquentMethodResolver plugin. This registry is that split's
- * data half; MethodReturnResolver is now just the orchestration half.
- */
+/** Closed Eloquent method vocabulary. Registry entries describe semantic transitions. */
+export type EloquentCardinality =
+  | { readonly kind: 'single' }
+  | { readonly kind: 'collection' }
+  | { readonly kind: 'paginated_collection' };
 
-export type EloquentReturnKind = 'model' | 'builder' | 'number' | 'boolean' | 'array'
+export type EloquentArrayElement =
+  | { readonly kind: 'model' }
+  | { readonly kind: 'unresolved' };
+
+export type EloquentReturn =
+  | { readonly kind: 'model'; readonly cardinality: EloquentCardinality }
+  | { readonly kind: 'builder' }
+  | { readonly kind: 'number' }
+  | { readonly kind: 'boolean' }
+  | { readonly kind: 'array'; readonly element: EloquentArrayElement };
 
 export interface EloquentMethodRule {
-  returns: EloquentReturnKind
-  /** Only meaningful for returns: 'model' — fixed collection-ness. 'builder' pass-through methods keep whatever collection-ness the target already had instead. */
-  collection?: boolean
-  paginated?: boolean
+  readonly returns: EloquentReturn;
 }
 
-export const ELOQUENT_METHOD_REGISTRY: Record<string, EloquentMethodRule> = {
-  // returns a single model instance
-  first: { returns: 'model', collection: false },
-  find: { returns: 'model', collection: false },
-  findOrFail: { returns: 'model', collection: false },
-  create: { returns: 'model', collection: false },
-  update: { returns: 'model', collection: false },
-  firstOrCreate: { returns: 'model', collection: false },
+const single = (): EloquentCardinality => ({ kind: 'single' });
+const collection = (): EloquentCardinality => ({ kind: 'collection' });
+const paginated = (): EloquentCardinality => ({ kind: 'paginated_collection' });
+const model = (cardinality: EloquentCardinality): EloquentMethodRule => ({ returns: { kind: 'model', cardinality } });
+const builder = (): EloquentMethodRule => ({ returns: { kind: 'builder' } });
+const number = (): EloquentMethodRule => ({ returns: { kind: 'number' } });
+const boolean = (): EloquentMethodRule => ({ returns: { kind: 'boolean' } });
+const array = (element: EloquentArrayElement): EloquentMethodRule => ({ returns: { kind: 'array', element } });
 
-  // returns a collection of models
-  get: { returns: 'model', collection: true },
-  all: { returns: 'model', collection: true },
+const METHOD_ENTRIES: readonly (readonly [string, EloquentMethodRule])[] = [
+  ['first', model(single())], ['find', model(single())], ['findOrFail', model(single())],
+  ['create', model(single())], ['update', model(single())], ['firstOrCreate', model(single())],
+  ['get', model(collection())], ['all', model(collection())],
+  ['paginate', model(paginated())], ['simplePaginate', model(paginated())], ['cursorPaginate', model(paginated())],
+  ['where', builder()], ['whereIn', builder()], ['whereNotIn', builder()], ['whereNull', builder()], ['whereNotNull', builder()],
+  ['whereBetween', builder()], ['whereNotBetween', builder()], ['whereDate', builder()], ['whereMonth', builder()], ['whereDay', builder()],
+  ['whereYear', builder()], ['whereTime', builder()], ['whereColumn', builder()], ['orWhere', builder()], ['orWhereIn', builder()],
+  ['orderBy', builder()], ['orderByDesc', builder()], ['latest', builder()], ['oldest', builder()], ['inRandomOrder', builder()],
+  ['select', builder()], ['selectRaw', builder()], ['addSelect', builder()], ['distinct', builder()], ['join', builder()],
+  ['leftJoin', builder()], ['rightJoin', builder()], ['crossJoin', builder()], ['groupBy', builder()], ['having', builder()],
+  ['havingRaw', builder()], ['skip', builder()], ['offset', builder()], ['limit', builder()], ['take', builder()], ['with', builder()],
+  ['withCount', builder()], ['load', builder()], ['loadCount', builder()], ['has', builder()], ['whereHas', builder()], ['query', builder()],
+  ['count', number()], ['sum', number()], ['avg', number()], ['min', number()], ['max', number()],
+  ['exists', boolean()], ['doesntExist', boolean()],
+  ['pluck', array({ kind: 'unresolved' })], ['toArray', array({ kind: 'model' })], ['jsonSerialize', array({ kind: 'model' })],
+];
 
-  // returns a paginated collection
-  paginate: { returns: 'model', collection: true, paginated: true },
-  simplePaginate: { returns: 'model', collection: true, paginated: true },
-  cursorPaginate: { returns: 'model', collection: true, paginated: true },
-
-  // query builder pass-through — still the same model, collection/paginated
-  // inherited from whatever the chain already resolved to, not fixed here
-  where: { returns: 'builder' }, whereIn: { returns: 'builder' }, whereNotIn: { returns: 'builder' },
-  whereNull: { returns: 'builder' }, whereNotNull: { returns: 'builder' },
-  whereBetween: { returns: 'builder' }, whereNotBetween: { returns: 'builder' },
-  whereDate: { returns: 'builder' }, whereMonth: { returns: 'builder' }, whereDay: { returns: 'builder' },
-  whereYear: { returns: 'builder' }, whereTime: { returns: 'builder' }, whereColumn: { returns: 'builder' },
-  orWhere: { returns: 'builder' }, orWhereIn: { returns: 'builder' },
-  orderBy: { returns: 'builder' }, orderByDesc: { returns: 'builder' },
-  latest: { returns: 'builder' }, oldest: { returns: 'builder' }, inRandomOrder: { returns: 'builder' },
-  select: { returns: 'builder' }, addSelect: { returns: 'builder' }, distinct: { returns: 'builder' },
-  join: { returns: 'builder' }, leftJoin: { returns: 'builder' }, rightJoin: { returns: 'builder' }, crossJoin: { returns: 'builder' },
-  groupBy: { returns: 'builder' }, having: { returns: 'builder' }, havingRaw: { returns: 'builder' },
-  skip: { returns: 'builder' }, offset: { returns: 'builder' }, limit: { returns: 'builder' }, take: { returns: 'builder' },
-  with: { returns: 'builder' }, withCount: { returns: 'builder' }, load: { returns: 'builder' }, loadCount: { returns: 'builder' },
-  has: { returns: 'builder' }, whereHas: { returns: 'builder' }, query: { returns: 'builder' },
-
-  // aggregate -> number
-  count: { returns: 'number' }, sum: { returns: 'number' }, avg: { returns: 'number' },
-  min: { returns: 'number' }, max: { returns: 'number' },
-
-  // boolean
-  exists: { returns: 'boolean' }, doesntExist: { returns: 'boolean' },
-
-  // conversion -> array
-  pluck: { returns: 'array' }, toArray: { returns: 'array' }, jsonSerialize: { returns: 'array' },
-}
+export const ELOQUENT_METHOD_REGISTRY: ReadonlyMap<string, EloquentMethodRule> = new Map(METHOD_ENTRIES);
 
 export function lookupEloquentMethod(name: string): EloquentMethodRule | undefined {
-  return ELOQUENT_METHOD_REGISTRY[name]
+  return ELOQUENT_METHOD_REGISTRY.get(name);
 }

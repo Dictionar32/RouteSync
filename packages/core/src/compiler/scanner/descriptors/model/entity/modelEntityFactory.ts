@@ -60,7 +60,7 @@ export function computeModelParams({
     const defaultShortName = extractClassBasename(name);
     const resolvedShortName = shortName ?? defaultShortName;
     const resolvedTable = table ?? inferLaravelTableName(defaultShortName);
-    const normalizedKeyType: ModelKeyType = ModelKeyTypeMapper.normalize(keyType);
+    const normalizedKeyType: ModelKeyType = ModelKeyTypeMapper.normalize(keyType === undefined ? "int" : keyType);
     const resolvedKeySemantic: PrimitiveKind = keySemanticType ?? MODEL_KEY_TYPE_REGISTRY[normalizedKeyType].primitiveKind;
     const resolvedSoftDeletes = softDeletes ?? columns.some(c => c.name === "deleted_at");
     const resolvedTimestamps = timestamps ?? (columns.some(c => c.name === "created_at") && columns.some(c => c.name === "updated_at"));

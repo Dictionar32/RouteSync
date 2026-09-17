@@ -6,22 +6,24 @@
  * @module core/types/domain/phpAst
  */
 
-import type { BasePhpAstNode, PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode } from './astMemberNodes';
+import type { BasePhpAstNode, PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode } from './astMemberNodes';
+import type { BoundLiteralValue } from '../semanticValues';
+import type { ArrayKey, PhpArgument, PhpBlock, PhpStatement, PhpBinaryOperator, PhpCastType, PhpClassName, PhpConstantName, PhpUnaryOperator, PhpVariableName } from './astValues';
 
-export type { BasePhpAstNode, PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode };
+export type { PhpArgument, PhpBlock, PhpStatement, BasePhpAstNode, PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode };
 
 // Computations
 export interface BinaryAstNode extends BasePhpAstNode<'binary'> {
-    readonly operator: string;
+    readonly operator: PhpBinaryOperator;
     readonly left: PhpAstNode;
     readonly right: PhpAstNode;
 }
 export interface UnaryAstNode extends BasePhpAstNode<'unary'> {
-    readonly operator: string;
+    readonly operator: PhpUnaryOperator;
     readonly what: PhpAstNode;
 }
 export interface TypeCastAstNode extends BasePhpAstNode<'type_cast'> {
-    readonly castType: 'int' | 'float' | 'string' | 'bool';
+    readonly castType: PhpCastType;
     readonly expr: PhpAstNode;
 }
 export interface TernaryAstNode extends BasePhpAstNode<'ternary'> {
@@ -31,30 +33,37 @@ export interface TernaryAstNode extends BasePhpAstNode<'ternary'> {
 }
 
 // Containers & Literals
+
 export interface ArrayEntryAstNode {
-    readonly key: string | null;
+    readonly key: ArrayKey;
     readonly value: PhpAstNode;
 }
 export interface ArrayAstNode extends BasePhpAstNode<'array'> {
     readonly items: readonly ArrayEntryAstNode[];
 }
 export interface LiteralAstNode extends BasePhpAstNode<'literal'> {
-    readonly value: string | number | boolean | null;
+    readonly value: BoundLiteralValue;
 }
 export interface StaticConstantAstNode extends BasePhpAstNode<'static_constant'> {
-    readonly className: string;
-    readonly constantName: string;
+    readonly className: PhpClassName;
+    readonly constantName: PhpConstantName;
 }
 export interface VariableAstNode extends BasePhpAstNode<'variable'> {
-    readonly name: string;
+    readonly name: PhpVariableName;
 }
-export interface UnknownAstNode extends BasePhpAstNode<'unknown'> {
-    readonly code: string;
+export type UnsupportedAstReason =
+    | { readonly kind: 'parser_gap' }
+    | { readonly kind: 'unsupported_syntax' }
+    | { readonly kind: 'invalid_boundary_input' }
+    | { readonly kind: 'missing_expression' };
+
+export interface UnsupportedAstNode extends BasePhpAstNode<'unsupported'> {
+    readonly reason: UnsupportedAstReason;
 }
 
 export type PhpAstNode =
-    | PropertyLookupAstNode | NullsafePropertyLookupAstNode | OffsetLookupAstNode | StaticLookupAstNode
+    | PropertyLookupAstNode | NullsafePropertyLookupAstNode | OffsetLookupAstNode | StaticPropertyLookupAstNode
     | FunctionCallAstNode | MethodCallAstNode | NullsafeMethodCallAstNode | StaticMethodCallAstNode
     | VariableCallAstNode | NewInstanceAstNode | ClosureAstNode | ArrowFuncAstNode
     | BinaryAstNode | UnaryAstNode | TypeCastAstNode | TernaryAstNode
-    | ArrayAstNode | LiteralAstNode | StaticConstantAstNode | VariableAstNode | UnknownAstNode;
+    | ArrayAstNode | LiteralAstNode | StaticConstantAstNode | VariableAstNode | UnsupportedAstNode;

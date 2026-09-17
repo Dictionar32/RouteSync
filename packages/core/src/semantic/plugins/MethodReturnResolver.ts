@@ -6,7 +6,8 @@
  * @module core/semantic/plugins/MethodReturnResolver
  */
 
-import type { SemanticResolution } from '../../types/contract';
+import type { SemanticResolution } from '../../types/domain/semanticResolution';
+import { unknownResolution } from '../semanticResolutionSupport';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import { resolveStaticMethodCall, resolveInstanceMethodCall } from './method-return';
 
@@ -24,6 +25,6 @@ export class MethodReturnResolver implements ResolverPlugin {
       return resolveInstanceMethodCall(meta, context);
     }
 
-    return { status: 'unknown', type: 'unknown', confidence: 0, trace: [] };
+    return unknownResolution('MethodReturnResolver', 'Unsupported method metadata', meta.kind, 'unsupported_syntax');
   }
 }

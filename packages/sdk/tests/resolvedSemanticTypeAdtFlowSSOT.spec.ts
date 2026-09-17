@@ -19,7 +19,7 @@ import {
 describe('ResolvedSemanticType ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
   test('1. matchResolvedSemanticType executes pure catamorphism on leaf types (primitive, reference, unknown)', () => {
     const prim = ResolvedPrimitiveType.string()
-    const ref = ResolvedReferenceType.named('UserDTO')
+    const ref = ResolvedReferenceType.named('UserDTO', '')
     const unk = ResolvedUnknownType.withMessage('Not found')
 
     const visitor: ResolvedSemanticTypeVisitor<string> = {
@@ -64,7 +64,7 @@ describe('ResolvedSemanticType ADT Flow SSOT (Zero-if Catamorphism Suite)', () =
   test('3. matchResolvedSemanticType executes pure catamorphism on compound types (object, union, intersection)', () => {
     const obj = ResolvedObjectType.resource('OrderResource', [['id', ResolvedPrimitiveType.number()]])
     const union = ResolvedUnionType.of([ResolvedPrimitiveType.string(), ResolvedPrimitiveType.number()])
-    const inter = ResolvedIntersectionType.of([ResolvedReferenceType.named('A'), ResolvedReferenceType.named('B')])
+    const inter = ResolvedIntersectionType.of([ResolvedReferenceType.named('A', ''), ResolvedReferenceType.named('B', '')])
 
     const visitor: ResolvedSemanticTypeVisitor<string> = {
       primitive: () => 'PRIM',

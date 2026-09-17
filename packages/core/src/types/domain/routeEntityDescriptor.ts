@@ -14,13 +14,12 @@ import {
   type RouteSecurityContract,
   type RoutePayloadContract,
   type RouteProvenanceContract,
-  type RouteDef,
+  type RawRouteDefInput,
   type HttpVerb,
   createRoutePath,
   createHttpVerb
 } from './routeEntityDefinition';
 
-const EMPTY_FIELD_NODE: FieldNode = Object.freeze({ kind: 'primitive', type: 'void' });
 
 export class RouteDefDescriptor implements RouteDefContract {
   public readonly identity: RouteIdentityContract;
@@ -40,16 +39,7 @@ export class RouteDefDescriptor implements RouteDefContract {
     return new RouteDefDescriptor(params);
   }
 
-  static empty(): RouteDefDescriptor {
-    return new RouteDefDescriptor({
-      identity: Object.freeze({ name: '', method: 'GET' as HttpVerb, path: createRoutePath('/') }),
-      security: Object.freeze({ auth: false, middleware: Object.freeze([]) }),
-      payload: Object.freeze({ schemaEntries: Object.freeze([]), response: EMPTY_FIELD_NODE, assignments: Object.freeze([]) }),
-      provenance: Object.freeze({ stableHash: '', sourceFile: '', sourceLine: 1 })
-    });
-  }
-
-  static fromRouteDef(def: RouteDef): RouteDefDescriptor {
+  static fromRouteDef(def: RawRouteDefInput): RouteDefDescriptor {
     const schemaEntries = def.schema
       ? Object.freeze(Object.entries(def.schema).map(([k, v]) => Object.freeze([k, v] as const)))
       : Object.freeze([]);

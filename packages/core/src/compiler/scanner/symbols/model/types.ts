@@ -1,17 +1,33 @@
 /**
- * types.ts
- *
- * Types for Model Symbol Table and Property Bindings.
- *
- * @module compiler/scanner/symbols/model
+ * Closed semantic property binding emitted by the model origin boundary.
+ * Consumers receive the resolved SemanticType and never reconstruct it.
  */
+import type { SemanticType } from '../../../types/SemanticType';
+import type { ParsedColumn, } from '../../../../types/domain/databaseColumns';
+import type { ParsedAccessor, ParsedRelation } from '../../../../types/domain/eloquentTypes';
 
-export interface ResolvedPropertyBinding {
-    readonly kind: 'column' | 'relation' | 'accessor';
+export interface ResolvedColumnBinding {
+    readonly kind: 'column';
     readonly propertyName: string;
-    readonly type: string;
-    readonly nullable: boolean;
-    readonly targetModel?: string;
-    readonly isCollection?: boolean;
-    readonly cast?: string;
+    readonly source: ParsedColumn;
+    readonly semanticType: SemanticType;
 }
+
+export interface ResolvedAccessorBinding {
+    readonly kind: 'accessor';
+    readonly propertyName: string;
+    readonly source: ParsedAccessor;
+    readonly semanticType: SemanticType;
+}
+
+export interface ResolvedRelationBinding {
+    readonly kind: 'relation';
+    readonly propertyName: string;
+    readonly source: ParsedRelation;
+    readonly semanticType: SemanticType;
+}
+
+export type ResolvedPropertyBinding =
+    | ResolvedColumnBinding
+    | ResolvedAccessorBinding
+    | ResolvedRelationBinding;

@@ -1,40 +1,25 @@
 /**
  * objectSchemas.ts
  *
- * Schema, property, and model attribute definitions for response structures.
- * Level 7 Complete Contracts. Zero sentinel undefined, zero null.
+ * Canonical response-schema contracts.
+ * Properties are ordered semantic data, not a string-keyed map.
  *
  * @module compiler/ir/response
  */
 
 import type { FileSpan } from '../../types/FileSpan';
+import type {
+    ObjectSchemaContract,
+    ObjectSchemaPropertyContract,
+    PropertyTypeContract,
+} from './objectSchemaContracts';
 
 export * from './objectSchemaContracts';
 
-export type PropertyTypeReference = {
-    readonly kind: 'model' | 'resource';
-    readonly name: string;
-};
+export type ObjectSchema = ObjectSchemaContract;
+export type ObjectSchemaProperty = ObjectSchemaPropertyContract;
+export type PropertyType = PropertyTypeContract;
 
-export type ObjectSchema = {
-    readonly name?: string;
-    readonly properties: Record<string, PropertyType>;
-    readonly required?: readonly string[];
-    readonly additionalProperties?: boolean;
-};
-
-export type PropertyType = {
-    readonly typeName: string;
-    readonly nullable?: boolean;
-    readonly isArray?: boolean;
-    readonly schema?: ObjectSchema;
-    readonly items?: PropertyType;
-    readonly reference?: PropertyTypeReference;
-};
-
-/**
- * Level 7 Complete Contract for PropertyDescriptor (0 undefined, 0 null, 0 ?:).
- */
 export interface PropertyDescriptorContract {
     readonly name: string;
     readonly type: PropertyType;
@@ -43,17 +28,8 @@ export interface PropertyDescriptorContract {
     readonly confidence: number;
 }
 
-export type PropertyDescriptor = {
-    readonly name: string;
-    readonly type: PropertyType;
-    readonly description?: string;
-    readonly span?: FileSpan;
-    readonly confidence?: number;
-};
+export type PropertyDescriptor = PropertyDescriptorContract;
 
-/**
- * Level 7 Complete Contract for ModelAttribute (0 undefined, 0 null, 0 ?:).
- */
 export interface ModelAttributeContract {
     readonly name: string;
     readonly type: string;
@@ -62,10 +38,4 @@ export interface ModelAttributeContract {
     readonly comment: string;
 }
 
-export type ModelAttribute = {
-    readonly name: string;
-    readonly type: string;
-    readonly nullable: boolean;
-    readonly default?: unknown;
-    readonly comment?: string;
-};
+export type ModelAttribute = ModelAttributeContract;

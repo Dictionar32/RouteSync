@@ -1,8 +1,9 @@
 /**
  * boundaryContractFactory.ts
  *
- * Origin Boundary Factory: Converts perimeter options into complete RouteBoundaryContract.
- * Enforces Level 6/7 Correct-by-Construction: 100% non-nullable, frozen contracts.
+ * Origin Boundary Factory: resolves perimeter options into the canonical
+ * ScannedRouteCompleteContracts composite. There is one complete route
+ * contract vocabulary; the boundary no longer owns a second flat contract.
  *
  * @module core/compiler/scanner/resolvers/boundary
  */
@@ -10,71 +11,56 @@
 import {
     type RouteBoundaryContract,
     type RouteBoundaryOptions,
-    resolveRouteBoundaryBasics
+    buildRouteIdentityContract,
+    buildRouteBindingContract,
+    buildRouteCapabilityContract,
+    buildRouteProvenanceContract
 } from "./boundaryBasics";
-import { deriveRouteConstantKey } from "./identityBuilder";
-import { RouteCrudClassifier } from "../RouteCrudClassifier";
-import {
-    type HttpMethod,
-    RequestContentType,
-    RouteHookKind,
-    ScannedRouteCacheInvalidationDescriptor,
-    ScannedRouteExecutionSignature
-} from "../../../../types/route";
-import { ScannedRouteSchemaPayload } from "../../descriptors/validationDescriptors";
-import { toCamelCase } from "../../../../utils/resource-naming";
+import { resolveRouteBoundaryInput } from "./boundaryInputResolution";
+import { resolveRouteCapability } from "./capabilityResolution";
+import { resolveRouteBinding } from "./bindingResolution";
+import { ScannedEndpointContract } from "../../../../types/route";
 
 export class RouteBoundaryContractFactory {
-    /**
-     * Constructs a guaranteed complete RouteBoundaryContract from perimeter options.
-     * Pure Flow: 0 '?' in output, completely non-nullable and frozen.
-     */
     public static create(options: RouteBoundaryOptions): RouteBoundaryContract {
-        const basics = resolveRouteBoundaryBasics(options);
-        const upperMethod = options.method.toUpperCase() as HttpMethod;
-        const resolvedHookKind = options.hookKind ?? (basics.resolvedIsMutating ? RouteHookKind.Mutation : RouteHookKind.Query);
-        const resolvedCrudRole = options.crudRole ?? RouteCrudClassifier.classify(upperMethod, options.path);
-        const resolvedConstantKey = options.constantKey ?? deriveRouteConstantKey(options.path);
-        const resolvedGroupName = options.groupName ?? toCamelCase(basics.fallbackResource);
-        const resolvedResourceName = options.resourceName ?? basics.fallbackResource;
-        const resolvedDomain = options.domain ?? basics.resolvedDomain;
-        const resolvedRuntimePath = options.runtimePath ?? options.path;
+        const resolved = resolveRouteBoundaryInput(options);
+        const basics = {
+            resolvedControllerName: resolved.controllerName,
+            resolvedActionName: resolved.actionName,
+            resolvedAction: resolved.action,
+            isGetMethod: resolved.method === "GET",
+            isHeadMethod: resolved.method === "HEAD",
+            resolvedActionKind: resolved.actionKind,
+            resolvedIsMutating: resolved.isMutating,
+            resolvedDomain: resolved.domain,
+            resolvedResourceName: resolved.resourceName,
+            resolvedParameters: resolved.parameters,
+            resolvedPathParameters: resolved.pathParameters,
+            resolvedQueryParameters: resolved.queryParameters,
+            resolvedGroupName: resolved.groupName,
+            resolvedRuntimePath: resolved.runtimePath,
+            resolvedConstantKey: resolved.constantKey,
+            resolvedRouteName: resolved.name
+        };
+        const identity = buildRouteIdentityContract(resolved, basics);
+        const resolvedBinding = resolveRouteBinding(resolved);
+        const binding = buildRouteBindingContract(resolved, basics, resolvedBinding);
+        const resolvedCapability = resolveRouteCapability(resolved, basics, identity.parameters.all.length);
+        const capability = buildRouteCapabilityContract(resolved, basics, resolvedCapability);
+        const provenance = buildRouteProvenanceContract(resolved);
+        const contract = ScannedEndpointContract.fromSubcontracts({
+            identity,
+            binding,
+            capability,
+            provenance
+        });
 
         return Object.freeze({
-            name: options.name ?? "",
-            method: upperMethod,
-            path: options.path,
-            resourceName: resolvedResourceName,
-            domain: resolvedDomain,
-            groupName: resolvedGroupName,
-            runtimePath: resolvedRuntimePath,
-            constantKey: resolvedConstantKey,
-            controllerName: basics.resolvedControllerName,
-            actionName: basics.resolvedActionName,
-            actionTarget: basics.resolvedAction,
-            actionKind: basics.resolvedActionKind,
-            isMutating: basics.resolvedIsMutating,
-            crudRole: resolvedCrudRole,
-            hookKind: resolvedHookKind,
-            invalidation: options.invalidation ?? ScannedRouteCacheInvalidationDescriptor.none(),
-            executionSignature: options.executionSignature ?? ScannedRouteExecutionSignature.create(resolvedHookKind, false, false, "void"),
-            requestContentType: options.requestContentType ?? (basics.resolvedIsMutating ? RequestContentType.Json : RequestContentType.None),
-            auth: options.auth ?? false,
-            middleware: Object.freeze([...(options.middleware ?? [])]),
-            parameters: Object.freeze([...(options.parameters ?? [])]),
-            pathParameters: Object.freeze([...(options.pathParameters ?? [])]),
-            queryParameters: Object.freeze([...(options.queryParameters ?? [])]),
-            response: options.response ?? Object.freeze({ kind: "void" as const, status: 200, headers: [] } as any),
-            errorResponses: Object.freeze([...(options.errorResponses ?? [])]),
-            sourceFile: options.sourceFile ?? "",
-            sourceLine: options.sourceLine ?? 0,
-            schema: options.schema ?? ScannedRouteSchemaPayload.empty(),
-            formRequests: Object.freeze([...(options.formRequests ?? [])]),
-            handler: options.handler ?? Object.freeze({
-                kind: "closure" as any,
-                actionName: basics.resolvedActionName,
-                target: `closure@${basics.resolvedActionName}`
-            })
+            identity,
+            binding,
+            capability,
+            provenance,
+            contract
         });
     }
 }

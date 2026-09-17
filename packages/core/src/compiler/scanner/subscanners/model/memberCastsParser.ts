@@ -13,7 +13,6 @@ export function tryParseModelCasts(
     source: string,
     tokens: readonly TokenDescriptor[],
     i: number,
-    castsMap: Record<string, string>,
     casts: ParsedCast[]
 ): void {
     const token = tokens[i];
@@ -22,10 +21,7 @@ export function tryParseModelCasts(
     if (token.value === '$casts' && tokens[i + 1]?.value === '=') {
         const parsed = LaravelSourceLexer.parseArray(source, tokens, i + 2);
         for (const entry of parsed.entries) {
-            const castVal = entry.value.kind === 'literal' && entry.value.literalType === 'string'
-                ? String(entry.value.value)
-                : (entry.rawExpression || 'string').replace(/::class$/, '').trim();
-            castsMap[entry.key] = castVal;
+            const castVal = readCastValue(entry.value);
             casts.push(ScannedModelCastDescriptor.create({
                 column: entry.key,
                 targetType: castVal
@@ -46,11 +42,8 @@ export function tryParseModelCasts(
                 if (tokens[k].value === 'return') {
                     const parsed = LaravelSourceLexer.parseArray(source, tokens, k + 1);
                     for (const entry of parsed.entries) {
-                        const castVal = entry.value.kind === 'literal' && entry.value.literalType === 'string'
-                            ? String(entry.value.value)
-                            : (entry.rawExpression || 'string').replace(/::class$/, '').trim();
-                        castsMap[entry.key] = castVal;
-                        casts.push(ScannedModelCastDescriptor.create({
+                        const castVal = readCastValue(entry.value);
+                                    casts.push(ScannedModelCastDescriptor.create({
                             column: entry.key,
                             targetType: castVal
                         }));
@@ -61,4 +54,11 @@ export function tryParseModelCasts(
             }
         }
     }
+}
+
+
+function readCastValue(value: import("../../lexer/PhpAst").PhpAstValue): string {
+    if (value.kind === 'literal' && value.literalType === 'string') return value.value;
+    if (value.kind === 'class_reference') return value.className;
+    throw new Error('Model cast value must be a string literal or class reference');
 }

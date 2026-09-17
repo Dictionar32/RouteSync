@@ -14,13 +14,13 @@ import type {
   ResponseReference,
   RequestReference
 } from '../../../types/ir';
-import type { SemanticType } from '../../../types/semantic';
+import type { PrimitiveKind } from '../../../compiler/types/SemanticType';
 
-export function inferParamType(name: string): SemanticType {
-  if (name.includes('id') || name.includes('Id')) return 'number';
-  if (name.includes('slug')) return 'string';
-  if (name.includes('uuid') || name.includes('Uuid')) return 'string';
-  return 'string';
+export function inferParamType(name: string): PrimitiveKind {
+  if (name.includes('id') || name.includes('Id')) return PrimitiveKind.NUMBER;
+  if (name.includes('slug')) return PrimitiveKind.STRING;
+  if (name.includes('uuid') || name.includes('Uuid')) return PrimitiveKind.STRING;
+  return PrimitiveKind.STRING;
 }
 
 export function extractPathParams(path: string): ParameterIR[] {
@@ -39,8 +39,8 @@ export function extractPathParams(path: string): ParameterIR[] {
 export function buildRequestReference(
   route: ParsedRoute,
   requests: Map<string, RequestIR>
-): RequestReference | undefined {
-  if (route.method === 'GET') return undefined;
+): RequestReference {
+  if (route.method === 'GET') return { type: 'none' };
 
   const requestName = `${route.controller}${route.action}Request`;
   const request = requests.get(requestName);
@@ -69,12 +69,16 @@ export function buildResponseReference(
     return {
       type: isCollection ? 'collection' : 'resource',
       resource: resource.name,
-      statusCode: 200
+      statusCode: 200,
+      headers: [],
+      pagination: null
     };
   }
 
   return {
     type: 'custom',
-    statusCode: 200
+    statusCode: 200,
+    headers: [],
+    pagination: null
   };
 }

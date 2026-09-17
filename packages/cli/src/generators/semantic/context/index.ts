@@ -11,7 +11,3 @@ export {
     isNullableTernaryGuard
 } from './astExtractors';
 
-export {
-    normalizeModelsFromManifest,
-    normalizeResourcesFromManifest
-} from './manifestNormalizer';

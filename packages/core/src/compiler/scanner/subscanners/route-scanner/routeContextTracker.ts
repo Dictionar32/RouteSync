@@ -6,13 +6,15 @@
  * @module core/compiler/scanner/subscanners/route-scanner
  */
 
+import type { TokenDescriptor } from "../../lexer/phpAstTypes";
+
 export class RouteContextTracker {
     public prefixStack: string[] = [];
     public pendingPrefix: string | null = null;
     public middlewareStack: string[][] = [];
     public pendingMiddleware: string[] = [];
 
-    public handleToken(tokens: readonly any[], i: number): void {
+    public handleToken(tokens: readonly TokenDescriptor[], i: number): void {
         // Track Route::prefix('v1')->group(...)
         if (tokens[i].value === 'prefix' && tokens[i + 1]?.value === '(' && tokens[i + 2]?.type === 'STRING') {
             this.pendingPrefix = tokens[i + 2].value.replace(/^\/+|\/+$/g, '');

@@ -9,8 +9,9 @@
  */
 
 import type { RouteManifest, ParsedRoute, ParsedResource } from '../../../types/route';
+import { matchResponse } from '../../../types/domain/responses';
 import type { ResourceMappersArtifact, ResourceMapperDefinition } from '../../artifacts/ResourceMappersArtifact';
-import type { ResolvedField } from './ResolvedSemanticType';
+import type { ResolvedProperty } from './ResolvedSemanticType';
 import { ResourceFieldFlattener, FlattenedField } from './ResourceFieldFlattener';
 import { toPascalCase, toCamelCase } from '../../../utils/resource-naming';
 import { ObjectType, ScannedObjectProperty, SemanticType } from '../../types/SemanticType';
@@ -74,8 +75,8 @@ export class ManifestArtifactLowerer {
             seen.add(resName);
 
             const flattened = this.flattener.flatten(res.fields);
-            const fields: readonly ResolvedField[] = Object.freeze(
-                flattened.map(f => [f.targetProperty, f.type] as const)
+            const fields: readonly ResolvedProperty[] = Object.freeze(
+                flattened.map(f => ({ name: f.targetProperty, type: f.type, presence: 'required' as const }))
             );
             const body = flattened
                 .map(f => `  ${f.targetProperty}: api.${f.sourcePath},`)
@@ -93,36 +94,34 @@ export class ManifestArtifactLowerer {
 
         // 2. Process route inline responses
         for (const route of manifest.routes || []) {
-            if (!route.response) continue;
-            const resp = route.response as any;
-            if (resp.kind === 'resource' && resp.resourceName) {
-                // Handled via explicit resources or referenced resource
-                continue;
-            }
+            matchResponse(route.response, {
+                resource: () => undefined,
+                model: () => undefined,
+                void: () => undefined,
+                inline: response => {
+                    const rawName = this.resolveRouteName(route);
+                    const pascalName = toPascalCase(rawName);
+                    if (seen.has(pascalName)) return;
+                    seen.add(pascalName);
 
-            if (resp.kind === 'object' || resp.fields) {
-                const rawName = this.resolveRouteName(route);
-                const pascalName = toPascalCase(rawName);
-                if (seen.has(pascalName)) continue;
-                seen.add(pascalName);
+                    const flattened = this.flattener.flatten(response.fields);
+                    const fields: readonly ResolvedProperty[] = Object.freeze(
+                        flattened.map(f => ({ name: f.targetProperty, type: f.type, presence: 'required' as const }))
+                    );
+                    const body = flattened
+                        .map(f => `  ${f.targetProperty}: api.${f.sourcePath},`)
+                        .join('\n');
 
-                const flattened = this.flattener.flatten(resp.fields || {});
-                const fields: readonly ResolvedField[] = Object.freeze(
-                    flattened.map(f => [f.targetProperty, f.type] as const)
-                );
-                const body = flattened
-                    .map(f => `  ${f.targetProperty}: api.${f.sourcePath},`)
-                    .join('\n');
-
-                mappers.push({
-                    resourceName: pascalName,
-                    functionName: `to${pascalName}Read`,
-                    apiType: `${pascalName}ApiResponse`,
-                    transformedType: `${pascalName}Transformed`,
-                    body,
-                    fields
-                });
-            }
+                    mappers.push({
+                        resourceName: pascalName,
+                        functionName: `to${pascalName}Read`,
+                        apiType: `${pascalName}ApiResponse`,
+                        transformedType: `${pascalName}Transformed`,
+                        body,
+                        fields
+                    });
+                }
+            });
         }
 
         return Object.freeze({

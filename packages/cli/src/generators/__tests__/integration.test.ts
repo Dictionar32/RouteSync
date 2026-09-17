@@ -142,8 +142,8 @@ describe('Integration: Generator Consistency', () => {
         const ordersList = ir.responseTypes.get('orders.listResponse')
         const ordersGet = ir.responseTypes.get('orders.getResponse')
 
-        expect(ordersList?.isCollection).toBe(true)
-        expect(ordersGet?.isCollection).toBe(false)
+        expect(ordersList?.cardinality.kind).toBe('collection')
+        expect(ordersGet?.cardinality.kind).toBe('single')
     })
 
     it('should sync composition across types and routes', () => {
@@ -153,8 +153,8 @@ describe('Integration: Generator Consistency', () => {
         for (const route of ir.resolvedRoutes) {
             const response = ir.responseTypes.get(route.responseId)
             if (response) {
-                expect(route.isCollection).toBe(response.isCollection)
-                expect(route.isPaginated).toBe(response.isPaginated)
+                expect(route.cardinality.kind).toBe(response.cardinality.kind)
+                expect(route.envelope.kind).toBe(response.envelope.kind)
             }
         }
     })

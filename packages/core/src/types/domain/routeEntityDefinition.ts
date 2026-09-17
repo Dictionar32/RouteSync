@@ -10,11 +10,33 @@
 import type { FieldNode } from '../field';
 
 export type RoutePath = string & { readonly __brand: unique symbol };
-export type HttpVerb = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+import type { HttpMethod } from './httpVocabulary';
+
+export type HttpVerb = HttpMethod;
 export type HttpStatus = 200 | 201 | 204 | 301 | 302 | 400 | 401 | 403 | 404 | 422 | 500;
 
-export const createRoutePath = (path: string): RoutePath => path as RoutePath;
-export const createHttpVerb = (verb: string): HttpVerb => verb.toUpperCase() as HttpVerb;
+export function createRoutePath(path: string): RoutePath {
+  if (!path.startsWith('/')) {
+    throw new Error(`Route path must start with '/': ${path}`);
+  }
+  return path as RoutePath;
+}
+
+export function createHttpVerb(verb: string): HttpVerb {
+  const normalized = verb.toUpperCase();
+  switch (normalized) {
+    case 'GET':
+    case 'POST':
+    case 'PUT':
+    case 'PATCH':
+    case 'DELETE':
+    case 'OPTIONS':
+    case 'HEAD':
+      return normalized;
+    default:
+      throw new Error(`Unsupported HTTP method: ${verb}`);
+  }
+}
 
 export interface RouteIdentityContract {
   readonly name: string;
@@ -49,16 +71,26 @@ export interface RouteDefContract {
   readonly provenance: RouteProvenanceContract;
 }
 
-export type RouteDef = {
-  name: string;
-  method: string;
-  path: string;
-  auth: boolean;
-  middleware: string[];
-  schema?: Record<string, unknown> | null;
-  response?: FieldNode | null;
-  assignments?: Record<string, string> | null;
-  stableHash?: string;
-  sourceFile?: string | null;
-  sourceLine?: number | null;
-};
+/**
+ * RawRouteDefInput is the unvalidated boundary representation.
+ * It is intentionally separate from the canonical RouteDef contract.
+ */
+export interface RawRouteDefInput {
+  readonly name: string;
+  readonly method: string;
+  readonly path: string;
+  readonly auth: boolean;
+  readonly middleware: readonly string[];
+  readonly schema: Record<string, unknown>;
+  readonly response: FieldNode;
+  readonly assignments: Record<string, string>;
+  readonly stableHash: string;
+  readonly sourceFile: string;
+  readonly sourceLine: number;
+}
+
+/**
+ * Canonical RouteDef. All semantic absence is represented by the nested ADT
+ * contracts above, never by optional or nullable fields.
+ */
+export type RouteDef = RouteDefContract;

@@ -12,10 +12,10 @@ import type {
 } from '../domain/semanticCollections';
 import type { SourceRef } from './sourceProvenance';
 import type { IRRawNode } from './irHints';
-import type { ParsedASTNode } from './parsedAstTypes';
+import type { FieldNode } from '../field';
 import type { SemanticNode, SemanticType } from './semanticTypes';
 import type { SemanticRelation } from './semanticRelations';
-import type { ExecutionLayer, ModelNode } from './modelGraphTypes';
+import type { ExecutionLayer, ServiceModelNode } from './modelGraphTypes';
 import type { ServiceNode, ControllerNode } from './serviceGraphTypes';
 
 export interface IRMeta {
@@ -44,7 +44,7 @@ export interface IRContext {
   layer?: ExecutionLayer;
   controller?: ControllerNode;
   service?: ServiceNode;
-  model?: ModelNode;
+  model?: ServiceModelNode;
   graph?: {
     entrypoint?: boolean;
     visited?: string[];
@@ -53,7 +53,7 @@ export interface IRContext {
 
 export interface SemanticKernelV2 {
   resolve(
-    node: ParsedASTNode,
+    node: FieldNode,
     context: IRContext
   ): SemanticNode;
 }

@@ -7,17 +7,15 @@
 
 import type {
     TypeIR,
-    ParsedField,
+    ManifestField,
     ResourceFieldIR,
     ResolvedSemanticType
 } from '../../types/ir';
 
 import {
-    ResolvedSemanticTypeFactory,
     TypeIRUtils
 } from '../../types/ir';
 
-import type { SemanticType } from '../../types/semantic';
 import {
     PRIMITIVE_RESOLVED_TYPES,
     type ProjectionHints,
@@ -37,27 +35,17 @@ export class FieldTypeResolver {
         private readonly caseTransform: string = 'camel'
     ) {}
 
-    public buildOptimizedResourceField(field: ParsedField): OptimizedResourceFieldIR {
-        let semanticType: SemanticType | ResolvedSemanticType | undefined = field.semanticType;
+    public buildOptimizedResourceField(field: ManifestField): OptimizedResourceFieldIR {
+        const semanticType = this.resolveSemanticType(field);
+        const baseType = this.semanticToTypeIR(semanticType);
 
-        if (field.resolved?.type && PRIMITIVE_RESOLVED_TYPES.has(field.resolved.type)) {
-            semanticType = ResolvedSemanticTypeFactory.primitive(
-                field.resolved.type,
-                null,
-                field.resolved
-            );
-            this.diagnostics.info(`Using resolved type for ${field.name}: ${field.resolved.type}`);
-        } else if (!field.resolved?.type) {
-            this.diagnostics.warn(`No resolved type for field: ${field.name}`);
-        }
-
-        let baseType = this.semanticToTypeIR(semanticType);
+        let projectedType = baseType;
 
         if (field.nullable) {
-            baseType = TypeIRUtils.makeNullable(baseType);
+            projectedType = TypeIRUtils.makeNullable(projectedType);
         }
         if (field.optional) {
-            baseType = TypeIRUtils.makeOptional(baseType);
+            projectedType = TypeIRUtils.makeOptional(projectedType);
         }
 
         const hints: ProjectionHints = {
@@ -69,7 +57,8 @@ export class FieldTypeResolver {
         return {
             name: field.name,
             transformedName: this.transformFieldName(field.name, this.caseTransform),
-            type: baseType,
+            type: projectedType,
+            semanticType,
             hints,
             description: field.description,
             validation: field.validation ? { type: 'required' } : undefined,
@@ -92,8 +81,13 @@ export class FieldTypeResolver {
         return projectForForm(type);
     }
 
-    public semanticToTypeIR(semanticType: SemanticType | ResolvedSemanticType | undefined): TypeIR {
+    public semanticToTypeIR(semanticType: ResolvedSemanticType): TypeIR {
         return convertSemanticToTypeIR(semanticType, this.diagnostics);
+    }
+
+    private resolveSemanticType(field: ManifestField): ResolvedSemanticType {
+        this.diagnostics.info(`Using origin semantic type for ${field.name}`);
+        return field.semanticType;
     }
 
     public transformFieldName(phpName: string, caseTransform: string = 'camel'): string {

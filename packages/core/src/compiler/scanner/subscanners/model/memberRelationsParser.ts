@@ -40,7 +40,6 @@ export function tryParseModelRelations(
                                 modelName,
                                 targetModel: relatedModel,
                                 cardinality: descriptor.cardinality,
-                                isCollection: descriptor.isCollection
                             }));
                         }
                     }

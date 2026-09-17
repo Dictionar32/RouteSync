@@ -7,7 +7,7 @@
  * @module compiler/domain/common
  */
 
-import type { ObjectType, SemanticType } from '../../types/SemanticType';
+import type { ObjectType, SemanticType, ObjectProperty } from '../../types/SemanticType';
 import type { ParsedResponseField } from '../../generators/contract-generation/ResponseFieldParser';
 import { SemanticTypeResolver } from './SemanticTypeResolver';
 import {
@@ -36,11 +36,11 @@ export const defaultTypeResolver = new SemanticTypeResolver();
  * Observable convertResponseFields via Pure Map + flatMap Partition Pipeline
  */
 export function convertResponseFields(
-    fields: Record<string, SemanticType>,
+    fields: readonly ObjectProperty[],
     resolver: SemanticTypeResolver = defaultTypeResolver
 ): ResponseFieldConversionResult {
-    const results = Object.entries(fields).map(([name, type]) =>
-        convertSingleResponseField(name, type, resolver)
+    const results = fields.map(field =>
+        convertSingleResponseField(field.name, field.type, resolver)
     );
 
     return partitionResults(results);

@@ -12,7 +12,7 @@ export const PhpAstKind = Object.freeze({
     PropertyLookup: 'property_lookup',
     NullsafePropertyLookup: 'nullsafe_property_lookup',
     OffsetLookup: 'offset_lookup',
-    StaticLookup: 'static_lookup',
+    StaticPropertyLookup: 'static_property_lookup',
 
     // Invocations
     FunctionCall: 'function_call',
@@ -35,7 +35,7 @@ export const PhpAstKind = Object.freeze({
     Literal: 'literal',
     StaticConstant: 'static_constant',
     Variable: 'variable',
-    Unknown: 'unknown'
+    Unsupported: 'unsupported'
 } as const);
 
 export type PhpAstKind = typeof PhpAstKind[keyof typeof PhpAstKind];
@@ -64,7 +64,7 @@ export const PHP_AST_KIND_REGISTRY: PhpAstKindRegistry = Object.freeze({
     [PhpAstKind.PropertyLookup]: { kind: PhpAstKind.PropertyLookup, category: 'access', isTerminal: false, description: 'Object property access ($obj->prop)' },
     [PhpAstKind.NullsafePropertyLookup]: { kind: PhpAstKind.NullsafePropertyLookup, category: 'access', isTerminal: false, description: 'Nullsafe object property access ($obj?->prop)' },
     [PhpAstKind.OffsetLookup]: { kind: PhpAstKind.OffsetLookup, category: 'access', isTerminal: false, description: 'Array offset access ($arr["key"])' },
-    [PhpAstKind.StaticLookup]: { kind: PhpAstKind.StaticLookup, category: 'access', isTerminal: false, description: 'Static class member lookup' },
+    [PhpAstKind.StaticPropertyLookup]: { kind: PhpAstKind.StaticPropertyLookup, category: 'access', isTerminal: true, description: 'Static class property lookup (Class::$property)' },
     [PhpAstKind.FunctionCall]: { kind: PhpAstKind.FunctionCall, category: 'invocation', isTerminal: false, description: 'Global function invocation (auth(), now())' },
     [PhpAstKind.MethodCall]: { kind: PhpAstKind.MethodCall, category: 'invocation', isTerminal: false, description: 'Instance method call ($obj->method())' },
     [PhpAstKind.NullsafeMethodCall]: { kind: PhpAstKind.NullsafeMethodCall, category: 'invocation', isTerminal: false, description: 'Nullsafe method call ($obj?->method())' },
@@ -81,7 +81,7 @@ export const PHP_AST_KIND_REGISTRY: PhpAstKindRegistry = Object.freeze({
     [PhpAstKind.Literal]: { kind: PhpAstKind.Literal, category: 'literal', isTerminal: true, description: 'Scalar literal (string, number, boolean, null)' },
     [PhpAstKind.StaticConstant]: { kind: PhpAstKind.StaticConstant, category: 'literal', isTerminal: true, description: 'Class constant reference (Role::ADMIN, self::STATUS)' },
     [PhpAstKind.Variable]: { kind: PhpAstKind.Variable, category: 'variable', isTerminal: true, description: 'PHP variable reference ($var)' },
-    [PhpAstKind.Unknown]: { kind: PhpAstKind.Unknown, category: 'fallback', isTerminal: true, description: 'Fallback unresolved AST node' }
+    [PhpAstKind.Unsupported]: { kind: PhpAstKind.Unsupported, category: 'fallback', isTerminal: true, description: 'Structured unsupported expression' }
 });
 
 export type PhpAstKindVisitor<R> = {
@@ -89,6 +89,5 @@ export type PhpAstKindVisitor<R> = {
 };
 
 export function matchPhpAstKind<R>(kind: PhpAstKind, visitor: PhpAstKindVisitor<R>): R {
-    const spec = PHP_AST_KIND_REGISTRY[kind] ?? PHP_AST_KIND_REGISTRY[PhpAstKind.Unknown];
-    return visitor[kind](spec as any);
+    return visitor[kind](PHP_AST_KIND_REGISTRY[kind]);
 }

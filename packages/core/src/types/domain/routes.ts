@@ -94,60 +94,18 @@ export interface RouteProvenanceContract {
 }
 
 export interface ParsedRoute {
-  // ============================================================================
-  // HOLISTIC CLOSED SUB-CONTRACTS (SSOT)
-  // ============================================================================
+  /**
+   * Canonical route model. All route semantics live in closed sub-contracts.
+   * Consumers must read identity, binding, capability and provenance rather
+   * than a second flat copy of the same information.
+   */
   readonly identity: RouteIdentityContract;
   readonly binding: RouteBindingContract;
   readonly capability: RouteCapabilityContract;
   readonly provenance: RouteProvenanceContract;
-
-  readonly name: string;
-  readonly method: HttpMethod;
-  readonly path: string;
-  readonly resourceName: string;      // ✅ Guaranteed from PHP scanner
-  readonly domain: string;            // ✅ Guaranteed Domain SSOT ('Order', 'Profile', 0 '?')
-  readonly action: string;            // ✅ Guaranteed Full Action SSOT ('OrderController@index', 0 '?')
-  readonly handler: RouteHandlerDescriptor; // ✅ Guaranteed ADT Handler SSOT (ControllerAction | Invokable | Closure)
-  readonly formRequests: readonly FormRequestDescriptor[]; // ✅ Ordered Array of FormRequests (0 null, 0 undefined, 0 '?')
-  readonly groupName: string;         // ✅ Canonical Route Group SSOT ('users', 'orderItems')
-  readonly crudRole: CrudRole;        // ✅ Canonical REST CRUD Role SSOT ('index' | 'show' | 'create' | 'update' | 'delete' | 'custom')
-  readonly runtimePath: string;       // ✅ Express/React Runtime Path SSOT ('/users/:userId')
-  readonly responseTypeName: string;  // ✅ Guaranteed from PHP scanner (e.g. 'UsersResponse')
-  readonly actionKind: RouteActionKind; // ✅ Guaranteed Action Intent (0 ternary '? :')
-  readonly isMutating: boolean;                      // ✅ Guaranteed Mutating Flag (0 '||' checks)
-  readonly hookKind: RouteHookKind;                  // ✅ Guaranteed Hook Kind SSOT (Query vs Mutation)
-  readonly invalidation: RouteCacheInvalidationDescriptor; // ✅ Guaranteed Cache Invalidation SSOT
-  readonly executionSignature: RouteExecutionSignature;   // ✅ Guaranteed Signature SSOT
-  readonly requestContentType: RequestContentType;   // ✅ Guaranteed Transport Content-Type SSOT
-  readonly parameters: readonly RouteParameter[];    // Backwards-compatible path parameters
-  readonly pathParameters: readonly RouteParameter[];// ✅ Dedicated Path Parameters SSOT
-  readonly queryParameters: readonly RouteQueryParameter[]; // ✅ Dedicated Query Parameters SSOT
-  readonly auth: boolean;
-  readonly security: RouteSecurityDescriptor;        // ✅ Guaranteed Security SSOT (0 middleware.some)
-  readonly middleware: readonly string[];
-  readonly policies: readonly RoutePolicyDescriptor[];// ✅ Dedicated Laravel Policies SSOT ('can:update,order')
-  readonly rateLimit: RateLimitDescriptor | null;    // ✅ Dedicated Laravel Rate Limit SSOT ('throttle:60,1')
-  readonly response: ResponseDescriptor;             // ◄── 100% Guaranteed Value Object!
-  readonly errorResponses: readonly HttpErrorResponseDescriptor[]; // ✅ First-Class Error Descriptors (422, etc.)
-
-  /**
-   * Strongly-typed Laravel validation rules payload.
-   */
-  readonly schema: RouteSchemaPayload;
-
-  /**
-   * Local variable assignments tracked during semantic analysis (Ordered Array).
-   */
-  readonly assignments: readonly ResourceAssignment[];
-
-  readonly sourceFile: string;
-  readonly sourceLine: number;
-  readonly uri: string;
-  readonly actionName: string;
-  readonly controllerName: string;
-  readonly contract: EndpointContract; // ✅ Complete Contract-Driven Architecture SSOT
+  readonly contract: EndpointContract;
 }
+
 
 // ============================================================================
 // ROUTE DESCRIPTOR ADT (Direct Extension of ParsedRoute — 100% Data Connected)

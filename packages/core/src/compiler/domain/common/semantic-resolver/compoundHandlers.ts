@@ -18,39 +18,20 @@ import {
     ResolvedUnionType,
     ResolvedIntersectionType,
     type ResolvedSemanticType,
-    type ResolvedField,
-    type ObjectKind
+    type ResolvedProperty
 } from '../ResolvedSemanticType';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
 
 export class NullableWrapperHandler implements SemanticTypeHandler {
     supports(type: SemanticType): boolean {
-        switch (type.kind) {
-            case 'object': {
-                const obj = type as ObjectType;
-                const kind = obj.annotations?.get ? obj.annotations.get('kind') : (obj as any)?.metadata?.get?.('kind');
-                return kind === 'nullable_wrapper';
-            }
-            default:
-                return false;
-        }
+        return type.kind === 'nullable';
     }
 
     resolve(type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType {
-        const obj = type as ObjectType;
-        let innerVal: SemanticType | undefined = undefined;
-        if (typeof (obj.properties as any)?.get === 'function') {
-            innerVal = (obj.properties as any).get('__value');
-        } else if (Array.isArray(obj.properties)) {
-            innerVal = (obj.properties as any[]).find(p => p.name === '__value')?.type;
+        if (type.kind !== 'nullable') {
+            return resolver.resolve(type);
         }
-
-        switch (innerVal) {
-            case undefined:
-                return new ResolvedObjectType();
-            default:
-                return new ResolvedNullableType({ innerType: resolver.resolve(innerVal) });
-        }
+        return new ResolvedNullableType({ innerType: resolver.resolve(type.innerType) });
     }
 }
 
@@ -60,53 +41,23 @@ export class DefaultObjectHandler implements SemanticTypeHandler {
     }
 
     resolve(type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType {
-        const obj = type as ObjectType;
-        let rawProps: [string, SemanticType, boolean][] = [];
-
-        if (Array.isArray((obj as any).properties)) {
-            rawProps = (obj as any).properties.map((p: any) => [
-                p.name,
-                p.type,
-                p.required !== undefined ? !p.required : (obj.requiredProperties?.has ? !obj.requiredProperties.has(p.name) : false)
-            ]);
-        } else if (obj.properties && typeof (obj.properties as any).entries === 'function') {
-            rawProps = Array.from((obj.properties as any).entries()).map(([key, valType]: any) => [
-                key,
-                valType,
-                obj.requiredProperties?.has ? !obj.requiredProperties.has(key) : false
-            ]);
+        if (type.kind !== 'object') {
+            return resolver.resolve(type);
         }
 
-        const cleanProps = rawProps.filter(([key]) => typeof key === 'string' && !key.startsWith('__'));
+        const fields: readonly ResolvedProperty[] = type.properties
+            .filter(property => !property.name.startsWith('__'))
+            .map(property => ({
+                name: property.name,
+                type: resolver.resolve(property.type),
+                presence: property.required ? 'required' : 'optional'
+            }));
 
-        const fields: readonly ResolvedField[] = cleanProps.map(([key, valType]) => {
-            return [key, resolver.resolve(valType)];
-        });
+        const identity = type.role === 'plain'
+            ? { kind: 'plain' as const, name: type.name }
+            : { kind: type.role, name: type.name };
 
-        const nameAnnotation = obj.annotations?.get ? (obj.annotations.get('name') ?? (obj as any).metadata?.get?.('name')) : (obj as any)?.metadata?.get?.('name');
-        const kindAnnotation = obj.annotations?.get ? (obj.annotations.get('kind') ?? (obj as any).metadata?.get?.('kind')) : (obj as any)?.metadata?.get?.('kind');
-
-        let objectKind: ObjectKind = 'plain';
-        let resourceName: string | undefined = undefined;
-        let typeName: string | undefined = undefined;
-
-        if (kindAnnotation === 'resource' || (nameAnnotation && (nameAnnotation.endsWith('Resource') || nameAnnotation.endsWith('Response')))) {
-            objectKind = 'resource';
-            resourceName = nameAnnotation;
-        } else if (kindAnnotation === 'model' || (nameAnnotation && !nameAnnotation.endsWith('Resource') && !nameAnnotation.endsWith('Response'))) {
-            objectKind = 'model';
-            typeName = nameAnnotation;
-        } else if (kindAnnotation === 'response') {
-            objectKind = 'response';
-            typeName = nameAnnotation;
-        }
-
-        return new ResolvedObjectType({
-            fields,
-            objectKind,
-            resourceName,
-            typeName
-        });
+        return new ResolvedObjectType({ fields, identity });
     }
 }
 

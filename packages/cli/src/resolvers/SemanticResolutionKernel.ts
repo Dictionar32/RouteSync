@@ -23,17 +23,6 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       new FrameworkRegistryResolver(),
       new MethodReturnResolver(),
       new ExpressionResolver(),
-      // Model transform fallback
-      {
-        canResolve: (meta) => meta && meta.kind === 'model',
-        resolve: (meta) => ({
-          status: 'resolved',
-          type: 'model',
-          model: meta.model,
-          confidence: 100,
-          trace: [{ source: 'FallbackResolver', rule: 'Fallback model mapping', input: meta.model, output: `model: ${meta.model}` }]
-        })
-      }
     ];
   }
 

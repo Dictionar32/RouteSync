@@ -11,7 +11,7 @@ import {
     ReadonlyCollectionType,
     MutableCollectionType
 } from '../../types/SemanticType';
-import type { RequestField } from '../../artifacts/RequestTypesArtifact';
+import type { RequestField } from '../../types/domain/request';
 import { indent } from './readMapperBuilder';
 import { toApiFieldKey } from './formMapperBuilder';
 
@@ -47,8 +47,8 @@ export function getCollectionElementType(type: unknown): unknown {
  * Builds a single form field mapping line using ApiApiField indexing.
  */
 export function buildFormFieldLine(field: RequestField): string {
-    const key = toApiFieldKey(field.originalName);
-    const propName = toCamelCase(field.originalName);
+    const key = toApiFieldKey(field.sourceName);
+    const propName = field.name;
 
     const collectionElem = getCollectionElementType(field.type);
     if (collectionElem) {

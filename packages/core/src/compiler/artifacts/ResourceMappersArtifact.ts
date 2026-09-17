@@ -9,7 +9,7 @@
  */
 
 import type { ArtifactMetadata } from './Artifact';
-import type { ResolvedField } from '../domain/common/ResolvedSemanticType';
+import type { ResolvedProperty } from '../domain/common/ResolvedSemanticType';
 
 export interface ResourceMapperDefinition {
     readonly resourceName: string;
@@ -17,7 +17,7 @@ export interface ResourceMapperDefinition {
     readonly apiType: string;
     readonly transformedType: string;
     readonly body: string;
-    readonly fields: readonly ResolvedField[];
+    readonly fields: readonly ResolvedProperty[];
 }
 
 export interface ResourceMappersArtifact {

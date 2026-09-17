@@ -29,6 +29,7 @@ export function convertToLegacyFieldIR(field: OptimizedResourceFieldIR): Resourc
         name: field.name,
         transformedName: field.transformedName,
         type: typeProjections,
+        semanticType: field.semanticType,
         description: field.description,
         validation: field.validation,
         source: field.source

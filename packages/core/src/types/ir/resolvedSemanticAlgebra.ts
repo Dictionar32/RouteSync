@@ -14,6 +14,7 @@ import type {
     ModelSemanticTypeIR,
     ObjectSemanticTypeIR,
     ArraySemanticTypeIR,
+    NullableSemanticTypeIR,
     UnionSemanticTypeIR,
     LiteralSemanticTypeIR,
     ResolvedSemanticType
@@ -24,10 +25,16 @@ export interface ResolvedSemanticTypeVisitor<R> {
     readonly resource: (type: ResourceSemanticTypeIR) => R;
     readonly model: (type: ModelSemanticTypeIR) => R;
     readonly object: (type: ObjectSemanticTypeIR) => R;
+    readonly nullable: (type: NullableSemanticTypeIR) => R;
     readonly array: (type: ArraySemanticTypeIR) => R;
     readonly union: (type: UnionSemanticTypeIR) => R;
     readonly literal: (type: LiteralSemanticTypeIR) => R;
 }
+
+const nullableDispatch = <R>(
+    node: NullableSemanticTypeIR,
+    visitor: ResolvedSemanticTypeVisitor<R>
+): R => visitor.nullable(node);
 
 const DISPATCH_TABLE: {
     readonly [K in ResolvedSemanticType['kind']]: <R>(
@@ -39,6 +46,7 @@ const DISPATCH_TABLE: {
     resource: (node, visitor) => visitor.resource(node),
     model: (node, visitor) => visitor.model(node),
     object: (node, visitor) => visitor.object(node),
+    nullable: nullableDispatch,
     array: (node, visitor) => visitor.array(node),
     union: (node, visitor) => visitor.union(node),
     literal: (node, visitor) => visitor.literal(node)

@@ -17,6 +17,5 @@ export interface ScannedModelRelationParams {
     readonly modelName: string;
     readonly targetModel: string;
     readonly cardinality: EloquentRelationCardinality;
-    readonly isCollection: boolean;
     readonly foreignKey: string | null;
 }

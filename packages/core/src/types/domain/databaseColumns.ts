@@ -355,10 +355,8 @@ export class DatabaseColumnTypeMapper {
 
 export interface ParsedColumn {
   readonly name: string;
-  readonly propertyName: string; // ✅ Canonical TS Identifier ('createdAt')
-  readonly type: string;         // SQL Type ('bigint(20) unsigned' | 'enum')
-  readonly columnKind: DatabaseColumnKind; // ✅ Canonical Database Column Kind (Guaranteed)
-  readonly nullable: boolean;    // Guaranteed boolean
-  readonly semanticType: PrimitiveKind; // ✅ Guaranteed Domain Primitive
-  readonly enumValues: readonly string[]; // ✅ Preserved literal enum values (e.g. ['pending', 'completed'])
+  readonly propertyName: string;
+  readonly type: import('./modelContracts').DatabaseColumnType;
+  readonly nullability: import('./modelContracts').Nullability;
+  readonly semanticType: import('../../compiler/types/SemanticType').SemanticType;
 }

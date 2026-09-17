@@ -460,9 +460,19 @@ export const RequestContentType = Object.freeze({
 
 export type RequestContentType = typeof RequestContentType[keyof typeof RequestContentType];
 
+export type RequestMimeType =
+  | { readonly kind: 'json'; readonly value: 'application/json' }
+  | { readonly kind: 'multipart'; readonly value: 'multipart/form-data' }
+  | { readonly kind: 'urlencoded'; readonly value: 'application/x-www-form-urlencoded' }
+  | { readonly kind: 'none' };
+
+export type RequestHeaderExpression =
+  | { readonly kind: 'content_type'; readonly value: string }
+  | { readonly kind: 'none' };
+
 export interface BaseRequestContentTypeDescriptor {
   readonly kind: RequestContentType;
-  readonly mimeType: string | null;
+  readonly mimeType: RequestMimeType;
   readonly isBinary: boolean;
   readonly hasPayload: boolean;
 }
@@ -490,7 +500,7 @@ export interface UrlEncodedRequestContentTypeDescriptor extends BaseRequestConte
 
 export interface NoneRequestContentTypeDescriptor extends BaseRequestContentTypeDescriptor {
   readonly kind: 'none';
-  readonly mimeType: null;
+  readonly mimeType: { readonly kind: 'none' };
   readonly isBinary: false;
   readonly hasPayload: false;
 }
@@ -503,10 +513,10 @@ export type RequestContentTypeDescriptor =
 
 export interface RequestContentTypeSpecification<K extends RequestContentType = RequestContentType> {
   readonly kind: K;
-  readonly mimeType: string | null;
+  readonly mimeType: RequestMimeType;
   readonly isBinary: boolean;
   readonly hasPayload: boolean;
-  readonly headerExpression: string | null;
+  readonly headerExpression: RequestHeaderExpression;
 }
 
 /**

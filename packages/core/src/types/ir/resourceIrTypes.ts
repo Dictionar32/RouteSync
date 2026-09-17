@@ -8,7 +8,6 @@
  */
 
 import type { TypeProjections } from './typeIrTypes';
-import type { SemanticType } from '../semantic';
 import type { ResolvedSemanticType } from './resolvedSemanticTypes';
 
 export interface FieldSource {
@@ -21,7 +20,7 @@ export interface ResourceFieldIR {
     readonly name: string;
     readonly transformedName: string;
     readonly type: TypeProjections;
-    readonly semanticType?: SemanticType | ResolvedSemanticType;
+    readonly semanticType: ResolvedSemanticType;
     readonly description?: string;
     readonly validation?: unknown;
     readonly source?: FieldSource;

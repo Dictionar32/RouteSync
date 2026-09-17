@@ -1,4 +1,18 @@
-import type { EloquentRelationCardinality } from "./database";
+import type {
+  EloquentRelationCardinality,
+  EloquentRelationType
+} from "./database";
+import type {
+  ColumnName,
+  EnvelopeTypeName,
+  ModelName,
+  RelationName,
+  ResponseDataKey,
+  ResponseLinksKey,
+  ResponseMetaKey,
+  ResponseWrapperKey,
+  ResponseLinksKeySpecification
+} from "./semanticValues";
 
 export const ResponseShape = Object.freeze({
   Paginated: 'paginated',
@@ -10,12 +24,13 @@ export type ResponseShape = typeof ResponseShape[keyof typeof ResponseShape];
 
 export interface ResponseShapeSpecification<S extends ResponseShape = ResponseShape> {
   readonly shape: S;
-  readonly isCollection: boolean;
-  readonly isPaginated: boolean;
-  readonly isSingle: boolean;
-  readonly defaultWrapperKey: string | null;
+  readonly cardinality: EloquentRelationCardinality;
+  readonly pagination: ResponsePaginationKind;
+  readonly defaultWrapperKey: ResponseWrapperKey;
   readonly description: string;
 }
+
+export type ResponsePaginationKind = 'none' | 'paginated';
 
 export type ResponseShapeRegistry = {
   readonly [K in ResponseShape]: ResponseShapeSpecification<K>;
@@ -24,26 +39,23 @@ export type ResponseShapeRegistry = {
 export const RESPONSE_SHAPE_REGISTRY: ResponseShapeRegistry = Object.freeze({
   [ResponseShape.Paginated]: {
     shape: ResponseShape.Paginated,
-    isCollection: true,
-    isPaginated: true,
-    isSingle: false,
-    defaultWrapperKey: 'data',
+    cardinality: 'many',
+    pagination: 'paginated',
+    defaultWrapperKey: { kind: 'response_data_key', value: 'data' },
     description: 'Paginated envelope containing a collection of records with pagination metadata'
   },
   [ResponseShape.Collection]: {
     shape: ResponseShape.Collection,
-    isCollection: true,
-    isPaginated: false,
-    isSingle: false,
-    defaultWrapperKey: 'data',
+    cardinality: 'many',
+    pagination: 'none',
+    defaultWrapperKey: { kind: 'response_data_key', value: 'data' },
     description: 'Direct array or collection of records'
   },
   [ResponseShape.Single]: {
     shape: ResponseShape.Single,
-    isCollection: false,
-    isPaginated: false,
-    isSingle: true,
-    defaultWrapperKey: null,
+    cardinality: 'one',
+    pagination: 'none',
+    defaultWrapperKey: { kind: 'no_wrapper' },
     description: 'Single item or record object'
   }
 });
@@ -86,20 +98,20 @@ export type PaginationKind = typeof PaginationKind[keyof typeof PaginationKind];
  */
 export interface BasePaginatedEnvelopeDescriptor {
   readonly kind: PaginationKind;
-  readonly dataKey: string;     // 'data'
-  readonly metaKey: string;     // 'meta'
-  readonly linksKey: string | null;   // 'links' | null
-  readonly envelopeTypeName: string; // e.g. 'PaginatedResponse<T>'
+  readonly dataKey: ResponseDataKey;
+  readonly metaKey: ResponseMetaKey;
+  readonly linksKey: ResponseLinksKeySpecification;
+  readonly envelopeTypeName: EnvelopeTypeName;
 }
 
 export interface LengthAwarePaginatedEnvelopeDescriptor extends BasePaginatedEnvelopeDescriptor {
   readonly kind: 'length_aware';
-  readonly linksKey: string;
+  readonly linksKey: ResponseLinksKeySpecification;
 }
 
 export interface CursorPaginatedEnvelopeDescriptor extends BasePaginatedEnvelopeDescriptor {
   readonly kind: 'cursor';
-  readonly linksKey: null;
+  readonly linksKey: ResponseLinksKeySpecification;
 }
 
 export type AnyPaginatedEnvelopeDescriptor =
@@ -110,12 +122,10 @@ export interface PaginatedEnvelopeDescriptor extends BasePaginatedEnvelopeDescri
 
 export interface PaginationKindSpecification<K extends PaginationKind = PaginationKind> {
   readonly kind: K;
-  readonly defaultDataKey: string;
-  readonly defaultMetaKey: string;
-  readonly defaultLinksKey: string | null;
-  readonly defaultEnvelopeTypeName: string;
-  readonly hasPageLinks: boolean;
-  readonly isCursorBased: boolean;
+  readonly defaultDataKey: ResponseDataKey;
+  readonly defaultMetaKey: ResponseMetaKey;
+  readonly defaultLinksKey: ResponseLinksKeySpecification;
+  readonly defaultEnvelopeTypeName: EnvelopeTypeName;
 }
 
 /**
@@ -128,21 +138,17 @@ export type PaginationKindRegistry = {
 export const PAGINATION_KIND_REGISTRY: PaginationKindRegistry = Object.freeze({
   [PaginationKind.LengthAware]: Object.freeze({
     kind: PaginationKind.LengthAware,
-    defaultDataKey: 'data',
-    defaultMetaKey: 'meta',
-    defaultLinksKey: 'links',
-    defaultEnvelopeTypeName: 'PaginatedResponse<T>',
-    hasPageLinks: true,
-    isCursorBased: false
+    defaultDataKey: { kind: 'response_data_key', value: 'data' },
+    defaultMetaKey: { kind: 'response_meta_key', value: 'meta' },
+    defaultLinksKey: { kind: 'response_links_key', value: 'links' },
+    defaultEnvelopeTypeName: { kind: 'envelope_type_name', value: 'PaginatedResponse<T>' }
   }),
   [PaginationKind.Cursor]: Object.freeze({
     kind: PaginationKind.Cursor,
-    defaultDataKey: 'data',
-    defaultMetaKey: 'meta',
-    defaultLinksKey: null,
-    defaultEnvelopeTypeName: 'CursorPaginatedResponse<T>',
-    hasPageLinks: false,
-    isCursorBased: true
+    defaultDataKey: { kind: 'response_data_key', value: 'data' },
+    defaultMetaKey: { kind: 'response_meta_key', value: 'meta' },
+    defaultLinksKey: { kind: 'no_links_key' },
+    defaultEnvelopeTypeName: { kind: 'envelope_type_name', value: 'CursorPaginatedResponse<T>' }
   })
 });
 
@@ -179,41 +185,35 @@ export type PolymorphicMorphType = typeof PolymorphicMorphType[keyof typeof Poly
 
 export interface BasePolymorphicRelationDescriptor<T extends PolymorphicMorphType = PolymorphicMorphType> {
   readonly morphType: T;
-  readonly idColumn: string;          // 'commentable_id'
-  readonly typeColumn: string;        // 'commentable_type'
-  readonly targetModels: readonly string[]; // ['Post', 'Video']
-  readonly unionTypeName: string;     // 'CommentableTarget'
-  readonly isCollection: boolean;
+  readonly idColumn: ColumnName;
+  readonly typeColumn: ColumnName;
+  readonly targetModels: readonly ModelName[];
+  readonly unionTypeName: EnvelopeTypeName;
   readonly cardinality: EloquentRelationCardinality;
 }
 
 export interface MorphToRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphTo'> {
   readonly morphType: 'morphTo';
-  readonly isCollection: false;
   readonly cardinality: 'one';
 }
 
 export interface MorphOneRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphOne'> {
   readonly morphType: 'morphOne';
-  readonly isCollection: false;
   readonly cardinality: 'one';
 }
 
 export interface MorphManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphMany'> {
   readonly morphType: 'morphMany';
-  readonly isCollection: true;
   readonly cardinality: 'many';
 }
 
 export interface MorphToManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphToMany'> {
   readonly morphType: 'morphToMany';
-  readonly isCollection: true;
   readonly cardinality: 'many';
 }
 
 export interface MorphedByManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphedByMany'> {
   readonly morphType: 'morphedByMany';
-  readonly isCollection: true;
   readonly cardinality: 'many';
 }
 
@@ -235,10 +235,9 @@ export type AnyPolymorphicRelationDescriptor =
 export interface PolymorphicRelationSpecification<T extends PolymorphicMorphType = PolymorphicMorphType> {
   readonly morphType: T;
   readonly cardinality: EloquentRelationCardinality;
-  readonly isCollection: boolean;
-  readonly defaultIdColumn: string;
-  readonly defaultTypeColumn: string;
-  readonly defaultUnionTypeName: string;
+  readonly defaultIdColumn: ColumnName;
+  readonly defaultTypeColumn: ColumnName;
+  readonly defaultUnionTypeName: EnvelopeTypeName;
 }
 
 export type PolymorphicRelationRegistry = {
@@ -249,7 +248,6 @@ export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object
   [PolymorphicMorphType.MorphTo]: {
     morphType: PolymorphicMorphType.MorphTo,
     cardinality: 'one',
-    isCollection: false,
     defaultIdColumn: 'commentable_id',
     defaultTypeColumn: 'commentable_type',
     defaultUnionTypeName: 'CommentableTarget'
@@ -257,7 +255,6 @@ export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object
   [PolymorphicMorphType.MorphOne]: {
     morphType: PolymorphicMorphType.MorphOne,
     cardinality: 'one',
-    isCollection: false,
     defaultIdColumn: 'commentable_id',
     defaultTypeColumn: 'commentable_type',
     defaultUnionTypeName: 'CommentableTarget'
@@ -265,7 +262,6 @@ export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object
   [PolymorphicMorphType.MorphMany]: {
     morphType: PolymorphicMorphType.MorphMany,
     cardinality: 'many',
-    isCollection: true,
     defaultIdColumn: 'commentable_id',
     defaultTypeColumn: 'commentable_type',
     defaultUnionTypeName: 'CommentableTarget'
@@ -273,7 +269,6 @@ export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object
   [PolymorphicMorphType.MorphToMany]: {
     morphType: PolymorphicMorphType.MorphToMany,
     cardinality: 'many',
-    isCollection: true,
     defaultIdColumn: 'taggable_id',
     defaultTypeColumn: 'taggable_type',
     defaultUnionTypeName: 'TaggableTarget'
@@ -281,7 +276,6 @@ export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object
   [PolymorphicMorphType.MorphedByMany]: {
     morphType: PolymorphicMorphType.MorphedByMany,
     cardinality: 'many',
-    isCollection: true,
     defaultIdColumn: 'taggable_id',
     defaultTypeColumn: 'taggable_type',
     defaultUnionTypeName: 'TaggableTarget'
@@ -307,10 +301,10 @@ export const matchPolymorphicMorphType = matchPolymorphicRelation;
 
 export interface ScannedPaginatedEnvelopeParams {
   readonly kind: PaginationKind;
-  readonly dataKey: string;
-  readonly metaKey: string;
-  readonly linksKey: string | null;
-  readonly envelopeTypeName: string;
+  readonly dataKey: ResponseDataKey;
+  readonly metaKey: ResponseMetaKey;
+  readonly linksKey: ResponseLinksKeySpecification;
+  readonly envelopeTypeName: EnvelopeTypeName;
 }
 
 /**
@@ -320,7 +314,7 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
   public readonly kind: PaginationKind;
   public readonly dataKey: string;
   public readonly metaKey: string;
-  public readonly linksKey: string | null;
+  public readonly linksKey: ResponseLinksKeySpecification;
   public readonly envelopeTypeName: string;
 
   constructor(params: ScannedPaginatedEnvelopeParams) {
@@ -342,7 +336,7 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
     readonly kind?: PaginationKind;
     readonly dataKey?: string;
     readonly metaKey?: string;
-    readonly linksKey?: string | null;
+    readonly linksKey: ResponseLinksKeySpecification;
     readonly envelopeTypeName?: string;
   } = {}): PaginatedEnvelopeDescriptor {
     const spec = PAGINATION_KIND_REGISTRY[kind];
@@ -385,10 +379,10 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
 
 export interface ScannedPolymorphicRelationParams<T extends PolymorphicMorphType = PolymorphicMorphType> {
   readonly morphType: T;
-  readonly idColumn: string;
-  readonly typeColumn: string;
-  readonly targetModels: readonly string[];
-  readonly unionTypeName: string;
+  readonly idColumn: ColumnName;
+  readonly typeColumn: ColumnName;
+  readonly targetModels: readonly ModelName[];
+  readonly unionTypeName: EnvelopeTypeName;
 }
 
 /**
@@ -396,11 +390,10 @@ export interface ScannedPolymorphicRelationParams<T extends PolymorphicMorphType
  */
 export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRelationDescriptor {
   public readonly morphType: PolymorphicMorphType;
-  public readonly idColumn: string;
-  public readonly typeColumn: string;
-  public readonly targetModels: readonly string[];
-  public readonly unionTypeName: string;
-  public readonly isCollection: boolean;
+  public readonly idColumn: ColumnName;
+  public readonly typeColumn: ColumnName;
+  public readonly targetModels: readonly ModelName[];
+  public readonly unionTypeName: EnvelopeTypeName;
   public readonly cardinality: EloquentRelationCardinality;
 
   constructor(params: ScannedPolymorphicRelationParams) {

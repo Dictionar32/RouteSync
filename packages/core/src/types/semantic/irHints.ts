@@ -6,7 +6,7 @@
  * @module core/types/semantic
  */
 
-import type { ParsedASTNode } from './parsedAstTypes';
+import type { FieldNode } from '../field';
 
 export type IRKind =
   | "raw_code"
@@ -73,16 +73,16 @@ export interface IRRawNode {
   readonly kind: "raw_code";
   readonly code: string;
   readonly hints: IRHints;
-  readonly parsed_ast?: ParsedASTNode;
+  readonly parsed_ast?: FieldNode;
 }
 
 export class IRRawNodeDescriptor implements IRRawNode {
   public readonly kind = "raw_code" as const;
   public readonly code: string;
   public readonly hints: IRHints;
-  public readonly parsed_ast?: ParsedASTNode;
+  public readonly parsed_ast?: FieldNode;
 
-  constructor(code: string, hints: IRHints, parsedAst?: ParsedASTNode) {
+  constructor(code: string, hints: IRHints, parsedAst?: FieldNode) {
     this.code = code;
     this.hints = hints;
     this.parsed_ast = parsedAst;
@@ -93,7 +93,7 @@ export class IRRawNodeDescriptor implements IRRawNode {
     return new IRRawNodeDescriptor(code, hints ?? IRHintsFactory.default());
   }
 
-  public static withAst(code: string, ast: ParsedASTNode, hints?: IRHints): IRRawNodeDescriptor {
+  public static withAst(code: string, ast: FieldNode, hints?: IRHints): IRRawNodeDescriptor {
     return new IRRawNodeDescriptor(code, hints ?? IRHintsFactory.default(), ast);
   }
 }

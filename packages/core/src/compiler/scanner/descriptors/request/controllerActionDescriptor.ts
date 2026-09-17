@@ -7,7 +7,7 @@
  */
 
 import {
-    ResourceResponseDescriptor,
+    VoidResponseDescriptor,
     RouteValidationRuleEntry,
     FormRequestDescriptor,
     RouteHandlerDescriptor,
@@ -53,37 +53,27 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
         this.formRequests = params.formRequests;
         this.schema = params.schema;
         this.schemaRules = params.schemaRules;
-        this.resourceModelMap = params.resourceModelMap ? Object.freeze(new Map(params.resourceModelMap)) : Object.freeze(new Map());
-        this.errorResponses = params.errorResponses ? Object.freeze([...params.errorResponses]) : Object.freeze([]);
+        this.resourceModelMap = Object.freeze(new Map(params.resourceModelMap));
+        this.errorResponses = Object.freeze([...params.errorResponses]);
         Object.freeze(this);
     }
 
-    public static create({
-        controllerName = "GeneralController",
-        actionName = "action",
-        sourceFile,
-        sourceLine = 1,
-        response = new ResourceResponseDescriptor({ resourceName: "GeneralResource", shape: "single" }),
-        formRequests = [],
-        schema = ScannedRouteSchemaPayload.empty(),
-        schemaRules = [],
-        resourceModelMap,
-        errorResponses
-    }: ControllerActionCreateOptions): ScannedControllerActionDescriptor {
-        const target = `${controllerName}@${actionName}`;
+    public static create(params: ControllerActionCreateOptions): ScannedControllerActionDescriptor {
+        const target = `${params.controllerName}@${params.actionName}`;
+
         return new ScannedControllerActionDescriptor({
-            controllerName,
-            actionName,
+            controllerName: params.controllerName,
+            actionName: params.actionName,
             target,
-            handler: buildRouteHandler(controllerName, actionName, target),
-            sourceFile,
-            sourceLine,
-            response,
-            formRequests: Object.freeze([...formRequests]),
-            schema,
-            schemaRules: Object.freeze([...schemaRules]),
-            resourceModelMap,
-            errorResponses
+            handler: buildRouteHandler(params.controllerName, params.actionName, target),
+            sourceFile: params.sourceFile,
+            sourceLine: params.sourceLine,
+            response: params.response,
+            formRequests: Object.freeze([...params.formRequests]),
+            schema: params.schema,
+            schemaRules: Object.freeze([...params.schemaRules]),
+            resourceModelMap: Object.freeze(new Map(params.resourceModelMap)),
+            errorResponses: Object.freeze([...params.errorResponses])
         });
     }
 
@@ -92,7 +82,13 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             controllerName,
             actionName,
             sourceFile,
-            sourceLine: 1
+            sourceLine: 1,
+            response: new (VoidResponseDescriptor)(),
+            formRequests: [],
+            schema: ScannedRouteSchemaPayload.empty(),
+            schemaRules: [],
+            resourceModelMap: new Map<string, string>(),
+            errorResponses: []
         });
     }
 }

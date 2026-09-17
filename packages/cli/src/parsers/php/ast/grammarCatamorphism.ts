@@ -55,6 +55,32 @@ export interface PhpGrammarVisitor<R> {
 }
 
 export function matchPhpGrammar<R>(node: PhpGrammarNode, visitor: PhpGrammarVisitor<R>): R {
-    const handler = visitor[node.kind as keyof PhpGrammarVisitor<R>] ?? visitor.unknown;
-    return handler(node as any);
+    switch (node.kind) {
+        case 'propertylookup': return visitor.propertylookup(node);
+        case 'nullsafepropertylookup': return visitor.nullsafepropertylookup(node);
+        case 'offsetlookup': return visitor.offsetlookup(node);
+        case 'staticlookup': return visitor.staticlookup(node);
+        case 'call': return visitor.call(node);
+        case 'new': return visitor.new(node);
+        case 'closure': return visitor.closure(node);
+        case 'arrowfunc': return visitor.arrowfunc(node);
+        case 'bin': return visitor.bin(node);
+        case 'unary': return visitor.unary(node);
+        case 'cast': return visitor.cast(node);
+        case 'retif': return visitor.retif(node);
+        case 'array': return visitor.array(node);
+        case 'string': return visitor.string(node);
+        case 'number': return visitor.number(node);
+        case 'boolean': return visitor.boolean(node);
+        case 'nullkeyword': return visitor.nullkeyword(node);
+        case 'encapsed': return visitor.encapsed(node);
+        case 'variable': return visitor.variable(node);
+        case 'unknown': return visitor.unknown(node);
+        case 'identifier':
+        case 'name':
+        case 'selfreference':
+        case 'staticreference':
+        case 'entry':
+            throw new Error(`PHP AST grammar matcher: ${node.kind} is not an expression node`);
+    }
 }

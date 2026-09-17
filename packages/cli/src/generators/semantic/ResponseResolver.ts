@@ -1,17 +1,24 @@
-/**
- * @file ResponseResolver.ts
- * @description Sub-domain for response type aliasing, route resolution, and group response counting
- *
- * @module cli/generators/semantic/ResponseResolver
- */
-
-import { toTypeName } from '../names';
-import type { CompilerIR, ResolvedResponse } from './semanticTypes';
+import type { CompilerIR, ResolvedResponse, ResolvedRoute } from './semanticTypes';
+import type {
+    InlineResponseDescriptor,
+    ModelResponseDescriptor,
+    ParsedRoute,
+    ResourceFieldDescriptor,
+    ResourceResponseDescriptor,
+} from '@routesync/core';
+import { matchResponse } from '@routesync/core';
 import {
     resolveCanonicalAction,
     type SemanticResolutionContext
 } from './SemanticResolutionContext';
 import { ResourceFieldResolver } from './ResourceFieldResolver';
+import {
+    resolveResponseCardinality,
+    resolveResponseEnvelope,
+    resolveResponseNullability,
+} from './responseSemantics';
+import { resolveResponseName, deriveResponseKind } from './responseIdentity';
+import { countResponsesByGroup } from './responseGrouping';
 
 export class ResponseResolver {
     public static resolveResponseTypes(
@@ -19,9 +26,8 @@ export class ResponseResolver {
         ir: CompilerIR
     ): void {
         const seen = new Set<string>();
-
         for (const route of context.routes) {
-            const responseId = `${route.name}Response`;
+            const responseId = `${route.identity.name}Response`;
 
             if (seen.has(responseId)) {
                 continue;
@@ -29,72 +35,50 @@ export class ResponseResolver {
             seen.add(responseId);
 
             try {
-                const resolved = this.resolveResponse(route, ir);
+                const resolved = this.resolveResponse(route, context);
                 ir.responseTypes.set(responseId, resolved);
-                ir.resourceAliases.set(route.name, resolved.name);
+                ir.resourceAliases.set(route.identity.name, resolved.name);
             } catch (error) {
                 ir.metadata.errors.push(
-                    `Failed to resolve response for route ${route.name}: ${error}`
+                    `Failed to resolve response for route ${route.identity.name}: ${error}`
                 );
             }
         }
     }
 
-    public static resolveResponse(
-        route: any,
-        ir: CompilerIR
-    ): ResolvedResponse {
-        const meta = route.response && typeof route.response === 'object' ? route.response : {};
-        const name = this.resolveResponseName(route, meta);
-        const actionName = resolveCanonicalAction(route.method);
-        const isCollection = meta.kind === 'array' || meta.collection === true;
-        const isPaginated = meta.paginated === true;
-        const isWrapped = meta.wrapped === true;
-        const isNullable = meta.nullable === true;
-
+    public static resolveResponse(route: ParsedRoute, context: SemanticResolutionContext): ResolvedResponse {
+        const response = route.binding.response;
+        const name = resolveResponseName(route, response);
+        const actionName = resolveCanonicalAction(route.identity.method);
+        const fields = matchResponse(response, {
+            resource: (descriptor: ResourceResponseDescriptor) => {
+                const resource = context.resourcesByName.get(descriptor.resourceName.value);
+                if (!resource) throw new Error(`Resource ${descriptor.resourceName.value} is absent from manifest`);
+                return ResourceFieldResolver.buildResponseFields(resource);
+            },
+            model: (descriptor: ModelResponseDescriptor) => {
+                const model = context.modelsByName.get(descriptor.modelName.value);
+                if (!model) throw new Error(`Model ${descriptor.modelName.value} is absent from manifest`);
+                return ResourceFieldResolver.buildModelFields(model);
+            },
+            inline: (descriptor: InlineResponseDescriptor) => new Map(descriptor.fields.map((field: ResourceFieldDescriptor) => [field.name, ResourceFieldResolver.resolve(field)] as const)),
+            void: () => new Map(),
+        });
+        const cardinality = resolveResponseCardinality(response);
+        const envelope = resolveResponseEnvelope(response);
+        const nullability = resolveResponseNullability(response);
         return {
-            id: `${route.name}Response`,
-            kind: this.deriveResponseKind(meta),
+            id: `${route.identity.name}Response`,
+            kind: deriveResponseKind(response),
             name,
             contractName: `${name}Schema`,
             mapperName: `to${name}Read`,
             formMapperName: `toApi${name}${actionName}`,
-            fields: ResourceFieldResolver.buildFieldMap(meta),
-            isCollection,
-            isPaginated,
-            isWrapped,
-            isNullable,
+            fields,
+            cardinality,
+            envelope,
+            nullability,
         };
-    }
-
-    public static resolveResponseName(route: any, meta: any): string {
-        const routeBaseName = typeof route.name === 'string' && route.name.length > 0 ? route.name : 'Response';
-
-        if (!meta || !Object.keys(meta).length) {
-            return `${toTypeName(routeBaseName)}Response`;
-        }
-
-        if (meta.kind === 'array' && meta.element) {
-            return this.resolveResponseName(route, meta.element);
-        }
-
-        if (meta.resource && !meta.fields) {
-            return toTypeName(meta.resource);
-        }
-
-        if (meta.model && !meta.fields) {
-            return toTypeName(meta.model);
-        }
-
-        const actionName = resolveCanonicalAction(route.method);
-        return `${toTypeName(routeBaseName)}${actionName}Response`;
-    }
-
-    public static deriveResponseKind(meta: any): 'primitive' | 'resource' | 'model' | 'custom' {
-        if (!meta) return 'primitive';
-        if (meta.resource) return 'resource';
-        if (meta.model) return 'model';
-        return 'custom';
     }
 
     public static resolveRoutes(
@@ -102,39 +86,22 @@ export class ResponseResolver {
         ir: CompilerIR
     ): void {
         for (const route of context.routes) {
-            const action = resolveCanonicalAction(route.method);
-            const responseId = `${route.name}Response`;
-            const resp = route.response;
-            const isCollection = resp && typeof resp === 'object' && (resp.kind === 'array' || resp.collection === true);
-            const isPaginated = resp && typeof resp === 'object' && resp.paginated === true;
-            const isWrapped = resp && typeof resp === 'object' && resp.wrapped === true;
-
-            ir.resolvedRoutes.push({
-                name: route.name,
+            const action = resolveCanonicalAction(route.identity.method);
+            const responseId = `${route.identity.name}Response`;
+            const resp = route.binding.response;
+            const resolvedRoute: ResolvedRoute = {
+                name: route.identity.name,
                 action,
                 responseId,
-                isCollection: Boolean(isCollection),
-                isPaginated: Boolean(isPaginated),
-                isWrapped: Boolean(isWrapped),
-            });
+                cardinality: resolveResponseCardinality(resp),
+                envelope: resolveResponseEnvelope(resp),
+            };
+            ir.resolvedRoutes.push(resolvedRoute);
         }
     }
 
-    public static countResponsesByGroup(
-        context: SemanticResolutionContext,
-        ir: CompilerIR
-    ): void {
-        for (const route of context.routes) {
-            const groupName = this.deriveGroupName(route);
-            const existingCount = ir.responseCountByGroup.get(groupName);
-            const currentCount = existingCount !== undefined ? existingCount : 0;
-            ir.responseCountByGroup.set(groupName, currentCount + 1);
-        }
+    public static countResponsesByGroup(context: SemanticResolutionContext, ir: CompilerIR): void {
+        countResponsesByGroup(context, ir);
     }
 
-    public static deriveGroupName(route: any): string {
-        if (route.groupName) return route.groupName;
-        if (route.resource) return route.resource.toLowerCase();
-        return 'default';
-    }
 }

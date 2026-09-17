@@ -16,16 +16,30 @@ import type {
     ObjectSemanticTypeIR,
     ArraySemanticTypeIR,
     UnionSemanticTypeIR,
-    LiteralSemanticTypeIR
+    LiteralSemanticTypeIR,
+    NullableSemanticTypeIR
 } from '../../types/ir';
 
 import { TypeIRUtils } from '../../types/ir';
+import { PrimitiveKind } from '../../compiler/types/SemanticType';
+
+const toPrimitiveIR = (kind: PrimitiveKind): PrimitiveTypeIR['type'] => {
+    const mapping: Record<PrimitiveKind, PrimitiveTypeIR['type']> = {
+        [PrimitiveKind.STRING]: 'string',
+        [PrimitiveKind.NUMBER]: 'number',
+        [PrimitiveKind.BOOLEAN]: 'boolean',
+        [PrimitiveKind.DATETIME]: 'date',
+        [PrimitiveKind.FILE]: 'json',
+        [PrimitiveKind.UNKNOWN]: 'unknown'
+    };
+    return mapping[kind];
+};
 
 export class SemanticTypeResolvers {
     static resolvePrimitive(primitiveType: PrimitiveSemanticTypeIR): TypeIR {
         return {
             kind: 'primitive',
-            type: (primitiveType.type || 'unknown') as PrimitiveTypeIR['type'],
+            type: toPrimitiveIR(primitiveType.type),
             format: primitiveType.format !== null ? primitiveType.format : undefined
         };
     }
@@ -52,14 +66,21 @@ export class SemanticTypeResolvers {
 
     static resolveObject(objectType: ObjectSemanticTypeIR, resolver: (type: ResolvedSemanticType) => TypeIR): TypeIR {
         const properties: Record<string, TypeIR> = {};
-        for (const [key, value] of Object.entries(objectType.properties)) {
-            properties[key] = resolver(value);
+        for (const property of objectType.properties) {
+            properties[property.name] = resolver(property.type);
         }
 
         return {
             kind: 'inline_object',
             properties,
             additionalProperties: false
+        };
+    }
+
+    static resolveNullable(nullableType: NullableSemanticTypeIR, resolver: (type: ResolvedSemanticType) => TypeIR): TypeIR {
+        return {
+            kind: 'nullable',
+            inner: resolver(nullableType.innerType)
         };
     }
 

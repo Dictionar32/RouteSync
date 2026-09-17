@@ -29,7 +29,7 @@ export class TypeDeriver {
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
         interner: TypeInterner = new TypeInterner(),
-        models: readonly any[] = []
+        models: readonly ParsedModel[] = []
     ): readonly RequestType[] {
         return RequestTypeDeriver.derive(routes, resources, interner, models);
     }

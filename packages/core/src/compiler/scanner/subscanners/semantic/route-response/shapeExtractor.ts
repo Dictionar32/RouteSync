@@ -1,66 +1,68 @@
 /**
- * shapeExtractor.ts
- *
- * Extracts typeName, baseName, and rawFields from route response definitions.
- *
- * @module core/compiler/scanner/subscanners/semantic/route-response
+ * Extracts the canonical response shape from a typed route descriptor.
+ * The scanner owns normalization; downstream receives ResourceFieldDescriptor[] only.
  */
 
-import type { InlineResponseDescriptor, ScannedRoute } from '../../../../../types/route';
+import type { ResourceFieldDescriptor } from '../../../../../types/domain/expressions';
+import type { ScannedRoute } from '../../../../../types/route';
 import { toPascalCase } from '../../../../../utils/resource-naming';
+import { ReferenceType } from '../../../../types/SemanticType';
+import { ResourceFieldExpressionFactory } from '../../../../../types/domain/expressions';
+import { SemanticValueFactory } from '../../../../../types/domain/semanticValues';
 
 export interface RouteResponseShape {
     readonly typeName: string;
     readonly baseName: string;
-    readonly rawFields: readonly unknown[];
+    readonly fields: readonly ResourceFieldDescriptor[];
 }
 
 export function extractRouteResponseShape(route: ScannedRoute): RouteResponseShape | null {
-    let typeName = '';
-    let baseName = '';
-    let rawFields: readonly unknown[] = [];
+    const response = route.response;
+    if (response.kind === 'void') return null;
 
-    if (route.response && route.response.kind === 'inline') {
-        const inlineResp = route.response as InlineResponseDescriptor;
-        typeName = inlineResp.typeName;
-        baseName = inlineResp.baseName;
-        const inlineFieldsUnknown = inlineResp.fields as unknown;
-        rawFields = Array.isArray(inlineFieldsUnknown)
-            ? (inlineFieldsUnknown as readonly unknown[])
-            : Object.entries((inlineFieldsUnknown as Record<string, unknown>) || {});
-    } else if (route.response && 'fields' in route.response) {
-        const respObj = route.response as unknown as Record<string, unknown>;
-        const rawDomain = route.domain
-            ? route.domain
-            : (route.resourceName
-                ? route.resourceName
-                : (route.actionName ? route.actionName.replace(/Controller$/, '') : 'Inline'));
-        typeName = `${toPascalCase(rawDomain)}Transformed`;
-        baseName = toPascalCase(rawDomain);
-        const respFieldsUnknown = respObj.fields as unknown;
-        rawFields = Array.isArray(respFieldsUnknown)
-            ? (respFieldsUnknown as readonly unknown[])
-            : Object.entries((respFieldsUnknown as Record<string, unknown>) || {});
-    } else if (route.response && (route.response.kind === 'resource' || 'resourceName' in route.response)) {
-        const respObj = route.response as unknown as Record<string, unknown>;
-        const rawDomain = route.domain ? route.domain : (route.resourceName ? route.resourceName : '');
-        if (rawDomain && !rawDomain.endsWith('Resource')) {
-            const pascalDomain = toPascalCase(rawDomain);
-            typeName = `${pascalDomain}Transformed`;
-            baseName = pascalDomain;
-            const resName = typeof respObj.resourceName === 'string' ? (respObj.resourceName as string) : undefined;
-            const targetRes = resName ? `${toPascalCase(resName)}Transformed` : 'unknown';
-            rawFields = [{
-                name: 'data',
-                kind: 'collection',
-                elementType: { kind: 'reference', name: targetRes }
-            }];
-        }
+    if (response.kind === 'inline') {
+        return {
+            typeName: response.typeName.value,
+            baseName: response.baseName.value,
+            fields: response.fields
+        };
     }
 
-    if (typeName.length === 0) {
-        return null;
-    }
+    const rawDomain = route.domain
+        ? route.domain
+        : route.resourceName
+            ? route.resourceName
+            : route.actionName
+                ? route.actionName.replace(/Controller$/, '')
+                : 'Inline';
+    const baseName = toPascalCase(rawDomain);
+    const targetName = response.kind === 'resource'
+        ? response.resourceName.value
+        : response.modelName.value;
+    const transformedName = `${toPascalCase(targetName)}Transformed`;
 
-    return { typeName, baseName, rawFields };
+    return {
+        typeName: `${baseName}Transformed`,
+        baseName,
+        fields: [createWrappedDataField(response, transformedName)]
+    };
+}
+
+function createWrappedDataField(
+    response: Exclude<ScannedRoute['response'], { readonly kind: 'inline' } | { readonly kind: 'void' }>,
+    transformedName: string
+): ResourceFieldDescriptor {
+    const name = SemanticValueFactory.responseFieldName('data');
+    const propertyName = SemanticValueFactory.propertyName('data');
+    const reference = new ReferenceType('', transformedName);
+    const expression = response.kind === 'resource'
+        ? ResourceFieldExpressionFactory.resource(response.resourceName, response.shape === 'single' ? { kind: 'single' } : { kind: 'collection' })
+        : ResourceFieldExpressionFactory.model(response.modelName, response.shape === 'single' ? { kind: 'single' } : { kind: 'collection' });
+
+    return Object.freeze({
+        name,
+        propertyName,
+        expression,
+        semanticType: reference
+    });
 }

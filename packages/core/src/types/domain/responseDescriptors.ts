@@ -1,88 +1,91 @@
 import type { ResponseBody } from "../../compiler/ir/ResponseArtifact";
-import { toPascalCase } from "../../utils/resource-naming";
+import type { ObjectProperty } from "../../compiler/types/SemanticType";
+import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldDescriptor } from "./expressions";
+import type { ClassName, DomainName, ModelName, ResourceName, ResponseFieldName, ResponseTypeName, RouteName, SourceFilePath } from "./semanticValues";
 import {
   ResponseShape,
   type PaginatedEnvelopeDescriptor,
   type PolymorphicRelationDescriptor
 } from "./responseShapes";
 
-export interface RouteResponseAnalysis {
-  readonly routeName: string;
-  readonly responseType: string;
+export interface RouteResponseAnalysisBase {
+  readonly routeName: RouteName;
   readonly shape: ResponseShape;
-  readonly resourceName: string | null;
-  readonly modelName: string | null;
-  readonly confidence: number;
-  readonly reasons: readonly string[];
 }
 
-export abstract class ResponseDescriptorBase {
-  abstract readonly kind: string;
-  abstract readonly shape: ResponseShape;
-  abstract readonly readTypeName: string; // ✅ Guaranteed Read Type Name ('UserResourceTransformed')
-  abstract readonly mapperName: string;   // ✅ Guaranteed Mapper Function Name ('toUserResourceRead')
-  abstract readonly validatorName: string; // ✅ Guaranteed Contract Validator Name ('validateUserResourceSchema')
+export interface ResourceRouteResponseAnalysis extends RouteResponseAnalysisBase {
+  readonly kind: 'resource';
+  readonly resourceName: ResourceName;
+}
 
-  abstract toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis;
+export interface ModelRouteResponseAnalysis extends RouteResponseAnalysisBase {
+  readonly kind: 'model';
+  readonly modelName: ModelName;
+}
+
+export interface InlineRouteResponseAnalysis extends RouteResponseAnalysisBase {
+  readonly kind: 'inline';
+  readonly typeName: ResponseTypeName;
+}
+
+export interface VoidRouteResponseAnalysis extends RouteResponseAnalysisBase {
+  readonly kind: 'void';
+}
+
+export type RouteResponseAnalysis =
+  | ResourceRouteResponseAnalysis
+  | ModelRouteResponseAnalysis
+  | InlineRouteResponseAnalysis
+  | VoidRouteResponseAnalysis;
+
+export abstract class ResponseDescriptorBase {
+  abstract readonly kind: ResponseKind;
+  abstract readonly shape: ResponseShape;
+  abstract toAnalysis(routeName: RouteName, confidence: number): RouteResponseAnalysis;
   abstract toResponseBody(): ResponseBody;
 }
 
 export interface ResourceResponseParams {
-  readonly resourceName: string;
+  readonly resourceName: ResourceName;
   readonly shape: ResponseShape;
 }
 
 export class ResourceResponseDescriptor extends ResponseDescriptorBase {
   public readonly kind = 'resource' as const;
   public readonly shape: ResponseShape;
-  public readonly resourceName: string;
-  public readonly readTypeName: string;
-  public readonly mapperName: string;
-  public readonly validatorName: string;
-
+  public readonly resourceName: ResourceName;
   constructor(params: ResourceResponseParams) {
     super();
     this.resourceName = params.resourceName;
     this.shape = params.shape;
-    this.readTypeName = `${params.resourceName}Transformed`;
-    this.mapperName = `to${params.resourceName}Read`;
-    this.validatorName = (params.shape === 'collection' || params.shape === 'paginated')
-      ? `validate${toPascalCase(params.resourceName)}Index`
-      : `validate${toPascalCase(params.resourceName)}Schema`;
     Object.freeze(this);
   }
 
   public static create({
-    resourceName = 'UnknownResource',
+    resourceName,
     shape = 'single'
   }: {
-    readonly resourceName?: string;
+    readonly resourceName: ResourceName;
     readonly shape?: ResponseShape;
-  } = {}): ResourceResponseDescriptor {
+  }): ResourceResponseDescriptor {
     return new ResourceResponseDescriptor({ resourceName, shape });
   }
 
-  public static single(resourceName: string): ResourceResponseDescriptor {
+  public static single(resourceName: ResourceName): ResourceResponseDescriptor {
     return new ResourceResponseDescriptor({ resourceName, shape: 'single' });
   }
 
-  public static collection(resourceName: string): ResourceResponseDescriptor {
+  public static collection(resourceName: ResourceName): ResourceResponseDescriptor {
     return new ResourceResponseDescriptor({ resourceName, shape: 'collection' });
   }
 
-  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
-      responseType: this.kind,
+      kind: this.kind,
       shape: this.shape,
       resourceName: this.resourceName,
-      modelName: null,
-      confidence,
-      reasons: [
-        `Response kind: ${this.kind}`,
-        `Response shape: ${this.shape}`
-      ]
     };
   }
 
@@ -96,60 +99,45 @@ export class ResourceResponseDescriptor extends ResponseDescriptorBase {
 }
 
 export interface ModelResponseParams {
-  readonly modelName: string;
+  readonly modelName: ModelName;
   readonly shape: ResponseShape;
 }
 
 export class ModelResponseDescriptor extends ResponseDescriptorBase {
   public readonly kind = 'model' as const;
   public readonly shape: ResponseShape;
-  public readonly modelName: string;
-  public readonly readTypeName: string;
-  public readonly mapperName: string;
-  public readonly validatorName: string;
-
+  public readonly modelName: ModelName;
   constructor(params: ModelResponseParams) {
     super();
     this.modelName = params.modelName;
     this.shape = params.shape;
-    this.readTypeName = `${params.modelName}Transformed`;
-    this.mapperName = `to${params.modelName}Read`;
-    this.validatorName = (params.shape === 'collection' || params.shape === 'paginated')
-      ? `validate${toPascalCase(params.modelName)}Index`
-      : `validate${toPascalCase(params.modelName)}Schema`;
     Object.freeze(this);
   }
 
   public static create({
-    modelName = 'UnknownModel',
+    modelName,
     shape = 'single'
   }: {
-    readonly modelName?: string;
+    readonly modelName: ModelName;
     readonly shape?: ResponseShape;
-  } = {}): ModelResponseDescriptor {
+  }): ModelResponseDescriptor {
     return new ModelResponseDescriptor({ modelName, shape });
   }
 
-  public static single(modelName: string): ModelResponseDescriptor {
+  public static single(modelName: ModelName): ModelResponseDescriptor {
     return new ModelResponseDescriptor({ modelName, shape: 'single' });
   }
 
-  public static collection(modelName: string): ModelResponseDescriptor {
+  public static collection(modelName: ModelName): ModelResponseDescriptor {
     return new ModelResponseDescriptor({ modelName, shape: 'collection' });
   }
 
-  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
-      responseType: this.kind,
+      kind: this.kind,
       shape: this.shape,
-      resourceName: null,
       modelName: this.modelName,
-      confidence,
-      reasons: [
-        `Response kind: ${this.kind}`,
-        `Response shape: ${this.shape}`
-      ]
     };
   }
 
@@ -165,27 +153,16 @@ export class ModelResponseDescriptor extends ResponseDescriptorBase {
 export class VoidResponseDescriptor extends ResponseDescriptorBase {
   public readonly kind = 'void' as const;
   public readonly shape = 'single' as const;
-  public readonly readTypeName = 'void';
-  public readonly mapperName = 'identity';
-  public readonly validatorName = 'undefined';
-
   constructor() {
     super();
     Object.freeze(this);
   }
 
-  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
-      responseType: this.kind,
+      kind: this.kind,
       shape: this.shape,
-      resourceName: null,
-      modelName: null,
-      confidence,
-      reasons: [
-        `Response kind: ${this.kind}`,
-        `Response shape: ${this.shape}`
-      ]
     };
   }
 
@@ -198,37 +175,48 @@ export class VoidResponseDescriptor extends ResponseDescriptorBase {
   }
 }
 
+export type ResponseSemanticProperty = ObjectProperty;
+
+export type ResponseSemanticContract = ResponseContract;
+
+export type ResponseOriginTraceEntry =
+  | { readonly kind: 'class_resolution'; readonly className: ClassName; readonly sourceFile: SourceFilePath }
+  | { readonly kind: 'property_extraction'; readonly propertyCount: number }
+  | { readonly kind: 'semantic_resolution'; readonly resolvedCount: number };
+
+export type ResponseDescriptorOrigin =
+  | { readonly kind: 'attribute'; readonly className: ClassName; readonly sourceFile: SourceFilePath; readonly trace: readonly ResponseOriginTraceEntry[] }
+  | { readonly kind: 'inferred'; readonly sourceFile: SourceFilePath; readonly trace: readonly ResponseOriginTraceEntry[] };
+
 export interface InlineResponseDescriptorParams {
-  readonly domain: string;
-  readonly baseName: string;
-  readonly typeName: string;
+  readonly domain: DomainName;
+  readonly baseName: ResourceName;
+  readonly typeName: ResponseTypeName;
   readonly fields: readonly ResourceFieldDescriptor[];
   readonly shape: ResponseShape;
+  readonly origin: ResponseDescriptorOrigin;
+  readonly semanticContract: ResponseSemanticContract;
 }
 
 export class InlineResponseDescriptor extends ResponseDescriptorBase {
   public readonly kind = 'inline' as const;
   public readonly shape: ResponseShape;
-  public readonly domain: string;
-  public readonly baseName: string;
-  public readonly typeName: string;
-  public readonly readTypeName: string;
-  public readonly mapperName: string;
-  public readonly validatorName: string;
+  public readonly domain: DomainName;
+  public readonly baseName: ResourceName;
+  public readonly typeName: ResponseTypeName;
   public readonly fields: readonly ResourceFieldDescriptor[];
+  public readonly origin: ResponseDescriptorOrigin;
+  public readonly semanticContract: ResponseSemanticContract;
 
   constructor(params: InlineResponseDescriptorParams) {
     super();
     this.domain = params.domain;
     this.baseName = params.baseName;
     this.typeName = params.typeName;
-    this.readTypeName = params.typeName;
-    this.mapperName = `to${params.baseName}Read`;
-    this.validatorName = (params.shape === 'collection' || params.shape === 'paginated')
-      ? `validate${toPascalCase(params.baseName)}Index`
-      : `validate${toPascalCase(params.baseName)}Schema`;
     this.fields = Object.freeze([...params.fields]);
     this.shape = params.shape;
+    this.origin = params.origin;
+    this.semanticContract = params.semanticContract;
     Object.freeze(this);
   }
 
@@ -237,47 +225,50 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
     baseName = domain,
     typeName = `${baseName}Transformed`,
     fields,
-    shape = ResponseShape.Single
+    shape = ResponseShape.Single,
+    origin,
+    semanticContract
   }: {
-    readonly domain: string;
-    readonly baseName?: string;
-    readonly typeName?: string;
+    readonly domain: DomainName;
+    readonly baseName?: ResourceName;
+    readonly typeName?: ResponseTypeName;
     readonly fields: readonly ResourceFieldDescriptor[];
     readonly shape?: ResponseShape;
+    readonly origin: ResponseDescriptorOrigin;
+    readonly semanticContract: ResponseSemanticContract;
   }): InlineResponseDescriptor {
     return new InlineResponseDescriptor({
       domain,
       baseName,
       typeName,
       fields,
-      shape
+      shape,
+      origin,
+      semanticContract
     });
   }
 
-  toAnalysis(routeName: string, confidence: number): RouteResponseAnalysis {
+  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
-      responseType: this.typeName,
+      kind: this.kind,
       shape: this.shape,
-      resourceName: null,
-      modelName: null,
-      confidence,
-      reasons: [
-        `Inline response with ${this.fields.length} fields`,
-        `Response shape: ${this.shape}`
-      ]
+      typeName: this.typeName,
     };
   }
 
   toResponseBody(): ResponseBody {
-    const properties: Record<string, { readonly typeName: string; readonly nullable: boolean }> = {};
-    for (const f of this.fields) {
-      properties[f.name] = { typeName: 'string', nullable: f.nullable };
-    }
+    const properties = this.fields.map(f => ({
+      name: f.name,
+      type: { kind: 'scalar' as const, typeName: f.semanticType, nullable: f.nullable },
+      required: true
+    }));
     return {
       type: 'object',
       schema: {
-        properties
+        name: this.baseName,
+        properties,
+        additionalProperties: false
       },
       shape: this.shape
     };
@@ -354,5 +345,10 @@ export function matchResponse<R>(
   descriptor: ResponseDescriptor,
   visitor: ResponseVisitor<R>
 ): R {
-  return visitor[descriptor.kind](descriptor as any);
+  switch (descriptor.kind) {
+    case ResponseKind.Resource: return visitor.resource(descriptor);
+    case ResponseKind.Model: return visitor.model(descriptor);
+    case ResponseKind.Inline: return visitor.inline(descriptor);
+    case ResponseKind.Void: return visitor.void(descriptor);
+  }
 }

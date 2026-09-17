@@ -24,7 +24,7 @@ export {
 export {
     type RouteBoundaryContract,
     type RouteBoundaryOptions,
-    type SparseRouteParams,
+    type RouteBoundaryOptions,
     RouteBoundaryContractFactory
 } from "./boundary";
 

@@ -1,11 +1,25 @@
-/**
- * @file semanticTypes.ts
- * @description Core types and interfaces for the CompilerIR and semantic resolution
- *
- * @module cli/generators/semantic/semanticTypes
- */
-
+/** Closed compiler vocabulary. Semantic meaning is carried, never reconstructed. */
 import type { ActionType } from '../canonical-names';
+import type { ResolvedSemanticType } from '@routesync/core';
+
+export type ResponseCardinality =
+    | { readonly kind: 'single' }
+    | { readonly kind: 'collection' }
+    | { readonly kind: 'paginated_collection' };
+
+export type ResponseEnvelope =
+    | { readonly kind: 'direct' }
+    | { readonly kind: 'wrapped' };
+
+export type ResponseNullability =
+    | { readonly kind: 'non_nullable' }
+    | { readonly kind: 'nullable' };
+
+export type ResponseKind = 'primitive' | 'resource' | 'model' | 'custom';
+
+export type FieldOrigin =
+    | { readonly kind: 'resource_expression'; readonly expressionKind: string }
+    | { readonly kind: 'model_column'; readonly columnName: string };
 
 export interface CompilerIR {
     readonly responseTypes: Map<string, ResolvedResponse>;
@@ -27,64 +41,30 @@ export interface CompilerIR {
 
 export interface ResolvedResponse {
     readonly id: string;
-    readonly kind: 'primitive' | 'resource' | 'model' | 'custom';
+    readonly kind: ResponseKind;
     readonly name: string;
     readonly contractName: string;
     readonly mapperName: string;
     readonly formMapperName: string;
     readonly fields: Map<string, ResolvedField>;
-    readonly isCollection: boolean;
-    readonly isPaginated: boolean;
-    readonly isWrapped: boolean;
-    readonly isNullable: boolean;
+    readonly cardinality: ResponseCardinality;
+    readonly envelope: ResponseEnvelope;
+    readonly nullability: ResponseNullability;
 }
 
 export interface ResolvedField {
     readonly name: string;
-    readonly sourceSnakeCase: string;
-    readonly type: 'string' | 'number' | 'boolean' | 'null' | 'unknown' | 'object' | 'array';
-    readonly nullable: boolean;
+    readonly sourceName: string;
+    readonly semanticType: ResolvedSemanticType;
     readonly zodType: string;
     readonly tsType: string;
-    readonly sourceType: 'sql' | 'cast' | 'json' | 'unknown';
-    readonly sourceValue: string;
+    readonly origin: FieldOrigin;
 }
 
 export interface ResolvedRoute {
     readonly name: string;
     readonly action: ActionType;
     readonly responseId: string;
-    readonly isCollection: boolean;
-    readonly isPaginated: boolean;
-    readonly isWrapped: boolean;
-}
-
-export interface NormalizedColumnInfo {
-    readonly name: string;
-    readonly type: string;
-    readonly nullable: boolean;
-}
-
-export interface NormalizedModelInfo {
-    readonly name: string;
-    readonly columns: readonly NormalizedColumnInfo[];
-    readonly columnsByName: Map<string, NormalizedColumnInfo>;
-    readonly casts: Map<string, string>;
-}
-
-export interface FieldResolutionMeta {
-    readonly type: string;
-    readonly cast: string | undefined;
-    readonly nullable: boolean;
-}
-
-export function toFieldResolutionMeta(raw: {
-    readonly type?: string;
-    readonly cast?: string;
-    readonly nullable?: boolean;
-}): FieldResolutionMeta {
-    const type = typeof raw.type === 'string' && raw.type.length > 0 ? raw.type : 'unknown';
-    const cast = typeof raw.cast === 'string' && raw.cast.length > 0 ? raw.cast : undefined;
-    const nullable = raw.nullable === true;
-    return Object.freeze({ type, cast, nullable });
+    readonly cardinality: ResponseCardinality;
+    readonly envelope: ResponseEnvelope;
 }

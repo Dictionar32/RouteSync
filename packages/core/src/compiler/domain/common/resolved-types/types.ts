@@ -22,7 +22,7 @@ export interface ResolvedPrimitiveTypeParams {
 
 export interface ResolvedReferenceTypeParams {
     readonly name: string;
-    readonly namespace: string | null;
+    readonly namespace: string;
 }
 
 export interface ResolvedOptionalTypeParams {
@@ -39,13 +39,44 @@ export interface ResolvedCollectionTypeParams {
 
 export type ObjectKind = 'resource' | 'model' | 'response' | 'plain';
 
-export type ResolvedField = readonly [name: string, type: ResolvedSemanticType];
+export interface PlainObjectIdentity {
+    readonly kind: 'plain';
+    readonly name: string;
+}
+
+export interface ResourceObjectIdentity {
+    readonly kind: 'resource';
+    readonly name: string;
+}
+
+export interface ModelObjectIdentity {
+    readonly kind: 'model';
+    readonly name: string;
+}
+
+export interface ResponseObjectIdentity {
+    readonly kind: 'response';
+    readonly name: string;
+}
+
+
+export type PropertyPresence = 'required' | 'optional';
+
+export interface ResolvedProperty {
+    readonly name: string;
+    readonly type: ResolvedSemanticType;
+    readonly presence: PropertyPresence;
+}
+
+export type ResolvedObjectIdentity =
+    | PlainObjectIdentity
+    | ResourceObjectIdentity
+    | ModelObjectIdentity
+    | ResponseObjectIdentity;
 
 export interface ResolvedObjectTypeParams {
-    readonly fields: readonly ResolvedField[];
-    readonly objectKind: ObjectKind;
-    readonly resourceName: string | null;
-    readonly typeName: string | null;
+    readonly fields: readonly ResolvedProperty[];
+    readonly identity: ResolvedObjectIdentity;
 }
 
 export interface ResolvedUnionTypeParams {

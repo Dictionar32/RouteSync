@@ -8,7 +8,7 @@
  */
 
 import { ParsedRoute } from "../../../types/route";
-import { RequestField } from "../../artifacts/RequestTypesArtifact";
+import type { RequestField } from "../../../types/domain/request";
 import {
     ObjectProperty,
     ScannedObjectProperty,

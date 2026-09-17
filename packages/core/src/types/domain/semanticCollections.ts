@@ -8,16 +8,21 @@
  * @module types/domain/semanticCollections
  */
 
+import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { EloquentRelationType } from './eloquentTypes';
+import type { Nullability } from './modelContracts';
+import type { ColumnName, ModelName, RelationName } from './semanticValues';
+
 /**
  * Model Field Column Metadata
  */
 export interface ModelFieldInfo {
-  readonly type: string;
-  readonly nullable: boolean;
+  readonly type: SemanticType;
+  readonly nullability: Nullability;
 }
 
 export interface ModelFieldEntry {
-  readonly column: string;
+  readonly column: ColumnName;
   readonly info: ModelFieldInfo;
 }
 
@@ -92,12 +97,12 @@ export class ModelFieldMap implements Iterable<ModelFieldEntry> {
  * Model Relation Metadata
  */
 export interface ModelRelationInfo {
-  readonly type: string;
-  readonly model: string;
+  readonly type: EloquentRelationType;
+  readonly model: ModelName;
 }
 
 export interface ModelRelationEntry {
-  readonly relationName: string;
+  readonly relationName: RelationName;
   readonly info: ModelRelationInfo;
 }
 

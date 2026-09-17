@@ -1,73 +1,32 @@
-/**
- * targetModelResolver.ts
- *
- * Target model resolution logic for property access.
- *
- * @module semantic/plugins/expression/property-access
- */
-
-import type { SemanticResolution, TraceNode } from '../../../../types/contract';
+import type { SemanticResolution, SemanticTraceNode } from '../../../../types/domain/semanticResolution';
 import type { ResolutionContext, ResolverMeta, ModelNode } from '../../../types';
+import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
+import { SemanticResolutionFactory } from '../../../../types/domain/semanticResolutionFactory';
 
-export function isModelNode(obj: unknown): obj is ModelNode {
-    return typeof obj === 'object' && obj !== null && 'name' in obj;
-}
-
-export interface ResolvedTargetModelResult {
-    readonly targetModel?: ModelNode;
-    readonly errorResolution?: SemanticResolution;
-}
+export type ResolvedTargetModelResult =
+  | { readonly kind: 'resolved'; readonly targetModel: ModelNode }
+  | { readonly kind: 'error'; readonly resolution: SemanticResolution };
 
 export function resolveTargetModelForPropertyAccess(
-    meta: ResolverMeta,
-    context: ResolutionContext,
-    targetRes: SemanticResolution,
-    trace: TraceNode[]
+  _meta: ResolverMeta,
+  context: ResolutionContext,
+  targetRes: SemanticResolution,
+  trace: readonly SemanticTraceNode[],
 ): ResolvedTargetModelResult {
-    if (targetRes.status === 'resolved' && targetRes.type !== 'unknown') {
-        const targetType = targetRes.type;
-        const targetModelName = targetRes.type === 'model' && targetRes.model ? targetRes.model : targetType;
-        const typeLower = targetModelName?.toLowerCase();
-        const tm = (targetModelName ? context.symbolTable.get(targetModelName) : undefined)
-            || (typeLower ? context.symbolTable.getCaseInsensitive(typeLower) : undefined);
-        if (tm) {
-            return { targetModel: tm.node };
-        } else {
-            return {
-                errorResolution: {
-                    status: 'unknown',
-                    type: 'unknown',
-                    confidence: 0,
-                    trace: [
-                        {
-                            source: 'ExpressionResolver',
-                            rule: `Property access target model not found`,
-                            input: targetModelName,
-                            output: 'unknown'
-                        },
-                        ...trace
-                    ]
-                }
-            };
-        }
-    } else if (meta.target && meta.target.kind === 'model') {
-        const targetModelName = meta.target.model || '';
-        const tm = context.symbolTable.get(targetModelName);
-        if (tm) {
-            return { targetModel: tm.node };
-        }
-        return {};
-    } else {
-        return {
-            errorResolution: {
-                status: 'unknown',
-                type: 'unknown',
-                confidence: 0,
-                trace: [
-                    { source: 'ExpressionResolver', rule: `Cannot resolve target of property access: ${meta.target?.kind}` },
-                    ...trace
-                ]
-            }
-        };
-    }
+  if (targetRes.kind !== 'model') return error('Property target does not resolve to a model', trace);
+  const symbol = context.symbolTable.get(targetRes.model.value);
+  if (symbol !== undefined) return { kind: 'resolved', targetModel: symbol.node };
+  return error(`Property access target model not found: ${targetRes.model.value}`, trace);
+}
+
+function error(rule: string, trace: readonly SemanticTraceNode[]): ResolvedTargetModelResult {
+  return {
+    kind: 'error',
+    resolution: SemanticResolutionFactory.unknown({
+      status: 'unknown',
+      confidence: 0,
+      trace: [...trace, { source: 'TargetModelResolver', rule, input: 'property_access', output: 'unknown' }],
+      boundAst: BoundSemanticFactory.unsupported('unresolved_symbol'),
+    }),
+  };
 }

@@ -43,14 +43,12 @@ export interface ResourceDefContract {
   readonly sourceLine: number;
 }
 
-export type ResourceDef = {
-  name: string;
-  model?: string;
-  fields: Record<string, FieldNode>;
-  assignments?: Record<string, string>;
-  sourceFile?: string | null;
-  sourceLine?: number | null;
-};
+/**
+ * Canonical ResourceDef.
+ * The legacy optional/nullable shape is intentionally removed from the domain
+ * contract. Partial scanner input must be normalized before entering here.
+ */
+export type ResourceDef = ResourceDefContract;
 
 /**
  * Level 7 Complete Contract for ModelDef (0 undefined, 0 null, 0 ?:).
@@ -66,13 +64,9 @@ export interface ModelDefContract {
   readonly accessors: readonly (readonly [string, FieldNode])[];
 }
 
-export type ModelDef = {
-  name: string;
-  table?: string;
-  columns?: { name: string; type: string; nullable: boolean }[];
-  hidden?: string[];
-  appends?: string[];
-  casts?: Record<string, string>;
-  relations?: Record<string, { type: string; model: string }>;
-  accessors?: Record<string, FieldNode>;
-};
+/**
+ * Canonical ModelDef.
+ * The legacy optional/nullable shape is intentionally removed from the domain
+ * contract. Partial scanner input must be normalized before entering here.
+ */
+export type ModelDef = ModelDefContract;

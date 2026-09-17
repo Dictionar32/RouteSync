@@ -18,7 +18,6 @@ export function computeRelationParams({
     modelName,
     targetModel = modelName,
     cardinality,
-    isCollection,
     foreignKey = null
 }: {
     readonly name: string;
@@ -26,7 +25,6 @@ export function computeRelationParams({
     readonly modelName: string;
     readonly targetModel?: string;
     readonly cardinality?: EloquentRelationCardinality;
-    readonly isCollection?: boolean;
     readonly foreignKey?: string | null;
 }): ScannedModelRelationParams {
     const desc = EloquentRelationClassifier.getDescriptor(type);
@@ -36,7 +34,6 @@ export function computeRelationParams({
         modelName,
         targetModel,
         cardinality: cardinality ?? desc.cardinality,
-        isCollection: isCollection ?? desc.isCollection,
         foreignKey
     };
 }
@@ -60,7 +57,6 @@ export function computeSingleRelationParams({
         modelName,
         targetModel,
         cardinality: "one",
-        isCollection: false,
         foreignKey
     };
 }
@@ -84,7 +80,6 @@ export function computeCollectionRelationParams({
         modelName,
         targetModel,
         cardinality: "many",
-        isCollection: true,
         foreignKey
     };
 }
@@ -96,7 +91,6 @@ export function computeNoneRelationParams(): ScannedModelRelationParams {
         modelName: "",
         targetModel: "",
         cardinality: "one",
-        isCollection: false,
         foreignKey: null
     };
 }

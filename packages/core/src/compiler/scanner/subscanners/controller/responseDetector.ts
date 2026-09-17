@@ -17,6 +17,7 @@ import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { toPascalCase } from '../../../../utils/resource-naming';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
 import { ResourceScanner } from '../ResourceScanner';
+import { ErrorType } from '../../../types/SemanticType';
 import {
   DetectedResourceInvocation,
   detectResourceInvocation
@@ -63,8 +64,11 @@ export function detectInlineResponse(
         if (parsedArray.entries.length > 0) {
           const rawDomain = resolveInlineDomain(controllerName, actionName);
           const fields: ResourceFieldDescriptor[] = parsedArray.entries.map(e => {
-            const mapped = ResourceScanner.mapAstValueToExpression(e.value, e.rawExpression);
-            return ScannedResourceFieldDescriptor.fromExpression(e.key, mapped.expression, mapped.nullable);
+            const mapped = ResourceScanner.mapAstValueToExpression(e.value);
+            const semanticType = mapped.kind === 'semantic'
+              ? mapped.semanticType
+              : new ErrorType('Inline response field requires verified semantic binding');
+            return ScannedResourceFieldDescriptor.fromExpression(e.key, mapped.expression, semanticType);
           });
           return new InlineResponseDescriptor({
             domain: rawDomain,

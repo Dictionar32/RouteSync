@@ -1,67 +1,57 @@
 /**
- * manifestIrTypes.ts
+ * Manifest shapes consumed by the legacy Contract IR builder.
  *
- * Manifest shapes and parsed entities consumed during IR construction.
- * Conforms to Level 7 Subatomic Architecture & Rule 14 (<= 100 lines).
- *
- * @module core/types/ir/manifestIrTypes
+ * This vocabulary is intentionally distinct from `types/field.ts`:
+ * `ManifestField` is already semantic manifest data, while `ParsedField`
+ * is the syntax-oriented FieldNode vocabulary.
  */
 
-import type { SemanticType } from '../semantic';
 import type { ResolvedSemanticType } from './resolvedSemanticTypes';
 
 export type ParsedValidationMap = Readonly<Record<string, unknown>>;
 
-export interface ParsedFieldContract {
+export interface ManifestField {
     readonly name: string;
     readonly type: string;
     readonly nullable: boolean;
-    readonly semanticType: SemanticType | ResolvedSemanticType;
+    readonly optional: boolean;
+    readonly semanticType: ResolvedSemanticType;
     readonly format: string;
     readonly validationRules: readonly string[];
+    readonly description: string;
+    readonly validation: boolean;
 }
 
-export type ParsedField = {
-    name: string;
-    type: string;
-    nullable?: boolean;
-    semanticType?: SemanticType | ResolvedSemanticType;
-    format?: string;
-    validationRules?: string[];
-};
-
-export interface ParsedActionContract {
+export interface ManifestAction {
     readonly name: string;
     readonly schema: ParsedValidationMap;
-    readonly fields: readonly ParsedField[];
+    readonly fields: readonly ManifestField[];
+    readonly validation: ParsedValidationMap;
 }
-
-export type ParsedAction = {
-    name: string;
-    schema?: ParsedValidationMap;
-    fields?: ParsedField[];
-};
 
 export interface ParsedResource {
     readonly name: string;
-    readonly path: string;
-    readonly fields: readonly ParsedField[];
-    readonly model?: string;
+    readonly sourceModel: string | undefined;
+    readonly fields: readonly ManifestField[];
+    readonly controller: string | undefined;
+    readonly routes: readonly string[];
+    readonly isSynthetic: boolean;
 }
 
 export interface ParsedRequest {
     readonly name: string;
-    readonly path: string;
-    readonly actions: readonly ParsedAction[];
+    readonly actions: readonly ManifestAction[];
+    readonly controller: string | undefined;
+    readonly routes: readonly string[];
 }
 
 export interface ParsedRoute {
+    readonly id: string;
     readonly method: string;
     readonly path: string;
     readonly action: string;
     readonly controller: string;
-    readonly name?: string;
-    readonly middleware?: readonly string[];
+    readonly middleware: readonly string[];
 }
 
 export interface ManifestMetadata {

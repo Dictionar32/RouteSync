@@ -8,16 +8,13 @@
 
 import type { ResponseFieldData } from './types';
 
-export function normalizeKind(kind: string): 'primitive' | 'object' | 'array' {
+export function normalizeKind(kind: ResponseFieldData['kind']): 'primitive' | 'object' | 'array' {
   switch (kind) {
     case 'primitive': return 'primitive';
     case 'object': return 'object';
     case 'array': return 'array';
     case 'variable':
-    case 'property_access':
-      return 'primitive';
-    default:
-      return 'primitive';
+    case 'property_access': return 'primitive';
   }
 }
 
@@ -35,32 +32,32 @@ export function normalizeType(type: string): string {
 }
 
 export function extractType(fieldData: ResponseFieldData): string {
-  if (fieldData.type) {
-    return normalizeType(fieldData.type);
+  switch (fieldData.kind) {
+    case 'primitive':
+      return normalizeType(fieldData.type);
+    case 'object':
+      return 'object';
+    case 'array':
+      return 'array';
+    case 'variable':
+    case 'property_access':
+      return resolvedType(fieldData.resolved);
   }
-  if (fieldData.resolved?.type) {
-    return normalizeType(fieldData.resolved.type);
-  }
-  if (fieldData.resolved?.model) {
-    return fieldData.resolved.model;
-  }
-  if (fieldData.kind === 'object') {
-    return 'object';
-  }
-  if (fieldData.kind === 'array') {
-    return 'array';
-  }
-  return 'unknown';
+}
+
+function resolvedType(resolved: ResponseFieldData['resolved']): string {
+  if (resolved === undefined) return 'unknown';
+  if (resolved.status === 'unresolved') return 'unknown';
+  if (resolved.type !== undefined) return normalizeType(resolved.type);
+  return resolved.model;
 }
 
 export function isFieldNullable(fieldData: ResponseFieldData): boolean {
-  if (fieldData.nullable === true) {
-    return true;
-  }
-  if (fieldData.resolved?.type?.includes('null')) {
-    return true;
-  }
-  return false;
+  if (fieldData.nullable === true) return true;
+  if (fieldData.kind !== 'variable' && fieldData.kind !== 'property_access') return false;
+  const resolved = fieldData.resolved;
+  return resolved !== undefined && resolved.status === 'resolved' &&
+    resolved.type !== undefined && resolved.type.includes('null');
 }
 
 export function isFieldOptional(fieldData: ResponseFieldData): boolean {

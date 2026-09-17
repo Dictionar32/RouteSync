@@ -16,7 +16,8 @@ export type {
   RoutePayloadContract,
   RouteProvenanceContract,
   RouteDefContract,
-  RouteDef
+  RouteDef,
+  RawRouteDefInput
 } from './routeEntityDefinition';
 
 export {
@@ -35,11 +36,8 @@ export type {
   ModelRelationDefinition,
   ResourceDefContract,
   ResourceDef,
-  ModelDefContract,
-  ModelDef
 } from './modelEntityDefinition';
 
 export {
-  ResourceDefDescriptor,
-  ModelDefDescriptor
+  ResourceDefDescriptor
 } from './modelEntityDescriptor';

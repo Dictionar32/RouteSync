@@ -1,7 +1,7 @@
 /**
  * nodeFactories.ts
  *
- * Factories for building ServiceNode, ControllerNode, and ModelNode instances,
+ * Factories for building ServiceNode, ControllerNode, and service-graph model nodes,
  * and layer detection heuristics.
  *
  * @module core/graph/service
@@ -10,7 +10,7 @@
 import type {
   ServiceNode,
   ControllerNode,
-  ModelNode,
+  ServiceModelNode,
   ExecutionLayer
 } from '../../types/semantic';
 
@@ -53,7 +53,7 @@ export function buildControllerNode(name: string, routes: string[], actions: str
   };
 }
 
-export function buildModelNode(name: string): ModelNode {
+export function buildModelNode(name: string): ServiceModelNode {
   return {
     kind: 'model_node',
     name,

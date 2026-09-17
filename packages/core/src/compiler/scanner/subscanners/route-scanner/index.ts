@@ -9,7 +9,8 @@
 
 export {
     extractPathParams,
-    normalizeRoutePath
+    normalizeRoutePath,
+    resolveRoutePath
 } from "./routePathParser";
 
 export { RouteContextTracker } from "./routeContextTracker";

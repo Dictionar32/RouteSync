@@ -1,0 +1,2800 @@
+{
+  "version": "1.0.0",
+  "baseURL": "http://localhost/api",
+  "routes": [
+    {
+      "name": "register.post",
+      "method": "POST",
+      "path": "/register",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "name": "required|string|max:255",
+          "email": "required|email|unique:users,email",
+          "password": "required|min:6"
+        }
+      },
+      "response": {
+        "kind": "inline",
+        "shape": "single",
+        "domain": "RegisterResponse",
+        "baseName": "RegisterResponse",
+        "typeName": "RegisterResponse",
+        "readTypeName": "RegisterResponse",
+        "mapperName": "toRegisterResponseRead",
+        "validatorName": "validateRegisterResponseSchema",
+        "fields": [
+          {
+            "name": "success",
+            "propertyName": "success",
+            "expression": {
+              "kind": "primitive",
+              "type": "boolean"
+            },
+            "semanticType": "boolean",
+            "nullable": false
+          },
+          {
+            "name": "message",
+            "propertyName": "message",
+            "expression": {
+              "kind": "primitive",
+              "type": "string"
+            },
+            "semanticType": "string",
+            "nullable": false
+          },
+          {
+            "name": "data",
+            "propertyName": "data",
+            "expression": {
+              "kind": "unknown"
+            },
+            "semanticType": "unknown",
+            "nullable": true
+          }
+        ],
+        "origin": {
+          "kind": "attribute",
+          "className": "RegisterResponse",
+          "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/DTOs/RegisterResponse.php",
+          "trace": [
+            {
+              "stage": "attribute",
+              "rule": "Explicit Response attribute",
+              "input": "RegisterResponse",
+              "output": "response: RegisterResponse"
+            },
+            {
+              "stage": "identity",
+              "rule": "Imported class resolved to source file",
+              "input": "App\\Http\\DTOs\\RegisterResponse",
+              "output": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/DTOs/RegisterResponse.php"
+            },
+            {
+              "stage": "shape",
+              "rule": "Typed public properties extracted from response class",
+              "input": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/DTOs/RegisterResponse.php",
+              "output": "3 fields"
+            },
+            {
+              "stage": "property",
+              "rule": "PHP typed property mapped to semantic field",
+              "input": "success",
+              "output": "boolean"
+            },
+            {
+              "stage": "property",
+              "rule": "PHP typed property mapped to semantic field",
+              "input": "message",
+              "output": "string"
+            },
+            {
+              "stage": "property",
+              "rule": "PHP typed property mapped to semantic field",
+              "input": "data",
+              "output": "unknown | null"
+            },
+            {
+              "stage": "runtime",
+              "rule": "Controller returns data = null; runtime value does not redefine response identity",
+              "input": "data = null",
+              "output": "RegisterResponse.data"
+            }
+          ]
+        },
+        "semanticContract": {
+          "kind": "object",
+          "name": "RegisterResponse",
+          "collection": false,
+          "properties": [
+            {
+              "name": "success",
+              "type": "boolean",
+              "presence": "required",
+              "nullable": false
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "presence": "required",
+              "nullable": false
+            },
+            {
+              "name": "data",
+              "type": "unknown",
+              "presence": "required",
+              "nullable": true
+            }
+          ]
+        }
+      },
+      "assignments": null,
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 26,
+      "stableHash": "4b2da0ccebdd9dba443ebe50363a28fd391cf317173b96bcfd1a13e0c2051cf4"
+    },
+    {
+      "name": "login.post",
+      "method": "POST",
+      "path": "/login",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "email": "required|email",
+          "password": "required"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "success": {
+            "kind": "primitive",
+            "type": "boolean"
+          },
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "token": {
+                "kind": "variable",
+                "originalCode": "$token",
+                "name": "token",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "token",
+                      "output": "string ()"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Framework method lookup: createToken",
+                      "input": "createToken",
+                      "output": "object"
+                    },
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "where",
+                      "output": "model User",
+                      "rule": "Static method call User::where"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "rule": "Eloquent method registry: first -> model",
+                      "input": "static_method_call->first()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ExpressionResolver",
+                      "rule": "Field lookup from resolved object type fields.plainTextToken",
+                      "input": "plainTextToken",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "user": {
+                "kind": "object",
+                "fields": {
+                  "id": {
+                    "kind": "property_access",
+                    "originalCode": "$user->id",
+                    "target": {
+                      "kind": "variable",
+                      "originalCode": "$user",
+                      "name": "user"
+                    },
+                    "property": "id",
+                    "accessKind": "property_access",
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "number",
+                      "confidence": 100,
+                      "trace": [
+                        {
+                          "source": "VariableResolver",
+                          "rule": "Variable lookup from resolved assignments",
+                          "input": "user",
+                          "output": "model (User)"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "rule": "Eloquent method registry: first -> model",
+                          "input": "static_method_call->first()",
+                          "output": "model"
+                        },
+                        {
+                          "source": "ModelColumnResolver",
+                          "rule": "Column type lookup from database schema",
+                          "input": "User.id",
+                          "output": "number"
+                        }
+                      ]
+                    }
+                  },
+                  "name": {
+                    "kind": "property_access",
+                    "originalCode": "$user->name",
+                    "target": {
+                      "kind": "variable",
+                      "originalCode": "$user",
+                      "name": "user"
+                    },
+                    "property": "name",
+                    "accessKind": "property_access",
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 100,
+                      "trace": [
+                        {
+                          "source": "VariableResolver",
+                          "rule": "Variable lookup from resolved assignments",
+                          "input": "user",
+                          "output": "model (User)"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "rule": "Eloquent method registry: first -> model",
+                          "input": "static_method_call->first()",
+                          "output": "model"
+                        },
+                        {
+                          "source": "ModelColumnResolver",
+                          "rule": "Column type lookup from database schema",
+                          "input": "User.name",
+                          "output": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "email": {
+                    "kind": "property_access",
+                    "originalCode": "$user->email",
+                    "target": {
+                      "kind": "variable",
+                      "originalCode": "$user",
+                      "name": "user"
+                    },
+                    "property": "email",
+                    "accessKind": "property_access",
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 100,
+                      "trace": [
+                        {
+                          "source": "VariableResolver",
+                          "rule": "Variable lookup from resolved assignments",
+                          "input": "user",
+                          "output": "model (User)"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "rule": "Eloquent method registry: first -> model",
+                          "input": "static_method_call->first()",
+                          "output": "model"
+                        },
+                        {
+                          "source": "ModelColumnResolver",
+                          "rule": "Column type lookup from database schema",
+                          "input": "User.email",
+                          "output": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "role": {
+                    "kind": "property_access",
+                    "originalCode": "$user->role",
+                    "target": {
+                      "kind": "variable",
+                      "originalCode": "$user",
+                      "name": "user"
+                    },
+                    "property": "role",
+                    "accessKind": "property_access",
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 100,
+                      "trace": [
+                        {
+                          "source": "VariableResolver",
+                          "rule": "Variable lookup from resolved assignments",
+                          "input": "user",
+                          "output": "model (User)"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "rule": "Eloquent method registry: first -> model",
+                          "input": "static_method_call->first()",
+                          "output": "model"
+                        },
+                        {
+                          "source": "ModelColumnResolver",
+                          "rule": "Column type lookup from database schema",
+                          "input": "User.role",
+                          "output": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "created_at": {
+                    "kind": "method_call",
+                    "originalCode": "$user->created_at?->toISOString()",
+                    "target": {
+                      "kind": "property_access",
+                      "originalCode": "$user->created_at",
+                      "target": {
+                        "kind": "variable",
+                        "originalCode": "$user",
+                        "name": "user"
+                      },
+                      "property": "created_at",
+                      "accessKind": "property_access"
+                    },
+                    "name": "toISOString",
+                    "args": [],
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 100,
+                      "trace": [
+                        {
+                          "source": "FrameworkRegistryResolver",
+                          "rule": "Framework method lookup: toISOString",
+                          "input": "toISOString",
+                          "output": "string"
+                        },
+                        {
+                          "source": "VariableResolver",
+                          "rule": "Variable lookup from resolved assignments",
+                          "input": "user",
+                          "output": "model (User)"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "rule": "Eloquent method registry: first -> model",
+                          "input": "static_method_call->first()",
+                          "output": "model"
+                        },
+                        {
+                          "source": "ModelColumnResolver",
+                          "rule": "Column type lookup from database schema",
+                          "input": "User.created_at",
+                          "output": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "updated_at": {
+                    "kind": "method_call",
+                    "originalCode": "$user->updated_at?->toISOString()",
+                    "target": {
+                      "kind": "property_access",
+                      "originalCode": "$user->updated_at",
+                      "target": {
+                        "kind": "variable",
+                        "originalCode": "$user",
+                        "name": "user"
+                      },
+                      "property": "updated_at",
+                      "accessKind": "property_access"
+                    },
+                    "name": "toISOString",
+                    "args": [],
+                    "resolved": {
+                      "status": "resolved",
+                      "type": "string",
+                      "confidence": 100,
+                      "trace": [
+                        {
+                          "source": "FrameworkRegistryResolver",
+                          "rule": "Framework method lookup: toISOString",
+                          "input": "toISOString",
+                          "output": "string"
+                        },
+                        {
+                          "source": "VariableResolver",
+                          "rule": "Variable lookup from resolved assignments",
+                          "input": "user",
+                          "output": "model (User)"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "input": "where",
+                          "output": "model User",
+                          "rule": "Static method call User::where"
+                        },
+                        {
+                          "source": "EloquentMethodResolver",
+                          "rule": "Eloquent method registry: first -> model",
+                          "input": "static_method_call->first()",
+                          "output": "model"
+                        },
+                        {
+                          "source": "ModelColumnResolver",
+                          "rule": "Column type lookup from database schema",
+                          "input": "User.updated_at",
+                          "output": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "User::where('email', $request->email)->first()",
+        "token": "$user->createToken('auth')->plainTextToken"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 43,
+      "stableHash": "ba64d7fc5a50b2954b04c63f0ba03e3a6af5c8b6d9518e9c327de760243e0768"
+    },
+    {
+      "name": "oauth_provider_redirect.get",
+      "method": "GET",
+      "path": "/oauth/{provider}/redirect",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "redirect_to": "nullable|url|max:2048"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "provider": {
+            "kind": "variable",
+            "originalCode": "$provider",
+            "name": "provider",
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "provider",
+                  "output": "string ()"
+                },
+                {
+                  "source": "FrameworkRegistryResolver",
+                  "rule": "Global function lookup: strtolower",
+                  "input": "strtolower",
+                  "output": "string"
+                },
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from raw assignments",
+                  "input": "provider",
+                  "output": "string ()"
+                },
+                {
+                  "source": "FrameworkRegistryResolver",
+                  "rule": "Global function lookup: strtolower",
+                  "input": "strtolower",
+                  "output": "string"
+                },
+                {
+                  "source": "VariableResolver",
+                  "rule": "Cycle detected at variable var:oauth_provider_redirect.get:provider",
+                  "input": "provider",
+                  "output": "unknown"
+                }
+              ]
+            }
+          },
+          "auth_url": {
+            "kind": "variable",
+            "originalCode": "$targetUrl",
+            "name": "targetUrl"
+          }
+        }
+      },
+      "assignments": {
+        "provider": "strtolower($provider)",
+        "driver": "$this->socialiteProvider($provider)",
+        "scopes": "$this->resolveScopes($provider)",
+        "redirectTo": "$request->input('redirect_to') ?: config('services.oauth.frontend_redirect_default')",
+        "targetUrl": "$driver->redirect()->getTargetUrl()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 77,
+      "stableHash": "2297fb9b06695b102730b011bb84218dace385956089086e7bc339daf10e5b36"
+    },
+    {
+      "name": "oauth_provider_callback.get",
+      "method": "GET",
+      "path": "/oauth/{provider}/callback",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "error": {
+            "kind": "method_call",
+            "originalCode": "$exception->getMessage()",
+            "target": {
+              "kind": "variable",
+              "originalCode": "$exception",
+              "name": "exception"
+            },
+            "name": "getMessage",
+            "args": []
+          }
+        }
+      },
+      "assignments": {
+        "provider": "strtolower($provider)",
+        "socialiteUser": "$this->socialiteProvider($provider)->user()",
+        "user": "$this->upsertUserFromSocialite($provider, $socialiteUser)",
+        "token": "$user->createToken('auth')->plainTextToken",
+        "frontendRedirect": "$this->extractFrontendRedirect($request)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 113,
+      "stableHash": "b709a3fcd1f8faf888be2e0d0cddd1ea050e2282077f5ece193800fff931286b"
+    },
+    {
+      "name": "oauth_provider_callback.post",
+      "method": "POST",
+      "path": "/oauth/{provider}/callback",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "error": {
+            "kind": "method_call",
+            "originalCode": "$exception->getMessage()",
+            "target": {
+              "kind": "variable",
+              "originalCode": "$exception",
+              "name": "exception"
+            },
+            "name": "getMessage",
+            "args": []
+          }
+        }
+      },
+      "assignments": {
+        "provider": "strtolower($provider)",
+        "socialiteUser": "$this->socialiteProvider($provider)->user()",
+        "user": "$this->upsertUserFromSocialite($provider, $socialiteUser)",
+        "token": "$user->createToken('auth')->plainTextToken",
+        "frontendRedirect": "$this->extractFrontendRedirect($request)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 113,
+      "stableHash": "cac98121a929181eb94d943adf4113aa7aa61bd516bd51fd8468442c431ca312"
+    },
+    {
+      "name": "social_login.post",
+      "method": "POST",
+      "path": "/social/login",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "provider": "required|in:google,facebook,apple",
+          "provider_user_id": "required|string|max:191",
+          "email": "required|email|max:255",
+          "name": "nullable|string|max:255",
+          "avatar_url": "nullable|url|max:2048"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "token": {
+            "kind": "variable",
+            "originalCode": "$token",
+            "name": "token",
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "token",
+                  "output": "string ()"
+                },
+                {
+                  "source": "FrameworkRegistryResolver",
+                  "rule": "Framework method lookup: createToken",
+                  "input": "createToken",
+                  "output": "object"
+                },
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "user",
+                  "output": "model (User)"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "input": "create",
+                  "output": "model User",
+                  "rule": "Static method call User::create"
+                },
+                {
+                  "source": "ExpressionResolver",
+                  "rule": "Field lookup from resolved object type fields.plainTextToken",
+                  "input": "plainTextToken",
+                  "output": "string"
+                }
+              ]
+            }
+          },
+          "user": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "property_access",
+                "originalCode": "$user->id",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "id",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.id",
+                      "output": "number"
+                    }
+                  ]
+                }
+              },
+              "name": {
+                "kind": "property_access",
+                "originalCode": "$user->name",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "name",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.name",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "email": {
+                "kind": "property_access",
+                "originalCode": "$user->email",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "email",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.email",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "role": {
+                "kind": "property_access",
+                "originalCode": "$user->role",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "role",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.role",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "created_at": {
+                "kind": "method_call",
+                "originalCode": "$user->created_at?->toISOString()",
+                "target": {
+                  "kind": "property_access",
+                  "originalCode": "$user->created_at",
+                  "target": {
+                    "kind": "variable",
+                    "originalCode": "$user",
+                    "name": "user"
+                  },
+                  "property": "created_at",
+                  "accessKind": "property_access"
+                },
+                "name": "toISOString",
+                "args": [],
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Framework method lookup: toISOString",
+                      "input": "toISOString",
+                      "output": "string"
+                    },
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.created_at",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "updated_at": {
+                "kind": "method_call",
+                "originalCode": "$user->updated_at?->toISOString()",
+                "target": {
+                  "kind": "property_access",
+                  "originalCode": "$user->updated_at",
+                  "target": {
+                    "kind": "variable",
+                    "originalCode": "$user",
+                    "name": "user"
+                  },
+                  "property": "updated_at",
+                  "accessKind": "property_access"
+                },
+                "name": "toISOString",
+                "args": [],
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Framework method lookup: toISOString",
+                      "input": "toISOString",
+                      "output": "string"
+                    },
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "create",
+                      "output": "model User",
+                      "rule": "Static method call User::create"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.updated_at",
+                      "output": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "provider": "$request->string('provider')->toString()",
+        "providerUserId": "$request->string('provider_user_id')->toString()",
+        "email": "$request->string('email')->toString()",
+        "user": "User::create([ 'name' => $request->name ?? Str::before($email, '@'), 'email' => $email, 'password' => Hash::make(Str::random(40)), 'role' => 'user', ])",
+        "token": "$user->createToken('auth')->plainTextToken"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 155,
+      "stableHash": "bf89de91bf2a39db457d68986b010ae34f503ef928977d6f623cff2428b769ba"
+    },
+    {
+      "name": "forgot-password.post",
+      "method": "POST",
+      "path": "/forgot-password",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "email": "required|email|exists:users,email"
+        }
+      },
+      "response": null,
+      "assignments": {
+        "email": "$request->string('email')->toString()",
+        "token": "Str::random(64)",
+        "response": "[ 'message' => 'Link reset password telah dibuat.', ]"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 220,
+      "stableHash": "1b1d468b58a933cf7b9f9e6f44b869dd531ee7dcc9d1f2aee6c9030e8108bba3"
+    },
+    {
+      "name": "reset-password.post",
+      "method": "POST",
+      "path": "/reset-password",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": {
+        "rules": {
+          "email": "required|email|exists:users,email",
+          "token": "required|string",
+          "password": "required|string|min:6|confirmed"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": {
+        "email": "$request->string('email')->toString()",
+        "reset": "DB::table('password_reset_tokens') ->where('email', $email) ->first()",
+        "createdAt": "$reset->created_at ? Carbon::parse($reset->created_at) : null",
+        "user": "User::where('email', $email)->firstOrFail()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 248,
+      "stableHash": "949e535c7769a3f812e7dfcdf1b8d4fbc203e042527a41ec935e45160006b97a"
+    },
+    {
+      "name": "categories.get",
+      "method": "GET",
+      "path": "/categories",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "data": {
+            "kind": "variable",
+            "originalCode": "$categories",
+            "name": "categories",
+            "resolved": {
+              "status": "resolved",
+              "type": "model",
+              "model": "Category",
+              "collection": true,
+              "confidence": 90,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "categories",
+                  "output": "model (Category)"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "input": "orderBy",
+                  "output": "model Category",
+                  "rule": "Static method call Category::orderBy"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "rule": "Eloquent method registry: get -> model",
+                  "input": "static_method_call->get()",
+                  "output": "model"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "categories": "Category::orderBy('nama')->get(['id', 'nama'])"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/CategoryController.php",
+      "sourceLine": 9,
+      "stableHash": "02f8016b1a83f409ba757e05fb8f62c1b21ec62ff2084f78d4af466570705522"
+    },
+    {
+      "name": "produk.get",
+      "method": "GET",
+      "path": "/produk",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "ProdukItem",
+              "output": "model: ProdukItem"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "query": "ProdukItem::query() ->with(['category', 'frontend']) ->where('stok', '>', 0)",
+        "search": "$request->string('search')->trim()->toString()",
+        "produk": "$query->get()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProdukController.php",
+      "sourceLine": 20,
+      "stableHash": "fec15127fe6f278a744d7e3180b829524d1036b410801a033da4432d85fa09f5"
+    },
+    {
+      "name": "produk_id.get",
+      "method": "GET",
+      "path": "/produk/{id}",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": false,
+        "wrapped": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "ProdukItem",
+              "output": "model: ProdukItem"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "produk": "ProdukItem::with(['category', 'frontend'])->findOrFail($id)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProdukController.php",
+      "sourceLine": 68,
+      "stableHash": "a23e246a2c8346a2b86de5c4b5c72dadd639bde52138c046075401446af879b9"
+    },
+    {
+      "name": "produk_id_reviews.get",
+      "method": "GET",
+      "path": "/produk/{id}/reviews",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "summary": {
+            "kind": "object",
+            "fields": {
+              "avg_rating": {
+                "kind": "type_cast",
+                "originalCode": "(float) ($summary->avg_rating ?? 0)",
+                "castType": "float",
+                "expression": {
+                  "kind": "binary_expression",
+                  "originalCode": "$summary->avg_rating ?? 0",
+                  "operator": "??",
+                  "left": {
+                    "kind": "property_access",
+                    "originalCode": "$summary->avg_rating",
+                    "target": {
+                      "kind": "variable",
+                      "originalCode": "$summary",
+                      "name": "summary"
+                    },
+                    "property": "avg_rating",
+                    "accessKind": "property_access"
+                  },
+                  "right": {
+                    "kind": "literal",
+                    "originalCode": "0",
+                    "value": 0
+                  }
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "PrimitiveResolver",
+                      "rule": "Type cast to float",
+                      "input": "float",
+                      "output": "number"
+                    },
+                    {
+                      "source": "ExpressionResolver",
+                      "rule": "Binary operation: ??",
+                      "input": "unknown ?? number"
+                    },
+                    {
+                      "source": "ExpressionResolver",
+                      "rule": "Cannot resolve target of property access: variable"
+                    },
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from raw assignments",
+                      "input": "summary",
+                      "output": "unknown ()"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "rule": "Method return fallback",
+                      "input": "method_call->first()",
+                      "output": "unknown"
+                    },
+                    {
+                      "source": "PrimitiveResolver",
+                      "rule": "Literal type mapping",
+                      "input": "0",
+                      "output": "number"
+                    }
+                  ]
+                }
+              },
+              "total_review": {
+                "kind": "type_cast",
+                "originalCode": "(int) ($summary->total_review ?? 0)",
+                "castType": "int",
+                "expression": {
+                  "kind": "binary_expression",
+                  "originalCode": "$summary->total_review ?? 0",
+                  "operator": "??",
+                  "left": {
+                    "kind": "property_access",
+                    "originalCode": "$summary->total_review",
+                    "target": {
+                      "kind": "variable",
+                      "originalCode": "$summary",
+                      "name": "summary"
+                    },
+                    "property": "total_review",
+                    "accessKind": "property_access"
+                  },
+                  "right": {
+                    "kind": "literal",
+                    "originalCode": "0",
+                    "value": 0
+                  }
+                },
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "PrimitiveResolver",
+                      "rule": "Type cast to int",
+                      "input": "int",
+                      "output": "number"
+                    },
+                    {
+                      "source": "ExpressionResolver",
+                      "rule": "Binary operation: ??",
+                      "input": "unknown ?? number"
+                    },
+                    {
+                      "source": "ExpressionResolver",
+                      "rule": "Cannot resolve target of property access: variable"
+                    },
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from raw assignments",
+                      "input": "summary",
+                      "output": "unknown ()"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "rule": "Method return fallback",
+                      "input": "method_call->first()",
+                      "output": "unknown"
+                    },
+                    {
+                      "source": "PrimitiveResolver",
+                      "rule": "Literal type mapping",
+                      "input": "0",
+                      "output": "number"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "reviews": {
+            "kind": "variable",
+            "originalCode": "$reviews",
+            "name": "reviews",
+            "resolved": {
+              "status": "resolved",
+              "type": "model",
+              "model": "ProductReview",
+              "collection": true,
+              "paginated": true,
+              "confidence": 90,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "reviews",
+                  "output": "model (ProductReview)"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "input": "where",
+                  "output": "model ProductReview",
+                  "rule": "Static method call ProductReview::where"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "rule": "Eloquent method registry: with -> builder",
+                  "input": "static_method_call->with()",
+                  "output": "builder"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "rule": "Eloquent method registry: latest -> builder",
+                  "input": "method_call->latest()",
+                  "output": "builder"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "rule": "Eloquent method registry: paginate -> model",
+                  "input": "method_call->paginate()",
+                  "output": "model"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "perPage": "max(1, min((int) $request->query('per_page', 10), 50))",
+        "summary": "ProductReview::where('produk_item_id', $produkId) ->selectRaw('COALESCE(ROUND(AVG(rating), 2), 0) as avg_rating, COUNT(*) as total_review') ->first()",
+        "reviews": "ProductReview::where('produk_item_id', $produkId) ->with('user:id,name') ->latest() ->paginate($perPage)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+      "sourceLine": 13,
+      "stableHash": "acb0cb4d79e4c1b94e0134301485a3e55b6136b847aedac77b00935db35c3d3d"
+    },
+    {
+      "name": "payment_webhook.post",
+      "method": "POST",
+      "path": "/payment/webhook",
+      "auth": false,
+      "middleware": [
+        "api"
+      ],
+      "schema": null,
+      "response": null,
+      "assignments": null,
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+      "sourceLine": 13,
+      "stableHash": "17e6164ce0a60f07282b539be85c954cb2e57c7229fbb880eed92e1197e631bc"
+    },
+    {
+      "name": "profile.get",
+      "method": "GET",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "property_access",
+            "originalCode": "$user->id",
+            "target": {
+              "kind": "variable",
+              "originalCode": "$user",
+              "name": "user"
+            },
+            "property": "id",
+            "accessKind": "property_access",
+            "resolved": {
+              "status": "resolved",
+              "type": "number",
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "user",
+                  "output": "model (User)"
+                },
+                {
+                  "source": "FrameworkRegistryResolver",
+                  "rule": "Variable-keyed helper: request->user()",
+                  "input": "request->user()",
+                  "output": "model"
+                },
+                {
+                  "source": "ModelColumnResolver",
+                  "rule": "Column type lookup from database schema",
+                  "input": "User.id",
+                  "output": "number"
+                }
+              ]
+            }
+          },
+          "name": {
+            "kind": "property_access",
+            "originalCode": "$user->name",
+            "target": {
+              "kind": "variable",
+              "originalCode": "$user",
+              "name": "user"
+            },
+            "property": "name",
+            "accessKind": "property_access",
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "user",
+                  "output": "model (User)"
+                },
+                {
+                  "source": "FrameworkRegistryResolver",
+                  "rule": "Variable-keyed helper: request->user()",
+                  "input": "request->user()",
+                  "output": "model"
+                },
+                {
+                  "source": "ModelColumnResolver",
+                  "rule": "Column type lookup from database schema",
+                  "input": "User.name",
+                  "output": "string"
+                }
+              ]
+            }
+          },
+          "email": {
+            "kind": "property_access",
+            "originalCode": "$user->email",
+            "target": {
+              "kind": "variable",
+              "originalCode": "$user",
+              "name": "user"
+            },
+            "property": "email",
+            "accessKind": "property_access",
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from resolved assignments",
+                  "input": "user",
+                  "output": "model (User)"
+                },
+                {
+                  "source": "FrameworkRegistryResolver",
+                  "rule": "Variable-keyed helper: request->user()",
+                  "input": "request->user()",
+                  "output": "model"
+                },
+                {
+                  "source": "ModelColumnResolver",
+                  "rule": "Column type lookup from database schema",
+                  "input": "User.email",
+                  "output": "string"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "$request->user()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+      "sourceLine": 10,
+      "stableHash": "f6b3dd2adc8005822433409b814b4c859e0a3328575ab7fe97dec35d6a5d599c"
+    },
+    {
+      "name": "profile.put",
+      "method": "PUT",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "name": "sometimes|required|string|max:255",
+          "email": [
+            "sometimes",
+            "required",
+            "email",
+            {}
+          ]
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "property_access",
+                "originalCode": "$user->id",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "id",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Variable-keyed helper: request->user()",
+                      "input": "request->user()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.id",
+                      "output": "number"
+                    }
+                  ]
+                }
+              },
+              "name": {
+                "kind": "property_access",
+                "originalCode": "$user->name",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "name",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Variable-keyed helper: request->user()",
+                      "input": "request->user()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.name",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "email": {
+                "kind": "property_access",
+                "originalCode": "$user->email",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "email",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Variable-keyed helper: request->user()",
+                      "input": "request->user()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.email",
+                      "output": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "$request->user()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+      "sourceLine": 21,
+      "stableHash": "a765dc2f8fbff3ba707ce3202821f122375c9991ce99e32663268d269df9064d"
+    },
+    {
+      "name": "profile.patch",
+      "method": "PATCH",
+      "path": "/profile",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "name": "sometimes|required|string|max:255",
+          "email": [
+            "sometimes",
+            "required",
+            "email",
+            {}
+          ]
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "property_access",
+                "originalCode": "$user->id",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "id",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Variable-keyed helper: request->user()",
+                      "input": "request->user()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.id",
+                      "output": "number"
+                    }
+                  ]
+                }
+              },
+              "name": {
+                "kind": "property_access",
+                "originalCode": "$user->name",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "name",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Variable-keyed helper: request->user()",
+                      "input": "request->user()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.name",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "email": {
+                "kind": "property_access",
+                "originalCode": "$user->email",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$user",
+                  "name": "user"
+                },
+                "property": "email",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "user",
+                      "output": "model (User)"
+                    },
+                    {
+                      "source": "FrameworkRegistryResolver",
+                      "rule": "Variable-keyed helper: request->user()",
+                      "input": "request->user()",
+                      "output": "model"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "User.email",
+                      "output": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "user": "$request->user()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProfileController.php",
+      "sourceLine": 21,
+      "stableHash": "53c5c26a7794a48ad5b6ca1721baf50d46d16d657b0f3b96f39f293f2776216b"
+    },
+    {
+      "name": "orders.get",
+      "method": "GET",
+      "path": "/orders",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "orders": "Order::where('user_id', $request->user()->id) ->with(['details.produkItem.frontend', 'payment', 'shipping', 'promotion.promoCode']) ->latest() ->get()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 19,
+      "stableHash": "c8033084d7a674a9c477b657d579c995f3666379d374e7f3a149997d54ce7487"
+    },
+    {
+      "name": "orders_id.get",
+      "method": "GET",
+      "path": "/orders/{id}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->with(['details.produkItem.frontend', 'payment', 'shipping', 'promotion.promoCode']) ->findOrFail($id)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 30,
+      "stableHash": "2716c6f2d4ed970df8b61105f7ff67910d3e5447d5ec95436569d974ff01d898"
+    },
+    {
+      "name": "cart_items.post",
+      "method": "POST",
+      "path": "/cart/items",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "produk_item_id": "required|exists:produk_items,id",
+          "qty": "required|integer|min:1"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "$this->getOrCreatePendingOrder($request)",
+        "items": "[ ['produk_item_id' => $request->produk_item_id, 'qty' => $request->qty] ]"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 127,
+      "stableHash": "f33293dc53d9e2b509fd1158bd754ae0b37ba75f2915056e4d8eeaacd3acdab3"
+    },
+    {
+      "name": "cart_items_produkItemId.patch",
+      "method": "PATCH",
+      "path": "/cart/items/{produkItemId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "qty": "required|integer|min:1"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)",
+        "detail": "$order->details()->where('produk_item_id', $produkItemId)->first()",
+        "produk": "ProdukItem::whereKey($produkItemId)->lockForUpdate()->firstOrFail()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 145,
+      "stableHash": "c6c05617a8266c70099346fbcf442a7ea7129e6f6e46f551d276d0f9193040ee"
+    },
+    {
+      "name": "cart_items_produkItemId.delete",
+      "method": "DELETE",
+      "path": "/cart/items/{produkItemId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)",
+        "detail": "$order->details()->where('produk_item_id', $produkItemId)->first()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 166,
+      "stableHash": "c9c7b07f6a63fe476d7e4880097f50838a71d4822273ccba2b9a2ea2f1768c0f"
+    },
+    {
+      "name": "cart.delete",
+      "method": "DELETE",
+      "path": "/cart",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 188,
+      "stableHash": "a58a135ebd4a79022169363524131e711be989685bd3cfc28e435cd399b818e1"
+    },
+    {
+      "name": "cart_promo.post",
+      "method": "POST",
+      "path": "/cart/promo",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "code": "required|string|max:64"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->where('status', 'pending') ->with(['details', 'promotion.promoCode', 'shipping', 'payment']) ->lockForUpdate() ->latest() ->first()",
+        "code": "strtoupper($request->string('code')->toString())",
+        "promo": "PromoCode::where('code', $code)->lockForUpdate()->first()",
+        "subtotal": "(int) $order->details() ->selectRaw('COALESCE(SUM(qty * harga), 0) as subtotal') ->value('subtotal')",
+        "usedCount": "OrderPromotion::where('promo_code_id', $promo->id) ->whereHas('order', function ($query) { $query->where('status', 'paid')",
+        "discount": "$this->calculateDiscount($promo, $subtotal)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/PromoController.php",
+      "sourceLine": 16,
+      "stableHash": "d363820ec42db085727bd38094e5c77388c18ee973523f4ce3ecd9f8b35159d6"
+    },
+    {
+      "name": "cart_promo.delete",
+      "method": "DELETE",
+      "path": "/cart/promo",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->where('status', 'pending') ->with(['details', 'promotion', 'shipping', 'payment']) ->lockForUpdate() ->latest() ->first()",
+        "subtotal": "(int) $order->details() ->selectRaw('COALESCE(SUM(qty * harga), 0) as subtotal') ->value('subtotal')"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/PromoController.php",
+      "sourceLine": 85,
+      "stableHash": "653a7ea66ddcd9cbecef30fa7107a9cfb28775cfe48d3aefbe395f1ad6fc8858"
+    },
+    {
+      "name": "checkout.post",
+      "method": "POST",
+      "path": "/checkout",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "items": "sometimes|array|min:1",
+          "items.*.produk_item_id": "required_with:items|exists:produk_items,id",
+          "items.*.qty": "required_with:items|integer|min:1",
+          "shipping_nama": "nullable|string|max:255",
+          "shipping_telepon": "nullable|string|max:40",
+          "shipping_alamat": "nullable|string",
+          "shipping_kota": "nullable|string|max:255",
+          "shipping_kode_pos": "nullable|string|max:20"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "$this->getOrCreatePendingOrder($request)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 43,
+      "stableHash": "9f6377182a9ececee25e5b2226016df80d873fef8f26f3a4ca1d5d8f6b438dc5"
+    },
+    {
+      "name": "buy-now.post",
+      "method": "POST",
+      "path": "/buy-now",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "produk_item_id": "required|exists:produk_items,id",
+          "qty": "required|integer|min:1",
+          "shipping_nama": "nullable|string|max:255",
+          "shipping_telepon": "nullable|string|max:40",
+          "shipping_alamat": "nullable|string",
+          "shipping_kota": "nullable|string|max:255",
+          "shipping_kode_pos": "nullable|string|max:20"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "$this->getOrCreatePendingOrder($request)",
+        "produk": "ProdukItem::whereKey($request->produk_item_id) ->lockForUpdate() ->firstOrFail()",
+        "shippingData": "$request->safe()->only([ 'shipping_nama', 'shipping_telepon', 'shipping_alamat', 'shipping_kota', 'shipping_kode_pos', ])"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 65,
+      "stableHash": "87e95e112743e9b3311a5a1b00de1b26081bdf9593d1ed09a6494d9ccea11d49"
+    },
+    {
+      "name": "keranjang.get",
+      "method": "GET",
+      "path": "/keranjang",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "Order",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Order",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Order",
+              "output": "model: Order"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "order": "$this->getPendingOrder($request)"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/OrderController.php",
+      "sourceLine": 114,
+      "stableHash": "c7128805918bda631118a15bdff0edd9099cb74ef4f235f7ff5564643a270985"
+    },
+    {
+      "name": "wishlist.get",
+      "method": "GET",
+      "path": "/wishlist",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "ProdukItem",
+              "output": "model: ProdukItem"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "items": "Wishlist::where('user_id', $request->user()->id) ->with('produkItem.category', 'produkItem.frontend') ->latest() ->get() ->pluck('produkItem') ->filter() ->values()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/WishlistController.php",
+      "sourceLine": 14,
+      "stableHash": "fbff804ffdafd667b15cb4cfd17d5b855f727cbac5da98882121c6e7c7ba2325"
+    },
+    {
+      "name": "wishlist.post",
+      "method": "POST",
+      "path": "/wishlist",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "produk_item_id": "required|exists:produk_items,id"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": null,
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/WishlistController.php",
+      "sourceLine": 27,
+      "stableHash": "99af0e82510bfc026077a3225b92ff51375ac72df9fe395922fc47d8b876907a"
+    },
+    {
+      "name": "wishlist_produkItemId.delete",
+      "method": "DELETE",
+      "path": "/wishlist/{produkItemId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "ternary",
+            "originalCode": "$deleted ? 'Produk dihapus dari wishlist' : 'Produk tidak ditemukan di wishlist'",
+            "condition": {
+              "kind": "variable",
+              "originalCode": "$deleted",
+              "name": "deleted"
+            },
+            "truthy": {
+              "kind": "literal",
+              "originalCode": "'Produk dihapus dari wishlist'",
+              "value": "Produk dihapus dari wishlist"
+            },
+            "falsy": {
+              "kind": "literal",
+              "originalCode": "'Produk tidak ditemukan di wishlist'",
+              "value": "Produk tidak ditemukan di wishlist"
+            },
+            "resolved": {
+              "status": "resolved",
+              "type": "string",
+              "nullable": false,
+              "confidence": 100,
+              "trace": [
+                {
+                  "source": "ExpressionResolver",
+                  "rule": "Ternary expression resolution",
+                  "input": "condition: unknown"
+                },
+                {
+                  "source": "VariableResolver",
+                  "rule": "Variable lookup from raw assignments",
+                  "input": "deleted",
+                  "output": "unknown ()"
+                },
+                {
+                  "source": "EloquentMethodResolver",
+                  "rule": "Method return fallback",
+                  "input": "method_call->delete()",
+                  "output": "unknown"
+                },
+                {
+                  "source": "PrimitiveResolver",
+                  "rule": "Literal type mapping",
+                  "input": "Produk dihapus dari wishlist",
+                  "output": "string"
+                },
+                {
+                  "source": "PrimitiveResolver",
+                  "rule": "Literal type mapping",
+                  "input": "Produk tidak ditemukan di wishlist",
+                  "output": "string"
+                },
+                {
+                  "source": "PrimitiveResolver",
+                  "rule": "Literal type mapping",
+                  "input": "Produk dihapus dari wishlist",
+                  "output": "string"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "assignments": {
+        "deleted": "Wishlist::where('user_id', $request->user()->id) ->where('produk_item_id', $produkItemId) ->delete()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/WishlistController.php",
+      "sourceLine": 43,
+      "stableHash": "a12479e559d33207015cfa70221b51c2f035e8bd8ee728483eeb549f8c21158d"
+    },
+    {
+      "name": "produk_id_reviews.post",
+      "method": "POST",
+      "path": "/produk/{id}/reviews",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "rating": "required|integer|min:1|max:5",
+          "title": "nullable|string|max:255",
+          "comment": "nullable|string"
+        }
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          },
+          "data": {
+            "kind": "object",
+            "fields": {
+              "id": {
+                "kind": "property_access",
+                "originalCode": "$review->id",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$review",
+                  "name": "review"
+                },
+                "property": "id",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "review",
+                      "output": "model (ProductReview)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "ProductReview.id",
+                      "output": "number"
+                    }
+                  ]
+                }
+              },
+              "rating": {
+                "kind": "property_access",
+                "originalCode": "$review->rating",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$review",
+                  "name": "review"
+                },
+                "property": "rating",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "number",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "review",
+                      "output": "model (ProductReview)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "ProductReview.rating",
+                      "output": "number"
+                    }
+                  ]
+                }
+              },
+              "title": {
+                "kind": "property_access",
+                "originalCode": "$review->title",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$review",
+                  "name": "review"
+                },
+                "property": "title",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": true,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "review",
+                      "output": "model (ProductReview)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "ProductReview.title",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "comment": {
+                "kind": "property_access",
+                "originalCode": "$review->comment",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$review",
+                  "name": "review"
+                },
+                "property": "comment",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": true,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "review",
+                      "output": "model (ProductReview)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "ProductReview.comment",
+                      "output": "string"
+                    }
+                  ]
+                }
+              },
+              "is_verified_purchase": {
+                "kind": "property_access",
+                "originalCode": "$review->is_verified_purchase",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$review",
+                  "name": "review"
+                },
+                "property": "is_verified_purchase",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "boolean",
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "review",
+                      "output": "model (ProductReview)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "ProductReview.is_verified_purchase",
+                      "output": "boolean"
+                    }
+                  ]
+                }
+              },
+              "created_at": {
+                "kind": "property_access",
+                "originalCode": "$review->created_at",
+                "target": {
+                  "kind": "variable",
+                  "originalCode": "$review",
+                  "name": "review"
+                },
+                "property": "created_at",
+                "accessKind": "property_access",
+                "resolved": {
+                  "status": "resolved",
+                  "type": "string",
+                  "nullable": true,
+                  "confidence": 100,
+                  "trace": [
+                    {
+                      "source": "VariableResolver",
+                      "rule": "Variable lookup from resolved assignments",
+                      "input": "review",
+                      "output": "model (ProductReview)"
+                    },
+                    {
+                      "source": "EloquentMethodResolver",
+                      "input": "updateOrCreate",
+                      "output": "model ProductReview",
+                      "rule": "Static method call ProductReview::updateOrCreate"
+                    },
+                    {
+                      "source": "ModelColumnResolver",
+                      "rule": "Column type lookup from database schema",
+                      "input": "ProductReview.created_at",
+                      "output": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "assignments": {
+        "produk": "ProdukItem::findOrFail($produkId)",
+        "verifiedPurchase": "OrderDetail::where('produk_item_id', $produk->id) ->whereHas('order', function ($query) use ($request) { $query->where('user_id', $request->user()->id) ->where('status', 'paid')",
+        "review": "ProductReview::updateOrCreate( [ 'produk_item_id' => $produk->id, 'user_id' => $request->user()->id, ], [ 'rating' => $request->integer('rating'), 'title' => $request->input('title'), 'comment' => $request->input('comment'), 'is_verified_purchase' => $verifiedPurchase, ] )",
+        "summary": "ProductReview::where('produk_item_id', $produk->id) ->selectRaw('COALESCE(ROUND(AVG(rating), 2), 0) as avg_rating, COUNT(*) as total_review') ->first()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProductReviewController.php",
+      "sourceLine": 37,
+      "stableHash": "95e5bd35cca9267ce78cc7feb0b14d97b72d962b67dea61e903534f54df7d8c2"
+    },
+    {
+      "name": "payment_orderId.post",
+      "method": "POST",
+      "path": "/payment/{orderId}",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": {
+        "rules": {
+          "metode": "required|string|max:50",
+          "detail": "nullable|array",
+          "provider": "nullable|string|in:mock,midtrans",
+          "provider_txn_id": "nullable|string|max:100",
+          "idempotency_key": "nullable|string|max:100",
+          "gateway_code": "nullable|string|max:50",
+          "gateway_message": "nullable|string"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "Payment",
+        "collection": false,
+        "wrapped": true,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "Payment",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "Payment",
+              "output": "model: Payment"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "provider": "strtolower((string) $request->input('provider', 'mock'))",
+        "existing": "Payment::where('idempotency_key', $request->idempotency_key) ->whereHas('order', fn($q) => $q->where('user_id', $request->user()->id)) ->with(['order', 'paymentDetail']) ->first()",
+        "order": "Order::where('id', $orderId) ->where('user_id', $request->user()->id) ->where('status', 'pending') ->with(['details.produkItem', 'payment', 'promotion.promoCode', 'user', 'shipping']) ->firstOrFail()"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/PaymentController.php",
+      "sourceLine": 23,
+      "stableHash": "1609c7785f1990b253d9795bd94b1752f34401ab2145097cf28aaf6660adfc41"
+    },
+    {
+      "name": "orders_id_invoice.get",
+      "method": "GET",
+      "path": "/orders/{id}/invoice",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": null,
+      "assignments": {
+        "order": "Order::where('user_id', $request->user()->id) ->with(['details.produkItem', 'shipping', 'payment', 'promotion']) ->findOrFail($id)",
+        "invoiceNumber": "$order->order_number ?: ('INV-' . $order->id)",
+        "filename": "strtolower($invoiceNumber) . '.pdf'",
+        "pdf": "Pdf::loadView('pdf.invoice', [ 'order' => $order, 'invoiceNumber' => $invoiceNumber, 'issuedAt' => now()->toDateTimeString(), ])->setPaper('a4')"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/InvoiceController.php",
+      "sourceLine": 12,
+      "stableHash": "f6227dbff86e10b8a632ff0b9b4474d4d26ca28163d672755ecf4415a020c849"
+    },
+    {
+      "name": "logout.post",
+      "method": "POST",
+      "path": "/logout",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum"
+      ],
+      "schema": null,
+      "response": {
+        "kind": "object",
+        "fields": {
+          "message": {
+            "kind": "primitive",
+            "type": "string"
+          }
+        }
+      },
+      "assignments": null,
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/Auth/AuthController.php",
+      "sourceLine": 70,
+      "stableHash": "3f2738bf93c30947d888252ab79c8ea21d66d6fadddfc89e39743892cc393921"
+    },
+    {
+      "name": "admin_produk.post",
+      "method": "POST",
+      "path": "/admin/produk",
+      "auth": true,
+      "middleware": [
+        "api",
+        "auth:sanctum",
+        "admin"
+      ],
+      "schema": {
+        "rules": {
+          "nama": "required|string",
+          "deskripsi": "nullable|string",
+          "gambar": "nullable|string",
+          "category_id": "required|exists:categories,id",
+          "harga": "required|integer|min:0",
+          "stok": "required|integer|min:0",
+          "rating": "nullable|numeric|min:0|max:5",
+          "jumlah_review": "nullable|integer|min:0"
+        }
+      },
+      "response": {
+        "kind": "model",
+        "model": "ProdukItem",
+        "collection": false,
+        "resolved": {
+          "status": "resolved",
+          "type": "model",
+          "model": "ProdukItem",
+          "confidence": 100,
+          "trace": [
+            {
+              "source": "ModelColumnResolver",
+              "rule": "Fallback model mapping",
+              "input": "ProdukItem",
+              "output": "model: ProdukItem"
+            }
+          ]
+        }
+      },
+      "assignments": {
+        "produk": "ProdukItem::create([ 'nama' => $request->nama, 'deskripsi' => $request->deskripsi, 'category_id' => $request->category_id, 'harga' => $request->harga, 'stok' => $request->stok, ])"
+      },
+      "sourceFile": "/home/annas-zen/Documents/laragon-docker/www/toko-online/app/Http/Controllers/ProdukController.php",
+      "sourceLine": 79,
+      "stableHash": "e483ead5d9c6fdae61448e45b3a3832526055611a7786cd2e45ff1542826d7e0"
+    }
+  ],
+  "channels": [],
+  "generatedAt": "2026-07-16T03:50:07.207Z"
+}

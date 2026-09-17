@@ -1,48 +1,43 @@
 /**
- * resourceFieldDescriptor.ts
- *
- * ScannedResourceFieldDescriptor implementation and factories.
- *
- * @module core/compiler/scanner/descriptors/resource
+ * Canonical scanned resource-field descriptor.
+ * The public domain contract has one semantic boundary: `semantic`.
+ * Legacy accessors are derived views and do not store duplicate state.
  */
-
-import type {
-  ResourceFieldDescriptor,
-  ResourceFieldExpression
-} from '../../../../types/route';
+import type { ResourceFieldDescriptor, ResourceFieldExpression } from '../../../../types/domain/expressions';
 import type { SemanticType } from '../../../types/SemanticType';
 import { toCamelCase } from '../../../../utils/resource-naming';
-
 import type { BoundSemanticNode } from '../../../../types/domain/boundAst';
+import { createResourceFieldSemantic, requireResourceFieldType, type ResourceFieldSemantic } from '../../../../types/domain/resourceFieldSemantic';
 
 export interface ScannedResourceFieldParams {
   readonly name: string;
   readonly propertyName: string;
   readonly expression: ResourceFieldExpression;
-  readonly semanticType: SemanticType;
-  readonly boundAst?: BoundSemanticNode;
+  readonly semantic: ResourceFieldSemantic;
 }
 
 export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
-  public readonly name: string;
-  public readonly propertyName: string;
+  public readonly name: ResourceFieldDescriptor['name'];
+  public readonly propertyName: ResourceFieldDescriptor['propertyName'];
   public readonly expression: ResourceFieldExpression;
-  public readonly semanticType: SemanticType;
-  public readonly boundAst?: BoundSemanticNode;
+  public readonly semantic: ResourceFieldSemantic;
 
-  constructor({
-    name,
-    propertyName,
-    expression,
-    semanticType,
-    boundAst
-  }: ScannedResourceFieldParams) {
-    this.name = name;
-    this.propertyName = propertyName;
+  constructor({ name, propertyName, expression, semantic }: ScannedResourceFieldParams) {
+    this.name = name as ResourceFieldDescriptor['name'];
+    this.propertyName = propertyName as ResourceFieldDescriptor['propertyName'];
     this.expression = expression;
-    this.semanticType = semanticType;
-    this.boundAst = boundAst;
+    this.semantic = semantic;
     Object.freeze(this);
+  }
+
+  /** Transitional derived view. No semantic state is stored here. */
+  public get semanticType(): SemanticType {
+    return requireResourceFieldType(this.semantic);
+  }
+
+  /** Transitional derived view. No binding state is stored here. */
+  public get boundAst(): BoundSemanticNode | undefined {
+    return this.semantic.kind === 'verified' ? this.semantic.bound : this.semantic.bound;
   }
 
   public static fromExpression(
@@ -50,32 +45,17 @@ export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
     expression: ResourceFieldExpression,
     semanticType: SemanticType,
     propertyName: string = toCamelCase(name),
-    boundAst?: BoundSemanticNode
+    boundAst?: BoundSemanticNode,
   ): ScannedResourceFieldDescriptor {
     return new ScannedResourceFieldDescriptor({
       name,
       propertyName,
       expression,
-      semanticType,
-      boundAst
+      semantic: createResourceFieldSemantic(semanticType, boundAst),
     });
   }
 
-  public static create({
-    name,
-    expression,
-    propertyName = toCamelCase(name),
-    semanticType,
-    boundAst
-  }: {
-    readonly name: string;
-    readonly expression: ResourceFieldExpression;
-    readonly propertyName?: string;
-    readonly semanticType: SemanticType;
-    readonly boundAst?: BoundSemanticNode;
-  }): ScannedResourceFieldDescriptor {
-    return ScannedResourceFieldDescriptor.fromExpression(
-      name, expression, semanticType, propertyName, boundAst
-    );
+  public static create(params: ScannedResourceFieldParams): ScannedResourceFieldDescriptor {
+    return new ScannedResourceFieldDescriptor(params);
   }
 }

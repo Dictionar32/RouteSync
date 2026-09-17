@@ -122,7 +122,7 @@ function toBoundCardinality(cardinality: import('../../EloquentRegistry').Eloque
   switch (cardinality.kind) {
     case 'single': return { kind: 'single' } as const;
     case 'collection': return { kind: 'collection' } as const;
-    case 'paginated_collection': return { kind: 'collection' } as const;
+    case 'paginated_collection': return { kind: 'paginated_collection' } as const;
   }
 }
 
@@ -130,7 +130,7 @@ function toBoundResolutionCardinality(cardinality: import('../../../types/domain
   switch (cardinality.kind) {
     case 'single': return { kind: 'single' } as const;
     case 'collection': return { kind: 'collection' } as const;
-    case 'paginated_collection': return { kind: 'collection' } as const;
+    case 'paginated_collection': return { kind: 'paginated_collection' } as const;
   }
 }
 

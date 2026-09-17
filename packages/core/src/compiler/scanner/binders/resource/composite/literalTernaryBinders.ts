@@ -52,9 +52,8 @@ export function bindLiteralField(
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        false,
-        toCamelCase(key),
         new PrimitiveType(primKind),
+        toCamelCase(key),
         boundAst
     );
 
@@ -111,9 +110,8 @@ export function bindFallbackField(key: string): BoundResourceFieldResult {
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        false,
-        toCamelCase(key),
         new PrimitiveType(PrimitiveKind.STRING),
+        toCamelCase(key),
         boundAst
     );
 

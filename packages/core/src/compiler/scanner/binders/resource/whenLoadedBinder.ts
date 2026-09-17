@@ -56,6 +56,7 @@ export function bindWhenLoadedField(
         isCollection
             ? new ReadonlyCollectionType(CollectionKind.ARRAY, new ReferenceType('', targetModel))
             : new ReferenceType('', targetModel),
+        toCamelCase(key),
         boundAst
     );
 

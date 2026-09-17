@@ -12,7 +12,7 @@ import type { ResourceFieldDescriptor } from '../../../../../types/domain/expres
 import { matchResourceFieldExpression } from '../../../../../types/domain/expressions';
 import { toCamelCase } from '../../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from '../SemanticDerivationContext';
-import { SemanticTypeResolver } from '../../../../domain/common/SemanticTypeResolver';
+import { matchBoundSemanticNode } from '../../../../../types/domain/boundAst';
 
 export function processResponseProperties(
     fields: readonly ResourceFieldDescriptor[],
@@ -73,7 +73,23 @@ function pushLeaf(
 }
 
 function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticType {
-    return SemanticTypeResolver.resolveFieldSemanticType(field);
+    const boundAst = field.boundAst;
+    if (!boundAst) return field.semanticType;
+    return matchBoundSemanticNode(boundAst, {
+        bound_model_reference: node => field.semanticType,
+        bound_resource_reference: node => field.semanticType,
+        bound_primitive: node => node.semanticType,
+        bound_model_column: node => node.semanticType,
+        bound_relation: node => field.semanticType,
+        bound_property_chain: node => node.resultingType,
+        bound_conditional: node => node.semanticType,
+        bound_binary: node => node.resultingType,
+        bound_ternary: node => node.resultingType,
+        bound_method_call: node => node.returnType,
+        bound_query_projection: node => field.semanticType,
+        bound_projection_field: node => node.semanticType,
+        bound_unsupported: node => field.semanticType
+    });
 }
 function property(name: string, type: SemanticType): ObjectProperty {
     return ScannedObjectProperty.create({

@@ -81,6 +81,7 @@ export {
     ModelKeyTypeMapper,
     type ParsedModel,
     ResourceFieldDescriptor,
+    type ResourceFieldSemantic,
     ResourceExpressionKind,
     type ResourceFieldExpression,
     type AnyResourceFieldExpression,

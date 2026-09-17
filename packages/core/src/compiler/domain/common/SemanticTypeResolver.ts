@@ -12,7 +12,6 @@ import {
     type SemanticType
 } from '../../types/SemanticType';
 import type { ResourceFieldDescriptor } from '../../../types/route';
-import { semanticTypeFromField } from './semanticFieldType';
 
 import {
     ResolvedUnknownType,
@@ -79,15 +78,7 @@ export class SemanticTypeResolver implements SemanticTypeResolverLike {
         });
     }
 
-    public static resolveFieldSemanticType(field: ResourceFieldDescriptor): SemanticType {
-        return semanticTypeFromField(field);
-    }
-
     public static resolveField(field: ResourceFieldDescriptor): SemanticType {
-        return SemanticTypeResolver.resolveFieldSemanticType(field);
-    }
-
-    public resolveFieldType(field: ResourceFieldDescriptor): ResolvedSemanticType {
-        return this.resolve(SemanticTypeResolver.resolveFieldSemanticType(field));
+        return field.semanticType;
     }
 }

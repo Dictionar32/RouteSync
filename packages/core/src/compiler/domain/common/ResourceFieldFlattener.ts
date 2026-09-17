@@ -8,6 +8,7 @@
 
 import { toCamelCase, toPascalCase } from '../../../utils/resource-naming';
 import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
+import type { SemanticType } from '../../../types/SemanticType';
 import { matchResourceFieldExpression } from '../../../types/domain/expressions';
 import { SemanticTypeResolver } from './SemanticTypeResolver';
 import {
@@ -143,7 +144,7 @@ export class ResourceFieldFlattener {
         }));
     }
 
-    private resolveSemanticType(type: import('../../../types/SemanticType').SemanticType): ResolvedSemanticType {
+    private resolveSemanticType(type: SemanticType): ResolvedSemanticType {
         return this.typeResolver.resolve(type);
     }
 

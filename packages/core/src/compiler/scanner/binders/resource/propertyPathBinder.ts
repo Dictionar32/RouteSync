@@ -4,7 +4,8 @@ import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
-import { ErrorType, NullableType, type SemanticType } from "../../../types/SemanticType";
+import { ErrorType, NullableType, ReferenceType, ReadonlyCollectionType, CollectionKind, PrimitiveType, PrimitiveKind, type SemanticType } from "../../../types/SemanticType";
+import { lookupEloquentMethod } from "../../../semantic/EloquentRegistry";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 
@@ -23,13 +24,38 @@ export function bindPropertyPathField(
     const steps: BoundStepEdge[] = [];
 
     for (const member of members) {
-        if (member.kind === 'method_chain') return unresolved(key);
+        if (member.kind === 'method_chain') {
+            const rule = lookupEloquentMethod(member.property);
+            if (!rule) return unresolved(key);
+            const cardinality = methodCardinality(rule.returns);
+            const stepType = methodSemanticType(rule.returns, model.name);
+            steps.push({
+                kind: 'method',
+                sourceModel: SemanticValueFactory.modelName(model.name),
+                method: SemanticValueFactory.methodName(member.property),
+                cardinality,
+                nullsafe: member.access.kind === 'nullsafe',
+                stepType,
+                targetModel: { kind: 'model', name: SemanticValueFactory.modelName(model.name) },
+            });
+            resultingType = member.access.kind === 'nullsafe' && !stepType.isNullable()
+                ? new NullableType(stepType)
+                : stepType;
+            if (rule.returns.kind === 'model') {
+                if (member !== members[members.length - 1]) continue;
+                finalRelation = false;
+                continue;
+            }
+            if (rule.returns.kind === 'builder') continue;
+            return unresolved(key);
+        }
         const binding = model.resolveProperty(member.property);
         if (!binding) return unresolved(key);
         const stepType = member.access.kind === 'nullsafe' && !binding.semanticType.isNullable()
             ? new NullableType(binding.semanticType)
             : binding.semanticType;
         steps.push({
+            kind: 'property',
             sourceModel: SemanticValueFactory.modelName(model.name),
             property: SemanticValueFactory.propertyName(member.property),
             step: binding.kind === 'relation'
@@ -45,7 +71,6 @@ export function bindPropertyPathField(
             if (member !== members[members.length - 1]) return unresolved(key);
             continue;
         }
-        if (binding.source.cardinality === 'many' && member !== members[members.length - 1]) return unresolved(key);
         const next = table.get(binding.source.targetModel.value);
         if (!next && member !== members[members.length - 1]) return unresolved(key);
         if (next) model = next;
@@ -68,6 +93,23 @@ export function bindPropertyPathField(
         boundAst
     );
     return { descriptor, boundAst };
+}
+
+function methodCardinality(returns: import("../../../semantic/EloquentRegistry").EloquentReturn): import("../../../../types/domain/boundAst").BoundCardinality {
+    if (returns.kind !== 'model') return { kind: 'single' };
+    if (returns.cardinality.kind === 'single') return { kind: 'single' };
+    if (returns.cardinality.kind === 'paginated_collection') return { kind: 'paginated_collection' };
+    return { kind: 'collection' };
+}
+
+function methodSemanticType(returns: import("../../../semantic/EloquentRegistry").EloquentReturn, model: string): SemanticType {
+    if (returns.kind === 'model') {
+        if (returns.cardinality.kind === 'single') return new ReferenceType('', model);
+        return new ReadonlyCollectionType(CollectionKind.ARRAY, new ReferenceType('', model));
+    }
+    if (returns.kind === 'number') return new PrimitiveType(PrimitiveKind.NUMBER);
+    if (returns.kind === 'boolean') return new PrimitiveType(PrimitiveKind.BOOLEAN);
+    return new ReferenceType('', model);
 }
 
 function collectMembers(value: Member): readonly Member[] {

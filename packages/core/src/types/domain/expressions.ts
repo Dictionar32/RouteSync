@@ -3,13 +3,13 @@ import type { ModelBinding, Nullability } from './modelContracts';
 import type { ModelName, PropertyName, ResourceName, ResponseFieldName, ResponseTypeName, MethodName, CastTypeName, SemanticOperator, VariableName } from './semanticValues';
 import type { HttpMethod } from "./security";
 import type { BoundSemanticNode } from "./boundAst";
+import type { ResourceFieldSemantic } from './resourceFieldSemantic';
 
 export interface ResourceFieldDescriptor {
   readonly name: ResponseFieldName;
-  readonly propertyName: PropertyName; // Canonical generated property identifier
+  readonly propertyName: PropertyName;
   readonly expression: ResourceFieldExpression;
-  readonly semanticType: SemanticType; // First-class semantic type; no primitive compression
-  readonly boundAst?: BoundSemanticNode;
+  readonly semantic: ResourceFieldSemantic;
 }
 
 /**

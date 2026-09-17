@@ -43,7 +43,8 @@ export type BoundSemanticKind =
 
 export type BoundCardinality =
   | { readonly kind: 'single' }
-  | { readonly kind: 'collection' };
+  | { readonly kind: 'collection' }
+  | { readonly kind: 'paginated_collection' };
 
 export type BoundNullability =
   | { readonly kind: 'non_nullable' }
@@ -111,14 +112,25 @@ export type BoundPropertyStepKind =
   | { readonly kind: 'accessor' }
   | { readonly kind: 'relation'; readonly cardinality: BoundCardinality };
 
-export interface BoundStepEdge {
-  readonly sourceModel: ModelName;
-  readonly property: PropertyName;
-  readonly step: BoundPropertyStepKind;
-  readonly nullsafe: boolean;
-  readonly stepType: SemanticType;
-  readonly targetModel: BoundTargetModel;
-}
+export type BoundStepEdge =
+  | {
+      readonly kind: 'property';
+      readonly sourceModel: ModelName;
+      readonly property: PropertyName;
+      readonly step: BoundPropertyStepKind;
+      readonly nullsafe: boolean;
+      readonly stepType: SemanticType;
+      readonly targetModel: BoundTargetModel;
+    }
+  | {
+      readonly kind: 'method';
+      readonly sourceModel: ModelName;
+      readonly method: MethodName;
+      readonly cardinality: BoundCardinality;
+      readonly nullsafe: boolean;
+      readonly stepType: SemanticType;
+      readonly targetModel: BoundTargetModel;
+    };
 
 export interface BoundPropertyChainNode {
   readonly kind: 'bound_property_chain';

@@ -48,11 +48,10 @@ export function bindResourceCollectionField(
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        false,
-        toCamelCase(key),
         isCollection
             ? new ReadonlyCollectionType(CollectionKind.ARRAY, new ReferenceType('', value.resourceName))
             : new ReferenceType('', value.resourceName),
+        toCamelCase(key),
         boundAst
     );
 
@@ -95,9 +94,8 @@ export function bindNestedArrayField(
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        false,
-        toCamelCase(key),
         new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: childFields.map(field => ({ name: field.name, type: field.semanticType, required: true, nullable: field.semanticType.isNullable(), description: "" })), role: "plain" }),
+        toCamelCase(key),
         boundAst
     );
 

@@ -34,9 +34,8 @@ export function bindPropertyAccessField(
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(
                 key,
                 primitiveExpression(semanticType),
-                semanticType.isNullable(),
-                undefined,
                 semanticType,
+                undefined,
                 boundAst
             );
             return { descriptor, boundAst };
@@ -53,9 +52,8 @@ export function bindPropertyAccessField(
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(
                 key,
                 primitiveExpression(semanticType),
-                semanticType.isNullable(),
-                undefined,
                 semanticType,
+                undefined,
                 boundAst
             );
             return { descriptor, boundAst };
@@ -80,9 +78,8 @@ export function bindPropertyAccessField(
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(
                 key,
                 expression,
-                semanticType.isNullable(),
-                undefined,
                 semanticType,
+                undefined,
                 boundAst
             );
             return { descriptor, boundAst };
@@ -110,9 +107,8 @@ function unresolved(key: string): BoundResourceFieldResult {
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        false,
-        undefined,
         new ErrorType('Model property could not be resolved'),
+        undefined,
         boundAst
     );
     return { descriptor, boundAst };

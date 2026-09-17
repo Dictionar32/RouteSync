@@ -1,72 +1,44 @@
-/**
- * modelEntityDefinition.ts
- *
- * ResourceDef and ModelDef domain definitions and Level 7 Complete Contracts.
- * Zero sentinel undefined, zero null, zero optional fields (0% porosity).
- *
- * @module core/types/domain
- */
-
 import type { FieldNode } from '../field';
+import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber, TypeExpression } from '../ir/nominalVocabulary';
+import type { Nullability } from './modelContracts';
 
 export interface ColumnDefinitionContract {
-  readonly name: string;
-  readonly type: string;
-  readonly nullable: boolean;
+  readonly name: PropertyName;
+  readonly type: TypeExpression;
+  readonly nullability: Nullability;
 }
 
-export type ColumnDefinition = {
-  readonly name: string;
-  readonly type: string;
-  readonly nullable: boolean;
-};
+export type ColumnDefinition = ColumnDefinitionContract;
+
+export type ModelRelationKind = 'belongs_to' | 'has_one' | 'has_many' | 'belongs_to_many' | 'morph_one' | 'morph_many' | 'unknown';
 
 export interface ModelRelationDefinitionContract {
-  readonly type: string;
-  readonly model: string;
+  readonly kind: ModelRelationKind;
+  readonly model: ModelName;
 }
 
-export type ModelRelationDefinition = {
-  readonly type: string;
-  readonly model: string;
-};
+export type ModelRelationDefinition = ModelRelationDefinitionContract;
 
-/**
- * Level 7 Complete Contract for ResourceDef (0 undefined, 0 null, 0 ?:).
- */
 export interface ResourceDefContract {
-  readonly name: string;
-  readonly model: string;
-  readonly fields: readonly (readonly [string, FieldNode])[];
-  readonly assignments: readonly (readonly [string, string])[];
-  readonly sourceFile: string;
-  readonly sourceLine: number;
+  readonly name: ModelName;
+  readonly model: ModelName;
+  readonly fields: readonly (readonly [PropertyName, FieldNode])[];
+  readonly assignments: readonly (readonly [PropertyName, TypeExpression])[];
+  readonly sourceFile: SourceFilePath;
+  readonly sourceLine: SourceLineNumber;
 }
 
-/**
- * Canonical ResourceDef.
- * The legacy optional/nullable shape is intentionally removed from the domain
- * contract. Partial scanner input must be normalized before entering here.
- */
 export type ResourceDef = ResourceDefContract;
 
-/**
- * Level 7 Complete Contract for ModelDef (0 undefined, 0 null, 0 ?:).
- */
 export interface ModelDefContract {
-  readonly name: string;
-  readonly table: string;
+  readonly name: ModelName;
+  readonly table: import("./semanticValues").TableName;
   readonly columns: readonly ColumnDefinitionContract[];
-  readonly hidden: readonly string[];
-  readonly appends: readonly string[];
-  readonly casts: readonly (readonly [string, string])[];
-  readonly relations: readonly (readonly [string, ModelRelationDefinitionContract])[];
-  readonly accessors: readonly (readonly [string, FieldNode])[];
+  readonly hidden: readonly PropertyName[];
+  readonly appends: readonly PropertyName[];
+  readonly casts: readonly (readonly [PropertyName, TypeExpression])[];
+  readonly relations: readonly (readonly [PropertyName, ModelRelationDefinitionContract])[];
+  readonly accessors: readonly (readonly [PropertyName, FieldNode])[];
 }
 
-/**
- * Canonical ModelDef.
- * The legacy optional/nullable shape is intentionally removed from the domain
- * contract. Partial scanner input must be normalized before entering here.
- */
 export type ModelDef = ModelDefContract;

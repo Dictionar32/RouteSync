@@ -80,7 +80,6 @@ export class RequestEndpointBuilder {
 
     public buildEndpointIR(
         route: ParsedRoute,
-        resources: Map<string, ResourceIR>,
         requests: Map<string, RequestIR>
     ): EndpointIR {
         return {
@@ -90,7 +89,7 @@ export class RequestEndpointBuilder {
             pathParams: this.extractPathParams(route.path),
             queryParams: [],
             request: this.buildRequestReference(route, requests),
-            response: this.buildResponseReference(route, resources),
+            response: this.buildResponseReference(route),
             middleware: route.middleware.map((name, index) => ({
                 name,
                 parameters: [],
@@ -116,8 +115,8 @@ export class RequestEndpointBuilder {
         return buildRequestReference(route, requests);
     }
 
-    public buildResponseReference(route: ParsedRoute, resources: Map<string, ResourceIR>): ResponseReference {
-        return buildResponseReference(route, resources);
+    public buildResponseReference(route: ParsedRoute): ResponseReference {
+        return buildResponseReference(route);
     }
 
     public generateRequestId(request: ParsedRequest): string {

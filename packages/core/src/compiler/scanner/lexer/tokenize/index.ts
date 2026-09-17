@@ -19,5 +19,6 @@ export {
   scanColon,
   scanEquals,
   scanMinus,
+  scanSimpleOperator,
   scanWordOrUnknown
 } from './compoundScanners';

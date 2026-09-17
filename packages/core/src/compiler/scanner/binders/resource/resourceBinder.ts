@@ -28,7 +28,7 @@ export function bindResource({
     readonly entries: readonly PhpArrayEntry[];
     readonly sourceFile: string;
     readonly modelSymbolTable: ModelSymbolTable;
-    readonly controllerDataflowMap?: ReadonlyMap<string, string>;
+    readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
     readonly relationPropagationMap?: ReadonlyMap<string, string>;
 }): ParsedResource {
     const fieldNames = entries.map(e => e.key);
@@ -45,7 +45,7 @@ export function bindResource({
 
     for (const entry of entries) {
         const fieldResult = bindField({
-            key: entry.key,
+            key: requireStringArrayKey(requireStringArrayKey(entry.key)),
             value: entry.value,
             modelSymbol,
             modelSymbolTable
@@ -66,4 +66,10 @@ export function bindResource({
         modelName: binding.kind === 'mono' ? binding.model.name : null,
         isSynthetic: binding.kind !== 'mono'
     });
+}
+
+
+function requireStringArrayKey(key: import('../../lexer/phpAstTypes').PhpArrayKey): string {
+    if (key.kind === 'string') return key.value;
+    throw new Error('Expected a static string PHP array key at this semantic boundary');
 }

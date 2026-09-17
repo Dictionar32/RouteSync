@@ -91,7 +91,7 @@ export class OptimizedContractIRBuilder {
         }
 
         for (const route of manifest.routes) {
-            const endpointIR = this.requestEndpointBuilder.buildEndpointIR(route, this.resources, this.requests);
+            const endpointIR = this.requestEndpointBuilder.buildEndpointIR(route, this.requests);
             this.endpoints.set(endpointIR.id, endpointIR);
         }
 

@@ -21,12 +21,13 @@ export function parseControllerMethod(
     const bodyEnd = findMatching(tokens, bodyStart, '{', '}');
     if (bodyEnd < 0) return undefined;
     const bodyTokens = tokens.slice(bodyStart + 1, bodyEnd);
+    const parameters = parseParameters(tokens, functionIndex + 2);
     return Object.freeze({
         name: createAstIdentifier(nameToken.value),
-        parameters: Object.freeze(parseParameters(tokens, functionIndex + 2)),
+        parameters: Object.freeze(parameters),
         responseAttribute: parseResponseAttribute(tokens, functionIndex),
         returns: Object.freeze(parseControllerReturns(source, bodyTokens)),
-        body: parseControllerBody(source, bodyTokens),
+        body: parseControllerBody(source, bodyTokens, parameters.map(parameter => parameter.name)),
         source: tokens[functionIndex],
     });
 }

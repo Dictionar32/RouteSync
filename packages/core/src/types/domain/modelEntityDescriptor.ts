@@ -7,6 +7,8 @@
  * @module core/types/domain/modelEntityDescriptor
  */
 
+import type { FieldNode } from '../field';
+import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber, TableName, TypeExpression } from './semanticValues';
 import {
   type ResourceDefContract,
   type ResourceDef,
@@ -17,12 +19,12 @@ import {
 } from './modelEntityDefinition';
 
 export class ResourceDefDescriptor implements ResourceDefContract {
-  public readonly name: string;
-  public readonly model: string;
-  public readonly fields: readonly (readonly [string, any])[];
-  public readonly assignments: readonly (readonly [string, string])[];
-  public readonly sourceFile: string;
-  public readonly sourceLine: number;
+  public readonly name: ModelName;
+  public readonly model: ModelName;
+  public readonly fields: readonly (readonly [PropertyName, FieldNode])[];
+  public readonly assignments: readonly (readonly [PropertyName, TypeExpression])[];
+  public readonly sourceFile: SourceFilePath;
+  public readonly sourceLine: SourceLineNumber;
 
   constructor(params: ResourceDefContract) {
     this.name = params.name;
@@ -54,14 +56,14 @@ export class ResourceDefDescriptor implements ResourceDefContract {
 }
 
 export class ModelDefDescriptor implements ModelDefContract {
-  public readonly name: string;
-  public readonly table: string;
+  public readonly name: ModelName;
+  public readonly table: TableName;
   public readonly columns: readonly ColumnDefinitionContract[];
-  public readonly hidden: readonly string[];
-  public readonly appends: readonly string[];
-  public readonly casts: readonly (readonly [string, string])[];
-  public readonly relations: readonly (readonly [string, ModelRelationDefinitionContract])[];
-  public readonly accessors: readonly (readonly [string, any])[];
+  public readonly hidden: readonly PropertyName[];
+  public readonly appends: readonly PropertyName[];
+  public readonly casts: readonly (readonly [PropertyName, TypeExpression])[];
+  public readonly relations: readonly (readonly [PropertyName, ModelRelationDefinitionContract])[];
+  public readonly accessors: readonly (readonly [PropertyName, FieldNode])[];
 
   constructor(params: ModelDefContract) {
     this.name = params.name;

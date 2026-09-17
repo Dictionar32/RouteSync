@@ -7,16 +7,18 @@
  * @module core/types/ir/endpointIrTypes
  */
 
-import type { PrimitiveKind } from '../../compiler/types/SemanticType';
+import { PrimitiveKind } from '../../compiler/types/SemanticType';
 import type { HttpMethod } from '../domain/httpVocabulary';
 import type { ResourceFieldIR } from './resourceIrTypes';
+import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeaderName, ModelName, PropertyName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
 import type { ValidationRules } from './requestIrTypes';
+import { createPropertyName, createTypeExpression } from './nominalVocabulary';
 
 export interface ParameterIR {
-    readonly name: string;
+    readonly name: PropertyName;
     readonly type: PrimitiveKind;
     readonly required: boolean;
-    readonly description?: string;
+    readonly description: TypeExpression;
     readonly validation?: ValidationRules;
 }
 
@@ -26,43 +28,43 @@ export type RequestReference =
     | { readonly type: 'inline'; readonly reference: string; readonly inlineFields: readonly ResourceFieldIR[] };
 
 export interface HeaderIR {
-    readonly name: string;
-    readonly value?: string;
+    readonly name: HttpHeaderName;
+    readonly value: CodeExpression;
     readonly required: boolean;
 }
 
-export interface PaginationIR {
-    readonly type: 'cursor' | 'offset' | 'simple';
-    readonly metaFields: readonly string[];
-}
+import type { PaginationState } from './paginationState';
+export type { PaginationDescriptor, PaginationState } from './paginationState';
+
+type NoPagination = Extract<PaginationState, { readonly kind: 'none' }>;
+type PresentPagination = Extract<PaginationState, { readonly kind: 'present' }>;
 
 export type ResponseReference =
-    | { readonly type: 'resource'; readonly resource: string; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null }
-    | { readonly type: 'collection'; readonly resource: string; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null }
-    | { readonly type: 'paginated'; readonly resource: string; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR }
-    | { readonly type: 'custom'; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null }
-    | { readonly type: 'empty'; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationIR | null };
+    | { readonly type: 'resource'; readonly resource: ResourceName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: NoPagination }
+    | { readonly type: 'collection'; readonly resource: ResourceName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: NoPagination }
+    | { readonly type: 'paginated'; readonly resource: ResourceName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PresentPagination }
+    | { readonly type: 'custom'; readonly responseType: ResponseTypeName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationState }
+    | { readonly type: 'empty'; readonly statusCode: 204; readonly headers: readonly HeaderIR[]; readonly pagination: NoPagination };
 
 export interface MiddlewareIR {
     readonly name: string;
-    readonly parameters?: readonly string[];
-    readonly order: number;
+    readonly parameters: readonly TypeExpression[];
+    readonly order: SourceLineNumber;
 }
 
 export interface EndpointMetadata {
-    readonly controller: string;
-    readonly action: string;
-    readonly routeName?: string;
-    readonly generated_at: string;
-    readonly authenticated?: boolean;
-    readonly auth?: boolean;
-    readonly cached?: boolean;
+    readonly controller: ControllerName;
+    readonly action: ActionName;
+    readonly routeName: RouteName;
+    readonly generatedAt: TypeExpression;
+    readonly security: { readonly kind: 'authenticated' | 'public' };
+    readonly cache: { readonly kind: 'cached' | 'uncached' };
 }
 
 export interface EndpointIR {
-    readonly id: string;
+    readonly id: EndpointId;
     readonly method: HttpMethod;
-    readonly path: string;
+    readonly path: RoutePath;
     readonly pathParams: readonly ParameterIR[];
     readonly queryParams: readonly ParameterIR[];
     readonly request: RequestReference;

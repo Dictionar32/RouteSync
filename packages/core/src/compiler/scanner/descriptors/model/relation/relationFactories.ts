@@ -18,14 +18,14 @@ export function computeRelationParams({
     modelName,
     targetModel = modelName,
     cardinality,
-    foreignKey = null
+    foreignKey = { kind: 'convention' as const }
 }: {
     readonly name: string;
     readonly type: EloquentRelationType;
     readonly modelName: string;
     readonly targetModel?: string;
     readonly cardinality?: EloquentRelationCardinality;
-    readonly foreignKey?: string | null;
+    readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
 }): ScannedModelRelationParams {
     const desc = EloquentRelationClassifier.getDescriptor(type);
     return {
@@ -43,13 +43,13 @@ export function computeSingleRelationParams({
     type,
     modelName,
     targetModel = modelName,
-    foreignKey = null
+    foreignKey = { kind: 'convention' as const }
 }: {
     readonly name: string;
     readonly type: EloquentRelationType;
     readonly modelName: string;
     readonly targetModel?: string;
-    readonly foreignKey?: string | null;
+    readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
 }): ScannedModelRelationParams {
     return {
         name,
@@ -66,13 +66,13 @@ export function computeCollectionRelationParams({
     type,
     modelName,
     targetModel = modelName,
-    foreignKey = null
+    foreignKey = { kind: 'convention' as const }
 }: {
     readonly name: string;
     readonly type: EloquentRelationType;
     readonly modelName: string;
     readonly targetModel?: string;
-    readonly foreignKey?: string | null;
+    readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
 }): ScannedModelRelationParams {
     return {
         name,
@@ -91,6 +91,6 @@ export function computeNoneRelationParams(): ScannedModelRelationParams {
         modelName: "",
         targetModel: "",
         cardinality: "one",
-        foreignKey: null
+        foreignKey: { kind: 'convention' }
     };
 }

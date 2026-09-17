@@ -31,7 +31,7 @@ export function scanControllerAction(
     formRequests,
     schema: contract.schema,
     schemaRules,
-    resourceModelMap: new Map<string, string>(),
+    dataflow: contract.dataflow,
     errorResponses
   });
   return { actionName: contract.identity.actionName, descriptor };

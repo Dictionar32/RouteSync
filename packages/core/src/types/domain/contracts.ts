@@ -31,6 +31,7 @@ import {
   type RouteSecurityDescriptor
 } from "./security";
 import type { RouteSchemaPayload } from "./validation";
+import type { EndpointId, RouteName, RoutePath, DomainName, ResourceName, PropertyName, ResponseTypeName, TypeExpression } from "../ir/nominalVocabulary";
 
 // ============================================================================
 // ENDPOINT CONTRACT ADT & COMPLETE CONTRACT ARCHITECTURE (CDA)
@@ -69,8 +70,8 @@ export interface EndpointSuccessResponseContract {
 
 export interface EndpointErrorResponseContract {
   readonly statusCode: HttpStatusCode;
-  readonly name: string;
-  readonly typeName: string;
+  readonly name: PropertyName;
+  readonly typeName: ResponseTypeName;
   readonly schema: Record<string, unknown>;
 }
 
@@ -85,13 +86,13 @@ export interface EndpointContract<
   TMethod extends HttpMethod = HttpMethod,
   TRole extends CrudRole = CrudRole
 > {
-  readonly id: string;
-  readonly name: string;
+  readonly id: EndpointId;
+  readonly name: RouteName;
   readonly method: TMethod;
-  readonly path: string;
-  readonly runtimePath: string;
-  readonly groupName: string;
-  readonly resourceName: string;
+  readonly path: RoutePath;
+  readonly runtimePath: RoutePath;
+  readonly groupName: DomainName;
+  readonly resourceName: ResourceName;
   readonly crudRole: TRole;
   readonly isMutating: boolean;
   readonly hookKind: RouteHookKind;
@@ -103,13 +104,13 @@ export interface EndpointContract<
 }
 
 export class ScannedEndpointContract implements EndpointContract {
-  public readonly id: string;
-  public readonly name: string;
+  public readonly id: EndpointId;
+  public readonly name: RouteName;
   public readonly method: HttpMethod;
-  public readonly path: string;
-  public readonly runtimePath: string;
-  public readonly groupName: string;
-  public readonly resourceName: string;
+  public readonly path: RoutePath;
+  public readonly runtimePath: RoutePath;
+  public readonly groupName: DomainName;
+  public readonly resourceName: ResourceName;
   public readonly crudRole: CrudRole;
   public readonly isMutating: boolean;
   public readonly hookKind: RouteHookKind;

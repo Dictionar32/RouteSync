@@ -20,12 +20,12 @@ export interface FileValidationConstraints {
 }
 
 export interface RequestField {
-    readonly sourceName: string;
-    readonly name: string;
+    readonly sourceName: PropertyName;
+    readonly name: RequestFieldName;
     readonly type: SemanticType;
     readonly fileConstraints: FileConstraintPresence;
     readonly required: boolean;
-    readonly nullable: boolean;
+    readonly nullability: import("./modelContracts").Nullability;
     readonly validationAst: readonly ValidationRuleNode[];
 }
 
@@ -35,7 +35,7 @@ export const FormActionName = Object.freeze({
 } as const);
 
 export type FormActionName =
-    typeof FormActionName[keyof typeof FormActionName] | string;
+    typeof FormActionName[keyof typeof FormActionName];
 
 export interface FormAction {
     readonly name: FormActionName;
@@ -54,8 +54,8 @@ export type RequestResponse =
     | { readonly kind: "data"; readonly value: ResponseData };
 
 export interface RequestType {
-    readonly resourceName: string;
-    readonly formTypeName: string;
+    readonly resourceName: ResourceName;
+    readonly formTypeName: FormTypeName;
     readonly actions: readonly FormAction[];
     readonly response: RequestResponse;
 }

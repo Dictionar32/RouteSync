@@ -1,7 +1,9 @@
 import type { ResponseBody } from "../../compiler/ir/ResponseArtifact";
 import type { ObjectProperty } from "../../compiler/types/SemanticType";
+import { PrimitiveKind, type SemanticType } from "../../compiler/types/SemanticType";
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldDescriptor } from "./expressions";
+import { SemanticValueFactory } from "./semanticValues";
 import type { ClassName, DomainName, ModelName, ResourceName, ResponseFieldName, ResponseTypeName, RouteName, SourceFilePath } from "./semanticValues";
 import {
   ResponseShape,
@@ -92,7 +94,7 @@ export class ResourceResponseDescriptor extends ResponseDescriptorBase {
   toResponseBody(): ResponseBody {
     return {
       type: 'resource',
-      resource: this.resourceName,
+      resource: this.resourceName.value,
       shape: this.shape
     };
   }
@@ -144,7 +146,7 @@ export class ModelResponseDescriptor extends ResponseDescriptorBase {
   toResponseBody(): ResponseBody {
     return {
       type: 'model',
-      model: this.modelName,
+      model: this.modelName.value,
       shape: this.shape
     };
   }
@@ -222,8 +224,8 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
 
   public static create({
     domain,
-    baseName = domain,
-    typeName = `${baseName}Transformed`,
+    baseName = SemanticValueFactory.resourceName(domain.value),
+    typeName = SemanticValueFactory.responseTypeName(`${baseName.value}Transformed`),
     fields,
     shape = ResponseShape.Single,
     origin,
@@ -259,19 +261,66 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
 
   toResponseBody(): ResponseBody {
     const properties = this.fields.map(f => ({
-      name: f.name,
-      type: { kind: 'scalar' as const, typeName: f.semanticType, nullable: f.nullable },
-      required: true
+      name: f.name.value,
+      type: semanticTypeToPropertyType(f.semanticType),
+      required: !f.semanticType.isNullable()
     }));
     return {
       type: 'object',
       schema: {
-        name: this.baseName,
+        name: this.baseName.value,
         properties,
         additionalProperties: false
       },
       shape: this.shape
     };
+  }
+}
+
+function semanticTypeToPropertyType(type: SemanticType): {
+  readonly kind: 'scalar';
+  readonly typeName: string;
+  readonly nullable: boolean;
+} {
+  switch (type.kind) {
+    case 'primitive':
+      return {
+        kind: 'scalar',
+        typeName: type.type,
+        nullable: false
+      };
+    case 'nullable': {
+      const inner = semanticTypeToPropertyType(type.innerType);
+      return { ...inner, nullable: true };
+    }
+    case 'reference':
+      return {
+        kind: 'scalar',
+        typeName: type.name,
+        nullable: false
+      };
+    case 'optional': {
+      const inner = semanticTypeToPropertyType(type.innerType);
+      return { ...inner, nullable: true };
+    }
+    case 'readonly_collection':
+    case 'mutable_collection':
+      return {
+        kind: 'scalar',
+        typeName: 'array',
+        nullable: false
+      };
+    case 'generic':
+    case 'union':
+    case 'intersection':
+    case 'object':
+    case 'never':
+    case 'error':
+      return {
+        kind: 'scalar',
+        typeName: 'unknown',
+        nullable: type.isNullable()
+      };
   }
 }
 

@@ -14,7 +14,9 @@ import type {
     ParsedModel,
     ModelKeyType
 } from "../../../../../types/route";
-import type { PrimitiveKind } from "../../../../types/SemanticType";
+import { PrimitiveKind } from "../../../../types/SemanticType";
+import type { ModelKeySemanticType } from "../../../../../types/domain/modelContracts";
+import { SemanticValueFactory, type ModelName, type TableName, type ColumnName, type PropertyName } from "../../../../../types/domain/semanticValues";
 import type { ScannedModelParams } from "./types";
 import {
     computeModelParams,
@@ -23,39 +25,39 @@ import {
 } from "./modelEntityFactory";
 
 export class ScannedModelDescriptor implements ParsedModel {
-    public readonly name: string;
-    public readonly shortName: string;
-    public readonly table: string;
-    public readonly primaryKey: string;
+    public readonly name: ModelName;
+    public readonly shortName: ModelName;
+    public readonly table: TableName;
+    public readonly primaryKey: ColumnName;
     public readonly keyType: ModelKeyType;
-    public readonly keySemanticType: PrimitiveKind;
+    public readonly keySemanticType: ModelKeySemanticType;
     public readonly incrementing: boolean;
     public readonly softDeletes: boolean;
     public readonly timestamps: boolean;
     public readonly columns: readonly ParsedColumn[];
-    public readonly fillable: readonly string[];
-    public readonly guarded: readonly string[];
-    public readonly hidden: readonly string[];
-    public readonly appends: readonly string[];
+    public readonly fillable: readonly PropertyName[];
+    public readonly guarded: readonly PropertyName[];
+    public readonly hidden: readonly PropertyName[];
+    public readonly appends: readonly PropertyName[];
     public readonly casts: readonly ParsedCast[];
     public readonly accessors: readonly ParsedAccessor[];
     public readonly relations: readonly ParsedRelation[];
 
     constructor(params: ScannedModelParams) {
-        this.name = params.name;
-        this.shortName = params.shortName;
-        this.table = params.table;
-        this.primaryKey = params.primaryKey;
+        this.name = SemanticValueFactory.modelName(params.name);
+        this.shortName = SemanticValueFactory.modelName(params.shortName);
+        this.table = SemanticValueFactory.tableName(params.table);
+        this.primaryKey = SemanticValueFactory.columnName(params.primaryKey);
         this.keyType = params.keyType;
-        this.keySemanticType = params.keySemanticType;
+        this.keySemanticType = params.keySemanticType === PrimitiveKind.NUMBER ? { kind: 'number' } : { kind: 'string' };
         this.incrementing = params.incrementing;
         this.softDeletes = params.softDeletes;
         this.timestamps = params.timestamps;
         this.columns = params.columns;
-        this.fillable = params.fillable;
-        this.guarded = params.guarded;
-        this.hidden = params.hidden;
-        this.appends = params.appends;
+        this.fillable = params.fillable.map(SemanticValueFactory.propertyName);
+        this.guarded = params.guarded.map(SemanticValueFactory.propertyName);
+        this.hidden = params.hidden.map(SemanticValueFactory.propertyName);
+        this.appends = params.appends.map(SemanticValueFactory.propertyName);
         this.casts = params.casts;
         this.accessors = params.accessors;
         this.relations = params.relations;

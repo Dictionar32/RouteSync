@@ -53,7 +53,7 @@ export class SemanticResourceBinder {
         readonly entries: readonly PhpArrayEntry[];
         readonly sourceFile: string;
         readonly modelSymbolTable: ModelSymbolTable;
-        readonly controllerDataflowMap?: ReadonlyMap<string, string>;
+        readonly controllerDataflowMap?: import("../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
         readonly relationPropagationMap?: ReadonlyMap<string, string>;
     }): ParsedResource {
         return bindResource(params);

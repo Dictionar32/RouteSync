@@ -8,6 +8,7 @@
 
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
+import { findControllerResourceBinding } from "../controller/resourceDataflowAggregator";
 
 export interface ResourceRelationEdge {
     readonly parentResource: string;
@@ -21,14 +22,16 @@ export interface ResourceRelationEdge {
 export function resolveInitialModel(
     resourceName: string,
     modelSymbolTable: ModelSymbolTable,
-    controllerDataflowMap: ReadonlyMap<string, string> | undefined,
+    controllerDataflowMap: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow | undefined,
     resolvedModels: Map<string, OriginModelSymbol>
 ): void {
-    if (controllerDataflowMap && controllerDataflowMap.has(resourceName)) {
-        const target = controllerDataflowMap.get(resourceName)!;
-        const sym = target.startsWith('table:')
-            ? modelSymbolTable.findByTableName(target.slice(6))
-            : modelSymbolTable.get(target);
+    const binding = controllerDataflowMap
+        ? findControllerResourceBinding(controllerDataflowMap, resourceName)
+        : undefined;
+    if (binding) {
+        const sym = binding.model.kind === 'table'
+            ? modelSymbolTable.findByTableName(binding.model.name)
+            : modelSymbolTable.get(binding.model.name);
         if (sym) {
             resolvedModels.set(resourceName, sym);
             return;
@@ -60,11 +63,11 @@ export function propagateRelationEdges(
             if (resolvedModels.has(edge.parentResource) && !resolvedModels.has(edge.childResource)) {
                 const parentSym = resolvedModels.get(edge.parentResource)!;
                 const rel = parentSym.relation(edge.relationKey);
-                if (rel && rel.targetModel) {
-                    const childSym = modelSymbolTable.get(rel.targetModel);
+                if (rel) {
+                    const childSym = modelSymbolTable.get(rel.targetModel.value);
                     if (childSym) {
                         resolvedModels.set(edge.childResource, childSym);
-                        relationPropagationMap.set(edge.childResource, rel.targetModel);
+                        relationPropagationMap.set(edge.childResource, rel.targetModel.value);
                         changed = true;
                     }
                 }

@@ -6,15 +6,13 @@
 import {
     ObjectProperty,
     ScannedObjectProperty,
-    NullableType,
-    ReadonlyCollectionType,
-    CollectionKind,
     type SemanticType
 } from '../../../../types/SemanticType';
 import type { ResourceFieldDescriptor } from '../../../../../types/domain/expressions';
 import { matchResourceFieldExpression } from '../../../../../types/domain/expressions';
 import { toCamelCase } from '../../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from '../SemanticDerivationContext';
+import { SemanticTypeResolver } from '../../../../domain/common/SemanticTypeResolver';
 
 export function processResponseProperties(
     fields: readonly ResourceFieldDescriptor[],
@@ -43,12 +41,7 @@ function processField(
         object: expression => {
             properties.push(...processResponseProperties(expression.fields, context, name));
         },
-        array: expression => {
-            const elementType = expression.element.semanticType;
-            const collection = new ReadonlyCollectionType(CollectionKind.ARRAY, elementType);
-            const type = field.semanticType.kind === 'nullable' ? field.semanticType : collection;
-            properties.push(property(name, type));
-        },
+        array: () => pushLeaf(field, name, properties),
         primitive: () => pushLeaf(field, name, properties),
         model: () => pushLeaf(field, name, properties),
         resource: () => pushLeaf(field, name, properties),
@@ -60,6 +53,11 @@ function processField(
         method_call: () => pushLeaf(field, name, properties),
         nullsafe_method_call: () => pushLeaf(field, name, properties),
         static_method_call: () => pushLeaf(field, name, properties),
+        array_access: () => pushLeaf(field, name, properties),
+        function_call: () => pushLeaf(field, name, properties),
+        ternary: () => pushLeaf(field, name, properties),
+        short_ternary: () => pushLeaf(field, name, properties),
+        null_coalesce: () => pushLeaf(field, name, properties),
         literal: () => pushLeaf(field, name, properties),
         unsupported: () => pushLeaf(field, name, properties)
     });
@@ -71,14 +69,16 @@ function pushLeaf(
     name: string,
     properties: ObjectProperty[]
 ): void {
-    properties.push(property(name, field.semanticType));
+    properties.push(property(name, semanticTypeFromBoundField(field)));
 }
 
+function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticType {
+    return SemanticTypeResolver.resolveFieldSemanticType(field);
+}
 function property(name: string, type: SemanticType): ObjectProperty {
     return ScannedObjectProperty.create({
         name,
         type,
-        nullable: type.isNullable(),
         required: true
     });
 }

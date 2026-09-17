@@ -15,6 +15,7 @@ export * from './typeIrTypes';
 export * from './typeIrUtils';
 export * from './resourceIrTypes';
 export * from './requestIrTypes';
+export * from './paginationState';
 export * from './endpointIrTypes';
 export * from './mapperIrTypes';
 export * from './sharedIrTypes';

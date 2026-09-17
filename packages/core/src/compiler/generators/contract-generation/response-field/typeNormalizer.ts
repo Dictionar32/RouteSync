@@ -1,12 +1,4 @@
-/**
- * typeNormalizer.ts
- *
- * Normalizes field types and kinds from ResponseFieldData.
- *
- * @module core/compiler/generators/contract-generation/response-field
- */
-
-import type { ResponseFieldData } from './types';
+import type { FieldPresence, ResponseFieldData, ResponseFieldResolved } from './types';
 
 export function normalizeKind(kind: ResponseFieldData['kind']): 'primitive' | 'object' | 'array' {
   switch (kind) {
@@ -18,48 +10,45 @@ export function normalizeKind(kind: ResponseFieldData['kind']): 'primitive' | 'o
   }
 }
 
+const TYPE_MAP: ReadonlyMap<string, string> = new Map([
+  ['int', 'number'], ['integer', 'number'], ['float', 'number'], ['double', 'number'],
+  ['bool', 'boolean'], ['str', 'string']
+]);
+
 export function normalizeType(type: string): string {
-  const normalized = type.toLowerCase();
-  const typeMap: Record<string, string> = {
-    int: 'number',
-    integer: 'number',
-    float: 'number',
-    double: 'number',
-    bool: 'boolean',
-    str: 'string'
-  };
-  return typeMap[normalized] || type;
+  return TYPE_MAP.get(type.toLowerCase()) ?? type;
 }
 
 export function extractType(fieldData: ResponseFieldData): string {
   switch (fieldData.kind) {
-    case 'primitive':
-      return normalizeType(fieldData.type);
-    case 'object':
-      return 'object';
-    case 'array':
-      return 'array';
+    case 'primitive': return normalizeType(fieldData.type);
+    case 'object': return 'object';
+    case 'array': return 'array';
     case 'variable':
-    case 'property_access':
-      return resolvedType(fieldData.resolved);
+    case 'property_access': return resolvedType(fieldData.resolved);
   }
 }
 
-function resolvedType(resolved: ResponseFieldData['resolved']): string {
-  if (resolved === undefined) return 'unknown';
-  if (resolved.status === 'unresolved') return 'unknown';
-  if (resolved.type !== undefined) return normalizeType(resolved.type);
-  return resolved.model;
+function resolvedType(resolved: ResponseFieldResolved): string {
+  switch (resolved.kind) {
+    case 'reference': return resolved.typeName;
+    case 'type': return normalizeType(resolved.typeName);
+    case 'unresolved': return 'unknown';
+  }
 }
 
 export function isFieldNullable(fieldData: ResponseFieldData): boolean {
-  if (fieldData.nullable === true) return true;
-  if (fieldData.kind !== 'variable' && fieldData.kind !== 'property_access') return false;
-  const resolved = fieldData.resolved;
-  return resolved !== undefined && resolved.status === 'resolved' &&
-    resolved.type !== undefined && resolved.type.includes('null');
+  return presenceHasNullable(fieldData.presence);
 }
 
 export function isFieldOptional(fieldData: ResponseFieldData): boolean {
-  return fieldData.optional === true;
+  return presenceHasOptional(fieldData.presence);
+}
+
+function presenceHasNullable(presence: FieldPresence): boolean {
+  return presence.kind === 'nullable' || presence.kind === 'optional_nullable';
+}
+
+function presenceHasOptional(presence: FieldPresence): boolean {
+  return presence.kind === 'optional' || presence.kind === 'optional_nullable';
 }

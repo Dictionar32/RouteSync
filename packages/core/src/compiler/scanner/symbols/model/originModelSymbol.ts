@@ -23,26 +23,26 @@ export class OriginModelSymbol {
 
     constructor(node: ParsedModel) {
         this.node = node;
-        this.name = node.name;
-        this.shortName = node.shortName || (node.name.includes('\\') ? node.name.split('\\').pop()! : node.name);
+        this.name = node.name.value;
+        this.shortName = node.shortName.value;
 
         for (const col of node.columns) {
             this.columnsByName.set(col.name, col);
         }
 
         for (const c of node.casts) {
-            this.castsByName.set(c.column, c);
+            this.castsByName.set(c.column.value, c);
         }
 
         for (const rel of node.relations) {
-            this.relationsByName.set(rel.name, rel);
+            this.relationsByName.set(rel.name.value, rel);
         }
 
         for (const acc of node.accessors) {
-            this.accessorsByName.set(acc.name, acc);
+            this.accessorsByName.set(acc.name.value, acc);
             // Index camelCase and snake_case variations
-            const camel = acc.name.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase());
-            if (camel !== acc.name) {
+            const camel = acc.name.value.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase());
+            if (camel !== acc.name.value) {
                 this.accessorsByName.set(camel, acc);
             }
         }
@@ -88,7 +88,7 @@ export class OriginModelSymbol {
 
         const relation = this.relation(prop);
         if (relation) {
-            const reference = new ReferenceType('', relation.targetModel);
+            const reference = new ReferenceType('', relation.targetModel.value);
             const semanticType = relation.cardinality === 'many'
                 ? new ReadonlyCollectionType(CollectionKind.ARRAY, reference)
                 : reference;

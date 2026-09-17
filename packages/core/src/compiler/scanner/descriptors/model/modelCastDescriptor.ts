@@ -11,7 +11,8 @@ import {
     type EloquentCastKind,
     EloquentCastMapper
 } from '../../../../types/route';
-import type { PrimitiveKind } from '../../../types/SemanticType';
+import { PrimitiveType, type PrimitiveKind, type SemanticType } from '../../../types/SemanticType';
+import { SemanticValueFactory, type ColumnName, type CastTypeName } from '../../../../types/domain/semanticValues';
 
 export interface ScannedModelCastParams {
     readonly column: string;
@@ -24,16 +25,16 @@ export interface ScannedModelCastParams {
  * Reusable Constructor: Scanned Model Cast Descriptor.
  */
 export class ScannedModelCastDescriptor implements ParsedCast {
-    public readonly column: string;
-    public readonly targetType: string;
+    public readonly column: ColumnName;
+    public readonly targetType: CastTypeName;
     public readonly castKind: EloquentCastKind;
-    public readonly semanticType: PrimitiveKind;
+    public readonly semanticType: SemanticType;
 
     constructor({ column, targetType, castKind, semanticType }: ScannedModelCastParams) {
-        this.column = column;
-        this.targetType = targetType;
+        this.column = SemanticValueFactory.columnName(column);
+        this.targetType = SemanticValueFactory.castTypeName(targetType);
         this.castKind = castKind;
-        this.semanticType = semanticType;
+        this.semanticType = new PrimitiveType(semanticType);
         Object.freeze(this);
     }
 

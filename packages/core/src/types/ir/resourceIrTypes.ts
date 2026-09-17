@@ -9,35 +9,36 @@
 
 import type { TypeProjections } from './typeIrTypes';
 import type { ResolvedSemanticType } from './resolvedSemanticTypes';
+import type { CodeExpression, ControllerName, ModelName, PropertyName, ResourceId, ResourceName, RouteName, SourceFilePath, TypeExpression } from './nominalVocabulary';
 
 export interface FieldSource {
     readonly type: 'model_column' | 'accessor' | 'method' | 'computed' | 'relation';
-    readonly path: string;
-    readonly model?: string;
+    readonly path: PropertyName;
+    readonly model: ModelName;
 }
 
 export interface ResourceFieldIR {
-    readonly name: string;
-    readonly transformedName: string;
+    readonly name: PropertyName;
+    readonly transformedName: PropertyName;
     readonly type: TypeProjections;
     readonly semanticType: ResolvedSemanticType;
-    readonly description?: string;
-    readonly validation?: unknown;
-    readonly source?: FieldSource;
+    readonly description: TypeExpression;
+    readonly validation: readonly TypeExpression[];
+    readonly source: FieldSource;
 }
 
 export interface ResourceAliasIR {
-    readonly name: string;
+    readonly name: ResourceName;
     readonly kind: 'show' | 'index' | 'collection' | 'paginated';
-    readonly target: string;
-    readonly isArray?: boolean;
+    readonly target: ResourceName;
+    readonly cardinality: 'single' | 'collection';
 }
 
 export interface VariantMetadata {
-    readonly purpose: string;
-    readonly generator: string;
-    readonly nullable_handling?: 'strict' | 'loose';
-    readonly optional_handling?: 'strict' | 'loose';
+    readonly purpose: TypeExpression;
+    readonly generator: TypeExpression;
+    readonly nullability: 'strict' | 'loose';
+    readonly optionality: 'strict' | 'loose';
 }
 
 export interface ResourceVariantIR {
@@ -47,19 +48,19 @@ export interface ResourceVariantIR {
 }
 
 export interface ResourceMetadata {
-    readonly sourceFile: string;
-    readonly controller?: string;
-    readonly routes?: readonly string[];
-    readonly dependencies: readonly string[];
+    readonly sourceFile: SourceFilePath;
+    readonly controller: ControllerName;
+    readonly routes: readonly RouteName[];
+    readonly dependencies: readonly ResourceId[];
 }
 
 export interface ResourceIR {
-    readonly id: string;
-    readonly name: string;
-    readonly sourceModel?: string;
+    readonly id: ResourceId;
+    readonly name: ResourceName;
+    readonly sourceModel: ModelName;
     readonly fields: readonly ResourceFieldIR[];
     readonly aliases: readonly ResourceAliasIR[];
     readonly variants: readonly ResourceVariantIR[];
-    readonly mapper: unknown;
+    readonly mapper: CodeExpression;
     readonly metadata: ResourceMetadata;
 }

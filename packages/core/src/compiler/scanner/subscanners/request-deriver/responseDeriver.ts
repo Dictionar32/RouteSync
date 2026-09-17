@@ -75,7 +75,6 @@ function toResponseFields(
         name: field.propertyName.value,
         type: field.semanticType,
         required: true,
-        nullable: false
     }));
 }
 

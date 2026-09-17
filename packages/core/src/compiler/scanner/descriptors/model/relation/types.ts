@@ -1,15 +1,8 @@
-/**
- * types.ts
- *
- * Eloquent model relation descriptor types.
- *
- * @module core/compiler/scanner/descriptors/model/relation
- */
+import type { EloquentRelationType, EloquentRelationCardinality } from '../../../../../types/route';
 
-import type {
-    EloquentRelationType,
-    EloquentRelationCardinality
-} from '../../../../../types/route';
+export type RelationForeignKey =
+    | { readonly kind: 'convention' }
+    | { readonly kind: 'explicit'; readonly column: string };
 
 export interface ScannedModelRelationParams {
     readonly name: string;
@@ -17,5 +10,5 @@ export interface ScannedModelRelationParams {
     readonly modelName: string;
     readonly targetModel: string;
     readonly cardinality: EloquentRelationCardinality;
-    readonly foreignKey: string | null;
+    readonly foreignKey: RelationForeignKey;
 }

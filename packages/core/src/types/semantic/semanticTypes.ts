@@ -7,26 +7,12 @@
  */
 
 import type { SemanticResolution } from '../contract';
+import type { PropertyName } from '../domain/semanticValues';
 
-export type SemanticType =
-  | "string"
-  | "number"
-  | "boolean"
-  | "datetime"
-  | "array"
-  | "object"
-  | "model"
-  | "resource"
-  | "collection"
-  | "nullable"
-  | "json-object"
-  | "json-member"
-  | "BinaryFile"
-  | "NewAccessToken"
-  | "unknown";
+export type SemanticType = import("../../compiler/types/SemanticType").SemanticType
 
 export interface SemanticFieldEntry {
-  readonly name: string;
+  readonly name: PropertyName;
   readonly type: SemanticType;
 }
 
@@ -48,28 +34,23 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
     return new SemanticFieldSet([]);
   }
 
-  public static fromRecord(record: Readonly<{ readonly [name: string]: SemanticType }>): SemanticFieldSet {
-    const entries: SemanticFieldEntry[] = Object.entries(record).map(([name, type]) => ({ name, type }));
-    return new SemanticFieldSet(entries);
-  }
-
   public static fromEntries(entries: readonly SemanticFieldEntry[]): SemanticFieldSet {
     return new SemanticFieldSet(entries);
   }
 
-  public get(name: string): SemanticType | undefined {
+  public get(name: PropertyName): SemanticType | undefined {
     return this._lookup.get(name);
   }
 
-  public getType(name: string): SemanticType | undefined {
+  public getType(name: PropertyName): SemanticType | undefined {
     return this._lookup.get(name);
   }
 
-  public has(name: string): boolean {
+  public has(name: PropertyName): boolean {
     return this._lookup.has(name);
   }
 
-  public hasField(name: string): boolean {
+  public hasField(name: PropertyName): boolean {
     return this._lookup.has(name);
   }
 
@@ -81,9 +62,6 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
     return this.entries[Symbol.iterator]();
   }
 
-  public toRecord(): { readonly [name: string]: SemanticType } {
-    return Object.fromEntries(this.entries.map(e => [e.name, e.type]));
-  }
 }
 
 export interface SemanticNode extends Omit<SemanticResolution, 'fields'> {

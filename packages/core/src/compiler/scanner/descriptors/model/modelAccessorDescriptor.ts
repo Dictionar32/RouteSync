@@ -7,8 +7,10 @@
  */
 
 import { ParsedAccessor } from "../../../../types/route";
-import { PrimitiveKind } from "../../../types/SemanticType";
+import { PrimitiveKind, PrimitiveType } from "../../../types/SemanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
+import { SemanticValueFactory, type MethodName, type PropertyName } from "../../../../types/domain/semanticValues";
+import type { SemanticType } from "../../../types/SemanticType";
 
 export interface ScannedModelAccessorParams {
     readonly name: string;
@@ -22,11 +24,9 @@ export interface ScannedModelAccessorParams {
  * Reusable Constructor: Scanned Model Accessor Descriptor.
  */
 export class ScannedModelAccessorDescriptor implements ParsedAccessor {
-    public readonly name: string;
-    public readonly propertyName: string;
-    public readonly type: string;
-    public readonly nullable: boolean;
-    public readonly semanticType: PrimitiveKind;
+    public readonly name: MethodName;
+    public readonly propertyName: PropertyName;
+    public readonly semanticType: SemanticType;
 
     constructor({
         name,
@@ -35,11 +35,9 @@ export class ScannedModelAccessorDescriptor implements ParsedAccessor {
         nullable,
         semanticType
     }: ScannedModelAccessorParams) {
-        this.name = name;
-        this.propertyName = propertyName;
-        this.type = type;
-        this.nullable = nullable;
-        this.semanticType = semanticType;
+        this.name = SemanticValueFactory.methodName(name);
+        this.propertyName = SemanticValueFactory.propertyName(propertyName);
+        this.semanticType = new PrimitiveType(semanticType);
         Object.freeze(this);
     }
 

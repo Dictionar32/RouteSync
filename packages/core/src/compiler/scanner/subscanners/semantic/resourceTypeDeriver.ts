@@ -3,7 +3,7 @@
  * No unknown-shape probing and no type-string reclassification.
  */
 import type { ResourceFieldDescriptor, ParsedResource } from '../../../../types/route';
-import { ObjectType, type ObjectProperty, ScannedObjectProperty, NullableType, type SemanticType } from '../../../types/SemanticType';
+import { ObjectType, type ObjectProperty, ScannedObjectProperty, type SemanticType } from '../../../types/SemanticType';
 import { toCamelCase } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
 
@@ -54,7 +54,6 @@ function appendField(
         name,
         type: field.semanticType,
         required: true,
-        nullable: field.semanticType.isNullable()
     }));
 }
 

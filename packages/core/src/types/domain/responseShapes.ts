@@ -2,6 +2,9 @@ import type {
   EloquentRelationCardinality,
   EloquentRelationType
 } from "./database";
+import {
+  SemanticValueFactory
+} from "./semanticValues";
 import type {
   ColumnName,
   EnvelopeTypeName,
@@ -41,14 +44,14 @@ export const RESPONSE_SHAPE_REGISTRY: ResponseShapeRegistry = Object.freeze({
     shape: ResponseShape.Paginated,
     cardinality: 'many',
     pagination: 'paginated',
-    defaultWrapperKey: { kind: 'response_data_key', value: 'data' },
+    defaultWrapperKey: { kind: 'data_wrapper', key: SemanticValueFactory.responseDataKey('data') },
     description: 'Paginated envelope containing a collection of records with pagination metadata'
   },
   [ResponseShape.Collection]: {
     shape: ResponseShape.Collection,
     cardinality: 'many',
     pagination: 'none',
-    defaultWrapperKey: { kind: 'response_data_key', value: 'data' },
+    defaultWrapperKey: { kind: 'data_wrapper', key: SemanticValueFactory.responseDataKey('data') },
     description: 'Direct array or collection of records'
   },
   [ResponseShape.Single]: {
@@ -74,8 +77,14 @@ export function matchResponseShape<R>(
   visitor: ResponseShapeVisitor<R>
 ): R {
   const shape = typeof shapeOrDescriptor === 'string' ? shapeOrDescriptor : shapeOrDescriptor.shape;
-  const spec = RESPONSE_SHAPE_REGISTRY[shape];
-  return visitor[shape](spec as any);
+  switch (shape) {
+    case ResponseShape.Paginated:
+      return visitor.paginated(RESPONSE_SHAPE_REGISTRY[ResponseShape.Paginated]);
+    case ResponseShape.Collection:
+      return visitor.collection(RESPONSE_SHAPE_REGISTRY[ResponseShape.Collection]);
+    case ResponseShape.Single:
+      return visitor.single(RESPONSE_SHAPE_REGISTRY[ResponseShape.Single]);
+  }
 }
 
 
@@ -138,17 +147,17 @@ export type PaginationKindRegistry = {
 export const PAGINATION_KIND_REGISTRY: PaginationKindRegistry = Object.freeze({
   [PaginationKind.LengthAware]: Object.freeze({
     kind: PaginationKind.LengthAware,
-    defaultDataKey: { kind: 'response_data_key', value: 'data' },
-    defaultMetaKey: { kind: 'response_meta_key', value: 'meta' },
-    defaultLinksKey: { kind: 'response_links_key', value: 'links' },
-    defaultEnvelopeTypeName: { kind: 'envelope_type_name', value: 'PaginatedResponse<T>' }
+    defaultDataKey: SemanticValueFactory.responseDataKey('data'),
+    defaultMetaKey: SemanticValueFactory.responseMetaKey('meta'),
+    defaultLinksKey: { kind: 'links_key' as const, key: SemanticValueFactory.responseLinksKey('links') },
+    defaultEnvelopeTypeName: SemanticValueFactory.envelopeTypeName('PaginatedResponse<T>')
   }),
   [PaginationKind.Cursor]: Object.freeze({
     kind: PaginationKind.Cursor,
-    defaultDataKey: { kind: 'response_data_key', value: 'data' },
-    defaultMetaKey: { kind: 'response_meta_key', value: 'meta' },
-    defaultLinksKey: { kind: 'no_links_key' },
-    defaultEnvelopeTypeName: { kind: 'envelope_type_name', value: 'CursorPaginatedResponse<T>' }
+    defaultDataKey: SemanticValueFactory.responseDataKey('data'),
+    defaultMetaKey: SemanticValueFactory.responseMetaKey('meta'),
+    defaultLinksKey: { kind: 'no_links_key' as const },
+    defaultEnvelopeTypeName: SemanticValueFactory.envelopeTypeName('CursorPaginatedResponse<T>')
   })
 });
 
@@ -161,10 +170,15 @@ export interface PaginatedEnvelopeVisitor<R> {
  * 0 `if` Catamorphism: Mengeksekusi logic spesifik tipe PaginatedEnvelopeDescriptor dengan exhaustive type safety
  */
 export function matchPaginatedEnvelope<R>(
-  envelope: PaginatedEnvelopeDescriptor,
+  envelope: AnyPaginatedEnvelopeDescriptor,
   visitor: PaginatedEnvelopeVisitor<R>
 ): R {
-  return visitor[envelope.kind](envelope as any);
+  switch (envelope.kind) {
+    case PaginationKind.LengthAware:
+      return visitor.length_aware(envelope);
+    case PaginationKind.Cursor:
+      return visitor.cursor(envelope);
+  }
 }
 
 export const matchPaginationKind = matchPaginatedEnvelope;
@@ -248,37 +262,37 @@ export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object
   [PolymorphicMorphType.MorphTo]: {
     morphType: PolymorphicMorphType.MorphTo,
     cardinality: 'one',
-    defaultIdColumn: 'commentable_id',
-    defaultTypeColumn: 'commentable_type',
-    defaultUnionTypeName: 'CommentableTarget'
+    defaultIdColumn: SemanticValueFactory.columnName('commentable_id'),
+    defaultTypeColumn: SemanticValueFactory.columnName('commentable_type'),
+    defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('CommentableTarget')
   },
   [PolymorphicMorphType.MorphOne]: {
     morphType: PolymorphicMorphType.MorphOne,
     cardinality: 'one',
-    defaultIdColumn: 'commentable_id',
-    defaultTypeColumn: 'commentable_type',
-    defaultUnionTypeName: 'CommentableTarget'
+    defaultIdColumn: SemanticValueFactory.columnName('commentable_id'),
+    defaultTypeColumn: SemanticValueFactory.columnName('commentable_type'),
+    defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('CommentableTarget')
   },
   [PolymorphicMorphType.MorphMany]: {
     morphType: PolymorphicMorphType.MorphMany,
     cardinality: 'many',
-    defaultIdColumn: 'commentable_id',
-    defaultTypeColumn: 'commentable_type',
-    defaultUnionTypeName: 'CommentableTarget'
+    defaultIdColumn: SemanticValueFactory.columnName('commentable_id'),
+    defaultTypeColumn: SemanticValueFactory.columnName('commentable_type'),
+    defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('CommentableTarget')
   },
   [PolymorphicMorphType.MorphToMany]: {
     morphType: PolymorphicMorphType.MorphToMany,
     cardinality: 'many',
-    defaultIdColumn: 'taggable_id',
-    defaultTypeColumn: 'taggable_type',
-    defaultUnionTypeName: 'TaggableTarget'
+    defaultIdColumn: SemanticValueFactory.columnName('taggable_id'),
+    defaultTypeColumn: SemanticValueFactory.columnName('taggable_type'),
+    defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('TaggableTarget')
   },
   [PolymorphicMorphType.MorphedByMany]: {
     morphType: PolymorphicMorphType.MorphedByMany,
     cardinality: 'many',
-    defaultIdColumn: 'taggable_id',
-    defaultTypeColumn: 'taggable_type',
-    defaultUnionTypeName: 'TaggableTarget'
+    defaultIdColumn: SemanticValueFactory.columnName('taggable_id'),
+    defaultTypeColumn: SemanticValueFactory.columnName('taggable_type'),
+    defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('TaggableTarget')
   }
 });
 
@@ -293,7 +307,18 @@ export function matchPolymorphicRelation<R>(
   relation: PolymorphicRelationDescriptor,
   visitor: PolymorphicRelationVisitor<R>
 ): R {
-  return visitor[relation.morphType](relation as any);
+  switch (relation.morphType) {
+    case PolymorphicMorphType.MorphTo:
+      return visitor.morphTo(relation);
+    case PolymorphicMorphType.MorphOne:
+      return visitor.morphOne(relation);
+    case PolymorphicMorphType.MorphMany:
+      return visitor.morphMany(relation);
+    case PolymorphicMorphType.MorphToMany:
+      return visitor.morphToMany(relation);
+    case PolymorphicMorphType.MorphedByMany:
+      return visitor.morphedByMany(relation);
+  }
 }
 
 export const matchPolymorphicMorphType = matchPolymorphicRelation;
@@ -310,14 +335,15 @@ export interface ScannedPaginatedEnvelopeParams {
 /**
  * Reusable Constructor: Scanned Paginated Envelope Descriptor.
  */
-export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDescriptor {
-  public readonly kind: PaginationKind;
-  public readonly dataKey: string;
-  public readonly metaKey: string;
+export class ScannedPaginatedEnvelopeDescriptor<K extends PaginationKind = PaginationKind>
+  implements BasePaginatedEnvelopeDescriptor {
+  public readonly kind: K;
+  public readonly dataKey: ResponseDataKey;
+  public readonly metaKey: ResponseMetaKey;
   public readonly linksKey: ResponseLinksKeySpecification;
-  public readonly envelopeTypeName: string;
+  public readonly envelopeTypeName: EnvelopeTypeName;
 
-  constructor(params: ScannedPaginatedEnvelopeParams) {
+  constructor(params: ScannedPaginatedEnvelopeParams & { readonly kind: K }) {
     this.kind = params.kind;
     this.dataKey = params.dataKey;
     this.metaKey = params.metaKey;
@@ -326,26 +352,33 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
     Object.freeze(this);
   }
 
-  public static create({
-    kind = PaginationKind.LengthAware,
-    dataKey,
-    metaKey,
-    linksKey,
-    envelopeTypeName
-  }: {
-    readonly kind?: PaginationKind;
-    readonly dataKey?: string;
-    readonly metaKey?: string;
-    readonly linksKey: ResponseLinksKeySpecification;
-    readonly envelopeTypeName?: string;
-  } = {}): PaginatedEnvelopeDescriptor {
+  public static create<K extends PaginationKind = typeof PaginationKind.LengthAware>(
+    params: {
+      readonly kind: K;
+      readonly dataKey?: ResponseDataKey;
+      readonly metaKey?: ResponseMetaKey;
+      readonly linksKey?: ResponseLinksKeySpecification;
+      readonly envelopeTypeName?: EnvelopeTypeName;
+    }
+  ): ScannedPaginatedEnvelopeDescriptor<K>;
+  public static create(): ScannedPaginatedEnvelopeDescriptor<'length_aware'>;
+  public static create<K extends PaginationKind = typeof PaginationKind.LengthAware>(
+    params: {
+      readonly kind?: K;
+      readonly dataKey?: ResponseDataKey;
+      readonly metaKey?: ResponseMetaKey;
+      readonly linksKey?: ResponseLinksKeySpecification;
+      readonly envelopeTypeName?: EnvelopeTypeName;
+    } = {}
+  ): ScannedPaginatedEnvelopeDescriptor<K> {
+    const kind = (params.kind ?? PaginationKind.LengthAware) as K;
     const spec = PAGINATION_KIND_REGISTRY[kind];
     return new ScannedPaginatedEnvelopeDescriptor({
       kind,
-      dataKey: dataKey ?? spec.defaultDataKey,
-      metaKey: metaKey ?? spec.defaultMetaKey,
-      linksKey: linksKey !== undefined ? linksKey : spec.defaultLinksKey,
-      envelopeTypeName: envelopeTypeName ?? spec.defaultEnvelopeTypeName
+      dataKey: params.dataKey ?? spec.defaultDataKey,
+      metaKey: params.metaKey ?? spec.defaultMetaKey,
+      linksKey: params.linksKey ?? spec.defaultLinksKey,
+      envelopeTypeName: params.envelopeTypeName ?? spec.defaultEnvelopeTypeName
     });
   }
 
@@ -353,27 +386,27 @@ export class ScannedPaginatedEnvelopeDescriptor implements PaginatedEnvelopeDesc
     dataKey: string = 'data',
     linksKey: string = 'links',
     envelopeTypeName: string = 'PaginatedResponse<T>'
-  ): LengthAwarePaginatedEnvelopeDescriptor {
+  ): ScannedPaginatedEnvelopeDescriptor<'length_aware'> {
     return new ScannedPaginatedEnvelopeDescriptor({
       kind: PaginationKind.LengthAware,
-      dataKey,
-      metaKey: 'meta',
-      linksKey,
-      envelopeTypeName
-    }) as LengthAwarePaginatedEnvelopeDescriptor;
+      dataKey: SemanticValueFactory.responseDataKey(dataKey),
+      metaKey: SemanticValueFactory.responseMetaKey('meta'),
+      linksKey: { kind: 'links_key', key: SemanticValueFactory.responseLinksKey(linksKey) },
+      envelopeTypeName: SemanticValueFactory.envelopeTypeName(envelopeTypeName)
+    });
   }
 
   public static cursor(
     dataKey: string = 'data',
     envelopeTypeName: string = 'CursorPaginatedResponse<T>'
-  ): CursorPaginatedEnvelopeDescriptor {
+  ): ScannedPaginatedEnvelopeDescriptor<'cursor'> {
     return new ScannedPaginatedEnvelopeDescriptor({
       kind: PaginationKind.Cursor,
-      dataKey,
-      metaKey: 'meta',
-      linksKey: null,
-      envelopeTypeName
-    }) as CursorPaginatedEnvelopeDescriptor;
+      dataKey: SemanticValueFactory.responseDataKey(dataKey),
+      metaKey: SemanticValueFactory.responseMetaKey('meta'),
+      linksKey: { kind: 'no_links_key' },
+      envelopeTypeName: SemanticValueFactory.envelopeTypeName(envelopeTypeName)
+    });
   }
 }
 
@@ -403,7 +436,6 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
     this.targetModels = Object.freeze([...params.targetModels]);
     this.unionTypeName = params.unionTypeName;
     const spec = POLYMORPHIC_RELATION_REGISTRY[params.morphType];
-    this.isCollection = spec.isCollection;
     this.cardinality = spec.cardinality;
     Object.freeze(this);
   }
@@ -425,10 +457,16 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
     const spec = POLYMORPHIC_RELATION_REGISTRY[effectiveType];
     return new ScannedPolymorphicRelationDescriptor({
       morphType: effectiveType,
-      idColumn: idColumn ?? spec.defaultIdColumn,
-      typeColumn: typeColumn ?? spec.defaultTypeColumn,
-      targetModels,
-      unionTypeName: unionTypeName ?? spec.defaultUnionTypeName
+      idColumn: idColumn
+        ? SemanticValueFactory.columnName(idColumn)
+        : spec.defaultIdColumn,
+      typeColumn: typeColumn
+        ? SemanticValueFactory.columnName(typeColumn)
+        : spec.defaultTypeColumn,
+      targetModels: targetModels.map(SemanticValueFactory.modelName),
+      unionTypeName: unionTypeName
+        ? SemanticValueFactory.envelopeTypeName(unionTypeName)
+        : spec.defaultUnionTypeName
     });
   }
 
@@ -440,11 +478,11 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
   ): MorphToRelationDescriptor {
     return new ScannedPolymorphicRelationDescriptor({
       morphType: PolymorphicMorphType.MorphTo,
-      idColumn,
-      typeColumn,
-      targetModels,
-      unionTypeName
-    }) as unknown as MorphToRelationDescriptor;
+      idColumn: SemanticValueFactory.columnName(idColumn),
+      typeColumn: SemanticValueFactory.columnName(typeColumn),
+      targetModels: targetModels.map(SemanticValueFactory.modelName),
+      unionTypeName: SemanticValueFactory.envelopeTypeName(unionTypeName)
+    }) as MorphToRelationDescriptor;
   }
 
   public static morphOne(
@@ -455,11 +493,11 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
   ): MorphOneRelationDescriptor {
     return new ScannedPolymorphicRelationDescriptor({
       morphType: PolymorphicMorphType.MorphOne,
-      idColumn,
-      typeColumn,
-      targetModels,
-      unionTypeName
-    }) as unknown as MorphOneRelationDescriptor;
+      idColumn: SemanticValueFactory.columnName(idColumn),
+      typeColumn: SemanticValueFactory.columnName(typeColumn),
+      targetModels: targetModels.map(SemanticValueFactory.modelName),
+      unionTypeName: SemanticValueFactory.envelopeTypeName(unionTypeName)
+    }) as MorphOneRelationDescriptor;
   }
 
   public static morphMany(
@@ -470,11 +508,11 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
   ): MorphManyRelationDescriptor {
     return new ScannedPolymorphicRelationDescriptor({
       morphType: PolymorphicMorphType.MorphMany,
-      idColumn,
-      typeColumn,
-      targetModels,
-      unionTypeName
-    }) as unknown as MorphManyRelationDescriptor;
+      idColumn: SemanticValueFactory.columnName(idColumn),
+      typeColumn: SemanticValueFactory.columnName(typeColumn),
+      targetModels: targetModels.map(SemanticValueFactory.modelName),
+      unionTypeName: SemanticValueFactory.envelopeTypeName(unionTypeName)
+    }) as MorphManyRelationDescriptor;
   }
 
   public static morphToMany(
@@ -485,11 +523,11 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
   ): MorphToManyRelationDescriptor {
     return new ScannedPolymorphicRelationDescriptor({
       morphType: PolymorphicMorphType.MorphToMany,
-      idColumn,
-      typeColumn,
-      targetModels,
-      unionTypeName
-    }) as unknown as MorphToManyRelationDescriptor;
+      idColumn: SemanticValueFactory.columnName(idColumn),
+      typeColumn: SemanticValueFactory.columnName(typeColumn),
+      targetModels: targetModels.map(SemanticValueFactory.modelName),
+      unionTypeName: SemanticValueFactory.envelopeTypeName(unionTypeName)
+    }) as MorphToManyRelationDescriptor;
   }
 
   public static morphedByMany(
@@ -500,10 +538,10 @@ export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRela
   ): MorphedByManyRelationDescriptor {
     return new ScannedPolymorphicRelationDescriptor({
       morphType: PolymorphicMorphType.MorphedByMany,
-      idColumn,
-      typeColumn,
-      targetModels,
-      unionTypeName
-    }) as unknown as MorphedByManyRelationDescriptor;
+      idColumn: SemanticValueFactory.columnName(idColumn),
+      typeColumn: SemanticValueFactory.columnName(typeColumn),
+      targetModels: targetModels.map(SemanticValueFactory.modelName),
+      unionTypeName: SemanticValueFactory.envelopeTypeName(unionTypeName)
+    }) as MorphedByManyRelationDescriptor;
   }
 }

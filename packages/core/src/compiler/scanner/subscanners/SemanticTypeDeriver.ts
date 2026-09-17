@@ -19,15 +19,6 @@ import { TypeInterner } from '../../types/TypeInterner';
 import { SemanticDerivationContext } from './semantic/SemanticDerivationContext';
 
 import {
-    extractFieldNullability,
-    extractFieldTypeString,
-    extractFieldExpression,
-    extractCollectionTargetResource,
-    normalizeResourceFields
-} from './semantic/fieldExtractors';
-
-import {
-    resolveModelColumnTypeString,
     findCastForColumn,
     extractModelAccessors,
     type ExtractedAccessorInfo
@@ -90,12 +81,6 @@ export class SemanticTypeDeriver {
 
 export {
     SemanticDerivationContext,
-    extractFieldNullability,
-    extractFieldTypeString,
-    extractFieldExpression,
-    extractCollectionTargetResource,
-    normalizeResourceFields,
-    resolveModelColumnTypeString,
     findCastForColumn,
     extractModelAccessors,
     deriveResourceTypes,

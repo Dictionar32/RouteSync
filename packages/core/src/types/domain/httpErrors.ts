@@ -144,10 +144,20 @@ export function matchHttpError<R>(
   return visitor[kind](descriptor);
 }
 
+export interface HttpErrorSchemaField {
+  readonly typeName: string;
+  readonly nullable: boolean;
+}
+
+export interface HttpErrorSchema {
+  readonly kind: 'object';
+  readonly fields: readonly (readonly [string, HttpErrorSchemaField])[];
+}
+
 export interface HttpErrorResponseDescriptor {
   readonly kind: HttpErrorKind;
   readonly statusCode: HttpStatusCode;
   readonly name: string;
   readonly typeName: string;
-  readonly schema: Record<string, unknown>;
+  readonly schema: HttpErrorSchema;
 }

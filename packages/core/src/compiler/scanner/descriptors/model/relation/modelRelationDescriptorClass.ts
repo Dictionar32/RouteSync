@@ -13,6 +13,7 @@ import type {
     EloquentRelationCardinality
 } from '../../../../../types/route';
 import { EloquentRelationType } from '../../../../../types/route';
+import { SemanticValueFactory, type RelationName, type ModelName, type ColumnName } from '../../../../../types/domain/semanticValues';
 import type { ScannedModelRelationParams } from './types';
 import {
     computeRelationParams,
@@ -25,20 +26,20 @@ import {
  * Reusable Constructor: Scanned Model Relation Descriptor.
  */
 export class ScannedModelRelationDescriptor implements ParsedRelation {
-    public readonly name: string;
+    public readonly name: RelationName;
     public readonly type: EloquentRelationType;
-    public readonly modelName: string;
-    public readonly targetModel: string;
+    public readonly sourceModel: ModelName;
+    public readonly targetModel: ModelName;
     public readonly cardinality: EloquentRelationCardinality;
-    public readonly foreignKey: string | null;
+    public readonly foreignKey: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
 
     constructor(params: ScannedModelRelationParams) {
-        this.name = params.name;
+        this.name = SemanticValueFactory.relationName(params.name);
         this.type = params.type;
-        this.modelName = params.modelName;
-        this.targetModel = params.targetModel;
+        this.sourceModel = SemanticValueFactory.modelName(params.modelName);
+        this.targetModel = SemanticValueFactory.modelName(params.targetModel);
         this.cardinality = params.cardinality;
-        this.foreignKey = params.foreignKey;
+        this.foreignKey = params.foreignKey.kind === 'convention' ? { kind: 'convention' } : { kind: 'explicit', column: SemanticValueFactory.columnName(params.foreignKey.column) };
         Object.freeze(this);
     }
 
@@ -48,7 +49,7 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly modelName: string;
         readonly targetModel?: string;
         readonly cardinality?: EloquentRelationCardinality;
-        readonly foreignKey?: string | null;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
     }): ScannedModelRelationDescriptor {
         return new ScannedModelRelationDescriptor(computeRelationParams(params));
     }
@@ -58,7 +59,7 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly type: EloquentRelationType;
         readonly modelName: string;
         readonly targetModel?: string;
-        readonly foreignKey?: string | null;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
     }): SingleRelationDescriptor {
         return new ScannedModelRelationDescriptor(
             computeSingleRelationParams(params)
@@ -70,7 +71,7 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly type: EloquentRelationType;
         readonly modelName: string;
         readonly targetModel?: string;
-        readonly foreignKey?: string | null;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
     }): CollectionRelationDescriptor {
         return new ScannedModelRelationDescriptor(
             computeCollectionRelationParams(params)
@@ -85,7 +86,7 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly name: string;
         readonly modelName: string;
         readonly targetModel?: string;
-        readonly foreignKey?: string | null;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
     }): SingleRelationDescriptor {
         return ScannedModelRelationDescriptor.single({
             ...params,
@@ -97,7 +98,7 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly name: string;
         readonly modelName: string;
         readonly targetModel?: string;
-        readonly foreignKey?: string | null;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
     }): CollectionRelationDescriptor {
         return ScannedModelRelationDescriptor.collection({
             ...params,

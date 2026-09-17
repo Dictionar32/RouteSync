@@ -70,17 +70,17 @@ describe('Concise Reusable Structured Constructors SSOT', () => {
   it('4. ScannedPaginatedEnvelopeDescriptor provides concise static helpers', () => {
     const lenAware = ScannedPaginatedEnvelopeDescriptor.lengthAware()
     expect(lenAware.kind).toBe(PaginationKind.LengthAware)
-    expect(lenAware.dataKey).toBe('data')
+    expect(lenAware.dataKey.value).toBe('data')
     expect(lenAware.metaKey).toBe('meta')
-    expect(lenAware.linksKey).toBe('links')
-    expect(lenAware.envelopeTypeName).toBe('PaginatedResponse<T>')
+    expect(lenAware.linksKey.kind).toBe('links_key')
+    expect(lenAware.envelopeTypeName.value).toBe('PaginatedResponse<T>')
     expect(Object.isFrozen(lenAware)).toBe(true)
 
     const cursor = ScannedPaginatedEnvelopeDescriptor.cursor('items')
     expect(cursor.kind).toBe(PaginationKind.Cursor)
-    expect(cursor.dataKey).toBe('items')
-    expect(cursor.linksKey).toBeNull()
-    expect(cursor.envelopeTypeName).toBe('CursorPaginatedResponse<T>')
+    expect(cursor.dataKey.value).toBe('items')
+    expect(cursor.linksKey.kind).toBe('no_links_key')
+    expect(cursor.envelopeTypeName.value).toBe('CursorPaginatedResponse<T>')
   })
 
   it('5. ScannedPolymorphicRelationDescriptor sets standard defaults', () => {

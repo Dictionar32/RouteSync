@@ -15,6 +15,7 @@ import type {
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
 import { RouteHandlerKind } from "../../../../types/route";
+import type { ControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
 
 export type ControllerActionInfo = ScannedControllerActionParams;
 
@@ -33,7 +34,7 @@ export interface ScannedControllerActionParamsContract {
     readonly formRequests: readonly FormRequestDescriptor[];
     readonly schema: RouteSchemaPayload;
     readonly schemaRules: readonly RouteValidationRuleEntry[];
-    readonly resourceModelMap: ReadonlyMap<string, string>;
+    readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 
@@ -51,7 +52,7 @@ export interface ControllerActionCreateOptionsContract {
     readonly formRequests: readonly FormRequestDescriptor[];
     readonly schema: RouteSchemaPayload;
     readonly schemaRules: readonly RouteValidationRuleEntry[];
-    readonly resourceModelMap: ReadonlyMap<string, string>;
+    readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 

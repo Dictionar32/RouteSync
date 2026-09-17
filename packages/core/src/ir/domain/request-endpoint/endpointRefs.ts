@@ -7,14 +7,14 @@
  */
 
 import type {
-  ResourceIR,
   RequestIR,
   ParsedRoute,
   ParameterIR,
   ResponseReference,
   RequestReference
 } from '../../../types/ir';
-import type { PrimitiveKind } from '../../../compiler/types/SemanticType';
+import { PrimitiveKind } from '../../../compiler/types/SemanticType';
+import { createPropertyName, createTypeExpression } from '../../../types/ir/nominalVocabulary';
 
 export function inferParamType(name: string): PrimitiveKind {
   if (name.includes('id') || name.includes('Id')) return PrimitiveKind.NUMBER;
@@ -28,10 +28,10 @@ export function extractPathParams(path: string): ParameterIR[] {
   return paramMatches.map(match => {
     const name = match.slice(1, -1);
     return {
-      name,
+      name: createPropertyName(name),
       type: inferParamType(name),
       required: true,
-      description: `Path parameter: ${name}`
+      description: createTypeExpression(`Path parameter: ${name}`)
     };
   });
 }
@@ -57,28 +57,46 @@ export function buildRequestReference(
   };
 }
 
-export function buildResponseReference(
-  route: ParsedRoute,
-  resources: Map<string, ResourceIR>
-): ResponseReference {
-  const resourceName = `${route.controller.replace('Controller', '')}Resource`;
-  const resource = resources.get(resourceName);
-
-  if (resource) {
-    const isCollection = route.action === 'index' || route.path.includes('search');
-    return {
-      type: isCollection ? 'collection' : 'resource',
-      resource: resource.name,
-      statusCode: 200,
-      headers: [],
-      pagination: null
-    };
+export function buildResponseReference(route: ParsedRoute): ResponseReference {
+  switch (route.response.kind) {
+    case 'resource':
+      return {
+        type: 'resource',
+        resource: route.response.resource,
+        statusCode: route.response.statusCode,
+        headers: [],
+        pagination: route.response.pagination
+      };
+    case 'collection':
+      return {
+        type: 'collection',
+        resource: route.response.resource,
+        statusCode: route.response.statusCode,
+        headers: [],
+        pagination: route.response.pagination
+      };
+    case 'paginated':
+      return {
+        type: 'paginated',
+        resource: route.response.resource,
+        statusCode: route.response.statusCode,
+        headers: [],
+        pagination: route.response.pagination
+      };
+    case 'custom':
+      return {
+        type: 'custom',
+        responseType: route.response.responseType,
+        statusCode: route.response.statusCode,
+        headers: [],
+        pagination: route.response.pagination
+      };
+    case 'empty':
+      return {
+        type: 'empty',
+        statusCode: route.response.statusCode,
+        headers: [],
+        pagination: route.response.pagination
+      };
   }
-
-  return {
-    type: 'custom',
-    statusCode: 200,
-    headers: [],
-    pagination: null
-  };
 }

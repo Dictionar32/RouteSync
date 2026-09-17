@@ -27,8 +27,39 @@ import { ASTNodeId } from '../utils';
  * };
  * ```
  */
+export type ASTNodeKind =
+    | 'Program'
+    | 'FunctionDeclaration'
+    | 'ClassDeclaration'
+    | 'MethodDeclaration'
+    | 'Parameter'
+    | 'Block'
+    | 'ReturnStatement'
+    | 'ExpressionStatement'
+    | 'AssignmentStatement'
+    | 'VariableReference'
+    | 'PropertyAccess'
+    | 'MethodCall'
+    | 'StaticCall'
+    | 'FunctionCall'
+    | 'ArrayLiteral'
+    | 'ArrayAccess'
+    | 'Literal'
+    | 'BinaryExpression'
+    | 'UnaryExpression'
+    | 'TernaryExpression'
+    | 'NullCoalesceExpression'
+    | 'ShortTernaryExpression'
+    | 'CastExpression'
+    | 'MatchExpression'
+    | 'Closure'
+    | 'ArrowFunction'
+    | 'ClassReference'
+    | 'ResourceExpression'
+    | 'Unsupported';
+
 export interface ASTNodeData {
-    readonly kind: string;
+    readonly kind: ASTNodeKind;
     readonly span: FileSpan;
     readonly children: readonly ASTNodeId[];
 }
@@ -42,7 +73,7 @@ export interface ASTNodeData {
  * @returns AST node data
  */
 export function createASTNodeData(
-    kind: string,
+    kind: ASTNodeKind,
     span: FileSpan,
     children: readonly ASTNodeId[] = []
 ): ASTNodeData {

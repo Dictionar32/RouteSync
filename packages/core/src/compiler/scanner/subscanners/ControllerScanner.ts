@@ -55,8 +55,7 @@ export class ControllerScanner {
 
     public static extractResourceDataflow(
         controllerMap: ReadonlyMap<string, ReadonlyMap<string, ControllerActionInfo>>,
-        modelSymbolTable?: ModelSymbolTable
-    ): Map<string, string> {
-        return extractResourceDataflow(controllerMap, modelSymbolTable);
+    ): import("./controller/resourceDataflowAggregator").ControllerResourceDataflow {
+        return extractResourceDataflow(controllerMap);
     }
 }

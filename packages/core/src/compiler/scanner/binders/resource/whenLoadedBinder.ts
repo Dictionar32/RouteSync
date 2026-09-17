@@ -26,7 +26,7 @@ export function bindWhenLoadedField(
 ): BoundResourceFieldResult {
     const relationName = readRelationName(argumentsAst);
     const relation = modelSymbol ? modelSymbol.relation(relationName) : undefined;
-    const targetModel = relation ? relation.targetModel : relationName;
+    const targetModel = relation ? relation.targetModel.value : relationName;
     const isCollection = relation ? relation.cardinality === 'many' : false;
 
     const innerRelationNode = BoundSemanticFactory.relation({

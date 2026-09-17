@@ -383,7 +383,6 @@ export interface ScannedObjectPropertyParams {
     readonly name: string;
     readonly type: SemanticType;
     readonly required: boolean;
-    readonly nullable?: boolean;
     readonly description?: string;
 }
 
@@ -393,9 +392,9 @@ export class ScannedObjectProperty implements ObjectProperty {
     public readonly required: boolean;
     public readonly description: string;
 
-    constructor({ name, type, required, nullable = false, description = '' }: ScannedObjectPropertyParams) {
+    constructor({ name, type, required, description = '' }: ScannedObjectPropertyParams) {
         this.name = name;
-        this.type = nullable && type.kind !== 'nullable' ? new NullableType(type) : type;
+        this.type = type;
         this.required = required;
         this.description = description;
         Object.freeze(this);
@@ -408,35 +407,25 @@ export class ScannedObjectProperty implements ObjectProperty {
     public static create({
         name,
         type,
-        nullable = false,
         required = true,
         description = ''
     }: {
         readonly name: string;
         readonly type: SemanticType;
-        readonly nullable?: boolean;
         readonly required?: boolean;
         readonly description?: string;
     }): ScannedObjectProperty {
-        return new ScannedObjectProperty({
-            name,
-            type,
-            required,
-            nullable,
-            description
-        });
+        return new ScannedObjectProperty({ name, type, required, description });
     }
 }
 
 export const ObjectProperty = {
     fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
-        const nullable = Boolean(field.nullable);
         const type = SemanticTypeResolver.resolveField(field);
         return new ScannedObjectProperty({
-            name: toCamelCase(field.name),
+            name: toCamelCase(field.name.value),
             type,
-            nullable,
-            required: !nullable,
+            required: !type.isNullable(),
             description: ''
         });
     }

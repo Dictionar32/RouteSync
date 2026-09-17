@@ -7,6 +7,7 @@
  */
 
 import type { SemanticFieldSet } from './semanticTypes';
+import type { ModelName, ColumnName, RelationName, TableName } from '../domain/semanticValues';
 
 export type SemanticRelationKind =
   | 'hasOne'
@@ -18,26 +19,26 @@ export type SemanticRelationKind =
 
 export interface BelongsToManyRelationContract {
   readonly kind: 'belongsToMany';
-  readonly model: string;
-  readonly foreignKey: string;
-  readonly relatedKey: string;
-  readonly pivotTable: string;
-  readonly pivotFields: readonly (readonly [string, string])[];
+  readonly model: ModelName;
+  readonly foreignKey: ColumnName;
+  readonly relatedKey: ColumnName;
+  readonly pivotTable: TableName;
+  readonly pivotFields: readonly (readonly [ColumnName, ColumnName])[];
 }
 
 export interface DirectRelationContract {
   readonly kind: 'hasOne' | 'hasMany' | 'belongsTo';
-  readonly model: string;
-  readonly foreignKey: string;
-  readonly localKey: string;
+  readonly model: ModelName;
+  readonly foreignKey: ColumnName;
+  readonly localKey: ColumnName;
 }
 
 export interface MorphRelationContract {
   readonly kind: 'morphTo' | 'morphMany';
-  readonly model: string;
-  readonly morphName: string;
-  readonly morphType: string;
-  readonly morphId: string;
+  readonly model: ModelName;
+  readonly morphName: RelationName;
+  readonly morphType: ColumnName;
+  readonly morphId: ColumnName;
 }
 
 /**
@@ -48,11 +49,4 @@ export type SemanticRelationContract =
   | DirectRelationContract
   | MorphRelationContract;
 
-export type SemanticRelation = {
-  type: SemanticRelationKind;
-  model: string;
-  foreignKey?: string;
-  localKey?: string;
-  table?: string;
-  pivot?: SemanticFieldSet;
-};
+export type SemanticRelation = SemanticRelationContract;

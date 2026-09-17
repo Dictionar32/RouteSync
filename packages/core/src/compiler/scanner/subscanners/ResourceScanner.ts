@@ -31,7 +31,7 @@ export class ResourceScanner {
     public static async scan(
         projectRoot: string,
         modelSymbolTable: ModelSymbolTable = new ModelSymbolTable([]),
-        controllerDataflowMap?: ReadonlyMap<string, string>
+        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
     ): Promise<readonly ParsedResource[]> {
         const resDir = path.join(projectRoot, 'app', 'Http', 'Resources');
         const files = await collectPhpFiles(resDir);
@@ -56,7 +56,7 @@ export class ResourceScanner {
                     relationEdges.push({
                         parentResource: resourceName,
                         childResource: entry.value.resourceName,
-                        relationKey: entry.key
+                        relationKey: requireStringArrayKey(entry.key)
                     });
                 }
             }
@@ -90,4 +90,10 @@ export class ResourceScanner {
         const retIdx = tokens.findIndex(t => t.value === 'return');
         return retIdx !== -1 ? retIdx : 0;
     }
+}
+
+
+function requireStringArrayKey(key: import('../lexer/phpAstTypes').PhpArrayKey): string {
+    if (key.kind === 'string') return key.value;
+    throw new Error('Expected a static string PHP array key at this semantic boundary');
 }

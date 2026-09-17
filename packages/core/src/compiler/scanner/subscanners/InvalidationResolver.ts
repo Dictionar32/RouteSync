@@ -55,18 +55,18 @@ export class InvalidationResolver {
                             for (const rel of (matchedModel as ParsedModel).relations) {
                                 switch (rel.type) {
                                     case EloquentRelationType.BelongsTo: {
-                                        targets.push(ScannedInvalidationTarget.parentList(rel.modelName));
-                                        targets.push(ScannedInvalidationTarget.parentDetail(rel.modelName));
+                                        targets.push(ScannedInvalidationTarget.parentList(rel.sourceModel.value));
+                                        targets.push(ScannedInvalidationTarget.parentDetail(rel.sourceModel.value));
                                         break;
                                     }
                                     case EloquentRelationType.HasMany:
                                     case EloquentRelationType.HasOne: {
-                                        targets.push(ScannedInvalidationTarget.resourceItem(rel.modelName));
+                                        targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value));
                                         break;
                                     }
                                     case EloquentRelationType.BelongsToMany: {
-                                        targets.push(ScannedInvalidationTarget.resourceList(rel.modelName));
-                                        targets.push(ScannedInvalidationTarget.resourceItem(rel.modelName));
+                                        targets.push(ScannedInvalidationTarget.resourceList(rel.sourceModel.value));
+                                        targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value));
                                         break;
                                     }
                                 }

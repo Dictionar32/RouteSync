@@ -1,11 +1,13 @@
 /** Parses controller-body syntax facts into a typed body AST. */
-import type { TokenDescriptor } from './phpAstTypes';
+import type { TokenDescriptor, PhpAstValue, PhpStatement, PhpBlock, AstIdentifier } from './phpAstTypes';
 import { createAstIdentifier } from './phpAstTypes';
 import { parsePhpArray } from './arrayParser';
-import type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst } from './controllerBodyAstTypes';
+import type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, ControllerDataflowAst, ControllerVariableDefinition, ControllerVariableReference } from './controllerBodyAstTypes';
 import { createHttpErrorStatus, createValidationRuleLiteral } from './controllerBodyAstTypes';
+import { classifyAstTokens, classifyPhpBlock } from './astClassifier';
+import { analyzeControllerDataflow } from './controllerDataflowAnalyzer';
 
-export function parseControllerBody(source: string, tokens: readonly TokenDescriptor[]): ControllerBodyAst {
+export function parseControllerBody(source: string, tokens: readonly TokenDescriptor[], parameters: readonly AstIdentifier[]): ControllerBodyAst {
     const validations: InlineValidationAst[] = [];
     const errors: ControllerErrorAst[] = [];
 
@@ -21,10 +23,18 @@ export function parseControllerBody(source: string, tokens: readonly TokenDescri
         if (status !== undefined) errors.push({ status: createHttpErrorStatus(status), source: token });
     }
 
+    const parsedBlock = classifyPhpBlock(tokens);
+    const dataflow = buildDataflow(parsedBlock, parameters);
     return Object.freeze({
+        statements: parsedBlock.statements,
         validations: Object.freeze(validations),
         errors: Object.freeze(errors),
+        dataflow,
     });
+}
+
+function buildDataflow(block: PhpBlock, parameters: readonly AstIdentifier[]): ControllerDataflowAst {
+    return analyzeControllerDataflow(block, parameters);
 }
 
 function toValidations(
@@ -32,9 +42,10 @@ function toValidations(
     source: TokenDescriptor
 ): readonly InlineValidationAst[] {
     return entries.map(entry => {
+        if (entry.kind !== 'keyed') throw new Error('Validation rules require keyed PHP array entries');
         const raw = entry.value.kind === 'literal' && entry.value.literalType === 'string' ? entry.value.value : '';
         return Object.freeze({
-            field: entry.key,
+            field: createAstIdentifier(requireStringArrayKey(entry.key)),
             rules: Object.freeze(raw.split('|').filter(rule => rule.length > 0).map(createValidationRuleLiteral)),
             source,
         });
@@ -66,4 +77,10 @@ function numericStatus(value: string | undefined): number | undefined {
     if (value === undefined || !/^\d+$/.test(value)) return undefined;
     const status = Number(value);
     return status >= 400 && status < 600 ? status : undefined;
+}
+
+
+function requireStringArrayKey(key: import('./phpAstTypes').PhpArrayKey): string {
+    if (key.kind === 'string') return key.value;
+    throw new Error('Expected a static string PHP array key at this semantic boundary');
 }

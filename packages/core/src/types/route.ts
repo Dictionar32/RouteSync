@@ -402,6 +402,8 @@ export {
     type HttpErrorVisitor,
     matchHttpError,
     type HttpErrorResponseDescriptor,
+    type HttpErrorSchema,
+    type HttpErrorSchemaField,
     ValidationRuleKind,
     type BaseValidationRuleNode,
     type RequiredValidationRuleNode,

@@ -22,6 +22,7 @@ import {
     ControllerActionCreateOptions,
     buildRouteHandler
 } from "./controllerActionTypes";
+import { emptyControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
 
 export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
 
@@ -39,7 +40,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
     public readonly formRequests: readonly FormRequestDescriptor[];
     public readonly schema: RouteSchemaPayload;
     public readonly schemaRules: readonly RouteValidationRuleEntry[];
-    public readonly resourceModelMap: ReadonlyMap<string, string>;
+    public readonly dataflow: import("../../subscanners/controller/controllerDataflowContract").ControllerDataflowContract;
     public readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 
     constructor(params: ScannedControllerActionParams) {
@@ -53,7 +54,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
         this.formRequests = params.formRequests;
         this.schema = params.schema;
         this.schemaRules = params.schemaRules;
-        this.resourceModelMap = Object.freeze(new Map(params.resourceModelMap));
+        this.dataflow = params.dataflow;
         this.errorResponses = Object.freeze([...params.errorResponses]);
         Object.freeze(this);
     }
@@ -72,7 +73,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             formRequests: Object.freeze([...params.formRequests]),
             schema: params.schema,
             schemaRules: Object.freeze([...params.schemaRules]),
-            resourceModelMap: Object.freeze(new Map(params.resourceModelMap)),
+            dataflow: params.dataflow,
             errorResponses: Object.freeze([...params.errorResponses])
         });
     }
@@ -87,7 +88,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             formRequests: [],
             schema: ScannedRouteSchemaPayload.empty(),
             schemaRules: [],
-            resourceModelMap: new Map<string, string>(),
+            dataflow: emptyControllerDataflowContract(),
             errorResponses: []
         });
     }

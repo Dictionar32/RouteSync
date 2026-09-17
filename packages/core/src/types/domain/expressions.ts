@@ -32,6 +32,11 @@ export const ResourceExpressionKind = Object.freeze({
   MethodCall: 'method_call',
   NullsafeMethodCall: 'nullsafe_method_call',
   StaticMethodCall: 'static_method_call',
+  ArrayAccess: 'array_access',
+  FunctionCall: 'function_call',
+  Ternary: 'ternary',
+  ShortTernary: 'short_ternary',
+  NullCoalesce: 'null_coalesce',
   Literal: 'literal',
   Unsupported: 'unsupported'
 } as const);
@@ -124,6 +129,33 @@ export interface StaticMethodCallResourceExpression extends BaseResourceFieldExp
   readonly arguments: readonly ResourceFieldExpression[];
 }
 
+export interface ArrayAccessResourceExpression extends BaseResourceFieldExpression<'array_access'> {
+  readonly kind: 'array_access';
+  readonly target: ResourceFieldExpression;
+  readonly index: ResourceFieldExpression;
+}
+export interface FunctionCallResourceExpression extends BaseResourceFieldExpression<'function_call'> {
+  readonly kind: 'function_call';
+  readonly functionName: import('./semanticValues').PhpFunctionName;
+  readonly arguments: readonly ResourceFieldExpression[];
+}
+export interface TernaryResourceExpression extends BaseResourceFieldExpression<'ternary'> {
+  readonly kind: 'ternary';
+  readonly condition: ResourceFieldExpression;
+  readonly trueBranch: ResourceFieldExpression;
+  readonly falseBranch: ResourceFieldExpression;
+}
+export interface ShortTernaryResourceExpression extends BaseResourceFieldExpression<'short_ternary'> {
+  readonly kind: 'short_ternary';
+  readonly condition: ResourceFieldExpression;
+  readonly falseBranch: ResourceFieldExpression;
+}
+export interface NullCoalesceResourceExpression extends BaseResourceFieldExpression<'null_coalesce'> {
+  readonly kind: 'null_coalesce';
+  readonly left: ResourceFieldExpression;
+  readonly right: ResourceFieldExpression;
+}
+
 export type ResourceLiteralValue =
   | { readonly kind: 'string'; readonly value: string }
   | { readonly kind: 'number'; readonly value: number }
@@ -159,6 +191,12 @@ export type ResourceFieldExpression =
   | BinaryResourceExpression
   | MethodCallResourceExpression
   | StaticMethodCallResourceExpression
+  | NullsafeMethodCallResourceExpression
+  | ArrayAccessResourceExpression
+  | FunctionCallResourceExpression
+  | TernaryResourceExpression
+  | ShortTernaryResourceExpression
+  | NullCoalesceResourceExpression
   | LiteralResourceExpression
   | UnsupportedResourceExpression;
 
@@ -269,6 +307,12 @@ export const RESOURCE_EXPRESSION_REGISTRY: ResourceExpressionRegistry = Object.f
     isResolvableToModel: false,
     description: 'Static helper or class invocation'
   },
+  [ResourceExpressionKind.NullsafeMethodCall]: { kind: ResourceExpressionKind.NullsafeMethodCall, category: 'computation', isTerminal: false, isResolvableToModel: false, description: 'Nullsafe method invocation' },
+  [ResourceExpressionKind.ArrayAccess]: { kind: ResourceExpressionKind.ArrayAccess, category: 'traversal', isTerminal: false, isResolvableToModel: false, description: 'Array offset access' },
+  [ResourceExpressionKind.FunctionCall]: { kind: ResourceExpressionKind.FunctionCall, category: 'computation', isTerminal: false, isResolvableToModel: false, description: 'PHP function invocation' },
+  [ResourceExpressionKind.Ternary]: { kind: ResourceExpressionKind.Ternary, category: 'computation', isTerminal: false, isResolvableToModel: false, description: 'Conditional expression' },
+  [ResourceExpressionKind.ShortTernary]: { kind: ResourceExpressionKind.ShortTernary, category: 'computation', isTerminal: false, isResolvableToModel: false, description: 'Short conditional expression' },
+  [ResourceExpressionKind.NullCoalesce]: { kind: ResourceExpressionKind.NullCoalesce, category: 'computation', isTerminal: false, isResolvableToModel: false, description: 'Null coalescing expression' },
   [ResourceExpressionKind.Literal]: {
     kind: ResourceExpressionKind.Literal,
     category: 'primitive',
@@ -299,6 +343,11 @@ export type ResourceFieldExpressionVisitor<R> = {
   readonly method_call: (expr: MethodCallResourceExpression) => R;
   readonly nullsafe_method_call: (expr: NullsafeMethodCallResourceExpression) => R;
   readonly static_method_call: (expr: StaticMethodCallResourceExpression) => R;
+  readonly array_access: (expr: ArrayAccessResourceExpression) => R;
+  readonly function_call: (expr: FunctionCallResourceExpression) => R;
+  readonly ternary: (expr: TernaryResourceExpression) => R;
+  readonly short_ternary: (expr: ShortTernaryResourceExpression) => R;
+  readonly null_coalesce: (expr: NullCoalesceResourceExpression) => R;
   readonly literal: (expr: LiteralResourceExpression) => R;
   readonly unsupported: (expr: UnsupportedResourceExpression) => R;
 };
@@ -324,6 +373,11 @@ export function matchResourceFieldExpression<R>(
     case 'method_call': return visitor.method_call(expression);
     case 'nullsafe_method_call': return visitor.nullsafe_method_call(expression);
     case 'static_method_call': return visitor.static_method_call(expression);
+    case 'array_access': return visitor.array_access(expression);
+    case 'function_call': return visitor.function_call(expression);
+    case 'ternary': return visitor.ternary(expression);
+    case 'short_ternary': return visitor.short_ternary(expression);
+    case 'null_coalesce': return visitor.null_coalesce(expression);
     case 'literal': return visitor.literal(expression);
     case 'unsupported': return visitor.unsupported(expression);
   }
@@ -376,6 +430,11 @@ export class ResourceFieldExpressionFactory {
   public static staticMethodCall(className: ModelName, method: MethodName, arguments_: readonly ResourceFieldExpression[] = []): StaticMethodCallResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.StaticMethodCall, class: className, method, arguments: Object.freeze([...arguments_]) });
   }
+  public static arrayAccess(target: ResourceFieldExpression, index: ResourceFieldExpression): ArrayAccessResourceExpression { return Object.freeze({ kind: ResourceExpressionKind.ArrayAccess, target, index }); }
+  public static functionCall(functionName: import('./semanticValues').PhpFunctionName, arguments_: readonly ResourceFieldExpression[]): FunctionCallResourceExpression { return Object.freeze({ kind: ResourceExpressionKind.FunctionCall, functionName, arguments: Object.freeze([...arguments_]) }); }
+  public static ternary(condition: ResourceFieldExpression, trueBranch: ResourceFieldExpression, falseBranch: ResourceFieldExpression): TernaryResourceExpression { return Object.freeze({ kind: ResourceExpressionKind.Ternary, condition, trueBranch, falseBranch }); }
+  public static shortTernary(condition: ResourceFieldExpression, falseBranch: ResourceFieldExpression): ShortTernaryResourceExpression { return Object.freeze({ kind: ResourceExpressionKind.ShortTernary, condition, falseBranch }); }
+  public static nullCoalesce(left: ResourceFieldExpression, right: ResourceFieldExpression): NullCoalesceResourceExpression { return Object.freeze({ kind: ResourceExpressionKind.NullCoalesce, left, right }); }
   public static literal(value: ResourceLiteralValue): LiteralResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Literal, value });
   }

@@ -13,12 +13,13 @@ import {
     ResourceModelBindingFactory
 } from "../../symbols/resource/resourceBindingTypes";
 import { matchStructuralFields } from "./structuralFieldMatcher";
+import { findControllerResourceBinding } from "../../subscanners/controller/resourceDataflowAggregator";
 
 export interface ResourceModelResolutionInput {
     readonly resourceName: string;
     readonly fieldNames: readonly string[];
     readonly modelSymbolTable: ModelSymbolTable;
-    readonly controllerDataflowMap?: ReadonlyMap<string, string>;
+    readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
     readonly relationPropagationMap?: ReadonlyMap<string, string>;
 }
 
@@ -36,20 +37,14 @@ export class ResourceModelResolver {
         } = input;
 
         // ─── Tier 1: Controller AST Dataflow ─────────────────────────────────
-        if (controllerDataflowMap && controllerDataflowMap.has(resourceName)) {
-            const rawTarget = controllerDataflowMap.get(resourceName)!;
-            if (rawTarget.startsWith('table:')) {
-                const tableName = rawTarget.slice(6);
-                const sym = modelSymbolTable.findByTableName(tableName);
-                if (sym) {
-                    return ResourceModelBindingFactory.mono(sym, 'controller_dataflow');
-                }
-            } else {
-                const sym = modelSymbolTable.get(rawTarget);
-                if (sym) {
-                    return ResourceModelBindingFactory.mono(sym, 'controller_dataflow');
-                }
-            }
+        const controllerBinding = controllerDataflowMap
+            ? findControllerResourceBinding(controllerDataflowMap, resourceName)
+            : undefined;
+        if (controllerBinding) {
+            const sym = controllerBinding.model.kind === 'table'
+                ? modelSymbolTable.findByTableName(controllerBinding.model.name)
+                : modelSymbolTable.get(controllerBinding.model.name);
+            if (sym) return ResourceModelBindingFactory.mono(sym, 'controller_dataflow');
         }
 
         // ─── Tier 2: Relation Graph Propagation ──────────────────────────────

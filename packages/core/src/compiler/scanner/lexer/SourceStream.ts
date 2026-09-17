@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/lexer/SourceStream
  */
 
-import { TokenType, TokenDescriptor } from "./PhpAst";
+import { TokenType, TokenDescriptor, createSourceLineNumber, createSourceOffset } from "./PhpAst";
 
 export interface CursorMark {
     readonly offset: number;
@@ -87,12 +87,12 @@ export class SourceStream {
             if (!isEscaped && char === "'") {
                 this.advance(); // Skip closing '
                 const raw = this.source.slice(mark.offset + 1, this.offset - 1);
-                return { type: 'STRING', value: raw, line: mark.line, startOffset: mark.offset, endOffset: this.offset };
+                return { type: 'STRING', value: raw, line: createSourceLineNumber(mark.line), startOffset: createSourceOffset(mark.offset), endOffset: createSourceOffset(this.offset) };
             }
             isEscaped = (!isEscaped && char === '\\');
             this.advance();
         }
-        return { type: 'STRING', value: this.source.slice(mark.offset + 1, this.offset), line: mark.line, startOffset: mark.offset, endOffset: this.offset };
+        return { type: 'STRING', value: this.source.slice(mark.offset + 1, this.offset), line: createSourceLineNumber(mark.line), startOffset: createSourceOffset(mark.offset), endOffset: createSourceOffset(this.offset) };
     }
 
     public scanDoubleQuoteString(mark: CursorMark): TokenDescriptor {
@@ -107,12 +107,12 @@ export class SourceStream {
             if (!isEscaped && char === '"') {
                 this.advance(); // Skip closing "
                 const raw = this.source.slice(mark.offset + 1, this.offset - 1);
-                return { type: 'STRING', value: raw, line: mark.line, startOffset: mark.offset, endOffset: this.offset };
+                return { type: 'STRING', value: raw, line: createSourceLineNumber(mark.line), startOffset: createSourceOffset(mark.offset), endOffset: createSourceOffset(this.offset) };
             }
             isEscaped = (!isEscaped && char === '\\');
             this.advance();
         }
-        return { type: 'STRING', value: this.source.slice(mark.offset + 1, this.offset), line: mark.line, startOffset: mark.offset, endOffset: this.offset };
+        return { type: 'STRING', value: this.source.slice(mark.offset + 1, this.offset), line: createSourceLineNumber(mark.line), startOffset: createSourceOffset(mark.offset), endOffset: createSourceOffset(this.offset) };
     }
 
     public sliceFrom(mark: CursorMark): string {
@@ -123,9 +123,9 @@ export class SourceStream {
         return {
             type,
             value: this.sliceFrom(mark),
-            line: mark.line,
-            startOffset: mark.offset,
-            endOffset: this.offset
+            line: createSourceLineNumber(mark.line),
+            startOffset: createSourceOffset(mark.offset),
+            endOffset: createSourceOffset(this.offset)
         };
     }
 }

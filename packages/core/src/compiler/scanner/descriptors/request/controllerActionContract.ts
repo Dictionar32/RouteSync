@@ -8,6 +8,7 @@ import { resolveResponseAttributeAst } from '../../subscanners/controller/respon
 import { VoidResponseDescriptor } from '../../../../types/route';
 import { resolveControllerBody, type ControllerBodyResolution } from '../../subscanners/controller/controllerBodyResolver';
 import { resolveActionSchema } from '../../subscanners/controller/actionValidationExtractor';
+import { createControllerDataflowContract, type ControllerDataflowContract } from '../../subscanners/controller/controllerDataflowContract';
 
 export interface ControllerActionIdentity {
     readonly controllerName: string;
@@ -30,6 +31,7 @@ export interface ControllerActionContract {
     readonly response: ResponseDescriptor;
     readonly runtimeReturn: RuntimeReturnContract;
     readonly body: ControllerBodyResolution;
+    readonly dataflow: ControllerDataflowContract;
     readonly schema: RouteSchemaPayload;
     readonly sourceFile: string;
     readonly sourceLine: number;
@@ -47,6 +49,10 @@ export function resolveControllerActionContract(
     context: ControllerActionContractResolverContext
 ): ControllerActionContract {
     const body = resolveControllerBody(method.body);
+    const returned = method.returns.length === 0
+        ? { kind: 'absent' as const }
+        : { kind: 'present' as const, value: method.returns[0].expression };
+    const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned);
     const request = resolveRequest(method.parameters, context.formRequestMap);
     return Object.freeze({
         identity: Object.freeze({ controllerName, actionName: method.name }),
@@ -55,6 +61,7 @@ export function resolveControllerActionContract(
         response: resolveResponse(method, context.projectRoot),
         runtimeReturn: resolveRuntimeReturn(method),
         body,
+        dataflow,
         schema: resolveSchema(request, body, context.formRequestMap, sourceFile),
         sourceFile,
         sourceLine: method.source.line,

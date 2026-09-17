@@ -9,7 +9,7 @@
 
 import type { FieldNode } from '../field';
 
-export type RoutePath = string & { readonly __brand: unique symbol };
+import type { RoutePath, RouteName, ControllerName, SourceFilePath, SourceLineNumber } from '../ir/nominalVocabulary';
 import type { HttpMethod } from './httpVocabulary';
 
 export type HttpVerb = HttpMethod;
@@ -39,7 +39,7 @@ export function createHttpVerb(verb: string): HttpVerb {
 }
 
 export interface RouteIdentityContract {
-  readonly name: string;
+  readonly name: RouteName;
   readonly method: HttpVerb;
   readonly path: RoutePath;
 }
@@ -57,8 +57,8 @@ export interface RoutePayloadContract {
 
 export interface RouteProvenanceContract {
   readonly stableHash: string;
-  readonly sourceFile: string;
-  readonly sourceLine: number;
+  readonly sourceFile: SourceFilePath;
+  readonly sourceLine: SourceLineNumber;
 }
 
 /**
@@ -85,8 +85,8 @@ export interface RawRouteDefInput {
   readonly response: FieldNode;
   readonly assignments: Record<string, string>;
   readonly stableHash: string;
-  readonly sourceFile: string;
-  readonly sourceLine: number;
+  readonly sourceFile: SourceFilePath;
+  readonly sourceLine: SourceLineNumber;
 }
 
 /**

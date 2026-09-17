@@ -8,6 +8,7 @@
  */
 
 import type { TokenDescriptor } from './PhpAst';
+import { createSourceLineNumber, createSourceOffset } from './PhpAst';
 import { SourceStream } from './SourceStream';
 import {
     isDigit,
@@ -17,6 +18,7 @@ import {
     scanColon,
     scanEquals,
     scanMinus,
+    scanSimpleOperator,
     scanWordOrUnknown
 } from './tokenize';
 
@@ -96,8 +98,19 @@ export function tokenizePhpSource(source: string): readonly TokenDescriptor[] {
             case ',':
             case ';':
             case '&':
+            case '!':
+            case '+':
+            case '*':
+            case '%':
+            case '<':
+            case '>':
+            case '|':
+                scanSimpleOperator(stream, tokenMark, nextChar, tokens);
+                break;
+
+            case '.':
                 stream.advance();
-                tokens.push(stream.emitToken('PUNCTUATION', tokenMark));
+                tokens.push(stream.emitToken('CONCAT', tokenMark));
                 break;
 
             case '$':
@@ -130,9 +143,9 @@ export function tokenizePhpSource(source: string): readonly TokenDescriptor[] {
     tokens.push({
         type: 'EOF',
         value: '',
-        line: finalMark.line,
-        startOffset: finalMark.offset,
-        endOffset: finalMark.offset
+        line: createSourceLineNumber(finalMark.line),
+        startOffset: createSourceOffset(finalMark.offset),
+        endOffset: createSourceOffset(finalMark.offset)
     });
 
     return Object.freeze(tokens);

@@ -23,7 +23,7 @@ export function tryParseModelCasts(
         for (const entry of parsed.entries) {
             const castVal = readCastValue(entry.value);
             casts.push(ScannedModelCastDescriptor.create({
-                column: entry.key,
+                column: requireStringArrayKey(entry.key),
                 targetType: castVal
             }));
         }
@@ -44,7 +44,7 @@ export function tryParseModelCasts(
                     for (const entry of parsed.entries) {
                         const castVal = readCastValue(entry.value);
                                     casts.push(ScannedModelCastDescriptor.create({
-                            column: entry.key,
+                            column: requireStringArrayKey(entry.key),
                             targetType: castVal
                         }));
                     }
@@ -61,4 +61,10 @@ function readCastValue(value: import("../../lexer/PhpAst").PhpAstValue): string 
     if (value.kind === 'literal' && value.literalType === 'string') return value.value;
     if (value.kind === 'class_reference') return value.className;
     throw new Error('Model cast value must be a string literal or class reference');
+}
+
+
+function requireStringArrayKey(key: import('../../lexer/phpAstTypes').PhpArrayKey): string {
+    if (key.kind === 'string') return key.value;
+    throw new Error('Expected a static string PHP array key at this semantic boundary');
 }

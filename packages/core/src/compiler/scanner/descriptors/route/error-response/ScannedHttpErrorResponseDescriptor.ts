@@ -27,7 +27,7 @@ export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDesc
     public readonly statusCode: HttpStatusCode;
     public readonly name: string;
     public readonly typeName: string;
-    public readonly schema: Record<string, unknown>;
+    public readonly schema: import("../../../../../types/route").HttpErrorSchema;
 
     constructor(params: ScannedHttpErrorResponseParams) {
         this.kind = params.kind;
@@ -43,7 +43,7 @@ export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDesc
         readonly statusCode?: HttpStatusCode;
         readonly name?: string;
         readonly typeName?: string;
-        readonly schema?: Record<string, unknown>;
+        readonly schema?: import("../../../../../types/route").HttpErrorSchema;
     } = {}): ScannedHttpErrorResponseDescriptor {
         return new ScannedHttpErrorResponseDescriptor(createErrorParams(params));
     }
@@ -84,7 +84,7 @@ export class ScannedHttpErrorResponseDescriptor implements HttpErrorResponseDesc
         statusCode: HttpStatusCode,
         name: string,
         typeName?: string,
-        schema?: Record<string, unknown>
+        schema?: import("../../../../../types/route").HttpErrorSchema
     ): ScannedHttpErrorResponseDescriptor {
         return new ScannedHttpErrorResponseDescriptor(
             createCustomParams(statusCode, name, typeName, schema)

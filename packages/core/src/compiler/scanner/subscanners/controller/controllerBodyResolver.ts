@@ -1,10 +1,14 @@
 /** Resolves typed controller-body AST facts into domain descriptors. */
 import type { ControllerBodyAst } from '../../lexer/controllerBodyAstTypes';
+import type { PhpStatement } from '../../lexer/phpAstTypes';
+import type { ControllerDataflowAst } from '../../lexer/controllerBodyAstTypes';
 import type { RouteValidationRuleEntry, HttpErrorResponseDescriptor } from '../../../../types/route';
 import { ScannedRouteValidationRuleEntry } from '../../descriptors/validationDescriptors';
 import { ScannedHttpErrorResponseDescriptor } from '../../descriptors/routeDescriptors';
 
 export interface ControllerBodyResolution {
+    readonly statements: readonly PhpStatement[];
+    readonly dataflow: ControllerDataflowAst;
     readonly schemaRules: readonly RouteValidationRuleEntry[];
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
@@ -19,6 +23,8 @@ export function resolveControllerBody(body: ControllerBodyAst): ControllerBodyRe
         if (descriptor) errorResponses.push(descriptor);
     }
     return Object.freeze({
+        statements: Object.freeze([...body.statements]),
+        dataflow: body.dataflow,
         schemaRules: Object.freeze(schemaRules),
         errorResponses: Object.freeze(errorResponses),
     });

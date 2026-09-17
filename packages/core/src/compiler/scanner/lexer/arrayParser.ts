@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/lexer/arrayParser
  */
 
-import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, createAstIdentifier } from './PhpAst';
+import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
 
 /**
@@ -52,7 +52,6 @@ export function parsePhpArray(
     }
     if (endIndex >= tokens.length) return { entries: [], endIndex };
 
-    let autoIndex = 0;
 
     while (endIndex < tokens.length) {
         const token = tokens[endIndex];
@@ -66,14 +65,16 @@ export function parsePhpArray(
             continue;
         }
 
-        let key = String(autoIndex);
-
-        // Check if key is explicitly declared: 'key' => value
+        let key: PhpArrayKey | undefined;
         if (endIndex + 1 < tokens.length && tokens[endIndex + 1].value === '=>') {
-            key = tokens[endIndex].value;
+            const keyToken = tokens[endIndex];
+            key = keyToken.type === 'STRING'
+                ? { kind: 'string', value: keyToken.value }
+                : keyToken.type === 'NUMBER'
+                    ? { kind: 'integer', value: Number(keyToken.value) }
+                    : { kind: 'expression', value: classifyAstTokens([keyToken]) };
             endIndex += 2;
         } else {
-            autoIndex++;
         }
 
         // Value parsing
@@ -83,7 +84,7 @@ export function parsePhpArray(
             // Nested Array
             if (valToken.value === '[' || valToken.value === 'array') {
                 const nested = parsePhpArray(source, tokens, endIndex);
-                entries.push({ key: createAstIdentifier(key), value: { kind: 'nested_array', entries: nested.entries } });
+                entries.push(key ? { kind: 'keyed', key, value: { kind: 'nested_array', entries: nested.entries } } : { kind: 'positional', value: { kind: 'nested_array', entries: nested.entries } });
                 endIndex = nested.endIndex;
                 continue;
             }
@@ -111,7 +112,7 @@ export function parsePhpArray(
             }
 
             const astValue = classifyAstTokens(tokens.slice(valTokenIndex, endIndex));
-            entries.push({ key: createAstIdentifier(key), value: astValue });
+            entries.push(key ? { kind: 'keyed', key, value: astValue } : { kind: 'positional', value: astValue });
         }
     }
 

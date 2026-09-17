@@ -32,8 +32,8 @@ export function deriveModelTypes(
     const interner = context.interner;
 
     for (const model of context.models) {
-        const modelTypeName = `${toPascalCase(model.name)}Transformed`;
-        const modelBaseName = toPascalCase(model.name);
+        const modelTypeName = `${toPascalCase(model.name.value)}Transformed`;
+        const modelBaseName = toPascalCase(model.name.value);
         if (!seenNames.has(modelTypeName)) {
             seenNames.add(modelTypeName);
             const properties: ObjectProperty[] = [];
@@ -41,13 +41,13 @@ export function deriveModelTypes(
 
             const columns = model.columns;
             for (const col of columns) {
-                if (model.hidden.includes(col.name)) {
+                if (model.hidden.some(name => name.value === col.name.value)) {
                     continue;
                 }
-                const propName = toCamelCase(col.name);
+                const propName = toCamelCase(col.name.value);
                 seenPropNames.add(propName);
 
-                const cast = findCastForColumn(model.casts, col.name);
+                const cast = findCastForColumn(model.casts, col.name.value);
                 let propType: SemanticType = resolveColumnSemanticType(col, cast);
                 if (col.nullability.kind === 'nullable') {
                     propType = new NullableType(propType);
@@ -55,7 +55,6 @@ export function deriveModelTypes(
                 properties.push(ScannedObjectProperty.create({
                     name: propName,
                     type: interner.intern(propType),
-                    nullable: propType.isNullable(),
                     required: true
                 }));
             }
@@ -63,15 +62,14 @@ export function deriveModelTypes(
             const extractedAccessors = extractModelAccessors(model.accessors);
 
             for (const acc of extractedAccessors) {
-                if (seenPropNames.has(acc.propertyName)) {
+                if (seenPropNames.has(acc.propertyName.value)) {
                     continue;
                 }
-                seenPropNames.add(acc.propertyName);
+                seenPropNames.add(acc.propertyName.value);
 
                 properties.push(ScannedObjectProperty.create({
-                    name: acc.propertyName,
+                    name: acc.propertyName.value,
                     type: interner.intern(acc.semanticType),
-                    nullable: acc.semanticType.isNullable(),
                     required: true
                 }));
             }

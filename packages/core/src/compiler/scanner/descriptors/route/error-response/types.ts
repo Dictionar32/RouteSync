@@ -6,12 +6,12 @@
  * @module compiler/scanner/descriptors/route/error-response
  */
 
-import type { HttpErrorKind, HttpStatusCode } from "../../../../../types/route";
+import type { HttpErrorKind, HttpStatusCode, HttpErrorSchema } from "../../../../../types/route";
 
 export interface ScannedHttpErrorResponseParams {
     readonly kind: HttpErrorKind;
     readonly statusCode: HttpStatusCode;
     readonly name: string;
     readonly typeName: string;
-    readonly schema: Record<string, unknown>;
+    readonly schema: HttpErrorSchema;
 }

@@ -47,12 +47,12 @@ export class ResponseStructureBuilder {
      * @returns Complete response structure with analysis
      */
     buildStructure(
-        responseFields: Record<string, ResponseFieldData>
+        responseFields: readonly (readonly [string, ResponseFieldData])[]
     ): ResponseStructure {
         // Parse all fields
         const parsedFields: ParsedResponseField[] = []
 
-        for (const [fieldName, fieldData] of Object.entries(responseFields)) {
+        for (const [fieldName, fieldData] of responseFields) {
             const parsed = this.fieldParser.parseField(fieldName, fieldData)
             parsedFields.push(parsed)
         }
@@ -80,7 +80,7 @@ export class ResponseStructureBuilder {
             }
 
             // Check arrays of objects
-            if (field.kind === 'array' && field.itemType?.kind === 'object') {
+            if (field.kind === 'array' && field.itemType !== undefined && field.itemType.kind === 'object') {
                 return true
             }
         }
@@ -98,7 +98,7 @@ export class ResponseStructureBuilder {
             }
 
             // Check nested objects for arrays
-            if (field.kind === 'object' && field.fields) {
+            if (field.kind === 'object' && field.fields.length > 0) {
                 if (this.detectArrays(field.fields)) {
                     return true
                 }
@@ -129,7 +129,7 @@ export class ResponseStructureBuilder {
             }
 
             // Arrays of objects also increase depth
-            if (field.kind === 'array' && field.itemType?.kind === 'object' && field.itemType.fields) {
+            if (field.kind === 'array' && field.itemType !== undefined && field.itemType.kind === 'object' && field.itemType.fields) {
                 const arrayDepth = this.calculateMaxDepth(field.itemType.fields, currentDepth + 1)
                 maxDepth = Math.max(maxDepth, arrayDepth)
             }

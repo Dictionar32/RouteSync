@@ -106,8 +106,15 @@ export interface BoundRelationNode {
   readonly nullability: BoundNullability;
 }
 
+export type BoundPropertyStepKind =
+  | { readonly kind: 'column' }
+  | { readonly kind: 'accessor' }
+  | { readonly kind: 'relation'; readonly cardinality: BoundCardinality };
+
 export interface BoundStepEdge {
+  readonly sourceModel: ModelName;
   readonly property: PropertyName;
+  readonly step: BoundPropertyStepKind;
   readonly nullsafe: boolean;
   readonly stepType: SemanticType;
   readonly targetModel: BoundTargetModel;

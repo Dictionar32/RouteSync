@@ -42,6 +42,7 @@ export function partitionValidationRules(
   const regularRules: RegularRuleItem[] = [];
 
   for (const entry of entries) {
+    const key = requireStringArrayKey(entry.key);
     const ruleStr = readRuleExpression(entry.value);
 
     const rulesList = (ruleStr || '').split('|').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
@@ -52,8 +53,8 @@ export function partitionValidationRules(
     const isRequired = ruleStr.includes('required') || !ruleStr.includes('sometimes');
     const isNullable = ruleStr.includes('nullable');
 
-    if (entry.key.includes('.*.')) {
-      const [parentKey, childKey] = entry.key.split('.*.');
+    if (key.includes('.*.')) {
+      const [parentKey, childKey] = key.split('.*.');
       if (!arrayProps.has(parentKey)) {
         arrayProps.set(parentKey, []);
       }
@@ -68,8 +69,8 @@ export function partitionValidationRules(
         required: isRequired,
         nullable: isNullable
       }));
-    } else if (entry.key.endsWith('.*')) {
-      const baseKey = entry.key.slice(0, -2);
+    } else if (key.endsWith('.*')) {
+      const baseKey = key.slice(0, -2);
       let primKind = PrimitiveKind.STRING;
       if (isNum) primKind = PrimitiveKind.NUMBER;
       else if (isBool) primKind = PrimitiveKind.BOOLEAN;
@@ -78,7 +79,7 @@ export function partitionValidationRules(
       const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, semanticType));
       primitiveArrayProps.set(baseKey, arrayType);
     } else {
-      regularRules.push({ key: entry.key, ruleStr, validationAst, isRequired, isNullable });
+      regularRules.push({ key, ruleStr, validationAst, isRequired, isNullable });
     }
   }
 
@@ -92,4 +93,10 @@ function readRuleExpression(value: PhpAstValue): string {
     return value.entries.map(entry => readRuleExpression(entry.value)).join('|');
   }
   throw new Error('Validation rule value must be a string literal or nested array of string literals');
+}
+
+
+function requireStringArrayKey(key: PhpArrayEntry['key']): string {
+  if (key.kind === 'string') return key.value;
+  throw new Error('Validation rule keys must be static string keys');
 }

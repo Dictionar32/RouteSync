@@ -6,28 +6,29 @@ import type { ParsedModel } from "./database";
 import type { ParsedResource } from "./expressions";
 import type { ParsedRoute } from "./routes";
 import type { PageValue } from "./pageValues";
+import type { DomainName, ModelName, ResourceName, RouteName, SourceFilePath, SourceLineNumber, PropertyName, TypeExpression } from "./semanticValues";
 
 /**
  * First-Class Domain Operation Entry (Ordered).
  */
 export interface DomainOperationEntry {
-  readonly name: string;
-  readonly operation: string;
+  readonly name: PropertyName;
+  readonly operation: TypeExpression;
 }
 
 /**
  * First-Class Domain Config Key-Value Entry (Ordered).
  */
 export interface DomainConfigEntry {
-  readonly key: string;
-  readonly value: string;
+  readonly key: PropertyName;
+  readonly value: TypeExpression;
 }
 
 /**
  * Resolved domain intent config (Ordered).
  */
 export interface DomainIntentConfig {
-  readonly type: string;
+  readonly type: DomainName;
   readonly operations: readonly DomainOperationEntry[];
   readonly config: readonly DomainConfigEntry[];
 }
@@ -44,8 +45,8 @@ export interface GroupAliasEntry {
  * First-Class Domain Definition Entry (Ordered).
  */
 export interface DomainDefinitionEntry {
-  readonly name: string;
-  readonly intent: string | DomainIntentConfig;
+  readonly name: DomainName;
+  readonly intent: DomainIntentConfig;
 }
 
 /**
@@ -88,7 +89,7 @@ export interface PageConfig {
  * ResourceRouteGroup: Kelompok rute yang terikat pada satu nama resource kanonikal.
  */
 export interface ResourceRouteGroup {
-  readonly resourceName: string;
+  readonly resourceName: ResourceName;
   readonly formTypeName: string;
   readonly routes: readonly ParsedRoute[];
   readonly formActions: readonly FormAction[]; // ✅ Guaranteed directly from Upstream PHP Scanner

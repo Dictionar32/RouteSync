@@ -1,5 +1,6 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import { PrimitiveKind } from "../../compiler/types/SemanticType";
+import type { ClassName, ColumnName, MethodName, ModelName, PropertyName, RelationName, CastTypeName } from './semanticValues';
 
 /**
  * EloquentCastKind
@@ -236,16 +237,17 @@ export type EloquentCastTarget =
 
 /** First-class Eloquent attribute cast contract. */
 export interface ParsedCast {
-  readonly column: string;
+  readonly column: ColumnName;
   readonly target: EloquentCastTarget;
   readonly castKind: EloquentCastKind;
+  readonly targetType: CastTypeName;
   readonly semanticType: SemanticType;
 }
 
 /** First-class Eloquent computed/accessor contract. */
 export interface ParsedAccessor {
-  readonly name: string;
-  readonly propertyName: string;
+  readonly name: MethodName;
+  readonly propertyName: PropertyName;
   readonly semanticType: SemanticType;
 }
 
@@ -383,13 +385,14 @@ export class EloquentRelationClassifier {
  * First-Class Eloquent Model Relationship Definition (Ordered & Complete Contract).
  */
 export type RelationForeignKey =
-  | { readonly kind: 'explicit'; readonly column: string }
-  | { readonly kind: 'convention' };
+  | { readonly kind: 'convention' }
+  | { readonly kind: 'explicit'; readonly column: ColumnName };
 
 export interface ParsedRelation {
-  readonly name: string;
+  readonly name: RelationName;
   readonly type: EloquentRelationType;
-  readonly targetModel: string;
+  readonly sourceModel: ModelName;
+  readonly targetModel: ModelName;
   readonly cardinality: EloquentRelationCardinality;
   readonly foreignKey: RelationForeignKey;
 }

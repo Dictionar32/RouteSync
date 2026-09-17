@@ -1,63 +1,26 @@
-/**
- * resourceDataflowAggregator.ts
- *
- * Aggregates candidate resource-to-model bindings from controller actions and resolves conflicts.
- *
- * @module core/compiler/scanner/subscanners/controller/resourceDataflowAggregator
- */
+/** Aggregates explicit controller resource bindings without collapsing them to strings. */
+import type { ControllerActionInfo } from '../../descriptors/requestDescriptors';
+import type { ControllerResourceBinding } from './controllerDataflowContract';
 
-import type { ControllerActionInfo } from "../../descriptors/requestDescriptors";
-import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
+export interface ControllerResourceDataflow {
+    readonly bindings: readonly ControllerResourceBinding[];
+}
 
-/**
- * Aggregates resource model mappings from controller actions with frequency & convention resolution.
- */
+export function findControllerResourceBinding(
+    dataflow: ControllerResourceDataflow,
+    resourceName: string
+): ControllerResourceBinding | undefined {
+    return dataflow.bindings.find(binding => binding.resourceName === resourceName);
+}
+
 export function extractResourceDataflow(
-    controllerMap: ReadonlyMap<string, ReadonlyMap<string, ControllerActionInfo>>,
-    modelSymbolTable?: ModelSymbolTable
-): Map<string, string> {
-    const candidates = new Map<string, Map<string, number>>();
-
-    for (const [_, actionMap] of controllerMap) {
-        for (const [_, action] of actionMap) {
-            if (action.resourceModelMap) {
-                for (const [res, model] of action.resourceModelMap) {
-                    const modelCounts = candidates.get(res) || new Map<string, number>();
-                    modelCounts.set(model, (modelCounts.get(model) || 0) + 1);
-                    candidates.set(res, modelCounts);
-                }
-            }
+    controllerMap: ReadonlyMap<string, ReadonlyMap<string, ControllerActionInfo>>
+): ControllerResourceDataflow {
+    const bindings: ControllerResourceBinding[] = [];
+    for (const actionMap of controllerMap.values()) {
+        for (const action of actionMap.values()) {
+            bindings.push(...action.dataflow.resourceBindings);
         }
     }
-
-    const dataflow = new Map<string, string>();
-    for (const [res, modelCounts] of candidates) {
-        const conventionSym = modelSymbolTable?.findForResource(res);
-        if (conventionSym) {
-            const convName = conventionSym.name;
-            const convShort = conventionSym.shortName;
-            if (modelCounts.has(convName)) {
-                dataflow.set(res, convName);
-                continue;
-            }
-            if (modelCounts.has(convShort)) {
-                dataflow.set(res, convShort);
-                continue;
-            }
-        }
-
-        let bestModel = '';
-        let maxCount = -1;
-        for (const [model, count] of modelCounts) {
-            if (count > maxCount) {
-                maxCount = count;
-                bestModel = model;
-            }
-        }
-        if (bestModel) {
-            dataflow.set(res, bestModel);
-        }
-    }
-
-    return dataflow;
+    return Object.freeze({ bindings: Object.freeze(bindings) });
 }

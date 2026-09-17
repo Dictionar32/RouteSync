@@ -33,7 +33,7 @@ import {
 } from "./lexer";
 import { tokenizePhpSource } from "./lexer/tokenizer";
 import { parsePhpArray } from "./lexer/arrayParser";
-import { classifyAstTokens, classifyAstValue } from "./lexer/astClassifier";
+import { classifyAstTokens, classifyAstValue, classifyPhpBlock } from "./lexer/astClassifier";
 import { parseRouteDeclarations } from "./lexer/routeAst";
 import type { RouteDeclarationAst } from "./lexer/routeAst";
 import { parseControllerDeclaration } from "./lexer/controllerDeclarationParser";
@@ -74,6 +74,7 @@ export {
     parsePhpArray,
     classifyAstTokens,
     classifyAstValue,
+    classifyPhpBlock,
     parseRouteDeclarations,
     parseControllerDeclaration,
     parseResponseDtoDeclaration
@@ -97,6 +98,10 @@ export class LaravelSourceLexer {
 
     static classifyAstTokens(exprTokens: readonly TokenDescriptor[]): PhpAstValue {
         return classifyAstTokens(exprTokens);
+    }
+
+    static classifyPhpBlock(tokens: readonly TokenDescriptor[]): PhpBlock {
+        return classifyPhpBlock(tokens);
     }
 
     static parseRouteDeclarations(tokens: readonly TokenDescriptor[]): readonly RouteDeclarationAst[] {

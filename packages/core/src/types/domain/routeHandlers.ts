@@ -7,6 +7,8 @@
  * @module core/types/domain/routeHandlers
  */
 
+import type { ActionName, ClassName, SourceFilePath } from './semanticValues';
+
 export const RouteHandlerKind = Object.freeze({
   ControllerAction: 'controller_action',
   InvokableController: 'invokable_controller',
@@ -49,27 +51,27 @@ export const ROUTE_HANDLER_KIND_REGISTRY: RouteHandlerKindRegistry = Object.free
 
 export interface BaseRouteHandlerDescriptor {
   readonly kind: RouteHandlerKind;
-  readonly target: string;
+  readonly target: ClassName;
 }
 
 export interface ControllerActionHandlerDescriptor extends BaseRouteHandlerDescriptor {
   readonly kind: typeof RouteHandlerKind.ControllerAction;
-  readonly controllerName: string;
-  readonly actionName: string;
-  readonly target: string; // e.g. 'OrderController@index'
+  readonly controllerName: ClassName;
+  readonly actionName: ActionName;
+  readonly target: ClassName; // e.g. 'OrderController@index'
 }
 
 export interface InvokableControllerHandlerDescriptor extends BaseRouteHandlerDescriptor {
   readonly kind: typeof RouteHandlerKind.InvokableController;
-  readonly controllerName: string;
-  readonly actionName: '__invoke';
-  readonly target: string; // e.g. 'DashboardController@__invoke'
+  readonly controllerName: ClassName;
+  readonly actionName: ActionName & '__invoke';
+  readonly target: ClassName; // e.g. 'DashboardController@__invoke'
 }
 
 export interface ClosureHandlerDescriptor extends BaseRouteHandlerDescriptor {
   readonly kind: typeof RouteHandlerKind.Closure;
-  readonly actionName: string;
-  readonly target: string; // e.g. 'closure@query'
+  readonly actionName: ActionName;
+  readonly target: ClassName; // e.g. 'closure@query'
 }
 
 export type RouteHandlerDescriptor =
@@ -103,8 +105,8 @@ export function matchRouteHandler<R>(
  * Repositories and routes hold ordered arrays of FormRequestDescriptor (0 null, 0 undefined, 0 '?').
  */
 export interface FormRequestDescriptor {
-  readonly name: string;
-  readonly sourceFile: string;
+  readonly name: ClassName;
+  readonly sourceFile: SourceFilePath;
 }
 
 export const ScannedFormRequestDescriptor = Object.freeze({

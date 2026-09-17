@@ -42,11 +42,13 @@ describe('ecommerce_shop PHP AST boundary Phase 87.2', () => {
 
         expect(ast.kind).toBe('static_call');
         if (ast.kind !== 'static_call') return;
-        expect(ast.argumentDescriptors).toHaveLength(2);
-        expect(ast.argumentDescriptors[0]?.kind).toBe('positional');
+        expect(ast.arguments).toHaveLength(2);
+        expect(ast.arguments[0]?.kind).toBe('positional');
         expect(ast.arguments[0]?.kind).toBe('nested_array');
         if (ast.arguments[0]?.kind !== 'nested_array') return;
-        expect(ast.arguments[0].entries[0]?.key).toBe('produk_item_id');
-        expect(ast.arguments[0].entries[0]?.keyExpression?.kind).toBe('literal');
+        const entry = ast.arguments[0].entries[0];
+        expect(entry?.kind).toBe('keyed');
+        if (entry?.kind !== 'keyed') return;
+        expect(entry.key).toEqual({ kind: 'string', value: 'produk_item_id' });
     });
 });

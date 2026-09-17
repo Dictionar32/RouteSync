@@ -30,3 +30,7 @@ export {
 export {
     bindResource
 } from "./resourceBinder";
+
+export {
+    bindPropertyPathField
+} from "./propertyPathBinder";

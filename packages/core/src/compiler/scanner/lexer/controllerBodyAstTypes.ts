@@ -1,5 +1,5 @@
 /** Typed AST for controller-body facts consumed by semantic resolution. */
-import type { AstIdentifier, SourceLineNumber, TokenDescriptor } from './phpAstTypes';
+import type { AstIdentifier, TokenDescriptor, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
 
 export type ValidationRuleLiteralAst = string & { readonly __validationRuleAst: unique symbol };
 
@@ -16,9 +16,48 @@ export interface ControllerErrorAst {
     readonly source: TokenDescriptor;
 }
 
+export type ControllerVariableDefinitionOrigin =
+    | { readonly kind: 'assignment' }
+    | { readonly kind: 'foreach'; readonly statementIndex: number }
+    | { readonly kind: 'catch'; readonly statementIndex: number };
+
+export type ControllerDefinitionAvailability =
+    | { readonly kind: 'definite' }
+    | { readonly kind: 'branch_conditional'; readonly branchPath: readonly number[] }
+    | { readonly kind: 'loop_conditional'; readonly branchPath: readonly number[] }
+    | { readonly kind: 'catch_conditional'; readonly branchPath: readonly number[] };
+
+export interface ControllerVariableDefinition {
+    readonly name: AstIdentifier;
+    readonly statementIndex: number;
+    readonly origin: ControllerVariableDefinitionOrigin;
+    readonly value: PhpAstValue;
+    readonly availability: ControllerDefinitionAvailability;
+}
+
+export type ControllerVariableOrigin =
+    | { readonly kind: 'parameter' }
+    | { readonly kind: 'local_assignment'; readonly statementIndex: number }
+    | { readonly kind: 'foreach_binding'; readonly statementIndex: number }
+    | { readonly kind: 'catch_binding'; readonly statementIndex: number }
+    | { readonly kind: 'external' };
+
+export interface ControllerVariableReference {
+    readonly name: AstIdentifier;
+    readonly statementIndex: number;
+    readonly origin: ControllerVariableOrigin;
+}
+
+export interface ControllerDataflowAst {
+    readonly definitions: readonly ControllerVariableDefinition[];
+    readonly references: readonly ControllerVariableReference[];
+}
+
 export interface ControllerBodyAst {
+    readonly statements: readonly PhpStatement[];
     readonly validations: readonly InlineValidationAst[];
     readonly errors: readonly ControllerErrorAst[];
+    readonly dataflow: ControllerDataflowAst;
 }
 
 export function createValidationRuleLiteral(value: string): ValidationRuleLiteralAst {

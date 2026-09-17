@@ -1,47 +1,20 @@
-/**
- * fieldParser.ts
- *
- * Recursively parses ResponseFieldData into ParsedResponseField.
- *
- * @module core/compiler/generators/contract-generation/response-field
- */
-
 import type { ResponseFieldData, ParsedResponseField } from './types';
-import {
-  normalizeKind,
-  extractType,
-  isFieldNullable,
-  isFieldOptional
-} from './typeNormalizer';
+import { normalizeKind, extractType, isFieldNullable, isFieldOptional } from './typeNormalizer';
 
-export function parseResponseField(
-  fieldName: string,
-  fieldData: ResponseFieldData
-): ParsedResponseField {
+export function parseResponseField(fieldName: string, fieldData: ResponseFieldData): ParsedResponseField {
   const kind = normalizeKind(fieldData.kind);
-  const type = extractType(fieldData);
-
   const parsed: ParsedResponseField = {
     name: fieldName,
     kind,
-    type,
+    type: extractType(fieldData),
     nullable: isFieldNullable(fieldData),
-    optional: isFieldOptional(fieldData)
+    optional: isFieldOptional(fieldData),
+    fields: fieldData.kind === 'object' ? parseNestedResponseFields(fieldData.fields) : [],
+    itemType: fieldData.kind === 'array' ? parseResponseField('item', fieldData.itemType) : undefined
   };
-
-  if (kind === 'object' && fieldData.fields) {
-    parsed.fields = parseNestedResponseFields(fieldData.fields);
-  }
-
-  if (kind === 'array' && fieldData.itemType) {
-    parsed.itemType = parseResponseField('item', fieldData.itemType);
-  }
-
   return parsed;
 }
 
-export function parseNestedResponseFields(
-  fields: Record<string, ResponseFieldData>
-): ParsedResponseField[] {
-  return Object.entries(fields).map(([name, data]) => parseResponseField(name, data));
+export function parseNestedResponseFields(fields: readonly (readonly [string, ResponseFieldData])[]): readonly ParsedResponseField[] {
+  return fields.map(([name, data]) => parseResponseField(name, data));
 }

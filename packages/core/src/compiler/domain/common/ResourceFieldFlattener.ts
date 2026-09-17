@@ -8,7 +8,6 @@
 
 import { toCamelCase, toPascalCase } from '../../../utils/resource-naming';
 import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
-import type { SemanticType } from '../../../types/SemanticType';
 import { matchResourceFieldExpression } from '../../../types/domain/expressions';
 import { SemanticTypeResolver } from './SemanticTypeResolver';
 import {
@@ -99,6 +98,11 @@ export class ResourceFieldFlattener {
             method_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             nullsafe_method_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             static_method_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            array_access: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            function_call: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            ternary: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            short_ternary: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            null_coalesce: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             literal: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             unsupported: () => this.pushLeaf(field, targetProperty, sourcePath, result)
         });
@@ -139,7 +143,7 @@ export class ResourceFieldFlattener {
         }));
     }
 
-    private resolveSemanticType(type: SemanticType): ResolvedSemanticType {
+    private resolveSemanticType(type: import('../../../types/SemanticType').SemanticType): ResolvedSemanticType {
         return this.typeResolver.resolve(type);
     }
 

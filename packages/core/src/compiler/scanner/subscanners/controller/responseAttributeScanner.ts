@@ -3,6 +3,7 @@ import path from 'path';
 import type { DeclaredResponseAttributeAst } from '../../lexer/controllerAstTypes';
 import type { ResponseDescriptor, ResourceFieldDescriptor } from '../../../../types/route';
 import { InlineResponseDescriptor } from '../../../../types/route';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { readResponseDtoAnalysis } from './responseDtoReader';
 
 export interface ResponseAttributeResolution {
@@ -22,21 +23,22 @@ export function resolveResponseAttributeAst(attribute: DeclaredResponseAttribute
   const classFile = resolveClassFile(projectRoot, className);
   const analysis = readResponseDtoAnalysis(classFile);
   const fields = analysis.fields;
-  const trace: ResponseTraceEntry[] = [
-    { stage: 'attribute', rule: 'Explicit Response attribute', input: className, output: `response: ${className}` }
+  const trace = [
+    { kind: 'class_resolution' as const, className: SemanticValueFactory.className(className), sourceFile: SemanticValueFactory.sourceFilePath(classFile) },
+    { kind: 'property_extraction' as const, propertyCount: fields.length },
+    { kind: 'semantic_resolution' as const, resolvedCount: analysis.contractFields.length }
   ];
-  trace.push({ stage: 'identity', rule: 'Response class resolved from controller attribute', input: className, output: classFile });
-  trace.push({ stage: 'shape', rule: 'Typed public properties extracted from response class', input: classFile, output: `${fields.length} fields` });
+  const responseTypeName = SemanticValueFactory.responseTypeName(className);
   return new InlineResponseDescriptor({
-    domain: className,
-    baseName: className,
-    typeName: className,
+    domain: SemanticValueFactory.domainName(className),
+    baseName: SemanticValueFactory.resourceName(className),
+    typeName: responseTypeName,
     fields,
     shape: attribute.collection ? 'collection' : 'single',
-    origin: { kind: 'attribute', className, sourceFile: classFile, trace },
+    origin: { kind: 'attribute', className: SemanticValueFactory.className(className), sourceFile: SemanticValueFactory.sourceFilePath(classFile), trace },
     semanticContract: {
       kind: 'object',
-      name: className,
+      name: responseTypeName,
       shape: attribute.collection ? 'collection' : 'single',
       fields: analysis.contractFields
     }

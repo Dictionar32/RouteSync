@@ -46,7 +46,7 @@ export async function executeScanPipeline({
     const formRequests = await FormRequestScanner.scan(projectRoot, interner);
     const formRequestMap = new Map<string, RequestType>(formRequests.map(r => [r.formTypeName, r]));
     const controllerMap = await ControllerScanner.scan(projectRoot, formRequestMap);
-    const controllerDataflow = ControllerScanner.extractResourceDataflow(controllerMap, modelSymbolTable);
+    const controllerDataflow = ControllerScanner.extractResourceDataflow(controllerMap);
     const resources = await ResourceScanner.scan(projectRoot, modelSymbolTable, controllerDataflow);
     const routes = await RouteScanner.scan(projectRoot, formRequests, controllerMap);
     const channels = await ChannelScanner.scan(projectRoot);

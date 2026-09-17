@@ -7,16 +7,17 @@
 
 import type { ParsedColumn } from '../../../../types/domain/databaseColumns';
 import type { ParsedAccessor, ParsedCast } from '../../../../types/domain/eloquentTypes';
+import type { PropertyName } from '../../../../types/domain/semanticValues';
 
 export function findCastForColumn(
     casts: readonly ParsedCast[],
     columnName: string
 ): ParsedCast | undefined {
-    return casts.find(cast => cast.column === columnName);
+    return casts.find(cast => cast.column.value === columnName);
 }
 
 export interface ExtractedAccessorInfo {
-    readonly propertyName: string;
+    readonly propertyName: PropertyName;
     readonly semanticType: ParsedAccessor['semanticType'];
 }
 

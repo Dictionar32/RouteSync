@@ -26,7 +26,7 @@ export function bindResourceCollectionField(
 ): BoundResourceFieldResult {
     const isCollection = value.kind === 'resource_collection';
     const rel = modelSymbol ? modelSymbol.relation(key) : undefined;
-    const targetModel = rel ? rel.targetModel : value.resourceName;
+    const targetModel = rel ? rel.targetModel.value : value.resourceName;
     const cardinality = isCollection
         ? { kind: 'collection' as const }
         : { kind: 'single' as const };
@@ -35,7 +35,7 @@ export function bindResourceCollectionField(
             sourceModel: SemanticValueFactory.modelName(modelSymbol!.name),
             relationName: SemanticValueFactory.relationName(key),
             relationType: rel.type,
-            targetModel: SemanticValueFactory.modelName(rel.targetModel),
+            targetModel: rel.targetModel,
             cardinality,
             nullability: { kind: 'non_nullable' }
         })

@@ -20,6 +20,7 @@ import type {
 } from "./security";
 import type { RouteSchemaPayload } from "./validation";
 import type { RouteHandlerDescriptor, FormRequestDescriptor } from "./routeHandlers";
+import type { ActionName, ControllerName, DomainName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
 
 /**
  * Route Parameter Specification Contract.
@@ -36,14 +37,14 @@ export interface RouteParameterSpecification {
  * Enforces guaranteed identity and network coordinates (0 '?', 0 fallback).
  */
 export interface RouteIdentityContract {
-  readonly name: string;
+  readonly name: RouteName;
   readonly method: HttpMethod;
-  readonly path: string;
-  readonly runtimePath: string;
-  readonly constantKey: string;
-  readonly resourceName: string;
-  readonly domain: string;
-  readonly groupName: string;
+  readonly path: RoutePath;
+  readonly runtimePath: RoutePath;
+  readonly constantKey: PropertyName;
+  readonly resourceName: ResourceName;
+  readonly domain: DomainName;
+  readonly groupName: DomainName;
   readonly parameters: RouteParameterSpecification;
 }
 
@@ -53,12 +54,12 @@ export interface RouteIdentityContract {
  */
 export interface RouteBindingContract {
   readonly handler: RouteHandlerDescriptor;
-  readonly action: string;
-  readonly actionName: string;
-  readonly controllerName: string;
+  readonly action: ActionName;
+  readonly actionName: ActionName;
+  readonly controllerName: ControllerName;
   readonly schema: RouteSchemaPayload;
   readonly response: ResponseDescriptor;
-  readonly responseTypeName: string;
+  readonly responseTypeName: ResponseTypeName;
   readonly formRequests: readonly FormRequestDescriptor[];
   readonly assignments: readonly ResourceAssignment[];
 }
@@ -70,7 +71,7 @@ export interface RouteBindingContract {
 export interface RouteCapabilityContract {
   readonly auth: boolean;
   readonly security: RouteSecurityDescriptor;
-  readonly middleware: readonly string[];
+  readonly middleware: readonly PropertyName[];
   readonly policies: readonly RoutePolicyDescriptor[];
   readonly rateLimit: RateLimitDescriptor | null;
   readonly invalidation: RouteCacheInvalidationDescriptor;
@@ -88,9 +89,9 @@ export interface RouteCapabilityContract {
  * Enforces end-to-end traceability back to PHP Laravel source location (0 '?', 0 fallback).
  */
 export interface RouteProvenanceContract {
-  readonly sourceFile: string;
-  readonly sourceLine: number;
-  readonly uri: string;
+  readonly sourceFile: SourceFilePath;
+  readonly sourceLine: SourceLineNumber;
+  readonly uri: RoutePath;
 }
 
 export interface ParsedRoute {

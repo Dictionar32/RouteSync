@@ -25,12 +25,12 @@ export function compileGraphFromManifest(
 ): ServiceGraph {
   // 1. Models Indexing & Relations Traversal
   for (const m of manifest.models) {
-    const modelNode = buildModelNode(m.name);
-    builder.modelsMap.set(m.name, modelNode);
+    const modelNode = buildModelNode(m.name.value);
+    builder.modelsMap.set(m.name.value, modelNode);
 
     if (m.relations) {
       for (const rel of m.relations) {
-        builder.linkGraph(m.name, rel.targetModel, 'depends_on_model', 1.0, rel.type);
+        builder.linkGraph(m.name.value, rel.targetModel.value, 'depends_on_model', 1.0, rel.type);
       }
     }
   }
@@ -38,8 +38,8 @@ export function compileGraphFromManifest(
   // 2. Resources Indexing & Explicit BaseModel Link
   for (const res of manifest.resources) {
     const fieldsList = res.fields.map(f => f.name);
-    const serviceNode = buildServiceNode(res.name, fieldsList);
-    builder.servicesMap.set(res.name, serviceNode);
+    const serviceNode = buildServiceNode(res.name.value, fieldsList);
+    builder.servicesMap.set(res.name.value, serviceNode);
 
     if (res.baseModel) {
       builder.linkGraph(res.name, res.baseModel, 'depends_on_model');

@@ -41,11 +41,11 @@ function resolveRelation(
   const model = context.contextModel;
   if (model === undefined) return unsupported('whenLoaded relation has no model context');
   const relation = model.relations.find(candidate => candidate.name === relationName);
-  if (relation === undefined || relation.targetModel === undefined) {
+  if (relation === undefined) {
     return unsupported(`Relation ${relationName} is not declared on ${model.name.value}`);
   }
 
-  const targetModel = SemanticValueFactory.modelName(relation.targetModel);
+  const targetModel = relation.targetModel;
   const cardinality = relation.cardinality === 'many'
     ? { kind: 'collection' as const }
     : { kind: 'single' as const };

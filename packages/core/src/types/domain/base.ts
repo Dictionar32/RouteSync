@@ -6,7 +6,8 @@ import type { ParsedModel } from "./database";
 import type { ParsedResource } from "./expressions";
 import type { ParsedRoute } from "./routes";
 import type { PageValue } from "./pageValues";
-import type { DomainName, ModelName, ResourceName, RouteName, SourceFilePath, SourceLineNumber, PropertyName, TypeExpression } from "./semanticValues";
+import type { DomainName, ModelName, ResourceName, RouteName, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
+import type { TypeExpression } from "../upstream/typeVocabulary";
 
 /**
  * First-Class Domain Operation Entry (Ordered).

@@ -22,6 +22,8 @@ export function classifyAstTokens(tokens: readonly TokenDescriptor[]): PhpAstVal
     const arrow = classifyArrowFunction(tokens);
     if (arrow) return arrow;
     const first = tokens[0];
+    const instance = classifyInstanceOf(tokens);
+    if (instance) return instance;
     const cast = classifyCast(tokens);
     if (cast) return cast;
     const parenthesized = classifyParenthesized(tokens);
@@ -37,8 +39,7 @@ export function classifyAstTokens(tokens: readonly TokenDescriptor[]): PhpAstVal
         const open = indexOf(tokens, '(', 2);
         const close = lastIndexOf(tokens, ')');
         const args = open >= 0 && close > open ? parseArguments(tokens.slice(open + 1, close)) : [];
-        const argument = args[0]?.value;
-        return argument ? PhpAstFactory.resourceSingle(className, argument) : PhpAstFactory.unsupported(tokens);
+        return PhpAstFactory.construct(className, args);
     }
     const staticCall = classifyStaticCall(tokens);
     if (staticCall) return staticCall;
@@ -152,6 +153,14 @@ function classifyCompoundExpression(tokens: readonly TokenDescriptor[]): PhpAstV
     const unary = classifyUnary(tokens);
     if (unary) return unary;
     return undefined;
+}
+
+function classifyInstanceOf(tokens: readonly TokenDescriptor[]): PhpAstValue | undefined {
+    const index = findTopLevelOperator(tokens, 'instanceof');
+    if (index <= 0 || index >= tokens.length - 1) return undefined;
+    const classToken = tokens[index + 1];
+    if (!classToken || classToken.type !== 'IDENTIFIER') return undefined;
+    return PhpAstFactory.instanceOf(classifyAstTokens(tokens.slice(0, index)), createAstIdentifier(classToken.value));
 }
 
 function classifyArrayAccess(tokens: readonly TokenDescriptor[]): PhpAstValue | undefined {
@@ -483,6 +492,10 @@ function classifyAssignment(tokens: readonly TokenDescriptor[]): PhpStatement | 
 
 function classifyAssignmentTarget(tokens: readonly TokenDescriptor[]): import('./phpAstTypes').PhpAssignmentTarget | undefined {
     if (tokens.length === 1 && tokens[0].type === 'VARIABLE') return { kind: 'variable', name: createAstIdentifier(tokens[0].value.slice(1)) };
+    if (tokens[0]?.value === '[' && tokens[tokens.length - 1]?.value === ']') {
+        const names = tokens.filter(token => token.type === 'VARIABLE').map(token => createAstIdentifier(token.value.slice(1)));
+        return names.length > 0 ? { kind: 'variables', names: Object.freeze(names) } : undefined;
+    }
     const access = classifyArrayAccess(tokens);
     if (access?.kind === 'array_access') return { kind: 'array_element', target: access.target, index: access.index };
     const member = classifyMember(tokens);

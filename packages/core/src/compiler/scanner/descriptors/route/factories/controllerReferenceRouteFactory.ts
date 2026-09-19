@@ -26,7 +26,7 @@ export type ControllerReferenceRouteOptions = {
     readonly sourceFile: string;
     readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
-    readonly formRequests?: readonly (string | FormRequestDescriptor)[];
+    readonly formRequests?: readonly FormRequestDescriptor[];
     readonly schema?: RouteSchemaPayload;
     readonly auth?: boolean;
     readonly middleware?: readonly string[];

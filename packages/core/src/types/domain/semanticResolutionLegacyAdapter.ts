@@ -16,7 +16,7 @@ export function toLegacySemanticResolution(
         type: resolution.semanticType.kind === 'primitive'
           ? resolution.semanticType.type
           : 'unknown',
-        nullable: resolution.nullable,
+        nullable: resolution.nullability.kind === 'nullable',
         confidence: resolution.confidence,
         trace: resolution.trace.map(trace => ({
           source: trace.source,
@@ -63,7 +63,7 @@ export function toLegacySemanticResolution(
         status: resolution.status,
         type: 'object',
         fields: Object.fromEntries(
-          resolution.fields.map(([name, type]) => [name.value, type.kind]),
+          resolution.surface.fields.map(field => [field.name.value, field.type.kind]),
         ),
         confidence: resolution.confidence,
         trace: resolution.trace.map(trace => ({
@@ -80,9 +80,9 @@ export function toLegacySemanticResolution(
         type: 'object',
         model: resolution.sourceModel.value,
         collection: resolution.cardinality.kind === 'collection',
-        nullable: resolution.nullable,
+        nullable: resolution.nullability.kind === 'nullable',
         fields: Object.fromEntries(
-          resolution.fields.map(([name, type]) => [name.value, type.kind]),
+          resolution.surface.fields.map(field => [field.name.value, field.type.kind]),
         ),
         confidence: resolution.confidence,
         trace: resolution.trace.map(trace => ({

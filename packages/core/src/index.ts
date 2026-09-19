@@ -208,7 +208,6 @@ export {
   matchPaginationKind,
   matchPhpAstKind,
   matchPhpAstNode,
-  normalizeCastType,
   matchPolymorphicMorphType,
   matchPolymorphicRelation,
   matchRelation,
@@ -641,7 +640,7 @@ export type {
   ServiceNode,
   SourceContext,
   SourceRef,
-  TraceNode,
+  SemanticTraceNode,
   ZodAST,
   ZodArrayNode,
   ZodBooleanNode,
@@ -712,7 +711,9 @@ export type {
   RoutePath,
   HttpVerb,
   ColumnDefinitionContract,
-  ModelRelationDefinitionContract
+  ModelRelationDefinitionContract,
+  ModelSemanticDefinitionContract,
+  ModelSemanticDefinition
 } from './types/field';
 export { createFieldBinding } from './types/domain/fieldBinding';
 
@@ -825,6 +826,7 @@ export {
   ScannedObjectProperty,
   PrimitiveKind,
   PrimitiveType,
+  JsonValueType,
   ObjectType,
   ReferenceType,
   UnionType,

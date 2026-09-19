@@ -11,7 +11,7 @@
 import {
     type SemanticType
 } from '../../types/SemanticType';
-import type { ResourceFieldDescriptor } from '../../../types/route';
+import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
 
 import {
     ResolvedUnknownType,
@@ -79,6 +79,9 @@ export class SemanticTypeResolver implements SemanticTypeResolverLike {
     }
 
     public static resolveField(field: ResourceFieldDescriptor): SemanticType {
-        return field.semanticType;
+        if (field.semantic.kind !== 'verified') {
+            throw new Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`);
+        }
+        return field.semantic.type;
     }
 }

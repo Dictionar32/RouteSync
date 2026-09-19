@@ -43,7 +43,7 @@ export {
 
 export {
   type ResolutionStatus,
-  type TraceNode,
+  type SemanticTraceNode,
   type SemanticResolution,
   type JsonObjectResolution,
   type AccessKind,

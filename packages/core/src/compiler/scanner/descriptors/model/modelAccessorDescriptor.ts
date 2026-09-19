@@ -7,17 +7,13 @@
  */
 
 import { ParsedAccessor } from "../../../../types/route";
-import { PrimitiveKind, PrimitiveType } from "../../../types/SemanticType";
-import { toCamelCase } from "../../../../utils/resource-naming";
+import type { ModelAccessorComputation } from "../../../../types/domain/models";
 import { SemanticValueFactory, type MethodName, type PropertyName } from "../../../../types/domain/semanticValues";
-import type { SemanticType } from "../../../types/SemanticType";
 
 export interface ScannedModelAccessorParams {
     readonly name: string;
     readonly propertyName: string;
-    readonly type: string;
-    readonly nullable: boolean;
-    readonly semanticType: PrimitiveKind;
+    readonly computation: ModelAccessorComputation;
 }
 
 /**
@@ -26,50 +22,28 @@ export interface ScannedModelAccessorParams {
 export class ScannedModelAccessorDescriptor implements ParsedAccessor {
     public readonly name: MethodName;
     public readonly propertyName: PropertyName;
-    public readonly semanticType: SemanticType;
+    public readonly computation: ModelAccessorComputation;
 
-    constructor({
-        name,
-        propertyName,
-        type,
-        nullable,
-        semanticType
-    }: ScannedModelAccessorParams) {
+    constructor({ name, propertyName, computation }: ScannedModelAccessorParams) {
         this.name = SemanticValueFactory.methodName(name);
         this.propertyName = SemanticValueFactory.propertyName(propertyName);
-        this.semanticType = new PrimitiveType(semanticType);
+        this.computation = Object.freeze(computation);
         Object.freeze(this);
     }
 
     public static fromReturnType({
         name,
         propertyName,
-        type,
-        nullable = false,
-        semanticType
+        computation
     }: {
         readonly name: string;
-        readonly propertyName?: string;
-        readonly type: string;
-        readonly nullable?: boolean;
-        readonly semanticType?: PrimitiveKind;
+        readonly propertyName: string;
+        readonly computation: ModelAccessorComputation;
     }): ScannedModelAccessorDescriptor {
-        let resolvedSemanticType = semanticType;
-        if (!resolvedSemanticType) {
-            if (type === "number" || type === "int" || type === "float") {
-                resolvedSemanticType = PrimitiveKind.NUMBER;
-            } else if (type === "boolean" || type === "bool") {
-                resolvedSemanticType = PrimitiveKind.BOOLEAN;
-            } else {
-                resolvedSemanticType = PrimitiveKind.STRING;
-            }
-        }
         return new ScannedModelAccessorDescriptor({
             name,
-            propertyName: propertyName ?? toCamelCase(name),
-            type,
-            nullable,
-            semanticType: resolvedSemanticType
+            propertyName,
+            computation
         });
     }
 

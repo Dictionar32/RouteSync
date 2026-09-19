@@ -79,7 +79,7 @@ function resolvePayloadTypeName(
 ): string {
     if (params.formRequests !== undefined && params.formRequests.length > 0) {
         const first = params.formRequests[0];
-        return typeof first === "string" ? first : first.name;
+        return first.name.value;
     }
     if (hasValidationRules) {
         const action = basics.resolvedActionKind;

@@ -4,6 +4,7 @@ import type { ModelName, PropertyName, ResourceName, ResponseFieldName, Response
 import type { HttpMethod } from "./security";
 import type { BoundSemanticNode } from "./boundAst";
 import type { ResourceFieldSemantic } from './resourceFieldSemantic';
+import type { ResourceExpressionFieldModel, ResourceExpressionModel } from './resourceExpressionModel';
 
 export interface ResourceFieldDescriptor {
   readonly name: ResponseFieldName;
@@ -70,12 +71,24 @@ export interface ResourceResourceExpression extends BaseResourceFieldExpression<
 
 export interface ObjectResourceExpression extends BaseResourceFieldExpression<'object'> {
   readonly kind: 'object';
-  readonly fields: readonly ResourceFieldDescriptor[];
+  readonly fields: readonly ResourceExpressionFieldModel[];
+}
+
+export type ResourceArrayKey =
+  | { readonly kind: 'implicit'; readonly index: number }
+  | { readonly kind: 'string'; readonly value: string }
+  | { readonly kind: 'integer'; readonly value: number }
+  | { readonly kind: 'expression'; readonly value: ResourceExpressionModel };
+
+export interface ResourceArrayEntry {
+  readonly key: ResourceArrayKey;
+  readonly value: ResourceExpressionModel;
 }
 
 export interface ArrayResourceExpression extends BaseResourceFieldExpression<'array'> {
   readonly kind: 'array';
-  readonly element: ResourceFieldDescriptor;
+  readonly cardinality: 'sequence' | 'map';
+  readonly entries: readonly ResourceArrayEntry[];
 }
 
 export interface PropertyAccessResourceExpression extends BaseResourceFieldExpression<'property_access'> {
@@ -400,11 +413,12 @@ export class ResourceFieldExpressionFactory {
   public static resource(resource: ResourceName, cardinality: ResourceExpressionCardinality = { kind: 'single' }): ResourceResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Resource, resource, cardinality });
   }
-  public static object(fields: readonly ResourceFieldDescriptor[]): ObjectResourceExpression {
+  public static object(fields: readonly ResourceExpressionFieldModel[]): ObjectResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Object, fields: Object.freeze([...fields]) });
   }
-  public static array(element: ResourceFieldDescriptor): ArrayResourceExpression {
-    return Object.freeze({ kind: ResourceExpressionKind.Array, element });
+  public static array(entries: readonly ResourceExpressionModel[], cardinality: ArrayResourceExpression['cardinality'] = 'sequence'): ArrayResourceExpression {
+    const mapped = Object.freeze(entries.map((value, index) => Object.freeze({ key: { kind: 'implicit' as const, index }, value })));
+    return Object.freeze({ kind: ResourceExpressionKind.Array, cardinality, entries: mapped });
   }
   public static propertyAccess(target: ResourceFieldExpression, property: PropertyName): PropertyAccessResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.PropertyAccess, target, property });

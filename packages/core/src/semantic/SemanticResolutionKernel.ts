@@ -18,6 +18,7 @@ import type {
   ModelNodeInput
 } from './types';
 import { CycleDetector } from './types';
+import type { ResolutionScope } from './resolutionScope';
 import { verifyModelNode } from './modelNodes';
 import { SymbolTable } from './SymbolTable';
 import {
@@ -57,7 +58,7 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
     this.symbolTable = new SymbolTable(this.models);
   }
 
-  public resolve(meta: ResolverMeta, contextModel?: ModelNode): SemanticResolution {
+  public resolve(meta: ResolverMeta, scope: ResolutionScope): SemanticResolution {
     if (meta.kind === 'unknown') {
       return unknownResolution('SemanticResolutionKernel', 'No metadata available', 'metadata', 'invalid_boundary_input');
     }
@@ -68,7 +69,7 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       this,
       this.cycleDetector,
       this.symbolTable,
-      contextModel
+      scope
     );
 
     for (const plugin of this.plugins) {

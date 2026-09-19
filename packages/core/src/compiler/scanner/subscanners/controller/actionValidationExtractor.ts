@@ -68,10 +68,10 @@ function resolveRequestType(
     formRequest: FormRequestDescriptor,
     formRequestMap: ReadonlyMap<string, RequestType>
 ): RequestType | undefined {
-    const direct = formRequestMap.get(formRequest.name);
+    const direct = formRequestMap.get(formRequest.name.value);
     if (direct) return direct;
 
-    const normalizedName = normalizeRequestName(formRequest.name);
+    const normalizedName = normalizeRequestName(formRequest.name.value);
     for (const requestType of formRequestMap.values()) {
         if (normalizeRequestName(requestType.formTypeName) === normalizedName) return requestType;
         if (normalizeRequestName(requestType.resourceName) === normalizedName) return requestType;

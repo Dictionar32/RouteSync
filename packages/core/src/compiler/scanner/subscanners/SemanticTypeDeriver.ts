@@ -18,12 +18,6 @@ import { TypeInterner } from '../../types/TypeInterner';
 // Sub-domain imports
 import { SemanticDerivationContext } from './semantic/SemanticDerivationContext';
 
-import {
-    findCastForColumn,
-    extractModelAccessors,
-    type ExtractedAccessorInfo
-} from './semantic/modelExtractors';
-
 import { deriveResourceTypes } from './semantic/resourceTypeDeriver';
 import { deriveRouteResponseTypes } from './semantic/routeResponseDeriver';
 import { deriveModelTypes } from './semantic/modelTypeDeriver';
@@ -81,13 +75,8 @@ export class SemanticTypeDeriver {
 
 export {
     SemanticDerivationContext,
-    findCastForColumn,
-    extractModelAccessors,
     deriveResourceTypes,
     deriveRouteResponseTypes,
     deriveModelTypes
 };
 
-export type {
-    ExtractedAccessorInfo
-};

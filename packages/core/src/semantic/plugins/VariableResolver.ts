@@ -32,17 +32,17 @@ export class VariableResolver implements ResolverPlugin {
       return unknownResolution('VariableResolver', 'Unsupported variable metadata', 'variable', 'invalid_boundary_input');
     }
     const name = meta.name.value;
-    const currentModel = context.contextModel;
+    const scope = context.scope;
 
     // 1. Resolve 'this'
     if (name === 'this') {
-      const thisRes = resolveThisVariable(context, currentModel);
-      if (thisRes) return thisRes;
+      const thisRes = resolveThisVariable(context, scope);
+      if (thisRes.kind === 'resolved') return thisRes.value;
     }
 
     // 2 & 3. Check assignments (resolved and raw)
-    const assignmentRes = resolveAssignmentVariable(name, context, currentModel);
-    if (assignmentRes) return assignmentRes;
+    const assignmentRes = resolveAssignmentVariable(name, context, scope);
+    if (assignmentRes.kind === 'resolved') return assignmentRes.value;
 
     // 4. Match against models by name (including plural/singular heuristics)
     const modelRes = resolveModelByName(name, context.symbolTable);

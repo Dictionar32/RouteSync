@@ -11,9 +11,10 @@ export function tryResolveSpecialPropertyAccess(
   targetRes: SemanticResolution,
 ): SemanticResolution | null {
   if (targetRes.kind === 'object' || targetRes.kind === 'query_projection') {
-    const field = targetRes.fields.find(([name]) => name.value === prop);
+    const field = targetRes.surface.byName.get(SemanticValueFactory.responseFieldName(prop));
     if (field === undefined) return null;
-    const [name, semanticType] = field;
+    const name = field.name;
+    const semanticType = field.type;
     const boundAst = targetRes.kind === 'query_projection'
       ? BoundSemanticFactory.projectionField({ sourceModel: targetRes.sourceModel, field: name, semanticType })
       : targetRes.boundAst;

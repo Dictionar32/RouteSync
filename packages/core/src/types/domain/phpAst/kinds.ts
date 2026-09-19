@@ -88,6 +88,6 @@ export type PhpAstKindVisitor<R> = {
     readonly [K in PhpAstKind]: (spec: PhpAstKindSpecification<K>) => R;
 };
 
-export function matchPhpAstKind<R>(kind: PhpAstKind, visitor: PhpAstKindVisitor<R>): R {
+export function matchPhpAstKind<R, K extends PhpAstKind>(kind: K, visitor: PhpAstKindVisitor<R>): R {
     return visitor[kind](PHP_AST_KIND_REGISTRY[kind]);
 }

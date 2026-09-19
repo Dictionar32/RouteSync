@@ -35,7 +35,7 @@ export * from './frameworkRules';
 export type FrameworkReturnDescriptor =
   | { readonly kind: 'scalar'; readonly semanticType: SemanticType }
   | { readonly kind: 'model'; readonly model: ModelName; readonly cardinality: BoundCardinality }
-  | { readonly kind: 'object'; readonly fields: readonly (readonly [string, SemanticType])[] };
+  | { readonly kind: 'object'; readonly fields: readonly { readonly name: string; readonly type: SemanticType }[] };
 
 export type FrameworkMethodRule = {
   readonly returns: FrameworkReturnDescriptor;
@@ -55,7 +55,7 @@ const model = (name: string, confidence = 100): FrameworkMethodRule =>
     confidence,
   });
 
-const object = (fields: readonly (readonly [string, SemanticType])[] = []): FrameworkMethodRule =>
+const object = (fields: readonly { readonly name: string; readonly type: SemanticType }[] = []): FrameworkMethodRule =>
   Object.freeze({ returns: Object.freeze({ kind: 'object' as const, fields: Object.freeze([...fields]) }), confidence: 100 });
 
 export const GLOBAL_FUNCTIONS: ReadonlyMap<string, FrameworkMethodRule> = new Map([
@@ -75,7 +75,7 @@ const CARBON_DATE_METHODS = [
 export const METHOD_REGISTRY: ReadonlyMap<string, FrameworkMethodRule> = new Map([
   ['validated', object()],
   ['safe', object()],
-  ['createToken', object([['plainTextToken', new PrimitiveType(PrimitiveKind.STRING)]])],
+  ['createToken', object([{ name: 'plainTextToken', type: new PrimitiveType(PrimitiveKind.STRING) }])],
   ...CARBON_DATE_METHODS.map(name => [name, scalar(new PrimitiveType(PrimitiveKind.STRING))] as const),
 ]);
 

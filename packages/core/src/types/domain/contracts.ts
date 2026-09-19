@@ -31,7 +31,8 @@ import {
   type RouteSecurityDescriptor
 } from "./security";
 import type { RouteSchemaPayload } from "./validation";
-import type { EndpointId, RouteName, RoutePath, DomainName, ResourceName, PropertyName, ResponseTypeName, TypeExpression } from "../ir/nominalVocabulary";
+import type { RouteName, RoutePath, DomainName, ResourceName, PropertyName, ResponseTypeName, HttpErrorName } from "./semanticValues";
+import type { HttpErrorSchema } from "./httpErrors";
 
 // ============================================================================
 // ENDPOINT CONTRACT ADT & COMPLETE CONTRACT ARCHITECTURE (CDA)
@@ -70,15 +71,15 @@ export interface EndpointSuccessResponseContract {
 
 export interface EndpointErrorResponseContract {
   readonly statusCode: HttpStatusCode;
-  readonly name: PropertyName;
+  readonly name: HttpErrorName;
   readonly typeName: ResponseTypeName;
-  readonly schema: Record<string, unknown>;
+  readonly schema: HttpErrorSchema;
 }
 
 export interface EndpointResponseContract {
   readonly success: EndpointSuccessResponseContract;
   readonly errors: readonly EndpointErrorResponseContract[];
-  readonly errorUnionType: string;
+  readonly errorUnionType: ResponseTypeName;
 }
 
 
@@ -86,7 +87,7 @@ export interface EndpointContract<
   TMethod extends HttpMethod = HttpMethod,
   TRole extends CrudRole = CrudRole
 > {
-  readonly id: EndpointId;
+  readonly id: RouteName;
   readonly name: RouteName;
   readonly method: TMethod;
   readonly path: RoutePath;
@@ -104,7 +105,7 @@ export interface EndpointContract<
 }
 
 export class ScannedEndpointContract implements EndpointContract {
-  public readonly id: EndpointId;
+  public readonly id: RouteName;
   public readonly name: RouteName;
   public readonly method: HttpMethod;
   public readonly path: RoutePath;
@@ -143,144 +144,11 @@ export class ScannedEndpointContract implements EndpointContract {
   }
 
   public static fromRoute(route: ParsedRoute): ScannedEndpointContract {
-    const errorList: EndpointErrorResponseContract[] = route.errorResponses.map(err => ({
-      statusCode: err.statusCode,
-      name: err.name,
-      typeName: err.typeName,
-      schema: err.schema
-    }));
-
-    const errorUnionType = errorList.length > 0
-      ? Array.from(new Set(errorList.map(e => e.typeName))).join(' | ')
-      : 'ApiError';
-
-    const upperMethod = route.method.toUpperCase() as HttpMethod;
-    const defaultStatusCode = matchHttpMethod(upperMethod, {
-      POST: () => HttpStatusCode.Created,
-      GET: () => (route.response.readTypeName === 'void' ? HttpStatusCode.NoContent : HttpStatusCode.Ok),
-      DELETE: () => HttpStatusCode.NoContent,
-      PUT: () => HttpStatusCode.Ok,
-      PATCH: () => HttpStatusCode.Ok,
-      OPTIONS: () => HttpStatusCode.NoContent,
-      HEAD: () => HttpStatusCode.Ok
-    });
-
-    const readTypeName = route.response.readTypeName;
-
-    const successContract: EndpointSuccessResponseContract = {
-      statusCode: defaultStatusCode,
-      descriptor: route.response,
-      readTypeName,
-      validatorName: route.response.validatorName,
-      mapperName: route.response.mapperName,
-      shape: route.response.shape
-    };
-
-    const hasBody = route.executionSignature.hasPayload || route.schema.fields.length > 0;
-
-    const normalizedPathParams: readonly RouteParameter[] = route.pathParameters;
-
-    const requestContract: EndpointRequestContract = {
-      hasBody,
-      body: {
-        present: hasBody,
-        contentType: route.requestContentType,
-        schema: route.schema,
-        fields: route.schema.fields
-      },
-      pathParameters: normalizedPathParams,
-      queryParameters: route.queryParameters,
-      contentType: route.requestContentType,
-      schema: route.schema,
-      executionSignature: route.executionSignature,
-      security: route.security
-    };
-
-    const group = route.groupName;
-    const action = route.actionName;
-    const crudRole = route.crudRole;
-    const isMutating = route.isMutating;
-    const hookKind = route.hookKind;
-
-    const routeSource: ProvenanceSourceRef = {
-      kind: DataProvenanceKind.RouteDefinition,
-      file: route.sourceFile,
-      line: route.sourceLine,
-      symbol: `${route.method.toUpperCase()} ${route.path}`
-    };
-
-    const controllerSource: ProvenanceSourceRef | null = matchRouteHandler(route.handler, {
-      controllerAction: h => ({
-        kind: DataProvenanceKind.ControllerAction,
-        file: route.sourceFile,
-        line: route.sourceLine,
-        symbol: h.target
-      }),
-      invokableController: h => ({
-        kind: DataProvenanceKind.ControllerAction,
-        file: route.sourceFile,
-        line: route.sourceLine,
-        symbol: h.target
-      }),
-      closure: () => null
-    });
-
-    const primaryFormRequest = route.formRequests[0];
-    const requestSource: ProvenanceSourceRef | null = primaryFormRequest === undefined
-      ? null
-      : {
-          kind: DataProvenanceKind.FormRequest,
-          file: primaryFormRequest.sourceFile,
-          line: 1,
-          symbol: primaryFormRequest.name
-        };
-
-    const responseSource: ProvenanceSourceRef | null = matchResponse<ProvenanceSourceRef | null>(route.response, {
-          resource: r => ({
-            kind: DataProvenanceKind.JsonResource,
-            file: `app/Http/Resources/${r.resourceName}.php`,
-            line: 1,
-            symbol: r.resourceName
-          }),
-          model: m => ({
-            kind: DataProvenanceKind.EloquentModel,
-            file: `app/Models/${m.modelName}.php`,
-            line: 1,
-            symbol: m.modelName
-          }),
-          inline: () => null,
-          void: () => null
-        });
-
-    const provenance = ScannedEndpointProvenanceDescriptor.create({
-      route: routeSource,
-      controller: controllerSource,
-      request: requestSource,
-      response: responseSource
-    });
-
-    const normalizedRuntimePath = route.runtimePath;
-
-    return new ScannedEndpointContract({
-      id: route.name,
-      name: action,
-      method: route.method,
-      path: route.path,
-      runtimePath: normalizedRuntimePath,
-      groupName: group,
-      resourceName: route.resourceName,
-      crudRole,
-      isMutating,
-      hookKind,
-      request: requestContract,
-      response: {
-        success: successContract,
-        errors: errorList,
-        errorUnionType
-      },
-      invalidation: route.invalidation,
-      policies: route.policies,
-      provenance,
+    return ScannedEndpointContract.fromSubcontracts({
+      identity: route.identity,
+      binding: route.binding,
+      capability: route.capability,
+      provenance: route.provenance
     });
   }
 
@@ -290,22 +158,20 @@ export class ScannedEndpointContract implements EndpointContract {
     readonly capability: RouteCapabilityContract;
     readonly provenance: RouteProvenanceContract;
   }): ScannedEndpointContract {
-    const errorList: EndpointErrorResponseContract[] = subcontracts.capability.errorResponses.map(err => ({
-      statusCode: err.statusCode,
-      name: err.name,
-      typeName: err.typeName,
-      schema: err.schema
-    }));
+    const errors = Object.freeze(subcontracts.capability.errorResponses.map(error => ({
+      statusCode: error.statusCode,
+      name: error.name,
+      typeName: error.typeName,
+      schema: error.schema
+    })));
 
-    const errorUnionType = errorList.length > 0
-      ? Array.from(new Set(errorList.map(e => e.typeName))).join(' | ')
-      : 'ApiError';
-
-    const upperMethod = subcontracts.identity.method.toUpperCase() as HttpMethod;
-    const resp = subcontracts.binding.response;
-    const defaultStatusCode = matchHttpMethod(upperMethod, {
+    const responseAnalysis = subcontracts.binding.response.toAnalysis(
+      subcontracts.identity.name,
+      100
+    );
+    const successStatus = matchHttpMethod(subcontracts.identity.method, {
       POST: () => HttpStatusCode.Created,
-      GET: () => (resp.readTypeName === 'void' ? HttpStatusCode.NoContent : HttpStatusCode.Ok),
+      GET: () => responseAnalysis.kind === 'void' ? HttpStatusCode.NoContent : HttpStatusCode.Ok,
       DELETE: () => HttpStatusCode.NoContent,
       PUT: () => HttpStatusCode.Ok,
       PATCH: () => HttpStatusCode.Ok,
@@ -313,20 +179,11 @@ export class ScannedEndpointContract implements EndpointContract {
       HEAD: () => HttpStatusCode.Ok
     });
 
-    const readTypeName = resp.readTypeName;
+    const hasBody =
+      subcontracts.capability.executionSignature.hasPayload ||
+      subcontracts.binding.schema.fields.length > 0;
 
-    const successContract: EndpointSuccessResponseContract = {
-      statusCode: defaultStatusCode,
-      descriptor: subcontracts.binding.response,
-      readTypeName,
-      validatorName: resp.validatorName,
-      mapperName: resp.mapperName,
-      shape: resp.shape
-    };
-
-    const hasBody = subcontracts.capability.executionSignature.hasPayload || subcontracts.binding.schema.fields.length > 0;
-
-    const requestContract: EndpointRequestContract = {
+    const request: EndpointRequestContract = {
       hasBody,
       body: {
         present: hasBody,
@@ -342,88 +199,61 @@ export class ScannedEndpointContract implements EndpointContract {
       security: subcontracts.capability.security
     };
 
-    const group = subcontracts.identity.groupName;
-    const action = subcontracts.binding.actionName;
-
     const routeSource: ProvenanceSourceRef = {
       kind: DataProvenanceKind.RouteDefinition,
-      file: subcontracts.provenance.sourceFile,
-      line: subcontracts.provenance.sourceLine,
-      symbol: `${subcontracts.identity.method.toUpperCase()} ${subcontracts.identity.path}`
+      file: subcontracts.provenance.sourceFile.value,
+      line: subcontracts.provenance.sourceLine.value,
+      symbol: `${subcontracts.identity.method} ${subcontracts.identity.path.value}`
     };
-
-    const controllerSource: ProvenanceSourceRef | null = matchRouteHandler(subcontracts.binding.handler, {
-      controllerAction: h => ({
-        kind: DataProvenanceKind.ControllerAction,
-        file: subcontracts.provenance.sourceFile,
-        line: subcontracts.provenance.sourceLine,
-        symbol: h.target
-      }),
-      invokableController: h => ({
-        kind: DataProvenanceKind.ControllerAction,
-        file: subcontracts.provenance.sourceFile,
-        line: subcontracts.provenance.sourceLine,
-        symbol: h.target
-      }),
-      closure: () => null
-    });
-
-    const primaryFormRequest = subcontracts.binding.formRequests[0];
-    const requestSource: ProvenanceSourceRef | null = primaryFormRequest === undefined
-      ? null
-      : {
-          kind: DataProvenanceKind.FormRequest,
-          file: primaryFormRequest.sourceFile,
-          line: 1,
-          symbol: primaryFormRequest.name
-        };
-
-    const responseSource: ProvenanceSourceRef | null = matchResponse<ProvenanceSourceRef | null>(subcontracts.binding.response, {
-          resource: r => ({
-            kind: DataProvenanceKind.JsonResource,
-            file: `app/Http/Resources/${r.resourceName}.php`,
-            line: 1,
-            symbol: r.resourceName
-          }),
-          model: m => ({
-            kind: DataProvenanceKind.EloquentModel,
-            file: `app/Models/${m.modelName}.php`,
-            line: 1,
-            symbol: m.modelName
-          }),
-          inline: () => null,
-          void: () => null
-        });
 
     const provenance = ScannedEndpointProvenanceDescriptor.create({
       route: routeSource,
-      controller: controllerSource,
-      request: requestSource,
-      response: responseSource
+      controller: null,
+      request: null,
+      response: null
     });
 
     return new ScannedEndpointContract({
       id: subcontracts.identity.name,
-      name: action,
+      name: subcontracts.identity.name,
       method: subcontracts.identity.method,
       path: subcontracts.identity.path,
       runtimePath: subcontracts.identity.runtimePath,
-      groupName: group,
+      groupName: subcontracts.identity.groupName,
       resourceName: subcontracts.identity.resourceName,
       crudRole: subcontracts.capability.crudRole,
       isMutating: subcontracts.capability.isMutating,
       hookKind: subcontracts.capability.hookKind,
-      request: requestContract,
+      request,
       response: {
-        success: successContract,
-        errors: errorList,
-        errorUnionType
+        success: {
+          statusCode: successStatus,
+          descriptor: subcontracts.binding.response
+        },
+        errors,
+        errorUnionType: responseTypeNameToName(responseAnalysis)
       },
       invalidation: subcontracts.capability.invalidation,
       policies: subcontracts.capability.policies,
       provenance
     });
   }
+
+}
+
+function responseTypeNameToName(analysis: { readonly kind: string; readonly typeName?: ResponseTypeName }): ResponseTypeName {
+  if (analysis.kind === 'inline' && analysis.typeName) return analysis.typeName;
+  if (analysis.kind === 'resource') return responseTypeNameForResource(analysis);
+  if (analysis.kind === 'model') return responseTypeNameForModel(analysis);
+  return { kind: 'response_type_name', value: 'void' };
+}
+
+function responseTypeNameForResource(analysis: { readonly kind: string; readonly resourceName?: ResourceName }): ResponseTypeName {
+  return { kind: 'response_type_name', value: analysis.resourceName ? `${analysis.resourceName.value}Response` : 'ResourceResponse' };
+}
+
+function responseTypeNameForModel(analysis: { readonly kind: string; readonly modelName?: { readonly value: string } }): ResponseTypeName {
+  return { kind: 'response_type_name', value: analysis.modelName ? `${analysis.modelName.value}Response` : 'ModelResponse' };
 }
 
 export function createEndpointContract(route: ParsedRoute): EndpointContract {
@@ -452,8 +282,8 @@ export function getRouteContract(route: ParsedRoute): EndpointContract {
 /**
  * Builds an O(1) Map of contracts keyed by contract id / action name.
  */
-export function getManifestContractMap(manifest: RouteManifest): Map<string, EndpointContract> {
-  const map = new Map<string, EndpointContract>();
+export function getManifestContractMap(manifest: RouteManifest): Map<RouteName, EndpointContract> {
+  const map = new Map<RouteName, EndpointContract>();
   const contracts = manifest.contracts;
   for (const c of contracts) {
     map.set(c.id, c);

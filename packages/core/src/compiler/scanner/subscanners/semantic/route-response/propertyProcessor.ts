@@ -73,28 +73,31 @@ function pushLeaf(
 }
 
 function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticType {
-    const boundAst = field.boundAst;
-    if (!boundAst) return field.semanticType;
+    if (field.semantic.kind === 'rejected') {
+        throw new Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`);
+    }
+    const boundAst = field.semantic.bound;
     return matchBoundSemanticNode(boundAst, {
-        bound_model_reference: node => field.semanticType,
-        bound_resource_reference: node => field.semanticType,
+        bound_model_reference: node => field.semantic.type,
+        bound_resource_reference: node => field.semantic.type,
         bound_primitive: node => node.semanticType,
         bound_model_column: node => node.semanticType,
-        bound_relation: node => field.semanticType,
+        bound_relation: node => field.semantic.type,
         bound_property_chain: node => node.resultingType,
         bound_conditional: node => node.semanticType,
         bound_binary: node => node.resultingType,
         bound_ternary: node => node.resultingType,
         bound_method_call: node => node.returnType,
-        bound_query_projection: node => field.semanticType,
+        bound_query_projection: node => field.semantic.type,
         bound_projection_field: node => node.semanticType,
-        bound_unsupported: node => field.semanticType
+        bound_unsupported: node => field.semantic.type
     });
 }
 function property(name: string, type: SemanticType): ObjectProperty {
     return ScannedObjectProperty.create({
         name,
         type,
-        required: true
+        required: true,
+        origin: { kind: 'derived', reason: 'semantic_resolution' }
     });
 }

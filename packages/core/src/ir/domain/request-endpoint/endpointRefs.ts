@@ -14,7 +14,8 @@ import type {
   RequestReference
 } from '../../../types/ir';
 import { PrimitiveKind } from '../../../compiler/types/SemanticType';
-import { createPropertyName, createTypeExpression } from '../../../types/ir/nominalVocabulary';
+import { createPropertyName } from '../../../types/ir/nominalVocabulary';
+import type { DescriptionText } from '../../../types/upstream/valueObjects';
 
 export function inferParamType(name: string): PrimitiveKind {
   if (name.includes('id') || name.includes('Id')) return PrimitiveKind.NUMBER;
@@ -31,7 +32,7 @@ export function extractPathParams(path: string): ParameterIR[] {
       name: createPropertyName(name),
       type: inferParamType(name),
       required: true,
-      description: createTypeExpression(`Path parameter: ${name}`)
+      description: { kind: 'description_text', value: `Path parameter: ${name}` } satisfies DescriptionText
     };
   });
 }

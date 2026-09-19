@@ -11,20 +11,21 @@ import {
     RoutePolicyKind,
     RateLimitDescriptor
 } from "../../../../types/route";
+import { SemanticValueFactory, type AbilityName, type PropertyName } from '../../../../types/domain/semanticValues';
 
 export interface ScannedRoutePolicyParams {
-    readonly ability: string;
-    readonly modelParameter: string | null;
+    readonly ability: AbilityName;
+    readonly modelParameter: PropertyName | { readonly kind: 'none' } | { readonly kind: 'parameter'; readonly name: PropertyName };
     readonly kind: RoutePolicyKind;
 }
 
 /**
  * Reusable Constructor: Scanned Route Policy Descriptor.
  */
-export class ScannedRoutePolicyDescriptor implements RoutePolicyDescriptor {
+export class ScannedRoutePolicyDescriptor {
     public readonly kind: RoutePolicyKind;
-    public readonly ability: string;
-    public readonly modelParameter: string | null;
+    public readonly ability: AbilityName;
+    public readonly modelParameter: PropertyName | { readonly kind: 'none' } | { readonly kind: 'parameter'; readonly name: PropertyName };
 
     constructor(params: ScannedRoutePolicyParams) {
         this.ability = params.ability;
@@ -35,24 +36,24 @@ export class ScannedRoutePolicyDescriptor implements RoutePolicyDescriptor {
 
     public static abilityModel(ability: string, modelParameter: string): ScannedRoutePolicyDescriptor {
         return new ScannedRoutePolicyDescriptor({
-            ability,
-            modelParameter,
+            ability: SemanticValueFactory.abilityName(ability),
+            modelParameter: SemanticValueFactory.propertyName(modelParameter),
             kind: RoutePolicyKind.AbilityModel
         });
     }
 
     public static gate(ability: string): ScannedRoutePolicyDescriptor {
         return new ScannedRoutePolicyDescriptor({
-            ability,
-            modelParameter: null,
+            ability: SemanticValueFactory.abilityName(ability),
+            modelParameter: { kind: 'none' },
             kind: RoutePolicyKind.Gate
         });
     }
 
     public static custom(ability: string, modelParameter: string | null = null): ScannedRoutePolicyDescriptor {
         return new ScannedRoutePolicyDescriptor({
-            ability,
-            modelParameter,
+            ability: SemanticValueFactory.abilityName(ability),
+            modelParameter: modelParameter === null ? { kind: 'none' } : { kind: 'parameter', name: SemanticValueFactory.propertyName(modelParameter) },
             kind: RoutePolicyKind.Custom
         });
     }
@@ -66,12 +67,13 @@ export class ScannedRoutePolicyDescriptor implements RoutePolicyDescriptor {
         readonly modelParameter?: string | null;
         readonly kind?: RoutePolicyKind;
     }): ScannedRoutePolicyDescriptor {
-        const resolvedModelParam = (modelParameter !== undefined && modelParameter !== null) ? modelParameter : null;
-        return new ScannedRoutePolicyDescriptor({
-            ability,
-            modelParameter: resolvedModelParam,
-            kind: kind !== undefined ? kind : (resolvedModelParam ? RoutePolicyKind.AbilityModel : RoutePolicyKind.Gate)
-        });
+        if (kind === RoutePolicyKind.AbilityModel && modelParameter !== undefined && modelParameter !== null) {
+            return ScannedRoutePolicyDescriptor.abilityModel(ability, modelParameter);
+        }
+        if (kind === RoutePolicyKind.Custom) {
+            return ScannedRoutePolicyDescriptor.custom(ability, modelParameter === undefined ? null : modelParameter);
+        }
+        return ScannedRoutePolicyDescriptor.gate(ability);
     }
 }
 

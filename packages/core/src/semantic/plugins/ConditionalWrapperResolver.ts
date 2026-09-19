@@ -1,5 +1,6 @@
 import type { SemanticResolution } from '../../types/domain/semanticResolution';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { resolveInScope } from '../kernel/resolveInScope';
 import { BoundSemanticFactory } from '../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../types/domain/semanticValues';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
@@ -19,7 +20,7 @@ export class ConditionalWrapperResolver implements ResolverPlugin {
 }
 
 function resolveValue(meta: Extract<ResolverMeta, { kind: 'method_call' }>, context: ResolutionContext): SemanticResolution {
-  const target = context.kernel.resolve(meta.args[1].value, context.contextModel);
+  const target = resolveInScope(context.kernel, meta.args[1].value, context.scope);
   const boundAst = BoundSemanticFactory.conditional({
     wrapper: meta.name.value as 'whenLoaded' | 'when' | 'mergeWhen',
     conditionExpression: SemanticValueFactory.conditionExpression(meta.name.value),
@@ -38,35 +39,37 @@ function resolveRelation(
   context: ResolutionContext,
 ): SemanticResolution {
   const relationName = relationArgument(meta);
-  const model = context.contextModel;
-  if (model === undefined) return unsupported('whenLoaded relation has no model context');
-  const relation = model.relations.find(candidate => candidate.name === relationName);
-  if (relation === undefined) {
+  if (context.scope.kind !== 'model') return unsupported('whenLoaded relation has no model context');
+  const model = context.scope.model;
+  const relationKey = SemanticValueFactory.propertyName(relationName);
+  const property = model.semantic.surface.byName.get(relationKey);
+  if (property === undefined || property.kind !== 'relation') {
     return unsupported(`Relation ${relationName} is not declared on ${model.name.value}`);
   }
 
-  const targetModel = relation.targetModel;
-  const cardinality = relation.cardinality === 'many'
-    ? { kind: 'collection' as const }
-    : { kind: 'single' as const };
+  const targetModel = property.targetModel;
+  const targetSymbol = context.symbolTable.get(targetModel.value);
+  if (targetSymbol === undefined) return unsupported(`Relation target ${targetModel.value} is not a verified model`);
+  const cardinality = property.multiplicity;
+  const definition = targetSymbol.node.semantic;
   const relationNode = BoundSemanticFactory.relation({
     sourceModel: model.name,
     relationName: SemanticValueFactory.relationName(relationName),
-    relationType: relation.type,
+    relationType: property.type,
     targetModel,
     cardinality,
     nullability: { kind: 'nullable' },
   });
   return SemanticResolutionFactory.model({
     status: 'resolved', confidence: 100,
-    model: targetModel, cardinality,
+    model: targetModel, definition, cardinality,
     boundAst: BoundSemanticFactory.conditional({
       wrapper: 'whenLoaded',
       conditionExpression: SemanticValueFactory.conditionExpression(`whenLoaded('${relationName}')`),
       target: relationNode,
       relationModel: { kind: 'model', name: targetModel },
       semanticType: semanticResolutionToBoundType(SemanticResolutionFactory.model({
-        status: 'resolved', confidence: 100, model: targetModel, cardinality,
+        status: 'resolved', confidence: 100, model: targetModel, definition, cardinality,
         boundAst: relationNode, trace: [],
       })),
       isOptional: true,

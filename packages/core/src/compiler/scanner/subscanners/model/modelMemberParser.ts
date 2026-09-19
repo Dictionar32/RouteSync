@@ -62,7 +62,7 @@ export function parseModelMembers(
     for (let i = 0; i < tokens.length; i++) {
         tryParseModelProperty(source, tokens, i, propState);
         tryParseModelCasts(source, tokens, i, casts);
-        tryParseModelAccessors(tokens, i, accessors);
+        tryParseModelAccessors(source, tokens, i, accessors);
         tryParseModelRelations(tokens, i, relations);
     }
 

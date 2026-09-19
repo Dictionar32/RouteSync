@@ -6,24 +6,18 @@
  * @module core/types/semantic
  */
 
-import type {
-  ModelFieldMap,
-  ModelRelationMap,
-  ModelAccessorMap
-} from '../domain/semanticCollections';
+import type { ModelSemanticDefinition } from '../domain/models';
 
 export type ExecutionLayer =
   | "controller"
   | "service"
   | "model"
-  | "repository"
-  | "unknown";
+  | "repository";
 
 export interface ServiceDependency {
   readonly from: string;
   readonly to: string;
   readonly type: "calls" | "composes" | "depends_on_model" | "uses_repository";
-  readonly relationKind?: string;
   readonly weight: number;
 }
 
@@ -71,13 +65,8 @@ export class ModelCastCollection implements Iterable<ModelCastEntry> {
 }
 
 export interface ServiceModelNode {
-  kind: "model_node";
-  name: string;
-  table?: string;
-  fields?: ModelFieldMap;
-  relations?: ModelRelationMap;
-  accessors?: ModelAccessorMap;
-  casts?: ModelCastCollection;
-  layer: "model";
-  confidence: number;
+  readonly kind: "model_node";
+  readonly model: ModelSemanticDefinition;
+  readonly layer: "model";
 }
+

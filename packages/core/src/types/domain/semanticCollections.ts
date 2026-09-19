@@ -11,7 +11,8 @@
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { EloquentRelationType } from './eloquentTypes';
 import type { Nullability } from './modelContracts';
-import type { ColumnName, ModelName, RelationName } from './semanticValues';
+import { SemanticValueFactory } from './semanticValues';
+import type { ColumnName, ModelName, RelationName, PropertyName, VariableName, MethodName } from './semanticValues';
 
 /**
  * Model Field Column Metadata
@@ -28,11 +29,11 @@ export interface ModelFieldEntry {
 
 export class ModelFieldMap implements Iterable<ModelFieldEntry> {
   public readonly entries: readonly ModelFieldEntry[];
-  private readonly _lookup: ReadonlyMap<string, ModelFieldInfo>;
+  private readonly _lookup: ReadonlyMap<ColumnName, ModelFieldInfo>;
 
   constructor(entries: readonly ModelFieldEntry[]) {
     this.entries = Object.freeze([...entries]);
-    const map = new Map<string, ModelFieldInfo>();
+    const map = new Map<ColumnName, ModelFieldInfo>();
     for (const e of entries) {
       map.set(e.column, e.info);
     }
@@ -46,7 +47,7 @@ export class ModelFieldMap implements Iterable<ModelFieldEntry> {
 
   public static fromObject(record: Readonly<{ readonly [column: string]: ModelFieldInfo }>): ModelFieldMap {
     const entries: ModelFieldEntry[] = Object.entries(record).map(([column, info]) => ({
-      column,
+      column: SemanticValueFactory.columnName(column),
       info
     }));
     return new ModelFieldMap(entries);
@@ -60,11 +61,11 @@ export class ModelFieldMap implements Iterable<ModelFieldEntry> {
     return new ModelFieldMap(entries);
   }
 
-  public get(column: string): ModelFieldInfo | undefined {
+  public get(column: ColumnName): ModelFieldInfo | undefined {
     return this._lookup.get(column);
   }
 
-  public has(column: string): boolean {
+  public has(column: ColumnName): boolean {
     return this._lookup.has(column);
   }
 
@@ -76,14 +77,14 @@ export class ModelFieldMap implements Iterable<ModelFieldEntry> {
     return this.entries[Symbol.iterator]();
   }
 
-  public entriesIterator(): IterableIterator<[string, ModelFieldInfo]> {
+  public entriesIterator(): IterableIterator<[ColumnName, ModelFieldInfo]> {
     return this._lookup.entries();
   }
 
   public toObject(): { readonly [column: string]: ModelFieldInfo } {
     const rec: { [column: string]: ModelFieldInfo } = {};
     for (const e of this.entries) {
-      rec[e.column] = e.info;
+      rec[e.column.value] = e.info;
     }
     return rec;
   }
@@ -108,11 +109,11 @@ export interface ModelRelationEntry {
 
 export class ModelRelationMap implements Iterable<ModelRelationEntry> {
   public readonly entries: readonly ModelRelationEntry[];
-  private readonly _lookup: ReadonlyMap<string, ModelRelationInfo>;
+  private readonly _lookup: ReadonlyMap<RelationName, ModelRelationInfo>;
 
   constructor(entries: readonly ModelRelationEntry[]) {
     this.entries = Object.freeze([...entries]);
-    const map = new Map<string, ModelRelationInfo>();
+    const map = new Map<RelationName, ModelRelationInfo>();
     for (const e of entries) {
       map.set(e.relationName, e.info);
     }
@@ -126,7 +127,7 @@ export class ModelRelationMap implements Iterable<ModelRelationEntry> {
 
   public static fromObject(record: Readonly<{ readonly [relationName: string]: ModelRelationInfo }>): ModelRelationMap {
     const entries: ModelRelationEntry[] = Object.entries(record).map(([relationName, info]) => ({
-      relationName,
+      relationName: SemanticValueFactory.relationName(relationName),
       info
     }));
     return new ModelRelationMap(entries);
@@ -140,11 +141,11 @@ export class ModelRelationMap implements Iterable<ModelRelationEntry> {
     return new ModelRelationMap(entries);
   }
 
-  public get(relationName: string): ModelRelationInfo | undefined {
+  public get(relationName: RelationName): ModelRelationInfo | undefined {
     return this._lookup.get(relationName);
   }
 
-  public has(relationName: string): boolean {
+  public has(relationName: RelationName): boolean {
     return this._lookup.has(relationName);
   }
 
@@ -156,14 +157,14 @@ export class ModelRelationMap implements Iterable<ModelRelationEntry> {
     return this.entries[Symbol.iterator]();
   }
 
-  public entriesIterator(): IterableIterator<[string, ModelRelationInfo]> {
+  public entriesIterator(): IterableIterator<[RelationName, ModelRelationInfo]> {
     return this._lookup.entries();
   }
 
   public toObject(): { readonly [relationName: string]: ModelRelationInfo } {
     const rec: { [relationName: string]: ModelRelationInfo } = {};
     for (const e of this.entries) {
-      rec[e.relationName] = e.info;
+      rec[e.relationName.value] = e.info;
     }
     return rec;
   }
@@ -176,18 +177,18 @@ export class ModelRelationMap implements Iterable<ModelRelationEntry> {
 /**
  * Model Accessor Metadata Entry
  */
-export interface ModelAccessorInfo<TSource = unknown, TAst = unknown, TSemantic = unknown> {
+export interface ModelAccessorInfo<TSource, TAst, TSemantic> {
   readonly source: TSource;
   readonly ast: TAst;
   readonly semantic: TSemantic;
 }
 
-export interface ModelAccessorEntry<T = unknown> {
+export interface ModelAccessorEntry<T> {
   readonly name: string;
   readonly accessor: T;
 }
 
-export class ModelAccessorMap<T = unknown> implements Iterable<ModelAccessorEntry<T>> {
+export class ModelAccessorMap<T> implements Iterable<ModelAccessorEntry<T>> {
   public readonly entries: readonly ModelAccessorEntry<T>[];
   private readonly _lookup: ReadonlyMap<string, T>;
 
@@ -201,11 +202,11 @@ export class ModelAccessorMap<T = unknown> implements Iterable<ModelAccessorEntr
     Object.freeze(this);
   }
 
-  public static empty<T = unknown>(): ModelAccessorMap<T> {
+  public static empty<T>(): ModelAccessorMap<T> {
     return new ModelAccessorMap<T>([]);
   }
 
-  public static fromObject<T = unknown>(record: Readonly<{ readonly [name: string]: T }>): ModelAccessorMap<T> {
+  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelAccessorMap<T> {
     const entries: ModelAccessorEntry<T>[] = Object.entries(record).map(([name, accessor]) => ({
       name,
       accessor
@@ -213,11 +214,11 @@ export class ModelAccessorMap<T = unknown> implements Iterable<ModelAccessorEntr
     return new ModelAccessorMap<T>(entries);
   }
 
-  public static fromRecord <TValue = unknown>(record: Readonly<{ readonly [name: string]: TValue }>): ModelAccessorMap<TValue> {
+  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelAccessorMap<TValue> {
     return ModelAccessorMap.fromObject<TValue>(record);
   }
 
-  public static fromEntries<T = unknown>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> {
+  public static fromEntries<T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> {
     return new ModelAccessorMap<T>(entries);
   }
 
@@ -257,12 +258,12 @@ export class ModelAccessorMap<T = unknown> implements Iterable<ModelAccessorEntr
 /**
  * Service Node Map for ServiceGraph
  */
-export interface ModelServiceEntry<T = unknown> {
+export interface ModelServiceEntry<T> {
   readonly name: string;
   readonly service: T;
 }
 
-export class ModelServiceMap<T = unknown> implements Iterable<ModelServiceEntry<T>> {
+export class ModelServiceMap<T> implements Iterable<ModelServiceEntry<T>> {
   public readonly entries: readonly ModelServiceEntry<T>[];
   private readonly _lookup: ReadonlyMap<string, T>;
 
@@ -276,11 +277,11 @@ export class ModelServiceMap<T = unknown> implements Iterable<ModelServiceEntry<
     Object.freeze(this);
   }
 
-  public static empty<T = unknown>(): ModelServiceMap<T> {
+  public static empty<T>(): ModelServiceMap<T> {
     return new ModelServiceMap<T>([]);
   }
 
-  public static fromObject<T = unknown>(record: Readonly<{ readonly [name: string]: T }>): ModelServiceMap<T> {
+  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelServiceMap<T> {
     const entries: ModelServiceEntry<T>[] = Object.entries(record).map(([name, service]) => ({
       name,
       service
@@ -288,11 +289,11 @@ export class ModelServiceMap<T = unknown> implements Iterable<ModelServiceEntry<
     return new ModelServiceMap<T>(entries);
   }
 
-  public static fromRecord <TValue = unknown>(record: Readonly<{ readonly [name: string]: TValue }>): ModelServiceMap<TValue> {
+  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelServiceMap<TValue> {
     return ModelServiceMap.fromObject<TValue>(record);
   }
 
-  public static fromEntries<T = unknown>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> {
+  public static fromEntries<T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> {
     return new ModelServiceMap<T>(entries);
   }
 
@@ -332,12 +333,12 @@ export class ModelServiceMap<T = unknown> implements Iterable<ModelServiceEntry<
 /**
  * Controller Node Map for ServiceGraph
  */
-export interface ModelControllerEntry<T = unknown> {
+export interface ModelControllerEntry<T> {
   readonly name: string;
   readonly controller: T;
 }
 
-export class ModelControllerMap<T = unknown> implements Iterable<ModelControllerEntry<T>> {
+export class ModelControllerMap<T> implements Iterable<ModelControllerEntry<T>> {
   public readonly entries: readonly ModelControllerEntry<T>[];
   private readonly _lookup: ReadonlyMap<string, T>;
 
@@ -351,11 +352,11 @@ export class ModelControllerMap<T = unknown> implements Iterable<ModelController
     Object.freeze(this);
   }
 
-  public static empty<T = unknown>(): ModelControllerMap<T> {
+  public static empty<T>(): ModelControllerMap<T> {
     return new ModelControllerMap<T>([]);
   }
 
-  public static fromObject<T = unknown>(record: Readonly<{ readonly [name: string]: T }>): ModelControllerMap<T> {
+  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelControllerMap<T> {
     const entries: ModelControllerEntry<T>[] = Object.entries(record).map(([name, controller]) => ({
       name,
       controller
@@ -363,11 +364,11 @@ export class ModelControllerMap<T = unknown> implements Iterable<ModelController
     return new ModelControllerMap<T>(entries);
   }
 
-  public static fromRecord <TValue = unknown>(record: Readonly<{ readonly [name: string]: TValue }>): ModelControllerMap<TValue> {
+  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelControllerMap<TValue> {
     return ModelControllerMap.fromObject<TValue>(record);
   }
 
-  public static fromEntries<T = unknown>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> {
+  public static fromEntries<T>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> {
     return new ModelControllerMap<T>(entries);
   }
 
@@ -407,12 +408,12 @@ export class ModelControllerMap<T = unknown> implements Iterable<ModelController
 /**
  * Model Node Map for ServiceGraph
  */
-export interface ModelNodeEntry<T = unknown> {
+export interface ModelNodeEntry<T> {
   readonly name: string;
   readonly model: T;
 }
 
-export class ModelNodeMap<T = unknown> implements Iterable<ModelNodeEntry<T>> {
+export class ModelNodeMap<T> implements Iterable<ModelNodeEntry<T>> {
   public readonly entries: readonly ModelNodeEntry<T>[];
   private readonly _lookup: ReadonlyMap<string, T>;
 
@@ -426,11 +427,11 @@ export class ModelNodeMap<T = unknown> implements Iterable<ModelNodeEntry<T>> {
     Object.freeze(this);
   }
 
-  public static empty<T = unknown>(): ModelNodeMap<T> {
+  public static empty<T>(): ModelNodeMap<T> {
     return new ModelNodeMap<T>([]);
   }
 
-  public static fromObject<T = unknown>(record: Readonly<{ readonly [name: string]: T }>): ModelNodeMap<T> {
+  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelNodeMap<T> {
     const entries: ModelNodeEntry<T>[] = Object.entries(record).map(([name, model]) => ({
       name,
       model
@@ -438,11 +439,11 @@ export class ModelNodeMap<T = unknown> implements Iterable<ModelNodeEntry<T>> {
     return new ModelNodeMap<T>(entries);
   }
 
-  public static fromRecord <TValue = unknown>(record: Readonly<{ readonly [name: string]: TValue }>): ModelNodeMap<TValue> {
+  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelNodeMap<TValue> {
     return ModelNodeMap.fromObject<TValue>(record);
   }
 
-  public static fromEntries<T = unknown>(entries: readonly ModelNodeEntry<T>[]): ModelNodeMap<T> {
+  public static fromEntries<T>(entries: readonly ModelNodeEntry<T>[]): ModelNodeMap<T> {
     return new ModelNodeMap<T>(entries);
   }
 
@@ -482,12 +483,12 @@ export class ModelNodeMap<T = unknown> implements Iterable<ModelNodeEntry<T>> {
 /**
  * Semantic Model Map for IRContext
  */
-export interface SemanticModelEntry<T = unknown> {
+export interface SemanticModelEntry<T> {
   readonly modelName: string;
   readonly modelType: T;
 }
 
-export class SemanticModelMap<T = unknown> implements Iterable<SemanticModelEntry<T>> {
+export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
   public readonly entries: readonly SemanticModelEntry<T>[];
   private readonly _lookup: ReadonlyMap<string, T>;
 
@@ -501,11 +502,11 @@ export class SemanticModelMap<T = unknown> implements Iterable<SemanticModelEntr
     Object.freeze(this);
   }
 
-  public static empty<T = unknown>(): SemanticModelMap<T> {
+  public static empty<T>(): SemanticModelMap<T> {
     return new SemanticModelMap<T>([]);
   }
 
-  public static fromObject<T = unknown>(record: Readonly<{ readonly [modelName: string]: T }>): SemanticModelMap<T> {
+  public static fromObject<T>(record: Readonly<{ readonly [modelName: string]: T }>): SemanticModelMap<T> {
     const entries: SemanticModelEntry<T>[] = Object.entries(record).map(([modelName, modelType]) => ({
       modelName,
       modelType
@@ -513,11 +514,11 @@ export class SemanticModelMap<T = unknown> implements Iterable<SemanticModelEntr
     return new SemanticModelMap<T>(entries);
   }
 
-  public static fromRecord <TValue = unknown>(record: Readonly<{ readonly [modelName: string]: TValue }>): SemanticModelMap<TValue> {
+  public static fromRecord <TValue>(record: Readonly<{ readonly [modelName: string]: TValue }>): SemanticModelMap<TValue> {
     return SemanticModelMap.fromObject<TValue>(record);
   }
 
-  public static fromEntries<T = unknown>(entries: readonly SemanticModelEntry<T>[]): SemanticModelMap<T> {
+  public static fromEntries<T>(entries: readonly SemanticModelEntry<T>[]): SemanticModelMap<T> {
     return new SemanticModelMap<T>(entries);
   }
 
@@ -557,12 +558,12 @@ export class SemanticModelMap<T = unknown> implements Iterable<SemanticModelEntr
 /**
  * Semantic Relation Map for IRContext
  */
-export interface SemanticRelationEntry<T = unknown> {
+export interface SemanticRelationEntry<T> {
   readonly relationName: string;
   readonly relation: T;
 }
 
-export class SemanticRelationMap<T = unknown> implements Iterable<SemanticRelationEntry<T>> {
+export class SemanticRelationMap<T> implements Iterable<SemanticRelationEntry<T>> {
   public readonly entries: readonly SemanticRelationEntry<T>[];
   private readonly _lookup: ReadonlyMap<string, T>;
 
@@ -576,11 +577,11 @@ export class SemanticRelationMap<T = unknown> implements Iterable<SemanticRelati
     Object.freeze(this);
   }
 
-  public static empty<T = unknown>(): SemanticRelationMap<T> {
+  public static empty<T>(): SemanticRelationMap<T> {
     return new SemanticRelationMap<T>([]);
   }
 
-  public static fromObject<T = unknown>(record: Readonly<{ readonly [relationName: string]: T }>): SemanticRelationMap<T> {
+  public static fromObject<T>(record: Readonly<{ readonly [relationName: string]: T }>): SemanticRelationMap<T> {
     const entries: SemanticRelationEntry<T>[] = Object.entries(record).map(([relationName, relation]) => ({
       relationName,
       relation
@@ -588,11 +589,11 @@ export class SemanticRelationMap<T = unknown> implements Iterable<SemanticRelati
     return new SemanticRelationMap<T>(entries);
   }
 
-  public static fromRecord <TValue = unknown>(record: Readonly<{ readonly [relationName: string]: TValue }>): SemanticRelationMap<TValue> {
+  public static fromRecord <TValue>(record: Readonly<{ readonly [relationName: string]: TValue }>): SemanticRelationMap<TValue> {
     return SemanticRelationMap.fromObject<TValue>(record);
   }
 
-  public static fromEntries<T = unknown>(entries: readonly SemanticRelationEntry<T>[]): SemanticRelationMap<T> {
+  public static fromEntries<T>(entries: readonly SemanticRelationEntry<T>[]): SemanticRelationMap<T> {
     return new SemanticRelationMap<T>(entries);
   }
 

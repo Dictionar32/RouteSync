@@ -52,6 +52,11 @@ export interface ResponseTypeName {
   readonly value: string;
 }
 
+export interface HttpErrorName {
+  readonly kind: 'http_error_name';
+  readonly value: string;
+}
+
 export interface ColumnName {
   readonly kind: 'column_name';
   readonly value: string;
@@ -59,6 +64,11 @@ export interface ColumnName {
 
 export interface PropertyName {
   readonly kind: 'property_name';
+  readonly value: string;
+}
+
+export interface AbilityName {
+  readonly kind: 'ability_name';
   readonly value: string;
 }
 
@@ -75,6 +85,26 @@ export interface RelationName {
 export interface MethodName {
   readonly kind: 'method_name';
   readonly value: string;
+}
+
+export interface ActionName {
+  readonly kind: 'action_name';
+  readonly value: string;
+}
+
+export interface ControllerName {
+  readonly kind: 'controller_name';
+  readonly value: string;
+}
+
+export interface RoutePath {
+  readonly kind: 'route_path';
+  readonly value: string;
+}
+
+export interface SourceLineNumber {
+  readonly kind: 'source_line_number';
+  readonly value: number;
 }
 
 export interface VariableName {
@@ -206,6 +236,7 @@ export const SemanticValueFactory = Object.freeze({
   requestFieldName(value: string): RequestFieldName { return Object.freeze({ kind: 'request_field_name', value }); },
   routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value }); },
   responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value }); },
+  httpErrorName(value: string): HttpErrorName { return Object.freeze({ kind: 'http_error_name', value }); },
   sourceFilePath(value: string): SourceFilePath { return Object.freeze({ kind: 'source_file_path', value }); },
   className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value }); },
   domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_name', value }); },
@@ -213,8 +244,13 @@ export const SemanticValueFactory = Object.freeze({
   resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value }); },
   columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value }); },
   propertyName(value: string): PropertyName { return Object.freeze({ kind: 'property_name', value }); },
+  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value }); },
   relationName(value: string): RelationName { return Object.freeze({ kind: 'relation_name', value }); },
   methodName(value: string): MethodName { return Object.freeze({ kind: 'method_name', value }); },
+  actionName(value: string): ActionName { return Object.freeze({ kind: 'action_name', value }); },
+  controllerName(value: string): ControllerName { return Object.freeze({ kind: 'controller_name', value }); },
+  routePath(value: string): RoutePath { return Object.freeze({ kind: 'route_path', value }); },
+  sourceLineNumber(value: number): SourceLineNumber { return Object.freeze({ kind: 'source_line_number', value }); },
   responseFieldName(value: string): ResponseFieldName { return Object.freeze({ kind: 'response_field_name', value }); },
   responseDataKey(value: string): ResponseDataKey { return Object.freeze({ kind: 'response_data_key', value }); },
   responseMetaKey(value: string): ResponseMetaKey { return Object.freeze({ kind: 'response_meta_key', value }); },
@@ -224,5 +260,7 @@ export const SemanticValueFactory = Object.freeze({
   castTypeName(value: string): CastTypeName { return Object.freeze({ kind: 'cast_type_name', value }); },
   conditionExpression(value: string): ConditionExpression { return Object.freeze({ kind: 'condition_expression', value }); },
   semanticOperator(value: SemanticOperator['value']): SemanticOperator { return Object.freeze({ kind: 'semantic_operator', value }); },
+  variableName(value: string): VariableName { return Object.freeze({ kind: 'variable_name', value }); },
+  phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value }); },
   literalValue(value: BoundLiteralValue): BoundLiteralValue { return Object.freeze(value); },
 });

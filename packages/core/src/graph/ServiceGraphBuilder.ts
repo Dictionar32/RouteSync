@@ -7,6 +7,7 @@ import type {
   ServiceDependency
 } from '../types/semantic';
 import type { RouteManifest } from '../types/route';
+import type { ModelSemanticDefinition } from '../types/domain/models';
 import {
   detectExecutionLayer,
   buildServiceNode,
@@ -38,8 +39,8 @@ export class ServiceGraphBuilder {
     return buildControllerNode(name, routes, actions);
   }
 
-  public buildModelNode(name: string): ServiceModelNode {
-    return buildModelNode(name);
+  public buildModelNode(model: ModelSemanticDefinition): ServiceModelNode {
+    return buildModelNode(model);
   }
 
   public registerModel(name: string, model: ServiceModelNode): void {

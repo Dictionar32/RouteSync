@@ -10,6 +10,8 @@ import type {
     EloquentRelationCardinality
 } from '../../../../../types/route';
 import { EloquentRelationType, EloquentRelationClassifier } from '../../../../../types/route';
+import { ReadonlyCollectionType, CollectionKind, ReferenceType } from '../../../../../../types/SemanticType';
+import { SemanticValueFactory } from '../../../../../../types/domain/semanticValues';
 import type { ScannedModelRelationParams } from './types';
 
 export function computeRelationParams({
@@ -28,12 +30,26 @@ export function computeRelationParams({
     readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
 }): ScannedModelRelationParams {
     const desc = EloquentRelationClassifier.getDescriptor(type);
+    const resolvedCardinality = cardinality ?? desc.cardinality;
+    const target = new ReferenceType('', targetModel);
+    const targetShape = resolvedCardinality === 'many'
+        ? { kind: 'collection' as const, model: SemanticValueFactory.modelName(targetModel) }
+        : { kind: 'single' as const, model: SemanticValueFactory.modelName(targetModel) };
+    const semanticType = resolvedCardinality === 'many'
+        ? new ReadonlyCollectionType(CollectionKind.COLLECTION, target)
+        : target;
     return {
         name,
         type,
         modelName,
         targetModel,
-        cardinality: cardinality ?? desc.cardinality,
+        cardinality: resolvedCardinality,
+        multiplicity: resolvedCardinality === 'many' ? { kind: 'collection' as const } : { kind: 'single' as const },
+        semanticType,
+        targetShape,
+        traversalTarget: resolvedCardinality === 'many'
+            ? { kind: 'collection' as const, model: SemanticValueFactory.modelName(targetModel) }
+            : { kind: 'model' as const, model: SemanticValueFactory.modelName(targetModel) },
         foreignKey
     };
 }
@@ -57,6 +73,10 @@ export function computeSingleRelationParams({
         modelName,
         targetModel,
         cardinality: "one",
+        multiplicity: { kind: 'single' },
+        semanticType: new ReferenceType('', targetModel),
+        targetShape: { kind: 'single', model: SemanticValueFactory.modelName(targetModel) },
+        traversalTarget: { kind: 'model', model: SemanticValueFactory.modelName(targetModel) },
         foreignKey
     };
 }
@@ -80,6 +100,10 @@ export function computeCollectionRelationParams({
         modelName,
         targetModel,
         cardinality: "many",
+        multiplicity: { kind: 'collection' },
+        semanticType: new ReadonlyCollectionType(CollectionKind.COLLECTION, new ReferenceType('', targetModel)),
+        targetShape: { kind: 'collection', model: SemanticValueFactory.modelName(targetModel) },
+        traversalTarget: { kind: 'collection', model: SemanticValueFactory.modelName(targetModel) },
         foreignKey
     };
 }
@@ -91,6 +115,10 @@ export function computeNoneRelationParams(): ScannedModelRelationParams {
         modelName: "",
         targetModel: "",
         cardinality: "one",
+        multiplicity: { kind: 'single' },
+        semanticType: new ReferenceType('', targetModel),
+        targetShape: { kind: 'single', model: SemanticValueFactory.modelName(targetModel) },
+        traversalTarget: { kind: 'model', model: SemanticValueFactory.modelName(targetModel) },
         foreignKey: { kind: 'convention' }
     };
 }

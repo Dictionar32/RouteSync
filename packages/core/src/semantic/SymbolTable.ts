@@ -12,9 +12,9 @@ export class ModelSymbol {
     constructor(public readonly node: ModelNode) {
         this.name = node.name.value;
         for (const column of node.columns) this.columnsByName.set(column.name, column);
-        for (const cast of node.casts) this.castsByName.set(cast.column, cast);
-        for (const relation of node.relations) this.relationsByName.set(relation.name, relation);
-        for (const accessor of node.accessors) this.accessorsByName.set(accessor.name, accessor);
+        for (const cast of node.casts) this.castsByName.set(cast.column.value, cast);
+        for (const relation of node.relations) this.relationsByName.set(relation.name.value, relation);
+        for (const accessor of node.accessors) this.accessorsByName.set(accessor.name.value, accessor);
     }
 
     column(name: string): ParsedColumn | undefined { return this.columnsByName.get(name); }

@@ -37,21 +37,21 @@ export class ExpressionResolver implements ResolverPlugin {
     }
 
     resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-        const currentModel = context.contextModel;
+        const scope = context.scope;
 
         switch (meta.kind) {
             case 'literal':
                 return resolveLiteral(meta);
 
             case 'binary_expression':
-                return resolveBinaryExpression(meta, context, currentModel);
+                return resolveBinaryExpression(meta, context, scope);
 
             case 'ternary':
-                return resolveTernary(meta, context, currentModel);
+                return resolveTernary(meta, context, scope);
 
             case 'property_access':
             case 'nullsafe_property_access':
-                return resolvePropertyAccess(meta, context, currentModel);
+                return resolvePropertyAccess(meta, context);
 
             default:
                 return unknownResolution(

@@ -12,13 +12,14 @@ import type { HttpMethod } from '../domain/httpVocabulary';
 import type { ResourceFieldIR } from './resourceIrTypes';
 import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeaderName, ModelName, PropertyName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
 import type { ValidationRules } from './requestIrTypes';
-import { createPropertyName, createTypeExpression } from './nominalVocabulary';
+import { createPropertyName } from './nominalVocabulary';
+import type { DescriptionText } from '../upstream/valueObjects';
 
 export interface ParameterIR {
     readonly name: PropertyName;
     readonly type: PrimitiveKind;
     readonly required: boolean;
-    readonly description: TypeExpression;
+    readonly description: DescriptionText;
     readonly validation?: ValidationRules;
 }
 
@@ -56,7 +57,7 @@ export interface EndpointMetadata {
     readonly controller: ControllerName;
     readonly action: ActionName;
     readonly routeName: RouteName;
-    readonly generatedAt: TypeExpression;
+    readonly generatedAt: import('../upstream/valueObjects').GenerationTimestamp;
     readonly security: { readonly kind: 'authenticated' | 'public' };
     readonly cache: { readonly kind: 'cached' | 'uncached' };
 }

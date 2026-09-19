@@ -1,39 +1,36 @@
-import type { SemanticResolution } from '../../../types/domain/semanticResolution';
-import type { ResolutionContext, ModelNode } from '../../types';
+import type { ResolutionContext } from '../../types';
+import type { ResolutionScope } from '../../resolutionScope';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { unknownResolution, resolutionLabel } from '../../semanticResolutionSupport';
+import type { VariableResolutionResult } from './variableResolutionResult';
+import { resolveInScope } from '../../kernel/resolveInScope';
 
 export function resolveAssignmentVariable(
   name: string,
   context: ResolutionContext,
-  currentModel?: ModelNode,
-): SemanticResolution | null {
-  const resolved = currentModel === undefined
-    ? context.resolvedAssignments[name]
-    : currentModel.assignments.find(assignment => assignment.name.value === name)?.resolution;
+  scope: ResolutionScope,
+): VariableResolutionResult {
+  const variable = SemanticValueFactory.variableName(name);
+  if (scope.kind === 'global') return { kind: 'not_found', reason: 'no_context_model' };
+  const binding = scope.model.assignmentIndex.get(variable);
 
-  if (resolved !== undefined) {
-    return { ...resolved, trace: [
-      { source: 'VariableResolver', rule: 'Variable lookup from resolved assignments', input: name, output: resolutionLabel(resolved) },
+  if (binding === undefined) return { kind: 'not_found', reason: 'no_assignment' };
+
+  const resolved = binding.value.semantic;
+  if (resolved.status === 'resolved') {
+    return { kind: 'resolved', value: { ...resolved, trace: [
+      { source: 'VariableResolver', rule: 'Variable lookup from semantic assignment environment', input: name, output: resolutionLabel(resolved) },
       ...resolved.trace,
-    ] };
+    ] } };
   }
-
-  const assignment = currentModel === undefined
-    ? context.assignments[name]
-    : currentModel.assignments.find(candidate => candidate.name.value === name)?.ast;
-  if (assignment === undefined) return null;
 
   const nodeId = `var:${context.fileName || 'global'}:${name}`;
   if (!context.cycleDetector.enter(nodeId)) {
-    return unknownResolution('VariableResolver', `Cycle detected at variable ${nodeId}`, name, 'invalid_boundary_input');
+    return { kind: 'resolved', value: unknownResolution('VariableResolver', `Cycle detected at variable ${nodeId}`, name, 'invalid_boundary_input') };
   }
 
   try {
-    const resolved = context.kernel.resolve(assignment, currentModel);
-    return { ...resolved, trace: [
-      { source: 'VariableResolver', rule: 'Variable lookup from raw assignments', input: name, output: resolutionLabel(resolved) },
-      ...resolved.trace,
-    ] };
+    return { kind: 'resolved', value: resolveInScope(context.kernel, binding.value.syntax, scope) };
   } finally {
     context.cycleDetector.leave(nodeId);
   }

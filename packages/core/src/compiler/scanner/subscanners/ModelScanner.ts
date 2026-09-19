@@ -10,6 +10,9 @@
 import path from "path";
 import fs from "fs-extra";
 import type { ParsedModel, ParsedColumn } from "../../../types/route";
+import type { ModelAst } from "../../../types/upstream/ast";
+import { LaravelSourceLexer } from "../LaravelSourceLexer";
+import { modelAstFromParsed } from "./model/modelCanonical";
 import { collectPhpFiles } from "./scannerUtils";
 import {
     scanMigrations,
@@ -51,7 +54,30 @@ export async function scanModels(projectRoot: string): Promise<readonly ParsedMo
 /**
  * Active Consumer Orchestrator class for model and migration scanning.
  */
+export async function scanModelAsts(projectRoot: string): Promise<readonly ModelAst[]> {
+    const modelDir = path.join(projectRoot, "app", "Models");
+    const files = await collectPhpFiles(modelDir);
+    const migrationMap = await scanMigrations(projectRoot);
+    const asts: ModelAst[] = [];
+    for (const fullPath of files) {
+        const source = await fs.readFile(fullPath, "utf-8");
+        const modelName = path.basename(fullPath, ".php");
+        const tokens = LaravelSourceLexer.tokenize(source);
+        asts.push(modelAstFromParsed(parseModelFile(source, modelName, migrationMap), fullPath, source.length, tokens));
+    }
+    return asts;
+}
+
 export class ModelScanner {
+    public static async scanAsts(projectRoot: string): Promise<readonly ModelAst[]> {
+        return scanModelAsts(projectRoot);
+    }
+
+    /** Canonical source boundary: PHP model source enters the upstream ADT here. */
+    public static async scanSource(projectRoot: string): Promise<readonly ModelAst[]> {
+        return scanModelAsts(projectRoot);
+    }
+
     public static async scan(projectRoot: string): Promise<readonly ParsedModel[]> {
         return scanModels(projectRoot);
     }
@@ -68,3 +94,4 @@ export class ModelScanner {
         return parseModelFile(source, modelName, migrationMap);
     }
 }
+

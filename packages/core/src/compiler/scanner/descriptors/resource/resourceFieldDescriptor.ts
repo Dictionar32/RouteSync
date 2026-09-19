@@ -36,8 +36,8 @@ export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
   }
 
   /** Transitional derived view. No binding state is stored here. */
-  public get boundAst(): BoundSemanticNode | undefined {
-    return this.semantic.kind === 'verified' ? this.semantic.bound : this.semantic.bound;
+  public get boundAst(): BoundSemanticNode {
+    return this.semantic.bound;
   }
 
   public static fromExpression(
@@ -45,7 +45,7 @@ export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
     expression: ResourceFieldExpression,
     semanticType: SemanticType,
     propertyName: string = toCamelCase(name),
-    boundAst?: BoundSemanticNode,
+    boundAst: BoundSemanticNode = { kind: 'bound_unsupported', reason: 'invalid_boundary_input' },
   ): ScannedResourceFieldDescriptor {
     return new ScannedResourceFieldDescriptor({
       name,

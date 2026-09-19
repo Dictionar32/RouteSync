@@ -1,29 +1,30 @@
-import type { ValidationRuleKind } from "./validation";
+import type {
+  RouteParameterLocation as RouteParameterLocationType,
+  RouteParameterType as RouteParameterTypeValue,
+  RouteParameterBinding,
+  RouteParameter as UpstreamRouteParameter
+} from '../upstream/route';
+
+export type RouteParameterLocation = RouteParameterLocationType;
+export type RouteParameterType = RouteParameterTypeValue;
+export type { RouteParameterBinding };
+export type { RouteParameterConstraint } from '../upstream/route';
 
 export const RouteParameterLocation = Object.freeze({
-  Path: 'path',
-  Query: 'query',
-  Header: 'header'
-} as const);
+  Path: 'path' as const,
+  Query: 'query' as const,
+  Header: 'header' as const
+});
 
-export type RouteParameterLocation = typeof RouteParameterLocation[keyof typeof RouteParameterLocation];
-
-/**
- * RouteParameterType
- *
- * Canonical Domain Vocabulary for HTTP Route Parameter Data Types.
- */
 export const RouteParameterType = Object.freeze({
-  String: 'string',
-  Number: 'number',
-  Boolean: 'boolean',
-  Uuid: 'uuid',
-  Ulid: 'ulid',
-  Date: 'date',
-  Slug: 'slug'
-} as const);
-
-export type RouteParameterType = typeof RouteParameterType[keyof typeof RouteParameterType];
+  String: 'string' as const,
+  Number: 'number' as const,
+  Boolean: 'boolean' as const,
+  Uuid: 'uuid' as const,
+  Ulid: 'ulid' as const,
+  Date: 'date' as const,
+  Slug: 'slug' as const
+});
 
 export interface RouteParameterTypeSpecification<T extends RouteParameterType = RouteParameterType> {
   readonly type: T;
@@ -136,35 +137,12 @@ export function matchRouteParameterType<R>(
 }
 
 
-export type RouteBindingField =
-  | { readonly kind: 'convention' }
-  | { readonly kind: 'explicit'; readonly value: string };
-
-export interface RouteParameter {
-  readonly name: string;
-  readonly propertyName: string; // Canonical TS Identifier
-  readonly bindingField: RouteBindingField; // Canonical Laravel binding state
-  readonly in: RouteParameterLocation;
-  readonly required: boolean;
-  readonly type: RouteParameterType; // ✅ 100% Guaranteed Canonical Vocabulary
-}
-
-export interface PathParameterDescriptor extends RouteParameter {
-  readonly in: 'path';
-}
-
-export interface QueryParameterDescriptor extends RouteParameter {
-  readonly in: 'query';
-}
-
-export interface HeaderParameterDescriptor extends RouteParameter {
-  readonly in: 'header';
-}
-
-export type AnyRouteParameter =
-  | PathParameterDescriptor
-  | QueryParameterDescriptor
-  | HeaderParameterDescriptor;
+export type RouteBindingField = RouteParameterBinding;
+export type RouteParameter = UpstreamRouteParameter;
+export type PathParameterDescriptor = Extract<RouteParameter, { readonly location: 'path' }>;
+export type QueryParameterDescriptor = Extract<RouteParameter, { readonly location: 'query' }>;
+export type HeaderParameterDescriptor = Extract<RouteParameter, { readonly location: 'header' }>;
+export type AnyRouteParameter = PathParameterDescriptor | QueryParameterDescriptor | HeaderParameterDescriptor;
 
 export interface RouteParameterLocationSpecification<K extends RouteParameterLocation = RouteParameterLocation> {
   readonly location: K;
@@ -214,6 +192,8 @@ export function matchRouteParameter<R>(
   param: RouteParameter,
   visitor: RouteParameterVisitor<R>
 ): R {
-  return visitor[param.in](param as any);
+  if (param.location === 'path') return visitor.path(param);
+  if (param.location === 'query') return visitor.query(param);
+  return visitor.header(param);
 }
 

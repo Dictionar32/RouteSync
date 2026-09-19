@@ -1,24 +1,53 @@
+/**
+ * Canonical model semantic contracts.
+ *
+ * Scanner facts stay in ParsedModel. Downstream receives only the semantic
+ * model surface, so it does not need to reconstruct Eloquent meaning.
+ */
+import type { ModelSemanticDefinition as HighModelSemanticDefinition, ModelPropertyMultiplicity } from './models';
+import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber } from '../ir/nominalVocabulary';
+import type { EloquentRelationCardinality, EloquentRelationType, RelationForeignKey, RelationTargetShape } from './eloquentTypes';
+import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { FieldNode } from '../field';
-import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber, TypeExpression } from '../ir/nominalVocabulary';
-import type { Nullability } from './modelContracts';
+import type { TypeExpression } from '../ir/nominalVocabulary';
 
+
+/** Upstream column fact retained for resource/scanner compatibility. */
 export interface ColumnDefinitionContract {
   readonly name: PropertyName;
-  readonly type: TypeExpression;
-  readonly nullability: Nullability;
+  readonly type: import('../ir/nominalVocabulary').TypeExpression;
+  readonly nullability: import('./modelContracts').Nullability;
 }
 
 export type ColumnDefinition = ColumnDefinitionContract;
 
-export type ModelRelationKind = 'belongs_to' | 'has_one' | 'has_many' | 'belongs_to_many' | 'morph_one' | 'morph_many' | 'unknown';
-
+/** Complete semantic relation contract. No legacy `kind`/`unknown` vocabulary. */
 export interface ModelRelationDefinitionContract {
-  readonly kind: ModelRelationKind;
-  readonly model: ModelName;
+  readonly name: PropertyName;
+  readonly type: EloquentRelationType;
+  readonly targetModel: ModelName;
+  readonly cardinality: EloquentRelationCardinality;
+  readonly multiplicity: ModelPropertyMultiplicity;
+  readonly targetShape: RelationTargetShape;
+  readonly traversalTarget:
+    | { readonly kind: 'model'; readonly model: ModelName }
+    | { readonly kind: 'collection'; readonly model: ModelName };
+  readonly foreignKey: RelationForeignKey;
+  readonly semanticType: SemanticType;
 }
 
 export type ModelRelationDefinition = ModelRelationDefinitionContract;
 
+/** Canonical high-level model contract. */
+export type ModelSemanticDefinitionContract = HighModelSemanticDefinition;
+export type ModelSemanticDefinition = ModelSemanticDefinitionContract;
+export type ModelDefContract = ModelSemanticDefinitionContract;
+export type ModelDef = ModelSemanticDefinitionContract;
+
+/**
+ * Upstream-only resource aggregate. It is deliberately not the canonical
+ * model contract consumed by lowering.
+ */
 export interface ResourceDefContract {
   readonly name: ModelName;
   readonly model: ModelName;
@@ -29,16 +58,3 @@ export interface ResourceDefContract {
 }
 
 export type ResourceDef = ResourceDefContract;
-
-export interface ModelDefContract {
-  readonly name: ModelName;
-  readonly table: import("./semanticValues").TableName;
-  readonly columns: readonly ColumnDefinitionContract[];
-  readonly hidden: readonly PropertyName[];
-  readonly appends: readonly PropertyName[];
-  readonly casts: readonly (readonly [PropertyName, TypeExpression])[];
-  readonly relations: readonly (readonly [PropertyName, ModelRelationDefinitionContract])[];
-  readonly accessors: readonly (readonly [PropertyName, FieldNode])[];
-}
-
-export type ModelDef = ModelDefContract;

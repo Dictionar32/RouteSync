@@ -1,14 +1,16 @@
 /** Strict binary-expression semantic producer. No raw type strings or fallbacks. */
 import type { SemanticResolution } from '../../../types/domain/semanticResolution';
-import type { ResolutionContext, ResolverMeta, ModelNode } from '../../types';
+import type { ResolutionContext, ResolverMeta } from '../../types';
+import type { ResolutionScope } from '../../resolutionScope';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
+import { resolveInScope } from '../../kernel/resolveInScope';
 
-export function resolveBinaryExpression(meta: ResolverMeta, context: ResolutionContext, currentModel?: ModelNode): SemanticResolution {
+export function resolveBinaryExpression(meta: ResolverMeta, context: ResolutionContext, scope: ResolutionScope): SemanticResolution {
   if (meta.kind !== 'binary_expression') return unknown('Invalid binary-expression metadata');
-  const left = context.kernel.resolve(meta.left, currentModel);
-  const right = context.kernel.resolve(meta.right, currentModel);
+  const left = resolveInScope(context.kernel, meta.left, scope);
+  const right = resolveInScope(context.kernel, meta.right, scope);
   const operator = meta.operator.kind;
   const trace = [...left.trace, ...right.trace, {
     source: 'ExpressionResolver', rule: `Binary operation: ${operator}`,

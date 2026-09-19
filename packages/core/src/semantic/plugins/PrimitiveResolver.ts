@@ -5,6 +5,7 @@ import { BoundSemanticFactory } from '../../types/domain/boundAst';
 import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
 import { SemanticValueFactory } from '../../types/domain/semanticValues';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
+import { resolveInScope } from '../kernel/resolveInScope';
 import { unknownResolution } from '../semanticResolutionSupport';
 
 function primitiveType(value: string): SemanticType {
@@ -66,7 +67,7 @@ export class PrimitiveResolver implements ResolverPlugin {
       const trace: SemanticTraceNode[] = [{
         source: 'PrimitiveResolver', rule: `Type cast to ${castType}`, input: castType, output: casted.kind,
       }];
-      const expression = context.kernel.resolve(meta.expression, context.contextModel);
+      const expression = resolveInScope(context.kernel, meta.expression, context.scope);
       trace.push(...expression.trace);
       return SemanticResolutionFactory.scalar({
         status: 'resolved', confidence: 100, trace, nullability: { kind: 'non_nullable' }, semanticType: casted,

@@ -51,7 +51,7 @@ function toContractField(field: ScannedObjectProperty): ResponseContractField {
     return {
         name: createResponseFieldName(field.name),
         value: toResponseValue(field.type),
-        nullability: field.semanticType.isNullable() ? { kind: 'nullable' } : { kind: 'required' }
+        nullability: field.type.isNullable() ? { kind: 'nullable' } : { kind: 'required' }
     };
 }
 
@@ -73,8 +73,9 @@ function toResponseFields(
 ): readonly ScannedObjectProperty[] {
     return fields.map(field => ScannedObjectProperty.create({
         name: field.propertyName.value,
-        type: field.semanticType,
+        type: field.semantic.type,
         required: true,
+        origin: { kind: 'bound_expression', bound: field.semantic.bound },
     }));
 }
 
@@ -109,8 +110,8 @@ export function deriveActionResponseData(
                 shape: response.shape === 'collection' || response.shape === 'paginated' ? 'collection' : 'single',
                 fields: response.fields.map(field => ({
                     name: createResponseFieldName(field.propertyName.value),
-                    value: toResponseValue(field.semanticType),
-                    nullability: field.semanticType.isNullable() ? { kind: 'nullable' } : { kind: 'required' }
+                    value: toResponseValue(field.semantic.type),
+                    nullability: field.type.isNullable() ? { kind: 'nullable' } : { kind: 'required' }
                 }))
             }
         };

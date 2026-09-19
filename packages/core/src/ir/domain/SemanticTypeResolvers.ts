@@ -40,7 +40,7 @@ export class SemanticTypeResolvers {
         return {
             kind: 'primitive',
             type: toPrimitiveIR(primitiveType.type),
-            format: primitiveType.format !== null ? primitiveType.format : undefined
+            format: primitiveType.format.kind === 'type_expression' ? JSON.stringify(primitiveType.format.value) : undefined
         };
     }
 
@@ -50,7 +50,7 @@ export class SemanticTypeResolvers {
             target: resourceType.resource + 'Schema'
         };
 
-        if (resourceType.collection) {
+        if (resourceType.cardinality === 'collection') {
             return TypeIRUtils.makeArray(resourceRef);
         }
 

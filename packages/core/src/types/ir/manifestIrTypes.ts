@@ -1,5 +1,6 @@
 /** Canonical manifest IR vocabulary. */
 import type { ResolvedSemanticType } from './resolvedSemanticTypes';
+import type { DescriptionText } from '../upstream/valueObjects';
 import type { PaginationState } from './paginationState';
 import type { ActionName, ControllerName, ModelName, PropertyName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
 
@@ -11,7 +12,7 @@ export interface ManifestField {
   readonly semanticType: ResolvedSemanticType;
   readonly format: TypeExpression;
   readonly validationRules: readonly TypeExpression[];
-  readonly description: TypeExpression;
+  readonly description: DescriptionText;
 }
 
 export interface ManifestAction {

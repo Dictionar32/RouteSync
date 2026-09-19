@@ -1,5 +1,6 @@
 import type { RouteParameterType } from "./parameters";
 import { HttpStatusCode } from "./httpVocabulary";
+import type { HttpErrorName, ResponseTypeName } from "./semanticValues";
 
 export interface RouteQueryParameter {
   readonly name: string;
@@ -53,8 +54,8 @@ export type HttpErrorKind = typeof HttpErrorKind[keyof typeof HttpErrorKind];
 export interface HttpErrorKindSpecification<K extends HttpErrorKind = HttpErrorKind> {
   readonly kind: K;
   readonly defaultStatusCode: HttpStatusCode;
-  readonly defaultName: string;
-  readonly defaultTypeName: string;
+  readonly defaultName: HttpErrorName;
+  readonly defaultTypeName: ResponseTypeName;
   readonly isClientError: boolean;
   readonly isServerError: boolean;
 }
@@ -67,51 +68,79 @@ export const HTTP_ERROR_KIND_REGISTRY: HttpErrorKindRegistry = Object.freeze({
   [HttpErrorKind.Validation]: {
     kind: HttpErrorKind.Validation,
     defaultStatusCode: HttpStatusCode.UnprocessableEntity,
-    defaultName: 'UnprocessableEntity',
-    defaultTypeName: 'LaravelValidationError',
+    defaultName: { kind: 'http_error_name', value: 'UnprocessableEntity' },
+    defaultTypeName: { kind: 'response_type_name', value: 'LaravelValidationError' },
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.Unauthorized]: {
     kind: HttpErrorKind.Unauthorized,
     defaultStatusCode: HttpStatusCode.Unauthorized,
-    defaultName: 'Unauthorized',
-    defaultTypeName: 'LaravelUnauthorizedError',
+    defaultName: { kind: 'http_error_name', value: 'Unauthorized' },
+    defaultTypeName: { kind: 'response_type_name', value: 'LaravelUnauthorizedError' },
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.Forbidden]: {
     kind: HttpErrorKind.Forbidden,
     defaultStatusCode: HttpStatusCode.Forbidden,
-    defaultName: 'Forbidden',
-    defaultTypeName: 'LaravelForbiddenError',
+    defaultName: { kind: 'http_error_name', value: 'Forbidden' },
+    defaultTypeName: { kind: 'response_type_name', value: 'LaravelForbiddenError' },
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.NotFound]: {
     kind: HttpErrorKind.NotFound,
     defaultStatusCode: HttpStatusCode.NotFound,
-    defaultName: 'NotFound',
-    defaultTypeName: 'LaravelNotFoundError',
+    defaultName: { kind: 'http_error_name', value: 'NotFound' },
+    defaultTypeName: { kind: 'response_type_name', value: 'LaravelNotFoundError' },
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.ServerError]: {
     kind: HttpErrorKind.ServerError,
     defaultStatusCode: HttpStatusCode.InternalServerError,
-    defaultName: 'InternalServerError',
-    defaultTypeName: 'LaravelServerError',
+    defaultName: { kind: 'http_error_name', value: 'InternalServerError' },
+    defaultTypeName: { kind: 'response_type_name', value: 'LaravelServerError' },
     isClientError: false,
     isServerError: true
   },
   [HttpErrorKind.Custom]: {
     kind: HttpErrorKind.Custom,
     defaultStatusCode: HttpStatusCode.BadRequest,
-    defaultName: 'BadRequest',
-    defaultTypeName: 'LaravelError',
+    defaultName: { kind: 'http_error_name', value: 'BadRequest' },
+    defaultTypeName: { kind: 'response_type_name', value: 'LaravelError' },
     isClientError: true,
     isServerError: false
   }
+});
+
+const HTTP_ERROR_MESSAGE_SCHEMA: HttpErrorSchema = Object.freeze({
+  kind: 'object',
+  fields: Object.freeze([
+    Object.freeze(['message', Object.freeze({ typeName: 'string', nullable: false })] as const)
+  ])
+});
+
+const HTTP_ERROR_VALIDATION_SCHEMA: HttpErrorSchema = Object.freeze({
+  kind: 'object',
+  fields: Object.freeze([
+    Object.freeze(['message', Object.freeze({ typeName: 'string', nullable: false })] as const),
+    Object.freeze(['errors', Object.freeze({ typeName: 'Record<string, string[]>', nullable: false })] as const)
+  ])
+});
+
+export type HttpErrorSchemaRegistry = {
+  readonly [K in HttpErrorKind]: HttpErrorSchema;
+};
+
+export const HTTP_ERROR_SCHEMA_REGISTRY: HttpErrorSchemaRegistry = Object.freeze({
+  [HttpErrorKind.Validation]: HTTP_ERROR_VALIDATION_SCHEMA,
+  [HttpErrorKind.Unauthorized]: HTTP_ERROR_MESSAGE_SCHEMA,
+  [HttpErrorKind.Forbidden]: HTTP_ERROR_MESSAGE_SCHEMA,
+  [HttpErrorKind.NotFound]: HTTP_ERROR_MESSAGE_SCHEMA,
+  [HttpErrorKind.ServerError]: HTTP_ERROR_MESSAGE_SCHEMA,
+  [HttpErrorKind.Custom]: HTTP_ERROR_MESSAGE_SCHEMA
 });
 
 export interface HttpErrorVisitor<R> {
@@ -138,7 +167,7 @@ export function matchHttpError<R>(
         statusCode: HTTP_ERROR_KIND_REGISTRY[kind].defaultStatusCode,
         name: HTTP_ERROR_KIND_REGISTRY[kind].defaultName,
         typeName: HTTP_ERROR_KIND_REGISTRY[kind].defaultTypeName,
-        schema: Object.freeze({})
+        schema: HTTP_ERROR_SCHEMA_REGISTRY[kind]
       }
     : error;
   return visitor[kind](descriptor);
@@ -157,7 +186,7 @@ export interface HttpErrorSchema {
 export interface HttpErrorResponseDescriptor {
   readonly kind: HttpErrorKind;
   readonly statusCode: HttpStatusCode;
-  readonly name: string;
-  readonly typeName: string;
+  readonly name: HttpErrorName;
+  readonly typeName: ResponseTypeName;
   readonly schema: HttpErrorSchema;
 }

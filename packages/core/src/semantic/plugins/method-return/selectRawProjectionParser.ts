@@ -1,24 +1,61 @@
-/** Small deterministic lexer for the limited SQL projection syntax exposed by selectRaw. */
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
 import type { ResponseFieldName } from '../../../types/domain/semanticValues';
-import type { SemanticType } from '../../../compiler/types/SemanticType';
+import type { QueryProjectionField } from '../../../types/domain/semanticResolution';
+import type { ModelSemanticDefinition } from '../../../types/domain/models';
+import { aggregateType } from './selectRawProjectionTypes';
 
-export function parseSelectRawFields(sql: string): readonly (readonly [ResponseFieldName, SemanticType])[] {
-  const fields: (readonly [ResponseFieldName, SemanticType])[] = [];
+export function parseSelectRawFields(
+  sql: string,
+  sourceDefinition: ModelSemanticDefinition,
+): readonly QueryProjectionField[] {
+  const fields: QueryProjectionField[] = [];
   for (const part of splitTopLevel(sql)) {
     const alias = aliasAfterAs(part);
-    if (alias !== null) fields.push([SemanticValueFactory.responseFieldName(alias), aggregateType(part)] as const);
+    if (alias === null) continue;
+    const aggregate = aggregateKind(part);
+    if (aggregate !== null) {
+      const source = aggregateSource(part, aggregate);
+      fields.push({
+        kind: 'aggregate', name: SemanticValueFactory.responseFieldName(alias), aggregate, source,
+        type: aggregateType(aggregate, source, sourceDefinition),
+      });
+      continue;
+    }
+    const column = projectedColumn(part);
+    if (column !== null) {
+      const property = sourceDefinition.surface.byName.get(SemanticValueFactory.propertyName(column));
+      if (property?.kind !== 'column') continue;
+      fields.push({
+        kind: 'column', name: SemanticValueFactory.responseFieldName(alias),
+        source: SemanticValueFactory.columnName(column), type: property.type,
+      });
+    }
   }
-  return fields;
+  return Object.freeze(fields);
 }
 
-function aggregateType(expression: string): SemanticType {
+function aggregateKind(expression: string): 'avg' | 'count' | 'sum' | 'min' | 'max' | null {
   const upper = expression.toUpperCase();
-  if (containsToken(upper, 'AVG') || containsToken(upper, 'COUNT') || containsToken(upper, 'SUM') || containsToken(upper, 'MIN') || containsToken(upper, 'MAX')) {
-    return new PrimitiveType(PrimitiveKind.NUMBER);
-  }
-  return new PrimitiveType(PrimitiveKind.UNKNOWN);
+  if (containsToken(upper, 'AVG')) return 'avg';
+  if (containsToken(upper, 'COUNT')) return 'count';
+  if (containsToken(upper, 'SUM')) return 'sum';
+  if (containsToken(upper, 'MIN')) return 'min';
+  if (containsToken(upper, 'MAX')) return 'max';
+  return null;
+}
+
+function aggregateSource(expression: string, aggregate: 'avg' | 'count' | 'sum' | 'min' | 'max') {
+  if (aggregate === 'count' && /COUNT\s*\(\s*\*\s*\)/i.test(expression)) return { kind: 'rows' } as const;
+  const marker = `${aggregate.toUpperCase()}(`;
+  const start = expression.toUpperCase().indexOf(marker);
+  if (start < 0) return { kind: 'rows' } as const;
+  const inner = expression.slice(start + marker.length).split(')')[0].trim().replace(/^[`"']|[`"']$/g, '');
+  return { kind: 'column', column: SemanticValueFactory.columnName(inner) } as const;
+}
+
+function projectedColumn(expression: string): string | null {
+  const beforeAs = expression.split(/\bas\b/i)[0].trim();
+  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(beforeAs) ? beforeAs : null;
 }
 
 function containsToken(value: string, token: string): boolean {
@@ -32,9 +69,7 @@ function containsToken(value: string, token: string): boolean {
 
 function aliasAfterAs(expression: string): string | null {
   const words = expression.trim().split(' ').filter(Boolean);
-  for (let i = 0; i + 1 < words.length; i += 1) {
-    if (words[i].toLowerCase() === 'as') return cleanAlias(words[i + 1]);
-  }
+  for (let i = 0; i + 1 < words.length; i += 1) if (words[i].toLowerCase() === 'as') return cleanAlias(words[i + 1]);
   return null;
 }
 
@@ -50,10 +85,7 @@ function splitTopLevel(value: string): readonly string[] {
   let quote = '';
   for (let i = 0; i < value.length; i += 1) {
     const char = value[i];
-    if (quote !== '') {
-      if (char === quote && value[i - 1] !== '\\') quote = '';
-      continue;
-    }
+    if (quote !== '') { if (char === quote && value[i - 1] !== '\\') quote = ''; continue; }
     if (char === "'" || char === '"') { quote = char; continue; }
     if (char === '(') depth += 1;
     if (char === ')') depth -= 1;
@@ -64,5 +96,5 @@ function splitTopLevel(value: string): readonly string[] {
 }
 
 function isWord(value: string | undefined): boolean {
-  return value !== undefined && ((value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z') || (value >= '0' && value <= '9') || value === '_');
+  return value !== undefined && /[A-Za-z0-9_]/.test(value);
 }

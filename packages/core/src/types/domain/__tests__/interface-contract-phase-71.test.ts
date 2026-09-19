@@ -36,7 +36,7 @@ describe('Phase 71 semantic absence contracts', () => {
       | { readonly kind: 'convention' }
       | { readonly kind: 'explicit'; readonly value: string }
     >();
-    expectTypeOf<RouteParameter['bindingField']>().toEqualTypeOf<RouteBindingField>();
+    expectTypeOf<RouteParameter['binding']>().toEqualTypeOf<RouteBindingField>();
   });
 
   it('keeps the content-type specification semantically closed', () => {

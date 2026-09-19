@@ -5,7 +5,9 @@
  * @module core/ir/domain/irTypes
  */
 
-import type { TypeIR, ValidationRules } from '../../types/ir';
+import type { TypeIR } from '../../types/ir';
+import type { PropertyName, ModelName, TypeExpression } from '../../types/ir/nominalVocabulary';
+import type { DescriptionText } from '../../types/upstream/valueObjects';
 import type { ResolvedSemanticType } from '../../types/ir/resolvedSemanticTypes';
 
 export const IR_VERSION = 'v1.0.0' as const;
@@ -26,19 +28,19 @@ export interface ProjectionHints {
 /**
  * Optimized ResourceFieldIR - single TypeIR + hints instead of 6 projections
  */
+export type OptimizedFieldSource =
+    | { readonly type: 'computed'; readonly path: PropertyName }
+    | { readonly type: 'model_column' | 'accessor' | 'method' | 'relation'; readonly path: PropertyName; readonly model: ModelName };
+
 export interface OptimizedResourceFieldIR {
-    readonly name: string;
-    readonly transformedName: string;
+    readonly name: PropertyName;
+    readonly transformedName: PropertyName;
     readonly type: TypeIR;
     readonly semanticType: ResolvedSemanticType;
     readonly hints: ProjectionHints;
-    readonly description?: string;
-    readonly validation?: ValidationRules;
-    readonly source?: {
-        readonly type: 'model_column' | 'accessor' | 'method' | 'computed' | 'relation';
-        readonly path: string;
-        readonly model?: string;
-    };
+    readonly description: DescriptionText;
+    readonly validation: readonly TypeExpression[];
+    readonly source: OptimizedFieldSource;
 }
 
 /**

@@ -18,11 +18,6 @@ import {
     toPascalCase
 } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
-import {
-    findCastForColumn,
-    resolveColumnSemanticType,
-    extractModelAccessors
-} from './modelExtractors';
 
 export function deriveModelTypes(
     context: SemanticDerivationContext,
@@ -39,38 +34,18 @@ export function deriveModelTypes(
             const properties: ObjectProperty[] = [];
             const seenPropNames = new Set<string>();
 
-            const columns = model.columns;
-            for (const col of columns) {
-                if (model.hidden.some(name => name.value === col.name.value)) {
-                    continue;
-                }
-                const propName = toCamelCase(col.name.value);
+            for (const property of model.semantic.surface.properties) {
+                const propName = property.property.value;
                 seenPropNames.add(propName);
-
-                const cast = findCastForColumn(model.casts, col.name.value);
-                let propType: SemanticType = resolveColumnSemanticType(col, cast);
-                if (col.nullability.kind === 'nullable') {
-                    propType = new NullableType(propType);
-                }
                 properties.push(ScannedObjectProperty.create({
                     name: propName,
-                    type: interner.intern(propType),
-                    required: true
-                }));
-            }
-
-            const extractedAccessors = extractModelAccessors(model.accessors);
-
-            for (const acc of extractedAccessors) {
-                if (seenPropNames.has(acc.propertyName.value)) {
-                    continue;
-                }
-                seenPropNames.add(acc.propertyName.value);
-
-                properties.push(ScannedObjectProperty.create({
-                    name: acc.propertyName.value,
-                    type: interner.intern(acc.semanticType),
-                    required: true
+                    type: interner.intern(property.type),
+                    required: true,
+                    origin: property.kind === 'column'
+                        ? { kind: 'model_column', model: model.name, property: property.property }
+                        : property.kind === 'accessor'
+                            ? { kind: 'model_accessor', model: model.name, property: property.property }
+                            : { kind: 'model_relation', model: model.name, property: property.property }
                 }));
             }
 

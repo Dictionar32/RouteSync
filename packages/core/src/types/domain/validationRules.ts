@@ -1,5 +1,6 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, ValidationParameter, ValidationRuleName } from "./semanticValues";
+import type { RequestField } from "./request";
 
 /**
  * ValidationRuleKind
@@ -326,67 +327,29 @@ export const matchRule = matchValidationRule;
  * Canonical Reusable Factory for Structured ValidationRuleNode AST.
  */
 export class ValidationRuleNodeFactory {
-  public static required(): RequiredValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Required });
-  }
-  public static nullable(): NullableValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Nullable });
-  }
-  public static optional(): OptionalValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Optional });
-  }
-  public static string(): StringValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.String });
-  }
-  public static number(): NumberValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Number });
-  }
-  public static boolean(): BooleanValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Boolean });
-  }
-  public static array(elementType: string | null = null): ArrayValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Array, elementType });
-  }
-  public static email(): EmailValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Email });
-  }
-  public static url(): UrlValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Url });
-  }
-  public static uuid(): UuidValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Uuid });
-  }
-  public static date(format: string | null = null): DateValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Date, format });
-  }
-  public static min(value: number): MinValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Min, value });
-  }
-  public static max(value: number): MaxValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Max, value });
-  }
-  public static between(min: number, max: number): BetweenValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Between, min, max });
-  }
-  public static in(values: readonly (string | number)[]): InValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.In, values: Object.freeze([...values]) });
-  }
-  public static exists(table: string, column: string | null = null): ExistsValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Exists, table, column });
-  }
-  public static unique(table: string, column: string | null = null): UniqueValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Unique, table, column });
-  }
-  public static file(): FileValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.File });
-  }
-  public static image(): ImageValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Image });
-  }
-  public static custom(rule: string, parameters: readonly string[] = []): CustomValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Custom, rule, parameters: Object.freeze([...parameters]) });
-  }
+  public static required(): RequiredValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Required }); }
+  public static nullable(): NullableValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Nullable }); }
+  public static optional(): OptionalValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Optional }); }
+  public static string(): StringValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.String }); }
+  public static number(): NumberValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Number }); }
+  public static boolean(): BooleanValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Boolean }); }
+  public static array(elementType: ArrayElementType = Object.freeze({ kind: 'unspecified' })): ArrayValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Array, elementType }); }
+  public static email(): EmailValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Email }); }
+  public static url(): UrlValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Url }); }
+  public static uuid(): UuidValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Uuid }); }
+  public static date(format: DateFormatSpecification = Object.freeze({ kind: 'unspecified' })): DateValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Date, format }); }
+  public static min(value: ValidationConstraintValue): MinValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Min, value }); }
+  public static max(value: ValidationConstraintValue): MaxValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Max, value }); }
+  public static between(min: ValidationConstraintValue, max: ValidationConstraintValue): BetweenValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Between, min, max }); }
+  public static in(values: readonly ValidationParameter[]): InValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.In, values: Object.freeze([...values]) }); }
+  public static exists(table: TableName, column: ValidationDatabaseColumn = Object.freeze({ kind: 'default_column' })): ExistsValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Exists, table, column }); }
+  public static unique(table: TableName, column: ValidationDatabaseColumn = Object.freeze({ kind: 'default_column' })): UniqueValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Unique, table, column }); }
+  public static file(): FileValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.File }); }
+  public static image(): ImageValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Image }); }
+  public static custom(rule: ValidationRuleName, parameters: readonly ValidationParameter[] = []): CustomValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Custom, rule, parameters: Object.freeze([...parameters]) }); }
 }
+
+
 
 /**
  * ValidationRuleParser
@@ -394,6 +357,13 @@ export class ValidationRuleNodeFactory {
  * Pure Deterministic AST Parser for Laravel Validation Rule Strings.
  * Transforms raw Laravel rule strings into strongly-typed ValidationRuleNode AST.
  */
+function validationRuleName(value: string): ValidationRuleName { return Object.freeze({ kind: 'validation_rule_name', value }); }
+function validationParameter(value: string): ValidationParameter { return Object.freeze({ kind: 'validation_parameter', value }); }
+function validationConstraintValue(value: string): ValidationConstraintValue { return Object.freeze({ kind: 'validation_constraint_value', value: Number(value) }); }
+function tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value }); }
+function columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value }); }
+function dateFormat(value: string): DateFormat { return Object.freeze({ kind: 'date_format', value }); }
+
 export class ValidationRuleParser {
   public static parse(ruleStr: string): ValidationRuleNode {
     const trimmed = (ruleStr || '').trim();
@@ -431,19 +401,19 @@ export class ValidationRuleParser {
       case 'date':
       case 'datetime':
       case 'timestamp':
-        return ValidationRuleNodeFactory.date(params[0] ?? null);
+        return params.length > 0 ? ValidationRuleNodeFactory.date({ kind: 'specified', format: dateFormat(params[0]) }) : ValidationRuleNodeFactory.date();
       case 'min':
-        return ValidationRuleNodeFactory.min(Number(params[0]) || 0);
+        return params.length > 0 && Number.isFinite(Number(params[0])) ? ValidationRuleNodeFactory.min(validationConstraintValue(params[0])) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       case 'max':
-        return ValidationRuleNodeFactory.max(Number(params[0]) || 0);
+        return params.length > 0 && Number.isFinite(Number(params[0])) ? ValidationRuleNodeFactory.max(validationConstraintValue(params[0])) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       case 'between':
-        return ValidationRuleNodeFactory.between(Number(params[0]) || 0, Number(params[1]) || 0);
+        return params.length > 1 && Number.isFinite(Number(params[0])) && Number.isFinite(Number(params[1])) ? ValidationRuleNodeFactory.between(validationConstraintValue(params[0]), validationConstraintValue(params[1])) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       case 'in':
-        return ValidationRuleNodeFactory.in(params);
+        return ValidationRuleNodeFactory.in(params.map(validationParameter));
       case 'exists':
-        return ValidationRuleNodeFactory.exists(params[0] || '', params[1] ?? null);
+        return params.length > 0 ? ValidationRuleNodeFactory.exists(tableName(params[0]), params.length > 1 ? { kind: 'explicit_column', column: columnName(params[1]) } : { kind: 'default_column' }) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       case 'unique':
-        return ValidationRuleNodeFactory.unique(params[0] || '', params[1] ?? null);
+        return params.length > 0 ? ValidationRuleNodeFactory.unique(tableName(params[0]), params.length > 1 ? { kind: 'explicit_column', column: columnName(params[1]) } : { kind: 'default_column' }) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       case 'file':
         return ValidationRuleNodeFactory.file();
       case 'image':
@@ -454,22 +424,22 @@ export class ValidationRuleParser {
           const match = trimmed.match(/(?:Rule::in|in)\s*\(\s*\[?([^\]\)]*)\]?\s*\)/);
           if (match && match[1]) {
             const values = match[1].split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-            return ValidationRuleNodeFactory.in(values);
+            return ValidationRuleNodeFactory.in(values.map(validationParameter));
           }
         }
         if (trimmed.includes('Rule::unique') || trimmed.startsWith('unique(')) {
           const match = trimmed.match(/(?:Rule::unique|unique)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
           if (match && match[1]) {
-            return ValidationRuleNodeFactory.unique(match[1], match[2] ?? null);
+            return ValidationRuleNodeFactory.unique(tableName(match[1]), match[2] ? { kind: 'explicit_column', column: columnName(match[2]) } : { kind: 'default_column' });
           }
         }
         if (trimmed.includes('Rule::exists') || trimmed.startsWith('exists(')) {
           const match = trimmed.match(/(?:Rule::exists|exists)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
           if (match && match[1]) {
-            return ValidationRuleNodeFactory.exists(match[1], match[2] ?? null);
+            return ValidationRuleNodeFactory.exists(tableName(match[1]), match[2] ? { kind: 'explicit_column', column: columnName(match[2]) } : { kind: 'default_column' });
           }
         }
-        return ValidationRuleNodeFactory.custom(name, params);
+        return ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       }
     }
   }

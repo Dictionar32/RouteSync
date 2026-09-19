@@ -6,8 +6,6 @@
  * @module core/semantic/kernel
  */
 
-import type { SemanticResolution } from '../../types/domain/semanticResolution';
-import type { FieldNode } from '../../types/field';
 import type {
     ModelNode,
     SemanticResolutionKernelContract,
@@ -15,6 +13,7 @@ import type {
     ResolutionContext
 } from '../types';
 import type { SymbolTable } from '../SymbolTable';
+import type { ResolutionScope } from '../resolutionScope';
 
 export function buildResolutionContext(
     models: ModelNode[],
@@ -22,7 +21,7 @@ export function buildResolutionContext(
     kernel: SemanticResolutionKernelContract,
     cycleDetector: CycleDetector,
     symbolTable: SymbolTable,
-    contextModel?: ModelNode
+    scope: ResolutionScope
 ): ResolutionContext {
     return Object.freeze({
         models,
@@ -30,9 +29,7 @@ export function buildResolutionContext(
         kernel,
         cycleDetector,
         symbolTable,
-        contextModel,
         fileName: 'global',
-        assignments: contextModel === undefined ? Object.freeze({}) : contextModel.assignments,
-        resolvedAssignments: contextModel === undefined ? Object.freeze({}) : contextModel.resolvedAssignments,
+        scope,
     });
 }

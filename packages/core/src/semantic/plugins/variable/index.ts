@@ -6,3 +6,5 @@
 export { resolveThisVariable } from './thisResolver';
 export { resolveAssignmentVariable } from './assignmentResolver';
 export { resolveModelByName } from './modelNameResolver';
+
+export type { VariableResolutionResult } from './variableResolutionResult';

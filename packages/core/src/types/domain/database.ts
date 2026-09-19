@@ -17,6 +17,7 @@ export {
 export {
     EloquentCastKind,
     type EloquentCastKindSpecification,
+    type EloquentCastValueType,
     type EloquentCastKindRegistry,
     ELOQUENT_CAST_REGISTRY,
     type EloquentCastKindVisitor,

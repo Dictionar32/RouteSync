@@ -63,7 +63,8 @@ export class ValidationRuleFieldLowerer {
                     name: childKey,
                     type: semanticType,
                     required: ruleStr.includes('required'),
-                    nullable: ruleStr.includes('nullable')
+                    nullable: ruleStr.includes('nullable'),
+                    origin: { kind: 'validation_field', field: childKey }
                 }));
             } else if (key.endsWith('.*')) {
                 const baseKey = key.slice(0, -2);

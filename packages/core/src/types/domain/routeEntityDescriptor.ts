@@ -1,31 +1,22 @@
-/**
- * routeEntityDescriptor.ts
- *
- * First-Class Level 7 ADT Descriptor & Semantic Factories for RouteDefContract.
- * Enforces 0 undefined, 0 null, 0 ?: and Object.freeze immutability.
- *
- * @module core/types/domain/routeEntityDescriptor
- */
+/** Canonical immutable descriptor for a scanned route entity. */
 
-import type { FieldNode } from '../field';
+import type { RouteDefContract, RawRouteDefInput } from './routeEntityDefinition';
 import {
-  type RouteDefContract,
-  type RouteIdentityContract,
-  type RouteSecurityContract,
-  type RoutePayloadContract,
-  type RouteProvenanceContract,
-  type RawRouteDefInput,
-  type HttpVerb,
+  createHttpVerb,
+  createRouteName,
   createRoutePath,
-  createHttpVerb
+  type RouteMiddlewareName,
+  type RouteAssignmentEntry,
+  type RouteSchemaEntry,
+  type StableRouteHash,
 } from './routeEntityDefinition';
-
+import { SemanticValueFactory } from './semanticValues';
 
 export class RouteDefDescriptor implements RouteDefContract {
-  public readonly identity: RouteIdentityContract;
-  public readonly security: RouteSecurityContract;
-  public readonly payload: RoutePayloadContract;
-  public readonly provenance: RouteProvenanceContract;
+  public readonly identity: RouteDefContract['identity'];
+  public readonly security: RouteDefContract['security'];
+  public readonly payload: RouteDefContract['payload'];
+  public readonly provenance: RouteDefContract['provenance'];
 
   constructor(params: RouteDefContract) {
     this.identity = params.identity;
@@ -40,33 +31,41 @@ export class RouteDefDescriptor implements RouteDefContract {
   }
 
   static fromRouteDef(def: RawRouteDefInput): RouteDefDescriptor {
-    const schemaEntries = def.schema
-      ? Object.freeze(Object.entries(def.schema).map(([k, v]) => Object.freeze([k, v] as const)))
-      : Object.freeze([]);
-    const assignments = def.assignments
-      ? Object.freeze(Object.entries(def.assignments).map(([k, v]) => Object.freeze([k, v] as const)))
-      : Object.freeze([]);
+    const middleware: readonly RouteMiddlewareName[] = Object.freeze(
+      def.middleware.map(value => Object.freeze({
+        kind: 'route_middleware_name' as const,
+        value: SemanticValueFactory.propertyName(value),
+      })),
+    );
+
+    const stableHash: StableRouteHash = Object.freeze({
+      kind: 'stable_route_hash',
+      value: def.stableHash,
+    });
+
+    const schemaEntries: readonly RouteSchemaEntry[] = Object.freeze([...def.schema]);
+    const assignments: readonly RouteAssignmentEntry[] = Object.freeze([...def.assignments]);
 
     return new RouteDefDescriptor({
       identity: Object.freeze({
-        name: def.name,
+        name: createRouteName(def.name),
         method: createHttpVerb(def.method),
-        path: createRoutePath(def.path)
+        path: createRoutePath(def.path),
       }),
       security: Object.freeze({
-        auth: Boolean(def.auth),
-        middleware: Object.freeze([...(def.middleware ?? [])])
+        auth: def.auth,
+        middleware,
       }),
       payload: Object.freeze({
         schemaEntries,
-        response: def.response ?? EMPTY_FIELD_NODE,
-        assignments
+        response: def.response,
+        assignments,
       }),
       provenance: Object.freeze({
-        stableHash: def.stableHash ?? '',
-        sourceFile: def.sourceFile ?? '',
-        sourceLine: def.sourceLine ?? 1
-      })
+        stableHash,
+        sourceFile: def.sourceFile,
+        sourceLine: def.sourceLine,
+      }),
     });
   }
 }

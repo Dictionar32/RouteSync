@@ -1,6 +1,6 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
-import { PrimitiveKind } from "../../compiler/types/SemanticType";
-import type { ClassName, ColumnName, MethodName, ModelName, PropertyName, RelationName, CastTypeName } from './semanticValues';
+import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType } from "../../compiler/types/SemanticType";
+import { SemanticValueFactory, type ClassName, type ColumnName, type MethodName, type ModelName, type PropertyName, type RelationName, type CastTypeName, type SemanticOperator } from './semanticValues';
 
 /**
  * EloquentCastKind
@@ -26,135 +26,60 @@ export const EloquentCastKind = Object.freeze({
 
 export type EloquentCastKind = typeof EloquentCastKind[keyof typeof EloquentCastKind];
 
+export type EloquentCastValueType =
+  | { readonly kind: 'primitive'; readonly type: PrimitiveKind; readonly semanticType: SemanticType }
+  | { readonly kind: 'json'; readonly semanticType: SemanticType }
+  | { readonly kind: 'collection'; readonly element: EloquentCastValueType; readonly semanticType: SemanticType }
+  | { readonly kind: 'custom'; readonly className: ClassName; readonly semanticType: SemanticType };
+
 export interface EloquentCastKindSpecification<K extends EloquentCastKind = EloquentCastKind> {
   readonly kind: K;
-  readonly tsType: string;
-  readonly semanticType: PrimitiveKind;
-  readonly isNumeric: boolean;
-  readonly isDateTime: boolean;
-  readonly isJsonOrCollection: boolean;
+  readonly resolveValueType: (targetType: CastTypeName) => EloquentCastValueType;
 }
 
-/**
- * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key EloquentCastKind.
- */
 export type EloquentCastKindRegistry = {
   readonly [K in EloquentCastKind]: EloquentCastKindSpecification<K>;
 };
 
+const primitiveValue = (type: PrimitiveKind): EloquentCastValueType => ({
+  kind: 'primitive',
+  type,
+  semanticType: new PrimitiveType(type),
+});
+
+const jsonValue = (): EloquentCastValueType => ({
+  kind: 'json',
+  semanticType: new JsonValueType(),
+});
+
+const collectionValue = (): EloquentCastValueType => ({
+  kind: 'collection',
+  element: jsonValue(),
+  semanticType: new ReadonlyCollectionType(CollectionKind.COLLECTION, new JsonValueType()),
+});
+
 export const ELOQUENT_CAST_REGISTRY: EloquentCastKindRegistry = Object.freeze({
-  [EloquentCastKind.Integer]: {
-    kind: EloquentCastKind.Integer,
-    tsType: 'number',
-    semanticType: PrimitiveKind.NUMBER,
-    isNumeric: true,
-    isDateTime: false,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.Float]: {
-    kind: EloquentCastKind.Float,
-    tsType: 'number',
-    semanticType: PrimitiveKind.NUMBER,
-    isNumeric: true,
-    isDateTime: false,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.Decimal]: {
-    kind: EloquentCastKind.Decimal,
-    tsType: 'number',
-    semanticType: PrimitiveKind.NUMBER,
-    isNumeric: true,
-    isDateTime: false,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.Boolean]: {
-    kind: EloquentCastKind.Boolean,
-    tsType: 'boolean',
-    semanticType: PrimitiveKind.BOOLEAN,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.String]: {
-    kind: EloquentCastKind.String,
-    tsType: 'string',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.DateTime]: {
-    kind: EloquentCastKind.DateTime,
-    tsType: 'string',
-    semanticType: PrimitiveKind.DATETIME,
-    isNumeric: false,
-    isDateTime: true,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.Date]: {
-    kind: EloquentCastKind.Date,
-    tsType: 'string',
-    semanticType: PrimitiveKind.DATETIME,
-    isNumeric: false,
-    isDateTime: true,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.Timestamp]: {
-    kind: EloquentCastKind.Timestamp,
-    tsType: 'string',
-    semanticType: PrimitiveKind.DATETIME,
-    isNumeric: false,
-    isDateTime: true,
-    isJsonOrCollection: false
-  },
-  [EloquentCastKind.Array]: {
-    kind: EloquentCastKind.Array,
-    tsType: 'Record<string, unknown>',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: true
-  },
-  [EloquentCastKind.Json]: {
-    kind: EloquentCastKind.Json,
-    tsType: 'Record<string, unknown>',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: true
-  },
-  [EloquentCastKind.Object]: {
-    kind: EloquentCastKind.Object,
-    tsType: 'Record<string, unknown>',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: true
-  },
-  [EloquentCastKind.Collection]: {
-    kind: EloquentCastKind.Collection,
-    tsType: 'unknown[]',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: true
-  },
-  [EloquentCastKind.Encrypted]: {
-    kind: EloquentCastKind.Encrypted,
-    tsType: 'string',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: false
-  },
+  [EloquentCastKind.Integer]: { kind: EloquentCastKind.Integer, resolveValueType: () => primitiveValue(PrimitiveKind.NUMBER) },
+  [EloquentCastKind.Float]: { kind: EloquentCastKind.Float, resolveValueType: () => primitiveValue(PrimitiveKind.NUMBER) },
+  [EloquentCastKind.Decimal]: { kind: EloquentCastKind.Decimal, resolveValueType: () => primitiveValue(PrimitiveKind.NUMBER) },
+  [EloquentCastKind.Boolean]: { kind: EloquentCastKind.Boolean, resolveValueType: () => primitiveValue(PrimitiveKind.BOOLEAN) },
+  [EloquentCastKind.String]: { kind: EloquentCastKind.String, resolveValueType: () => primitiveValue(PrimitiveKind.STRING) },
+  [EloquentCastKind.DateTime]: { kind: EloquentCastKind.DateTime, resolveValueType: () => primitiveValue(PrimitiveKind.DATETIME) },
+  [EloquentCastKind.Date]: { kind: EloquentCastKind.Date, resolveValueType: () => primitiveValue(PrimitiveKind.DATETIME) },
+  [EloquentCastKind.Timestamp]: { kind: EloquentCastKind.Timestamp, resolveValueType: () => primitiveValue(PrimitiveKind.DATETIME) },
+  [EloquentCastKind.Array]: { kind: EloquentCastKind.Array, resolveValueType: () => jsonValue() },
+  [EloquentCastKind.Json]: { kind: EloquentCastKind.Json, resolveValueType: () => jsonValue() },
+  [EloquentCastKind.Object]: { kind: EloquentCastKind.Object, resolveValueType: () => jsonValue() },
+  [EloquentCastKind.Collection]: { kind: EloquentCastKind.Collection, resolveValueType: () => collectionValue() },
+  [EloquentCastKind.Encrypted]: { kind: EloquentCastKind.Encrypted, resolveValueType: () => primitiveValue(PrimitiveKind.STRING) },
   [EloquentCastKind.Custom]: {
     kind: EloquentCastKind.Custom,
-    tsType: 'unknown',
-    semanticType: PrimitiveKind.STRING,
-    isNumeric: false,
-    isDateTime: false,
-    isJsonOrCollection: false
-  }
+    resolveValueType: (targetType: CastTypeName) => ({
+      kind: 'custom' as const,
+      className: SemanticValueFactory.className(targetType.value),
+      semanticType: new ReferenceType('', targetType.value)
+    })
+  },
 });
 
 export type EloquentCastKindVisitor<R> = {
@@ -220,11 +145,18 @@ export class EloquentCastMapper {
     ['immutable_datetime', EloquentCastKind.DateTime]
   ]);
 
-  public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly semanticType: PrimitiveKind } {
-    const clean = (rawTargetType || '').split(':')[0].trim().toLowerCase();
-    const kind = this.CAST_MAP.get(clean) ?? EloquentCastKind.Custom;
-    const spec = ELOQUENT_CAST_REGISTRY[kind];
-    return { castKind: spec.kind, semanticType: spec.semanticType };
+  public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly valueType: EloquentCastValueType } {
+    const clean = rawTargetType.split(':')[0].trim().toLowerCase();
+    const targetType = SemanticValueFactory.castTypeName(rawTargetType);
+    const builtinKind = this.CAST_MAP.get(clean);
+    if (builtinKind !== undefined) {
+      const spec = ELOQUENT_CAST_REGISTRY[builtinKind];
+      return { castKind: spec.kind, valueType: spec.resolveValueType(targetType) };
+    }
+    return {
+      castKind: EloquentCastKind.Custom,
+      valueType: ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom].resolveValueType(targetType)
+    };
   }
 }
 
@@ -233,7 +165,7 @@ export class EloquentCastMapper {
  */
 export type EloquentCastTarget =
   | { readonly kind: 'builtin'; readonly castKind: EloquentCastKind }
-  | { readonly kind: 'custom'; readonly className: string };
+  | { readonly kind: 'custom'; readonly className: ClassName };
 
 /** First-class Eloquent attribute cast contract. */
 export interface ParsedCast {
@@ -241,14 +173,37 @@ export interface ParsedCast {
   readonly target: EloquentCastTarget;
   readonly castKind: EloquentCastKind;
   readonly targetType: CastTypeName;
-  readonly semanticType: SemanticType;
+  readonly valueType: EloquentCastValueType;
 }
 
 /** First-class Eloquent computed/accessor contract. */
+export type ModelAccessorExpression =
+  | { readonly kind: 'literal'; readonly value: string | number | boolean | null }
+  | { readonly kind: 'variable_read'; readonly variable: import('./semanticValues').VariableName }
+  | { readonly kind: 'property_read'; readonly property: PropertyName; readonly receiver: ModelAccessorExpression; readonly access: 'direct' | 'nullsafe' }
+  | { readonly kind: 'method_call'; readonly method: MethodName; readonly receiver: ModelAccessorExpression; readonly arguments: readonly ModelAccessorExpression[]; readonly access: 'direct' | 'nullsafe' }
+  | { readonly kind: 'array_read'; readonly target: ModelAccessorExpression; readonly index: ModelAccessorExpression }
+  | { readonly kind: 'function_call'; readonly functionName: import('./semanticValues').PhpFunctionName; readonly arguments: readonly ModelAccessorExpression[] }
+  | { readonly kind: 'static_call'; readonly className: ClassName; readonly method: MethodName; readonly arguments: readonly ModelAccessorExpression[] }
+  | { readonly kind: 'binary'; readonly operator: SemanticOperator; readonly left: ModelAccessorExpression; readonly right: ModelAccessorExpression }
+  | { readonly kind: 'unary'; readonly operator: { readonly kind: 'semantic_unary_operator'; readonly value: 'not' | 'negative' | 'positive' | 'bitwise_not' }; readonly operand: ModelAccessorExpression }
+  | { readonly kind: 'cast'; readonly castType: { readonly kind: 'semantic_cast'; readonly value: 'int' | 'float' | 'string' | 'bool' | 'array' | 'object' }; readonly operand: ModelAccessorExpression }
+  | { readonly kind: 'ternary'; readonly condition: ModelAccessorExpression; readonly truthy: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
+  | { readonly kind: 'short_ternary'; readonly condition: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
+  | { readonly kind: 'array_literal'; readonly entries: readonly { readonly kind: 'positional' | 'keyed'; readonly value: ModelAccessorExpression }[] }
+  | { readonly kind: 'class_reference'; readonly className: ClassName }
+  | { readonly kind: 'resource'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
+  | { readonly kind: 'resource_collection'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
+  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression' };
+
+export type ModelAccessorComputation =
+  | { readonly kind: 'expression'; readonly expression: ModelAccessorExpression; readonly result: SemanticType }
+  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression'; readonly result: SemanticType };
+
 export interface ParsedAccessor {
   readonly name: MethodName;
   readonly propertyName: PropertyName;
-  readonly semanticType: SemanticType;
+  readonly computation: ModelAccessorComputation;
 }
 
 /**
@@ -388,12 +343,21 @@ export type RelationForeignKey =
   | { readonly kind: 'convention' }
   | { readonly kind: 'explicit'; readonly column: ColumnName };
 
+export type RelationTargetShape =
+  | { readonly kind: 'single'; readonly model: ModelName }
+  | { readonly kind: 'collection'; readonly model: ModelName };
+
 export interface ParsedRelation {
   readonly name: RelationName;
   readonly type: EloquentRelationType;
   readonly sourceModel: ModelName;
   readonly targetModel: ModelName;
   readonly cardinality: EloquentRelationCardinality;
+  readonly multiplicity: { readonly kind: 'single' } | { readonly kind: 'collection' };
+  /** Complete semantic value already resolved at the scanner boundary. */
+  readonly semanticType: SemanticType;
+  readonly targetShape: RelationTargetShape;
+  readonly traversalTarget: { readonly kind: 'model'; readonly model: ModelName } | { readonly kind: 'collection'; readonly model: ModelName };
   readonly foreignKey: RelationForeignKey;
 }
 

@@ -3,6 +3,7 @@ import type { ModelName, ColumnName } from '../types/domain/semanticValues';
 import { FieldNode } from '../types/field';
 import type { SourceRef } from '../types/semantic';
 import type { SymbolTable } from './SymbolTable';
+import type { ResolutionScope } from './resolutionScope';
 
 import { CycleDetector } from './CycleDetector';
 import type {
@@ -37,7 +38,7 @@ export type InternalResolverQuery =
 export type ResolverMeta = FieldNode | InternalResolverQuery;
 
 export interface SemanticResolutionKernelContract {
-  resolve(meta: ResolverMeta, contextModel?: ModelNode): SemanticResolution;
+  resolve(meta: ResolverMeta, scope: ResolutionScope): SemanticResolution;
   mapSqlTypeToTs(sqlType: string): string;
   mapCastToTs(castType: string, baseType: string): string;
 }
@@ -52,10 +53,8 @@ export interface ResolutionContext {
   readonly kernel: SemanticResolutionKernelContract;
   cycleDetector: CycleDetector;
   symbolTable: SymbolTable;
-  readonly contextModel?: ModelNode;
   readonly fileName: string;
-  readonly resolvedAssignments: Readonly<Record<string, SemanticResolution>>;
-  readonly assignments: Readonly<Record<string, FieldNode>>;
+  readonly scope: ResolutionScope;
 }
 
 export interface ResolverPlugin {

@@ -5,8 +5,9 @@
  * value objects, not by optional strings that downstream code has to guess.
  */
 import type { SemanticType } from '../../compiler/types/SemanticType';
-import type { BoundSemanticNode, BoundCardinality, BoundNullability } from './boundAst';
-import type { ModelName, ResourceName, ResponseFieldName } from './semanticValues';
+import type { BoundSemanticNode, BoundNullability } from './boundAst';
+import type { ModelName, ResourceName } from './semanticValues';
+import type { ModelSemanticDefinition } from './models';
 
 export type ResolutionStatus = 'resolved' | 'unknown' | 'partial';
 
@@ -38,6 +39,7 @@ export interface ScalarSemanticResolution extends ResolutionBase {
 export interface ModelSemanticResolution extends ResolutionBase {
   readonly kind: 'model';
   readonly model: ModelName;
+  readonly definition: ModelSemanticDefinition;
   readonly cardinality: ResolutionCardinality;
 }
 
@@ -47,18 +49,19 @@ export interface ResourceSemanticResolution extends ResolutionBase {
   readonly cardinality: ResolutionCardinality;
 }
 
+export type {
+  SemanticObjectField,
+  QueryProjectionField,
+  QueryProjectionSurface,
+  QueryProjectionSemanticResolution,
+  QueryProjectionFieldIndex,
+} from './queryProjectionResolution';
+
+import type { QueryProjectionSemanticResolution } from './queryProjectionResolution';
+
 export interface ObjectSemanticResolution extends ResolutionBase {
   readonly kind: 'object';
-  readonly fields: readonly (readonly [ResponseFieldName, SemanticType])[];
-}
-
-export interface QueryProjectionSemanticResolution extends ResolutionBase {
-  readonly kind: 'query_projection';
-  readonly sourceModel: ModelName;
-  readonly fields: readonly (readonly [ResponseFieldName, SemanticType])[];
-  /** Cardinality/nullability are part of the projection contract and survive query methods. */
-  readonly cardinality: BoundCardinality;
-  readonly nullability: BoundNullability;
+  readonly fields: readonly import('./queryProjectionResolution').SemanticObjectField[];
 }
 
 export interface UnknownSemanticResolution extends ResolutionBase {

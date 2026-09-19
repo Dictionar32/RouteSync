@@ -7,7 +7,7 @@
  * @module core/types/domain/routeHandlers
  */
 
-import type { ActionName, ClassName, SourceFilePath } from './semanticValues';
+import { SemanticValueFactory, type ActionName, type ClassName, type SourceFilePath } from './semanticValues';
 
 export const RouteHandlerKind = Object.freeze({
   ControllerAction: 'controller_action',
@@ -92,12 +92,13 @@ export function matchRouteHandler<R>(
   handler: RouteHandlerDescriptor,
   visitor: RouteHandlerVisitor<R>
 ): R {
-  const dispatchMap = {
-    [RouteHandlerKind.ControllerAction]: () => visitor.controllerAction(handler as ControllerActionHandlerDescriptor),
-    [RouteHandlerKind.InvokableController]: () => visitor.invokableController(handler as InvokableControllerHandlerDescriptor),
-    [RouteHandlerKind.Closure]: () => visitor.closure(handler as ClosureHandlerDescriptor)
-  };
-  return dispatchMap[handler.kind]();
+  if (handler.kind === RouteHandlerKind.ControllerAction) {
+    return visitor.controllerAction(handler);
+  }
+  if (handler.kind === RouteHandlerKind.InvokableController) {
+    return visitor.invokableController(handler);
+  }
+  return visitor.closure(handler);
 }
 
 /**
@@ -110,10 +111,10 @@ export interface FormRequestDescriptor {
 }
 
 export const ScannedFormRequestDescriptor = Object.freeze({
-  create(name: string, sourceFile?: string): FormRequestDescriptor {
+  create(name: string, sourceFile: string): FormRequestDescriptor {
     return Object.freeze({
-      name,
-      sourceFile: sourceFile ?? `app/Http/Requests/${name}.php`
+      name: SemanticValueFactory.className(name),
+      sourceFile: SemanticValueFactory.sourceFilePath(sourceFile)
     });
   }
 });

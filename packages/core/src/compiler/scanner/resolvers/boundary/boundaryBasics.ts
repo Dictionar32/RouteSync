@@ -69,7 +69,7 @@ export function resolveRouteBoundaryBasics(params: RouteBoundaryOptions): Interm
     const inputParameters: readonly RouteParameter[] = params.parameters ?? [];
     const resolvedPathParameters: readonly RouteParameter[] = params.pathParameters
         ?? (inputParameters.length > 0
-            ? inputParameters.filter(parameter => parameter.in === "path")
+            ? inputParameters.filter(parameter => parameter.location === "path")
             : [...params.path.matchAll(/\{([^}]+)\}/g)].map(match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
     const resolvedParameters: readonly RouteParameter[] = inputParameters.length > 0
         ? inputParameters

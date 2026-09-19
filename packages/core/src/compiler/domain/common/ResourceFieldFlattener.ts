@@ -6,9 +6,9 @@
  * established by the scanner is the only input vocabulary.
  */
 
-import { toCamelCase, toPascalCase } from '../../../utils/resource-naming';
+import { toCamelCase } from '../../../utils/resource-naming';
 import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
-import type { SemanticType } from '../../../types/SemanticType';
+import type { ResourceExpressionFieldModel, ResourceExpressionModel } from '../../../types/domain/resourceExpressionModel';
 import { matchResourceFieldExpression } from '../../../types/domain/expressions';
 import { SemanticTypeResolver } from './SemanticTypeResolver';
 import {
@@ -46,11 +46,8 @@ export interface ResourceFieldFlattenerDependencies {
 
 export class ResourceFieldFlattener {
     public readonly maxDepth: number;
-    private readonly typeResolver: SemanticTypeResolver;
-
-    constructor({ maxDepth = 5, typeResolver = SemanticTypeResolver.default() }: ResourceFieldFlattenerDependencies = {}) {
+    constructor({ maxDepth = 5 }: ResourceFieldFlattenerDependencies = {}) {
         this.maxDepth = maxDepth;
-        this.typeResolver = typeResolver;
         Object.freeze(this);
     }
 
@@ -76,21 +73,21 @@ export class ResourceFieldFlattener {
         depth: number,
         result: FlattenedField[]
     ): void {
-        const camelKey = toCamelCase(field.name);
+        const fieldName = field.name.value;
+        const camelKey = toCamelCase(fieldName);
         const targetProperty = parentTarget.length > 0
             ? `${parentTarget}${camelKey.charAt(0).toUpperCase()}${camelKey.slice(1)}`
             : camelKey;
         const sourcePath = parentSource.length > 0
-            ? `${parentSource}.${field.name}`
-            : field.name;
+            ? `${parentSource}.${fieldName}`
+            : fieldName;
 
         matchResourceFieldExpression(field.expression, {
             primitive: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             model: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             resource: () => this.pushLeaf(field, targetProperty, sourcePath, result),
-            object: expression => this.flatten(expression.fields, targetProperty, sourcePath, depth + 1)
-                .forEach(flattened => result.push(flattened)),
-            array: expression => this.pushArray(field, expression.element, targetProperty, sourcePath, result),
+            object: expression => expression.fields.forEach(child => this.flattenExpressionField(child, targetProperty, sourcePath, depth + 1, result)),
+            array: expression => expression.entries.forEach(entry => this.pushArray(field, entry.value, targetProperty, sourcePath, result)),
             property_access: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             nullsafe_property_access: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             variable: () => this.pushLeaf(field, targetProperty, sourcePath, result),
@@ -111,19 +108,19 @@ export class ResourceFieldFlattener {
 
     private pushArray(
         field: ResourceFieldDescriptor,
-        element: ResourceFieldDescriptor,
+        element: ResourceExpressionModel,
         targetProperty: string,
         sourcePath: string,
         result: FlattenedField[]
     ): void {
-        const elementType = this.resolveSemanticType(element.semanticType);
+        const elementType = this.requireResolvedExpressionType(element);
         const collection = ResolvedCollectionType.of(elementType);
-        const type = field.nullable ? ResolvedNullableType.of(collection) : collection;
+        const type = this.isNullable(field) ? ResolvedNullableType.of(collection) : collection;
         result.push(new FlattenedField({
             targetProperty,
             sourcePath,
             type,
-            nullable: field.nullable
+            nullable: this.isNullable(field)
         }));
     }
 
@@ -133,19 +130,92 @@ export class ResourceFieldFlattener {
         sourcePath: string,
         result: FlattenedField[]
     ): void {
-        const type = field.nullable
-            ? ResolvedNullableType.of(this.resolveSemanticType(field.semanticType))
-            : this.resolveSemanticType(field.semanticType);
+        const resolved = this.requireResolvedType(field);
+        const type = this.isNullable(field)
+            ? ResolvedNullableType.of(resolved)
+            : resolved;
         result.push(new FlattenedField({
             targetProperty,
             sourcePath,
             type,
-            nullable: field.nullable
+            nullable: this.isNullable(field)
         }));
     }
 
-    private resolveSemanticType(type: SemanticType): ResolvedSemanticType {
-        return this.typeResolver.resolve(type);
+    private flattenExpressionField(
+        field: ResourceExpressionFieldModel,
+        parentTarget: string,
+        parentSource: string,
+        depth: number,
+        result: FlattenedField[]
+    ): void {
+        const name = field.name.value;
+        const camelKey = toCamelCase(name);
+        const targetProperty = parentTarget.length > 0
+            ? `${parentTarget}${camelKey.charAt(0).toUpperCase()}${camelKey.slice(1)}`
+            : camelKey;
+        const sourcePath = parentSource.length > 0 ? `${parentSource}.${name}` : name;
+        matchResourceFieldExpression(field.value.expression, {
+            object: expression => expression.fields.forEach(child => this.flattenExpressionField(child, targetProperty, sourcePath, depth + 1, result)),
+            array: expression => expression.entries.forEach(entry => this.pushExpressionArray(entry.value, targetProperty, sourcePath, result)),
+            primitive: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            model: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            resource: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            property_access: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            nullsafe_property_access: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            variable: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            type_cast: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            binary_expression: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            method_call: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            nullsafe_method_call: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            static_method_call: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            array_access: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            function_call: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            ternary: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            short_ternary: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            null_coalesce: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            literal: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            unsupported: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result)
+        });
+    }
+
+    private pushExpressionArray(element: ResourceExpressionModel, targetProperty: string, sourcePath: string, result: FlattenedField[]): void {
+        const elementType = this.requireResolvedExpressionType(element);
+        result.push(new FlattenedField({ targetProperty, sourcePath, type: ResolvedCollectionType.of(elementType), nullable: this.expressionIsNullable(element) }));
+    }
+
+    private pushExpressionLeaf(expression: ResourceExpressionModel, targetProperty: string, sourcePath: string, result: FlattenedField[]): void {
+        const resolved = this.requireResolvedExpressionType(expression);
+        const nullable = this.expressionIsNullable(expression);
+        result.push(new FlattenedField({ targetProperty, sourcePath, type: nullable ? ResolvedNullableType.of(resolved) : resolved, nullable }));
+    }
+
+    private requireResolvedExpressionType(expression: ResourceExpressionModel): ResolvedSemanticType {
+        if (expression.semantic.kind !== 'known') {
+            throw new Error(`Resource expression requires binding: ${expression.semantic.kind}`);
+        }
+        return new SemanticTypeResolver({}).resolve(expression.semantic.type);
+    }
+
+    private expressionIsNullable(expression: ResourceExpressionModel): boolean {
+        if (expression.semantic.kind !== 'known') {
+            throw new Error(`Resource expression requires binding: ${expression.semantic.kind}`);
+        }
+        return expression.semantic.type.isNullable();
+    }
+
+    private requireResolvedType(field: ResourceFieldDescriptor): ResolvedSemanticType {
+        if (field.semantic.kind === 'rejected') {
+            throw new Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`);
+        }
+        return new SemanticTypeResolver({}).resolve(field.semantic.type);
+    }
+
+    private isNullable(field: ResourceFieldDescriptor): boolean {
+        if (field.semantic.kind === 'rejected') {
+            throw new Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`);
+        }
+        return field.semantic.type.isNullable();
     }
 
 }

@@ -87,56 +87,49 @@ export class RequestHeaders implements Iterable<HeaderDeclaration> {
   }
 }
 
-import type { RouteParameterLocation } from './parameters';
+import type { RouteParameterLocation } from '../upstream/route';
+import type { PropertyName, RouteParameterName } from '../upstream/names';
+import type { NumberValue, StringValue, TruthValue } from '../upstream/valueObjects';
 
 /**
- * Route URL Parameter Entry
+ * Runtime request values. The runtime boundary preserves value meaning instead
+ * of collapsing it into primitive unions or `unknown`.
  */
-export type RouteParameterKind = 'string' | 'number' | 'boolean';
+export type RequestRuntimeValue =
+  | { readonly kind: 'string'; readonly value: StringValue }
+  | { readonly kind: 'number'; readonly value: NumberValue }
+  | { readonly kind: 'boolean'; readonly value: TruthValue }
+  | { readonly kind: 'null_value' }
+  | { readonly kind: 'list'; readonly items: readonly RequestRuntimeValue[] }
+  | { readonly kind: 'object'; readonly properties: readonly RuntimeObjectProperty[] };
 
-export interface RouteParameterDescriptor {
-  readonly name: string;
-  readonly location: RouteParameterLocation;
-  readonly kind: RouteParameterKind;
-  readonly isOptional: boolean;
-  readonly value: string | number | boolean;
+export type RouteParameterKind = Extract<RequestRuntimeValue['kind'], 'string' | 'number' | 'boolean'>;
+
+export interface RuntimeObjectProperty {
+  readonly name: PropertyName;
+  readonly value: RequestRuntimeValue;
 }
+
+export type RouteParameterDescriptor = {
+  readonly kind: 'route_parameter_value';
+  readonly name: RouteParameterName;
+  readonly property: PropertyName;
+  readonly location: RouteParameterLocation;
+  readonly value: RequestRuntimeValue;
+};
 
 export type RouteParameterEntry = RouteParameterDescriptor;
 
-/**
- * Immutable Collection of Route URL Parameters
- */
 export class RouteParameters implements Iterable<RouteParameterDescriptor> {
   public readonly entries: readonly RouteParameterDescriptor[];
   public readonly size: number;
   private readonly _lookup: ReadonlyMap<string, RouteParameterDescriptor>;
 
-  constructor(entries: readonly (RouteParameterDescriptor | { readonly name: string; readonly value: string | number | boolean })[]) {
-    const normalized: RouteParameterDescriptor[] = entries.map(e => {
-      if ('location' in e && 'kind' in e && 'isOptional' in e) {
-        return Object.freeze(e as RouteParameterDescriptor);
-      }
-      const kind: RouteParameterKind = typeof e.value === 'number' ? 'number' : typeof e.value === 'boolean' ? 'boolean' : 'string';
-      return Object.freeze({
-        name: e.name,
-        location: 'path' as const,
-        kind,
-        isOptional: false,
-        value: e.value
-      });
-    });
-
-    this.entries = Object.freeze(normalized);
+  constructor(entries: readonly RouteParameterDescriptor[]) {
+    this.entries = Object.freeze([...entries]);
     const map = new Map<string, RouteParameterDescriptor>();
-    for (const e of normalized) {
-      map.set(e.name, e);
-      Object.defineProperty(this, e.name, {
-        value: e.value,
-        writable: false,
-        enumerable: true,
-        configurable: true
-      });
+    for (const entry of entries) {
+      map.set(entry.name.value.value, Object.freeze(entry));
     }
     this._lookup = map;
     this.size = map.size;
@@ -147,50 +140,37 @@ export class RouteParameters implements Iterable<RouteParameterDescriptor> {
     return new RouteParameters([]);
   }
 
-  public static fromRecord(record: Readonly<Record<string, string | number | boolean>>): RouteParameters {
-    const entries = Object.entries(record).map(([name, value]) => ({
-      name,
-      value
-    }));
-    return new RouteParameters(entries);
-  }
-
   public static fromEntries(entries: readonly RouteParameterDescriptor[]): RouteParameters {
     return new RouteParameters(entries);
   }
 
-  public get(name: string): string | number | boolean | undefined {
-    return this._lookup.get(name)?.value;
+  public lookup(name: RouteParameterName): RouteParameterLookup {
+    const entry = this._lookup.get(name.value.value);
+    return entry === undefined
+      ? { kind: 'missing', name }
+      : { kind: 'found', entry };
   }
 
-  public has(name: string): boolean {
-    return this._lookup.has(name);
+  public has(name: RouteParameterName): boolean {
+    return this._lookup.has(name.value.value);
   }
 
   public [Symbol.iterator](): Iterator<RouteParameterDescriptor> {
     return this.entries[Symbol.iterator]();
   }
-
-  public toRecord(): Record<string, string | number | boolean> {
-    return this.toDictionary();
-  }
-
-  public toDictionary(): { readonly [param: string]: string | number | boolean } {
-    return Object.fromEntries(this.entries.map(e => [e.name, e.value]));
-  }
 }
 
-/**
- * Route Query Parameter Entry
- */
+export type RouteParameterLookup =
+  | { readonly kind: 'found'; readonly entry: RouteParameterDescriptor }
+  | { readonly kind: 'missing'; readonly name: RouteParameterName };
+
+/** Route query entry with semantic key and recursive runtime value. */
 export interface RouteQueryEntry {
-  readonly key: string;
-  readonly value: string | number | boolean | readonly (string | number | boolean)[];
+  readonly kind: 'route_query_entry';
+  readonly key: PropertyName;
+  readonly value: RequestRuntimeValue;
 }
 
-/**
- * Immutable Collection of Route Query Parameters
- */
 export class RouteQueryParameters implements Iterable<RouteQueryEntry> {
   public readonly entries: readonly RouteQueryEntry[];
   public readonly size: number;
@@ -199,14 +179,8 @@ export class RouteQueryParameters implements Iterable<RouteQueryEntry> {
   constructor(entries: readonly RouteQueryEntry[]) {
     this.entries = Object.freeze([...entries]);
     const map = new Map<string, RouteQueryEntry>();
-    for (const e of entries) {
-      map.set(e.key, Object.freeze({ ...e }));
-      Object.defineProperty(this, e.key, {
-        value: e.value,
-        writable: false,
-        enumerable: true,
-        configurable: true
-      });
+    for (const entry of entries) {
+      map.set(entry.key.value.value, Object.freeze(entry));
     }
     this._lookup = map;
     this.size = map.size;
@@ -217,73 +191,45 @@ export class RouteQueryParameters implements Iterable<RouteQueryEntry> {
     return new RouteQueryParameters([]);
   }
 
-  public static fromRecord(record: Readonly<Record<string, unknown>>): RouteQueryParameters {
-    const entries: RouteQueryEntry[] = [];
-    for (const [key, value] of Object.entries(record)) {
-      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-        entries.push({ key, value });
-      } else if (Array.isArray(value)) {
-        const items = value.filter(
-          (v): v is string | number | boolean => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean'
-        );
-        entries.push({ key, value: Object.freeze(items) });
-      }
-    }
-    return new RouteQueryParameters(entries);
-  }
-
   public static fromEntries(entries: readonly RouteQueryEntry[]): RouteQueryParameters {
     return new RouteQueryParameters(entries);
   }
 
-  public get(key: string): string | number | boolean | readonly (string | number | boolean)[] | undefined {
-    return this._lookup.get(key)?.value;
+  public lookup(key: PropertyName): RouteQueryLookup {
+    const entry = this._lookup.get(key.value.value);
+    return entry === undefined ? { kind: 'missing', key } : { kind: 'found', entry };
   }
 
-  public has(key: string): boolean {
-    return this._lookup.has(key);
+  public has(key: PropertyName): boolean {
+    return this._lookup.has(key.value.value);
   }
 
   public [Symbol.iterator](): Iterator<RouteQueryEntry> {
     return this.entries[Symbol.iterator]();
   }
-
-  public toRecord(): Record<string, unknown> {
-    return this.toDictionary();
-  }
-
-  public toDictionary(): { readonly [key: string]: unknown } {
-    return Object.fromEntries(this.entries.map(e => [e.key, e.value]));
-  }
 }
 
-/**
- * Request Payload Property Entry
- */
+export type RouteQueryLookup =
+  | { readonly kind: 'found'; readonly entry: RouteQueryEntry }
+  | { readonly kind: 'missing'; readonly key: PropertyName };
+
+/** Request payload property entry. */
 export interface PayloadPropertyEntry {
-  readonly field: string;
-  readonly value: unknown;
+  readonly kind: 'payload_property';
+  readonly field: PropertyName;
+  readonly value: RequestRuntimeValue;
 }
 
-/**
- * Immutable Value Object for Request Payload / Body
- */
 export class RequestPayload implements Iterable<PayloadPropertyEntry> {
   public readonly properties: readonly PayloadPropertyEntry[];
   public readonly size: number;
-  private readonly _lookup: ReadonlyMap<string, unknown>;
+  private readonly _lookup: ReadonlyMap<string, PayloadPropertyEntry>;
 
   constructor(properties: readonly PayloadPropertyEntry[]) {
     this.properties = Object.freeze([...properties]);
-    const map = new Map<string, unknown>();
-    for (const p of properties) {
-      map.set(p.field, p.value);
-      Object.defineProperty(this, p.field, {
-        value: p.value,
-        writable: false,
-        enumerable: true,
-        configurable: true
-      });
+    const map = new Map<string, PayloadPropertyEntry>();
+    for (const property of properties) {
+      map.set(property.field.value.value, Object.freeze(property));
     }
     this._lookup = map;
     this.size = map.size;
@@ -294,42 +240,27 @@ export class RequestPayload implements Iterable<PayloadPropertyEntry> {
     return new RequestPayload([]);
   }
 
-  public static fromRecord(record: Readonly<Record<string, unknown>>): RequestPayload {
-    const properties: PayloadPropertyEntry[] = Object.entries(record).map(([field, value]) => ({
-      field,
-      value
-    }));
-    return new RequestPayload(properties);
-  }
-
   public static fromEntries(properties: readonly PayloadPropertyEntry[]): RequestPayload {
     return new RequestPayload(properties);
   }
 
-  public hasProperties(): boolean {
-    return this.properties.length > 0;
+  public lookup(field: PropertyName): PayloadPropertyLookup {
+    const property = this._lookup.get(field.value.value);
+    return property === undefined ? { kind: 'missing', field } : { kind: 'found', property };
   }
 
-  public get(field: string): unknown {
-    return this._lookup.get(field);
-  }
-
-  public has(field: string): boolean {
-    return this._lookup.has(field);
+  public has(field: PropertyName): boolean {
+    return this._lookup.has(field.value.value);
   }
 
   public [Symbol.iterator](): Iterator<PayloadPropertyEntry> {
     return this.properties[Symbol.iterator]();
   }
-
-  public toRecord(): Record<string, unknown> {
-    return this.toDictionary();
-  }
-
-  public toDictionary(): { readonly [field: string]: unknown } {
-    return Object.fromEntries(this.properties.map(p => [p.field, p.value]));
-  }
 }
+
+export type PayloadPropertyLookup =
+  | { readonly kind: 'found'; readonly property: PayloadPropertyEntry }
+  | { readonly kind: 'missing'; readonly field: PropertyName };
 
 /**
  * Null Object Pattern for Route Schema: Validates without errors, 0 'null', 0 '?'

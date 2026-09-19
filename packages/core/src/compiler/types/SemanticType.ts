@@ -9,6 +9,7 @@ import { TypeScriptSyntax } from '../domain/common/TypeScriptTypeLowerer';
 import type { ResourceFieldDescriptor } from '../../types/route';
 import { toCamelCase, ResourceNamingConvention } from '../../utils/resource-naming';
 import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
+import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrigin';
 
 /**
  * @module compiler/types/SemanticType
@@ -52,6 +53,7 @@ export enum CollectionKind {
  */
 export const SemanticTypeKind = Object.freeze({
     Primitive: 'primitive',
+    JsonValue: 'json_value',
     Optional: 'optional',
     Nullable: 'nullable',
     Never: 'never',
@@ -140,6 +142,19 @@ export class PrimitiveType extends SemanticTypeBase {
             default:
                 return new PrimitiveType(PrimitiveKind.STRING);
         }
+    }
+}
+
+/**
+ * JSON value semantic type.
+ * Represents JSON data whose runtime shape is not declared by the source cast.
+ * This is distinct from UNKNOWN: the value domain is known to be JSON.
+ */
+export class JsonValueType extends SemanticTypeBase {
+    readonly kind = 'json_value';
+    constructor() {
+        super();
+        Object.freeze(this);
     }
 }
 
@@ -377,6 +392,7 @@ export interface ObjectProperty {
     readonly required: boolean;
     readonly nullable: boolean;
     readonly description: string;
+    readonly origin: ObjectPropertyOrigin;
 }
 
 export interface ScannedObjectPropertyParams {
@@ -384,6 +400,7 @@ export interface ScannedObjectPropertyParams {
     readonly type: SemanticType;
     readonly required: boolean;
     readonly description?: string;
+    readonly origin: ObjectPropertyOrigin;
 }
 
 export class ScannedObjectProperty implements ObjectProperty {
@@ -391,12 +408,14 @@ export class ScannedObjectProperty implements ObjectProperty {
     public readonly type: SemanticType;
     public readonly required: boolean;
     public readonly description: string;
+    public readonly origin: ObjectPropertyOrigin;
 
-    constructor({ name, type, required, description = '' }: ScannedObjectPropertyParams) {
+    constructor({ name, type, required, description = '', origin }: ScannedObjectPropertyParams) {
         this.name = name;
         this.type = type;
         this.required = required;
         this.description = description;
+        this.origin = origin;
         Object.freeze(this);
     }
 
@@ -408,14 +427,16 @@ export class ScannedObjectProperty implements ObjectProperty {
         name,
         type,
         required = true,
-        description = ''
+        description = '',
+        origin
     }: {
         readonly name: string;
         readonly type: SemanticType;
         readonly required?: boolean;
         readonly description?: string;
+        readonly origin: ObjectPropertyOrigin;
     }): ScannedObjectProperty {
-        return new ScannedObjectProperty({ name, type, required, description });
+        return new ScannedObjectProperty({ name, type, required, description, origin });
     }
 }
 
@@ -426,7 +447,8 @@ export const ObjectProperty = {
             name: toCamelCase(field.name.value),
             type,
             required: !type.isNullable(),
-            description: ''
+            description: '',
+            origin: { kind: 'bound_expression', bound: field.semantic.bound }
         });
     }
 };
@@ -475,6 +497,7 @@ export class ObjectType extends SemanticTypeBase {
  */
 export type SemanticType =
     | PrimitiveType
+    | JsonValueType
     | OptionalType
     | NullableType
     | NeverType

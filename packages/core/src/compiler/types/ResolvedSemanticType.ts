@@ -1,63 +1,26 @@
 /**
- * Phase 4A — Structured semantic input for Contract IR.
- *
- * Every discriminator owns the fields required by its variant.
- * Consumers can therefore narrow with a single switch(type.kind).
+ * Compatibility barrel for the legacy compiler boundary.
+ * Canonical resolved semantic types live in domain/common/resolved-types.
  */
+export type {
+    ResolvedSemanticType,
+    ResolvedSemanticTypeSpecification,
+    ResolvedSemanticTypeRegistry,
+    ResolvedSemanticTypeVisitor,
+    ResolvedPrimitiveKind
+} from '../domain/common/resolved-types';
 
-export type ResolvedPrimitive =
-    | 'string'
-    | 'number'
-    | 'boolean'
-    | 'datetime'
-    | 'unknown';
-
-export interface ResolvedPrimitiveType {
-    readonly kind: 'primitive';
-    readonly type: ResolvedPrimitive;
-    readonly format?: string;
-}
-
-export interface ResolvedResourceType {
-    readonly kind: 'resource';
-    readonly resource: string;
-    readonly collection: boolean;
-}
-
-export interface ResolvedModelType {
-    readonly kind: 'model';
-    readonly model: string;
-}
-
-export interface ResolvedObjectType {
-    readonly kind: 'object';
-    readonly properties: Readonly<Record<string, ResolvedSemanticType>>;
-}
-
-export interface ResolvedArrayType {
-    readonly kind: 'array';
-    readonly items: ResolvedSemanticType;
-}
-
-export interface ResolvedUnionType {
-    readonly kind: 'union';
-    readonly types: readonly [
-        ResolvedSemanticType,
-        ResolvedSemanticType,
-        ...ResolvedSemanticType[],
-    ];
-}
-
-export interface ResolvedLiteralType {
-    readonly kind: 'literal';
-    readonly value: string | number | boolean;
-}
-
-export type ResolvedSemanticType =
-    | ResolvedPrimitiveType
-    | ResolvedResourceType
-    | ResolvedModelType
-    | ResolvedObjectType
-    | ResolvedArrayType
-    | ResolvedUnionType
-    | ResolvedLiteralType;
+export {
+    ResolvedPrimitiveType,
+    ResolvedReferenceType,
+    ResolvedOptionalType,
+    ResolvedNullableType,
+    ResolvedCollectionType,
+    ResolvedObjectType,
+    ResolvedUnionType,
+    ResolvedIntersectionType,
+    ResolvedUnknownType,
+    ResolvedSemanticTypeKind,
+    RESOLVED_SEMANTIC_TYPE_REGISTRY,
+    matchResolvedSemanticType
+} from '../domain/common/resolved-types';

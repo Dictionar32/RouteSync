@@ -3,7 +3,8 @@
  * @module compiler/ast
  */
 
-export type { ASTNodeId, ASTNodeData } from './ASTNodeData';
+export type { ASTNodeData } from './ASTNodeData';
+export type { ASTNodeId } from '../utils';
 export {
     createASTNodeData,
     isSameKind,

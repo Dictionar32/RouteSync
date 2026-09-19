@@ -3,9 +3,11 @@ import type { SemanticResolution } from '../../../types/domain/semanticResolutio
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import type { SemanticTraceNode } from '../../../types/domain/semanticResolution';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
+import { resolveFrameworkModel } from './frameworkModelResolution';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../../types';
-import { lookupGlobalFunction, lookupMethod, lookupVariableMethod, type FrameworkMethodRule } from '../FrameworkRegistry';
+import { type FrameworkMethodRule } from '../FrameworkRegistry';
+import { hasFrameworkRule, selectFrameworkRule } from './frameworkRuleSelection';
 
 function trace(input: string, output: string): readonly SemanticTraceNode[] {
   return Object.freeze([{
@@ -16,7 +18,7 @@ function trace(input: string, output: string): readonly SemanticTraceNode[] {
   }]);
 }
 
-function toResolution(rule: FrameworkMethodRule, input: string): SemanticResolution {
+function toResolution(rule: FrameworkMethodRule, input: string, context: ResolutionContext): SemanticResolution {
   switch (rule.returns.kind) {
     case 'scalar':
       return SemanticResolutionFactory.scalar({
@@ -34,19 +36,13 @@ function toResolution(rule: FrameworkMethodRule, input: string): SemanticResolut
         nullability: { kind: 'non_nullable' },
       });
     case 'model':
-      return SemanticResolutionFactory.model({
-        status: 'resolved',
-        confidence: rule.confidence,
-        trace: trace(input, `model ${rule.returns.model.value}`),
-        boundAst: BoundSemanticFactory.modelReference(rule.returns.model),
-        model: rule.returns.model,
-        cardinality: { kind: rule.returns.cardinality },
-        cardinality: rule.returns.cardinality,
-      });
+      return resolveFrameworkModel(
+        rule.returns, input, context, trace(input, `model ${rule.returns.model.value}`), rule.confidence,
+      );
     case 'object':
-      const fields = Object.freeze(rule.returns.fields.map(([name, semanticType]) => Object.freeze({
-        name,
-        type: semanticType,
+      const fields = Object.freeze(rule.returns.fields.map(field => Object.freeze({
+        name: field.name,
+        type: field.type,
         required: true,
         nullability: { kind: 'non_nullable' },
         description: 'Framework registry field',
@@ -68,33 +64,17 @@ function toResolution(rule: FrameworkMethodRule, input: string): SemanticResolut
           cardinality: { kind: 'single' },
           nullability: { kind: 'non_nullable' },
         }),
-        fields: Object.freeze(rule.returns.fields.map(([name, semanticType]) => [SemanticValueFactory.responseFieldName(name), semanticType] as const)),
+        fields: Object.freeze(rule.returns.fields.map(field => Object.freeze({
+          name: SemanticValueFactory.responseFieldName(field.name),
+          type: field.type,
+        }))),
       });
   }
 }
 
-function selectRule(meta: Extract<ResolverMeta, { kind: 'method_call' | 'static_method_call' }>): FrameworkMethodRule | undefined {
-  if (meta.kind === 'method_call' && meta.target !== null && meta.target.kind === 'variable') {
-    const variableRule = lookupVariableMethod(meta.target.name.value, meta.name.value);
-    if (variableRule !== undefined) return variableRule;
-  }
-
-  if (meta.kind === 'method_call' && meta.target === null) {
-    const globalRule = lookupGlobalFunction(meta.name.value);
-    if (globalRule !== undefined) return globalRule;
-  }
-
-  return lookupMethod(meta.name.value);
-}
-
 export class FrameworkRegistryResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
-    const method = 'kind' in meta && (meta.kind === 'method_call' || meta.kind === 'static_method_call');
-    if (!method) return false;
-    const name = meta.name;
-    const global = meta.kind === 'method_call' && meta.target === null && lookupGlobalFunction(name) !== undefined;
-    const variable = meta.kind === 'method_call' && meta.target !== null && meta.target.kind === 'variable' && lookupVariableMethod(meta.target.name, name) !== undefined;
-    return global || variable || lookupMethod(name) !== undefined;
+    return hasFrameworkRule(meta);
   }
 
   resolve(meta: ResolverMeta, _context: ResolutionContext): SemanticResolution {
@@ -105,7 +85,7 @@ export class FrameworkRegistryResolver implements ResolverPlugin {
       });
     }
 
-    const rule = selectRule(meta);
+    const rule = selectFrameworkRule(meta);
 
     if (rule === undefined) {
       return SemanticResolutionFactory.unknown({
@@ -114,6 +94,6 @@ export class FrameworkRegistryResolver implements ResolverPlugin {
       });
     }
 
-    return toResolution(rule, meta.name.value);
+    return toResolution(rule, meta.name.value, _context);
   }
 }

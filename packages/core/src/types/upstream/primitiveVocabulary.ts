@@ -1,0 +1,11 @@
+import type { DomainTypeName } from './names';
+import type { Properties, SemanticValues } from './collections';
+import type { NumberValue, StringValue, TruthValue } from './valueObjects';
+export type PrimitiveVocabulary = { readonly kind: 'string' } | { readonly kind: 'number' } | { readonly kind: 'boolean' } | { readonly kind: 'date_time' } | { readonly kind: 'file' } | { readonly kind: 'json' };
+export type Presence = { readonly kind: 'required' } | { readonly kind: 'optional' };
+export type Nullability = { readonly kind: 'non_null' } | { readonly kind: 'nullable' };
+export type Cardinality = { readonly kind: 'one' } | { readonly kind: 'many' };
+export type LiteralValue = { readonly kind: 'string_literal'; readonly value: StringValue } | { readonly kind: 'number_literal'; readonly value: NumberValue } | { readonly kind: 'boolean_literal'; readonly value: TruthValue };
+export type SemanticScalar = { readonly kind: 'scalar'; readonly primitive: PrimitiveVocabulary; readonly presence: Presence; readonly nullability: Nullability };
+export type SemanticValue = { readonly kind: 'typed'; readonly type: import('./typeVocabulary').TypeExpression } | SemanticScalar | { readonly kind: 'literal'; readonly value: LiteralValue } | { readonly kind: 'reference'; readonly name: DomainTypeName; readonly cardinality: Cardinality; readonly nullability: Nullability } | { readonly kind: 'collection'; readonly element: SemanticValue; readonly cardinality: Cardinality; readonly nullability: Nullability } | { readonly kind: 'object'; readonly properties: Properties; readonly nullability: Nullability } | { readonly kind: 'union'; readonly members: SemanticValues } | { readonly kind: 'intersection'; readonly members: SemanticValues };
+export type SemanticFlag = TruthValue;

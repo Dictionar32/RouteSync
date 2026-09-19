@@ -1,153 +1,8 @@
-/**
- * ValidationRuleKind
- *
- * Canonical Domain Vocabulary for Laravel Validation Rules.
- */
-export const ValidationRuleKind = Object.freeze({
-  Required: 'required',
-  Nullable: 'nullable',
-  Optional: 'optional',
-  String: 'string',
-  Number: 'number',
-  Boolean: 'boolean',
-  Array: 'array',
-  Email: 'email',
-  Url: 'url',
-  Uuid: 'uuid',
-  Date: 'date',
-  Min: 'min',
-  Max: 'max',
-  Between: 'between',
-  In: 'in',
-  Exists: 'exists',
-  Unique: 'unique',
-  File: 'file',
-  Image: 'image',
-  Custom: 'custom'
-} as const);
+import { ValidationRuleKind } from './validationRules';
+import type { ValidationRuleNode } from './validationRules';
+import type { RequestField } from './request';
 
-export type ValidationRuleKind = typeof ValidationRuleKind[keyof typeof ValidationRuleKind];
-
-export interface BaseValidationRuleNode<K extends ValidationRuleKind = ValidationRuleKind> {
-  readonly kind: K;
-}
-
-export interface RequiredValidationRuleNode extends BaseValidationRuleNode<'required'> {
-  readonly kind: 'required';
-}
-
-export interface NullableValidationRuleNode extends BaseValidationRuleNode<'nullable'> {
-  readonly kind: 'nullable';
-}
-
-export interface OptionalValidationRuleNode extends BaseValidationRuleNode<'optional'> {
-  readonly kind: 'optional';
-}
-
-export interface StringValidationRuleNode extends BaseValidationRuleNode<'string'> {
-  readonly kind: 'string';
-}
-
-export interface NumberValidationRuleNode extends BaseValidationRuleNode<'number'> {
-  readonly kind: 'number';
-}
-
-export interface BooleanValidationRuleNode extends BaseValidationRuleNode<'boolean'> {
-  readonly kind: 'boolean';
-}
-
-export interface ArrayValidationRuleNode extends BaseValidationRuleNode<'array'> {
-  readonly kind: 'array';
-  readonly elementType: string | null;
-}
-
-export interface EmailValidationRuleNode extends BaseValidationRuleNode<'email'> {
-  readonly kind: 'email';
-}
-
-export interface UrlValidationRuleNode extends BaseValidationRuleNode<'url'> {
-  readonly kind: 'url';
-}
-
-export interface UuidValidationRuleNode extends BaseValidationRuleNode<'uuid'> {
-  readonly kind: 'uuid';
-}
-
-export interface DateValidationRuleNode extends BaseValidationRuleNode<'date'> {
-  readonly kind: 'date';
-  readonly format: string | null;
-}
-
-export interface MinValidationRuleNode extends BaseValidationRuleNode<'min'> {
-  readonly kind: 'min';
-  readonly value: number;
-}
-
-export interface MaxValidationRuleNode extends BaseValidationRuleNode<'max'> {
-  readonly kind: 'max';
-  readonly value: number;
-}
-
-export interface BetweenValidationRuleNode extends BaseValidationRuleNode<'between'> {
-  readonly kind: 'between';
-  readonly min: number;
-  readonly max: number;
-}
-
-export interface InValidationRuleNode extends BaseValidationRuleNode<'in'> {
-  readonly kind: 'in';
-  readonly values: readonly (string | number)[];
-}
-
-export interface ExistsValidationRuleNode extends BaseValidationRuleNode<'exists'> {
-  readonly kind: 'exists';
-  readonly table: string;
-  readonly column: string | null;
-}
-
-export interface UniqueValidationRuleNode extends BaseValidationRuleNode<'unique'> {
-  readonly kind: 'unique';
-  readonly table: string;
-  readonly column: string | null;
-}
-
-export interface FileValidationRuleNode extends BaseValidationRuleNode<'file'> {
-  readonly kind: 'file';
-}
-
-export interface ImageValidationRuleNode extends BaseValidationRuleNode<'image'> {
-  readonly kind: 'image';
-}
-
-export interface CustomValidationRuleNode extends BaseValidationRuleNode<'custom'> {
-  readonly kind: 'custom';
-  readonly rule: string;
-  readonly parameters: readonly string[];
-}
-
-export type ValidationRuleNode =
-  | RequiredValidationRuleNode
-  | NullableValidationRuleNode
-  | OptionalValidationRuleNode
-  | StringValidationRuleNode
-  | NumberValidationRuleNode
-  | BooleanValidationRuleNode
-  | ArrayValidationRuleNode
-  | EmailValidationRuleNode
-  | UrlValidationRuleNode
-  | UuidValidationRuleNode
-  | DateValidationRuleNode
-  | MinValidationRuleNode
-  | MaxValidationRuleNode
-  | BetweenValidationRuleNode
-  | InValidationRuleNode
-  | ExistsValidationRuleNode
-  | UniqueValidationRuleNode
-  | FileValidationRuleNode
-  | ImageValidationRuleNode
-  | CustomValidationRuleNode;
-
-export type AnyValidationRuleNode = ValidationRuleNode;
+export * from './validationRules';
 
 export type ValidationRuleCategory =
   | 'modifier'
@@ -333,217 +188,6 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
   }
 });
 
-export type ValidationRuleVisitor<R> = {
-  readonly required: (rule: RequiredValidationRuleNode) => R;
-  readonly nullable: (rule: NullableValidationRuleNode) => R;
-  readonly optional: (rule: OptionalValidationRuleNode) => R;
-  readonly string: (rule: StringValidationRuleNode) => R;
-  readonly number: (rule: NumberValidationRuleNode) => R;
-  readonly boolean: (rule: BooleanValidationRuleNode) => R;
-  readonly array: (rule: ArrayValidationRuleNode) => R;
-  readonly email: (rule: EmailValidationRuleNode) => R;
-  readonly url: (rule: UrlValidationRuleNode) => R;
-  readonly uuid: (rule: UuidValidationRuleNode) => R;
-  readonly date: (rule: DateValidationRuleNode) => R;
-  readonly min: (rule: MinValidationRuleNode) => R;
-  readonly max: (rule: MaxValidationRuleNode) => R;
-  readonly between: (rule: BetweenValidationRuleNode) => R;
-  readonly in: (rule: InValidationRuleNode) => R;
-  readonly exists: (rule: ExistsValidationRuleNode) => R;
-  readonly unique: (rule: UniqueValidationRuleNode) => R;
-  readonly file: (rule: FileValidationRuleNode) => R;
-  readonly image: (rule: ImageValidationRuleNode) => R;
-  readonly custom: (rule: CustomValidationRuleNode) => R;
-};
-
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ValidationRuleNode dengan exhaustive type safety
- */
-export function matchValidationRule<R>(
-  rule: ValidationRuleNode,
-  visitor: ValidationRuleVisitor<R>
-): R {
-  return visitor[rule.kind](rule as any);
-}
-
-export const matchRule = matchValidationRule;
-
-/**
- * ValidationRuleNodeFactory
- *
- * Canonical Reusable Factory for Structured ValidationRuleNode AST.
- */
-export class ValidationRuleNodeFactory {
-  public static required(): RequiredValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Required });
-  }
-  public static nullable(): NullableValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Nullable });
-  }
-  public static optional(): OptionalValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Optional });
-  }
-  public static string(): StringValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.String });
-  }
-  public static number(): NumberValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Number });
-  }
-  public static boolean(): BooleanValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Boolean });
-  }
-  public static array(elementType: string | null = null): ArrayValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Array, elementType });
-  }
-  public static email(): EmailValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Email });
-  }
-  public static url(): UrlValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Url });
-  }
-  public static uuid(): UuidValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Uuid });
-  }
-  public static date(format: string | null = null): DateValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Date, format });
-  }
-  public static min(value: number): MinValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Min, value });
-  }
-  public static max(value: number): MaxValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Max, value });
-  }
-  public static between(min: number, max: number): BetweenValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Between, min, max });
-  }
-  public static in(values: readonly (string | number)[]): InValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.In, values: Object.freeze([...values]) });
-  }
-  public static exists(table: string, column: string | null = null): ExistsValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Exists, table, column });
-  }
-  public static unique(table: string, column: string | null = null): UniqueValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Unique, table, column });
-  }
-  public static file(): FileValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.File });
-  }
-  public static image(): ImageValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Image });
-  }
-  public static custom(rule: string, parameters: readonly string[] = []): CustomValidationRuleNode {
-    return Object.freeze({ kind: ValidationRuleKind.Custom, rule, parameters: Object.freeze([...parameters]) });
-  }
-}
-
-/**
- * ValidationRuleParser
- *
- * Pure Deterministic AST Parser for Laravel Validation Rule Strings.
- * Transforms raw Laravel rule strings into strongly-typed ValidationRuleNode AST.
- */
-export class ValidationRuleParser {
-  public static parse(ruleStr: string): ValidationRuleNode {
-    const trimmed = (ruleStr || '').trim();
-    const colonIdx = trimmed.indexOf(':');
-    const name = (colonIdx === -1 ? trimmed : trimmed.slice(0, colonIdx)).toLowerCase();
-    const paramStr = colonIdx === -1 ? '' : trimmed.slice(colonIdx + 1);
-    const params = paramStr ? paramStr.split(',').map(s => s.trim()) : [];
-
-    switch (name) {
-      case 'required':
-        return ValidationRuleNodeFactory.required();
-      case 'nullable':
-        return ValidationRuleNodeFactory.nullable();
-      case 'sometimes':
-      case 'optional':
-        return ValidationRuleNodeFactory.optional();
-      case 'string':
-        return ValidationRuleNodeFactory.string();
-      case 'integer':
-      case 'int':
-      case 'numeric':
-      case 'digits':
-        return ValidationRuleNodeFactory.number();
-      case 'boolean':
-      case 'bool':
-        return ValidationRuleNodeFactory.boolean();
-      case 'array':
-        return ValidationRuleNodeFactory.array();
-      case 'email':
-        return ValidationRuleNodeFactory.email();
-      case 'url':
-        return ValidationRuleNodeFactory.url();
-      case 'uuid':
-        return ValidationRuleNodeFactory.uuid();
-      case 'date':
-      case 'datetime':
-      case 'timestamp':
-        return ValidationRuleNodeFactory.date(params[0] ?? null);
-      case 'min':
-        return ValidationRuleNodeFactory.min(Number(params[0]) || 0);
-      case 'max':
-        return ValidationRuleNodeFactory.max(Number(params[0]) || 0);
-      case 'between':
-        return ValidationRuleNodeFactory.between(Number(params[0]) || 0, Number(params[1]) || 0);
-      case 'in':
-        return ValidationRuleNodeFactory.in(params);
-      case 'exists':
-        return ValidationRuleNodeFactory.exists(params[0] || '', params[1] ?? null);
-      case 'unique':
-        return ValidationRuleNodeFactory.unique(params[0] || '', params[1] ?? null);
-      case 'file':
-        return ValidationRuleNodeFactory.file();
-      case 'image':
-        return ValidationRuleNodeFactory.image();
-      default: {
-        // Fluent Laravel Rules: Rule::in([...]), Rule::unique('table', 'col'), Rule::exists('table', 'col')
-        if (trimmed.includes('Rule::in') || trimmed.startsWith('in(')) {
-          const match = trimmed.match(/(?:Rule::in|in)\s*\(\s*\[?([^\]\)]*)\]?\s*\)/);
-          if (match && match[1]) {
-            const values = match[1].split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-            return ValidationRuleNodeFactory.in(values);
-          }
-        }
-        if (trimmed.includes('Rule::unique') || trimmed.startsWith('unique(')) {
-          const match = trimmed.match(/(?:Rule::unique|unique)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
-          if (match && match[1]) {
-            return ValidationRuleNodeFactory.unique(match[1], match[2] ?? null);
-          }
-        }
-        if (trimmed.includes('Rule::exists') || trimmed.startsWith('exists(')) {
-          const match = trimmed.match(/(?:Rule::exists|exists)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
-          if (match && match[1]) {
-            return ValidationRuleNodeFactory.exists(match[1], match[2] ?? null);
-          }
-        }
-        return ValidationRuleNodeFactory.custom(name, params);
-      }
-    }
-  }
-
-  public static parseAll(rules: readonly (string | ValidationRuleNode)[]): readonly ValidationRuleNode[] {
-    return Object.freeze(
-      rules.map(r => typeof r === 'string' ? this.parse(r) : r)
-    );
-  }
-
-  /**
-   * Directly lowers ValidationRuleNode AST to Zod schema string expression.
-   * Pure deterministic compiler method (0 regex, 0 string matching, 0 if).
-   */
-  public static toZodExpression(rules: readonly ValidationRuleNode[]): string {
-    const isRequired = rules.some(r => r.kind === ValidationRuleKind.Required);
-    const hasOptional = rules.some(r => r.kind === ValidationRuleKind.Optional);
-    const initialNode: ZodNode = { expression: 'z.string()' };
-    let finalNode = ZodSchemaReducer.reduceConstraints(initialNode, rules);
-    if (!isRequired && !hasOptional) {
-      finalNode = { expression: `${finalNode.expression}.optional()` };
-    }
-    return finalNode.expression;
-  }
-}
-
 export interface ZodNode {
   readonly expression: string;
 }
@@ -689,3 +333,656 @@ export * from './modelValueFactories';
 export * from './request';
 
 export * from './boundAst';
+
+export * from './objectPropertyOrigin';
+export * from './resourceExpressionModel';
+export * from './resourceBindingProvenance';
+export * from './resourceBindingOrigin';
+export * from './resourceBindingModel';
+
+export * from './resourceQueryOperation';
+export * from './resourceModelMethodMeaning';
+export * from './resourceModelMethodSurface';
+// Explicit compatibility exports for the current domain boundary.
+
+export {
+  SecuritySchemeKind,
+  type RouteSecurityDescriptor,
+  type ScannedRouteSecurityParams,
+  ScannedRouteSecurityDescriptor,
+  RouteSecurityClassifier,
+  type SecuritySchemeSpecification,
+  type SecuritySchemeRegistry,
+  SECURITY_SCHEME_REGISTRY,
+  type RouteSecurityVisitor,
+  matchRouteSecurity,
+  type RateLimitDescriptor,
+  RoutePolicyKind,
+  type RoutePolicyKindSpecification,
+  type RoutePolicyKindRegistry,
+  ROUTE_POLICY_REGISTRY,
+  type RoutePolicyVisitor,
+  matchRoutePolicy,
+  type RoutePolicyDescriptor,
+} from './authAndPolicy';
+
+export {
+  type DomainOperationEntry,
+  type DomainConfigEntry,
+  type DomainIntentConfig,
+  type GroupAliasEntry,
+  type DomainDefinitionEntry,
+  type FrontendConfig,
+  type PagePropEntry,
+  type PageMetaEntry,
+  type PageConfig,
+  type ResourceRouteGroup,
+  type RouteManifest,
+  type ParsedChannel,
+} from './base';
+
+export {
+  type InvalidationTarget,
+  type SelfListInvalidationTarget,
+  type ParentListInvalidationTarget,
+  type ParentDetailInvalidationTarget,
+  type AuthResourceInvalidationTarget,
+  type AnyInvalidationTarget,
+  ScannedInvalidationTarget,
+  type RouteCacheInvalidationDescriptor,
+  ScannedRouteCacheInvalidationDescriptor,
+  ScannedRouteInvalidationPayload,
+} from './cacheInvalidation';
+
+export {
+  BroadcastChannelKind,
+  type BroadcastChannelDescriptor,
+  type PublicBroadcastChannelDescriptor,
+  type PrivateBroadcastChannelDescriptor,
+  type PresenceBroadcastChannelDescriptor,
+  type BroadcastChannelSpecification,
+  type BroadcastChannelRegistry,
+  BROADCAST_CHANNEL_REGISTRY,
+  type BroadcastChannelVisitor,
+  matchBroadcastChannel,
+} from './channels';
+
+export {
+  type EndpointRequestContract,
+  type ItemEndpointRequestContract,
+  type ItemEndpointContract,
+  type EndpointSuccessResponseContract,
+  type EndpointErrorResponseContract,
+  type EndpointContract,
+  ScannedEndpointContract,
+  createEndpointContract,
+  type EndpointResponseVisitor,
+  matchEndpointResponse,
+  getRouteContract,
+  getManifestContractMap,
+} from './contracts';
+
+export {
+  CrudRole,
+  PageEndpointKind,
+  type PageEndpointKindSpecification,
+  type PageEndpointKindRegistry,
+  PAGE_ENDPOINT_REGISTRY,
+  type PageEndpointDescriptor,
+  type PageEndpointVisitor,
+  matchPageEndpoint,
+  RouteHookKind,
+  type BaseRouteHookDescriptor,
+  type QueryHookDescriptor,
+  type MutationHookDescriptor,
+  type InfiniteQueryHookDescriptor,
+  type AnyRouteHookDescriptor,
+  type RouteHookDescriptor,
+  type HookKindSpecification,
+  type HookKindRegistry,
+  HOOK_KIND_REGISTRY,
+  type RouteHookKindVisitor,
+  matchRouteHookKind,
+  matchHookKind,
+  ScannedRouteHookDescriptor,
+  type BaseCrudRoleDescriptor,
+  type IndexCrudRoleDescriptor,
+  type ShowCrudRoleDescriptor,
+  type CreateCrudRoleDescriptor,
+  type UpdateCrudRoleDescriptor,
+  type DeleteCrudRoleDescriptor,
+  type CustomCrudRoleDescriptor,
+  type AnyCrudRoleDescriptor,
+  type CrudRoleSpecification,
+  type CrudRoleRegistry,
+  CRUD_ROLE_REGISTRY,
+  type CrudRoleVisitor,
+  ScannedCrudRoleDescriptor,
+  SdkResponseKind,
+} from './crudRoles';
+
+export {
+  DatabaseColumnKind,
+  type SqlTypeFamily,
+  type DatabaseColumnKindSpecification,
+  type DatabaseColumnKindRegistry,
+  DATABASE_COLUMN_KIND_REGISTRY,
+  type DatabaseColumnKindVisitor,
+  matchDatabaseColumnKind,
+  DatabaseColumnTypeMapper,
+  type ParsedColumn,
+} from './databaseColumns';
+
+export {
+  type ResourceGroupGraph,
+  createResourceGroupGraph,
+  ScannedResourceGroupGraph,
+  type ClassifiedDomainGraph,
+} from './domainGraph';
+
+export {
+  EloquentCastKind,
+  type EloquentCastKindSpecification,
+  type EloquentCastKindRegistry,
+  ELOQUENT_CAST_REGISTRY,
+  type EloquentCastKindVisitor,
+  matchEloquentCastKind,
+  EloquentCastMapper,
+  type ParsedCast,
+  type ParsedAccessor,
+  EloquentRelationType,
+  type EloquentRelationCardinality,
+  type EloquentRelationDescriptor,
+  type EloquentRelationRegistry,
+  ELOQUENT_RELATION_REGISTRY,
+  EloquentRelationClassifier,
+  type ParsedRelation,
+  type SingleRelationDescriptor,
+  type CollectionRelationDescriptor,
+  type RelationCardinalityDescriptor,
+  type RelationCardinalityVisitor,
+  matchRelation,
+  type EloquentRelationTypeVisitor,
+  matchRelationType,
+  ModelKeyType,
+  type ModelKeyTypeSpecification,
+  type ModelKeyTypeRegistry,
+  MODEL_KEY_TYPE_REGISTRY,
+  type ModelKeyTypeVisitor,
+  matchModelKeyType,
+  ModelKeyTypeMapper,
+} from './eloquentTypes';
+
+export {
+  RoutePayloadMode,
+  type BaseRouteExecutionSignature,
+  type NoPayloadExecutionSignature,
+  type RequiredPayloadExecutionSignature,
+  type OptionalPayloadExecutionSignature,
+  type AnyRouteExecutionSignature,
+  type RouteExecutionSignature,
+  type RoutePayloadModeSpecification,
+  type RoutePayloadModeRegistry,
+  ROUTE_PAYLOAD_MODE_REGISTRY,
+  type RouteExecutionSignatureVisitor,
+  matchRouteExecutionSignature,
+  matchRoutePayloadMode,
+  ScannedRouteExecutionSignature,
+} from './executionSignatures';
+
+export {
+  ResourceFieldDescriptor,
+  type ResourceFieldExpression,
+  type AnyResourceFieldExpression,
+  type ResourceFieldExpressionVisitor,
+  matchResourceFieldExpression,
+  matchResourceExpression,
+  ResourceFieldExpressionFactory,
+  type ResourceAssignment,
+  type ParsedResource,
+  type ActionDefinition,
+  type ResourceFieldKind,
+} from './expressions';
+
+export {
+  matchFieldNode,
+  type FieldNodeVisitor,
+} from './fieldCatamorphism';
+
+export {
+  type RouteQueryParameter,
+  type LaravelValidationError,
+  type LaravelUnauthorizedError,
+  type LaravelForbiddenError,
+  type LaravelNotFoundError,
+  type LaravelServerError,
+  HttpErrorKind,
+  type HttpErrorKindSpecification,
+  type HttpErrorKindRegistry,
+  HTTP_ERROR_KIND_REGISTRY,
+  type HttpErrorSchemaRegistry,
+  HTTP_ERROR_SCHEMA_REGISTRY,
+  type HttpErrorVisitor,
+  matchHttpError,
+  type HttpErrorResponseDescriptor,
+  type HttpErrorSchema,
+  type HttpErrorSchemaField,
+} from './httpErrors';
+
+export {
+  HttpMethod,
+  RouteActionKind,
+  type HttpMethodSpecification,
+  type HttpMethodRegistry,
+  HTTP_METHOD_REGISTRY,
+  type HttpMethodVisitor,
+  matchHttpMethod,
+  type RouteActionKindSpecification,
+  type RouteActionKindRegistry,
+  ROUTE_ACTION_KIND_REGISTRY,
+  type RouteActionKindVisitor,
+  matchRouteActionKind,
+  HttpStatusCode,
+  type KnownHttpStatusCode,
+  type HttpStatusCodeCategory,
+  type HttpStatusCodeSpecification,
+  type HttpStatusCodeRegistry,
+  HTTP_STATUS_CODE_REGISTRY,
+  type HttpStatusCodeVisitor,
+  matchHttpStatusCode,
+  RequestContentType,
+  type BaseRequestContentTypeDescriptor,
+  type JsonRequestContentTypeDescriptor,
+  type MultipartRequestContentTypeDescriptor,
+  type UrlEncodedRequestContentTypeDescriptor,
+  type NoneRequestContentTypeDescriptor,
+  type RequestContentTypeDescriptor,
+  type RequestContentTypeSpecification,
+  type RequestContentTypeRegistry,
+  REQUEST_CONTENT_TYPE_REGISTRY,
+  ScannedRequestContentTypeDescriptor,
+  type RequestContentTypeVisitor,
+  matchRequestContentType,
+} from './httpVocabulary';
+
+export {
+  type ParsedModel,
+} from './models';
+
+export {
+  RouteParameterLocation,
+  RouteParameterType,
+  type RouteParameterTypeSpecification,
+  type RouteParameterTypeRegistry,
+  ROUTE_PARAMETER_TYPE_REGISTRY,
+  type RouteParameterTypeVisitor,
+  matchRouteParameterType,
+  type RouteParameter,
+  type RouteParameterBinding,
+  type RouteParameterConstraint,
+  type PathParameterDescriptor,
+  type QueryParameterDescriptor,
+  type HeaderParameterDescriptor,
+  type AnyRouteParameter,
+  type RouteParameterLocationSpecification,
+  type RouteParameterLocationRegistry,
+  PARAMETER_LOCATION_REGISTRY,
+  type RouteParameterVisitor,
+  matchRouteParameter,
+} from './parameters';
+
+export {
+  type PhpAstVisitor,
+  matchPhpAstNode,
+  type PhpAstFolder,
+  foldPhpAstNode,
+} from './phpAst/algebra';
+
+export {
+  type BasePhpAstNode,
+  type PropertyLookupAstNode,
+  type NullsafePropertyLookupAstNode,
+  type OffsetLookupAstNode,
+  type StaticPropertyLookupAstNode,
+  type FunctionCallAstNode,
+  type MethodCallAstNode,
+  type NullsafeMethodCallAstNode,
+  type StaticMethodCallAstNode,
+  type VariableCallAstNode,
+  type NewInstanceAstNode,
+  type ClosureAstNode,
+  type ArrowFuncAstNode,
+} from './phpAst/astMemberNodes';
+
+export {
+  PhpAstKind,
+  type PhpAstCategory,
+  type PhpAstKindSpecification,
+  type PhpAstKindRegistry,
+  PHP_AST_KIND_REGISTRY,
+  type PhpAstKindVisitor,
+  matchPhpAstKind,
+} from './phpAst/kinds';
+
+export {
+  type BinaryAstNode,
+  type UnaryAstNode,
+  type TypeCastAstNode,
+  type TernaryAstNode,
+  type ArrayEntryAstNode,
+  type ArrayAstNode,
+  type LiteralAstNode,
+  type StaticConstantAstNode,
+  type VariableAstNode,
+  type PhpAstNode,
+} from './phpAst/nodes';
+
+export {
+  DataProvenanceKind,
+  type DataProvenanceKindSpecification,
+  type DataProvenanceKindRegistry,
+  DATA_PROVENANCE_REGISTRY,
+  type ProvenanceSourceRef,
+  type DataProvenanceVisitor,
+  matchDataProvenance,
+} from './provenance/dataProvenanceKind';
+
+export {
+  type EndpointProvenanceDescriptor,
+  ScannedEndpointProvenanceDescriptor,
+} from './provenance/endpointProvenance';
+
+export {
+  type HeaderDeclaration,
+  RequestHeaders,
+  type RouteParameterKind,
+  type RouteParameterDescriptor,
+  type RouteParameterEntry,
+  RouteParameters,
+  type RouteQueryEntry,
+  RouteQueryParameters,
+  type PayloadPropertyEntry,
+  RequestPayload,
+  RouteSchemaModel,
+  ResponseSchemaModel,
+  RouteMapperModel,
+} from './requestModels';
+
+export {
+  type ResourceFieldSemantic,
+} from './resourceFieldSemantic';
+
+export {
+  ResourceGroupKind,
+  type ResourceGroupSpecification,
+  type ResourceGroupRegistry,
+  RESOURCE_GROUP_REGISTRY,
+  type AvailableMutation,
+  type AbsentMutation,
+  type MutationCapability as MutationCapabilityType,
+  MutationCapability,
+  type BaseResourceGroupTypeSignature,
+  type FullCrudTypeSignature,
+  type ReadOnlyCrudTypeSignature,
+  type FlexibleCrudTypeSignature,
+  type SingletonTypeSignature,
+  type CustomTypeSignature,
+  type ResourceGroupTypeSignature,
+  type ResourceGroupTypeSignatureParams,
+  ScannedResourceGroupTypeSignature,
+  type ResourceGroupIdentityTrait,
+  type ResourceGroupQueryKeysTrait,
+  type CrudEndpointsTrait,
+  type StrictMutationEndpointsTrait,
+  type FlexibleMutationEndpointsTrait,
+  type ResourceGroupVisitorCapability,
+  type ResourceGroupLoweringTrait,
+  type BaseResourceGroupDescriptor,
+  type BaseCrudResourceGroupDescriptor,
+  type FullCrudResourceGroupDescriptor,
+  type ReadOnlyCrudResourceGroupDescriptor,
+  type FlexibleCrudResourceGroupDescriptor,
+  type CrudResourceGroupDescriptor,
+  type SingletonResourceGroupDescriptor,
+  type CustomResourceGroupDescriptor,
+  type ResourceGroupDescriptor,
+  type BaseResourceGroupParams,
+  type BaseCrudParams,
+  type FullCrudParams,
+  type ReadOnlyCrudParams,
+  type FlexibleCrudParams,
+  type CrudResourceGroupDescriptorParams,
+  type SingletonResourceGroupDescriptorParams,
+  type CustomResourceGroupDescriptorParams,
+  AbstractResourceGroupDescriptor,
+  AbstractCrudResourceGroupDescriptor,
+  ScannedFullCrudResourceGroupDescriptor,
+  ScannedReadOnlyCrudResourceGroupDescriptor,
+  ScannedFlexibleCrudResourceGroupDescriptor,
+  ScannedCrudResourceGroupDescriptor,
+  ScannedSingletonResourceGroupDescriptor,
+  ScannedCustomResourceGroupDescriptor,
+  type ExhaustiveFineGrainedResourceGroupVisitor,
+  type UnifiedCrudResourceGroupVisitor,
+  type ResourceGroupVisitor,
+  matchFineGrainedResourceGroup,
+  matchUnifiedResourceGroup,
+  matchResourceGroup,
+} from './resourceGroupDescriptors';
+
+export {
+  type RouteResponseAnalysis,
+  ResponseDescriptorBase,
+  type ResourceResponseParams,
+  ResourceResponseDescriptor,
+  type ModelResponseParams,
+  ModelResponseDescriptor,
+  VoidResponseDescriptor,
+  type InlineResponseDescriptorParams,
+  InlineResponseDescriptor,
+  ResponseKind,
+  type ResponseDescriptor,
+  type ResponseKindSpecification,
+  type ResponseDescriptorRegistry,
+  RESPONSE_DESCRIPTOR_REGISTRY,
+  type ResponseVisitor,
+  matchResponse,
+} from './responseDescriptors';
+
+export {
+  ResponseShape,
+  type ResponseShapeSpecification,
+  type ResponseShapeRegistry,
+  RESPONSE_SHAPE_REGISTRY,
+  type ResponseShapeVisitor,
+  matchResponseShape,
+  PaginationKind,
+  type BasePaginatedEnvelopeDescriptor,
+  type LengthAwarePaginatedEnvelopeDescriptor,
+  type CursorPaginatedEnvelopeDescriptor,
+  type AnyPaginatedEnvelopeDescriptor,
+  type PaginatedEnvelopeDescriptor,
+  type PaginationKindSpecification,
+  type PaginationKindRegistry,
+  PAGINATION_KIND_REGISTRY,
+  type PaginatedEnvelopeVisitor,
+  matchPaginatedEnvelope,
+  matchPaginationKind,
+  PolymorphicMorphType,
+  type BasePolymorphicRelationDescriptor,
+  type MorphToRelationDescriptor,
+  type MorphOneRelationDescriptor,
+  type MorphManyRelationDescriptor,
+  type MorphToManyRelationDescriptor,
+  type MorphedByManyRelationDescriptor,
+  type PolymorphicRelationDescriptor,
+  type AnyPolymorphicRelationDescriptor,
+  type PolymorphicRelationSpecification,
+  type PolymorphicRelationRegistry,
+  POLYMORPHIC_RELATION_REGISTRY,
+  type PolymorphicRelationVisitor,
+  matchPolymorphicRelation,
+  matchPolymorphicMorphType,
+  type ScannedPaginatedEnvelopeParams,
+  ScannedPaginatedEnvelopeDescriptor,
+  type ScannedPolymorphicRelationParams,
+  ScannedPolymorphicRelationDescriptor,
+} from './responseShapes';
+
+export {
+  type RouteName,
+  type RoutePath,
+  type RouteMiddlewareName,
+  type RouteSchemaEntry,
+  type RouteAssignmentEntry,
+  type StableRouteHash,
+  type RouteEntityIdentityContract,
+  type RouteSecurityContract,
+  type RoutePayloadContract,
+  type RouteEntityProvenanceContract,
+  type RouteDefContract,
+  type RouteDef,
+  type RawRouteDefInput,
+  createRouteName,
+  createRoutePath,
+  createHttpVerb,
+} from './routeEntityDefinition';
+
+export {
+  RouteHandlerKind,
+  type RouteHandlerKindSpecification,
+  type RouteHandlerKindRegistry,
+  ROUTE_HANDLER_KIND_REGISTRY,
+  type BaseRouteHandlerDescriptor,
+  type ControllerActionHandlerDescriptor,
+  type InvokableControllerHandlerDescriptor,
+  type ClosureHandlerDescriptor,
+  type RouteHandlerDescriptor,
+  type RouteHandlerVisitor,
+  matchRouteHandler,
+  type FormRequestDescriptor,
+  ScannedFormRequestDescriptor,
+} from './routeHandlers';
+
+export {
+  type RouteParameterSpecification,
+  type RouteIdentityContract,
+  type RouteProvenanceContract,
+  type RouteBindingContract,
+  type RouteCapabilityContract,
+  type ParsedRoute,
+  type GetCollectionRouteDescriptor,
+  type GetItemRouteDescriptor,
+  type MutationRouteDescriptor,
+  type DeletionRouteDescriptor,
+  type RouteDescriptor,
+  type RouteClassifier,
+  CRUD_DISPATCH_REGISTRY,
+  classifyRoute,
+  type RouteVisitor,
+  RouteDescriptorKind,
+  type RouteKindSpecification,
+  type RouteDescriptorRegistry,
+  ROUTE_DESCRIPTOR_REGISTRY,
+  type RouteCollectionRegistry,
+  ScannedRouteRegistry,
+} from './routes';
+
+export {
+  type SdkResponseResolution,
+  type VoidSdkResponseResolution,
+  type RawSdkResponseResolution,
+  type ValidatedSdkResponseResolution,
+  type MappedSdkResponseResolution,
+  type ValidatedAndMappedSdkResponseResolution,
+  type AnySdkResponseResolution,
+  type SdkResponseKindSpecification,
+  type SdkResponseKindRegistry,
+  SDK_RESPONSE_KIND_REGISTRY,
+  type SdkResponseResolutionVisitor,
+  matchSdkResponseResolution,
+  matchSdkResponse,
+  ScannedSdkResponseResolution,
+} from './sdkResponses';
+
+export {
+  type ModelFieldInfo,
+  type ModelFieldEntry,
+  ModelFieldMap,
+  type ModelRelationInfo,
+  type ModelRelationEntry,
+  ModelRelationMap,
+  type ModelAccessorInfo,
+  type ModelAccessorEntry,
+  ModelAccessorMap,
+  type ModelServiceEntry,
+  ModelServiceMap,
+  type ModelControllerEntry,
+  ModelControllerMap,
+  type ModelNodeEntry,
+  ModelNodeMap,
+  type SemanticModelEntry,
+  SemanticModelMap,
+  type SemanticRelationEntry,
+} from './semanticCollections';
+
+export {
+  type ScalarValidationFieldNode,
+  type ObjectValidationFieldNode,
+  type ValidationFieldFolder,
+  foldValidationField,
+} from './validationFields';
+
+// Root-07 completion: explicit compatibility exports whose canonical modules were
+// already present but were not exposed through the domain boundary.
+export {
+  type EndpointResponseContract,
+} from './contracts';
+
+export {
+  matchRelationCardinality,
+} from './eloquentTypes';
+
+export {
+  ResourceExpressionKind,
+  type ResourceExpressionCategory,
+  type ResourceExpressionSpecification,
+  type ResourceExpressionRegistry,
+  RESOURCE_EXPRESSION_REGISTRY,
+} from './expressions';
+
+export {
+  matchCrudRole,
+} from './crudRoles';
+
+export {
+  InvalidationTargetKind,
+  type InvalidationTargetSpecification,
+  type InvalidationTargetRegistry,
+  INVALIDATION_TARGET_REGISTRY,
+  type InvalidationTargetVisitor,
+  matchInvalidationTarget,
+} from './cacheInvalidation';
+
+export {
+  type ResponseMetadata,
+} from './sdkResponses';
+
+export {
+  matchRoute,
+} from './routes';
+
+export {
+  type ArrayValidationFieldNode,
+  type ValidationFieldNode,
+  ValidationFieldKind,
+  type ValidationFieldSpecification,
+  type ValidationFieldRegistry,
+  VALIDATION_FIELD_REGISTRY,
+  type ValidationFieldVisitor,
+  matchValidationField,
+} from './validationFields';
+
+export {
+  SemanticRelationMap,
+} from './semanticCollections';

@@ -90,13 +90,13 @@ export function bindTernaryField(
         conditionExpression: value.condition.kind,
         truthy: trueBranch.boundAst,
         falsy: falseBranch.boundAst,
-        resultingType: trueBranch.descriptor.semanticType,
+        resultingType: trueBranch.descriptor.semantic.type,
     });
 
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         trueBranch.descriptor.expression,
-        trueBranch.descriptor.semanticType,
+        trueBranch.descriptor.semantic.type,
         toCamelCase(key),
         boundAst
     );

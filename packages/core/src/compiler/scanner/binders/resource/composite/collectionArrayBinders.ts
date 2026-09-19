@@ -94,7 +94,7 @@ export function bindNestedArrayField(
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: childFields.map(field => ({ name: field.name, type: field.semanticType, required: true, nullable: field.semanticType.isNullable(), description: "" })), role: "plain" }),
+        new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: childFields.map(field => ({ name: field.name, type: field.semantic.type, required: true, nullable: field.semantic.type.isNullable(), description: "", origin: { kind: 'derived', reason: 'nested_object' } })), role: "plain" }),
         toCamelCase(key),
         boundAst
     );

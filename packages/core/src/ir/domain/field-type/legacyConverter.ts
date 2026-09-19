@@ -33,5 +33,5 @@ export function convertToLegacyFieldIR(field: OptimizedResourceFieldIR): Resourc
         description: field.description,
         validation: field.validation,
         source: field.source
-    };
+    };;
 }

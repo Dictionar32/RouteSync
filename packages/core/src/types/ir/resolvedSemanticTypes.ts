@@ -1,4 +1,4 @@
-/** Closed semantic ADT. Domain meaning is never carried by free flags. */
+/** Closed semantic ADT. Meaning is carried by typed variants, never by null/fallback flags. */
 import type { SemanticType, PrimitiveKind } from '../../compiler/types/SemanticType';
 import type { ModelName, ResourceName, PropertyName, TypeExpression } from './nominalVocabulary';
 
@@ -7,7 +7,9 @@ export type SemanticBinding =
   | { readonly kind: 'unbound' };
 
 export type SemanticPropertyPresence = 'required' | 'optional';
-export type SemanticFormat = TypeExpression;
+export type SemanticFormat =
+  | { readonly kind: 'none' }
+  | { readonly kind: 'type_expression'; readonly value: TypeExpression };
 
 export interface PrimitiveSemanticTypeIR {
   readonly kind: 'primitive';
@@ -35,11 +37,13 @@ export interface ObjectSemanticProperty {
   readonly presence: SemanticPropertyPresence;
 }
 
-export interface ObjectSemanticTypeIRContract {
+export interface ObjectSemanticTypeIR {
   readonly kind: 'object';
   readonly properties: readonly ObjectSemanticProperty[];
   readonly binding: SemanticBinding;
 }
+
+export type ObjectSemanticTypeIRContract = ObjectSemanticTypeIR;
 
 export interface NullableSemanticTypeIR {
   readonly kind: 'nullable';
@@ -71,7 +75,7 @@ export type ResolvedSemanticType =
   | PrimitiveSemanticTypeIR
   | ResourceSemanticTypeIR
   | ModelSemanticTypeIR
-  | ObjectSemanticTypeIRContract
+  | ObjectSemanticTypeIR
   | ArraySemanticTypeIR
   | UnionSemanticTypeIR
   | NullableSemanticTypeIR

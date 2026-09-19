@@ -11,14 +11,15 @@ import {
     type EloquentCastKind,
     EloquentCastMapper
 } from '../../../../types/route';
-import { PrimitiveType, type PrimitiveKind, type SemanticType } from '../../../types/SemanticType';
+import type { SemanticType } from '../../../types/SemanticType';
+import type { EloquentCastValueType } from '../../../../types/domain/eloquentTypes';
 import { SemanticValueFactory, type ColumnName, type CastTypeName } from '../../../../types/domain/semanticValues';
 
 export interface ScannedModelCastParams {
     readonly column: string;
     readonly targetType: string;
     readonly castKind: EloquentCastKind;
-    readonly semanticType: PrimitiveKind;
+    readonly valueType: EloquentCastValueType;
 }
 
 /**
@@ -28,13 +29,13 @@ export class ScannedModelCastDescriptor implements ParsedCast {
     public readonly column: ColumnName;
     public readonly targetType: CastTypeName;
     public readonly castKind: EloquentCastKind;
-    public readonly semanticType: SemanticType;
+    public readonly valueType: EloquentCastValueType;
 
-    constructor({ column, targetType, castKind, semanticType }: ScannedModelCastParams) {
+    constructor({ column, targetType, castKind, valueType }: ScannedModelCastParams) {
         this.column = SemanticValueFactory.columnName(column);
         this.targetType = SemanticValueFactory.castTypeName(targetType);
         this.castKind = castKind;
-        this.semanticType = new PrimitiveType(semanticType);
+        this.valueType = valueType;
         Object.freeze(this);
     }
 
@@ -44,22 +45,22 @@ export class ScannedModelCastDescriptor implements ParsedCast {
             column,
             targetType,
             castKind: mapped.castKind,
-            semanticType: mapped.semanticType
+            valueType: mapped.valueType
         });
     }
 
     public static fromMapping(
         column: string,
         targetType: string,
-        castKind?: EloquentCastKind,
-        semanticType?: PrimitiveKind
+        castKind: EloquentCastKind,
+        valueType: EloquentCastValueType
     ): ScannedModelCastDescriptor {
         const mapped = EloquentCastMapper.map(targetType);
         return new ScannedModelCastDescriptor({
             column,
             targetType,
-            castKind: castKind ?? mapped.castKind,
-            semanticType: semanticType ?? mapped.semanticType
+            castKind,
+            valueType
         });
     }
 }

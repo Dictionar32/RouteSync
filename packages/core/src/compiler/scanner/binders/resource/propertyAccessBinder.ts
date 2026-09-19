@@ -27,7 +27,7 @@ export function bindPropertyAccessField(
             const boundAst = BoundSemanticFactory.modelColumn({
                 model: modelSymbol.name,
                 column: prop,
-                dbType: binding.source.type,
+                dbType: binding.source.origin.databaseType,
                 castType: null,
                 semanticType
             });
@@ -60,19 +60,17 @@ export function bindPropertyAccessField(
         }
         case 'relation': {
             const semanticType = applyNullsafe(binding.semanticType, isNullsafe);
-            const cardinality = binding.source.cardinality === 'many'
-                ? { kind: 'collection' as const }
-                : { kind: 'single' as const };
+            const cardinality = binding.source.origin.multiplicity;
             const boundAst = BoundSemanticFactory.relation({
                 sourceModel: modelSymbol.name,
                 relationName: prop,
-                relationType: binding.source.type,
-                targetModel: binding.source.targetModel,
+                relationType: binding.source.origin.relationType,
+                targetModel: binding.source.origin.targetModel,
                 cardinality,
                 nullability: toNullability(semanticType)
             });
             const expression = ResourceFieldExpressionFactory.resource(
-                { kind: 'resource_name', value: binding.source.targetModel },
+                { kind: 'resource_name', value: binding.source.origin.targetModel.value },
                 cardinality
             );
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(

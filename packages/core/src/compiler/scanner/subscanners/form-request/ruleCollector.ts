@@ -67,7 +67,8 @@ export function partitionValidationRules(
         name: childKey,
         type: semanticType,
         required: isRequired,
-        nullable: isNullable
+        nullable: isNullable,
+        origin: { kind: 'validation_field', field: childKey }
       }));
     } else if (key.endsWith('.*')) {
       const baseKey = key.slice(0, -2);

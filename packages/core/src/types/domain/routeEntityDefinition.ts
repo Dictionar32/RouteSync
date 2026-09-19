@@ -1,25 +1,56 @@
 /**
- * routeEntityDefinition.ts
- *
- * RouteDef domain definition and Level 7 Subatomic Complete Contract.
- * Zero sentinel undefined, zero null, zero optional fields (0% porosity).
- *
- * @module core/types/domain
+ * Canonical route entity vocabulary.
+ * Raw scanner values are converted once at this boundary; downstream receives
+ * only semantic values and explicit collections.
  */
 
 import type { FieldNode } from '../field';
-
-import type { RoutePath, RouteName, ControllerName, SourceFilePath, SourceLineNumber } from '../ir/nominalVocabulary';
+import {
+  SemanticValueFactory,
+  type RouteName,
+  type RoutePath,
+  type PropertyName,
+  type SourceFilePath,
+  type SourceLineNumber,
+} from './semanticValues';
 import type { HttpMethod } from './httpVocabulary';
+
+export type { RouteName, RoutePath, PropertyName, SourceFilePath, SourceLineNumber };
 
 export type HttpVerb = HttpMethod;
 export type HttpStatus = 200 | 201 | 204 | 301 | 302 | 400 | 401 | 403 | 404 | 422 | 500;
+
+export interface RouteMiddlewareName {
+  readonly kind: 'route_middleware_name';
+  readonly value: PropertyName;
+}
+
+export interface RouteSchemaEntry {
+  readonly kind: 'route_schema_entry';
+  readonly name: PropertyName;
+  readonly value: FieldNode;
+}
+
+export interface RouteAssignmentEntry {
+  readonly kind: 'route_assignment_entry';
+  readonly name: PropertyName;
+  readonly value: FieldNode;
+}
+
+export interface StableRouteHash {
+  readonly kind: 'stable_route_hash';
+  readonly value: string;
+}
 
 export function createRoutePath(path: string): RoutePath {
   if (!path.startsWith('/')) {
     throw new Error(`Route path must start with '/': ${path}`);
   }
-  return path as RoutePath;
+  return SemanticValueFactory.routePath(path);
+}
+
+export function createRouteName(name: string): RouteName {
+  return SemanticValueFactory.routeName(name);
 }
 
 export function createHttpVerb(verb: string): HttpVerb {
@@ -38,7 +69,7 @@ export function createHttpVerb(verb: string): HttpVerb {
   }
 }
 
-export interface RouteIdentityContract {
+export interface RouteEntityIdentityContract {
   readonly name: RouteName;
   readonly method: HttpVerb;
   readonly path: RoutePath;
@@ -46,34 +77,31 @@ export interface RouteIdentityContract {
 
 export interface RouteSecurityContract {
   readonly auth: boolean;
-  readonly middleware: readonly string[];
+  readonly middleware: readonly RouteMiddlewareName[];
 }
 
 export interface RoutePayloadContract {
-  readonly schemaEntries: readonly (readonly [string, unknown])[];
+  readonly schemaEntries: readonly RouteSchemaEntry[];
   readonly response: FieldNode;
-  readonly assignments: readonly (readonly [string, string])[];
+  readonly assignments: readonly RouteAssignmentEntry[];
 }
 
-export interface RouteProvenanceContract {
-  readonly stableHash: string;
+export interface RouteEntityProvenanceContract {
+  readonly stableHash: StableRouteHash;
   readonly sourceFile: SourceFilePath;
   readonly sourceLine: SourceLineNumber;
 }
 
-/**
- * Level 7 Complete Guaranteed Contract for RouteDef (0 undefined, 0 null, 0 ?:).
- */
 export interface RouteDefContract {
-  readonly identity: RouteIdentityContract;
+  readonly identity: RouteEntityIdentityContract;
   readonly security: RouteSecurityContract;
   readonly payload: RoutePayloadContract;
-  readonly provenance: RouteProvenanceContract;
+  readonly provenance: RouteEntityProvenanceContract;
 }
 
 /**
- * RawRouteDefInput is the unvalidated boundary representation.
- * It is intentionally separate from the canonical RouteDef contract.
+ * Unvalidated scanner boundary. It is intentionally explicit rather than a
+ * generic Record so the route descriptor can preserve field meaning.
  */
 export interface RawRouteDefInput {
   readonly name: string;
@@ -81,16 +109,12 @@ export interface RawRouteDefInput {
   readonly path: string;
   readonly auth: boolean;
   readonly middleware: readonly string[];
-  readonly schema: Record<string, unknown>;
+  readonly schema: readonly RouteSchemaEntry[];
   readonly response: FieldNode;
-  readonly assignments: Record<string, string>;
+  readonly assignments: readonly RouteAssignmentEntry[];
   readonly stableHash: string;
   readonly sourceFile: SourceFilePath;
   readonly sourceLine: SourceLineNumber;
 }
 
-/**
- * Canonical RouteDef. All semantic absence is represented by the nested ADT
- * contracts above, never by optional or nullable fields.
- */
 export type RouteDef = RouteDefContract;

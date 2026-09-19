@@ -6,37 +6,32 @@
  * @module compiler/compatibility/boundary
  */
 
-import type {
-    ResolvedPrimitive,
-    ResolvedSemanticType
-} from '../../types/ResolvedSemanticType';
-import type { SemanticType } from '../../../types/semantic';
+import type { ResolvedSemanticType } from '../../domain/common/resolved-types';
+import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../types/SemanticType';
+import { ResolvedPrimitiveType, ResolvedUnionType } from '../../domain/common/resolved-types';
 import { type LegacyContractValue, ContractInputBoundaryError } from './types';
 
-export function resolveLegacyPrimitive(value: SemanticType): ResolvedPrimitive {
-    switch (value) {
-        case 'string':
-            return 'string';
-
-        case 'number':
-            return 'number';
-
-        case 'boolean':
-            return 'boolean';
-
-        case 'datetime':
-            return 'datetime';
-
-        case 'unknown':
-            return 'unknown';
-
-        default:
-            throw new ContractInputBoundaryError(
-                `Semantic type "${value}" cannot be represented as a compiler primitive.`
-            );
+export function resolveLegacyPrimitive(value: SemanticType): ResolvedPrimitiveType {
+    if (value instanceof PrimitiveType) {
+        switch (value.type) {
+            case PrimitiveKind.STRING:
+                return ResolvedPrimitiveType.string();
+            case PrimitiveKind.NUMBER:
+                return ResolvedPrimitiveType.number();
+            case PrimitiveKind.BOOLEAN:
+                return ResolvedPrimitiveType.boolean();
+            case PrimitiveKind.DATETIME:
+                return ResolvedPrimitiveType.datetime();
+            case PrimitiveKind.UNKNOWN:
+                return ResolvedPrimitiveType.unknown();
+            case PrimitiveKind.FILE:
+                return ResolvedPrimitiveType.file();
+        }
     }
+    throw new ContractInputBoundaryError(
+        'Semantic type cannot be represented as a legacy primitive.'
+    );
 }
-
 export function resolveLegacyUnion(
     values: readonly LegacyContractValue[],
     resolveItem: (v: LegacyContractValue) => ResolvedSemanticType
@@ -49,12 +44,9 @@ export function resolveLegacyUnion(
 
     const [first, second, ...rest] = values;
 
-    return {
-        kind: 'union',
-        types: [
-            resolveItem(first),
-            resolveItem(second),
-            ...rest.map((value) => resolveItem(value)),
-        ],
-    };
+    return ResolvedUnionType.of([
+        resolveItem(first),
+        resolveItem(second),
+        ...rest.map((value) => resolveItem(value)),
+    ]);
 }

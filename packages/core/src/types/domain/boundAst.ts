@@ -25,6 +25,7 @@ import type {
 } from './semanticValues';
 import type { SemanticType as CompilerSemanticType } from '../../compiler/types/SemanticType';
 import type { EloquentRelationType } from './eloquentTypes';
+import type { QueryProjectionSurface } from './semanticResolution';
 
 export type BoundSemanticKind =
   | 'bound_primitive'
@@ -180,7 +181,7 @@ export interface BoundMethodCallNode {
 export interface BoundQueryProjectionNode {
   readonly kind: 'bound_query_projection';
   readonly sourceModel: ModelName;
-  readonly fields: readonly (readonly [ResponseFieldName, SemanticType])[];
+  readonly surface: QueryProjectionSurface;
   readonly cardinality: BoundCardinality;
   readonly nullability: BoundNullability;
 }
@@ -400,14 +401,14 @@ export const BoundSemanticFactory = Object.freeze({
   },
   queryProjection(params: {
     readonly sourceModel: ModelName;
-    readonly fields: readonly (readonly [ResponseFieldName, SemanticType])[];
+    readonly surface: QueryProjectionSurface;
     readonly cardinality: BoundCardinality;
     readonly nullability: BoundNullability;
   }): BoundQueryProjectionNode {
     return Object.freeze({
       kind: 'bound_query_projection',
       sourceModel: params.sourceModel,
-      fields: params.fields,
+      surface: params.surface,
       cardinality: params.cardinality,
       nullability: params.nullability,
     });

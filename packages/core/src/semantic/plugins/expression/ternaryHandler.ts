@@ -1,20 +1,22 @@
 import type { SemanticResolution, SemanticTraceNode } from '../../../types/domain/semanticResolution';
-import type { ResolutionContext, ResolverMeta, ModelNode } from '../../types';
+import type { ResolutionContext, ResolverMeta } from '../../types';
+import type { ResolutionScope } from '../../resolutionScope';
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { semanticResolutionToBoundType } from '../../semanticResolutionToBoundType';
+import { resolveInScope } from '../../kernel/resolveInScope';
 
 export function resolveTernary(
   meta: ResolverMeta,
   context: ResolutionContext,
-  currentModel?: ModelNode,
+  scope: ResolutionScope,
 ): SemanticResolution {
   if (meta.kind !== 'ternary') return unknown('Invalid ternary metadata');
 
-  const condition = context.kernel.resolve(meta.condition, currentModel);
-  const truthy = context.kernel.resolve(meta.truthy, currentModel);
-  const falsy = context.kernel.resolve(meta.falsy, currentModel);
+  const condition = resolveInScope(context.kernel, meta.condition, scope);
+  const truthy = resolveInScope(context.kernel, meta.truthy, scope);
+  const falsy = resolveInScope(context.kernel, meta.falsy, scope);
   const trace: readonly SemanticTraceNode[] = [
     ...condition.trace,
     ...truthy.trace,

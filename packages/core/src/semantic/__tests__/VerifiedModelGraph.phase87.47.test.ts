@@ -16,6 +16,7 @@ function model(): ParsedModel {
     incrementing: true,
     softDeletes: false,
     timestamps: true,
+    properties: [],
     columns: [{
       name: 'id',
       propertyName: 'id',

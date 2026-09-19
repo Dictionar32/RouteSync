@@ -3,6 +3,8 @@ import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import { ModelSymbol } from '../SymbolTable';
 import { BoundSemanticFactory } from '../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../types/domain/semanticValues';
+import { modelScope } from '../resolutionScope';
+import { resolveInScope } from '../kernel/resolveInScope';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
 import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
 import type { ParsedColumn } from '../../types/domain/databaseColumns';
@@ -33,7 +35,7 @@ export class ModelColumnResolver implements ResolverPlugin {
     if (column) return this.resolveColumn(symbol, meta.column.value, column, context);
 
     const accessor = symbol.accessor(meta.column.value);
-    if (accessor) return context.kernel.resolve({ kind: 'model_accessor', model: SemanticValueFactory.modelName(symbol.name), column: SemanticValueFactory.columnName(meta.column.value) }, symbol.node);
+    if (accessor) return resolveInScope(context.kernel, { kind: 'model_accessor', model: SemanticValueFactory.modelName(symbol.name), column: SemanticValueFactory.columnName(meta.column.value) }, modelScope(symbol.node));
 
     return unknown(`Property ${meta.column} not found on model ${symbol.name}`);
   }

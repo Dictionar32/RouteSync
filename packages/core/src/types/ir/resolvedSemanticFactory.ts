@@ -1,67 +1,49 @@
-/**
- * resolvedSemanticFactory.ts
- *
- * Strict Frozen Factory for ResolvedSemanticType ADT variants.
- * Guarantees Object.freeze immutability & Rule 14 (<= 100 lines).
- *
- * @module core/types/ir/resolvedSemanticFactory
- */
-
+/** Frozen constructors for the closed ResolvedSemanticType ADT. */
 import type { PrimitiveKind } from '../../compiler/types/SemanticType';
+import type { ModelName, PropertyName, ResourceName, TypeExpression } from './nominalVocabulary';
 import type {
-    PrimitiveSemanticTypeIR,
-    ResourceSemanticTypeIR,
-    ModelSemanticTypeIR,
-    ObjectSemanticTypeIR,
-    ArraySemanticTypeIR,
-    NullableSemanticTypeIR,
-    UnionSemanticTypeIR,
-    LiteralSemanticTypeIR,
-    ObjectSemanticProperty,
-    ResolvedSemanticType,
-    ResolvedSemanticMeta
+  PrimitiveSemanticTypeIR, ResourceSemanticTypeIR, ModelSemanticTypeIR,
+  ObjectSemanticTypeIR, ArraySemanticTypeIR, NullableSemanticTypeIR,
+  UnionSemanticTypeIR, LiteralSemanticTypeIR, ObjectSemanticProperty,
+  ResolvedSemanticType, SemanticBinding, SemanticFormat
 } from './resolvedSemanticTypes';
 
-const bound = (resolved: ResolvedSemanticMeta): ResolvedSemanticMeta =>
-    Object.freeze(resolved);
+const unbound: SemanticBinding = Object.freeze({ kind: 'unbound' });
+const formatNone: SemanticFormat = Object.freeze({ kind: 'none' });
 
-const unbound = (): ResolvedSemanticMeta =>
-    Object.freeze({ isBound: false });
-
-const resolveMeta = (resolved: ResolvedSemanticMeta | undefined): ResolvedSemanticMeta =>
-    bound(resolved === undefined ? unbound() : resolved);
-
+const formatOf = (value: TypeExpression | undefined): SemanticFormat =>
+  value === undefined ? formatNone : Object.freeze({ kind: 'type_expression', value });
 
 export class ResolvedSemanticTypeFactory {
-    static primitive(type: PrimitiveKind, format: string | null = null, resolved?: ResolvedSemanticMeta): PrimitiveSemanticTypeIR {
-        return Object.freeze({ kind: 'primitive', type, format, resolved: resolveMeta(resolved) });
-    }
+  static primitive(type: PrimitiveKind, format?: TypeExpression): PrimitiveSemanticTypeIR {
+    return Object.freeze({ kind: 'primitive', type, format: formatOf(format), binding: unbound });
+  }
 
-    static resource(resource: string, collection = false, resolved?: ResolvedSemanticMeta): ResourceSemanticTypeIR {
-        return Object.freeze({ kind: 'resource', resource, collection, resolved: resolveMeta(resolved) });
-    }
+  static resource(resource: ResourceName, cardinality: 'single' | 'collection' = 'single'): ResourceSemanticTypeIR {
+    return Object.freeze({ kind: 'resource', resource, cardinality, binding: unbound });
+  }
 
-    static model(model: string, resolved?: ResolvedSemanticMeta): ModelSemanticTypeIR {
-        return Object.freeze({ kind: 'model', model, resolved: resolveMeta(resolved) });
-    }
+  static model(model: ModelName): ModelSemanticTypeIR {
+    return Object.freeze({ kind: 'model', model, binding: unbound });
+  }
 
-    static object(properties: readonly ObjectSemanticProperty[], resolved?: ResolvedSemanticMeta): ObjectSemanticTypeIR {
-        return Object.freeze({ kind: 'object', properties: Object.freeze([...properties]), resolved: resolveMeta(resolved) });
-    }
+  static object(properties: readonly ObjectSemanticProperty[]): ObjectSemanticTypeIR {
+    return Object.freeze({ kind: 'object', properties: Object.freeze([...properties]), binding: unbound });
+  }
 
-    static nullable(innerType: ResolvedSemanticType, resolved?: ResolvedSemanticMeta): NullableSemanticTypeIR {
-        return Object.freeze({ kind: 'nullable', innerType, resolved: resolveMeta(resolved) });
-    }
+  static nullable(innerType: ResolvedSemanticType): NullableSemanticTypeIR {
+    return Object.freeze({ kind: 'nullable', innerType, binding: unbound });
+  }
 
-    static array(items: ResolvedSemanticType, resolved?: ResolvedSemanticMeta): ArraySemanticTypeIR {
-        return Object.freeze({ kind: 'array', items, resolved: resolveMeta(resolved) });
-    }
+  static array(items: ResolvedSemanticType): ArraySemanticTypeIR {
+    return Object.freeze({ kind: 'array', items, binding: unbound });
+  }
 
-    static union(types: readonly ResolvedSemanticType[], resolved?: ResolvedSemanticMeta): UnionSemanticTypeIR {
-        return Object.freeze({ kind: 'union', types: Object.freeze([...types]), resolved: resolveMeta(resolved) });
-    }
+  static union(types: readonly ResolvedSemanticType[]): UnionSemanticTypeIR {
+    return Object.freeze({ kind: 'union', types: Object.freeze([...types]), binding: unbound });
+  }
 
-    static literal(value: string | number | boolean, resolved?: ResolvedSemanticMeta): LiteralSemanticTypeIR {
-        return Object.freeze({ kind: 'literal', value, resolved: resolveMeta(resolved) });
-    }
+  static literal(value: string | number | boolean): LiteralSemanticTypeIR {
+    return Object.freeze({ kind: 'literal', value, binding: unbound });
+  }
 }

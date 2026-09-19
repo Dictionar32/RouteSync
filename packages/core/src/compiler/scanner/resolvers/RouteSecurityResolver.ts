@@ -14,6 +14,7 @@ import {
     RoutePolicyKind,
     RateLimitDescriptor
 } from "../../../types/route";
+import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 
 export interface RouteSecurityResolution {
     readonly security: RouteSecurityDescriptor;
@@ -37,27 +38,32 @@ export class RouteSecurityResolver {
             const trimmed = m.trim();
             if (trimmed.startsWith("can:")) {
                 const parts = trimmed.slice(4).split(",");
-                const ability = parts[0]?.trim() || "";
-                const secondPart = parts[1]?.trim();
-                const modelParameter = secondPart && secondPart.length > 0 ? secondPart : null;
-                policies.push(Object.freeze({
-                    ability,
-                    modelParameter,
-                    kind: modelParameter ? RoutePolicyKind.AbilityModel : RoutePolicyKind.Gate
-                }));
+                const ability = parts[0].trim();
+                const modelParameter = parts[1]?.trim();
+                policies.push(modelParameter && modelParameter.length > 0
+                    ? Object.freeze({
+                        ability: SemanticValueFactory.abilityName(ability),
+                        modelParameter: SemanticValueFactory.propertyName(modelParameter),
+                        kind: RoutePolicyKind.AbilityModel
+                    })
+                    : Object.freeze({
+                        ability: SemanticValueFactory.abilityName(ability),
+                        modelParameter: { kind: 'none' as const },
+                        kind: RoutePolicyKind.Gate
+                    }));
             } else if (trimmed.startsWith("role:")) {
                 const roles = trimmed.slice(5).split(",").map(r => r.trim()).filter(Boolean);
                 for (const role of roles) {
                     policies.push(Object.freeze({
-                        ability: `role:${role}`,
-                        modelParameter: null,
+                        ability: SemanticValueFactory.abilityName(`role:${role}`),
+                        modelParameter: { kind: 'none' as const },
                         kind: RoutePolicyKind.Gate
                     }));
                 }
             } else if (trimmed === "admin" || trimmed === "superadmin") {
                 policies.push(Object.freeze({
-                    ability: `role:${trimmed}`,
-                    modelParameter: null,
+                    ability: SemanticValueFactory.abilityName(`role:${trimmed}`),
+                    modelParameter: { kind: 'none' as const },
                     kind: RoutePolicyKind.Gate
                 }));
             } else if (trimmed.toLowerCase().startsWith("throttle:")) {

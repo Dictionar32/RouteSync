@@ -156,13 +156,13 @@ export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.
   create: (route): MutationRouteDescriptor => ({
     ...route,
     kind: 'mutation',
-    method: route.method as 'POST' | 'PUT' | 'PATCH',
+    method: route.identity.method as 'POST' | 'PUT' | 'PATCH',
   }),
 
   update: (route): MutationRouteDescriptor => ({
     ...route,
     kind: 'mutation',
-    method: route.method as 'POST' | 'PUT' | 'PATCH',
+    method: route.identity.method as 'POST' | 'PUT' | 'PATCH',
   }),
 
   delete: (route): DeletionRouteDescriptor => ({
@@ -177,7 +177,7 @@ export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.
       [RouteHookKind.Mutation]: CRUD_DISPATCH_REGISTRY.create,
       [RouteHookKind.InfiniteQuery]: CRUD_DISPATCH_REGISTRY.index,
     };
-    return CUSTOM_DISPATCH[route.hookKind](route);
+    return CUSTOM_DISPATCH[route.capability.hookKind](route);
   },
 });
 
@@ -185,7 +185,7 @@ export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.
  * 0 `if` Classifier: Mengonversi ParsedRoute menjadi RouteDescriptor ADT utuh
  */
 export const classifyRoute = (route: ParsedRoute): RouteDescriptor =>
-  CRUD_DISPATCH_REGISTRY[route.crudRole](route);
+  CRUD_DISPATCH_REGISTRY[route.capability.crudRole](route);
 
 export interface RouteVisitor<R> {
   readonly get_collection: (desc: GetCollectionRouteDescriptor) => R;

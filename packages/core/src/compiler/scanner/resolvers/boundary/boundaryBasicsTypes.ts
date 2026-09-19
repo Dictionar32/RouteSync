@@ -39,7 +39,7 @@ export interface RouteBoundaryCommonOptions {
     readonly runtimePath?: string;
     readonly groupName?: string;
     readonly schema: RouteSchemaPayload;
-    readonly formRequests: readonly (string | FormRequestDescriptor)[];
+    readonly formRequests: readonly FormRequestDescriptor[];
 }
 
 export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOptions {

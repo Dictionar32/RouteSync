@@ -12,16 +12,16 @@ export function semanticResolutionToBoundType(resolution: SemanticResolution): S
       name: 'AnonymousObject',
       baseName: 'AnonymousObject',
       role: 'plain',
-      properties: value.fields.map(([name, type]) => ScannedObjectProperty.create({
-        name: name.value, type, required: true,
+      properties: value.fields.map(field => ScannedObjectProperty.create({
+        name: field.name.value, type: field.type, required: true, origin: { kind: 'derived', reason: 'semantic_resolution' },
       })),
     }),
     query_projection: value => ObjectType.create({
       name: 'QueryProjection',
       baseName: 'QueryProjection',
       role: 'plain',
-      properties: value.fields.map(([name, type]) => ScannedObjectProperty.create({
-        name: name.value, type, required: true,
+      properties: value.surface.fields.map(field => ScannedObjectProperty.create({
+        name: field.name.value, type: field.type, required: true, origin: { kind: 'derived', reason: 'semantic_resolution' },
       })),
     }),
     unknown: () => new PrimitiveType(PrimitiveKind.UNKNOWN),

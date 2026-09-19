@@ -26,7 +26,8 @@ export function convertSemanticToTypeIR(
             object: o => SemanticTypeResolvers.resolveObject(o, (type) => convertSemanticToTypeIR(type, diagnostics)),
             array: a => SemanticTypeResolvers.resolveArray(a, (type) => convertSemanticToTypeIR(type, diagnostics)),
             union: u => SemanticTypeResolvers.resolveUnion(u, (type) => convertSemanticToTypeIR(type, diagnostics)),
-            literal: l => SemanticTypeResolvers.resolveLiteral(l)
+            literal: l => SemanticTypeResolvers.resolveLiteral(l),
+            nullable: n => SemanticTypeResolvers.resolveNullable(n, (type) => convertSemanticToTypeIR(type, diagnostics))
         });
     } catch (error) {
         diagnostics.error(`Error resolving semantic type: ${error}`, { semanticType, error });

@@ -447,9 +447,8 @@ export function matchHttpStatusCode<R>(
 
 
 /**
- * RequestContentType
- *
- * Canonical Domain Vocabulary for HTTP Request Payloads.
+ * Request content-type vocabulary.
+ * The literal wire values remain available through the MIME ADT.
  */
 export const RequestContentType = Object.freeze({
   Json: 'application/json',
@@ -467,7 +466,7 @@ export type RequestMimeType =
   | { readonly kind: 'none' };
 
 export type RequestHeaderExpression =
-  | { readonly kind: 'content_type'; readonly value: string }
+  | { readonly kind: 'content_type'; readonly value: RequestMimeType }
   | { readonly kind: 'none' };
 
 export interface BaseRequestContentTypeDescriptor {
@@ -479,21 +478,21 @@ export interface BaseRequestContentTypeDescriptor {
 
 export interface JsonRequestContentTypeDescriptor extends BaseRequestContentTypeDescriptor {
   readonly kind: 'application/json';
-  readonly mimeType: 'application/json';
+  readonly mimeType: { readonly kind: 'json'; readonly value: 'application/json' };
   readonly isBinary: false;
   readonly hasPayload: true;
 }
 
 export interface MultipartRequestContentTypeDescriptor extends BaseRequestContentTypeDescriptor {
   readonly kind: 'multipart/form-data';
-  readonly mimeType: 'multipart/form-data';
+  readonly mimeType: { readonly kind: 'multipart'; readonly value: 'multipart/form-data' };
   readonly isBinary: true;
   readonly hasPayload: true;
 }
 
 export interface UrlEncodedRequestContentTypeDescriptor extends BaseRequestContentTypeDescriptor {
   readonly kind: 'application/x-www-form-urlencoded';
-  readonly mimeType: 'application/x-www-form-urlencoded';
+  readonly mimeType: { readonly kind: 'urlencoded'; readonly value: 'application/x-www-form-urlencoded' };
   readonly isBinary: false;
   readonly hasPayload: true;
 }
@@ -519,9 +518,6 @@ export interface RequestContentTypeSpecification<K extends RequestContentType = 
   readonly headerExpression: RequestHeaderExpression;
 }
 
-/**
- * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key RequestContentType.
- */
 export type RequestContentTypeRegistry = {
   readonly [K in RequestContentType]: RequestContentTypeSpecification<K>;
 };
@@ -529,37 +525,37 @@ export type RequestContentTypeRegistry = {
 export const REQUEST_CONTENT_TYPE_REGISTRY: RequestContentTypeRegistry = Object.freeze({
   [RequestContentType.Json]: {
     kind: RequestContentType.Json,
-    mimeType: 'application/json',
+    mimeType: { kind: 'json', value: 'application/json' },
     isBinary: false,
     hasPayload: true,
-    headerExpression: "'Content-Type': 'application/json'"
+    headerExpression: { kind: 'content_type', value: { kind: 'json', value: 'application/json' } }
   },
   [RequestContentType.Multipart]: {
     kind: RequestContentType.Multipart,
-    mimeType: 'multipart/form-data',
+    mimeType: { kind: 'multipart', value: 'multipart/form-data' },
     isBinary: true,
     hasPayload: true,
-    headerExpression: "'Content-Type': 'multipart/form-data'"
+    headerExpression: { kind: 'content_type', value: { kind: 'multipart', value: 'multipart/form-data' } }
   },
   [RequestContentType.UrlEncoded]: {
     kind: RequestContentType.UrlEncoded,
-    mimeType: 'application/x-www-form-urlencoded',
+    mimeType: { kind: 'urlencoded', value: 'application/x-www-form-urlencoded' },
     isBinary: false,
     hasPayload: true,
-    headerExpression: "'Content-Type': 'application/x-www-form-urlencoded'"
+    headerExpression: { kind: 'content_type', value: { kind: 'urlencoded', value: 'application/x-www-form-urlencoded' } }
   },
   [RequestContentType.None]: {
     kind: RequestContentType.None,
-    mimeType: null,
+    mimeType: { kind: 'none' },
     isBinary: false,
     hasPayload: false,
-    headerExpression: null
+    headerExpression: { kind: 'none' }
   }
 });
 
 export class ScannedRequestContentTypeDescriptor implements BaseRequestContentTypeDescriptor {
   public readonly kind: RequestContentType;
-  public readonly mimeType: string | null;
+  public readonly mimeType: RequestMimeType;
   public readonly isBinary: boolean;
   public readonly hasPayload: boolean;
 
@@ -572,31 +568,23 @@ export class ScannedRequestContentTypeDescriptor implements BaseRequestContentTy
   }
 
   public static json(): JsonRequestContentTypeDescriptor {
-    return new ScannedRequestContentTypeDescriptor(
-      REQUEST_CONTENT_TYPE_REGISTRY[RequestContentType.Json]
-    ) as JsonRequestContentTypeDescriptor;
+    return ScannedRequestContentTypeDescriptor.fromKind(RequestContentType.Json) as JsonRequestContentTypeDescriptor;
   }
 
   public static multipart(): MultipartRequestContentTypeDescriptor {
-    return new ScannedRequestContentTypeDescriptor(
-      REQUEST_CONTENT_TYPE_REGISTRY[RequestContentType.Multipart]
-    ) as MultipartRequestContentTypeDescriptor;
+    return ScannedRequestContentTypeDescriptor.fromKind(RequestContentType.Multipart) as MultipartRequestContentTypeDescriptor;
   }
 
   public static urlEncoded(): UrlEncodedRequestContentTypeDescriptor {
-    return new ScannedRequestContentTypeDescriptor(
-      REQUEST_CONTENT_TYPE_REGISTRY[RequestContentType.UrlEncoded]
-    ) as UrlEncodedRequestContentTypeDescriptor;
+    return ScannedRequestContentTypeDescriptor.fromKind(RequestContentType.UrlEncoded) as UrlEncodedRequestContentTypeDescriptor;
   }
 
   public static none(): NoneRequestContentTypeDescriptor {
-    return new ScannedRequestContentTypeDescriptor(
-      REQUEST_CONTENT_TYPE_REGISTRY[RequestContentType.None]
-    ) as NoneRequestContentTypeDescriptor;
+    return ScannedRequestContentTypeDescriptor.fromKind(RequestContentType.None) as NoneRequestContentTypeDescriptor;
   }
 
   public static fromKind(kind: RequestContentType): RequestContentTypeDescriptor {
-    const spec = REQUEST_CONTENT_TYPE_REGISTRY[kind] ?? REQUEST_CONTENT_TYPE_REGISTRY[RequestContentType.None];
+    const spec = REQUEST_CONTENT_TYPE_REGISTRY[kind];
     return new ScannedRequestContentTypeDescriptor(spec) as RequestContentTypeDescriptor;
   }
 }
@@ -608,20 +596,12 @@ export interface RequestContentTypeVisitor<R> {
   readonly none: (desc: NoneRequestContentTypeDescriptor) => R;
 }
 
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik RequestContentType dengan exhaustive type safety
- */
 export function matchRequestContentType<R>(
-  contentType: RequestContentType | RequestContentTypeDescriptor,
+  contentType: RequestContentTypeDescriptor,
   visitor: RequestContentTypeVisitor<R>
 ): R {
-  const kind: RequestContentType = typeof contentType === 'string' ? contentType : contentType.kind;
-  const descriptor = ScannedRequestContentTypeDescriptor.fromKind(kind);
-  const DISPATCH: Record<RequestContentType, (d: any) => R> = {
-    [RequestContentType.Json]: visitor.json,
-    [RequestContentType.Multipart]: visitor.multipart,
-    [RequestContentType.UrlEncoded]: visitor.urlEncoded,
-    [RequestContentType.None]: visitor.none
-  };
-  return DISPATCH[kind](descriptor);
+  if (contentType.kind === RequestContentType.Json) return visitor.json(contentType);
+  if (contentType.kind === RequestContentType.Multipart) return visitor.multipart(contentType);
+  if (contentType.kind === RequestContentType.UrlEncoded) return visitor.urlEncoded(contentType);
+  return visitor.none(contentType);
 }

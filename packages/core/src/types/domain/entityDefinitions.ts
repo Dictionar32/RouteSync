@@ -8,13 +8,21 @@
  */
 
 export type {
+  RouteName,
   RoutePath,
+  PropertyName,
+  SourceFilePath,
+  SourceLineNumber,
+  RouteMiddlewareName,
+  RouteSchemaEntry,
+  RouteAssignmentEntry,
+  StableRouteHash,
   HttpVerb,
   HttpStatus,
-  RouteIdentityContract,
+  RouteEntityIdentityContract,
   RouteSecurityContract,
   RoutePayloadContract,
-  RouteProvenanceContract,
+  RouteEntityProvenanceContract,
   RouteDefContract,
   RouteDef,
   RawRouteDefInput
@@ -22,6 +30,7 @@ export type {
 
 export {
   createRoutePath,
+  createRouteName,
   createHttpVerb
 } from './routeEntityDefinition';
 
@@ -34,10 +43,14 @@ export type {
   ColumnDefinition,
   ModelRelationDefinitionContract,
   ModelRelationDefinition,
+  ModelSemanticDefinitionContract,
+  ModelSemanticDefinition,
   ResourceDefContract,
   ResourceDef,
 } from './modelEntityDefinition';
 
 export {
-  ResourceDefDescriptor
+  ResourceDefDescriptor,
+  ModelSemanticDefinitionDescriptor,
+  ModelDefDescriptor
 } from './modelEntityDescriptor';

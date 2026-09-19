@@ -13,6 +13,7 @@ import type {
   ServiceModelNode,
   ExecutionLayer
 } from '../../types/semantic';
+import type { ModelSemanticDefinition } from '../../types/domain/models';
 
 /**
  * Detects the execution layer based on file path and code heuristics.
@@ -27,7 +28,7 @@ export function detectExecutionLayer(filePath: string, code: string): ExecutionL
   if (filePath.includes('Models/') || filePath.match(/Model\.php$/)) {
     return 'model';
   }
-  return 'unknown';
+  return 'repository';
 }
 
 export function buildServiceNode(name: string, methods: string[]): ServiceNode {
@@ -53,11 +54,10 @@ export function buildControllerNode(name: string, routes: string[], actions: str
   };
 }
 
-export function buildModelNode(name: string): ServiceModelNode {
+export function buildModelNode(model: ModelSemanticDefinition): ServiceModelNode {
   return {
     kind: 'model_node',
-    name,
-    layer: 'model',
-    confidence: 1.0
+    model,
+    layer: 'model'
   };
 }

@@ -1,21 +1,14 @@
 /**
- * modelEntityDescriptor.ts
- *
- * First-Class Level 7 ADT Descriptors & Semantic Factories for ModelDef & ResourceDef.
- * Enforces 0 undefined, 0 null, 0 ?: and Object.freeze immutability.
- *
- * @module core/types/domain/modelEntityDescriptor
+ * Immutable descriptors for canonical model/resource semantic contracts.
  */
-
 import type { FieldNode } from '../field';
-import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber, TableName, TypeExpression } from './semanticValues';
-import {
-  type ResourceDefContract,
-  type ResourceDef,
-  type ModelDefContract,
-  type ModelDef,
-  type ColumnDefinitionContract,
-  type ModelRelationDefinitionContract
+import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber, TypeExpression } from '../ir/nominalVocabulary';
+import type {
+  ResourceDefContract,
+  ResourceDef,
+  ModelDefContract,
+  ModelDef,
+  ModelSemanticDefinitionContract
 } from './modelEntityDefinition';
 
 export class ResourceDefDescriptor implements ResourceDefContract {
@@ -37,61 +30,41 @@ export class ResourceDefDescriptor implements ResourceDefContract {
   }
 
   static fromResourceDef(def: ResourceDef): ResourceDefDescriptor {
-    const fields = def.fields
-      ? Object.freeze(Object.entries(def.fields).map(([k, v]) => Object.freeze([k, v] as const)))
-      : Object.freeze([]);
-    const assignments = def.assignments
-      ? Object.freeze(Object.entries(def.assignments).map(([k, v]) => Object.freeze([k, v] as const)))
-      : Object.freeze([]);
-
     return new ResourceDefDescriptor({
       name: def.name,
-      model: def.model ?? '',
-      fields,
-      assignments,
-      sourceFile: def.sourceFile ?? '',
-      sourceLine: def.sourceLine ?? 1
+      model: def.model,
+      fields: Object.freeze([...def.fields]),
+      assignments: Object.freeze([...def.assignments]),
+      sourceFile: def.sourceFile,
+      sourceLine: def.sourceLine
     });
   }
 }
 
-export class ModelDefDescriptor implements ModelDefContract {
-  public readonly name: ModelName;
-  public readonly table: TableName;
-  public readonly columns: readonly ColumnDefinitionContract[];
-  public readonly hidden: readonly PropertyName[];
-  public readonly appends: readonly PropertyName[];
-  public readonly casts: readonly (readonly [PropertyName, TypeExpression])[];
-  public readonly relations: readonly (readonly [PropertyName, ModelRelationDefinitionContract])[];
-  public readonly accessors: readonly (readonly [PropertyName, FieldNode])[];
+export class ModelSemanticDefinitionDescriptor implements ModelSemanticDefinitionContract {
+  public readonly identity: ModelSemanticDefinitionContract['identity'];
+  public readonly key: ModelSemanticDefinitionContract['key'];
+  public readonly behavior: ModelSemanticDefinitionContract['behavior'];
+  public readonly surface: ModelSemanticDefinitionContract['surface'];
 
-  constructor(params: ModelDefContract) {
-    this.name = params.name;
-    this.table = params.table;
-    this.columns = params.columns;
-    this.hidden = params.hidden;
-    this.appends = params.appends;
-    this.casts = params.casts;
-    this.relations = params.relations;
-    this.accessors = params.accessors;
+  constructor(params: ModelSemanticDefinitionContract) {
+    this.identity = Object.freeze(params.identity);
+    this.key = Object.freeze(params.key);
+    this.behavior = Object.freeze(params.behavior);
+    this.surface = Object.freeze({
+      properties: Object.freeze([...params.surface.properties]),
+      columns: Object.freeze([...params.surface.columns]),
+      accessors: Object.freeze([...params.surface.accessors]),
+      relations: Object.freeze([...params.surface.relations]),
+      byName: params.surface.byName
+    });
     Object.freeze(this);
   }
+}
 
+/** Compatibility name, now backed by the canonical semantic model. */
+export class ModelDefDescriptor extends ModelSemanticDefinitionDescriptor implements ModelDefContract {
   static fromModelDef(def: ModelDef): ModelDefDescriptor {
-    const columns = def.columns
-      ? Object.freeze(def.columns.map(c => Object.freeze({ name: c.name, type: c.type, nullable: Boolean(c.nullable) })))
-      : Object.freeze([]);
-    const toEntries = <T>(rec?: Record<string, T>) => rec ? Object.freeze(Object.entries(rec).map(([k, v]) => Object.freeze([k, v] as const))) : Object.freeze([]);
-
-    return new ModelDefDescriptor({
-      name: def.name,
-      table: def.table ?? '',
-      columns,
-      hidden: Object.freeze([...(def.hidden ?? [])]),
-      appends: Object.freeze([...(def.appends ?? [])]),
-      casts: toEntries(def.casts),
-      relations: toEntries(def.relations),
-      accessors: toEntries(def.accessors)
-    });
+    return new ModelDefDescriptor(def);
   }
 }

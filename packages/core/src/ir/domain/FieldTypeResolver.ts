@@ -12,12 +12,8 @@ import type {
     ResolvedSemanticType
 } from '../../types/ir';
 
-import {
-    TypeIRUtils
-} from '../../types/ir';
 
 import {
-    PRIMITIVE_RESOLVED_TYPES,
     type ProjectionHints,
     type OptimizedResourceFieldIR,
     type DiagnosticCollector
@@ -28,6 +24,7 @@ import {
     convertToLegacyFieldIR,
     convertSemanticToTypeIR
 } from './field-type';
+import { createPropertyName } from '../../types/ir/nominalVocabulary';
 
 export class FieldTypeResolver {
     constructor(
@@ -38,36 +35,22 @@ export class FieldTypeResolver {
     public buildOptimizedResourceField(field: ManifestField): OptimizedResourceFieldIR {
         const semanticType = this.resolveSemanticType(field);
         const baseType = this.semanticToTypeIR(semanticType);
-
-        let projectedType = baseType;
-
-        if (field.nullable) {
-            projectedType = TypeIRUtils.makeNullable(projectedType);
-        }
-        if (field.optional) {
-            projectedType = TypeIRUtils.makeOptional(projectedType);
-        }
-
         const hints: ProjectionHints = {
-            formNullableAsOptional: field.nullable === true,
+            formNullableAsOptional: semanticType.kind === 'nullable',
             stripModifiers: false,
-            includeRuntimeChecks: field.nullable || field.optional
+            includeRuntimeChecks: semanticType.kind === 'nullable'
         };
 
         return {
             name: field.name,
-            transformedName: this.transformFieldName(field.name, this.caseTransform),
-            type: projectedType,
+            transformedName: createPropertyName(this.transformFieldName(field.name, this.caseTransform)),
+            type: baseType,
             semanticType,
             hints,
             description: field.description,
-            validation: field.validation ? { type: 'required' } : undefined,
-            source: field.resolved?.model ? {
-                type: 'model_column' as const,
-                path: field.name,
-                model: field.resolved.model
-            } : {
-                type: 'computed' as const,
+            validation: field.validationRules,
+            source: {
+                type: 'computed',
                 path: field.name
             }
         };

@@ -14,6 +14,8 @@ export class PhpAstFactory {
     static resourceCollection(resourceName: AstIdentifier, argument: PhpAstValue): PhpAstValue { return Object.freeze({ kind: 'resource_collection', resourceName, argument }); }
     static staticCall(className: AstIdentifier, method: AstIdentifier, args: readonly PhpArgument[]): PhpAstValue { return Object.freeze({ kind: 'static_call', className, method, arguments: Object.freeze([...args]) }); }
     static classReference(className: AstIdentifier): PhpAstValue { return Object.freeze({ kind: 'class_reference', className }); }
+    static construct(className: AstIdentifier, args: readonly PhpArgument[]): PhpAstValue { return Object.freeze({ kind: 'construct', className, arguments: Object.freeze([...args]) }); }
+    static instanceOf(expression: PhpAstValue, className: AstIdentifier): PhpAstValue { return Object.freeze({ kind: 'instance_of', expression, className }); }
     static ternaryExpression(condition: PhpAstValue, trueBranch: PhpAstValue, falseBranch: PhpAstValue): PhpAstValue { return Object.freeze({ kind: 'ternary_expression', condition, trueBranch, falseBranch }); }
     static arrayAccess(target: PhpAstValue, index: PhpAstValue): PhpAstValue { return Object.freeze({ kind: 'array_access', target, index }); }
     static functionCall(functionName: AstIdentifier, args: readonly PhpArgument[]): PhpAstValue { return Object.freeze({ kind: 'function_call', functionName, arguments: Object.freeze([...args]) }); }
@@ -26,6 +28,7 @@ export class PhpAstFactory {
     static matchConditional(conditions: readonly PhpAstValue[], value: PhpAstValue): PhpMatchArm { return Object.freeze({ kind: 'conditional', conditions: Object.freeze([...conditions]), value }); }
     static matchDefault(value: PhpAstValue): PhpMatchArm { return Object.freeze({ kind: 'default', value }); }
     static matchExpression(subject: PhpAstValue, arms: readonly PhpMatchArm[]): PhpAstValue { return Object.freeze({ kind: 'match_expression', subject, arms: Object.freeze([...arms]) }); }
+    static variableAssignment(names: readonly AstIdentifier[]): import('./phpAstTypes').PhpAssignmentTarget { return Object.freeze({ kind: 'variables', names: Object.freeze([...names]) }); }
     static assignment(target: import('./phpAstTypes').PhpAssignmentTarget, value: PhpAstValue): PhpStatement { return Object.freeze({ kind: 'assignment', target, value }); }
     static ifStatement(condition: PhpAstValue, thenBlock: PhpBlock, alternative: PhpIfAlternative): PhpStatement { return Object.freeze({ kind: 'if_statement', condition, thenBlock, alternative }); }
     static foreachStatement(iterable: PhpAstValue, target: PhpForeachTarget, body: PhpBlock): PhpStatement { return Object.freeze({ kind: 'foreach_statement', iterable, target, body }); }

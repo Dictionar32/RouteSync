@@ -18,15 +18,51 @@ export type ModelRelationContract = ParsedRelation;
 export type ModelAccessor = ParsedAccessor;
 export type ModelAccessorContract = ParsedAccessor;
 
+/** Complete semantic value produced for a local assignment at the model boundary. */
+export interface ModelAssignmentValue {
+    readonly syntax: FieldNode;
+    readonly semantic: SemanticResolution;
+}
+
+/** First-class assignment contract. Variable name and resolved value travel together. */
 export interface ModelAssignmentBinding {
     readonly name: VariableName;
-    readonly ast: FieldNode;
-    readonly resolution: SemanticResolution;
+    readonly value: ModelAssignmentValue;
+}
+
+/** Typed assignment lookup. Consumers do not inspect string-keyed bags. */
+export class ModelAssignmentIndex {
+    private readonly lookup: ReadonlyMap<VariableName, ModelAssignmentBinding>;
+
+    constructor(assignments: readonly ModelAssignmentBinding[]) {
+        const lookup = new Map<VariableName, ModelAssignmentBinding>();
+        for (const assignment of assignments) lookup.set(assignment.name, assignment);
+        this.lookup = lookup;
+        Object.freeze(this);
+    }
+
+    public get(name: VariableName): ModelAssignmentBinding | undefined {
+        return this.lookup.get(name);
+    }
+
+    public has(name: VariableName): boolean {
+        return this.lookup.has(name);
+    }
+
+    public get size(): number {
+        return this.lookup.size;
+    }
 }
 
 export interface ModelResolutionState {
     readonly assignments: readonly ModelAssignmentBinding[];
+    readonly assignmentIndex: ModelAssignmentIndex;
 }
+
+export const EMPTY_MODEL_RESOLUTION_STATE: ModelResolutionState = Object.freeze({
+    assignments: Object.freeze([]),
+    assignmentIndex: new ModelAssignmentIndex([]),
+});
 
 export interface ModelNode extends ParsedModel, ModelResolutionState {}
 export type ModelNodeContract = ModelNode
@@ -38,8 +74,10 @@ export interface ModelNodeInput {
 }
 
 export function verifyModelNode(input: ModelNodeInput): ModelNode {
+    const assignments = Object.freeze([...input.assignments]);
     return Object.freeze({
         ...input.model,
-        assignments: Object.freeze([...input.assignments]),
+        assignments,
+        assignmentIndex: new ModelAssignmentIndex(assignments),
     });
 }

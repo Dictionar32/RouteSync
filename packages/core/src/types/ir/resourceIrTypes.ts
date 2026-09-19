@@ -8,21 +8,20 @@
  */
 
 import type { TypeProjections } from './typeIrTypes';
+import type { DescriptionText, GeneratorName } from '../upstream/valueObjects';
 import type { ResolvedSemanticType } from './resolvedSemanticTypes';
 import type { CodeExpression, ControllerName, ModelName, PropertyName, ResourceId, ResourceName, RouteName, SourceFilePath, TypeExpression } from './nominalVocabulary';
 
-export interface FieldSource {
-    readonly type: 'model_column' | 'accessor' | 'method' | 'computed' | 'relation';
-    readonly path: PropertyName;
-    readonly model: ModelName;
-}
+export type FieldSource =
+    | { readonly type: 'computed'; readonly path: PropertyName }
+    | { readonly type: 'model_column' | 'accessor' | 'method' | 'relation'; readonly path: PropertyName; readonly model: ModelName };
 
 export interface ResourceFieldIR {
     readonly name: PropertyName;
     readonly transformedName: PropertyName;
     readonly type: TypeProjections;
     readonly semanticType: ResolvedSemanticType;
-    readonly description: TypeExpression;
+    readonly description: DescriptionText;
     readonly validation: readonly TypeExpression[];
     readonly source: FieldSource;
 }
@@ -35,8 +34,8 @@ export interface ResourceAliasIR {
 }
 
 export interface VariantMetadata {
-    readonly purpose: TypeExpression;
-    readonly generator: TypeExpression;
+    readonly purpose: DescriptionText;
+    readonly generator: GeneratorName;
     readonly nullability: 'strict' | 'loose';
     readonly optionality: 'strict' | 'loose';
 }

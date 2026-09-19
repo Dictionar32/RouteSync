@@ -1,10 +1,10 @@
 /** Strict property-access consumer. Target semantics are resolved upstream. */
 import type { SemanticResolution } from '../../../../types/domain/semanticResolution';
 import type { ResolutionContext, ResolverMeta } from '../../../types';
+import { resolveInScope } from '../../../kernel/resolveInScope';
 import { SemanticResolutionFactory } from '../../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
-import { PrimitiveKind, PrimitiveType } from '../../../../compiler/types/SemanticType';
 
 export function resolvePropertyAccess(
   meta: ResolverMeta,
@@ -13,24 +13,48 @@ export function resolvePropertyAccess(
   if (meta.kind !== 'property_access' && meta.kind !== 'nullsafe_property_access') {
     return unknown('Invalid property-access metadata');
   }
-  const target = context.kernel.resolve(meta.target, context.contextModel);
+  const target = resolveInScope(context.kernel, meta.target, context.scope);
   if (target.kind === 'object' || target.kind === 'query_projection') {
     return resolveStructuredField(meta, target);
   }
   if (target.kind !== 'model') return unknown(`Property target is not a model or structured object: ${target.kind}`);
+  return resolveModelProperty(meta, target);
+}
 
-  const inner = context.kernel.resolve({
-    kind: 'model_column', model: target.model, column: SemanticValueFactory.columnName(meta.property.value),
-  }, context.contextModel);
-  if (inner.kind !== 'scalar') return inner;
-  if (meta.kind === 'property_access') return inner;
+function resolveModelProperty(
+  meta: Extract<ResolverMeta, { kind: 'property_access' | 'nullsafe_property_access' }>,
+  target: Extract<SemanticResolution, { kind: 'model' }>,
+): SemanticResolution {
+  const property = target.definition.surface.byName.get(
+    SemanticValueFactory.propertyName(meta.property.value),
+  );
+  if (property === undefined) return unknown(`Model property is not declared: ${meta.property.value}`);
+
+  const nullability = meta.kind === 'nullsafe_property_access'
+    ? { kind: 'nullable' as const }
+    : { kind: 'non_nullable' as const };
+
+  if (property.kind === 'column' || property.kind === 'accessor') {
+    return SemanticResolutionFactory.scalar({
+      status: 'resolved', confidence: target.confidence,
+      trace: [...target.trace, {
+        source: 'PropertyAccessResolver', rule: `Model ${property.kind} lookup from upstream semantic surface`,
+        input: property.property.value, output: property.type.kind,
+      }],
+      boundAst: target.kind === 'model' ? target.boundAst : BoundSemanticFactory.unsupported('unresolved_property'),
+      semanticType: property.type, nullability,
+    });
+  }
+
   return SemanticResolutionFactory.scalar({
-    ...inner,
-    nullability: { kind: 'nullable' },
-    trace: [...inner.trace, {
-      source: 'PropertyAccessResolver', rule: 'Nullsafe access propagates nullability',
-      input: meta.property.value, output: 'nullable',
+    status: 'resolved', confidence: target.confidence,
+    trace: [...target.trace, {
+      source: 'PropertyAccessResolver', rule: 'Model relation lookup from upstream semantic surface',
+      input: property.property.value, output: property.semanticType.kind,
     }],
+    boundAst: target.boundAst,
+    semanticType: property.semanticType,
+    nullability,
   });
 }
 
@@ -38,16 +62,18 @@ function resolveStructuredField(
   meta: Extract<ResolverMeta, { kind: 'property_access' | 'nullsafe_property_access' }>,
   target: Extract<SemanticResolution, { kind: 'object' | 'query_projection' }>,
 ): SemanticResolution {
-  const found = target.fields.find(([name]) => name.value === meta.property.value);
-  if (!found) return unknown(`Structured field is not declared: ${meta.property.value}`);
-  const [field, semanticType] = found;
+  const field = target.kind === 'query_projection'
+    ? target.surface.byName.get(SemanticValueFactory.responseFieldName(meta.property.value))
+    : target.fields.find(field => field.name.value === meta.property.value);
+  if (field === undefined) return unknown(`Structured field is not declared: ${meta.property.value}`);
+  const semanticType = field.type;
   const boundAst = target.kind === 'query_projection'
-    ? BoundSemanticFactory.projectionField({ sourceModel: target.sourceModel, field, semanticType })
+    ? BoundSemanticFactory.projectionField({ sourceModel: target.sourceModel, field: field.name, semanticType })
     : target.boundAst;
   return SemanticResolutionFactory.scalar({
     status: 'resolved', confidence: target.confidence, trace: [...target.trace, {
       source: 'PropertyAccessResolver', rule: 'Structured field lookup from upstream declaration',
-      input: field.value, output: semanticType.kind,
+      input: field.name.value, output: semanticType.kind,
     }], boundAst, semanticType, nullability: meta.kind === 'nullsafe_property_access' ? { kind: 'nullable' } : { kind: 'non_nullable' },
   });
 }

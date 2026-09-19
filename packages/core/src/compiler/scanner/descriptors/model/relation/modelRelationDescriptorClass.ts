@@ -14,6 +14,7 @@ import type {
 } from '../../../../../types/route';
 import { EloquentRelationType } from '../../../../../types/route';
 import { SemanticValueFactory, type RelationName, type ModelName, type ColumnName } from '../../../../../types/domain/semanticValues';
+import type { SemanticType } from '../../../../types/SemanticType';
 import type { ScannedModelRelationParams } from './types';
 import {
     computeRelationParams,
@@ -31,6 +32,10 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
     public readonly sourceModel: ModelName;
     public readonly targetModel: ModelName;
     public readonly cardinality: EloquentRelationCardinality;
+    public readonly multiplicity: ScannedModelRelationParams['multiplicity'];
+    public readonly semanticType: SemanticType;
+    public readonly targetShape: ScannedModelRelationParams['targetShape'];
+    public readonly traversalTarget: ScannedModelRelationParams['traversalTarget'];
     public readonly foreignKey: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
 
     constructor(params: ScannedModelRelationParams) {
@@ -39,6 +44,10 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         this.sourceModel = SemanticValueFactory.modelName(params.modelName);
         this.targetModel = SemanticValueFactory.modelName(params.targetModel);
         this.cardinality = params.cardinality;
+        this.multiplicity = params.multiplicity;
+        this.semanticType = params.semanticType;
+        this.targetShape = params.targetShape;
+        this.traversalTarget = params.traversalTarget;
         this.foreignKey = params.foreignKey.kind === 'convention' ? { kind: 'convention' } : { kind: 'explicit', column: SemanticValueFactory.columnName(params.foreignKey.column) };
         Object.freeze(this);
     }

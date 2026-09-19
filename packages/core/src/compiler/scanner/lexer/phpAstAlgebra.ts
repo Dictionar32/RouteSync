@@ -19,6 +19,8 @@ export interface PhpAstValueVisitor<R> {
     readonly nestedArray: (node: Extract<PhpAstValue, { kind: 'nested_array' }>) => R;
     readonly staticCall: (node: Extract<PhpAstValue, { kind: 'static_call' }>) => R;
     readonly classReference: (node: Extract<PhpAstValue, { kind: 'class_reference' }>) => R;
+    readonly construct: (node: Extract<PhpAstValue, { kind: 'construct' }>) => R;
+    readonly instanceOf: (node: Extract<PhpAstValue, { kind: 'instance_of' }>) => R;
     readonly closure: (node: Extract<PhpAstValue, { kind: 'closure' }>) => R;
     readonly arrowFunction: (node: Extract<PhpAstValue, { kind: 'arrow_function' }>) => R;
     readonly matchExpression: (node: Extract<PhpAstValue, { kind: 'match_expression' }>) => R;
@@ -45,6 +47,8 @@ export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisito
         case 'nested_array': return visitor.nestedArray(ast);
         case 'static_call': return visitor.staticCall(ast);
         case 'class_reference': return visitor.classReference(ast);
+        case 'construct': return visitor.construct(ast);
+        case 'instance_of': return visitor.instanceOf(ast);
         case 'closure': return visitor.closure(ast);
         case 'arrow_function': return visitor.arrowFunction(ast);
         case 'match_expression': return visitor.matchExpression(ast);

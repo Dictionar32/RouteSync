@@ -156,25 +156,25 @@ export const SECURITY_SCHEME_REGISTRY: SecuritySchemeRegistry = Object.freeze({
     scheme: SecuritySchemeKind.Sanctum,
     isProtected: true,
     requiresAuthorizationHeader: true,
-    defaultHeaderName: 'Authorization',
+    defaultHeaderName: { kind: 'authorization', value: 'Authorization' },
   },
   [SecuritySchemeKind.Bearer]: {
     scheme: SecuritySchemeKind.Bearer,
     isProtected: true,
     requiresAuthorizationHeader: true,
-    defaultHeaderName: 'Authorization',
+    defaultHeaderName: { kind: 'authorization', value: 'Authorization' },
   },
   [SecuritySchemeKind.Cookie]: {
     scheme: SecuritySchemeKind.Cookie,
     isProtected: true,
     requiresAuthorizationHeader: false,
-    defaultHeaderName: null,
+    defaultHeaderName: { kind: 'none' },
   },
   [SecuritySchemeKind.Public]: {
     scheme: SecuritySchemeKind.Public,
     isProtected: false,
     requiresAuthorizationHeader: false,
-    defaultHeaderName: null,
+    defaultHeaderName: { kind: 'none' },
   },
 });
 
@@ -248,38 +248,39 @@ export const ROUTE_POLICY_REGISTRY: RoutePolicyKindRegistry = Object.freeze({
   }
 });
 
+export type RoutePolicyDescriptor =
+  | {
+      readonly kind: typeof RoutePolicyKind.AbilityModel;
+      readonly ability: import('./semanticValues').AbilityName;
+      readonly modelParameter: import('./semanticValues').PropertyName;
+    }
+  | {
+      readonly kind: typeof RoutePolicyKind.Gate;
+      readonly ability: import('./semanticValues').AbilityName;
+      readonly modelParameter: { readonly kind: 'none' };
+    }
+  | {
+      readonly kind: typeof RoutePolicyKind.Custom;
+      readonly ability: import('./semanticValues').AbilityName;
+      readonly modelParameter: { readonly kind: 'none' } | { readonly kind: 'parameter'; readonly name: import('./semanticValues').PropertyName };
+    };
+
 export interface RoutePolicyVisitor<R> {
-  readonly ability_model: (desc: RoutePolicyDescriptor) => R;
-  readonly gate: (desc: RoutePolicyDescriptor) => R;
-  readonly custom: (desc: RoutePolicyDescriptor) => R;
+  readonly ability_model: (desc: Extract<RoutePolicyDescriptor, { readonly kind: typeof RoutePolicyKind.AbilityModel }>) => R;
+  readonly gate: (desc: Extract<RoutePolicyDescriptor, { readonly kind: typeof RoutePolicyKind.Gate }>) => R;
+  readonly custom: (desc: Extract<RoutePolicyDescriptor, { readonly kind: typeof RoutePolicyKind.Custom }>) => R;
 }
 
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian RoutePolicyDescriptor dengan exhaustive type safety
- */
 export function matchRoutePolicy<R>(
-  policy: RoutePolicyDescriptor | RoutePolicyKind,
+  policy: RoutePolicyDescriptor,
   visitor: RoutePolicyVisitor<R>
 ): R {
-  const isKindString = typeof policy === 'string';
-  const kind = isKindString ? policy : (policy.kind ?? (policy.modelParameter ? RoutePolicyKind.AbilityModel : RoutePolicyKind.Gate));
-  const descriptor: RoutePolicyDescriptor = isKindString
-    ? {
-        kind,
-        ability: '',
-        modelParameter: ROUTE_POLICY_REGISTRY[kind].requiresModel ? 'model' : null
-      }
-    : policy;
-  return visitor[kind](descriptor);
-}
-
-/**
- * RoutePolicyDescriptor
- *
- * Explicit Domain Model for Laravel Route Authorization Policies.
- */
-export interface RoutePolicyDescriptor {
-  readonly kind: RoutePolicyKind;
-  readonly ability: string;        // e.g. 'update', 'view'
-  readonly modelParameter: string | null;// e.g. 'order'
+  switch (policy.kind) {
+    case RoutePolicyKind.AbilityModel:
+      return visitor.ability_model(policy);
+    case RoutePolicyKind.Gate:
+      return visitor.gate(policy);
+    case RoutePolicyKind.Custom:
+      return visitor.custom(policy);
+  }
 }

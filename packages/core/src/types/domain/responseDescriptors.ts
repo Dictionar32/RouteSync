@@ -3,6 +3,7 @@ import type { ObjectProperty } from "../../compiler/types/SemanticType";
 import { PrimitiveKind, type SemanticType } from "../../compiler/types/SemanticType";
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldDescriptor } from "./expressions";
+import { requireResourceFieldType } from './resourceFieldSemantic';
 import { SemanticValueFactory } from "./semanticValues";
 import type { ClassName, DomainName, ModelName, ResourceName, ResponseFieldName, ResponseTypeName, RouteName, SourceFilePath } from "./semanticValues";
 import {
@@ -262,8 +263,8 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
   toResponseBody(): ResponseBody {
     const properties = this.fields.map(f => ({
       name: f.name.value,
-      type: semanticTypeToPropertyType(f.semanticType),
-      required: !f.semanticType.isNullable()
+      type: semanticTypeToPropertyType(requireResourceFieldType(f.semantic)),
+      required: !requireResourceFieldType(f.semantic).isNullable()
     }));
     return {
       type: 'object',
@@ -284,43 +285,29 @@ function semanticTypeToPropertyType(type: SemanticType): {
 } {
   switch (type.kind) {
     case 'primitive':
-      return {
-        kind: 'scalar',
-        typeName: type.type,
-        nullable: false
-      };
+      return { kind: 'scalar', typeName: type.type, nullable: false };
+    case 'json_value':
+      return { kind: 'scalar', typeName: 'unknown', nullable: type.isNullable() };
     case 'nullable': {
       const inner = semanticTypeToPropertyType(type.innerType);
       return { ...inner, nullable: true };
     }
     case 'reference':
-      return {
-        kind: 'scalar',
-        typeName: type.name,
-        nullable: false
-      };
+      return { kind: 'scalar', typeName: type.name, nullable: false };
     case 'optional': {
       const inner = semanticTypeToPropertyType(type.innerType);
       return { ...inner, nullable: true };
     }
     case 'readonly_collection':
     case 'mutable_collection':
-      return {
-        kind: 'scalar',
-        typeName: 'array',
-        nullable: false
-      };
+      return { kind: 'scalar', typeName: 'array', nullable: false };
     case 'generic':
     case 'union':
     case 'intersection':
     case 'object':
     case 'never':
     case 'error':
-      return {
-        kind: 'scalar',
-        typeName: 'unknown',
-        nullable: type.isNullable()
-      };
+      return { kind: 'scalar', typeName: 'unknown', nullable: type.isNullable() };
   }
 }
 

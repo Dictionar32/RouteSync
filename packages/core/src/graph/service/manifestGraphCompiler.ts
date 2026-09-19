@@ -25,7 +25,7 @@ export function compileGraphFromManifest(
 ): ServiceGraph {
   // 1. Models Indexing & Relations Traversal
   for (const m of manifest.models) {
-    const modelNode = buildModelNode(m.name.value);
+    const modelNode = buildModelNode(m.semantic);
     builder.modelsMap.set(m.name.value, modelNode);
 
     if (m.relations) {

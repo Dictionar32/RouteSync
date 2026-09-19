@@ -1,6 +1,8 @@
 import type { SemanticResolution, SemanticTraceNode } from '../../types/domain/semanticResolution';
 import { unknownResolution, resolutionLabel } from '../semanticResolutionSupport';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode, ModelAccessor } from '../types';
+import { modelScope } from '../resolutionScope';
+import { resolveInScope } from '../kernel/resolveInScope';
 
 export class AccessorResolver implements ResolverPlugin {
   canResolve(meta: ResolverMeta): boolean {
@@ -49,7 +51,7 @@ export class AccessorResolver implements ResolverPlugin {
     }
 
     if (acc.ast) {
-      return context.kernel.resolve(acc.ast, currentModel);
+      return resolveInScope(context.kernel, acc.ast, modelScope(currentModel));
     }
 
     return unknownResolution('AccessorResolver', 'Accessor has no expression or static resolution', currentModel.name, 'unsupported_syntax');

@@ -12,7 +12,7 @@ export type ControllerName = string & { readonly __controllerName: unique symbol
 export type ActionName = string & { readonly __actionName: unique symbol };
 export type SourceFilePath = string & { readonly __sourceFilePath: unique symbol };
 export type SourceLineNumber = number & { readonly __sourceLineNumber: unique symbol };
-export type TypeExpression = string & { readonly __typeExpression: unique symbol };
+export type { TypeExpression } from '../upstream/typeVocabulary';
 export type CodeExpression = string & { readonly __codeExpression: unique symbol };
 export type DescriptionText = string & { readonly __descriptionText: unique symbol };
 export type HttpHeaderName = string & { readonly __httpHeaderName: unique symbol };
@@ -35,7 +35,6 @@ export const createControllerName = (value: string): ControllerName => value as 
 export const createActionName = (value: string): ActionName => value as ActionName;
 export const createSourceFilePath = (value: string): SourceFilePath => value as SourceFilePath;
 export const createSourceLineNumber = (value: number): SourceLineNumber => value as SourceLineNumber;
-export const createTypeExpression = (value: string): TypeExpression => value as TypeExpression;
 export const createCodeExpression = (value: string): CodeExpression => value as CodeExpression;
 export const createDescriptionText = (value: string): DescriptionText => value as DescriptionText;
 export const createHttpHeaderName = (value: string): HttpHeaderName => value as HttpHeaderName;

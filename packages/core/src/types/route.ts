@@ -172,6 +172,8 @@ export {
     type RouteParameterTypeVisitor,
     matchRouteParameterType,
     type RouteParameter,
+    type RouteParameterBinding,
+    type RouteParameterConstraint,
     type PathParameterDescriptor,
     type QueryParameterDescriptor,
     type HeaderParameterDescriptor,
@@ -400,6 +402,8 @@ export {
     type HttpErrorKindSpecification,
     type HttpErrorKindRegistry,
     HTTP_ERROR_KIND_REGISTRY,
+    type HttpErrorSchemaRegistry,
+    HTTP_ERROR_SCHEMA_REGISTRY,
     type HttpErrorVisitor,
     matchHttpError,
     type HttpErrorResponseDescriptor,
@@ -550,14 +554,12 @@ export {
     type LiteralAstNode,
     type StaticConstantAstNode,
     type VariableAstNode,
-    type UnknownAstNode,
     type PhpAstNode,
     type PhpAstVisitor,
     matchPhpAstNode,
     type PhpAstFolder,
     foldPhpAstNode,
     matchFieldNode,
-    normalizeCastType,
     type FieldNodeVisitor
 } from "./domain";
 

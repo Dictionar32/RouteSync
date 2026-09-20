@@ -15,6 +15,7 @@ import type { ResolvedProperty } from './ResolvedSemanticType';
 import { ResourceFieldFlattener, FlattenedField } from './ResourceFieldFlattener';
 import { toPascalCase, toCamelCase } from '../../../utils/resource-naming';
 import { ObjectType, ScannedObjectProperty, SemanticType } from '../../types/SemanticType';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { TypeInterner } from '../../types/TypeInterner';
 
 export interface ManifestArtifactLowererDependencies {
@@ -40,7 +41,7 @@ export class ManifestArtifactLowerer {
      * No path parsing or resource re-classification belongs in this lowerer.
      */
     private resolveRouteName(route: ParsedRoute): string {
-        return route.identity.resourceName.value.value;
+        return route.identity.domain.resource.value.value;
     }
 
     /**
@@ -53,14 +54,14 @@ export class ManifestArtifactLowerer {
 
         // 1. Process explicit resources
         for (const res of manifest.resources) {
-            const cleanBase = res.name.value.value;
+            const cleanBase = res.identity.name.value.value;
             const resName = cleanBase.endsWith('Resource') ? cleanBase : `${cleanBase}Resource`;
             if (seen.has(resName)) continue;
             seen.add(resName);
 
-            const flattened = this.flattener.flatten(res.fields);
+            const flattened = this.flattener.flatten(res.surface.fields);
             const fields: readonly ResolvedProperty[] = Object.freeze(
-                flattened.map(f => ({ name: f.targetProperty, type: f.type, presence: 'required' as const }))
+                flattened.map(f => ({ name: SemanticValueFactory.propertyName(f.targetProperty), type: f.type, presence: { kind: 'required' as const } }))
             );
             const body = flattened
                 .map(f => `  ${f.targetProperty}: api.${f.sourcePath},`)
@@ -90,7 +91,7 @@ export class ManifestArtifactLowerer {
 
                     const flattened = this.flattener.flatten(response.fields);
                     const fields: readonly ResolvedProperty[] = Object.freeze(
-                        flattened.map(f => ({ name: f.targetProperty, type: f.type, presence: 'required' as const }))
+                        flattened.map(f => ({ name: SemanticValueFactory.propertyName(f.targetProperty), type: f.type, presence: { kind: 'required' as const } }))
                     );
                     const body = flattened
                         .map(f => `  ${f.targetProperty}: api.${f.sourcePath},`)

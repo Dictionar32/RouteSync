@@ -4,6 +4,7 @@ import type { SemanticType } from "../../../types/SemanticType";
 import { ErrorType } from "../../../types/SemanticType";
 import type { ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 
 export function toBoundStep(step: ResourcePropertyPathStep): BoundStepEdge {
@@ -13,7 +14,7 @@ export function toBoundStep(step: ResourcePropertyPathStep): BoundStepEdge {
             sourceModel: step.sourceModel,
             property: step.property,
             step: { kind: 'relation', cardinality: step.cardinality },
-            nullsafe: step.access.kind === 'nullsafe',
+            nullsafe: matchPhpAccessMode(step.access, { direct: () => false, nullsafe: () => true }),
             stepType: step.type,
             targetModel: { kind: 'model', name: step.targetModel }
         };
@@ -24,7 +25,7 @@ export function toBoundStep(step: ResourcePropertyPathStep): BoundStepEdge {
             sourceModel: step.sourceModel,
             property: step.property,
             step: { kind: step.semantic.kind },
-            nullsafe: step.access.kind === 'nullsafe',
+            nullsafe: matchPhpAccessMode(step.access, { direct: () => false, nullsafe: () => true }),
             stepType: step.type,
             targetModel: { kind: 'model', name: step.sourceModel }
         };
@@ -34,7 +35,7 @@ export function toBoundStep(step: ResourcePropertyPathStep): BoundStepEdge {
         sourceModel: step.sourceModel,
         method: step.method,
         cardinality: step.cardinality,
-        nullsafe: step.access.kind === 'nullsafe',
+        nullsafe: matchPhpAccessMode(step.access, { direct: () => false, nullsafe: () => true }),
         stepType: step.type,
         targetModel: step.result.kind === 'single_model' || step.result.kind === 'model_collection' || step.result.kind === 'paginated_collection'
             ? { kind: 'model', name: step.result.model }

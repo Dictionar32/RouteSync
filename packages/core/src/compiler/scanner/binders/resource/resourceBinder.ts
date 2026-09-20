@@ -11,6 +11,7 @@ import type { PhpArrayEntry } from "../../lexer/PhpAst";
 import type { ResourceFieldDescriptor, ParsedResource } from "../../../../types/route";
 import { ScannedResourceDescriptor } from "../../descriptors/resourceDescriptors";
 import { ResourceModelResolver } from "../../resolvers/resource/ResourceModelResolver";
+import { matchResourceModelBinding } from "../../symbols/resource/resourceBindingTypes";
 import { bindField } from "./fieldBinder";
 
 /**
@@ -42,24 +43,20 @@ export function bindResource({
         relationPropagationMap
     });
 
-    if (binding.kind !== 'mono') {
-        throw new Error(
-            `Resource '${resourceName}' cannot cross the semantic boundary without a resolved Eloquent model.`
-        );
-    }
-
-    const modelSymbol = binding.model;
-    const fields: ResourceFieldDescriptor[] = [];
-
-    for (const entry of entries) {
-        const fieldResult = bindField({
+    const fields = matchResourceModelBinding(binding, {
+        mono: (resolved) => entries.map((entry) => bindField({
             key: requireStringArrayKey(entry.key),
             value: entry.value,
-            modelSymbol,
+            modelSymbol: resolved.model,
             modelSymbolTable
-        });
-        fields.push(fieldResult.descriptor);
-    }
+        }).descriptor),
+        poly: () => {
+            throw new Error(`Resource '${resourceName}' cannot cross the semantic boundary with multiple Eloquent models.`);
+        },
+        unbacked_dto: (resolved) => {
+            throw new Error(`Resource '${resourceName}' cannot cross the semantic boundary: ${resolved.reason}`);
+        }
+    });
 
     return ScannedResourceDescriptor.create({
         name: resourceName,

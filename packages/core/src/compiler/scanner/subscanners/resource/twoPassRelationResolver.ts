@@ -9,6 +9,7 @@
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { findControllerResourceBinding } from "../controller/resourceDataflowAggregator";
+import { matchLookup } from "../../../../types/upstream/collections";
 
 export interface ResourceRelationEdge {
     readonly parentResource: string;
@@ -29,16 +30,23 @@ export function resolveInitialModel(
         ? findControllerResourceBinding(controllerDataflowMap, resourceName)
         : undefined;
     if (binding) {
-        const sym = binding.model.kind === 'table'
+        const lookup = binding.model.kind === 'table'
             ? modelSymbolTable.findByTableName(binding.model.name)
             : modelSymbolTable.get(binding.model.name);
-        if (sym) {
+        const sym = matchLookup(lookup, {
+            missing: () => undefined,
+            found: ({ value }) => value
+        });
+        if (sym !== undefined) {
             resolvedModels.set(resourceName, sym);
             return;
         }
     }
-    const conventionSym = modelSymbolTable.findForResource(resourceName);
-    if (conventionSym) {
+    const conventionSym = matchLookup(modelSymbolTable.findForResource(resourceName), {
+        missing: () => undefined,
+        found: ({ value }) => value
+    });
+    if (conventionSym !== undefined) {
         resolvedModels.set(resourceName, conventionSym);
     }
 }
@@ -62,12 +70,18 @@ export function propagateRelationEdges(
         for (const edge of relationEdges) {
             if (resolvedModels.has(edge.parentResource) && !resolvedModels.has(edge.childResource)) {
                 const parentSym = resolvedModels.get(edge.parentResource)!;
-                const rel = parentSym.relation(edge.relationKey);
+                const rel = matchLookup(parentSym.relation(edge.relationKey), {
+                    missing: () => undefined,
+                    found: ({ value }) => value
+                });
                 if (rel) {
-                    const childSym = modelSymbolTable.get(rel.targetModel.value);
-                    if (childSym) {
+                    const childSym = matchLookup(modelSymbolTable.get(rel.targetModel.value.value), {
+                        missing: () => undefined,
+                        found: ({ value }) => value
+                    });
+                    if (childSym !== undefined) {
                         resolvedModels.set(edge.childResource, childSym);
-                        relationPropagationMap.set(edge.childResource, rel.targetModel.value);
+                        relationPropagationMap.set(edge.childResource, rel.targetModel.value.value);
                         changed = true;
                     }
                 }

@@ -101,6 +101,13 @@ export class ResourceFieldFlattener {
             ternary: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             short_ternary: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             null_coalesce: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            unary_expression: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            match_expression: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            class_reference: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            construct: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            instance_of: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            closure: () => this.pushLeaf(field, targetProperty, sourcePath, result),
+            arrow_function: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             literal: () => this.pushLeaf(field, targetProperty, sourcePath, result),
             unsupported: () => this.pushLeaf(field, targetProperty, sourcePath, result)
         });
@@ -174,6 +181,13 @@ export class ResourceFieldFlattener {
             ternary: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
             short_ternary: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
             null_coalesce: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            unary_expression: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            match_expression: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            class_reference: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            construct: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            instance_of: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            closure: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
+            arrow_function: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
             literal: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result),
             unsupported: () => this.pushExpressionLeaf(field.value, targetProperty, sourcePath, result)
         });

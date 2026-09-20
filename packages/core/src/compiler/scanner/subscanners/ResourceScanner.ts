@@ -22,6 +22,7 @@ import {
 import { mapAstValueToExpression } from "./resource/resourceAstExpressionMapper";
 import { mapResourcePhpAstToUpstream } from "./resource/resourceUpstreamExpressionCanonical";
 import type { Expression } from "../../../types/upstream/expression";
+import type { ResourceExpressionModel } from "../../../types/domain/resourceExpressionModel";
 
 interface ParsedResourceFile {
     readonly resourceName: string;
@@ -81,8 +82,8 @@ export class ResourceScanner {
 
     public static mapAstValueToExpression(
         value: PhpAstValue,
-        raw: string
-    ): { expression: ResourceFieldExpression; nullable: boolean } {
+        raw = '<scanner>'
+    ): ResourceExpressionModel {
         return mapAstValueToExpression(value, raw);
     }
 

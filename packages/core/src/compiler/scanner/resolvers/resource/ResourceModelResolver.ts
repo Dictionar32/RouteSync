@@ -14,6 +14,8 @@ import {
 } from "../../symbols/resource/resourceBindingTypes";
 import { matchStructuralFields } from "./structuralFieldMatcher";
 import { findControllerResourceBinding } from "../../subscanners/controller/resourceDataflowAggregator";
+import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
+import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 
 export interface ResourceModelResolutionInput {
     readonly resourceName: string;
@@ -24,6 +26,16 @@ export interface ResourceModelResolutionInput {
 }
 
 export class ResourceModelResolver {
+    private static bind(
+        lookup: Lookup<OriginModelSymbol>,
+        source: Parameters<typeof ResourceModelBindingFactory.mono>[1]
+    ): ResourceModelBinding | undefined {
+        return matchLookup(lookup, {
+            missing: () => undefined,
+            found: ({ value }) => ResourceModelBindingFactory.mono(value, source)
+        });
+    }
+
     /**
      * Resolves the backing Eloquent Model through the 5-tiered hierarchy.
      */
@@ -36,41 +48,36 @@ export class ResourceModelResolver {
             relationPropagationMap
         } = input;
 
-        // ─── Tier 1: Controller AST Dataflow ─────────────────────────────────
         const controllerBinding = controllerDataflowMap
             ? findControllerResourceBinding(controllerDataflowMap, resourceName)
             : undefined;
         if (controllerBinding) {
-            const sym = controllerBinding.model.kind === 'table'
+            const lookup = controllerBinding.model.kind === 'table'
                 ? modelSymbolTable.findByTableName(controllerBinding.model.name)
                 : modelSymbolTable.get(controllerBinding.model.name);
-            if (sym) return ResourceModelBindingFactory.mono(sym, 'controller_dataflow');
+            const binding = this.bind(lookup, 'controller_dataflow');
+            if (binding !== undefined) return binding;
         }
 
-        // ─── Tier 2: Relation Graph Propagation ──────────────────────────────
         if (relationPropagationMap && relationPropagationMap.has(resourceName)) {
             const targetModel = relationPropagationMap.get(resourceName)!;
-            const sym = modelSymbolTable.get(targetModel);
-            if (sym) {
-                return ResourceModelBindingFactory.mono(sym, 'relation_propagation');
-            }
+            const binding = this.bind(modelSymbolTable.get(targetModel), 'relation_propagation');
+            if (binding !== undefined) return binding;
         }
 
-        // ─── Tier 3: Model Symbol Table Convention ───────────────────────────
-        const conventionSym = modelSymbolTable.findForResource(resourceName);
-        if (conventionSym) {
-            return ResourceModelBindingFactory.mono(conventionSym, 'convention');
-        }
+        const conventionBinding = this.bind(
+            modelSymbolTable.findForResource(resourceName),
+            'convention'
+        );
+        if (conventionBinding !== undefined) return conventionBinding;
 
-        // ─── Tier 4: Weighted Structural Field Matching ──────────────────────
         if (fieldNames.length > 0) {
             const structuralMatch = matchStructuralFields(fieldNames, modelSymbolTable);
-            if (structuralMatch) {
+            if (structuralMatch !== undefined) {
                 return ResourceModelBindingFactory.mono(structuralMatch, 'structural');
             }
         }
 
-        // ─── Tier 5: Unbacked DTO Classification ─────────────────────────────
         return ResourceModelBindingFactory.unbackedDto(
             `Resource '${resourceName}' is a DTO without a matching Eloquent model.`
         );

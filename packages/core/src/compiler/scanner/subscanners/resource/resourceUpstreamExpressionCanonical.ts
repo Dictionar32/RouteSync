@@ -33,10 +33,27 @@ export function mapResourcePhpAstToUpstream(value: PhpAstValue, file: string): E
     instanceOf: node => ({ kind: 'instance_of', expression: mapResourcePhpAstToUpstream(node.expression, file), className: className(node.className), source }),
     closure: node => ({ kind: 'closure', value: { kind: 'closure', parameters: { kind: 'variable_names', items: sequence(node.parameters.map(item => variable(item.variable))) }, captures: { kind: 'closure_captures', items: sequence(node.captures.map(item => ({ kind: item.kind, variable: variable(item.variable) }))) }, body: mapClosureBody(node.body.statements, file, mapResourcePhpAstToUpstream), source }, source }),
     arrowFunction: node => ({ kind: 'arrow_function', parameters: { kind: 'variable_names', items: sequence(node.parameters.map(item => variable(item.variable))) }, body: mapResourcePhpAstToUpstream(node.body, file), source }),
-    matchExpression: node => ({ kind: 'match', subject: mapResourcePhpAstToUpstream(node.subject, file), arms: { kind: 'match_arms', items: sequence(node.arms.map(arm => matchPhpMatchArm(arm, {
-      conditional: node => ({ kind: 'conditional', conditions: expressions(node.conditions.map(item => mapResourcePhpAstToUpstream(item, file))), result: mapResourcePhpAstToUpstream(node.value, file), source }),
-      default: node => ({ kind: 'default', result: mapResourcePhpAstToUpstream(node.value, file), source }),
-    }))) } }, source }),
+    matchExpression: node => ({
+      kind: 'match',
+      subject: mapResourcePhpAstToUpstream(node.subject, file),
+      arms: {
+        kind: 'match_arms',
+        items: sequence(node.arms.map(arm => matchPhpMatchArm(arm, {
+          conditional: armNode => ({
+            kind: 'conditional',
+            conditions: expressions(armNode.conditions.map(item => mapResourcePhpAstToUpstream(item, file))),
+            result: mapResourcePhpAstToUpstream(armNode.value, file),
+            source
+          }),
+          default: armNode => ({
+            kind: 'default',
+            result: mapResourcePhpAstToUpstream(armNode.value, file),
+            source
+          })
+        })))
+      },
+      source
+    }),
     unsupported: node => ({ kind: 'unsupported_expression', reason: node.reason, source }),
   });
 }

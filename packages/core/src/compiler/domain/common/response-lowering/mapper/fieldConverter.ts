@@ -31,7 +31,9 @@ export function convertResolvedTypeToResponseField(
                     kind: 'primitive',
                     type: resolved.primitiveKind,
                     nullable: false,
-                    optional: false
+                    optional: false,
+                    fields: Object.freeze([]),
+                    itemType: undefined
                 }]
             });
 
@@ -42,7 +44,9 @@ export function convertResolvedTypeToResponseField(
                     kind: 'primitive',
                     type: resolved.name,
                     nullable: false,
-                    optional: false
+                    optional: false,
+                    fields: Object.freeze([]),
+                    itemType: undefined
                 }]
             });
 
@@ -89,6 +93,7 @@ export function convertResolvedTypeToResponseField(
                     type: 'array',
                     nullable: false,
                     optional: false,
+                    fields: Object.freeze([]),
                     itemType: innerResult.fields[0]
                 }],
                 warnings: innerResult.warnings
@@ -97,8 +102,8 @@ export function convertResolvedTypeToResponseField(
 
         case 'object': {
             const conversionResults = resolved.fields.map(({ name: propName, type: propType, presence }) => {
-                const fieldResult = convertResolvedTypeToResponseField(propName, propType, resolver);
-                if (presence === 'required') {
+                const fieldResult = convertResolvedTypeToResponseField(propName.value.value, propType, resolver);
+                if (presence.kind === 'required') {
                     return fieldResult;
                 }
                 const item = fieldResult.fields[0];
@@ -119,7 +124,8 @@ export function convertResolvedTypeToResponseField(
                     type: 'object',
                     nullable: false,
                     optional: false,
-                    fields: nestedFields
+                    fields: nestedFields,
+                    itemType: undefined
                 }],
                 warnings: nestedWarnings
             });

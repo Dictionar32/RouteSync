@@ -40,7 +40,7 @@ export function convertResponseFields(
     resolver: SemanticTypeResolver = defaultTypeResolver
 ): ResponseFieldConversionResult {
     const results = fields.map(field =>
-        convertSingleResponseField(field.name, field.type, resolver)
+        convertSingleResponseField(field.name.value.value, field.type, resolver)
     );
 
     return partitionResults(results);

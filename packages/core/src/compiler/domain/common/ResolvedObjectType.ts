@@ -6,6 +6,7 @@
  */
 
 import type { ObjectType, SemanticType } from '../../types/SemanticType';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { PropertyName } from '../../../types/upstream/names';
 import type { Presence } from '../../../types/upstream/primitiveVocabulary';
 import {
@@ -33,7 +34,7 @@ export abstract class ResolvedObjectType {
 
     public getCleanProperties(): readonly (readonly [PropertyName, SemanticType])[] {
         return this.rawObject.properties
-            .filter(property => !property.name.value.startsWith('__'))
+            .filter(property => !property.name.value.value.startsWith('__'))
             .map(property => [property.name, property.type] as const);
     }
 }
@@ -69,7 +70,7 @@ export function resolveCanonicalObjectType(
     resolver: (type: SemanticType) => ResolvedSemanticType
 ): CanonicalResolvedObjectType {
     const fields = rawObject.properties
-        .filter(property => !property.name.value.startsWith('__'))
+        .filter(property => !property.name.value.value.startsWith('__'))
         .map(property => ({
             name: property.name,
             type: resolver(property.type),
@@ -78,7 +79,13 @@ export function resolveCanonicalObjectType(
 
     return new CanonicalResolvedObjectType({
         fields,
-        identity: { kind: rawObject.role, name: rawObject.name }
+        identity: rawObject.role === 'plain'
+            ? { kind: 'plain', name: SemanticValueFactory.domainName(rawObject.name) }
+            : rawObject.role === 'resource'
+                ? { kind: 'resource', name: SemanticValueFactory.resourceName(rawObject.name) }
+                : rawObject.role === 'model'
+                    ? { kind: 'model', name: SemanticValueFactory.modelName(rawObject.name) }
+                    : { kind: 'response', name: SemanticValueFactory.responseTypeName(rawObject.name) }
     });
 }
 

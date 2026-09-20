@@ -304,7 +304,8 @@ export type UnsupportedResourceExpressionReason =
   | 'parser_gap'
   | 'unsupported_syntax'
   | 'invalid_boundary_input'
-  | 'missing_expression';
+  | 'missing_expression'
+  | 'unresolved_property';
 
 export interface UnsupportedResourceExpression extends BaseResourceFieldExpression<'unsupported'> {
   readonly kind: 'unsupported';

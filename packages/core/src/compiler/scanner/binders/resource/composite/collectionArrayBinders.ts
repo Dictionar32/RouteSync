@@ -18,6 +18,7 @@ import { ScannedResourceFieldDescriptor } from "../../../descriptors/resourceDes
 import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
+import { matchLookup } from "../../../../../types/upstream/collections";
 
 export function bindResourceCollectionField(
     key: string,
@@ -25,7 +26,10 @@ export function bindResourceCollectionField(
     modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
     const isCollection = value.kind === 'resource_collection';
-    const rel = modelSymbol.relation(key);
+    const rel = matchLookup(modelSymbol.relation(key), {
+        missing: () => undefined,
+        found: ({ value: relation }) => relation
+    });
     const targetModel = rel ? rel.targetModel.value : value.resourceName;
     const cardinality = isCollection
         ? { kind: 'collection' as const }

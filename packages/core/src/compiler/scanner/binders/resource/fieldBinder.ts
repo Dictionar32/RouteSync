@@ -14,8 +14,9 @@ import { bindWhenLoadedField } from "./whenLoadedBinder";
 import { readWhenLoadedRelation } from "./whenLoadedRelationArgument";
 import { bindPropertyAccessField } from "./propertyAccessBinder";
 import { bindPropertyPathField } from "./propertyPathBinder";
-import { matchPhpPropertyPath } from "../../lexer/phpAstAlgebra";
-import { matchResourceOperationKind, resourceOperationForMethodChain } from "../../../../types/upstream/resourceVocabulary";
+import { matchPhpAccessMode, matchPhpPropertyPath } from "../../lexer/phpAstAlgebra";
+import { matchResourceOperationKind, resourceOperationKindForMethod } from "../../../../types/upstream/resourceVocabulary";
+import { matchLookup } from "../../../../types/upstream/collections";
 import {
     bindResourceCollectionField,
     bindNestedArrayField,
@@ -23,6 +24,18 @@ import {
     bindTernaryField,
     bindFallbackField
 } from "./compositeBinders";
+
+function bindPropertyAccessWithAccess(
+    key: string,
+    property: string,
+    access: import("../../lexer/phpAstExpressionTypes").PhpAccessMode,
+    modelSymbol: OriginModelSymbol
+): BoundResourceFieldResult {
+    return matchPhpAccessMode(access, {
+        direct: () => bindPropertyAccessField(key, property, false, modelSymbol),
+        nullsafe: () => bindPropertyAccessField(key, property, true, modelSymbol),
+    });
+}
 
 export function bindField({
     key,
@@ -37,16 +50,19 @@ export function bindField({
 }): BoundResourceFieldResult {
     return matchPhpAstValue(value, {
         methodChain: (val) => matchResourceOperationKind(resourceOperationKindForMethod(val.property), {
-            when_loaded: () => bindWhenLoadedField(key, readWhenLoadedRelation(val.arguments), modelSymbol),
-            when_not_null: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
-            merge_when: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
-            merge: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
-            additional: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
-            with: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
-            ordinary: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
+            when_loaded: () => matchLookup(readWhenLoadedRelation(val.arguments), {
+                found: relation => bindWhenLoadedField(key, relation.value, modelSymbol),
+                missing: () => bindFallbackField(key),
+            }),
+            when_not_null: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            merge_when: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            merge: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            additional: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            with: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            ordinary: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
         }),
         propertyAccess: (val) => matchPhpPropertyPath(val.target, {
-            single: () => bindPropertyAccessField(key, val.property, val.access.kind === 'nullsafe', modelSymbol),
+            single: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             chain: () => bindPropertyPathField(key, val, modelSymbol, modelSymbolTable),
         }),
         resourceSingle: (val) => bindResourceCollectionField(key, val, modelSymbol),
@@ -64,6 +80,8 @@ export function bindField({
         matchExpression: () => bindFallbackField(key),
         variableReference: () => bindFallbackField(key),
         staticCall: () => bindFallbackField(key),
+        construct: () => bindFallbackField(key),
+        instanceOf: () => bindFallbackField(key),
         classReference: () => bindFallbackField(key),
         closure: () => bindFallbackField(key),
         arrowFunction: () => bindFallbackField(key),

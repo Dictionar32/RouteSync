@@ -6,6 +6,7 @@
  * Runtime uncertainty is represented explicitly by `unsupported`, never by
  * free-form `unknown` payloads.
  */
+import type { DatabaseColumnType } from './modelContracts';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type {
   BoundLiteralValue,
@@ -92,7 +93,7 @@ export interface BoundModelColumnNode {
   readonly kind: 'bound_model_column';
   readonly model: ModelName;
   readonly column: ColumnName;
-  readonly dbType: DatabaseTypeName;
+  readonly dbType: DatabaseColumnType;
   readonly castType: BoundCastType;
   readonly semanticType: SemanticType;
 }
@@ -317,7 +318,7 @@ export const BoundSemanticFactory = Object.freeze({
   modelColumn(params: {
     readonly model: ModelName;
     readonly column: ColumnName;
-    readonly dbType: DatabaseTypeName;
+    readonly dbType: DatabaseColumnType;
     readonly castType: BoundCastType;
     readonly semanticType: SemanticType;
   }): BoundModelColumnNode {

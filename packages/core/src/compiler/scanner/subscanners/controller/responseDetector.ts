@@ -65,8 +65,8 @@ export function detectInlineResponse(
           const rawDomain = resolveInlineDomain(controllerName, actionName);
           const fields: ResourceFieldDescriptor[] = parsedArray.entries.map(e => {
             const mapped = ResourceScanner.mapAstValueToExpression(e.value);
-            const semanticType = mapped.kind === 'semantic'
-              ? mapped.semanticType
+            const semanticType = mapped.semantic.kind === 'known'
+              ? mapped.semantic.type
               : new ErrorType('Inline response field requires verified semantic binding');
             return ScannedResourceFieldDescriptor.fromExpression(e.key, mapped.expression, semanticType);
           });

@@ -66,7 +66,7 @@ export class SemanticResourceBinder {
     public static bindField(params: {
         readonly key: string;
         readonly value: PhpAstValue;
-        readonly modelSymbol?: OriginModelSymbol;
+        readonly modelSymbol: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
     }): BoundResourceFieldResult {
         return bindField(params);

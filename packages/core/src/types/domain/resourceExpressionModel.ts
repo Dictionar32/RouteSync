@@ -2,6 +2,7 @@ import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { ResourceArrayEntry, ResourceFieldExpression } from './expressions';
 import type { MethodName, ModelName, PropertyName, PhpFunctionName, VariableName, ResponseFieldName, ResourceName, CastTypeName, SemanticOperator, ClassName } from './semanticValues';
 import type { ResourceClosureStatement, ResourceMatchArm, ResourceUnaryOperator } from './expressions';
+import type { Expression } from '../upstream/expression';
 
 export type ResourceAccessMode =
   | { readonly kind: 'direct' }
@@ -36,6 +37,9 @@ export type ResourceExpressionSemantic =
   | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'invalid_boundary_input' };
 
 export interface ResourceExpressionModel {
+  /** Canonical upstream expression; the scanner semantic model is derived from this value. */
+  readonly upstream: Expression;
+  /** Domain projection retained for the current resource lowering boundary. */
   readonly expression: ResourceFieldExpression;
   readonly semantic: ResourceExpressionSemantic;
 }

@@ -9,10 +9,13 @@ import { matchPhpMatchArm } from '../../lexer/phpAstAlgebra';
 import type { ResourceExpressionModel, ResourceExpressionBindingRequirement, ResourceExpressionFieldModel, ResourceAccessMode } from '../../../../types/domain/resourceExpressionModel';
 import type { ResourceArrayEntry, ResourceArrayKey } from '../../../../types/domain/expressions';
 import { mapResourceBinaryOperator } from './resourceExpressionOperator';
+import { mapResourcePhpAstToUpstream } from './resourceUpstreamExpressionCanonical';
+import type { Expression } from '../../../../types/upstream/expression';
 
-const known = (expression: ResourceFieldExpression, type: import('../../../types/SemanticType').SemanticType): ResourceExpressionModel => ({ expression, semantic: { kind: 'known', type } });
-const required = (expression: ResourceFieldExpression, requirement: ResourceExpressionBindingRequirement): ResourceExpressionModel => ({ expression, semantic: { kind: 'requires_binding', requirement } });
-const rejected = (expression: ResourceFieldExpression): ResourceExpressionModel => ({ expression, semantic: { kind: 'rejected', reason: 'unsupported_syntax' } });
+type DomainExpressionModel = Omit<ResourceExpressionModel, 'upstream'>;
+const known = (expression: ResourceFieldExpression, type: import('../../../types/SemanticType').SemanticType): DomainExpressionModel => ({ expression, semantic: { kind: 'known', type } });
+const required = (expression: ResourceFieldExpression, requirement: ResourceExpressionBindingRequirement): DomainExpressionModel => ({ expression, semantic: { kind: 'requires_binding', requirement } });
+const rejected = (expression: ResourceFieldExpression): DomainExpressionModel => ({ expression, semantic: { kind: 'rejected', reason: 'unsupported_syntax' } });
 
 const accessMode = (mode: PhpAccessMode): ResourceAccessMode => mode;
 const variable = (value: string) => SemanticValueFactory.variableName(value);
@@ -26,7 +29,7 @@ function mapArgs(args: readonly import('../../lexer/phpAstTypes').PhpArgument[])
   return Object.freeze(args.map(argument => mapAstValueToExpression(argument.value)));
 }
 
-function mapProperty(receiver: PhpAstValue, name: string, access: PhpAccessMode): ResourceExpressionModel {
+function mapProperty(receiver: PhpAstValue, name: string, access: PhpAccessMode): DomainExpressionModel {
   const target = mapAstValueToExpression(receiver);
   const expression = matchPhpAccessMode(access, {
     direct: () => ResourceFieldExpressionFactory.propertyAccess(target.expression, property(name)),
@@ -35,7 +38,7 @@ function mapProperty(receiver: PhpAstValue, name: string, access: PhpAccessMode)
   return required(expression, { kind: 'property', receiver: target, property: property(name), access });
 }
 
-function mapMethod(receiver: PhpAstValue, name: string, args: readonly import('../../lexer/phpAstTypes').PhpArgument[], access: PhpAccessMode): ResourceExpressionModel {
+function mapMethod(receiver: PhpAstValue, name: string, args: readonly import('../../lexer/phpAstTypes').PhpArgument[], access: PhpAccessMode): DomainExpressionModel {
   const target = mapAstValueToExpression(receiver);
   const arguments_ = mapArgs(args);
   const expression = matchPhpAccessMode(access, {
@@ -45,7 +48,7 @@ function mapMethod(receiver: PhpAstValue, name: string, args: readonly import('.
   return required(expression, { kind: 'method', receiver: target, method: method(name), arguments: arguments_, access });
 }
 
-function mapNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): ResourceExpressionModel {
+function mapNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): DomainExpressionModel {
   const entries: ResourceArrayEntry[] = value.entries.map((entry, index) => {
     const key: ResourceArrayKey = entry.kind === 'keyed'
       ? entry.key.kind === 'string'
@@ -61,13 +64,19 @@ function mapNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): Resou
   return required(expression, { kind: 'nested_array', entries });
 }
 
-export function mapAstValueToExpression(value: PhpAstValue): ResourceExpressionModel {
-  return matchPhpAstValue<ResourceExpressionModel>(value, {
+export function mapAstValueToExpression(value: PhpAstValue, sourceFile = '<scanner>'): ResourceExpressionModel {
+  const source = mapResourcePhpAstToUpstream(value, sourceFile);
+  const model = mapAstValueToDomainExpression(value);
+  return { ...model, upstream: source };
+}
+
+function mapAstValueToDomainExpression(value: PhpAstValue): DomainExpressionModel {
+  const model = matchPhpAstValue<DomainExpressionModel>(value, {
     resourceCollection: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName), { kind: 'collection' }), new ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.resource('', v.resourceName))),
     resourceSingle: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName)), ReferenceType.resource('', v.resourceName)),
     nestedArray: mapNested,
-    propertyAccess: v => mapProperty(v.receiver, v.property, v.access.kind === 'nullsafe'),
-    methodChain: v => mapMethod(v.receiver, v.property, v.arguments, v.access.kind === 'nullsafe'),
+    propertyAccess: v => mapProperty(v.receiver, v.property, matchPhpAccessMode(v.access, { direct: () => false, nullsafe: () => true })),
+    methodChain: v => mapMethod(v.receiver, v.property, v.arguments, matchPhpAccessMode(v.access, { direct: () => false, nullsafe: () => true })),
     variableReference: v => required(ResourceFieldExpressionFactory.variable(variable(v.name)), { kind: 'variable', name: variable(v.name) }),
     staticCall: v => mapStatic(v),
     arrayAccess: v => mapArrayAccess(v),
@@ -87,11 +96,12 @@ export function mapAstValueToExpression(value: PhpAstValue): ResourceExpressionM
     arrowFunction: mapArrowFunction,
     unsupported: () => rejected(ResourceFieldExpressionFactory.unsupported('unsupported_syntax'))
   });
+  return model;
 }
 
 
 
-function mapClosure(v: Extract<PhpAstValue, { kind: 'closure' }>): ResourceExpressionModel {
+function mapClosure(v: Extract<PhpAstValue, { kind: 'closure' }>): DomainExpressionModel {
   const parameters = v.parameters.map(parameter => variable(parameter.variable));
   const captures = v.captures.map(capture => ({ kind: capture.kind, variable: variable(capture.variable) } as const));
   const body = v.body.statements.map(mapClosureStatement);
@@ -99,7 +109,7 @@ function mapClosure(v: Extract<PhpAstValue, { kind: 'closure' }>): ResourceExpre
   return required(expression, { kind: 'closure', parameters, captures, body });
 }
 
-function mapArrowFunction(v: Extract<PhpAstValue, { kind: 'arrow_function' }>): ResourceExpressionModel {
+function mapArrowFunction(v: Extract<PhpAstValue, { kind: 'arrow_function' }>): DomainExpressionModel {
   const parameters = v.parameters.map(parameter => variable(parameter.variable));
   const body = mapAstValueToExpression(v.body);
   const expression = ResourceFieldExpressionFactory.arrowFunction(parameters, body.expression);
@@ -154,12 +164,12 @@ function mapClosureFinally(clause: import('../../lexer/phpAstStatementTypes').Ph
   return { kind: 'present', block: clause.block.statements.map(mapClosureStatement) };
 }
 
-function mapUnary(v: Extract<PhpAstValue, { kind: 'unary_expression' }>): ResourceExpressionModel {
+function mapUnary(v: Extract<PhpAstValue, { kind: 'unary_expression' }>): DomainExpressionModel {
   const operand = mapAstValueToExpression(v.operand);
   const operator = { kind: v.operator.kind } as import('../../../../types/domain/expressions').ResourceUnaryOperator;
   return { expression: ResourceFieldExpressionFactory.unary(operator, operand.expression), semantic: { kind: 'requires_binding', requirement: { kind: 'unary', operator, operand } } };
 }
-function mapMatch(v: Extract<PhpAstValue, { kind: 'match_expression' }>): ResourceExpressionModel {
+function mapMatch(v: Extract<PhpAstValue, { kind: 'match_expression' }>): DomainExpressionModel {
   const subject = mapAstValueToExpression(v.subject);
   const arms = v.arms.map(arm => matchPhpMatchArm(arm, {
     conditional: node => ({ kind: 'conditional' as const, conditions: node.conditions.map(item => mapAstValueToExpression(item).expression), value: mapAstValueToExpression(node.value).expression }),
@@ -167,48 +177,48 @@ function mapMatch(v: Extract<PhpAstValue, { kind: 'match_expression' }>): Resour
   }));
   return { expression: ResourceFieldExpressionFactory.match(subject.expression, arms), semantic: { kind: 'requires_binding', requirement: { kind: 'match', subject, arms } } };
 }
-function mapConstruct(v: Extract<PhpAstValue, { kind: 'construct' }>): ResourceExpressionModel {
-  const arguments_ = mapArgs(v.arguments); const class = className(v.className);
-  return { expression: ResourceFieldExpressionFactory.construct(class, arguments_.map(item => item.expression)), semantic: { kind: 'requires_binding', requirement: { kind: 'construct', className: className(v.className), arguments: arguments_ } } };
+function mapConstruct(v: Extract<PhpAstValue, { kind: 'construct' }>): DomainExpressionModel {
+  const arguments_ = mapArgs(v.arguments); const classReference = className(v.className);
+  return { expression: ResourceFieldExpressionFactory.construct(classReference, arguments_.map(item => item.expression)), semantic: { kind: 'requires_binding', requirement: { kind: 'construct', className: className(v.className), arguments: arguments_ } } };
 }
-function mapInstanceOf(v: Extract<PhpAstValue, { kind: 'instance_of' }>): ResourceExpressionModel {
-  const expression = mapAstValueToExpression(v.expression); const class = className(v.className);
-  return { expression: ResourceFieldExpressionFactory.instanceOf(expression.expression, class), semantic: { kind: 'requires_binding', requirement: { kind: 'instance_of', expression, className: className(v.className) } } };
+function mapInstanceOf(v: Extract<PhpAstValue, { kind: 'instance_of' }>): DomainExpressionModel {
+  const expression = mapAstValueToExpression(v.expression); const classReference = className(v.className);
+  return { expression: ResourceFieldExpressionFactory.instanceOf(expression.expression, classReference), semantic: { kind: 'requires_binding', requirement: { kind: 'instance_of', expression, className: className(v.className) } } };
 }
 
-function mapStatic(v: Extract<PhpAstValue, { kind: 'static_call' }>): ResourceExpressionModel {
+function mapStatic(v: Extract<PhpAstValue, { kind: 'static_call' }>): DomainExpressionModel {
   const arguments_ = mapArgs(v.arguments); const className = model(v.className); const methodName = method(v.method);
   return required(ResourceFieldExpressionFactory.staticMethodCall(className, methodName, arguments_.map(item => item.expression)), { kind: 'static_method', model: className, method: methodName, arguments: arguments_ });
 }
-function mapArrayAccess(v: Extract<PhpAstValue, { kind: 'array_access' }>): ResourceExpressionModel {
+function mapArrayAccess(v: Extract<PhpAstValue, { kind: 'array_access' }>): DomainExpressionModel {
   const target = mapAstValueToExpression(v.target); const index = mapAstValueToExpression(v.index);
   return required(ResourceFieldExpressionFactory.arrayAccess(target.expression, index.expression), { kind: 'array_access', target, index });
 }
-function mapFunction(v: Extract<PhpAstValue, { kind: 'function_call' }>): ResourceExpressionModel {
+function mapFunction(v: Extract<PhpAstValue, { kind: 'function_call' }>): DomainExpressionModel {
   const arguments_ = mapArgs(v.arguments); const name = SemanticValueFactory.phpFunctionName(v.functionName);
   return required(ResourceFieldExpressionFactory.functionCall(name, arguments_.map(item => item.expression)), { kind: 'function_call', functionName: name, arguments: arguments_ });
 }
-function mapCast(v: Extract<PhpAstValue, { kind: 'cast_expression' }>): ResourceExpressionModel {
+function mapCast(v: Extract<PhpAstValue, { kind: 'cast_expression' }>): DomainExpressionModel {
   const operand = mapAstValueToExpression(v.operand); const type = SemanticValueFactory.castTypeName(v.castType.kind);
   return required(ResourceFieldExpressionFactory.typeCast(type, operand.expression), { kind: 'cast', type, operand });
 }
-function mapBinary(v: Extract<PhpAstValue, { kind: 'binary_expression' }>): ResourceExpressionModel {
+function mapBinary(v: Extract<PhpAstValue, { kind: 'binary_expression' }>): DomainExpressionModel {
   const left = mapAstValueToExpression(v.left); const right = mapAstValueToExpression(v.right); const operator = SemanticValueFactory.semanticOperator(mapResourceBinaryOperator(v.operator.kind));
   return required(ResourceFieldExpressionFactory.binary(operator, left.expression, right.expression), { kind: 'computation', operator, left, right });
 }
-function mapTernary(v: Extract<PhpAstValue, { kind: 'ternary_expression' }>): ResourceExpressionModel {
+function mapTernary(v: Extract<PhpAstValue, { kind: 'ternary_expression' }>): DomainExpressionModel {
   const condition = mapAstValueToExpression(v.condition); const truthy = mapAstValueToExpression(v.trueBranch); const falsy = mapAstValueToExpression(v.falseBranch);
   return required(ResourceFieldExpressionFactory.ternary(condition.expression, truthy.expression, falsy.expression), { kind: 'conditional', condition, truthy, falsy });
 }
-function mapShortTernary(v: Extract<PhpAstValue, { kind: 'short_ternary' }>): ResourceExpressionModel {
+function mapShortTernary(v: Extract<PhpAstValue, { kind: 'short_ternary' }>): DomainExpressionModel {
   const condition = mapAstValueToExpression(v.condition); const falsy = mapAstValueToExpression(v.falseBranch);
   return required(ResourceFieldExpressionFactory.shortTernary(condition.expression, falsy.expression), { kind: 'short_conditional', condition, falsy });
 }
-function mapNullCoalesce(v: Extract<PhpAstValue, { kind: 'null_coalesce' }>): ResourceExpressionModel {
+function mapNullCoalesce(v: Extract<PhpAstValue, { kind: 'null_coalesce' }>): DomainExpressionModel {
   const left = mapAstValueToExpression(v.left); const right = mapAstValueToExpression(v.right);
   return required(ResourceFieldExpressionFactory.nullCoalesce(left.expression, right.expression), { kind: 'null_coalesce', left, right });
 }
-function mapLiteral(v: Extract<PhpAstValue, { kind: 'literal' }>): ResourceExpressionModel {
+function mapLiteral(v: Extract<PhpAstValue, { kind: 'literal' }>): DomainExpressionModel {
   if (v.literalType === 'number') return known(ResourceFieldExpressionFactory.literal({ kind: 'number', value: v.value }), new PrimitiveType(PrimitiveKind.NUMBER));
   if (v.literalType === 'boolean') return known(ResourceFieldExpressionFactory.literal({ kind: 'boolean', value: v.value }), new PrimitiveType(PrimitiveKind.BOOLEAN));
   if (v.literalType === 'string') return known(ResourceFieldExpressionFactory.literal({ kind: 'string', value: v.value }), new PrimitiveType(PrimitiveKind.STRING));

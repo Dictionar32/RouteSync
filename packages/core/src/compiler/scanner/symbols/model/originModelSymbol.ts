@@ -7,6 +7,7 @@ import type { ParsedModel, ModelSemanticProperty } from "../../../../types/domai
 import type { ModelName } from "../../../../types/domain/semanticValues";
 import type { ResolvedPropertyBinding } from "./types";
 import type { Lookup } from "../../../../types/upstream/collections";
+import { createPropertyName, createRelationName } from "../../../../types/upstream/names";
 
 export class OriginModelSymbol {
     public readonly name: ModelName;
@@ -26,6 +27,15 @@ export class OriginModelSymbol {
 
     public property(name: string): ModelSemanticProperty | undefined {
         return this.propertiesByName.get(name);
+    }
+
+
+    public column(name: string): Lookup<import("../../../../types/domain/models").ModelSemanticColumn> {
+        return this.node.semantic.surface.byName.column(createPropertyName(name));
+    }
+
+    public relation(name: string): Lookup<import("../../../../types/domain/models").ModelSemanticRelation> {
+        return this.node.semantic.surface.relationsByName.lookup(createRelationName(name));
     }
 
     public resolveProperty(prop: string): Lookup<ResolvedPropertyBinding> {

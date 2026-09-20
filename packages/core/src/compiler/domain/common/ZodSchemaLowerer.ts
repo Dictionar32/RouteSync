@@ -76,10 +76,11 @@ function lowerZodNode(
 
         case 'object': {
             const properties = resolved.fields.map(({ name, type, presence }) => {
-                const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name);
-                const key = validIdentifier ? name : JSON.stringify(name);
+                const propertyName = name.value.value;
+                const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(propertyName);
+                const key = validIdentifier ? propertyName : JSON.stringify(propertyName);
                 const schema = lowerZodNode(type, referenceStrategy);
-                return `${key}: ${presence === 'optional' ? `${schema}.optional()` : schema}`;
+                return `${key}: ${presence.kind === 'optional' ? `${schema}.optional()` : schema}`;
             });
             return `z.object({ ${properties.join(', ')} })`;
         }

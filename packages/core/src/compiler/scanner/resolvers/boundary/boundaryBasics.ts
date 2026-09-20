@@ -8,6 +8,7 @@
  */
 
 import type { RouteActionKind, RouteParameter, RouteQueryParameter } from "../../../../types/route";
+import { HTTP_METHOD_REGISTRY, ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import { ScannedRouteParameterDescriptor } from "../../descriptors/routeDescriptors";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { RouteDomainResolver } from "../RouteDomainResolver";
@@ -38,15 +39,12 @@ export function resolveRouteBoundaryBasics(params: RouteBoundaryOptions): Interm
         }
     }
 
-    const isGetMethod = params.method.toUpperCase() === "GET";
-    const isHeadMethod = params.method.toUpperCase() === "HEAD";
-    const resolvedActionKind: RouteActionKind = params.actionKind !== undefined
-        ? params.actionKind
-        : (isGetMethod ? "read" : "create");
-    const resolvedIsMutating = params.isMutating !== undefined
-        ? params.isMutating
-        : (!isGetMethod && !isHeadMethod);
-    resolvedActionName = resolvedActionName || (resolvedIsMutating ? "mutate" : "query");
+    const methodSpecification = HTTP_METHOD_REGISTRY[params.method];
+    const isGetMethod = params.method === "GET";
+    const isHeadMethod = params.method === "HEAD";
+    const resolvedActionKind: RouteActionKind = params.actionKind ?? resolveActionKindFromActionName(resolvedActionName, methodSpecification.actionKind);
+    const resolvedIsMutating = ROUTE_ACTION_KIND_REGISTRY[resolvedActionKind].isMutating;
+    resolvedActionName = resolvedActionName || actionNameForKind(resolvedActionKind);
 
     if (!resolvedAction) {
         resolvedAction = resolvedControllerName ? `${resolvedControllerName}@${resolvedActionName}` : resolvedActionName;
@@ -133,4 +131,34 @@ export function deriveRouteConstantKey(routePath: string): string {
     }
 
     return keySegments.filter(Boolean).join("_");
+}
+
+
+function resolveActionKindFromActionName(actionName: string | undefined, fallback: RouteActionKind): RouteActionKind {
+    switch (actionName) {
+        case "index":
+        case "show":
+        case "read":
+            return "read";
+        case "store":
+        case "create":
+            return "create";
+        case "update":
+        case "edit":
+            return "update";
+        case "destroy":
+        case "delete":
+            return "delete";
+        default:
+            return fallback;
+    }
+}
+
+function actionNameForKind(kind: RouteActionKind): string {
+    switch (kind) {
+        case "create": return "create";
+        case "update": return "update";
+        case "delete": return "delete";
+        case "read": return "read";
+    }
 }

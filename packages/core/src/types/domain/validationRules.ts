@@ -1,6 +1,7 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
-import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, ValidationParameter, ValidationRuleName } from "./semanticValues";
+import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, ValidationParameter, ValidationRuleName, PropertyName } from "./semanticValues";
 import type { RequestField } from "./request";
+import { SemanticValueFactory } from './semanticValues';
 
 /**
  * ValidationRuleKind
@@ -360,8 +361,8 @@ export class ValidationRuleNodeFactory {
 function validationRuleName(value: string): ValidationRuleName { return Object.freeze({ kind: 'validation_rule_name', value }); }
 function validationParameter(value: string): ValidationParameter { return Object.freeze({ kind: 'validation_parameter', value }); }
 function validationConstraintValue(value: string): ValidationConstraintValue { return Object.freeze({ kind: 'validation_constraint_value', value: Number(value) }); }
-function tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value }); }
-function columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value }); }
+function tableName(value: string): TableName { return SemanticValueFactory.tableName(value); }
+function columnName(value: string): ColumnName { return SemanticValueFactory.columnName(value); }
 function dateFormat(value: string): DateFormat { return Object.freeze({ kind: 'date_format', value }); }
 
 export class ValidationRuleParser {
@@ -567,11 +568,49 @@ export class ZodSchemaReducer {
  * First-Class Route Validation Rule Entry (Ordered & Guaranteed Complete Model).
  * Pure JSON-serializable AST node: 0 loose strings, 0 split('|'), 0 typeof checks in downstream.
  */
+export type ValidationFieldLocation =
+  | { readonly kind: 'root' }
+  | {
+      readonly kind: 'collection_element';
+      readonly collection: PropertyName;
+      readonly path: readonly PropertyName[];
+    };
+
+export type ValidationFieldShape =
+  | { readonly kind: 'scalar' }
+  | {
+      readonly kind: 'object';
+      readonly fields: readonly ValidationFieldProperty[];
+    }
+  | {
+      readonly kind: 'collection';
+      readonly elementType: SemanticType;
+      readonly element: ValidationFieldShape;
+    };
+
+export interface ValidationFieldProperty {
+  readonly name: PropertyName;
+  readonly semanticType: SemanticType;
+  readonly presence: import('./requestFieldPresence').RequestFieldPresence;
+  readonly validation: readonly ValidationRuleNode[];
+  readonly shape: ValidationFieldShape;
+}
+
 export interface RouteValidationRuleEntry {
-  readonly fieldName: string;
-  readonly propertyName: string;
-  readonly ast: readonly ValidationRuleNode[];
-  readonly rules: readonly string[];
+  /** Canonical field identity used by all consumers. */
+  readonly fieldName: PropertyName;
+  /** Exact Laravel field expression retained as source provenance. */
+  readonly sourceField: PropertyName;
+  /** Semantic location; wildcard syntax is not a downstream classification signal. */
+  readonly location: ValidationFieldLocation;
+  /** Complete shape facts resolved at the scanner origin boundary. */
+  readonly shape: ValidationFieldShape;
+  /** Semantic type resolved once at the scanner origin boundary. */
+  readonly semanticType: SemanticType;
+  /** Presence resolved once at the scanner origin boundary. */
+  readonly presence: import('./requestFieldPresence').RequestFieldPresence;
+  /** Original parsed rules retained as constraint/provenance data only. */
+  readonly validation: readonly ValidationRuleNode[];
 }
 
 /**
@@ -594,9 +633,8 @@ export interface RouteAttributeEntry {
  * Pure Ordered Validation Schema Payload (0 Record, 0 Object.entries).
  */
 export interface RouteSchemaPayload {
-  /** Canonical semantic request fields. Scanner populates these once; downstream never re-infers them. */
+  /** Canonical semantic request fields. Validation belongs to each field. */
   readonly fields: readonly RequestField[];
-  readonly rules: readonly RouteValidationRuleEntry[];
   readonly messages: readonly RouteMessageEntry[];
   readonly attributes: readonly RouteAttributeEntry[];
 }

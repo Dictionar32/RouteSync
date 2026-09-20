@@ -7,7 +7,7 @@ import { modelScope } from '../resolutionScope';
 import { resolveInScope } from '../kernel/resolveInScope';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
 import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
-import type { ParsedColumn } from '../../types/domain/databaseColumns';
+import type { ModelColumnFact } from '../../types/upstream/modelSourceFacts';
 
 function primitiveFor(type: string): SemanticType {
   switch (type) {
@@ -31,32 +31,34 @@ export class ModelColumnResolver implements ResolverPlugin {
     const symbol = context.symbolTable.get(meta.model.value);
     if (!symbol) return unknown(`Model ${meta.model} not found in manifest`);
 
-    const column = symbol.column(meta.column.value);
-    if (column) return this.resolveColumn(symbol, meta.column.value, column, context);
+    const columnFact = symbol.columnFact(meta.column.value);
+    if (columnFact.kind === 'found') return this.resolveColumn(symbol, meta.column.value, columnFact.value);
 
     const accessor = symbol.accessor(meta.column.value);
-    if (accessor) return resolveInScope(context.kernel, { kind: 'model_accessor', model: SemanticValueFactory.modelName(symbol.name), column: SemanticValueFactory.columnName(meta.column.value) }, modelScope(symbol.node));
+    if (accessor.kind === 'found') {
+      return resolveInScope(context.kernel, { kind: 'model_accessor', model: SemanticValueFactory.modelName(symbol.name), column: SemanticValueFactory.columnName(meta.column.value) }, modelScope(symbol.node));
+    }
 
     return unknown(`Property ${meta.column} not found on model ${symbol.name}`);
   }
 
-  private resolveColumn(symbol: ModelSymbol, name: string, column: ParsedColumn, context: ResolutionContext) {
-    const tsType = column.semanticType.kind === 'primitive' ? column.semanticType.type : 'unknown';
-    const castType = symbol.cast(name);
-    const resolvedType = castType ? context.kernel.mapCastToTs(castType.castKind, tsType) : tsType;
+  private resolveColumn(symbol: ModelSymbol, name: string, fact: ModelColumnFact) {
+    const semanticType = fact.type.value.kind === 'primitive' ? fact.type.value.value.kind : 'unknown';
+    const castType = fact.type.kind === 'casted' ? { kind: 'cast', type: fact.type.cast.kind } as const : { kind: 'no_cast' } as const;
     const boundAst = BoundSemanticFactory.modelColumn({
       model: SemanticValueFactory.modelName(symbol.name),
       column: SemanticValueFactory.columnName(name),
-      dbType: SemanticValueFactory.databaseTypeName(column.type.kind),
-      castType: castType ? { kind: 'cast', type: SemanticValueFactory.castTypeName(castType.castKind) } : { kind: 'no_cast' },
-      semanticType: primitiveFor(resolvedType),
+      dbType: SemanticValueFactory.databaseTypeName(fact.databaseType.kind),
+      castType,
+      semanticType: primitiveFor(semanticType),
     });
     return SemanticResolutionFactory.scalar({
       status: 'resolved', confidence: 100,
-      trace: [{ source: 'ModelColumnResolver', rule: 'Column type lookup from database schema', input: `${symbol.name}.${name}`, output: resolvedType }],
-      boundAst, semanticType: primitiveFor(resolvedType), nullability: column.nullability,
+      trace: [{ source: 'ModelColumnResolver', rule: 'Column semantic fact lookup', input: `${symbol.name}.${name}`, output: semanticType }],
+      boundAst, semanticType: primitiveFor(semanticType), nullability: fact.nullability,
     });
   }
+
 }
 
 function unknown(message = 'Unknown semantic resolution') {

@@ -23,11 +23,11 @@ export function parseSelectRawFields(
     }
     const column = projectedColumn(part);
     if (column !== null) {
-      const property = sourceDefinition.surface.byName.get(SemanticValueFactory.propertyName(column));
-      if (property?.kind !== 'column') continue;
+      const property = sourceDefinition.surface.byName.column(SemanticValueFactory.propertyName(column));
+      if (property.kind === 'missing') continue;
       fields.push({
         kind: 'column', name: SemanticValueFactory.responseFieldName(alias),
-        source: SemanticValueFactory.columnName(column), type: property.type,
+        source: SemanticValueFactory.columnName(column), type: property.value.semanticType,
       });
     }
   }

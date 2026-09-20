@@ -1,7 +1,10 @@
 /** Canonical manifest IR vocabulary. */
-import type { ResolvedSemanticType } from './resolvedSemanticTypes';
+import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { DescriptionText } from '../upstream/valueObjects';
+import type { Presence } from '../upstream/primitiveVocabulary';
+import type { ValidationRules } from '../upstream/collections';
 import type { PaginationState } from './paginationState';
+import type { SourceFile } from '../upstream/names';
 import type { ActionName, ControllerName, ModelName, PropertyName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
 
 export type ParsedValidationMap = ReadonlyMap<PropertyName, TypeExpression>;
@@ -9,9 +12,9 @@ export type ParsedValidationMap = ReadonlyMap<PropertyName, TypeExpression>;
 export interface ManifestField {
   readonly name: PropertyName;
   readonly type: TypeExpression;
-  readonly semanticType: ResolvedSemanticType;
-  readonly format: TypeExpression;
-  readonly validationRules: readonly TypeExpression[];
+  readonly semanticType: SemanticType;
+  readonly presence: Presence;
+  readonly validation: ValidationRules;
   readonly description: DescriptionText;
 }
 
@@ -33,6 +36,7 @@ export interface ParsedResource {
 
 export interface ParsedRequest {
   readonly name: string;
+  readonly sourceFile: SourceFile;
   readonly actions: readonly ManifestAction[];
   readonly controller: ControllerName;
   readonly routes: readonly RouteName[];
@@ -72,15 +76,7 @@ export type RouteResponseBinding =
       readonly pagination: NoPagination;
     };
 
-export interface ParsedRoute {
-  readonly id: RouteName;
-  readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD';
-  readonly path: RoutePath;
-  readonly action: ActionName;
-  readonly controller: ControllerName;
-  readonly middleware: readonly string[];
-  readonly response: RouteResponseBinding;
-}
+export type { ParsedRoute } from '../domain/routes';
 
 export interface ManifestMetadata {
   readonly version: string;
@@ -88,9 +84,4 @@ export interface ManifestMetadata {
   readonly sourceFiles: readonly SourceFilePath[];
 }
 
-export interface RouteManifest {
-  readonly routes: readonly ParsedRoute[];
-  readonly resources: readonly ParsedResource[];
-  readonly requests: readonly ParsedRequest[];
-  readonly metadata: ManifestMetadata;
-}
+export type { RouteManifest } from '../domain/base';

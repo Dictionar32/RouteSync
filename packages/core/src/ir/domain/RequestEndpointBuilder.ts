@@ -1,8 +1,6 @@
 /**
  * @file RequestEndpointBuilder.ts
- * @description Sub-domain builder for RequestIR, EndpointIR, parameters, references, and validation
- *
- * @module core/ir/domain/RequestEndpointBuilder
+ * @description Builds request/endpoint IR from resolved upstream contracts.
  */
 
 import type {
@@ -12,17 +10,16 @@ import type {
     EndpointIR,
     ParsedRequest,
     ParsedRoute,
-    ManifestField,
     ManifestAction,
     RequestActionIR,
     ParameterIR,
     ResponseReference,
     RequestReference
 } from '../../types/ir';
+import type { ParsedRoute as DomainParsedRoute } from '../../types/domain/routes';
 
 import type { PrimitiveKind } from '../../compiler/types/SemanticType';
 import type { FieldTypeResolver } from './FieldTypeResolver';
-import type { ResourceMapperBuilder } from './ResourceMapperBuilder';
 import type { DiagnosticCollector } from './irTypes';
 import {
     inferParamType,
@@ -32,78 +29,62 @@ import {
     generateRequestId,
     validateContractIR
 } from './request-endpoint';
+import { createRequestId, createRequestName } from '../../types/ir/nominalVocabulary';
 
 export class RequestEndpointBuilder {
-    constructor(
-        private readonly fieldTypeResolver: FieldTypeResolver,
-        private readonly mapperBuilder: ResourceMapperBuilder
-    ) {}
+    constructor(private readonly fieldTypeResolver: FieldTypeResolver) {}
 
     public buildRequestIR(request: ParsedRequest): RequestIR {
-        const actions = request.actions.map(action => this.buildRequestAction(action));
-
         return {
-            id: this.generateRequestId(request),
-            name: request.name,
-            actions,
-            validation: {
-                zod: undefined,
-                laravel: undefined,
-                custom: []
-            },
+            id: createRequestId(this.generateRequestId(request)),
+            name: createRequestName(request.name),
+            actions: request.actions.map(action => this.buildRequestAction(action)),
             metadata: {
-                sourceFile: request.name,
+                sourceFile: request.sourceFile,
                 controller: request.controller,
                 routes: request.routes,
-                generated_at: new Date().toISOString()
+                generated_at: new Date().toISOString() as import('../../types/upstream/valueObjects').GenerationTimestamp
             }
         };
     }
 
     public buildRequestAction(action: ManifestAction): RequestActionIR {
         return {
-            name: action.name === 'Create' || action.name === 'Update' || action.name === 'Delete'
-                ? action.name
-                : 'Custom',
-            customName: action.name !== 'Create' && action.name !== 'Update' && action.name !== 'Delete'
-                ? action.name
-                : undefined,
-            fields: action.fields.map((field: ManifestField) =>
+            name: action.name,
+            fields: action.fields.map(field =>
                 this.fieldTypeResolver.convertToLegacyFieldIR(
                     this.fieldTypeResolver.buildOptimizedResourceField(field)
                 )
-            ),
-            rules: action.validation ? [this.mapperBuilder.buildValidationRules(action.validation)] : [],
-            dependencies: []
+            )
         };
     }
 
-    public buildEndpointIR(
-        route: ParsedRoute,
-        requests: Map<string, RequestIR>
-    ): EndpointIR {
+    public buildEndpointIR(route: DomainParsedRoute, requests: Map<string, RequestIR>): EndpointIR {
         return {
-            id: route.id,
-            method: route.method,
-            path: route.path,
-            pathParams: this.extractPathParams(route.path),
+            id: route.identity.name,
+            method: route.identity.method,
+            path: route.identity.path,
+            pathParams: this.extractPathParams(route.identity.path),
             queryParams: [],
             request: this.buildRequestReference(route, requests),
             response: this.buildResponseReference(route),
-            middleware: route.middleware.map((name, index) => ({
+            middleware: route.capability.middleware.map((name, index) => ({
                 name,
                 parameters: [],
                 order: index
             })),
             metadata: {
-                controller: route.controller,
-                action: route.action,
-                generated_at: new Date().toISOString()
+                controller: route.binding.controllerName,
+                action: route.binding.action,
+                routeName: route.identity.name,
+                generatedAt: new Date().toISOString() as import('../../types/upstream/valueObjects').GenerationTimestamp,
+                security: { kind: 'public' },
+                cache: { kind: 'uncached' }
             }
         };
     }
 
-    public extractPathParams(path: string): ParameterIR[] {
+    public extractPathParams(path: DomainParsedRoute['identity']['path']): ParameterIR[] {
         return extractPathParams(path);
     }
 
@@ -111,11 +92,11 @@ export class RequestEndpointBuilder {
         return inferParamType(name);
     }
 
-    public buildRequestReference(route: ParsedRoute, requests: Map<string, RequestIR>): RequestReference | undefined {
+    public buildRequestReference(route: DomainParsedRoute, requests: Map<string, RequestIR>): RequestReference {
         return buildRequestReference(route, requests);
     }
 
-    public buildResponseReference(route: ParsedRoute): ResponseReference {
+    public buildResponseReference(route: DomainParsedRoute): ResponseReference {
         return buildResponseReference(route);
     }
 

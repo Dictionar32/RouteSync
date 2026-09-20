@@ -1,3 +1,10 @@
+import type {
+  ModelName, ResourceName, PropertyName, VariableName, ClassName, ColumnName,
+  RelationName, RouteName, RoutePath, RouteParameterName, ControllerName, ActionName, MethodName,
+  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName
+} from '../upstream/names';
+import type { NumberValue, StringValue } from '../upstream/valueObjects';
+
 /**
  * Closed semantic value objects for the domain IR.
  *
@@ -7,63 +14,24 @@
  * expression.
  */
 
-export interface ModelName {
-  readonly kind: 'model_name';
-  readonly value: string;
-}
+export type {
+  ModelName, ResourceName, PropertyName, VariableName, ClassName, ColumnName,
+  RelationName, RouteName, RoutePath, RouteParameterName, ControllerName, ActionName, MethodName,
+  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName
+};
 
-export interface ResourceName {
-  readonly kind: 'resource_name';
-  readonly value: string;
-}
+export type DomainName = DomainTypeName;
 
-export interface FormTypeName {
-  readonly kind: 'form_type_name';
-  readonly value: string;
-}
 
 export interface RequestFieldName {
   readonly kind: 'request_field_name';
   readonly value: string;
 }
 
-export interface RouteName {
-  readonly kind: 'route_name';
-  readonly value: string;
-}
-
-export interface DomainName {
-  readonly kind: 'domain_name';
-  readonly value: string;
-}
-
-export interface ClassName {
-  readonly kind: 'class_name';
-  readonly value: string;
-}
-
-export interface SourceFilePath {
-  readonly kind: 'source_file_path';
-  readonly value: string;
-}
-
-export interface ResponseTypeName {
-  readonly kind: 'response_type_name';
-  readonly value: string;
-}
+export type SourceFilePath = SourceFile;
 
 export interface HttpErrorName {
   readonly kind: 'http_error_name';
-  readonly value: string;
-}
-
-export interface ColumnName {
-  readonly kind: 'column_name';
-  readonly value: string;
-}
-
-export interface PropertyName {
-  readonly kind: 'property_name';
   readonly value: string;
 }
 
@@ -77,40 +45,7 @@ export interface ResponseFieldName {
   readonly value: string;
 }
 
-export interface RelationName {
-  readonly kind: 'relation_name';
-  readonly value: string;
-}
-
-export interface MethodName {
-  readonly kind: 'method_name';
-  readonly value: string;
-}
-
-export interface ActionName {
-  readonly kind: 'action_name';
-  readonly value: string;
-}
-
-export interface ControllerName {
-  readonly kind: 'controller_name';
-  readonly value: string;
-}
-
-export interface RoutePath {
-  readonly kind: 'route_path';
-  readonly value: string;
-}
-
-export interface SourceLineNumber {
-  readonly kind: 'source_line_number';
-  readonly value: number;
-}
-
-export interface VariableName {
-  readonly kind: 'variable_name';
-  readonly value: string;
-}
+export type SourceLineNumber = NumberValue;
 
 export interface PhpFunctionName {
   readonly kind: 'php_function_name';
@@ -188,11 +123,6 @@ export type BoundLiteralValue =
   | { readonly kind: 'boolean'; readonly value: boolean }
   | { readonly kind: 'null' };
 
-export interface TableName {
-  readonly kind: 'table_name';
-  readonly value: string;
-}
-
 export interface ValidationRuleName {
   readonly kind: 'validation_rule_name';
   readonly value: string;
@@ -229,29 +159,46 @@ export type BoundTargetModel =
   | { readonly kind: 'model'; readonly name: ModelName };
 
 
-export const SemanticValueFactory = Object.freeze({
-  modelName(value: string): ModelName { return Object.freeze({ kind: 'model_name', value }); },
-  tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value }); },
-  formTypeName(value: string): FormTypeName { return Object.freeze({ kind: 'form_type_name', value }); },
-  requestFieldName(value: string): RequestFieldName { return Object.freeze({ kind: 'request_field_name', value }); },
-  routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value }); },
-  responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value }); },
-  httpErrorName(value: string): HttpErrorName { return Object.freeze({ kind: 'http_error_name', value }); },
-  sourceFilePath(value: string): SourceFilePath { return Object.freeze({ kind: 'source_file_path', value }); },
-  className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value }); },
-  domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_name', value }); },
+const stringValue = (value: string): StringValue => Object.freeze({ kind: 'string_value', value });
 
-  resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value }); },
-  columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value }); },
-  propertyName(value: string): PropertyName { return Object.freeze({ kind: 'property_name', value }); },
-  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value }); },
-  relationName(value: string): RelationName { return Object.freeze({ kind: 'relation_name', value }); },
-  methodName(value: string): MethodName { return Object.freeze({ kind: 'method_name', value }); },
-  actionName(value: string): ActionName { return Object.freeze({ kind: 'action_name', value }); },
-  controllerName(value: string): ControllerName { return Object.freeze({ kind: 'controller_name', value }); },
-  routePath(value: string): RoutePath { return Object.freeze({ kind: 'route_path', value }); },
-  sourceLineNumber(value: number): SourceLineNumber { return Object.freeze({ kind: 'source_line_number', value }); },
+export const SemanticValueFactory = Object.freeze({
+  modelName(value: string): ModelName { return Object.freeze({ kind: 'model_name', value: stringValue(value) }); },
+  tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value: stringValue(value) }); },
+  routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue(value) }); },
+  responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value: stringValue(value) }); },
+  httpErrorName(value: string): HttpErrorName { return Object.freeze({ kind: 'http_error_name', value }); },
+  className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value: stringValue(value) }); },
+  domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_type_name', value: stringValue(value) }); },
+  resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value: stringValue(value) }); },
+  columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value: stringValue(value) }); },
+  propertyName(value: string): PropertyName { return Object.freeze({ kind: 'property_name', value: stringValue(value) }); },
+  relationName(value: string): RelationName { return Object.freeze({ kind: 'relation_name', value: stringValue(value) }); },
+  methodName(value: string): MethodName { return Object.freeze({ kind: 'method_name', value: stringValue(value) }); },
+  actionName(value: string): ActionName { return Object.freeze({ kind: 'action_name', value: stringValue(value) }); },
+  controllerName(value: string): ControllerName { return Object.freeze({ kind: 'controller_name', value: stringValue(value) }); },
+  routePath(value: string): RoutePath { return Object.freeze({ kind: 'route_path', value: stringValue(value) }); },
+  routeParameterName(value: string): RouteParameterName { return Object.freeze({ kind: 'route_parameter_name', value: stringValue(value) }); },
+  sourceFilePath(value: string): SourceFilePath { return Object.freeze({ kind: 'source_file', value: stringValue(value) }); },
+  sourceLineNumber(value: number): SourceLineNumber { return Object.freeze({ kind: 'number_value', value }); },
+  variableName(value: string): VariableName { return Object.freeze({ kind: 'variable_name', value: stringValue(value) }); },
   responseFieldName(value: string): ResponseFieldName { return Object.freeze({ kind: 'response_field_name', value }); },
+  requestFieldName(value: string): RequestFieldName { return Object.freeze({ kind: 'request_field_name', value }); },
+  formTypeName(value: string): FormTypeName {
+    return Object.freeze({
+      kind: 'form_type_name' as const,
+      value: stringValue(value),
+    });
+  },
+  formTypeNameFromRequestClass(value: ClassName): FormTypeName {
+    const name = value.value.value;
+    if (!name.endsWith('Request')) {
+      throw new Error(`Invalid FormRequest class name: ${name}`);
+    }
+    return Object.freeze({
+      kind: 'form_type_name' as const,
+      value: stringValue(`${name.slice(0, -'Request'.length)}Form`),
+    });
+  },
   responseDataKey(value: string): ResponseDataKey { return Object.freeze({ kind: 'response_data_key', value }); },
   responseMetaKey(value: string): ResponseMetaKey { return Object.freeze({ kind: 'response_meta_key', value }); },
   responseLinksKey(value: string): ResponseLinksKey { return Object.freeze({ kind: 'response_links_key', value }); },
@@ -260,7 +207,6 @@ export const SemanticValueFactory = Object.freeze({
   castTypeName(value: string): CastTypeName { return Object.freeze({ kind: 'cast_type_name', value }); },
   conditionExpression(value: string): ConditionExpression { return Object.freeze({ kind: 'condition_expression', value }); },
   semanticOperator(value: SemanticOperator['value']): SemanticOperator { return Object.freeze({ kind: 'semantic_operator', value }); },
-  variableName(value: string): VariableName { return Object.freeze({ kind: 'variable_name', value }); },
   phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value }); },
   literalValue(value: BoundLiteralValue): BoundLiteralValue { return Object.freeze(value); },
 });

@@ -1,22 +1,16 @@
 /**
  * @file ResourceMapperBuilder.ts
- * @description Sub-domain builder for Resource mappers, transformation rules, and dependencies
- *
- * @module core/ir/domain/ResourceMapperBuilder
+ * @description Builds a mapper from already-resolved field intents.
  */
 
 import type {
-    TypeIR,
-    ParsedResource,
     MapperIR,
     MapperFieldIR,
-    TransformationRules,
-    TransformFunction,
-    ValidationRules
+    ParsedResource
 } from '../../types/ir';
 
-import { TypeIRUtils } from '../../types/ir';
 import { resourceBaseName } from '../../utils/resource-naming';
+import { createResponseTypeName } from '../../types/ir/nominalVocabulary';
 import type { OptimizedResourceFieldIR } from './irTypes';
 
 export class ResourceMapperBuilder {
@@ -24,45 +18,13 @@ export class ResourceMapperBuilder {
         const mappings: MapperFieldIR[] = fields.map(field => ({
             source: field.name,
             target: field.transformedName,
-            transform: this.detectTransformFunction(field)
+            transform: field.transform
         }));
 
         return {
-            source: resource.sourceModel === undefined ? resource.name : resource.sourceModel,
-            target: `${resourceBaseName(resource.name)}Transformed`,
-            mappings,
-            transformations: this.buildTransformationRules(fields)
-        };
-    }
-
-    public detectTransformFunction(field: OptimizedResourceFieldIR): TransformFunction | undefined {
-        const baseType = TypeIRUtils.unwrapType(field.type);
-
-        if (baseType.kind === 'primitive' && baseType.type === 'date') return 'date_iso';
-        if (field.name.includes('amount') || field.name.includes('price')) return 'currency_minor';
-
-        return undefined;
-    }
-
-    public buildTransformationRules(fields: OptimizedResourceFieldIR[]): TransformationRules {
-        return {
-            dateFields: fields.filter(f => {
-                const baseType = TypeIRUtils.unwrapType(f.type);
-                return baseType.kind === 'primitive' && baseType.type === 'date';
-            }).map(f => f.transformedName),
-
-            currencyFields: fields.filter(f =>
-                f.name.includes('amount') || f.name.includes('price') || f.name.includes('cost')
-            ).map(f => f.transformedName),
-
-            enumFields: [],
-            customTransforms: []
-        };
-    }
-
-    public buildValidationRules(validation: Record<string, unknown>): ValidationRules {
-        return {
-            type: 'required'
+            source: resource.sourceModel,
+            target: createResponseTypeName(`${resourceBaseName(resource.name.value.value)}Transformed`),
+            mappings
         };
     }
 
@@ -74,7 +36,7 @@ export class ResourceMapperBuilder {
         return Array.from(dependencies);
     }
 
-    private collectTypeReferences(type: TypeIR, dependencies: Set<string>): void {
+    private collectTypeReferences(type: import('../../types/ir').TypeIR, dependencies: Set<string>): void {
         switch (type.kind) {
             case 'reference':
                 dependencies.add(type.target);
@@ -92,8 +54,8 @@ export class ResourceMapperBuilder {
                 }
                 break;
             case 'inline_object':
-                for (const propType of Object.values(type.properties)) {
-                    this.collectTypeReferences(propType, dependencies);
+                for (const property of type.properties) {
+                    this.collectTypeReferences(property.type, dependencies);
                 }
                 break;
         }

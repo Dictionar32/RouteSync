@@ -281,9 +281,9 @@ function parseNextMember(receiver: PhpAstValue, tokens: readonly TokenDescriptor
 }
 
 function toPropertyPath(receiver: PhpAstValue, property: string): PhpPropertyPath {
-    if (receiver.kind === 'variable_reference') return { root: receiver.name, steps: Object.freeze([]) };
-    if (receiver.kind === 'property_access' || receiver.kind === 'method_chain') return { root: receiver.target.root, steps: Object.freeze([...receiver.target.steps, receiver.property]) };
-    return { root: createAstIdentifier(property), steps: Object.freeze([]) };
+    if (receiver.kind === 'variable_reference') return PhpAstFactory.propertyPath(receiver.name, []);
+    if (receiver.kind === 'property_access' || receiver.kind === 'method_chain') return PhpAstFactory.propertyPath(receiver.target.root, [...receiver.target.steps, receiver.property]);
+    return PhpAstFactory.propertyPath(createAstIdentifier(property), []);
 }
 
 function classifyClosure(tokens: readonly TokenDescriptor[]): PhpAstValue | undefined {
@@ -499,7 +499,7 @@ function classifyAssignmentTarget(tokens: readonly TokenDescriptor[]): import('.
     const access = classifyArrayAccess(tokens);
     if (access?.kind === 'array_access') return { kind: 'array_element', target: access.target, index: access.index };
     const member = classifyMember(tokens);
-    if (member?.kind === 'property_access') return { kind: 'property', target: member.target, property: member.property };
+    if (member?.kind === 'property_access') return { kind: 'property', receiver: member.receiver, property: member.property };
     return undefined;
 }
 

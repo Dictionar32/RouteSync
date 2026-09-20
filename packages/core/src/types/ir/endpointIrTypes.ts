@@ -10,8 +10,8 @@
 import { PrimitiveKind } from '../../compiler/types/SemanticType';
 import type { HttpMethod } from '../domain/httpVocabulary';
 import type { ResourceFieldIR } from './resourceIrTypes';
-import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeaderName, ModelName, PropertyName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
-import type { ValidationRules } from './requestIrTypes';
+import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeaderName, ModelName, PropertyName, RequestName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
+import type { ValidationRules } from '../upstream/collections';
 import { createPropertyName } from './nominalVocabulary';
 import type { DescriptionText } from '../upstream/valueObjects';
 
@@ -20,13 +20,13 @@ export interface ParameterIR {
     readonly type: PrimitiveKind;
     readonly required: boolean;
     readonly description: DescriptionText;
-    readonly validation?: ValidationRules;
+    readonly validation: ValidationRules;
 }
 
 export type RequestReference =
     | { readonly type: 'none' }
-    | { readonly type: 'request_ir'; readonly reference: string }
-    | { readonly type: 'inline'; readonly reference: string; readonly inlineFields: readonly ResourceFieldIR[] };
+    | { readonly type: 'request_ir'; readonly reference: RequestName }
+    | { readonly type: 'inline'; readonly reference: RequestName; readonly inlineFields: readonly ResourceFieldIR[] };
 
 export interface HeaderIR {
     readonly name: HttpHeaderName;

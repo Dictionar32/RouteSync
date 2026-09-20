@@ -1,22 +1,16 @@
 /**
- * types.ts
- *
- * Interfaces for validation rule mapping.
- *
- * @module core/compiler/generators/form-generation/field-mapper
+ * Canonical field-mapper vocabulary. No free-form validation rule shape is
+ * accepted beyond the domain ValidationRuleNode ADT.
  */
-
 import type { SemanticType } from '../../../types/SemanticType';
-import type { FileValidationConstraints } from '../../../artifacts/RequestTypesArtifact';
+import type { FileValidationConstraints } from '../../../types/domain/request';
+import type { ValidationRuleNode } from '../../../types/domain/validationRules';
 
-export interface ValidationRule {
-  readonly rule: string;
-  readonly parameters?: readonly string[];
-}
+export type ValidationRule = ValidationRuleNode;
 
 export interface MappedField {
   readonly type: SemanticType;
-  readonly fileConstraints?: FileValidationConstraints;
+  readonly fileConstraints: FileValidationConstraints;
   readonly required: boolean;
   readonly nullable: boolean;
 }

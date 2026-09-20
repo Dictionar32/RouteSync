@@ -1,4 +1,4 @@
-import type { RequestType } from '../../../artifacts/RequestTypesArtifact';
+import type { FormRequestSource, RouteRequestBinding } from '../../../../types/domain/request';
 import type { RouteSchemaPayload } from '../../../../types/route';
 import { ScannedFormRequestDescriptor, type ResponseDescriptor } from '../../../../types/route';
 import type { ControllerMethodAst, ControllerParameterAst, PhpParameterTypeAst } from '../../lexer/controllerAstTypes';
@@ -8,21 +8,27 @@ import { resolveResponseAttributeAst } from '../../subscanners/controller/respon
 import { VoidResponseDescriptor } from '../../../../types/route';
 import { resolveControllerBody, type ControllerBodyResolution } from '../../subscanners/controller/controllerBodyResolver';
 import { resolveActionSchema } from '../../subscanners/controller/actionValidationExtractor';
-import { createControllerDataflowContract, type ControllerDataflowContract } from '../../subscanners/controller/controllerDataflowContract';
+import { createControllerDataflowContract, createControllerReturnSet, type ControllerDataflowContract, type ControllerReturnSet } from '../../subscanners/controller/controllerDataflowContract';
 
 export interface ControllerActionIdentity {
     readonly controllerName: string;
     readonly actionName: string;
 }
 
-export type RequestContract =
-    | { readonly kind: 'none' }
-    | { readonly kind: 'form_request'; readonly typeName: string }
+export type ControllerRequestBinding =
+    | { readonly kind: 'no_request' }
+    | { readonly kind: 'form_request'; readonly source: FormRequestSource }
     | { readonly kind: 'typed'; readonly type: PhpParameterTypeAst };
+
+/**
+ * Controller-level request fact. It intentionally does not masquerade as the
+ * route-level binding, because resource identity is not known at this origin.
+ */
+export type RequestContract = ControllerRequestBinding;
 
 export type RuntimeReturnContract =
     | { readonly kind: 'none' }
-    | { readonly kind: 'expression'; readonly expression: ControllerExpressionContract };
+    | { readonly kind: 'expressions'; readonly expressions: readonly ControllerExpressionContract[] };
 
 export interface ControllerActionContract {
     readonly identity: ControllerActionIdentity;
@@ -38,7 +44,7 @@ export interface ControllerActionContract {
 }
 
 export interface ControllerActionContractResolverContext {
-    readonly formRequestMap: ReadonlyMap<string, RequestType>;
+    readonly formRequestMap: ReadonlyMap<string, FormRequestSource>;
     readonly projectRoot: string;
 }
 
@@ -49,16 +55,14 @@ export function resolveControllerActionContract(
     context: ControllerActionContractResolverContext
 ): ControllerActionContract {
     const body = resolveControllerBody(method.body);
-    const returned = method.returns.length === 0
-        ? { kind: 'absent' as const }
-        : { kind: 'present' as const, value: method.returns[0].expression };
+    const returned = createControllerReturnSet(method.returns.map(item => item.expression));
     const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned);
     const request = resolveRequest(method.parameters, context.formRequestMap);
     return Object.freeze({
         identity: Object.freeze({ controllerName, actionName: method.name }),
         parameters: Object.freeze([...method.parameters]),
         request,
-        response: resolveResponse(method, context.projectRoot),
+        response: resolveResponse(method, context.projectRoot, returned),
         runtimeReturn: resolveRuntimeReturn(method),
         body,
         dataflow,
@@ -70,33 +74,37 @@ export function resolveControllerActionContract(
 
 function resolveRequest(
     parameters: readonly ControllerParameterAst[],
-    formRequestMap: ReadonlyMap<string, RequestType>
+    formRequestMap: ReadonlyMap<string, FormRequestSource>
 ): RequestContract {
     const parameter = parameters[0];
-    if (!parameter) return { kind: 'none' };
+    if (!parameter) return { kind: 'no_request' };
     if (parameter.type.kind !== 'named') return { kind: 'typed', type: parameter.type };
-    return formRequestMap.has(parameter.type.name)
-        ? { kind: 'form_request', typeName: parameter.type.name }
-        : { kind: 'typed', type: parameter.type };
+    const source = formRequestMap.get(parameter.type.name);
+    return source === undefined
+        ? { kind: 'typed', type: parameter.type }
+        : { kind: 'form_request', source };
 }
 
-function resolveResponse(method: ControllerMethodAst, projectRoot: string): ResponseDescriptor {
+function resolveResponse(method: ControllerMethodAst, projectRoot: string, returned: ControllerReturnSet): ResponseDescriptor {
     switch (method.responseAttribute.kind) {
         case 'absent':
             return new VoidResponseDescriptor();
         case 'declared':
-            return resolveResponseAttributeAst(method.responseAttribute, projectRoot);
+            return resolveResponseAttributeAst(method.responseAttribute, projectRoot, returned);
     }
 }
 
 function resolveRuntimeReturn(method: ControllerMethodAst): RuntimeReturnContract {
-    const first = method.returns[0];
-    return first ? { kind: 'expression', expression: resolveControllerExpression(first.expression) } : { kind: 'none' };
+    if (method.returns.length === 0) return { kind: 'none' };
+    return {
+        kind: 'expressions',
+        expressions: Object.freeze(method.returns.map(item => resolveControllerExpression(item.expression)))
+    };
 }
 
-function resolveSchema(request: RequestContract, body: ControllerBodyResolution, formRequestMap: ReadonlyMap<string, RequestType>, sourceFile: string): RouteSchemaPayload {
-    const formRequests = request.kind === 'form_request'
-        ? [ScannedFormRequestDescriptor.create(request.typeName, sourceFile)]
-        : [];
-    return resolveActionSchema(formRequests, formRequestMap, body.schemaRules);
+function resolveSchema(request: RequestContract, body: ControllerBodyResolution, formRequestMap: ReadonlyMap<string, FormRequestSource>, sourceFile: string): RouteSchemaPayload {
+    const inlineSchema = body.schema;
+    const requestBinding = request.kind === 'form_request' ? request : { kind: 'no_request' as const };
+    const resolvedSchema = resolveActionSchema(requestBinding, formRequestMap, inlineSchema);
+    return resolvedSchema;
 }

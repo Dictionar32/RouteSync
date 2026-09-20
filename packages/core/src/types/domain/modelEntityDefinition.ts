@@ -4,18 +4,19 @@
  * Scanner facts stay in ParsedModel. Downstream receives only the semantic
  * model surface, so it does not need to reconstruct Eloquent meaning.
  */
-import type { ModelSemanticDefinition as HighModelSemanticDefinition, ModelPropertyMultiplicity } from './models';
-import type { ModelName, PropertyName, SourceFilePath, SourceLineNumber } from '../ir/nominalVocabulary';
+import type { ModelPropertyMultiplicity, ModelSemanticDefinition } from './models';
+import type { ModelName, PropertyName } from '../upstream/names';
+import type { SourceFilePath, SourceLineNumber } from './semanticValues';
 import type { EloquentRelationCardinality, EloquentRelationType, RelationForeignKey, RelationTargetShape } from './eloquentTypes';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { FieldNode } from '../field';
-import type { TypeExpression } from '../ir/nominalVocabulary';
+import type { TypeExpression } from '../upstream/typeVocabulary';
 
 
 /** Upstream column fact retained for resource/scanner compatibility. */
 export interface ColumnDefinitionContract {
   readonly name: PropertyName;
-  readonly type: import('../ir/nominalVocabulary').TypeExpression;
+  readonly type: TypeExpression;
   readonly nullability: import('./modelContracts').Nullability;
 }
 
@@ -39,8 +40,8 @@ export interface ModelRelationDefinitionContract {
 export type ModelRelationDefinition = ModelRelationDefinitionContract;
 
 /** Canonical high-level model contract. */
-export type ModelSemanticDefinitionContract = HighModelSemanticDefinition;
-export type ModelSemanticDefinition = ModelSemanticDefinitionContract;
+export type { ModelSemanticDefinition };
+export type ModelSemanticDefinitionContract = ModelSemanticDefinition;
 export type ModelDefContract = ModelSemanticDefinitionContract;
 export type ModelDef = ModelSemanticDefinitionContract;
 

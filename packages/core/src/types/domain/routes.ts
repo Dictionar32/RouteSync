@@ -19,8 +19,9 @@ import type {
   RouteSecurityDescriptor
 } from "./security";
 import type { RouteSchemaPayload } from "./validation";
-import type { RouteHandlerDescriptor, FormRequestDescriptor } from "./routeHandlers";
-import type { ActionName, ControllerName, DomainName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
+import type { RouteHandlerDescriptor } from "./routeHandlers";
+import type { ActionName, DomainName, ResourceName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
+import type { RouteRequestBinding } from "./request";
 
 /**
  * Route Parameter Specification Contract.
@@ -36,31 +37,42 @@ export interface RouteParameterSpecification {
  * Closed Route Identity Sub-Contract.
  * Enforces guaranteed identity and network coordinates (0 '?', 0 fallback).
  */
-export interface RouteIdentityContract {
+export interface RouteCoordinates {
   readonly name: RouteName;
+  readonly constantKey: PropertyName;
   readonly method: HttpMethod;
   readonly path: RoutePath;
   readonly runtimePath: RoutePath;
-  readonly constantKey: PropertyName;
-  readonly resourceName: ResourceName;
+}
+
+export interface RouteDomainIdentity {
+  readonly resource: ResourceName;
   readonly domain: DomainName;
-  readonly groupName: DomainName;
+  readonly group: DomainName;
+}
+
+export interface RouteIdentityContract {
+  readonly coordinates: RouteCoordinates;
+  readonly domain: RouteDomainIdentity;
   readonly parameters: RouteParameterSpecification;
 }
 
-/**
- * Closed Route Binding Sub-Contract.
- * Enforces guaranteed handler binding, schema payload, and controller target (0 '?', 0 fallback).
- */
-export interface RouteBindingContract {
+export interface RouteOperationBinding {
+  readonly name: ActionName;
   readonly handler: RouteHandlerDescriptor;
-  readonly action: ActionName;
-  readonly actionName: ActionName;
-  readonly controllerName: ControllerName;
+}
+
+/**
+ * Route binding contains relationships, not scalar projections of those relationships.
+ */
+import type { ControllerRuntimeReturn } from './controllerExpression';
+
+export interface RouteBindingContract {
+  readonly operation: RouteOperationBinding;
   readonly schema: RouteSchemaPayload;
   readonly response: ResponseDescriptor;
-  readonly responseTypeName: ResponseTypeName;
-  readonly formRequests: readonly FormRequestDescriptor[];
+  readonly request: RouteRequestBinding;
+  readonly runtimeReturn: ControllerRuntimeReturn;
   readonly assignments: readonly ResourceAssignment[];
 }
 
@@ -78,7 +90,6 @@ export interface RouteCapabilityContract {
   readonly crudRole: CrudRole;
   readonly hookKind: RouteHookKind;
   readonly actionKind: RouteActionKind;
-  readonly isMutating: boolean;
   readonly requestContentType: RequestContentType;
   readonly executionSignature: RouteExecutionSignature;
   readonly errorResponses: readonly HttpErrorResponseDescriptor[];
@@ -114,22 +125,18 @@ export interface ParsedRoute {
 
 export interface GetCollectionRouteDescriptor extends ParsedRoute {
   readonly kind: 'get_collection';
-  readonly method: 'GET';
 }
 
 export interface GetItemRouteDescriptor extends ParsedRoute {
   readonly kind: 'get_item';
-  readonly method: 'GET';
 }
 
 export interface MutationRouteDescriptor extends ParsedRoute {
   readonly kind: 'mutation';
-  readonly method: 'POST' | 'PUT' | 'PATCH';
 }
 
 export interface DeletionRouteDescriptor extends ParsedRoute {
   readonly kind: 'deletion';
-  readonly method: 'DELETE';
 }
 
 export type RouteDescriptor =
@@ -144,31 +151,26 @@ export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.
   index: (route): GetCollectionRouteDescriptor => ({
     ...route,
     kind: 'get_collection',
-    method: 'GET',
   }),
 
   show: (route): GetItemRouteDescriptor => ({
     ...route,
     kind: 'get_item',
-    method: 'GET',
   }),
 
   create: (route): MutationRouteDescriptor => ({
     ...route,
     kind: 'mutation',
-    method: route.identity.method as 'POST' | 'PUT' | 'PATCH',
   }),
 
   update: (route): MutationRouteDescriptor => ({
     ...route,
     kind: 'mutation',
-    method: route.identity.method as 'POST' | 'PUT' | 'PATCH',
   }),
 
   delete: (route): DeletionRouteDescriptor => ({
     ...route,
     kind: 'deletion',
-    method: 'DELETE',
   }),
 
   custom: (route): RouteDescriptor => {
@@ -201,7 +203,16 @@ export function matchRoute<R>(
   descriptor: RouteDescriptor,
   visitor: RouteVisitor<R>
 ): R {
-  return visitor[descriptor.kind](descriptor as any);
+  switch (descriptor.kind) {
+    case 'get_collection':
+      return visitor.get_collection(descriptor);
+    case 'get_item':
+      return visitor.get_item(descriptor);
+    case 'mutation':
+      return visitor.mutation(descriptor);
+    case 'deletion':
+      return visitor.deletion(descriptor);
+  }
 }
 
 /**

@@ -45,7 +45,7 @@ export async function scanModels(projectRoot: string): Promise<readonly ParsedMo
     for (const fullPath of files) {
         const modelName = path.basename(fullPath, '.php');
         const source = await fs.readFile(fullPath, 'utf-8');
-        models.push(parseModelFile(source, modelName, migrationMap));
+        models.push(parseModelFile(source, modelName, migrationMap, fullPath));
     }
 
     return models;
@@ -63,7 +63,7 @@ export async function scanModelAsts(projectRoot: string): Promise<readonly Model
         const source = await fs.readFile(fullPath, "utf-8");
         const modelName = path.basename(fullPath, ".php");
         const tokens = LaravelSourceLexer.tokenize(source);
-        asts.push(modelAstFromParsed(parseModelFile(source, modelName, migrationMap), fullPath, source.length, tokens));
+        asts.push(modelAstFromParsed(parseModelFile(source, modelName, migrationMap, fullPath), fullPath, source.length, tokens));
     }
     return asts;
 }
@@ -89,9 +89,10 @@ export class ModelScanner {
     public static parseModelFile(
         source: string,
         modelName: string,
-        migrationMap: ReadonlyMap<string, readonly ParsedColumn[]>
+        migrationMap: ReadonlyMap<string, readonly ParsedColumn[]>,
+        file: string = modelName
     ): ParsedModel {
-        return parseModelFile(source, modelName, migrationMap);
+        return parseModelFile(source, modelName, migrationMap, file);
     }
 }
 

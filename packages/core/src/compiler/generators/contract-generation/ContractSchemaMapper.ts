@@ -7,12 +7,12 @@
  * @module compiler/generators/contract-generation
  */
 
-import type { SemanticType, PrimitiveType } from '../../types/SemanticType';
-import type { FileValidationConstraints } from '../../artifacts/RequestTypesArtifact';
+import type { SemanticType } from '../../types/SemanticType';
+import type { FileValidationConstraints, FileValidationConstraintVisitor } from '../../artifacts/RequestTypesArtifact';
 import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { toZodSchemaExpression, UNKNOWN_REFERENCE_STRATEGY } from '../../domain/common/ZodSchemaLowerer';
-import type { ResolvedSemanticType } from '../../domain/common/ResolvedSemanticType';
+import { matchResolvedSemanticType, type ResolvedSemanticType } from '../../domain/common/ResolvedSemanticType';
 import { PrimitiveTypeRegistry } from './PrimitiveTypeRegistry';
 import { ZodModifierBuilder } from './ZodModifierBuilder';
 
@@ -23,7 +23,7 @@ export interface FieldConfig {
     readonly fieldName: string;
     readonly required: boolean;
     readonly nullable: boolean;
-    readonly fileConstraints?: FileValidationConstraints;
+    readonly fileConstraints: FileValidationConstraints;
 }
 
 /**
@@ -47,16 +47,21 @@ export class ContractSchemaMapper {
      */
     mapToZodSchema(type: SemanticType, config: FieldConfig): MappedSchema {
         const resolved = this.resolver.resolve(type);
-        let baseSchema = toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY });
-
-        if (type.kind === 'reference') {
-            baseSchema = 'z.unknown()';
-        } else if (resolved.kind === 'primitive' && resolved.primitiveKind === 'file') {
-            baseSchema = "z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)";
-            if (config.fileConstraints) {
-                baseSchema = this.applyFileConstraints(baseSchema, config.fileConstraints);
-            }
-        }
+        const baseSchema = type.accept({
+            primitive: value => this.applyFileConstraints(this.primitiveRegistry.getZodSchema(value), config.fileConstraints),
+            reference: () => 'z.unknown()',
+            jsonValue: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            optional: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            nullable: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            never: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            error: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            union: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            intersection: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            readonlyCollection: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            mutableCollection: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            generic: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY }),
+            object: () => toZodSchemaExpression(resolved, { referenceStrategy: UNKNOWN_REFERENCE_STRATEGY })
+        });
 
         const modifiers = this.modifierBuilder.buildModifiers({
             required: config.required,
@@ -70,57 +75,35 @@ export class ContractSchemaMapper {
         };
     }
 
-    private applyFileConstraints(
-        schema: string,
-        constraints?: FileValidationConstraints
-    ): string {
-        if (!constraints) return schema;
-
-        const mimeTypes = new Set<string>(constraints.mimeTypes ?? []);
-        for (const extension of constraints.extensions ?? []) {
-            const mimeType = this.mimeTypeForExtension(extension);
-            if (mimeType) mimeTypes.add(mimeType);
-        }
-
-        let result = schema;
-        const conditions: string[] = [];
-        if (constraints.image) {
-            conditions.push("file.type.startsWith('image/')");
-        }
-        if (mimeTypes.size > 0) {
-            conditions.push(Array.from(mimeTypes)
-                .map(mimeType => `file.type === '${mimeType}'`)
-                .join(' || '));
-        }
-        if (conditions.length > 0) {
-            result += `.refine((file) => ${conditions.map(condition => `(${condition})`).join(' && ')}, { message: 'Unsupported file type' })`;
-        }
-        if (constraints.maxBytes !== undefined) {
-            result += `.refine((file) => file.size <= ${constraints.maxBytes}, { message: 'File is too large' })`;
-        }
-
-        return result;
+    private applyFileConstraints(schema: string, constraints: FileValidationConstraints): string {
+        return constraints.reduce((current, constraint) => constraint.accept<string>(this.fileConstraintRenderer(current)), schema);
     }
 
-    private mimeTypeForExtension(extension: string): string | undefined {
-        const ext = extension.toLowerCase().replace(/^\./, '');
-        const map: Record<string, string> = {
-            jpg: 'image/jpeg',
-            jpeg: 'image/jpeg',
-            png: 'image/png',
-            gif: 'image/gif',
-            webp: 'image/webp',
-            pdf: 'application/pdf'
+    private fileConstraintRenderer(schema: string): FileValidationConstraintVisitor<string> {
+        return {
+            image: () => `${schema}.refine((file) => file.type.startsWith('image/'), { message: 'Unsupported file type' })`,
+            extensions: value => `${schema}.refine((file) => ${value.values.map(extension => `(file.name.toLowerCase().endsWith('.${extension.toLowerCase()}'))`).join(' || ')}, { message: 'Unsupported file type' })`,
+            mimeTypes: value => `${schema}.refine((file) => ${value.values.map(mimeType => `(file.type === '${mimeType}')`).join(' || ')}, { message: 'Unsupported file type' })`,
+            maxBytes: value => `${schema}.refine((file) => file.size <= ${value.value}, { message: 'File is too large' })`
         };
-        return map[ext];
     }
 
     private needsImport(type: SemanticType): boolean {
-        if (type.kind === 'primitive' && this.primitiveRegistry && typeof this.primitiveRegistry.supports === 'function') {
-            return this.primitiveRegistry.supports(type as PrimitiveType);
-        }
-        const resolved = this.resolver.resolve(type);
-        return resolved.kind === 'reference';
+        return type.accept({
+            primitive: value => this.primitiveRegistry.supports(value),
+            reference: () => true,
+            jsonValue: () => false,
+            optional: () => false,
+            nullable: () => false,
+            never: () => false,
+            error: () => false,
+            union: () => false,
+            intersection: () => false,
+            readonlyCollection: () => false,
+            mutableCollection: () => false,
+            generic: () => false,
+            object: () => false
+        });
     }
 
     private getReferencedTypes(type: SemanticType): readonly string[] {
@@ -129,25 +112,17 @@ export class ContractSchemaMapper {
     }
 
     private collectReferencedTypes(resolved: ResolvedSemanticType): readonly string[] {
-        switch (resolved.kind) {
-            case 'reference':
-                return [resolved.name];
-            case 'object': {
-                const refs: string[] = [];
-                for (const field of resolved.fields) {
-                    refs.push(...this.collectReferencedTypes(field.type));
-                }
-                return refs;
-            }
-            case 'collection':
-                return this.collectReferencedTypes(resolved.elementType);
-            case 'nullable':
-                return this.collectReferencedTypes(resolved.innerType);
-            case 'union':
-            case 'intersection':
-                return resolved.members.flatMap(m => this.collectReferencedTypes(m));
-            default:
-                return [];
-        }
+        return matchResolvedSemanticType(resolved, {
+            reference: value => [value.name],
+            object: value => value.fields.flatMap(field => this.collectReferencedTypes(field.type)),
+            collection: value => this.collectReferencedTypes(value.elementType),
+            nullable: value => this.collectReferencedTypes(value.innerType),
+            union: value => value.members.flatMap(member => this.collectReferencedTypes(member)),
+            intersection: value => value.members.flatMap(member => this.collectReferencedTypes(member)),
+            primitive: () => [],
+            optional: value => this.collectReferencedTypes(value.innerType),
+            unknown: () => []
+        });
     }
+
 }

@@ -7,13 +7,13 @@
  */
 
 import type { ResourceFieldDescriptor, ResourceAssignment } from '../../../../types/route';
+import type { ModelName } from '../../../../types/domain/semanticValues';
 
 export interface ScannedResourceParams {
   readonly name: string;
   readonly baseName: string;
   readonly typeName: string;
-  readonly baseModel: string | null;
-  readonly modelName: string | null;
+  readonly modelName: ModelName;
   readonly fields: readonly ResourceFieldDescriptor[];
   readonly assignments: readonly ResourceAssignment[];
   readonly sourceFile: string;
@@ -30,16 +30,16 @@ export interface CreateResourceDescriptorOptionsContract {
   readonly sourceFile: string;
   readonly sourceLine: number;
   readonly assignments: readonly ResourceAssignment[];
-  readonly modelName: string;
+  readonly modelName: ModelName;
   readonly isSynthetic: boolean;
 }
 
-export type CreateResourceDescriptorOptions = {
+export interface CreateResourceDescriptorOptions {
   readonly name: string;
   readonly fields: readonly ResourceFieldDescriptor[];
-  readonly sourceFile?: string;
-  readonly sourceLine?: number;
-  readonly assignments?: readonly ResourceAssignment[];
-  readonly modelName?: string | null;
-  readonly isSynthetic?: boolean;
-};
+  readonly sourceFile: string;
+  readonly sourceLine: number;
+  readonly assignments: readonly ResourceAssignment[];
+  readonly modelName: ModelName;
+  readonly isSynthetic: boolean;
+}

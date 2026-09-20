@@ -26,3 +26,9 @@ export * from './typeVocabulary';
 
 export * from './sourceBoundary';
 export * from './modelSourceFacts';
+export * from './semanticReferences';
+export * from './highLevelContracts';
+export * from './highLevelSourceModel';
+export * from './endpointBindings';
+
+export type { Option, Lookup } from './collections';

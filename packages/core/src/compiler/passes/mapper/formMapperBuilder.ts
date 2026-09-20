@@ -9,12 +9,10 @@
 
 import { toPascalCase } from '../../../utils/resource-naming';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
-import {
-    extractObjectPropertyNames,
-    buildFormFieldLine
-} from './formFieldLineBuilder';
+import { buildFormFieldLine } from './formFieldLineBuilder';
 
-export { extractObjectPropertyNames, buildFormFieldLine };
+export { buildFormFieldLine };
+export { extractObjectPropertyNames } from './formFieldLineBuilder';
 
 export function toApiFieldKey(originalName: string): string {
     return originalName.toUpperCase().replace(/[^A-Z0-9]/g, '');

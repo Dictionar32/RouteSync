@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  PageEndpointKind,
   ScannedRouteDescriptor,
   ScannedRouteParameterDescriptor,
   RouteParameterType
@@ -67,7 +68,8 @@ describe('Route Classifier & Page Endpoint SSOT', () => {
     const endpoint = new ScannedPageEndpointDescriptor({
       path: '/dashboard/analytics',
       query: ['period', 'filter'],
-      params: ['orgId']
+      params: ['orgId'],
+      kind: PageEndpointKind.QueryFiltered
     })
 
     expect(endpoint.path).toBe('/dashboard/analytics')

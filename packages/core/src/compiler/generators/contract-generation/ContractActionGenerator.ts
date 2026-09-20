@@ -1,14 +1,14 @@
 /**
  * ContractActionGenerator.ts
- * 
+ *
  * Groups schemas by action (create/update) and generates action blocks.
  * Structured Constructor consuming ContractSchemaMapper.
- * 
+ *
  * @module compiler/generators/contract-generation
  */
 
 import type { SemanticType } from '../../types/SemanticType';
-import type { RequestField, FileValidationConstraints } from '../../../types/domain/request';
+import type { FileValidationConstraints } from '../../../types/domain/request';
 import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { ResolvedObjectType } from '../../domain/common/ResolvedSemanticType';

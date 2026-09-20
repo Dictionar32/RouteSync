@@ -10,9 +10,11 @@ describe('Phase 87.47 upstream response ADT', () => {
             { kind: 'scalar', value: { kind: 'decimal_number' } },
             { kind: 'scalar', value: { kind: 'boolean_flag' } },
             { kind: 'named_type', name: createResponseTypeName('User') },
+            { kind: 'object', fields: [] },
+            { kind: 'union', members: [{ kind: 'null' }, { kind: 'scalar', value: { kind: 'textual' } }] },
             { kind: 'unresolved_declaration', reason: 'mixed_declaration' },
         ];
-        expect(values).toHaveLength(7);
+        expect(values).toHaveLength(9);
     });
 
     it('carries typed names and nullability through the contract boundary', () => {
@@ -25,16 +27,19 @@ describe('Phase 87.47 upstream response ADT', () => {
                     name: createResponseFieldName('success'),
                     value: { kind: 'scalar', value: { kind: 'boolean_flag' } },
                     nullability: { kind: 'required' },
+                    evidence: { kind: 'declared' },
                 },
                 {
                     name: createResponseFieldName('message'),
                     value: { kind: 'scalar', value: { kind: 'textual' } },
                     nullability: { kind: 'required' },
+                    evidence: { kind: 'declared' },
                 },
                 {
                     name: createResponseFieldName('data'),
                     value: { kind: 'unresolved_declaration', reason: 'mixed_declaration' },
                     nullability: { kind: 'nullable' },
+                    evidence: { kind: 'declared' },
                 },
             ],
         };

@@ -20,10 +20,13 @@ import {
     propagateRelationEdges
 } from "./resource/twoPassRelationResolver";
 import { mapAstValueToExpression } from "./resource/resourceAstExpressionMapper";
+import { mapResourcePhpAstToUpstream } from "./resource/resourceUpstreamExpressionCanonical";
+import type { Expression } from "../../../types/upstream/expression";
 
 interface ParsedResourceFile {
     readonly resourceName: string;
     readonly sourceFile: string;
+    readonly sourceLine: number;
     readonly entries: readonly PhpArrayEntry[];
 }
 
@@ -47,8 +50,9 @@ export class ResourceScanner {
 
             const returnIndex = this.findReturnIndex(tokens);
             const parsedArray = LaravelSourceLexer.parseArray(source, tokens, returnIndex);
+            const sourceLine = tokens[returnIndex].line;
 
-            parsedFiles.push({ resourceName, sourceFile: fullPath, entries: parsedArray.entries });
+            parsedFiles.push({ resourceName, sourceFile: fullPath, sourceLine, entries: parsedArray.entries });
             resolveInitialModel(resourceName, modelSymbolTable, controllerDataflowMap, resolvedModels);
 
             for (const entry of parsedArray.entries) {
@@ -68,6 +72,7 @@ export class ResourceScanner {
             resourceName: file.resourceName,
             entries: file.entries,
             sourceFile: file.sourceFile,
+            sourceLine: file.sourceLine,
             modelSymbolTable,
             controllerDataflowMap,
             relationPropagationMap
@@ -81,6 +86,10 @@ export class ResourceScanner {
         return mapAstValueToExpression(value, raw);
     }
 
+    public static mapAstValueToUpstreamExpression(value: PhpAstValue, sourceFile: string): Expression {
+        return mapResourcePhpAstToUpstream(value, sourceFile);
+    }
+
     private static findReturnIndex(tokens: readonly { readonly value: string; readonly type?: string }[]): number {
         const toArrayIdx = tokens.findIndex((t, idx) => t.value === 'toArray' && tokens[idx - 1]?.value === 'function');
         if (toArrayIdx !== -1) {
@@ -88,7 +97,10 @@ export class ResourceScanner {
             if (retIdx !== -1) return retIdx;
         }
         const retIdx = tokens.findIndex(t => t.value === 'return');
-        return retIdx !== -1 ? retIdx : 0;
+        if (retIdx === -1) {
+            throw new Error('Resource source must contain a return statement at the semantic boundary');
+        }
+        return retIdx;
     }
 }
 

@@ -9,6 +9,7 @@
  */
 
 import type { SemanticType } from "../../types/SemanticType";
+import type { RequestFieldPresence } from "../../../types/domain/requestFieldPresence";
 import {
     type ControllerActionInfo,
     type ScannedControllerActionParams,
@@ -44,16 +45,13 @@ export function buildRequestTypeWithActions(
         readonly fields: readonly {
             readonly name: string;
             readonly type: SemanticType;
-            readonly required?: boolean;
-            readonly nullable?: boolean;
+            readonly presence: RequestFieldPresence;
         }[];
     }[]
 ): ScannedRequestTypeDescriptor {
     const actions = actionDefinitions.map(def => {
         const fields = def.fields.map(f =>
-            f.required
-                ? ScannedFormFieldDescriptor.required(f.name, f.type)
-                : ScannedFormFieldDescriptor.optional(f.name, f.type)
+            ScannedFormFieldDescriptor.fromResolved(f.name, f.type, f.presence)
         );
         return ScannedFormActionDescriptor.create({
             name: def.actionName,

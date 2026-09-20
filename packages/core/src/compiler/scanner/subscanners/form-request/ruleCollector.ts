@@ -1,92 +1,36 @@
 /**
- * ruleCollector.ts
- *
- * Collects parsed validation entries and partitions them into arrayProps, primitiveArrayProps, and regularRules.
- *
- * @module core/compiler/scanner/subscanners/form-request
+ * Validation rules are resolved once at the scanner origin boundary.
+ * Downstream consumers receive canonical RequestField values.
  */
 
 import type { ValidationRuleNode } from '../../../../types/route';
 import { ValidationRuleParser } from '../../../../types/route';
-import type { ObjectProperty, SemanticType } from '../../../types/SemanticType';
-import {
-  PrimitiveType,
-  PrimitiveKind,
-  ReadonlyCollectionType,
-  CollectionKind,
-  ScannedObjectProperty
-} from '../../../types/SemanticType';
-import type { TypeInterner } from '../../../types/TypeInterner';
 import type { PhpArrayEntry, PhpAstValue } from '../../lexer/PhpAst';
-
-export interface RegularRuleItem {
-  readonly key: string;
-  readonly ruleStr: string;
-  readonly validationAst: readonly ValidationRuleNode[];
-  readonly isRequired: boolean;
-  readonly isNullable: boolean;
-}
-
-export interface PartitionedRules {
-  readonly arrayProps: Map<string, ObjectProperty[]>;
-  readonly primitiveArrayProps: Map<string, SemanticType>;
-  readonly regularRules: RegularRuleItem[];
-}
+import type { TypeInterner } from '../../../types/TypeInterner';
+import type { RouteValidationRuleEntry } from '../../../../types/domain/validationRules';
+import { ScannedRouteValidationRuleEntry } from '../../descriptors/validation/validationRuleEntry';
+import { ScannedRouteValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
 
 export function partitionValidationRules(
   entries: readonly PhpArrayEntry[],
   interner: TypeInterner
-): PartitionedRules {
-  const arrayProps = new Map<string, ObjectProperty[]>();
-  const primitiveArrayProps = new Map<string, SemanticType>();
-  const regularRules: RegularRuleItem[] = [];
-
-  for (const entry of entries) {
-    const key = requireStringArrayKey(entry.key);
+): ScannedRouteValidationRuleSet {
+  const validationEntries: RouteValidationRuleEntry[] = entries.map(entry => {
+    const fieldName = requireStringArrayKey(entry.key);
     const ruleStr = readRuleExpression(entry.value);
+    const rules = ruleStr
+      .split('|')
+      .map(value => value.trim().replace(/^['"]|['"]$/g, ''))
+      .filter(Boolean);
+    return ScannedRouteValidationRuleEntry.create(fieldName, rules);
+  });
 
-    const rulesList = (ruleStr || '').split('|').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-    const validationAst = ValidationRuleParser.parseAll(rulesList);
-
-    const isNum = ruleStr.includes('numeric') || ruleStr.includes('integer') || ruleStr.includes('decimal');
-    const isBool = ruleStr.includes('boolean');
-    const isRequired = ruleStr.includes('required') || !ruleStr.includes('sometimes');
-    const isNullable = ruleStr.includes('nullable');
-
-    if (key.includes('.*.')) {
-      const [parentKey, childKey] = key.split('.*.');
-      if (!arrayProps.has(parentKey)) {
-        arrayProps.set(parentKey, []);
-      }
-      let primKind = PrimitiveKind.STRING;
-      if (isNum) primKind = PrimitiveKind.NUMBER;
-      else if (isBool) primKind = PrimitiveKind.BOOLEAN;
-
-      const semanticType = interner.intern(new PrimitiveType(primKind));
-      arrayProps.get(parentKey)!.push(ScannedObjectProperty.create({
-        name: childKey,
-        type: semanticType,
-        required: isRequired,
-        nullable: isNullable,
-        origin: { kind: 'validation_field', field: childKey }
-      }));
-    } else if (key.endsWith('.*')) {
-      const baseKey = key.slice(0, -2);
-      let primKind = PrimitiveKind.STRING;
-      if (isNum) primKind = PrimitiveKind.NUMBER;
-      else if (isBool) primKind = PrimitiveKind.BOOLEAN;
-
-      const semanticType = interner.intern(new PrimitiveType(primKind));
-      const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, semanticType));
-      primitiveArrayProps.set(baseKey, arrayType);
-    } else {
-      regularRules.push({ key, ruleStr, validationAst, isRequired, isNullable });
-    }
-  }
-
-  return { arrayProps, primitiveArrayProps, regularRules };
+  return ScannedRouteValidationRuleSet.create(validationEntries, interner);
 }
 
+export function parseValidationRules(rules: readonly string[]): readonly ValidationRuleNode[] {
+  return ValidationRuleParser.parseAll(rules);
+}
 
 function readRuleExpression(value: PhpAstValue): string {
   if (value.kind === 'literal' && value.literalType === 'string') return value.value;
@@ -95,7 +39,6 @@ function readRuleExpression(value: PhpAstValue): string {
   }
   throw new Error('Validation rule value must be a string literal or nested array of string literals');
 }
-
 
 function requireStringArrayKey(key: PhpArrayEntry['key']): string {
   if (key.kind === 'string') return key.value;

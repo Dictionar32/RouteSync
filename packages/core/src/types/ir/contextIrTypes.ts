@@ -11,7 +11,7 @@ import type { ResourceIR } from './resourceIrTypes';
 import type { RequestIR } from './requestIrTypes';
 import type { EndpointIR } from './endpointIrTypes';
 import type { SharedTypeIR, EnumIR, ImportIR } from './sharedIrTypes';
-import type { RouteManifest } from './manifestIrTypes';
+import type { RouteManifest } from '../domain/base';
 
 export interface ContractMetadata {
     readonly version: string;

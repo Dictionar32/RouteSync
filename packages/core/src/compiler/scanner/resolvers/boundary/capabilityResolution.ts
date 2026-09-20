@@ -10,14 +10,13 @@ import type {
     RouteExecutionSignature,
     RouteHookKind,
     CrudRole,
-    RequestContentType as RequestContentTypeVocabulary,
-    RouteHookKind as RouteHookKindVocabulary,
     RouteSchemaPayload,
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
 import { ScannedRouteCacheInvalidationDescriptor, ScannedRouteExecutionSignature } from "../../../../types/route";
 import { ScannedHttpErrorResponseDescriptor } from "../../descriptors/routeDescriptors";
 import { RouteCrudClassifier } from "../RouteCrudClassifier";
+import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics, ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
 
 export interface ResolvedRouteCapability {
@@ -36,7 +35,7 @@ export function resolveRouteCapability(
 ): ResolvedRouteCapability {
     const hookKind = params.hookKind
         ? params.hookKind
-        : (basics.resolvedIsMutating ? RouteHookKindVocabulary.Mutation : RouteHookKindVocabulary.Query);
+        : (basics.resolvedIsMutating ? RouteHookKind.Mutation : RouteHookKind.Query);
     const schema = params.schema;
     const hasValidationRules = hasRules(schema);
     const hasPayload = basics.resolvedIsMutating || hasValidationRules;
@@ -53,7 +52,7 @@ export function resolveRouteCapability(
         : RouteCrudClassifier.classify(method, params.path);
     const errorResponses = params.errorResponses
         ? params.errorResponses
-        : defaultErrors(basics.resolvedIsMutating, hasValidationRules, params.auth === true);
+        : defaultErrors(ROUTE_ACTION_KIND_REGISTRY[basics.resolvedActionKind].isMutating, hasValidationRules, params.auth === true);
     const invalidation = params.invalidation
         ? params.invalidation
         : ScannedRouteCacheInvalidationDescriptor.none();
@@ -69,7 +68,7 @@ export function resolveRouteCapability(
 }
 
 function hasRules(schema: RouteSchemaPayload | undefined): boolean {
-    return schema !== undefined && schema.rules.length > 0;
+    return schema !== undefined && schema.fields.length > 0;
 }
 
 function resolvePayloadTypeName(
@@ -77,9 +76,8 @@ function resolvePayloadTypeName(
     basics: IntermediateRouteBoundaryBasics,
     hasValidationRules: boolean
 ): string {
-    if (params.formRequests !== undefined && params.formRequests.length > 0) {
-        const first = params.formRequests[0];
-        return first.name.value;
+    if (params.request.kind === 'form_request') {
+        return params.request.source.identity.requestClass.value;
     }
     if (hasValidationRules) {
         const action = basics.resolvedActionKind;
@@ -108,24 +106,14 @@ function detectContentType(
     schema: RouteSchemaPayload | undefined
 ): RequestContentType {
     if (method === "GET" || method === "HEAD") {
-        return RequestContentTypeVocabulary.None;
+        return RequestContentType.None;
     }
-    if (schema !== undefined && schema.rules.some(rule => containsFileRule(rule))) {
-        return RequestContentTypeVocabulary.Multipart;
+    if (schema !== undefined && schema.fields.some(field => field.validation.some(containsFileRule))) {
+        return RequestContentType.Multipart;
     }
-    return RequestContentTypeVocabulary.Json;
+    return RequestContentType.Json;
 }
 
-function containsFileRule(rule: unknown): boolean {
-    if (typeof rule === "string") {
-        return rule === "file" || rule === "image";
-    }
-    if (rule === null || typeof rule !== "object") {
-        return false;
-    }
-    if (!("kind" in rule)) {
-        return false;
-    }
-    const kind = rule.kind;
-    return kind === "file" || kind === "image";
+function containsFileRule(rule: { readonly kind: string }): boolean {
+    return rule.kind === "file" || rule.kind === "image";
 }

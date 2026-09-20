@@ -6,8 +6,7 @@
  * such as "table:orders".
  */
 import type { Token } from '../lexer/types';
-import type { FormRequestDescriptor } from '../../../../types/route';
-import { ScannedFormRequestDescriptor } from '../../../../types/route';
+import type { FormRequestSource } from '../../../../types/domain/request';
 import type { ClassName, TableName, VariableName } from '../../../../types/domain/semanticValues';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 
@@ -17,13 +16,16 @@ export type ControllerParameterType =
 
 export type ActionParameterFormRequest =
     | { readonly kind: 'absent' }
-    | { readonly kind: 'present'; readonly descriptor: FormRequestDescriptor };
+    | { readonly kind: 'present'; readonly source: FormRequestSource };
 
-function createActionParameterFormRequest(typeName: string, sourceFile: string): ActionParameterFormRequest {
-    if (typeName.endsWith('Request') && typeName !== 'Request') {
-        return { kind: 'present', descriptor: ScannedFormRequestDescriptor.create(typeName, sourceFile) };
-    }
-    return { kind: 'absent' };
+function resolveActionParameterFormRequest(
+    typeName: string,
+    formRequestMap: ReadonlyMap<string, FormRequestSource>
+): ActionParameterFormRequest {
+    const source = formRequestMap.get(typeName);
+    return source === undefined
+        ? { kind: 'absent' }
+        : { kind: 'present', source };
 }
 
 export interface ActionParameterBinding {
@@ -88,7 +90,6 @@ export class LocalVariableEnvironment {
 }
 
 export interface ActionParameterScanResult {
-    readonly formRequests: readonly FormRequestDescriptor[];
     readonly parameters: readonly ActionParameterBinding[];
     readonly parameterIndex: ActionParameterIndex;
     readonly bodyStartIndex: number;
@@ -97,9 +98,8 @@ export interface ActionParameterScanResult {
 export function scanActionParameters(
     tokens: readonly Token[],
     funcTokenIdx: number,
-    sourceFile: string,
+    formRequestMap: ReadonlyMap<string, FormRequestSource>,
 ): ActionParameterScanResult {
-    const formRequests: FormRequestDescriptor[] = [];
     const parameters: ActionParameterBinding[] = [];
     let pIdx = funcTokenIdx + 2;
 
@@ -107,8 +107,7 @@ export function scanActionParameters(
         if (tokens[pIdx].type === 'IDENTIFIER' && tokens[pIdx + 1]?.type === 'VARIABLE') {
             const typeName = tokens[pIdx].value;
             const variable = SemanticValueFactory.variableName(tokens[pIdx + 1].value);
-            const formRequest = createActionParameterFormRequest(typeName, sourceFile);
-            if (formRequest.kind === 'present') formRequests.push(formRequest.descriptor);
+            const formRequest = resolveActionParameterFormRequest(typeName, formRequestMap);
             parameters.push({
                 variable,
                 type: { kind: 'class', name: SemanticValueFactory.className(typeName) },
@@ -119,7 +118,6 @@ export function scanActionParameters(
     }
 
     return Object.freeze({
-        formRequests: Object.freeze(formRequests),
         parameters: Object.freeze(parameters),
         parameterIndex: new ActionParameterIndex(parameters),
         bodyStartIndex: pIdx,

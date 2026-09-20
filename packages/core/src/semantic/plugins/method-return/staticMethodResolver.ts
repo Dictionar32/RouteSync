@@ -29,7 +29,7 @@ export function resolveStaticMethodCall(
       ? { kind: 'single' as const }
       : { kind: 'collection' as const }
     : { kind: 'single' as const };
-  const semanticType = new ReferenceType('', model.value);
+  const semanticType = ReferenceType.model('', model.value);
   const boundAst = BoundSemanticFactory.methodCall({
     targetModel: { kind: 'model', name: model },
     methodName: method,

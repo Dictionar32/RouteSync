@@ -285,44 +285,6 @@ export class ZodSchemaReducer {
   }
 }
 
-/**
- * First-Class Route Validation Rule Entry (Ordered & Guaranteed Complete Model).
- * Pure JSON-serializable AST node: 0 loose strings, 0 split('|'), 0 typeof checks in downstream.
- */
-export interface RouteValidationRuleEntry {
-  readonly fieldName: string;
-  readonly propertyName: string;
-  readonly ast: readonly ValidationRuleNode[];
-  readonly rules: readonly string[];
-}
-
-/**
- * First-Class Route Custom Error Message Entry.
- */
-export interface RouteMessageEntry {
-  readonly ruleKey: string;
-  readonly message: string;
-}
-
-/**
- * First-Class Route Custom Attribute Name Entry.
- */
-export interface RouteAttributeEntry {
-  readonly fieldName: string;
-  readonly label: string;
-}
-
-/**
- * Pure Ordered Validation Schema Payload (0 Record, 0 Object.entries).
- */
-export interface RouteSchemaPayload {
-  /** Canonical semantic request fields. Scanner populates these once; downstream never re-infers them. */
-  readonly fields: readonly RequestField[];
-  readonly rules: readonly RouteValidationRuleEntry[];
-  readonly messages: readonly RouteMessageEntry[];
-  readonly attributes: readonly RouteAttributeEntry[];
-}
-
 export * from './semanticResolution';
 export * from './semanticResolutionFactory';
 
@@ -540,7 +502,6 @@ export {
   ResourceFieldExpressionFactory,
   type ResourceAssignment,
   type ParsedResource,
-  type ActionDefinition,
   type ResourceFieldKind,
 } from './expressions';
 
@@ -736,7 +697,7 @@ export {
   type StrictMutationEndpointsTrait,
   type FlexibleMutationEndpointsTrait,
   type ResourceGroupVisitorCapability,
-  type ResourceGroupLoweringTrait,
+  type ResourceGroupLoweringOperations,
   type BaseResourceGroupDescriptor,
   type BaseCrudResourceGroupDescriptor,
   type FullCrudResourceGroupDescriptor,
@@ -986,3 +947,25 @@ export {
 export {
   SemanticRelationMap,
 } from './semanticCollections';
+export {
+  type DomainOperationKind,
+  type DomainOperationIntent,
+  type DomainOperationContract,
+  type DomainOperationGraph,
+  createDomainOperation,
+  createDomainOperationGraph
+} from './operationGraph';
+export { attachDomainOperations } from './domainGraph';
+
+export {
+  type ControllerAccessMode,
+  type ControllerClosureCapture,
+  type ControllerExpression,
+  type ControllerPropertyPath,
+  type ControllerArgument,
+  type ControllerArrayKey,
+  type ControllerArrayEntry,
+  type ControllerMatchArm,
+  type ControllerStatement,
+  type ControllerRuntimeReturn
+} from './controllerExpression';

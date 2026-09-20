@@ -7,11 +7,8 @@
  */
 
 import type {
-    RouteManifest,
-    ParsedRoute,
-    ResourceRouteGroup
+    RouteManifest
 } from "../../../types/route";
-import { ScannedEndpointContract } from "../../../types/route";
 import type { RequestType } from "../../artifacts/RequestTypesArtifact";
 import type { TypeInterner } from "../../types/TypeInterner";
 import {
@@ -44,30 +41,21 @@ export async function executeScanPipeline({
     const models = await ModelScanner.scan(projectRoot);
     const modelSymbolTable = new ModelSymbolTable(models);
     const formRequests = await FormRequestScanner.scan(projectRoot, interner);
-    const formRequestMap = new Map<string, RequestType>(formRequests.map(r => [r.formTypeName, r]));
+    const formRequestMap = new Map(formRequests.map(r => [r.identity.requestClass.value.value, r] as const));
     const controllerMap = await ControllerScanner.scan(projectRoot, formRequestMap);
     const controllerDataflow = ControllerScanner.extractResourceDataflow(controllerMap);
     const resources = await ResourceScanner.scan(projectRoot, modelSymbolTable, controllerDataflow);
     const routes = await RouteScanner.scan(projectRoot, formRequests, controllerMap);
     const channels = await ChannelScanner.scan(projectRoot);
     const derivedRequests = TypeDeriver.deriveRequestTypes(routes, resources, interner);
-    const requestTypes = formRequests.length > 0 ? formRequests : derivedRequests;
+    const requestTypes = derivedRequests;
     const semanticTypes = TypeDeriver.deriveSemanticTypes(resources, models, interner, routes);
 
-    const groupMap = new Map<string, ParsedRoute[]>();
-    for (const route of routes) {
-        const list = groupMap.get(route.resourceName) || [];
-        list.push(route);
-        groupMap.set(route.resourceName, list);
-    }
-    const routeGroups: ResourceRouteGroup[] = Array.from(groupMap.entries()).map(([resName, rList]) =>
-        ScannedResourceRouteGroupDescriptor.create({
-            resourceName: resName,
-            routes: rList,
-            formTypeName: requestTypes.find(rt => rt.resourceName.toLowerCase() === resName.toLowerCase())?.formTypeName,
-            formActions: requestTypes.find(rt => rt.resourceName.toLowerCase() === resName.toLowerCase())?.actions
-        })
-    );
+    const routeGroups = ScannedResourceRouteGroupDescriptor.createMany({
+        routes,
+        resources,
+        models
+    });
 
     const resolvedRoutes = InvalidationResolver.resolveRouteInvalidations(routes, models, routeGroups);
 
@@ -75,7 +63,6 @@ export async function executeScanPipeline({
         version,
         baseURL,
         routes: resolvedRoutes,
-        contracts: resolvedRoutes.map(r => r.contract ?? ScannedEndpointContract.fromRoute(r)),
         resources,
         models,
         routeGroups,
@@ -83,7 +70,7 @@ export async function executeScanPipeline({
         semanticTypes,
         generatedAt: new Date().toISOString(),
         channels,
-        frontend: null,
+        frontend: { kind: 'disabled' },
         pages: []
     });
 }

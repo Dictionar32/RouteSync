@@ -63,12 +63,12 @@ export function bindLiteralField(
 export function bindTernaryField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'ternary_expression' }>,
-    modelSymbol: OriginModelSymbol | undefined,
+    modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
     bindFieldFn: (params: {
         readonly key: string;
         readonly value: PhpAstValue;
-        readonly modelSymbol?: OriginModelSymbol;
+        readonly modelSymbol: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
     }) => BoundResourceFieldResult
 ): BoundResourceFieldResult {

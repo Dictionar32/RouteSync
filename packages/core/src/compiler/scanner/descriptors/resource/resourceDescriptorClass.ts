@@ -9,9 +9,9 @@
 import type {
   ResourceFieldDescriptor,
   ParsedResource,
-  ActionDefinition,
   ResourceAssignment
 } from '../../../../types/route';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { toCamelCase, ResourceNamingConvention } from '../../../../utils/resource-naming';
 import { ScannedResourceParams, CreateResourceDescriptorOptions } from './resourceDescriptorTypes';
 
@@ -21,60 +21,53 @@ export { ScannedResourceParams, CreateResourceDescriptorOptions };
  * Reusable Constructor: Scanned Resource Descriptor.
  */
 export class ScannedResourceDescriptor implements ParsedResource {
-  public readonly name: string;
-  public readonly baseName: string;
-  public readonly typeName: string;
-  public readonly sanitizedName: string;
-  public readonly baseModel: string | null;
-  public readonly modelName: string | null;
-  public readonly actions: readonly ActionDefinition[];
-  public readonly endpoints: readonly string[];
-  public readonly fields: readonly ResourceFieldDescriptor[];
-  public readonly assignments: readonly ResourceAssignment[];
-  public readonly sourceFile: string;
-  public readonly sourceLine: number;
-  public readonly isSynthetic: boolean;
+  public readonly identity: ParsedResource['identity'];
+  public readonly binding: ParsedResource['binding'];
+  public readonly surface: ParsedResource['surface'];
+  public readonly provenance: ParsedResource['provenance'];
 
   constructor(params: ScannedResourceParams) {
-    this.name = params.name;
-    this.baseName = params.baseName;
-    this.typeName = params.typeName;
-    this.sanitizedName = toCamelCase(params.name);
-    this.baseModel = params.baseModel;
-    this.modelName = params.modelName;
-    this.actions = Object.freeze([]);
-    this.endpoints = Object.freeze([]);
-    this.fields = Object.freeze(params.fields);
-    this.assignments = Object.freeze(params.assignments);
-    this.sourceFile = params.sourceFile;
-    this.sourceLine = params.sourceLine;
-    this.isSynthetic = params.isSynthetic;
+    this.identity = Object.freeze({
+      name: SemanticValueFactory.resourceName(params.name),
+      baseName: SemanticValueFactory.resourceName(params.baseName),
+      typeName: SemanticValueFactory.responseTypeName(params.typeName)
+    });
+    this.binding = Object.freeze({
+      model: { kind: 'model' as const, modelName: params.modelName }
+    });
+    this.surface = Object.freeze({
+      sanitizedName: SemanticValueFactory.propertyName(toCamelCase(params.name)),
+      fields: Object.freeze(params.fields),
+      assignments: Object.freeze(params.assignments)
+    });
+    this.provenance = Object.freeze({
+      sourceFile: SemanticValueFactory.sourceFilePath(params.sourceFile),
+      sourceLine: SemanticValueFactory.sourceLineNumber(params.sourceLine),
+      synthetic: params.isSynthetic
+    });
     Object.freeze(this);
   }
 
   public static create({
     name,
     fields,
-    sourceFile = '',
-    sourceLine = 0,
-    assignments = [],
+    sourceFile,
+    sourceLine,
+    assignments,
     modelName,
     isSynthetic
   }: CreateResourceDescriptorOptions): ScannedResourceDescriptor {
     const baseName = ResourceNamingConvention.stripSuffix(name);
-    const resolvedModel = modelName === undefined ? baseName : modelName;
-    const synthetic = isSynthetic === undefined ? resolvedModel === null : isSynthetic;
     return new ScannedResourceDescriptor({
       name,
       baseName,
       typeName: ResourceNamingConvention.toTransformedName(baseName),
-      baseModel: resolvedModel,
-      modelName: resolvedModel,
+      modelName,
       fields,
       assignments,
       sourceFile,
       sourceLine,
-      isSynthetic: synthetic
+      isSynthetic
     });
   }
 }

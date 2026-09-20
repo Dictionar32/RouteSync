@@ -22,22 +22,23 @@ import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 export function bindResourceCollectionField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'resource_single' | 'resource_collection' }>,
-    modelSymbol?: OriginModelSymbol
+    modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
     const isCollection = value.kind === 'resource_collection';
-    const rel = modelSymbol ? modelSymbol.relation(key) : undefined;
+    const rel = modelSymbol.relation(key);
     const targetModel = rel ? rel.targetModel.value : value.resourceName;
     const cardinality = isCollection
         ? { kind: 'collection' as const }
         : { kind: 'single' as const };
     const boundAst = rel
         ? BoundSemanticFactory.relation({
-            sourceModel: SemanticValueFactory.modelName(modelSymbol!.name),
+            sourceModel: SemanticValueFactory.modelName(modelSymbol.name),
             relationName: SemanticValueFactory.relationName(key),
             relationType: rel.type,
             targetModel: rel.targetModel,
             cardinality,
-            nullability: { kind: 'non_nullable' }
+            nullability: { kind: 'non_nullable' },
+            semanticType: rel.semanticType,
         })
         : BoundSemanticFactory.unsupported('unresolved_relation');
 
@@ -49,8 +50,8 @@ export function bindResourceCollectionField(
         key,
         expression,
         isCollection
-            ? new ReadonlyCollectionType(CollectionKind.ARRAY, new ReferenceType('', value.resourceName))
-            : new ReferenceType('', value.resourceName),
+            ? new ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.resource('', value.resourceName))
+            : ReferenceType.resource('', value.resourceName),
         toCamelCase(key),
         boundAst
     );
@@ -61,12 +62,12 @@ export function bindResourceCollectionField(
 export function bindNestedArrayField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'nested_array' }>,
-    modelSymbol: OriginModelSymbol | undefined,
+    modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
     bindFieldFn: (params: {
         readonly key: string;
         readonly value: PhpAstValue;
-        readonly modelSymbol?: OriginModelSymbol;
+        readonly modelSymbol: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
     }) => BoundResourceFieldResult
 ): BoundResourceFieldResult {
@@ -81,14 +82,15 @@ export function bindNestedArrayField(
         childFields.push(childResult.descriptor);
     }
 
-    const boundAst = modelSymbol
-        ? BoundSemanticFactory.propertyChain({
+    const boundAst = BoundSemanticFactory.propertyChain({
             rootModel: SemanticValueFactory.modelName(modelSymbol.name),
             steps: [],
             resultingType: new ObjectType({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' }),
-            nullability: { kind: 'non_nullable' }
-        })
-        : BoundSemanticFactory.unsupported('invalid_boundary_input');
+            nullability: { kind: 'non_nullable' },
+            semanticType: isCollection
+                ? new ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.model('', value.resourceName))
+                : ReferenceType.resource('', value.resourceName),
+        });
 
     const expression = ResourceFieldExpressionFactory.object(childFields);
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(

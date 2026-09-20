@@ -26,12 +26,12 @@ import type {
     EndpointContract,
     RouteSchemaPayload,
     RouteHandlerDescriptor,
-    FormRequestDescriptor,
     RouteIdentityContract,
     RouteBindingContract,
     RouteCapabilityContract,
     RouteProvenanceContract
 } from "../../../../types/route";
+import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import type { ScannedRouteConstructorInput } from "./routeContracts";
 
 export abstract class ScannedRouteFields implements ParsedRoute {
@@ -40,28 +40,29 @@ export abstract class ScannedRouteFields implements ParsedRoute {
     public readonly capability: RouteCapabilityContract;
     public readonly provenance: RouteProvenanceContract;
     public readonly contract: EndpointContract;
-    public readonly name: string;
+    public readonly name: RouteIdentityContract["name"];
     public readonly method: HttpMethod;
-    public readonly path: string;
-    public readonly resourceName: string;
-    public readonly domain: string;
-    public readonly action: string;
+    public readonly path: RouteIdentityContract["path"];
+    public readonly resourceName: RouteIdentityContract["resourceName"];
+    public readonly domain: RouteIdentityContract["domain"];
+    public readonly action: RouteBindingContract["action"];
     public readonly handler: RouteHandlerDescriptor;
-    public readonly formRequests: readonly FormRequestDescriptor[];
-    public readonly actionName: string;
-    public readonly groupName: string;
+    public readonly actionName: RouteBindingContract["actionName"];
+    public readonly groupName: RouteIdentityContract["groupName"];
     public readonly crudRole: CrudRole;
-    public readonly runtimePath: string;
-    public readonly responseTypeName: string;
+    public readonly runtimePath: RouteIdentityContract["runtimePath"];
+    public readonly responseTypeName: RouteBindingContract["responseTypeName"];
     public readonly actionKind: RouteActionKind;
-    public readonly isMutating: boolean;
+    public get isMutating(): boolean {
+        return ROUTE_ACTION_KIND_REGISTRY[this.actionKind].isMutating;
+    }
     public readonly hookKind: RouteHookKind;
     public readonly invalidation: RouteCacheInvalidationDescriptor;
     public readonly executionSignature: RouteExecutionSignature;
     public readonly requestContentType: RequestContentType;
     public readonly auth: boolean;
     public readonly security: RouteSecurityDescriptor;
-    public readonly middleware: readonly string[];
+    public readonly middleware: RouteCapabilityContract["middleware"];
     public readonly policies: readonly RoutePolicyDescriptor[];
     public readonly rateLimit: RateLimitDescriptor | null;
     public readonly parameters: readonly RouteParameter[];
@@ -69,12 +70,13 @@ export abstract class ScannedRouteFields implements ParsedRoute {
     public readonly queryParameters: readonly RouteQueryParameter[];
     public readonly response: ResponseDescriptor;
     public readonly errorResponses: readonly HttpErrorResponseDescriptor[];
-    public readonly sourceFile: string;
-    public readonly sourceLine: number;
+    public readonly sourceFile: RouteProvenanceContract["sourceFile"];
+    public readonly sourceLine: RouteProvenanceContract["sourceLine"];
     public readonly schema: RouteSchemaPayload;
+    public readonly runtimeReturn = this.binding.runtimeReturn;
     public readonly assignments: readonly ResourceAssignment[];
-    public readonly uri: string;
-    public readonly controllerName: string;
+    public readonly uri: RouteProvenanceContract["uri"];
+    public readonly controllerName: RouteBindingContract["controllerName"];
 
     protected constructor(params: ScannedRouteConstructorInput) {
         const { identity, binding, capability, provenance, contract } = params;
@@ -86,6 +88,7 @@ export abstract class ScannedRouteFields implements ParsedRoute {
         this.name = identity.name;
         this.method = identity.method;
         this.path = identity.path;
+        this.runtimePath = identity.runtimePath;
         this.resourceName = identity.resourceName;
         this.domain = identity.domain;
         this.groupName = identity.groupName;
@@ -99,7 +102,6 @@ export abstract class ScannedRouteFields implements ParsedRoute {
         this.schema = binding.schema;
         this.response = binding.response;
         this.responseTypeName = binding.responseTypeName;
-        this.formRequests = binding.formRequests;
         this.assignments = binding.assignments;
         this.auth = capability.auth;
         this.security = capability.security;
@@ -110,7 +112,6 @@ export abstract class ScannedRouteFields implements ParsedRoute {
         this.crudRole = capability.crudRole;
         this.hookKind = capability.hookKind;
         this.actionKind = capability.actionKind;
-        this.isMutating = capability.isMutating;
         this.requestContentType = capability.requestContentType;
         this.executionSignature = capability.executionSignature;
         this.errorResponses = capability.errorResponses;

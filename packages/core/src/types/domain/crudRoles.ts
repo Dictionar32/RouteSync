@@ -1,4 +1,5 @@
 import { HttpMethod, RouteActionKind } from "./security";
+import type { PropertyName, RouteParameterName, RoutePath } from "../upstream/names";
 
 /**
  * CrudRole
@@ -60,9 +61,9 @@ export const PAGE_ENDPOINT_REGISTRY: PageEndpointKindRegistry = Object.freeze({
 
 export interface PageEndpointDescriptor {
   readonly kind: PageEndpointKind;
-  readonly path: string;
-  readonly query: readonly string[];
-  readonly params: readonly string[];
+  readonly path: RoutePath;
+  readonly query: readonly PropertyName[];
+  readonly params: readonly RouteParameterName[];
 }
 
 export interface PageEndpointVisitor<R> {
@@ -72,23 +73,21 @@ export interface PageEndpointVisitor<R> {
 }
 
 /**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian PageEndpointDescriptor dengan exhaustive type safety
+ * Pure dispatch over a complete PageEndpointDescriptor.
+ * Classification and endpoint data must already be complete at the origin boundary.
  */
 export function matchPageEndpoint<R>(
-  endpoint: PageEndpointDescriptor | PageEndpointKind,
+  endpoint: PageEndpointDescriptor,
   visitor: PageEndpointVisitor<R>
 ): R {
-  const isKindString = typeof endpoint === 'string';
-  const kind = isKindString ? endpoint : endpoint.kind;
-  const descriptor: PageEndpointDescriptor = isKindString
-    ? {
-        kind,
-        path: '/',
-        query: kind === PageEndpointKind.QueryFiltered ? ['filter'] : [],
-        params: kind === PageEndpointKind.Parameterized ? ['id'] : []
-      }
-    : endpoint;
-  return visitor[kind](descriptor);
+  switch (endpoint.kind) {
+    case PageEndpointKind.Static:
+      return visitor.static(endpoint);
+    case PageEndpointKind.Parameterized:
+      return visitor.parameterized(endpoint);
+    case PageEndpointKind.QueryFiltered:
+      return visitor.query_filtered(endpoint);
+  }
 }
 
 
@@ -142,20 +141,19 @@ export type AnyRouteHookDescriptor =
   | InfiniteQueryHookDescriptor;
 
 export type RouteHookDescriptor<K extends RouteHookKind = RouteHookKind> =
-  K extends 'query' ? QueryHookDescriptor :
-  K extends 'mutation' ? MutationHookDescriptor :
-  K extends 'infinite_query' ? InfiniteQueryHookDescriptor :
-  BaseRouteHookDescriptor<K>;
+  Extract<AnyRouteHookDescriptor, { readonly kind: K }>;
 
-export interface HookKindSpecification<K extends RouteHookKind = RouteHookKind> {
-  readonly kind: K;
-  readonly hookPrefix: string;
-  readonly tanstackHookName: string;
-  readonly isMutating: boolean;
-  readonly requiresQueryKey: boolean;
-  readonly supportsPagination: boolean;
-  readonly defaultOptionsTypeName: string;
-}
+export type HookKindSpecification<K extends RouteHookKind = RouteHookKind> =
+  Pick<Extract<AnyRouteHookDescriptor, { readonly kind: K }>,
+    'kind' |
+    'hookPrefix' |
+    'tanstackHookName' |
+    'isMutating' |
+    'requiresQueryKey' |
+    'supportsPagination'
+  > & {
+    readonly defaultOptionsTypeName: string;
+  };
 
 export type HookKindRegistry = {
   readonly [K in RouteHookKind]: HookKindSpecification<K>;
@@ -202,23 +200,30 @@ export function matchRouteHookKind<R>(
   kind: RouteHookKind,
   visitor: RouteHookKindVisitor<R>
 ): R {
-  const spec = HOOK_KIND_REGISTRY[kind] ?? HOOK_KIND_REGISTRY[RouteHookKind.Query];
-  return visitor[kind](spec as any);
+  switch (kind) {
+    case RouteHookKind.Query:
+      return visitor.query(HOOK_KIND_REGISTRY[RouteHookKind.Query]);
+    case RouteHookKind.Mutation:
+      return visitor.mutation(HOOK_KIND_REGISTRY[RouteHookKind.Mutation]);
+    case RouteHookKind.InfiniteQuery:
+      return visitor.infinite_query(HOOK_KIND_REGISTRY[RouteHookKind.InfiniteQuery]);
+  }
 }
 
 export const matchHookKind = matchRouteHookKind;
 
-export class ScannedRouteHookDescriptor implements BaseRouteHookDescriptor {
-  public readonly kind: RouteHookKind;
-  public readonly hookPrefix: string;
-  public readonly tanstackHookName: string;
-  public readonly isMutating: boolean;
-  public readonly requiresQueryKey: boolean;
-  public readonly supportsPagination: boolean;
+export class ScannedRouteHookDescriptor<K extends RouteHookKind = RouteHookKind>
+  implements BaseRouteHookDescriptor<K> {
+  public readonly kind: K;
+  public readonly hookPrefix: HookKindSpecification<K>['hookPrefix'];
+  public readonly tanstackHookName: HookKindSpecification<K>['tanstackHookName'];
+  public readonly isMutating: HookKindSpecification<K>['isMutating'];
+  public readonly requiresQueryKey: HookKindSpecification<K>['requiresQueryKey'];
+  public readonly supportsPagination: HookKindSpecification<K>['supportsPagination'];
 
-  constructor(kind: RouteHookKind = RouteHookKind.Query) {
+  constructor(kind: K) {
     this.kind = kind;
-    const spec = HOOK_KIND_REGISTRY[kind] ?? HOOK_KIND_REGISTRY[RouteHookKind.Query];
+    const spec = HOOK_KIND_REGISTRY[kind];
     this.hookPrefix = spec.hookPrefix;
     this.tanstackHookName = spec.tanstackHookName;
     this.isMutating = spec.isMutating;
@@ -228,18 +233,18 @@ export class ScannedRouteHookDescriptor implements BaseRouteHookDescriptor {
   }
 
   public static query(): QueryHookDescriptor {
-    return new ScannedRouteHookDescriptor(RouteHookKind.Query) as unknown as QueryHookDescriptor;
+    return new ScannedRouteHookDescriptor(RouteHookKind.Query);
   }
 
   public static mutation(): MutationHookDescriptor {
-    return new ScannedRouteHookDescriptor(RouteHookKind.Mutation) as unknown as MutationHookDescriptor;
+    return new ScannedRouteHookDescriptor(RouteHookKind.Mutation);
   }
 
   public static infiniteQuery(): InfiniteQueryHookDescriptor {
-    return new ScannedRouteHookDescriptor(RouteHookKind.InfiniteQuery) as unknown as InfiniteQueryHookDescriptor;
+    return new ScannedRouteHookDescriptor(RouteHookKind.InfiniteQuery);
   }
 
-  public static fromKind(kind: RouteHookKind): ScannedRouteHookDescriptor {
+  public static fromKind<K extends RouteHookKind>(kind: K): ScannedRouteHookDescriptor<K> {
     return new ScannedRouteHookDescriptor(kind);
   }
 }
@@ -435,9 +440,27 @@ export function matchCrudRole<R>(
 ): R {
   const rawRole = typeof roleOrRoute === 'string'
     ? roleOrRoute
-    : (roleOrRoute as any).crudRole;
-  const spec = (CRUD_ROLE_REGISTRY as Record<string, CrudRoleSpecification>)[rawRole] ?? CRUD_ROLE_REGISTRY[CrudRole.Custom];
-  return visitor[spec.role](spec as any);
+    : roleOrRoute.crudRole;
+
+  if (!(rawRole in CRUD_ROLE_REGISTRY)) {
+    throw new Error(`Unknown CrudRole: ${rawRole}`);
+  }
+
+  const role = rawRole as CrudRole;
+  switch (role) {
+    case CrudRole.Index:
+      return visitor.index(CRUD_ROLE_REGISTRY[CrudRole.Index]);
+    case CrudRole.Show:
+      return visitor.show(CRUD_ROLE_REGISTRY[CrudRole.Show]);
+    case CrudRole.Create:
+      return visitor.create(CRUD_ROLE_REGISTRY[CrudRole.Create]);
+    case CrudRole.Update:
+      return visitor.update(CRUD_ROLE_REGISTRY[CrudRole.Update]);
+    case CrudRole.Delete:
+      return visitor.delete(CRUD_ROLE_REGISTRY[CrudRole.Delete]);
+    case CrudRole.Custom:
+      return visitor.custom(CRUD_ROLE_REGISTRY[CrudRole.Custom]);
+  }
 }
 
 export class ScannedCrudRoleDescriptor implements BaseCrudRoleDescriptor {
@@ -454,7 +477,7 @@ export class ScannedCrudRoleDescriptor implements BaseCrudRoleDescriptor {
 
   constructor(role: CrudRole = CrudRole.Custom) {
     this.role = role;
-    const spec = (CRUD_ROLE_REGISTRY as Record<string, CrudRoleSpecification>)[role] ?? CRUD_ROLE_REGISTRY[CrudRole.Custom];
+    const spec = CRUD_ROLE_REGISTRY[role];
     this.isMutating = spec.isMutating;
     this.isCollection = spec.isCollection;
     this.isItem = spec.isItem;

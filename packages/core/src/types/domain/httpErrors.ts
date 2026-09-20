@@ -1,6 +1,6 @@
 import type { RouteParameterType } from "./parameters";
 import { HttpStatusCode } from "./httpVocabulary";
-import type { HttpErrorName, ResponseTypeName } from "./semanticValues";
+import { SemanticValueFactory, type HttpErrorName, type ResponseTypeName } from "./semanticValues";
 
 export interface RouteQueryParameter {
   readonly name: string;
@@ -68,48 +68,48 @@ export const HTTP_ERROR_KIND_REGISTRY: HttpErrorKindRegistry = Object.freeze({
   [HttpErrorKind.Validation]: {
     kind: HttpErrorKind.Validation,
     defaultStatusCode: HttpStatusCode.UnprocessableEntity,
-    defaultName: { kind: 'http_error_name', value: 'UnprocessableEntity' },
-    defaultTypeName: { kind: 'response_type_name', value: 'LaravelValidationError' },
+    defaultName: SemanticValueFactory.httpErrorName('UnprocessableEntity'),
+    defaultTypeName: SemanticValueFactory.responseTypeName('LaravelValidationError'),
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.Unauthorized]: {
     kind: HttpErrorKind.Unauthorized,
     defaultStatusCode: HttpStatusCode.Unauthorized,
-    defaultName: { kind: 'http_error_name', value: 'Unauthorized' },
-    defaultTypeName: { kind: 'response_type_name', value: 'LaravelUnauthorizedError' },
+    defaultName: SemanticValueFactory.httpErrorName('Unauthorized'),
+    defaultTypeName: SemanticValueFactory.responseTypeName('LaravelUnauthorizedError'),
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.Forbidden]: {
     kind: HttpErrorKind.Forbidden,
     defaultStatusCode: HttpStatusCode.Forbidden,
-    defaultName: { kind: 'http_error_name', value: 'Forbidden' },
-    defaultTypeName: { kind: 'response_type_name', value: 'LaravelForbiddenError' },
+    defaultName: SemanticValueFactory.httpErrorName('Forbidden'),
+    defaultTypeName: SemanticValueFactory.responseTypeName('LaravelForbiddenError'),
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.NotFound]: {
     kind: HttpErrorKind.NotFound,
     defaultStatusCode: HttpStatusCode.NotFound,
-    defaultName: { kind: 'http_error_name', value: 'NotFound' },
-    defaultTypeName: { kind: 'response_type_name', value: 'LaravelNotFoundError' },
+    defaultName: SemanticValueFactory.httpErrorName('NotFound'),
+    defaultTypeName: SemanticValueFactory.responseTypeName('LaravelNotFoundError'),
     isClientError: true,
     isServerError: false
   },
   [HttpErrorKind.ServerError]: {
     kind: HttpErrorKind.ServerError,
     defaultStatusCode: HttpStatusCode.InternalServerError,
-    defaultName: { kind: 'http_error_name', value: 'InternalServerError' },
-    defaultTypeName: { kind: 'response_type_name', value: 'LaravelServerError' },
+    defaultName: SemanticValueFactory.httpErrorName('InternalServerError'),
+    defaultTypeName: SemanticValueFactory.responseTypeName('LaravelServerError'),
     isClientError: false,
     isServerError: true
   },
   [HttpErrorKind.Custom]: {
     kind: HttpErrorKind.Custom,
     defaultStatusCode: HttpStatusCode.BadRequest,
-    defaultName: { kind: 'http_error_name', value: 'BadRequest' },
-    defaultTypeName: { kind: 'response_type_name', value: 'LaravelError' },
+    defaultName: SemanticValueFactory.httpErrorName('BadRequest'),
+    defaultTypeName: SemanticValueFactory.responseTypeName('LaravelError'),
     isClientError: true,
     isServerError: false
   }

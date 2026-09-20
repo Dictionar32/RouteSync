@@ -13,6 +13,26 @@ import type { SemanticValue } from './primitiveVocabulary';
 import type { ServiceParameter } from './service';
 import type { CompletenessFailure } from './completeness';
 
+export type Option<T> =
+  | { readonly kind: 'none' }
+  | { readonly kind: 'some'; readonly value: T };
+
+export type Lookup<T> =
+  | { readonly kind: 'missing' }
+  | { readonly kind: 'found'; readonly value: T };
+
+export type LookupVisitor<T, R> = {
+  readonly missing: (lookup: Extract<Lookup<T>, { readonly kind: 'missing' }>) => R;
+  readonly found: (lookup: Extract<Lookup<T>, { readonly kind: 'found' }>) => R;
+};
+
+export function matchLookup<T, R>(lookup: Lookup<T>, visitor: LookupVisitor<T, R>): R {
+  switch (lookup.kind) {
+    case 'missing': return visitor.missing(lookup);
+    case 'found': return visitor.found(lookup);
+  }
+}
+
 export type Sequence<T> = { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: Sequence<T> };
 export type Discovered<T> = { readonly kind: 'discovered_empty' } | { readonly kind: 'discovered_many'; readonly items: Sequence<T> };
 export type SourceDiscovery<T> = { readonly kind: 'not_scanned' } | { readonly kind: 'scanned'; readonly result: Discovered<T> };
@@ -30,6 +50,7 @@ export type ControllerStatements = { readonly kind: 'controller_statements'; rea
 export type Properties = { readonly kind: 'properties'; readonly items: Sequence<PropertyDefinition> };
 export type ModelRelations = { readonly kind: 'model_relations'; readonly items: Sequence<ModelRelation> };
 export type ModelCasts = { readonly kind: 'model_casts'; readonly items: Sequence<ModelCast> };
+export type ModelColumnFacts = { readonly kind: 'model_column_facts'; readonly items: Sequence<import('./modelSourceFacts').ModelColumnFact> };
 export type ModelAccessors = { readonly kind: 'model_accessors'; readonly items: Sequence<ModelAccessor> };
 export type ModelConstants = { readonly kind: 'model_constants'; readonly items: Sequence<ModelConstant> };
 export type ModelMethods = { readonly kind: 'model_methods'; readonly items: Sequence<ModelMethod> };

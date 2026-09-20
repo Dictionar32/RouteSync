@@ -1,4 +1,4 @@
-import { QueryProjectionFieldIndex } from './queryProjectionResolution';
+import { QueryProjectionFieldIndex, SemanticObjectFieldIndex } from './queryProjectionResolution';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { BoundSemanticNode, BoundCardinality, BoundNullability } from './boundAst';
 import type { ModelName, ResourceName, ResponseFieldName } from './semanticValues';
@@ -30,7 +30,13 @@ export const SemanticResolutionFactory = Object.freeze({
     return Object.freeze({ kind: 'resource', ...input });
   },
   object(input: Common & { fields: readonly SemanticObjectField[] }): SemanticResolution {
-    return Object.freeze({ kind: 'object', ...input });
+    const fields = Object.freeze([...input.fields]);
+    return Object.freeze({
+      kind: 'object',
+      ...input,
+      fields,
+      surface: Object.freeze({ byName: new SemanticObjectFieldIndex(fields) }),
+    });
   },
   queryProjection(input: Common & { sourceModel: ModelName; sourceDefinition: ModelSemanticDefinition; surface: QueryProjectionSurface; cardinality: BoundCardinality; nullability: BoundNullability }): SemanticResolution {
     return Object.freeze({ kind: 'query_projection', ...input });

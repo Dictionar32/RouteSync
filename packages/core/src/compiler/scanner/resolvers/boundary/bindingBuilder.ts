@@ -7,6 +7,7 @@
  */
 
 import type { RouteBindingContract } from "../../../../types/route";
+import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { RouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasics";
 import type { ResolvedRouteBinding } from "./bindingResolution";
 
@@ -15,15 +16,20 @@ export function buildRouteBindingContract(
     basics: IntermediateRouteBoundaryBasics,
     resolved: ResolvedRouteBinding
 ): RouteBindingContract {
+    const responseTypeName = params.response.responseTypeName();
+
+    const request = resolved.request;
+
     return Object.freeze({
         handler: params.handler,
-        action: basics.resolvedAction,
-        actionName: basics.resolvedActionName,
-        controllerName: basics.resolvedControllerName,
+        action: SemanticValueFactory.actionName(basics.resolvedAction),
+        actionName: SemanticValueFactory.actionName(basics.resolvedActionName),
+        controllerName: SemanticValueFactory.controllerName(basics.resolvedControllerName),
         schema: params.schema,
         response: params.response,
-        responseTypeName: params.response.readTypeName,
-        formRequests: resolved.formRequests,
+        responseTypeName,
+        request,
+        runtimeReturn: params.runtimeReturn,
         assignments: Object.freeze([])
     });
 }

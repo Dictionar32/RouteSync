@@ -10,6 +10,7 @@ import type { ResourceFieldDescriptor } from '../../types/route';
 import { toCamelCase, ResourceNamingConvention } from '../../utils/resource-naming';
 import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
 import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrigin';
+import { SemanticValueFactory, type PropertyName } from '../../types/domain/semanticValues';
 
 /**
  * @module compiler/types/SemanticType
@@ -74,6 +75,22 @@ export type SemanticTypeKind = typeof SemanticTypeKind[keyof typeof SemanticType
  */
 const semanticTypeBrand: unique symbol = Symbol('semanticTypeBrand');
 
+export interface SemanticTypeVisitor<R> {
+    readonly primitive: (type: PrimitiveType) => R;
+    readonly jsonValue: (type: JsonValueType) => R;
+    readonly optional: (type: OptionalType) => R;
+    readonly nullable: (type: NullableType) => R;
+    readonly never: (type: NeverType) => R;
+    readonly error: (type: ErrorType) => R;
+    readonly reference: (type: ReferenceType) => R;
+    readonly union: (type: UnionType) => R;
+    readonly intersection: (type: IntersectionType) => R;
+    readonly readonlyCollection: (type: ReadonlyCollectionType) => R;
+    readonly mutableCollection: (type: MutableCollectionType) => R;
+    readonly generic: (type: GenericType) => R;
+    readonly object: (type: ObjectType) => R;
+}
+
 /**
  * Base class for all semantic types.
  * Uses a brand to prevent accidental type confusion at runtime.
@@ -81,6 +98,7 @@ const semanticTypeBrand: unique symbol = Symbol('semanticTypeBrand');
 export abstract class SemanticTypeBase {
     protected readonly [semanticTypeBrand] = true;
     abstract readonly kind: SemanticTypeKind;
+    abstract accept<R>(visitor: SemanticTypeVisitor<R>): R;
 
     public isNullable(): boolean {
         return false;
@@ -108,6 +126,8 @@ export abstract class SemanticTypeBase {
  * ```
  */
 export class PrimitiveType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.primitive(this); }
+
     readonly kind = 'primitive';
 
     constructor(public readonly type: PrimitiveKind) {
@@ -151,6 +171,8 @@ export class PrimitiveType extends SemanticTypeBase {
  * This is distinct from UNKNOWN: the value domain is known to be JSON.
  */
 export class JsonValueType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.jsonValue(this); }
+
     readonly kind = 'json_value';
     constructor() {
         super();
@@ -163,6 +185,8 @@ export class JsonValueType extends SemanticTypeBase {
  * Bottom type in the type hierarchy.
  */
 export class NeverType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.never(this); }
+
     readonly kind = 'never';
 }
 
@@ -171,6 +195,8 @@ export class NeverType extends SemanticTypeBase {
  * Used to continue compilation after encountering type errors.
  */
 export class ErrorType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.error(this); }
+
     readonly kind = 'error';
     constructor(readonly diagnosticMessage: string) {
         super();
@@ -187,12 +213,39 @@ export class ErrorType extends SemanticTypeBase {
  * ```
  */
 export class ReferenceType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.reference(this); }
+
     readonly kind = 'reference';
+    readonly role: ObjectTypeRole;
+    readonly emittedName: string;
+
     constructor(
         readonly namespace: string,
-        readonly name: string
+        readonly name: string,
+        role: ObjectTypeRole = 'plain'
     ) {
         super();
+        this.role = role;
+        this.emittedName = role === 'resource' && !name.endsWith('Transformed')
+            ? `${name}Transformed`
+            : name;
+        Object.freeze(this);
+    }
+
+    public static model(namespace: string, name: string): ReferenceType {
+        return new ReferenceType(namespace, name, 'model');
+    }
+
+    public static resource(namespace: string, name: string): ReferenceType {
+        return new ReferenceType(namespace, name, 'resource');
+    }
+
+    public static response(namespace: string, name: string): ReferenceType {
+        return new ReferenceType(namespace, name, 'response');
+    }
+
+    public static plain(namespace: string, name: string): ReferenceType {
+        return new ReferenceType(namespace, name, 'plain');
     }
 }
 
@@ -210,6 +263,8 @@ export class ReferenceType extends SemanticTypeBase {
  * ```
  */
 export class UnionType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.union(this); }
+
     readonly kind = 'union';
     constructor(readonly members: readonly SemanticType[]) {
         super();
@@ -226,6 +281,8 @@ export class UnionType extends SemanticTypeBase {
  * Intersection type - represents a combination of multiple types (A & B & C).
  */
 export class IntersectionType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.intersection(this); }
+
     readonly kind = 'intersection';
     constructor(readonly members: readonly SemanticType[]) {
         super();
@@ -251,6 +308,8 @@ export class IntersectionType extends SemanticTypeBase {
  * ```
  */
 export class ReadonlyCollectionType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.readonlyCollection(this); }
+
     readonly kind = 'readonly_collection';
     constructor(
         readonly collectionKind: CollectionKind,
@@ -273,6 +332,8 @@ export class ReadonlyCollectionType extends SemanticTypeBase {
  * ```
  */
 export class MutableCollectionType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.mutableCollection(this); }
+
     readonly kind = 'mutable_collection';
     constructor(
         readonly collectionKind: CollectionKind,
@@ -316,6 +377,8 @@ export interface GenericParameter {
  * ```
  */
 export class GenericType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.generic(this); }
+
     readonly kind = 'generic';
     constructor(
         readonly base: ReferenceType,
@@ -341,6 +404,8 @@ export class GenericType extends SemanticTypeBase {
  * Models optionality (foo?: T) directly within the Semantic AST hierarchy.
  */
 export class OptionalType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.optional(this); }
+
     readonly kind = 'optional';
 
     constructor(public readonly innerType: SemanticType) {
@@ -365,6 +430,8 @@ export class OptionalType extends SemanticTypeBase {
  * Replaces legacy monkey-patched 'nullable_wrapper' with '__value' hack.
  */
 export class NullableType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.nullable(this); }
+
     readonly kind = 'nullable';
 
     constructor(public readonly innerType: SemanticType) {
@@ -387,56 +454,35 @@ export class NullableType extends SemanticTypeBase {
 export type ObjectTypeRole = 'plain' | 'resource' | 'model' | 'response';
 
 export interface ObjectProperty {
-    readonly name: string;
+    readonly name: PropertyName;
     readonly type: SemanticType;
-    readonly required: boolean;
-    readonly nullable: boolean;
     readonly description: string;
     readonly origin: ObjectPropertyOrigin;
 }
 
 export interface ScannedObjectPropertyParams {
-    readonly name: string;
+    readonly name: PropertyName;
     readonly type: SemanticType;
-    readonly required: boolean;
-    readonly description?: string;
+    readonly description: string;
     readonly origin: ObjectPropertyOrigin;
 }
 
 export class ScannedObjectProperty implements ObjectProperty {
-    public readonly name: string;
+    public readonly name: PropertyName;
     public readonly type: SemanticType;
-    public readonly required: boolean;
     public readonly description: string;
     public readonly origin: ObjectPropertyOrigin;
 
-    constructor({ name, type, required, description = '', origin }: ScannedObjectPropertyParams) {
+    constructor({ name, type, description, origin }: ScannedObjectPropertyParams) {
         this.name = name;
         this.type = type;
-        this.required = required;
         this.description = description;
         this.origin = origin;
         Object.freeze(this);
     }
 
-    public get nullable(): boolean {
-        return this.type.kind === 'nullable' || this.type.isNullable();
-    }
-
-    public static create({
-        name,
-        type,
-        required = true,
-        description = '',
-        origin
-    }: {
-        readonly name: string;
-        readonly type: SemanticType;
-        readonly required?: boolean;
-        readonly description?: string;
-        readonly origin: ObjectPropertyOrigin;
-    }): ScannedObjectProperty {
-        return new ScannedObjectProperty({ name, type, required, description, origin });
+    public static create(params: ScannedObjectPropertyParams): ScannedObjectProperty {
+        return new ScannedObjectProperty(params);
     }
 }
 
@@ -444,9 +490,8 @@ export const ObjectProperty = {
     fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
         const type = SemanticTypeResolver.resolveField(field);
         return new ScannedObjectProperty({
-            name: toCamelCase(field.name.value),
+            name: SemanticValueFactory.propertyName(toCamelCase(field.name.value)),
             type,
-            required: !type.isNullable(),
             description: '',
             origin: { kind: 'bound_expression', bound: field.semantic.bound }
         });
@@ -463,6 +508,8 @@ export interface ObjectTypeDescriptorParams {
 }
 
 export class ObjectType extends SemanticTypeBase {
+    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.object(this); }
+
     readonly kind = 'object';
     public readonly name: string;
     public readonly baseName: string;

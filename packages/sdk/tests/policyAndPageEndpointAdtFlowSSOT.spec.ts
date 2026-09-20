@@ -118,7 +118,7 @@ describe('Policy and Page Endpoint ADT Flow SSOT (Zero-if Catamorphism Suite)', 
     }
   })
 
-  it('5. matchPageEndpoint should execute pure catamorphism on descriptors and kind strings', () => {
+  it('5. matchPageEndpoint should execute pure catamorphism on complete descriptors', () => {
     const staticEp = ScannedPageEndpointDescriptor.static('/dashboard')
     const paramEp = ScannedPageEndpointDescriptor.parameterized('/users/{id}', ['id'])
     const queryEp = ScannedPageEndpointDescriptor.queryFiltered('/search', ['q'])
@@ -133,10 +133,6 @@ describe('Policy and Page Endpoint ADT Flow SSOT (Zero-if Catamorphism Suite)', 
     expect(matchPageEndpoint(paramEp, visitor)).toBe('PARAM:/users/{id}:id')
     expect(matchPageEndpoint(queryEp, visitor)).toBe('QUERY:/search:q')
 
-    // Kind string resolution
-    expect(matchPageEndpoint(PageEndpointKind.Static, visitor)).toBe('STATIC:/')
-    expect(matchPageEndpoint(PageEndpointKind.Parameterized, visitor)).toBe('PARAM:/:id')
-    expect(matchPageEndpoint(PageEndpointKind.QueryFiltered, visitor)).toBe('QUERY:/:filter')
   })
 
   it('6. ScannedPageEndpointDescriptor semantic factories should return frozen complete contracts', () => {

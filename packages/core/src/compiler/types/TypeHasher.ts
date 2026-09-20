@@ -119,7 +119,7 @@ export class TypeHasher {
 
             case 'object': {
                 const propHashes = type.properties.map(
-                    p => `${p.name}:${p.required ? 'req' : 'opt'}:${this.hash(p.type, context)}`
+                    p => `${p.name.value.value}:${p.type.isOptional() ? 'opt' : 'req'}:${this.hash(p.type, context)}`
                 );
                 return `object:${type.name || 'anonymous'}{${propHashes.join(',')}}`;
             }

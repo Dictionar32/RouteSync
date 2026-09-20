@@ -43,6 +43,6 @@ export function resolveRouteBoundaryInput(
         runtimePath: basics.resolvedRuntimePath,
         groupName: basics.resolvedGroupName,
         schema: params.schema,
-        formRequests: binding.formRequests
+        request: binding.request
     });
 }

@@ -1,4 +1,5 @@
 import type { ParsedRoute } from "./routes";
+import type { PropertyName, ResourceName } from "./semanticValues";
 
 /**
  * ResourceGroupKind
@@ -193,18 +194,35 @@ export class ScannedResourceGroupTypeSignature implements BaseResourceGroupTypeS
  * Resource Group Core Identity Trait.
  * Encapsulates immutable naming, identification, and entity route collection.
  */
-export interface ResourceGroupIdentityTrait<TRoute = ParsedRoute> {
-  readonly groupName: string;
-  readonly keyName: string;
-  readonly titleName: string;
-  readonly primaryKeyType: string;
-  readonly all: readonly TRoute[];
+export interface ResourceGroupIdentity {
+  readonly resource: ResourceName;
+  readonly key: PropertyName;
+  readonly title: PropertyName;
 }
 
-/**
- * Resource Group Query Key Accessors Trait.
- */
+export interface ResourceGroupPrimaryKey {
+  readonly name: PropertyName;
+  readonly type: string;
+}
+
+export interface ResourceGroupIdentityTrait<TRoute = ParsedRoute> {
+  readonly identity: ResourceGroupIdentity;
+  readonly primaryKey: ResourceGroupPrimaryKey;
+  readonly routes: readonly TRoute[];
+  readonly primaryRoute: TRoute;
+}
+
+export interface ResourceGroupQueryKeys {
+  readonly list: PropertyName;
+  readonly detail: PropertyName;
+}
+
 export interface ResourceGroupQueryKeysTrait {
+  readonly queryKeys: ResourceGroupQueryKeys;
+}
+
+/** Construction-only adapter input. It is not part of the canonical domain model. */
+interface ResourceGroupQueryKeyInput {
   readonly listKeyFn: string;
   readonly detailKeyFn: string;
 }
@@ -256,7 +274,12 @@ export interface ResourceGroupVisitorCapability<TRoute = ParsedRoute> {
  * Self-projecting capability for query key blocks and cache invalidation configs.
  * 0 switch, 0 branching downstream.
  */
-export interface ResourceGroupLoweringTrait<TRoute = ParsedRoute> {
+/**
+ * Lowering operations are implementation capabilities, not domain data.
+ * Keep this contract outside BaseResourceGroupDescriptor so the canonical
+ * domain model does not advertise code generation as part of its identity.
+ */
+export interface ResourceGroupLoweringOperations<TRoute = ParsedRoute> {
   lowerQueryKeyBlock(): IterableIterator<string>;
   lowerCacheConfig(addInvs: (route: TRoute, invs: string[]) => void): IterableIterator<string>;
 }
@@ -268,8 +291,7 @@ export interface ResourceGroupLoweringTrait<TRoute = ParsedRoute> {
 export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute>
   extends ResourceGroupIdentityTrait<TRoute>,
     ResourceGroupQueryKeysTrait,
-    ResourceGroupVisitorCapability<TRoute>,
-    ResourceGroupLoweringTrait<TRoute> {
+    ResourceGroupVisitorCapability<TRoute> {
   readonly kind: ResourceGroupKind;
   readonly isCrud: boolean;
   readonly types: BaseResourceGroupTypeSignature;
@@ -361,6 +383,7 @@ export interface BaseResourceGroupParams<TRoute = ParsedRoute> {
   readonly keyName: string;
   readonly titleName: string;
   readonly all: readonly TRoute[];
+  readonly primaryRoute: TRoute;
   readonly extraMutations: readonly TRoute[];
   readonly customQueries: readonly TRoute[];
 }
@@ -435,10 +458,10 @@ function* lowerExtraMutations<TRoute>(
   for (const route of group.extraMutations as any[]) {
     const invs: string[] = [];
     if (group.isCrud) {
-      pushUnique(invs, `          QueryKey.${group.groupName}.${group.listKeyFn},`);
+      pushUnique(invs, `          QueryKey.${group.identity.resource.value.value}.${group.queryKeys.list.value.value},`);
     }
     for (const getRoute of group.customQueries as any[]) {
-      pushUnique(invs, `          QueryKey.${group.groupName}.${getRoute.actionName},`);
+      pushUnique(invs, `          QueryKey.${group.identity.resource.value.value}.${getRoute.actionName},`);
     }
     addInvs(route, invs);
 
@@ -463,19 +486,24 @@ export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
   public abstract readonly isCrud: boolean;
   public abstract readonly types: BaseResourceGroupTypeSignature;
 
-  public readonly groupName: string;
-  public readonly keyName: string;
-  public readonly titleName: string;
-  public readonly listKeyFn: string;
-  public readonly detailKeyFn: string;
-  public readonly primaryKeyType: string;
-  public readonly all: readonly TRoute[];
+  public readonly identity: ResourceGroupIdentity;
+  public readonly primaryKey: ResourceGroupPrimaryKey;
+  public readonly queryKeys: ResourceGroupQueryKeys;
+  public readonly routes: readonly TRoute[];
+  public readonly primaryRoute: TRoute;
+  protected readonly groupName: string;
+  protected readonly keyName: string;
+  protected readonly titleName: string;
+  protected readonly listKeyFn: string;
+  protected readonly detailKeyFn: string;
+  protected readonly primaryKeyType: string;
+  protected readonly all: readonly TRoute[];
   public readonly extraMutations: readonly TRoute[];
   public readonly customQueries: readonly TRoute[];
 
   constructor(
     params: BaseResourceGroupParams<TRoute>,
-    queryKeys: ResourceGroupQueryKeysTrait,
+    queryKeys: ResourceGroupQueryKeyInput,
     primaryKeyType: string
   ) {
     this.groupName = params.groupName;
@@ -485,6 +513,21 @@ export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
     this.detailKeyFn = queryKeys.detailKeyFn;
     this.primaryKeyType = primaryKeyType;
     this.all = Object.freeze(params.all);
+    this.primaryRoute = params.primaryRoute;
+    this.identity = Object.freeze({
+      resource: Object.freeze({ kind: 'resource_name' as const, value: Object.freeze({ kind: 'string_value' as const, value: params.groupName }) }),
+      key: Object.freeze({ kind: 'property_name' as const, value: Object.freeze({ kind: 'string_value' as const, value: params.keyName }) }),
+      title: Object.freeze({ kind: 'property_name' as const, value: Object.freeze({ kind: 'string_value' as const, value: params.titleName }) }),
+    });
+    this.primaryKey = Object.freeze({
+      name: this.identity.key,
+      type: this.primaryKeyType,
+    });
+    this.queryKeys = Object.freeze({
+      list: Object.freeze({ kind: 'property_name' as const, value: Object.freeze({ kind: 'string_value' as const, value: this.listKeyFn }) }),
+      detail: Object.freeze({ kind: 'property_name' as const, value: Object.freeze({ kind: 'string_value' as const, value: this.detailKeyFn }) }),
+    });
+    this.routes = this.all;
     this.extraMutations = Object.freeze(params.extraMutations);
     this.customQueries = Object.freeze(params.customQueries);
   }
@@ -518,7 +561,7 @@ export abstract class AbstractCrudResourceGroupDescriptor<TRoute = ParsedRoute>
 
   constructor(
     params: BaseCrudParams<TRoute>,
-    queryKeys: ResourceGroupQueryKeysTrait
+    queryKeys: ResourceGroupQueryKeyInput
   ) {
     super(params, queryKeys, params.primaryKeyType);
     this.index = params.index;
@@ -700,6 +743,7 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
       index: params.index,
       show: params.show,
       all: params.all,
+      primaryRoute: params.index,
       create: MutationCapability.fromNullable(params.create),
       update: MutationCapability.fromNullable(params.update),
       delete: MutationCapability.fromNullable(params.delete),

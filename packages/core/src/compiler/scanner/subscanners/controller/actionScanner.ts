@@ -1,36 +1,33 @@
 /** Scan a controller AST into the legacy action descriptor through one semantic contract. */
 import type { ControllerMethodAst } from '../../lexer/controllerAstTypes';
-import type { RequestType } from '../../../artifacts/RequestTypesArtifact';
+import type { FormRequestSource } from '../../../../types/domain/request';
 import type { ControllerActionInfo } from '../../descriptors/requestDescriptors';
 import { ScannedControllerActionDescriptor } from '../../descriptors/requestDescriptors';
-import { ScannedFormRequestDescriptor } from '../../../../types/route';
 import { resolveControllerActionContract } from '../../descriptors/request/controllerActionContract';
 
 export function scanControllerAction(
   method: ControllerMethodAst,
   controllerName: string,
   fullPath: string,
-  formRequestMap: ReadonlyMap<string, RequestType>,
+  formRequestMap: ReadonlyMap<string, FormRequestSource>,
   projectRoot: string
 ): { readonly actionName: string; readonly descriptor: ControllerActionInfo } {
   const contract = resolveControllerActionContract(method, controllerName, fullPath, {
     formRequestMap,
     projectRoot
   });
-  const formRequests = contract.request.kind === 'form_request'
-    ? [ScannedFormRequestDescriptor.create(contract.request.typeName, fullPath)]
-    : [];
-  const schemaRules = contract.body.schemaRules;
   const errorResponses = contract.body.errorResponses;
   const descriptor = ScannedControllerActionDescriptor.create({
     controllerName: contract.identity.controllerName,
     actionName: contract.identity.actionName,
     response: contract.response,
+    runtimeReturn: contract.runtimeReturn,
     sourceFile: contract.sourceFile,
     sourceLine: contract.sourceLine,
-    formRequests,
+    request: contract.request.kind === 'form_request'
+      ? { kind: 'form_request', source: contract.request.source }
+      : { kind: 'no_request' },
     schema: contract.schema,
-    schemaRules,
     dataflow: contract.dataflow,
     errorResponses
   });

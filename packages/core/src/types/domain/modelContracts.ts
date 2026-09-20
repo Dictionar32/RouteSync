@@ -10,8 +10,10 @@ export type Nullability =
   | { readonly kind: 'non_nullable' }
   | { readonly kind: 'nullable' };
 
+import type { ModelName } from './semanticValues';
+
 export type ModelBinding =
-  | { readonly kind: 'model'; readonly modelName: string }
+  | { readonly kind: 'model'; readonly modelName: ModelName }
   | { readonly kind: 'unbound' };
 
 export type DatabaseColumnType =

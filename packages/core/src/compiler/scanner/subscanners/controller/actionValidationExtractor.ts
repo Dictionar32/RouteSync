@@ -9,10 +9,9 @@
 import type { Token } from '../lexer/types';
 import type {
     RouteValidationRuleEntry,
-    FormRequestDescriptor,
     RouteSchemaPayload
 } from '../../../../types/route';
-import type { RequestType } from '../../../artifacts/RequestTypesArtifact';
+import type { RequestField, FormRequestSource, RouteRequestBinding } from '../../../../types/domain/request';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { ScannedRouteValidationRuleEntry, ScannedRouteSchemaPayload } from '../../descriptors/validationDescriptors';
 
@@ -21,7 +20,8 @@ export function extractInlineValidation(
     tokens: readonly Token[],
     k: number
 ): { readonly rules: readonly RouteValidationRuleEntry[]; readonly nextIndex: number } | undefined {
-    if (tokens[k].value === 'validate' && tokens[k + 1]?.value === '(') {
+    const nextToken = tokens[k + 1];
+    if (tokens[k].value === 'validate' && nextToken && nextToken.value === '(') {
         const parsedVal = LaravelSourceLexer.parseArray(source, tokens as Token[], k + 1);
         if (parsedVal.entries.length > 0) {
             const rules = parsedVal.entries.map(e => {
@@ -37,52 +37,22 @@ export function extractInlineValidation(
 }
 
 export function resolveActionSchema(
-    formRequests: readonly FormRequestDescriptor[],
-    formRequestMap: ReadonlyMap<string, RequestType>,
-    schemaRules: readonly RouteValidationRuleEntry[] | undefined
+    request: RouteRequestBinding,
+    formRequestMap: ReadonlyMap<string, FormRequestSource>,
+    inlineSchema: RouteSchemaPayload
 ): RouteSchemaPayload {
-    for (const fr of formRequests) {
-        const reqType = resolveRequestType(fr, formRequestMap);
-        if (reqType && reqType.actions.length > 0 && reqType.actions[0].fields.length > 0) {
-            return ScannedRouteSchemaPayload.fromRules(
-                reqType.actions[0].fields.map(f => ScannedRouteValidationRuleEntry.create(
-                    f.sourceName,
-                    [f.required ? 'required' : 'nullable'],
-                    f.name,
-                    f.validationAst
-                )),
-                [],
-                [],
-                reqType.actions[0].fields
-            );
-        }
+    const formFields: RequestField[] = [];
+    if (request.kind === 'form_request') {
+        const requestSource = formRequestMap.get(request.source.identity.requestClass.value);
+        if (requestSource !== undefined) formFields.push(...requestSource.fields);
     }
-    if (schemaRules && schemaRules.length > 0) {
-        return ScannedRouteSchemaPayload.fromRules(schemaRules);
+    if (formFields.length === 0) return inlineSchema;
+    if (inlineSchema.fields.length === 0 && inlineSchema.messages.length === 0 && inlineSchema.attributes.length === 0) {
+        return ScannedRouteSchemaPayload.fromFields(formFields);
     }
-    return ScannedRouteSchemaPayload.empty();
-}
-
-
-function resolveRequestType(
-    formRequest: FormRequestDescriptor,
-    formRequestMap: ReadonlyMap<string, RequestType>
-): RequestType | undefined {
-    const direct = formRequestMap.get(formRequest.name.value);
-    if (direct) return direct;
-
-    const normalizedName = normalizeRequestName(formRequest.name.value);
-    for (const requestType of formRequestMap.values()) {
-        if (normalizeRequestName(requestType.formTypeName) === normalizedName) return requestType;
-        if (normalizeRequestName(requestType.resourceName) === normalizedName) return requestType;
-    }
-    return undefined;
-}
-
-function normalizeRequestName(name: string): string {
-    return name
-        .replace(/Request$/, '')
-        .replace(/Form$/, '')
-        .replace(/^(Store|Create|Update)/, '')
-        .toLowerCase();
+    return ScannedRouteSchemaPayload.fromFields(
+        [...formFields, ...inlineSchema.fields],
+        inlineSchema.messages,
+        inlineSchema.attributes
+    );
 }

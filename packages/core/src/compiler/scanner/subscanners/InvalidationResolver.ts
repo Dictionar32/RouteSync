@@ -27,7 +27,7 @@ export class InvalidationResolver {
         routeGroups: readonly ResourceRouteGroup[]
     ): readonly ParsedRoute[] {
         return routes.map(route => {
-            switch (route.hookKind) {
+            switch (route.capability.hookKind) {
                 case RouteHookKind.Query:
                 case RouteHookKind.InfiniteQuery:
                     return route;
@@ -36,57 +36,55 @@ export class InvalidationResolver {
                     const targets: InvalidationTarget[] = [];
 
                     // A. Self Invalidation (resource group rute sendiri)
-                    targets.push(ScannedInvalidationTarget.selfList(route.groupName));
+                    targets.push(ScannedInvalidationTarget.selfList(route.identity.domain.resource.value.value));
 
-                    // B. Database Relations Traversal langsung pada models (0 new Map, 0 wrapper)
-                    let responseModelName = '';
-                    if (route.response instanceof ResourceResponseDescriptor) {
-                        responseModelName = route.response.resourceName;
-                    } else if (route.response instanceof ModelResponseDescriptor) {
-                        responseModelName = route.response.modelName;
-                    } else if ('resourceName' in route.response && typeof (route.response as { resourceName?: string }).resourceName === 'string') {
-                        responseModelName = (route.response as { resourceName: string }).resourceName;
-                    } else if ('modelName' in route.response && typeof (route.response as { modelName?: string }).modelName === 'string') {
-                        responseModelName = (route.response as { modelName: string }).modelName;
-                    }
-                    const matchedModel = models.find(m => m.name === responseModelName);
-                    switch (matchedModel !== undefined) {
-                        case true:
-                            for (const rel of (matchedModel as ParsedModel).relations) {
-                                switch (rel.type) {
-                                    case EloquentRelationType.BelongsTo: {
-                                        targets.push(ScannedInvalidationTarget.parentList(rel.sourceModel.value));
-                                        targets.push(ScannedInvalidationTarget.parentDetail(rel.sourceModel.value));
-                                        break;
-                                    }
-                                    case EloquentRelationType.HasMany:
-                                    case EloquentRelationType.HasOne: {
-                                        targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value));
-                                        break;
-                                    }
-                                    case EloquentRelationType.BelongsToMany: {
-                                        targets.push(ScannedInvalidationTarget.resourceList(rel.sourceModel.value));
-                                        targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value));
-                                        break;
-                                    }
-                                }
+                    // B. Traverse semantic relations from the already-resolved response model.
+                    const responseAnalysis = route.contract.response.success.descriptor.toAnalysis(
+                        route.identity.coordinates.name,
+                        100
+                    );
+                    const responseModelName = responseAnalysis.kind === 'model'
+                        ? responseAnalysis.modelName.value.value
+                        : responseAnalysis.kind === 'resource'
+                            ? responseAnalysis.resourceName.value.value
+                            : undefined;
+                    const matchedModel = responseModelName === undefined
+                        ? undefined
+                        : models.find(model => model.semantic.identity.name.value.value === responseModelName);
+
+                    if (matchedModel !== undefined) {
+                        for (const rel of matchedModel.semantic.surface.properties) {
+                            if (rel.kind !== 'relation') continue;
+                            switch (rel.type) {
+                                case EloquentRelationType.BelongsTo:
+                                    targets.push(ScannedInvalidationTarget.parentList(rel.sourceModel.value.value));
+                                    targets.push(ScannedInvalidationTarget.parentDetail(rel.sourceModel.value.value));
+                                    break;
+                                case EloquentRelationType.HasMany:
+                                case EloquentRelationType.HasOne:
+                                    targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value.value));
+                                    break;
+                                case EloquentRelationType.BelongsToMany:
+                                    targets.push(ScannedInvalidationTarget.resourceList(rel.sourceModel.value.value));
+                                    targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value.value));
+                                    break;
+                                default:
+                                    break;
                             }
-                            break;
-                        case false:
-                            break;
+                        }
                     }
 
                     // C. Cascade / Parent Group Invalidation (0 if)
-                    const normalizedGroup = route.groupName.toLowerCase();
-                    const matchedGroup = routeGroups.find(g => g.resourceName.toLowerCase() === normalizedGroup);
+                    const normalizedGroup = route.identity.domain.resource.value.value.toLowerCase();
+                    const matchedGroup = routeGroups.find(g => g.identity.resource.value.value.toLowerCase() === normalizedGroup);
                     switch (matchedGroup !== undefined) {
                         case true: {
-                            const groupNameStr = (matchedGroup as ResourceRouteGroup).resourceName;
+                            const groupNameStr = (matchedGroup as ResourceRouteGroup).identity.resource.value.value;
                             for (const g of routeGroups) {
-                                const isChild = g.resourceName.toLowerCase().startsWith(groupNameStr.toLowerCase()) && g.resourceName !== groupNameStr;
+                                const isChild = g.identity.resource.value.value.toLowerCase().startsWith(groupNameStr.toLowerCase()) && g.identity.resource.value.value !== groupNameStr;
                                 switch (isChild) {
                                     case true:
-                                        targets.push(ScannedInvalidationTarget.resourceList(g.resourceName));
+                                        targets.push(ScannedInvalidationTarget.resourceList(g.identity.resource.value.value));
                                         break;
                                     case false:
                                         break;
@@ -99,11 +97,11 @@ export class InvalidationResolver {
                     }
 
                     // D. Auth / Logout Invalidation
-                    if (route.actionName === 'logout' || route.path.includes('/logout')) {
+                    if (route.binding.operation.name.value.value === 'logout') {
                         const authGroups = new Set<string>();
                         for (const r of routes) {
-                            if (r.auth && r.groupName) {
-                                authGroups.add(r.groupName);
+                            if (r.capability.auth) {
+                                authGroups.add(r.identity.domain.resource.value.value);
                             }
                         }
                         for (const grp of authGroups) {

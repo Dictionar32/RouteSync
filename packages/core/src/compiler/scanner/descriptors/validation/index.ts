@@ -27,3 +27,8 @@ export {
 } from "./fieldNodes";
 
 export { ValidationTreeBuilder } from "./validationTreeBuilder";
+
+export {
+    ScannedRouteValidationRuleSet,
+    type RouteValidationRuleSet
+} from "./validationRuleSet";

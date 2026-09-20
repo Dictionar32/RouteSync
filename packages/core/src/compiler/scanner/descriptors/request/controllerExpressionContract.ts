@@ -17,12 +17,15 @@ export type ControllerExpressionContract =
     | { readonly kind: 'literal'; readonly literalType: 'string' | 'number' | 'boolean' | 'null'; readonly value: string | number | boolean | null }
     | { readonly kind: 'variable'; readonly name: AstIdentifier }
     | { readonly kind: 'class_reference'; readonly className: AstIdentifier }
-    | { readonly kind: 'property_access'; readonly target: ControllerPropertyPath; readonly property: AstIdentifier; readonly access: ControllerAccessMode }
-    | { readonly kind: 'method_call'; readonly target: ControllerPropertyPath; readonly method: AstIdentifier; readonly arguments: readonly ControllerArgumentContract[]; readonly access: ControllerAccessMode }
+    | { readonly kind: 'property_access'; readonly target: ControllerPropertyPath; readonly receiver: ControllerExpressionContract; readonly property: AstIdentifier; readonly access: ControllerAccessMode }
+    | { readonly kind: 'method_call'; readonly target: ControllerPropertyPath; readonly receiver: ControllerExpressionContract; readonly method: AstIdentifier; readonly arguments: readonly ControllerArgumentContract[]; readonly access: ControllerAccessMode }
     | { readonly kind: 'static_call'; readonly className: AstIdentifier; readonly method: AstIdentifier; readonly arguments: readonly ControllerArgumentContract[] }
+    | { readonly kind: 'construct'; readonly className: AstIdentifier; readonly arguments: readonly ControllerArgumentContract[] }
+    | { readonly kind: 'instance_of'; readonly expression: ControllerExpressionContract; readonly className: AstIdentifier }
     | { readonly kind: 'function_call'; readonly functionName: AstIdentifier; readonly arguments: readonly ControllerArgumentContract[] }
     | { readonly kind: 'array_access'; readonly target: ControllerExpressionContract; readonly index: ControllerExpressionContract }
-    | { readonly kind: 'resource'; readonly resourceName: AstIdentifier; readonly collection: boolean; readonly argument: ControllerExpressionContract }
+    | { readonly kind: 'resource_single'; readonly resourceName: AstIdentifier; readonly argument: ControllerExpressionContract }
+    | { readonly kind: 'resource_collection'; readonly resourceName: AstIdentifier; readonly argument: ControllerExpressionContract }
     | { readonly kind: 'object'; readonly properties: readonly ControllerExpressionProperty[] }
     | { readonly kind: 'array'; readonly entries: readonly ControllerArrayEntry[] }
     | { readonly kind: 'ternary'; readonly condition: ControllerExpressionContract; readonly trueBranch: ControllerExpressionContract; readonly falseBranch: ControllerExpressionContract }
@@ -32,9 +35,13 @@ export type ControllerExpressionContract =
     | { readonly kind: 'unary'; readonly operator: ControllerUnaryOperator; readonly operand: ControllerExpressionContract }
     | { readonly kind: 'cast'; readonly castType: ControllerCastType; readonly operand: ControllerExpressionContract }
     | { readonly kind: 'match'; readonly subject: ControllerExpressionContract; readonly arms: readonly ControllerMatchArm[] }
-    | { readonly kind: 'closure'; readonly parameters: readonly AstIdentifier[]; readonly captures: readonly AstIdentifier[]; readonly body: ControllerStatementContract[] }
+    | { readonly kind: 'closure'; readonly parameters: readonly AstIdentifier[]; readonly captures: readonly ControllerClosureCapture[]; readonly body: ControllerStatementContract[] }
     | { readonly kind: 'arrow_function'; readonly parameters: readonly AstIdentifier[]; readonly body: ControllerExpressionContract }
     | { readonly kind: 'unsupported'; readonly reason: PhpUnsupportedExpressionReason };
+
+export type ControllerClosureCapture =
+    | { readonly kind: 'by_value'; readonly variable: AstIdentifier }
+    | { readonly kind: 'by_reference'; readonly variable: AstIdentifier };
 
 export type ControllerArgumentContract =
     | { readonly kind: 'positional'; readonly value: ControllerExpressionContract }
@@ -112,18 +119,24 @@ export function resolveControllerExpression(value: PhpAstValue): ControllerExpre
         castExpression: v => ({ kind: 'cast', castType: v.castType, operand: resolveControllerExpression(v.operand) }),
         matchExpression: v => ({ kind: 'match', subject: resolveControllerExpression(v.subject), arms: Object.freeze(v.arms.map(resolveMatchArm)) }),
         variableReference: v => ({ kind: 'variable', name: v.name }),
-        propertyAccess: v => ({ kind: 'property_access', target: v.target, property: v.property, access: v.access }),
-        methodChain: v => ({ kind: 'method_call', target: v.target, method: v.property, arguments: Object.freeze(v.arguments.map(resolveArgument)), access: v.access }),
-        resourceSingle: v => ({ kind: 'resource', resourceName: v.resourceName, collection: false, argument: resolveControllerExpression(v.argument) }),
-        resourceCollection: v => ({ kind: 'resource', resourceName: v.resourceName, collection: true, argument: resolveControllerExpression(v.argument) }),
+        propertyAccess: v => ({ kind: 'property_access', target: v.target, receiver: resolveControllerExpression(v.receiver), property: v.property, access: v.access }),
+        methodChain: v => ({ kind: 'method_call', target: v.target, receiver: resolveControllerExpression(v.receiver), method: v.property, arguments: Object.freeze(v.arguments.map(resolveArgument)), access: v.access }),
+        resourceSingle: v => ({ kind: 'resource_single', resourceName: v.resourceName, argument: resolveControllerExpression(v.argument) }),
+        resourceCollection: v => ({ kind: 'resource_collection', resourceName: v.resourceName, argument: resolveControllerExpression(v.argument) }),
         nestedArray: v => ({ kind: 'array', entries: Object.freeze(v.entries.map(resolveArrayEntry)) }),
         ternaryExpression: v => ({ kind: 'ternary', condition: resolveControllerExpression(v.condition), trueBranch: resolveControllerExpression(v.trueBranch), falseBranch: resolveControllerExpression(v.falseBranch) }),
         staticCall: v => ({ kind: 'static_call', className: v.className, method: v.method, arguments: Object.freeze(v.arguments.map(resolveArgument)) }),
         classReference: v => ({ kind: 'class_reference', className: v.className }),
-        closure: v => ({ kind: 'closure', parameters: Object.freeze(v.parameters.map(p => p.variable)), captures: Object.freeze(v.captures.map(c => c.variable)), body: v.body.statements.map(resolveStatement) }),
+        construct: v => ({ kind: 'construct', className: v.className, arguments: Object.freeze(v.arguments.map(resolveArgument)) }),
+        instanceOf: v => ({ kind: 'instance_of', expression: resolveControllerExpression(v.expression), className: v.className }),
+        closure: v => ({ kind: 'closure', parameters: Object.freeze(v.parameters.map(p => p.variable)), captures: Object.freeze(v.captures.map(resolveCapture)), body: v.body.statements.map(resolveStatement) }),
         arrowFunction: v => ({ kind: 'arrow_function', parameters: Object.freeze(v.parameters.map(p => p.variable)), body: resolveControllerExpression(v.body) }),
         unsupported: v => ({ kind: 'unsupported', reason: v.reason })
     });
+}
+
+function resolveCapture(capture: import('../../lexer/phpAstTypes').PhpClosureCapture): ControllerClosureCapture {
+    return capture;
 }
 
 function resolveArgument(argument: import('../../lexer/phpAstTypes').PhpArgument): ControllerArgumentContract {

@@ -28,10 +28,10 @@ import { EMPTY_FIELDS, EMPTY_WARNINGS, type ConversionResult } from './contractT
 export function mapContractField(field: RequestField): ContractField {
     return {
         name: field.sourceName,
-        type: field.type,
+        type: field.meaning,
         fileConstraints: field.fileConstraints,
-        required: field.required,
-        nullable: field.type.isNullable()
+        required: field.presence.accept({ required: () => true, optional: () => false, unspecified: () => { throw new Error(`Request field '${field.sourceName.value}' has unspecified presence`); } }),
+        nullable: field.presence.accept({ required: p => p.nullable, optional: p => p.nullable, unspecified: () => { throw new Error(`Request field '${field.sourceName.value}' has unspecified nullability`); } })
     };
 }
 
@@ -84,6 +84,8 @@ export function buildResourceResponseSchemas(
 
 function responseValueToType(value: ResponseValueContract): string {
     switch (value.kind) {
+        case 'null': return 'null';
+        case 'union': return value.members.map(responseValueToType).join(' | ');
         case 'scalar':
             switch (value.value.kind) {
                 case 'textual': return 'string';
@@ -93,6 +95,8 @@ function responseValueToType(value: ResponseValueContract): string {
             }
         case 'named_type':
             return value.name.value;
+        case 'object':
+            return 'object';
         case 'model_reference':
             return value.model.value;
         case 'collection':

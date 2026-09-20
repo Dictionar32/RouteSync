@@ -7,6 +7,8 @@
  */
 
 import type { ResolvedSemanticType } from './catamorphism';
+import type { PropertyName, DomainTypeName } from '../../../../types/upstream/names';
+import type { Presence } from '../../../../types/upstream/primitiveVocabulary';
 
 export type ResolvedPrimitiveKind =
     | 'string'
@@ -41,31 +43,31 @@ export type ObjectKind = 'resource' | 'model' | 'response' | 'plain';
 
 export interface PlainObjectIdentity {
     readonly kind: 'plain';
-    readonly name: string;
+    readonly name: DomainTypeName;
 }
 
 export interface ResourceObjectIdentity {
     readonly kind: 'resource';
-    readonly name: string;
+    readonly name: import('../../../../types/upstream/names').ResourceName;
 }
 
 export interface ModelObjectIdentity {
     readonly kind: 'model';
-    readonly name: string;
+    readonly name: import('../../../../types/upstream/names').ModelName;
 }
 
 export interface ResponseObjectIdentity {
     readonly kind: 'response';
-    readonly name: string;
+    readonly name: import('../../../../types/upstream/names').ResponseTypeName;
 }
 
 
-export type PropertyPresence = 'required' | 'optional';
+export type PropertyPresence = Presence;
 
 export interface ResolvedProperty {
-    readonly name: string;
+    readonly name: PropertyName;
     readonly type: ResolvedSemanticType;
-    readonly presence: PropertyPresence;
+    readonly presence: Presence;
 }
 
 export type ResolvedObjectIdentity =

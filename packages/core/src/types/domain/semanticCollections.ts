@@ -13,6 +13,7 @@ import type { EloquentRelationType } from './eloquentTypes';
 import type { Nullability } from './modelContracts';
 import { SemanticValueFactory } from './semanticValues';
 import type { ColumnName, ModelName, RelationName, PropertyName, VariableName, MethodName } from './semanticValues';
+import type { Lookup } from '../upstream/collections';
 
 /**
  * Model Field Column Metadata
@@ -61,12 +62,9 @@ export class ModelFieldMap implements Iterable<ModelFieldEntry> {
     return new ModelFieldMap(entries);
   }
 
-  public get(column: ColumnName): ModelFieldInfo | undefined {
-    return this._lookup.get(column);
-  }
-
-  public has(column: ColumnName): boolean {
-    return this._lookup.has(column);
+  public lookup(column: ColumnName): Lookup<ModelFieldInfo> {
+    const value = this._lookup.get(column);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -84,7 +82,7 @@ export class ModelFieldMap implements Iterable<ModelFieldEntry> {
   public toObject(): { readonly [column: string]: ModelFieldInfo } {
     const rec: { [column: string]: ModelFieldInfo } = {};
     for (const e of this.entries) {
-      rec[e.column.value] = e.info;
+      rec[e.column.value.value] = e.info;
     }
     return rec;
   }
@@ -141,12 +139,9 @@ export class ModelRelationMap implements Iterable<ModelRelationEntry> {
     return new ModelRelationMap(entries);
   }
 
-  public get(relationName: RelationName): ModelRelationInfo | undefined {
-    return this._lookup.get(relationName);
-  }
-
-  public has(relationName: RelationName): boolean {
-    return this._lookup.has(relationName);
+  public lookup(relationName: RelationName): Lookup<ModelRelationInfo> {
+    const value = this._lookup.get(relationName);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -164,7 +159,7 @@ export class ModelRelationMap implements Iterable<ModelRelationEntry> {
   public toObject(): { readonly [relationName: string]: ModelRelationInfo } {
     const rec: { [relationName: string]: ModelRelationInfo } = {};
     for (const e of this.entries) {
-      rec[e.relationName.value] = e.info;
+      rec[e.relationName.value.value] = e.info;
     }
     return rec;
   }
@@ -222,12 +217,9 @@ export class ModelAccessorMap<T> implements Iterable<ModelAccessorEntry<T>> {
     return new ModelAccessorMap<T>(entries);
   }
 
-  public get(name: string): T | undefined {
-    return this._lookup.get(name);
-  }
-
-  public has(name: string): boolean {
-    return this._lookup.has(name);
+  public lookup(name: string): Lookup<T> {
+    const value = this._lookup.get(name);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -297,12 +289,9 @@ export class ModelServiceMap<T> implements Iterable<ModelServiceEntry<T>> {
     return new ModelServiceMap<T>(entries);
   }
 
-  public get(name: string): T | undefined {
-    return this._lookup.get(name);
-  }
-
-  public has(name: string): boolean {
-    return this._lookup.has(name);
+  public lookup(name: string): Lookup<T> {
+    const value = this._lookup.get(name);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -372,12 +361,9 @@ export class ModelControllerMap<T> implements Iterable<ModelControllerEntry<T>> 
     return new ModelControllerMap<T>(entries);
   }
 
-  public get(name: string): T | undefined {
-    return this._lookup.get(name);
-  }
-
-  public has(name: string): boolean {
-    return this._lookup.has(name);
+  public lookup(name: string): Lookup<T> {
+    const value = this._lookup.get(name);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -447,12 +433,9 @@ export class ModelNodeMap<T> implements Iterable<ModelNodeEntry<T>> {
     return new ModelNodeMap<T>(entries);
   }
 
-  public get(name: string): T | undefined {
-    return this._lookup.get(name);
-  }
-
-  public has(name: string): boolean {
-    return this._lookup.has(name);
+  public lookup(name: string): Lookup<T> {
+    const value = this._lookup.get(name);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -522,12 +505,9 @@ export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
     return new SemanticModelMap<T>(entries);
   }
 
-  public get(modelName: string): T | undefined {
-    return this._lookup.get(modelName);
-  }
-
-  public has(modelName: string): boolean {
-    return this._lookup.has(modelName);
+  public lookup(modelName: string): Lookup<T> {
+    const value = this._lookup.get(modelName);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {
@@ -597,12 +577,9 @@ export class SemanticRelationMap<T> implements Iterable<SemanticRelationEntry<T>
     return new SemanticRelationMap<T>(entries);
   }
 
-  public get(relationName: string): T | undefined {
-    return this._lookup.get(relationName);
-  }
-
-  public has(relationName: string): boolean {
-    return this._lookup.has(relationName);
+  public lookup(relationName: string): Lookup<T> {
+    const value = this._lookup.get(relationName);
+    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
   public get size(): number {

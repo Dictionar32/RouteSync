@@ -26,7 +26,7 @@ export {
     type StrictMutationEndpointsTrait,
     type FlexibleMutationEndpointsTrait,
     type ResourceGroupVisitorCapability,
-    type ResourceGroupLoweringTrait,
+    type ResourceGroupLoweringOperations,
     type BaseResourceGroupDescriptor,
     type BaseCrudResourceGroupDescriptor,
     type FullCrudResourceGroupDescriptor,

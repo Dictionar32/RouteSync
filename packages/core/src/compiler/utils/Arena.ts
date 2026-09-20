@@ -3,7 +3,9 @@
  * @description Arena allocator untuk efficient memory management dan ID-based referencing
  */
 
-import type { FileSpan } from '../types/FileSpan';
+import type { ASTNodeData, ASTNodeId } from '../ast/ASTNodeData';
+
+export type { ASTNodeData, ASTNodeId } from '../ast/ASTNodeData';
 
 /**
  * Generic arena allocator untuk type-safe storage dengan ID-based access
@@ -63,25 +65,6 @@ export class Arena<T> {
 }
 
 /**
- * Unique identifier untuk AST node dalam arena
- */
-export type ASTNodeId = number;
-
-/**
- * Data structure untuk single AST node
- */
-export interface ASTNodeData {
-    /** Type/kind dari AST node (e.g., 'PropertyDecl', 'MethodDecl') */
-    readonly kind: string;
-
-    /** Source location span untuk AST node */
-    readonly span: FileSpan;
-
-    /** IDs dari child nodes */
-    readonly children: readonly ASTNodeId[];
-}
-
-/**
  * Arena allocator khusus untuk AST nodes
  * Provides type-safe storage dan retrieval untuk AST nodes by ID
  * 
@@ -108,8 +91,8 @@ export class ASTArena {
      * @returns Unique ID untuk node
      */
     public allocateNode(
-        kind: string,
-        span: FileSpan,
+        kind: import('../ast/ASTNodeData').ASTNodeKind,
+        span: import('../types/FileSpan').FileSpan,
         children: readonly ASTNodeId[]
     ): ASTNodeId {
         const id = this.nodes.length;

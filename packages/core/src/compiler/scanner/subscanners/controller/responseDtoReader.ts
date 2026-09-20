@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import type { ResourceFieldDescriptor } from '../../../../types/route';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
-import { ErrorType, NullableType, PrimitiveKind, PrimitiveType, ReferenceType, type SemanticType } from '../../../types/SemanticType';
+import { JsonValueType, NullableType, PrimitiveKind, PrimitiveType, ReferenceType, type SemanticType } from '../../../types/SemanticType';
 import { createAstIdentifier } from '../../lexer/phpAstTypes';
 import type { PhpPropertyTypeAst } from '../../lexer/responseDtoAstTypes';
 import type { ResponseDtoDeclarationAst } from '../../lexer/responseDtoAstTypes';
@@ -53,9 +53,9 @@ function resolveSemanticType(type: PhpPropertyTypeAst): SemanticType {
             case 'primitive':
                 return new PrimitiveType(toPrimitiveKind(type));
             case 'named':
-                return new ReferenceType('response', type.name);
+                return ReferenceType.response('response', type.name);
             case 'mixed':
-                return new ErrorType('Response DTO declares mixed without a verified semantic type');
+                return new JsonValueType();
         }
     })();
 
@@ -66,7 +66,8 @@ function toContractField(property: ResponseDtoDeclarationAst['properties'][numbe
     return Object.freeze({
         name: createResponseFieldName(property.name),
         value: toResponseValueContract(property.type),
-        nullability: toNullability(property.type.nullable)
+        nullability: toNullability(property.type.nullable),
+        evidence: { kind: 'declared' }
     });
 }
 

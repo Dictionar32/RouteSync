@@ -14,16 +14,19 @@ describe('ResponseContract upstream invariant', () => {
                     name: createResponseFieldName('success'),
                     value: { kind: 'scalar', value: { kind: 'boolean_flag' } },
                     nullability: { kind: 'required' },
+                    evidence: { kind: 'declared' },
                 },
                 {
                     name: createResponseFieldName('message'),
                     value: { kind: 'scalar', value: { kind: 'textual' } },
                     nullability: { kind: 'required' },
+                    evidence: { kind: 'declared' },
                 },
                 {
                     name: createResponseFieldName('data'),
                     value: { kind: 'unresolved_declaration', reason: 'mixed_declaration' },
                     nullability: { kind: 'nullable' },
+                    evidence: { kind: 'declared' },
                 },
             ],
         };
@@ -37,8 +40,14 @@ describe('ResponseContract upstream invariant', () => {
             name: createResponseFieldName('data'),
             value: { kind: 'unresolved_declaration', reason: 'mixed_declaration' as const },
             nullability: { kind: 'nullable' as const },
+            evidence: { kind: 'declared' as const },
         };
 
         expect(field.value.kind).not.toBe('empty_value');
     });
+    it('represents an observed null response value explicitly', () => {
+        const value = { kind: 'null' as const };
+        expect(value.kind).toBe('null');
+    });
+
 });

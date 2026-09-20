@@ -10,7 +10,7 @@ export function aggregateType(
 ): SemanticType {
   if (aggregate === 'count' || aggregate === 'avg' || aggregate === 'sum') return new PrimitiveType(PrimitiveKind.NUMBER);
   if (source.kind === 'rows') return new PrimitiveType(PrimitiveKind.NUMBER);
-  const property = model.surface.byName.get(SemanticValueFactory.propertyName(source.column.value));
-  return property?.kind === 'column' ? property.type : new PrimitiveType(PrimitiveKind.UNKNOWN);
+  const property = model.surface.byName.column(SemanticValueFactory.propertyName(source.column.value.value));
+  return property.kind === 'found' ? property.value.semanticType : new PrimitiveType(PrimitiveKind.UNKNOWN);
 }
 

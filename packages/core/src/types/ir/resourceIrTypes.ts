@@ -8,9 +8,11 @@
  */
 
 import type { TypeProjections } from './typeIrTypes';
+import type { TransformFunction } from './mapperIrTypes';
 import type { DescriptionText, GeneratorName } from '../upstream/valueObjects';
-import type { ResolvedSemanticType } from './resolvedSemanticTypes';
-import type { CodeExpression, ControllerName, ModelName, PropertyName, ResourceId, ResourceName, RouteName, SourceFilePath, TypeExpression } from './nominalVocabulary';
+import type { ValidationRules } from '../upstream/collections';
+import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { CodeExpression, ControllerName, ModelName, PropertyName, ResourceId, ResourceName, RouteName, SourceFilePath } from './nominalVocabulary';
 
 export type FieldSource =
     | { readonly type: 'computed'; readonly path: PropertyName }
@@ -20,9 +22,10 @@ export interface ResourceFieldIR {
     readonly name: PropertyName;
     readonly transformedName: PropertyName;
     readonly type: TypeProjections;
-    readonly semanticType: ResolvedSemanticType;
+    readonly transform: TransformFunction;
+    readonly semanticType: SemanticType;
     readonly description: DescriptionText;
-    readonly validation: readonly TypeExpression[];
+    readonly validation: ValidationRules;
     readonly source: FieldSource;
 }
 

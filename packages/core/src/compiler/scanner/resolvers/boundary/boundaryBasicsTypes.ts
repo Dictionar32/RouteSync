@@ -15,6 +15,8 @@ import type {
 } from "../../../../types/route";
 
 import type { ScannedRouteCompleteContracts } from "../../descriptors/route/routeContracts";
+import type { RouteRequestBinding } from "../../../../types/domain/request";
+import type { ControllerRuntimeReturn } from "../../../../types/domain/controllerExpression";
 
 export type RouteBoundaryContract = ScannedRouteCompleteContracts;
 
@@ -39,7 +41,8 @@ export interface RouteBoundaryCommonOptions {
     readonly runtimePath?: string;
     readonly groupName?: string;
     readonly schema: RouteSchemaPayload;
-    readonly formRequests: readonly FormRequestDescriptor[];
+    readonly request: RouteRequestBinding;
+    readonly runtimeReturn: ControllerRuntimeReturn;
 }
 
 export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -132,7 +135,7 @@ export interface ResolvedRouteBoundaryOptions {
     readonly runtimePath: string;
     readonly groupName: string;
     readonly schema: RouteSchemaPayload;
-    readonly formRequests: readonly FormRequestDescriptor[];
+    readonly request: RouteRequestBinding;
 }
 
 export interface IntermediateRouteBoundaryBasics {

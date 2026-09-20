@@ -38,9 +38,9 @@ export function deriveModelTypes(
                 const propName = property.property.value;
                 seenPropNames.add(propName);
                 properties.push(ScannedObjectProperty.create({
-                    name: propName,
+                    name: { kind: 'property_name', value: propName },
                     type: interner.intern(property.type),
-                    required: true,
+                    description: '',
                     origin: property.kind === 'column'
                         ? { kind: 'model_column', model: model.name, property: property.property }
                         : property.kind === 'accessor'

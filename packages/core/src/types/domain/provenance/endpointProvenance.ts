@@ -10,52 +10,53 @@ import {
   DataProvenanceKind,
   type ProvenanceSourceRef
 } from './dataProvenanceKind';
+import type { Option } from '../../upstream/collections';
 
 export interface EndpointProvenanceDescriptor {
   readonly route: ProvenanceSourceRef;
-  readonly controller: ProvenanceSourceRef | null;
-  readonly request: ProvenanceSourceRef | null;
-  readonly response: ProvenanceSourceRef | null;
+  readonly controller: Option<ProvenanceSourceRef>;
+  readonly request: Option<ProvenanceSourceRef>;
+  readonly response: Option<ProvenanceSourceRef>;
   readonly summary: string;
 }
 
 export class ScannedEndpointProvenanceDescriptor implements EndpointProvenanceDescriptor {
   public readonly route: ProvenanceSourceRef;
-  public readonly controller: ProvenanceSourceRef | null;
-  public readonly request: ProvenanceSourceRef | null;
-  public readonly response: ProvenanceSourceRef | null;
+  public readonly controller: Option<ProvenanceSourceRef>;
+  public readonly request: Option<ProvenanceSourceRef>;
+  public readonly response: Option<ProvenanceSourceRef>;
   public readonly summary: string;
 
   constructor(params: EndpointProvenanceDescriptor) {
     this.route = Object.freeze({ ...params.route });
-    this.controller = params.controller ? Object.freeze({ ...params.controller }) : null;
-    this.request = params.request ? Object.freeze({ ...params.request }) : null;
-    this.response = params.response ? Object.freeze({ ...params.response }) : null;
+    this.controller = params.controller.kind === 'some' ? Object.freeze({ kind: 'some', value: Object.freeze({ ...params.controller.value }) }) : { kind: 'none' };
+    this.request = params.request.kind === 'some' ? Object.freeze({ kind: 'some', value: Object.freeze({ ...params.request.value }) }) : { kind: 'none' };
+    this.response = params.response.kind === 'some' ? Object.freeze({ kind: 'some', value: Object.freeze({ ...params.response.value }) }) : { kind: 'none' };
     this.summary = params.summary;
     Object.freeze(this);
   }
 
   public static create(params: {
     readonly route: ProvenanceSourceRef;
-    readonly controller?: ProvenanceSourceRef | null;
-    readonly request?: ProvenanceSourceRef | null;
-    readonly response?: ProvenanceSourceRef | null;
+    readonly controller: Option<ProvenanceSourceRef>;
+    readonly request: Option<ProvenanceSourceRef>;
+    readonly response: Option<ProvenanceSourceRef>;
   }): ScannedEndpointProvenanceDescriptor {
     const parts: string[] = [`Route: ${params.route.file}:${params.route.line}`];
-    if (params.controller) {
-      parts.push(`Controller: ${params.controller.file}:${params.controller.line} (${params.controller.symbol})`);
+    if (params.controller.kind === 'some') {
+      parts.push(`Controller: ${params.controller.value.file}:${params.controller.value.line} (${params.controller.value.symbol})`);
     }
-    if (params.request) {
-      parts.push(`Request: ${params.request.file}:${params.request.line} (${params.request.symbol})`);
+    if (params.request.kind === 'some') {
+      parts.push(`Request: ${params.request.value.file}:${params.request.value.line} (${params.request.value.symbol})`);
     }
-    if (params.response) {
-      parts.push(`Response: ${params.response.file}:${params.response.line} (${params.response.symbol})`);
+    if (params.response.kind === 'some') {
+      parts.push(`Response: ${params.response.value.file}:${params.response.value.line} (${params.response.value.symbol})`);
     }
     return new ScannedEndpointProvenanceDescriptor({
       route: params.route,
-      controller: params.controller ?? null,
-      request: params.request ?? null,
-      response: params.response ?? null,
+      controller: params.controller,
+      request: params.request,
+      response: params.response,
       summary: parts.join(' | ')
     });
   }
@@ -69,9 +70,9 @@ export class ScannedEndpointProvenanceDescriptor implements EndpointProvenanceDe
     };
     return new ScannedEndpointProvenanceDescriptor({
       route: routeRef,
-      controller: null,
-      request: null,
-      response: null,
+      controller: { kind: 'none' },
+      request: { kind: 'none' },
+      response: { kind: 'none' },
       summary: `Inferred: ${method.toUpperCase()} ${routePath}`
     });
   }

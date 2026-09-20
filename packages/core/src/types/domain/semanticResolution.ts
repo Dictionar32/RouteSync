@@ -51,6 +51,7 @@ export interface ResourceSemanticResolution extends ResolutionBase {
 
 export type {
   SemanticObjectField,
+  SemanticObjectFieldIndex,
   QueryProjectionField,
   QueryProjectionSurface,
   QueryProjectionSemanticResolution,
@@ -62,6 +63,9 @@ import type { QueryProjectionSemanticResolution } from './queryProjectionResolut
 export interface ObjectSemanticResolution extends ResolutionBase {
   readonly kind: 'object';
   readonly fields: readonly import('./queryProjectionResolution').SemanticObjectField[];
+  readonly surface: {
+    readonly byName: import('./queryProjectionResolution').SemanticObjectFieldIndex;
+  };
 }
 
 export interface UnknownSemanticResolution extends ResolutionBase {

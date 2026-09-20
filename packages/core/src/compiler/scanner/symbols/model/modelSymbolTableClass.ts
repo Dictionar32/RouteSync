@@ -26,9 +26,7 @@ export class ModelSymbolTable {
             this.byShortName.set(sym.shortName, sym);
             this.byLower.set(sym.name.toLowerCase(), sym);
             this.byLower.set(sym.shortName.toLowerCase(), sym);
-            if (m.table) {
-                this.byTableName.set(m.table.toLowerCase(), sym);
-            }
+            this.byTableName.set(m.semantic.identity.table.value.toLowerCase(), sym);
         }
         this.modelList = Object.freeze(list);
         Object.freeze(this);

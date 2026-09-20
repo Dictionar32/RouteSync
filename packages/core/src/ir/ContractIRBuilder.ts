@@ -62,7 +62,7 @@ export class OptimizedContractIRBuilder {
         this.fieldTypeResolver = new FieldTypeResolver(this.diagnostics, context.config.naming.caseTransform);
         this.mapperBuilder = new ResourceMapperBuilder();
         this.resourceIRBuilder = new ResourceIRBuilder(this.fieldTypeResolver, this.mapperBuilder);
-        this.requestEndpointBuilder = new RequestEndpointBuilder(this.fieldTypeResolver, this.mapperBuilder);
+        this.requestEndpointBuilder = new RequestEndpointBuilder(this.fieldTypeResolver);
         this.metadataBuilder = new ContractMetadataBuilder();
     }
 

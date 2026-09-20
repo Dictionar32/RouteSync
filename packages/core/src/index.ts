@@ -239,7 +239,6 @@ export {
 
 export type {
   AbsentMutation,
-  ActionDefinition,
   AnyCrudRoleDescriptor,
   AnyInvalidationTarget,
   AnyPaginatedEnvelopeDescriptor,
@@ -479,7 +478,7 @@ export type {
   ResourceGroupDescriptor,
   ResourceGroupGraph,
   ResourceGroupIdentityTrait,
-  ResourceGroupLoweringTrait,
+  ResourceGroupLoweringOperations,
   ResourceGroupQueryKeysTrait,
   ResourceGroupRegistry,
   ResourceGroupSpecification,
@@ -927,6 +926,8 @@ export {
   type StaticLaravelScannerOptions,
   ScannedRouteValidationRuleEntry,
   type ScannedRouteValidationRuleParams,
+  ScannedRouteValidationRuleSet,
+  type RouteValidationRuleSet,
   ScannedRouteSchemaPayload,
   type ScannedRouteSchemaParams,
   ScannedScalarFieldNode,

@@ -20,6 +20,7 @@ import {
     type ResolvedSemanticType,
     type ResolvedProperty
 } from '../ResolvedSemanticType';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
 
 export class NullableWrapperHandler implements SemanticTypeHandler {
@@ -46,16 +47,20 @@ export class DefaultObjectHandler implements SemanticTypeHandler {
         }
 
         const fields: readonly ResolvedProperty[] = type.properties
-            .filter(property => !property.name.startsWith('__'))
+            .filter(property => !property.name.value.value.startsWith('__'))
             .map(property => ({
                 name: property.name,
                 type: resolver.resolve(property.type),
-                presence: property.required ? 'required' : 'optional'
+                presence: property.type.isOptional() ? { kind: 'optional' as const } : { kind: 'required' as const }
             }));
 
         const identity = type.role === 'plain'
-            ? { kind: 'plain' as const, name: type.name }
-            : { kind: type.role, name: type.name };
+            ? { kind: 'plain' as const, name: SemanticValueFactory.domainName(type.name) }
+            : type.role === 'resource'
+                ? { kind: 'resource' as const, name: SemanticValueFactory.resourceName(type.name) }
+                : type.role === 'model'
+                    ? { kind: 'model' as const, name: SemanticValueFactory.modelName(type.name) }
+                    : { kind: 'response' as const, name: SemanticValueFactory.responseTypeName(type.name) };
 
         return new ResolvedObjectType({ fields, identity });
     }

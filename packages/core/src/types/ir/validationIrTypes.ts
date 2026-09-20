@@ -1,33 +1,23 @@
-/**
- * validationIrTypes.ts
- *
- * Validation IR schemas for Zod, Laravel validation, and custom handlers.
- * Conforms to Level 7 Subatomic Architecture & Rule 14 (<= 100 lines).
- *
- * @module core/types/ir/validationIrTypes
- */
+/** Closed validation projection. No rule strings or optional parallel bags. */
+
+import type { ValidationRules } from '../upstream/collections';
+import type { StringValue } from '../upstream/valueObjects';
+import type { PropertyName, CodeExpression } from './nominalVocabulary';
 
 export interface ZodValidationIR {
-    readonly schema: string;
-    readonly imports: readonly string[];
+    readonly schema: CodeExpression;
+    readonly imports: readonly CodeExpression[];
 }
 
 export interface LaravelValidationIRContract {
-    readonly rules: Readonly<Record<string, readonly string[]>>;
-    readonly ruleEntries?: readonly (readonly [string, readonly string[]])[];
-    readonly messages: Readonly<Record<string, string>>;
-    readonly messageEntries?: readonly (readonly [string, string])[];
+    readonly rules: ValidationRules;
+    readonly messages: ReadonlyMap<PropertyName, StringValue>;
 }
 
-export type LaravelValidationIR = {
-    rules: Record<string, string[]>;
-    ruleEntries?: readonly (readonly [string, readonly string[]])[];
-    messages?: Record<string, string>;
-    messageEntries?: readonly (readonly [string, string])[];
-};
+export type LaravelValidationIR = LaravelValidationIRContract;
 
 export interface CustomValidationIR {
-    readonly name: string;
-    readonly implementation: string;
-    readonly dependencies: readonly string[];
+    readonly name: CodeExpression;
+    readonly implementation: CodeExpression;
+    readonly dependencies: readonly CodeExpression[];
 }

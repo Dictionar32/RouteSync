@@ -8,7 +8,7 @@
  */
 
 import { toPascalCase } from '../../../utils/resource-naming';
-import type { SemanticType } from '../../types/SemanticType';
+import type { ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
 import {
     indent,
     buildFieldMappingLine,
@@ -21,17 +21,15 @@ export { indent, buildFieldMappingLine, resolveResourceBaseName };
  * Builds toXRead and toXReadList mappers from a set of semantic fields.
  */
 export function buildReadMapperFromFields(
-    resourceName: string,
-    fields: Record<string, SemanticType>,
-    isEloquentResource: boolean,
+    graph: ResourceMappingIntentGraph,
     paramType?: string
 ): string {
-    const resource = toPascalCase(resourceName);
+    const resource = toPascalCase(graph.resourceName);
     const returnType = `${resource}Transformed`;
     const apiType = paramType ?? `${resource}ApiResponse`;
 
-    const fieldLines = Object.entries(fields)
-        .map(([key, type]) => buildFieldMappingLine(key, type, `api.${key}`, isEloquentResource))
+    const fieldLines = graph.fields
+        .map(field => buildFieldMappingLine(field.name, field.intent, `api.${field.name}`))
         .join('\n');
 
     const readFn =

@@ -6,11 +6,9 @@
  * @module core/compiler/scanner/subscanners/request-deriver
  */
 
-import { ParsedRoute } from "../../../../types/route";
+import { ParsedRoute, matchRouteActionKind } from "../../../../types/route";
 import type { FormAction, RequestField } from "../../../../types/domain/request";
-import { TypeInterner } from "../../../types/TypeInterner";
 import { ScannedFormActionDescriptor } from "../../descriptors/requestDescriptors";
-import { ValidationRuleFieldLowerer } from "../ValidationRuleFieldLowerer";
 
 export interface DerivedActionInfo {
     readonly formActionName: string;
@@ -19,34 +17,24 @@ export interface DerivedActionInfo {
     readonly isReadRouteWithoutFields: boolean;
 }
 
-export function deriveRouteAction(route: ParsedRoute, interner: TypeInterner): DerivedActionInfo {
-    let actionKind = route.actionKind;
-    const schemaAction = (route.schema as any)?.action;
-    if (schemaAction === 'update' || schemaAction === 'create') {
-        actionKind = schemaAction;
-    } else if (route.method === 'PUT' || route.method === 'PATCH' || route.name?.endsWith('.update') || route.actionName === 'update') {
-        actionKind = 'update';
-    } else if (route.method === 'POST' || route.name?.endsWith('.store') || route.actionName === 'store' || route.actionName === 'create') {
-        actionKind = 'create';
-    } else {
-        actionKind = route.isMutating ? 'create' : 'read';
-    }
+export function deriveRouteAction(route: ParsedRoute): DerivedActionInfo {
+    const actionKind = route.capability.actionKind;
 
-    const fields: RequestField[] = ValidationRuleFieldLowerer.lower(route, interner);
+    const fields: RequestField[] = [...route.binding.schema.fields];
 
-    let formActionName = route.actionName;
-    if (formActionName === 'update' || actionKind === 'update' || route.method === 'PUT' || route.method === 'PATCH' || route.name?.endsWith('.update')) {
-        formActionName = 'update';
-    } else if (!formActionName || formActionName === 'store' || formActionName === 'create' || actionKind === 'create') {
-        formActionName = 'create';
-    }
+    const formActionName = matchRouteActionKind(actionKind, {
+        create: () => 'create',
+        update: () => 'update',
+        read: () => route.binding.actionName.value.value,
+        delete: () => 'delete'
+    });
 
     const actionObj: FormAction = new ScannedFormActionDescriptor({
         name: formActionName,
         fields
     });
 
-    const isReadRouteWithoutFields = fields.length === 0 && !route.actionName && !route.schema?.rules && (route.method === 'GET' || route.method === 'HEAD');
+    const isReadRouteWithoutFields = fields.length === 0 && actionKind === 'read';
 
     return {
         formActionName,

@@ -14,20 +14,18 @@ export function bindPropertyAccessField(
     key: string,
     prop: string,
     isNullsafe: boolean,
-    modelSymbol?: OriginModelSymbol
+    modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
-    if (!modelSymbol) return unresolved(key);
-
     const binding = modelSymbol.resolveProperty(prop);
-    if (!binding) return unresolved(key);
+    if (binding.kind === 'missing') return unresolved(key);
 
-    switch (binding.kind) {
+    switch (binding.value.kind) {
         case 'column': {
-            const semanticType = applyNullsafe(binding.semanticType, isNullsafe);
+            const semanticType = applyNullsafe(binding.value.semanticType, isNullsafe);
             const boundAst = BoundSemanticFactory.modelColumn({
                 model: modelSymbol.name,
                 column: prop,
-                dbType: binding.source.origin.databaseType,
+                dbType: binding.value.source.origin.databaseType,
                 castType: null,
                 semanticType
             });
@@ -41,13 +39,14 @@ export function bindPropertyAccessField(
             return { descriptor, boundAst };
         }
         case 'accessor': {
-            const semanticType = applyNullsafe(binding.semanticType, isNullsafe);
+            const semanticType = applyNullsafe(binding.value.semanticType, isNullsafe);
             const boundAst = BoundSemanticFactory.methodCall({
                 targetModel: modelSymbol.name,
                 methodName: prop,
                 returnType: semanticType,
                 cardinality: { kind: 'single' },
-                nullability: toNullability(semanticType)
+                nullability: toNullability(semanticType),
+                semanticType
             });
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(
                 key,
@@ -59,18 +58,19 @@ export function bindPropertyAccessField(
             return { descriptor, boundAst };
         }
         case 'relation': {
-            const semanticType = applyNullsafe(binding.semanticType, isNullsafe);
-            const cardinality = binding.source.origin.multiplicity;
+            const semanticType = applyNullsafe(binding.value.semanticType, isNullsafe);
+            const cardinality = binding.value.source.origin.multiplicity;
             const boundAst = BoundSemanticFactory.relation({
                 sourceModel: modelSymbol.name,
                 relationName: prop,
-                relationType: binding.source.origin.relationType,
-                targetModel: binding.source.origin.targetModel,
+                relationType: binding.value.source.origin.relationType,
+                targetModel: binding.value.source.origin.targetModel,
                 cardinality,
-                nullability: toNullability(semanticType)
+                nullability: toNullability(semanticType),
+                semanticType
             });
             const expression = ResourceFieldExpressionFactory.resource(
-                { kind: 'resource_name', value: binding.source.origin.targetModel.value },
+                { kind: 'resource_name', value: binding.value.source.origin.targetModel.value },
                 cardinality
             );
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(

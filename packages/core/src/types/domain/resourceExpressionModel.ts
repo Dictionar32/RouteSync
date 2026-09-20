@@ -1,6 +1,7 @@
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { ResourceArrayEntry, ResourceFieldExpression } from './expressions';
-import type { MethodName, ModelName, PropertyName, PhpFunctionName, VariableName, ResponseFieldName, ResourceName, CastTypeName, SemanticOperator } from './semanticValues';
+import type { MethodName, ModelName, PropertyName, PhpFunctionName, VariableName, ResponseFieldName, ResourceName, CastTypeName, SemanticOperator, ClassName } from './semanticValues';
+import type { ResourceClosureStatement, ResourceMatchArm, ResourceUnaryOperator } from './expressions';
 
 export type ResourceAccessMode =
   | { readonly kind: 'direct' }
@@ -19,7 +20,15 @@ export type ResourceExpressionBindingRequirement =
   | { readonly kind: 'short_conditional'; readonly condition: ResourceExpressionModel; readonly falsy: ResourceExpressionModel }
   | { readonly kind: 'null_coalesce'; readonly left: ResourceExpressionModel; readonly right: ResourceExpressionModel }
   | { readonly kind: 'nested_object'; readonly fields: readonly ResourceExpressionFieldModel[] }
-  | { readonly kind: 'nested_array'; readonly entries: readonly ResourceArrayEntry[] };
+  | { readonly kind: 'nested_array'; readonly entries: readonly ResourceArrayEntry[] }
+  | { readonly kind: 'unary'; readonly operator: ResourceUnaryOperator; readonly operand: ResourceExpressionModel }
+  | { readonly kind: 'match'; readonly subject: ResourceExpressionModel; readonly arms: readonly ResourceMatchArm[] }
+  | { readonly kind: 'class_reference'; readonly className: ClassName }
+  | { readonly kind: 'construct'; readonly className: ClassName; readonly arguments: readonly ResourceExpressionModel[] }
+  | { readonly kind: 'instance_of'; readonly expression: ResourceExpressionModel; readonly className: ClassName }
+  | { readonly kind: 'closure'; readonly parameters: readonly VariableName[]; readonly captures: readonly { readonly kind: 'by_value' | 'by_reference'; readonly variable: VariableName }[]; readonly body: readonly ResourceClosureStatement[] }
+  | { readonly kind: 'arrow_function'; readonly parameters: readonly VariableName[]; readonly body: ResourceExpressionModel }
+  | { readonly kind: 'statement'; readonly statementKind: string };
 
 export type ResourceExpressionSemantic =
   | { readonly kind: 'known'; readonly type: SemanticType }

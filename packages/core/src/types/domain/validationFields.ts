@@ -1,9 +1,13 @@
 import type { ValidationRuleNode } from "./validationRules";
+import type { SemanticType } from "../../compiler/types/SemanticType";
+import type { RequestFieldPresence } from "./requestFieldPresence";
 
 export interface ScalarValidationFieldNode {
   readonly kind: 'scalar';
   readonly fieldName: string;
   readonly propertyName: string;
+  readonly semanticType: SemanticType;
+  readonly presence: RequestFieldPresence;
   readonly rules: readonly ValidationRuleNode[];
 }
 
@@ -11,6 +15,8 @@ export interface ArrayValidationFieldNode {
   readonly kind: 'array';
   readonly fieldName: string;
   readonly propertyName: string;
+  readonly semanticType: SemanticType;
+  readonly presence: RequestFieldPresence;
   readonly rules: readonly ValidationRuleNode[];
   readonly element: ValidationFieldNode;
 }
@@ -19,6 +25,8 @@ export interface ObjectValidationFieldNode {
   readonly kind: 'object';
   readonly fieldName: string;
   readonly propertyName: string;
+  readonly semanticType: SemanticType;
+  readonly presence: RequestFieldPresence;
   readonly fields: readonly ValidationFieldNode[];
 }
 
@@ -27,11 +35,6 @@ export type ValidationFieldNode =
   | ArrayValidationFieldNode
   | ObjectValidationFieldNode;
 
-/**
- * ValidationFieldKind
- *
- * Canonical Domain Vocabulary for Validation Tree Node Kinds.
- */
 export const ValidationFieldKind = Object.freeze({
   Scalar: 'scalar',
   Array: 'array',
@@ -46,29 +49,14 @@ export interface ValidationFieldSpecification<K extends ValidationFieldKind = Va
   readonly allowsChildren: boolean;
 }
 
-/**
- * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key ValidationFieldKind.
- */
 export type ValidationFieldRegistry = {
   readonly [K in ValidationFieldKind]: ValidationFieldSpecification<K>;
 };
 
 export const VALIDATION_FIELD_REGISTRY: ValidationFieldRegistry = Object.freeze({
-  [ValidationFieldKind.Scalar]: {
-    kind: ValidationFieldKind.Scalar,
-    isContainer: false,
-    allowsChildren: false
-  },
-  [ValidationFieldKind.Array]: {
-    kind: ValidationFieldKind.Array,
-    isContainer: true,
-    allowsChildren: true
-  },
-  [ValidationFieldKind.Object]: {
-    kind: ValidationFieldKind.Object,
-    isContainer: true,
-    allowsChildren: true
-  }
+  [ValidationFieldKind.Scalar]: { kind: ValidationFieldKind.Scalar, isContainer: false, allowsChildren: false },
+  [ValidationFieldKind.Array]: { kind: ValidationFieldKind.Array, isContainer: true, allowsChildren: true },
+  [ValidationFieldKind.Object]: { kind: ValidationFieldKind.Object, isContainer: true, allowsChildren: true }
 });
 
 export interface ValidationFieldVisitor<R> {
@@ -77,14 +65,8 @@ export interface ValidationFieldVisitor<R> {
   readonly object: (node: ObjectValidationFieldNode) => R;
 }
 
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian ValidationFieldNode dengan exhaustive type safety
- */
-export function matchValidationField<R>(
-  node: ValidationFieldNode,
-  visitor: ValidationFieldVisitor<R>
-): R {
-  return visitor[node.kind](node as any);
+export function matchValidationField<R>(node: ValidationFieldNode, visitor: ValidationFieldVisitor<R>): R {
+  return visitor[node.kind](node as never);
 }
 
 export interface ValidationFieldFolder<R> {
@@ -93,17 +75,10 @@ export interface ValidationFieldFolder<R> {
   readonly object: (node: ObjectValidationFieldNode, foldedFields: readonly R[]) => R;
 }
 
-/**
- * 0 `if` Recursive Tree Fold: Mengakumulasi seluruh subtree ValidationFieldNode dari bawah ke atas secara fungsional murni
- */
-export function foldValidationField<R>(
-  node: ValidationFieldNode,
-  folder: ValidationFieldFolder<R>
-): R {
-  const FOLD_DISPATCH: ValidationFieldVisitor<R> = {
-    scalar: (s) => folder.scalar(s),
-    array: (a) => folder.array(a, foldValidationField(a.element, folder)),
-    object: (o) => folder.object(o, o.fields.map(child => foldValidationField(child, folder)))
-  };
-  return FOLD_DISPATCH[node.kind](node as any);
+export function foldValidationField<R>(node: ValidationFieldNode, folder: ValidationFieldFolder<R>): R {
+  switch (node.kind) {
+    case 'scalar': return folder.scalar(node);
+    case 'array': return folder.array(node, foldValidationField(node.element, folder));
+    case 'object': return folder.object(node, node.fields.map(child => foldValidationField(child, folder)));
+  }
 }

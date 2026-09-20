@@ -28,7 +28,6 @@ export function buildRouteCapabilityContract(
         crudRole: resolved.crudRole,
         hookKind: resolved.hookKind,
         actionKind: basics.resolvedActionKind,
-        isMutating: basics.resolvedIsMutating,
         requestContentType: resolved.requestContentType,
         executionSignature: resolved.executionSignature,
         errorResponses: resolved.errorResponses

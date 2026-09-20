@@ -108,9 +108,9 @@ export class InterfaceBuilder {
         const properties: PropertyDefinition[] = [];
         for (const property of type.properties) {
             properties.push({
-                name: property.name,
+                name: property.name.value,
                 type: property.type,
-                optional: !property.required,
+                optional: property.type.isOptional(),
                 readonly: false,
                 description: undefined
             });

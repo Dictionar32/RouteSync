@@ -22,8 +22,8 @@ export function lowerObjectType(
 ): LoweredTypeDeclaration {
     const seenProps = new Set<string>();
     const uniqueProps = objType.properties.filter(p => {
-        if (seenProps.has(p.name)) return false;
-        seenProps.add(p.name);
+        if (seenProps.has(p.name.value.value)) return false;
+        seenProps.add(p.name.value.value);
         return true;
     });
 
@@ -73,8 +73,8 @@ export function compileTypeStream(
 
         const seenProps = new Set<string>();
         const uniqueProps = objType.properties.filter(p => {
-            if (seenProps.has(p.name)) return false;
-            seenProps.add(p.name);
+            if (seenProps.has(p.name.value.value)) return false;
+            seenProps.add(p.name.value.value);
             return true;
         });
 

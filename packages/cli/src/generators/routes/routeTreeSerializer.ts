@@ -60,21 +60,22 @@ export function serializeRouteTree(tree: any, indent: string = '  '): { js: stri
       const page = val as ScannedPageEndpointDescriptor;
       const rendered = matchPageEndpoint(page, {
         static: (p) => ({
-          js: `${indent}${key}: '${p.path}',`,
-          dts: `${indent}readonly ${key}: '${p.path}';`
+          js: `${indent}${key}: '${p.path.value.value}',`,
+          dts: `${indent}readonly ${key}: '${p.path.value.value}';`
         }),
         parameterized: (p) => {
-          const signature = `(params: { ${p.params.map(k => `${k}: string | number | null`).join('; ')} })`;
+          const signature = `(params: { ${p.params.map(k => `${k.value.value}: string | number | null`).join('; ')} })`;
           return {
-            js: `${indent}${key}: (params) => PathResolver.resolveUrl('${p.path}', params),`,
+            js: `${indent}${key}: (params) => PathResolver.resolveUrl('${p.path.value.value}', params),`,
             dts: `${indent}readonly ${key}: ${signature} => string;`
           };
         },
         query_filtered: (p) => {
-          const allKeys = [...p.params, ...p.query];
-          const signature = `(params: { ${allKeys.map(k => `${k}${p.query.includes(k) ? '?:' : ':'} string | number | null`).join('; ')} })`;
+          const allKeys = [...p.params.map(k => k.value.value), ...p.query.map(k => k.value.value)];
+          const queryKeys = new Set(p.query.map(k => k.value.value));
+          const signature = `(params: { ${allKeys.map(k => `${k}${queryKeys.has(k) ? '?:' : ':'} string | number | null`).join('; ')} })`;
           return {
-            js: `${indent}${key}: (params) => PathResolver.resolveUrl('${p.path}', params),`,
+            js: `${indent}${key}: (params) => PathResolver.resolveUrl('${p.path.value.value}', params),`,
             dts: `${indent}readonly ${key}: ${signature} => string;`
           };
         }

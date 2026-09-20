@@ -18,7 +18,7 @@ const field = {
   fileConstraints: { kind: 'none' },
   required: true,
   nullable: false,
-  validationAst: [],
+  validation: [],
 } as unknown as RequestField;
 
 const response: ResponseData = {

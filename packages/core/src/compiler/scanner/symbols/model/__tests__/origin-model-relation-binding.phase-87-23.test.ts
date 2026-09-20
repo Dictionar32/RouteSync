@@ -23,18 +23,20 @@ describe('OriginModelSymbol relation binding phase 87.23', () => {
 
     const binding = symbol.resolveProperty('reviews');
 
-    expect(binding?.kind).toBe('relation');
-    expect(binding?.propertyName).toBe('reviews');
-    expect(binding?.source.targetModel).toBe('ProductReview');
-    expect(binding?.source.cardinality).toBe('many');
-    expect(binding?.semanticType).toEqual(
+    expect(binding.kind).toBe('found');
+    if (binding.kind !== 'found') throw new Error('expected found property binding');
+    expect(binding.value.kind).toBe('relation');
+    expect(binding.value.propertyName).toBe('reviews');
+    expect(binding.value.source.targetModel).toBe('ProductReview');
+    expect(binding.value.source.cardinality).toBe('many');
+    expect(binding.value.semanticType).toEqual(
       new ReadonlyCollectionType(
         CollectionKind.ARRAY,
         new ReferenceType('', 'ProductReview')
       )
     );
-    expect(binding && 'type' in binding).toBe(false);
-    expect(binding && 'nullable' in binding).toBe(false);
-    expect(binding && 'cast' in binding).toBe(false);
+    expect('type' in binding.value).toBe(false);
+    expect('nullable' in binding.value).toBe(false);
+    expect('cast' in binding.value).toBe(false);
   });
 });

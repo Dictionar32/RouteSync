@@ -1,11 +1,4 @@
-/**
- * typeIrUtils.ts
- *
- * Safe utility functions for TypeIR manipulation and unwrapping.
- * Conforms to Rule 14 (<= 100 lines).
- *
- * @module core/types/ir/typeIrUtils
- */
+/** Closed TypeIR operations. */
 
 import type {
     TypeIR,
@@ -13,7 +6,7 @@ import type {
     ReferenceTypeIR,
     ArrayTypeIR,
     NullableTypeIR,
-    OptionalTypeIR
+    OptionalTypeIR,
 } from './typeIrTypes';
 
 export class TypeIRUtils {
@@ -25,69 +18,47 @@ export class TypeIRUtils {
         return Object.freeze({ kind: 'optional', inner });
     }
 
-    static makeArray(items: TypeIR, options?: { minItems?: number; maxItems?: number }): ArrayTypeIR {
-        return Object.freeze({
-            kind: 'array',
-            items,
-            ...(options?.minItems !== undefined ? { minItems: options.minItems } : {}),
-            ...(options?.maxItems !== undefined ? { maxItems: options.maxItems } : {})
-        });
+    static makeArray(items: TypeIR): ArrayTypeIR {
+        return Object.freeze({ kind: 'array', items });
     }
 
-    static isPrimitive(type: TypeIR): type is PrimitiveTypeIR {
-        return type.kind === 'primitive';
-    }
-
-    static isReference(type: TypeIR): type is ReferenceTypeIR {
-        return type.kind === 'reference';
-    }
-
-    static isArray(type: TypeIR): type is ArrayTypeIR {
-        return type.kind === 'array';
-    }
-
-    static isNullable(type: TypeIR): type is NullableTypeIR {
-        return type.kind === 'nullable';
-    }
-
-    static isOptional(type: TypeIR): type is OptionalTypeIR {
-        return type.kind === 'optional';
-    }
+    static isPrimitive(type: TypeIR): type is PrimitiveTypeIR { return type.kind === 'primitive'; }
+    static isReference(type: TypeIR): type is ReferenceTypeIR { return type.kind === 'reference'; }
+    static isArray(type: TypeIR): type is ArrayTypeIR { return type.kind === 'array'; }
+    static isNullable(type: TypeIR): type is NullableTypeIR { return type.kind === 'nullable'; }
+    static isOptional(type: TypeIR): type is OptionalTypeIR { return type.kind === 'optional'; }
 
     static unwrapType(type: TypeIR): TypeIR {
-        return (type.kind === 'nullable' || type.kind === 'optional') ? this.unwrapType(type.inner) : type;
+        return type.kind === 'nullable' || type.kind === 'optional'
+            ? this.unwrapType(type.inner)
+            : type;
     }
 
     static isDeepNullable(type: TypeIR): boolean {
-        if (type.kind === 'nullable') return true;
-        if (type.kind === 'optional') return this.isDeepNullable(type.inner);
-        return false;
+        return type.kind === 'nullable' || (type.kind === 'optional' && this.isDeepNullable(type.inner));
     }
 
     static isDeepOptional(type: TypeIR): boolean {
-        if (type.kind === 'optional') return true;
-        if (type.kind === 'nullable') return this.isDeepOptional(type.inner);
-        return false;
+        return type.kind === 'optional' || (type.kind === 'nullable' && this.isDeepOptional(type.inner));
     }
 
     static describeType(type: TypeIR): string {
-        switch (type.kind) {
-            case 'primitive': return `primitive(${type.type}${type.format ? `:${type.format}` : ''})`;
-            case 'reference': return `reference(${type.target}${type.module ? `@${type.module}` : ''})`;
-            case 'array': return `array<${this.describeType(type.items)}>`;
-            case 'nullable': return `${this.describeType(type.inner)} | null`;
-            case 'optional': return `${this.describeType(type.inner)}?`;
-            case 'union': return `union(${type.types.map(t => this.describeType(t)).join(' | ')})`;
-            case 'literal': return `literal(${JSON.stringify(type.value)})`;
-            case 'inline_object': {
-                const props = Object.entries(type.properties).map(([k, v]) => `${k}: ${this.describeType(v)}`).join(', ');
-                return `{ ${props} }`;
-            }
-            default: return 'unknown';
-        }
-    }
-
-    static migrateFromLegacy(_legacyType: unknown, _context: string): TypeIR {
-        return Object.freeze({ kind: 'primitive', type: 'unknown' });
+        const descriptions = {
+            primitive: (value: PrimitiveTypeIR) => `primitive(${value.type})`,
+            reference: (value: ReferenceTypeIR) => `reference(${value.target})`,
+            array: (value: ArrayTypeIR) => `array<${this.describeType(value.items)}>`,
+            json: () => 'json',
+            never: () => 'never',
+            error: value => `error(${value.diagnostic})`,
+            intersection: value => `intersection(${value.types.map(item => this.describeType(item)).join(' & ')})`,
+            collection: value => `collection<${this.describeType(value.element)}>`,
+            generic: value => `generic(${this.describeType(value.base)}<${value.parameters.map(item => this.describeType(item.type)).join(', ')}>)`,
+            nullable: value => `${this.describeType(value.inner)} | null`,
+            optional: value => `${this.describeType(value.inner)}?`,
+            union: value => `union(${value.types.map(item => this.describeType(item)).join(' | ')})`,
+            literal: value => `literal(${JSON.stringify(value.value)})`,
+            inline_object: value => `{ ${value.properties.map(property => `${property.name}: ${this.describeType(property.type)}`).join(', ')} }`,
+        } satisfies { [K in TypeIR['kind']]: (value: Extract<TypeIR, { kind: K }>) => string };
+        return descriptions[type.kind](type as never);
     }
 }

@@ -7,7 +7,8 @@
  * @module core/compiler/scanner/descriptors/validationDescriptors
  */
 
-import { RouteValidationRuleEntry, ValidationFieldNode } from "../../../types/route";
+import type { ValidationFieldNode } from "../../../types/route";
+import type { RouteValidationRuleSet } from "./validation/validationRuleSet";
 import {
     ScannedRouteValidationRuleEntry,
     ScannedRouteValidationRuleParams,
@@ -39,6 +40,6 @@ export {
 /**
  * Functional entry point for building validation AST trees.
  */
-export function buildValidationTree(rules: readonly RouteValidationRuleEntry[]): readonly ValidationFieldNode[] {
-    return ValidationTreeBuilder.buildTree(rules);
+export function buildValidationTree(ruleSet: RouteValidationRuleSet): readonly ValidationFieldNode[] {
+    return ValidationTreeBuilder.buildTree(ruleSet);
 }

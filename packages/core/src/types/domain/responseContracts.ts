@@ -19,16 +19,25 @@ export type ResponseScalarValue =
     | { readonly kind: 'boolean_flag' };
 
 export type ResponseValueContract =
+    | { readonly kind: 'null' }
+    | { readonly kind: 'union'; readonly members: readonly ResponseValueContract[] }
     | { readonly kind: 'scalar'; readonly value: ResponseScalarValue }
     | { readonly kind: 'named_type'; readonly name: ResponseTypeName }
+    | { readonly kind: 'object'; readonly fields: readonly ResponseContractField[] }
     | { readonly kind: 'model_reference'; readonly model: ModelName }
     | { readonly kind: 'collection'; readonly element: ResponseValueContract }
     | { readonly kind: 'unresolved_declaration'; readonly reason: 'mixed_declaration' };
+
+export type ResponseFieldEvidence =
+    | { readonly kind: 'declared' }
+    | { readonly kind: 'observed' }
+    | { readonly kind: 'declared_and_observed' };
 
 export interface ResponseContractField {
     readonly name: ResponseFieldName;
     readonly value: ResponseValueContract;
     readonly nullability: ResponseNullability;
+    readonly evidence: ResponseFieldEvidence;
 }
 
 export interface ResponseContract {

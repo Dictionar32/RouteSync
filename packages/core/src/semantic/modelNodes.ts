@@ -10,6 +10,7 @@ import type { ParsedCast, ParsedAccessor, ParsedRelation } from '../types/domain
 import type { SemanticResolution } from '../types/domain/semanticResolution';
 import type { FieldNode } from '../types/field';
 import type { VariableName } from '../types/domain/semanticValues';
+import type { Lookup } from '../types/upstream/collections';
 
 export type ModelColumn = ParsedColumn;
 export type ModelColumnContract = ParsedColumn;
@@ -41,12 +42,9 @@ export class ModelAssignmentIndex {
         Object.freeze(this);
     }
 
-    public get(name: VariableName): ModelAssignmentBinding | undefined {
-        return this.lookup.get(name);
-    }
-
-    public has(name: VariableName): boolean {
-        return this.lookup.has(name);
+    public lookupBinding(name: VariableName): Lookup<ModelAssignmentBinding> {
+        const value = this.lookup.get(name);
+        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
     }
 
     public get size(): number {

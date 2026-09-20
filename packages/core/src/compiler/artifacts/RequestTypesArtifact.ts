@@ -1,20 +1,28 @@
 import type { ArtifactMetadata } from './Artifact';
 import type {
     RequestField,
+    FormRequestSource,
+    FormRequestIdentity,
     FileValidationConstraints,
+    FileValidationConstraintVisitor,
     FormAction,
     ResponseData,
     RequestResponse,
+    RequestIdentity,
     RequestType
 } from '../../types/domain/request';
 
 export { FormActionName } from '../../types/domain/request';
 export type {
+    FormRequestSource,
+    FormRequestIdentity,
     RequestField,
     FileValidationConstraints,
+    FileValidationConstraintVisitor,
     FormAction,
     ResponseData,
     RequestResponse,
+    RequestIdentity,
     RequestType
 } from '../../types/domain/request';
 

@@ -20,6 +20,7 @@ export function bindResource({
     resourceName,
     entries,
     sourceFile,
+    sourceLine,
     modelSymbolTable,
     controllerDataflowMap,
     relationPropagationMap
@@ -27,6 +28,7 @@ export function bindResource({
     readonly resourceName: string;
     readonly entries: readonly PhpArrayEntry[];
     readonly sourceFile: string;
+    readonly sourceLine: number;
     readonly modelSymbolTable: ModelSymbolTable;
     readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
     readonly relationPropagationMap?: ReadonlyMap<string, string>;
@@ -40,12 +42,18 @@ export function bindResource({
         relationPropagationMap
     });
 
-    const modelSymbol = binding.kind === 'mono' ? binding.model : undefined;
+    if (binding.kind !== 'mono') {
+        throw new Error(
+            `Resource '${resourceName}' cannot cross the semantic boundary without a resolved Eloquent model.`
+        );
+    }
+
+    const modelSymbol = binding.model;
     const fields: ResourceFieldDescriptor[] = [];
 
     for (const entry of entries) {
         const fieldResult = bindField({
-            key: requireStringArrayKey(requireStringArrayKey(entry.key)),
+            key: requireStringArrayKey(entry.key),
             value: entry.value,
             modelSymbol,
             modelSymbolTable
@@ -53,18 +61,14 @@ export function bindResource({
         fields.push(fieldResult.descriptor);
     }
 
-    if (binding.kind === 'unbacked_dto') {
-        console.warn(
-            `[RouteSync Compiler Warning] Resource '${resourceName}' is a DTO without a matching Eloquent model. Non-model DTO resources have limited automatic relation/column derivation support.`
-        );
-    }
-
     return ScannedResourceDescriptor.create({
         name: resourceName,
         fields,
         sourceFile,
-        modelName: binding.kind === 'mono' ? binding.model.name : null,
-        isSynthetic: binding.kind !== 'mono'
+        sourceLine,
+        assignments: [],
+        modelName: binding.model.name,
+        isSynthetic: false
     });
 }
 

@@ -8,13 +8,14 @@
  */
 
 import {
-    type HttpMethod, type RouteParameter, type RouteQueryParameter, type ResponseDescriptor,
-    type RouteCacheInvalidationDescriptor, type FormRequestDescriptor, type RouteSchemaPayload
+    type HttpMethod, type RouteParameter, type RouteQueryParameter, type ResponseDescriptor, VoidResponseDescriptor,
+    type RouteCacheInvalidationDescriptor, type RouteSchemaPayload
 } from "../../../../../types/route";
 import { buildRouteHandler } from "../../request/controllerActionTypes";
 import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 import type { RouteBoundaryOptions } from "../../../resolvers";
+import type { RouteRequestBinding } from "../../../../../types/domain/request";
 
 export type ControllerReferenceRouteOptions = {
     readonly method: HttpMethod;
@@ -26,7 +27,7 @@ export type ControllerReferenceRouteOptions = {
     readonly sourceFile: string;
     readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
-    readonly formRequests?: readonly FormRequestDescriptor[];
+    readonly request?: RouteRequestBinding;
     readonly schema?: RouteSchemaPayload;
     readonly auth?: boolean;
     readonly middleware?: readonly string[];
@@ -42,7 +43,7 @@ export function createRouteFromControllerReference(
 ): ScannedRouteDescriptor {
     const {
         method, path, controllerName, actionName, domain, resourceName,
-        sourceFile, sourceLine, response, formRequests = [],
+        sourceFile, sourceLine, response = new VoidResponseDescriptor(), request,
         schema = ScannedRouteSchemaPayload.empty(), auth = false,
         middleware = [], parameters = [], pathParameters, queryParameters = [], invalidation
     } = options;
@@ -54,7 +55,7 @@ export function createRouteFromControllerReference(
         origin: "controller_reference",
         method, path, domain, resourceName, controllerName, actionName,
         action: target, handler, response, sourceFile, sourceLine,
-        formRequests, schema, auth, middleware, parameters,
+        request: request === undefined ? { kind: 'no_request' } : request, runtimeReturn: { kind: 'none' }, schema, auth, middleware, parameters,
         pathParameters, queryParameters, invalidation
     });
 }

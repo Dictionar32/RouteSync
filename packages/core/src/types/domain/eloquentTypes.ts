@@ -77,7 +77,7 @@ export const ELOQUENT_CAST_REGISTRY: EloquentCastKindRegistry = Object.freeze({
     resolveValueType: (targetType: CastTypeName) => ({
       kind: 'custom' as const,
       className: SemanticValueFactory.className(targetType.value),
-      semanticType: new ReferenceType('', targetType.value)
+      semanticType: ReferenceType.model('', targetType.value)
     })
   },
 });
@@ -177,6 +177,10 @@ export interface ParsedCast {
 }
 
 /** First-class Eloquent computed/accessor contract. */
+export type ModelAccessorMatchArm =
+  | { readonly kind: 'conditional'; readonly conditions: readonly ModelAccessorExpression[]; readonly value: ModelAccessorExpression }
+  | { readonly kind: 'default'; readonly value: ModelAccessorExpression };
+
 export type ModelAccessorExpression =
   | { readonly kind: 'literal'; readonly value: string | number | boolean | null }
   | { readonly kind: 'variable_read'; readonly variable: import('./semanticValues').VariableName }
@@ -191,6 +195,7 @@ export type ModelAccessorExpression =
   | { readonly kind: 'ternary'; readonly condition: ModelAccessorExpression; readonly truthy: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
   | { readonly kind: 'short_ternary'; readonly condition: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
   | { readonly kind: 'array_literal'; readonly entries: readonly { readonly kind: 'positional' | 'keyed'; readonly value: ModelAccessorExpression }[] }
+  | { readonly kind: 'match'; readonly subject: ModelAccessorExpression; readonly arms: readonly ModelAccessorMatchArm[] }
   | { readonly kind: 'class_reference'; readonly className: ClassName }
   | { readonly kind: 'resource'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
   | { readonly kind: 'resource_collection'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }

@@ -1,14 +1,12 @@
 /**
  * domainExtractor.ts
  *
- * Extracts route domain names (raw and bare domain).
- *
- * @module core/compiler/scanner/subscanners/request-deriver
+ * Reads the canonical route resource identity produced by the route scanner.
+ * Resource/domain classification belongs to the route origin boundary, not
+ * to RequestType assembly.
  */
 
 import { ParsedRoute } from "../../../../types/route";
-import { toPascalCase } from "../../../../utils/resource-naming";
-import { resolveRouteDomain } from "../typeDeriverUtils";
 
 export interface RouteDomainInfo {
     readonly rawDomain: string;
@@ -16,28 +14,9 @@ export interface RouteDomainInfo {
 }
 
 export function extractRouteDomain(route: ParsedRoute): RouteDomainInfo {
-    const rawDomain = (() => {
-        if (route.path === '/register' || (route.action && route.action.endsWith('@register'))) {
-            return 'Register';
-        }
-        const rawSegments = (route.path || '')
-            .replace(/^\//, '')
-            .split('/')
-            .filter(s => s && s !== 'api' && !/^v\d+$/i.test(s) && !s.startsWith('{') && !s.startsWith(':'));
-        if (rawSegments.length > 1) {
-            return rawSegments.map(s => toPascalCase(s)).join('');
-        }
-        const ctrlName = (route as any).controllerName ||
-            (route.action && route.action.includes('Controller')
-                ? route.action.split('@')[0].split('\\').pop()?.replace(/Controller$/, '')
-                : null);
-        if (ctrlName && route.domain && ctrlName.toLowerCase().startsWith(route.domain.toLowerCase()) && ctrlName.length > route.domain.length) {
-            return ctrlName;
-        }
-        return route.domain || ctrlName || resolveRouteDomain(route);
-    })();
-
-    const bareDomain = rawDomain.replace(/Resource$/, '').toLowerCase();
-
-    return { rawDomain, bareDomain };
+    const resourceName = route.identity.resourceName.value;
+    return {
+        rawDomain: resourceName,
+        bareDomain: resourceName
+    };
 }

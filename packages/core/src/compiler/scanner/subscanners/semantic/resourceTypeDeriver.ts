@@ -53,7 +53,7 @@ function appendField(
     properties.push(ScannedObjectProperty.create({
         name,
         type: field.semantic.type,
-        required: true,
+        description: '',
         origin: { kind: 'bound_expression', bound: field.semantic.bound },
     }));
 }

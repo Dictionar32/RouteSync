@@ -16,15 +16,19 @@ export function createResourceBindingModel(
   catalog: ResourceBindingModelCatalog,
 ): ResourceBindingModelResult {
   const path = fromModel(source, context, catalog);
-  if (path.kind === 'unsupported') {
-    const reason = source.semantic.kind === 'known' ? 'known_expression' : 'unsupported_expression';
-    return Object.freeze({ kind: 'not_bindable', reason });
+  if (path.kind === 'derived') {
+    const origin = path.origin;
+    const bindingPath = Object.freeze({ kind: 'derived_expression' as const, expression: source, origin });
+    const resolution: ResourceBindingResolution = { kind: 'pending', path: bindingPath };
+    const provenance = buildResourceBindingProvenance(source, context);
+    const traversal = createResourceTraversal(source, path, context, catalog);
+    return Object.freeze({ kind: 'created', model: Object.freeze({ source, resolution, provenance, traversal }) });
   }
   const origin = resolveResourceBindingOrigin(source, context);
-  const bindingPath = Object.freeze({ root: path.root, steps: path.steps, origin });
+  const bindingPath = Object.freeze({ kind: 'path' as const, root: path.root, steps: path.steps, origin });
   const resolution: ResourceBindingResolution = { kind: 'pending', path: bindingPath };
   const provenance = buildResourceBindingProvenance(source, context);
-  const traversal = createResourceTraversal(source, path, context);
+  const traversal = createResourceTraversal(source, path, context, catalog);
   const model = Object.freeze({ source, resolution, provenance, traversal });
   return Object.freeze({ kind: 'created', model });
 }

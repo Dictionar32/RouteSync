@@ -17,6 +17,8 @@ export {
 export {
     ScannedRouteValidationRuleEntry,
     type ScannedRouteValidationRuleParams,
+    ScannedRouteValidationRuleSet,
+    type RouteValidationRuleSet,
     ScannedRouteSchemaPayload,
     type ScannedRouteSchemaParams,
     ScannedScalarFieldNode,

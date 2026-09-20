@@ -9,14 +9,14 @@ import { createResourceTraversal } from './resourceBindingTraversalBuilder';
 
 export type BindingPath =
   | { readonly kind: 'path'; readonly root: ResourceBindingRoot; readonly steps: readonly ResourceBindingUnresolvedStep[] }
-  | { readonly kind: 'unsupported' };
+  | { readonly kind: 'derived'; readonly expression: ResourceExpressionModel; readonly origin: import('../../../../types/domain/resourceBindingOrigin').ResourceBindingOriginState };
 
 export function fromModel(expression: ResourceExpressionModel, context: readonly ResourceBindingDefinitionContext[], catalog: ResourceBindingModelCatalog): BindingPath {
-  if (expression.semantic.kind !== 'requires_binding') return { kind: 'unsupported' };
-  return fromRequirement(expression.semantic.requirement, context, catalog);
+  if (expression.semantic.kind !== 'requires_binding') return { kind: 'derived', expression, origin: resolveResourceBindingOrigin(expression, context) };
+  return fromRequirement(expression, expression.semantic.requirement, context, catalog);
 }
 
-function fromRequirement(requirement: ResourceExpressionBindingRequirement, context: readonly ResourceBindingDefinitionContext[], catalog: ResourceBindingModelCatalog): BindingPath {
+function fromRequirement(source: ResourceExpressionModel, requirement: ResourceExpressionBindingRequirement, context: readonly ResourceBindingDefinitionContext[], catalog: ResourceBindingModelCatalog): BindingPath {
   switch (requirement.kind) {
     case 'variable':
       if (requirement.name.value === '$this') return { kind: 'path', root: { kind: 'controller_this' }, steps: [] };
@@ -37,7 +37,15 @@ function fromRequirement(requirement: ResourceExpressionBindingRequirement, cont
     case 'short_conditional':
     case 'null_coalesce':
     case 'nested_object':
-      return { kind: 'unsupported' };
+    case 'nested_array':
+    case 'unary':
+    case 'match':
+    case 'class_reference':
+    case 'construct':
+    case 'instance_of':
+    case 'closure':
+    case 'arrow_function':
+      return { kind: 'derived', expression: source, origin: resolveResourceBindingOrigin(source, context) };
   }
 }
 
@@ -54,7 +62,7 @@ function expandVariableRoot(
   const nextVisited = new Set(visited);
   nextVisited.add(variable);
   const definitionPath = fromModel(definition.expression, context, catalog);
-  if (definitionPath.kind === 'unsupported') return path;
+  if (definitionPath.kind === 'derived') return path;
   const expanded = expandVariableRoot(definitionPath, context, nextVisited, catalog);
   return Object.freeze({ kind: 'path', root: expanded.root, steps: Object.freeze([...expanded.steps, ...path.steps]) });
 }
@@ -80,7 +88,7 @@ function createVariableOrigin(
 
 function appendStep(receiver: ResourceExpressionModel, step: ResourceBindingUnresolvedStep, context: readonly ResourceBindingDefinitionContext[], catalog: ResourceBindingModelCatalog): BindingPath {
   const path = fromModel(receiver, context, catalog);
-  if (path.kind === 'unsupported') return path;
+  if (path.kind === 'derived') return path;
   return Object.freeze({ kind: 'path', root: path.root, steps: Object.freeze([...path.steps, step]) });
 }
 

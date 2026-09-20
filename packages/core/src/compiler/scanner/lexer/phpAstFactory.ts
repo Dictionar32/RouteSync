@@ -7,7 +7,12 @@ export class PhpAstFactory {
     static booleanLiteral(value: boolean): PhpAstValue { return Object.freeze({ kind: 'literal', literalType: 'boolean', value }); }
     static nullLiteral(): PhpAstValue { return Object.freeze({ kind: 'literal', literalType: 'null', value: null }); }
     static variableReference(name: AstIdentifier): PhpAstValue { return Object.freeze({ kind: 'variable_reference', name }); }
-    static propertyPath(root: AstIdentifier, steps: readonly AstIdentifier[]): PhpPropertyPath { return Object.freeze({ root, steps: Object.freeze([...steps]) }); }
+    static propertyPath(root: AstIdentifier, steps: readonly AstIdentifier[]): PhpPropertyPath {
+        const frozen = Object.freeze([...steps]);
+        return frozen.length === 0
+            ? Object.freeze({ kind: 'single' as const, root, steps: [] as const })
+            : Object.freeze({ kind: 'chain' as const, root, steps: frozen });
+    }
     static propertyAccess(target: PhpPropertyPath, receiver: PhpAstValue, property: AstIdentifier, access: PhpAccessMode): PhpAstValue { return Object.freeze({ kind: 'property_access', target, receiver, property, access }); }
     static methodChain(target: PhpPropertyPath, receiver: PhpAstValue, property: AstIdentifier, args: readonly PhpArgument[], access: PhpAccessMode): PhpAstValue { return Object.freeze({ kind: 'method_chain', target, receiver, property, arguments: Object.freeze([...args]), access }); }
     static resourceSingle(resourceName: AstIdentifier, argument: PhpAstValue): PhpAstValue { return Object.freeze({ kind: 'resource_single', resourceName, argument }); }

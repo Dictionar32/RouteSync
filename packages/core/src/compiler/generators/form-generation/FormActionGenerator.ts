@@ -7,10 +7,8 @@
  * @module compiler/generators/form-generation
  */
 
-import type { SemanticType } from '../../types/SemanticType';
+import type { RequestFieldMeaning } from '../../../types/domain/requestFieldMeaning';
 import type { RequestField } from '../../../types/domain/request';
-import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
-import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { toCamelCase, toPascalCase } from '../../../utils/resource-naming';
 
 export interface GeneratedFormAction {
@@ -20,14 +18,10 @@ export interface GeneratedFormAction {
 }
 
 export interface FormActionGeneratorDependencies {
-    readonly resolver?: SemanticTypeResolver;
 }
 
 export class FormActionGenerator {
-    private readonly resolver: SemanticTypeResolver;
-
-    constructor({ resolver = defaultTypeResolver }: FormActionGeneratorDependencies = {}) {
-        this.resolver = resolver;
+    constructor(_dependencies: FormActionGeneratorDependencies = {}) {
         Object.freeze(this);
     }
 
@@ -44,9 +38,9 @@ export class FormActionGenerator {
             lines.push('    // No fields');
         } else {
             for (const field of fields) {
-                const tsType = this.convertSemanticTypeToString(field.type);
-                const optional = !field.required ? '?' : '';
-                const nullable = field.type.isNullable() ? ' | null' : '';
+                const tsType = this.convertMeaningToString(field.meaning);
+                const optional = field.presence.accept({ required: () => '', optional: () => '?', unspecified: () => { throw new Error(`Request field '${field.sourceName.value}' has unspecified presence`); } });
+                const nullable = field.presence.accept({ required: p => p.nullable ? ' | null' : '', optional: p => p.nullable ? ' | null' : '', unspecified: () => { throw new Error(`Request field '${field.sourceName.value}' has unspecified nullability`); } });
                 const fieldName = field.name;
 
                 lines.push(`    ${fieldName}${optional}: ${tsType}${nullable}`);
@@ -62,56 +56,13 @@ export class FormActionGenerator {
         };
     }
 
-    private convertSemanticTypeToString(type: SemanticType): string {
-        switch (type.kind) {
-            case 'primitive':
-                if (type.type === 'datetime') {
-                    return 'string';
-                }
-                if (type.type === 'file') {
-                    return 'File';
-                }
-                return type.type;
-
-            case 'reference':
-                return type.name;
-
-            case 'readonly_collection':
-            case 'mutable_collection':
-                return `Array<${this.convertSemanticTypeToString(type.elementType)}>`;
-
-            case 'union':
-                return Array.from(type.members.values())
-                    .map((m: SemanticType) => this.convertSemanticTypeToString(m))
-                    .join(' | ');
-
-            case 'intersection':
-                return Array.from(type.members.values())
-                    .map((m: SemanticType) => this.convertSemanticTypeToString(m))
-                    .join(' & ');
-
-            case 'object': {
-                if (type.properties.length === 0) return 'Record<string, unknown>';
-                const propLines = type.properties.map(property => {
-                    const propName = property.name;
-                    const propType = property.type;
-                    return `${toCamelCase(propName)}: ${this.convertSemanticTypeToString(propType)}`;
-                });
-                return `{ ${propLines.join('; ')} }`;
-            }
-
-            case 'optional':
-                return `${this.convertSemanticTypeToString(type.innerType)} | undefined`;
-
-            case 'nullable':
-                return `${this.convertSemanticTypeToString(type.innerType)} | null`;
-
-            case 'never':
-                return 'never';
-
-            case 'error':
-            default:
-                return 'unknown';
-        }
+    private convertMeaningToString(meaning: RequestFieldMeaning): string {
+        return meaning.accept({
+            scalar: value => ({ string: 'string', number: 'number', boolean: 'boolean', file: 'File', unknown: 'unknown' }[value.scalar]),
+            object: value => value.fields.length === 0 ? 'Record<string, unknown>' : `{ ${value.fields.map(field => `${field.name.value}: ${this.convertMeaningToString(field.meaning)}`).join('; ')} }`,
+            resource: value => value.resourceName.value,
+            collection: value => `Array<${this.convertMeaningToString(value.element)}>`,
+            resourceCollection: value => `Array<${value.resourceName.value}>`
+        });
     }
 }

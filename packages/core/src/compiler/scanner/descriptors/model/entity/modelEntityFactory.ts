@@ -31,6 +31,7 @@ export function computeModelParams({
     softDeletes,
     timestamps,
     columns = [],
+    columnFacts = [],
     fillable = [],
     guarded = ["*"],
     hidden = [],
@@ -49,6 +50,7 @@ export function computeModelParams({
     readonly softDeletes?: boolean;
     readonly timestamps?: boolean;
     readonly columns?: readonly ParsedColumn[];
+    readonly columnFacts?: readonly import('../../../../../types/upstream/modelSourceFacts').ModelColumnFact[];
     readonly fillable?: readonly string[];
     readonly guarded?: readonly string[];
     readonly hidden?: readonly string[];
@@ -76,6 +78,7 @@ export function computeModelParams({
         softDeletes: resolvedSoftDeletes,
         timestamps: resolvedTimestamps,
         columns: Object.freeze([...columns]),
+        columnFacts: Object.freeze([...columnFacts]),
         fillable: Object.freeze([...fillable]),
         guarded: Object.freeze([...guarded]),
         hidden: Object.freeze([...hidden]),

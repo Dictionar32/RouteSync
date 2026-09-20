@@ -6,7 +6,7 @@
  * @module compiler/scanner/descriptors/model/entity
  */
 
-import { ModelSemanticPropertyIndex } from '../../../../../types/domain/models';
+import { ModelSemanticPropertyIndex, ModelSemanticRelationIndex } from '../../../../../types/domain/models';
 import type {
     ParsedColumn,
     ParsedCast,
@@ -15,10 +15,10 @@ import type {
     ParsedModel,
     ModelKeyType
 } from "../../../../../types/route";
-import { PrimitiveKind } from "../../../../types/SemanticType";
+import { PrimitiveKind, PrimitiveType } from "../../../../types/SemanticType";
 import type { ModelKeySemanticType } from "../../../../../types/domain/modelContracts";
 import { SemanticValueFactory, type ModelName, type TableName, type ColumnName, type PropertyName } from "../../../../../types/domain/semanticValues";
-import { NullableType, type SemanticType } from "../../../../types/SemanticType";
+import type { SemanticType } from "../../../../types/SemanticType";
 import type { ModelSemanticAccessor, ModelSemanticColumn, ModelSemanticProperty, ModelSemanticRelation, ModelSemanticSurface } from "../../../../../types/domain/models";
 import type { ScannedModelParams } from "./types";
 import {
@@ -27,45 +27,26 @@ import {
     computeFromTableParams
 } from "./modelEntityFactory";
 
-function completeColumnType(column: ParsedColumn): SemanticType {
-    return column.nullability.kind === 'nullable'
-        ? new NullableType(column.semanticType)
-        : column.semanticType;
+function buildModelColumn(column: ParsedColumn): ModelSemanticColumn {
+    return Object.freeze({
+        kind: 'column' as const,
+        property: SemanticValueFactory.propertyName(column.propertyName),
+        column: SemanticValueFactory.columnName(column.name),
+        databaseType: column.type,
+        semanticType: column.semanticType,
+        nullability: column.nullability,
+        traversal: { kind: 'scalar', semanticType: column.semanticType }
+    });
 }
 
 function buildModelColumns(
     columns: readonly ParsedColumn[],
-    casts: readonly ParsedCast[],
     hidden: readonly string[]
 ): readonly ModelSemanticColumn[] {
     const hiddenNames = new Set(hidden);
     return columns
-        .filter(column => !hiddenNames.has(column.name))
-        .map(column => {
-            const cast = casts.find(item => item.column.value === column.name);
-            const type = cast === undefined ? completeColumnType(column) : cast.valueType.semanticType;
-            const origin = cast === undefined
-                ? Object.freeze({
-                    kind: 'column' as const,
-                    column: SemanticValueFactory.columnName(column.name),
-                    databaseType: column.type,
-                    nullability: column.nullability
-                })
-                : Object.freeze({
-                    kind: 'cast' as const,
-                    column: SemanticValueFactory.columnName(column.name),
-                    castKind: cast.castKind,
-                    targetType: cast.targetType,
-                    valueType: cast.valueType
-                });
-            return Object.freeze({
-                kind: 'column' as const,
-                property: SemanticValueFactory.propertyName(column.propertyName),
-                column: SemanticValueFactory.columnName(column.name),
-                type,
-                origin
-            });
-        });
+        .filter(column => !hiddenNames.has(column.propertyName) && !hiddenNames.has(column.name))
+        .map(buildModelColumn);
 }
 
 function buildModelAccessors(
@@ -75,8 +56,9 @@ function buildModelAccessors(
         kind: 'accessor' as const,
         property: accessor.propertyName,
         method: accessor.name,
-        type: accessor.computation.result,
-        computation: accessor.computation
+        semanticType: accessor.computation.result,
+        computation: accessor.computation,
+        traversal: { kind: 'scalar', semanticType: accessor.computation.result }
     }));
 }
 
@@ -85,16 +67,18 @@ function buildModelRelations(
 ): readonly ModelSemanticRelation[] {
     return relations.map(relation => Object.freeze({
         kind: 'relation' as const,
-        property: relation.name,
+        property: SemanticValueFactory.propertyName(relation.name.value.value),
         relation: relation.name,
+        sourceModel: relation.sourceModel,
         type: relation.type,
+        semanticType: relation.semanticType,
         targetModel: relation.targetModel,
         cardinality: relation.cardinality,
         multiplicity: relation.multiplicity,
-        targetShape: relation.targetShape,
-        traversalTarget: relation.traversalTarget,
+        boundCardinality: relation.multiplicity,
+        resourceCardinality: relation.multiplicity,
         foreignKey: relation.foreignKey,
-        semanticType: relation.semanticType
+        traversal: { kind: 'relation', targetModel: relation.targetModel, cardinality: relation.cardinality, semanticType: relation.semanticType }
     }));
 }
 
@@ -102,7 +86,6 @@ function buildModelProperties(
     columns: readonly ParsedColumn[],
     accessors: readonly ParsedAccessor[],
     relations: readonly ParsedRelation[],
-    casts: readonly ParsedCast[],
     hidden: readonly string[]
 ): readonly ModelSemanticProperty[] {
     const hiddenNames = new Set(hidden);
@@ -110,62 +93,43 @@ function buildModelProperties(
     const seen = new Set<string>();
 
     for (const column of columns) {
-        if (hiddenNames.has(column.name)) continue;
+        if (hiddenNames.has(column.propertyName) || hiddenNames.has(column.name)) continue;
         const property = SemanticValueFactory.propertyName(column.propertyName);
-        if (seen.has(property.value)) continue;
-        seen.add(property.value);
-        const cast = casts.find(item => item.column.value === column.name);
-        properties.push(Object.freeze({
-            kind: 'column' as const,
-            property,
-            column: SemanticValueFactory.columnName(column.name),
-            type: cast === undefined ? completeColumnType(column) : cast.valueType.semanticType,
-            origin: cast === undefined
-                ? Object.freeze({
-                    kind: 'column' as const,
-                    column: SemanticValueFactory.columnName(column.name),
-                    databaseType: column.type,
-                    nullability: column.nullability
-                })
-                : Object.freeze({
-                    kind: 'cast' as const,
-                    column: SemanticValueFactory.columnName(column.name),
-                    castKind: cast.castKind,
-                    targetType: cast.targetType,
-                    valueType: cast.valueType
-                })
-        }));
+        if (seen.has(property.value.value)) continue;
+        seen.add(property.value.value);
+        properties.push(buildModelColumn(column));
     }
 
     for (const accessor of accessors) {
         const property = accessor.propertyName;
-        if (seen.has(property.value)) continue;
-        seen.add(property.value);
+        if (seen.has(property.value.value)) continue;
+        seen.add(property.value.value);
         properties.push(Object.freeze({
             kind: 'accessor' as const,
             property,
             method: accessor.name,
-            type: accessor.computation.result,
-            computation: accessor.computation
+            semanticType: accessor.computation.result,
+            computation: accessor.computation,
+        traversal: { kind: 'scalar', semanticType: accessor.computation.result }
         }));
     }
 
     for (const relation of relations) {
-        const property = relation.name;
-        if (seen.has(property.value)) continue;
-        seen.add(property.value);
+        const property = SemanticValueFactory.propertyName(relation.name.value.value);
+        if (seen.has(property.value.value)) continue;
+        seen.add(property.value.value);
         properties.push(Object.freeze({
             kind: 'relation' as const,
             property,
-            relation: property,
+            relation: relation.name,
+            sourceModel: relation.sourceModel,
             type: relation.type,
             targetModel: relation.targetModel,
             cardinality: relation.cardinality,
             multiplicity: relation.multiplicity,
-            targetShape: relation.targetShape,
-            traversalTarget: relation.traversalTarget,
             foreignKey: relation.foreignKey,
-            semanticType: relation.semanticType
+            semanticType: relation.semanticType,
+            traversal: { kind: 'relation', targetModel: relation.targetModel, cardinality: relation.cardinality, semanticType: relation.semanticType }
         }));
     }
 
@@ -174,86 +138,50 @@ function buildModelProperties(
 
 function buildModelSurface(
     properties: readonly ModelSemanticProperty[],
-    columns: readonly ModelSemanticColumn[],
-    accessors: readonly ModelSemanticAccessor[],
     relations: readonly ModelSemanticRelation[]
 ): ModelSemanticSurface {
-    const byName = new ModelSemanticPropertyIndex(properties);
     return Object.freeze({
         properties: Object.freeze([...properties]),
-        columns: Object.freeze([...columns]),
-        accessors: Object.freeze([...accessors]),
-        relations: Object.freeze([...relations]),
-        byName
+        byName: new ModelSemanticPropertyIndex(properties),
+        relationsByName: new ModelSemanticRelationIndex(relations)
     });
 }
 
 export class ScannedModelDescriptor implements ParsedModel {
-    public readonly name: ModelName;
-    public readonly shortName: ModelName;
-    public readonly table: TableName;
-    public readonly primaryKey: ColumnName;
-    public readonly keyType: ModelKeyType;
-    public readonly keySemanticType: ModelKeySemanticType;
-    public readonly incrementing: boolean;
-    public readonly softDeletes: boolean;
-    public readonly timestamps: boolean;
-    public readonly columns: readonly ParsedColumn[];
     public readonly semantic: import("../../../../../types/domain/models").ModelSemanticDefinition;
-    public readonly fillable: readonly PropertyName[];
-    public readonly guarded: readonly PropertyName[];
-    public readonly hidden: readonly PropertyName[];
-    public readonly appends: readonly PropertyName[];
-    public readonly casts: readonly ParsedCast[];
-    public readonly accessors: readonly ParsedAccessor[];
-    public readonly relations: readonly ParsedRelation[];
+    public readonly source: {
+        readonly columns: readonly ParsedColumn[];
+        readonly columnFacts: readonly import("../../../../../types/upstream/modelSourceFacts").ModelColumnFact[];
+        readonly casts: readonly ParsedCast[];
+    };
 
     constructor(params: ScannedModelParams) {
-        this.name = SemanticValueFactory.modelName(params.name);
-        this.shortName = SemanticValueFactory.modelName(params.shortName);
-        this.table = SemanticValueFactory.tableName(params.table);
-        this.primaryKey = SemanticValueFactory.columnName(params.primaryKey);
-        this.keyType = params.keyType;
-        this.keySemanticType = params.keySemanticType === PrimitiveKind.NUMBER ? { kind: 'number' } : { kind: 'string' };
-        this.incrementing = params.incrementing;
-        this.softDeletes = params.softDeletes;
-        this.timestamps = params.timestamps;
-        const resolvedColumns = params.columns.map(column => {
-            const cast = params.casts.find(item => item.column.value === column.name);
-            return cast === undefined
-                ? column
-                : Object.freeze({ ...column, semanticType: cast.valueType.semanticType });
-        });
-        this.columns = Object.freeze(resolvedColumns);
-        const semanticProperties = buildModelProperties(resolvedColumns, params.accessors, params.relations, params.casts, params.hidden);
-        const semanticColumns = buildModelColumns(resolvedColumns, params.casts, params.hidden);
-        const semanticAccessors = buildModelAccessors(params.accessors);
+        const name = SemanticValueFactory.modelName(params.name);
+        const shortName = SemanticValueFactory.modelName(params.shortName);
+        const table = SemanticValueFactory.tableName(params.table);
+        const primaryKey = SemanticValueFactory.columnName(params.primaryKey);
+        const keyType = params.keyType;
+        const keySemanticType = params.keySemanticType === PrimitiveKind.NUMBER ? { kind: 'number' as const } : { kind: 'string' as const };
+        const columns = Object.freeze(params.columns);
+        const columnFacts = Object.freeze(params.columnFacts);
+        const fillable = Object.freeze(params.fillable.map(SemanticValueFactory.propertyName));
+        const guarded = Object.freeze(params.guarded.map(SemanticValueFactory.propertyName));
+        const hidden = Object.freeze(params.hidden.map(SemanticValueFactory.propertyName));
+        const appends = Object.freeze(params.appends.map(SemanticValueFactory.propertyName));
+        const semanticProperties = buildModelProperties(params.columns, params.accessors, params.relations, params.hidden);
         const semanticRelations = buildModelRelations(params.relations);
         this.semantic = Object.freeze({
-            identity: Object.freeze({
-                name: this.name,
-                shortName: this.shortName,
-                table: this.table,
-                primaryKey: this.primaryKey
-            }),
-            key: Object.freeze({
-                type: this.keyType,
-                semanticType: this.keySemanticType
-            }),
-            behavior: Object.freeze({
-                incrementing: this.incrementing,
-                softDeletes: this.softDeletes,
-                timestamps: this.timestamps
-            }),
-            surface: buildModelSurface(semanticProperties, semanticColumns, semanticAccessors, semanticRelations)
+            identity: Object.freeze({ name, shortName, table, primaryKey }),
+            key: Object.freeze({ type: keyType, semanticType: keySemanticType }),
+            behavior: Object.freeze({ incrementing: params.incrementing, softDeletes: params.softDeletes, timestamps: params.timestamps }),
+            exposure: Object.freeze({ fillable, guarded, hidden, appends }),
+            surface: buildModelSurface(semanticProperties, semanticRelations)
         });
-        this.fillable = params.fillable.map(SemanticValueFactory.propertyName);
-        this.guarded = params.guarded.map(SemanticValueFactory.propertyName);
-        this.hidden = params.hidden.map(SemanticValueFactory.propertyName);
-        this.appends = params.appends.map(SemanticValueFactory.propertyName);
-        this.casts = params.casts;
-        this.accessors = params.accessors;
-        this.relations = params.relations;
+        this.source = Object.freeze({
+            columns,
+            columnFacts,
+            casts: Object.freeze(params.casts)
+        });
         Object.freeze(this);
     }
 
@@ -268,6 +196,7 @@ export class ScannedModelDescriptor implements ParsedModel {
         readonly softDeletes?: boolean;
         readonly timestamps?: boolean;
         readonly columns?: readonly ParsedColumn[];
+        readonly columnFacts?: readonly import("../../../../../types/upstream/modelSourceFacts").ModelColumnFact[];
         readonly fillable?: readonly string[];
         readonly guarded?: readonly string[];
         readonly hidden?: readonly string[];

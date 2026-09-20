@@ -15,7 +15,7 @@ import {
     VoidResponseDescriptor,
     HttpMethod,
 } from "../../../types/route";
-import { RequestType } from "../../artifacts/RequestTypesArtifact";
+import type { FormRequestSource } from "../../../types/domain/request";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { ControllerScanner } from "./ControllerScanner";
 import { ControllerActionInfo } from "../descriptors/requestDescriptors";
@@ -48,7 +48,7 @@ export class RouteScanner {
 
     public static async scan(
         projectRoot: string,
-        requestTypes: readonly RequestType[] = [],
+        formRequests: readonly FormRequestSource[] = [],
         existingControllerMap?: Map<string, Map<string, ControllerActionInfo>>
     ): Promise<readonly ParsedRoute[]> {
         const routesFile = path.join(projectRoot, 'routes', 'api.php');
@@ -57,7 +57,7 @@ export class RouteScanner {
         const source = await fs.readFile(routesFile, 'utf-8');
         const tokens = LaravelSourceLexer.tokenize(source);
         const declarations = LaravelSourceLexer.parseRouteDeclarations(tokens);
-        const formRequestMap = new Map<string, RequestType>(requestTypes.map(r => [r.formTypeName, r]));
+        const formRequestMap = new Map<string, FormRequestSource>(formRequests.map(r => [r.identity.requestClass.value.value, r]));
         const controllerMap = existingControllerMap ?? await ControllerScanner.scan(projectRoot, formRequestMap);
         const routes: ParsedRoute[] = [];
 

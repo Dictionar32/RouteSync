@@ -32,7 +32,7 @@ export function resolveVerifiedInstanceMethod(
     ? cardinalityFromEloquent(rule.returns.cardinality)
     : target.cardinality;
   const boundCardinality = toBoundResolutionCardinality(resolutionCardinality);
-  const semanticType = resultType(rule.returns, model.value);
+  const semanticType = resultType(rule.returns, model.value.value);
   const boundAst = BoundSemanticFactory.methodCall({
     targetModel: { kind: 'model', name: model },
     methodName: SemanticValueFactory.methodName(methodName),

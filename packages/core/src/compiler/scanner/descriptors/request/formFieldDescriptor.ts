@@ -1,100 +1,126 @@
-import { ValidationRuleNode } from "../../../../types/route";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import {
     RequestField,
     FileValidationConstraints
 } from "../../../artifacts/RequestTypesArtifact";
-import { SemanticType, PrimitiveType, PrimitiveKind, NullableType } from "../../../types/SemanticType";
+import { SemanticType, PrimitiveType, PrimitiveKind } from "../../../types/SemanticType";
+import { SemanticValueFactory, type RequestFieldName, type PropertyName } from "../../../../types/domain/semanticValues";
+import { RequestFieldMeaningFactory, type RequestFieldMeaning } from "../../../../types/domain/requestFieldMeaning";
+import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";
+
 export interface ScannedFormFieldParams {
-    readonly name: string;
-    readonly originalName: string;
-    readonly type: SemanticType;
-    readonly required: boolean;
-    readonly nullable: boolean;
-    readonly validationAst: readonly ValidationRuleNode[];
-    readonly fileConstraints: FileValidationConstraints | null;
+    readonly name: RequestFieldName;
+    readonly sourceName: PropertyName;
+    readonly meaning: RequestFieldMeaning;
+    readonly presence: RequestFieldPresence;
+    readonly validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[];
+    readonly fileConstraints: FileValidationConstraints;
 }
+
 export class ScannedFormFieldDescriptor implements RequestField {
-    public readonly name: string;
-    public readonly sourceName: string;
-    public readonly type: SemanticType;
-    public readonly required: boolean;
-    public readonly nullable: boolean;
-    public readonly validationAst: readonly ValidationRuleNode[];
-    public readonly fileConstraints: FileValidationConstraints | null;
-    constructor({ name, originalName, type, required, nullable, validationAst, fileConstraints }: ScannedFormFieldParams) {
-        this.name = name;
-        this.sourceName = originalName;
-        this.required = required;
-        this.nullable = nullable;
-        this.type = nullable && type.kind !== 'nullable' ? new NullableType(type) : type;
-        this.validationAst = Object.freeze([...validationAst]);
-        this.fileConstraints = fileConstraints;
+    public readonly name: RequestFieldName;
+    public readonly sourceName: PropertyName;
+    public readonly meaning: RequestFieldMeaning;
+    public readonly presence: RequestFieldPresence;
+    public readonly validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[];
+    public readonly fileConstraints: FileValidationConstraints;
+
+    constructor(params: ScannedFormFieldParams) {
+        this.name = params.name;
+        this.sourceName = params.sourceName;
+        this.meaning = params.meaning;
+        this.presence = params.presence;
+        this.validation = Object.freeze([...params.validation]);
+        this.fileConstraints = Object.freeze([...params.fileConstraints]);
         Object.freeze(this);
     }
-    public static create({
-        name,
-        transformedName,
-        originalName = name,
-        type,
-        required = false,
-        nullable = false,
-        validationAst,
-        fileConstraints
-    }: {
-        readonly name: string;
-        readonly transformedName?: string;
-        readonly originalName?: string;
-        readonly type: SemanticType;
-        readonly required?: boolean;
-        readonly nullable?: boolean;
-        readonly validationAst?: readonly ValidationRuleNode[];
-        readonly fileConstraints?: FileValidationConstraints | null;
-    }): ScannedFormFieldDescriptor {
-        const resolvedValidationAst = validationAst && validationAst.length > 0
-            ? Object.freeze([...validationAst])
-            : undefined;
+
+    private static semantic(
+        name: string,
+        sourceName: string,
+        type: SemanticType,
+        presence: RequestFieldPresence,
+        validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[] = [],
+        fileConstraints: FileValidationConstraints = []
+    ): ScannedFormFieldDescriptor {
         return new ScannedFormFieldDescriptor({
-            name: transformedName === undefined ? toCamelCase(originalName) : transformedName,
-            originalName,
-            type,
-            required,
-            nullable,
-            validationAst: resolvedValidationAst ?? [],
-            fileConstraints: fileConstraints === undefined ? null : fileConstraints
+            name: SemanticValueFactory.requestFieldName(name),
+            sourceName: SemanticValueFactory.propertyName(sourceName),
+            meaning: RequestFieldMeaningFactory.fromSemanticType(type),
+            presence,
+            validation,
+            fileConstraints
         });
     }
+
+    public static create(params: ScannedFormFieldParams): ScannedFormFieldDescriptor {
+        return new ScannedFormFieldDescriptor(params);
+    }
+
     public static required(name: string, type: SemanticType, transformedName?: string): ScannedFormFieldDescriptor {
-        return new ScannedFormFieldDescriptor({
-            name: transformedName ?? name,
-            originalName: name,
-            type,
-            required: true,
-            nullable: false,
-            validationAst: [],
-            fileConstraints: null
-        });
-    }
-    public static optional(name: string, type: SemanticType, transformedName?: string): ScannedFormFieldDescriptor {
-        return new ScannedFormFieldDescriptor({
-            name: transformedName ?? name,
-            originalName: name,
-            type,
-            required: false,
-            nullable: true,
-            validationAst: [],
-            fileConstraints: null
-        });
-    }
-    public static file(name: string, constraints?: FileValidationConstraints, required = true): ScannedFormFieldDescriptor {
-        return new ScannedFormFieldDescriptor({
+        return ScannedFormFieldDescriptor.semantic(
+            transformedName ?? toCamelCase(name),
             name,
-            originalName: name,
-            type: new PrimitiveType(PrimitiveKind.FILE),
-            required,
-            nullable: !required,
-            validationAst: [],
-            fileConstraints: constraints === undefined ? null : Object.freeze({ ...constraints })
-        });
+            type,
+            RequestFieldPresenceFactory.required(false)
+        );
+    }
+
+    public static optional(name: string, type: SemanticType, transformedName?: string): ScannedFormFieldDescriptor {
+        return ScannedFormFieldDescriptor.semantic(
+            transformedName ?? toCamelCase(name),
+            name,
+            type,
+            RequestFieldPresenceFactory.optional(true)
+        );
+    }
+
+    public static fromResolved(
+        name: string,
+        type: SemanticType,
+        presence: RequestFieldPresence,
+        validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[] = [],
+        transformedName?: string
+    ): ScannedFormFieldDescriptor {
+        return ScannedFormFieldDescriptor.semantic(
+            transformedName ?? toCamelCase(name),
+            name,
+            type,
+            presence,
+            validation
+        );
+    }
+
+    public static fromSemantic(
+        name: string,
+        type: SemanticType,
+        required: boolean,
+        nullable: boolean,
+        validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[] = [],
+        fileConstraints: FileValidationConstraints = [],
+        transformedName?: string
+    ): ScannedFormFieldDescriptor {
+        const presence = required
+            ? RequestFieldPresenceFactory.required(nullable)
+            : RequestFieldPresenceFactory.optional(nullable);
+        return ScannedFormFieldDescriptor.semantic(
+            transformedName ?? toCamelCase(name),
+            name,
+            type,
+            presence,
+            validation,
+            fileConstraints
+        );
+    }
+
+    public static file(name: string, constraints: FileValidationConstraints, required = true): ScannedFormFieldDescriptor {
+        return ScannedFormFieldDescriptor.semantic(
+            name,
+            name,
+            new PrimitiveType(PrimitiveKind.FILE),
+            required ? RequestFieldPresenceFactory.required(false) : RequestFieldPresenceFactory.optional(true),
+            [],
+            constraints
+        );
     }
 }

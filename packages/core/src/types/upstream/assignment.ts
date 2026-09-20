@@ -15,3 +15,20 @@ export type Assignment = {
   readonly expression: ResolvedExpression;
   readonly source: SourceSpan;
 };
+
+
+export type AssignmentTargetVisitor<R> = {
+  readonly variable: (target: Extract<AssignmentTarget, { readonly kind: 'variable' }>) => R;
+  readonly variables: (target: Extract<AssignmentTarget, { readonly kind: 'variables' }>) => R;
+  readonly property: (target: Extract<AssignmentTarget, { readonly kind: 'property' }>) => R;
+  readonly index: (target: Extract<AssignmentTarget, { readonly kind: 'index' }>) => R;
+};
+
+export function matchAssignmentTarget<R>(target: AssignmentTarget, visitor: AssignmentTargetVisitor<R>): R {
+  switch (target.kind) {
+    case 'variable': return visitor.variable(target);
+    case 'variables': return visitor.variables(target);
+    case 'property': return visitor.property(target);
+    case 'index': return visitor.index(target);
+  }
+}

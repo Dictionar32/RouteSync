@@ -7,6 +7,7 @@
  */
 
 import { ResolvedSemanticTypeBase } from './base';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { ResolvedSemanticType } from './catamorphism';
 import type {
     ResolvedObjectTypeParams,
@@ -33,7 +34,7 @@ export class ResolvedObjectType extends ResolvedSemanticTypeBase {
     public static plain(fields: readonly ResolvedProperty[] = []): ResolvedObjectType {
         return new ResolvedObjectType({
             fields,
-            identity: { kind: 'plain', name: 'Object' }
+            identity: { kind: 'plain', name: SemanticValueFactory.domainName('Object') }
         });
     }
 
@@ -42,7 +43,12 @@ export class ResolvedObjectType extends ResolvedSemanticTypeBase {
         name: string,
         fields: readonly ResolvedProperty[] = []
     ): ResolvedObjectType {
-        return new ResolvedObjectType({ fields, identity: { kind, name } });
+        const identity = kind === 'resource'
+            ? { kind, name: SemanticValueFactory.resourceName(name) }
+            : kind === 'model'
+                ? { kind, name: SemanticValueFactory.modelName(name) }
+                : { kind, name: SemanticValueFactory.responseTypeName(name) };
+        return new ResolvedObjectType({ fields, identity });
     }
 }
 

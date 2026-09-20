@@ -63,11 +63,9 @@ export type ResourceBindingResolvedStep =
   | { readonly kind: 'relation'; readonly relation: RelationName; readonly access: ResourceAccessMode; readonly edge: BoundStepEdge }
   | { readonly kind: 'method'; readonly method: MethodName; readonly arguments: readonly ResourceExpressionModel[]; readonly access: ResourceAccessMode; readonly edge: BoundStepEdge; readonly result: ResourceMethodResult };
 
-export interface ResourceBindingPath {
-  readonly root: ResourceBindingRoot;
-  readonly steps: readonly ResourceBindingUnresolvedStep[];
-  readonly origin: ResourceBindingOriginState;
-}
+export type ResourceBindingPath =
+  | { readonly kind: 'path'; readonly root: ResourceBindingRoot; readonly steps: readonly ResourceBindingUnresolvedStep[]; readonly origin: ResourceBindingOriginState }
+  | { readonly kind: 'derived_expression'; readonly expression: ResourceExpressionModel; readonly origin: ResourceBindingOriginState };
 
 export type ResourceBindingSemanticTarget =
   | { readonly kind: 'model'; readonly model: ResourceBindingModelReference }
@@ -83,7 +81,7 @@ export interface ResourceBindingResolvedValue {
 }
 
 export type ResourceBindingResolution =
-  | { readonly kind: 'resolved'; readonly path: ResourceBindingPath; readonly steps: readonly ResourceBindingResolvedStep[]; readonly value: ResourceBindingResolvedValue }
+  | { readonly kind: 'resolved'; readonly path: Extract<ResourceBindingPath, { readonly kind: 'path' }>;  readonly steps: readonly ResourceBindingResolvedStep[]; readonly value: ResourceBindingResolvedValue }
   | { readonly kind: 'pending'; readonly path: ResourceBindingPath }
   | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'unresolved_symbol' | 'unresolved_property' | 'unresolved_relation' | 'unresolved_method' };
 

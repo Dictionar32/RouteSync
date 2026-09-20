@@ -95,9 +95,9 @@ function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticTyp
 }
 function property(name: string, type: SemanticType): ObjectProperty {
     return ScannedObjectProperty.create({
-        name,
+        name: { kind: 'property_name', value: name },
         type,
-        required: true,
+        description: '',
         origin: { kind: 'derived', reason: 'semantic_resolution' }
     });
 }

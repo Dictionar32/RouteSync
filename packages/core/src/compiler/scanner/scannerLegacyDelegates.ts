@@ -15,7 +15,7 @@ import type {
     ParsedColumn,
     RouteParameter
 } from "../../types/route";
-import type { RequestType } from "../artifacts/RequestTypesArtifact";
+import type { FormRequestSource } from "../../types/domain/request";
 import {
     ChannelScanner,
     ControllerScanner,
@@ -38,8 +38,8 @@ export class ScannerLegacyDelegates {
         return ChannelScanner.scan(this.projectRoot);
     }
 
-    protected async scanRoutes(requestTypes: readonly RequestType[] = []): Promise<readonly ParsedRoute[]> {
-        return RouteScanner.scan(this.projectRoot, requestTypes);
+    protected async scanRoutes(formRequests: readonly FormRequestSource[] = []): Promise<readonly ParsedRoute[]> {
+        return RouteScanner.scan(this.projectRoot, formRequests);
     }
 
     protected async scanControllers() {
@@ -58,7 +58,7 @@ export class ScannerLegacyDelegates {
         return ResourceScanner.scan(this.projectRoot, modelSymbolTable);
     }
 
-    protected async scanFormRequests(): Promise<readonly RequestType[]> {
+    protected async scanFormRequests(): Promise<readonly FormRequestSource[]> {
         return FormRequestScanner.scan(this.projectRoot, this.interner);
     }
 

@@ -29,7 +29,7 @@ function resolveValue(meta: Extract<ResolverMeta, { kind: 'method_call' }>, cont
       ? { kind: 'model', name: target.model }
       : { kind: 'unbound' },
     semanticType: semanticResolutionToBoundType(target),
-    isOptional: true,
+    availability: { kind: 'present_when_condition', condition: SemanticValueFactory.conditionExpression(meta.name.value) },
   });
   return { ...target, boundAst };
 }
@@ -41,24 +41,25 @@ function resolveRelation(
   const relationName = relationArgument(meta);
   if (context.scope.kind !== 'model') return unsupported('whenLoaded relation has no model context');
   const model = context.scope.model;
-  const relationKey = SemanticValueFactory.propertyName(relationName);
-  const property = model.semantic.surface.byName.get(relationKey);
-  if (property === undefined || property.kind !== 'relation') {
+  const relationKey = SemanticValueFactory.relationName(relationName);
+  const property = model.semantic.surface.relationsByName.lookup(relationKey);
+  if (property.kind === 'missing') {
     return unsupported(`Relation ${relationName} is not declared on ${model.name.value}`);
   }
 
-  const targetModel = property.targetModel;
+  const targetModel = property.value.targetModel;
   const targetSymbol = context.symbolTable.get(targetModel.value);
   if (targetSymbol === undefined) return unsupported(`Relation target ${targetModel.value} is not a verified model`);
-  const cardinality = property.multiplicity;
+  const cardinality = property.value.multiplicity;
   const definition = targetSymbol.node.semantic;
   const relationNode = BoundSemanticFactory.relation({
     sourceModel: model.name,
     relationName: SemanticValueFactory.relationName(relationName),
-    relationType: property.type,
+    relationType: property.value.type,
     targetModel,
     cardinality,
     nullability: { kind: 'nullable' },
+    semanticType: property.value.semanticType,
   });
   return SemanticResolutionFactory.model({
     status: 'resolved', confidence: 100,
@@ -68,11 +69,8 @@ function resolveRelation(
       conditionExpression: SemanticValueFactory.conditionExpression(`whenLoaded('${relationName}')`),
       target: relationNode,
       relationModel: { kind: 'model', name: targetModel },
-      semanticType: semanticResolutionToBoundType(SemanticResolutionFactory.model({
-        status: 'resolved', confidence: 100, model: targetModel, definition, cardinality,
-        boundAst: relationNode, trace: [],
-      })),
-      isOptional: true,
+      availability: { kind: 'present_when_loaded', relation: relationKey },
+      semanticType: property.value.semanticType,
     }),
     trace: [{ source: 'ConditionalWrapperResolver', rule: 'Relation shorthand lookup', input: relationName, output: targetModel.value }],
   });

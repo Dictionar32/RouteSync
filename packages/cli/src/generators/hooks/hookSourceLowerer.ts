@@ -72,18 +72,13 @@ export function* lowerHookSource(
 
   for (const group of graph.resourceGroups) {
     const { groupName, titleName } = group;
-    const primaryRoute =
-      group.all.find(r => r.crudRole === 'show') ??
-      group.all.find(r => r.crudRole === 'index') ??
-      group.all[0];
-    if (primaryRoute) {
-      yield `/**`;
-      yield ` * @provenance ${primaryRoute.contract.provenance.summary}`;
-      if (primaryRoute.contract.provenance.route?.file) {
-        yield ` * @see ${primaryRoute.contract.provenance.route.file}#L${primaryRoute.contract.provenance.route.line}`;
-      }
-      yield ` */`;
+    const primaryRoute = group.primaryRoute;
+    yield `/**`;
+    yield ` * @provenance ${primaryRoute.contract.provenance.summary}`;
+    if (primaryRoute.contract.provenance.route?.file) {
+      yield ` * @see ${primaryRoute.contract.provenance.route.file}#L${primaryRoute.contract.provenance.route.line}`;
     }
+    yield ` */`;
     yield `export const use${titleName} = hooks.${groupName}`;
   }
 

@@ -8,17 +8,22 @@ export function resolveResourceBindingOrigin(
   context: readonly ResourceBindingDefinitionContext[],
   visited: readonly VariableName[] = []
 ): ResourceBindingOriginState {
-  if (expression.semantic.kind !== 'requires_binding') return rejected('unsupported_expression');
+  if (expression.semantic.kind !== 'requires_binding') return unresolved({ kind: 'unknown', reason: 'no_binding_origin' });
   const requirement = expression.semantic.requirement;
   switch (requirement.kind) {
     case 'static_method': return known([{ kind: 'model', model: requirement.model }]);
-    case 'variable': return resolveVariable(requirement.name, context, visited);
+    case 'variable': return requirement.name.value === '$this'
+      ? known([{ kind: 'controller_this' }])
+      : resolveVariable(requirement.name, context, visited);
     case 'property': return resolveResourceBindingOrigin(requirement.receiver, context, visited);
     case 'method': return resolveResourceBindingOrigin(requirement.receiver, context, visited);
     case 'array_access': return resolveResourceBindingOrigin(requirement.target, context, visited);
-    case 'function_call': return rejected('unsupported_expression');
+    case 'function_call': return mergeStates(...requirement.arguments.map(argument => resolveResourceBindingOrigin(argument, context, visited)));
     case 'cast': return resolveResourceBindingOrigin(requirement.operand, context, visited);
-    case 'computation': return rejected('unsupported_expression');
+    case 'computation': return mergeStates(
+      resolveResourceBindingOrigin(requirement.left, context, visited),
+      resolveResourceBindingOrigin(requirement.right, context, visited)
+    );
     case 'conditional': return mergeStates(
       resolveResourceBindingOrigin(requirement.truthy, context, visited),
       resolveResourceBindingOrigin(requirement.falsy, context, visited)
@@ -28,7 +33,18 @@ export function resolveResourceBindingOrigin(
       resolveResourceBindingOrigin(requirement.left, context, visited),
       resolveResourceBindingOrigin(requirement.right, context, visited)
     );
-    case 'nested_object': return rejected('unsupported_expression');
+    case 'nested_object': return mergeStates(...requirement.fields.map(field => resolveResourceBindingOrigin(field.value, context, visited)));
+    case 'nested_array': return mergeStates(...requirement.entries.map(entry => resolveResourceBindingOrigin(entry.value, context, visited)));
+    case 'unary': return resolveResourceBindingOrigin(requirement.operand, context, visited);
+    case 'match': return mergeStates(
+      resolveResourceBindingOrigin(requirement.subject, context, visited),
+      ...requirement.arms.flatMap(arm => resolveMatchArmOrigins(arm, context, visited))
+    );
+    case 'class_reference': return unresolved({ kind: 'unknown', reason: 'no_binding_origin' });
+    case 'construct': return mergeStates(...requirement.arguments.map(argument => resolveResourceBindingOrigin(argument, context, visited)));
+    case 'instance_of': return resolveResourceBindingOrigin(requirement.expression, context, visited);
+    case 'closure': return unresolved({ kind: 'unknown', reason: 'no_binding_origin' });
+    case 'arrow_function': return resolveResourceBindingOrigin(requirement.body, context, visited);
   }
 }
 
@@ -37,7 +53,6 @@ function resolveVariable(
   context: readonly ResourceBindingDefinitionContext[],
   visited: readonly VariableName[]
 ): ResourceBindingOriginState {
-  if (variable.value === '$this') return rejected('unsupported_expression');
   if (visited.some(item => item.value === variable.value)) return rejected('cyclic_definition');
   const entry = context.find(item => item.variable.value === variable.value);
   if (!entry) return unresolved({ kind: 'unknown', reason: 'external_variable' });
@@ -50,7 +65,7 @@ function mergeDefinitions(
   visited: readonly VariableName[]
 ): ResourceBindingOriginState {
   const states = definitions.map(definition => resolveResourceBindingOrigin(definition.expression, context, visited));
-  return states.length === 0 ? unresolved({ kind: 'unknown', reason: 'external_variable' }) : mergeStates(...states);
+  return states.length === 0 ? unresolved({ kind: 'unknown', reason: 'no_binding_origin' }) : mergeStates(...states);
 }
 
 function mergeStates(...states: readonly ResourceBindingOriginState[]): ResourceBindingOriginState {
@@ -71,11 +86,36 @@ function mergeStates(...states: readonly ResourceBindingOriginState[]): Resource
 function dedupe(origins: readonly ResourceBindingModelOrigin[]): ResourceBindingModelOrigin[] {
   const result: ResourceBindingModelOrigin[] = [];
   for (const origin of origins) {
-    const key = `${origin.kind}:${origin.kind === 'model' ? origin.model.value : origin.kind === 'resource' ? origin.resource.value : origin.kind === 'variable' ? origin.variable.value : origin.reason}`;
-    const exists = result.some(item => `${item.kind}:${item.kind === 'model' ? item.model.value : item.kind === 'resource' ? item.resource.value : item.kind === 'variable' ? item.variable.value : item.reason}` === key);
+    const key = originKey(origin);
+    const exists = result.some(item => originKey(item) === key);
     if (!exists) result.push(origin);
   }
   return result;
+}
+
+
+function resolveMatchArmOrigins(
+  arm: import('../../../../types/domain/expressions').ResourceMatchArm,
+  context: readonly ResourceBindingDefinitionContext[],
+  visited: readonly VariableName[]
+): readonly ResourceBindingOriginState[] {
+  if (arm.kind === 'conditional') {
+    return [
+      ...arm.conditions.map(condition => resolveResourceBindingOrigin(condition, context, visited)),
+      resolveResourceBindingOrigin(arm.value, context, visited)
+    ];
+  }
+  return [resolveResourceBindingOrigin(arm.value, context, visited)];
+}
+
+function originKey(origin: ResourceBindingModelOrigin): string {
+  switch (origin.kind) {
+    case 'controller_this': return 'controller_this';
+    case 'model': return `model:${origin.model.value}`;
+    case 'resource': return `resource:${origin.resource.value}`;
+    case 'variable': return `variable:${origin.variable.value}`;
+    case 'unknown': return `unknown:${origin.reason}`;
+  }
 }
 
 function known(origins: readonly ResourceBindingModelOrigin[]): ResourceBindingOriginState {

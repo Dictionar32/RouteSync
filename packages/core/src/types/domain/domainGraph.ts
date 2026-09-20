@@ -2,8 +2,9 @@ import type { RouteManifest } from "./base";
 import type { EndpointContract } from "./contracts";
 import type { ParsedModel } from "./database";
 import type { ParsedRoute } from "./routes";
+import type { DomainOperationGraph } from './operationGraph';
+import { createDomainOperationGraph } from './operationGraph';
 import {
-  ResourceGroupKind,
   type FullCrudResourceGroupDescriptor,
   type ReadOnlyCrudResourceGroupDescriptor,
   type FlexibleCrudResourceGroupDescriptor,
@@ -52,26 +53,13 @@ export function createResourceGroupGraph<TRoute = ParsedRoute>(
   const crud: CrudResourceGroupDescriptor<TRoute>[] = [];
 
   for (const group of groups) {
-    switch (group.kind) {
-      case ResourceGroupKind.FullCrud:
-        fullCrud.push(group);
-        crud.push(group);
-        break;
-      case ResourceGroupKind.ReadOnlyCrud:
-        readOnlyCrud.push(group);
-        crud.push(group);
-        break;
-      case ResourceGroupKind.FlexibleCrud:
-        flexibleCrud.push(group);
-        crud.push(group);
-        break;
-      case ResourceGroupKind.Singleton:
-        singleton.push(group);
-        break;
-      case ResourceGroupKind.Custom:
-        custom.push(group);
-        break;
-    }
+    group.matchFineGrained({
+      full_crud: value => { fullCrud.push(value); crud.push(value); },
+      read_only_crud: value => { readOnlyCrud.push(value); crud.push(value); },
+      flexible_crud: value => { flexibleCrud.push(value); crud.push(value); },
+      singleton: value => { singleton.push(value); },
+      custom: value => { custom.push(value); }
+    });
   }
 
   return Object.freeze({
@@ -102,4 +90,14 @@ export interface ClassifiedDomainGraph<TRoute = ParsedRoute> {
   readonly resourceGroupMap: ReadonlyMap<string, ResourceGroupDescriptor<TRoute>>;
   readonly resourceGroupGraph: ResourceGroupGraph<TRoute>;
   readonly models: readonly ParsedModel[];
+  readonly operations: DomainOperationGraph;
+}
+
+export function attachDomainOperations<TRoute extends ParsedRoute>(
+  graph: Omit<ClassifiedDomainGraph<TRoute>, 'operations'>
+): ClassifiedDomainGraph<TRoute> {
+  return Object.freeze({
+    ...graph,
+    operations: createDomainOperationGraph(graph.manifest.routes)
+  });
 }

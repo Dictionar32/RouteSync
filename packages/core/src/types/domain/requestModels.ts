@@ -60,9 +60,9 @@ export class RequestHeaders implements Iterable<HeaderDeclaration> {
     return new RequestHeaders(entries);
   }
 
-  public get(name: string): string {
+  public lookup(name: string): Lookup<HeaderDeclaration> {
     const item = this._entries.get(name.toLowerCase());
-    return item !== undefined ? item.value : '';
+    return item === undefined ? { kind: 'missing' } : { kind: 'found', value: item };
   }
 
   public has(name: string): boolean {
@@ -90,6 +90,7 @@ export class RequestHeaders implements Iterable<HeaderDeclaration> {
 import type { RouteParameterLocation } from '../upstream/route';
 import type { PropertyName, RouteParameterName } from '../upstream/names';
 import type { NumberValue, StringValue, TruthValue } from '../upstream/valueObjects';
+import type { Lookup } from '../upstream/collections';
 
 /**
  * Runtime request values. The runtime boundary preserves value meaning instead

@@ -1,10 +1,10 @@
-import type { FormAction, RequestType } from "../../compiler/artifacts/RequestTypesArtifact";
+import type { RequestType } from "../../compiler/artifacts/RequestTypesArtifact";
 import type { ObjectType } from "../../compiler/types/SemanticType";
 import type { BroadcastChannelDescriptor } from "./channels";
-import type { EndpointContract } from "./contracts";
 import type { ParsedModel } from "./database";
 import type { ParsedResource } from "./expressions";
 import type { ParsedRoute } from "./routes";
+import type { ResourceGroupDescriptor } from "./resourceGroupDescriptors";
 import type { PageValue } from "./pageValues";
 import type { DomainName, ModelName, ResourceName, RouteName, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
 import type { TypeExpression } from "../upstream/typeVocabulary";
@@ -89,12 +89,12 @@ export interface PageConfig {
 /**
  * ResourceRouteGroup: Kelompok rute yang terikat pada satu nama resource kanonikal.
  */
-export interface ResourceRouteGroup {
-  readonly resourceName: ResourceName;
-  readonly formTypeName: string;
-  readonly routes: readonly ParsedRoute[];
-  readonly formActions: readonly FormAction[]; // ✅ Guaranteed directly from Upstream PHP Scanner
-}
+/**
+ * Canonical resource-group domain model.
+ * Classification, identity, capabilities and routes are one semantic ADT;
+ * consumers must not reconstruct a group kind from a route array.
+ */
+export type ResourceRouteGroup = ResourceGroupDescriptor<ParsedRoute>;
 
 export type FrontendConfiguration =
   | { readonly kind: 'disabled' }
@@ -104,7 +104,6 @@ export interface RouteManifest {
   readonly version: string;
   readonly baseURL: string;
   readonly routes: readonly ParsedRoute[];
-  readonly contracts: readonly EndpointContract[];           // ✅ Pure CDA Top-Level Manifest Contracts SSOT
   readonly resources: readonly ParsedResource[];
   readonly models: readonly ParsedModel[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)

@@ -1,46 +1,29 @@
 /**
- * requestIrTypes.ts
+ * Request domain IR.
  *
- * Request domain IR interfaces, action specifications, and validation rules.
- * Conforms to Level 7 Subatomic Architecture & Rule 14 (<= 100 lines).
- *
- * @module core/types/ir/requestIrTypes
+ * Request meaning is carried by the upstream ADT and fields. This IR does not
+ * re-classify actions or maintain parallel validation bags.
  */
 
-import type { ResourceFieldIR } from './resourceIrTypes';
-import type { ZodValidationIR, LaravelValidationIR, CustomValidationIR } from './validationIrTypes';
-
-export interface ValidationRules {
-    readonly type: 'required' | 'optional' | 'nullable' | 'array' | 'object' | 'custom';
-    readonly rule?: string;
-    readonly message?: string;
-}
-
-export interface ValidationSchemas {
-    readonly zod?: ZodValidationIR;
-    readonly laravel?: LaravelValidationIR;
-    readonly custom?: readonly CustomValidationIR[];
-}
+import type { RequestField } from '../upstream/request';
+import type { ActionName, RequestId, RequestName, ControllerName, RouteName, SourceFilePath } from './nominalVocabulary';
+import type { GenerationTimestamp } from '../upstream/valueObjects';
 
 export interface RequestActionIR {
-    readonly name: 'Create' | 'Update' | 'Delete' | 'Custom';
-    readonly customName?: string;
-    readonly fields: readonly ResourceFieldIR[];
-    readonly rules: readonly ValidationRules[];
-    readonly dependencies?: readonly string[];
+    readonly name: ActionName;
+    readonly fields: readonly RequestField[];
 }
 
 export interface RequestMetadata {
-    readonly sourceFile: string;
-    readonly controller?: string;
-    readonly routes: readonly string[];
-    readonly generated_at: string;
+    readonly sourceFile: SourceFilePath;
+    readonly controller: ControllerName;
+    readonly routes: readonly RouteName[];
+    readonly generated_at: GenerationTimestamp;
 }
 
 export interface RequestIR {
-    readonly id: string;
-    readonly name: string;
+    readonly id: RequestId;
+    readonly name: RequestName;
     readonly actions: readonly RequestActionIR[];
-    readonly validation: ValidationSchemas;
     readonly metadata: RequestMetadata;
 }

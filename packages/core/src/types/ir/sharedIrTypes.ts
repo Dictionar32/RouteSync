@@ -1,31 +1,23 @@
-/**
- * sharedIrTypes.ts
- *
- * Shared Type IR, Enum IR, and Import IR contracts.
- * Conforms to Level 7 Subatomic Architecture & Rule 14 (<= 100 lines).
- *
- * @module core/types/ir/sharedIrTypes
- */
+/** Closed shared-type and import projections. */
 
 import type { SemanticType } from '../semantic';
 
-export interface TypeDefinitionContract {
-    readonly fields: Readonly<Record<string, SemanticType>>;
-    readonly fieldEntries?: readonly (readonly [string, SemanticType])[];
-    readonly extends: readonly string[];
-    readonly implements: readonly string[];
-}
-
 export type TypeDefinition = {
-    fields?: Record<string, SemanticType>;
-    fieldEntries?: readonly (readonly [string, SemanticType])[];
-    extends?: string[];
-    implements?: string[];
+    readonly kind: 'interface' | 'type' | 'class';
+    readonly fields: readonly {
+        readonly name: string;
+        readonly type: SemanticType;
+    }[];
+    readonly inheritance: readonly {
+        readonly kind: 'extends' | 'implements';
+        readonly target: string;
+    }[];
 };
+
+export type TypeDefinitionContract = TypeDefinition;
 
 export interface SharedTypeIR {
     readonly name: string;
-    readonly type: 'interface' | 'type' | 'class';
     readonly definition: TypeDefinition;
     readonly usedBy: readonly string[];
 }
@@ -33,7 +25,7 @@ export interface SharedTypeIR {
 export interface EnumValueIR {
     readonly key: string;
     readonly value: string | number;
-    readonly description?: string;
+    readonly description: string;
 }
 
 export interface EnumMetadata {
@@ -49,10 +41,12 @@ export interface EnumIR {
     readonly metadata: EnumMetadata;
 }
 
+export type ImportBindingIR =
+    | { readonly kind: 'named'; readonly name: string; readonly alias: string }
+    | { readonly kind: 'default'; readonly name: string };
+
 export interface ImportSpecIR {
-    readonly name: string;
-    readonly alias?: string;
-    readonly isDefault?: boolean;
+    readonly binding: ImportBindingIR;
 }
 
 export interface ImportIR {

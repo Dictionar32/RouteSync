@@ -11,10 +11,10 @@ export function tryResolveSpecialPropertyAccess(
   targetRes: SemanticResolution,
 ): SemanticResolution | null {
   if (targetRes.kind === 'object' || targetRes.kind === 'query_projection') {
-    const field = targetRes.surface.byName.get(SemanticValueFactory.responseFieldName(prop));
-    if (field === undefined) return null;
-    const name = field.name;
-    const semanticType = field.type;
+    const field = targetRes.surface.byName.lookupField(SemanticValueFactory.responseFieldName(prop));
+    if (field.kind === 'missing') return null;
+    const name = field.value.name;
+    const semanticType = field.value.type;
     const boundAst = targetRes.kind === 'query_projection'
       ? BoundSemanticFactory.projectionField({ sourceModel: targetRes.sourceModel, field: name, semanticType })
       : targetRes.boundAst;

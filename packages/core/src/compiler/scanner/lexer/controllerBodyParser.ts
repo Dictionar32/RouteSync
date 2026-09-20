@@ -3,11 +3,18 @@ import type { TokenDescriptor, PhpAstValue, PhpStatement, PhpBlock, AstIdentifie
 import { createAstIdentifier } from './phpAstTypes';
 import { parsePhpArray } from './arrayParser';
 import type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, ControllerDataflowAst, ControllerVariableDefinition, ControllerVariableReference } from './controllerBodyAstTypes';
+import type { ControllerParameterAst } from './controllerAstTypes';
+import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 import { createHttpErrorStatus, createValidationRuleLiteral } from './controllerBodyAstTypes';
 import { classifyAstTokens, classifyPhpBlock } from './astClassifier';
 import { analyzeControllerDataflow } from './controllerDataflowAnalyzer';
 
-export function parseControllerBody(source: string, tokens: readonly TokenDescriptor[], parameters: readonly AstIdentifier[]): ControllerBodyAst {
+export function parseControllerBody(
+    source: string,
+    tokens: readonly TokenDescriptor[],
+    parameters: readonly AstIdentifier[],
+    parameterSemantics: ReadonlyMap<AstIdentifier, ControllerVariableSemantic> = new Map()
+): ControllerBodyAst {
     const validations: InlineValidationAst[] = [];
     const errors: ControllerErrorAst[] = [];
 
@@ -24,7 +31,7 @@ export function parseControllerBody(source: string, tokens: readonly TokenDescri
     }
 
     const parsedBlock = classifyPhpBlock(tokens);
-    const dataflow = buildDataflow(parsedBlock, parameters);
+    const dataflow = buildDataflow(parsedBlock, parameters, parameterSemantics);
     return Object.freeze({
         statements: parsedBlock.statements,
         validations: Object.freeze(validations),
@@ -33,8 +40,12 @@ export function parseControllerBody(source: string, tokens: readonly TokenDescri
     });
 }
 
-function buildDataflow(block: PhpBlock, parameters: readonly AstIdentifier[]): ControllerDataflowAst {
-    return analyzeControllerDataflow(block, parameters);
+function buildDataflow(
+    block: PhpBlock,
+    parameters: readonly AstIdentifier[],
+    parameterSemantics: ReadonlyMap<AstIdentifier, ControllerVariableSemantic>
+): ControllerDataflowAst {
+    return analyzeControllerDataflow(block, parameters, parameterSemantics);
 }
 
 function toValidations(

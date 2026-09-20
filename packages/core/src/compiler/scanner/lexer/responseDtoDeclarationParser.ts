@@ -28,7 +28,7 @@ function parsePropertyType(value: string): PhpPropertyTypeAst {
         case 'int': return { kind: 'primitive', name: 'int', nullable };
         case 'float': return { kind: 'primitive', name: 'float', nullable };
         case 'bool': return { kind: 'primitive', name: 'bool', nullable };
-        case 'mixed': return { kind: 'mixed', nullable: true };
+        case 'mixed': return { kind: 'mixed', nullable };
         default: return { kind: 'named', name: createAstIdentifier(name), nullable };
     }
 }

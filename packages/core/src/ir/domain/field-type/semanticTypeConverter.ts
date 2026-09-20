@@ -1,36 +1,22 @@
-/**
- * semanticTypeConverter.ts
- *
- * Converts semantic type models to TypeIR trees.
- *
- * @module core/ir/domain/field-type
- */
-
-import type {
-    TypeIR,
-    ResolvedSemanticType
-} from '../../../types/ir';
-import { matchResolvedSemanticType } from '../../../types/ir';
-import type { DiagnosticCollector } from '../irTypes';
+/** Projects the canonical SemanticType ADT without semantic reclassification. */
+import type { TypeIR } from '../../../types/ir';
+import type { SemanticType } from '../../../compiler/types/SemanticType';
 import { SemanticTypeResolvers } from '../SemanticTypeResolvers';
 
-export function convertSemanticToTypeIR(
-    semanticType: ResolvedSemanticType,
-    diagnostics: DiagnosticCollector
-): TypeIR {
-    try {
-        return matchResolvedSemanticType(semanticType, {
-            primitive: p => SemanticTypeResolvers.resolvePrimitive(p),
-            resource: r => SemanticTypeResolvers.resolveResource(r),
-            model: m => SemanticTypeResolvers.resolveModel(m),
-            object: o => SemanticTypeResolvers.resolveObject(o, (type) => convertSemanticToTypeIR(type, diagnostics)),
-            array: a => SemanticTypeResolvers.resolveArray(a, (type) => convertSemanticToTypeIR(type, diagnostics)),
-            union: u => SemanticTypeResolvers.resolveUnion(u, (type) => convertSemanticToTypeIR(type, diagnostics)),
-            literal: l => SemanticTypeResolvers.resolveLiteral(l),
-            nullable: n => SemanticTypeResolvers.resolveNullable(n, (type) => convertSemanticToTypeIR(type, diagnostics))
-        });
-    } catch (error) {
-        diagnostics.error(`Error resolving semantic type: ${error}`, { semanticType, error });
-        return { kind: 'primitive', type: 'unknown' };
-    }
+export function convertSemanticToTypeIR(semanticType: SemanticType): TypeIR {
+  return semanticType.accept({
+    primitive: value => SemanticTypeResolvers.primitive(value),
+    jsonValue: value => SemanticTypeResolvers.jsonValue(value),
+    optional: value => SemanticTypeResolvers.optional(value, convertSemanticToTypeIR),
+    nullable: value => SemanticTypeResolvers.nullable(value, convertSemanticToTypeIR),
+    never: value => SemanticTypeResolvers.never(value),
+    error: value => SemanticTypeResolvers.error(value),
+    reference: value => SemanticTypeResolvers.reference(value),
+    union: value => SemanticTypeResolvers.union(value, convertSemanticToTypeIR),
+    intersection: value => SemanticTypeResolvers.intersection(value, convertSemanticToTypeIR),
+    readonlyCollection: value => SemanticTypeResolvers.readonlyCollection(value, convertSemanticToTypeIR),
+    mutableCollection: value => SemanticTypeResolvers.mutableCollection(value, convertSemanticToTypeIR),
+    generic: value => SemanticTypeResolvers.generic(value, convertSemanticToTypeIR),
+    object: value => SemanticTypeResolvers.object(value, convertSemanticToTypeIR),
+  });
 }

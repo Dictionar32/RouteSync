@@ -26,6 +26,7 @@ export interface ScannedModelParams {
     readonly softDeletes: boolean;
     readonly timestamps: boolean;
     readonly columns: readonly ParsedColumn[];
+    readonly columnFacts: readonly import('../../../../../types/upstream/modelSourceFacts').ModelColumnFact[];
     readonly fillable: readonly string[];
     readonly guarded: readonly string[];
     readonly hidden: readonly string[];

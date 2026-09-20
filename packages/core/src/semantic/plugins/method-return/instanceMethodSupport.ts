@@ -26,8 +26,8 @@ export function resultType(returnValue: EloquentReturn, modelName: string) {
   switch (returnValue.kind) {
     case 'number': return new PrimitiveType(PrimitiveKind.NUMBER);
     case 'boolean': return new PrimitiveType(PrimitiveKind.BOOLEAN);
-    case 'model': return new ReferenceType('', modelName);
-    case 'builder': return new ReferenceType('', modelName);
+    case 'model': return ReferenceType.model('', modelName);
+    case 'builder': return ReferenceType.model('', modelName);
     case 'array': return new PrimitiveType(PrimitiveKind.UNKNOWN);
   }
 }

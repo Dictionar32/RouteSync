@@ -2,7 +2,6 @@ import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSym
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { NullableType, type SemanticType } from "../../../types/SemanticType";
 import { resolveResourceMethodInvocation, type ResourceQueryState } from "../../../types/domain/resourceModelMethodSurface";
-import { createResourceModelSurface } from "../../../../types/domain/resourceModelSurface";
 import type { ResourcePropertyPathResult, ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 
@@ -21,7 +20,7 @@ export function resolvePropertyPath(
 
     for (const member of members) {
         if (member.kind === 'method_chain') {
-            const invocation = resolveResourceMethodInvocation(state, SemanticValueFactory.methodName(member.property), member.arguments.map(argument => argument.value), createResourceModelSurface(model.node));
+            const invocation = resolveResourceMethodInvocation(state, SemanticValueFactory.methodName(member.property), member.arguments.map(argument => argument.value));
             if (invocation.result.kind === 'unsupported') return { kind: 'rejected', reason: 'missing_property' };
             const type = invocation.result.semanticType;
             steps.push({
@@ -50,22 +49,23 @@ export function resolvePropertyPath(
         }
 
         const binding = model.resolveProperty(member.property);
-        if (binding === undefined) return { kind: 'rejected', reason: 'missing_property' };
-        const type = member.access.kind === 'nullsafe' && !binding.semanticType.isNullable()
-            ? new NullableType(binding.semanticType)
-            : binding.semanticType;
-        if (binding.kind === 'relation') {
-            const target = table.get(binding.source.targetModel.value);
+        if (resolvedBinding.kind === 'missing') return { kind: 'rejected', reason: 'missing_property' };
+        const resolvedBinding = binding.value;
+        const type = member.access.kind === 'nullsafe' && !resolvedBinding.semanticType.isNullable()
+            ? new NullableType(resolvedBinding.semanticType)
+            : resolvedBinding.semanticType;
+        if (resolvedBinding.kind === 'relation') {
+            const target = table.get(resolvedBinding.source.targetModel.value);
             if (target === undefined) return { kind: 'rejected', reason: 'missing_target_model' };
             steps.push({
                 kind: 'relation',
                 sourceModel: model.node.semantic,
-                property: binding.source.property,
+                property: resolvedBinding.source.property,
                 access: member.access,
-                semantic: binding.source,
+                semantic: resolvedBinding.source,
                 type,
                 targetModel: target.node.semantic,
-                cardinality: relationCardinality(binding.source.cardinality)
+                cardinality: relationCardinality(resolvedBinding.source.cardinality)
             });
             resultingType = type;
             model = target;
@@ -76,9 +76,9 @@ export function resolvePropertyPath(
         steps.push({
             kind: 'property',
             sourceModel: model.node.semantic,
-            property: binding.source.property,
+            property: resolvedBinding.source.property,
             access: member.access,
-            semantic: binding.source,
+            semantic: resolvedBinding.source,
             type,
             cardinality: { kind: 'single' }
         });

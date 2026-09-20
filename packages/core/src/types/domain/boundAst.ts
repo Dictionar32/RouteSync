@@ -23,7 +23,6 @@ import type {
   RelationName,
   SemanticOperator,
 } from './semanticValues';
-import type { SemanticType as CompilerSemanticType } from '../../compiler/types/SemanticType';
 import type { EloquentRelationType } from './eloquentTypes';
 import type { QueryProjectionSurface } from './semanticResolution';
 
@@ -106,6 +105,29 @@ export interface BoundRelationNode {
   readonly targetModel: ModelName;
   readonly cardinality: BoundCardinality;
   readonly nullability: BoundNullability;
+  readonly semanticType: SemanticType;
+}
+
+export type BoundConditionalAvailability =
+  | { readonly kind: 'always_present' }
+  | { readonly kind: 'present_when_loaded'; readonly relation: RelationName }
+  | { readonly kind: 'present_when_condition'; readonly condition: ConditionExpression };
+
+export interface BoundConditionalAvailabilityVisitor<R> {
+  readonly always_present: (availability: Extract<BoundConditionalAvailability, { readonly kind: 'always_present' }>) => R;
+  readonly present_when_loaded: (availability: Extract<BoundConditionalAvailability, { readonly kind: 'present_when_loaded' }>) => R;
+  readonly present_when_condition: (availability: Extract<BoundConditionalAvailability, { readonly kind: 'present_when_condition' }>) => R;
+}
+
+export function matchBoundConditionalAvailability<R>(
+  availability: BoundConditionalAvailability,
+  visitor: BoundConditionalAvailabilityVisitor<R>,
+): R {
+  switch (availability.kind) {
+    case 'always_present': return visitor.always_present(availability);
+    case 'present_when_loaded': return visitor.present_when_loaded(availability);
+    case 'present_when_condition': return visitor.present_when_condition(availability);
+  }
 }
 
 export type BoundPropertyStepKind =
@@ -149,7 +171,7 @@ export interface BoundConditionalNode {
   readonly conditionExpression: ConditionExpression;
   readonly target: BoundSemanticNode;
   readonly relationModel: BoundTargetModel;
-  readonly isOptional: boolean;
+  readonly availability: BoundConditionalAvailability;
   readonly semanticType: SemanticType;
 }
 
@@ -282,7 +304,7 @@ export const BoundSemanticFactory = Object.freeze({
   },
 
   primitive(
-    semanticType: CompilerSemanticType,
+    semanticType: SemanticType,
     value: BoundLiteralValue,
   ): BoundPrimitiveNode {
     return Object.freeze({
@@ -297,7 +319,7 @@ export const BoundSemanticFactory = Object.freeze({
     readonly column: ColumnName;
     readonly dbType: DatabaseTypeName;
     readonly castType: BoundCastType;
-    readonly semanticType: CompilerSemanticType;
+    readonly semanticType: SemanticType;
   }): BoundModelColumnNode {
     return Object.freeze({
       kind: 'bound_model_column',
@@ -316,6 +338,7 @@ export const BoundSemanticFactory = Object.freeze({
     readonly targetModel: ModelName;
     readonly cardinality: BoundCardinality;
     readonly nullability: BoundNullability;
+    readonly semanticType: SemanticType;
   }): BoundRelationNode {
     return Object.freeze({
       kind: 'bound_relation' as const,
@@ -325,13 +348,14 @@ export const BoundSemanticFactory = Object.freeze({
       targetModel: params.targetModel,
       cardinality: params.cardinality,
       nullability: params.nullability,
+      semanticType: params.semanticType,
     });
   },
 
   propertyChain(params: {
     readonly rootModel: ModelName;
     readonly steps: readonly BoundStepEdge[];
-    readonly resultingType: CompilerSemanticType;
+    readonly resultingType: SemanticType;
     readonly nullability: BoundNullability;
   }): BoundPropertyChainNode {
     return Object.freeze({
@@ -348,8 +372,8 @@ export const BoundSemanticFactory = Object.freeze({
     readonly conditionExpression: ConditionExpression;
     readonly target: BoundSemanticNode;
     readonly relationModel: BoundTargetModel;
-    readonly isOptional: boolean;
-    readonly semanticType: CompilerSemanticType;
+    readonly availability: BoundConditionalAvailability;
+    readonly semanticType: SemanticType;
   }): BoundConditionalNode {
     return Object.freeze({
       kind: 'bound_conditional',
@@ -357,7 +381,7 @@ export const BoundSemanticFactory = Object.freeze({
       conditionExpression: params.conditionExpression,
       target: params.target,
       relationModel: params.relationModel,
-      isOptional: params.isOptional,
+      availability: params.availability,
       semanticType: params.semanticType,
     });
   },
@@ -366,7 +390,7 @@ export const BoundSemanticFactory = Object.freeze({
     readonly operator: SemanticOperator;
     readonly left: BoundSemanticNode;
     readonly right: BoundSemanticNode;
-    readonly resultingType: CompilerSemanticType;
+    readonly resultingType: SemanticType;
   }): BoundBinaryNode {
     return Object.freeze({
       kind: 'bound_binary',
@@ -381,7 +405,7 @@ export const BoundSemanticFactory = Object.freeze({
     readonly conditionExpression: ConditionExpression;
     readonly truthy: BoundSemanticNode;
     readonly falsy: BoundSemanticNode;
-    readonly resultingType: CompilerSemanticType;
+    readonly resultingType: SemanticType;
   }): BoundTernaryNode {
     return Object.freeze({
       kind: 'bound_ternary',
@@ -395,7 +419,7 @@ export const BoundSemanticFactory = Object.freeze({
   projectionField(params: {
     readonly sourceModel: ModelName;
     readonly field: ResponseFieldName;
-    readonly semanticType: CompilerSemanticType;
+    readonly semanticType: SemanticType;
   }): BoundProjectionFieldNode {
     return Object.freeze({ kind: 'bound_projection_field', ...params });
   },
@@ -416,7 +440,7 @@ export const BoundSemanticFactory = Object.freeze({
   methodCall(params: {
     readonly targetModel: BoundTargetModel;
     readonly methodName: MethodName;
-    readonly returnType: CompilerSemanticType;
+    readonly returnType: SemanticType;
     readonly cardinality: BoundCardinality;
     readonly nullability: BoundNullability;
   }): BoundMethodCallNode {

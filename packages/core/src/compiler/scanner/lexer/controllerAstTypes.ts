@@ -1,6 +1,7 @@
 /** Syntax AST for Laravel controller declarations. */
 import type { AstIdentifier, PhpAstValue, TokenDescriptor } from './phpAstTypes';
 import type { ControllerBodyAst } from './controllerBodyAstTypes';
+import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 
 export type PhpParameterTypeAst =
     | { readonly kind: 'primitive'; readonly name: 'string' | 'int' | 'float' | 'bool' | 'mixed' }
@@ -10,6 +11,8 @@ export type PhpParameterTypeAst =
 export interface ControllerParameterAst {
     readonly type: PhpParameterTypeAst;
     readonly name: AstIdentifier;
+    /** Semantic binding is established by the controller scanner, not reconstructed downstream. */
+    readonly semantic: ControllerVariableSemantic;
 }
 
 export interface AbsentResponseAttributeAst {

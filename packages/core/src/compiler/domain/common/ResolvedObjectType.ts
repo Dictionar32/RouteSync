@@ -6,6 +6,8 @@
  */
 
 import type { ObjectType, SemanticType } from '../../types/SemanticType';
+import type { PropertyName } from '../../../types/upstream/names';
+import type { Presence } from '../../../types/upstream/primitiveVocabulary';
 import {
     ResolvedObjectType as CanonicalResolvedObjectType,
     ResolvedNullableType,
@@ -29,9 +31,9 @@ export abstract class ResolvedObjectType {
         this.rawObject = rawObject;
     }
 
-    public getCleanProperties(): readonly (readonly [string, SemanticType])[] {
+    public getCleanProperties(): readonly (readonly [PropertyName, SemanticType])[] {
         return this.rawObject.properties
-            .filter(property => !property.name.startsWith('__'))
+            .filter(property => !property.name.value.startsWith('__'))
             .map(property => [property.name, property.type] as const);
     }
 }
@@ -67,11 +69,11 @@ export function resolveCanonicalObjectType(
     resolver: (type: SemanticType) => ResolvedSemanticType
 ): CanonicalResolvedObjectType {
     const fields = rawObject.properties
-        .filter(property => !property.name.startsWith('__'))
+        .filter(property => !property.name.value.startsWith('__'))
         .map(property => ({
             name: property.name,
             type: resolver(property.type),
-            presence: property.required ? 'required' as const : 'optional' as const
+            presence: property.type.isOptional() ? { kind: 'optional' } as Presence : { kind: 'required' } as Presence
         }));
 
     return new CanonicalResolvedObjectType({

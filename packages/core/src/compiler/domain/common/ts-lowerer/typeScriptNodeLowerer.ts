@@ -44,7 +44,7 @@ export function lowerTypeScriptNode(
         case 'object': {
             if (resolved.fields.length === 0) return 'object';
             const properties = resolved.fields.map(({ name, type, presence }) => {
-                const propertyName = presence === 'optional' ? `${name}?` : name;
+                const propertyName = presence.kind === 'optional' ? `${name.value.value}?` : name.value.value;
                 return `${propertyName}: ${lowerTypeScriptNode(type, singleLine, indentLevel)};`;
             });
             return `{ ${properties.join(' ')} }`;
@@ -76,7 +76,7 @@ export function toTypeScriptTypeExpression(
 export function buildTopLevelDeclaration(name: string, resolvedObj: ResolvedObjectType): string {
     const properties = resolvedObj.fields
         .map(({ name: propName, type: propType, presence }) => {
-            const propertyName = presence === 'optional' ? `${propName}?` : propName;
+            const propertyName = presence.kind === 'optional' ? `${propName.value.value}?` : propName.value.value;
             return `  ${propertyName}: ${lowerTypeScriptNode(propType, true, 1)};`;
         })
         .join('\n');

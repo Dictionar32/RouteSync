@@ -18,7 +18,7 @@ type NodeResult =
 type Visit = { readonly variable: VariableName };
 
 function buildNode(expression: ResourceExpressionModel, context: readonly ResourceBindingDefinitionContext[], visited: readonly Visit[]): NodeResult {
-  if (expression.semantic.kind !== 'requires_binding') return { kind: 'rejected', node: emptyNode(expression), reason: 'unsupported_expression' };
+  if (expression.semantic.kind !== 'requires_binding') return { kind: 'complete', node: emptyNode(expression) };
   const requirement = expression.semantic.requirement;
   if (requirement.kind !== 'variable') return { kind: 'complete', node: emptyNode(expression) };
   const variable = requirement.name;

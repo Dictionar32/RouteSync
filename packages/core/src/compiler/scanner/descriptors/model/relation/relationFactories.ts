@@ -31,7 +31,7 @@ export function computeRelationParams({
 }): ScannedModelRelationParams {
     const desc = EloquentRelationClassifier.getDescriptor(type);
     const resolvedCardinality = cardinality ?? desc.cardinality;
-    const target = new ReferenceType('', targetModel);
+    const target = ReferenceType.model('', targetModel);
     const targetShape = resolvedCardinality === 'many'
         ? { kind: 'collection' as const, model: SemanticValueFactory.modelName(targetModel) }
         : { kind: 'single' as const, model: SemanticValueFactory.modelName(targetModel) };
@@ -74,7 +74,7 @@ export function computeSingleRelationParams({
         targetModel,
         cardinality: "one",
         multiplicity: { kind: 'single' },
-        semanticType: new ReferenceType('', targetModel),
+        semanticType: ReferenceType.model('', targetModel),
         targetShape: { kind: 'single', model: SemanticValueFactory.modelName(targetModel) },
         traversalTarget: { kind: 'model', model: SemanticValueFactory.modelName(targetModel) },
         foreignKey
@@ -101,7 +101,7 @@ export function computeCollectionRelationParams({
         targetModel,
         cardinality: "many",
         multiplicity: { kind: 'collection' },
-        semanticType: new ReadonlyCollectionType(CollectionKind.COLLECTION, new ReferenceType('', targetModel)),
+        semanticType: new ReadonlyCollectionType(CollectionKind.COLLECTION, ReferenceType.model('', targetModel)),
         targetShape: { kind: 'collection', model: SemanticValueFactory.modelName(targetModel) },
         traversalTarget: { kind: 'collection', model: SemanticValueFactory.modelName(targetModel) },
         foreignKey
@@ -116,7 +116,7 @@ export function computeNoneRelationParams(): ScannedModelRelationParams {
         targetModel: "",
         cardinality: "one",
         multiplicity: { kind: 'single' },
-        semanticType: new ReferenceType('', targetModel),
+        semanticType: ReferenceType.model('', targetModel),
         targetShape: { kind: 'single', model: SemanticValueFactory.modelName(targetModel) },
         traversalTarget: { kind: 'model', model: SemanticValueFactory.modelName(targetModel) },
         foreignKey: { kind: 'convention' }

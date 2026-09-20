@@ -1,5 +1,8 @@
 import { createHash } from 'crypto';
 
+export { ASTArena } from './compiler/utils/Arena';
+export type { ASTNodeId, ASTNodeData } from './compiler/utils/Arena';
+
 export enum PrimitiveKind {
   STRING = 'string',
   NUMBER = 'number',
@@ -1680,30 +1683,6 @@ export class Arena<T> {
     const item = this.items[id];
     if (item === undefined) throw new Error(`Invalid Arena ID: ${id}`);
     return item;
-  }
-}
-
-export type ASTNodeId = number;
-
-export interface ASTNodeData {
-  readonly kind: string;
-  readonly span: FileSpan;
-  readonly children: readonly ASTNodeId[];
-}
-
-export class ASTArena {
-  private nodes: ASTNodeData[] = [];
-
-  public allocateNode(kind: string, span: FileSpan, children: readonly ASTNodeId[]): ASTNodeId {
-    const id = this.nodes.length;
-    this.nodes.push({ kind, span, children });
-    return id;
-  }
-
-  public getNode(id: ASTNodeId): ASTNodeData {
-    const node = this.nodes[id];
-    if (!node) throw new Error(`Invalid ASTNodeId: ${id}`);
-    return node;
   }
 }
 

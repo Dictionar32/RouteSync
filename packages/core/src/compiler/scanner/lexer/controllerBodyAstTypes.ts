@@ -1,5 +1,6 @@
 /** Typed AST for controller-body facts consumed by semantic resolution. */
 import type { AstIdentifier, TokenDescriptor, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
+import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 
 export type ValidationRuleLiteralAst = string & { readonly __validationRuleAst: unique symbol };
 
@@ -32,6 +33,8 @@ export interface ControllerVariableDefinition {
     readonly statementIndex: number;
     readonly origin: ControllerVariableDefinitionOrigin;
     readonly value: PhpAstValue;
+    /** Semantic fact produced at the scanner boundary; consumers must not infer model/resource meaning again. */
+    readonly semantic: ControllerVariableSemantic;
     readonly availability: ControllerDefinitionAvailability;
 }
 

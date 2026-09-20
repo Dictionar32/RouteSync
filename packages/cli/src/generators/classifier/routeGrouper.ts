@@ -1,15 +1,15 @@
 /**
  * routeGrouper.ts
  *
- * Route grouping and per-group action name deduplication.
- * Maps classified routes into ResourceCrudMaps and grouped records.
+ * Projects already-resolved ParsedRoute values into classifier views.
+ * Classification is an upstream responsibility: this module never
+ * derives CRUD meaning from method/path.
  *
  * @module cli/generators/classifier
  */
 
 import {
   type ParsedRoute,
-  CrudRole,
   CRUD_ROLE_REGISTRY,
   matchCrudRole
 } from '@routesync/core'
@@ -20,26 +20,27 @@ import {
 } from './classifierTypes'
 
 /**
- * Classify every route in the manifest.
- * Returns routes in the same order as the input array.
+ * Project resolved routes into the legacy ClassifiedRoute surface.
+ *
+ * IMPORTANT:
+ * ParsedRoute.capability.crudRole is authoritative.
+ * No path inspection, HTTP-method classification, or fallback role exists here.
  */
 export function classifyRoutes(
-  routes: ParsedRoute[],
-  groupAliases?: Record<string, string>
+  routes: readonly ParsedRoute[],
+  groupAliases?: Readonly<Record<string, string>>
 ): ClassifiedRoute[] {
-  // Per-group action-name deduplication
   const usedActions = new Map<string, Set<string>>()
 
   return routes.map(route => {
-    const method = route.method.toUpperCase()
-    const groupName = groupAliases && groupAliases[route.groupName] ? groupAliases[route.groupName] : route.groupName
-    const role = (route.crudRole as CrudRole) || CrudRole.Custom
-    const runtimePath = route.runtimePath
-    const hasParams = route.pathParameters ? route.pathParameters.length > 0 : false
-    const roleSpec = CRUD_ROLE_REGISTRY[role] || CRUD_ROLE_REGISTRY[CrudRole.Custom]
-    const hasTrailingParam = roleSpec.affectsSingleResource
+    const method = route.identity.method
+    const sourceGroupName = route.identity.groupName
+    const groupName = groupAliases?.[sourceGroupName] ?? sourceGroupName
+    const role = route.capability.crudRole
+    const runtimePath = route.identity.runtimePath
+    const hasParams = route.identity.parameters.all.length > 0
+    const hasTrailingParam = CRUD_ROLE_REGISTRY[role].affectsSingleResource
 
-    // Build action name: start from role canonical name via matchCrudRole catamorphism
     const baseAction = matchCrudRole(role, {
       index: spec => spec.defaultActionName,
       show: spec => spec.defaultActionName,
@@ -49,14 +50,14 @@ export function classifyRoutes(
       custom: () => method.toLowerCase(),
     })
 
-    if (!usedActions.has(groupName)) usedActions.set(groupName, new Set())
-    const used = usedActions.get(groupName)!
+    const used = usedActions.get(groupName) ?? new Set<string>()
+    usedActions.set(groupName, used)
 
     let actionName = baseAction
     if (used.has(actionName)) {
-      let i = 2
-      while (used.has(`${baseAction}${i}`)) i++
-      actionName = `${baseAction}${i}`
+      let suffix = 2
+      while (used.has(`${baseAction}${suffix}`)) suffix += 1
+      actionName = `${baseAction}${suffix}`
     }
     used.add(actionName)
 
@@ -68,43 +69,53 @@ export function classifyRoutes(
       hasParams,
       hasTrailingParam,
       crudRole: role,
+      contract: route.contract
     })
   })
 }
 
 /**
- * Group routes by resource and map CRUD slots (first-wins per slot).
+ * Group already-classified routes into resource capability slots.
+ * The resulting kind is resolved exactly once after all routes are known.
  */
-export function buildResourceMap(classified: ClassifiedRoute[]): Map<string, ResourceCrudMap> {
+export function buildResourceMap(classified: readonly ClassifiedRoute[]): Map<string, ResourceCrudMap> {
   const map = new Map<string, ResourceCrudMap>()
 
   for (const route of classified) {
-    if (!map.has(route.groupName)) {
-      map.set(route.groupName, { groupName: route.groupName, all: [] })
+    const existing = map.get(route.groupName)
+    const res = existing ?? {
+      groupName: route.groupName,
+      index: undefined,
+      show: undefined,
+      create: undefined,
+      update: undefined,
+      delete: undefined,
+      all: []
     }
-    const res = map.get(route.groupName)!
+
     res.all.push(route)
 
-    if (route.crudRole === 'index'  && !res.index)  res.index  = route
-    if (route.crudRole === 'show'   && !res.show)   res.show   = route
+    if (route.crudRole === 'index' && !res.index) res.index = route
+    if (route.crudRole === 'show' && !res.show) res.show = route
     if (route.crudRole === 'create' && !res.create) res.create = route
     if (route.crudRole === 'update' && !res.update) res.update = route
     if (route.crudRole === 'delete' && !res.delete) res.delete = route
+
+    map.set(route.groupName, res)
   }
 
   return map
 }
 
 /**
- * Flat Record<groupName, ClassifiedRoute[]> — drop-in for buildGeneratedRoutes.
+ * Flat grouping projection for consumers that need route collections.
  */
-export function buildGroupedRoutes(classified: ClassifiedRoute[]): Record<string, ClassifiedRoute[]> {
+export function buildGroupedRoutes(classified: readonly ClassifiedRoute[]): Record<string, ClassifiedRoute[]> {
   const result: Record<string, ClassifiedRoute[]> = {}
   for (const route of classified) {
-    if (!result[route.groupName]) {
-      result[route.groupName] = []
-    }
-    result[route.groupName].push(route)
+    const group = result[route.groupName] ?? []
+    group.push(route)
+    result[route.groupName] = group
   }
   return result
 }

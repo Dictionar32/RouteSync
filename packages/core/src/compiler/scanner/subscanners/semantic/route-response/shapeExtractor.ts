@@ -54,7 +54,7 @@ function createWrappedDataField(
 ): ResourceFieldDescriptor {
     const name = SemanticValueFactory.responseFieldName('data');
     const propertyName = SemanticValueFactory.propertyName('data');
-    const reference = new ReferenceType('', transformedName);
+    const reference = ReferenceType.resource('', transformedName);
     const expression = response.kind === 'resource'
         ? ResourceFieldExpressionFactory.resource(response.resourceName, response.shape === 'single' ? { kind: 'single' } : { kind: 'collection' })
         : ResourceFieldExpressionFactory.model(response.modelName, response.shape === 'single' ? { kind: 'single' } : { kind: 'collection' });

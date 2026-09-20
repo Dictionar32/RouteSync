@@ -1,9 +1,11 @@
+import { SemanticValueFactory } from './semanticValues';
 import type { ResourceResolvedQueryOperation } from './resourceQueryOperation';
 import type { MethodName, ModelName, PropertyName } from './semanticValues';
 import type { ModelSemanticDefinition, ModelSemanticProperty } from './models';
 import type { ResourceModelMethodMeaning, ResourceMethodMeaningDescriptor } from './resourceModelMethodMeaning';
 import { knownMethodNames, meaningFor, resolveResourceMethodInvocation, resolveResourceModelMethod, resolveResourceQueryProjection } from './resourceModelMethodResolver';
 import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { ResourceTraversalTarget, ResourceTraversalCardinality } from './resourceTraversalModel';
 
 export type ResourceQueryState =
   | { readonly kind: 'model_instance'; readonly model: ModelSemanticDefinition }
@@ -21,8 +23,17 @@ export interface ResourceMethodSemanticOrigin {
   readonly meaning: ResourceModelMethodMeaning;
 }
 
+export type ResourceMethodTraversalProjection =
+  | { readonly kind: 'query_builder'; readonly model: ModelSemanticDefinition; readonly semanticType: SemanticType; readonly target: ResourceTraversalTarget; readonly cardinality: ResourceTraversalCardinality; readonly next: { readonly kind: 'query_builder'; readonly model: ModelSemanticDefinition } }
+  | { readonly kind: 'single_model'; readonly model: ModelSemanticDefinition; readonly semanticType: SemanticType; readonly target: ResourceTraversalTarget; readonly cardinality: ResourceTraversalCardinality; readonly next: { readonly kind: 'model_instance'; readonly model: ModelSemanticDefinition } }
+  | { readonly kind: 'model_collection'; readonly model: ModelSemanticDefinition; readonly elementType: SemanticType; readonly semanticType: SemanticType; readonly target: ResourceTraversalTarget; readonly cardinality: ResourceTraversalCardinality; readonly next: { readonly kind: 'model_instance'; readonly model: ModelSemanticDefinition } }
+  | { readonly kind: 'paginated_collection'; readonly model: ModelSemanticDefinition; readonly elementType: SemanticType; readonly semanticType: SemanticType; readonly target: ResourceTraversalTarget; readonly cardinality: ResourceTraversalCardinality; readonly next: { readonly kind: 'model_instance'; readonly model: ModelSemanticDefinition } }
+  | { readonly kind: 'scalar'; readonly semanticType: SemanticType; readonly target: ResourceTraversalTarget; readonly cardinality: ResourceTraversalCardinality; readonly next: { readonly kind: 'retain' } }
+  | { readonly kind: 'rejected'; readonly reason: 'value_collection' | 'unsupported' | 'unresolved' };
+
 export interface ResourceMethodSemanticResultBase {
   readonly origin: ResourceMethodSemanticOrigin;
+  readonly traversal: ResourceMethodTraversalProjection;
 }
 
 export interface ResourceMethodUnresolvedOrigin {
@@ -50,7 +61,7 @@ export type ResourceMethodResult =
   | (ResourceMethodSemanticResultBase & { readonly kind: 'scalar'; readonly operation: 'exists' | 'count' | 'sum' | 'avg' | 'min' | 'max' | 'value'; readonly semanticType: SemanticType; readonly projection: ResourceQueryScalarProjection | { readonly kind: 'none' } })
   | (ResourceMethodSemanticResultBase & { readonly kind: 'value_collection'; readonly element: ResourceMethodValueElement })
   | (ResourceMethodSemanticResultBase & { readonly kind: 'unsupported'; readonly method: MethodName })
-  | { readonly kind: 'unresolved'; readonly origin: ResourceMethodUnresolvedOrigin; readonly method: MethodName };
+  | { readonly kind: 'unresolved'; readonly origin: ResourceMethodUnresolvedOrigin; readonly method: MethodName; readonly traversal: ResourceMethodTraversalProjection };
 
 export type ResourceMethodValueElement =
   | { readonly kind: 'property'; readonly property: PropertyName; readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'column' | 'accessor' }>; readonly semanticType: SemanticType }
@@ -67,7 +78,7 @@ export function classifyResourceModelMethod(method: MethodName): ResourceModelMe
 
 export function createResourceModelMethodSurface(model: ModelSemanticDefinition): ResourceModelMethodSurface {
   const methods = knownMethodNames().map(value => {
-    const method = Object.freeze({ kind: 'method_name' as const, value });
+    const method = SemanticValueFactory.methodName(value);
     const meaning = meaningFor(method);
     return Object.freeze({ method, meaning, receiver: model, kind: meaning.kind });
   });

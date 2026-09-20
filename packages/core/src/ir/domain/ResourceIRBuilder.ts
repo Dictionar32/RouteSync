@@ -15,7 +15,7 @@ import type {
     ResolvedSemanticType
 } from '../../types/ir';
 
-import { ResolvedSemanticTypeFactory } from '../../types/ir';
+import { ReferenceType } from '../../compiler/types/SemanticType';
 import { resourceBaseName } from '../../utils/resource-naming';
 import type { FieldTypeResolver } from './FieldTypeResolver';
 import type { ResourceMapperBuilder } from './ResourceMapperBuilder';
@@ -48,20 +48,15 @@ export class ResourceIRBuilder {
                 name: string;
                 type: string;
                 semanticType: ResolvedSemanticType;
-                optional: boolean;
-                nullable: boolean;
-                format: string;
-                validationRules: readonly string[];
+                presence: { readonly kind: 'required' | 'optional' };
+                validation: import('../../types/upstream/collections').ValidationRules;
             }> = semanticType.properties.map(property => ({
                 name: property.name,
                 type: property.type.kind,
                 semanticType: property.type,
-                optional: property.presence === 'optional',
-                nullable: property.type.kind === 'nullable',
-                format: '',
-                validationRules: [],
-                description: property.description || '',
-                validation: false
+                presence: { kind: property.presence === 'optional' ? 'optional' : 'required' },
+                validation: { kind: 'validation_rules', items: { kind: 'empty' } },
+                description: property.description
             }));
 
             const subResource: ParsedResource = {
@@ -78,7 +73,7 @@ export class ResourceIRBuilder {
 
         return {
             ...field,
-            semanticType: ResolvedSemanticTypeFactory.resource(syntheticName, false)
+            semanticType: ReferenceType.resource('', syntheticName)
         };
     }
 

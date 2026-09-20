@@ -1,85 +1,84 @@
-/**
- * readFieldLineBuilder.ts
- *
- * Line generator for read mappers: API response -> camelCase frontend model.
- *
- * @module compiler/passes/mapper/readFieldLineBuilder
- */
-
-import { toPascalCase, toCamelCase } from '../../../utils/resource-naming';
-import {
-    ObjectType,
-    ReadonlyCollectionType,
-    MutableCollectionType,
-    ReferenceType,
-    type SemanticType,
-    type ObjectProperty
-} from '../../types/SemanticType';
+import { toCamelCase } from '../../../utils/resource-naming';
+import type {
+  MappingIntent,
+  ObjectMappingIntent,
+  ResourceMappingIntent,
+  CollectionMappingIntent,
+  ResourceCollectionMappingIntent
+} from '../../../types/domain/mappingIntent';
 
 export function indent(block: string): string {
-    return block
-        .split('\n')
-        .map(line => `  ${line}`)
-        .join('\n');
+  return block.split('\n').map(line => `  ${line}`).join('\n');
 }
 
-function stripTransformedSuffix(name: string): string {
-    return name.endsWith('Transformed') ? name.slice(0, -11) : name;
+const direct = (target: string, path: string): string => `  ${toCamelCase(target)}: ${path},`;
+
+const object = (target: string, path: string, intent: ObjectMappingIntent | ResourceMappingIntent): string =>
+  intent.fields
+    .filter(field => !field.name.value.startsWith('__'))
+    .map(field => buildFieldMappingLine(field.name.value, field.intent, `${path}.${field.name.value}`))
+    .join('\n');
+
+const collection = (target: string, path: string, intent: CollectionMappingIntent | ResourceCollectionMappingIntent): string => {
+  const renderer = COLLECTION_RENDERERS[intent.kind];
+  return renderer(target, path, intent);
+};
+
+const collectionObject = (
+  target: string,
+  path: string,
+  fields: ObjectMappingIntent | ResourceMappingIntent
+): string => {
+  const body = fields.fields
+    .filter(field => !field.name.value.startsWith('__'))
+    .map(field => buildFieldMappingLine(field.name.value, field.intent, `item.${field.name.value}`))
+    .join('\n');
+  return `  ${toCamelCase(target)}: ${path}?.map(item => ({\n${indent(body)}\n  })),`;
+};
+
+const COLLECTION_RENDERERS: {
+  readonly collection: (target: string, path: string, intent: CollectionMappingIntent) => string;
+  readonly resource_collection: (target: string, path: string, intent: ResourceCollectionMappingIntent) => string;
+} = {
+  collection: (target, path, intent) => COLLECTION_ELEMENT_RENDERERS[intent.element.kind](target, path, intent.element),
+  resource_collection: (target, path, intent) =>
+    `  ${toCamelCase(target)}: ${path}.map(to${intent.resourceName.value}Read),`
+};
+
+const COLLECTION_ELEMENT_RENDERERS: {
+  readonly [K in MappingIntent['kind']]: (target: string, path: string, intent: Extract<MappingIntent, { kind: K }>) => string;
+} = {
+  direct: (target, path) => direct(target, path),
+  object: (target, path, intent) => collectionObject(target, path, intent),
+  resource: (target, path, intent) => collectionObject(target, path, intent),
+  collection: (target, path) => direct(target, path),
+  resource_collection: (target, path) => direct(target, path)
+};
+
+const RENDERERS: {
+  readonly [K in MappingIntent['kind']]: (target: string, path: string, intent: Extract<MappingIntent, { kind: K }>) => string;
+} = {
+  direct: (target, path) => direct(target, path),
+  object: object,
+  resource: object,
+  collection,
+  resource_collection: collection
+};
+
+export function buildFieldMappingLine(targetPropKey: string, intent: MappingIntent, jsonPath: string): string {
+  return RENDERERS[intent.kind](targetPropKey, jsonPath, intent);
 }
 
-export function resolveResourceBaseName(elem: unknown): string | null {
-    if (elem instanceof ReferenceType && elem.name.includes('Resource')) {
-        return toPascalCase(stripTransformedSuffix(elem.name));
-    }
-    if (elem instanceof ObjectType && elem.role === 'resource') {
-        return toPascalCase(stripTransformedSuffix(elem.name));
-    }
-    return null;
+export function resolveResourceBaseName(intent: MappingIntent): string | null {
+  return RESOURCE_NAMES[intent.kind](intent);
 }
 
-/**
- * Build a single `key: api.path` (or nested object literal) mapping
- * line for a response field. Recurses into ObjectType fields so nested
- * objects stay nested.
- */
-export function buildFieldMappingLine(
-    targetPropKey: string,
-    type: SemanticType,
-    jsonPath: string,
-    isEloquentResource: boolean
-): string {
-    const camelProp = toCamelCase(targetPropKey);
-
-    if (type instanceof ObjectType) {
-        return (type.properties as readonly ObjectProperty[])
-            .filter(p => !p.name.startsWith('__'))
-            .map(p => {
-                const childTargetPropKey = targetPropKey
-                    ? `${targetPropKey}_${p.name}`
-                    : p.name;
-                const childJsonPath = `${jsonPath}.${p.name}`;
-                return buildFieldMappingLine(childTargetPropKey, p.type, childJsonPath, isEloquentResource);
-            })
-            .join('\n');
-    }
-
-    if (type instanceof ReadonlyCollectionType || type instanceof MutableCollectionType) {
-        const elem = type.elementType;
-        const elemResourceName = resolveResourceBaseName(elem);
-        if (elemResourceName) {
-            return `  ${camelProp}: ${jsonPath}?.map(to${elemResourceName}Read),`;
-        }
-
-        if (elem instanceof ObjectType && (elem.properties as readonly ObjectProperty[]).length > 0) {
-            const itemFieldLines = (elem.properties as readonly ObjectProperty[])
-                .filter(p => !p.name.startsWith('__'))
-                .map(p =>
-                    buildFieldMappingLine(p.name, p.type, `item.${p.name}`, isEloquentResource)
-                )
-                .join('\n');
-            return `  ${camelProp}: ${jsonPath}?.map(item => ({\n${indent(itemFieldLines)}\n  })),`;
-        }
-    }
-
-    return `  ${camelProp}: ${jsonPath},`;
-}
+const RESOURCE_NAMES: {
+  readonly [K in MappingIntent['kind']]: (intent: Extract<MappingIntent, { kind: K }>) => string | null;
+} = {
+  direct: () => null,
+  object: () => null,
+  resource: intent => intent.resourceName.value,
+  collection: intent => RESOURCE_NAMES[intent.element.kind](intent.element),
+  resource_collection: intent => intent.resourceName.value
+};

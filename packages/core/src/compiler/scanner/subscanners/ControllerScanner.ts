@@ -8,7 +8,7 @@
 
 import path from "path";
 import fs from "fs-extra";
-import type { RequestType } from "../../artifacts/RequestTypesArtifact";
+import type { FormRequestSource } from "../../../types/domain/request";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import type { ControllerActionInfo } from "../descriptors/requestDescriptors";
 import { createAstIdentifier } from '../lexer/phpAstTypes';
@@ -20,7 +20,7 @@ import { extractResourceDataflow } from "./controller/resourceDataflowAggregator
 export class ControllerScanner {
     public static async scan(
         projectRoot: string,
-        formRequestMap: Map<string, RequestType> = new Map()
+        formRequestMap: ReadonlyMap<string, FormRequestSource> = new Map()
     ): Promise<Map<string, Map<string, ControllerActionInfo>>> {
         const controllerMap = new Map<string, Map<string, ControllerActionInfo>>();
         const controllerDir = path.join(projectRoot, 'app', 'Http', 'Controllers');

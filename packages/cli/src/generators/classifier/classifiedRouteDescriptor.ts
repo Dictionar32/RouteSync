@@ -9,8 +9,7 @@
 import {
   type ParsedRoute,
   type EndpointContract,
-  type CrudRole,
-  getRouteContract
+  type CrudRole
 } from '@routesync/core';
 
 export interface ClassifiedRouteContract {
@@ -19,7 +18,7 @@ export interface ClassifiedRouteContract {
   readonly groupName: string;
   readonly actionName: string;
   readonly runtimePath: string;
-  readonly method: string;
+  readonly method: ParsedRoute['identity']['method'];
   readonly hasParams: boolean;
   readonly hasTrailingParam: boolean;
   readonly crudRole: CrudRole;
@@ -43,7 +42,7 @@ export interface ScannedClassifiedRouteParams {
   readonly groupName: string;
   readonly actionName: string;
   readonly runtimePath: string;
-  readonly method: string;
+  readonly method: ParsedRoute['identity']['method'];
   readonly hasParams: boolean;
   readonly hasTrailingParam: boolean;
   readonly crudRole: CrudRole;
@@ -77,13 +76,13 @@ export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {
     raw: ParsedRoute,
     meta: {
       readonly groupName: string; readonly actionName: string; readonly runtimePath: string;
-      readonly method: string; readonly hasParams: boolean; readonly hasTrailingParam: boolean;
-      readonly crudRole: CrudRole; readonly contract?: EndpointContract;
+      readonly method: ParsedRoute['identity']['method']; readonly hasParams: boolean; readonly hasTrailingParam: boolean;
+      readonly crudRole: CrudRole; readonly contract: EndpointContract;
     }
   ): ScannedClassifiedRouteDescriptor {
     return new ScannedClassifiedRouteDescriptor({
       raw,
-      contract: meta.contract ?? getRouteContract(raw),
+      contract: meta.contract,
       groupName: meta.groupName,
       actionName: meta.actionName,
       runtimePath: meta.runtimePath,

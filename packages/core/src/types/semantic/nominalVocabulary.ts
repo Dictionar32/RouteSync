@@ -1,39 +1,51 @@
 /**
- * nominalVocabulary.ts
+ * Semantic vocabulary compatibility surface.
  *
- * Branded nominal type atoms for the semantic domain.
- * Eliminates unbranded strings and naked numbers at origin boundary.
- *
- * @module core/types/semantic
+ * Canonical names/value objects live in ../upstream. This module may expose
+ * semantic-only atoms, but must not redefine canonical names or provenance.
  */
+import type {
+  ModelName,
+  ControllerName,
+} from '../upstream/names';
+import type { NumberValue } from '../upstream/valueObjects';
 
-export type SourceLineNumber = number & { readonly __brand: unique symbol }
-export type SourceColumnNumber = number & { readonly __brand: unique symbol }
-export type ModelNodeName = string & { readonly __brand: unique symbol }
-export type ServiceNodeName = string & { readonly __brand: unique symbol }
-export type ControllerNodeName = string & { readonly __brand: unique symbol }
-export type ConfidenceScore = number & { readonly __brand: unique symbol }
+export type ModelNodeName = ModelName;
+export type ControllerNodeName = ControllerName;
+export type SourceLineNumber = NumberValue;
+export type SourceColumnNumber = NumberValue;
 
-export function createSourceLineNumber(line: number): SourceLineNumber {
-  return Math.max(1, Math.floor(line)) as SourceLineNumber
+/** Service is not yet represented by a canonical upstream name. */
+export interface ServiceNodeName {
+  readonly kind: 'service_node_name';
+  readonly value: string;
 }
 
+/**
+ * Confidence remains a semantic scalar because no upstream confidence
+ * contract exists. Transport response confidence has its own richer model.
+ */
+export type ConfidenceScore = number & { readonly __confidenceScore: unique symbol };
+
+const stringValue = (value: string) =>
+  Object.freeze({ kind: 'string_value' as const, value });
+
 export function createSourceColumnNumber(col: number): SourceColumnNumber {
-  return (col >= 0 ? Math.floor(col) : 0) as SourceColumnNumber
+  return Object.freeze({ kind: 'number_value' as const, value: Math.max(0, Math.floor(col)) });
 }
 
 export function createModelNodeName(name: string): ModelNodeName {
-  return name.trim() as ModelNodeName
+  return Object.freeze({ kind: 'model_name' as const, value: stringValue(name.trim()) });
 }
 
 export function createServiceNodeName(name: string): ServiceNodeName {
-  return name.trim() as ServiceNodeName
+  return Object.freeze({ kind: 'service_node_name' as const, value: name.trim() });
 }
 
 export function createControllerNodeName(name: string): ControllerNodeName {
-  return name.trim() as ControllerNodeName
+  return Object.freeze({ kind: 'controller_name' as const, value: stringValue(name.trim()) });
 }
 
 export function createConfidenceScore(score: number): ConfidenceScore {
-  return Math.min(1.0, Math.max(0.0, score)) as ConfidenceScore
+  return Math.min(1, Math.max(0, score)) as ConfidenceScore;
 }

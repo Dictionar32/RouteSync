@@ -8,23 +8,13 @@
  */
 
 import { toPascalCase } from '../../../utils/resource-naming';
-import {
-    ObjectType,
-    ReadonlyCollectionType,
-    MutableCollectionType,
-    type SemanticType,
-    type ObjectProperty
-} from '../../types/SemanticType';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
+import type { ObjectProperty } from '../../types/SemanticType';
+import type { MappingIntentField, ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
 import { buildReadMapperFromFields } from './readMapperBuilder';
 import { buildFormMapper } from './formMapperBuilder';
-
-function resourceElementType(fieldType: SemanticType): SemanticType {
-    if (fieldType instanceof ReadonlyCollectionType || fieldType instanceof MutableCollectionType) {
-        return fieldType.elementType;
-    }
-    return fieldType;
-}
+import { createResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 
 export interface CollectedMapperParts {
     readonly readMapperBlocks: readonly string[];
@@ -38,6 +28,20 @@ export interface CollectedMapperParts {
 /**
  * Traverses request types to collect read mapper blocks, form mapper blocks, and import symbols.
  */
+
+const RESOURCE_CHILDREN: {
+    readonly [K in import('../../../types/domain/mappingIntent').MappingIntent['kind']]: (
+        intent: Extract<import('../../../types/domain/mappingIntent').MappingIntent, { kind: K }>,
+        register: (resourceName: string, fields: readonly MappingIntentField[]) => void
+    ) => void;
+} = {
+    direct: () => undefined,
+    object: () => undefined,
+    resource: (intent, register) => register(intent.resourceName.value, intent.fields),
+    collection: () => undefined,
+    resource_collection: (intent, register) => register(intent.resourceName.value, intent.fields)
+};
+
 export function collectMapperParts(requestTypes: readonly RequestType[]): CollectedMapperParts {
     const readMapperBlocks: string[] = [];
     const formMapperBlocks: string[] = [];
@@ -57,13 +61,40 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
         }
     }
 
+    const registerIntentGraph = (intentGraph: ResourceMappingIntentGraph, apiResponseType: string): void => {
+        const resource = toPascalCase(intentGraph.resourceName.value);
+        if (processedResources.has(resource)) return;
+        processedResources.add(resource);
+
+        const hasContractType = availableContractTypes.has(apiResponseType);
+        if (!hasContractType) {
+            throw new Error(`[MapperGeneratorPass] Missing contract type "${apiResponseType}" for resource "${resource}"`);
+        }
+
+        contractImports.add(apiResponseType);
+        readTypeImports.add(`${resource}Transformed`);
+        readMapperBlocks.push(buildReadMapperFromFields(intentGraph, apiResponseType));
+
+        for (const field of intentGraph.fields) {
+            RESOURCE_CHILDREN[field.intent.kind](field.intent, registerIntentGraphByName);
+        }
+    };
+
+    const registerIntentGraphByName = (resourceName: string, fields: readonly MappingIntentField[]): void => {
+        const resource = toPascalCase(resourceName);
+        registerIntentGraph(
+            Object.freeze({
+                resourceName: SemanticValueFactory.resourceName(resource),
+                fields
+            }),
+            `${resource}ApiResponse`
+        );
+    };
+
     // Helper to register an Eloquent Resource mapper (top-level or child)
     const registerResource = (resourceName: string, fields: readonly ObjectProperty[]) => {
         const resource = toPascalCase(resourceName);
         if (processedResources.has(resource)) return;
-        processedResources.add(resource);
-
-        const isEloquentResource = resource.endsWith('Resource');
         const apiResponseType = `${resource}ApiResponse`;
         const hasContractType = availableContractTypes.has(apiResponseType);
 
@@ -74,20 +105,8 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
         contractImports.add(apiResponseType);
         readTypeImports.add(`${resource}Transformed`);
 
-        const fieldMap = Object.fromEntries(fields.map(field => [field.name, field.type]));
-        readMapperBlocks.push(buildReadMapperFromFields(resource, fieldMap, isEloquentResource, apiResponseType));
-
-        // Scan child fields recursively for embedded child resources
-        for (const field of fields) {
-            const targetType = resourceElementType(field.type);
-            if (targetType instanceof ObjectType) {
-                const childName = targetType.name;
-                if (targetType.role === 'resource') {
-                    const childFields = targetType.properties as readonly ObjectProperty[];
-                    registerResource(childName, childFields);
-                }
-            }
-        }
+        const intentGraph = createResourceMappingIntentGraph(resource, fields);
+        registerIntentGraph(intentGraph, apiResponseType);
     };
 
     for (const requestType of requestTypes) {

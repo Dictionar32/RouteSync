@@ -232,12 +232,7 @@ export interface MorphedByManyRelationDescriptor extends BasePolymorphicRelation
 }
 
 export type PolymorphicRelationDescriptor<T extends PolymorphicMorphType = PolymorphicMorphType> =
-  T extends 'morphTo' ? MorphToRelationDescriptor :
-  T extends 'morphOne' ? MorphOneRelationDescriptor :
-  T extends 'morphMany' ? MorphManyRelationDescriptor :
-  T extends 'morphToMany' ? MorphToManyRelationDescriptor :
-  T extends 'morphedByMany' ? MorphedByManyRelationDescriptor :
-  BasePolymorphicRelationDescriptor<T>;
+  Extract<AnyPolymorphicRelationDescriptor, { readonly morphType: T }>;
 
 export type AnyPolymorphicRelationDescriptor =
   | MorphToRelationDescriptor

@@ -1,5 +1,5 @@
 /** Exhaustive eliminator for scanner-level PHP syntax AST. */
-import type { PhpAstValue } from './phpAstTypes';
+import type { PhpAstValue, PhpPropertyPath } from './phpAstTypes';
 
 export interface PhpAstValueVisitor<R> {
     readonly literal: (node: Extract<PhpAstValue, { kind: 'literal' }>) => R;
@@ -28,6 +28,18 @@ export interface PhpAstValueVisitor<R> {
 }
 export type PhpMicroAstVisitor<R> = PhpAstValueVisitor<R>;
 
+export interface PhpPropertyPathVisitor<R> {
+    readonly single: (path: Extract<PhpPropertyPath, { readonly kind: 'single' }>) => R;
+    readonly chain: (path: Extract<PhpPropertyPath, { readonly kind: 'chain' }>) => R;
+}
+
+export function matchPhpPropertyPath<R>(path: PhpPropertyPath, visitor: PhpPropertyPathVisitor<R>): R {
+    switch (path.kind) {
+        case 'single': return visitor.single(path);
+        case 'chain': return visitor.chain(path);
+    }
+}
+
 export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {
     switch (ast.kind) {
         case 'literal': return visitor.literal(ast);
@@ -53,5 +65,55 @@ export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisito
         case 'arrow_function': return visitor.arrowFunction(ast);
         case 'match_expression': return visitor.matchExpression(ast);
         case 'unsupported': return visitor.unsupported(ast);
+    }
+}
+
+export interface PhpAccessModeVisitor<R> {
+    readonly direct: (mode: Extract<import('./phpAstExpressionTypes').PhpAccessMode, { kind: 'direct' }>) => R;
+    readonly nullsafe: (mode: Extract<import('./phpAstExpressionTypes').PhpAccessMode, { kind: 'nullsafe' }>) => R;
+}
+
+export function matchPhpAccessMode<R>(mode: import('./phpAstExpressionTypes').PhpAccessMode, visitor: PhpAccessModeVisitor<R>): R {
+    switch (mode.kind) {
+        case 'direct': return visitor.direct(mode);
+        case 'nullsafe': return visitor.nullsafe(mode);
+    }
+}
+
+export interface PhpMatchArmVisitor<R> {
+    readonly conditional: (node: Extract<import('./phpAstExpressionTypes').PhpMatchArm, { kind: 'conditional' }>) => R;
+    readonly default: (node: Extract<import('./phpAstExpressionTypes').PhpMatchArm, { kind: 'default' }>) => R;
+}
+
+export function matchPhpMatchArm<R>(arm: import('./phpAstExpressionTypes').PhpMatchArm, visitor: PhpMatchArmVisitor<R>): R {
+    switch (arm.kind) {
+        case 'conditional': return visitor.conditional(arm);
+        case 'default': return visitor.default(arm);
+    }
+}
+
+export interface PhpStatementVisitor<R> {
+    readonly expression_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'expression_statement' }>) => R;
+    readonly return_with_value: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'return_with_value' }>) => R;
+    readonly return_void: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'return_void' }>) => R;
+    readonly assignment: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'assignment' }>) => R;
+    readonly if_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'if_statement' }>) => R;
+    readonly foreach_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'foreach_statement' }>) => R;
+    readonly for_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'for_statement' }>) => R;
+    readonly try_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'try_statement' }>) => R;
+    readonly throw_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'throw_statement' }>) => R;
+}
+
+export function matchPhpStatement<R>(statement: import('./phpAstStatementTypes').PhpStatement, visitor: PhpStatementVisitor<R>): R {
+    switch (statement.kind) {
+        case 'expression_statement': return visitor.expression_statement(statement);
+        case 'return_with_value': return visitor.return_with_value(statement);
+        case 'return_void': return visitor.return_void(statement);
+        case 'assignment': return visitor.assignment(statement);
+        case 'if_statement': return visitor.if_statement(statement);
+        case 'foreach_statement': return visitor.foreach_statement(statement);
+        case 'for_statement': return visitor.for_statement(statement);
+        case 'try_statement': return visitor.try_statement(statement);
+        case 'throw_statement': return visitor.throw_statement(statement);
     }
 }

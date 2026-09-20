@@ -45,6 +45,8 @@ export type RouteResponseAnalysis =
 export abstract class ResponseDescriptorBase {
   abstract readonly kind: ResponseKind;
   abstract readonly shape: ResponseShape;
+  abstract responseTypeName(): ResponseTypeName;
+  abstract toSuccessStatusCode(): number;
   abstract toAnalysis(routeName: RouteName, confidence: number): RouteResponseAnalysis;
   abstract toResponseBody(): ResponseBody;
 }
@@ -83,6 +85,14 @@ export class ResourceResponseDescriptor extends ResponseDescriptorBase {
     return new ResourceResponseDescriptor({ resourceName, shape: 'collection' });
   }
 
+  responseTypeName(): ResponseTypeName {
+    return SemanticValueFactory.responseTypeName(`${this.resourceName.value.value}Response`);
+  }
+
+  toSuccessStatusCode(): number {
+    return 200;
+  }
+
   toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
@@ -95,7 +105,7 @@ export class ResourceResponseDescriptor extends ResponseDescriptorBase {
   toResponseBody(): ResponseBody {
     return {
       type: 'resource',
-      resource: this.resourceName.value,
+      resource: this.resourceName.value.value,
       shape: this.shape
     };
   }
@@ -135,6 +145,14 @@ export class ModelResponseDescriptor extends ResponseDescriptorBase {
     return new ModelResponseDescriptor({ modelName, shape: 'collection' });
   }
 
+  responseTypeName(): ResponseTypeName {
+    return SemanticValueFactory.responseTypeName(`${this.modelName.value.value}Response`);
+  }
+
+  toSuccessStatusCode(): number {
+    return 200;
+  }
+
   toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
@@ -147,7 +165,7 @@ export class ModelResponseDescriptor extends ResponseDescriptorBase {
   toResponseBody(): ResponseBody {
     return {
       type: 'model',
-      model: this.modelName.value,
+      model: this.modelName.value.value,
       shape: this.shape
     };
   }
@@ -159,6 +177,14 @@ export class VoidResponseDescriptor extends ResponseDescriptorBase {
   constructor() {
     super();
     Object.freeze(this);
+  }
+
+  responseTypeName(): ResponseTypeName {
+    return SemanticValueFactory.responseTypeName("void");
+  }
+
+  toSuccessStatusCode(): number {
+    return 204;
   }
 
   toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
@@ -185,7 +211,8 @@ export type ResponseSemanticContract = ResponseContract;
 export type ResponseOriginTraceEntry =
   | { readonly kind: 'class_resolution'; readonly className: ClassName; readonly sourceFile: SourceFilePath }
   | { readonly kind: 'property_extraction'; readonly propertyCount: number }
-  | { readonly kind: 'semantic_resolution'; readonly resolvedCount: number };
+  | { readonly kind: 'semantic_resolution'; readonly resolvedCount: number }
+  | { readonly kind: 'observed_return'; readonly fieldCount: number };
 
 export type ResponseDescriptorOrigin =
   | { readonly kind: 'attribute'; readonly className: ClassName; readonly sourceFile: SourceFilePath; readonly trace: readonly ResponseOriginTraceEntry[] }
@@ -225,8 +252,8 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
 
   public static create({
     domain,
-    baseName = SemanticValueFactory.resourceName(domain.value),
-    typeName = SemanticValueFactory.responseTypeName(`${baseName.value}Transformed`),
+    baseName = SemanticValueFactory.resourceName(domain.value.value),
+    typeName = SemanticValueFactory.responseTypeName(`${baseName.value.value}Transformed`),
     fields,
     shape = ResponseShape.Single,
     origin,
@@ -251,6 +278,14 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
     });
   }
 
+  responseTypeName(): ResponseTypeName {
+    return this.typeName;
+  }
+
+  toSuccessStatusCode(): number {
+    return 200;
+  }
+
   toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
     return {
       routeName,
@@ -269,7 +304,7 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
     return {
       type: 'object',
       schema: {
-        name: this.baseName.value,
+        name: this.baseName.value.value,
         properties,
         additionalProperties: false
       },

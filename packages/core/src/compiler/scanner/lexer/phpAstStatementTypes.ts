@@ -3,7 +3,7 @@ import type { PhpAstValue } from './phpAstExpressionTypes';
 export type PhpAssignmentTarget =
     | { readonly kind: 'variable'; readonly name: AstIdentifier }
     | { readonly kind: 'variables'; readonly names: readonly AstIdentifier[] }
-    | { readonly kind: 'property'; readonly target: import('./phpAstExpressionTypes').PhpPropertyPath; readonly property: AstIdentifier }
+    | { readonly kind: 'property'; readonly receiver: PhpAstValue; readonly property: AstIdentifier }
     | { readonly kind: 'array_element'; readonly target: PhpAstValue; readonly index: PhpAstValue };
 export type PhpStatement =
     | { readonly kind: 'expression_statement'; readonly expression: PhpAstValue }

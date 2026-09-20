@@ -6,7 +6,9 @@ export type PhpLiteralValue =
     | { readonly kind: 'literal'; readonly literalType: 'number'; readonly value: number }
     | { readonly kind: 'literal'; readonly literalType: 'boolean'; readonly value: boolean }
     | { readonly kind: 'literal'; readonly literalType: 'null'; readonly value: null };
-export interface PhpPropertyPath { readonly root: AstIdentifier; readonly steps: readonly AstIdentifier[]; }
+export type PhpPropertyPath =
+    | { readonly kind: 'single'; readonly root: AstIdentifier; readonly steps: readonly []; }
+    | { readonly kind: 'chain'; readonly root: AstIdentifier; readonly steps: readonly AstIdentifier[] };
 export type PhpArgument =
     | { readonly kind: 'positional'; readonly value: PhpAstValue }
     | { readonly kind: 'named'; readonly name: AstIdentifier; readonly value: PhpAstValue }

@@ -14,6 +14,8 @@ export {
     type StaticLaravelScannerOptions,
     ScannedRouteValidationRuleEntry,
     type ScannedRouteValidationRuleParams,
+    ScannedRouteValidationRuleSet,
+    type RouteValidationRuleSet,
     ScannedRouteSchemaPayload,
     type ScannedRouteSchemaParams,
     ScannedScalarFieldNode,

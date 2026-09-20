@@ -3,30 +3,38 @@
  * compiler passes, lowerers and emitters.
  */
 
-import type { SemanticType, ObjectProperty } from "../../compiler/types/SemanticType";
+import type { SourceFilePath } from './semanticValues';
+
+import type { ObjectProperty } from "../../compiler/types/SemanticType";
+import type { RequestFieldMeaning } from './requestFieldMeaning';
+import type { RequestFieldPresence } from './requestFieldPresence';
 import type { ValidationRuleNode } from "./validationRules";
-import type { FormTypeName, PropertyName, RequestFieldName, ResourceName } from "./semanticValues";
+import type { ClassName, FormTypeName, PropertyName, RequestFieldName, ResourceName } from "./semanticValues";
 import type { ResponseContract } from "./responseContracts";
 
-export type FileConstraintPresence =
-    | { readonly kind: 'none' }
-    | { readonly kind: 'present'; readonly value: FileValidationConstraints };
 
-export interface FileValidationConstraints {
-    readonly image?: boolean;
-    readonly extensions?: readonly string[];
-    readonly mimeTypes?: readonly string[];
-    readonly maxBytes?: number;
-}
+export type FileValidationConstraintVisitor<T> = {
+    readonly image: (value: { readonly kind: 'image' }) => T;
+    readonly extensions: (value: { readonly kind: 'extensions'; readonly values: readonly string[] }) => T;
+    readonly mimeTypes: (value: { readonly kind: 'mime_types'; readonly values: readonly string[] }) => T;
+    readonly maxBytes: (value: { readonly kind: 'max_bytes'; readonly value: number }) => T;
+};
+
+export type FileValidationConstraint =
+    | { readonly kind: 'image'; readonly accept: <T>(visitor: FileValidationConstraintVisitor<T>) => T }
+    | { readonly kind: 'extensions'; readonly values: readonly string[]; readonly accept: <T>(visitor: FileValidationConstraintVisitor<T>) => T }
+    | { readonly kind: 'mime_types'; readonly values: readonly string[]; readonly accept: <T>(visitor: FileValidationConstraintVisitor<T>) => T }
+    | { readonly kind: 'max_bytes'; readonly value: number; readonly accept: <T>(visitor: FileValidationConstraintVisitor<T>) => T };
+
+export type FileValidationConstraints = readonly FileValidationConstraint[];
 
 export interface RequestField {
     readonly sourceName: PropertyName;
     readonly name: RequestFieldName;
-    readonly type: SemanticType;
-    readonly fileConstraints: FileConstraintPresence;
-    readonly required: boolean;
-    readonly nullability: import("./modelContracts").Nullability;
-    readonly validationAst: readonly ValidationRuleNode[];
+    readonly meaning: RequestFieldMeaning;
+    readonly fileConstraints: FileValidationConstraints;
+    readonly presence: RequestFieldPresence;
+    readonly validation: readonly ValidationRuleNode[];
 }
 
 export const FormActionName = Object.freeze({
@@ -53,9 +61,45 @@ export type RequestResponse =
     | { readonly kind: "none" }
     | { readonly kind: "data"; readonly value: ResponseData };
 
+export interface FormRequestIdentity {
+    readonly requestClass: ClassName;
+    readonly formType: FormTypeName;
+}
+
+export interface FormRequestSource {
+    readonly identity: FormRequestIdentity;
+    readonly sourceFile: SourceFilePath;
+    readonly fields: readonly RequestField[];
+}
+
+export interface RequestIdentity {
+    readonly source: FormRequestIdentity;
+    readonly resource: ResourceName;
+}
+
+/**
+ * High-level semantic relation between a route and its actual FormRequest.
+ * `source` is the scanned origin; `identity` is the resolved route binding.
+ * The no_request branch makes absence explicit instead of encoding it as null.
+ */
+export type RouteRequestBinding =
+    | {
+        readonly kind: 'form_request';
+        readonly identity: RequestIdentity;
+        readonly source: FormRequestSource;
+    }
+    | {
+        readonly kind: 'no_request';
+    };
+
+/**
+ * Complete semantic request contract.
+ * Identity is the single source for request/resource/form names;
+ * consumers must not carry duplicate scalar projections.
+ */
 export interface RequestType {
-    readonly resourceName: ResourceName;
-    readonly formTypeName: FormTypeName;
+    readonly identity: RequestIdentity;
+    readonly source: FormRequestSource;
     readonly actions: readonly FormAction[];
     readonly response: RequestResponse;
 }

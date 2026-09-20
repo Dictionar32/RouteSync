@@ -8,14 +8,14 @@
 
 import type {
     ResponseDescriptor,
-    RouteValidationRuleEntry,
-    FormRequestDescriptor,
     RouteHandlerDescriptor,
     RouteSchemaPayload,
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
 import { RouteHandlerKind } from "../../../../types/route";
 import type { ControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
+import type { RouteRequestBinding } from "../../../../types/domain/request";
+import type { RuntimeReturnContract } from './controllerActionContract';
 
 export type ControllerActionInfo = ScannedControllerActionParams;
 
@@ -31,14 +31,16 @@ export interface ScannedControllerActionParamsContract {
     readonly sourceFile: string;
     readonly sourceLine: number;
     readonly response: ResponseDescriptor;
-    readonly formRequests: readonly FormRequestDescriptor[];
+    readonly runtimeReturn: RuntimeReturnContract;
+    readonly request: RouteRequestBinding;
     readonly schema: RouteSchemaPayload;
-    readonly schemaRules: readonly RouteValidationRuleEntry[];
     readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 
 export type ScannedControllerActionParams = ScannedControllerActionParamsContract;
+
+export type ControllerActionCreateOptions = ControllerActionCreateOptionsContract;
 
 /**
  * Level 7 Complete Contract for ControllerActionCreateOptions (0 undefined, 0 null, 0 ?:).
@@ -49,9 +51,9 @@ export interface ControllerActionCreateOptionsContract {
     readonly sourceFile: string;
     readonly sourceLine: number;
     readonly response: ResponseDescriptor;
-    readonly formRequests: readonly FormRequestDescriptor[];
+    readonly runtimeReturn: RuntimeReturnContract;
+    readonly request: RouteRequestBinding;
     readonly schema: RouteSchemaPayload;
-    readonly schemaRules: readonly RouteValidationRuleEntry[];
     readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }

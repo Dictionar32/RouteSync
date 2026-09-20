@@ -36,27 +36,11 @@ export class ManifestArtifactLowerer {
     }
 
     /**
-     * Resolves canonical synthetic name for route inline response (e.g. /login -> Login).
+     * Reads the route name already resolved by the scanner origin boundary.
+     * No path parsing or resource re-classification belongs in this lowerer.
      */
     private resolveRouteName(route: ParsedRoute): string {
-        if (route.resourceName && route.resourceName.length > 0) {
-            return route.resourceName;
-        }
-
-        const segments = route.path
-            .replace(/^\//, '')
-            .split('/')
-            .filter(s => s.toLowerCase() !== 'api' && !s.startsWith('{'))
-            .map(s => s.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()));
-
-        if (segments.length === 0) return 'Inline';
-        if (segments.length === 1) {
-            return segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
-        }
-
-        const first = segments[0];
-        const last = segments[segments.length - 1];
-        return (first.charAt(0).toUpperCase() + first.slice(1)) + (last.charAt(0).toUpperCase() + last.slice(1));
+        return route.identity.resourceName.value.value;
     }
 
     /**
@@ -68,8 +52,8 @@ export class ManifestArtifactLowerer {
         const seen = new Set<string>();
 
         // 1. Process explicit resources
-        for (const res of manifest.resources || []) {
-            const cleanBase = res.name.replace(/(Resource|Response)$/, '');
+        for (const res of manifest.resources) {
+            const cleanBase = res.name.value.value;
             const resName = cleanBase.endsWith('Resource') ? cleanBase : `${cleanBase}Resource`;
             if (seen.has(resName)) continue;
             seen.add(resName);
@@ -93,8 +77,8 @@ export class ManifestArtifactLowerer {
         }
 
         // 2. Process route inline responses
-        for (const route of manifest.routes || []) {
-            matchResponse(route.response, {
+        for (const route of manifest.routes) {
+            matchResponse(route.binding.response, {
                 resource: () => undefined,
                 model: () => undefined,
                 void: () => undefined,

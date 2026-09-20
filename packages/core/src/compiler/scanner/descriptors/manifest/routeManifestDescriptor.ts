@@ -13,21 +13,16 @@ import {
   type ParsedModel,
   type ResourceRouteGroup,
   type BroadcastChannelDescriptor,
-  type FrontendConfig,
+  type FrontendConfiguration,
   type PageConfig,
-  type EndpointContract,
-  ScannedEndpointContract
 } from '../../../../types/route';
 import type { RequestType } from '../../../artifacts/RequestTypesArtifact';
 import type { ObjectType } from '../../../types/SemanticType';
-import { TypeInterner } from '../../../types/TypeInterner';
-import { TypeDeriver } from '../../subscanners/TypeDeriver';
 
 export interface ScannedRouteManifestParams {
   readonly version: string;
   readonly baseURL: string;
   readonly routes: readonly ParsedRoute[];
-  readonly contracts: readonly EndpointContract[];
   readonly resources: readonly ParsedResource[];
   readonly models: readonly ParsedModel[];
   readonly routeGroups: readonly ResourceRouteGroup[];
@@ -35,7 +30,7 @@ export interface ScannedRouteManifestParams {
   readonly semanticTypes: readonly ObjectType[];
   readonly generatedAt: string;
   readonly channels: readonly BroadcastChannelDescriptor[];
-  readonly frontend: FrontendConfig | null;
+  readonly frontend: FrontendConfiguration;
   readonly pages: readonly PageConfig[];
 }
 
@@ -43,7 +38,6 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
   public readonly version: string;
   public readonly baseURL: string;
   public readonly routes: readonly ParsedRoute[];
-  public readonly contracts: readonly EndpointContract[];
   public readonly resources: readonly ParsedResource[];
   public readonly models: readonly ParsedModel[];
   public readonly routeGroups: readonly ResourceRouteGroup[];
@@ -51,14 +45,13 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
   public readonly semanticTypes: readonly ObjectType[];
   public readonly generatedAt: string;
   public readonly channels: readonly BroadcastChannelDescriptor[];
-  public readonly frontend: FrontendConfig | null;
+  public readonly frontend: FrontendConfiguration;
   public readonly pages: readonly PageConfig[];
 
   constructor(params: ScannedRouteManifestParams) {
     this.version = params.version;
     this.baseURL = params.baseURL;
     this.routes = Object.freeze(params.routes);
-    this.contracts = Object.freeze(params.contracts);
     this.resources = Object.freeze(params.resources);
     this.models = Object.freeze(params.models);
     this.routeGroups = Object.freeze(params.routeGroups);
@@ -83,7 +76,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
     semanticTypes = [],
     generatedAt = new Date().toISOString(),
     channels = [],
-    frontend = null,
+    frontend = { kind: 'disabled' },
     pages = []
   }: {
     readonly version?: string;
@@ -97,25 +90,16 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
     readonly semanticTypes?: readonly ObjectType[];
     readonly generatedAt?: string;
     readonly channels?: readonly BroadcastChannelDescriptor[];
-    readonly frontend?: FrontendConfig | null;
+    readonly frontend?: FrontendConfiguration;
     readonly pages?: readonly PageConfig[];
   } = {}): ScannedRouteManifestDescriptor {
-    const interner = new TypeInterner();
-    const resolvedRequests = (requestTypes.length > 0)
-      ? requestTypes
-      : TypeDeriver.deriveRequestTypes(routes, resources, interner, models);
-    const resolvedSemantics = (semanticTypes.length > 0)
-      ? semanticTypes
-      : TypeDeriver.deriveSemanticTypes(resources, models, interner, routes);
-    const assembledContracts = contracts && contracts.length > 0
-      ? contracts
-      : routes.map(r => r.contract ?? ScannedEndpointContract.fromRoute(r));
-
+    const resolvedRequests = Object.freeze([...requestTypes]);
+    const resolvedSemantics = Object.freeze([...semanticTypes]);
     return new ScannedRouteManifestDescriptor({
       version,
       baseURL,
       routes,
-      contracts: assembledContracts,
+      contracts,
       resources,
       models,
       routeGroups,
@@ -133,7 +117,6 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
       version,
       baseURL,
       routes: [],
-      contracts: [],
       resources: [],
       models: [],
       routeGroups: [],
@@ -141,7 +124,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
       semanticTypes: [],
       generatedAt: new Date().toISOString(),
       channels: [],
-      frontend: null,
+      frontend: { kind: 'disabled' },
       pages: []
     });
   }

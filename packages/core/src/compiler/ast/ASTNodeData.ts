@@ -8,7 +8,7 @@ import type { FileSpan } from '../types/FileSpan';
 /**
  * Unique identifier for an AST node
  */
-import { ASTNodeId } from '../utils';
+export type ASTNodeId = number;
 
 /**
  * Data associated with an AST node

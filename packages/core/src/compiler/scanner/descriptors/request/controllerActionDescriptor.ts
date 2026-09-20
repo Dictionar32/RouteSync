@@ -8,8 +8,6 @@
 
 import {
     VoidResponseDescriptor,
-    RouteValidationRuleEntry,
-    FormRequestDescriptor,
     RouteHandlerDescriptor,
     RouteSchemaPayload,
     ResponseDescriptor,
@@ -37,9 +35,9 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
     public readonly sourceFile: string;
     public readonly sourceLine: number;
     public readonly response: ResponseDescriptor;
-    public readonly formRequests: readonly FormRequestDescriptor[];
+    public readonly runtimeReturn: import('./controllerActionContract').RuntimeReturnContract;
+    public readonly request: import("../../../../types/domain/request").RouteRequestBinding;
     public readonly schema: RouteSchemaPayload;
-    public readonly schemaRules: readonly RouteValidationRuleEntry[];
     public readonly dataflow: import("../../subscanners/controller/controllerDataflowContract").ControllerDataflowContract;
     public readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 
@@ -51,9 +49,9 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
         this.sourceFile = params.sourceFile;
         this.sourceLine = params.sourceLine;
         this.response = params.response;
-        this.formRequests = params.formRequests;
+        this.runtimeReturn = params.runtimeReturn;
+        this.request = params.request;
         this.schema = params.schema;
-        this.schemaRules = params.schemaRules;
         this.dataflow = params.dataflow;
         this.errorResponses = Object.freeze([...params.errorResponses]);
         Object.freeze(this);
@@ -70,9 +68,9 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             sourceFile: params.sourceFile,
             sourceLine: params.sourceLine,
             response: params.response,
-            formRequests: Object.freeze([...params.formRequests]),
+            runtimeReturn: params.runtimeReturn,
+            request: params.request,
             schema: params.schema,
-            schemaRules: Object.freeze([...params.schemaRules]),
             dataflow: params.dataflow,
             errorResponses: Object.freeze([...params.errorResponses])
         });
@@ -85,9 +83,9 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             sourceFile,
             sourceLine: 1,
             response: new (VoidResponseDescriptor)(),
-            formRequests: [],
+            runtimeReturn: { kind: 'none' },
+            request: { kind: 'no_request' },
             schema: ScannedRouteSchemaPayload.empty(),
-            schemaRules: [],
             dataflow: emptyControllerDataflowContract(),
             errorResponses: []
         });

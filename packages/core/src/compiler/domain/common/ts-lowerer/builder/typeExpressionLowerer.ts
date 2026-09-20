@@ -7,7 +7,6 @@
  */
 
 import {
-    SemanticTypeKind,
     type SemanticType,
     type ObjectProperty
 } from '../../../../types/SemanticType';
@@ -17,42 +16,24 @@ import {
 import { TypeScriptSyntax } from '../typeScriptSyntax';
 
 export function lowerTypeExpression(type: SemanticType): string {
-    switch (type.kind) {
-        case SemanticTypeKind.Primitive:
-            return TypeScriptPrimitiveMapping.forPrimitive(type.type);
-        case SemanticTypeKind.Optional:
-            return TypeScriptSyntax.optional(lowerTypeExpression(type.innerType));
-        case SemanticTypeKind.Nullable:
-            return TypeScriptSyntax.nullable(lowerTypeExpression(type.innerType));
-        case SemanticTypeKind.ReadonlyCollection:
-        case SemanticTypeKind.MutableCollection:
-            return TypeScriptSyntax.array(lowerTypeExpression(type.elementType));
-        case SemanticTypeKind.Reference:
-            return (type.name.endsWith('Resource') && !type.name.endsWith('Transformed'))
-                ? `${type.name}Transformed`
-                : type.name;
-        case SemanticTypeKind.Union:
-            return TypeScriptSyntax.union(type.members, lowerTypeExpression);
-        case SemanticTypeKind.Intersection:
-            return TypeScriptSyntax.intersection(type.members, lowerTypeExpression);
-        case SemanticTypeKind.Object:
-            return TypeScriptSyntax.inlineObject(type.properties, (p) => lowerProperty(p, true));
-        default:
-            return TypeScriptPrimitiveMapping.UNKNOWN;
-    }
+    return type.accept({
+        primitive: value => TypeScriptPrimitiveMapping.forPrimitive(value.type),
+        jsonValue: () => TypeScriptPrimitiveMapping.UNKNOWN,
+        optional: value => TypeScriptSyntax.optional(lowerTypeExpression(value.innerType)),
+        nullable: value => TypeScriptSyntax.nullable(lowerTypeExpression(value.innerType)),
+        never: () => TypeScriptPrimitiveMapping.UNKNOWN,
+        error: () => TypeScriptPrimitiveMapping.UNKNOWN,
+        reference: value => value.emittedName,
+        union: value => TypeScriptSyntax.union(value.members, lowerTypeExpression),
+        intersection: value => TypeScriptSyntax.intersection(value.members, lowerTypeExpression),
+        readonlyCollection: value => TypeScriptSyntax.array(lowerTypeExpression(value.elementType)),
+        mutableCollection: value => TypeScriptSyntax.array(lowerTypeExpression(value.elementType)),
+        generic: value => `${value.base.name}<${value.parameters.map(parameter => lowerTypeExpression(parameter.type)).join(', ')}>`,
+        object: value => TypeScriptSyntax.inlineObject(value.properties, property => lowerProperty(property, true))
+    });
 }
 
 export function lowerProperty(prop: ObjectProperty, includeJsDoc = true): string {
-    const isOptional = prop.type.kind === SemanticTypeKind.Optional || prop.required === false;
-    const targetType = lowerTypeExpression(
-        prop.type.kind === SemanticTypeKind.Optional ? prop.type.innerType : prop.type
-    );
-    const propCode = isOptional
-        ? TypeScriptSyntax.formatOptionalProperty(prop.name, targetType)
-        : TypeScriptSyntax.formatProperty(prop.name, targetType);
-
-    if (includeJsDoc && prop.description) {
-        return `${TypeScriptSyntax.formatJsDoc(prop.description)}${propCode}`;
-    }
-    return propCode;
+    const propertyCode = prop.type.formatProperty(prop.name.value.value, lowerTypeExpression);
+    return includeJsDoc ? `${TypeScriptSyntax.formatJsDoc(prop.description)}${propertyCode}` : propertyCode;
 }

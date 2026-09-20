@@ -1,4 +1,5 @@
 import type { PhpAstValue, PhpBinaryOperator, PhpUnaryOperator, PhpCastType } from '../../lexer/phpAstTypes';
+import { matchPhpMatchArm } from '../../lexer/phpAstAlgebra';
 import type { ModelAccessorExpression } from '../../../../types/domain/eloquentTypes';
 import { matchPhpAstValue } from '../../lexer/phpAstAlgebra';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
@@ -50,12 +51,15 @@ export function mapModelAccessorExpression(ast: PhpAstValue): ModelAccessorExpre
         shortTernary: node => ({ kind: 'short_ternary', condition: mapModelAccessorExpression(node.condition), falsy: mapModelAccessorExpression(node.falseBranch) }),
         nullCoalesce: node => ({ kind: 'binary', operator: SemanticValueFactory.semanticOperator('null_coalesce'), left: mapModelAccessorExpression(node.left), right: mapModelAccessorExpression(node.right) }),
         nestedArray: node => ({ kind: 'array_literal', entries: node.entries.map(entry => ({ kind: entry.kind, value: mapModelAccessorExpression(entry.value) })) }),
+        matchExpression: node => ({ kind: 'match', subject: mapModelAccessorExpression(node.subject), arms: node.arms.map(arm => matchPhpMatchArm(arm, {
+            conditional: item => ({ kind: 'conditional', conditions: item.conditions.map(mapModelAccessorExpression), value: mapModelAccessorExpression(item.value) }),
+            default: item => ({ kind: 'default', value: mapModelAccessorExpression(item.value) })
+        })) }),
         classReference: node => ({ kind: 'class_reference', className: SemanticValueFactory.className(node.className) }),
         resourceSingle: node => ({ kind: 'resource', resourceName: SemanticValueFactory.className(node.resourceName), argument: mapModelAccessorExpression(node.argument) }),
         resourceCollection: node => ({ kind: 'resource_collection', resourceName: SemanticValueFactory.className(node.resourceName), argument: mapModelAccessorExpression(node.argument) }),
         closure: () => ({ kind: 'rejected', reason: 'unsupported_syntax' }),
         arrowFunction: () => ({ kind: 'rejected', reason: 'unsupported_syntax' }),
-        matchExpression: () => ({ kind: 'rejected', reason: 'unsupported_syntax' }),
         unsupported: () => ({ kind: 'rejected', reason: 'unsupported_syntax' })
     });
 }

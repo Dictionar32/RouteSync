@@ -45,18 +45,23 @@ export class ModelSemanticDefinitionDescriptor implements ModelSemanticDefinitio
   public readonly identity: ModelSemanticDefinitionContract['identity'];
   public readonly key: ModelSemanticDefinitionContract['key'];
   public readonly behavior: ModelSemanticDefinitionContract['behavior'];
+  public readonly exposure: ModelSemanticDefinitionContract['exposure'];
   public readonly surface: ModelSemanticDefinitionContract['surface'];
 
   constructor(params: ModelSemanticDefinitionContract) {
     this.identity = Object.freeze(params.identity);
     this.key = Object.freeze(params.key);
     this.behavior = Object.freeze(params.behavior);
+    this.exposure = Object.freeze({
+      fillable: Object.freeze([...params.exposure.fillable]),
+      guarded: Object.freeze([...params.exposure.guarded]),
+      hidden: Object.freeze([...params.exposure.hidden]),
+      appends: Object.freeze([...params.exposure.appends])
+    });
     this.surface = Object.freeze({
       properties: Object.freeze([...params.surface.properties]),
-      columns: Object.freeze([...params.surface.columns]),
-      accessors: Object.freeze([...params.surface.accessors]),
-      relations: Object.freeze([...params.surface.relations]),
-      byName: params.surface.byName
+      byName: params.surface.byName,
+      relationsByName: params.surface.relationsByName
     });
     Object.freeze(this);
   }

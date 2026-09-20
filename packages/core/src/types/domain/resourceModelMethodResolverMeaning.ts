@@ -5,8 +5,9 @@ const KNOWN_METHODS = Object.freeze(['query','first','find','firstOrFail','findO
 
 export function knownMethodNames(): readonly string[] { return KNOWN_METHODS; }
 
+
 export function meaningFor(method: MethodName): ResourceModelMethodMeaning {
-  switch (method.value) {
+  switch (method.value.value) {
     case 'query': return { kind: 'query_origin' };
     case 'first': case 'find': return { kind: 'single_model', lookup: { kind: 'may_be_absent' } };
     case 'firstOrFail': case 'findOrFail': case 'sole': return { kind: 'single_model', lookup: { kind: 'raises_not_found' } };
@@ -16,21 +17,21 @@ export function meaningFor(method: MethodName): ResourceModelMethodMeaning {
     case 'simplePaginate': return { kind: 'paginated_collection', delivery: { kind: 'simple' } };
     case 'cursorPaginate': return { kind: 'paginated_collection', delivery: { kind: 'cursor' } };
     case 'exists': return { kind: 'scalar', operation: 'exists' };
-    case 'count': case 'sum': case 'avg': case 'min': case 'max': case 'value': return { kind: 'scalar', operation: method.value };
+    case 'count': case 'sum': case 'avg': case 'min': case 'max': case 'value': return { kind: 'scalar', operation: method.value.value };
     case 'pluck': return { kind: 'value_collection' };
     case 'where': case 'orWhere': return { kind: 'query_mutation', operation: { kind: 'filter' } };
     case 'whereHas': case 'orWhereHas': return { kind: 'query_mutation', operation: { kind: 'relation_filter' } };
     case 'with': case 'without': return { kind: 'query_mutation', operation: { kind: 'relation_load' } };
     case 'latest': return { kind: 'query_mutation', operation: { kind: 'ordering', direction: 'descending' } };
-    case 'oldest': return { kind: 'query_mutation', operation: { kind: 'ordering', direction: 'ascending' } };
-    case 'orderBy': case 'orderByRaw': return { kind: 'query_mutation', operation: { kind: 'ordering', direction: 'ascending' } };
+    case 'oldest': case 'orderBy': case 'orderByRaw': return { kind: 'query_mutation', operation: { kind: 'ordering', direction: 'ascending' } };
     case 'orderByDesc': return { kind: 'query_mutation', operation: { kind: 'ordering', direction: 'descending' } };
     case 'select': case 'selectRaw': case 'addSelect': return { kind: 'query_mutation', operation: { kind: 'projection' } };
-    case 'limit': case 'offset': case 'take': case 'skip': return { kind: 'query_mutation', operation: { kind: 'window', operation: method.value } };
+    case 'limit': case 'offset': case 'take': case 'skip': return { kind: 'query_mutation', operation: { kind: 'window', operation: method.value.value } };
     case 'groupBy': return { kind: 'query_mutation', operation: { kind: 'grouping' } };
     case 'having': case 'havingRaw': return { kind: 'query_mutation', operation: { kind: 'having' } };
     case 'distinct': return { kind: 'query_mutation', operation: { kind: 'distinct' } };
-    case 'when': case 'unless': return { kind: 'query_mutation', operation: { kind: 'conditional', branch: method.value } };
+    case 'when': return { kind: 'query_mutation', operation: { kind: 'conditional', branch: 'when' } };
+    case 'unless': return { kind: 'query_mutation', operation: { kind: 'conditional', branch: 'unless' } };
     case 'lockForUpdate': return { kind: 'query_mutation', operation: { kind: 'locking', mode: 'for_update' } };
     case 'sharedLock': return { kind: 'query_mutation', operation: { kind: 'locking', mode: 'shared' } };
     default: return { kind: 'unsupported' };

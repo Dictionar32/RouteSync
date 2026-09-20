@@ -1,5 +1,8 @@
 import type { TokenDescriptor } from './phpAstTypes';
 import { createAstIdentifier } from './phpAstTypes';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
+import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
+import type { RequestName } from '../../../types/upstream/names';
 import { parseControllerReturns } from './controllerReturnParser';
 import { parseControllerBody } from './controllerBodyParser';
 import type {
@@ -27,7 +30,12 @@ export function parseControllerMethod(
         parameters: Object.freeze(parameters),
         responseAttribute: parseResponseAttribute(tokens, functionIndex),
         returns: Object.freeze(parseControllerReturns(source, bodyTokens)),
-        body: parseControllerBody(source, bodyTokens, parameters.map(parameter => parameter.name)),
+        body: parseControllerBody(
+            source,
+            bodyTokens,
+            parameters.map(parameter => parameter.name),
+            new Map(parameters.map(parameter => [parameter.name, parameter.semantic]))
+        ),
         source: tokens[functionIndex],
     });
 }
@@ -42,20 +50,36 @@ function parseParameters(tokens: readonly TokenDescriptor[], start: number): Con
             const innerToken = nextToken;
             const variableToken = tokens[i + 2];
             if (innerToken.type !== 'IDENTIFIER' || variableToken?.type !== 'VARIABLE') continue;
+            const name = createAstIdentifier(variableToken.value.slice(1));
             result.push({
                 type: { kind: 'nullable', inner: parseParameterType(innerToken.value) },
-                name: createAstIdentifier(variableToken.value.slice(1)),
+                name,
+                semantic: parameterSemantic(innerToken.value),
             });
             i += 2;
             continue;
         }
         if (nextToken.type !== 'VARIABLE' || typeToken.type !== 'IDENTIFIER') continue;
+        const name = createAstIdentifier(nextToken.value.slice(1));
         result.push({
             type: parseParameterType(typeToken.value),
-            name: createAstIdentifier(nextToken.value.slice(1)),
+            name,
+            semantic: parameterSemantic(typeToken.value),
         });
     }
     return result;
+}
+
+
+function parameterSemantic(typeName: string): ControllerVariableSemantic {
+    if (typeName.endsWith('Request') && typeName !== 'Request') {
+        const name: RequestName = { kind: 'request_name', value: { kind: 'string_value', value: typeName } };
+        return { kind: 'request_origin', name };
+    }
+    if (typeName === 'string' || typeName === 'int' || typeName === 'float' || typeName === 'bool' || typeName === 'mixed') {
+        return { kind: 'external' };
+    }
+    return { kind: 'model_origin', origin: { kind: 'model_class', name: { kind: 'model_name', value: { kind: 'string_value', value: typeName } } } };
 }
 
 function parseParameterType(value: string): PhpParameterTypeAst {

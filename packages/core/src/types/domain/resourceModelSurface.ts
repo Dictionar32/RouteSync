@@ -1,4 +1,4 @@
-import type { ParsedModel } from './models';
+import type { ModelSemanticDefinition, ParsedModel } from './models';
 import type { ModelName, PropertyName, RelationName } from './semanticValues';
 import type { ModelSemanticProperty, ModelPropertyMultiplicity } from './models';
 import type { SemanticType } from '../../compiler/types/SemanticType';
@@ -34,6 +34,23 @@ export interface ResourceModelSurface {
   readonly resolveRelation: (relation: RelationName) => ResourceModelRelationLookup;
 }
 
+export function createResourceModelSemanticSurface(model: ModelSemanticDefinition): ResourceModelSurface {
+  const surface = model.surface;
+  const members = Object.freeze(surface.properties.map(property => Object.freeze({ kind: 'property' as const, property })));
+  const resolveProperty = (property: PropertyName): ResourceModelPropertyLookup => {
+    const member = surface.byName.lookup(property);
+    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', property });
+    return Object.freeze({ kind: 'found', resolution: Object.freeze({ kind: 'property', property: member.value.property, semantic: member.value, semanticType: member.value.semanticType }) });
+  };
+  const resolveRelation = (relation: RelationName): ResourceModelRelationLookup => {
+    const member = surface.relationsByName.lookup(relation);
+    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', relation });
+    const semantic = member.value;
+    return Object.freeze({ kind: 'found', resolution: Object.freeze({ relation, semantic, targetModel: semantic.targetModel, semanticType: semantic.semanticType, multiplicity: semantic.multiplicity }) });
+  };
+  return Object.freeze({ model: model.identity.name, members, methods: createResourceModelMethodSurface(model), resolveProperty, resolveRelation });
+}
+
 export function createResourceModelSurface(model: ParsedModel): ResourceModelSurface {
   const surface = model.semantic.surface;
   const members = Object.freeze(surface.properties.map(property =>
@@ -41,38 +58,37 @@ export function createResourceModelSurface(model: ParsedModel): ResourceModelSur
   ));
 
   const resolveProperty = (property: PropertyName): ResourceModelPropertyLookup => {
-    const member = surface.byName.get(property);
-    if (member === undefined) return Object.freeze({ kind: 'missing', property });
+    const member = surface.byName.lookup(property);
+    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', property });
     return Object.freeze({
       kind: 'found',
       resolution: Object.freeze({
         kind: 'property',
-        property: member.property,
-        semantic: member,
-        semanticType: member.kind === 'relation' ? member.semanticType : member.type
+        property: member.value.property,
+        semantic: member.value,
+        semanticType: member.value.semanticType
       })
     });
   };
 
   const resolveRelation = (relation: RelationName): ResourceModelRelationLookup => {
-    const member = surface.byName.get({ kind: 'property_name', value: relation.value });
-    if (member === undefined || member.kind !== 'relation') {
-      return Object.freeze({ kind: 'missing', relation });
-    }
+    const member = surface.relationsByName.lookup(relation);
+    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', relation });
+    const semantic = member.value;
     return Object.freeze({
       kind: 'found',
       resolution: Object.freeze({
-        relation: member.relation,
-        semantic: member,
-        targetModel: member.targetModel,
-        semanticType: member.semanticType,
-        multiplicity: member.multiplicity
+        relation: semantic.relation,
+        semantic,
+        targetModel: semantic.targetModel,
+        semanticType: semantic.semanticType,
+        multiplicity: semantic.multiplicity
       })
     });
   };
 
   return Object.freeze({
-    model: model.name,
+    model: model.semantic.identity.name,
     members,
     methods: createResourceModelMethodSurface(model.semantic),
     resolveProperty,

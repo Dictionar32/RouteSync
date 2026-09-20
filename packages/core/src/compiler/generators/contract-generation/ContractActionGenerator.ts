@@ -50,7 +50,7 @@ export class ContractActionGenerator {
             return {
                 name: f.name,
                 type: this.resolver.resolve(f.type),
-                presence: f.required ? 'required' as const : 'optional' as const
+                presence: f.required
             };
         });
         const resolvedObject = ResolvedObjectType.plain(resolvedFields);

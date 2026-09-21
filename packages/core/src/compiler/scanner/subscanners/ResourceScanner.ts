@@ -1,3 +1,4 @@
+import { readSourceText } from './scannerUtils';
 /**
  * ResourceScanner.ts
  *
@@ -8,7 +9,7 @@
  */
 
 import path from "path";
-import fs from "fs-extra";
+import * as fs from "node:fs";
 import { ParsedResource, ResourceFieldExpression } from "../../../types/route";
 import { LaravelSourceLexer, PhpAstValue, PhpArrayEntry } from "../LaravelSourceLexer";
 import { collectPhpFiles } from "./scannerUtils";
@@ -22,7 +23,9 @@ import {
 import { mapAstValueToExpression } from "./resource/resourceAstExpressionMapper";
 import { mapResourcePhpAstToUpstream } from "./resource/resourceUpstreamExpressionCanonical";
 import type { Expression } from "../../../types/upstream/expression";
+import type { ResourceAst } from "../../../types/upstream/ast";
 import type { ResourceExpressionModel } from "../../../types/domain/resourceExpressionModel";
+import { resourceAstFromParsed } from "./resource/resourceAstCanonical";
 
 interface ParsedResourceFile {
     readonly resourceName: string;
@@ -32,7 +35,7 @@ interface ParsedResourceFile {
 }
 
 export class ResourceScanner {
-    public static async scan(
+    private static async scanResources(
         projectRoot: string,
         modelSymbolTable: ModelSymbolTable = new ModelSymbolTable([]),
         controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
@@ -45,7 +48,7 @@ export class ResourceScanner {
         const resolvedModels = new Map<string, OriginModelSymbol>();
 
         for (const fullPath of files) {
-            const source = await fs.readFile(fullPath, 'utf-8');
+            const source = await readSourceText(fullPath);
             const tokens = LaravelSourceLexer.tokenize(source);
             const resourceName = path.basename(fullPath, '.php');
 
@@ -61,7 +64,7 @@ export class ResourceScanner {
                     relationEdges.push({
                         parentResource: resourceName,
                         childResource: entry.value.resourceName,
-                        relationKey: requireStringArrayKey(entry.key)
+                        relationKey: requireStringArrayKey(entry.kind === 'keyed' ? entry.key : { kind: 'expression', value: entry.value })
                     });
                 }
             }
@@ -77,6 +80,34 @@ export class ResourceScanner {
             modelSymbolTable,
             controllerDataflowMap,
             relationPropagationMap
+        }));
+    }
+
+    public static async scan(
+        projectRoot: string,
+        modelSymbolTable: ModelSymbolTable = new ModelSymbolTable([]),
+        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
+    ): Promise<readonly ParsedResource[]> {
+        return ResourceScanner.scanResources(projectRoot, modelSymbolTable, controllerDataflowMap);
+    }
+
+    /** Upstream AST boundary. The legacy result is intentionally not widened here. */
+    public static async scanAsts(
+        projectRoot: string,
+        modelSymbolTable: ModelSymbolTable = new ModelSymbolTable([]),
+        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
+    ): Promise<readonly ResourceAst[]> {
+        const resDir = path.join(projectRoot, 'app', 'Http', 'Resources');
+        const files = await collectPhpFiles(resDir);
+        const resources = await ResourceScanner.scanResources(projectRoot, modelSymbolTable, controllerDataflowMap);
+        return Promise.all(resources.map(async (resource, index) => {
+            const file = files[index];
+            if (file === undefined) throw new Error(`Resource AST source ordering mismatch at index ${index}`);
+            const source = await readSourceText(file);
+            const tokens = LaravelSourceLexer.tokenize(source);
+            const returnIndex = this.findReturnIndex(tokens);
+            const parsedArray = LaravelSourceLexer.parseArray(source, tokens, returnIndex);
+            return resourceAstFromParsed(resource, parsedArray.entries, file, source.length);
         }));
     }
 

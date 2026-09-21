@@ -48,6 +48,8 @@ export {
     parsePhpArray
 } from "./arrayParser";
 
+export type { PhpClassPropertyAst, PhpPropertyVisibility } from './phpAstDeclarationTypes';
+
 export type {
     ControllerDeclarationAst,
     ControllerMethodAst,

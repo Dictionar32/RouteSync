@@ -12,7 +12,7 @@ import {
     EloquentCastMapper
 } from '../../../../types/route';
 import type { SemanticType } from '../../../types/SemanticType';
-import type { EloquentCastValueType } from '../../../../types/domain/eloquentTypes';
+import type { EloquentCastValueType, EloquentCastTarget } from '../../../../types/domain/eloquentTypes';
 import { SemanticValueFactory, type ColumnName, type CastTypeName } from '../../../../types/domain/semanticValues';
 
 export interface ScannedModelCastParams {
@@ -28,12 +28,16 @@ export interface ScannedModelCastParams {
 export class ScannedModelCastDescriptor implements ParsedCast {
     public readonly column: ColumnName;
     public readonly targetType: CastTypeName;
+    public readonly target: EloquentCastTarget;
     public readonly castKind: EloquentCastKind;
     public readonly valueType: EloquentCastValueType;
 
     constructor({ column, targetType, castKind, valueType }: ScannedModelCastParams) {
         this.column = SemanticValueFactory.columnName(column);
         this.targetType = SemanticValueFactory.castTypeName(targetType);
+        this.target = castKind === 'custom'
+            ? { kind: 'custom', className: SemanticValueFactory.className(targetType) }
+            : { kind: 'builtin', castKind };
         this.castKind = castKind;
         this.valueType = valueType;
         Object.freeze(this);

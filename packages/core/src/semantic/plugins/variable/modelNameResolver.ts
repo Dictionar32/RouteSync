@@ -14,7 +14,7 @@ export function resolveModelByName(
   const model = SemanticValueFactory.modelName(symbol.name);
   return { kind: 'resolved', value: SemanticResolutionFactory.model({
     status: 'resolved', confidence: 80, model,
-    definition: symbol.node.semantic,
+    definition: symbol.node.definition,
     cardinality: { kind: 'single' },
     boundAst: BoundSemanticFactory.modelReference(model),
     trace: [{

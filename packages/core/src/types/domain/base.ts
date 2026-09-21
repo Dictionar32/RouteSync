@@ -1,7 +1,7 @@
 import type { RequestType } from "../../compiler/artifacts/RequestTypesArtifact";
 import type { ObjectType } from "../../compiler/types/SemanticType";
 import type { BroadcastChannelDescriptor } from "./channels";
-import type { ParsedModel } from "./database";
+import type { ModelAst } from "../upstream/ast";
 import type { ParsedResource } from "./expressions";
 import type { ParsedRoute } from "./routes";
 import type { ResourceGroupDescriptor } from "./resourceGroupDescriptors";
@@ -105,7 +105,7 @@ export interface RouteManifest {
   readonly baseURL: string;
   readonly routes: readonly ParsedRoute[];
   readonly resources: readonly ParsedResource[];
-  readonly models: readonly ParsedModel[];
+  readonly models: readonly ModelAst[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
   readonly requestTypes: readonly RequestType[];              // ✅ 100% Guaranteed directly from Upstream Scanner!
   readonly semanticTypes: readonly ObjectType[];              // ✅ SATU ALIRAN UTUH (0 Fragmentasi, 0 Penyambungan Manual)!

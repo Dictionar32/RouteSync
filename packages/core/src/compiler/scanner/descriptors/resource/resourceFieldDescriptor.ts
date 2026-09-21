@@ -6,6 +6,7 @@
 import type { ResourceFieldDescriptor, ResourceFieldExpression } from '../../../../types/domain/expressions';
 import type { SemanticType } from '../../../types/SemanticType';
 import { toCamelCase } from '../../../../utils/resource-naming';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { BoundSemanticNode } from '../../../../types/domain/boundAst';
 import { createResourceFieldSemantic, requireResourceFieldType, type ResourceFieldSemantic } from '../../../../types/domain/resourceFieldSemantic';
 
@@ -23,8 +24,8 @@ export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
   public readonly semantic: ResourceFieldSemantic;
 
   constructor({ name, propertyName, expression, semantic }: ScannedResourceFieldParams) {
-    this.name = name as ResourceFieldDescriptor['name'];
-    this.propertyName = propertyName as ResourceFieldDescriptor['propertyName'];
+    this.name = SemanticValueFactory.responseFieldName(name);
+    this.propertyName = SemanticValueFactory.propertyName(propertyName);
     this.expression = expression;
     this.semantic = semantic;
     Object.freeze(this);

@@ -1,5 +1,6 @@
+import { readSourceTextSync } from '../scannerUtils';
 /** Reads Laravel response DTOs into a verified contract boundary. */
-import fs from 'fs-extra';
+import * as fs from 'node:fs';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import type { ResourceFieldDescriptor } from '../../../../types/route';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
@@ -31,7 +32,7 @@ export function readResponseDtoFields(file: string): readonly ResourceFieldDescr
 }
 
 function parse(file: string): ResponseDtoDeclarationAst {
-    const source = fs.readFileSync(file, 'utf8');
+    const source = readSourceTextSync(file);
     const tokens = LaravelSourceLexer.tokenize(source);
     return LaravelSourceLexer.parseResponseDtoDeclaration(tokens, findClassName(tokens));
 }

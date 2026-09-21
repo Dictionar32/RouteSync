@@ -34,8 +34,6 @@ export type ResponseDefinition = {
   readonly kind: 'response';
   readonly typeName: ResponseTypeName;
   readonly output: TypeExpression;
-  readonly result: ResponseResult;
-  readonly status: HttpStatusCode;
   readonly source: SourceSpan;
 };
 
@@ -44,8 +42,6 @@ export type ResponseFacts = {
   readonly identity: import('./semanticReferences').ResponseReference;
   readonly typeName: ResponseTypeName;
   readonly output: TypeExpression;
-  readonly result: ResponseResult;
-  readonly status: HttpStatusCode;
   readonly source: SourceSpan;
 };
 

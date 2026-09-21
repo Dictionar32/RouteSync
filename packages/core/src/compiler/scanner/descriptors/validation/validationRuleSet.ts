@@ -9,7 +9,6 @@ import type {
 import { ScannedFormFieldDescriptor } from '../request/formFieldDescriptor';
 import type { TypeInterner } from '../../../types/TypeInterner';
 import { ObjectType, ReadonlyCollectionType, CollectionKind, type ObjectProperty, type SemanticType } from '../../../types/SemanticType';
-import { RequestFieldPresenceFactory } from '../../../../types/domain/requestFieldPresence';
 import { ScannedScalarFieldNode, ScannedObjectFieldNode, ScannedArrayFieldNode } from './fieldNodes';
 
 export interface RouteValidationRuleSet {
@@ -66,8 +65,8 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): ReadonlyMap
         const property = leafProperty(entry);
         roots.set(rootName, {
             name: rootName,
-            semanticType: existing?.semanticType ?? entry.semanticType,
-            presence: existing?.presence ?? RequestFieldPresenceFactory.unspecified(),
+            semanticType: entry.semanticType,
+            presence: entry.presence,
             validation: existing?.validation ?? [],
             shape: existing?.shape ?? entry.shape,
             properties: mergeProperty(existing?.properties ?? [], property)

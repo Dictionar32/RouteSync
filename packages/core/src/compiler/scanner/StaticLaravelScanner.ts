@@ -17,6 +17,7 @@ import type {
 } from "../../types/route";
 import type { RequestType } from "../artifacts/RequestTypesArtifact";
 import type { ObjectType } from "../types/SemanticType";
+import type { ModelAst } from "../../types/upstream/ast";
 import { TypeInterner } from "../types/TypeInterner";
 import type { StaticLaravelScannerOptions } from "./descriptors";
 import { InvalidationResolver, TypeDeriver } from "./subscanners";
@@ -65,7 +66,7 @@ export class StaticLaravelScanner extends ScannerLegacyDelegates {
 
     public static resolveRouteInvalidations(
         routes: readonly ParsedRoute[],
-        models: readonly ParsedModel[],
+        models: readonly ModelAst[],
         routeGroups: readonly ResourceRouteGroup[]
     ): readonly ParsedRoute[] {
         return InvalidationResolver.resolveRouteInvalidations(routes, models, routeGroups);
@@ -75,14 +76,14 @@ export class StaticLaravelScanner extends ScannerLegacyDelegates {
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
         interner: TypeInterner = new TypeInterner(),
-        models: readonly ParsedModel[] = []
+        models: readonly ModelAst[] = []
     ): readonly RequestType[] {
         return TypeDeriver.deriveRequestTypes(routes, resources, interner, models);
     }
 
     public static deriveSemanticTypes(
         resources: readonly ParsedResource[] = [],
-        models: readonly ParsedModel[] = [],
+        models: readonly ModelAst[] = [],
         interner: TypeInterner = new TypeInterner(),
         routes: readonly ParsedRoute[] = []
     ): readonly ObjectType[] {

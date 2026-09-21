@@ -12,23 +12,24 @@ import type {
     ParsedModel
 } from '../../../../types/route';
 import { TypeInterner } from '../../../types/TypeInterner';
+import type { ModelAst } from '../../../../types/upstream/ast';
 
 /**
  * Origin Boundary Context ensuring guaranteed, non-nullable inputs.
  */
 export class SemanticDerivationContext {
     public readonly resources: readonly ParsedResource[];
-    public readonly models: readonly ParsedModel[];
+    public readonly models: readonly ModelAst[];
     public readonly interner: TypeInterner;
     public readonly routes: readonly ParsedRoute[];
-    public readonly modelsByName: ReadonlyMap<string, ParsedModel>;
+    public readonly modelsByName: ReadonlyMap<string, ModelAst>;
 
     public constructor(params: {
         readonly resources: readonly ParsedResource[];
-        readonly models: readonly ParsedModel[];
+        readonly models: readonly ModelAst[];
         readonly interner: TypeInterner;
         readonly routes: readonly ParsedRoute[];
-        readonly modelsByName: ReadonlyMap<string, ParsedModel>;
+        readonly modelsByName: ReadonlyMap<string, ModelAst>;
     }) {
         this.resources = params.resources;
         this.models = params.models;
@@ -40,20 +41,20 @@ export class SemanticDerivationContext {
 
     public static create(
         resources?: readonly ParsedResource[],
-        models?: readonly ParsedModel[],
+        models?: readonly ModelAst[],
         interner?: TypeInterner,
         routes?: readonly ParsedRoute[]
     ): SemanticDerivationContext {
         const safeResources: readonly ParsedResource[] = resources ? Array.from(resources) : [];
-        const safeModels: readonly ParsedModel[] = models ? Array.from(models) : [];
+        const safeModels: readonly ModelAst[] = models ? Array.from(models) : [];
         const safeInterner: TypeInterner = interner ? interner : new TypeInterner();
         const safeRoutes: readonly ParsedRoute[] = routes ? Array.from(routes) : [];
 
-        const modelsByName = new Map<string, ParsedModel>();
+        const modelsByName = new Map<string, ModelAst>();
         for (const m of safeModels) {
-            if (m && m.name) {
-                modelsByName.set(m.name, m);
-                modelsByName.set(m.name.toLowerCase(), m);
+            if (m.definition.identity.name) {
+                modelsByName.set(m.definition.identity.name.value.value, m);
+                modelsByName.set(m.definition.identity.name.value.value.toLowerCase(), m);
             }
         }
 

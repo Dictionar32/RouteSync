@@ -69,8 +69,13 @@ export interface FormRequestIdentity {
 export interface FormRequestSource {
     readonly identity: FormRequestIdentity;
     readonly sourceFile: SourceFilePath;
+    readonly authorization: RequestAuthorizationSource;
     readonly fields: readonly RequestField[];
 }
+
+export type RequestAuthorizationSource =
+    | { readonly kind: 'authorized' }
+    | { readonly kind: 'denied' };
 
 export interface RequestIdentity {
     readonly source: FormRequestIdentity;

@@ -1,3 +1,4 @@
+import { readSourceText } from './scannerUtils';
 /**
  * ChannelScanner.ts
  *
@@ -7,7 +8,7 @@
  */
 
 import path from "path";
-import fs from "fs-extra";
+import * as fs from "node:fs";
 import { BroadcastChannelDescriptor, RouteParameter } from "../../../types/route";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import {
@@ -22,7 +23,7 @@ export class ChannelScanner {
         const channelsFile = path.join(projectRoot, "routes", "channels.php");
         if (!fs.existsSync(channelsFile)) return [];
 
-        const source = await fs.readFile(channelsFile, "utf-8");
+        const source = await readSourceText(channelsFile);
         const tokens = LaravelSourceLexer.tokenize(source);
         const channels: BroadcastChannelDescriptor[] = [];
 
@@ -32,11 +33,21 @@ export class ChannelScanner {
                 if (tokens[pIdx]?.value === "(" && tokens[pIdx + 1]?.type === "STRING") {
                     const pattern = tokens[pIdx + 1].value;
                     const parameters = ChannelScanner.extractPathParams(pattern);
+                    const isPresence = pattern.includes("presence") || pattern.includes("chat");
+                    const isPrivate = !pattern.startsWith("public.") && !isPresence;
+                    const kind = isPresence
+                        ? BroadcastChannelKind.Presence
+                        : isPrivate
+                            ? BroadcastChannelKind.Private
+                            : BroadcastChannelKind.Public;
 
                     channels.push(ScannedBroadcastChannelDescriptor.fromPattern({
                         name: pattern,
                         pattern,
-                        parameters
+                        parameters,
+                        kind,
+                        isPrivate,
+                        isPresence
                     }));
                 }
             }

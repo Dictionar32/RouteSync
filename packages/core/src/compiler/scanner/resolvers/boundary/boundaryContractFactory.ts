@@ -8,14 +8,11 @@
  * @module core/compiler/scanner/resolvers/boundary
  */
 
-import {
-    type RouteBoundaryContract,
-    type RouteBoundaryOptions,
-    buildRouteIdentityContract,
-    buildRouteBindingContract,
-    buildRouteCapabilityContract,
-    buildRouteProvenanceContract
-} from "./boundaryBasics";
+import type { RouteBoundaryContract, RouteBoundaryOptions } from "./boundaryBasics";
+import { buildRouteIdentityContract } from "./identityBuilder";
+import { buildRouteBindingContract } from "./bindingBuilder";
+import { buildRouteCapabilityContract } from "./capabilityBuilder";
+import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { resolveRouteBoundaryInput } from "./boundaryInputResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { resolveRouteBinding } from "./bindingResolution";

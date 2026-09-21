@@ -35,7 +35,7 @@ export function convertRawToSemanticType(
         const m = modelIndex.get(raw.model) || modelIndex.get(String(raw.model).toLowerCase());
         if (m && m.columns) {
             const properties = m.columns.map(col => {
-                const primKind = col.semanticType ?? DatabaseColumnTypeMapper.toPrimitiveKind(col.type);
+                const primKind = col.semanticType;
                 return { name: col.name, type: interner.intern(new PrimitiveType(primKind)), required: true, nullable: false, description: '' };
             });
             return new ObjectType({ name: raw.model, baseName: raw.model, properties, role: 'model' });

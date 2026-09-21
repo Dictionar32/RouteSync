@@ -11,7 +11,7 @@ import type { PhpAstValue } from "../../../lexer/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { ScannedResourceFieldDescriptor } from "../../../descriptors/resourceDescriptors";
-import { PrimitiveKind, PrimitiveType } from "../../../../types/SemanticType";
+import { ErrorType, PrimitiveKind, PrimitiveType } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 
@@ -86,17 +86,23 @@ export function bindTernaryField(
         modelSymbolTable
     });
 
+    const semanticType = trueBranch.descriptor.semantic.kind === 'verified'
+        ? trueBranch.descriptor.semantic.type
+        : falseBranch.descriptor.semantic.kind === 'verified'
+            ? falseBranch.descriptor.semantic.type
+            : new ErrorType('Ternary branches could not be semantically resolved');
+
     const boundAst = BoundSemanticFactory.ternary({
         conditionExpression: value.condition.kind,
         truthy: trueBranch.boundAst,
         falsy: falseBranch.boundAst,
-        resultingType: trueBranch.descriptor.semantic.type,
+        resultingType: semanticType,
     });
 
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         trueBranch.descriptor.expression,
-        trueBranch.descriptor.semantic.type,
+        semanticType,
         toCamelCase(key),
         boundAst
     );

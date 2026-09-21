@@ -167,6 +167,7 @@ export const SemanticValueFactory = Object.freeze({
   routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue(value) }); },
   responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value: stringValue(value) }); },
   httpErrorName(value: string): HttpErrorName { return Object.freeze({ kind: 'http_error_name', value }); },
+  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value }); },
   className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value: stringValue(value) }); },
   domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_type_name', value: stringValue(value) }); },
   resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value: stringValue(value) }); },

@@ -6,128 +6,84 @@
  * @module core/compiler/scanner/subscanners/model/migrationScanner
  */
 
-import path from "path";
-import fs from "fs-extra";
+import { DatabaseColumnTypeMapper } from "../../../../types/route";
+import { scanMigrationAsts } from '../migrationAstCanonical';
+
 import type { ParsedColumn } from "../../../../types/route";
-import { LaravelSourceLexer, type TokenDescriptor } from "../../LaravelSourceLexer";
-import { ScannedModelColumnDescriptor } from "../../descriptors/modelDescriptors";
-import { collectPhpFiles } from "../scannerUtils";
+import { toCamelCase } from "../../../../utils/resource-naming";
 
 /**
  * Scans migration files in the project to build a map of table name to column definitions.
  */
 export async function scanMigrations(projectRoot: string): Promise<Map<string, ParsedColumn[]>> {
+    const migrationAsts = await scanMigrationAsts(projectRoot);
     const migrationMap = new Map<string, ParsedColumn[]>();
-    const migrationDir = path.join(projectRoot, 'database', 'migrations');
-    const files = await collectPhpFiles(migrationDir);
 
-    for (const fullPath of files) {
-        const source = await fs.readFile(fullPath, 'utf-8');
-        const tokens = LaravelSourceLexer.tokenize(source);
-        parseMigrationTokens(tokens, migrationMap);
+    for (const migration of migrationAsts) {
+        const operations = migration.definition.operations.items;
+        let current = operations;
+        while (current.kind === 'cons') {
+            const operation = current.head;
+            if (operation.kind === 'create_table') {
+                const tableName = operation.table.value.value;
+                const columns: ParsedColumn[] = [];
+                let columnItems = operation.columns.items;
+                while (columnItems.kind === 'cons') {
+                    const column = columnItems.head;
+                    columns.push({
+                        name: column.name.value.value,
+                        propertyName: toCamelCase(column.name.value.value),
+                        type: domainColumnType(column.databaseType),
+                        nullability: domainNullability(column.nullability),
+                        semanticType: DatabaseColumnTypeMapper.toPrimitiveKind(primitiveTypeName(column.databaseType))
+                    });
+                    columnItems = columnItems.tail;
+                }
+                migrationMap.set(tableName, columns);
+            }
+            current = current.tail;
+        }
     }
 
     return migrationMap;
 }
 
-/**
- * Parses tokens from a migration file and populates the migration map.
- */
-export function parseMigrationTokens(
-    tokens: readonly TokenDescriptor[],
-    migrationMap: Map<string, ParsedColumn[]>
-): void {
-    for (let i = 0; i < tokens.length; i++) {
-        if (tokens[i].value === 'Schema' && tokens[i + 1]?.value === '::' && (tokens[i + 2]?.value === 'create' || tokens[i + 2]?.value === 'table') && tokens[i + 3]?.value === '(') {
-            const tableToken = tokens[i + 4];
-            if (!tableToken || tableToken.type !== 'STRING') continue;
-            const tableName = tableToken.value;
-
-            let k = i + 5;
-            while (k < tokens.length && tokens[k].value !== '{') k++;
-            if (tokens[k]?.value === '{') {
-                const cols: ParsedColumn[] = migrationMap.get(tableName) || [];
-                let depth = 1;
-                k++;
-                while (k < tokens.length && depth > 0) {
-                    if (tokens[k].value === '{') depth++;
-                    else if (tokens[k].value === '}') depth--;
-
-                    if (tokens[k].value === '$table' && (tokens[k + 1]?.value === '->' || tokens[k + 1]?.value === '?->')) {
-                        const typeMethod = tokens[k + 2]?.value;
-                        if (typeMethod && tokens[k + 3]?.value === '(') {
-                            if (typeMethod === 'id') {
-                                const colName = tokens[k + 4]?.type === 'STRING' ? tokens[k + 4].value : 'id';
-                                cols.push(ScannedModelColumnDescriptor.fromSchema({ name: colName, type: 'bigint unsigned', nullable: false }));
-                            } else if (typeMethod === 'timestamps') {
-                                cols.push(
-                                    ScannedModelColumnDescriptor.fromSchema({ name: 'created_at', type: 'timestamp', nullable: true }),
-                                    ScannedModelColumnDescriptor.fromSchema({ name: 'updated_at', type: 'timestamp', nullable: true })
-                                );
-                            } else if (typeMethod === 'softDeletes') {
-                                cols.push(ScannedModelColumnDescriptor.fromSchema({ name: 'deleted_at', type: 'timestamp', nullable: true }));
-                            } else if (tokens[k + 4]?.type === 'STRING') {
-                                const colName = tokens[k + 4].value;
-                                let isNullable = false;
-                                let look = k + 5;
-                                while (look < tokens.length && tokens[look].value !== ';') {
-                                    if (tokens[look].value === 'nullable') {
-                                        isNullable = true;
-                                        break;
-                                    }
-                                    look++;
-                                }
-
-                                let colType = 'varchar';
-                                let enumValues: string[] | undefined = undefined;
-                                switch (typeMethod) {
-                                    case 'string': colType = 'varchar'; break;
-                                    case 'text':
-                                    case 'longText':
-                                    case 'mediumText': colType = 'text'; break;
-                                    case 'integer':
-                                    case 'unsignedInteger':
-                                    case 'tinyInteger':
-                                    case 'smallInteger': colType = 'int'; break;
-                                    case 'bigInteger':
-                                    case 'unsignedBigInteger':
-                                    case 'foreignId': colType = 'bigint unsigned'; break;
-                                    case 'decimal':
-                                    case 'float':
-                                    case 'double': colType = 'decimal'; break;
-                                    case 'boolean': colType = 'boolean'; break;
-                                    case 'timestamp':
-                                    case 'dateTime':
-                                    case 'date': colType = 'timestamp'; break;
-                                    case 'json':
-                                    case 'jsonb': colType = 'json'; break;
-                                    case 'enum': {
-                                        colType = 'enum';
-                                        enumValues = [];
-                                        let p = k + 5;
-                                        while (p < tokens.length && tokens[p].value !== '[' && tokens[p].value !== ';') p++;
-                                        if (tokens[p]?.value === '[') {
-                                            p++;
-                                            while (p < tokens.length && tokens[p].value !== ']' && tokens[p].value !== ';') {
-                                                if (tokens[p].type === 'STRING') {
-                                                    enumValues.push(tokens[p].value);
-                                                }
-                                                p++;
-                                            }
-                                        }
-                                        break;
-                                    }
-                                    default: colType = 'varchar'; break;
-                                }
-
-                                cols.push(ScannedModelColumnDescriptor.fromSchema({ name: colName, type: colType, nullable: isNullable, enumValues }));
-                            }
-                        }
-                    }
-                    k++;
-                }
-                migrationMap.set(tableName, cols);
-            }
-        }
+function primitiveTypeName(databaseType: import('../../../../types/upstream/databaseVocabulary').DatabaseType): string {
+    switch (databaseType.kind) {
+        case 'integer': return 'bigint';
+        case 'decimal': return 'decimal';
+        case 'string': return 'varchar';
+        case 'text': return 'text';
+        case 'boolean': return 'boolean';
+        case 'date_time': return 'timestamp';
+        case 'json': return 'json';
+        case 'enum': return 'enum';
     }
+}
+
+function domainColumnType(databaseType: import('../../../../types/upstream/databaseVocabulary').DatabaseType): import('../../../../types/domain/modelContracts').DatabaseColumnType {
+    switch (databaseType.kind) {
+        case 'integer': return { kind: 'bigint' };
+        case 'decimal': return { kind: 'decimal' };
+        case 'string': return { kind: 'string' };
+        case 'text': return { kind: 'text' };
+        case 'boolean': return { kind: 'boolean' };
+        case 'date_time': return { kind: 'timestamp' };
+        case 'json': return { kind: 'json' };
+        case 'enum': return { kind: 'enum', values: databaseType.values.items.kind === 'empty' ? [] : sequenceValues(databaseType.values.items) };
+    }
+}
+
+function sequenceValues(sequence: import('../../../../types/upstream/collections').Sequence<import('../../../../types/upstream/valueObjects').StringValue>): readonly string[] {
+    const values: string[] = [];
+    let current = sequence;
+    while (current.kind === 'cons') {
+        values.push(current.head.value);
+        current = current.tail;
+    }
+    return values;
+}
+
+function domainNullability(value: import('../../../../types/upstream/primitiveVocabulary').Nullability): import('../../../../types/domain/modelContracts').Nullability {
+    return value.kind === 'nullable' ? { kind: 'nullable' } : { kind: 'non_nullable' };
 }

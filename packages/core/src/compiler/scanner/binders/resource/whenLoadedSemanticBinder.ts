@@ -13,7 +13,7 @@ export function resolveWhenLoadedRelation(
     modelSymbol: OriginModelSymbol,
     relationName: string,
 ): Lookup<ModelSemanticRelation> {
-    return modelSymbol.node.semantic.surface.relationsByName.lookup(SemanticValueFactory.relationName(relationName));
+    return modelSymbol.relation(relationName);
 }
 
 export function bindWhenLoadedResolution(

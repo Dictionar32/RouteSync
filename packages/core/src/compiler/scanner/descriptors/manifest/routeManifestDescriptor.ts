@@ -10,7 +10,6 @@ import {
   type RouteManifest,
   type ParsedRoute,
   type ParsedResource,
-  type ParsedModel,
   type ResourceRouteGroup,
   type BroadcastChannelDescriptor,
   type FrontendConfiguration,
@@ -18,13 +17,14 @@ import {
 } from '../../../../types/route';
 import type { RequestType } from '../../../artifacts/RequestTypesArtifact';
 import type { ObjectType } from '../../../types/SemanticType';
+import type { ModelAst } from '../../../types/upstream/ast';
 
 export interface ScannedRouteManifestParams {
   readonly version: string;
   readonly baseURL: string;
   readonly routes: readonly ParsedRoute[];
   readonly resources: readonly ParsedResource[];
-  readonly models: readonly ParsedModel[];
+  readonly models: readonly ModelAst[];
   readonly routeGroups: readonly ResourceRouteGroup[];
   readonly requestTypes: readonly RequestType[];
   readonly semanticTypes: readonly ObjectType[];
@@ -39,7 +39,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
   public readonly baseURL: string;
   public readonly routes: readonly ParsedRoute[];
   public readonly resources: readonly ParsedResource[];
-  public readonly models: readonly ParsedModel[];
+  public readonly models: readonly ModelAst[];
   public readonly routeGroups: readonly ResourceRouteGroup[];
   public readonly requestTypes: readonly RequestType[];
   public readonly semanticTypes: readonly ObjectType[];
@@ -84,7 +84,7 @@ export class ScannedRouteManifestDescriptor implements RouteManifest {
     readonly routes?: readonly ParsedRoute[];
     readonly contracts?: readonly EndpointContract[];
     readonly resources?: readonly ParsedResource[];
-    readonly models?: readonly ParsedModel[];
+    readonly models?: readonly ModelAst[];
     readonly routeGroups?: readonly ResourceRouteGroup[];
     readonly requestTypes?: readonly RequestType[];
     readonly semanticTypes?: readonly ObjectType[];

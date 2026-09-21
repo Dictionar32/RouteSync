@@ -82,7 +82,7 @@ export function parsePhpArray(
             const valToken = tokens[endIndex];
 
             // Nested Array
-            if (valToken.value === '[' || valToken.value === 'array') {
+            if (valToken.value === '[' || (valToken.value === 'array' && valToken.type === 'IDENTIFIER')) {
                 const nested = parsePhpArray(source, tokens, endIndex);
                 entries.push(key ? { kind: 'keyed', key, value: { kind: 'nested_array', entries: nested.entries } } : { kind: 'positional', value: { kind: 'nested_array', entries: nested.entries } });
                 endIndex = nested.endIndex;

@@ -73,7 +73,7 @@ export abstract class ScannedRouteFields implements ParsedRoute {
     public readonly sourceFile: RouteProvenanceContract["sourceFile"];
     public readonly sourceLine: RouteProvenanceContract["sourceLine"];
     public readonly schema: RouteSchemaPayload;
-    public readonly runtimeReturn = this.binding.runtimeReturn;
+    public readonly runtimeReturn: RouteBindingContract["runtimeReturn"];
     public readonly assignments: readonly ResourceAssignment[];
     public readonly uri: RouteProvenanceContract["uri"];
     public readonly controllerName: RouteBindingContract["controllerName"];
@@ -100,6 +100,7 @@ export abstract class ScannedRouteFields implements ParsedRoute {
         this.actionName = binding.actionName;
         this.controllerName = binding.controllerName;
         this.schema = binding.schema;
+        this.runtimeReturn = binding.runtimeReturn;
         this.response = binding.response;
         this.responseTypeName = binding.responseTypeName;
         this.assignments = binding.assignments;

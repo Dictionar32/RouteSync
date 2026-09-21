@@ -23,31 +23,27 @@ export function createBroadcastChannel({
   name,
   pattern,
   kind,
-  parameters = [],
+  parameters,
   isPrivate,
   isPresence
 }: {
   readonly name: string;
-  readonly pattern?: string;
-  readonly kind?: BroadcastChannelKind;
-  readonly parameters?: readonly RouteParameter[];
-  readonly isPrivate?: boolean;
-  readonly isPresence?: boolean;
+  readonly pattern: string;
+  readonly kind: BroadcastChannelKind;
+  readonly parameters: readonly RouteParameter[];
+  readonly isPrivate: boolean;
+  readonly isPresence: boolean;
 }): ScannedBroadcastChannelDescriptor {
-  const resolvedPattern = pattern ?? name;
   const frozenParams = Object.freeze([...parameters]);
-  const runtimePattern = compileBroadcastRuntimePattern(resolvedPattern, frozenParams);
-  const presence = isPresence ?? (kind === BroadcastChannelKind.Presence || resolvedPattern.includes('presence') || resolvedPattern.includes('chat'));
-  const priv = isPrivate ?? (kind === BroadcastChannelKind.Private || (!resolvedPattern.startsWith('public.') && !presence));
-  const resolvedKind = kind ?? (presence ? BroadcastChannelKind.Presence : priv ? BroadcastChannelKind.Private : BroadcastChannelKind.Public);
+  const runtimePattern = compileBroadcastRuntimePattern(pattern, frozenParams);
   return new ScannedBroadcastChannelDescriptor({
     name,
-    kind: resolvedKind,
-    pattern: resolvedPattern,
+    kind,
+    pattern,
     runtimePattern,
     parameters: frozenParams,
-    isPrivate: priv,
-    isPresence: presence
+    isPrivate,
+    isPresence
   });
 }
 

@@ -1,5 +1,13 @@
 {
-  "compilerOptions": {"target":"ES2022","module":"CommonJS","moduleResolution":"Node","strict":true,"skipLibCheck":true,"noEmit":true,"types":[]},
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
   "files": [
     "packages/core/src/types/domain/semanticValues.ts",
     "packages/core/src/types/domain/boundAst.ts",
@@ -8,6 +16,21 @@
     "packages/core/src/semantic/semanticResolutionToBoundType.ts",
     "packages/core/src/semantic/plugins/method-return/selectRawProjection.ts",
     "packages/core/src/semantic/plugins/method-return/instanceMethodResolver.ts",
-    "packages/core/src/semantic/plugins/expression/property-access/index.ts"
+    "packages/core/src/semantic/plugins/expression/property-access/index.ts",
+
+    "packages/core/src/compiler/scanner/subscanners/ModelScanner.ts",
+    "packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts",
+    "packages/core/src/compiler/scanner/symbols/ModelSymbolTable.ts",
+    "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
+    "packages/core/src/compiler/scanner/symbols/model/originModelSymbol.ts",
+    "packages/core/src/compiler/scanner/subscanners/TypeDeriver.ts",
+    "packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts",
+    "packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts",
+    "packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts",
+    "packages/core/src/compiler/scanner/subscanners/semantic/SemanticDerivationContext.ts",
+    "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+    "packages/core/src/compiler/scanner/StaticLaravelScanner.ts",
+    "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts"
   ]
 }

@@ -14,9 +14,11 @@ import type {
     ParsedRelation
 } from "../../../../types/route";
 import type { TokenDescriptor } from "../../LaravelSourceLexer";
+import { parseModelPropertyAsts } from "./modelPropertyAstParser";
+import { ModelKeyType } from "../../../../types/domain/eloquentTypes";
 import {
     type ModelPropertiesState,
-    tryParseModelProperty
+    applyModelPropertyAst
 } from "./memberPropertiesParser";
 import { tryParseModelCasts } from "./memberCastsParser";
 import { tryParseModelAccessors } from "./memberAccessorsParser";
@@ -47,7 +49,7 @@ export function parseModelMembers(
     const propState: ModelPropertiesState = {
         table: defaultTable,
         primaryKey: 'id',
-        keyType: import("../../../../types/domain/eloquentTypes").ModelKeyType.Int,
+        keyType: ModelKeyType.Int,
         incrementing: true,
         fillable: [],
         guarded: ['*'],
@@ -59,8 +61,9 @@ export function parseModelMembers(
     const accessors: ParsedAccessor[] = [];
     const relations: ParsedRelation[] = [];
 
+    const propertyAsts = parseModelPropertyAsts(tokens);
+    for (const property of propertyAsts) applyModelPropertyAst(property, propState);
     for (let i = 0; i < tokens.length; i++) {
-        tryParseModelProperty(source, tokens, i, propState);
         tryParseModelCasts(source, tokens, i, casts);
         tryParseModelAccessors(source, tokens, i, accessors);
         tryParseModelRelations(tokens, i, relations);

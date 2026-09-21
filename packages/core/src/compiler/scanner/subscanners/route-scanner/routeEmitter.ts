@@ -51,7 +51,7 @@ export function emitApiResourceRoutes(
         if (action) {
             routes.push(ScannedRouteDescriptor.fromControllerAction({
                 method: resAction.method,
-                path: path.path,
+                path: path.path.value.value,
                 resourceName,
                 action,
                 auth: isAuth,
@@ -63,7 +63,7 @@ export function emitApiResourceRoutes(
         if (controllerName) {
             routes.push(ScannedRouteDescriptor.fromControllerReference({
                 method: resAction.method,
-                path: path.path,
+                path: path.path.value.value,
                 resourceName,
                 actionName: resAction.actionName,
                 controllerName,
@@ -77,7 +77,7 @@ export function emitApiResourceRoutes(
         }
         routes.push(ScannedRouteDescriptor.fromClosure({
             method: resAction.method,
-            path: path.path,
+            path: path.path.value.value,
             resourceName,
             actionName: resAction.actionName,
             sourceFile: routesFile,
@@ -112,7 +112,7 @@ export function emitStandardRoutes(
         if (target.kind === "controller_action") {
             routes.push(ScannedRouteDescriptor.fromControllerAction({
                 method: canonicalMethod,
-                path: resolvedPath.path,
+                path: resolvedPath.path.value.value,
                 resourceName,
                 action: target.action,
                 auth: isAuth,
@@ -125,7 +125,7 @@ export function emitStandardRoutes(
         if (target.kind === "controller_reference") {
             routes.push(ScannedRouteDescriptor.fromControllerReference({
                 method: canonicalMethod,
-                path: resolvedPath.path,
+                path: resolvedPath.path.value.value,
                 resourceName,
                 actionName: target.actionName,
                 controllerName: target.controllerName,
@@ -140,7 +140,7 @@ export function emitStandardRoutes(
 
         routes.push(ScannedRouteDescriptor.fromClosure({
             method: canonicalMethod,
-            path: resolvedPath.path,
+            path: resolvedPath.path.value.value,
             resourceName,
             actionName: target.actionName,
             sourceFile: routesFile,

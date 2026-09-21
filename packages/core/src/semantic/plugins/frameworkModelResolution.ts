@@ -25,7 +25,7 @@ export function resolveFrameworkModel(
     trace,
     boundAst: BoundSemanticFactory.modelReference(rule.model),
     model: rule.model,
-    definition: symbol.node.semantic,
+    definition: symbol.node.definition,
     cardinality: rule.cardinality,
   });
 }

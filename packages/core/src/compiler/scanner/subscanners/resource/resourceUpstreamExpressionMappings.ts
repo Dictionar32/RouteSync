@@ -2,7 +2,7 @@ import type { Expression, ArrayEntry, ReferenceCardinality, CastType, BinaryOper
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { PhpAccessMode, PhpArgument, PhpArrayEntry, PhpArrayKey, PhpAstValue, PhpPropertyPath } from '../../lexer/phpAstExpressionTypes';
 import { matchPhpAccessMode } from '../../lexer/phpAstAlgebra';
-import { str } from '../../../../types/upstream/valueObjects';
+const str = (value: string): import('../../../../types/upstream/valueObjects').StringValue => ({ kind: 'string_value', value });
 import type { ClassName, FunctionName, MethodName, PropertyName, ResourceName, VariableName } from '../../../../types/upstream/names';
 import type { AssignmentTarget } from '../../../../types/upstream/assignment';
 

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>UCY Smart Tax - Login</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+
+--primary:#2563EB;
+--green:#22C55E;
+
+--background:#F8FAFC;
+
+--surface:#FFFFFF;
+
+--text:#0F172A;
+--text2:#64748B;
+
+--border:#E2E8F0;
+
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+background:#E9EEF5;
+
+font-family:"Plus Jakarta Sans",sans-serif;
+
+display:flex;
+justify-content:center;
+padding:30px;
+
+}
+
+.phone{
+
+width:390px;
+height:844px;
+
+background:var(--background);
+
+border-radius:36px;
+
+overflow:hidden;
+
+box-shadow:
+0 30px 80px rgba(15,23,42,.15);
+
+display:flex;
+flex-direction:column;
+
+}
+
+.hero{
+
+padding:50px 32px 20px;
+
+}
+
+.logo{
+
+width:72px;
+height:72px;
+
+border-radius:22px;
+
+background:linear-gradient(
+135deg,
+var(--primary),
+var(--green)
+);
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+color:white;
+
+font-weight:800;
+
+font-size:28px;
+
+}
+
+.brand{
+
+margin-top:20px;
+
+font-size:13px;
+
+font-weight:700;
+
+letter-spacing:2px;
+
+color:var(--primary);
+
+}
+
+.title{
+
+margin-top:10px;
+
+font-size:32px;
+
+font-weight:800;
+
+color:var(--text);
+
+}
+
+.desc{
+
+margin-top:12px;
+
+font-size:15px;
+
+line-height:28px;
+
+color:var(--text2);
+
+}
+
+.form{
+
+padding:24px 32px;
+
+}
+
+.label{
+
+font-size:14px;
+
+font-weight:600;
+
+color:var(--text);
+
+margin-bottom:10px;
+
+}
+
+.input{
+
+height:58px;
+
+background:white;
+
+border:1px solid var(--border);
+
+border-radius:18px;
+
+display:flex;
+align-items:center;
+
+padding:0 18px;
+
+transition:.3s;
+
+}
+
+.input:focus-within{
+
+border-color:var(--primary);
+
+box-shadow:
+
+0 0 0 4px rgba(37,99,235,.08);
+
+}
+
+.input span{
+
+font-size:20px;
+
+margin-right:12px;
+
+}
+
+.input input{
+
+border:none;
+
+outline:none;
+
+flex:1;
+
+font-size:16px;
+
+font-family:inherit;
+
+background:none;
+
+color:var(--text);
+
+}
+
+.info{
+
+margin-top:18px;
+
+padding:16px;
+
+background:#EFF6FF;
+
+border-radius:18px;
+
+font-size:13px;
+
+line-height:22px;
+
+color:var(--primary);
+
+}
+
+.button{
+
+margin-top:28px;
+
+height:58px;
+
+border-radius:18px;
+
+background:var(--primary);
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+color:white;
+
+font-weight:700;
+
+font-size:16px;
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+.button:hover{
+
+transform:translateY(-2px);
+
+box-shadow:
+
+0 15px 30px rgba(37,99,235,.25);
+
+}
+
+.footer{
+
+margin-top:auto;
+
+padding:32px;
+
+text-align:center;
+
+}
+
+.footer p{
+
+font-size:14px;
+
+color:var(--text2);
+
+}
+
+.footer b{
+
+color:var(--green);
+
+}
+
+.version{
+
+margin-top:20px;
+
+font-size:12px;
+
+color:#94A3B8;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="phone">
+
+<div class="hero">
+
+<div class="logo">
+
+UCY
+
+</div>
+
+<div class="brand">
+
+SMART TAX SERVICE
+
+</div>
+
+<div class="title">
+
+Selamat Datang 👋
+
+</div>
+
+<div class="desc">
+
+Masukkan <b>Nomor Induk Kependudukan (NIK)</b> untuk mengakses seluruh layanan pajak daerah dengan aman.
+
+</div>
+
+</div>
+
+<div class="form">
+
+<div class="label">
+
+Nomor Induk Kependudukan
+
+</div>
+
+<div class="input">
+
+<span>🪪</span>
+
+<input
+
+type="text"
+
+placeholder="3301123456789012"
+
+/>
+
+</div>
+
+<div class="info">
+
+💡 Setelah NIK berhasil diverifikasi, Anda akan melanjutkan ke halaman Password atau OTP.
+
+</div>
+
+<div class="button">
+
+Lanjutkan →
+
+</div>
+
+</div>
+
+<div class="footer">
+
+<p>
+
+Belum memiliki akun?
+
+<b>Daftar</b>
+
+</p>
+
+<div class="version">
+
+UCY Smart Tax v1.0
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

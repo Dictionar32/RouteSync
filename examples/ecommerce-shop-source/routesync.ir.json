@@ -1,0 +1,500 @@
+{
+  "irVersion": "ir.v2",
+  "nodeCount": 13,
+  "nodes": {
+    "model:OrderAmount#accessors.0": {
+      "id": "model:OrderAmount#accessors.0",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "0",
+            "output": "number",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "401411c37b18f09fdb586a6d3e1478de5da38d9ce82f4ad5f22b4e0616209bfa",
+        "lineage": [
+          "model:OrderAmount"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:OrderAmount#accessors.1": {
+      "id": "model:OrderAmount#accessors.1",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "1",
+            "output": "number",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "401411c37b18f09fdb586a6d3e1478de5da38d9ce82f4ad5f22b4e0616209bfa",
+        "lineage": [
+          "model:OrderAmount"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:OrderAmount#accessors.2": {
+      "id": "model:OrderAmount#accessors.2",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "2",
+            "output": "number",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "401411c37b18f09fdb586a6d3e1478de5da38d9ce82f4ad5f22b4e0616209bfa",
+        "lineage": [
+          "model:OrderAmount"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:OrderAmount#accessors.3": {
+      "id": "model:OrderAmount#accessors.3",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "3",
+            "output": "number",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "401411c37b18f09fdb586a6d3e1478de5da38d9ce82f4ad5f22b4e0616209bfa",
+        "lineage": [
+          "model:OrderAmount"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:OrderAmount#accessors.4": {
+      "id": "model:OrderAmount#accessors.4",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "4",
+            "output": "number",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "401411c37b18f09fdb586a6d3e1478de5da38d9ce82f4ad5f22b4e0616209bfa",
+        "lineage": [
+          "model:OrderAmount"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:OrderDetail#accessors.0": {
+      "id": "model:OrderDetail#accessors.0",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "0",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:OrderDetail"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:Payment#accessors.0": {
+      "id": "model:Payment#accessors.0",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "0",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:Payment#accessors.1": {
+      "id": "model:Payment#accessors.1",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "number",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "1",
+            "output": "number",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "401411c37b18f09fdb586a6d3e1478de5da38d9ce82f4ad5f22b4e0616209bfa",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.241Z"
+      }
+    },
+    "model:Payment#accessors.2": {
+      "id": "model:Payment#accessors.2",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "2",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.242Z"
+      }
+    },
+    "model:Payment#accessors.3": {
+      "id": "model:Payment#accessors.3",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "3",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.242Z"
+      }
+    },
+    "model:Payment#accessors.4": {
+      "id": "model:Payment#accessors.4",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "4",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.242Z"
+      }
+    },
+    "model:Payment#accessors.5": {
+      "id": "model:Payment#accessors.5",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "5",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.242Z"
+      }
+    },
+    "model:Payment#accessors.6": {
+      "id": "model:Payment#accessors.6",
+      "source": {
+        "file": "",
+        "context": "model"
+      },
+      "node": {
+        "kind": "raw_code",
+        "code": "",
+        "hints": {
+          "pattern": "unknown",
+          "confidence": 1,
+          "nullable": false,
+          "framework_context": "unknown"
+        }
+      },
+      "semantic": {
+        "status": "resolved",
+        "type": "string",
+        "confidence": 100,
+        "trace": [
+          {
+            "source": "ReflectionScanner",
+            "input": "6",
+            "output": "string",
+            "rule": "Reflection return type signature"
+          }
+        ]
+      },
+      "meta": {
+        "version": "ir.v2",
+        "stableHash": "b8ee5683ba89657496ec36e60b536abf263444c6ee3141eb5ad4aaa7d08323c2",
+        "lineage": [
+          "model:Payment"
+        ],
+        "createdAt": "2026-09-13T15:54:13.242Z"
+      }
+    }
+  }
+}

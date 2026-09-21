@@ -1,7 +1,7 @@
 import type { ModelDefinition } from './model';
 import type { ResourceDefinition } from './resource';
 import type { RequestDefinition } from './request';
-import type { RouteDefinition } from './route';
+import type { RouteDeclarationAst } from '../../compiler/scanner/lexer/routeAst/routeDeclarationAst';
 import type { ControllerAction } from './controller';
 import type { SourceSpan } from './provenance';
 import type { ServiceDefinition } from './service';
@@ -16,7 +16,7 @@ export const completeSourceProof: unique symbol = Symbol('completeSourceProof');
 export type ModelAst = { readonly kind: 'model_ast'; readonly definition: ModelDefinition; readonly facts: ModelFacts; readonly source: SourceSpan };
 export type ResourceAst = { readonly kind: 'resource_ast'; readonly definition: ResourceDefinition; readonly source: SourceSpan };
 export type RequestAst = { readonly kind: 'request_ast'; readonly definition: RequestDefinition; readonly source: SourceSpan };
-export type RouteAst = { readonly kind: 'route_ast'; readonly definition: RouteDefinition; readonly source: SourceSpan };
+export type RouteAst = { readonly kind: 'route_ast'; readonly declaration: RouteDeclarationAst; readonly source: SourceSpan };
 export type ControllerAst = { readonly kind: 'controller_ast'; readonly action: ControllerAction; readonly source: SourceSpan };
 export type ResponseAst = { readonly kind: 'response_ast'; readonly definition: ResponseDefinition; readonly source: SourceSpan };
 export type ServiceAst = { readonly kind: 'service_ast'; readonly definition: ServiceDefinition; readonly source: SourceSpan };

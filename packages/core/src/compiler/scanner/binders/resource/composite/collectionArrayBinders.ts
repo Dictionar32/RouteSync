@@ -19,6 +19,8 @@ import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } fro
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 import { matchLookup } from "../../../../../types/upstream/collections";
+import { requireResourceFieldType } from "../../../../../types/domain/resourceFieldSemantic";
+import { mapAstValueToExpression } from "../../../subscanners/resource/resourceAstExpressionMapper";
 
 export function bindResourceCollectionField(
     key: string,
@@ -30,13 +32,13 @@ export function bindResourceCollectionField(
         missing: () => undefined,
         found: ({ value: relation }) => relation
     });
-    const targetModel = rel ? rel.targetModel.value : value.resourceName;
+    const targetModel = rel ? rel.targetModel.value.value : value.resourceName;
     const cardinality = isCollection
         ? { kind: 'collection' as const }
         : { kind: 'single' as const };
     const boundAst = rel
         ? BoundSemanticFactory.relation({
-            sourceModel: SemanticValueFactory.modelName(modelSymbol.name),
+            sourceModel: SemanticValueFactory.modelName(modelSymbol.name.value.value),
             relationName: SemanticValueFactory.relationName(key),
             relationType: rel.type,
             targetModel: rel.targetModel,
@@ -47,7 +49,7 @@ export function bindResourceCollectionField(
         : BoundSemanticFactory.unsupported('unresolved_relation');
 
     const expression = ResourceFieldExpressionFactory.resource(
-        { kind: 'resource_name', value: value.resourceName },
+        SemanticValueFactory.resourceName(value.resourceName),
         cardinality
     );
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
@@ -76,9 +78,12 @@ export function bindNestedArrayField(
     }) => BoundResourceFieldResult
 ): BoundResourceFieldResult {
     const childFields: ResourceFieldDescriptor[] = [];
-    for (const childEntry of value.entries) {
+    for (const [index, childEntry] of value.entries.entries()) {
+        const childKey = childEntry.kind === 'keyed'
+            ? childEntry.key.kind === 'string' ? childEntry.key.value : String(index)
+            : String(index);
         const childResult = bindFieldFn({
-            key: childEntry.key,
+            key: childKey,
             value: childEntry.value,
             modelSymbol,
             modelSymbolTable
@@ -86,21 +91,35 @@ export function bindNestedArrayField(
         childFields.push(childResult.descriptor);
     }
 
+    const resultingType = new ObjectType({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' });
     const boundAst = BoundSemanticFactory.propertyChain({
-            rootModel: SemanticValueFactory.modelName(modelSymbol.name),
-            steps: [],
-            resultingType: new ObjectType({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' }),
-            nullability: { kind: 'non_nullable' },
-            semanticType: isCollection
-                ? new ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.model('', value.resourceName))
-                : ReferenceType.resource('', value.resourceName),
-        });
+        rootModel: SemanticValueFactory.modelName(modelSymbol.name.value.value),
+        steps: [],
+        resultingType,
+        nullability: { kind: 'non_nullable' },
+    });
 
-    const expression = ResourceFieldExpressionFactory.object(childFields);
+    const expressionFields = value.entries.map((entry, index) => {
+        const childKey = entry.kind === 'keyed'
+            ? entry.key.kind === 'string' ? entry.key.value : String(index)
+            : String(index);
+        const field = childFields[index];
+        return {
+            name: SemanticValueFactory.responseFieldName(childKey),
+            propertyName: field.propertyName,
+            value: mapAstValueToExpression(entry.value)
+        };
+    });
+    const expression = ResourceFieldExpressionFactory.object(expressionFields);
+    const verifiedFields = childFields.filter(field => field.semantic.kind === 'verified');
+    const objectProperties = verifiedFields.map(field => {
+        const type = requireResourceFieldType(field.semantic);
+        return { name: field.propertyName, type, description: "", origin: { kind: 'derived' as const, reason: 'nested_object' as const } };
+    });
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: childFields.map(field => ({ name: field.name, type: field.semantic.type, required: true, nullable: field.semantic.type.isNullable(), description: "", origin: { kind: 'derived', reason: 'nested_object' } })), role: "plain" }),
+        new ObjectType({ name: "InlineObject", baseName: "InlineObject", properties: objectProperties, role: "plain" }),
         toCamelCase(key),
         boundAst
     );

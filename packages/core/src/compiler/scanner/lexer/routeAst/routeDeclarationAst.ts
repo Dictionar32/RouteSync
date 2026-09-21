@@ -22,6 +22,7 @@ export interface RouteDeclarationAst {
   readonly prefix: readonly RoutePrefixAst[];
   readonly middleware: readonly MiddlewareNameAst[];
   readonly source: TokenDescriptor;
+  readonly end: TokenDescriptor;
 }
 
 export const createRoutePathLiteral = (value: string): RoutePathLiteralAst => value as RoutePathLiteralAst;

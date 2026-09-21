@@ -57,7 +57,7 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
         readonly type: EloquentRelationType;
         readonly modelName: string;
         readonly targetModel?: string;
-        readonly cardinality?: EloquentRelationCardinality;
+        readonly cardinality: EloquentRelationCardinality;
         readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
     }): ScannedModelRelationDescriptor {
         return new ScannedModelRelationDescriptor(computeRelationParams(params));

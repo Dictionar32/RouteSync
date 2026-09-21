@@ -22,6 +22,7 @@ import {
     ResourceScanner,
     FormRequestScanner,
     ModelScanner,
+    scanModels,
     RouteScanner,
     collectPhpFiles
 } from "./subscanners";
@@ -63,7 +64,7 @@ export class ScannerLegacyDelegates {
     }
 
     protected async scanModels(): Promise<readonly ParsedModel[]> {
-        return ModelScanner.scan(this.projectRoot);
+        return scanModels(this.projectRoot);
     }
 
     protected async scanMigrations(): Promise<Map<string, ParsedColumn[]>> {

@@ -18,12 +18,23 @@ import {
     EloquentRelationType,
     ScannedRouteInvalidationPayload
 } from "../../../types/route";
+import type { ModelAst } from "../../../types/upstream/ast";
 import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
+
+function sequenceToArray<T>(items: import("../../../types/upstream/collections").Sequence<T>): T[] {
+    const result: T[] = [];
+    let current = items;
+    while (current.kind === 'cons') {
+        result.push(current.head);
+        current = current.tail;
+    }
+    return result;
+}
 
 export class InvalidationResolver {
     public static resolveRouteInvalidations(
         routes: readonly ParsedRoute[],
-        models: readonly ParsedModel[],
+        models: readonly ModelAst[],
         routeGroups: readonly ResourceRouteGroup[]
     ): readonly ParsedRoute[] {
         return routes.map(route => {
@@ -50,23 +61,23 @@ export class InvalidationResolver {
                             : undefined;
                     const matchedModel = responseModelName === undefined
                         ? undefined
-                        : models.find(model => model.semantic.identity.name.value.value === responseModelName);
+                        : models.find(model => model.definition.identity.name.value.value === responseModelName);
 
                     if (matchedModel !== undefined) {
-                        for (const rel of matchedModel.semantic.surface.properties) {
-                            if (rel.kind !== 'relation') continue;
-                            switch (rel.type) {
-                                case EloquentRelationType.BelongsTo:
-                                    targets.push(ScannedInvalidationTarget.parentList(rel.sourceModel.value.value));
-                                    targets.push(ScannedInvalidationTarget.parentDetail(rel.sourceModel.value.value));
+                        for (const rel of matchedModel.definition.relations.items.kind === 'empty' ? [] : sequenceToArray(matchedModel.definition.relations.items)) {
+                            const sourceModel = matchedModel.definition.identity.name.value.value;
+                            switch (rel.relation.kind) {
+                                case 'belongs_to':
+                                    targets.push(ScannedInvalidationTarget.parentList(sourceModel));
+                                    targets.push(ScannedInvalidationTarget.parentDetail(sourceModel));
                                     break;
-                                case EloquentRelationType.HasMany:
-                                case EloquentRelationType.HasOne:
-                                    targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value.value));
+                                case 'has_many':
+                                case 'has_one':
+                                    targets.push(ScannedInvalidationTarget.resourceItem(sourceModel));
                                     break;
-                                case EloquentRelationType.BelongsToMany:
-                                    targets.push(ScannedInvalidationTarget.resourceList(rel.sourceModel.value.value));
-                                    targets.push(ScannedInvalidationTarget.resourceItem(rel.sourceModel.value.value));
+                                case 'belongs_to_many':
+                                    targets.push(ScannedInvalidationTarget.resourceList(sourceModel));
+                                    targets.push(ScannedInvalidationTarget.resourceItem(sourceModel));
                                     break;
                                 default:
                                     break;

@@ -51,7 +51,7 @@ function resolveRelation(
   const targetSymbol = context.symbolTable.get(targetModel.value);
   if (targetSymbol === undefined) return unsupported(`Relation target ${targetModel.value} is not a verified model`);
   const cardinality = property.value.multiplicity;
-  const definition = targetSymbol.node.semantic;
+  const definition = targetSymbol.node.definition;
   const relationNode = BoundSemanticFactory.relation({
     sourceModel: model.name,
     relationName: SemanticValueFactory.relationName(relationName),

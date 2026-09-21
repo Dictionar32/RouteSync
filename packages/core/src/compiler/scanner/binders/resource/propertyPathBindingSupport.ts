@@ -6,40 +6,43 @@ import type { ResourcePropertyPathStep } from "../../../../types/domain/resource
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
+import type { PhpAstValue } from "../../lexer/PhpAst";
+
+type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 
 export function toBoundStep(step: ResourcePropertyPathStep): BoundStepEdge {
     if (step.kind === 'relation') {
         return {
             kind: 'property',
-            sourceModel: step.sourceModel,
+            sourceModel: step.sourceModel.identity.name,
             property: step.property,
             step: { kind: 'relation', cardinality: step.cardinality },
             nullsafe: matchPhpAccessMode(step.access, { direct: () => false, nullsafe: () => true }),
             stepType: step.type,
-            targetModel: { kind: 'model', name: step.targetModel }
+            targetModel: { kind: 'model', name: step.targetModel.identity.name }
         };
     }
     if (step.kind === 'property') {
         return {
             kind: 'property',
-            sourceModel: step.sourceModel,
+            sourceModel: step.sourceModel.identity.name,
             property: step.property,
             step: { kind: step.semantic.kind },
             nullsafe: matchPhpAccessMode(step.access, { direct: () => false, nullsafe: () => true }),
             stepType: step.type,
-            targetModel: { kind: 'model', name: step.sourceModel }
+            targetModel: { kind: 'model', name: step.sourceModel.identity.name }
         };
     }
     return {
         kind: 'method',
-        sourceModel: step.sourceModel,
+        sourceModel: step.sourceModel.identity.name,
         method: step.method,
         cardinality: step.cardinality,
         nullsafe: matchPhpAccessMode(step.access, { direct: () => false, nullsafe: () => true }),
         stepType: step.type,
         targetModel: step.result.kind === 'single_model' || step.result.kind === 'model_collection' || step.result.kind === 'paginated_collection'
-            ? { kind: 'model', name: step.result.model }
-            : { kind: 'model', name: step.sourceModel }
+            ? { kind: 'model', name: step.result.model.identity.name }
+            : { kind: 'model', name: step.sourceModel.identity.name }
     };
 }
 
@@ -50,7 +53,7 @@ export function relationCardinality(cardinality: import("../../../../types/domai
     }
 }
 
-function collectMembers(value: Member): readonly Member[] {
+export function collectMembers(value: Member): readonly Member[] {
     if (value.receiver.kind === 'property_access' || value.receiver.kind === 'method_chain') {
         return [...collectMembers(value.receiver), value];
     }

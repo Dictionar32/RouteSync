@@ -5,10 +5,11 @@ import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/doma
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
 import { ErrorType } from "../../../types/SemanticType";
-import type { ResourcePropertyPathResult } from "../../../types/domain/resourcePropertyPathModel";
+import type { ResourcePropertyPathResult } from "../../../../types/domain/resourcePropertyPathModel";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
-import { expressionForType, resolvePropertyPath, toBoundStep, unresolved } from './propertyPathResolution';
+import { resolvePropertyPath } from './propertyPathResolution';
+import { expressionForType, toBoundStep, unresolved } from './propertyPathBindingSupport';
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 
@@ -17,9 +18,9 @@ export function bindPropertyPathField(key: string, value: Member, rootModel: Ori
   if (semanticPath.kind !== 'resolved') return unresolved(key, semanticPath.reason);
   const steps: BoundStepEdge[] = semanticPath.steps.map(toBoundStep);
   const resultingType = semanticPath.type;
-  const boundAst = BoundSemanticFactory.propertyChain({ rootModel: semanticPath.rootModel, steps, resultingType, nullability: resultingType.isNullable() ? { kind: 'nullable' } : { kind: 'non_nullable' } });
+  const boundAst = BoundSemanticFactory.propertyChain({ rootModel: semanticPath.rootModel.identity.name, steps, resultingType, nullability: resultingType.isNullable() ? { kind: 'nullable' } : { kind: 'non_nullable' } });
   const finalStep = semanticPath.steps[semanticPath.steps.length - 1];
-  const expression = finalStep.kind === 'relation' ? ResourceFieldExpressionFactory.resource(SemanticValueFactory.resourceName(finalStep.targetModel.value)) : expressionForType(resultingType);
+  const expression = finalStep.kind === 'relation' ? ResourceFieldExpressionFactory.resource(SemanticValueFactory.resourceName(finalStep.targetModel.identity.name.value.value)) : expressionForType(resultingType);
   const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, resultingType, undefined, boundAst);
   return { descriptor, boundAst };
 }

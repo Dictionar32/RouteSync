@@ -11,18 +11,32 @@ import {
     DatabaseColumnKind,
     DatabaseColumnTypeMapper
 } from "../../../../types/route";
-import { PrimitiveKind } from "../../../types/SemanticType";
+import { PrimitiveKind, PrimitiveType, type SemanticType } from "../../../types/SemanticType";
+import type { DatabaseColumnType } from "../../../../types/domain/modelContracts";
 import { toCamelCase } from "../../../../utils/resource-naming";
 
 export interface ScannedModelColumnParams {
     readonly name: string;
     readonly propertyName: string;
-    readonly type: string;
+    readonly type: DatabaseColumnType;
     readonly columnKind: DatabaseColumnKind;
     readonly nullable: boolean;
-    readonly semanticType: PrimitiveKind;
+    readonly nullability: import("../../../../types/domain/modelContracts").Nullability;
+    readonly semanticType: SemanticType;
     readonly enumValues: readonly string[];
 }
+
+const DATABASE_TYPES: { readonly [K in DatabaseColumnKind]: DatabaseColumnType } = {
+    bigint: { kind: 'bigint' }, integer: { kind: 'integer' }, smallint: { kind: 'smallint' }, tinyint: { kind: 'tinyint' },
+    float: { kind: 'float' }, double: { kind: 'double' }, decimal: { kind: 'decimal' }, boolean: { kind: 'boolean' },
+    string: { kind: 'string' }, text: { kind: 'text' }, mediumtext: { kind: 'mediumtext' }, longtext: { kind: 'longtext' },
+    date: { kind: 'date' }, datetime: { kind: 'datetime' }, timestamp: { kind: 'timestamp' }, time: { kind: 'time' },
+    json: { kind: 'json' }, enum: { kind: 'enum', values: Object.freeze([]) }, binary: { kind: 'binary' },
+    uuid: { kind: 'uuid' }, ulid: { kind: 'ulid' }, unknown: { kind: 'unsupported', reason: 'unsupported_sql_type' }
+};
+
+const databaseType = (kind: DatabaseColumnKind, enumValues: readonly string[]): DatabaseColumnType =>
+    kind === 'enum' ? { kind: 'enum', values: Object.freeze([...enumValues]) } : DATABASE_TYPES[kind];
 
 /**
  * Reusable Constructor: Scanned Model Column Descriptor.
@@ -30,18 +44,20 @@ export interface ScannedModelColumnParams {
 export class ScannedModelColumnDescriptor implements ParsedColumn {
     public readonly name: string;
     public readonly propertyName: string;
-    public readonly type: string;
+    public readonly type: DatabaseColumnType;
     public readonly columnKind: DatabaseColumnKind;
     public readonly nullable: boolean;
-    public readonly semanticType: PrimitiveKind;
+    public readonly nullability: import("../../../../types/domain/modelContracts").Nullability;
+    public readonly semanticType: SemanticType;
     public readonly enumValues: readonly string[];
 
-    constructor({ name, propertyName, type, columnKind, nullable, semanticType, enumValues }: ScannedModelColumnParams) {
+    constructor({ name, propertyName, type, columnKind, nullable, nullability, semanticType, enumValues }: ScannedModelColumnParams) {
         this.name = name;
         this.propertyName = propertyName;
         this.type = type;
         this.columnKind = columnKind;
         this.nullable = nullable;
+        this.nullability = nullability;
         this.semanticType = semanticType;
         this.enumValues = enumValues;
         Object.freeze(this);
@@ -66,11 +82,12 @@ export class ScannedModelColumnDescriptor implements ParsedColumn {
     }): ScannedModelColumnDescriptor {
         return new ScannedModelColumnDescriptor({
             name,
-            propertyName: propertyName ?? toCamelCase(name),
-            type,
-            columnKind: columnKind ?? (type.toLowerCase().startsWith("tinyint(1)") ? DatabaseColumnKind.Boolean : DatabaseColumnTypeMapper.toColumnKind(type)),
+            propertyName,
+            type: databaseType(columnKind, enumValues),
+            columnKind,
             nullable,
-            semanticType: semanticType ?? DatabaseColumnTypeMapper.toPrimitiveKind(type),
+            nullability: nullable ? { kind: 'nullable' } : { kind: 'non_nullable' },
+            semanticType: new PrimitiveType(semanticType),
             enumValues: Object.freeze([...enumValues])
         });
     }
@@ -83,10 +100,11 @@ export class ScannedModelColumnDescriptor implements ParsedColumn {
         return new ScannedModelColumnDescriptor({
             name,
             propertyName: toCamelCase(name),
-            type: "bigint",
+            type: { kind: 'bigint' },
             columnKind: DatabaseColumnKind.BigInt,
             nullable: false,
-            semanticType: PrimitiveKind.NUMBER,
+            nullability: { kind: 'non_nullable' },
+            semanticType: new PrimitiveType(PrimitiveKind.NUMBER),
             enumValues: Object.freeze([])
         });
     }
@@ -95,10 +113,11 @@ export class ScannedModelColumnDescriptor implements ParsedColumn {
         return new ScannedModelColumnDescriptor({
             name,
             propertyName: toCamelCase(name),
-            type: "varchar",
+            type: { kind: 'string' },
             columnKind: DatabaseColumnKind.String,
             nullable,
-            semanticType: PrimitiveKind.STRING,
+            nullability: nullable ? { kind: 'nullable' } : { kind: 'non_nullable' },
+            semanticType: new PrimitiveType(PrimitiveKind.STRING),
             enumValues: Object.freeze([])
         });
     }

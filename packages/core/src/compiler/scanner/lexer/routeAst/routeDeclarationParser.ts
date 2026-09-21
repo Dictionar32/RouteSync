@@ -33,6 +33,7 @@ export function parseRouteDeclarations(tokens: readonly TokenDescriptor[]): read
     const path = tokens[pathIndex];
     if (path?.type !== 'STRING') continue;
     const methods = targetMethods(tokens, method, i + 3);
+    const end = findDeclarationEnd(tokens, i + 2);
     routes.push(Object.freeze({
       method,
       targetMethods: methods,
@@ -40,7 +41,8 @@ export function parseRouteDeclarations(tokens: readonly TokenDescriptor[]): read
       target: targetAt(tokens, pathIndex + 2, methods[0] ?? method),
       prefix: Object.freeze(prefixes.slice()),
       middleware: Object.freeze(middleware.flat()),
-      source: tokens[i]
+      source: tokens[i],
+      end
     }));
   }
   return Object.freeze(routes);
@@ -50,4 +52,22 @@ function readMiddleware(tokens: readonly TokenDescriptor[], start: number): Midd
   const result: MiddlewareNameAst[] = [];
   for (let i = start; i < tokens.length && tokens[i].value !== ')'; i++) if (tokens[i].type === 'STRING') result.push(createMiddlewareNameAst(tokens[i].value));
   return result;
+}
+
+function findDeclarationEnd(tokens: readonly TokenDescriptor[], methodIndex: number): TokenDescriptor {
+  let depth = 0;
+  let opened = false;
+  for (let i = methodIndex; i < tokens.length; i++) {
+    const value = tokens[i].value;
+    if (value === '(') {
+      depth += 1;
+      opened = true;
+      continue;
+    }
+    if (value === ')' && opened) {
+      depth -= 1;
+      if (depth === 0) return tokens[i];
+    }
+  }
+  return tokens[Math.min(methodIndex, tokens.length - 1)];
 }

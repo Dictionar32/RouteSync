@@ -9,7 +9,6 @@
 
 export {
     scanMigrations,
-    parseMigrationTokens
 } from "./migrationScanner";
 
 export {

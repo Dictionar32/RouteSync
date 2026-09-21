@@ -5,7 +5,7 @@ import type { PhpAstValue } from '../../lexer/PhpAst';
 import { matchPhpAstValue } from '../../LaravelSourceLexer';
 import { matchPhpAccessMode } from '../../lexer/phpAstAlgebra';
 import type { PhpAccessMode } from '../../lexer/phpAstExpressionTypes';
-import { matchPhpMatchArm } from '../../lexer/phpAstAlgebra';
+import { matchPhpMatchArm, matchPhpStatement } from '../../lexer/phpAstAlgebra';
 import type { ResourceExpressionModel, ResourceExpressionBindingRequirement, ResourceExpressionFieldModel, ResourceAccessMode } from '../../../../types/domain/resourceExpressionModel';
 import type { ResourceArrayEntry, ResourceArrayKey } from '../../../../types/domain/expressions';
 import { mapResourceBinaryOperator } from './resourceExpressionOperator';

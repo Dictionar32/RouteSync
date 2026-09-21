@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import * as fs from 'node:fs';
 import path from 'path';
 import type { DeclaredResponseAttributeAst } from '../../lexer/controllerAstTypes';
 import type { PhpAstValue } from '../../lexer/phpAstTypes';
@@ -54,10 +54,21 @@ export function resolveResponseAttributeAst(attribute: DeclaredResponseAttribute
 function resolveClassFile(projectRoot: string, className: string): string {
   const relative = className.replace(/^App\\/, '').replace(/\\/g, '/');
   const file = path.join(projectRoot, 'app', `${relative}.php`);
-  if (!fs.existsSync(file)) {
-    throw new Error(`Response boundary violation: ${className} resolved from attribute but source file was not found: ${file}`);
-  }
-  return file;
+  if (fs.existsSync(file)) return file;
+
+  const shortName = className.split('\\').pop() ?? className;
+  const matches: string[] = [];
+  const visit = (directory: string): void => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const candidate = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(candidate);
+      else if (entry.isFile() && entry.name === `${shortName}.php`) matches.push(candidate);
+    }
+  };
+  visit(path.join(projectRoot, 'app'));
+  if (matches.length === 1) return matches[0];
+  const found = matches.length > 1 ? matches.join(', ') : file;
+  throw new Error(`Response boundary violation: ${className} resolved from attribute but source file was not found uniquely: ${found}`);
 }
 
 

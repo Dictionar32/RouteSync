@@ -7,12 +7,14 @@
  */
 
 import path from "path";
-import fs from "fs-extra";
+import * as fs from "node:fs";
+
+const sourceTextCache = new Map<string, string>();
 
 export async function collectPhpFiles(dir: string): Promise<string[]> {
     if (!fs.existsSync(dir)) return [];
     let results: string[] = [];
-    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
@@ -22,4 +24,21 @@ export async function collectPhpFiles(dir: string): Promise<string[]> {
         }
     }
     return results;
+}
+
+
+export async function readSourceText(file: string): Promise<string> {
+    const cached = sourceTextCache.get(file);
+    if (cached !== undefined) return cached;
+    const source = await fs.promises.readFile(file, 'utf-8');
+    sourceTextCache.set(file, source);
+    return source;
+}
+
+export function readSourceTextSync(file: string): string {
+    const cached = sourceTextCache.get(file);
+    if (cached !== undefined) return cached;
+    const source = fs.readFileSync(file, 'utf-8');
+    sourceTextCache.set(file, source);
+    return source;
 }

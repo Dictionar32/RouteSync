@@ -49,7 +49,7 @@ export function resolveStaticMethodCall(
     }],
     boundAst,
     model,
-    definition: symbol.node.semantic,
+    definition: symbol.node.definition,
     cardinality: rule.returns.kind === 'model' ? toResolutionCardinality(rule.returns.cardinality) : cardinality,
   });
 }

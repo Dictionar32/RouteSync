@@ -6,7 +6,7 @@
  * @module compiler/scanner/symbols/model
  */
 
-import type { ParsedModel } from "../../../../types/domain/models";
+import type { ModelAst } from "../../../../types/upstream/ast";
 import { OriginModelSymbol } from "./originModelSymbol";
 import { ResourceNamingConvention } from "../../../../utils/resource-naming";
 import type { Lookup } from "../../../../types/upstream/collections";
@@ -19,7 +19,7 @@ export class ModelSymbolTable {
     private readonly byTableName = new Map<string, OriginModelSymbol>();
     private readonly modelList: readonly OriginModelSymbol[];
 
-    constructor(models: readonly ParsedModel[] = []) {
+    constructor(models: readonly ModelAst[] = []) {
         const list: OriginModelSymbol[] = [];
         for (const m of models) {
             const sym = new OriginModelSymbol(m);
@@ -28,7 +28,7 @@ export class ModelSymbolTable {
             this.byShortName.set(sym.shortName.value.value, sym);
             this.byLower.set(sym.name.value.value.toLowerCase(), sym);
             this.byLower.set(sym.shortName.value.value.toLowerCase(), sym);
-            this.byTableName.set(m.semantic.identity.table.value.value.toLowerCase(), sym);
+            this.byTableName.set(m.definition.identity.table.value.value.toLowerCase(), sym);
         }
         this.modelList = Object.freeze(list);
         Object.freeze(this);
@@ -60,7 +60,7 @@ export class ModelSymbolTable {
         return this.modelList;
     }
 
-    public models(): readonly ParsedModel[] {
+    public models(): readonly ModelAst[] {
         return this.modelList.map(s => s.node);
     }
 

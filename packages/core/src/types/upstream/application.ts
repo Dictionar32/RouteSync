@@ -11,10 +11,10 @@ export type DtoProperty = { readonly kind: 'dto_property'; readonly property: Pr
 export type DtoMethod = { readonly kind: 'dto_method'; readonly name: MethodName; readonly action: ControllerAction; readonly source: SourceSpan };
 export type MiddlewareDefinition = { readonly kind: 'middleware'; readonly name: ClassName; readonly file: SourceFile; readonly handle: ControllerAction; readonly source: SourceSpan };
 export type ProviderDefinition = { readonly kind: 'provider'; readonly name: ClassName; readonly file: SourceFile; readonly register: Expression; readonly boot: Expression; readonly source: SourceSpan };
-export type AttributeDefinition = { readonly kind: 'attribute'; readonly name: ClassName; readonly file: SourceFile; readonly constructor: ResolvedExpression; readonly source: SourceSpan };
-export type MiddlewareAsts = { readonly kind: 'middleware_asts'; readonly items: SourceDiscovery<MiddlewareDefinition> };
-export type ProviderAsts = { readonly kind: 'provider_asts'; readonly items: SourceDiscovery<ProviderDefinition> };
-export type AttributeAsts = { readonly kind: 'attribute_asts'; readonly items: SourceDiscovery<AttributeDefinition> };
+export type AttributeDefinition = { readonly kind: 'attribute'; readonly name: ClassName; readonly file: SourceFile; readonly constructor: Expression; readonly source: SourceSpan };
+export type MiddlewareAsts = { readonly kind: 'middleware_asts'; readonly items: SourceDiscovery<import('./ast').MiddlewareAst> };
+export type ProviderAsts = { readonly kind: 'provider_asts'; readonly items: SourceDiscovery<import('./ast').ProviderAst> };
+export type AttributeAsts = { readonly kind: 'attribute_asts'; readonly items: SourceDiscovery<import('./ast').AttributeAst> };
 
 export type DtoProperties = { readonly kind: 'dto_properties'; readonly items: Sequence<DtoProperty> };
 export type DtoMethods = { readonly kind: 'dto_methods'; readonly items: Sequence<DtoMethod> };

@@ -1,6 +1,6 @@
 import type { PropertyName, VariableName } from './names';
 import type { VariableNames } from './collections';
-import type { ResolvedExpression, Expression } from './expression';
+import type { Expression, ResolvedExpression } from './expression';
 import type { SourceSpan } from './provenance';
 
 export type AssignmentTarget =

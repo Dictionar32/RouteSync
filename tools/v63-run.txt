@@ -1,0 +1,28 @@
+{
+  "out": "data-loss-trace-v63.json",
+  "status": "UNPROVEN",
+  "phpFiles": 111,
+  "internalPhpAst": {
+    "tokenizer": true,
+    "classifier": true,
+    "factory": true,
+    "algebra": true
+  },
+  "critical": 30,
+  "high": 42,
+  "unproven": 10,
+  "missingCategories": [
+    "channels"
+  ],
+  "hiddenRescans": 2,
+  "pipelineRescans": 6,
+  "nestedProjectRootRescans": 8,
+  "semanticFieldLoss": 0,
+  "semanticFieldMappingUnproven": 4,
+  "semanticLineageUnproven": 4,
+  "returnTypeMismatches": 1,
+  "delegateMismatches": 1,
+  "scannerGraphEdges": 8,
+  "semanticReopenEdges": 8,
+  "freeData": 13
+}

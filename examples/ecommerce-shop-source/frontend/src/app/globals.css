@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ================================
+   THEME
+   ================================ */
+@theme {
+  --font-heading: var(--font-heading);
+  --font-body:    var(--font-body);
+
+  --color-obsidian-50:  #f7f6f4;
+  --color-obsidian-100: #edebe6;
+  --color-obsidian-200: #d5d0c5;
+  --color-obsidian-300: #b8b0a0;
+  --color-obsidian-400: #978b78;
+  --color-obsidian-500: #7c6f5d;
+  --color-obsidian-600: #645b4d;
+  --color-obsidian-700: #504940;
+  --color-obsidian-800: #433d37;
+  --color-obsidian-900: #1a1813;
+  --color-obsidian-950: #0d0c0a;
+
+  --color-gold-300: #f5d78a;
+  --color-gold-400: #e8c162;
+  --color-gold-500: #d4a843;
+  --color-gold-600: #b88b2a;
+  --color-gold-700: #96701c;
+
+  --animate-fade-in:  fadeIn 0.5s ease forwards;
+  --animate-slide-up: slideUp 0.4s ease forwards;
+  --animate-shimmer:  shimmer 1.5s infinite;
+}
+
+/* ================================
+   BASE
+   ================================ */
+@layer base {
+  @keyframes fadeIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes slideUp {
+    0%   { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: #0d0c0a;
+    color: #e8e2d8;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  ::-webkit-scrollbar       { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #1a1813; }
+  ::-webkit-scrollbar-thumb { background: #504940; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #7c6f5d; }
+
+  .star-filled { color: #d4a843; }
+  .star-empty  { color: #504940; }
+
+  .modal-backdrop {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* ================================
+   COMPONENTS
+   ================================ */
+@layer components {
+  .btn-gold {
+    @apply bg-gold-500 hover:bg-gold-400 text-obsidian-950 font-semibold
+           px-6 py-3 rounded-sm transition-all duration-200 tracking-wide text-sm uppercase;
+  }
+
+  .btn-outline {
+    @apply border border-obsidian-600 hover:border-gold-500
+           text-obsidian-200 hover:text-gold-400
+           px-6 py-3 rounded-sm transition-all duration-200 tracking-wide text-sm uppercase;
+  }
+
+  .btn-ghost {
+    @apply text-obsidian-300 hover:text-gold-400 transition-colors duration-200;
+  }
+
+  .input-dark {
+    @apply w-full bg-obsidian-900 border border-obsidian-700 focus:border-gold-500
+           text-obsidian-100 placeholder-obsidian-500
+           px-4 py-3 rounded-sm outline-none transition-colors duration-200 text-sm;
+  }
+
+  .card-dark {
+    @apply bg-obsidian-900 border border-obsidian-800 rounded-sm;
+  }
+
+  .section-title {
+    @apply font-heading text-3xl md:text-4xl text-obsidian-50 leading-tight;
+  }
+
+  .gold-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-sm
+           text-xs font-medium border tracking-wide uppercase;
+  }
+
+  .skeleton {
+    @apply bg-obsidian-800 rounded-sm;
+    background: linear-gradient(90deg, #1a1813 25%, #24211b 50%, #1a1813 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Card with subtle gold hover glow */
+  .card-dark-hover {
+    @apply bg-obsidian-900 border border-obsidian-800 rounded-sm
+           transition-all duration-300
+           hover:border-obsidian-600 hover:shadow-[0_0_20px_rgba(212,168,67,0.06)];
+  }
+
+  /* Gold underline link */
+  .link-gold {
+    @apply text-obsidian-400 transition-colors duration-200 relative;
+  }
+  .link-gold::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: #d4a843;
+    transition: width 0.2s ease;
+  }
+  .link-gold:hover { color: #d4a843; }
+  .link-gold:hover::after { width: 100%; }
+
+  /* Page layout helpers */
+  .container-main { @apply max-w-7xl mx-auto px-4 lg:px-8; }
+}

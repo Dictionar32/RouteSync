@@ -36,13 +36,15 @@ function traits(tokens: readonly TokenDescriptor[], classIndex: number): ModelTr
 }
 function methods(tokens: readonly TokenDescriptor[], source: SourceSpan): ModelMethodFact[] {
     return tokens.reduce((result, item, index) => {
+        if (!Object.is(item.value, 'function')) return result;
         const name = token(tokens, index + 1);
+        if (!Object.is(name.type, 'IDENTIFIER')) return result;
         const brace = tokens.findIndex((value, cursor) => cursor > index + 1 && Object.is(value.value, '{'));
+        if (brace < 0) return result;
         const close = matching(tokens, brace);
         const colon = tokens.slice(index + 2, brace).findIndex(value => Object.is(value.value, ':'));
         const returnToken = token(tokens, index + 2 + colon + 1);
-        const valid = Object.is(item.value, 'function') && Object.is(name.type, 'IDENTIFIER') && brace > index;
-        return valid ? result.concat({ kind: 'model_method', name: methodName(name.value), result: colon >= 0 ? primitiveType(returnToken.value) : { kind: 'mixed' }, body: span(source.file, Number(token(tokens, brace).startOffset), Number(token(tokens, close).endOffset)), source: span(source.file, Number(item.startOffset), Number(token(tokens, close).endOffset)) }) : result;
+        return result.concat({ kind: 'model_method', name: methodName(name.value), result: colon >= 0 ? primitiveType(returnToken.value) : { kind: 'mixed' }, body: span(source.file, Number(token(tokens, brace).startOffset), Number(token(tokens, close).endOffset)), source: span(source.file, Number(item.startOffset), Number(token(tokens, close).endOffset)) });
     }, [] as ModelMethodFact[]);
 }
 function constants(tokens: readonly TokenDescriptor[], source: SourceSpan): ModelConstantFact[] {

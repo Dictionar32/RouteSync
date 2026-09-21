@@ -8,7 +8,7 @@
 
 import type { ParsedRoute, ResourceRouteGroup } from '../../../../types/route';
 import type { ParsedResource } from '../../../../types/domain/expressions';
-import type { ParsedModel } from '../../../../types/domain/models';
+import type { ModelAst } from '../../../../types/upstream/ast';
 import type { BaseResourceGroupParams } from '../../../../types/domain/resourceGroupDescriptors';
 import {
   ResourceGroupKind,
@@ -28,7 +28,7 @@ import {
 export interface ScannedResourceRouteGroupParams {
   readonly routes: readonly ParsedRoute[];
   readonly resources: readonly ParsedResource[];
-  readonly models: readonly ParsedModel[];
+  readonly models: readonly ModelAst[];
 }
 
 function responseType(route: ParsedRoute): string {
@@ -60,13 +60,13 @@ function responseTypeOrNever(route: ParsedRoute | undefined): string {
   return route === undefined ? 'never' : responseType(route);
 }
 
-function buildParams(routes: readonly ParsedRoute[], resources: readonly ParsedResource[], models: readonly ParsedModel[]) {
+function buildParams(routes: readonly ParsedRoute[], resources: readonly ParsedResource[], models: readonly ModelAst[]) {
   const resourceName = routes[0].identity.domain.resource.value.value;
   const resource = resources.find(item => item.identity.name.value.value === resourceName);
   if (resource === undefined) throw new Error(`Resource '${resourceName}' is missing from the scanned resource surface`);
   const binding = resource.binding.model;
   if (binding.kind !== 'model') throw new Error(`Resource '${resourceName}' is not bound to a model`);
-  const model = models.find(item => item.semantic.identity.name.value.value === binding.modelName);
+  const model = models.find(item => item.definition.identity.name.value.value === binding.modelName);
   if (model === undefined) throw new Error(`Model '${binding.modelName}' is missing for resource '${resourceName}'`);
   const index = routes.find(route => route.capability.crudRole === 'index');
   const show = routes.find(route => route.capability.crudRole === 'show');
@@ -75,9 +75,9 @@ function buildParams(routes: readonly ParsedRoute[], resources: readonly ParsedR
   const remove = routes.find(route => route.capability.crudRole === 'delete');
   return {
     groupName: resourceName,
-    keyName: model.semantic.identity.primaryKey.value.value,
+    keyName: model.definition.key.column.value.value,
     titleName: resourceName,
-    primaryKeyType: model.semantic.key.type,
+    primaryKeyType: model.definition.key.type.kind,
     index, show, create, update, delete: remove, all: routes,
     extraMutations: routes.filter(route => route.capability.crudRole === 'custom' && route.capability.hookKind === 'mutation'),
     customQueries: routes.filter(route => route.capability.crudRole === 'custom' && route.capability.hookKind !== 'mutation')

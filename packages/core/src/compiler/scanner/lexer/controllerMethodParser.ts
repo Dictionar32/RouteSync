@@ -126,11 +126,26 @@ function parseResponseAttribute(tokens: readonly TokenDescriptor[], functionInde
         const end = findAttributeEnd(tokens, i + 1, functionIndex);
         return {
             kind: 'declared',
-            className: createAstIdentifier(classToken.value),
+            className: createAstIdentifier(resolveImportedClassName(tokens, classToken.value, functionIndex)),
             collection: tokens.slice(i + 1, end).some(token => token.value === 'true'),
         };
     }
     return { kind: 'absent' };
+}
+
+
+function resolveImportedClassName(tokens: readonly TokenDescriptor[], shortName: string, limit: number): string {
+    for (let index = 0; index < limit; index++) {
+        if (tokens[index].value !== 'use') continue;
+        const parts: string[] = [];
+        for (let cursor = index + 1; cursor < limit && tokens[cursor].value !== ';'; cursor++) {
+            if (tokens[cursor].value === 'as') break;
+            if (tokens[cursor].type === 'IDENTIFIER' || tokens[cursor].value === '\\') parts.push(tokens[cursor].value);
+        }
+        const imported = parts.join('');
+        if (imported.endsWith(`\\${shortName}`) || imported === shortName) return imported;
+    }
+    return shortName;
 }
 
 function findAttributeEnd(tokens: readonly TokenDescriptor[], start: number, limit: number): number {

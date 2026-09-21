@@ -2,3 +2,4 @@
 export * from './phpAstCoreTypes';
 export * from './phpAstExpressionTypes';
 export * from './phpAstStatementTypes';
+export type { PhpClassPropertyAst, PhpPropertyVisibility } from './phpAstDeclarationTypes';

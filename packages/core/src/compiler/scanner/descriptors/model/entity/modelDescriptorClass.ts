@@ -35,7 +35,7 @@ function buildModelColumn(column: ParsedColumn): ModelSemanticColumn {
         databaseType: column.type,
         semanticType: column.semanticType,
         nullability: column.nullability,
-        traversal: { kind: 'scalar', semanticType: column.semanticType }
+        traversal: { kind: 'scalar' as const, semanticType: column.semanticType }
     });
 }
 
@@ -58,7 +58,7 @@ function buildModelAccessors(
         method: accessor.name,
         semanticType: accessor.computation.result,
         computation: accessor.computation,
-        traversal: { kind: 'scalar', semanticType: accessor.computation.result }
+        traversal: { kind: 'scalar' as const, semanticType: accessor.computation.result }
     }));
 }
 
@@ -78,7 +78,7 @@ function buildModelRelations(
         boundCardinality: relation.multiplicity,
         resourceCardinality: relation.multiplicity,
         foreignKey: relation.foreignKey,
-        traversal: { kind: 'relation', targetModel: relation.targetModel, cardinality: relation.cardinality, semanticType: relation.semanticType }
+        traversal: { kind: 'relation' as const, targetModel: relation.targetModel, cardinality: relation.cardinality, semanticType: relation.semanticType }
     }));
 }
 
@@ -110,7 +110,7 @@ function buildModelProperties(
             method: accessor.name,
             semanticType: accessor.computation.result,
             computation: accessor.computation,
-        traversal: { kind: 'scalar', semanticType: accessor.computation.result }
+        traversal: { kind: 'scalar' as const, semanticType: accessor.computation.result }
         }));
     }
 
@@ -127,9 +127,11 @@ function buildModelProperties(
             targetModel: relation.targetModel,
             cardinality: relation.cardinality,
             multiplicity: relation.multiplicity,
+            boundCardinality: relation.multiplicity,
+            resourceCardinality: relation.multiplicity,
             foreignKey: relation.foreignKey,
             semanticType: relation.semanticType,
-            traversal: { kind: 'relation', targetModel: relation.targetModel, cardinality: relation.cardinality, semanticType: relation.semanticType }
+            traversal: { kind: 'relation' as const, targetModel: relation.targetModel, cardinality: relation.cardinality, semanticType: relation.semanticType }
         }));
     }
 

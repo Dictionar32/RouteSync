@@ -13,6 +13,7 @@ import type {
     ParsedModel
 } from '../../../types/route';
 import type { ObjectType } from '../../types/SemanticType';
+import type { ModelAst } from '../../../types/upstream/ast';
 import { TypeInterner } from '../../types/TypeInterner';
 
 // Sub-domain imports
@@ -38,7 +39,7 @@ export class SemanticTypeDeriver {
 
     public static fromContext(
         resources: readonly ParsedResource[] = [],
-        models: readonly ParsedModel[] = [],
+        models: readonly ModelAst[] = [],
         interner: TypeInterner = new TypeInterner(),
         routes: readonly ParsedRoute[] = []
     ): SemanticTypeDeriver {
@@ -50,7 +51,7 @@ export class SemanticTypeDeriver {
      */
     public static derive(
         resources: readonly ParsedResource[] = [],
-        models: readonly ParsedModel[] = [],
+        models: readonly ModelAst[] = [],
         interner: TypeInterner = new TypeInterner(),
         routes: readonly ParsedRoute[] = []
     ): readonly ObjectType[] {

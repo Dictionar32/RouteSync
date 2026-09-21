@@ -1,3 +1,4 @@
+import { readSourceText } from './scannerUtils';
 /**
  * RouteScanner.ts
  *
@@ -8,7 +9,7 @@
  */
 
 import path from "path";
-import fs from "fs-extra";
+import * as fs from "node:fs";
 import {
     ParsedRoute,
     RouteParameter,
@@ -16,7 +17,9 @@ import {
     HttpMethod,
 } from "../../../types/route";
 import type { FormRequestSource } from "../../../types/domain/request";
+import type { RouteAst } from "../../../types/upstream/ast";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
+import { readSourceText } from './scannerUtils';
 import { ControllerScanner } from "./ControllerScanner";
 import { ControllerActionInfo } from "../descriptors/requestDescriptors";
 import {
@@ -54,7 +57,7 @@ export class RouteScanner {
         const routesFile = path.join(projectRoot, 'routes', 'api.php');
         if (!fs.existsSync(routesFile)) return [];
 
-        const source = await fs.readFile(routesFile, 'utf-8');
+        const source = await readSourceText(routesFile);
         const tokens = LaravelSourceLexer.tokenize(source);
         const declarations = LaravelSourceLexer.parseRouteDeclarations(tokens);
         const formRequestMap = new Map<string, FormRequestSource>(formRequests.map(r => [r.identity.requestClass.value.value, r]));
@@ -116,6 +119,30 @@ export class RouteScanner {
         }
 
         return routes;
+    }
+
+    /** Canonical syntax-AST boundary. It consumes the lexer AST directly. */
+    public static async scanAsts(
+        projectRoot: string,
+        _formRequests: readonly FormRequestSource[] = [],
+        _existingControllerMap?: Map<string, Map<string, ControllerActionInfo>>
+    ): Promise<readonly RouteAst[]> {
+        const routesFile = path.join(projectRoot, 'routes', 'api.php');
+        if (!fs.existsSync(routesFile)) return [];
+
+        const source = await readSourceText(routesFile);
+        const tokens = LaravelSourceLexer.tokenize(source);
+        const declarations = LaravelSourceLexer.parseRouteDeclarations(tokens);
+        return declarations.map((declaration): RouteAst => ({
+            kind: 'route_ast',
+            declaration,
+            source: {
+                kind: 'source_span',
+                file: { kind: 'source_file', value: { kind: 'string_value', value: routesFile } },
+                start: { kind: 'number_value', value: declaration.source.startOffset },
+                end: { kind: 'number_value', value: declaration.end.endOffset }
+            }
+        }));
     }
 
 }

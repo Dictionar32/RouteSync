@@ -37,8 +37,8 @@ export function resolveRoutePath(
     });
 }
 
-export function extractPathParams(routePath: string): readonly RouteParameter[] {
-    const matches = [...routePath.matchAll(/\{([^}]+)\}/g)];
+export function extractPathParams(routePath: RoutePath): readonly RouteParameter[] {
+    const matches = [...routePath.value.value.matchAll(/\{([^}]+)\}/g)];
     return Object.freeze(matches.map(match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
 }
 

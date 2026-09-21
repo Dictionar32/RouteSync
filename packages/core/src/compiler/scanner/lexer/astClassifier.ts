@@ -242,7 +242,7 @@ function classifyStaticCall(tokens: readonly TokenDescriptor[]): PhpAstValue | u
     if (tokens.length < 4 || tokens[0].type !== 'IDENTIFIER' || tokens[1].value !== '::') return undefined;
     const method = tokens[2];
     if (!method || method.type !== 'IDENTIFIER' || tokens[3]?.value !== '(') return undefined;
-    const close = lastIndexOf(tokens, ')');
+    const close = matchingClose(tokens, 3);
     const args = close > 3 ? parseArguments(tokens.slice(4, close)) : [];
     if (method.value === 'collection') return args[0] ? PhpAstFactory.resourceCollection(createAstIdentifier(tokens[0].value), args[0].value) : PhpAstFactory.unsupported(tokens);
     if (method.value === 'make') return args[0] ? PhpAstFactory.resourceSingle(createAstIdentifier(tokens[0].value), args[0].value) : PhpAstFactory.unsupported(tokens);

@@ -1,0 +1,2092 @@
+{
+  "models": {
+    "entries": [
+      {
+        "name": "Category",
+        "model": {
+          "kind": "model_node",
+          "name": "Category",
+          "layer": "model",
+          "confidence": 1,
+          "table": "categories",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "nama",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "Order",
+        "model": {
+          "kind": "model_node",
+          "name": "Order",
+          "layer": "model",
+          "confidence": 1,
+          "table": "orders",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "user_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "total_harga",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "status",
+                "info": {
+                  "type": "enum",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_number",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "OrderAmount",
+        "model": {
+          "kind": "model_node",
+          "name": "OrderAmount",
+          "layer": "model",
+          "confidence": 1,
+          "table": "order_amounts",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "subtotal_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "shipping_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "discount_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "tax_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "total_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "OrderDetail",
+        "model": {
+          "kind": "model_node",
+          "name": "OrderDetail",
+          "layer": "model",
+          "confidence": 1,
+          "table": "order_details",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "produk_item_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "qty",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "harga",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "banana",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "potato",
+                "info": {
+                  "type": "int",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "flying_dog",
+                "info": {
+                  "type": "boolean",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "OrderFinancial",
+        "model": {
+          "kind": "model_node",
+          "name": "OrderFinancial",
+          "layer": "model",
+          "confidence": 1,
+          "table": "order_financials",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "financial_status",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "refunded_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "refund_reason",
+                "info": {
+                  "type": "text",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "OrderFulfillment",
+        "model": {
+          "kind": "model_node",
+          "name": "OrderFulfillment",
+          "layer": "model",
+          "confidence": 1,
+          "table": "order_fulfillments",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "fulfillment_status",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "processing_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "shipped_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "completed_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "canceled_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "cancel_reason",
+                "info": {
+                  "type": "text",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "OrderPromotion",
+        "model": {
+          "kind": "model_node",
+          "name": "OrderPromotion",
+          "layer": "model",
+          "confidence": 1,
+          "table": "order_promotions",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "promo_code_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "promo_code",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "discount_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "metadata",
+                "info": {
+                  "type": "json",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "OrderShipping",
+        "model": {
+          "kind": "model_node",
+          "name": "OrderShipping",
+          "layer": "model",
+          "confidence": 1,
+          "table": "order_shippings",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "nama",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "telepon",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "alamat",
+                "info": {
+                  "type": "text",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "kota",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "kode_pos",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "Payment",
+        "model": {
+          "kind": "model_node",
+          "name": "Payment",
+          "layer": "model",
+          "confidence": 1,
+          "table": "payments",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "order_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "metode",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "status",
+                "info": {
+                  "type": "enum",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "paid_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "PaymentAmount",
+        "model": {
+          "kind": "model_node",
+          "name": "PaymentAmount",
+          "layer": "model",
+          "confidence": 1,
+          "table": "payment_amounts",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "payment_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "currency_code",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "amount_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "fee_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "net_amount_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "refund_amount_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "PaymentDetail",
+        "model": {
+          "kind": "model_node",
+          "name": "PaymentDetail",
+          "layer": "model",
+          "confidence": 1,
+          "table": "payment_details",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "payment_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "detail",
+                "info": {
+                  "type": "json",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "payload_hash",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "payload_received_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "PaymentGateway",
+        "model": {
+          "kind": "model_node",
+          "name": "PaymentGateway",
+          "layer": "model",
+          "confidence": 1,
+          "table": "payment_gateways",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "payment_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "provider",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "provider_txn_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "idempotency_key",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "gateway_status",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "gateway_code",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "gateway_message",
+                "info": {
+                  "type": "text",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "authorized_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "captured_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "failed_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "refunded_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "reconciled_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "reconciliation_batch_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "ProductReview",
+        "model": {
+          "kind": "model_node",
+          "name": "ProductReview",
+          "layer": "model",
+          "confidence": 1,
+          "table": "product_reviews",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "produk_item_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "user_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "rating",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "title",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "comment",
+                "info": {
+                  "type": "text",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "is_verified_purchase",
+                "info": {
+                  "type": "boolean",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "ProdukItem",
+        "model": {
+          "kind": "model_node",
+          "name": "ProdukItem",
+          "layer": "model",
+          "confidence": 1,
+          "table": "produk_items",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "nama",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "deskripsi",
+                "info": {
+                  "type": "text",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "category_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "harga",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "stok",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "ProdukItemFrontend",
+        "model": {
+          "kind": "model_node",
+          "name": "ProdukItemFrontend",
+          "layer": "model",
+          "confidence": 1,
+          "table": "produk_item_frontends",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "produk_item_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "gambar",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "rating",
+                "info": {
+                  "type": "decimal",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "jumlah_review",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "PromoCode",
+        "model": {
+          "kind": "model_node",
+          "name": "PromoCode",
+          "layer": "model",
+          "confidence": 1,
+          "table": "promo_codes",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "code",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "discount_type",
+                "info": {
+                  "type": "enum",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "discount_value",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "max_discount_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "min_order_minor",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "usage_limit",
+                "info": {
+                  "type": "int",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "used_count",
+                "info": {
+                  "type": "int",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "is_active",
+                "info": {
+                  "type": "boolean",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "starts_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "ends_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "SocialAccount",
+        "model": {
+          "kind": "model_node",
+          "name": "SocialAccount",
+          "layer": "model",
+          "confidence": 1,
+          "table": "social_accounts",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "user_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "provider",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "provider_user_id",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "email",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "avatar_url",
+                "info": {
+                  "type": "varchar",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "User",
+        "model": {
+          "kind": "model_node",
+          "name": "User",
+          "layer": "model",
+          "confidence": 1,
+          "table": "users",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "name",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "email",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "password",
+                "info": {
+                  "type": "varchar",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "role",
+                "info": {
+                  "type": "enum",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      },
+      {
+        "name": "Wishlist",
+        "model": {
+          "kind": "model_node",
+          "name": "Wishlist",
+          "layer": "model",
+          "confidence": 1,
+          "table": "wishlists",
+          "fields": {
+            "entries": [
+              {
+                "column": "id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "user_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "produk_item_id",
+                "info": {
+                  "type": "bigint unsigned",
+                  "nullable": false
+                }
+              },
+              {
+                "column": "created_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              },
+              {
+                "column": "updated_at",
+                "info": {
+                  "type": "timestamp",
+                  "nullable": true
+                }
+              }
+            ],
+            "_lookup": {}
+          }
+        }
+      }
+    ],
+    "_lookup": {}
+  },
+  "services": {
+    "entries": [
+      {
+        "name": "OrderDetailResource",
+        "service": {
+          "kind": "service_node",
+          "name": "OrderDetailResource",
+          "methods": [
+            "id",
+            "produk_item_id",
+            "produk",
+            "qty",
+            "harga",
+            "subtotal"
+          ],
+          "layer": "service",
+          "dependencies": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "OrderResource",
+        "service": {
+          "kind": "service_node",
+          "name": "OrderResource",
+          "methods": [
+            "id",
+            "status",
+            "total_harga",
+            "invoice_number",
+            "payment_status",
+            "financial_status",
+            "fulfillment_status",
+            "subtotal_minor",
+            "discount_minor",
+            "shipping_minor",
+            "tax_minor",
+            "total_harga_minor",
+            "items",
+            "promotion",
+            "shipping",
+            "created_at"
+          ],
+          "layer": "service",
+          "dependencies": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "PaymentResource",
+        "service": {
+          "kind": "service_node",
+          "name": "PaymentResource",
+          "methods": [
+            "id",
+            "order_id",
+            "invoice_number",
+            "metode",
+            "detail",
+            "status",
+            "paid_at",
+            "provider",
+            "provider_txn_id",
+            "gateway_status",
+            "amount_minor",
+            "refund_amount_minor",
+            "items",
+            "promotion",
+            "gateway",
+            "total_harga"
+          ],
+          "layer": "service",
+          "dependencies": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "ProdukItemResource",
+        "service": {
+          "kind": "service_node",
+          "name": "ProdukItemResource",
+          "methods": [
+            "id",
+            "nama",
+            "deskripsi",
+            "image",
+            "image_url",
+            "category_id",
+            "category_name",
+            "harga",
+            "stok",
+            "rating",
+            "review_count"
+          ],
+          "layer": "service",
+          "dependencies": [],
+          "confidence": 1
+        }
+      }
+    ],
+    "_lookup": {}
+  },
+  "controllers": {
+    "entries": [
+      {
+        "name": "AuthController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "AuthController",
+          "routes": [
+            "/api/register",
+            "/api/login",
+            "/api/oauth/{provider}/redirect",
+            "/api/oauth/{provider}/callback",
+            "/api/social/login",
+            "/api/forgot-password",
+            "/api/reset-password",
+            "/api/logout"
+          ],
+          "actions": [
+            {
+              "name": "register"
+            },
+            {
+              "name": "login"
+            },
+            {
+              "name": "oauthRedirect"
+            },
+            {
+              "name": "oauthCallback"
+            },
+            {
+              "name": "socialLogin"
+            },
+            {
+              "name": "forgotPassword"
+            },
+            {
+              "name": "resetPassword"
+            },
+            {
+              "name": "logout"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "CategoryController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "CategoryController",
+          "routes": [
+            "/api/categories"
+          ],
+          "actions": [
+            {
+              "name": "index"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "ProdukController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "ProdukController",
+          "routes": [
+            "/api/produk",
+            "/api/produk/{id}",
+            "/api/admin/produk"
+          ],
+          "actions": [
+            {
+              "name": "index"
+            },
+            {
+              "name": "show"
+            },
+            {
+              "name": "store"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "ProductReviewController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "ProductReviewController",
+          "routes": [
+            "/api/produk/{id}/reviews"
+          ],
+          "actions": [
+            {
+              "name": "index"
+            },
+            {
+              "name": "store"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "PaymentController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "PaymentController",
+          "routes": [
+            "/api/payment/webhook",
+            "/api/payment/{orderId}"
+          ],
+          "actions": [
+            {
+              "name": "webhook"
+            },
+            {
+              "name": "store"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "ProfileController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "ProfileController",
+          "routes": [
+            "/api/profile"
+          ],
+          "actions": [
+            {
+              "name": "show"
+            },
+            {
+              "name": "update"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "OrderController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "OrderController",
+          "routes": [
+            "/api/orders",
+            "/api/orders/{id}",
+            "/api/cart/items",
+            "/api/cart/items/{produkItemId}",
+            "/api/cart",
+            "/api/checkout",
+            "/api/buy-now",
+            "/api/keranjang"
+          ],
+          "actions": [
+            {
+              "name": "index"
+            },
+            {
+              "name": "show"
+            },
+            {
+              "name": "addItem"
+            },
+            {
+              "name": "updateItem"
+            },
+            {
+              "name": "removeItem"
+            },
+            {
+              "name": "clearCart"
+            },
+            {
+              "name": "store"
+            },
+            {
+              "name": "buyNow"
+            },
+            {
+              "name": "keranjang"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "PromoController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "PromoController",
+          "routes": [
+            "/api/cart/promo"
+          ],
+          "actions": [
+            {
+              "name": "apply"
+            },
+            {
+              "name": "remove"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "WishlistController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "WishlistController",
+          "routes": [
+            "/api/wishlist",
+            "/api/wishlist/{produkItemId}"
+          ],
+          "actions": [
+            {
+              "name": "index"
+            },
+            {
+              "name": "store"
+            },
+            {
+              "name": "destroy"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      },
+      {
+        "name": "InvoiceController",
+        "controller": {
+          "kind": "controller_node",
+          "name": "InvoiceController",
+          "routes": [
+            "/api/orders/{id}/invoice"
+          ],
+          "actions": [
+            {
+              "name": "download"
+            }
+          ],
+          "layer": "controller",
+          "calls": [],
+          "confidence": 1
+        }
+      }
+    ],
+    "_lookup": {}
+  },
+  "edges": [
+    {
+      "from": "Category",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "User",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderDetail",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderShipping",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderPromotion",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderAmount",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderFinancial",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "Order",
+      "to": "OrderFulfillment",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "OrderAmount",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderDetail",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderDetail",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderFinancial",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderFulfillment",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderPromotion",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderPromotion",
+      "to": "PromoCode",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderShipping",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "PaymentDetail",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "PaymentAmount",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "Payment",
+      "to": "PaymentGateway",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "PaymentAmount",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "PaymentDetail",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "PaymentGateway",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "ProductReview",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "ProductReview",
+      "to": "User",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "OrderDetail",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "Category",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "ProdukItemFrontend",
+      "type": "depends_on_model",
+      "relationKind": "hasOne",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "Wishlist",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItem",
+      "to": "ProductReview",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItemFrontend",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "PromoCode",
+      "to": "OrderPromotion",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "SocialAccount",
+      "to": "User",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Order",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "Wishlist",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "SocialAccount",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "User",
+      "to": "ProductReview",
+      "type": "depends_on_model",
+      "relationKind": "hasMany",
+      "weight": 1
+    },
+    {
+      "from": "Wishlist",
+      "to": "User",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "Wishlist",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "relationKind": "belongsTo",
+      "weight": 1
+    },
+    {
+      "from": "OrderDetailResource",
+      "to": "OrderDetail",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "OrderResource",
+      "to": "Order",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "PaymentResource",
+      "to": "Payment",
+      "type": "depends_on_model",
+      "weight": 1
+    },
+    {
+      "from": "ProdukItemResource",
+      "to": "ProdukItem",
+      "type": "depends_on_model",
+      "weight": 1
+    }
+  ]
+}

@@ -9,10 +9,10 @@
  * @module core/compiler/scanner/subscanners/TypeDeriver
  */
 
+import type { ModelAst } from "../../../types/upstream/ast";
 import {
     ParsedRoute,
-    ParsedResource,
-    ParsedModel
+    ParsedResource
 } from "../../../types/route";
 import { RequestType } from "../../artifacts/RequestTypesArtifact";
 import { ObjectType } from "../../types/SemanticType";
@@ -29,9 +29,9 @@ export class TypeDeriver {
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
         interner: TypeInterner = new TypeInterner(),
-        models: readonly ParsedModel[] = []
+        models: readonly ModelAst[] = []
     ): readonly RequestType[] {
-        return RequestTypeDeriver.derive(routes, resources, interner, models);
+        return RequestTypeDeriver.derive(routes, resources, interner);
     }
 
     /**
@@ -39,7 +39,7 @@ export class TypeDeriver {
      */
     public static deriveSemanticTypes(
         resources: readonly ParsedResource[] = [],
-        models: readonly ParsedModel[] = [],
+        models: readonly ModelAst[] = [],
         interner: TypeInterner = new TypeInterner(),
         routes: readonly ParsedRoute[] = []
     ): readonly ObjectType[] {

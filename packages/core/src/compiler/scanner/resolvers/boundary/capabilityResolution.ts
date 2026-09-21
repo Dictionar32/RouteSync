@@ -6,14 +6,13 @@
 
 import type {
     HttpMethod,
-    RequestContentType,
     RouteExecutionSignature,
-    RouteHookKind,
     CrudRole,
     RouteSchemaPayload,
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
-import { ScannedRouteCacheInvalidationDescriptor, ScannedRouteExecutionSignature } from "../../../../types/route";
+import { RequestContentType, RouteHookKind, ScannedRouteCacheInvalidationDescriptor, ScannedRouteExecutionSignature } from "../../../../types/route";
+import type { RequestContentType as RequestContentTypeType, RouteHookKind } from "../../../../types/route";
 import { ScannedHttpErrorResponseDescriptor } from "../../descriptors/routeDescriptors";
 import { RouteCrudClassifier } from "../RouteCrudClassifier";
 import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
@@ -22,7 +21,7 @@ import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics, ResolvedRouteBou
 export interface ResolvedRouteCapability {
     readonly hookKind: RouteHookKind;
     readonly crudRole: CrudRole;
-    readonly requestContentType: RequestContentType;
+    readonly requestContentType: RequestContentTypeType;
     readonly executionSignature: RouteExecutionSignature;
     readonly invalidation: ReturnType<typeof ScannedRouteCacheInvalidationDescriptor.none>;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
@@ -104,7 +103,7 @@ function defaultErrors(
 function detectContentType(
     method: HttpMethod,
     schema: RouteSchemaPayload | undefined
-): RequestContentType {
+): RequestContentTypeType {
     if (method === "GET" || method === "HEAD") {
         return RequestContentType.None;
     }

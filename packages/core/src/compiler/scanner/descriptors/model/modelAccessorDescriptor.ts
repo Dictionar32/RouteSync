@@ -7,7 +7,7 @@
  */
 
 import { ParsedAccessor } from "../../../../types/route";
-import type { ModelAccessorComputation } from "../../../../types/domain/models";
+import type { ModelAccessorComputation } from "../../../../types/domain/eloquentTypes";
 import { SemanticValueFactory, type MethodName, type PropertyName } from "../../../../types/domain/semanticValues";
 
 export interface ScannedModelAccessorParams {

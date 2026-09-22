@@ -47,6 +47,7 @@ export class ModelSemanticDefinitionDescriptor implements ModelSemanticDefinitio
   public readonly behavior: ModelSemanticDefinitionContract['behavior'];
   public readonly exposure: ModelSemanticDefinitionContract['exposure'];
   public readonly surface: ModelSemanticDefinitionContract['surface'];
+  public readonly columnFacts: ModelSemanticDefinitionContract['columnFacts'];
 
   constructor(params: ModelSemanticDefinitionContract) {
     this.identity = Object.freeze(params.identity);
@@ -58,6 +59,7 @@ export class ModelSemanticDefinitionDescriptor implements ModelSemanticDefinitio
       hidden: Object.freeze([...params.exposure.hidden]),
       appends: Object.freeze([...params.exposure.appends])
     });
+    this.columnFacts = Object.freeze([...params.columnFacts]);
     this.surface = Object.freeze({
       properties: Object.freeze([...params.surface.properties]),
       byName: params.surface.byName,

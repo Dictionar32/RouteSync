@@ -9,7 +9,7 @@ export type ResourcePropertyPathStep =
   | {
       readonly kind: 'property'; readonly sourceModel: ModelSemanticDefinition; readonly property: PropertyName;
       readonly access: ResourceAccessMode; readonly semantic: Extract<ModelSemanticProperty, { kind: 'column' | 'accessor' }>;
-      readonly type: SemanticType; readonly cardinality: BoundCardinality;
+      readonly type: SemanticType; readonly cardinality: ResourceTraversalCardinality;
     }
   | {
       readonly kind: 'relation'; readonly sourceModel: ModelSemanticDefinition; readonly property: PropertyName;

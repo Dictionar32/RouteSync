@@ -1,4 +1,5 @@
 import type { ResourceSqlNumericExpression, ResourceSqlExpression } from './resourceSqlExpression';
+import { SemanticValueFactory } from './semanticValues';
 
 export type SqlExpressionParseResult =
   | { readonly kind: 'parsed'; readonly expression: ResourceSqlExpression }
@@ -8,7 +9,7 @@ const OPERATORS = Object.freeze(['+', '-', '*', '/'] as const);
 type SqlOperator = typeof OPERATORS[number];
 
 function column(value: string): ResourceSqlNumericExpression {
-  return Object.freeze({ kind: 'column', name: Object.freeze({ kind: 'column_name', value }) });
+  return Object.freeze({ kind: 'column', name: SemanticValueFactory.columnName(value) });
 }
 
 function tokenize(source: string): readonly string[] {

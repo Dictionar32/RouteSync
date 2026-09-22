@@ -1,4 +1,4 @@
-import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ReferenceType, type SemanticType } from '../../compiler/types/SemanticType';
+import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ReferenceType, ErrorType, type SemanticType } from '../../compiler/types/SemanticType';
 import type { ResourceExpressionModel } from './resourceExpressionModel';
 import { SemanticValueFactory, type MethodName, type PropertyName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';
@@ -36,13 +36,13 @@ function scalarType(operation: Extract<ResourceModelMethodMeaning, { kind: 'scal
 function queryBuilderResult(state: ResourceQueryState, method: MethodName, meaning: Extract<ResourceModelMethodMeaning, { kind: 'query_origin' | 'query_mutation' }>): ResourceMethodResult {
   const origin = semanticOrigin(state, method);
   const semanticType = modelType(state.model);
-  return { kind: 'query_builder', origin, model: state.model, semanticType, traversal: { kind: 'query_builder', model: state.model, semanticType, target: { kind: 'query', model: state.model, semanticType }, cardinality: { kind: 'query' }, next: { kind: 'query_builder', model: state.model } } };
+  return { kind: 'query_builder', origin, model: state.model, semanticType, cardinality: { kind: 'query' }, traversal: { kind: 'query_builder', model: state.model, semanticType, target: { kind: 'query', model: state.model, semanticType }, cardinality: { kind: 'query' }, next: { kind: 'query_builder', model: state.model } } };
 }
 
 function singleModelResult(state: ResourceQueryState, method: MethodName, meaning: Extract<ResourceModelMethodMeaning, { kind: 'single_model' }>): ResourceMethodResult {
   const origin = semanticOrigin(state, method);
   const semanticType = modelType(state.model);
-  return { kind: 'single_model', origin, model: state.model, lookup: meaning, semanticType, traversal: { kind: 'single_model', model: state.model, semanticType, target: { kind: 'model', model: state.model, semanticType }, cardinality: { kind: 'single' }, next: { kind: 'model_instance', model: state.model } } };
+  return { kind: 'single_model', origin, model: state.model, lookup: meaning, semanticType, cardinality: { kind: 'single' }, traversal: { kind: 'single_model', model: state.model, semanticType, target: { kind: 'model', model: state.model, semanticType }, cardinality: { kind: 'single' }, next: { kind: 'model_instance', model: state.model } } };
 }
 
 function modelCollectionResult(state: ResourceQueryState, method: MethodName): ResourceMethodResult {
@@ -54,7 +54,7 @@ function modelCollectionResult(state: ResourceQueryState, method: MethodName): R
     target: { kind: 'collection', model: state.model, elementType, semanticType },
     cardinality: { kind: 'collection' }, next: { kind: 'model_instance', model: state.model }
   };
-  return { kind: 'model_collection', origin, model: state.model, elementType, semanticType, traversal };
+  return { kind: 'model_collection', origin, model: state.model, elementType, semanticType, cardinality: { kind: 'collection' }, traversal };
 }
 
 function paginatedCollectionResult(state: ResourceQueryState, method: MethodName, meaning: Extract<ResourceModelMethodMeaning, { kind: 'paginated_collection' }>): ResourceMethodResult {
@@ -66,17 +66,17 @@ function paginatedCollectionResult(state: ResourceQueryState, method: MethodName
     target: { kind: 'collection', model: state.model, elementType, semanticType },
     cardinality: { kind: 'paginated_collection' }, next: { kind: 'model_instance', model: state.model }
   };
-  return { kind: 'paginated_collection', origin, model: state.model, delivery: meaning.delivery, elementType, semanticType, traversal };
+  return { kind: 'paginated_collection', origin, model: state.model, delivery: meaning.delivery, elementType, semanticType, cardinality: { kind: 'paginated_collection' }, traversal };
 }
 
 function scalarResult(state: ResourceQueryState, method: MethodName, meaning: Extract<ResourceModelMethodMeaning, { kind: 'scalar' }>): ResourceMethodResult {
   const origin = semanticOrigin(state, method);
   const semanticType = scalarType(meaning.operation);
-  return { kind: 'scalar', origin, operation: meaning.operation, semanticType, projection: { kind: 'none' }, traversal: { kind: 'scalar', semanticType, target: { kind: 'scalar', semanticType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
+  return { kind: 'scalar', origin, operation: meaning.operation, semanticType, cardinality: { kind: 'single' }, projection: { kind: 'none' }, traversal: { kind: 'scalar', semanticType, target: { kind: 'scalar', semanticType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
 }
 
 function rejected(state: ResourceQueryState, method: MethodName, reason: 'value_collection' | 'unsupported'): ResourceMethodResult {
-  return { kind: 'unsupported', origin: semanticOrigin(state, method), method, traversal: { kind: 'rejected', reason } };
+  return { kind: 'unsupported', origin: semanticOrigin(state, method), method, semanticType: new ErrorType('resource method result rejected'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason } };
 }
 
 export function resolveResourceModelMethod(state: ResourceQueryState, method: MethodName): ResourceMethodResult {

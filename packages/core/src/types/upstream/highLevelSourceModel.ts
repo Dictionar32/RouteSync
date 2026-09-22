@@ -12,7 +12,6 @@ import type { Sequence } from './collections';
 import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, ChannelReference, ServiceReference, ControllerReference, SemanticRelationGraph } from './semanticReferences';
 import { modelNameMatchesClassName } from './names';
 import type { ResolvedServiceDependencies } from './service';
-import { createChannelName } from './names';
 
 export type SourceProjectIdentity = {
   readonly kind: 'laravel_project';
@@ -124,7 +123,7 @@ const resourceNodeFromAst = (ast: import('./ast').ResourceAst): ResourceSemantic
 
 const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNode => ({
   kind: 'request_semantic_node',
-  identity: { kind: 'request_reference', name: ast.definition.identity.requestClass },
+  identity: { kind: 'request_reference', name: ast.definition.identity.request },
   facts: {
     kind: 'request_facts',
     identity: ast.definition.identity,
@@ -170,7 +169,7 @@ const responseNodeFromAst = (ast: import('./ast').ResponseAst): ResponseSemantic
   identity: { kind: 'response_reference', name: ast.definition.typeName },
   facts: {
     kind: 'response_facts',
-    identity: ast.definition.identity,
+    identity: { kind: 'response_reference', name: ast.definition.typeName },
     typeName: ast.definition.typeName,
     output: ast.definition.output,
     source: ast.source,
@@ -192,6 +191,7 @@ export type SourceModelCatalog = {
 
 export type SourceModelReferenceIndex = {
   readonly kind: 'source_model_reference_index';
+  readonly controllers: Sequence<ControllerReference>;
   readonly models: Sequence<ModelReference>;
   readonly resources: Sequence<ResourceReference>;
   readonly requests: Sequence<RequestReference>;
@@ -201,7 +201,7 @@ export type SourceModelReferenceIndex = {
 };
 
 export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog): SourceModelReferenceIndex {
-  const collect = <T extends { readonly identity: infer I }>(items: Sequence<T>): Sequence<I> => {
+  const collect = <I, T extends { readonly identity: I }>(items: Sequence<T>): Sequence<I> => {
     const values: I[] = [];
     let current = items;
     while (current.kind === 'cons') {
@@ -236,7 +236,7 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
 
   let requests = catalog.requests;
   while (requests.kind === 'cons') {
-    let fields = requests.head.facts.schema.fields;
+    let fields = requests.head.facts.schema.fields.items;
     while (fields.kind === 'cons') {
       const target = fields.head.target;
       if (target.kind === 'input_property') {
@@ -272,12 +272,12 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
 
   return {
     kind: 'source_model_reference_index',
-    controllers: collect(catalog.controllers),
-    models: collect(catalog.models),
-    resources: collect(catalog.resources),
-    requests: collect(catalog.requests),
-    responses: collect(catalog.responses),
-    routes: collect(catalog.routes),
+    controllers: collect<ControllerReference, ControllerSemanticNode>(catalog.controllers),
+    models: collect<ModelReference, ModelSemanticNode>(catalog.models),
+    resources: collect<ResourceReference, ResourceSemanticNode>(catalog.resources),
+    requests: collect<RequestReference, RequestSemanticNode>(catalog.requests),
+    responses: collect<ResponseReference, ResponseSemanticNode>(catalog.responses),
+    routes: collect<RouteReference, RouteSemanticNode>(catalog.routes),
     graph: { kind: 'semantic_relation_graph', relations },
   };
 }
@@ -338,7 +338,7 @@ export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSou
             resolved.push({
               kind: 'resolved_service_dependency',
               fact,
-              target: modelItems.head.identity,
+              target: { kind: 'model_reference', name: modelItems.head.facts.identity.name },
             });
             break;
           }
@@ -357,7 +357,7 @@ export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSou
     routes: toSequence(routes, routeNodeFromAst),
     channels: toSequence(channels, astItem => ({
       kind: 'channel_semantic_node',
-      identity: { kind: 'channel_reference', name: createChannelName(astItem.definition.name) },
+      identity: { kind: 'channel_reference', name: astItem.definition.name },
       definition: astItem.definition,
       source: astItem.source,
     })),

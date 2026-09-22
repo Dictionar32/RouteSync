@@ -1,3 +1,5 @@
+import { CrudRole, RouteHookKind, RouteActionKind, HttpMethod } from '../upstream/routeExecutionVocabulary';
+import type { RoutePath, PropertyName, RouteParameterName } from '../upstream/names';
 export { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 export type { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 /**
@@ -77,12 +79,7 @@ export function matchPageEndpoint<R>(
 // EXPLICIT COMPILER ENUMS & DOMAIN MODELS (SSOT ORIGIN BOUNDARY)
 // =========================================================================
 
-export const RouteHookKind = Object.freeze({
-  Query: 'query',
-  Mutation: 'mutation',
-  InfiniteQuery: 'infinite_query'
-} as const);
-export type RouteHookKind = typeof RouteHookKind[keyof typeof RouteHookKind];
+
 
 export interface BaseRouteHookDescriptor<K extends RouteHookKind = RouteHookKind> {
   readonly kind: K;

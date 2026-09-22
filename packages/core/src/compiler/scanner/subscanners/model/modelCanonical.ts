@@ -73,7 +73,7 @@ export function modelAstFromSemantic(
         semanticProperties: model.surface.properties,
         schema: modelSchema,
         properties: { kind: 'properties', items: sequence(modelProperties) },
-        relations: { kind: 'model_relations', items: sequence(semanticRelations.map((relation: ModelRelationFact) => ({ kind: 'model_relation' as const, name: relation.name, target: relation.target, relation: relation.relation, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType, key: relation.key, source: relation.source }))) },
+        relations: { kind: 'model_relations', items: sequence(semanticRelations.map((relation: ModelRelationFact) => ({ kind: 'model_relation' as const, name: relation.name, target: relation.target, type: relation.eloquentType, relation: relation.relation, eloquentType: relation.eloquentType, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType, key: relation.key, source: relation.source }))) },
         casts: { kind: 'model_casts', items: sequence(casts) },
         computed: { kind: 'model_accessors', items: sequence(semanticAccessors.map((accessor: ModelAccessorFact) => ({ kind: 'model_accessor' as const, name: accessor.property, expression: accessorExpression(accessor.computation, accessor.source), source: accessor.source }))) },
         constants: { kind: 'model_constants', items: sequence(factsSource.constants.map(item => ({ kind: 'model_constant' as const, name: item.name, value: item.value, source: item.source }))) },

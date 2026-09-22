@@ -1,3 +1,5 @@
+import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { ResourceTraversalCardinality } from './resourceTraversalModel';
 import { SemanticValueFactory } from './semanticValues';
 import type { ResourceResolvedQueryOperation } from './resourceQueryOperation';
 import type { MethodName, ModelName, PropertyName } from './semanticValues';
@@ -33,6 +35,8 @@ export type ResourceMethodTraversalProjection =
 
 export interface ResourceMethodSemanticResultBase {
   readonly origin: ResourceMethodSemanticOrigin;
+  readonly semanticType: SemanticType;
+  readonly cardinality: ResourceTraversalCardinality;
   readonly traversal: ResourceMethodTraversalProjection;
 }
 
@@ -54,14 +58,13 @@ export type ResourceQueryScalarProjection =
   | { readonly kind: 'aggregate'; readonly operation: 'sum' | 'avg' | 'min' | 'max'; readonly property: PropertyName; readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'column' | 'accessor' }>; readonly inputType: SemanticType; readonly semanticType: SemanticType };
 
 export type ResourceMethodResult =
-  | (ResourceMethodSemanticResultBase & { readonly kind: 'query_builder'; readonly model: ModelSemanticDefinition; readonly semanticType: SemanticType })
-  | (ResourceMethodSemanticResultBase & { readonly kind: 'single_model'; readonly model: ModelSemanticDefinition; readonly lookup: Extract<ResourceModelMethodMeaning, { readonly kind: 'single_model' }>; readonly semanticType: SemanticType })
-  | (ResourceMethodSemanticResultBase & { readonly kind: 'model_collection'; readonly model: ModelSemanticDefinition; readonly elementType: SemanticType; readonly semanticType: SemanticType })
-  | (ResourceMethodSemanticResultBase & { readonly kind: 'paginated_collection'; readonly model: ModelSemanticDefinition; readonly delivery: import('./resourceResponseSemantic').ResourcePaginationDelivery; readonly elementType: SemanticType; readonly semanticType: SemanticType })
-  | (ResourceMethodSemanticResultBase & { readonly kind: 'scalar'; readonly operation: 'exists' | 'count' | 'sum' | 'avg' | 'min' | 'max' | 'value'; readonly semanticType: SemanticType; readonly projection: ResourceQueryScalarProjection | { readonly kind: 'none' } })
+  | (ResourceMethodSemanticResultBase & { readonly kind: 'query_builder'; readonly model: ModelSemanticDefinition })
+  | (ResourceMethodSemanticResultBase & { readonly kind: 'single_model'; readonly model: ModelSemanticDefinition; readonly lookup: Extract<ResourceModelMethodMeaning, { readonly kind: 'single_model' }> })
+  | (ResourceMethodSemanticResultBase & { readonly kind: 'model_collection'; readonly model: ModelSemanticDefinition; readonly elementType: SemanticType })
+  | (ResourceMethodSemanticResultBase & { readonly kind: 'paginated_collection'; readonly model: ModelSemanticDefinition; readonly delivery: import('./resourceResponseSemantic').ResourcePaginationDelivery; readonly elementType: SemanticType })
+  | (ResourceMethodSemanticResultBase & { readonly kind: 'scalar'; readonly operation: 'exists' | 'count' | 'sum' | 'avg' | 'min' | 'max' | 'value'; readonly projection: ResourceQueryScalarProjection | { readonly kind: 'none' } })
   | (ResourceMethodSemanticResultBase & { readonly kind: 'value_collection'; readonly element: ResourceMethodValueElement })
-  | (ResourceMethodSemanticResultBase & { readonly kind: 'unsupported'; readonly method: MethodName })
-  | { readonly kind: 'unresolved'; readonly origin: ResourceMethodUnresolvedOrigin; readonly method: MethodName; readonly traversal: ResourceMethodTraversalProjection };
+  | (ResourceMethodSemanticResultBase & { readonly kind: 'unsupported'; readonly method: MethodName });
 
 export type ResourceMethodValueElement =
   | { readonly kind: 'property'; readonly property: PropertyName; readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'column' | 'accessor' }>; readonly semanticType: SemanticType }

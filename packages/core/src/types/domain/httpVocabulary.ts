@@ -1,5 +1,5 @@
-export { RouteActionKind, RequestContentType } from '../upstream/routeExecutionVocabulary';
-export type { RouteActionKind, RequestContentType } from '../upstream/routeExecutionVocabulary';
+import { HttpMethod, RouteActionKind, RequestContentType, CrudRole } from '../upstream/routeExecutionVocabulary';
+export { HttpMethod, RouteActionKind, RequestContentType } from '../upstream/routeExecutionVocabulary';
 export interface HttpMethodSpecification<M extends HttpMethod = HttpMethod> {
   readonly method: M;
   readonly actionKind: RouteActionKind;
@@ -419,19 +419,6 @@ export function matchHttpStatusCode<R>(
 }
 
 
-
-/**
- * Request content-type vocabulary.
- * The literal wire values remain available through the MIME ADT.
- */
-export const RequestContentType = Object.freeze({
-  Json: 'application/json',
-  Multipart: 'multipart/form-data',
-  UrlEncoded: 'application/x-www-form-urlencoded',
-  None: 'none'
-} as const);
-
-export type RequestContentType = typeof RequestContentType[keyof typeof RequestContentType];
 
 export type RequestMimeType =
   | { readonly kind: 'json'; readonly value: 'application/json' }

@@ -64,7 +64,7 @@ function resolve(type: SemanticType): MappingIntent {
 
 const fieldsOf = (properties: readonly ObjectProperty[]): readonly MappingIntentField[] =>
   Object.freeze(properties.map(field => Object.freeze({
-    name: SemanticValueFactory.propertyName(field.name),
+    name: field.name,
     intent: resolve(field.type)
   })));
 

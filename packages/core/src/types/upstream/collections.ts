@@ -44,9 +44,9 @@ export type SourceDiscoveryVisitor<T, R> = {
 
 export function matchSourceDiscovery<T, R>(discovery: SourceDiscovery<T>, visitor: SourceDiscoveryVisitor<T, R>): R {
   return {
-    not_scanned: () => visitor.notScanned(discovery),
-    scanned: () => visitor.scanned(discovery),
-  }[discovery.kind]();
+    not_scanned: value => visitor.notScanned(value),
+    scanned: value => visitor.scanned(value),
+  }[discovery.kind](discovery as never);
 }
 
 export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
@@ -54,9 +54,9 @@ export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
   readonly many: (value: Extract<Discovered<T>, { readonly kind: 'discovered_many' }>) => R;
 }): R {
   return {
-    discovered_empty: () => visitor.empty(discovery),
-    discovered_many: () => visitor.many(discovery),
-  }[discovery.kind]();
+    discovered_empty: value => visitor.empty(value),
+    discovered_many: value => visitor.many(value),
+  }[discovery.kind](discovery as never);
 }
 
 export type SemanticValues = { readonly kind: 'semantic_values'; readonly items: Sequence<SemanticValue> };

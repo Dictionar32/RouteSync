@@ -34,6 +34,17 @@ export const RequestContentType = Object.freeze({
 } as const);
 export type RequestContentType = typeof RequestContentType[keyof typeof RequestContentType];
 
+export const HttpMethod = Object.freeze({
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  PATCH: 'PATCH',
+  DELETE: 'DELETE',
+  OPTIONS: 'OPTIONS',
+  HEAD: 'HEAD'
+} as const);
+export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod];
+
 export const RoutePayloadMode = Object.freeze({
   None: 'none',
   Required: 'required',

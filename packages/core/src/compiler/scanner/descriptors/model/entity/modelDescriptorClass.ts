@@ -61,7 +61,9 @@ function buildModelRelations(
         property: createPropertyName(relation.name.value.value),
         relation: relation.name,
         sourceModel: relation.sourceModel,
-        type: relation.relation,
+        type: relation.eloquentType,
+        relationKind: relation.relation,
+        eloquentType: relation.eloquentType,
         semanticType: relation.semanticType,
         targetModel: relation.target,
         cardinality: relation.cardinality,
@@ -71,7 +73,7 @@ function buildModelRelations(
         targetShape: relation.targetShape,
         traversalTarget: relation.traversalTarget,
         foreignKey: relation.key,
-        traversal: { kind: 'relation' as const, targetModel: relation.target, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
+        traversal: { kind: 'relation' as const, targetModel: relation.target, eloquentType: relation.eloquentType, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
     }));
 }
 
@@ -112,15 +114,19 @@ function buildModelProperties(
             property,
             relation: relation.name,
             sourceModel: relation.sourceModel,
-            type: relation.relation,
+            type: relation.eloquentType,
+            relationKind: relation.relation,
+            eloquentType: relation.eloquentType,
             targetModel: relation.target,
             cardinality: relation.cardinality,
             multiplicity: relation.multiplicity,
             boundCardinality: relation.multiplicity,
             resourceCardinality: relation.multiplicity,
+            targetShape: relation.targetShape,
+            traversalTarget: relation.traversalTarget,
             foreignKey: relation.key,
             semanticType: relation.semanticType,
-            traversal: { kind: 'relation' as const, targetModel: relation.target, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
+            traversal: { kind: 'relation' as const, targetModel: relation.target, eloquentType: relation.eloquentType, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
         }));
     }
     return properties;

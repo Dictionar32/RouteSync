@@ -1,6 +1,7 @@
 import type { ClassName, ColumnName, MethodName, ModelName, PropertyName, RelationName } from './names';
 import type { VariableName } from './names';
 import type { LiteralValue } from './primitiveVocabulary';
+import type { TypeExpression } from './typeVocabulary';
 
 
 export interface PhpFunctionName {

@@ -15,6 +15,7 @@ export type {
     TokenDescriptor,
     PhpLiteralValue,
     PhpAstValue,
+    PhpAstValueNode,
     PhpPropertyPath,
     PhpArrayEntry,
     PhpArrayKey,

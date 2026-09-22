@@ -5,7 +5,7 @@ import type { ResolvedExpression } from './expression';
 import type { PropertySurface } from './property';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';
-import type { ModelAccessors, ModelCasts, ModelConstants, ModelMethods, ModelRelations, ModelTraits, Properties, PropertyNames, Columns, ForeignKeys } from './collections';
+import type { ModelAccessors, ModelCasts, ModelConstants, ModelMethods, ModelRelations, ModelTraits, Properties, PropertyNames, Columns, ForeignKeys, Lookup } from './collections';
 import type { ModelColumnFact } from './modelSourceFacts';
 
 import type { ModelAccessorComputation } from './modelVocabulary';
@@ -48,6 +48,7 @@ export type ModelPropertyTraversalMeaning =
   | {
       readonly kind: 'relation';
       readonly targetModel: ModelName;
+      readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
       readonly cardinality: EloquentRelationCardinality;
       readonly multiplicity: import('./modelSourceFacts').ModelRelationMultiplicity;
       readonly targetShape: import('./modelSourceFacts').ModelRelationTargetShape;
@@ -81,7 +82,9 @@ export type ModelSemanticRelation = {
   readonly property: PropertyName;
   readonly relation: RelationName;
   readonly sourceModel: ModelName;
-  readonly type: RelationKind;
+  readonly type: import('./modelVocabulary').EloquentRelationType;
+  readonly relationKind: RelationKind;
+  readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
   readonly targetModel: ModelName;
   readonly cardinality: EloquentRelationCardinality;
   readonly multiplicity: ModelPropertyMultiplicity;

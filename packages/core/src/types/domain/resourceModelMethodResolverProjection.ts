@@ -1,4 +1,4 @@
-import { PrimitiveKind, PrimitiveType } from '../../compiler/types/SemanticType';
+import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ErrorType } from '../../compiler/types/SemanticType';
 import type { MethodName } from './semanticValues';
 import type { ResourceMethodResult, ResourceQueryState } from './resourceModelMethodSurface';
 import type { ResourceQueryProjection } from './resourceQueryOperation';
@@ -52,25 +52,25 @@ function origin(context: ProjectionContext) {
 function valueCollectionResult(context: ProjectionContext): ResourceMethodResult {
   const semantic = context.semantic;
   const semanticType = context.semanticType;
-  return { kind: 'value_collection', origin: origin(context), element: { kind: 'property', property: context.property, semantic, semanticType }, traversal: { kind: 'rejected', reason: 'value_collection' } };
+  return { kind: 'value_collection', origin: origin(context), element: { kind: 'property', property: context.property, semantic, semanticType }, semanticType: new ReadonlyCollectionType(CollectionKind.ARRAY, semanticType), cardinality: { kind: 'collection' }, traversal: { kind: 'rejected', reason: 'value_collection' } };
 }
 
 function valueResult(context: ProjectionContext): ResourceMethodResult {
   const semantic = context.semantic;
   const semanticType = context.semanticType;
-  return { kind: 'scalar', origin: origin(context), operation: 'value', semanticType, projection: { kind: 'property', property: context.property, semantic, semanticType }, traversal: { kind: 'scalar', semanticType, target: { kind: 'scalar', semanticType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
+  return { kind: 'scalar', origin: origin(context), operation: 'value', semanticType, cardinality: { kind: 'single' }, projection: { kind: 'property', property: context.property, semantic, semanticType }, traversal: { kind: 'scalar', semanticType, target: { kind: 'scalar', semanticType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
 }
 
 function aggregateResult(context: ProjectionContext, operation: 'sum' | 'avg' | 'min' | 'max'): ResourceMethodResult {
   const semantic = context.semantic;
   const semanticType = context.semanticType;
   const resultType = new PrimitiveType(PrimitiveKind.NUMBER);
-  return { kind: 'scalar', origin: origin(context), operation, semanticType: resultType, projection: { kind: 'aggregate', operation, property: context.property, semantic, inputType: semanticType, semanticType: resultType }, traversal: { kind: 'scalar', semanticType: resultType, target: { kind: 'scalar', semanticType: resultType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
+  return { kind: 'scalar', origin: origin(context), operation, semanticType: resultType, cardinality: { kind: 'single' }, projection: { kind: 'aggregate', operation, property: context.property, semantic, inputType: semanticType, semanticType: resultType }, traversal: { kind: 'scalar', semanticType: resultType, target: { kind: 'scalar', semanticType: resultType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
 }
 
 
 
 function unsupported(state: ResourceQueryState, method: MethodName): ResourceMethodResult {
-  return { kind: 'unsupported', origin: Object.freeze({ receiver: state, method, meaning: meaningFor(method) }), method, traversal: { kind: 'rejected', reason: 'unsupported' } };
+  return { kind: 'unsupported', origin: Object.freeze({ receiver: state, method, meaning: meaningFor(method) }), method, semanticType: new ErrorType('resource method unsupported'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason: 'unsupported' } };
 }
 

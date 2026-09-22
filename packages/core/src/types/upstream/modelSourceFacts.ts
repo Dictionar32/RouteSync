@@ -32,6 +32,7 @@ export type ModelRelationFact = {
   readonly sourceModel: ModelName;
   readonly target: ModelName;
   readonly relation: RelationKind;
+  readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
   readonly cardinality: EloquentRelationCardinality;
   readonly multiplicity: ModelRelationMultiplicity;
   readonly targetShape: ModelRelationTargetShape;

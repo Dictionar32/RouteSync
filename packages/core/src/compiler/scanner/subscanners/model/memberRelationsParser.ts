@@ -32,6 +32,7 @@ export function parseModelRelations(
                 name: createRelationName(method.name.value),
                 sourceModel,
                 relation: descriptor.relation,
+                eloquentType: relationType,
                 targetModel,
                 cardinality: descriptor.cardinality,
                 multiplicity: descriptor.isCollection ? { kind: 'collection' } : { kind: 'single' },

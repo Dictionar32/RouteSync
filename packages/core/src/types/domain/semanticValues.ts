@@ -4,6 +4,7 @@ import type {
   ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName
 } from '../upstream/names';
 import type { NumberValue, StringValue } from '../upstream/valueObjects';
+import type { PhpFunctionName as UpstreamPhpFunctionName } from '../upstream/modelVocabulary';
 
 /**
  * Closed semantic value objects for the domain IR.
@@ -47,10 +48,7 @@ export interface ResponseFieldName {
 
 export type SourceLineNumber = NumberValue;
 
-export interface PhpFunctionName {
-  readonly kind: 'php_function_name';
-  readonly value: string;
-}
+export type PhpFunctionName = UpstreamPhpFunctionName;
 
 export interface PhpOperator {
   readonly kind: 'php_operator';
@@ -208,6 +206,6 @@ export const SemanticValueFactory = Object.freeze({
   castTypeName(value: string): CastTypeName { return Object.freeze({ kind: 'cast_type_name', value }); },
   conditionExpression(value: string): ConditionExpression { return Object.freeze({ kind: 'condition_expression', value }); },
   semanticOperator(value: SemanticOperator['value']): SemanticOperator { return Object.freeze({ kind: 'semantic_operator', value }); },
-  phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value }); },
+  phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value: stringValue(value) }); },
   literalValue(value: BoundLiteralValue): BoundLiteralValue { return Object.freeze(value); },
 });

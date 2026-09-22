@@ -10,6 +10,7 @@
 import { ParsedRoute } from "../../../types/route";
 import { PrimitiveKind } from "../../types/SemanticType";
 import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
+import type { DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName, RouteName } from "../../../types/upstream/names";
 
 /**
  * Authoritative inference of PrimitiveKind from raw type strings or descriptors.
@@ -70,19 +71,19 @@ export function resolvePrimitiveKind(
 }
 
 export type RouteDomainInput = {
-    readonly domain?: string;
-    readonly resourceName?: string;
-    readonly controllerName?: string;
-    readonly path?: string;
-    readonly actionName?: string;
-    readonly name?: string;
+    readonly domain: DomainTypeName;
+    readonly resourceName: ResourceName;
+    readonly controllerName: ControllerName;
+    readonly path: RoutePath;
+    readonly actionName: ActionName;
+    readonly name: RouteName;
 };
 
 /**
  * Authoritative resolution of resource/domain name for a route.
  * Canonical SSOT is pre-resolved on route.domain at Origin Boundary.
  */
-export function resolveRouteDomain(route: RouteDomainInput): string {
+export function resolveRouteDomain(route: RouteDomainInput): DomainTypeName {
     return route.domain || ScannedRouteDescriptor.resolveDomain(route);
 }
 

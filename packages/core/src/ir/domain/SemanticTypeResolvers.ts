@@ -64,7 +64,7 @@ export const SemanticTypeResolvers = Object.freeze({
       kind: 'generic',
       base: SemanticTypeResolvers.reference(type.base),
       parameters: type.parameters.map(parameter => ({
-        name: parameter.name,
+        name: parameter.name.value.value,
         variance: parameter.variance,
         type: lower(parameter.type),
       })),

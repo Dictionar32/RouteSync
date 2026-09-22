@@ -58,13 +58,7 @@ export function createResourceTraversal(
   if (missing) return { resolution: { kind: 'pending', root, steps: frozenSteps, reason: missing } };
   if (!state) return { resolution: { kind: 'pending', root, steps: frozenSteps, reason: 'root_model' } };
   const value = { target: state.target, semanticType: state.target.semanticType, cardinality: state.cardinality };
-  const resolvedSteps = Object.freeze(steps.map(step => ({
-    step,
-    sourceModel: step.sourceModel.kind === 'known' ? step.sourceModel.model : state!.query.model,
-    target: step.target,
-    semanticType: step.target.semanticType,
-    cardinality: step.cardinality,
-  })));
+  const resolvedSteps = Object.freeze(steps);
   return { resolution: { kind: 'resolved', root, steps: resolvedSteps, value } };
 }
 
@@ -91,7 +85,7 @@ function resolveMember(
   return propertyTraversalHandlers[property.value.traversal.kind](state, step, property.value, catalog);
 }
 
-type TraversableProperty = import('../../../../types/domain/models').ModelSemanticProperty;
+type TraversableProperty = import('../../../../types/upstream/model').ModelSemanticProperty;
 type MemberResolution = { readonly step: ResourceTraversalStep; readonly state?: TraversalState; readonly reason: 'property' | 'relation' };
 
 const propertyTraversalHandlers: {
@@ -113,7 +107,7 @@ const propertyTraversalHandlers: {
     if (targetModel.kind === 'missing') {
       const target: ResourceTraversalTarget = { kind: 'model', model: state.query.model, semanticType: relation.semanticType };
       return {
-        step: { kind: 'relation', sourceModel: { kind: 'known', model: state.query.model }, relation: property.relation, access: step.access, target, cardinality },
+        step: { kind: 'relation', sourceModel: { kind: 'known', model: state.query.model }, relation: property.relation, access: step.access, target, cardinality, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget },
         reason: 'relation',
       };
     }
@@ -121,7 +115,7 @@ const propertyTraversalHandlers: {
       ? { kind: 'collection', model: targetModel.model, elementType: relation.semanticType, semanticType: relation.semanticType }
       : { kind: 'model', model: targetModel.model, semanticType: relation.semanticType };
     return {
-      step: { kind: 'relation', sourceModel: { kind: 'known', model: state.query.model }, relation: property.relation, access: step.access, target, cardinality },
+      step: { kind: 'relation', sourceModel: { kind: 'known', model: state.query.model }, relation: property.relation, access: step.access, target, cardinality, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget },
       state: { query: { kind: 'model_instance', model: targetModel.model }, target, cardinality },
       reason: 'relation',
     };

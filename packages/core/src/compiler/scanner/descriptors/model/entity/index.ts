@@ -6,15 +6,5 @@
  */
 
 export {
-    type ScannedModelParams
-} from './types';
-
-export {
-    computeModelParams,
-    computeEmptyModelParams,
-    computeFromTableParams
-} from './modelEntityFactory';
-
-export {
-    ScannedModelDescriptor
+    buildModelSemanticDefinition
 } from './modelDescriptorClass';

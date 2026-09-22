@@ -11,13 +11,12 @@ import {
     type EloquentCastKind,
     EloquentCastMapper
 } from '../../../../types/route';
-import type { SemanticType } from '../../../types/SemanticType';
 import type { EloquentCastValueType, EloquentCastTarget } from '../../../../types/domain/eloquentTypes';
 import { SemanticValueFactory, type ColumnName, type CastTypeName } from '../../../../types/domain/semanticValues';
 
 export interface ScannedModelCastParams {
-    readonly column: string;
-    readonly targetType: string;
+    readonly column: ColumnName;
+    readonly targetType: CastTypeName;
     readonly castKind: EloquentCastKind;
     readonly valueType: EloquentCastValueType;
 }
@@ -33,10 +32,10 @@ export class ScannedModelCastDescriptor implements ParsedCast {
     public readonly valueType: EloquentCastValueType;
 
     constructor({ column, targetType, castKind, valueType }: ScannedModelCastParams) {
-        this.column = SemanticValueFactory.columnName(column);
-        this.targetType = SemanticValueFactory.castTypeName(targetType);
+        this.column = column;
+        this.targetType = targetType;
         this.target = castKind === 'custom'
-            ? { kind: 'custom', className: SemanticValueFactory.className(targetType) }
+            ? { kind: 'custom', className: SemanticValueFactory.className(targetType.value) }
             : { kind: 'builtin', castKind };
         this.castKind = castKind;
         this.valueType = valueType;
@@ -46,25 +45,12 @@ export class ScannedModelCastDescriptor implements ParsedCast {
     public static create({ column, targetType }: { readonly column: string; readonly targetType: string }): ScannedModelCastDescriptor {
         const mapped = EloquentCastMapper.map(targetType);
         return new ScannedModelCastDescriptor({
-            column,
-            targetType,
+            column: SemanticValueFactory.columnName(column),
+            targetType: SemanticValueFactory.castTypeName(targetType),
             castKind: mapped.castKind,
             valueType: mapped.valueType
         });
     }
 
-    public static fromMapping(
-        column: string,
-        targetType: string,
-        castKind: EloquentCastKind,
-        valueType: EloquentCastValueType
-    ): ScannedModelCastDescriptor {
-        const mapped = EloquentCastMapper.map(targetType);
-        return new ScannedModelCastDescriptor({
-            column,
-            targetType,
-            castKind,
-            valueType
-        });
-    }
+
 }

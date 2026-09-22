@@ -1,3 +1,4 @@
+import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import * as path from 'node:path';
 import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
@@ -63,8 +64,9 @@ function scanProvider(file: string, text: string): ProviderAst {
   return { kind: 'provider_ast', definition, source: span };
 }
 
-export async function scanProviderAsts(projectRoot: string): Promise<readonly ProviderAst[]> {
-  const directory = path.join(projectRoot, 'app', 'Providers');
+export async function scanProviderAsts(sourceProject: SourceProjectIdentity): Promise<readonly ProviderAst[]> {
+    const sourceRoot = sourceProject.root.value.value;
+  const directory = path.join(sourceRoot, 'app', 'Providers');
   const files = await collectPhpFiles(directory);
   const asts: ProviderAst[] = [];
   for (const file of files) asts.push(scanProvider(file, await readSourceText(file)));

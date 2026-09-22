@@ -4,3 +4,5 @@ export function createModelName(value: string): ModelName { return SemanticValue
 export function createTableName(value: string): TableName { return SemanticValueFactory.tableName(value); }
 export function createColumnName(value: string): ColumnName { return SemanticValueFactory.columnName(value); }
 export function createPropertyName(value: string): PropertyName { return SemanticValueFactory.propertyName(value); }
+
+export const createIndexName = (value: string) => Object.freeze({ kind: 'index_name' as const, value: { kind: 'string_value' as const, value } });

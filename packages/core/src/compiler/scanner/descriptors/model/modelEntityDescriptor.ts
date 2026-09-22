@@ -1,13 +1,6 @@
 /**
- * modelEntityDescriptor.ts
+ * Canonical semantic model builder.
  *
- * AST descriptor for Eloquent Model Entities.
- * Active Consumer: Orchestrates model entity descriptors.
- *
- * @module core/compiler/scanner/descriptors/model/modelEntityDescriptor
+ * The model semantic aggregate is an upstream ADT value, not a descriptor class.
  */
-
-export {
-    type ScannedModelParams,
-    ScannedModelDescriptor
-} from './entity/index';
+export { buildModelSemanticDefinition } from './entity/modelDescriptorClass';

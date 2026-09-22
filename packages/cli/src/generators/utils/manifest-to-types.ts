@@ -15,34 +15,26 @@ import { SemanticTypesPipeline } from './SemanticTypesPipeline';
 import { RequestTypesPipeline } from './RequestTypesPipeline';
 import { ContractInputPipeline } from './ContractInputPipeline';
 
-import { ScannedRouteManifestDescriptor } from '../../../../core/src/compiler/scanner/StaticLaravelScanner';
-
-function ensureManifest(manifest: RouteManifest): RouteManifest {
-    if (manifest.requestTypes && manifest.semanticTypes) {
-        return manifest;
-    }
-    return ScannedRouteManifestDescriptor.create(manifest as any);
-}
 
 /**
  * 1. Generates SemanticTypesArtifact for TypeScript pass (api-read.ts).
  */
 export function manifestToSemanticTypes(manifest: RouteManifest): SemanticTypesArtifact {
-    return SemanticTypesPipeline.execute(ensureManifest(manifest));
+    return SemanticTypesPipeline.execute(manifest);
 }
 
 /**
  * 2. Generates RequestTypesArtifact for Form generation (FormGeneratorPass).
  */
 export function manifestToRequestTypes(manifest: RouteManifest): RequestTypesArtifact {
-    return RequestTypesPipeline.execute(ensureManifest(manifest));
+    return RequestTypesPipeline.execute(manifest);
 }
 
 /**
  * 3. Generates RequestTypesArtifact for Contract generation (ContractGeneratorPass).
  */
 export function manifestToContractInput(manifest: RouteManifest): RequestTypesArtifact {
-    return ContractInputPipeline.execute(ensureManifest(manifest));
+    return ContractInputPipeline.execute(manifest);
 }
 
 /**

@@ -11,6 +11,9 @@ import type { ModelSymbolTable, OriginModelSymbol } from "../symbols/ModelSymbol
 import type { PhpAstValue, PhpArrayEntry } from "../lexer/PhpAst";
 import type { ResourceFieldDescriptor, ParsedResource } from "../../../types/route";
 import type { BoundSemanticNode } from "../../../types/domain/boundAst";
+import type { PhpStatement } from "../lexer/phpAstTypes";
+import type { ModelName, ResourceName, SourceFile } from "../../../types/upstream/names";
+import type { ResourceAst } from "../../../types/upstream/ast";
 import {
     bindResource,
     bindField,
@@ -20,7 +23,10 @@ import {
     bindNestedArrayField,
     bindLiteralField,
     bindTernaryField,
-    bindFallbackField
+    bindBinaryField,
+    bindNullCoalesceField,
+    bindFallbackField,
+    bindResourceDefinition
 } from "./resource";
 
 export interface BoundResourceFieldResult {
@@ -38,7 +44,10 @@ export {
     bindNestedArrayField,
     bindLiteralField,
     bindTernaryField,
-    bindFallbackField
+    bindBinaryField,
+    bindNullCoalesceField,
+    bindFallbackField,
+    bindResourceDefinition
 };
 
 /**
@@ -49,15 +58,21 @@ export class SemanticResourceBinder {
      * Binds a full Resource definition and its AST array entries to a ModelSymbol.
      */
     public static bindResource(params: {
-        readonly resourceName: string;
+        readonly resourceName: ResourceName;
         readonly entries: readonly PhpArrayEntry[];
-        readonly sourceFile: string;
+        readonly sourceFile: SourceFile;
         readonly sourceLine: number;
         readonly modelSymbolTable: ModelSymbolTable;
         readonly controllerDataflowMap?: import("../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
-        readonly relationPropagationMap?: ReadonlyMap<string, string>;
+        readonly relationPropagationMap?: ReadonlyMap<ResourceName, ModelName>;
+        readonly assignments?: readonly PhpStatement[];
     }): ParsedResource {
         return bindResource(params);
+    }
+
+    /** Canonical AST producer: binds source semantics directly into ResourceAst without ParsedResource. */
+    public static bindResourceAst(params: Parameters<typeof bindResourceDefinition>[0]): ResourceAst {
+        return bindResourceDefinition(params);
     }
 
     /**

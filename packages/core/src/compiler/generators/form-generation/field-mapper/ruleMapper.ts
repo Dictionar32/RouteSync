@@ -70,6 +70,7 @@ const ARRAY_ELEMENT_TYPES: {
 
 const EFFECTS: ValidationRuleVisitor<RuleEffect> = {
   required: () => ({ ...emptyEffect(), required: true }),
+  required_with: emptyEffect,
   nullable: () => ({ ...emptyEffect(), nullable: true }),
   optional: emptyEffect,
   string: () => emptyEffect(new PrimitiveType(PrimitiveKind.STRING)),
@@ -99,7 +100,8 @@ const PRIMITIVE_MAX_CONSTRAINTS: { readonly [K in PrimitiveKind]: (values: reado
   [PrimitiveKind.BOOLEAN]: () => [],
   [PrimitiveKind.DATETIME]: () => [],
   [PrimitiveKind.FILE]: FILE_MAX_CONSTRAINTS,
-  [PrimitiveKind.UNKNOWN]: () => []
+  [PrimitiveKind.UNKNOWN]: () => [],
+  [PrimitiveKind.UNSPECIFIED]: () => []
 });
 
 const reduceEffects = (effects: readonly RuleEffect[]): MappedField => {

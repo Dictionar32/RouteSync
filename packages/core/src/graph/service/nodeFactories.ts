@@ -13,7 +13,11 @@ import type {
   ServiceModelNode,
   ExecutionLayer
 } from '../../types/semantic';
-import type { ModelSemanticDefinition } from '../../types/domain/models';
+import type { ModelSemanticDefinition } from '../../types/upstream/model';
+import type { ActionName } from '../../types/upstream/names';
+import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies } from '../../types/upstream/service';
+import type { ControllerNodeName, ServiceNodeName } from '../../types/semantic/nominalVocabulary';
+import { createConfidenceScore } from '../../types/semantic/nominalVocabulary';
 
 /**
  * Detects the execution layer based on file path and code heuristics.
@@ -31,18 +35,20 @@ export function detectExecutionLayer(filePath: string, code: string): ExecutionL
   return 'repository';
 }
 
-export function buildServiceNode(name: string, methods: string[]): ServiceNode {
+export function buildServiceNode(name: ServiceNodeName, methods: ServiceMethod[], dependencies: ServiceDependency[] = [], dependencyFacts: ServiceDependencyFacts, resolvedDependencies: ResolvedServiceDependencies): ServiceNode {
   return {
     kind: 'service_node',
     name,
     methods,
     layer: 'service',
-    dependencies: [],
-    confidence: 1.0
+    dependencies,
+    dependencyFacts,
+    resolvedDependencies,
+    confidence: createConfidenceScore(1)
   };
 }
 
-export function buildControllerNode(name: string, routes: string[], actions: string[]): ControllerNode {
+export function buildControllerNode(name: ControllerNodeName, routes: string[], actions: ActionName[]): ControllerNode {
   return {
     kind: 'controller_node',
     name,
@@ -50,7 +56,7 @@ export function buildControllerNode(name: string, routes: string[], actions: str
     actions: actions.map(a => ({ name: a })),
     layer: 'controller',
     calls: [],
-    confidence: 1.0
+    confidence: createConfidenceScore(1)
   };
 }
 

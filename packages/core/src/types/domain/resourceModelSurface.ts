@@ -1,6 +1,7 @@
-import type { ModelSemanticDefinition, ParsedModel } from './models';
-import type { ModelName, PropertyName, RelationName } from './semanticValues';
-import type { ModelSemanticProperty, ModelPropertyMultiplicity } from './models';
+import type { ParsedModel } from './models';
+import type { ModelSemanticDefinition, ModelSemanticProperty, ModelPropertyMultiplicity, EloquentRelationCardinality, BoundCardinality, RelationKind, RelationKey } from '../upstream/model';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/modelSourceFacts';
+import type { ModelName, PropertyName, RelationName } from '../upstream/names';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import { createResourceModelMethodSurface, type ResourceModelMethodSurface } from './resourceModelMethodSurface';
 
@@ -13,9 +14,17 @@ export type ResourceModelPropertyResolution =
 export interface ResourceModelRelationResolution {
   readonly relation: RelationName;
   readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'relation' }>;
+  readonly sourceModel: ModelName;
+  readonly type: RelationKind;
   readonly targetModel: ModelName;
   readonly semanticType: SemanticType;
+  readonly cardinality: EloquentRelationCardinality;
   readonly multiplicity: ModelPropertyMultiplicity;
+  readonly targetShape: ModelRelationTargetShape;
+  readonly traversalTarget: ModelRelationTraversalTarget;
+  readonly boundCardinality: BoundCardinality;
+  readonly resourceCardinality: ModelPropertyMultiplicity;
+  readonly foreignKey: RelationKey;
 }
 
 export type ResourceModelPropertyLookup =
@@ -46,7 +55,21 @@ export function createResourceModelSemanticSurface(model: ModelSemanticDefinitio
     const member = surface.relationsByName.lookup(relation);
     if (member.kind === 'missing') return Object.freeze({ kind: 'missing', relation });
     const semantic = member.value;
-    return Object.freeze({ kind: 'found', resolution: Object.freeze({ relation, semantic, targetModel: semantic.targetModel, semanticType: semantic.semanticType, multiplicity: semantic.multiplicity }) });
+    return Object.freeze({ kind: 'found', resolution: Object.freeze({
+      relation: semantic.relation,
+      semantic,
+      sourceModel: semantic.sourceModel,
+      type: semantic.type,
+      targetModel: semantic.targetModel,
+      semanticType: semantic.semanticType,
+      cardinality: semantic.cardinality,
+      multiplicity: semantic.multiplicity,
+      targetShape: semantic.targetShape,
+      traversalTarget: semantic.traversalTarget,
+      boundCardinality: semantic.boundCardinality,
+      resourceCardinality: semantic.resourceCardinality,
+      foreignKey: semantic.foreignKey
+    }) });
   };
   return Object.freeze({ model: model.identity.name, members, methods: createResourceModelMethodSurface(model), resolveProperty, resolveRelation });
 }
@@ -80,9 +103,17 @@ export function createResourceModelSurface(model: ParsedModel): ResourceModelSur
       resolution: Object.freeze({
         relation: semantic.relation,
         semantic,
+        sourceModel: semantic.sourceModel,
+        type: semantic.type,
         targetModel: semantic.targetModel,
         semanticType: semantic.semanticType,
-        multiplicity: semantic.multiplicity
+        cardinality: semantic.cardinality,
+        multiplicity: semantic.multiplicity,
+        targetShape: semantic.targetShape,
+        traversalTarget: semantic.traversalTarget,
+        boundCardinality: semantic.boundCardinality,
+        resourceCardinality: semantic.resourceCardinality,
+        foreignKey: semantic.foreignKey
       })
     });
   };

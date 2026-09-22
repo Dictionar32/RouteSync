@@ -12,8 +12,10 @@ export * from './resource';
 export * from './request';
 export * from './response';
 export * from './routeNames';
+export * from './routeExecutionVocabulary';
 export * from './route';
 export * from './controller';
+export * from './sourceStatements';
 export * from './ast';
 export * from './manifest';
 export * from './resourceVocabulary';
@@ -32,3 +34,5 @@ export * from './highLevelSourceModel';
 export * from './endpointBindings';
 
 export type { Option, Lookup } from './collections';
+
+export type { ChannelDefinition, ChannelKind } from './channel';

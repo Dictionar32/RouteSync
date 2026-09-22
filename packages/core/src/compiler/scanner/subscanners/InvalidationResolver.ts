@@ -8,7 +8,6 @@
 
 import {
     ParsedRoute,
-    ParsedModel,
     ResourceRouteGroup,
     RouteHookKind,
     InvalidationTarget,
@@ -19,6 +18,7 @@ import {
     ScannedRouteInvalidationPayload
 } from "../../../types/route";
 import type { ModelAst } from "../../../types/upstream/ast";
+import type { ResourceName } from "../../../types/upstream/names";
 import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
 
 function sequenceToArray<T>(items: import("../../../types/upstream/collections").Sequence<T>): T[] {
@@ -47,7 +47,7 @@ export class InvalidationResolver {
                     const targets: InvalidationTarget[] = [];
 
                     // A. Self Invalidation (resource group rute sendiri)
-                    targets.push(ScannedInvalidationTarget.selfList(route.identity.domain.resource.value.value));
+                    targets.push(ScannedInvalidationTarget.selfList(route.identity.domain.resource));
 
                     // B. Traverse semantic relations from the already-resolved response model.
                     const responseAnalysis = route.contract.response.success.descriptor.toAnalysis(
@@ -65,7 +65,7 @@ export class InvalidationResolver {
 
                     if (matchedModel !== undefined) {
                         for (const rel of matchedModel.definition.relations.items.kind === 'empty' ? [] : sequenceToArray(matchedModel.definition.relations.items)) {
-                            const sourceModel = matchedModel.definition.identity.name.value.value;
+                            const sourceModel = matchedModel.definition.identity.name;
                             switch (rel.relation.kind) {
                                 case 'belongs_to':
                                     targets.push(ScannedInvalidationTarget.parentList(sourceModel));
@@ -90,12 +90,12 @@ export class InvalidationResolver {
                     const matchedGroup = routeGroups.find(g => g.identity.resource.value.value.toLowerCase() === normalizedGroup);
                     switch (matchedGroup !== undefined) {
                         case true: {
-                            const groupNameStr = (matchedGroup as ResourceRouteGroup).identity.resource.value.value;
+                            const groupName = (matchedGroup as ResourceRouteGroup).identity.resource;
                             for (const g of routeGroups) {
-                                const isChild = g.identity.resource.value.value.toLowerCase().startsWith(groupNameStr.toLowerCase()) && g.identity.resource.value.value !== groupNameStr;
+                                const isChild = g.identity.resource.value.value.toLowerCase().startsWith(groupName.value.value.toLowerCase()) && g.identity.resource.value.value !== groupName.value.value;
                                 switch (isChild) {
                                     case true:
-                                        targets.push(ScannedInvalidationTarget.resourceList(g.identity.resource.value.value));
+                                        targets.push(ScannedInvalidationTarget.resourceList(g.identity.resource));
                                         break;
                                     case false:
                                         break;
@@ -109,10 +109,13 @@ export class InvalidationResolver {
 
                     // D. Auth / Logout Invalidation
                     if (route.binding.operation.name.value.value === 'logout') {
-                        const authGroups = new Set<string>();
+                        const authGroups: ResourceName[] = [];
                         for (const r of routes) {
                             if (r.capability.auth) {
-                                authGroups.add(r.identity.domain.resource.value.value);
+                                const resource = r.identity.domain.resource;
+                                if (!authGroups.some(existing => existing.value.value === resource.value.value)) {
+                                    authGroups.push(resource);
+                                }
                             }
                         }
                         for (const grp of authGroups) {

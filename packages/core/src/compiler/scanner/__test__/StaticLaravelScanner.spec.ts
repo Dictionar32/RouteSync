@@ -1,11 +1,11 @@
 import { describe, test, expect } from 'vitest';
-import { StaticLaravelScanner } from '../StaticLaravelScanner';
+import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '../StaticLaravelScanner';
 import path from 'path';
 
 describe('StaticLaravelScanner Specification (TDD Suite)', () => {
     test('1. Scans mock Laravel directory and produces complete RouteManifest', async () => {
         const fixturePath = path.resolve(__dirname, '../../../../../../packages/sdk/tests/fixtures');
-        const manifest = await StaticLaravelScanner.scan(fixturePath);
+        const manifest = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(fixturePath));
 
         expect(manifest.version).toBe('6.0.0');
         expect(manifest.routes).toBeDefined();

@@ -13,6 +13,7 @@ import {
     type RouteCapabilityContract
 } from "../../../../types/route";
 import type { ScannedRouteDescriptor } from "./ScannedRouteDescriptor";
+import type { ScannedRouteConstructorInput } from "./routeContracts";
 
 /**
  * Returns a new ScannedRouteDescriptor with updated cache invalidation.
@@ -20,7 +21,7 @@ import type { ScannedRouteDescriptor } from "./ScannedRouteDescriptor";
 export function withRouteInvalidation(
     route: ScannedRouteDescriptor,
     invalidation: RouteCacheInvalidationDescriptor,
-    ctor: new (params: any) => ScannedRouteDescriptor
+    ctor: new (params: ScannedRouteConstructorInput) => ScannedRouteDescriptor
 ): ScannedRouteDescriptor {
     const updatedCapability: RouteCapabilityContract = Object.freeze({
         ...route.capability,

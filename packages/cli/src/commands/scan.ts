@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { validateManifestContract } from '../generators/ManifestContractValidator'
 import { ScannedModel } from '../utils/incremental'
-import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
+import { RouteManifest, StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core'
 
 export const scanCommand = new Command('scan')
   .description('Scan Laravel/PHP routes and output a route manifest')
@@ -21,7 +21,7 @@ export const scanCommand = new Command('scan')
     const outputPath = path.isAbsolute(options.output) ? options.output : path.resolve(targetDir, options.output)
 
     try {
-      const scannedManifest = await StaticLaravelScanner.scan(targetDir, {
+      const scannedManifest = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(targetDir), {
         baseURL: options.baseURL,
         version: '6.0.0'
       })
@@ -81,7 +81,7 @@ export const scanCommand = new Command('scan')
       const fs = require('fs')
       const { ServiceGraphBuilder } = await import('@routesync/core')
       const graphBuilder = new ServiceGraphBuilder()
-      const serviceGraph = graphBuilder.buildFromManifest(resolvedManifest as unknown as RouteManifest)
+      const serviceGraph = graphBuilder.buildFromRouteSyncManifest(scannedManifest, resolvedManifest as unknown as RouteManifest)
       fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.graph.json'), JSON.stringify(serviceGraph, null, 2))
 
       // Stage 2 (IR v3) output — additive, does not change manifest/graph output above.

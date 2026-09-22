@@ -17,6 +17,7 @@ import {
 import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ValidationRuleParser } from "../../../../types/domain/validationRules";
+import type { SourceSpan } from "../../../../types/upstream/provenance";
 
 export interface ScannedRouteValidationRuleParams {
     readonly fieldName: PropertyName;
@@ -26,6 +27,7 @@ export interface ScannedRouteValidationRuleParams {
     readonly semanticType: SemanticType;
     readonly presence: RequestFieldPresence;
     readonly validation: readonly ValidationRuleNode[];
+    readonly source: SourceSpan;
 }
 
 export class ScannedRouteValidationRuleEntry implements RouteValidationRuleEntry {
@@ -36,6 +38,7 @@ export class ScannedRouteValidationRuleEntry implements RouteValidationRuleEntry
     public readonly semanticType: SemanticType;
     public readonly presence: RequestFieldPresence;
     public readonly validation: readonly ValidationRuleNode[];
+    public readonly source: SourceSpan;
 
     constructor(params: ScannedRouteValidationRuleParams) {
         this.fieldName = params.fieldName;
@@ -45,13 +48,15 @@ export class ScannedRouteValidationRuleEntry implements RouteValidationRuleEntry
         this.semanticType = params.semanticType;
         this.presence = params.presence;
         this.validation = Object.freeze([...params.validation]);
+        this.source = params.source;
         Object.freeze(this);
     }
 
     public static create(
         fieldName: string,
         rules: readonly string[],
-        validation: readonly ValidationRuleNode[] = ValidationRuleParser.parseAll(rules)
+        validation: readonly ValidationRuleNode[] = ValidationRuleParser.parseAll(rules),
+        source: SourceSpan = { kind: 'source_span', file: SemanticValueFactory.sourceFilePath('<validation>'), start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } }
     ): ScannedRouteValidationRuleEntry {
         const sourceField = SemanticValueFactory.propertyName(fieldName);
         const semanticType = resolveSemanticType(validation);
@@ -61,10 +66,11 @@ export class ScannedRouteValidationRuleEntry implements RouteValidationRuleEntry
             fieldName: canonicalFieldName(fieldName, location),
             sourceField,
             location,
-            shape: resolveShape(fieldName, semanticType, validation),
+            shape: resolveShape(fieldName, semanticType, validation, source),
             semanticType,
             presence,
-            validation
+            validation,
+            source
         });
     }
 }
@@ -86,7 +92,7 @@ function resolveLocation(fieldName: string): ValidationFieldLocation {
     };
 }
 
-function resolveShape(fieldName: string, semanticType: SemanticType, validation: readonly ValidationRuleNode[]): ValidationFieldShape {
+function resolveShape(fieldName: string, semanticType: SemanticType, validation: readonly ValidationRuleNode[], source: SourceSpan): ValidationFieldShape {
     const parts = fieldName.split('.');
     const wildcardIndex = parts.indexOf('*');
     if (wildcardIndex === -1) {
@@ -101,7 +107,7 @@ function resolveShape(fieldName: string, semanticType: SemanticType, validation:
     }
 
     const tail = parts.slice(wildcardIndex + 1).map(SemanticValueFactory.propertyName);
-    const element = buildNestedObjectShape(tail, semanticType, validation);
+    const element = buildNestedObjectShape(tail, semanticType, validation, source);
     const elementType = objectTypeForShape(parts.slice(0, wildcardIndex).join('.'), element);
     return {
         kind: 'collection',
@@ -113,14 +119,15 @@ function resolveShape(fieldName: string, semanticType: SemanticType, validation:
 function buildNestedObjectShape(
     path: readonly PropertyName[],
     leafType: SemanticType,
-    validation: readonly ValidationRuleNode[]
+    validation: readonly ValidationRuleNode[],
+    source: SourceSpan
 ): ValidationFieldShape {
     if (path.length === 0) return { kind: 'scalar' };
 
     const [head, ...tail] = path;
     const childShape = tail.length === 0
         ? { kind: 'scalar' as const }
-        : buildNestedObjectShape(tail, leafType, validation);
+        : buildNestedObjectShape(tail, leafType, validation, source);
     const childType = tail.length === 0
         ? leafType
         : objectTypeForShape(head.value.value, childShape);
@@ -136,7 +143,8 @@ function buildNestedObjectShape(
             semanticType: childType,
             presence: childPresence,
             validation: childValidation,
-            shape: childShape
+            shape: childShape,
+            source
         }])
     };
 }
@@ -181,7 +189,7 @@ function resolveSemanticType(validation: readonly ValidationRuleNode[]): Semanti
         const element = explicit.elementType;
         return new ReadonlyCollectionType(
             CollectionKind.ARRAY,
-            element.kind === 'specified' ? element.type : new PrimitiveType(PrimitiveKind.UNKNOWN)
+            element.kind === 'specified' ? element.type : new PrimitiveType(PrimitiveKind.UNSPECIFIED)
         );
     }
     return new PrimitiveType(PrimitiveKind.STRING);

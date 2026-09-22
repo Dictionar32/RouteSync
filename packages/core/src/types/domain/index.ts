@@ -34,6 +34,14 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
     isModifier: true,
     description: 'Field must be present and not empty'
   },
+  [ValidationRuleKind.RequiredWith]: {
+    kind: ValidationRuleKind.RequiredWith,
+    category: 'modifier',
+    isTypeAssertion: false,
+    isConstraint: false,
+    isModifier: true,
+    description: 'Field is required when one or more other fields are present'
+  },
   [ValidationRuleKind.Nullable]: {
     kind: ValidationRuleKind.Nullable,
     category: 'modifier',

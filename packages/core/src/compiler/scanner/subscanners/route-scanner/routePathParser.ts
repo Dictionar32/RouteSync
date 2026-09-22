@@ -6,13 +6,15 @@
  * @module core/compiler/scanner/subscanners/route-scanner
  */
 
-import type { RouteParameter } from "../../../../types/route";
-import { createRoutePath, type RoutePath } from "../../../../types/domain/routeEntityDefinition";
+import type { RouteParameter } from "../../../../types/upstream/route";
+import { createRoutePath, type RoutePath } from "../../../../types/upstream/names";
+import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
+import type { ResourceName } from "../../../../types/upstream/names";
 import { ScannedRouteParameterDescriptor } from "../../descriptors/routeDescriptors";
 
 export interface ResolvedRoutePath {
     readonly path: RoutePath;
-    readonly resourceName: string;
+    readonly resourceName: ResourceName;
     readonly parameters: readonly RouteParameter[];
 }
 
@@ -27,7 +29,7 @@ export function resolveRoutePath(
     const segments = normalizedPath.split('/').filter(
         segment => segment && segment !== 'api' && !segment.startsWith('{')
     );
-    const resourceName = segments[0] || 'general';
+    const resourceName = SemanticValueFactory.resourceName(segments[0] || 'general');
     const path = createRoutePath(normalizedPath);
 
     return Object.freeze({
@@ -46,7 +48,7 @@ export function extractPathParams(routePath: RoutePath): readonly RouteParameter
 export function normalizeRoutePath(
     rawPath: string,
     prefixStack: readonly string[]
-): { normalizedPath: RoutePath; resourceName: string } {
+ ): { normalizedPath: RoutePath; resourceName: ResourceName } {
     const resolved = resolveRoutePath(rawPath, prefixStack);
     return { normalizedPath: resolved.path, resourceName: resolved.resourceName };
 }

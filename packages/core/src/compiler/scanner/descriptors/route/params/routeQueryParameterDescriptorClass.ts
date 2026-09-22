@@ -10,49 +10,31 @@ import {
     type RouteQueryParameter,
     RouteParameterType
 } from "../../../../../types/route";
-import { toCamelCase } from "../../../../../utils/resource-naming";
+import type { PropertyName, RouteParameterName } from "../../../../../types/upstream/names";
+import type { Cardinality, Presence } from "../../../../../types/upstream/primitiveVocabulary";
+import type { Option } from "../../../../../types/upstream/collections";
+import type { RequestRuntimeValue } from "../../../../../types/domain/requestModels";
 import type { ScannedRouteQueryParameterParams } from "./types";
 
 export class ScannedRouteQueryParameterDescriptor implements RouteQueryParameter {
-    public readonly name: string;
-    public readonly propertyName: string;
-    public readonly required: boolean;
+    public readonly name: RouteParameterName;
+    public readonly propertyName: PropertyName;
+    public readonly presence: Presence;
     public readonly type: RouteParameterType;
-    public readonly isArray: boolean;
-    public readonly default: unknown;
+    public readonly cardinality: Cardinality;
+    public readonly defaultValue: Option<RequestRuntimeValue>;
 
     constructor(params: ScannedRouteQueryParameterParams) {
         this.name = params.name;
         this.propertyName = params.propertyName;
-        this.required = params.required;
+        this.presence = params.presence;
         this.type = params.type;
-        this.isArray = params.isArray;
-        this.default = params.default;
+        this.cardinality = params.cardinality;
+        this.defaultValue = params.defaultValue;
         Object.freeze(this);
     }
 
-    public static create({
-        name,
-        propertyName = toCamelCase(name),
-        required = false,
-        type = RouteParameterType.String,
-        isArray = false,
-        default: defaultValue = null
-    }: {
-        readonly name: string;
-        readonly propertyName?: string;
-        readonly required?: boolean;
-        readonly type?: RouteParameterType;
-        readonly isArray?: boolean;
-        readonly default?: unknown;
-    }): ScannedRouteQueryParameterDescriptor {
-        return new ScannedRouteQueryParameterDescriptor({
-            name,
-            propertyName,
-            required,
-            type,
-            isArray,
-            default: defaultValue
-        });
+    public static create(params: ScannedRouteQueryParameterParams): ScannedRouteQueryParameterDescriptor {
+        return new ScannedRouteQueryParameterDescriptor(params);
     }
 }

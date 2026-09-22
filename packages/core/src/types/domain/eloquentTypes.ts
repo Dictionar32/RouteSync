@@ -177,30 +177,7 @@ export interface ParsedCast {
 }
 
 /** First-class Eloquent computed/accessor contract. */
-export type ModelAccessorMatchArm =
-  | { readonly kind: 'conditional'; readonly conditions: readonly ModelAccessorExpression[]; readonly value: ModelAccessorExpression }
-  | { readonly kind: 'default'; readonly value: ModelAccessorExpression };
-
-export type ModelAccessorExpression =
-  | { readonly kind: 'literal'; readonly value: string | number | boolean | null }
-  | { readonly kind: 'variable_read'; readonly variable: import('./semanticValues').VariableName }
-  | { readonly kind: 'property_read'; readonly property: PropertyName; readonly receiver: ModelAccessorExpression; readonly access: 'direct' | 'nullsafe' }
-  | { readonly kind: 'method_call'; readonly method: MethodName; readonly receiver: ModelAccessorExpression; readonly arguments: readonly ModelAccessorExpression[]; readonly access: 'direct' | 'nullsafe' }
-  | { readonly kind: 'array_read'; readonly target: ModelAccessorExpression; readonly index: ModelAccessorExpression }
-  | { readonly kind: 'function_call'; readonly functionName: import('./semanticValues').PhpFunctionName; readonly arguments: readonly ModelAccessorExpression[] }
-  | { readonly kind: 'static_call'; readonly className: ClassName; readonly method: MethodName; readonly arguments: readonly ModelAccessorExpression[] }
-  | { readonly kind: 'binary'; readonly operator: SemanticOperator; readonly left: ModelAccessorExpression; readonly right: ModelAccessorExpression }
-  | { readonly kind: 'unary'; readonly operator: { readonly kind: 'semantic_unary_operator'; readonly value: 'not' | 'negative' | 'positive' | 'bitwise_not' }; readonly operand: ModelAccessorExpression }
-  | { readonly kind: 'cast'; readonly castType: { readonly kind: 'semantic_cast'; readonly value: 'int' | 'float' | 'string' | 'bool' | 'array' | 'object' }; readonly operand: ModelAccessorExpression }
-  | { readonly kind: 'ternary'; readonly condition: ModelAccessorExpression; readonly truthy: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
-  | { readonly kind: 'short_ternary'; readonly condition: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
-  | { readonly kind: 'array_literal'; readonly entries: readonly { readonly kind: 'positional' | 'keyed'; readonly value: ModelAccessorExpression }[] }
-  | { readonly kind: 'match'; readonly subject: ModelAccessorExpression; readonly arms: readonly ModelAccessorMatchArm[] }
-  | { readonly kind: 'class_reference'; readonly className: ClassName }
-  | { readonly kind: 'resource'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
-  | { readonly kind: 'resource_collection'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
-  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression' };
-
+export type { ModelAccessorExpression, ModelAccessorMatchArm } from '../upstream/modelVocabulary';
 export type ModelAccessorComputation =
   | { readonly kind: 'expression'; readonly expression: ModelAccessorExpression; readonly result: SemanticType }
   | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression'; readonly result: SemanticType };

@@ -8,6 +8,8 @@
  */
 
 import type { RouteActionKind, RouteParameter, RouteQueryParameter } from "../../../../types/route";
+import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
+import type { ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath } from "../../../../types/upstream/names";
 import { HTTP_METHOD_REGISTRY, ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import { ScannedRouteParameterDescriptor } from "../../descriptors/routeDescriptors";
 import { toCamelCase } from "../../../../utils/resource-naming";
@@ -25,17 +27,24 @@ export type {
 };
 
 export function resolveRouteBoundaryBasics(params: RouteBoundaryOptions): IntermediateRouteBoundaryBasics {
-    let resolvedControllerName = params.controllerName ?? "";
-    let resolvedActionName = params.actionName;
-    let resolvedAction = params.action;
+    const path = params.path.value.value;
+    let resolvedControllerName: ControllerName = params.controllerName ?? SemanticValueFactory.controllerName("");
+    const controllerText = resolvedControllerName.value.value;
+    let resolvedActionName: ActionName = params.actionName ?? SemanticValueFactory.actionName("");
+    let resolvedAction: ActionName = params.action ?? resolvedActionName;
 
     if (params.action) {
-        if (params.action.includes("@")) {
-            const [ctrl, act] = params.action.split("@");
-            if (!resolvedControllerName && ctrl) resolvedControllerName = ctrl;
-            if (!resolvedActionName && act) resolvedActionName = act;
-        } else if (!resolvedActionName) {
-            resolvedActionName = params.action;
+        const actionText = params.action.value.value;
+        if (actionText.includes("@")) {
+            const [ctrl, act] = actionText.split("@");
+            if (!controllerText && ctrl) {
+                resolvedControllerName = SemanticValueFactory.controllerName(ctrl);
+            }
+            if (!resolvedActionName.value.value && act) {
+                resolvedActionName = SemanticValueFactory.actionName(act);
+            }
+        } else if (!resolvedActionName.value.value) {
+            resolvedActionName = SemanticValueFactory.actionName(actionText);
         }
     }
 
@@ -44,47 +53,42 @@ export function resolveRouteBoundaryBasics(params: RouteBoundaryOptions): Interm
     const isHeadMethod = params.method === "HEAD";
     const resolvedActionKind: RouteActionKind = params.actionKind ?? resolveActionKindFromActionName(resolvedActionName, methodSpecification.actionKind);
     const resolvedIsMutating = ROUTE_ACTION_KIND_REGISTRY[resolvedActionKind].isMutating;
-    resolvedActionName = resolvedActionName || actionNameForKind(resolvedActionKind);
-
-    if (!resolvedAction) {
-        resolvedAction = resolvedControllerName ? `${resolvedControllerName}@${resolvedActionName}` : resolvedActionName;
+    if (!resolvedActionName.value.value) {
+        resolvedActionName = actionNameForKind(resolvedActionKind);
     }
 
-    const resolvedDomain = params.domain ?? RouteDomainResolver.resolve({
-        domain: params.domain,
+    if (!params.action) {
+        const controllerTextResolved = resolvedControllerName.value.value;
+        const actionTextResolved = resolvedActionName.value.value;
+        resolvedAction = SemanticValueFactory.actionName(
+            controllerTextResolved ? `${controllerTextResolved}@${actionTextResolved}` : actionTextResolved
+        );
+    }
+
+    const resolvedDomain: DomainTypeName = params.domain ?? RouteDomainResolver.resolve({
         resourceName: params.resourceName,
         controllerName: resolvedControllerName,
         path: params.path,
         actionName: resolvedActionName
     });
 
-    const pathSegments = params.path.replace(/^\//, "").split("/")
+    const pathSegments = path.replace(/^\//, "").split("/")
         .filter(s => s && s !== "api" && !/^v\d+$/i.test(s) && !s.startsWith("{") && !s.startsWith(":"));
-    const resolvedResourceName = (params.resourceName && params.resourceName.length > 0)
-        ? params.resourceName
-        : (pathSegments[0] || resolvedDomain);
+    const resolvedResourceName: ResourceName = params.resourceName ?? SemanticValueFactory.resourceName(pathSegments[0] || resolvedDomain.value.value);
 
     const inputParameters: readonly RouteParameter[] = params.parameters ?? [];
     const resolvedPathParameters: readonly RouteParameter[] = params.pathParameters
         ?? (inputParameters.length > 0
             ? inputParameters.filter(parameter => parameter.location === "path")
-            : [...params.path.matchAll(/\{([^}]+)\}/g)].map(match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
+            : [...path.matchAll(/\{([^}]+)\}/g)].map(match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
     const resolvedParameters: readonly RouteParameter[] = inputParameters.length > 0
         ? inputParameters
         : resolvedPathParameters;
     const resolvedQueryParameters: readonly RouteQueryParameter[] = params.queryParameters ?? [];
-    const resolvedGroupName = params.groupName !== undefined
-        ? params.groupName
-        : toCamelCase(resolvedResourceName);
-    const resolvedRuntimePath = params.runtimePath !== undefined
-        ? params.runtimePath
-        : params.path.replace(/\{([^}]+)\}/g, ":$1");
-    const resolvedConstantKey = params.constantKey !== undefined
-        ? params.constantKey
-        : deriveRouteConstantKey(params.path);
-    const resolvedRouteName = params.name !== undefined
-        ? params.name
-        : `${resolvedResourceName}.${resolvedActionName}`;
+    const resolvedGroupName: DomainTypeName = params.groupName ?? SemanticValueFactory.domainName(toCamelCase(resolvedResourceName.value.value));
+    const resolvedRuntimePath: RoutePath = params.runtimePath ?? SemanticValueFactory.routePath(path.replace(/\{([^}]+)\}/g, ":$1"));
+    const resolvedConstantKey: PropertyName = params.constantKey ?? SemanticValueFactory.propertyName(deriveRouteConstantKey(path));
+    const resolvedRouteName: RouteName = params.name ?? SemanticValueFactory.routeName(`${resolvedResourceName.value.value}.${resolvedActionName.value.value}`);
 
     return {
         resolvedControllerName,
@@ -106,8 +110,9 @@ export function resolveRouteBoundaryBasics(params: RouteBoundaryOptions): Interm
     };
 }
 
-export function deriveRouteConstantKey(routePath: string): string {
-    const cleanPath = routePath.replace(/^\/|\/$/g, "");
+export function deriveRouteConstantKey(routePath: string | RoutePath): string {
+    const routePathValue = typeof routePath === "string" ? routePath : routePath.value.value;
+    const cleanPath = routePathValue.replace(/^\/|\/$/g, "");
     const segments = cleanPath.split("/");
     const keySegments: string[] = [];
 
@@ -134,8 +139,8 @@ export function deriveRouteConstantKey(routePath: string): string {
 }
 
 
-function resolveActionKindFromActionName(actionName: string | undefined, fallback: RouteActionKind): RouteActionKind {
-    switch (actionName) {
+function resolveActionKindFromActionName(actionName: ActionName, fallback: RouteActionKind): RouteActionKind {
+    switch (actionName.value.value) {
         case "index":
         case "show":
         case "read":
@@ -154,11 +159,11 @@ function resolveActionKindFromActionName(actionName: string | undefined, fallbac
     }
 }
 
-function actionNameForKind(kind: RouteActionKind): string {
+function actionNameForKind(kind: RouteActionKind): ActionName {
     switch (kind) {
-        case "create": return "create";
-        case "update": return "update";
-        case "delete": return "delete";
-        case "read": return "read";
+        case "create": return SemanticValueFactory.actionName("create");
+        case "update": return SemanticValueFactory.actionName("update");
+        case "delete": return SemanticValueFactory.actionName("delete");
+        case "read": return SemanticValueFactory.actionName("read");
     }
 }

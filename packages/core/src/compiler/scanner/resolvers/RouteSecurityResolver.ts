@@ -15,6 +15,7 @@ import {
     RateLimitDescriptor
 } from "../../../types/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
+import type { PropertyName } from "../../../types/upstream/names";
 
 export interface RouteSecurityResolution {
     readonly security: RouteSecurityDescriptor;
@@ -28,13 +29,14 @@ export class RouteSecurityResolver {
      * Resolves security classification, authorization status, policies, and rate limits.
      * Evaluated once at Origin Boundary; downstream components consume guaranteed subcontracts.
      */
-    public static resolve(middleware: readonly string[], auth: boolean = false): RouteSecurityResolution {
-        const securityDesc = RouteSecurityClassifier.classify(middleware);
+    public static resolve(middleware: readonly PropertyName[], auth: boolean = false): RouteSecurityResolution {
+        const middlewareValues = middleware.map(value => value.value.value);
+        const securityDesc = RouteSecurityClassifier.classify(middlewareValues);
         const resolvedAuth = auth || securityDesc.isProtected;
         const policies: RoutePolicyDescriptor[] = [];
         let rateLimit: RateLimitDescriptor | null = null;
 
-        for (const m of middleware) {
+        for (const m of middlewareValues) {
             const trimmed = m.trim();
             if (trimmed.startsWith("can:")) {
                 const parts = trimmed.slice(4).split(",");

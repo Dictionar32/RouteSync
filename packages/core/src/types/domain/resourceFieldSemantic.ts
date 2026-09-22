@@ -16,14 +16,10 @@ export type ResourceFieldSemantic =
 
 export const createResourceFieldSemantic = (
   type: SemanticType,
-  bound: BoundSemanticNode | undefined,
+  bound: BoundSemanticNode,
 ): ResourceFieldSemantic => {
-  if (bound === undefined || bound.kind === 'bound_unsupported') {
-    const rejected: BoundUnsupportedNode = bound ?? {
-      kind: 'bound_unsupported',
-      reason: 'invalid_boundary_input',
-    };
-    return Object.freeze({ kind: 'rejected', bound: rejected });
+  if (bound.kind === 'bound_unsupported') {
+    return Object.freeze({ kind: 'rejected', bound });
   }
   return Object.freeze({ kind: 'verified', type, bound });
 };

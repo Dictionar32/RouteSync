@@ -29,17 +29,6 @@ export {
 } from "./requestTypeDescriptor";
 
 export {
-    type ControllerExpressionContract,
-    type ControllerArgumentContract,
-    type ControllerArrayEntry,
-    type ControllerArrayKey,
-    type ControllerClosureCapture,
-    type ControllerMatchArm,
-    type ControllerStatementContract,
-    resolveControllerExpression
-} from "./controllerExpressionContract";
-
-export {
     type ControllerExpressionVisitor,
     matchControllerExpression
 } from "./controllerExpressionAlgebra";

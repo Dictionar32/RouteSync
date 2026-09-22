@@ -39,36 +39,36 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
     public readonly foreignKey: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
 
     constructor(params: ScannedModelRelationParams) {
-        this.name = SemanticValueFactory.relationName(params.name);
+        this.name = params.name;
         this.type = params.type;
-        this.sourceModel = SemanticValueFactory.modelName(params.modelName);
-        this.targetModel = SemanticValueFactory.modelName(params.targetModel);
+        this.sourceModel = params.modelName;
+        this.targetModel = params.targetModel;
         this.cardinality = params.cardinality;
         this.multiplicity = params.multiplicity;
         this.semanticType = params.semanticType;
         this.targetShape = params.targetShape;
         this.traversalTarget = params.traversalTarget;
-        this.foreignKey = params.foreignKey.kind === 'convention' ? { kind: 'convention' } : { kind: 'explicit', column: SemanticValueFactory.columnName(params.foreignKey.column) };
+        this.foreignKey = params.foreignKey.kind === 'convention' ? { kind: 'convention' } : { kind: 'explicit', column: params.foreignKey.column };
         Object.freeze(this);
     }
 
     public static create(params: {
-        readonly name: string;
+        readonly name: RelationName;
         readonly type: EloquentRelationType;
-        readonly modelName: string;
-        readonly targetModel?: string;
+        readonly modelName: ModelName;
+        readonly targetModel?: ModelName;
         readonly cardinality: EloquentRelationCardinality;
-        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
     }): ScannedModelRelationDescriptor {
         return new ScannedModelRelationDescriptor(computeRelationParams(params));
     }
 
     public static single(params: {
-        readonly name: string;
+        readonly name: RelationName;
         readonly type: EloquentRelationType;
-        readonly modelName: string;
-        readonly targetModel?: string;
-        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
+        readonly modelName: ModelName;
+        readonly targetModel?: ModelName;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
     }): SingleRelationDescriptor {
         return new ScannedModelRelationDescriptor(
             computeSingleRelationParams(params)
@@ -76,11 +76,11 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
     }
 
     public static collection(params: {
-        readonly name: string;
+        readonly name: RelationName;
         readonly type: EloquentRelationType;
-        readonly modelName: string;
-        readonly targetModel?: string;
-        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
+        readonly modelName: ModelName;
+        readonly targetModel?: ModelName;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
     }): CollectionRelationDescriptor {
         return new ScannedModelRelationDescriptor(
             computeCollectionRelationParams(params)
@@ -92,10 +92,10 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
     }
 
     public static belongsTo(params: {
-        readonly name: string;
-        readonly modelName: string;
-        readonly targetModel?: string;
-        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
+        readonly name: RelationName;
+        readonly modelName: ModelName;
+        readonly targetModel?: ModelName;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
     }): SingleRelationDescriptor {
         return ScannedModelRelationDescriptor.single({
             ...params,
@@ -104,10 +104,10 @@ export class ScannedModelRelationDescriptor implements ParsedRelation {
     }
 
     public static hasMany(params: {
-        readonly name: string;
-        readonly modelName: string;
-        readonly targetModel?: string;
-        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: string };
+        readonly name: RelationName;
+        readonly modelName: ModelName;
+        readonly targetModel?: ModelName;
+        readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
     }): CollectionRelationDescriptor {
         return ScannedModelRelationDescriptor.collection({
             ...params,

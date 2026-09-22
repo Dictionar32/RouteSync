@@ -6,9 +6,7 @@ export type ModelKeySemanticType =
   | { readonly kind: 'number' }
   | { readonly kind: 'string' };
 
-export type Nullability =
-  | { readonly kind: 'non_nullable' }
-  | { readonly kind: 'nullable' };
+export type Nullability = import('../upstream/primitiveVocabulary').Nullability;
 
 import type { ModelName } from './semanticValues';
 

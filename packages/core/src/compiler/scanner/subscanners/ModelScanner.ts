@@ -10,88 +10,97 @@ import { readSourceText } from './scannerUtils';
 
 import path from "path";
 import * as fs from "node:fs";
-import type { ParsedModel, ParsedColumn } from "../../../types/route";
+import type { ModelCast } from "../../../types/upstream/model";
+import type { ModelAccessorFact, ModelRelationFact } from "../../../types/upstream/modelSourceFacts";
 import type { ModelAst } from "../../../types/upstream/ast";
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
+import { createModelName } from "../../../types/upstream/names";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
-import { modelAstFromParsed } from "./model/modelCanonical";
+import { parseModelDeclaration } from "../lexer";
+import { parseModelPropertyAsts } from "./model/modelPropertyAstParser";
+import { parseModelCasts } from "./model/memberCastsParser";
+import { parseModelAccessors } from "./model/memberAccessorsParser";
+import { parseModelRelations } from "./model/memberRelationsParser";
+import { modelAstFromSemantic } from "./model/modelCanonical";
 import { collectPhpFiles } from "./scannerUtils";
 import {
     scanMigrations,
-    parseModelMembers,
-    type ParsedModelMembers,
     resolveModelColumns,
-    parseModelFile
+    buildModelSemanticDefinitionFromAst,
+    resolveModelSchema
 } from "./model";
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)
-export type { ParsedModelMembers };
 export {
     scanMigrations,
-    parseModelMembers,
     resolveModelColumns,
-    parseModelFile
+    buildModelSemanticDefinitionFromAst
 };
 
 /**
  * Pure functional scanning of all Eloquent model files in app/Models.
  */
-export async function scanModels(projectRoot: string): Promise<readonly ParsedModel[]> {
-    const modelDir = path.join(projectRoot, 'app', 'Models');
-    const files = await collectPhpFiles(modelDir);
-    const migrationMap = await scanMigrations(projectRoot);
-    const models: ParsedModel[] = [];
-
-    for (const fullPath of files) {
-        const modelName = path.basename(fullPath, '.php');
-        const source = await readSourceText(fullPath);
-        models.push(parseModelFile(source, modelName, migrationMap, fullPath));
-    }
-
-    return models;
-}
-
 /**
  * Active Consumer Orchestrator class for model and migration scanning.
  */
-export async function scanModelAsts(projectRoot: string): Promise<readonly ModelAst[]> {
-    const modelDir = path.join(projectRoot, "app", "Models");
+export async function scanModelAsts(
+    sourceProject: SourceProjectIdentity,
+    migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+): Promise<readonly ModelAst[]> {
+    const sourceRoot = sourceProject.root.value.value;
+    const modelDir = path.join(sourceRoot, "app", "Models");
     const files = await collectPhpFiles(modelDir);
-    const migrationMap = await scanMigrations(projectRoot);
     const asts: ModelAst[] = [];
     for (const fullPath of files) {
         const source = await readSourceText(fullPath);
         const modelName = path.basename(fullPath, ".php");
         const tokens = LaravelSourceLexer.tokenize(source);
-        asts.push(modelAstFromParsed(parseModelFile(source, modelName, migrationMap, fullPath), fullPath, source.length, tokens));
+        const propertyAsts = parseModelPropertyAsts(tokens);
+        const declaration = parseModelDeclaration(tokens);
+        const casts: ModelCast[] = [];
+        const accessors: ModelAccessorFact[] = [];
+        const relations: ModelRelationFact[] = [];
+        const sourceSpan = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } };
+        parseModelCasts(propertyAsts, declaration, casts, sourceSpan);
+        parseModelAccessors(declaration, accessors, sourceSpan);
+        parseModelRelations(declaration, createModelName(modelName), relations, sourceSpan);
+        const semantic = buildModelSemanticDefinitionFromAst(source, modelName, migrations, propertyAsts, declaration, casts, accessors, relations, fullPath);
+        const schema = resolveModelSchema(semantic.identity.table, migrations);
+        asts.push(modelAstFromSemantic(semantic, schema, casts, accessors, relations, fullPath, source.length, declaration));
     }
     return asts;
 }
 
+
 export class ModelScanner {
-    public static async scanAsts(projectRoot: string): Promise<readonly ModelAst[]> {
-        return scanModelAsts(projectRoot);
+    public static async scanAsts(
+        sourceProject: SourceProjectIdentity,
+        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+    ): Promise<readonly ModelAst[]> {
+        return scanModelAsts(sourceProject, migrations);
     }
 
     /** Canonical source boundary: PHP model source enters the upstream ADT here. */
-    public static async scanSource(projectRoot: string): Promise<readonly ModelAst[]> {
-        return scanModelAsts(projectRoot);
+    public static async scanSource(
+        sourceProject: SourceProjectIdentity,
+        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+    ): Promise<readonly ModelAst[]> {
+        return scanModelAsts(sourceProject, migrations);
     }
 
-    public static async scan(projectRoot: string): Promise<readonly ModelAst[]> {
-        return scanModelAsts(projectRoot);
+    public static async scan(
+        sourceProject: SourceProjectIdentity,
+        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+    ): Promise<readonly ModelAst[]> {
+        return scanModelAsts(sourceProject, migrations);
     }
 
-    public static async scanMigrations(projectRoot: string): Promise<Map<string, ParsedColumn[]>> {
-        return scanMigrations(projectRoot);
+    public static async scanMigrations(
+        sourceProject: SourceProjectIdentity
+    ): Promise<readonly import("../../../types/upstream/ast").MigrationAst[]> {
+        return scanMigrations(sourceProject);
     }
 
-    public static parseModelFile(
-        source: string,
-        modelName: string,
-        migrationMap: ReadonlyMap<string, readonly ParsedColumn[]>,
-        file: string = modelName
-    ): ParsedModel {
-        return parseModelFile(source, modelName, migrationMap, file);
-    }
+
 }
 

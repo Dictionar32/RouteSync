@@ -1,18 +1,21 @@
 import type { FormRequestSource, RouteRequestBinding } from '../../../../types/domain/request';
+import type { SourceProjectIdentity } from '../../../../types/upstream/highLevelSourceModel';
+import { createActionName } from '../../../../types/domain/semanticValues';
+import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
 import type { RouteSchemaPayload } from '../../../../types/route';
 import { ScannedFormRequestDescriptor, type ResponseDescriptor } from '../../../../types/route';
 import type { ControllerMethodAst, ControllerParameterAst, PhpParameterTypeAst } from '../../lexer/controllerAstTypes';
-import type { ControllerExpressionContract } from './controllerExpressionContract';
-import { resolveControllerExpression } from './controllerExpressionContract';
+import type { ControllerRuntimeReturn } from '../../../../types/domain/controllerExpression';
+import { mapResourcePhpAstToUpstream } from '../../subscanners/resource/resourceUpstreamExpressionCanonical';
 import { resolveResponseAttributeAst } from '../../subscanners/controller/responseAttributeScanner';
 import { VoidResponseDescriptor } from '../../../../types/route';
 import { resolveControllerBody, type ControllerBodyResolution } from '../../subscanners/controller/controllerBodyResolver';
 import { resolveActionSchema } from '../../subscanners/controller/actionValidationExtractor';
-import { createControllerDataflowContract, createControllerReturnSet, type ControllerDataflowContract, type ControllerReturnSet } from '../../subscanners/controller/controllerDataflowContract';
+import { createControllerDataflowContract, createControllerReturnSet, type ControllerDataflowContract, type ControllerReturnSet, type ControllerResourceResponseEvidence } from '../../subscanners/controller/controllerDataflowContract';
 
 export interface ControllerActionIdentity {
-    readonly controllerName: string;
-    readonly actionName: string;
+    readonly controllerName: ControllerName;
+    readonly actionName: ActionName;
 }
 
 export type ControllerRequestBinding =
@@ -26,9 +29,7 @@ export type ControllerRequestBinding =
  */
 export type RequestContract = ControllerRequestBinding;
 
-export type RuntimeReturnContract =
-    | { readonly kind: 'none' }
-    | { readonly kind: 'expressions'; readonly expressions: readonly ControllerExpressionContract[] };
+export type RuntimeReturnContract = ControllerRuntimeReturn;
 
 export interface ControllerActionContract {
     readonly identity: ControllerActionIdentity;
@@ -39,34 +40,38 @@ export interface ControllerActionContract {
     readonly body: ControllerBodyResolution;
     readonly dataflow: ControllerDataflowContract;
     readonly schema: RouteSchemaPayload;
-    readonly sourceFile: string;
+    readonly sourceFile: SourceFile;
     readonly sourceLine: number;
 }
 
 export interface ControllerActionContractResolverContext {
     readonly formRequestMap: ReadonlyMap<string, FormRequestSource>;
-    readonly projectRoot: string;
+    readonly sourceProject: SourceProjectIdentity;
 }
 
 export function resolveControllerActionContract(
     method: ControllerMethodAst,
-    controllerName: string,
-    sourceFile: string,
+    controllerName: ControllerName,
+    sourceFile: SourceFile,
     context: ControllerActionContractResolverContext
 ): ControllerActionContract {
     const body = resolveControllerBody(method.body);
     const returned = createControllerReturnSet(method.returns.map(item => item.expression));
-    const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned);
+    const response = resolveResponse(method, context.sourceProject, returned);
+    const resourceResponse: ControllerResourceResponseEvidence = response.kind === 'resource'
+        ? { kind: 'present', response: { kind: 'response_reference', name: response.responseTypeName() } }
+        : { kind: 'absent' };
+    const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned, resourceResponse);
     const request = resolveRequest(method.parameters, context.formRequestMap);
     return Object.freeze({
-        identity: Object.freeze({ controllerName, actionName: method.name }),
+        identity: Object.freeze({ controllerName, actionName: createActionName(method.name) }),
         parameters: Object.freeze([...method.parameters]),
         request,
-        response: resolveResponse(method, context.projectRoot, returned),
+        response,
         runtimeReturn: resolveRuntimeReturn(method),
         body,
         dataflow,
-        schema: resolveSchema(request, body, context.formRequestMap, sourceFile),
+        schema: resolveSchema(request, body, context.formRequestMap, sourceFile.value.value),
         sourceFile,
         sourceLine: method.source.line,
     });
@@ -85,12 +90,12 @@ function resolveRequest(
         : { kind: 'form_request', source };
 }
 
-function resolveResponse(method: ControllerMethodAst, projectRoot: string, returned: ControllerReturnSet): ResponseDescriptor {
+function resolveResponse(method: ControllerMethodAst, sourceProject: SourceProjectIdentity, returned: ControllerReturnSet): ResponseDescriptor {
     switch (method.responseAttribute.kind) {
         case 'absent':
             return new VoidResponseDescriptor();
         case 'declared':
-            return resolveResponseAttributeAst(method.responseAttribute, projectRoot, returned);
+            return resolveResponseAttributeAst(method.responseAttribute, sourceProject, returned);
     }
 }
 
@@ -98,7 +103,7 @@ function resolveRuntimeReturn(method: ControllerMethodAst): RuntimeReturnContrac
     if (method.returns.length === 0) return { kind: 'none' };
     return {
         kind: 'expressions',
-        expressions: Object.freeze(method.returns.map(item => resolveControllerExpression(item.expression)))
+        expressions: Object.freeze(method.returns.map(item => mapResourcePhpAstToUpstream(item.expression, '<controller-action>')))
     };
 }
 

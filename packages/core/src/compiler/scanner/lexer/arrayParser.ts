@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/lexer/arrayParser
  */
 
-import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey } from './PhpAst';
+import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey, createSourceOffset } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
 
 /**
@@ -84,7 +84,8 @@ export function parsePhpArray(
             // Nested Array
             if (valToken.value === '[' || (valToken.value === 'array' && valToken.type === 'IDENTIFIER')) {
                 const nested = parsePhpArray(source, tokens, endIndex);
-                entries.push(key ? { kind: 'keyed', key, value: { kind: 'nested_array', entries: nested.entries } } : { kind: 'positional', value: { kind: 'nested_array', entries: nested.entries } });
+                const source = { startOffset: createSourceOffset(valToken.startOffset), endOffset: createSourceOffset(tokens[nested.endIndex - 1]?.endOffset ?? valToken.endOffset) };
+                entries.push(key ? { kind: 'keyed', key, value: { kind: 'nested_array', entries: nested.entries }, source } : { kind: 'positional', value: { kind: 'nested_array', entries: nested.entries }, source });
                 endIndex = nested.endIndex;
                 continue;
             }
@@ -112,7 +113,8 @@ export function parsePhpArray(
             }
 
             const astValue = classifyAstTokens(tokens.slice(valTokenIndex, endIndex));
-            entries.push(key ? { kind: 'keyed', key, value: astValue } : { kind: 'positional', value: astValue });
+            const source = { startOffset: createSourceOffset(valToken.startOffset), endOffset: createSourceOffset(tokens[Math.max(valTokenIndex, endIndex - 1)]?.endOffset ?? valToken.endOffset) };
+            entries.push(key ? { kind: 'keyed', key, value: astValue, source } : { kind: 'positional', value: astValue, source });
         }
     }
 

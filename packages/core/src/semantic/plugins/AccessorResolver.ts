@@ -22,7 +22,7 @@ export class AccessorResolver implements ResolverPlugin {
     const acc = symbol.accessor(colName);
     if (acc) {
       const model = symbol.node;
-      const nodeId = `${model.name.value}.${colName}`;
+      const nodeId = `${model.definition.identity.name.value}.${colName}`;
       if (!context.cycleDetector.enter(nodeId)) {
          return unknownResolution('AccessorResolver', `Cycle detected at accessor ${nodeId}`, nodeId, 'invalid_boundary_input');
       }
@@ -32,7 +32,7 @@ export class AccessorResolver implements ResolverPlugin {
       
       const trace: SemanticTraceNode[] = [{
         source: 'AccessorResolver',
-        rule: `Accessor lookup: ${model.name.value}.${colName}`,
+        rule: `Accessor lookup: ${model.definition.identity.name.value}.${colName}`,
         input: colName,
         output: resolutionLabel(res),
       }, ...res.trace];

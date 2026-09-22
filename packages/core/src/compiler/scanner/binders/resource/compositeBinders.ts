@@ -12,5 +12,7 @@ export {
     bindNestedArrayField,
     bindLiteralField,
     bindTernaryField,
+    bindShortTernaryField,
+    bindCastField,
     bindFallbackField
 } from './composite/index';

@@ -28,8 +28,7 @@ export class TypeDeriver {
     public static deriveRequestTypes(
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        models: readonly ModelAst[] = []
+        interner: TypeInterner = new TypeInterner()
     ): readonly RequestType[] {
         return RequestTypeDeriver.derive(routes, resources, interner);
     }

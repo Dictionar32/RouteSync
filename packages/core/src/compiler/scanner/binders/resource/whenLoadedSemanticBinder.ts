@@ -2,18 +2,19 @@ import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
-import type { ModelSemanticRelation } from "../../../../types/domain/models";
+import type { ModelSemanticRelation } from "../../../../types/upstream/model";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
 import { ErrorType } from "../../../types/SemanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
+import { createRelationName } from "../../../../types/upstream/names";
 
 export function resolveWhenLoadedRelation(
     modelSymbol: OriginModelSymbol,
     relationName: string,
 ): Lookup<ModelSemanticRelation> {
-    return modelSymbol.relation(relationName);
+    return modelSymbol.relation(createRelationName(relationName));
 }
 
 export function bindWhenLoadedResolution(

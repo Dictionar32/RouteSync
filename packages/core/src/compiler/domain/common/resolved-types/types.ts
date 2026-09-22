@@ -16,7 +16,8 @@ export type ResolvedPrimitiveKind =
     | 'boolean'
     | 'datetime'
     | 'file'
-    | 'unknown';
+    | 'unknown'
+    | 'unspecified';
 
 export interface ResolvedPrimitiveTypeParams {
     readonly primitiveKind: ResolvedPrimitiveKind;

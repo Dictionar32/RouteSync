@@ -6,6 +6,8 @@
  * @module core/compiler/scanner/descriptors/types
  */
 
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
+
 export const LaravelValidationType = Object.freeze({
     String: "string",
     Number: "number",
@@ -30,7 +32,7 @@ export type ResourceExpressionDescriptor =
     | { readonly kind: "raw"; readonly raw: string };
 
 export interface StaticLaravelScannerOptions {
-    readonly projectRoot: string;
+    readonly sourceProject: SourceProjectIdentity;
     readonly baseURL: string;
     readonly version: string;
 }

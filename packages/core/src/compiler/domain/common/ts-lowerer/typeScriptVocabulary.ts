@@ -67,6 +67,7 @@ export class TypeScriptPrimitiveMapping {
             case PrimitiveKind.FILE:
                 return this.FILE;
             case PrimitiveKind.UNKNOWN:
+            case PrimitiveKind.UNSPECIFIED:
             default:
                 return this.UNKNOWN;
         }

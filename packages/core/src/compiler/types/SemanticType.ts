@@ -10,7 +10,8 @@ import type { ResourceFieldDescriptor } from '../../types/route';
 import { toCamelCase, ResourceNamingConvention } from '../../utils/resource-naming';
 import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
 import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrigin';
-import { SemanticValueFactory, type PropertyName } from '../../types/domain/semanticValues';
+import { SemanticValueFactory, type PropertyName, type VariableName } from '../../types/domain/semanticValues';
+import type { StringValue } from '../../types/upstream/valueObjects';
 
 /**
  * @module compiler/types/SemanticType
@@ -35,7 +36,9 @@ export enum PrimitiveKind {
     DATETIME = 'datetime',
     /** Browser File submitted through multipart/form-data. */
     FILE = 'file',
-    UNKNOWN = 'unknown'
+    UNKNOWN = 'unknown',
+    /** Source explicitly declares a collection but omits its element type. */
+    UNSPECIFIED = 'unspecified'
 }
 
 /**
@@ -198,9 +201,12 @@ export class ErrorType extends SemanticTypeBase {
     public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.error(this); }
 
     readonly kind = 'error';
-    constructor(readonly diagnosticMessage: string) {
+    constructor(diagnosticMessage: string) {
         super();
+        this.diagnosticMessage = Object.freeze({ kind: 'string_value', value: diagnosticMessage });
     }
+
+    readonly diagnosticMessage: StringValue;
 }
 
 /**
@@ -356,7 +362,7 @@ export type GenericVariance = 'covariant' | 'contravariant' | 'invariant';
  * Generic type parameter with variance annotation.
  */
 export interface GenericParameter {
-    readonly name: string;
+    readonly name: VariableName;
     readonly variance: GenericVariance;
     readonly type: SemanticType;
 }
@@ -369,7 +375,7 @@ export interface GenericParameter {
  * const collection = new GenericType(
  *   new ReferenceType('Illuminate\\Support', 'Collection'),
  *   [{ 
- *     name: 'T', 
+ *     name: SemanticValueFactory.variableName('T'), 
  *     variance: 'covariant',
  *     type: new ReferenceType('App\\Models', 'User')
  *   }]

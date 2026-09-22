@@ -1,8 +1,9 @@
-import type { ModelName, PropertyName, RelationName, MethodName, VariableName, ResourceName } from './semanticValues';
-import type { ModelSemanticDefinition } from './models';
+import type { ModelName, PropertyName, RelationName, MethodName, VariableName, ResourceName } from '../upstream/names';
+import type { ModelSemanticDefinition } from '../upstream/model';
 import type { ResourceExpressionModel } from './resourceExpressionModel';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
 import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/modelSourceFacts';
 
 export type ResourceTraversalCardinality =
   | { readonly kind: 'single' }
@@ -40,6 +41,8 @@ export type ResourceTraversalStep =
       readonly access: ResourceTraversalAccess;
       readonly target: ResourceTraversalTarget;
       readonly cardinality: ResourceTraversalCardinality;
+      readonly targetShape: ModelRelationTargetShape;
+      readonly traversalTarget: ModelRelationTraversalTarget;
     }
   | {
       readonly kind: 'method';
@@ -59,19 +62,11 @@ export type ResourceTraversalTarget =
   | { readonly kind: 'query'; readonly model: ModelSemanticDefinition; readonly semanticType: SemanticType }
   | { readonly kind: 'resource'; readonly resource: ResourceName; readonly semanticType: SemanticType };
 
-export interface ResourceTraversalResolvedStep {
-  readonly step: ResourceTraversalStep;
-  readonly sourceModel: ModelName;
-  readonly target: ResourceTraversalTarget;
-  readonly semanticType: SemanticType;
-  readonly cardinality: ResourceTraversalCardinality;
-}
-
 export type ResourceTraversalResolution =
   | {
       readonly kind: 'resolved';
       readonly root: ResourceTraversalRoot;
-      readonly steps: readonly ResourceTraversalResolvedStep[];
+      readonly steps: readonly ResourceTraversalStep[];
       readonly value: ResourceTraversalResolvedValue;
     }
   | {

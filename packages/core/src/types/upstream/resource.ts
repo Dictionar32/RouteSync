@@ -6,10 +6,12 @@ import type { Presence } from './primitiveVocabulary';
 import type { SourceSpan } from './provenance';
 import type { TruthValue } from './valueObjects';
 import type { ModelReference, PropertyReference, ResourceReference, ResponseReference } from './semanticReferences';
+import type { EloquentRelationCardinality, ModelPropertyMultiplicity } from './model';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from './modelSourceFacts';
 
 export type ResourceFieldMeaning =
   | { readonly kind: 'property_projection'; readonly property: PropertyReference; readonly model: ModelReference }
-  | { readonly kind: 'relation_projection'; readonly relation: PropertyReference; readonly resource: ResourceReference }
+  | { readonly kind: 'relation_projection'; readonly relation: PropertyReference; readonly resource: ResourceReference; readonly targetModel: ModelReference; readonly cardinality: EloquentRelationCardinality; readonly multiplicity: ModelPropertyMultiplicity; readonly targetShape: ModelRelationTargetShape; readonly traversalTarget: ModelRelationTraversalTarget }
   | { readonly kind: 'computed_projection'; readonly expression: Expression };
 
 export type ResourceField = {

@@ -29,6 +29,7 @@ import { TSTypeReference } from '../../../target/typescript/nodes/TSTypeReferenc
 import { TSArrayType } from '../../../target/typescript/nodes/TSArrayType';
 import { TSUnionType } from '../../../target/typescript/nodes/TSUnionType';
 import { TSIntersectionType } from '../../../target/typescript/nodes/TSIntersectionType';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 
 describe('TypeScriptGenerator', () => {
     let generator: TypeScriptGenerator;
@@ -652,7 +653,7 @@ describe('TypeScriptGenerator', () => {
             const userType = new ReferenceType('App\\Models', 'User');
             const collectionBase = new ReferenceType('Illuminate\\Support', 'Collection');
             const generic = new GenericType(collectionBase, [
-                { name: 'T', variance: 'covariant', type: userType }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: userType }
             ]);
 
             const result = generator.semanticTypeToTSType(generic);
@@ -668,7 +669,7 @@ describe('TypeScriptGenerator', () => {
             const userType = new ReferenceType('App\\Models', 'User');
             const promiseBase = new ReferenceType('', 'Promise');
             const generic = new GenericType(promiseBase, [
-                { name: 'T', variance: 'covariant', type: userType }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: userType }
             ]);
 
             const result = generator.semanticTypeToTSType(generic);
@@ -684,8 +685,8 @@ describe('TypeScriptGenerator', () => {
             const valueType = new PrimitiveType(PrimitiveKind.NUMBER);
             const mapBase = new ReferenceType('', 'Map');
             const generic = new GenericType(mapBase, [
-                { name: 'K', variance: 'invariant', type: keyType },
-                { name: 'V', variance: 'invariant', type: valueType }
+                { name: SemanticValueFactory.variableName('K'), variance: 'invariant', type: keyType },
+                { name: SemanticValueFactory.variableName('V'), variance: 'invariant', type: valueType }
             ]);
 
             const result = generator.semanticTypeToTSType(generic);
@@ -716,7 +717,7 @@ describe('TypeScriptGenerator', () => {
             const userType = new ReferenceType('App\\Models', 'User');
             const collectionBase = new ReferenceType('Illuminate\\Support', 'Collection');
             const generic = new GenericType(collectionBase, [
-                { name: 'T', variance: 'covariant', type: userType }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: userType }
             ]);
 
             generator.semanticTypeToTSType(generic);
@@ -735,12 +736,12 @@ describe('TypeScriptGenerator', () => {
 
             // Result<User>
             const innerGeneric = new GenericType(resultBase, [
-                { name: 'T', variance: 'covariant', type: userType }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: userType }
             ]);
 
             // Promise<Result<User>>
             const outerGeneric = new GenericType(promiseBase, [
-                { name: 'T', variance: 'covariant', type: innerGeneric }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: innerGeneric }
             ]);
 
             // Current implementation should throw error because innerGeneric
@@ -760,7 +761,7 @@ describe('TypeScriptGenerator', () => {
             const userType = new ReferenceType('App\\Models', 'User');
             const arrayBase = new ReferenceType('', 'Array');
             const generic = new GenericType(arrayBase, [
-                { name: 'T', variance: 'covariant', type: userType }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: userType }
             ]);
 
             const result = generator.semanticTypeToTSType(generic);
@@ -777,7 +778,7 @@ describe('TypeScriptGenerator', () => {
             const stringType = new PrimitiveType(PrimitiveKind.STRING);
             const setBase = new ReferenceType('', 'Set');
             const generic = new GenericType(setBase, [
-                { name: 'T', variance: 'covariant', type: stringType }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: stringType }
             ]);
 
             const result = generator.semanticTypeToTSType(generic);
@@ -797,7 +798,7 @@ describe('TypeScriptGenerator', () => {
             );
             const setBase = new ReferenceType('', 'Set');
             const generic = new GenericType(setBase, [
-                { name: 'T', variance: 'covariant', type: stringOrNumber }
+                { name: SemanticValueFactory.variableName('T'), variance: 'covariant', type: stringOrNumber }
             ]);
 
             // Complex type parameters not yet supported

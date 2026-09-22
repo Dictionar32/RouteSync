@@ -805,6 +805,7 @@ export {
 
 export {
   StaticLaravelScanner,
+  createLaravelSourceProjectIdentity,
   collectPhpFiles,
   ChannelScanner,
   ControllerScanner,
@@ -820,6 +821,7 @@ export {
   deriveRequestTypes,
   TypeDeriver
 } from './compiler/scanner/StaticLaravelScanner'
+export { scanRouteSyncManifest } from './compiler/scanner/orchestrator/upstreamManifestScanner'
 export { IdentifierCase, extractClassBasename, inferLaravelTableName } from './utils/resource-naming'
 export {
   ScannedObjectProperty,
@@ -960,12 +962,10 @@ export {
   ScannedModelCastDescriptor,
   ScannedModelRelationDescriptor,
   ScannedModelAccessorDescriptor,
-  ScannedModelDescriptor,
   type ScannedModelColumnParams,
   type ScannedModelCastParams,
   type ScannedModelRelationParams,
   type ScannedModelAccessorParams,
-  type ScannedModelParams,
   ScannedBroadcastChannelDescriptor,
   type ScannedBroadcastChannelParams,
   compileBroadcastRuntimePattern,

@@ -76,24 +76,7 @@ export interface RouteBindingContract {
   readonly assignments: readonly ResourceAssignment[];
 }
 
-/**
- * Closed Route Capability Sub-Contract.
- * Enforces guaranteed transport capabilities, security, invalidation, and lifecycle semantics (0 '?', 0 fallback).
- */
-export interface RouteCapabilityContract {
-  readonly auth: boolean;
-  readonly security: RouteSecurityDescriptor;
-  readonly middleware: readonly PropertyName[];
-  readonly policies: readonly RoutePolicyDescriptor[];
-  readonly rateLimit: RateLimitDescriptor | null;
-  readonly invalidation: RouteCacheInvalidationDescriptor;
-  readonly crudRole: CrudRole;
-  readonly hookKind: RouteHookKind;
-  readonly actionKind: RouteActionKind;
-  readonly requestContentType: RequestContentType;
-  readonly executionSignature: RouteExecutionSignature;
-  readonly errorResponses: readonly HttpErrorResponseDescriptor[];
-}
+export type { RouteCapabilityContract } from '../upstream/route';
 
 /**
  * Closed Route Provenance Sub-Contract.

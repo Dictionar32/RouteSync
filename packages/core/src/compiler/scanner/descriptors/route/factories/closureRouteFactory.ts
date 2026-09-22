@@ -18,19 +18,21 @@ import {
 } from "../../../../../types/route";
 import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
 import type { RouteBoundaryOptions } from "../../../resolvers";
+import type { ActionName, DomainTypeName, ResourceName, RoutePath, SourceFile, PropertyName } from "../../../../../types/upstream/names";
 
 export type ClosureRouteOptions = {
     readonly method: HttpMethod;
-    readonly path: string;
-    readonly actionName: string;
-    readonly sourceFile: string;
+    readonly path: RoutePath;
+    readonly actionName: ActionName;
+    readonly sourceFile: SourceFile;
     readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
-    readonly domain?: string;
-    readonly resourceName?: string;
+    readonly domain?: DomainTypeName;
+    readonly resourceName?: ResourceName;
     readonly auth?: boolean;
-    readonly middleware?: readonly string[];
+    readonly middleware?: readonly PropertyName[];
     readonly parameters?: readonly RouteParameter[];
     readonly pathParameters?: readonly RouteParameter[];
     readonly queryParameters?: readonly RouteQueryParameter[];
@@ -69,12 +71,12 @@ export function createRouteFromClosure(
         domain,
         resourceName,
         actionName,
-        action: `closure@${actionName}`,
-        controllerName: "",
+        action: SemanticValueFactory.actionName(`closure@${actionName.value.value}`),
+        controllerName: SemanticValueFactory.controllerName(""),
         handler: Object.freeze({
             kind: RouteHandlerKind.Closure,
-            actionName,
-            target: `closure@${actionName}`
+            actionName: SemanticValueFactory.actionName(actionName),
+            target: SemanticValueFactory.className(`closure@${actionName}`)
         }),
         sourceFile,
         sourceLine,

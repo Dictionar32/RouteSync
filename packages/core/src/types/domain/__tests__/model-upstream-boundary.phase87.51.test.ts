@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ModelKeyTypeMapper } from '../eloquentTypes';
 import { resolveModelColumns } from '../../../compiler/scanner/subscanners/model/columnInferrer';
+import type { TableName } from '../../upstream/names';
+
+const usersTable: TableName = {
+    kind: 'table_name',
+    value: { kind: 'string_value', value: 'users' }
+};
 
 describe('model upstream boundary Phase 87.51', () => {
     it('rejects an unsupported explicit Eloquent key type instead of defaulting', () => {
@@ -10,7 +16,7 @@ describe('model upstream boundary Phase 87.51', () => {
     });
 
     it('requires database schema evidence before producing model columns', () => {
-        expect(() => resolveModelColumns('users', new Map())).toThrow(
+        expect(() => resolveModelColumns(usersTable, [])).toThrow(
             'migration schema for table "users" was not found'
         );
     });

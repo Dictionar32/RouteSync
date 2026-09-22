@@ -11,7 +11,10 @@ import path from "path";
 import * as fs from "node:fs";
 import type { FormRequestSource } from "../../../types/domain/request";
 import type { RequestAst } from "../../../types/upstream/ast";
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import type { RequestAsts, Sequence } from "../../../types/upstream/collections";
+import type { SourceSpan } from "../../../types/upstream/provenance";
+import type { NumberValue } from "../../../types/upstream/valueObjects";
 import { requestAstFromSource } from "./requestAstCanonical";
 import { TypeInterner } from "../../types/TypeInterner";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
@@ -23,10 +26,11 @@ import { partitionValidationRules } from "./form-request";
 
 export class FormRequestScanner {
     private static async scanSources(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         interner: TypeInterner = new TypeInterner()
     ): Promise<readonly FormRequestSource[]> {
-        const reqDir = path.join(projectRoot, 'app', 'Http', 'Requests');
+        const sourceRoot = sourceProject.root.value.value;
+        const reqDir = path.join(sourceRoot, 'app', 'Http', 'Requests');
         const files = await collectPhpFiles(reqDir);
         const sources: FormRequestSource[] = [];
 
@@ -42,7 +46,7 @@ export class FormRequestScanner {
                 if (retIdx !== -1) rulesIndex = retIdx;
             }
             const parsedArray = LaravelSourceLexer.parseArray(source, tokens, rulesIndex);
-            const partitioned = partitionValidationRules(parsedArray.entries, interner);
+            const partitioned = partitionValidationRules(parsedArray.entries, interner, fullPath);
 
             sources.push(Object.freeze({
                 identity: Object.freeze({
@@ -50,6 +54,7 @@ export class FormRequestScanner {
                     formType: SemanticValueFactory.formTypeNameFromRequestClass(SemanticValueFactory.className(reqName)),
                 }),
                 sourceFile: SemanticValueFactory.sourceFilePath(fullPath),
+                source: requestSourceSpan(fullPath, source.length),
                 authorization: parseAuthorization(tokens),
                 fields: Object.freeze([...partitioned.fields]),
             }));
@@ -58,10 +63,10 @@ export class FormRequestScanner {
         return Object.freeze(sources);
     }
     private static async scanOnce(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         interner: TypeInterner
     ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[] }> {
-        const sources = await FormRequestScanner.scanSources(projectRoot, interner);
+        const sources = await FormRequestScanner.scanSources(sourceProject, interner);
         return {
             sources,
             asts: Object.freeze(sources.map(requestAstFromSource))
@@ -69,32 +74,32 @@ export class FormRequestScanner {
     }
 
     public static async scan(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         interner: TypeInterner = new TypeInterner()
     ): Promise<readonly FormRequestSource[]> {
-        return (await FormRequestScanner.scanOnce(projectRoot, interner)).sources;
+        return (await FormRequestScanner.scanOnce(sourceProject, interner)).sources;
     }
 
     /** Upstream AST boundary. The legacy result is intentionally not widened here. */
     public static async scanAsts(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         interner: TypeInterner = new TypeInterner()
     ): Promise<readonly RequestAst[]> {
-        return (await FormRequestScanner.scanOnce(projectRoot, interner)).asts;
+        return (await FormRequestScanner.scanOnce(sourceProject, interner)).asts;
     }
 
     public static async scanCanonicalBundle(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         interner: TypeInterner = new TypeInterner()
     ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[] }> {
-        return FormRequestScanner.scanOnce(projectRoot, interner);
+        return FormRequestScanner.scanOnce(sourceProject, interner);
     }
 
     public static async scanAstCollection(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         interner: TypeInterner = new TypeInterner()
     ): Promise<RequestAsts> {
-        const requests = await FormRequestScanner.scanAsts(projectRoot, interner);
+        const requests = (await FormRequestScanner.scanOnce(sourceProject, interner)).asts;
         const items: Sequence<RequestAst> = requests.reduceRight<Sequence<RequestAst>>(
             (tail, request) => ({ kind: 'cons', head: request, tail }),
             { kind: 'empty' }
@@ -123,4 +128,14 @@ function discoveryFromSequence<T>(items: Sequence<T>):
         case 'empty': return { kind: 'discovered_empty' };
         case 'cons': return { kind: 'discovered_many', items };
     }
+}
+
+function requestSourceSpan(file: string, length: number): SourceSpan {
+    const numberValue = (value: number): NumberValue => ({ kind: 'number_value', value });
+    return {
+        kind: 'source_span',
+        file: { kind: 'source_file', value: { kind: 'string_value', value: file } },
+        start: numberValue(0),
+        end: numberValue(length),
+    };
 }

@@ -7,9 +7,8 @@ import {
   type ErrorType,
   type ReferenceType
 } from '../../compiler/types/SemanticType';
-import { SemanticValueFactory, type PropertyName, type ResourceName } from './semanticValues';
-
-export type RequestScalarKind = 'string' | 'number' | 'boolean' | 'file' | 'unknown';
+import { SemanticValueFactory, type PropertyName, type ResourceName, type VariableName } from './semanticValues';
+import type { StringValue } from '../upstream/valueObjects';
 
 export interface RequestFieldMeaningVisitor<T> {
   readonly scalar: (value: ScalarRequestMeaning) => T;
@@ -27,7 +26,7 @@ export interface RequestFieldMeaningVisitor<T> {
 
 export interface ScalarRequestMeaning {
   readonly kind: 'scalar';
-  readonly scalar: RequestScalarKind;
+  readonly scalar: PrimitiveKind;
   readonly accept: <T>(visitor: RequestFieldMeaningVisitor<T>) => T;
 }
 
@@ -74,7 +73,7 @@ export interface NeverRequestMeaning {
 
 export interface ErrorRequestMeaning {
   readonly kind: 'error';
-  readonly diagnosticMessage: string;
+  readonly diagnosticMessage: StringValue;
   readonly accept: <T>(visitor: RequestFieldMeaningVisitor<T>) => T;
 }
 
@@ -98,7 +97,7 @@ export interface GenericRequestMeaning {
 }
 
 export interface RequestGenericParameter {
-  readonly name: string;
+  readonly name: VariableName;
   readonly variance: 'covariant' | 'contravariant' | 'invariant';
   readonly meaning: RequestFieldMeaning;
 }
@@ -118,7 +117,7 @@ export type RequestFieldMeaning =
 
 class ScalarMeaning implements ScalarRequestMeaning {
   readonly kind = 'scalar' as const;
-  constructor(readonly scalar: RequestScalarKind) { Object.freeze(this); }
+  constructor(readonly scalar: PrimitiveKind) { Object.freeze(this); }
   readonly accept = <T>(visitor: RequestFieldMeaningVisitor<T>): T => visitor.scalar(this);
 }
 
@@ -161,7 +160,7 @@ class NeverMeaning implements NeverRequestMeaning {
 
 class ErrorMeaning implements ErrorRequestMeaning {
   readonly kind = 'error' as const;
-  constructor(readonly diagnosticMessage: string) { Object.freeze(this); }
+  constructor(readonly diagnosticMessage: StringValue) { Object.freeze(this); }
   readonly accept = <T>(visitor: RequestFieldMeaningVisitor<T>): T => visitor.error(this);
 }
 
@@ -185,15 +184,6 @@ class GenericMeaning implements GenericRequestMeaning {
   constructor(readonly base: RequestFieldMeaning, parameters: readonly RequestGenericParameter[]) { this.parameters = Object.freeze([...parameters]); Object.freeze(this); }
   readonly accept = <T>(visitor: RequestFieldMeaningVisitor<T>): T => visitor.generic(this);
 }
-
-const PRIMITIVE_MEANINGS: Readonly<{ [K in PrimitiveKind]: RequestScalarKind }> = Object.freeze({
-  [PrimitiveKind.STRING]: 'string',
-  [PrimitiveKind.NUMBER]: 'number',
-  [PrimitiveKind.BOOLEAN]: 'boolean',
-  [PrimitiveKind.DATETIME]: 'string',
-  [PrimitiveKind.FILE]: 'file',
-  [PrimitiveKind.UNKNOWN]: 'unknown'
-});
 
 const objectMeaningFactories: Readonly<{ [K in import('../../compiler/types/SemanticType').ObjectTypeRole]: (value: import('../../compiler/types/SemanticType').ObjectType) => RequestFieldMeaning }> = Object.freeze({
   plain: value => objectMeaning(value),
@@ -246,7 +236,7 @@ const resolveGeneric = (value: GenericType): RequestFieldMeaning =>
 const resolveError = (value: ErrorType): RequestFieldMeaning => new ErrorMeaning(value.diagnosticMessage);
 
 const resolve = (type: SemanticType): RequestFieldMeaning => type.accept({
-  primitive: value => new ScalarMeaning(PRIMITIVE_MEANINGS[value.type]),
+  primitive: value => new ScalarMeaning(value.type),
   jsonValue: () => new JsonValueMeaning(),
   optional: value => resolve(value.innerType),
   nullable: value => resolve(value.innerType),

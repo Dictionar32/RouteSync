@@ -1,4 +1,4 @@
-import type { AstIdentifier, TokenDescriptor } from './phpAstCoreTypes';
+import type { AstIdentifier, TokenDescriptor, SourceRange } from './phpAstCoreTypes';
 import type { PhpBlock } from './phpAstStatementTypes';
 
 export type PhpLiteralValue =
@@ -22,8 +22,8 @@ export type PhpArrayKey =
     | { readonly kind: 'integer'; readonly value: number }
     | { readonly kind: 'expression'; readonly value: PhpAstValue };
 export type PhpArrayEntry =
-    | { readonly kind: 'keyed'; readonly key: PhpArrayKey; readonly value: PhpAstValue }
-    | { readonly kind: 'positional'; readonly value: PhpAstValue };
+    | { readonly kind: 'keyed'; readonly key: PhpArrayKey; readonly value: PhpAstValue; readonly source: SourceRange }
+    | { readonly kind: 'positional'; readonly value: PhpAstValue; readonly source: SourceRange };
 export type PhpBinaryOperator =
     | { readonly kind: 'identical' } | { readonly kind: 'not_identical' } | { readonly kind: 'equal' }
     | { readonly kind: 'not_equal' } | { readonly kind: 'greater_than' } | { readonly kind: 'less_than' }
@@ -33,7 +33,7 @@ export type PhpBinaryOperator =
 export type PhpUnaryOperator = { readonly kind: 'not' } | { readonly kind: 'negative' } | { readonly kind: 'positive' } | { readonly kind: 'bitwise_not' };
 export type PhpCastType = { readonly kind: 'int' } | { readonly kind: 'float' } | { readonly kind: 'string' } | { readonly kind: 'bool' } | { readonly kind: 'array' } | { readonly kind: 'object' };
 export type PhpAccessMode = { readonly kind: 'direct' } | { readonly kind: 'nullsafe' };
-export type PhpAstValue =
+export type PhpAstValueNode =
     | PhpLiteralValue | { readonly kind: 'resource_single'; readonly resourceName: AstIdentifier; readonly argument: PhpAstValue }
     | { readonly kind: 'resource_collection'; readonly resourceName: AstIdentifier; readonly argument: PhpAstValue }
     | { readonly kind: 'method_chain'; readonly target: PhpPropertyPath; readonly receiver: PhpAstValue; readonly property: AstIdentifier; readonly arguments: readonly PhpArgument[]; readonly access: PhpAccessMode }
@@ -55,5 +55,7 @@ export type PhpAstValue =
     | { readonly kind: 'arrow_function'; readonly parameters: readonly PhpParameter[]; readonly body: PhpAstValue }
     | { readonly kind: 'match_expression'; readonly subject: PhpAstValue; readonly arms: readonly PhpMatchArm[] }
     | { readonly kind: 'unsupported'; readonly reason: PhpUnsupportedExpressionReason; readonly tokens: readonly TokenDescriptor[] };
+export type PhpAstValue = PhpAstValueNode & { readonly source: SourceRange };
+
 export type PhpMatchArm = { readonly kind: 'conditional'; readonly conditions: readonly PhpAstValue[]; readonly value: PhpAstValue } | { readonly kind: 'default'; readonly value: PhpAstValue };
 export type PhpUnsupportedExpressionReason = 'unclassified_expression' | 'dynamic_construct' | 'unsupported_statement';

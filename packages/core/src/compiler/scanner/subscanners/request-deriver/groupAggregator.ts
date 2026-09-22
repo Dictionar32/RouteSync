@@ -48,7 +48,7 @@ export function aggregateRequestTypeGroups(
         const request = route.binding.request;
         if (request.kind === 'no_request') continue;
 
-        const { formActionName, actionObj, fields, isReadRouteWithoutFields } =
+        const { formActionName, actionObj, fields } =
             deriveRouteAction(route);
         const actionRespData = deriveActionResponseData(route, ctx.resourceIndex);
         const groupKey = request.identity.resource.value.value.toLowerCase();
@@ -58,7 +58,7 @@ export function aggregateRequestTypeGroups(
             groups.set(groupKey, ScannedRequestTypeDescriptor.create({
                 identity: request.identity,
                 source: request.source,
-                actions: isReadRouteWithoutFields ? [] : [actionObj],
+                actions: actionObj,
                 response: actionRespData
                     ? { kind: 'data', value: actionRespData }
                     : { kind: 'none' }
@@ -67,14 +67,14 @@ export function aggregateRequestTypeGroups(
         }
 
         const newActions = [...existing.actions];
-        const existingIdx = newActions.findIndex(action => action.name === formActionName);
-        if (!isReadRouteWithoutFields) {
+        if (formActionName.kind === 'some' && actionObj.length === 1) {
+            const existingIdx = newActions.findIndex(action => action.name === formActionName.value);
             if (existingIdx >= 0) {
                 if (fields.length > 0 || newActions[existingIdx].fields.length === 0) {
-                    newActions[existingIdx] = actionObj;
+                    newActions[existingIdx] = actionObj[0];
                 }
             } else {
-                newActions.push(actionObj);
+                newActions.push(actionObj[0]);
             }
         }
 

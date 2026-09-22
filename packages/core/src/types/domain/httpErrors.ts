@@ -1,14 +1,18 @@
 import type { RouteParameterType } from "./parameters";
+import type { PropertyName, RouteParameterName } from "../upstream/names";
+import type { Presence, Cardinality } from "../upstream/primitiveVocabulary";
+import type { Option } from "../upstream/collections";
+import type { RequestRuntimeValue } from "./requestModels";
 import { HttpStatusCode } from "./httpVocabulary";
 import { SemanticValueFactory, type HttpErrorName, type ResponseTypeName } from "./semanticValues";
 
 export interface RouteQueryParameter {
-  readonly name: string;
-  readonly propertyName: string;
-  readonly required: boolean;
+  readonly name: RouteParameterName;
+  readonly propertyName: PropertyName;
+  readonly presence: Presence;
   readonly type: RouteParameterType;
-  readonly isArray: boolean;
-  readonly default: unknown;
+  readonly cardinality: Cardinality;
+  readonly defaultValue: Option<RequestRuntimeValue>;
 }
 
 /**

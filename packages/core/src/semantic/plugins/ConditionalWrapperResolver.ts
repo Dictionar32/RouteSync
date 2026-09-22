@@ -42,9 +42,9 @@ function resolveRelation(
   if (context.scope.kind !== 'model') return unsupported('whenLoaded relation has no model context');
   const model = context.scope.model;
   const relationKey = SemanticValueFactory.relationName(relationName);
-  const property = model.semantic.surface.relationsByName.lookup(relationKey);
+  const property = model.definition.semantic.surface.relationsByName.lookup(relationKey);
   if (property.kind === 'missing') {
-    return unsupported(`Relation ${relationName} is not declared on ${model.name.value}`);
+    return unsupported(`Relation ${relationName} is not declared on ${model.definition.identity.name.value}`);
   }
 
   const targetModel = property.value.targetModel;
@@ -53,7 +53,7 @@ function resolveRelation(
   const cardinality = property.value.multiplicity;
   const definition = targetSymbol.node.definition;
   const relationNode = BoundSemanticFactory.relation({
-    sourceModel: model.name,
+    sourceModel: model.definition.identity.name,
     relationName: SemanticValueFactory.relationName(relationName),
     relationType: property.value.type,
     targetModel,

@@ -3,6 +3,7 @@ import { PrimitiveKind, PrimitiveType } from '../../compiler/types/SemanticType'
 import { verifyModelGraph } from '../VerifiedModelGraph';
 import type { ParsedModel } from '../../types/domain/models';
 import { createColumnName, createModelName, createPropertyName, createTableName } from '../../types/domain/modelValueFactories';
+import { SemanticValueFactory } from '../../types/domain/semanticValues';
 import type { ModelNodeInput } from '../modelNodes';
 
 function model(): ParsedModel {
@@ -18,8 +19,8 @@ function model(): ParsedModel {
     timestamps: true,
     properties: [],
     columns: [{
-      name: 'id',
-      propertyName: 'id',
+      name: SemanticValueFactory.columnName('id'),
+      propertyName: SemanticValueFactory.propertyName('id'),
       type: { kind: 'integer' },
       nullability: { kind: 'non_nullable' },
       semanticType: new PrimitiveType(PrimitiveKind.NUMBER),

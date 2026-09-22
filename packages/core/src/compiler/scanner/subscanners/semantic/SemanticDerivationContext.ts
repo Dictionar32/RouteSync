@@ -9,7 +9,6 @@
 import type {
     ParsedRoute,
     ParsedResource,
-    ParsedModel
 } from '../../../../types/route';
 import { TypeInterner } from '../../../types/TypeInterner';
 import type { ModelAst } from '../../../../types/upstream/ast';

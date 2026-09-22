@@ -10,10 +10,10 @@ export function resolveThisVariable(
   scope: ResolutionScope,
 ): VariableResolutionResult {
   if (scope.kind === 'global') return { kind: 'not_found', reason: 'no_context_model' };
-  const model = SemanticValueFactory.modelName(scope.model.name);
+  const model = SemanticValueFactory.modelName(scope.model.definition.identity.name);
   return { kind: 'resolved', value: SemanticResolutionFactory.model({
     status: 'resolved', confidence: 100, model,
-    definition: scope.model.semantic,
+    definition: scope.model.definition.semantic,
     cardinality: { kind: 'single' },
     boundAst: BoundSemanticFactory.modelReference(model),
     trace: [{

@@ -411,6 +411,7 @@ export {
     ValidationRuleKind,
     type BaseValidationRuleNode,
     type RequiredValidationRuleNode,
+    type RequiredWithValidationRuleNode,
     type NullableValidationRuleNode,
     type OptionalValidationRuleNode,
     type StringValidationRuleNode,

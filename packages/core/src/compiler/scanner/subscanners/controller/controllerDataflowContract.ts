@@ -7,6 +7,8 @@ import type { ResourceExpressionModel } from '../../../../types/domain/resourceE
 import { mapAstValueToExpression } from '../resource/resourceAstExpressionMapper';
 import type { Lookup } from '../../../../types/upstream/collections';
 import type { ControllerVariableSemantic } from '../../../../types/upstream/controller';
+import type { ResponseReference } from '../../../../types/upstream/semanticReferences';
+import type { ResponseDescriptor } from '../../../../types/route';
 export type ControllerModelOrigin =
     | { readonly kind: 'model_class'; readonly name: ModelName }
     | { readonly kind: 'table'; readonly name: TableName };
@@ -24,7 +26,12 @@ export function createControllerReturnSet(returns: readonly PhpAstValue[]): Cont
 export interface ControllerResourceBinding {
     readonly resourceName: ResourceName;
     readonly model: ControllerModelOrigin;
+    readonly response: ResponseReference;
+    readonly source: import('../../lexer/phpAstCoreTypes').SourceRange;
 }
+export type ControllerResourceResponseEvidence =
+    | { readonly kind: 'present'; readonly response: ResponseReference }
+    | { readonly kind: 'absent' };
 export type ControllerSemanticDefinitionOrigin =
     | { readonly kind: 'parameter'; readonly variable: VariableName }
     | { readonly kind: 'assignment'; readonly statementIndex: number }
@@ -87,11 +94,12 @@ export function emptyControllerDataflowContract(): ControllerDataflowContract {
 export function createControllerDataflowContract(
     ast: ControllerDataflowAst,
     parameters: readonly ControllerParameterAst[],
-    returned: ControllerReturnSet
+    returned: ControllerReturnSet,
+    response: ControllerResourceResponseEvidence
 ): ControllerDataflowContract {
     const bindings: ControllerResourceBinding[] = [];
     for (const item of returned.expressions) {
-        if (item.kind === 'present') collectResourceBindings(item.value, ast, parameters, bindings);
+        if (item.kind === 'present') collectResourceBindings(item.value, ast, parameters, bindings, response);
     }
     return Object.freeze({ ast, semantic: buildSemanticDataflow(ast, parameters, returned), resourceBindings: Object.freeze(bindings) });
 }
@@ -135,9 +143,9 @@ function semanticDefinitionOrigin(definition: ControllerVariableDefinition): Con
         case 'catch': return { kind: 'catch', statementIndex: definition.origin.statementIndex };
     }
 }
-function collectResourceBindings(value: PhpAstValue, ast: ControllerDataflowAst, parameters: readonly ControllerParameterAst[], bindings: ControllerResourceBinding[]): void {
+function collectResourceBindings(value: PhpAstValue, ast: ControllerDataflowAst, parameters: readonly ControllerParameterAst[], bindings: ControllerResourceBinding[], response: ControllerResourceResponseEvidence): void {
     const semanticIndex = createSemanticVariableIndex(ast, parameters);
-    collectResourceBindingsWithIndex(value, semanticIndex, bindings);
+    collectResourceBindingsWithIndex(value, semanticIndex, bindings, response);
 }
 function createSemanticVariableIndex(ast: ControllerDataflowAst, parameters: readonly ControllerParameterAst[]): ControllerSemanticVariableIndex {
     const bindings: ControllerSemanticVariableBinding[] = [];
@@ -158,41 +166,41 @@ function createSemanticVariableIndex(ast: ControllerDataflowAst, parameters: rea
     for (const [name, entries] of definitions) bindings.push({ variable: SemanticValueFactory.variableName(name), definitions: Object.freeze(entries) });
     return new ControllerSemanticVariableIndex(bindings);
 }
-function collectResourceBindingsWithIndex(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex, bindings: ControllerResourceBinding[]): void {
+function collectResourceBindingsWithIndex(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex, bindings: ControllerResourceBinding[], response: ControllerResourceResponseEvidence): void {
     if (value.kind === 'resource_single' || value.kind === 'resource_collection') {
         const model = resolveModelOrigin(value.argument, semanticIndex);
-        if (model) bindings.push({ resourceName: SemanticValueFactory.resourceName(value.resourceName), model });
+        if (model && response.kind === 'present') bindings.push({ resourceName: SemanticValueFactory.resourceName(value.resourceName), model, response: response.response, source: value.source });
         return;
     }
     if (value.kind === 'static_call' && value.method === 'collection') {
         const argument = value.arguments[0];
         if (argument && argument.kind === 'positional') {
             const model = resolveModelOrigin(argument.value, semanticIndex);
-            if (model) bindings.push({ resourceName: SemanticValueFactory.resourceName(value.className), model });
+            if (model && response.kind === 'present') bindings.push({ resourceName: SemanticValueFactory.resourceName(value.className), model, response: response.response, source: value.source });
         }
         return;
     }
     if (value.kind === 'method_chain') {
-        for (const argument of value.arguments) collectResourceBindingsWithIndex(argument.value, semanticIndex, bindings);
-        collectResourceBindingsWithIndex(value.receiver, semanticIndex, bindings);
+        for (const argument of value.arguments) collectResourceBindingsWithIndex(argument.value, semanticIndex, bindings, response);
+        collectResourceBindingsWithIndex(value.receiver, semanticIndex, bindings, response);
         return;
     }
     if (value.kind === 'function_call') {
-        for (const argument of value.arguments) collectResourceBindingsWithIndex(argument.value, semanticIndex, bindings);
+        for (const argument of value.arguments) collectResourceBindingsWithIndex(argument.value, semanticIndex, bindings, response);
         return;
     }
     if (value.kind === 'nested_array') {
-        for (const entry of value.entries) collectResourceBindingsWithIndex(entry.value, semanticIndex, bindings);
+        for (const entry of value.entries) collectResourceBindingsWithIndex(entry.value, semanticIndex, bindings, response);
         return;
     }
     if (value.kind === 'ternary_expression') {
-        collectResourceBindingsWithIndex(value.trueBranch, semanticIndex, bindings);
-        collectResourceBindingsWithIndex(value.falseBranch, semanticIndex, bindings);
+        collectResourceBindingsWithIndex(value.trueBranch, semanticIndex, bindings, response);
+        collectResourceBindingsWithIndex(value.falseBranch, semanticIndex, bindings, response);
         return;
     }
     if (value.kind === 'null_coalesce') {
-        collectResourceBindingsWithIndex(value.left, semanticIndex, bindings);
-        collectResourceBindingsWithIndex(value.right, semanticIndex, bindings);
+        collectResourceBindingsWithIndex(value.left, semanticIndex, bindings, response);
+        collectResourceBindingsWithIndex(value.right, semanticIndex, bindings, response);
     }
 }
 function resolveModelOrigin(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex): ControllerModelOrigin | undefined {

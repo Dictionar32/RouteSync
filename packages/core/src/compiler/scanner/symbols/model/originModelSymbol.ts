@@ -4,11 +4,11 @@
  */
 
 import type { ModelAst } from "../../../../types/upstream/ast";
-import type { ModelSemanticProperty, ModelSemanticRelation } from "../../../../types/domain/models";
-import type { ModelName } from "../../../../types/domain/semanticValues";
+import type { ModelSemanticProperty, ModelSemanticRelation } from "../../../../types/upstream/model";
+import type { ModelName } from "../../../../types/upstream/names";
 import type { ResolvedPropertyBinding } from "./types";
 import type { Lookup } from "../../../../types/upstream/collections";
-import { createPropertyName, createRelationName } from "../../../../types/upstream/names";
+import type { PropertyName, RelationName } from "../../../../types/upstream/names";
 
 export class OriginModelSymbol {
     public readonly name: ModelName;
@@ -26,12 +26,12 @@ export class OriginModelSymbol {
         Object.freeze(this);
     }
 
-    public property(name: string): ModelSemanticProperty | undefined {
-        return this.propertiesByName.get(name);
+    public property(name: PropertyName): ModelSemanticProperty | undefined {
+        return this.propertiesByName.get(name.value.value);
     }
 
 
-    public column(name: string): Lookup<ModelSemanticProperty> {
+    public column(name: PropertyName): Lookup<ModelSemanticProperty> {
         const property = this.property(name);
         if (property === undefined) return { kind: 'missing' };
         return property.origin.kind === 'column'
@@ -39,13 +39,13 @@ export class OriginModelSymbol {
             : { kind: 'missing' };
     }
 
-    public relation(name: string): Lookup<ModelSemanticRelation> {
-        const property = this.propertiesByName.get(name);
+    public relation(name: RelationName): Lookup<ModelSemanticRelation> {
+        const property = this.propertiesByName.get(name.value.value);
         if (property === undefined || property.kind !== 'relation') return { kind: 'missing' };
         return { kind: 'found', value: property };
     }
 
-    public resolveProperty(prop: string): Lookup<ResolvedPropertyBinding> {
+    public resolveProperty(prop: PropertyName): Lookup<ResolvedPropertyBinding> {
         const property = this.property(prop);
         if (property === undefined) return { kind: 'missing' };
         switch (property.kind) {

@@ -10,7 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import chalk from 'chalk';
-import { StaticLaravelScanner } from '@routesync/core';
+import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core';
 
 import type { ScannedRoute, ScannedManifest } from '../../utils/incremental/incrementalTypes';
 
@@ -22,7 +22,7 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
   }
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as ScannedManifest;
-  const freshManifest = await StaticLaravelScanner.scan(cwd);
+  const freshManifest = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(cwd));
   const routes = (freshManifest.routes || []) as any[];
 
   const freshRoutes = new Map<string, ScannedRoute>();

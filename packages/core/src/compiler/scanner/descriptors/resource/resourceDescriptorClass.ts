@@ -12,6 +12,7 @@ import type {
   ResourceAssignment
 } from '../../../../types/route';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
+import type { ResourceName, ResponseTypeName } from '../../../../types/upstream/names';
 import { toCamelCase, ResourceNamingConvention } from '../../../../utils/resource-naming';
 import { ScannedResourceParams, CreateResourceDescriptorOptions } from './resourceDescriptorTypes';
 
@@ -28,20 +29,20 @@ export class ScannedResourceDescriptor implements ParsedResource {
 
   constructor(params: ScannedResourceParams) {
     this.identity = Object.freeze({
-      name: SemanticValueFactory.resourceName(params.name),
-      baseName: SemanticValueFactory.resourceName(params.baseName),
-      typeName: SemanticValueFactory.responseTypeName(params.typeName)
+      name: params.name,
+      baseName: params.baseName,
+      typeName: params.typeName
     });
     this.binding = Object.freeze({
       model: { kind: 'model' as const, modelName: params.modelName }
     });
     this.surface = Object.freeze({
-      sanitizedName: SemanticValueFactory.propertyName(toCamelCase(params.name)),
+      sanitizedName: SemanticValueFactory.propertyName(toCamelCase(params.name.value.value)),
       fields: Object.freeze(params.fields),
       assignments: Object.freeze(params.assignments)
     });
     this.provenance = Object.freeze({
-      sourceFile: SemanticValueFactory.sourceFilePath(params.sourceFile),
+      sourceFile: params.sourceFile,
       sourceLine: SemanticValueFactory.sourceLineNumber(params.sourceLine),
       synthetic: params.isSynthetic
     });
@@ -57,11 +58,13 @@ export class ScannedResourceDescriptor implements ParsedResource {
     modelName,
     isSynthetic
   }: CreateResourceDescriptorOptions): ScannedResourceDescriptor {
-    const baseName = ResourceNamingConvention.stripSuffix(name);
+    const baseNameValue = ResourceNamingConvention.stripSuffix(name.value.value);
+    const baseName: ResourceName = SemanticValueFactory.resourceName(baseNameValue);
+    const typeName: ResponseTypeName = SemanticValueFactory.responseTypeName(ResourceNamingConvention.toTransformedName(baseNameValue));
     return new ScannedResourceDescriptor({
       name,
       baseName,
-      typeName: ResourceNamingConvention.toTransformedName(baseName),
+      typeName,
       modelName,
       fields,
       assignments,

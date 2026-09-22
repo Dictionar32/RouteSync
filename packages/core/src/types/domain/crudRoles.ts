@@ -1,23 +1,5 @@
-import { HttpMethod, RouteActionKind } from "./security";
-import type { PropertyName, RouteParameterName, RoutePath } from "../upstream/names";
-
-/**
- * CrudRole
- *
- * Canonical REST CRUD Role Vocabulary.
- */
-export const CrudRole = Object.freeze({
-  Index: 'index',
-  Show: 'show',
-  Create: 'create',
-  Update: 'update',
-  Delete: 'delete',
-  Custom: 'custom'
-} as const);
-
-export type CrudRole = typeof CrudRole[keyof typeof CrudRole];
-
-
+export { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
+export type { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 /**
  * PageEndpointKind
  *

@@ -7,14 +7,14 @@
  */
 
 import { ParsedRoute, matchRouteActionKind } from "../../../../types/route";
-import type { FormAction, RequestField } from "../../../../types/domain/request";
+import { FormActionName, type FormAction, type RequestField } from "../../../../types/domain/request";
+import type { Option } from "../../../../types/upstream/collections";
 import { ScannedFormActionDescriptor } from "../../descriptors/requestDescriptors";
 
 export interface DerivedActionInfo {
-    readonly formActionName: string;
-    readonly actionObj: FormAction;
+    readonly formActionName: Option<FormActionName>;
+    readonly actionObj: readonly FormAction[];
     readonly fields: RequestField[];
-    readonly isReadRouteWithoutFields: boolean;
 }
 
 export function deriveRouteAction(route: ParsedRoute): DerivedActionInfo {
@@ -22,24 +22,23 @@ export function deriveRouteAction(route: ParsedRoute): DerivedActionInfo {
 
     const fields: RequestField[] = [...route.binding.schema.fields];
 
-    const formActionName = matchRouteActionKind(actionKind, {
-        create: () => 'create',
-        update: () => 'update',
-        read: () => route.binding.actionName.value.value,
-        delete: () => 'delete'
+    const formActionName: Option<FormActionName> = matchRouteActionKind(actionKind, {
+        create: () => ({ kind: 'some', value: FormActionName.Create }),
+        update: () => ({ kind: 'some', value: FormActionName.Update }),
+        read: () => ({ kind: 'none' }),
+        delete: () => ({ kind: 'none' })
     });
 
-    const actionObj: FormAction = new ScannedFormActionDescriptor({
-        name: formActionName,
-        fields
+    const actionObj: readonly FormAction[] = matchRouteActionKind(actionKind, {
+        create: () => [new ScannedFormActionDescriptor({ name: FormActionName.Create, fields })],
+        update: () => [new ScannedFormActionDescriptor({ name: FormActionName.Update, fields })],
+        read: () => [],
+        delete: () => []
     });
-
-    const isReadRouteWithoutFields = fields.length === 0 && actionKind === 'read';
 
     return {
         formActionName,
         actionObj,
-        fields,
-        isReadRouteWithoutFields
+        fields
     };
 }

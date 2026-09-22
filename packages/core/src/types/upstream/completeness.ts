@@ -8,7 +8,7 @@ export type SourceCategory =
   | { readonly kind: 'model' } | { readonly kind: 'resource' } | { readonly kind: 'request' }
   | { readonly kind: 'route' } | { readonly kind: 'controller' } | { readonly kind: 'response' }
   | { readonly kind: 'service' } | { readonly kind: 'migration' } | { readonly kind: 'dto' }
-  | { readonly kind: 'middleware' } | { readonly kind: 'provider' } | { readonly kind: 'attribute' };
+  | { readonly kind: 'middleware' } | { readonly kind: 'provider' } | { readonly kind: 'attribute' } | { readonly kind: 'channel' };
 export type UpstreamStage = { readonly kind: 'source_ast' } | { readonly kind: 'manifest' };
 export type CompletenessFailure =
   | { readonly kind: 'source_category_not_scanned'; readonly category: SourceCategory; readonly stage: UpstreamStage; readonly source: SourceSpan }
@@ -38,4 +38,4 @@ const completeResult = (failures: Sequence<CompletenessFailure>, ast: SourceAst)
   cons: (): IncompleteUpstream => ({ kind: 'incomplete_upstream', stage: { kind: 'source_ast' }, failures: { kind: 'completeness_failures', items: failures } })
 }[failures.kind]());
 export const validateCompleteSourceAst = (ast: SourceAst, source: SourceSpan): CompleteSourceAst | IncompleteUpstream => completeResult(collect(
-  cons(check({ kind: 'model' }, ast.models.items, source), cons(check({ kind: 'resource' }, ast.resources.items, source), cons(check({ kind: 'request' }, ast.requests.items, source), cons(check({ kind: 'route' }, ast.routes.items, source), cons(check({ kind: 'controller' }, ast.controllers.items, source), cons(check({ kind: 'response' }, ast.responses.items, source), cons(check({ kind: 'service' }, ast.services.items, source), cons(check({ kind: 'migration' }, ast.migrations.items, source), cons(check({ kind: 'dto' }, ast.dtos.items, source), cons(check({ kind: 'middleware' }, ast.middlewares.items, source), cons(check({ kind: 'provider' }, ast.providers.items, source), cons(check({ kind: 'attribute' }, ast.attributes.items, source), empty()))))))))))))), ast);
+  cons(check({ kind: 'model' }, ast.models.items, source), cons(check({ kind: 'resource' }, ast.resources.items, source), cons(check({ kind: 'request' }, ast.requests.items, source), cons(check({ kind: 'route' }, ast.routes.items, source), cons(check({ kind: 'controller' }, ast.controllers.items, source), cons(check({ kind: 'response' }, ast.responses.items, source), cons(check({ kind: 'service' }, ast.services.items, source), cons(check({ kind: 'migration' }, ast.migrations.items, source), cons(check({ kind: 'dto' }, ast.dtos.items, source), cons(check({ kind: 'middleware' }, ast.middlewares.items, source), cons(check({ kind: 'provider' }, ast.providers.items, source), cons(check({ kind: 'attribute' }, ast.attributes.items, source), cons(check({ kind: 'channel' }, ast.channels.items, source), empty())))))))))))))), ast);

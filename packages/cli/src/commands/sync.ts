@@ -16,7 +16,7 @@ import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
 import { ScannedModel } from '../utils/incremental'
-import { StaticLaravelScanner } from '@routesync/core'
+import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core'
 
 import fs from 'fs-extra'
 
@@ -47,7 +47,7 @@ export const syncCommand = new Command('sync')
     try {
       // Step 1: Scan via StaticLaravelScanner (0 PHP subprocess)
       const targetDir = process.cwd()
-      const manifest: any = await StaticLaravelScanner.scan(targetDir, {
+      const manifest: any = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(targetDir), {
         baseURL: options.baseURL,
         version: '6.0.0'
       })

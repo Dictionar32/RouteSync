@@ -179,7 +179,7 @@ export interface ModelAccessorInfo<TSource, TAst, TSemantic> {
 }
 
 export interface ModelAccessorEntry<T> {
-  readonly name: string;
+  readonly name: MethodName;
   readonly accessor: T;
 }
 
@@ -191,7 +191,7 @@ export class ModelAccessorMap<T> implements Iterable<ModelAccessorEntry<T>> {
     this.entries = Object.freeze([...entries]);
     const map = new Map<string, T>();
     for (const e of entries) {
-      map.set(e.name, e.accessor);
+      map.set(e.name.value.value, e.accessor);
     }
     this._lookup = map;
     Object.freeze(this);
@@ -203,7 +203,7 @@ export class ModelAccessorMap<T> implements Iterable<ModelAccessorEntry<T>> {
 
   public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelAccessorMap<T> {
     const entries: ModelAccessorEntry<T>[] = Object.entries(record).map(([name, accessor]) => ({
-      name,
+      name: SemanticValueFactory.methodName(name),
       accessor
     }));
     return new ModelAccessorMap<T>(entries);
@@ -217,8 +217,8 @@ export class ModelAccessorMap<T> implements Iterable<ModelAccessorEntry<T>> {
     return new ModelAccessorMap<T>(entries);
   }
 
-  public lookup(name: string): Lookup<T> {
-    const value = this._lookup.get(name);
+  public lookup(name: MethodName): Lookup<T> {
+    const value = this._lookup.get(name.value.value);
     return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
@@ -467,7 +467,7 @@ export class ModelNodeMap<T> implements Iterable<ModelNodeEntry<T>> {
  * Semantic Model Map for IRContext
  */
 export interface SemanticModelEntry<T> {
-  readonly modelName: string;
+  readonly modelName: ModelName;
   readonly modelType: T;
 }
 
@@ -479,7 +479,7 @@ export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
     this.entries = Object.freeze([...entries]);
     const map = new Map<string, T>();
     for (const e of entries) {
-      map.set(e.modelName, e.modelType);
+      map.set(e.modelName.value.value, e.modelType);
     }
     this._lookup = map;
     Object.freeze(this);
@@ -491,7 +491,7 @@ export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
 
   public static fromObject<T>(record: Readonly<{ readonly [modelName: string]: T }>): SemanticModelMap<T> {
     const entries: SemanticModelEntry<T>[] = Object.entries(record).map(([modelName, modelType]) => ({
-      modelName,
+      modelName: SemanticValueFactory.modelName(modelName),
       modelType
     }));
     return new SemanticModelMap<T>(entries);
@@ -505,8 +505,8 @@ export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
     return new SemanticModelMap<T>(entries);
   }
 
-  public lookup(modelName: string): Lookup<T> {
-    const value = this._lookup.get(modelName);
+  public lookup(modelName: ModelName): Lookup<T> {
+    const value = this._lookup.get(modelName.value.value);
     return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 
@@ -539,7 +539,7 @@ export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
  * Semantic Relation Map for IRContext
  */
 export interface SemanticRelationEntry<T> {
-  readonly relationName: string;
+  readonly relationName: RelationName;
   readonly relation: T;
 }
 
@@ -551,7 +551,7 @@ export class SemanticRelationMap<T> implements Iterable<SemanticRelationEntry<T>
     this.entries = Object.freeze([...entries]);
     const map = new Map<string, T>();
     for (const e of entries) {
-      map.set(e.relationName, e.relation);
+      map.set(e.relationName.value.value, e.relation);
     }
     this._lookup = map;
     Object.freeze(this);
@@ -563,7 +563,7 @@ export class SemanticRelationMap<T> implements Iterable<SemanticRelationEntry<T>
 
   public static fromObject<T>(record: Readonly<{ readonly [relationName: string]: T }>): SemanticRelationMap<T> {
     const entries: SemanticRelationEntry<T>[] = Object.entries(record).map(([relationName, relation]) => ({
-      relationName,
+      relationName: SemanticValueFactory.relationName(relationName),
       relation
     }));
     return new SemanticRelationMap<T>(entries);
@@ -577,8 +577,8 @@ export class SemanticRelationMap<T> implements Iterable<SemanticRelationEntry<T>
     return new SemanticRelationMap<T>(entries);
   }
 
-  public lookup(relationName: string): Lookup<T> {
-    const value = this._lookup.get(relationName);
+  public lookup(relationName: RelationName): Lookup<T> {
+    const value = this._lookup.get(relationName.value.value);
     return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
   }
 

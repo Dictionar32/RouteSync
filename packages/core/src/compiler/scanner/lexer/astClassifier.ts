@@ -1,7 +1,7 @@
 /** Converts tokenized PHP expressions into structured Laravel scanner AST. */
 import { PhpAstFactory } from './PhpAst';
 import type { AstIdentifier, PhpArgument, PhpAstValue, PhpPropertyPath, TokenDescriptor, PhpBlock, PhpParameter, PhpClosureCapture, PhpStatement, PhpAccessMode, PhpBinaryOperator } from './PhpAst';
-import { createAstIdentifier } from './phpAstTypes';
+import { createAstIdentifier, createSourceOffset } from './phpAstTypes';
 import { tokenizePhpSource } from './tokenizer';
 
 export function classifyPhpBlock(tokens: readonly TokenDescriptor[]): PhpBlock {
@@ -14,40 +14,53 @@ export function classifyAstValue(raw: string): PhpAstValue {
 }
 
 export function classifyAstTokens(tokens: readonly TokenDescriptor[]): PhpAstValue {
-    if (tokens.length === 0) return PhpAstFactory.unsupported(tokens);
+    if (tokens.length === 0) return locateAstValue(PhpAstFactory.unsupported(tokens), tokens);
     const match = classifyMatch(tokens);
-    if (match) return match;
+    if (match) return locateAstValue(match, tokens);
     const closure = classifyClosure(tokens);
-    if (closure) return closure;
+    if (closure) return locateAstValue(closure, tokens);
     const arrow = classifyArrowFunction(tokens);
-    if (arrow) return arrow;
+    if (arrow) return locateAstValue(arrow, tokens);
     const first = tokens[0];
     const instance = classifyInstanceOf(tokens);
-    if (instance) return instance;
+    if (instance) return locateAstValue(instance, tokens);
     const cast = classifyCast(tokens);
-    if (cast) return cast;
+    if (cast) return locateAstValue(cast, tokens);
     const parenthesized = classifyParenthesized(tokens);
-    if (parenthesized) return parenthesized;
-    if (tokens.length === 1) return classifySingle(first);
+    if (parenthesized) return locateAstValue(parenthesized, tokens);
+    if (tokens.length === 1) return locateAstValue(classifySingle(first), tokens);
     const compound = classifyCompoundExpression(tokens);
-    if (compound) return compound;
-    if (first.value === '[' && tokens[tokens.length - 1]?.value === ']') return classifyInlineArray(tokens);
+    if (compound) return locateAstValue(compound, tokens);
+    if (first.value === '[' && tokens[tokens.length - 1]?.value === ']') return locateAstValue(classifyInlineArray(tokens), tokens);
     const classReference = classifyClassReference(tokens);
-    if (classReference) return classReference;
+    if (classReference) return locateAstValue(classReference, tokens);
     if (first.value === 'new' && tokens[1]?.type === 'IDENTIFIER') {
         const className = createAstIdentifier(tokens[1].value);
         const open = indexOf(tokens, '(', 2);
         const close = lastIndexOf(tokens, ')');
         const args = open >= 0 && close > open ? parseArguments(tokens.slice(open + 1, close)) : [];
-        return PhpAstFactory.construct(className, args);
+        return locateAstValue(PhpAstFactory.construct(className, args), tokens);
     }
     const staticCall = classifyStaticCall(tokens);
-    if (staticCall) return staticCall;
+    if (staticCall) return locateAstValue(staticCall, tokens);
     const member = classifyMember(tokens);
-    if (member) return member;
+    if (member) return locateAstValue(member, tokens);
     const ternary = classifyTernary(tokens);
-    if (ternary) return ternary;
-    return PhpAstFactory.unsupported(tokens);
+    if (ternary) return locateAstValue(ternary, tokens);
+    return locateAstValue(PhpAstFactory.unsupported(tokens), tokens);
+}
+
+function locateAstValue(value: PhpAstValueNode, tokens: readonly TokenDescriptor[]): PhpAstValue {
+    const first = tokens[0];
+    const last = tokens[tokens.length - 1];
+    if (!first || !last) return Object.freeze({ ...value, source: { startOffset: createSourceOffset(0), endOffset: createSourceOffset(0) } });
+    return Object.freeze({
+        ...value,
+        source: {
+            startOffset: createSourceOffset(first.startOffset),
+            endOffset: createSourceOffset(last.endOffset),
+        },
+    });
 }
 
 function classifyInlineArray(tokens: readonly TokenDescriptor[]): PhpAstValue {
@@ -67,9 +80,9 @@ function classifyInlineArray(tokens: readonly TokenDescriptor[]): PhpAstValue {
                 const valueTokens = part.slice(arrow + 1);
                 const key = keyTokens.find(item => item.type === 'STRING' || item.type === 'IDENTIFIER' || item.type === 'NUMBER');
                 if (!key || valueTokens.length === 0) return PhpAstFactory.unsupported(tokens);
-                entries.push({ kind: 'keyed', key: key.value.startsWith('\'') || key.type === 'STRING' ? { kind: 'string', value: key.value } : key.type === 'NUMBER' ? { kind: 'integer', value: Number(key.value) } : { kind: 'expression', value: classifyAstTokens(keyTokens) }, value: classifyAstTokens(valueTokens) });
+                entries.push({ kind: 'keyed', key: key.value.startsWith('\'') || key.type === 'STRING' ? { kind: 'string', value: key.value } : key.type === 'NUMBER' ? { kind: 'integer', value: Number(key.value) } : { kind: 'expression', value: classifyAstTokens(keyTokens) }, value: classifyAstTokens(valueTokens), source: { startOffset: createSourceOffset(part[0]?.startOffset ?? key.startOffset), endOffset: createSourceOffset(part[part.length - 1]?.endOffset ?? key.endOffset) } });
             } else if (part.length > 0) {
-                entries.push({ kind: 'positional', value: classifyAstTokens(part) });
+                entries.push({ kind: 'positional', value: classifyAstTokens(part), source: { startOffset: createSourceOffset(part[0]?.startOffset ?? 0), endOffset: createSourceOffset(part[part.length - 1]?.endOffset ?? 0) } });
                 autoIndex++;
             }
             start = index + 1;
@@ -358,18 +371,18 @@ function parseStructuredStatement(tokens: readonly TokenDescriptor[], start: num
     if (keyword === 'try') return parseTryStatement(tokens, start);
     if (keyword === 'throw') {
         const end = findStatementEnd(tokens, start);
-        return { statement: PhpAstFactory.throwStatement(classifyAstTokens(tokens.slice(start + 1, end))), nextIndex: end < tokens.length ? end + 1 : end };
+        return { statement: PhpAstFactory.throwStatement(classifyAstTokens(tokens.slice(start + 1, end)), tokens[start]), nextIndex: end < tokens.length ? end + 1 : end };
     }
     return undefined;
 }
 
 function parseSimpleStatement(part: readonly TokenDescriptor[]): PhpStatement {
     if (part[0]?.value === 'return') {
-        if (part.length === 1) return { kind: 'return_void' };
-        return { kind: 'return_with_value', expression: classifyAstTokens(part.slice(1)) };
+        if (part.length === 1) return { kind: 'return_void', source: part[0] };
+        return { kind: 'return_with_value', expression: classifyAstTokens(part.slice(1)), source: part[0] };
     }
     const assignment = classifyAssignment(part);
-    return assignment ?? { kind: 'expression_statement', expression: classifyAstTokens(part) };
+    return assignment ?? { kind: 'expression_statement', expression: classifyAstTokens(part), source: part[0] };
 }
 
 function findStatementEnd(tokens: readonly TokenDescriptor[], start: number): number {
@@ -400,15 +413,15 @@ function parseIfStatement(tokens: readonly TokenDescriptor[], start: number): { 
     const condition = classifyAstTokens(tokens.slice(open + 1, close));
     const thenBlock = parseBlock(tokens.slice(bodyOpen + 1, bodyClose));
     let next = bodyClose + 1;
-    if (tokens[next]?.value !== 'else') return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'none' }), nextIndex: next };
+    if (tokens[next]?.value !== 'else') return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'none' }, tokens[start]), nextIndex: next };
     if (tokens[next + 1]?.value === 'if') {
         const nested = parseIfStatement(tokens, next + 1);
-        if (nested) return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_if', statement: nested.statement as Extract<PhpStatement, { kind: 'if_statement' }> }), nextIndex: nested.nextIndex };
+        if (nested) return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_if', statement: nested.statement as Extract<PhpStatement, { kind: 'if_statement' }> }, tokens[start]), nextIndex: nested.nextIndex };
     }
     const elseOpen = tokens[next + 1]?.value === '{' ? next + 1 : -1;
     if (elseOpen < 0) return undefined;
     const elseClose = matchingBrace(tokens, elseOpen);
-    return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_block', block: parseBlock(tokens.slice(elseOpen + 1, elseClose)) }), nextIndex: elseClose + 1 };
+    return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_block', block: parseBlock(tokens.slice(elseOpen + 1, elseClose)) }, tokens[start]), nextIndex: elseClose + 1 };
 }
 
 function parseForeachStatement(tokens: readonly TokenDescriptor[], start: number): { readonly statement: PhpStatement; readonly nextIndex: number } | undefined {
@@ -430,7 +443,7 @@ function parseForeachStatement(tokens: readonly TokenDescriptor[], start: number
     const bodyOpen = indexOf(tokens, '{', close + 1);
     if (bodyOpen < 0) return undefined;
     const bodyClose = matchingBrace(tokens, bodyOpen);
-    return { statement: PhpAstFactory.foreachStatement(iterable, target, parseBlock(tokens.slice(bodyOpen + 1, bodyClose))), nextIndex: bodyClose + 1 };
+    return { statement: PhpAstFactory.foreachStatement(iterable, target, parseBlock(tokens.slice(bodyOpen + 1, bodyClose)), tokens[start]), nextIndex: bodyClose + 1 };
 }
 
 function parseForStatement(tokens: readonly TokenDescriptor[], start: number): { readonly statement: PhpStatement; readonly nextIndex: number } | undefined {
@@ -442,7 +455,7 @@ function parseForStatement(tokens: readonly TokenDescriptor[], start: number): {
     const bodyOpen = indexOf(tokens, '{', close + 1);
     if (bodyOpen < 0) return undefined;
     const bodyClose = matchingBrace(tokens, bodyOpen);
-    return { statement: PhpAstFactory.forStatement(toForClause(clauses[0]), toForClause(clauses[1]), toForClause(clauses[2]), parseBlock(tokens.slice(bodyOpen + 1, bodyClose))), nextIndex: bodyClose + 1 };
+    return { statement: PhpAstFactory.forStatement(toForClause(clauses[0]), toForClause(clauses[1]), toForClause(clauses[2]), parseBlock(tokens.slice(bodyOpen + 1, bodyClose)), tokens[start]), nextIndex: bodyClose + 1 };
 }
 
 function toForClause(tokens: readonly TokenDescriptor[]): import('./phpAstTypes').PhpForClause {
@@ -468,7 +481,7 @@ function parseTryStatement(tokens: readonly TokenDescriptor[], start: number): {
         const catchOpen = indexOf(tokens, '{', close + 1);
         if (!exceptionType || !variable || catchOpen < 0) return undefined;
         const catchClose = matchingBrace(tokens, catchOpen);
-        catches.push({ exceptionType: createAstIdentifier(exceptionType.value), variable: createAstIdentifier(variable.value.slice(1)), body: parseBlock(tokens.slice(catchOpen + 1, catchClose)) });
+        catches.push({ exceptionType: createAstIdentifier(exceptionType.value), variable: createAstIdentifier(variable.value.slice(1)), body: parseBlock(tokens.slice(catchOpen + 1, catchClose)), source: tokens[index] });
         index = catchClose + 1;
     }
     let finallyBlock: import('./phpAstTypes').PhpFinallyClause = { kind: 'absent' };
@@ -479,7 +492,7 @@ function parseTryStatement(tokens: readonly TokenDescriptor[], start: number): {
         finallyBlock = { kind: 'present', block: parseBlock(tokens.slice(open + 1, close)) };
         index = close + 1;
     }
-    return { statement: PhpAstFactory.tryStatement(parseBlock(tokens.slice(bodyOpen + 1, bodyClose)), catches, finallyBlock), nextIndex: index };
+    return { statement: PhpAstFactory.tryStatement(parseBlock(tokens.slice(bodyOpen + 1, bodyClose)), catches, finallyBlock, tokens[start]), nextIndex: index };
 }
 
 function classifyAssignment(tokens: readonly TokenDescriptor[]): PhpStatement | undefined {
@@ -487,7 +500,7 @@ function classifyAssignment(tokens: readonly TokenDescriptor[]): PhpStatement | 
     if (index <= 0 || index >= tokens.length - 1) return undefined;
     const target = classifyAssignmentTarget(tokens.slice(0, index));
     if (!target) return undefined;
-    return PhpAstFactory.assignment(target, classifyAstTokens(tokens.slice(index + 1)));
+    return PhpAstFactory.assignment(target, classifyAstTokens(tokens.slice(index + 1)), tokens[0]);
 }
 
 function classifyAssignmentTarget(tokens: readonly TokenDescriptor[]): import('./phpAstTypes').PhpAssignmentTarget | undefined {

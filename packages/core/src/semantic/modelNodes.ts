@@ -1,10 +1,10 @@
 /**
  * High-model semantic boundary.
  *
- * Laravel scanner facts enter here as the already-typed ParsedModel ADT.
- * No Record-shaped member bags are allowed in the semantic model.
+ * Laravel source enters the semantic kernel as the canonical ModelAst.
+ * No ParsedModel intermediate is allowed at this boundary.
  */
-import type { ParsedModel } from '../types/domain/models';
+import type { ModelAst } from '../types/upstream/ast';
 import type { ParsedColumn } from '../types/domain/databaseColumns';
 import type { ParsedCast, ParsedAccessor, ParsedRelation } from '../types/domain/eloquentTypes';
 import type { SemanticResolution } from '../types/domain/semanticResolution';
@@ -62,12 +62,12 @@ export const EMPTY_MODEL_RESOLUTION_STATE: ModelResolutionState = Object.freeze(
     assignmentIndex: new ModelAssignmentIndex([]),
 });
 
-export interface ModelNode extends ParsedModel, ModelResolutionState {}
+export interface ModelNode extends ModelAst, ModelResolutionState {}
 export type ModelNodeContract = ModelNode
 
 /** Origin input is intentionally the same verified high-level model plus state. */
 export interface ModelNodeInput {
-    readonly model: ParsedModel;
+    readonly model: ModelAst;
     readonly assignments: readonly ModelAssignmentBinding[];
 }
 

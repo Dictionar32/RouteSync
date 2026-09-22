@@ -2,6 +2,7 @@
 export type SourceOffset = number & { readonly __brand: unique symbol };
 export type SourceLineNumber = number & { readonly __brand: unique symbol };
 export type AstIdentifier = string & { readonly __brand: unique symbol };
+export type SourceRange = { readonly startOffset: SourceOffset; readonly endOffset: SourceOffset };
 
 export const createSourceOffset = (value: number): SourceOffset => Math.max(0, value) as SourceOffset;
 export const createSourceLineNumber = (value: number): SourceLineNumber => Math.max(1, value) as SourceLineNumber;

@@ -11,13 +11,15 @@ import {
     ReferenceType,
     ReadonlyCollectionType,
     MutableCollectionType,
-    type SemanticType
+    type SemanticType,
+    PrimitiveKind
 } from '../../../types/SemanticType';
 import {
     ResolvedPrimitiveType,
     ResolvedReferenceType,
     ResolvedCollectionType,
-    type ResolvedSemanticType
+    type ResolvedSemanticType,
+    type ResolvedPrimitiveKind
 } from '../ResolvedSemanticType';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
 
@@ -28,7 +30,16 @@ export class PrimitiveTypeHandler implements SemanticTypeHandler {
 
     resolve(type: SemanticType): ResolvedSemanticType {
         const prim = type as PrimitiveType;
-        return new ResolvedPrimitiveType({ primitiveKind: prim.type });
+        const primitiveKindMap: { readonly [K in PrimitiveKind]: ResolvedPrimitiveKind } = {
+            [PrimitiveKind.STRING]: 'string',
+            [PrimitiveKind.NUMBER]: 'number',
+            [PrimitiveKind.BOOLEAN]: 'boolean',
+            [PrimitiveKind.DATETIME]: 'datetime',
+            [PrimitiveKind.FILE]: 'file',
+            [PrimitiveKind.UNKNOWN]: 'unknown',
+            [PrimitiveKind.UNSPECIFIED]: 'unspecified'
+        };
+        return new ResolvedPrimitiveType({ primitiveKind: primitiveKindMap[prim.type] });
     }
 }
 

@@ -8,13 +8,15 @@
  */
 
 import { toCamelCase, toPascalCase, ResourceNamingConvention } from "../../../utils/resource-naming";
+import { SemanticValueFactory } from "../../../types/domain/semanticValues";
+import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath } from "../../../types/upstream/names";
 
 export interface RouteDomainResolutionContext {
-    readonly domain?: string | null;
-    readonly resourceName?: string | null;
-    readonly controllerName?: string | null;
-    readonly path?: string | null;
-    readonly actionName?: string | null;
+    readonly domain?: DomainTypeName;
+    readonly resourceName?: ResourceName;
+    readonly controllerName?: ControllerName;
+    readonly path?: RoutePath;
+    readonly actionName?: ActionName;
 }
 
 export class RouteDomainResolver {
@@ -22,41 +24,43 @@ export class RouteDomainResolver {
      * Resolves the canonical domain name deterministically from context.
      * Evaluated once at Origin Boundary; downstream components consume guaranteed non-nullable domain.
      */
-    public static resolve(context: RouteDomainResolutionContext): string {
-        const explicitDomain = context.domain;
-        if (explicitDomain && explicitDomain.length > 0) {
-            return explicitDomain;
+    public static resolve(context: RouteDomainResolutionContext): DomainTypeName {
+        if (context.domain) {
+            const explicitDomain = context.domain.value.value;
+            if (explicitDomain.length > 0) {
+                return context.domain;
+            }
         }
 
-        const controllerName = context.controllerName;
-        if (controllerName && controllerName.length > 0) {
-            return controllerName.replace(/Controller$/, "");
+        const controllerName = context.controllerName?.value.value ?? "";
+        if (controllerName.length > 0) {
+            return SemanticValueFactory.domainName(controllerName.replace(/Controller$/, ""));
         }
 
-        const resourceName = context.resourceName;
-        if (resourceName && resourceName.length > 0) {
-            return ResourceNamingConvention.stripSuffix(resourceName);
+        const resourceName = context.resourceName?.value.value ?? "";
+        if (resourceName.length > 0) {
+            return SemanticValueFactory.domainName(ResourceNamingConvention.stripSuffix(resourceName));
         }
 
-        const path = context.path ? context.path : "";
-        const actionName = context.actionName ? context.actionName : "";
+        const path = context.path?.value.value ?? "";
+        const actionName = context.actionName?.value.value ?? "";
         if (path === "/register" || actionName.endsWith("register")) {
-            return "Register";
+            return SemanticValueFactory.domainName("Register");
         }
 
         const rawSegments = path.replace(/^\/+/, "").split("/")
             .filter(s => s.length > 0 && s !== "api" && !/^v\d+$/i.test(s) && !s.startsWith("{") && !s.startsWith(":"));
         if (rawSegments.length > 0) {
-            return rawSegments.map((seg, idx) => idx === 0 ? toCamelCase(seg) : toPascalCase(toCamelCase(seg))).join("");
+            return SemanticValueFactory.domainName(rawSegments.map((seg, idx) => idx === 0 ? toCamelCase(seg) : toPascalCase(toCamelCase(seg))).join(""));
         }
 
         if (actionName.length > 0) {
             const ctrlMatch = actionName.match(/([A-Z][a-zA-Z0-9_]*?)Controller/);
             if (ctrlMatch && ctrlMatch[1]) {
-                return ctrlMatch[1];
+                return SemanticValueFactory.domainName(ctrlMatch[1]);
             }
         }
 
-        return "App";
+        return SemanticValueFactory.domainName("App");
     }
 }

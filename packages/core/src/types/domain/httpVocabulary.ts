@@ -1,31 +1,5 @@
-import type { CrudRole } from "./crudRoles";
-/**
- * Canonical Domain Vocabulary for HTTP Methods.
- */
-export const HttpMethod = Object.freeze({
-  GET: 'GET',
-  POST: 'POST',
-  PUT: 'PUT',
-  PATCH: 'PATCH',
-  DELETE: 'DELETE',
-  OPTIONS: 'OPTIONS',
-  HEAD: 'HEAD'
-} as const);
-
-export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod];
-
-/**
- * Canonical Domain Vocabulary for Route Action Kinds.
- */
-export const RouteActionKind = Object.freeze({
-  Create: 'create',
-  Update: 'update',
-  Read: 'read',
-  Delete: 'delete'
-} as const);
-
-export type RouteActionKind = typeof RouteActionKind[keyof typeof RouteActionKind];
-
+export { RouteActionKind, RequestContentType } from '../upstream/routeExecutionVocabulary';
+export type { RouteActionKind, RequestContentType } from '../upstream/routeExecutionVocabulary';
 export interface HttpMethodSpecification<M extends HttpMethod = HttpMethod> {
   readonly method: M;
   readonly actionKind: RouteActionKind;

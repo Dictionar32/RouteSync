@@ -6,11 +6,12 @@
  * @module core/types/semantic
  */
 
-import type { ModelSemanticDefinition } from '../domain/models';
+import type { ModelSemanticDefinition } from '../upstream/model';
 import type { Lookup } from '../upstream/collections';
 import type { ColumnName } from '../upstream/names';
 import type { CastType } from '../upstream/expression';
 import type { ModelColumnFact } from '../upstream/modelSourceFacts';
+import type { ModelReference, ResourceReference, ServiceReference } from '../upstream/semanticReferences';
 
 export type ExecutionLayer =
   | "controller"
@@ -18,9 +19,11 @@ export type ExecutionLayer =
   | "model"
   | "repository";
 
+export type ServiceGraphNodeReference = ModelReference | ResourceReference | ServiceReference;
+
 export interface ServiceDependency {
-  readonly from: string;
-  readonly to: string;
+  readonly from: ServiceGraphNodeReference;
+  readonly to: ServiceGraphNodeReference;
   readonly type: "calls" | "composes" | "depends_on_model" | "uses_repository";
   readonly weight: number;
 }

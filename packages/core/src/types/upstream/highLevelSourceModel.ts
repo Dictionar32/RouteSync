@@ -1,13 +1,18 @@
-import type { ModelAst } from './ast';
+import type { ModelAst, ControllerAst, ServiceAst } from './ast';
 import type { ModelFacts } from './modelSourceFacts';
 import type { ResourceFacts } from './resource';
 import type { RequestFacts } from './request';
 import type { ResponseFacts } from './response';
 import type { RouteFacts } from './route';
+import type { RouteEndpointContract } from './highLevelContracts';
 import type { SourceSpan } from './provenance';
 import type { SourceFile } from './names';
+import { matchDiscovered, matchSourceDiscovery } from './collections';
 import type { Sequence } from './collections';
-import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, SemanticRelationGraph } from './semanticReferences';
+import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, ChannelReference, ServiceReference, ControllerReference, SemanticRelationGraph } from './semanticReferences';
+import { modelNameMatchesClassName } from './names';
+import type { ResolvedServiceDependencies } from './service';
+import { createChannelName } from './names';
 
 export type SourceProjectIdentity = {
   readonly kind: 'laravel_project';
@@ -52,6 +57,28 @@ export type ResponseSemanticNode = {
   readonly source: SourceSpan;
 };
 
+export type ControllerSemanticNode = {
+  readonly kind: 'controller_semantic_node';
+  readonly identity: ControllerReference;
+  readonly action: ControllerAst['action'];
+  readonly source: SourceSpan;
+};
+
+export type ServiceSemanticNode = {
+  readonly kind: 'service_semantic_node';
+  readonly identity: ServiceReference;
+  readonly definition: import('./service').ServiceDefinition;
+  readonly resolvedDependencies: ResolvedServiceDependencies;
+  readonly source: SourceSpan;
+};
+
+export type ChannelSemanticNode = {
+  readonly kind: 'channel_semantic_node';
+  readonly identity: ChannelReference;
+  readonly definition: import('./channel').ChannelDefinition;
+  readonly source: SourceSpan;
+};
+
 export type RouteSemanticNode = {
   readonly kind: 'route_semantic_node';
   readonly identity: RouteReference;
@@ -60,6 +87,21 @@ export type RouteSemanticNode = {
 };
 
 const modelNodeFromAst = (ast: ModelAst): ModelSemanticNode => modelSemanticNodeFromAst(ast);
+const serviceNodeFromAst = (ast: ServiceAst): ServiceSemanticNode => ({
+  kind: 'service_semantic_node',
+  identity: { kind: 'service_reference', name: ast.definition.name },
+  definition: ast.definition,
+  resolvedDependencies: { kind: 'resolved_service_dependencies', items: { kind: 'empty' } },
+  source: ast.source,
+});
+
+const controllerNodeFromAst = (ast: ControllerAst): ControllerSemanticNode => ({
+  kind: 'controller_semantic_node',
+  identity: { kind: 'controller_reference', name: ast.action.controller, action: ast.action.action },
+  action: ast.action,
+  source: ast.source,
+});
+
 
 const resourceNodeFromAst = (ast: import('./ast').ResourceAst): ResourceSemanticNode => ({
   kind: 'resource_semantic_node',
@@ -93,6 +135,36 @@ const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNod
   source: ast.source,
 });
 
+const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
+  const definition = ast.definition;
+  const endpoint: RouteEndpointContract = {
+    kind: 'route_endpoint_contract',
+    method: definition.method,
+    path: definition.path,
+    target: definition.target,
+    parameters: definition.parameters,
+    authentication: definition.auth,
+    capability: definition.capability,
+    middleware: definition.middleware,
+    request: definition.request,
+    response: { kind: 'declared_response', response: definition.response },
+    source: ast.source,
+  };
+  return {
+    kind: 'route_semantic_node',
+    identity: { kind: 'route_reference', name: definition.name },
+    facts: {
+      kind: 'route_facts',
+      identity: { kind: 'route_reference', name: definition.name },
+      domain: definition.domain,
+      endpoint,
+      response: definition.response,
+      source: ast.source,
+    },
+    source: ast.source,
+  };
+};
+
 const responseNodeFromAst = (ast: import('./ast').ResponseAst): ResponseSemanticNode => ({
   kind: 'response_semantic_node',
   identity: { kind: 'response_reference', name: ast.definition.typeName },
@@ -108,11 +180,14 @@ const responseNodeFromAst = (ast: import('./ast').ResponseAst): ResponseSemantic
 
 export type SourceModelCatalog = {
   readonly kind: 'source_model_catalog';
+  readonly controllers: Sequence<ControllerSemanticNode>;
   readonly models: Sequence<ModelSemanticNode>;
   readonly resources: Sequence<ResourceSemanticNode>;
   readonly requests: Sequence<RequestSemanticNode>;
   readonly responses: Sequence<ResponseSemanticNode>;
+  readonly services: Sequence<ServiceSemanticNode>;
   readonly routes: Sequence<RouteSemanticNode>;
+  readonly channels: Sequence<ChannelSemanticNode>;
 };
 
 export type SourceModelReferenceIndex = {
@@ -136,14 +211,74 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
     return values.reduceRight<Sequence<I>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' });
   };
 
+  const relationValues: import('./semanticReferences').SemanticRelation[] = [];
+
+  let controllers = catalog.controllers;
+  while (controllers.kind === 'cons') {
+    const controller = controllers.head;
+    let resources = controller.action.semantic.resources;
+    while (resources.kind === 'cons') {
+      relationValues.push({ kind: 'controller_resource', controller: controller.identity, resource: resources.head.resource });
+      relationValues.push({ kind: 'controller_model', controller: controller.identity, model: resources.head.model });
+      relationValues.push({ kind: 'controller_response', controller: controller.identity, response: resources.head.response });
+      resources = resources.tail;
+    }
+    controllers = controllers.tail;
+  }
+
+  let resources = catalog.resources;
+  while (resources.kind === 'cons') {
+    const resource = resources.head;
+    relationValues.push({ kind: 'resource_model', resource: resource.identity, model: resource.facts.model });
+    relationValues.push({ kind: 'response_resource', response: resource.facts.response, resource: resource.identity });
+    resources = resources.tail;
+  }
+
+  let requests = catalog.requests;
+  while (requests.kind === 'cons') {
+    let fields = requests.head.facts.schema.fields;
+    while (fields.kind === 'cons') {
+      const target = fields.head.target;
+      if (target.kind === 'input_property') {
+        relationValues.push({ kind: 'request_property', request: requests.head.identity, property: target.property });
+      } else {
+        relationValues.push({ kind: 'request_property', request: requests.head.identity, property: target.property });
+        relationValues.push({ kind: 'request_property', request: requests.head.identity, property: target.element });
+      }
+      fields = fields.tail;
+    }
+    requests = requests.tail;
+  }
+
+  let routes = catalog.routes;
+  while (routes.kind === 'cons') {
+    const route = routes.head;
+    const request = route.facts.endpoint.request;
+    if (request.kind === 'form_request') {
+      relationValues.push({ kind: 'route_request', route: route.identity, request: request.request });
+    }
+    relationValues.push({ kind: 'route_response', route: route.identity, response: route.facts.response });
+    const target = route.facts.endpoint.target;
+    if (target.kind === 'controller') {
+      relationValues.push({ kind: 'route_controller', route: route.identity, controller: target.controller });
+    }
+    routes = routes.tail;
+  }
+
+  const relations = relationValues.reduceRight<Sequence<import('./semanticReferences').SemanticRelation>>(
+    (tail, relation) => ({ kind: 'cons', head: relation, tail }),
+    { kind: 'empty' },
+  );
+
   return {
     kind: 'source_model_reference_index',
+    controllers: collect(catalog.controllers),
     models: collect(catalog.models),
     resources: collect(catalog.resources),
     requests: collect(catalog.requests),
     responses: collect(catalog.responses),
     routes: collect(catalog.routes),
-    graph: { kind: 'semantic_relation_graph', relations: { kind: 'empty' } },
+    graph: { kind: 'semantic_relation_graph', relations },
   };
 }
 
@@ -155,39 +290,77 @@ export type CompleteLaravelSourceModel = {
 };
 
 export type CompleteSourceModelBuildResult =
-  | { readonly kind: 'complete_source_model'; readonly value: CompleteLaravelSourceModel }
-  | { readonly kind: 'source_model_incomplete'; readonly missing: 'route_facts' };
+  { readonly kind: 'complete_source_model'; readonly value: CompleteLaravelSourceModel };
 
 export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSourceAst, identity: SourceProjectIdentity): CompleteSourceModelBuildResult {
   const source = ast.ast;
-  const models = source.models.items.result.kind === 'discovered_many'
-    ? source.models.items.result.items
-    : [];
-  const resources = source.resources.items.result.kind === 'discovered_many'
-    ? source.resources.items.result.items
-    : [];
-  const requests = source.requests.items.result.kind === 'discovered_many'
-    ? source.requests.items.result.items
-    : [];
-  const responses = source.responses.items.result.kind === 'discovered_many'
-    ? source.responses.items.result.items
-    : [];
-  const routes = source.routes.items.result.kind === 'discovered_many'
-    ? source.routes.items.result.items
-    : [];
+  const completeItems = <T>(discovery: import('./collections').SourceDiscovery<T>): Sequence<T> => matchSourceDiscovery(discovery, {
+    notScanned: () => { throw new Error('CompleteSourceAst invariant violated: source category was not scanned.'); },
+    scanned: scanned => matchDiscovered(scanned.result, {
+      empty: () => ({ kind: 'empty' }),
+      many: value => value.items,
+    }),
+  });
+  const controllers = completeItems(source.controllers.items);
+  const models = completeItems(source.models.items);
+  const resources = completeItems(source.resources.items);
+  const requests = completeItems(source.requests.items);
+  const responses = completeItems(source.responses.items);
+  const services = completeItems(source.services.items);
+  const routes = completeItems(source.routes.items);
+  const channels = completeItems(source.channels.items);
 
-  if (routes.length > 0) {
-    return { kind: 'source_model_incomplete', missing: 'route_facts' };
-  }
-
-  const routeNodes: readonly RouteSemanticNode[] = [];
+  const toSequence = <T, R>(items: Sequence<T>, map: (item: T) => R): Sequence<R> => {
+    const values: R[] = [];
+    let current = items;
+    while (current.kind === 'cons') {
+      values.push(map(current.head));
+      current = current.tail;
+    }
+    return values.reduceRight<Sequence<R>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' });
+  };
   const catalog: SourceModelCatalog = {
     kind: 'source_model_catalog',
-    models: models.map(modelNodeFromAst).reduceRight<Sequence<ModelSemanticNode>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' }),
-    resources: resources.map(resourceNodeFromAst).reduceRight<Sequence<ResourceSemanticNode>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' }),
-    requests: requests.map(requestNodeFromAst).reduceRight<Sequence<RequestSemanticNode>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' }),
-    responses: responses.map(responseNodeFromAst).reduceRight<Sequence<ResponseSemanticNode>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' }),
-    routes: routeNodes.reduceRight<Sequence<RouteSemanticNode>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' }),
+    controllers: toSequence(controllers, controllerNodeFromAst),
+    models: toSequence(models, modelNodeFromAst),
+    resources: toSequence(resources, resourceNodeFromAst),
+    requests: toSequence(requests, requestNodeFromAst),
+    responses: toSequence(responses, responseNodeFromAst),
+    services: toSequence(services, service => {
+      const base = serviceNodeFromAst(service);
+      const resolved: import('./service').ResolvedServiceDependency[] = [];
+      let facts = service.definition.dependencies.items;
+      while (facts.kind === 'cons') {
+        const fact = facts.head;
+        let modelItems = models;
+        while (modelItems.kind === 'cons') {
+          if (modelNameMatchesClassName(modelItems.head.facts.identity.name, fact.target)) {
+            resolved.push({
+              kind: 'resolved_service_dependency',
+              fact,
+              target: modelItems.head.identity,
+            });
+            break;
+          }
+          modelItems = modelItems.tail;
+        }
+        facts = facts.tail;
+      }
+      return {
+        ...base,
+        resolvedDependencies: {
+          kind: 'resolved_service_dependencies',
+          items: resolved.reduceRight<Sequence<import('./service').ResolvedServiceDependency>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' }),
+        },
+      };
+    }),
+    routes: toSequence(routes, routeNodeFromAst),
+    channels: toSequence(channels, astItem => ({
+      kind: 'channel_semantic_node',
+      identity: { kind: 'channel_reference', name: createChannelName(astItem.definition.name) },
+      definition: astItem.definition,
+      source: astItem.source,
+    })),
   };
 
   return {

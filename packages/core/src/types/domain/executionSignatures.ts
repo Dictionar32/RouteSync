@@ -1,46 +1,5 @@
-import type { RouteHookKind } from "./crudRoles";
-
-export const RoutePayloadMode = Object.freeze({
-  None: 'none',
-  Required: 'required',
-  Optional: 'optional'
-} as const);
-export type RoutePayloadMode = typeof RoutePayloadMode[keyof typeof RoutePayloadMode];
-
-export interface NoPayloadExecutionSignature {
-  readonly payloadMode: 'none';
-  readonly parameterDeclaration: '';
-  readonly callArgumentsExpression: '';
-  readonly hasPayload: false;
-  readonly isOptional: true;
-}
-
-export interface RequiredPayloadExecutionSignature {
-  readonly payloadMode: 'required';
-  readonly parameterDeclaration: string;
-  readonly callArgumentsExpression: 'payload';
-  readonly hasPayload: true;
-  readonly isOptional: false;
-}
-
-export interface OptionalPayloadExecutionSignature {
-  readonly payloadMode: 'optional';
-  readonly parameterDeclaration: string;
-  readonly callArgumentsExpression: 'payload';
-  readonly hasPayload: true;
-  readonly isOptional: true;
-}
-
-export type AnyRouteExecutionSignature =
-  | NoPayloadExecutionSignature
-  | RequiredPayloadExecutionSignature
-  | OptionalPayloadExecutionSignature;
-
-/** Canonical execution-signature ADT. No parallel base contract. */
-export type RouteExecutionSignature = AnyRouteExecutionSignature;
-/** Compatibility name for the canonical ADT; not a second model. */
-export type BaseRouteExecutionSignature = RouteExecutionSignature;
-
+export { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
+export type { RoutePayloadMode, RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature } from '../upstream/routeExecutionVocabulary';
 export interface RoutePayloadModeSpecification<M extends RoutePayloadMode = RoutePayloadMode> {
   readonly mode: M;
   readonly hasPayload: NoPayloadExecutionSignature['hasPayload'] | RequiredPayloadExecutionSignature['hasPayload'];

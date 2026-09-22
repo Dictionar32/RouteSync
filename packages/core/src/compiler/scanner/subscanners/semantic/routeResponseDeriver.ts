@@ -26,10 +26,12 @@ export function deriveRouteResponseTypes(
 
         const { typeName, baseName, fields } = shape;
 
-        if (typeName.length > 0 && !seenNames.has(typeName)) {
-            seenNames.add(typeName);
+        const typeNameValue = typeName.value.value;
+        const baseNameValue = baseName.value.value;
+        if (typeNameValue.length > 0 && !seenNames.has(typeNameValue)) {
+            seenNames.add(typeNameValue);
             const properties = processResponseProperties(fields, context);
-            types.push(interner.intern(new ObjectType({ name: typeName, baseName, properties, role: 'response' })) as ObjectType);
+            types.push(interner.intern(new ObjectType({ name: typeNameValue, baseName: baseNameValue, properties, role: 'response' })) as ObjectType);
         }
     }
 

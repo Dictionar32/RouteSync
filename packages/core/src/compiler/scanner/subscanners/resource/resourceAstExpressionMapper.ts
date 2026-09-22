@@ -2,6 +2,7 @@ import { CollectionKind, PrimitiveKind, PrimitiveType, ReadonlyCollectionType, R
 import { ResourceFieldExpressionFactory, type ResourceFieldExpression } from '../../../../types/domain/expressions';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { PhpAstValue } from '../../lexer/PhpAst';
+import type { SourceRange } from '../../lexer/phpAstCoreTypes';
 import { matchPhpAstValue } from '../../LaravelSourceLexer';
 import { matchPhpAccessMode } from '../../lexer/phpAstAlgebra';
 import type { PhpAccessMode } from '../../lexer/phpAstExpressionTypes';
@@ -65,9 +66,9 @@ function mapNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): Domai
 }
 
 export function mapAstValueToExpression(value: PhpAstValue, sourceFile = '<scanner>'): ResourceExpressionModel {
-  const source = mapResourcePhpAstToUpstream(value, sourceFile);
+  const upstream = mapResourcePhpAstToUpstream(value, sourceFile);
   const model = mapAstValueToDomainExpression(value);
-  return { ...model, upstream: source };
+  return { ...model, upstream };
 }
 
 function mapAstValueToDomainExpression(value: PhpAstValue): DomainExpressionModel {

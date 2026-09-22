@@ -1,16 +1,16 @@
 import type { EloquentRelationType, EloquentRelationCardinality } from '../../../../../types/route';
-import type { ModelName } from '../../../../../types/domain/semanticValues';
+import type { ModelName, RelationName, ColumnName } from '../../../../../types/domain/semanticValues';
 import type { SemanticType } from '../../../../../../types/SemanticType';
 
 export type RelationForeignKey =
     | { readonly kind: 'convention' }
-    | { readonly kind: 'explicit'; readonly column: string };
+    | { readonly kind: 'explicit'; readonly column: ColumnName };
 
 export interface ScannedModelRelationParams {
-    readonly name: string;
+    readonly name: RelationName;
     readonly type: EloquentRelationType;
-    readonly modelName: string;
-    readonly targetModel: string;
+    readonly modelName: ModelName;
+    readonly targetModel: ModelName;
     readonly cardinality: EloquentRelationCardinality;
     readonly multiplicity: { readonly kind: 'single' } | { readonly kind: 'collection' };
     readonly semanticType: SemanticType;

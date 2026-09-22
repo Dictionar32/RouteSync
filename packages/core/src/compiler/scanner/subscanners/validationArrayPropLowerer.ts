@@ -31,34 +31,31 @@ export function buildRegularField(
         const childProperties = arrayProps.get(key)!;
         const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties, role: 'plain' });
         const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
-        return ScannedFormFieldDescriptor.create({
-            name: key,
-            originalName: key,
-            type: arrayType,
-            required: ruleStr.includes('required') || !ruleStr.includes('sometimes'),
-            nullable: ruleStr.includes('nullable')
-        });
+        return ScannedFormFieldDescriptor.fromSemantic(
+            key,
+            arrayType,
+            ruleStr.includes('required') || !ruleStr.includes('sometimes'),
+            ruleStr.includes('nullable')
+        );
     }
 
     if (primitiveArrayProps.has(key)) {
-        return ScannedFormFieldDescriptor.create({
-            name: key,
-            originalName: key,
-            type: primitiveArrayProps.get(key)!,
-            required: ruleStr.includes('required') || !ruleStr.includes('sometimes'),
-            nullable: ruleStr.includes('nullable')
-        });
+        return ScannedFormFieldDescriptor.fromSemantic(
+            key,
+            primitiveArrayProps.get(key)!,
+            ruleStr.includes('required') || !ruleStr.includes('sometimes'),
+            ruleStr.includes('nullable')
+        );
     }
 
     const primKind = resolvePrimitiveKind(ruleStr);
     const semanticType = interner.intern(new PrimitiveType(primKind));
-    return ScannedFormFieldDescriptor.create({
-        name: key,
-        originalName: key,
-        type: semanticType,
-        required: ruleStr.includes('required') || !ruleStr.includes('sometimes'),
-        nullable: ruleStr.includes('nullable')
-    });
+    return ScannedFormFieldDescriptor.fromSemantic(
+        key,
+        semanticType,
+        ruleStr.includes('required') || !ruleStr.includes('sometimes'),
+        ruleStr.includes('nullable')
+    );
 }
 
 export function appendUnprocessedArrayProps(
@@ -73,26 +70,24 @@ export function appendUnprocessedArrayProps(
             processedKeys.add(parentKey);
             const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties, role: 'plain' });
             const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
-            fields.push(ScannedFormFieldDescriptor.create({
-                name: parentKey,
-                originalName: parentKey,
-                type: arrayType,
-                required: true,
-                nullable: false
-            }));
+            fields.push(ScannedFormFieldDescriptor.fromSemantic(
+                parentKey,
+                arrayType,
+                true,
+                false
+            ));
         }
     }
 
     for (const [baseKey, arrayType] of primitiveArrayProps.entries()) {
         if (!processedKeys.has(baseKey)) {
             processedKeys.add(baseKey);
-            fields.push(ScannedFormFieldDescriptor.create({
-                name: baseKey,
-                originalName: baseKey,
-                type: arrayType,
-                required: false,
-                nullable: false
-            }));
+            fields.push(ScannedFormFieldDescriptor.fromSemantic(
+                baseKey,
+                arrayType,
+                false,
+                false
+            ));
         }
     }
 }

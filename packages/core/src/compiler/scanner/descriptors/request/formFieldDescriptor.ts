@@ -7,6 +7,7 @@ import { SemanticType, PrimitiveType, PrimitiveKind } from "../../../types/Seman
 import { SemanticValueFactory, type RequestFieldName, type PropertyName } from "../../../../types/domain/semanticValues";
 import { RequestFieldMeaningFactory, type RequestFieldMeaning } from "../../../../types/domain/requestFieldMeaning";
 import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";
+import type { SourceSpan } from "../../../../types/upstream/provenance";
 
 export interface ScannedFormFieldParams {
     readonly name: RequestFieldName;
@@ -15,6 +16,7 @@ export interface ScannedFormFieldParams {
     readonly presence: RequestFieldPresence;
     readonly validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[];
     readonly fileConstraints: FileValidationConstraints;
+    readonly source: SourceSpan;
 }
 
 export class ScannedFormFieldDescriptor implements RequestField {
@@ -24,6 +26,7 @@ export class ScannedFormFieldDescriptor implements RequestField {
     public readonly presence: RequestFieldPresence;
     public readonly validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[];
     public readonly fileConstraints: FileValidationConstraints;
+    public readonly source: SourceSpan;
 
     constructor(params: ScannedFormFieldParams) {
         this.name = params.name;
@@ -32,6 +35,7 @@ export class ScannedFormFieldDescriptor implements RequestField {
         this.presence = params.presence;
         this.validation = Object.freeze([...params.validation]);
         this.fileConstraints = Object.freeze([...params.fileConstraints]);
+        this.source = params.source;
         Object.freeze(this);
     }
 
@@ -41,7 +45,8 @@ export class ScannedFormFieldDescriptor implements RequestField {
         type: SemanticType,
         presence: RequestFieldPresence,
         validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[] = [],
-        fileConstraints: FileValidationConstraints = []
+        fileConstraints: FileValidationConstraints = [],
+        source?: SourceSpan
     ): ScannedFormFieldDescriptor {
         return new ScannedFormFieldDescriptor({
             name: SemanticValueFactory.requestFieldName(name),
@@ -49,7 +54,8 @@ export class ScannedFormFieldDescriptor implements RequestField {
             meaning: RequestFieldMeaningFactory.fromSemanticType(type),
             presence,
             validation,
-            fileConstraints
+            fileConstraints,
+            source: source ?? { kind: 'source_span', file: SemanticValueFactory.sourceFilePath('<request-field>'), start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } }
         });
     }
 
@@ -80,14 +86,17 @@ export class ScannedFormFieldDescriptor implements RequestField {
         type: SemanticType,
         presence: RequestFieldPresence,
         validation: readonly import("../../../../types/domain/validationRules").ValidationRuleNode[] = [],
-        transformedName?: string
+        transformedName?: string,
+        source?: SourceSpan
     ): ScannedFormFieldDescriptor {
         return ScannedFormFieldDescriptor.semantic(
             transformedName ?? toCamelCase(name),
             name,
             type,
             presence,
-            validation
+            validation,
+            [],
+            source
         );
     }
 

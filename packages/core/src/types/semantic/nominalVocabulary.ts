@@ -18,7 +18,7 @@ export type SourceColumnNumber = NumberValue;
 /** Service is not yet represented by a canonical upstream name. */
 export interface ServiceNodeName {
   readonly kind: 'service_node_name';
-  readonly value: string;
+  readonly value: import('../upstream/valueObjects').StringValue;
 }
 
 /**
@@ -39,7 +39,7 @@ export function createModelNodeName(name: string): ModelNodeName {
 }
 
 export function createServiceNodeName(name: string): ServiceNodeName {
-  return Object.freeze({ kind: 'service_node_name' as const, value: name.trim() });
+  return Object.freeze({ kind: 'service_node_name' as const, value: stringValue(name.trim()) });
 }
 
 export function createControllerNodeName(name: string): ControllerNodeName {

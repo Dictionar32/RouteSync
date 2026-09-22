@@ -1,4 +1,5 @@
 /** Scanner-boundary aggregate for complete validation facts. */
+import { createPropertyName } from "../../../../types/upstream/names";
 import type { RequestField } from '../../../../types/domain/request';
 import type { ValidationFieldNode } from '../../../../types/domain/validationFields';
 import type {
@@ -38,10 +39,11 @@ export class ScannedRouteValidationRuleSet implements RouteValidationRuleSet {
 }
 
 interface RootValidationField {
-    readonly name: string;
+    readonly name: import("../../../../types/upstream/names").PropertyName;
     readonly semanticType: SemanticType;
     readonly presence: RouteValidationRuleEntry['presence'];
     readonly validation: RouteValidationRuleEntry['validation'];
+    readonly source: RouteValidationRuleEntry['source'];
     readonly shape: ValidationFieldShape;
     readonly properties: readonly ValidationFieldProperty[];
 }
@@ -50,13 +52,15 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): ReadonlyMap
     const roots = new Map<string, RootValidationField>();
     for (const entry of entries) {
         const rootName = entry.location.kind === 'root' ? entry.fieldName.value.value : entry.location.collection.value.value;
+        const rootPropertyName = entry.location.kind === 'root' ? entry.fieldName : entry.location.collection;
         const existing = roots.get(rootName);
         if (entry.location.kind === 'root') {
             roots.set(rootName, {
-                name: rootName,
+                name: rootPropertyName,
                 semanticType: entry.semanticType,
                 presence: entry.presence,
                 validation: entry.validation,
+                source: entry.source,
                 shape: entry.shape,
                 properties: existing?.properties ?? []
             });
@@ -64,10 +68,11 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): ReadonlyMap
         }
         const property = leafProperty(entry);
         roots.set(rootName, {
-            name: rootName,
+            name: rootPropertyName,
             semanticType: entry.semanticType,
             presence: entry.presence,
             validation: existing?.validation ?? [],
+            source: existing?.source ?? entry.source,
             shape: existing?.shape ?? entry.shape,
             properties: mergeProperty(existing?.properties ?? [], property)
         });
@@ -117,6 +122,7 @@ function mergePropertyShape(
         semanticType: objectType(existing.name.value.value, fields),
         presence: existing.presence,
         validation: existing.validation,
+        source: existing.source,
         shape
     };
 }
@@ -125,17 +131,17 @@ function toRequestField(root: RootValidationField, interner: TypeInterner): Requ
     const type = root.properties.length > 0
         ? interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, objectType(root.name, root.properties)))
         : root.semanticType;
-    return ScannedFormFieldDescriptor.fromResolved(root.name, type, root.presence, root.validation);
+    return ScannedFormFieldDescriptor.fromResolved(root.name, type, root.presence, root.validation, undefined, root.source);
 }
 
-function objectType(name: string, properties: readonly ValidationFieldProperty[]): ObjectType {
+function objectType(name: import("../../../../types/upstream/names").PropertyName, properties: readonly ValidationFieldProperty[]): ObjectType {
     const objectProperties: ObjectProperty[] = properties.map(property => ({
         name: property.name,
         type: property.semanticType,
         description: '',
         origin: { kind: 'validation_field', field: property.name.value.value }
     }));
-    return new ObjectType({ name, baseName: name, properties: objectProperties, role: 'plain' });
+    return new ObjectType({ name: name.value.value, baseName: name.value.value, properties: objectProperties, role: 'plain' });
 }
 
 function toTreeNode(root: RootValidationField): ValidationFieldNode {
@@ -160,7 +166,7 @@ function toTreeNode(root: RootValidationField): ValidationFieldNode {
             root.semanticType,
             root.presence,
             ScannedScalarFieldNode.create(
-                `${root.name}.*`,
+                createPropertyName(`${root.name.value.value}.*`),
                 root.semanticType.elementType,
                 RequestFieldPresenceFactory.unspecified()
             ),
@@ -173,7 +179,7 @@ function toTreeNode(root: RootValidationField): ValidationFieldNode {
 function propertyToTreeNode(property: ValidationFieldProperty): ValidationFieldNode {
     if (property.shape.kind === 'object') {
         return ScannedObjectFieldNode.create(
-            property.name.value.value,
+            property.name,
             property.semanticType,
             property.presence,
             property.shape.fields.map(propertyToTreeNode)
@@ -181,11 +187,11 @@ function propertyToTreeNode(property: ValidationFieldProperty): ValidationFieldN
     }
     if (property.shape.kind === 'collection') {
         return ScannedArrayFieldNode.create(
-            property.name.value.value,
+            property.name,
             property.semanticType,
             property.presence,
             ScannedScalarFieldNode.create(
-                `${property.name.value.value}.*`,
+                createPropertyName(`${property.name.value.value}.*`),
                 property.shape.elementType,
                 property.presence
             ),
@@ -193,7 +199,7 @@ function propertyToTreeNode(property: ValidationFieldProperty): ValidationFieldN
         );
     }
     return ScannedScalarFieldNode.create(
-        property.name.value.value,
+        property.name,
         property.semanticType,
         property.presence,
         property.validation

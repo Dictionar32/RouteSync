@@ -8,7 +8,7 @@ import type { SemanticResolution } from '../../../types/domain/semanticResolutio
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
 import type { ModelName } from '../../../types/domain/semanticValues';
-import type { ModelSemanticDefinition } from '../../../types/domain/models';
+import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 import type { SemanticTraceNode } from '../../../types/domain/semanticResolution';
 import { parseSelectRawFields } from './selectRawProjectionParser';
 

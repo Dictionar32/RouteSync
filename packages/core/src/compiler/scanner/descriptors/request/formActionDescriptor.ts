@@ -8,11 +8,12 @@
 
 import {
     FormAction,
+    FormActionName,
     RequestField
 } from "../../../artifacts/RequestTypesArtifact";
 
 export interface ScannedFormActionParams {
-    readonly name: string;
+    readonly name: FormActionName;
     readonly fields: readonly RequestField[];
 }
 
@@ -20,7 +21,7 @@ export interface ScannedFormActionParams {
  * Reusable Constructor: Scanned Form Action Descriptor.
  */
 export class ScannedFormActionDescriptor implements FormAction {
-    public readonly name: string;
+    public readonly name: FormActionName;
     public readonly fields: readonly RequestField[];
 
     constructor({ name, fields }: ScannedFormActionParams) {
@@ -33,7 +34,7 @@ export class ScannedFormActionDescriptor implements FormAction {
         name,
         fields = []
     }: {
-        readonly name: string;
+        readonly name: FormActionName;
         readonly fields?: readonly RequestField[];
     }): ScannedFormActionDescriptor {
         return new ScannedFormActionDescriptor({
@@ -42,7 +43,7 @@ export class ScannedFormActionDescriptor implements FormAction {
         });
     }
 
-    public static empty(name: string): ScannedFormActionDescriptor {
+    public static empty(name: FormActionName): ScannedFormActionDescriptor {
         return new ScannedFormActionDescriptor({
             name,
             fields: Object.freeze([])

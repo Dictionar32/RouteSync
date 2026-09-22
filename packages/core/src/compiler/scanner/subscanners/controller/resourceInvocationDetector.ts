@@ -7,38 +7,34 @@
  */
 
 import type { Token } from '../lexer/types';
+import type { PhpAstValue } from '../lexer/PhpAst';
+import { classifyAstTokens } from '../lexer/astClassifier';
 import { ResourceResponseDescriptor } from '../../../../types/route';
+import type { ResourceName } from '../../../../types/upstream/names';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 
 export interface DetectedResourceInvocation {
   readonly descriptor: ResourceResponseDescriptor;
-  readonly resourceName: string;
-  readonly firstArg?: string;
+  readonly resourceName: ResourceName;
+  readonly firstArg?: PhpAstValue;
 }
 
-export function extractFirstArgument(tokens: readonly Token[], openParenIdx: number): string | undefined {
+export function extractFirstArgument(tokens: readonly Token[], openParenIdx: number): PhpAstValue | undefined {
   let idx = openParenIdx + 1;
-  while (idx < tokens.length && (tokens[idx].value === ' ' || tokens[idx].value === '\n' || tokens[idx].value === '\t')) {
-    idx++;
+  while (idx < tokens.length && (tokens[idx].value === ' ' || tokens[idx].value === '\n' || tokens[idx].value === '\t')) idx++;
+  if (idx >= tokens.length || tokens[idx].value === ')') return undefined;
+
+  const argument: Token[] = [];
+  let depth = 0;
+  for (; idx < tokens.length; idx++) {
+    const token = tokens[idx];
+    if (token.value === '(' || token.value === '[' || token.value === '{') depth++;
+    if (token.value === ')' && depth === 0) break;
+    if (token.value === ',' && depth === 0) break;
+    if (token.value === ')' || token.value === ']' || token.value === '}') depth--;
+    argument.push(token);
   }
-  if (idx >= tokens.length || tokens[idx].value === ')') {
-    return undefined;
-  }
-  if (tokens[idx].type === 'VARIABLE') {
-    return tokens[idx].value;
-  }
-  if (tokens[idx].type === 'IDENTIFIER') {
-    return tokens[idx].value;
-  }
-  if (tokens[idx].value === 'DB' && tokens[idx + 1]?.value === '::' && tokens[idx + 2]?.value === 'table') {
-    if (tokens[idx + 3]?.value === '(') {
-      const tableToken = tokens[idx + 4];
-      if (tableToken) {
-        const cleanTable = tableToken.value.replace(/['"]/g, '');
-        return `table:${cleanTable}`;
-      }
-    }
-  }
-  return undefined;
+  return argument.length === 0 ? undefined : classifyAstTokens(argument);
 }
 
 export function detectResourceInvocation(
@@ -60,9 +56,10 @@ export function detectResourceInvocation(
     if (tokens[i]?.type === 'IDENTIFIER' && tokens[i + 1]?.value === '::' && tokens[i + 2]?.value === 'collection') {
       const resName = tokens[i].value;
       const firstArg = tokens[i + 3]?.value === '(' ? extractFirstArgument(tokens, i + 3) : undefined;
+      const resourceName = SemanticValueFactory.resourceName(resName);
       return {
-        descriptor: new ResourceResponseDescriptor({ resourceName: resName, shape: 'collection' }),
-        resourceName: resName,
+        descriptor: new ResourceResponseDescriptor({ resourceName, shape: 'collection' }),
+        resourceName,
         firstArg
       };
     }
@@ -70,9 +67,10 @@ export function detectResourceInvocation(
     if (tokens[i]?.type === 'IDENTIFIER' && tokens[i + 1]?.value === '::' && tokens[i + 2]?.value === 'make') {
       const resName = tokens[i].value;
       const firstArg = tokens[i + 3]?.value === '(' ? extractFirstArgument(tokens, i + 3) : undefined;
+      const resourceName = SemanticValueFactory.resourceName(resName);
       return {
-        descriptor: new ResourceResponseDescriptor({ resourceName: resName, shape: 'single' }),
-        resourceName: resName,
+        descriptor: new ResourceResponseDescriptor({ resourceName, shape: 'single' }),
+        resourceName,
         firstArg
       };
     }
@@ -82,9 +80,10 @@ export function detectResourceInvocation(
       if (resName.endsWith('Resource') || resName.endsWith('Collection') || (resName.charAt(0) === resName.charAt(0).toUpperCase() && resName.length > 2)) {
         const firstArg = tokens[i + 2]?.value === '(' ? extractFirstArgument(tokens, i + 2) : undefined;
         const shape = (resName.endsWith('Collection') || hasPaginate) ? 'collection' : 'single';
+        const resourceName = SemanticValueFactory.resourceName(resName);
         return {
-          descriptor: new ResourceResponseDescriptor({ resourceName: resName, shape }),
-          resourceName: resName,
+          descriptor: new ResourceResponseDescriptor({ resourceName, shape }),
+          resourceName,
           firstArg
         };
       }

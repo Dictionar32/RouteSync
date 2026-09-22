@@ -3,11 +3,13 @@ import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { PhpAccessMode, PhpArgument, PhpArrayEntry, PhpArrayKey, PhpAstValue, PhpPropertyPath } from '../../lexer/phpAstExpressionTypes';
 import { matchPhpAccessMode } from '../../lexer/phpAstAlgebra';
 const str = (value: string): import('../../../../types/upstream/valueObjects').StringValue => ({ kind: 'string_value', value });
+import { createSourceFile } from '../../../../types/upstream/names';
 import type { ClassName, FunctionName, MethodName, PropertyName, ResourceName, VariableName } from '../../../../types/upstream/names';
 import type { AssignmentTarget } from '../../../../types/upstream/assignment';
 
 export type UpstreamExpressionMapper = (value: PhpAstValue, file: string) => Expression;
-export const sourceSpan = (file: string): SourceSpan => ({ kind: 'source_span', file, start: { line: 0, column: 0 }, end: { line: 0, column: 0 } });
+export const sourceSpan = (file: string, position = 0): SourceSpan => ({ kind: 'source_span', file: createSourceFile(file), start: { kind: 'number_value', value: position }, end: { kind: 'number_value', value: position } });
+export const sourceSpanFromRange = (file: import('../../../../types/upstream/names').SourceFile, range: import('../../lexer/phpAstCoreTypes').SourceRange): SourceSpan => ({ kind: 'source_span', file, start: { kind: 'number_value', value: range.startOffset }, end: { kind: 'number_value', value: range.endOffset } });
 export const variable = (value: string): VariableName => ({ kind: 'variable_name', value: str(value) });
 export const property = (value: string): PropertyName => ({ kind: 'property_name', value: str(value) });
 export const method = (value: string): MethodName => ({ kind: 'method_name', value: str(value) });
@@ -73,11 +75,11 @@ export function mapCastType(kind: import('../../lexer/phpAstExpressionTypes').Ph
 
 export function mapArrayEntry(entry: PhpArrayEntry, index: number, mapExpression: UpstreamExpressionMapper, file: string, source: SourceSpan): ArrayEntry {
   if (entry.kind === 'positional') return { kind: 'implicit', index: { kind: 'number_value', value: index }, value: mapExpression(entry.value, file), source };
-  return { kind: 'keyed', key: mapArrayKey(entry.key, mapExpression, file), value: mapExpression(entry.value, file), source };
+  return { kind: 'keyed', key: mapArrayKey(entry.key, mapExpression, file, source), value: mapExpression(entry.value, file), source };
 }
 
-export function mapArrayKey(key: PhpArrayKey, mapExpression: UpstreamExpressionMapper, file: string): Expression {
-  switch (key.kind) { case 'string': return { kind: 'literal', value: { kind: 'string_literal', value: str(key.value) }, source: sourceSpan(file) }; case 'integer': return { kind: 'literal', value: { kind: 'number_literal', value: { kind: 'number_value', value: key.value } }, source: sourceSpan(file) }; case 'expression': return mapExpression(key.value, file); }
+export function mapArrayKey(key: PhpArrayKey, mapExpression: UpstreamExpressionMapper, file: string, entrySource: SourceSpan): Expression {
+  switch (key.kind) { case 'string': return { kind: 'literal', value: { kind: 'string_literal', value: str(key.value) }, source: entrySource }; case 'integer': return { kind: 'literal', value: { kind: 'number_literal', value: { kind: 'number_value', value: key.value } }, source: entrySource }; case 'expression': return mapExpression(key.value, file); }
 }
 
 export function mapAssignmentTarget(target: import('../../lexer/phpAstStatementTypes').PhpAssignmentTarget, mapExpression: UpstreamExpressionMapper, file: string): AssignmentTarget {

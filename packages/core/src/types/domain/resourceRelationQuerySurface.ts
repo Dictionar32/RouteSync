@@ -1,6 +1,6 @@
 import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
 import type { EloquentRelationCardinality, RelationForeignKey } from './eloquentTypes';
-import type { ModelSemanticProperty, ModelSemanticRelation } from './models';
+import type { ModelSemanticProperty, ModelSemanticRelation } from '../upstream/model';
 import type { ResourceModelSurface } from './resourceModelSurface';
 import type { ResourcePaginationDelivery } from './resourceResponseSemantic';
 import type { MethodName, ModelName, PropertyName, RelationName } from './semanticValues';

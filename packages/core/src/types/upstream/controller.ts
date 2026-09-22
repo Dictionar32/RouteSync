@@ -2,15 +2,13 @@ import type { Assignment } from './assignment';
 import type { Expression } from './expression';
 import type { ActionName, ControllerName, ExceptionName, ModelName, RequestName, ResourceName, TableName, VariableName } from './names';
 import type { SourceSpan } from './provenance';
-import type { CatchHandlers, ControllerStatements, Sequence } from './collections';
-import type { ResourceReference } from './semanticReferences';
+import type { CatchHandlers, SourceStatements, Sequence } from './collections';
+import type { SourceConditionalBranches } from './sourceStatements';
+import type { ResourceReference, ResponseReference } from './semanticReferences';
 import type { HttpStatusCode } from './valueObjects';
 
 export type RequestBinding = { readonly kind: 'bound_request'; readonly name: RequestName } | { readonly kind: 'no_request' };
-export type CatchHandler = { readonly kind: 'catch_handler'; readonly variable: VariableName; readonly exception: ExceptionName; readonly body: ControllerStatements; readonly source: SourceSpan };
-export type ConditionalBranches = { readonly kind: 'then_only'; readonly whenTrue: ControllerStatements } | { readonly kind: 'then_else'; readonly whenTrue: ControllerStatements; readonly whenFalse: ControllerStatements };
-export type ControllerStatement = { readonly kind: 'assignment'; readonly value: Assignment; readonly source: SourceSpan } | { readonly kind: 'expression'; readonly value: Expression; readonly source: SourceSpan } | { readonly kind: 'return'; readonly expression: Expression; readonly source: SourceSpan } | { readonly kind: 'conditional'; readonly condition: Expression; readonly branches: ConditionalBranches; readonly source: SourceSpan } | { readonly kind: 'for_each'; readonly iterable: Expression; readonly variable: VariableName; readonly body: ControllerStatements; readonly source: SourceSpan } | { readonly kind: 'transaction'; readonly body: ControllerStatements; readonly source: SourceSpan } | { readonly kind: 'try'; readonly body: ControllerStatements; readonly catches: CatchHandlers; readonly source: SourceSpan } | { readonly kind: 'throw'; readonly error: Expression; readonly source: SourceSpan } | { readonly kind: 'abort'; readonly status: HttpStatusCode; readonly message: Expression; readonly source: SourceSpan };
-
+export type ControllerResponse = { readonly kind: 'response_present'; readonly response: ResponseReference } | { readonly kind: 'response_absent' };
 export type ControllerModelOrigin =
   | { readonly kind: 'model_class'; readonly name: ModelName }
   | { readonly kind: 'table'; readonly name: TableName };
@@ -64,6 +62,7 @@ export interface ControllerVariableBinding {
 export interface ControllerResourceBinding {
   readonly resource: ResourceReference;
   readonly model: ControllerModelOrigin;
+  readonly response: ResponseReference;
   readonly source: SourceSpan;
 }
 
@@ -84,7 +83,8 @@ export type ControllerAction = {
   readonly controller: ControllerName;
   readonly action: ActionName;
   readonly request: RequestBinding;
-  readonly statements: ControllerStatements;
+  readonly response: ControllerResponse;
+  readonly statements: SourceStatements;
   readonly semantic: ControllerSemanticDataflow;
   readonly source: SourceSpan;
 };

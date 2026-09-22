@@ -1,4 +1,5 @@
 import { PrimitiveKind } from "../../compiler/types/SemanticType";
+import type { TypeExpression } from "../upstream/typeVocabulary";
 
 /**
  * DatabaseColumnKind
@@ -354,9 +355,9 @@ export class DatabaseColumnTypeMapper {
 }
 
 export interface ParsedColumn {
-  readonly name: string;
-  readonly propertyName: string;
+  readonly name: import('./semanticValues').ColumnName;
+  readonly propertyName: import('./semanticValues').PropertyName;
   readonly type: import('./modelContracts').DatabaseColumnType;
   readonly nullability: import('./modelContracts').Nullability;
-  readonly semanticType: import('../../compiler/types/SemanticType').SemanticType;
+  readonly semanticType: TypeExpression;
 }

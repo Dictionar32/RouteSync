@@ -17,19 +17,20 @@ import type {
     RoutePolicyDescriptor,
     RateLimitDescriptor
 } from "../../../../types/route";
+import type { PropertyName, DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName } from "../../../../types/upstream/names";
 
 export function resolveRouteDescriptorDomain(route: {
-    readonly domain?: string;
-    readonly resourceName?: string;
-    readonly controllerName?: string;
-    readonly path?: string;
-    readonly actionName?: string;
-}): string {
+    readonly domain?: DomainTypeName;
+    readonly resourceName?: ResourceName;
+    readonly controllerName?: ControllerName;
+    readonly path?: RoutePath;
+    readonly actionName?: ActionName;
+}): DomainTypeName {
     return RouteDomainResolver.resolve(route);
 }
 
 export function resolveRouteDescriptorSecurity(
-    middleware: readonly string[],
+    middleware: readonly PropertyName[],
     auth: boolean
 ): {
     readonly security: RouteSecurityDescriptor;

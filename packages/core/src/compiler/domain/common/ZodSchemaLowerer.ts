@@ -44,7 +44,8 @@ const ZOD_PRIMITIVES: Readonly<Record<ResolvedPrimitiveKind, string>> = Object.f
     boolean: 'z.boolean()',
     datetime: 'z.string().datetime()',
     file: 'z.custom<File>()',
-    unknown: 'z.unknown()'
+    unknown: 'z.unknown()',
+    unspecified: 'z.unknown()'
 });
 
 export function toZodSchemaExpression(

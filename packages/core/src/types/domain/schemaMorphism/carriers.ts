@@ -9,6 +9,7 @@
 
 import { PrimitiveKind } from '../../../compiler/types/SemanticType';
 import type { TypeWrapper } from './wrappers';
+import type { ModelName, ResourceName } from '../../../types/upstream/names';
 
 export const DomainCarrierKind = Object.freeze({
     Scalar: 'scalar',
@@ -26,13 +27,13 @@ export interface ScalarCarrier {
 
 export interface ModelCarrier {
     readonly kind: typeof DomainCarrierKind.Model;
-    readonly modelName: string;
+    readonly modelName: ModelName;
     readonly primaryKeyType: PrimitiveKind;
 }
 
 export interface ResourceCarrier {
     readonly kind: typeof DomainCarrierKind.Resource;
-    readonly resourceName: string;
+    readonly resourceName: ResourceName;
 }
 
 export interface StructuralCarrier {
@@ -57,11 +58,11 @@ export class DomainCarrierFactory {
         return Object.freeze({ kind: DomainCarrierKind.Scalar, primitive });
     }
 
-    public static model(modelName: string, primaryKeyType: PrimitiveKind = PrimitiveKind.NUMBER): ModelCarrier {
+    public static model(modelName: ModelName, primaryKeyType: PrimitiveKind = PrimitiveKind.NUMBER): ModelCarrier {
         return Object.freeze({ kind: DomainCarrierKind.Model, modelName, primaryKeyType });
     }
 
-    public static resource(resourceName: string): ResourceCarrier {
+    public static resource(resourceName: ResourceName): ResourceCarrier {
         return Object.freeze({ kind: DomainCarrierKind.Resource, resourceName });
     }
 

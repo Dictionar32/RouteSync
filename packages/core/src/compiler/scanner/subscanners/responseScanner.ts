@@ -1,6 +1,7 @@
 import path from 'path';
 import * as fs from 'node:fs';
 import type { ResponseAst } from '../../../types/upstream/ast';
+import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import type { ResponseDtoDeclarationAst, PhpPropertyTypeAst } from '../lexer/responseDtoAstTypes';
 import type { Sequence } from '../../../types/upstream/collections';
 import type { TypeExpression, TypeProperty } from '../../../types/upstream/typeVocabulary';
@@ -58,8 +59,9 @@ function className(tokens: readonly { readonly value: string }[]): string {
   throw new Error('Response DTO class declaration not found');
 }
 
-export async function scanResponseAsts(projectRoot: string): Promise<readonly ResponseAst[]> {
-  const directory = path.join(projectRoot, 'app', 'Http', 'DTOs');
+export async function scanResponseAsts(sourceProject: SourceProjectIdentity): Promise<readonly ResponseAst[]> {
+  const sourceRoot = sourceProject.root.value.value;
+  const directory = path.join(sourceRoot, 'app', 'Http', 'DTOs');
   const files = await collectPhpFiles(directory);
   const asts: ResponseAst[] = [];
   for (const file of files) {

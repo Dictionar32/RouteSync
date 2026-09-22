@@ -18,18 +18,19 @@ import {
   ModelControllerMap,
   ModelNodeMap
 } from '../../types/domain/semanticCollections';
+import type { GraphNodeIndex } from './graphNodeIndex';
 
 export function assembleServiceGraph(
-  modelsMap: ReadonlyMap<string, ServiceModelNode>,
-  servicesMap: ReadonlyMap<string, ServiceNode>,
+  modelsMap: GraphNodeIndex<ServiceModelNode>,
+  servicesMap: GraphNodeIndex<ServiceNode>,
   controllersMap: ReadonlyMap<string, ControllerNode>,
   edges: readonly ServiceDependency[]
 ): ServiceGraph {
   const models = ModelNodeMap.fromEntries(
-    Array.from(modelsMap.entries()).map(([name, model]) => ({ name, model }))
+    Array.from(modelsMap).filter(entry => entry.reference.kind === 'model_reference').map(entry => ({ name: entry.reference.name.value.value, model: entry.value }))
   );
   const services = ModelServiceMap.fromEntries(
-    Array.from(servicesMap.entries()).map(([name, service]) => ({ name, service }))
+    Array.from(servicesMap).filter(entry => entry.reference.kind === 'service_reference').map(entry => ({ name: entry.reference.name.value.value, service: entry.value }))
   );
   const controllers = ModelControllerMap.fromEntries(
     Array.from(controllersMap.entries()).map(([name, controller]) => ({ name, controller }))

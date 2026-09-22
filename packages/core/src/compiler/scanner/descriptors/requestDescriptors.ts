@@ -10,6 +10,7 @@
 
 import type { SemanticType } from "../../types/SemanticType";
 import type { RequestFieldPresence } from "../../../types/domain/requestFieldPresence";
+import type { FormActionName } from "../../../types/domain/request";
 import {
     type ControllerActionInfo,
     type ScannedControllerActionParams,
@@ -41,7 +42,7 @@ export {
 export function buildRequestTypeWithActions(
     resourceName: string,
     actionDefinitions: readonly {
-        readonly actionName: string;
+        readonly actionName: FormActionName;
         readonly fields: readonly {
             readonly name: string;
             readonly type: SemanticType;

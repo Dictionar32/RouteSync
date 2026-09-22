@@ -1,7 +1,7 @@
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
 import type { SemanticType } from '../../../compiler/types/SemanticType';
-import type { ModelSemanticDefinition } from '../../../types/domain/models';
+import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 
 export function aggregateType(
   aggregate: 'avg' | 'count' | 'sum' | 'min' | 'max',

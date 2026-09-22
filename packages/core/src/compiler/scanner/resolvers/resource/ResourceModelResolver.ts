@@ -7,6 +7,8 @@
  * @module compiler/scanner/resolvers/resource
  */
 
+import type { ModelName, ResourceName } from "../../../../types/upstream/names";
+
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import {
     type ResourceModelBinding,
@@ -18,11 +20,22 @@ import { matchLookup, type Lookup } from "../../../../types/upstream/collections
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 
 export interface ResourceModelResolutionInput {
-    readonly resourceName: string;
+    readonly resourceName: ResourceName;
     readonly fieldNames: readonly string[];
     readonly modelSymbolTable: ModelSymbolTable;
     readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
-    readonly relationPropagationMap?: ReadonlyMap<string, string>;
+    readonly relationPropagationMap?: ReadonlyMap<ResourceName, ModelName>;
+}
+
+
+function findPropagatedModel(
+    relationPropagationMap: ReadonlyMap<ResourceName, ModelName>,
+    resourceName: ResourceName
+): ModelName | undefined {
+    for (const [key, model] of relationPropagationMap) {
+        if (key.value.value === resourceName.value.value) return model;
+    }
+    return undefined;
 }
 
 export class ResourceModelResolver {
@@ -59,9 +72,11 @@ export class ResourceModelResolver {
             if (binding !== undefined) return binding;
         }
 
-        if (relationPropagationMap && relationPropagationMap.has(resourceName)) {
-            const targetModel = relationPropagationMap.get(resourceName)!;
-            const binding = this.bind(modelSymbolTable.get(targetModel), 'relation_propagation');
+        const propagatedModel = relationPropagationMap === undefined
+            ? undefined
+            : findPropagatedModel(relationPropagationMap, resourceName);
+        if (propagatedModel !== undefined) {
+            const binding = this.bind(modelSymbolTable.get(propagatedModel), 'relation_propagation');
             if (binding !== undefined) return binding;
         }
 

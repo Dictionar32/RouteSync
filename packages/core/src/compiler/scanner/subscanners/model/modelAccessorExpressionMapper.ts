@@ -1,6 +1,8 @@
 import type { PhpAstValue, PhpBinaryOperator, PhpUnaryOperator, PhpCastType } from '../../lexer/phpAstTypes';
 import { matchPhpMatchArm } from '../../lexer/phpAstAlgebra';
-import type { ModelAccessorExpression } from '../../../../types/domain/eloquentTypes';
+import type { ModelAccessorExpression } from '../../../../types/upstream/modelVocabulary';
+import type { LiteralValue } from '../../../../types/upstream/primitiveVocabulary';
+import type { NumberValue, StringValue, TruthValue } from '../../../../types/upstream/valueObjects';
 import { matchPhpAstValue } from '../../lexer/phpAstAlgebra';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 
@@ -23,6 +25,20 @@ function castType(cast: PhpCastType) {
     return { kind: 'semantic_cast', value: cast.kind };
 }
 
+function literalValue(value: string | number | boolean | null): LiteralValue {
+    if (value === null) return { kind: 'null_literal' };
+    if (typeof value === 'string') {
+        const stringValue: StringValue = { kind: 'string_value', value };
+        return { kind: 'string_literal', value: stringValue };
+    }
+    if (typeof value === 'number') {
+        const numberValue: NumberValue = { kind: 'number_value', value };
+        return { kind: 'number_literal', value: numberValue };
+    }
+    const truthValue: TruthValue = { kind: 'truth_value', value };
+    return { kind: 'boolean_literal', value: truthValue };
+}
+
 export function mapModelAccessorReturnExpression(ast: PhpAstValue): ModelAccessorExpression {
     if (ast.kind === 'static_call' && ast.className === 'Attribute' && ast.method === 'make') {
         const getter = ast.arguments.find(argument => argument.kind === 'named' && argument.name === 'get');
@@ -37,7 +53,7 @@ export function mapModelAccessorReturnExpression(ast: PhpAstValue): ModelAccesso
 
 export function mapModelAccessorExpression(ast: PhpAstValue): ModelAccessorExpression {
     return matchPhpAstValue<ModelAccessorExpression>(ast, {
-        literal: node => ({ kind: 'literal', value: node.value }),
+        literal: node => ({ kind: 'literal', value: literalValue(node.value) }),
         variableReference: node => ({ kind: 'variable_read', variable: SemanticValueFactory.variableName(node.name) }),
         propertyAccess: node => ({ kind: 'property_read', property: SemanticValueFactory.propertyName(node.property), receiver: mapModelAccessorExpression(node.receiver), access: node.access.kind }),
         methodChain: node => ({ kind: 'method_call', method: SemanticValueFactory.methodName(node.property), receiver: mapModelAccessorExpression(node.receiver), arguments: node.arguments.map(argument => mapModelAccessorExpression(argument.value)), access: node.access.kind }),

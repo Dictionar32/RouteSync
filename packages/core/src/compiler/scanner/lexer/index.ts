@@ -65,3 +65,6 @@ export type { ControllerDataflowReference } from './controllerDataflowAnalyzer';
 
 export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst, PhpPropertyTypeAst } from './responseDtoAstTypes';
 export { parseResponseDtoDeclaration } from './responseDtoDeclarationParser';
+
+export type { ModelDeclarationAst, ModelDeclarationInheritanceAst, ModelMethodAst, ModelConstantAst } from './modelAstTypes';
+export { parseModelDeclaration } from './modelDeclarationParser';

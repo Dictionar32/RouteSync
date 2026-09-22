@@ -19,19 +19,21 @@ import {
 import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 import type { RouteBoundaryOptions } from "../../../resolvers";
+import type { ActionName, DomainTypeName, ResourceName, RoutePath, SourceFile } from "../../../../../types/upstream/names";
+import { SemanticValueFactory as SVF } from "../../../../../types/domain/semanticValues";
 
 export type SyntheticRouteOptions = {
     readonly method?: HttpMethod;
-    readonly path?: string;
-    readonly domain?: string;
-    readonly resourceName?: string;
-    readonly actionName?: string;
+    readonly path?: RoutePath;
+    readonly domain?: DomainTypeName;
+    readonly resourceName?: ResourceName;
+    readonly actionName?: ActionName;
     readonly response?: ResponseDescriptor;
     readonly auth?: boolean;
-    readonly middleware?: readonly string[];
+    readonly middleware?: readonly import("../../../../../types/upstream/names").PropertyName[];
     readonly parameters?: readonly RouteParameter[];
     readonly invalidation?: RouteCacheInvalidationDescriptor;
-    readonly sourceFile?: string;
+    readonly sourceFile?: SourceFile;
     readonly sourceLine?: number;
 };
 
@@ -41,15 +43,17 @@ export function createSyntheticRoute(
 ): ScannedRouteDescriptor {
     const {
         method = "GET",
-        path = "/synthetic",
-        domain = "Synthetic",
-        resourceName = "Synthetic",
-        actionName = "index",
+        path = SVF.routePath("/synthetic"),
+        domain = SVF.domainName("Synthetic"),
+        resourceName = SVF.resourceName("Synthetic"),
+        actionName = SVF.actionName("index"),
         response,
         auth = false,
         middleware = [],
         parameters = [],
-        invalidation
+        invalidation,
+        sourceFile,
+        sourceLine
     } = options;
 
     return createFn({
@@ -59,17 +63,17 @@ export function createSyntheticRoute(
         domain,
         resourceName,
         actionName,
-        action: `synthetic@${actionName}`,
-        controllerName: "SyntheticController",
+        action: SVF.actionName(`synthetic@${actionName.value.value}`),
+        controllerName: SVF.controllerName("SyntheticController"),
         handler: Object.freeze({
             kind: RouteHandlerKind.ControllerAction,
-            controllerName: "SyntheticController",
+            controllerName: SVF.className("SyntheticController"),
             actionName,
-            target: `synthetic@${actionName}`
+            target: SVF.className(`synthetic@${actionName.value.value}`)
         }),
-        sourceFile,
-        sourceLine,
-        response: response ?? new ResourceResponseDescriptor({ resourceName: `${resourceName}Resource`, shape: "single" }),
+        sourceFile: sourceFile ?? SVF.sourceFilePath("<synthetic>"),
+        sourceLine: sourceLine ?? 0,
+        response: response ?? new ResourceResponseDescriptor({ resourceName: `${resourceName.value.value}Resource`, shape: "single" }),
         request: { kind: 'no_request' },
         runtimeReturn: { kind: 'none' },
         schema: ScannedRouteSchemaPayload.empty(),

@@ -10,7 +10,6 @@
 import type {
     ParsedRoute,
     ParsedResource,
-    ParsedModel
 } from '../../../types/route';
 import type { ObjectType } from '../../types/SemanticType';
 import type { ModelAst } from '../../../types/upstream/ast';

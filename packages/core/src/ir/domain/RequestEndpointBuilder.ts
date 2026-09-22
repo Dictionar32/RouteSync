@@ -75,7 +75,7 @@ export class RequestEndpointBuilder {
             })),
             metadata: {
                 controller: route.binding.controllerName,
-                action: route.binding.action,
+                action: route.identity.name,
                 routeName: route.identity.name,
                 generatedAt: new Date().toISOString() as import('../../types/upstream/valueObjects').GenerationTimestamp,
                 security: { kind: 'public' },

@@ -12,29 +12,34 @@ import type {
   ModelNodeMap
 } from '../domain/semanticCollections';
 import type { ServiceDependency, ServiceModelNode } from './modelGraphTypes';
+import type { ActionName } from '../upstream/names';
+import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies } from '../upstream/service';
+import type { ControllerNodeName, ServiceNodeName, ConfidenceScore } from './nominalVocabulary';
 
 export interface ServiceNode {
   kind: "service_node";
-  name: string;
+  name: ServiceNodeName;
   namespace?: string;
-  methods: string[];
+  methods: ServiceMethod[];
   layer: "service";
   dependencies: ServiceDependency[];
-  confidence: number;
+  dependencyFacts: ServiceDependencyFacts;
+  resolvedDependencies: ResolvedServiceDependencies;
+  confidence: ConfidenceScore;
 }
 
 export interface ControllerAction {
-  name: string;
+  name: ActionName;
 }
 
 export interface ControllerNode {
   kind: "controller_node";
-  name: string;
+  name: ControllerNodeName;
   routes: string[];
   actions: ControllerAction[];
   layer: "controller";
   calls: string[];
-  confidence: number;
+  confidence: ConfidenceScore;
 }
 
 export interface ServiceGraph {

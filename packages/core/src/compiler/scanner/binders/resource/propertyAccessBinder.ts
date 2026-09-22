@@ -3,12 +3,14 @@
  * No type-string parsing or semantic reclassification occurs here.
  */
 import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
+import { createPropertyName } from "../../../../types/upstream/names";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
 import { ErrorType, NullableType, SemanticType } from "../../../types/SemanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
+import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 
 export function bindPropertyAccessField(
@@ -17,7 +19,7 @@ export function bindPropertyAccessField(
     isNullsafe: boolean,
     modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
-    const binding = modelSymbol.resolveProperty(prop);
+    const binding = modelSymbol.resolveProperty(createPropertyName(prop));
     if (binding.kind === 'missing') return unresolved(key);
 
     switch (binding.value.kind) {
@@ -30,9 +32,17 @@ export function bindPropertyAccessField(
                 castType: { kind: 'no_cast' },
                 semanticType
             });
+            const target = ResourceFieldExpressionFactory.model(modelSymbol.name);
+            const expression = matchPhpAccessMode(
+                isNullsafe ? { kind: 'nullsafe' as const } : { kind: 'direct' as const },
+                {
+                    direct: () => ResourceFieldExpressionFactory.propertyAccess(target, binding.value.source.property),
+                    nullsafe: () => ResourceFieldExpressionFactory.nullsafePropertyAccess(target, binding.value.source.property),
+                }
+            );
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(
                 key,
-                primitiveExpression(semanticType),
+                expression,
                 semanticType,
                 undefined,
                 boundAst
@@ -48,9 +58,17 @@ export function bindPropertyAccessField(
                 cardinality: { kind: 'single' },
                 nullability: toNullability(semanticType)
             });
+            const target = ResourceFieldExpressionFactory.model(modelSymbol.name);
+            const expression = matchPhpAccessMode(
+                isNullsafe ? { kind: 'nullsafe' as const } : { kind: 'direct' as const },
+                {
+                    direct: () => ResourceFieldExpressionFactory.methodCall(target, binding.value.source.method),
+                    nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target, binding.value.source.method),
+                }
+            );
             const descriptor = ScannedResourceFieldDescriptor.fromExpression(
                 key,
-                primitiveExpression(semanticType),
+                expression,
                 semanticType,
                 undefined,
                 boundAst
@@ -91,12 +109,6 @@ function applyNullsafe(type: SemanticType, nullsafe: boolean): SemanticType {
 
 function toNullability(type: SemanticType): BoundNullability {
     return type.isNullable() ? { kind: 'nullable' } : { kind: 'non_nullable' };
-}
-
-function primitiveExpression(type: SemanticType) {
-    return type.kind === 'primitive'
-        ? ResourceFieldExpressionFactory.primitive(type.type)
-        : ResourceFieldExpressionFactory.unsupported('invalid_boundary_input');
 }
 
 function unresolved(key: string): BoundResourceFieldResult {

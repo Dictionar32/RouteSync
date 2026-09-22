@@ -11,8 +11,8 @@ import type { ModelAccessorComputation } from "../../../../types/domain/eloquent
 import { SemanticValueFactory, type MethodName, type PropertyName } from "../../../../types/domain/semanticValues";
 
 export interface ScannedModelAccessorParams {
-    readonly name: string;
-    readonly propertyName: string;
+    readonly name: MethodName;
+    readonly propertyName: PropertyName;
     readonly computation: ModelAccessorComputation;
 }
 
@@ -25,8 +25,8 @@ export class ScannedModelAccessorDescriptor implements ParsedAccessor {
     public readonly computation: ModelAccessorComputation;
 
     constructor({ name, propertyName, computation }: ScannedModelAccessorParams) {
-        this.name = SemanticValueFactory.methodName(name);
-        this.propertyName = SemanticValueFactory.propertyName(propertyName);
+        this.name = name;
+        this.propertyName = propertyName;
         this.computation = Object.freeze(computation);
         Object.freeze(this);
     }
@@ -41,8 +41,8 @@ export class ScannedModelAccessorDescriptor implements ParsedAccessor {
         readonly computation: ModelAccessorComputation;
     }): ScannedModelAccessorDescriptor {
         return new ScannedModelAccessorDescriptor({
-            name,
-            propertyName,
+            name: SemanticValueFactory.methodName(name),
+            propertyName: SemanticValueFactory.propertyName(propertyName),
             computation
         });
     }

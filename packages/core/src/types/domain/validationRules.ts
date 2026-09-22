@@ -1,6 +1,8 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
+import type { Expression } from '../upstream/expression';
 import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, ValidationParameter, ValidationRuleName, PropertyName } from "./semanticValues";
 import type { RequestField } from "./request";
+import type { SourceSpan } from '../upstream/provenance';
 import { SemanticValueFactory } from './semanticValues';
 
 /**
@@ -10,6 +12,7 @@ import { SemanticValueFactory } from './semanticValues';
  */
 export const ValidationRuleKind = Object.freeze({
   Required: 'required',
+  RequiredWith: 'required_with',
   Nullable: 'nullable',
   Optional: 'optional',
   String: 'string',
@@ -39,6 +42,11 @@ export interface BaseValidationRuleNode<K extends ValidationRuleKind = Validatio
 
 export interface RequiredValidationRuleNode extends BaseValidationRuleNode<'required'> {
   readonly kind: 'required';
+}
+
+export interface RequiredWithValidationRuleNode extends BaseValidationRuleNode<'required_with'> {
+  readonly kind: 'required_with';
+  readonly fields: readonly PropertyName[];
 }
 
 export interface NullableValidationRuleNode extends BaseValidationRuleNode<'nullable'> {
@@ -122,10 +130,15 @@ export interface ExistsValidationRuleNode extends BaseValidationRuleNode<'exists
   readonly column: ValidationDatabaseColumn;
 }
 
+export type UniqueValidationTarget =
+  | { readonly kind: 'all' }
+  | { readonly kind: 'ignore'; readonly value: Expression };
+
 export interface UniqueValidationRuleNode extends BaseValidationRuleNode<'unique'> {
   readonly kind: 'unique';
   readonly table: TableName;
   readonly column: ValidationDatabaseColumn;
+  readonly target: UniqueValidationTarget;
 }
 
 export interface FileValidationRuleNode extends BaseValidationRuleNode<'file'> {
@@ -144,6 +157,7 @@ export interface CustomValidationRuleNode extends BaseValidationRuleNode<'custom
 
 export type ValidationRuleNode =
   | RequiredValidationRuleNode
+  | RequiredWithValidationRuleNode
   | NullableValidationRuleNode
   | OptionalValidationRuleNode
   | StringValidationRuleNode
@@ -189,6 +203,11 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
     kind: ValidationRuleKind.Required,
     category: 'modifier',
     description: 'Field must be present and not empty'
+  },
+  [ValidationRuleKind.RequiredWith]: {
+    kind: ValidationRuleKind.RequiredWith,
+    category: 'modifier',
+    description: 'Field is required when one or more other fields are present'
   },
   [ValidationRuleKind.Nullable]: {
     kind: ValidationRuleKind.Nullable,
@@ -289,6 +308,7 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
 
 export type ValidationRuleVisitor<R> = {
   readonly required: (rule: RequiredValidationRuleNode) => R;
+  readonly required_with: (rule: RequiredWithValidationRuleNode) => R;
   readonly nullable: (rule: NullableValidationRuleNode) => R;
   readonly optional: (rule: OptionalValidationRuleNode) => R;
   readonly string: (rule: StringValidationRuleNode) => R;
@@ -329,6 +349,7 @@ export const matchRule = matchValidationRule;
  */
 export class ValidationRuleNodeFactory {
   public static required(): RequiredValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Required }); }
+  public static requiredWith(fields: readonly PropertyName[]): RequiredWithValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredWith, fields: Object.freeze([...fields]) }); }
   public static nullable(): NullableValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Nullable }); }
   public static optional(): OptionalValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Optional }); }
   public static string(): StringValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.String }); }
@@ -344,7 +365,7 @@ export class ValidationRuleNodeFactory {
   public static between(min: ValidationConstraintValue, max: ValidationConstraintValue): BetweenValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Between, min, max }); }
   public static in(values: readonly ValidationParameter[]): InValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.In, values: Object.freeze([...values]) }); }
   public static exists(table: TableName, column: ValidationDatabaseColumn = Object.freeze({ kind: 'default_column' })): ExistsValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Exists, table, column }); }
-  public static unique(table: TableName, column: ValidationDatabaseColumn = Object.freeze({ kind: 'default_column' })): UniqueValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Unique, table, column }); }
+  public static unique(table: TableName, column: ValidationDatabaseColumn = Object.freeze({ kind: 'default_column' }), target: UniqueValidationTarget = Object.freeze({ kind: 'all' })): UniqueValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Unique, table, column, target }); }
   public static file(): FileValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.File }); }
   public static image(): ImageValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Image }); }
   public static custom(rule: ValidationRuleName, parameters: readonly ValidationParameter[] = []): CustomValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Custom, rule, parameters: Object.freeze([...parameters]) }); }
@@ -376,6 +397,8 @@ export class ValidationRuleParser {
     switch (name) {
       case 'required':
         return ValidationRuleNodeFactory.required();
+      case 'required_with':
+        return ValidationRuleNodeFactory.requiredWith(params.map(value => SemanticValueFactory.propertyName(value)));
       case 'nullable':
         return ValidationRuleNodeFactory.nullable();
       case 'sometimes':
@@ -544,6 +567,7 @@ export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
     expression: 'z.instanceof(File)'
   }),
   [ValidationRuleKind.Required]: (base) => base,
+  [ValidationRuleKind.RequiredWith]: (base) => base,
   [ValidationRuleKind.Exists]: (base) => base,
   [ValidationRuleKind.Unique]: (base) => base,
   [ValidationRuleKind.Custom]: (base) => base
@@ -594,6 +618,7 @@ export interface ValidationFieldProperty {
   readonly presence: import('./requestFieldPresence').RequestFieldPresence;
   readonly validation: readonly ValidationRuleNode[];
   readonly shape: ValidationFieldShape;
+  readonly source: SourceSpan;
 }
 
 export interface RouteValidationRuleEntry {
@@ -625,7 +650,7 @@ export interface RouteMessageEntry {
  * First-Class Route Custom Attribute Name Entry.
  */
 export interface RouteAttributeEntry {
-  readonly fieldName: string;
+  readonly fieldName: PropertyName;
   readonly label: string;
 }
 

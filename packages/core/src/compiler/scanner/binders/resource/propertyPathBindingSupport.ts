@@ -1,8 +1,8 @@
-import { ResourceFieldExpressionFactory } from "../../../../types/route";
+import { ResourceFieldExpressionFactory, type ResourceFieldExpression } from "../../../../types/route";
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
-import type { SemanticType } from "../../../types/SemanticType";
 import { ErrorType } from "../../../types/SemanticType";
 import type { ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
+import type { ModelName } from "../../../../types/domain/semanticValues";
 import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
@@ -60,10 +60,30 @@ export function collectMembers(value: Member): readonly Member[] {
     return [value];
 }
 
-export function expressionForType(type: SemanticType) {
-    return type.kind === 'primitive'
-        ? ResourceFieldExpressionFactory.primitive(type.type)
-        : ResourceFieldExpressionFactory.unsupported('invalid_boundary_input');
+export function expressionForPath(rootModel: ModelName, steps: readonly ResourcePropertyPathStep[]) {
+    let expression: ResourceFieldExpression = ResourceFieldExpressionFactory.model(rootModel);
+    for (const step of steps) {
+        const nullsafe = matchPhpAccessMode(step.access, {
+            direct: () => false,
+            nullsafe: () => true,
+        });
+        if (step.kind === 'method') {
+            expression = nullsafe
+                ? ResourceFieldExpressionFactory.nullsafeMethodCall(expression, step.method)
+                : ResourceFieldExpressionFactory.methodCall(expression, step.method);
+            continue;
+        }
+        if (step.kind === 'property' && step.semantic.kind === 'accessor') {
+            expression = nullsafe
+                ? ResourceFieldExpressionFactory.nullsafeMethodCall(expression, step.semantic.method)
+                : ResourceFieldExpressionFactory.methodCall(expression, step.semantic.method);
+            continue;
+        }
+        expression = nullsafe
+            ? ResourceFieldExpressionFactory.nullsafePropertyAccess(expression, step.property)
+            : ResourceFieldExpressionFactory.propertyAccess(expression, step.property);
+    }
+    return expression;
 }
 
 export function unresolved(key: string, reason: 'missing_property' | 'non_terminal_scalar' | 'missing_target_model'): BoundResourceFieldResult {

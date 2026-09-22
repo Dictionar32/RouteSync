@@ -80,7 +80,7 @@ export class TypeHasher {
                 return 'never';
 
             case 'error':
-                return `error:${type.diagnosticMessage}`;
+                return `error:${type.diagnosticMessage.value}`;
 
             case 'reference':
                 return `reference:${type.namespace}\\${type.name}`;

@@ -9,7 +9,6 @@
 
 import {
     ParsedRoute,
-    ParsedModel,
     ParsedResource
 } from "../../../types/route";
 import { RequestType } from "../../artifacts/RequestTypesArtifact";
@@ -27,8 +26,7 @@ export class RequestTypeDeriver {
     public static derive(
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        models: readonly ParsedModel[] = []
+        interner: TypeInterner = new TypeInterner()
     ): readonly RequestType[] {
         const ctx = createDerivationContext(resources, interner);
         return aggregateRequestTypeGroups(routes, resources, ctx);
@@ -36,13 +34,12 @@ export class RequestTypeDeriver {
 }
 
 /**
- * Pure Functional Lowerer: (routes, resources, interner, models) → RequestType[]
+ * Pure Functional Lowerer: (routes, resources, interner) → RequestType[]
  */
 export function deriveRequestTypes(
     routes: readonly ParsedRoute[] = [],
     resources: readonly ParsedResource[] = [],
-    interner: TypeInterner = new TypeInterner(),
-    models: readonly ParsedModel[] = []
+    interner: TypeInterner = new TypeInterner()
 ): readonly RequestType[] {
-    return RequestTypeDeriver.derive(routes, resources, interner, models);
+    return RequestTypeDeriver.derive(routes, resources, interner);
 }

@@ -25,6 +25,7 @@ function toResponseValue(type: SemanticType): ResponseValueContract {
                 case PrimitiveKind.BOOLEAN:
                     return { kind: 'scalar', value: { kind: 'boolean_flag' } };
                 case PrimitiveKind.UNKNOWN:
+                case PrimitiveKind.UNSPECIFIED:
                     return { kind: 'unresolved_declaration', reason: 'mixed_declaration' };
             }
         case 'reference':

@@ -6,7 +6,9 @@ import type {
     RouteParameterType
 } from "../../../../../types/route";
 import type { PropertyName, RouteParameterName } from "../../../../../types/upstream/names";
-import type { Presence } from "../../../../../types/upstream/primitiveVocabulary";
+import type { Cardinality, Presence } from "../../../../../types/upstream/primitiveVocabulary";
+import type { Option } from "../../../../../types/upstream/collections";
+import type { RequestRuntimeValue } from "../../../../../types/domain/requestModels";
 
 export interface ScannedRouteParameterParams {
     readonly name: RouteParameterName;
@@ -29,12 +31,12 @@ export interface RawScannedRouteParameterInput {
 }
 
 export interface ScannedRouteQueryParameterParams {
-    readonly name: string;
-    readonly propertyName: string;
-    readonly required: boolean;
+    readonly name: RouteParameterName;
+    readonly propertyName: PropertyName;
+    readonly presence: Presence;
     readonly type: RouteParameterType;
-    readonly isArray: boolean;
-    readonly default: unknown;
+    readonly cardinality: Cardinality;
+    readonly defaultValue: Option<RequestRuntimeValue>;
 }
 
 export type ScannedRouteParameter = RouteParameter;

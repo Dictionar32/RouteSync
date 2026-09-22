@@ -1,3 +1,6 @@
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
+
+import { createControllerName, createSourceFile } from '../../../types/domain/semanticValues';
 import { readSourceText } from './scannerUtils';
 /**
  * ControllerScanner.ts
@@ -22,12 +25,13 @@ import { controllerAstFromMethod } from "./controller/controllerAstCanonical";
 
 export class ControllerScanner {
     private static async scanOnce(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         formRequestMap: ReadonlyMap<string, FormRequestSource>
     ): Promise<{ readonly asts: readonly ControllerAst[]; readonly controllerMap: Map<string, Map<string, ControllerActionInfo>> }> {
         const controllerMap = new Map<string, Map<string, ControllerActionInfo>>();
         const asts: ControllerAst[] = [];
-        const controllerDir = path.join(projectRoot, 'app', 'Http', 'Controllers');
+        const sourceRoot = sourceProject.root.value.value;
+        const controllerDir = path.join(sourceRoot, 'app', 'Http', 'Controllers');
         const files = await collectPhpFiles(controllerDir);
 
         for (const fullPath of files) {
@@ -42,14 +46,21 @@ export class ControllerScanner {
             const actionMap = new Map<string, ControllerActionInfo>();
 
             for (const method of declaration.methods) {
-                asts.push(controllerAstFromMethod(method, controllerName, fullPath));
                 const result = scanControllerAction(
                     method,
-                    controllerName,
-                    fullPath,
+                    createControllerName(controllerName),
+                    createSourceFile(fullPath),
                     formRequestMap,
-                    projectRoot
+                    sourceProject
                 );
+                const response = {
+                    kind: 'response_present' as const,
+                    response: {
+                        kind: 'response_reference' as const,
+                        name: result.descriptor.response.responseTypeName()
+                    }
+                };
+                asts.push(controllerAstFromMethod(method, controllerName, fullPath, response));
                 actionMap.set(result.actionName, result.descriptor);
             }
             controllerMap.set(controllerName, actionMap);
@@ -59,26 +70,25 @@ export class ControllerScanner {
     }
 
     public static async scan(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         formRequestMap: ReadonlyMap<string, FormRequestSource> = new Map()
     ): Promise<Map<string, Map<string, ControllerActionInfo>>> {
-        const result = await ControllerScanner.scanOnce(projectRoot, formRequestMap);
-        return result.controllerMap;
+        return (await ControllerScanner.scanOnce(sourceProject, formRequestMap)).controllerMap;
     }
 
     public static async scanCanonicalAsts(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         formRequestMap: ReadonlyMap<string, FormRequestSource> = new Map()
     ): Promise<readonly ControllerAst[]> {
-        const result = await ControllerScanner.scanOnce(projectRoot, formRequestMap);
+        const result = await ControllerScanner.scanOnce(sourceProject, formRequestMap);
         return result.asts;
     }
 
     public static async scanCanonicalBundle(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         formRequestMap: ReadonlyMap<string, FormRequestSource> = new Map()
     ): Promise<{ readonly asts: readonly ControllerAst[]; readonly controllerMap: Map<string, Map<string, ControllerActionInfo>> }> {
-        return ControllerScanner.scanOnce(projectRoot, formRequestMap);
+        return ControllerScanner.scanOnce(sourceProject, formRequestMap);
     }
 
     public static extractResourceDataflow(

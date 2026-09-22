@@ -10,7 +10,8 @@ import type { ModelAst } from "../../../../types/upstream/ast";
 import { OriginModelSymbol } from "./originModelSymbol";
 import { ResourceNamingConvention } from "../../../../utils/resource-naming";
 import type { Lookup } from "../../../../types/upstream/collections";
-import type { ModelName, TableName } from "../../../../types/upstream/names";
+import type { ModelName, TableName, ResourceName } from "../../../../types/upstream/names";
+import { createModelName } from "../../../../types/upstream/names";
 
 export class ModelSymbolTable {
     private readonly byName = new Map<string, OriginModelSymbol>();
@@ -34,8 +35,8 @@ export class ModelSymbolTable {
         Object.freeze(this);
     }
 
-    public get(name: ModelName | string): Lookup<OriginModelSymbol> {
-        const text = typeof name === "string" ? name : name.value.value;
+    public get(name: ModelName): Lookup<OriginModelSymbol> {
+        const text = name.value.value;
         const exact = this.byName.get(text);
         if (exact !== undefined) return { kind: 'found', value: exact };
         const short = this.byShortName.get(text);
@@ -45,14 +46,14 @@ export class ModelSymbolTable {
         return { kind: 'missing' };
     }
 
-    public findByTableName(tableName: TableName | string): Lookup<OriginModelSymbol> {
-        const text = typeof tableName === "string" ? tableName : tableName.value.value;
+    public findByTableName(tableName: TableName): Lookup<OriginModelSymbol> {
+        const text = tableName.value.value;
         const value = this.byTableName.get(text.toLowerCase());
         if (value !== undefined) return { kind: 'found', value };
         return { kind: 'missing' };
     }
 
-    public has(name: string): boolean {
+    public has(name: ModelName): boolean {
         return this.get(name).kind === 'found';
     }
 
@@ -64,10 +65,10 @@ export class ModelSymbolTable {
         return this.modelList.map(s => s.node);
     }
 
-    public findForResource(resourceName: string): Lookup<OriginModelSymbol> {
-        const stripped = ResourceNamingConvention.stripSuffix(resourceName);
-        const primary = this.get(stripped);
+    public findForResource(resourceName: ResourceName): Lookup<OriginModelSymbol> {
+        const stripped = ResourceNamingConvention.stripSuffix(resourceName.value.value);
+        const primary = this.get(createModelName(stripped));
         if (primary.kind === 'found') return primary;
-        return this.get(resourceName);
+        return this.get(createModelName(resourceName.value.value));
     }
 }

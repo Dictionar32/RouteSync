@@ -10,6 +10,7 @@ import { readSourceText } from './scannerUtils';
 import path from "path";
 import * as fs from "node:fs";
 import { BroadcastChannelDescriptor, RouteParameter } from "../../../types/route";
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import {
     ScannedBroadcastChannelDescriptor
@@ -19,8 +20,9 @@ import {
 } from "../descriptors/routeDescriptors";
 
 export class ChannelScanner {
-    public static async scan(projectRoot: string): Promise<readonly BroadcastChannelDescriptor[]> {
-        const channelsFile = path.join(projectRoot, "routes", "channels.php");
+    public static async scan(sourceProject: SourceProjectIdentity): Promise<readonly BroadcastChannelDescriptor[]> {
+        const sourceRoot = sourceProject.root.value.value;
+        const channelsFile = path.join(sourceRoot, "routes", "channels.php");
         if (!fs.existsSync(channelsFile)) return [];
 
         const source = await readSourceText(channelsFile);

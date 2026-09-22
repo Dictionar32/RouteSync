@@ -1,3 +1,4 @@
+import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import * as path from 'node:path';
 import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
@@ -57,8 +58,9 @@ function scanAttribute(file: string, text: string): AttributeAst {
   return { kind: 'attribute_ast', definition, source: span };
 }
 
-export async function scanAttributeAsts(projectRoot: string): Promise<readonly AttributeAst[]> {
-  const directory = path.join(projectRoot, 'app', 'Attributes');
+export async function scanAttributeAsts(sourceProject: SourceProjectIdentity): Promise<readonly AttributeAst[]> {
+    const sourceRoot = sourceProject.root.value.value;
+  const directory = path.join(sourceRoot, 'app', 'Attributes');
   const files = await collectPhpFiles(directory);
   const asts: AttributeAst[] = [];
   for (const file of files) asts.push(scanAttribute(file, await readSourceText(file)));

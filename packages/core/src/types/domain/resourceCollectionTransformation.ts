@@ -1,5 +1,7 @@
 import type { SemanticType } from '../../compiler/types/SemanticType';
-import type { ModelName, MethodName, PropertyName, RelationName, ResourceName, VariableName } from './semanticValues';
+import type { ModelName, MethodName, PropertyName, RelationName, ResourceName, VariableName } from '../upstream/names';
+import type { EloquentRelationCardinality } from '../upstream/model';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/modelSourceFacts';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
 import type { ResourceCollectionCallbackModel } from './resourceCollectionCallbackModel';
 import type { ModelSemanticProperty } from './models';
@@ -11,7 +13,7 @@ export type ResourceCollectionCardinality =
 export type ResourceCollectionElementSemantic =
   | { readonly kind: 'model'; readonly model: ModelName }
   | { readonly kind: 'property'; readonly sourceModel: ModelName; readonly property: PropertyName; readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'column' | 'accessor' }>; readonly type: SemanticType }
-  | { readonly kind: 'relation'; readonly sourceModel: ModelName; readonly relation: RelationName; readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'relation' }>; readonly targetModel: ModelName; readonly cardinality: 'one' | 'many' }
+  | { readonly kind: 'relation'; readonly sourceModel: ModelName; readonly relation: RelationName; readonly semantic: Extract<ModelSemanticProperty, { readonly kind: 'relation' }>; readonly targetModel: ModelName; readonly cardinality: EloquentRelationCardinality; readonly targetShape: ModelRelationTargetShape; readonly traversalTarget: ModelRelationTraversalTarget }
   | { readonly kind: 'scalar'; readonly type: SemanticType }
   | { readonly kind: 'computed'; readonly sourceVariable: VariableName };
 

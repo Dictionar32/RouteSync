@@ -1,11 +1,12 @@
 import type { ValidationRuleNode } from "./validationRules";
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import type { RequestFieldPresence } from "./requestFieldPresence";
+import type { PropertyName } from "../upstream/names";
 
 export interface ScalarValidationFieldNode {
   readonly kind: 'scalar';
-  readonly fieldName: string;
-  readonly propertyName: string;
+  readonly fieldName: PropertyName;
+  readonly propertyName: PropertyName;
   readonly semanticType: SemanticType;
   readonly presence: RequestFieldPresence;
   readonly rules: readonly ValidationRuleNode[];
@@ -13,8 +14,8 @@ export interface ScalarValidationFieldNode {
 
 export interface ArrayValidationFieldNode {
   readonly kind: 'array';
-  readonly fieldName: string;
-  readonly propertyName: string;
+  readonly fieldName: PropertyName;
+  readonly propertyName: PropertyName;
   readonly semanticType: SemanticType;
   readonly presence: RequestFieldPresence;
   readonly rules: readonly ValidationRuleNode[];
@@ -23,8 +24,8 @@ export interface ArrayValidationFieldNode {
 
 export interface ObjectValidationFieldNode {
   readonly kind: 'object';
-  readonly fieldName: string;
-  readonly propertyName: string;
+  readonly fieldName: PropertyName;
+  readonly propertyName: PropertyName;
   readonly semanticType: SemanticType;
   readonly presence: RequestFieldPresence;
   readonly fields: readonly ValidationFieldNode[];

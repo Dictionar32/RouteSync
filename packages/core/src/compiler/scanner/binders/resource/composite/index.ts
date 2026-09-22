@@ -13,5 +13,9 @@ export {
 export {
     bindLiteralField,
     bindTernaryField,
+    bindBinaryField,
+    bindNullCoalesceField,
+    bindShortTernaryField,
+    bindCastField,
     bindFallbackField
 } from './literalTernaryBinders';

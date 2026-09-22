@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import path from 'path';
 import type { DeclaredResponseAttributeAst } from '../../lexer/controllerAstTypes';
+import type { SourceProjectIdentity } from '../../../../types/upstream/highLevelSourceModel';
 import type { PhpAstValue } from '../../lexer/phpAstTypes';
 import type { ControllerReturnSet } from './controllerDataflowContract';
 import type { ResponseDescriptor } from '../../../../types/route';
@@ -22,9 +23,9 @@ export interface ResponseTraceEntry {
   readonly output: string;
 }
 
-export function resolveResponseAttributeAst(attribute: DeclaredResponseAttributeAst, projectRoot: string, returned: ControllerReturnSet): ResponseDescriptor {
+export function resolveResponseAttributeAst(attribute: DeclaredResponseAttributeAst, sourceProject: SourceProjectIdentity, returned: ControllerReturnSet): ResponseDescriptor {
   const className = attribute.className;
-  const classFile = resolveClassFile(projectRoot, className);
+  const classFile = resolveClassFile(sourceProject, className);
   const analysis = readResponseDtoAnalysis(classFile);
   const fields = analysis.fields;
   const contractFields = resolveObservedFields(analysis.contractFields, returned);
@@ -51,9 +52,10 @@ export function resolveResponseAttributeAst(attribute: DeclaredResponseAttribute
   });
 }
 
-function resolveClassFile(projectRoot: string, className: string): string {
+function resolveClassFile(sourceProject: SourceProjectIdentity, className: string): string {
+  const sourceRoot = sourceProject.root.value.value;
   const relative = className.replace(/^App\\/, '').replace(/\\/g, '/');
-  const file = path.join(projectRoot, 'app', `${relative}.php`);
+  const file = path.join(sourceRoot, 'app', `${relative}.php`);
   if (fs.existsSync(file)) return file;
 
   const shortName = className.split('\\').pop() ?? className;
@@ -65,7 +67,7 @@ function resolveClassFile(projectRoot: string, className: string): string {
       else if (entry.isFile() && entry.name === `${shortName}.php`) matches.push(candidate);
     }
   };
-  visit(path.join(projectRoot, 'app'));
+  visit(path.join(sourceRoot, 'app'));
   if (matches.length === 1) return matches[0];
   const found = matches.length > 1 ? matches.join(', ') : file;
   throw new Error(`Response boundary violation: ${className} resolved from attribute but source file was not found uniquely: ${found}`);

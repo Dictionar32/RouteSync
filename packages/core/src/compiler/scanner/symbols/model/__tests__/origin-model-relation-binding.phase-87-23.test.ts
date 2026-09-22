@@ -1,3 +1,4 @@
+import { createPropertyName } from '../../../../../../types/upstream/names';
 import { describe, expect, it } from 'vitest';
 import { OriginModelSymbol } from '../originModelSymbol';
 import { ReferenceType, ReadonlyCollectionType, CollectionKind } from '../../../../types/SemanticType';
@@ -21,7 +22,7 @@ describe('OriginModelSymbol relation binding phase 87.23', () => {
       ],
     } as never);
 
-    const binding = symbol.resolveProperty('reviews');
+    const binding = symbol.resolveProperty(createPropertyName('reviews'));
 
     expect(binding.kind).toBe('found');
     if (binding.kind !== 'found') throw new Error('expected found property binding');

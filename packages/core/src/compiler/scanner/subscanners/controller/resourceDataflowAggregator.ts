@@ -1,6 +1,7 @@
 /** Aggregates explicit controller resource bindings without collapsing them to strings. */
 import type { ControllerActionInfo } from '../../descriptors/requestDescriptors';
 import type { ControllerResourceBinding } from './controllerDataflowContract';
+import type { ResourceName } from '../../../../types/domain/semanticValues';
 
 export interface ControllerResourceDataflow {
     readonly bindings: readonly ControllerResourceBinding[];
@@ -8,9 +9,9 @@ export interface ControllerResourceDataflow {
 
 export function findControllerResourceBinding(
     dataflow: ControllerResourceDataflow,
-    resourceName: string
+    resourceName: ResourceName
 ): ControllerResourceBinding | undefined {
-    return dataflow.bindings.find(binding => binding.resourceName === resourceName);
+    return dataflow.bindings.find(binding => binding.resourceName.value.value === resourceName.value.value);
 }
 
 export function extractResourceDataflow(

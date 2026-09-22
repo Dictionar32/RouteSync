@@ -34,23 +34,21 @@ export function assembleFormFields(
       const childObjectType = new ObjectType({ name: key, baseName: key, properties: childProperties, role: 'plain' });
       const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
 
-      fields.push(ScannedFormFieldDescriptor.create({
-        name: key,
-        originalName: key,
-        type: arrayType,
-        required: isRequired,
-        nullable: isNullable,
+      fields.push(ScannedFormFieldDescriptor.fromSemantic(
+        key,
+        arrayType,
+        isRequired,
+        isNullable,
         validationAst
-      }));
+      ));
     } else if (partitioned.primitiveArrayProps.has(key)) {
-      fields.push(ScannedFormFieldDescriptor.create({
-        name: key,
-        originalName: key,
-        type: partitioned.primitiveArrayProps.get(key)!,
-        required: isRequired,
-        nullable: isNullable,
+      fields.push(ScannedFormFieldDescriptor.fromSemantic(
+        key,
+        partitioned.primitiveArrayProps.get(key)!,
+        isRequired,
+        isNullable,
         validationAst
-      }));
+      ));
     } else {
       const isArrayRule = ruleStr.includes('array');
       const isNum = ruleStr.includes('numeric') || ruleStr.includes('integer') || ruleStr.includes('decimal');
@@ -67,14 +65,13 @@ export function assembleFormFields(
         semanticType = interner.intern(new PrimitiveType(primKind));
       }
 
-      fields.push(ScannedFormFieldDescriptor.create({
-        name: key,
-        originalName: key,
-        type: semanticType,
-        required: isRequired,
-        nullable: isNullable,
+      fields.push(ScannedFormFieldDescriptor.fromSemantic(
+        key,
+        semanticType,
+        isRequired,
+        isNullable,
         validationAst
-      }));
+      ));
     }
   }
 
@@ -82,13 +79,12 @@ export function assembleFormFields(
     if (!processedKeys.has(parentKey)) {
       const childObjectType = new ObjectType({ name: toCamelCase(parentKey), baseName: toCamelCase(parentKey), properties: childProperties, role: 'plain' });
       const arrayType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, childObjectType));
-      fields.push(ScannedFormFieldDescriptor.create({
-        name: parentKey,
-        originalName: parentKey,
-        type: arrayType,
-        required: false,
-        nullable: false
-      }));
+      fields.push(ScannedFormFieldDescriptor.fromSemantic(
+        parentKey,
+        arrayType,
+        false,
+        false
+      ));
     }
   }
 

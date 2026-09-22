@@ -1,3 +1,5 @@
+import type { ResourceName } from '../upstream/names';
+import type { StringValue } from '../upstream/valueObjects';
 export const InvalidationTargetKind = Object.freeze({
   SelfList: 'self_list',
   ParentList: 'parent_list',
@@ -7,9 +9,9 @@ export const InvalidationTargetKind = Object.freeze({
 export type InvalidationTargetKind = typeof InvalidationTargetKind[keyof typeof InvalidationTargetKind];
 
 export interface InvalidationTarget {
-  readonly groupName: string;
+  readonly groupName: ResourceName;
   readonly kind: InvalidationTargetKind;
-  readonly queryKeyExpression: string;
+  readonly queryKeyExpression: StringValue;
 }
 
 export interface SelfListInvalidationTarget extends InvalidationTarget {
@@ -37,7 +39,7 @@ export type AnyInvalidationTarget =
 export interface InvalidationTargetSpecification<K extends InvalidationTargetKind = InvalidationTargetKind> {
   readonly kind: K;
   readonly queryKeySuffix: 'all' | 'lists' | 'detail';
-  readonly computeQueryKey: (groupName: string) => string;
+  readonly computeQueryKey: (groupName: ResourceName) => StringValue;
 }
 
 /**
@@ -51,22 +53,22 @@ export const INVALIDATION_TARGET_REGISTRY: InvalidationTargetRegistry = Object.f
   [InvalidationTargetKind.SelfList]: {
     kind: InvalidationTargetKind.SelfList,
     queryKeySuffix: 'all',
-    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.all`,
+    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.all` }),
   },
   [InvalidationTargetKind.ParentList]: {
     kind: InvalidationTargetKind.ParentList,
     queryKeySuffix: 'lists',
-    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.lists`,
+    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.lists` }),
   },
   [InvalidationTargetKind.ParentDetail]: {
     kind: InvalidationTargetKind.ParentDetail,
     queryKeySuffix: 'detail',
-    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.detail`,
+    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.detail` }),
   },
   [InvalidationTargetKind.AuthResource]: {
     kind: InvalidationTargetKind.AuthResource,
     queryKeySuffix: 'all',
-    computeQueryKey: (groupName: string) => `QueryKey.${groupName}.all`,
+    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.all` }),
   },
 });
 
@@ -88,15 +90,15 @@ export function matchInvalidationTarget<R>(
 }
 
 export class ScannedInvalidationTarget implements InvalidationTarget {
-  public readonly groupName: string;
+  public readonly groupName: ResourceName;
   public readonly kind: InvalidationTargetKind;
-  public readonly queryKeyExpression: string;
+  public readonly queryKeyExpression: StringValue;
 
   constructor({
     groupName,
     kind
   }: {
-    readonly groupName: string;
+    readonly groupName: ResourceName;
     readonly kind: InvalidationTargetKind;
   }) {
     this.groupName = groupName;
@@ -105,57 +107,57 @@ export class ScannedInvalidationTarget implements InvalidationTarget {
     Object.freeze(this);
   }
 
-  public static computeQueryKey(groupName: string, kind: InvalidationTargetKind): string {
+  public static computeQueryKey(groupName: ResourceName, kind: InvalidationTargetKind): StringValue {
     return INVALIDATION_TARGET_REGISTRY[kind].computeQueryKey(groupName);
   }
 
-  public static selfList(groupName: string): SelfListInvalidationTarget {
+  public static selfList(groupName: ResourceName): SelfListInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.SelfList
     }) as SelfListInvalidationTarget;
   }
 
-  public static parentList(groupName: string): ParentListInvalidationTarget {
+  public static parentList(groupName: ResourceName): ParentListInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.ParentList
     }) as ParentListInvalidationTarget;
   }
 
-  public static parentDetail(groupName: string): ParentDetailInvalidationTarget {
+  public static parentDetail(groupName: ResourceName): ParentDetailInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.ParentDetail
     }) as ParentDetailInvalidationTarget;
   }
 
-  public static authResource(groupName: string): AuthResourceInvalidationTarget {
+  public static authResource(groupName: ResourceName): AuthResourceInvalidationTarget {
     return new ScannedInvalidationTarget({
       groupName,
       kind: InvalidationTargetKind.AuthResource
     }) as AuthResourceInvalidationTarget;
   }
 
-  public static resourceList(groupName: string): ParentListInvalidationTarget {
+  public static resourceList(groupName: ResourceName): ParentListInvalidationTarget {
     return ScannedInvalidationTarget.parentList(groupName);
   }
 
-  public static resourceItem(groupName: string): ParentDetailInvalidationTarget {
+  public static resourceItem(groupName: ResourceName): ParentDetailInvalidationTarget {
     return ScannedInvalidationTarget.parentDetail(groupName);
   }
 }
 
 export interface RouteCacheInvalidationDescriptor {
   readonly targets: readonly InvalidationTarget[];
-  readonly queryKeyExpressions: readonly string[];
+  readonly queryKeyExpressions: readonly StringValue[];
 }
 
 const EMPTY_INVALIDATION_TARGETS: readonly InvalidationTarget[] = Object.freeze([]);
 
 export class ScannedRouteCacheInvalidationDescriptor implements RouteCacheInvalidationDescriptor {
   public readonly targets: readonly InvalidationTarget[];
-  public readonly queryKeyExpressions: readonly string[];
+  public readonly queryKeyExpressions: readonly StringValue[];
 
   constructor({
     targets

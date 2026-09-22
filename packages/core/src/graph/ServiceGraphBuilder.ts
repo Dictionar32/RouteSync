@@ -7,7 +7,12 @@ import type {
   ServiceDependency
 } from '../types/semantic';
 import type { RouteManifest } from '../types/route';
-import type { ModelSemanticDefinition } from '../types/domain/models';
+import type { RouteSyncManifest } from '../types/upstream/manifest';
+import type { ModelSemanticDefinition } from '../types/upstream/model';
+import type { ActionName } from '../types/upstream/names';
+import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies } from '../types/upstream/service';
+import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nominalVocabulary';
+import { GraphNodeIndex } from './service/graphNodeIndex';
 import {
   detectExecutionLayer,
   buildServiceNode,
@@ -18,8 +23,8 @@ import {
 } from './service';
 
 export class ServiceGraphBuilder {
-  private readonly modelsMap = new Map<string, ServiceModelNode>();
-  private readonly servicesMap = new Map<string, ServiceNode>();
+  private readonly modelsMap = GraphNodeIndex.empty<ServiceModelNode>();
+  private readonly servicesMap = GraphNodeIndex.empty<ServiceNode>();
   private readonly controllersMap = new Map<string, ControllerNode>();
   private readonly edges: ServiceDependency[] = [];
 
@@ -31,11 +36,11 @@ export class ServiceGraphBuilder {
     return [];
   }
 
-  public buildServiceNode(name: string, methods: string[]): ServiceNode {
-    return buildServiceNode(name, methods);
+  public buildServiceNode(name: ServiceNodeName, methods: ServiceMethod[], dependencyFacts: ServiceDependencyFacts, resolvedDependencies: ResolvedServiceDependencies): ServiceNode {
+    return buildServiceNode(name, methods, [], dependencyFacts, resolvedDependencies);
   }
 
-  public buildControllerNode(name: string, routes: string[], actions: string[]): ControllerNode {
+  public buildControllerNode(name: ControllerNodeName, routes: string[], actions: ActionName[]): ControllerNode {
     return buildControllerNode(name, routes, actions);
   }
 
@@ -44,11 +49,11 @@ export class ServiceGraphBuilder {
   }
 
   public registerModel(name: string, model: ServiceModelNode): void {
-    this.modelsMap.set(name, model);
+    this.modelsMap.set({ kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: name } } }, model);
   }
 
   public registerService(name: string, service: ServiceNode): void {
-    this.servicesMap.set(name, service);
+    this.servicesMap.set({ kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: name } } }, service);
   }
 
   public registerController(name: string, controller: ControllerNode): void {
@@ -56,11 +61,13 @@ export class ServiceGraphBuilder {
   }
 
   public getModel(name: string): ServiceModelNode | undefined {
-    return this.modelsMap.get(name);
+    const result = this.modelsMap.lookup({ kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: name } } });
+    return result.kind === 'found' ? result.value : undefined;
   }
 
   public getService(name: string): ServiceNode | undefined {
-    return this.servicesMap.get(name);
+    const result = this.servicesMap.lookup({ kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: name } } });
+    return result.kind === 'found' ? result.value : undefined;
   }
 
   public getController(name: string): ControllerNode | undefined {
@@ -68,8 +75,8 @@ export class ServiceGraphBuilder {
   }
 
   public linkGraph(
-    fromNode: string,
-    toNode: string,
+    fromNode: import('../types/upstream/semanticReferences').ModelReference | import('../types/upstream/semanticReferences').ResourceReference | import('../types/upstream/semanticReferences').ServiceReference,
+    toNode: import('../types/upstream/semanticReferences').ModelReference | import('../types/upstream/semanticReferences').ResourceReference | import('../types/upstream/semanticReferences').ServiceReference,
     type: ServiceDependency['type'],
     weight = 1.0,
     relationKind?: string
@@ -97,4 +104,16 @@ export class ServiceGraphBuilder {
         this.linkGraph(fromNode, toNode, type, weight, relationKind)
     });
   }
+
+  public buildFromRouteSyncManifest(manifest: RouteSyncManifest, routeManifest: RouteManifest): ServiceGraph {
+    return compileGraphFromManifest(routeManifest, {
+      modelsMap: this.modelsMap,
+      servicesMap: this.servicesMap,
+      controllersMap: this.controllersMap,
+      edges: this.edges,
+      linkGraph: (fromNode, toNode, type, weight, relationKind) =>
+        this.linkGraph(fromNode, toNode, type, weight, relationKind)
+    }, manifest.sourceModel.value);
+  }
+
 }

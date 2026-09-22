@@ -60,12 +60,10 @@ export {
     ScannedModelCastDescriptor,
     ScannedModelRelationDescriptor,
     ScannedModelAccessorDescriptor,
-    ScannedModelDescriptor,
     type ScannedModelColumnParams,
     type ScannedModelCastParams,
     type ScannedModelRelationParams,
     type ScannedModelAccessorParams,
-    type ScannedModelParams
 } from "./modelDescriptors";
 
 export {

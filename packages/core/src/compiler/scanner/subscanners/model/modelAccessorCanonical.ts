@@ -1,6 +1,5 @@
-import type { ModelAccessorComputation } from '../../../../types/domain/eloquentTypes';
+import type { ModelAccessorComputation } from '../../../../types/upstream/modelVocabulary';
 import type { ResolvedExpression, Expression } from '../../../../types/upstream/expression';
-import type { SemanticType } from '../../../types/SemanticType';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';
 import { semanticType } from './semanticTypeCanonical';
@@ -21,7 +20,7 @@ export function accessorExpression(computation: ModelAccessorComputation, source
   return { kind: 'resolved_expression', expression, result: semanticValue(computation.result) };
 }
 
-function semanticValue(value: SemanticType): SemanticValue {
-  return { kind: 'typed', type: semanticType(value) };
+function semanticValue(value: import('../../../../types/upstream/typeVocabulary').TypeExpression): SemanticValue {
+  return { kind: 'typed', type: value };
 }
 

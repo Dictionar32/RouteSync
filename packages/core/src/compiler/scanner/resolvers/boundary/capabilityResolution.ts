@@ -80,7 +80,7 @@ function resolvePayloadTypeName(
     }
     if (hasValidationRules) {
         const action = basics.resolvedActionKind;
-        return `${basics.resolvedDomain}${action.charAt(0).toUpperCase()}${action.slice(1)}Payload`;
+        return `${basics.resolvedDomain.value.value}${action.charAt(0).toUpperCase()}${action.slice(1)}Payload`;
     }
     return "any";
 }

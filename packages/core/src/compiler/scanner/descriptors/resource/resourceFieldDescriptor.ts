@@ -6,13 +6,13 @@
 import type { ResourceFieldDescriptor, ResourceFieldExpression } from '../../../../types/domain/expressions';
 import type { SemanticType } from '../../../types/SemanticType';
 import { toCamelCase } from '../../../../utils/resource-naming';
-import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
+import { SemanticValueFactory, type PropertyName, type ResponseFieldName } from '../../../../types/domain/semanticValues';
 import type { BoundSemanticNode } from '../../../../types/domain/boundAst';
 import { createResourceFieldSemantic, requireResourceFieldType, type ResourceFieldSemantic } from '../../../../types/domain/resourceFieldSemantic';
 
 export interface ScannedResourceFieldParams {
-  readonly name: string;
-  readonly propertyName: string;
+  readonly name: ResponseFieldName;
+  readonly propertyName: PropertyName;
   readonly expression: ResourceFieldExpression;
   readonly semantic: ResourceFieldSemantic;
 }
@@ -24,8 +24,8 @@ export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
   public readonly semantic: ResourceFieldSemantic;
 
   constructor({ name, propertyName, expression, semantic }: ScannedResourceFieldParams) {
-    this.name = SemanticValueFactory.responseFieldName(name);
-    this.propertyName = SemanticValueFactory.propertyName(propertyName);
+    this.name = name;
+    this.propertyName = propertyName;
     this.expression = expression;
     this.semantic = semantic;
     Object.freeze(this);
@@ -46,11 +46,11 @@ export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
     expression: ResourceFieldExpression,
     semanticType: SemanticType,
     propertyName: string = toCamelCase(name),
-    boundAst: BoundSemanticNode = { kind: 'bound_unsupported', reason: 'invalid_boundary_input' },
+    boundAst: BoundSemanticNode,
   ): ScannedResourceFieldDescriptor {
     return new ScannedResourceFieldDescriptor({
-      name,
-      propertyName,
+      name: SemanticValueFactory.responseFieldName(name),
+      propertyName: SemanticValueFactory.propertyName(propertyName),
       expression,
       semantic: createResourceFieldSemantic(semanticType, boundAst),
     });

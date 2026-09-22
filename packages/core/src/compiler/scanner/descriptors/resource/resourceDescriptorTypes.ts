@@ -8,15 +8,16 @@
 
 import type { ResourceFieldDescriptor, ResourceAssignment } from '../../../../types/route';
 import type { ModelName } from '../../../../types/domain/semanticValues';
+import type { ResourceName, ResponseTypeName, SourceFile } from '../../../../types/upstream/names';
 
 export interface ScannedResourceParams {
-  readonly name: string;
-  readonly baseName: string;
-  readonly typeName: string;
+  readonly name: ResourceName;
+  readonly baseName: ResourceName;
+  readonly typeName: ResponseTypeName;
   readonly modelName: ModelName;
   readonly fields: readonly ResourceFieldDescriptor[];
   readonly assignments: readonly ResourceAssignment[];
-  readonly sourceFile: string;
+  readonly sourceFile: SourceFile;
   readonly sourceLine: number;
   readonly isSynthetic: boolean;
 }
@@ -25,9 +26,9 @@ export interface ScannedResourceParams {
  * Level 7 Complete Contract for CreateResourceDescriptorOptions (0 undefined, 0 null, 0 ?:).
  */
 export interface CreateResourceDescriptorOptionsContract {
-  readonly name: string;
+  readonly name: ResourceName;
   readonly fields: readonly ResourceFieldDescriptor[];
-  readonly sourceFile: string;
+  readonly sourceFile: SourceFile;
   readonly sourceLine: number;
   readonly assignments: readonly ResourceAssignment[];
   readonly modelName: ModelName;
@@ -35,9 +36,9 @@ export interface CreateResourceDescriptorOptionsContract {
 }
 
 export interface CreateResourceDescriptorOptions {
-  readonly name: string;
+  readonly name: ResourceName;
   readonly fields: readonly ResourceFieldDescriptor[];
-  readonly sourceFile: string;
+  readonly sourceFile: SourceFile;
   readonly sourceLine: number;
   readonly assignments: readonly ResourceAssignment[];
   readonly modelName: ModelName;

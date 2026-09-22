@@ -12,14 +12,11 @@ export {
 } from "./migrationScanner";
 
 export {
-    type ParsedModelMembers,
-    parseModelMembers
-} from "./modelMemberParser";
-
-export {
     resolveModelColumns
 } from "./columnInferrer";
 
 export {
-    parseModelFile
+    buildModelSemanticDefinitionFromAst
 } from "./modelParser";
+
+export { resolveModelSchema } from './columnInferrer';

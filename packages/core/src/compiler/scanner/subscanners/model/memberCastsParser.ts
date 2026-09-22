@@ -1,70 +1,52 @@
 /**
- * Model Member Casts Parser.
- * Scans Eloquent model $casts property and Laravel 11 casts() method.
- *
- * @module core/compiler/scanner/subscanners/model
+ * Semantic cast derivation from canonical PHP AST values.
+ * Syntax/token recognition is owned by the lexer AST producer.
  */
+import type { ModelCast } from "../../../../types/upstream/model";
+import type { PhpClassPropertyAst, ModelDeclarationAst, PhpAstValue } from "../../lexer";
+import { EloquentCastMapper } from "../../../../types/domain/eloquentTypes";
+import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 
-import type { ParsedCast } from "../../../../types/route";
-import { LaravelSourceLexer, type TokenDescriptor } from "../../LaravelSourceLexer";
-import { ScannedModelCastDescriptor } from "../../descriptors/modelDescriptors";
-
-export function tryParseModelCasts(
-    source: string,
-    tokens: readonly TokenDescriptor[],
-    i: number,
-    casts: ParsedCast[]
-): void {
-    const token = tokens[i];
-
-    // $casts = [ ... ];
-    if (token.value === '$casts' && tokens[i + 1]?.value === '=') {
-        const parsed = LaravelSourceLexer.parseArray(source, tokens, i + 2);
-        for (const entry of parsed.entries) {
-            const castVal = readCastValue(entry.value);
-            casts.push(ScannedModelCastDescriptor.create({
-                column: requireStringArrayKey(entry.key),
-                targetType: castVal
-            }));
-        }
-    }
-
-    // Laravel 11 style: protected function casts(): array { return [ ... ]; }
-    if (token.value === 'function' && tokens[i + 1]?.type === 'IDENTIFIER' && tokens[i + 1].value === 'casts') {
-        let k = i + 2;
-        while (k < tokens.length && tokens[k].value !== '{' && tokens[k].value !== ';') k++;
-        if (tokens[k]?.value === '{') {
-            let depth = 1;
-            k++;
-            while (k < tokens.length && depth > 0) {
-                if (tokens[k].value === '{') depth++;
-                else if (tokens[k].value === '}') depth--;
-                if (tokens[k].value === 'return') {
-                    const parsed = LaravelSourceLexer.parseArray(source, tokens, k + 1);
-                    for (const entry of parsed.entries) {
-                        const castVal = readCastValue(entry.value);
-                                    casts.push(ScannedModelCastDescriptor.create({
-                            column: requireStringArrayKey(entry.key),
-                            targetType: castVal
-                        }));
-                    }
-                    k = Math.max(k, parsed.endIndex - 1);
-                }
-                k++;
-            }
-        }
-    }
-}
-
-
-function readCastValue(value: import("../../lexer/PhpAst").PhpAstValue): string {
+function readCastValue(value: PhpAstValue): string {
     if (value.kind === 'literal' && value.literalType === 'string') return value.value;
-    if (value.kind === 'class_reference') return value.className;
+    if (value.kind === 'class_reference') return value.className.value;
     throw new Error('Model cast value must be a string literal or class reference');
 }
 
+const castTargets = {
+    integer: { kind: 'integer' }, float: { kind: 'float' }, boolean: { kind: 'boolean' }, string: { kind: 'string' },
+    datetime: { kind: 'date_time' }, date: { kind: 'date_time' }, timestamp: { kind: 'date_time' },
+    array: { kind: 'json' }, json: { kind: 'json' }, object: { kind: 'json' }, collection: { kind: 'json' },
+    encrypted: { kind: 'string' }, custom: { kind: 'string' }
+} as const;
 
-function requireStringArrayKey(key: import('../../lexer/phpAstTypes').PhpArrayKey): string {
-    if (key.kind === 'string') return key.value;
-    throw new Error('Expected a static string PHP array key at this semantic boundary');
+function readArray(value: PhpAstValue, casts: ModelCast[], source: import("../../../../types/upstream/provenance").SourceSpan): void {
+    if (value.kind !== 'nested_array') return;
+    for (const entry of value.entries) {
+        if (entry.kind !== 'keyed' || entry.key.kind !== 'string') continue;
+        const rawTargetType = readCastValue(entry.value);
+        const mapped = EloquentCastMapper.map(rawTargetType);
+        const targetType = SemanticValueFactory.castTypeName(rawTargetType);
+        casts.push({
+            kind: 'model_cast',
+            property: SemanticValueFactory.propertyName(entry.key.value),
+            target: castTargets[mapped.castKind],
+            source
+        });
+    }
+}
+
+export function parseModelCasts(
+    propertyAsts: readonly PhpClassPropertyAst[],
+    declaration: ModelDeclarationAst,
+    casts: ModelCast[],
+    source: import("../../../../types/upstream/provenance").SourceSpan
+): void {
+    for (const property of propertyAsts) {
+        if (property.name.value === '$casts') readArray(property.value, casts, source);
+    }
+    for (const method of declaration.methods) {
+        if (method.name.value !== 'casts') continue;
+        for (const returned of method.returns) readArray(returned, casts, source);
+    }
 }

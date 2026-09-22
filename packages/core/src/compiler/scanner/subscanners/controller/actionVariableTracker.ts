@@ -1,3 +1,5 @@
+import type { PhpAstValue } from '../lexer/PhpAst';
+import { matchPhpAstValue } from '../lexer/PhpAst';
 /**
  * Controller action dataflow boundary.
  *
@@ -204,27 +206,43 @@ export type BoundModelReference =
     | { readonly kind: 'parameter'; readonly type: ControllerParameterType };
 
 export function resolveBoundModel(
-    firstArg: string,
+    firstArg: PhpAstValue,
     environment: LocalVariableEnvironment,
     parameters: ActionParameterIndex,
 ): BoundModelReference | undefined {
-    const variable = firstArg.startsWith('$') ? SemanticValueFactory.variableName(firstArg) : null;
-    if (variable !== null) {
-        const binding = environment.get(variable);
-        if (binding !== undefined) {
-            return resolveLocalBinding(binding, environment);
-        }
-    }
-
-    if (firstArg.includes('::')) {
-        const root = firstArg.split('::')[0];
-        if (!['DB', 'Log', 'Auth', 'Response'].includes(root)) {
+    return matchPhpAstValue(firstArg, {
+        variableReference: node => {
+            const variable = SemanticValueFactory.variableName(node.name);
+            const binding = environment.get(variable);
+            return binding === undefined ? undefined : resolveLocalBinding(binding, environment);
+        },
+        classReference: node => ({ kind: 'model', name: SemanticValueFactory.className(node.name.value) }),
+        staticCall: node => {
+            const root = node.className;
+            if (root === 'DB' || root === 'Log' || root === 'Auth' || root === 'Response') return undefined;
             return { kind: 'model', name: SemanticValueFactory.className(root) };
-        }
-    }
-
-    const parameter = parameters.get(SemanticValueFactory.variableName(firstArg));
-    return parameter === undefined ? undefined : { kind: 'parameter', type: parameter.type };
+        },
+        propertyAccess: () => undefined,
+        methodChain: () => undefined,
+        arrayAccess: () => undefined,
+        functionCall: () => undefined,
+        literal: () => undefined,
+        resourceSingle: () => undefined,
+        resourceCollection: () => undefined,
+        shortTernary: () => undefined,
+        nullCoalesce: () => undefined,
+        binaryExpression: () => undefined,
+        unaryExpression: () => undefined,
+        castExpression: () => undefined,
+        ternaryExpression: () => undefined,
+        nestedArray: () => undefined,
+        construct: () => undefined,
+        instanceOf: () => undefined,
+        closure: () => undefined,
+        arrowFunction: () => undefined,
+        matchExpression: () => undefined,
+        unsupported: () => undefined,
+    });
 }
 
 function resolveLocalBinding(

@@ -21,6 +21,7 @@ import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 import { matchLookup } from "../../../../../types/upstream/collections";
 import { requireResourceFieldType } from "../../../../../types/domain/resourceFieldSemantic";
 import { mapAstValueToExpression } from "../../../subscanners/resource/resourceAstExpressionMapper";
+import { createRelationName } from "../../../../../types/upstream/names";
 
 export function bindResourceCollectionField(
     key: string,
@@ -28,7 +29,7 @@ export function bindResourceCollectionField(
     modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
     const isCollection = value.kind === 'resource_collection';
-    const rel = matchLookup(modelSymbol.relation(key), {
+    const rel = matchLookup(modelSymbol.relation(createRelationName(key)), {
         missing: () => undefined,
         found: ({ value: relation }) => relation
     });

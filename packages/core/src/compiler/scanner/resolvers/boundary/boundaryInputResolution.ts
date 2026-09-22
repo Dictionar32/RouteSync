@@ -28,7 +28,7 @@ export function resolveRouteBoundaryInput(
         sourceLine: provenance.sourceLine,
         handler: params.handler,
         auth: params.auth === true,
-        middleware: Object.freeze([...(params.middleware || [])]),
+        middleware: Object.freeze([...(params.middleware ?? [])]),
         parameters: basics.resolvedParameters,
         pathParameters: basics.resolvedPathParameters,
         queryParameters: basics.resolvedQueryParameters,

@@ -7,7 +7,6 @@
  */
 
 import type { RouteIdentityContract } from "../../../../types/route";
-import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import {
     RouteBoundaryOptions,
     IntermediateRouteBoundaryBasics
@@ -25,16 +24,16 @@ export function buildRouteIdentityContract(
 
     return Object.freeze({
         coordinates: Object.freeze({
-            name: SemanticValueFactory.routeName(basics.resolvedRouteName),
-            constantKey: SemanticValueFactory.propertyName(basics.resolvedConstantKey),
+            name: basics.resolvedRouteName,
+            constantKey: basics.resolvedConstantKey,
             method: params.method,
-            path: SemanticValueFactory.routePath(params.path),
-            runtimePath: SemanticValueFactory.routePath(basics.resolvedRuntimePath),
+            path: params.path,
+            runtimePath: basics.resolvedRuntimePath,
         }),
         domain: Object.freeze({
-            resource: SemanticValueFactory.resourceName(basics.resolvedResourceName),
-            domain: SemanticValueFactory.domainName(basics.resolvedDomain),
-            group: SemanticValueFactory.domainName(basics.resolvedGroupName),
+            resource: basics.resolvedResourceName,
+            domain: basics.resolvedDomain,
+            group: basics.resolvedGroupName,
         }),
         parameters: Object.freeze({
             all: resolvedParameters,

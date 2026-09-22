@@ -1,4 +1,3 @@
-import { readSourceText } from './scannerUtils';
 /**
  * RouteScanner.ts
  *
@@ -10,6 +9,8 @@ import { readSourceText } from './scannerUtils';
 
 import path from "path";
 import * as fs from "node:fs";
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
+
 import {
     ParsedRoute,
     RouteParameter,
@@ -18,6 +19,12 @@ import {
 } from "../../../types/route";
 import type { FormRequestSource } from "../../../types/domain/request";
 import type { RouteAst } from "../../../types/upstream/ast";
+import type { RouteDefinition, RouteMethod, RouteTarget, RouteAuthentication } from "../../../types/upstream/route";
+import type { RouteMethods, RouteParameters, RouteMiddlewares } from "../../../types/upstream/collections";
+import type { EndpointRequestBinding } from "../../../types/upstream/endpointBindings";
+import { matchRouteHandler } from "../../../types/domain/routeHandlers";
+import { SemanticValueFactory } from "../../../types/domain/semanticValues";
+import { createActionName, createControllerName, createPropertyName } from "../../../types/upstream/names";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { readSourceText } from './scannerUtils';
 import { ControllerScanner } from "./ControllerScanner";
@@ -49,19 +56,20 @@ export class RouteScanner {
         return extractPathParams(routePath);
     }
 
-    public static async scan(
-        projectRoot: string,
+    private static async scanSource(
+        sourceProject: SourceProjectIdentity,
         formRequests: readonly FormRequestSource[] = [],
         existingControllerMap?: Map<string, Map<string, ControllerActionInfo>>
-    ): Promise<readonly ParsedRoute[]> {
-        const routesFile = path.join(projectRoot, 'routes', 'api.php');
-        if (!fs.existsSync(routesFile)) return [];
+    ): Promise<{ readonly declarations: readonly import("../lexer/routeAst").RouteDeclarationAst[]; readonly routes: readonly ParsedRoute[]; readonly routesFile: string }> {
+        const sourceRoot = sourceProject.root.value.value;
+        const routesFile = path.join(sourceRoot, 'routes', 'api.php');
+        if (!fs.existsSync(routesFile)) return { declarations: [], routes: [], routesFile };
 
         const source = await readSourceText(routesFile);
         const tokens = LaravelSourceLexer.tokenize(source);
         const declarations = LaravelSourceLexer.parseRouteDeclarations(tokens);
         const formRequestMap = new Map<string, FormRequestSource>(formRequests.map(r => [r.identity.requestClass.value.value, r]));
-        const controllerMap = existingControllerMap ?? await ControllerScanner.scan(projectRoot, formRequestMap);
+        const controllerMap = existingControllerMap ?? await ControllerScanner.scanCanonicalBundle(sourceProject, formRequestMap).then(result => result.controllerMap);
         const routes: ParsedRoute[] = [];
 
         for (const declaration of declarations) {
@@ -82,12 +90,12 @@ export class RouteScanner {
                 routes.push(...emitApiResourceRoutes(
                     resolvedPath,
                     resolvedPath.resourceName,
-                    controllerName,
+                    controllerName === undefined ? undefined : createControllerName(controllerName),
                     controllerMap,
                     unresolvedResponse,
                     isAuth,
-                    middlewares,
-                    routesFile
+                    middlewares.map(value => createPropertyName(value)),
+                    SemanticValueFactory.sourceFilePath(routesFile)
                 ));
                 continue;
             }
@@ -97,13 +105,13 @@ export class RouteScanner {
                 : controllerName
                     ? {
                         kind: 'controller_reference',
-                        controllerName,
-                        actionName,
+                        controllerName: createControllerName(controllerName),
+                        actionName: createActionName(actionName),
                         response: unresolvedResponse
                     }
                     : {
                         kind: 'closure',
-                        actionName,
+                        actionName: createActionName(actionName),
                         response: unresolvedResponse
                     };
 
@@ -113,36 +121,113 @@ export class RouteScanner {
                 resolvedPath.resourceName,
                 target,
                 isAuth,
-                middlewares,
-                routesFile
+                middlewares.map(value => createPropertyName(value)),
+                SemanticValueFactory.sourceFilePath(routesFile)
             ));
         }
 
-        return routes;
+        return { declarations, routes, routesFile };
     }
 
-    /** Canonical syntax-AST boundary. It consumes the lexer AST directly. */
-    public static async scanAsts(
-        projectRoot: string,
-        _formRequests: readonly FormRequestSource[] = [],
-        _existingControllerMap?: Map<string, Map<string, ControllerActionInfo>>
-    ): Promise<readonly RouteAst[]> {
-        const routesFile = path.join(projectRoot, 'routes', 'api.php');
-        if (!fs.existsSync(routesFile)) return [];
+    public static async scan(
+        sourceProject: SourceProjectIdentity,
+        formRequests: readonly FormRequestSource[] = [],
+        existingControllerMap?: Map<string, Map<string, ControllerActionInfo>>
+    ): Promise<readonly ParsedRoute[]> {
+        return (await RouteScanner.scanSource(sourceProject, formRequests, existingControllerMap)).routes;
+    }
 
-        const source = await readSourceText(routesFile);
-        const tokens = LaravelSourceLexer.tokenize(source);
-        const declarations = LaravelSourceLexer.parseRouteDeclarations(tokens);
-        return declarations.map((declaration): RouteAst => ({
-            kind: 'route_ast',
-            declaration,
-            source: {
-                kind: 'source_span',
-                file: { kind: 'source_file', value: { kind: 'string_value', value: routesFile } },
-                start: { kind: 'number_value', value: declaration.source.startOffset },
-                end: { kind: 'number_value', value: declaration.end.endOffset }
+    /** Canonical syntax + semantic AST boundary. The source is interpreted once and the existing ParsedRoute is elevated into RouteDefinition. */
+    public static async scanAsts(
+        sourceProject: SourceProjectIdentity,
+        formRequests: readonly FormRequestSource[] = [],
+        existingControllerMap?: Map<string, Map<string, ControllerActionInfo>>
+    ): Promise<readonly RouteAst[]> {
+        const scanned = await RouteScanner.scanSource(sourceProject, formRequests, existingControllerMap);
+        return scanned.routes.map((route): RouteAst => {
+            const declaration = scanned.declarations.find(item => {
+                const declarationPath = resolveRoutePath(item.path, item.prefix).path.value.value;
+                if (declarationPath !== route.identity.coordinates.path.value.value) return false;
+                const methodMatches = item.targetMethods.some(method => method.toUpperCase() === route.identity.coordinates.method);
+                if (methodMatches) return true;
+                return item.method === 'apiResource';
+            });
+            if (!declaration) {
+                throw new Error(`Route semantic producer could not preserve declaration provenance for ${route.identity.coordinates.path.value.value}.`);
             }
-        }));
+            const sourceSpan = {
+                kind: 'source_span' as const,
+                file: SemanticValueFactory.sourceFilePath(scanned.routesFile),
+                start: { kind: 'number_value' as const, value: declaration.source.startOffset },
+                end: { kind: 'number_value' as const, value: declaration.end.endOffset }
+            };
+            return {
+                kind: 'route_ast',
+                declaration,
+                definition: RouteScanner.routeDefinitionFromParsedRoute(route, sourceSpan),
+                source: sourceSpan
+            };
+        });
+    }
+
+    private static routeDefinitionFromParsedRoute(
+        route: ParsedRoute,
+        source: import("../../../types/upstream/provenance").SourceSpan
+    ): RouteDefinition {
+        const method: RouteMethod = (() => {
+            switch (route.identity.coordinates.method) {
+                case HttpMethod.GET: return { kind: 'get' };
+                case HttpMethod.POST: return { kind: 'post' };
+                case HttpMethod.PUT: return { kind: 'put' };
+                case HttpMethod.PATCH: return { kind: 'patch' };
+                case HttpMethod.DELETE: return { kind: 'delete' };
+                case HttpMethod.OPTIONS: return { kind: 'options' };
+                case HttpMethod.HEAD: return { kind: 'head' };
+            }
+        })();
+        const methods: RouteMethods = { kind: 'route_methods', items: { kind: 'cons', head: method, tail: { kind: 'empty' } } };
+        const target: RouteTarget = matchRouteHandler(route.binding.operation.handler, {
+            controllerAction: handler => ({
+                kind: 'controller',
+                controller: { kind: 'controller_reference', name: SemanticValueFactory.controllerName(handler.controllerName.value.value), action: handler.actionName }
+            }),
+            invokableController: handler => ({
+                kind: 'controller',
+                controller: { kind: 'controller_reference', name: SemanticValueFactory.controllerName(handler.controllerName.value.value), action: handler.actionName }
+            }),
+            closure: handler => ({ kind: 'closure', action: handler.actionName })
+        });
+        const middlewareItems = route.capability.middleware.reduceRight<RouteMiddlewares['items']>(
+            (tail, name) => ({
+                kind: 'cons',
+                head: { kind: 'middleware', name: { kind: 'middleware_name', value: name.value } },
+                tail
+            }),
+            { kind: 'empty' }
+        );
+        const middleware: RouteMiddlewares = { kind: 'route_middlewares', items: middlewareItems };
+        const request: EndpointRequestBinding = route.binding.request.kind === 'form_request'
+            ? { kind: 'form_request', request: { kind: 'request_reference', name: route.binding.request.identity.source.requestClass } }
+            : { kind: 'no_input' };
+        const authentication: RouteAuthentication = route.capability.auth ? { kind: 'authenticated' } : { kind: 'public' };
+        const parameters: RouteParameters = { kind: 'route_parameters', items: route.identity.parameters.all.reduceRight<RouteParameters['items']>((tail, parameter) => ({ kind: 'cons', head: parameter, tail }), { kind: 'empty' }) };
+        return {
+            kind: 'route',
+            name: route.identity.coordinates.name,
+            method,
+            methods,
+            path: route.identity.coordinates.path,
+            target,
+            domain: route.identity.domain.domain,
+            auth: authentication,
+            middleware,
+            parameters,
+            request,
+            response: { kind: 'response_reference', name: route.binding.response.responseTypeName() },
+            capability: route.capability,
+            source: SemanticValueFactory.sourceFilePath(route.provenance.sourceFile.value),
+            span: source
+        };
     }
 
 }

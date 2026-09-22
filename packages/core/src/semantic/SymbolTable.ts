@@ -1,6 +1,6 @@
 import type { ModelNode } from './modelNodes';
 import type { ModelColumnFact } from '../types/upstream/modelSourceFacts';
-import type { ModelSemanticAccessor, ModelSemanticRelation } from '../types/domain/models';
+import type { ModelSemanticAccessor, ModelSemanticRelation } from '../types/upstream/model';
 import type { Lookup } from '../types/upstream/collections';
 
 export class ModelSymbol {
@@ -10,9 +10,9 @@ export class ModelSymbol {
     private readonly accessorsByName = new Map<string, ModelSemanticAccessor>();
 
     constructor(public readonly node: ModelNode) {
-        this.name = node.semantic.identity.name.value.value;
-        for (const fact of node.source.columnFacts) this.columnFactsByName.set(fact.column.value.value, fact);
-        for (const property of node.semantic.surface.properties) {
+        this.name = node.definition.semantic.identity.name.value.value;
+        for (const fact of node.facts.surface.members.filter((fact): fact is ModelColumnFact => fact.kind === 'model_column')) this.columnFactsByName.set(fact.column.value.value, fact);
+        for (const property of node.definition.semantic.surface.properties) {
             if (property.kind === 'relation') this.relationsByName.set(property.relation.value.value, property);
             if (property.kind === 'accessor') this.accessorsByName.set(property.property.value.value, property);
         }
@@ -42,7 +42,7 @@ export class SymbolTable {
     constructor(models: readonly ModelNode[]) {
         for (const model of models) {
             const symbol = new ModelSymbol(model);
-            const name = model.semantic.identity.name.value.value;
+            const name = model.definition.semantic.identity.name.value.value;
             this.byName.set(name, symbol);
             const lower = name.toLowerCase();
             if (!this.byLowerName.has(lower)) this.byLowerName.set(lower, symbol);

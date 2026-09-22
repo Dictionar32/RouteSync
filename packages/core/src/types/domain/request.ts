@@ -4,6 +4,7 @@
  */
 
 import type { SourceFilePath } from './semanticValues';
+import type { SourceSpan } from '../upstream/provenance';
 
 import type { ObjectProperty } from "../../compiler/types/SemanticType";
 import type { RequestFieldMeaning } from './requestFieldMeaning';
@@ -35,6 +36,7 @@ export interface RequestField {
     readonly fileConstraints: FileValidationConstraints;
     readonly presence: RequestFieldPresence;
     readonly validation: readonly ValidationRuleNode[];
+    readonly source: SourceSpan;
 }
 
 export const FormActionName = Object.freeze({
@@ -69,6 +71,7 @@ export interface FormRequestIdentity {
 export interface FormRequestSource {
     readonly identity: FormRequestIdentity;
     readonly sourceFile: SourceFilePath;
+    readonly source: SourceSpan;
     readonly authorization: RequestAuthorizationSource;
     readonly fields: readonly RequestField[];
 }

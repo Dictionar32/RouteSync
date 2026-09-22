@@ -1,3 +1,4 @@
+import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import * as path from 'node:path';
 import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
@@ -34,7 +35,7 @@ function typeExpression(type: PhpPropertyTypeAst): TypeExpression {
 
 function declared(type: PhpPropertyTypeAst): DeclaredType {
   const value = typeExpression(type);
-  return { kind: 'declared_type', value, nullability: type.nullable ? { kind: 'nullable' } : { kind: 'non_null' } };
+  return { kind: 'declared_type', value, nullability: type.nullable ? { kind: 'nullable' } : { kind: 'non_nullable' } };
 }
 
 function property(file: string, item: ResponseDtoPropertyAst): DtoProperty {
@@ -50,8 +51,9 @@ function property(file: string, item: ResponseDtoPropertyAst): DtoProperty {
   return { kind: 'dto_property', property: definition, declared: declared(item.type), source: span };
 }
 
-export async function scanDtoAsts(projectRoot: string): Promise<readonly DtoAst[]> {
-  const directory = path.join(projectRoot, 'app', 'Http', 'DTOs');
+export async function scanDtoAsts(sourceProject: SourceProjectIdentity): Promise<readonly DtoAst[]> {
+    const sourceRoot = sourceProject.root.value.value;
+  const directory = path.join(sourceRoot, 'app', 'Http', 'DTOs');
   const files = await collectPhpFiles(directory);
   const asts: DtoAst[] = [];
   for (const file of files) {

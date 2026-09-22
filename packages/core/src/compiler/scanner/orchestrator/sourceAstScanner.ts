@@ -1,4 +1,4 @@
-import { ControllerScanner, FormRequestScanner, ModelScanner, ResourceScanner, RouteScanner } from "../subscanners";
+import { ChannelScanner, ControllerScanner, FormRequestScanner, ModelScanner, ResourceScanner, RouteScanner } from "../subscanners";
 import { scanResponseAsts } from "../subscanners/responseScanner";
 import { scanMigrationAsts } from "../subscanners/migrationAstCanonical";
 import { scanServiceAsts } from "../subscanners/serviceAstCanonical";
@@ -9,8 +9,9 @@ import { scanAttributeAsts } from "../subscanners/attributeAstCanonical";
 import { ModelSymbolTable } from "../symbols/ModelSymbolTable";
 import type { FormRequestSource } from "../../../types/domain/request";
 import type { SourceAsts } from "../../../types/upstream/collections";
-import type { ControllerAst, ModelAst, RequestAst, ResourceAst, RouteAst } from "../../../types/upstream/ast";
+import type { ChannelAst, ControllerAst, ModelAst, RequestAst, ResourceAst, RouteAst } from "../../../types/upstream/ast";
 import type { SourceDiscovery, Sequence } from "../../../types/upstream/collections";
+import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 
 const sequence = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>(
     (tail, item) => ({ kind: "cons", head: item, tail }),
@@ -26,25 +27,27 @@ const scanned = <T>(items: readonly T[]): SourceDiscovery<T> => ({
 
 const notScanned = <T>(): SourceDiscovery<T> => ({ kind: "not_scanned" });
 
-export async function scanSourceAsts(projectRoot: string): Promise<SourceAsts> {
-    const models: readonly ModelAst[] = await ModelScanner.scanAsts(projectRoot);
+export async function scanSourceAsts(sourceProject: SourceProjectIdentity): Promise<SourceAsts> {
+    const migrations = await scanMigrationAsts(sourceProject);
+    const models: readonly ModelAst[] = await ModelScanner.scanAsts(sourceProject, migrations);
     const modelSymbolTable = new ModelSymbolTable(models);
-    const requestBundle = await FormRequestScanner.scanCanonicalBundle(projectRoot);
+    const requestBundle = await FormRequestScanner.scanCanonicalBundle(sourceProject);
     const requests: readonly RequestAst[] = requestBundle.asts;
     const requestSources: readonly FormRequestSource[] = requestBundle.sources;
     const formRequestMap = new Map(requestSources.map(request => [request.identity.requestClass.value.value, request] as const));
-    const controllerBundle = await ControllerScanner.scanCanonicalBundle(projectRoot, formRequestMap);
+    const controllerBundle = await ControllerScanner.scanCanonicalBundle(sourceProject, formRequestMap);
     const controllers: readonly ControllerAst[] = controllerBundle.asts;
-    const responses = await scanResponseAsts(projectRoot);
-    const migrations = await scanMigrationAsts(projectRoot);
-    const services = await scanServiceAsts(projectRoot);
-    const middlewares = await scanMiddlewareAsts(projectRoot);
-    const dtos = await scanDtoAsts(projectRoot);
-    const providers = await scanProviderAsts(projectRoot);
-    const attributes = await scanAttributeAsts(projectRoot);
+    const responses = await scanResponseAsts(sourceProject);
+    const services = await scanServiceAsts(sourceProject, modelSymbolTable);
+    const middlewares = await scanMiddlewareAsts(sourceProject);
+    const dtos = await scanDtoAsts(sourceProject);
+    const providers = await scanProviderAsts(sourceProject);
+    const attributes = await scanAttributeAsts(sourceProject);
     const controllerDataflow = ControllerScanner.extractResourceDataflow(controllerBundle.controllerMap);
-    const resources: readonly ResourceAst[] = await ResourceScanner.scanAsts(projectRoot, modelSymbolTable, controllerDataflow);
-    const routes: readonly RouteAst[] = await RouteScanner.scanAsts(projectRoot);
+    const resources: readonly ResourceAst[] = await ResourceScanner.scanAsts(sourceProject, modelSymbolTable, controllerDataflow);
+    const routes: readonly RouteAst[] = await RouteScanner.scanAsts(sourceProject, requestSources, controllerBundle.controllerMap);
+    const channelDescriptors = await ChannelScanner.scan(sourceProject);
+    const channels: readonly ChannelAst[] = channelDescriptors.map(definition => ({ kind: 'channel_ast', definition, source: sourceProject.source }));
 
     return {
         kind: "source_asts",
@@ -59,6 +62,7 @@ export async function scanSourceAsts(projectRoot: string): Promise<SourceAsts> {
         dtos: { kind: "dto_asts", items: scanned(dtos) },
         middlewares: { kind: "middleware_asts", items: scanned(middlewares) },
         providers: { kind: "provider_asts", items: scanned(providers) },
-        attributes: { kind: "attribute_asts", items: scanned(attributes) }
+        attributes: { kind: "attribute_asts", items: scanned(attributes) },
+        channels: { kind: "channel_asts", items: scanned(channels) }
     };
 }

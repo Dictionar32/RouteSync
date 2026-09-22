@@ -51,8 +51,8 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
   }
 
   public loadGraph(graph: VerifiedModelGraph): void {
-    const existingNames = new Set(this.models.map(model => model.name.value));
-    const additions = graph.models.filter(model => !existingNames.has(model.name.value));
+    const existingNames = new Set(this.models.map(model => model.definition.identity.name.value));
+    const additions = graph.models.filter(model => !existingNames.has(model.definition.identity.name.value));
     if (additions.length === 0) return;
     this.models.push(...additions);
     this.symbolTable = new SymbolTable(this.models);

@@ -5,6 +5,7 @@ import type { HttpMethod } from "./security";
 import type { BoundSemanticNode } from "./boundAst";
 import type { ResourceFieldSemantic } from './resourceFieldSemantic';
 import type { ResourceExpressionFieldModel, ResourceExpressionModel } from './resourceExpressionModel';
+import type { Expression } from '../upstream/expression';
 
 export interface ResourceFieldDescriptor {
   readonly name: ResponseFieldName;
@@ -619,6 +620,7 @@ export class ResourceFieldExpressionFactory {
 export interface ResourceAssignment {
   readonly name: PropertyName;
   readonly expression: ResourceFieldExpression;
+  readonly upstream: Expression;
   readonly nullability: Nullability;
 }
 

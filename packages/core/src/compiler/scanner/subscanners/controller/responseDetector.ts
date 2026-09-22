@@ -18,6 +18,7 @@ import { toPascalCase } from '../../../../utils/resource-naming';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
 import { ResourceScanner } from '../ResourceScanner';
 import { ErrorType } from '../../../types/SemanticType';
+import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import {
   DetectedResourceInvocation,
   detectResourceInvocation
@@ -68,7 +69,13 @@ export function detectInlineResponse(
             const semanticType = mapped.semantic.kind === 'known'
               ? mapped.semantic.type
               : new ErrorType('Inline response field requires verified semantic binding');
-            return ScannedResourceFieldDescriptor.fromExpression(e.key, mapped.expression, semanticType);
+            return ScannedResourceFieldDescriptor.fromExpression(
+              e.key,
+              mapped.expression,
+              semanticType,
+              undefined,
+              BoundSemanticFactory.unsupported('parser_gap')
+            );
           });
           return new InlineResponseDescriptor({
             domain: rawDomain,

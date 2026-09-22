@@ -1,3 +1,4 @@
+import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import * as path from 'node:path';
 import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
@@ -24,8 +25,9 @@ function className(tokens: readonly { readonly value: string }[]): string {
   throw new Error('Middleware class declaration not found');
 }
 
-export async function scanMiddlewareAsts(projectRoot: string): Promise<readonly MiddlewareAst[]> {
-  const directory = path.join(projectRoot, 'app', 'Http', 'Middleware');
+export async function scanMiddlewareAsts(sourceProject: SourceProjectIdentity): Promise<readonly MiddlewareAst[]> {
+    const sourceRoot = sourceProject.root.value.value;
+  const directory = path.join(sourceRoot, 'app', 'Http', 'Middleware');
   const files = await collectPhpFiles(directory);
   const asts: MiddlewareAst[] = [];
 
@@ -36,7 +38,7 @@ export async function scanMiddlewareAsts(projectRoot: string): Promise<readonly 
     const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
     const handle = declaration.methods.find(method => method.name === 'handle');
     if (!handle) throw new Error(`Middleware handle method not found: ${file}`);
-    const action = controllerAstFromMethod(handle, name, file).action;
+    const action = controllerAstFromMethod(handle, name, file, { kind: 'response_absent' }).action;
     const span = source(file, Number(declaration.source.line));
     const definition: MiddlewareDefinition = {
       kind: 'middleware',

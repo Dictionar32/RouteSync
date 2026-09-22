@@ -15,22 +15,24 @@ import { buildRouteHandler } from "../../request/controllerActionTypes";
 import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 import type { RouteBoundaryOptions } from "../../../resolvers";
+import type { PropertyName } from "../../../../../types/upstream/names";
 import type { RouteRequestBinding } from "../../../../../types/domain/request";
+import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath, SourceFile } from "../../../../../types/upstream/names";
 
 export type ControllerReferenceRouteOptions = {
     readonly method: HttpMethod;
-    readonly path: string;
-    readonly controllerName: string;
-    readonly actionName: string;
-    readonly domain?: string;
-    readonly resourceName?: string;
-    readonly sourceFile: string;
+    readonly path: RoutePath;
+    readonly controllerName: ControllerName;
+    readonly actionName: ActionName;
+    readonly domain?: DomainTypeName;
+    readonly resourceName?: ResourceName;
+    readonly sourceFile: SourceFile;
     readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
     readonly request?: RouteRequestBinding;
     readonly schema?: RouteSchemaPayload;
     readonly auth?: boolean;
-    readonly middleware?: readonly string[];
+    readonly middleware?: readonly PropertyName[];
     readonly parameters?: readonly RouteParameter[];
     readonly pathParameters?: readonly RouteParameter[];
     readonly queryParameters?: readonly RouteQueryParameter[];
@@ -48,13 +50,21 @@ export function createRouteFromControllerReference(
         middleware = [], parameters = [], pathParameters, queryParameters = [], invalidation
     } = options;
 
-    const target = `${controllerName}@${actionName}`;
-    const handler = buildRouteHandler(controllerName, actionName, target);
+    const handler = buildRouteHandler(controllerName, actionName);
 
     return createFn({
         origin: "controller_reference",
-        method, path, domain, resourceName, controllerName, actionName,
-        action: target, handler, response, sourceFile, sourceLine,
+        method,
+        path,
+        domain,
+        resourceName,
+        controllerName,
+        actionName,
+        action: actionName,
+        handler,
+        response,
+        sourceFile,
+        sourceLine,
         request: request === undefined ? { kind: 'no_request' } : request, runtimeReturn: { kind: 'none' }, schema, auth, middleware, parameters,
         pathParameters, queryParameters, invalidation
     });

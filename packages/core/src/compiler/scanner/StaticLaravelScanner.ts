@@ -9,9 +9,7 @@
  */
 
 import type {
-    RouteManifest,
     ParsedRoute,
-    ParsedModel,
     ParsedResource,
     ResourceRouteGroup
 } from "../../types/route";
@@ -21,32 +19,54 @@ import type { ModelAst } from "../../types/upstream/ast";
 import { TypeInterner } from "../types/TypeInterner";
 import type { StaticLaravelScannerOptions } from "./descriptors";
 import { InvalidationResolver, TypeDeriver } from "./subscanners";
-import { executeScanPipeline } from "./orchestrator/index";
-import { ScannerLegacyDelegates } from "./scannerLegacyDelegates";
+import { scanRouteSyncManifest } from "./orchestrator/index";
+import type { RouteSyncManifest } from "../../types/upstream/manifest";
+import type { SourceProjectIdentity } from "../../types/upstream/highLevelSourceModel";
+import type { SourceSpan } from "../../types/upstream/provenance";
+import type { NumberValue, StringValue } from "../../types/upstream/valueObjects";
 
 export * from "./scannerExports";
 
-export class StaticLaravelScanner extends ScannerLegacyDelegates {
+export const createLaravelSourceProjectIdentity = (sourceRoot: string): SourceProjectIdentity => {
+    const stringValue = (value: string): StringValue => ({ kind: "string_value", value });
+    const numberValue = (value: number): NumberValue => ({ kind: "number_value", value });
+    const source: SourceSpan = {
+        kind: "source_span",
+        file: { kind: "source_file", value: stringValue(sourceRoot) },
+        start: numberValue(1),
+        end: numberValue(1),
+    };
+    return {
+        kind: "laravel_project",
+        root: source.file,
+        source,
+    };
+};
+
+export class StaticLaravelScanner {
+    public readonly sourceProject: SourceProjectIdentity;
     public readonly baseURL: string;
     public readonly version: string;
+    protected readonly interner: TypeInterner;
 
     constructor({
-        projectRoot,
+        sourceProject,
         baseURL = "http://localhost/api",
         version = "6.0.0"
     }: {
-        readonly projectRoot: string;
+        readonly sourceProject: SourceProjectIdentity;
         readonly baseURL?: string;
         readonly version?: string;
     }) {
-        super(projectRoot, new TypeInterner());
+        this.sourceProject = sourceProject;
+        this.interner = new TypeInterner();
         this.baseURL = baseURL;
         this.version = version;
         Object.freeze(this);
     }
 
     public static create(options: {
-        readonly projectRoot: string;
+        readonly sourceProject: SourceProjectIdentity;
         readonly baseURL?: string;
         readonly version?: string;
     }): StaticLaravelScanner {
@@ -54,14 +74,14 @@ export class StaticLaravelScanner extends ScannerLegacyDelegates {
     }
 
     static async scan(
-        projectRoot: string,
+        sourceProject: SourceProjectIdentity,
         options: { readonly baseURL?: string; readonly version?: string } = {}
-    ): Promise<RouteManifest> {
+    ): Promise<RouteSyncManifest> {
         return StaticLaravelScanner.create({
-            projectRoot,
+            sourceProject,
             baseURL: options.baseURL,
             version: options.version
-        }).execute();
+        }).executeUpstream();
     }
 
     public static resolveRouteInvalidations(
@@ -75,10 +95,9 @@ export class StaticLaravelScanner extends ScannerLegacyDelegates {
     public static deriveRequestTypes(
         routes: readonly ParsedRoute[] = [],
         resources: readonly ParsedResource[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        models: readonly ModelAst[] = []
+        interner: TypeInterner = new TypeInterner()
     ): readonly RequestType[] {
-        return TypeDeriver.deriveRequestTypes(routes, resources, interner, models);
+        return TypeDeriver.deriveRequestTypes(routes, resources, interner);
     }
 
     public static deriveSemanticTypes(
@@ -90,12 +109,9 @@ export class StaticLaravelScanner extends ScannerLegacyDelegates {
         return TypeDeriver.deriveSemanticTypes(resources, models, interner, routes);
     }
 
-    public async execute(): Promise<RouteManifest> {
-        return executeScanPipeline({
-            projectRoot: this.projectRoot,
-            baseURL: this.baseURL,
-            version: this.version,
-            interner: this.interner
-        });
+    /** Canonical upstream scan: source -> AST/ADT -> CompleteSourceAst -> RouteSyncManifest. */
+    public async executeUpstream(): Promise<RouteSyncManifest> {
+        return scanRouteSyncManifest(this.sourceProject);
     }
+
 }

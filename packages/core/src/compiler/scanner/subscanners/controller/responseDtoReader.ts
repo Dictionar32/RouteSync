@@ -10,6 +10,7 @@ import type { PhpPropertyTypeAst } from '../../lexer/responseDtoAstTypes';
 import type { ResponseDtoDeclarationAst } from '../../lexer/responseDtoAstTypes';
 
 import type { ResponseContractField, ResponseNullability, ResponseValueContract } from '../../../../types/domain/responseContracts';
+import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { createResponseFieldName, createResponseTypeName } from '../../../../types/domain/semanticValueFactories';
 
 export interface ResponseDtoAnalysis {
@@ -41,10 +42,10 @@ function toField(property: ResponseDtoDeclarationAst['properties'][number]): Res
     const resolvedType = resolveSemanticType(property.type);
     const expression = property.type.kind === 'primitive'
         ? { kind: 'primitive' as const, type: toPrimitiveKind(property.type) }
-        : { kind: 'unsupported' as const, reason: 'invalid_boundary_input' as const };
+        : { kind: 'unsupported' as const, reason: 'unsupported_syntax' as const };
 
     return ScannedResourceFieldDescriptor.fromExpression(
-        property.name, expression, resolvedType, property.name
+        property.name, expression, resolvedType, property.name, BoundSemanticFactory.unsupported('parser_gap')
     );
 }
 

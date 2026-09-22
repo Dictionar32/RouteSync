@@ -8,6 +8,7 @@ import type { PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import { mapAstValueToExpression } from "../../subscanners/resource/resourceAstExpressionMapper";
 import { matchLookup } from "../../../../types/upstream/collections";
+import { createPropertyName } from "../../../../types/upstream/names";
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 
@@ -42,7 +43,7 @@ export function resolvePropertyPath(
                 continue;
             }
             if (invocation.result.kind === 'single_model' || invocation.result.kind === 'model_collection' || invocation.result.kind === 'paginated_collection') {
-                const next = matchLookup(table.get(invocation.result.model.identity.name.value), {
+                const next = matchLookup(table.get(invocation.result.model.identity.name), {
                     missing: () => undefined,
                     found: ({ value }) => value
                 });
@@ -55,7 +56,7 @@ export function resolvePropertyPath(
             continue;
         }
 
-        const resolvedBinding = model.resolveProperty(member.property);
+        const resolvedBinding = model.resolveProperty(createPropertyName(member.property));
         if (resolvedBinding.kind === 'missing') return { kind: 'rejected', reason: 'missing_property' };
         const propertyBinding = resolvedBinding.value;
         const type = matchPhpAccessMode(member.access, {

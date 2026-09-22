@@ -9,7 +9,8 @@
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { SemanticResolutionKernel } from '@routesync/core';
+import { ModelControllerMap, ModelNodeMap, ModelServiceMap } from '@routesync/core';
+import type { ServiceGraph, ServiceResult } from '@routesync/core';
 
 export interface SemanticAuditOptions {
   readonly graph: string;
@@ -24,120 +25,55 @@ export function auditSemanticCoverage(options: SemanticAuditOptions, cwd: string
     process.exit(1);
   }
 
-  const graph = JSON.parse(fs.readFileSync(graphPath, 'utf8'));
-  const resolver = new SemanticResolutionKernel(graph.models || [], graph.resources || []);
-
-  let resolvedCount = 0;
-  let explainableCount = 0;
-
-  const unresolvedBreakdown: Record<string, string[]> = {
-    'Missing MethodReturn Resolver': [],
-    'Missing ResourceGraph Resolver': [],
-    'Missing Framework Registry': [],
-    'Missing Accessor Resolver': [],
-    'Missing Relation Resolver': [],
-    'Dynamic Runtime Value': [],
-    'External Service Boundary': [],
-    'Other Unresolved': [],
+  const serialized = JSON.parse(fs.readFileSync(graphPath, 'utf8'));
+  const graph: ServiceGraph = {
+    services: ModelServiceMap.fromEntries(serialized.services.entries),
+    controllers: ModelControllerMap.fromEntries(serialized.controllers.entries),
+    models: ModelNodeMap.fromEntries(serialized.models.entries),
+    edges: serialized.edges,
   };
+  const serviceEntries = graph.services.entries;
 
-  function checkField(
-    fieldObj: Record<string, unknown> | undefined | null,
-    fieldPath: string,
-    contextModel?: Record<string, unknown> | null
-  ) {
-    if (!fieldObj) return;
+  let serviceMethodCount = 0;
+  let serviceExpressionMethodCount = 0;
+  let serviceVoidMethodCount = 0;
+  let serviceExpressionCount = 0;
 
-    if (fieldObj.kind === 'object' && fieldObj.fields) {
-      const fields = fieldObj.fields as Record<string, unknown>;
-      for (const [key, val] of Object.entries(fields)) {
-        checkField(val as Record<string, unknown>, `${fieldPath}.${key}`, contextModel);
-      }
-      return;
-    }
+  for (const entry of serviceEntries) {
+    const service = entry.service;
+    const methods = service.methods;
+    for (const method of methods) {
+      serviceMethodCount++;
+      const result: ServiceResult = method.result;
 
-    if (fieldObj.collection && fieldObj.paginated === undefined && fieldObj.resource === undefined && fieldObj.model === undefined && fieldObj.kind !== 'resource') {
-      // Arrays that are primitives
-    }
-
-    const res = resolver.resolve(fieldObj, contextModel);
-    explainableCount++;
-
-    if (res.status === 'resolved') {
-      resolvedCount++;
-    } else {
-      const lastTrace = res.trace && res.trace.length > 0 ? res.trace[res.trace.length - 1] as Record<string, unknown> : null;
-      const reasonRule = typeof lastTrace?.rule === 'string' ? lastTrace.rule : 'Unknown Reason';
-      const reasonSource = typeof lastTrace?.source === 'string' ? lastTrace.source : '';
-
-      if (reasonRule.includes('MethodReturn') || reasonRule.includes('Eloquent method registry') || reasonSource.includes('EloquentMethodResolver')) {
-        unresolvedBreakdown['Missing MethodReturn Resolver'].push(fieldPath);
-      } else if (reasonRule.includes('FrameworkResolver') || reasonSource.includes('FrameworkRegistryResolver')) {
-        unresolvedBreakdown['Missing Framework Registry'].push(fieldPath);
-      } else if (reasonRule.includes('Model') || reasonSource.includes('ModelColumnResolver')) {
-        unresolvedBreakdown['Missing Relation Resolver'].push(fieldPath);
-      } else if (reasonRule.includes('Accessor') || reasonSource.includes('AccessorResolver')) {
-        unresolvedBreakdown['Missing Accessor Resolver'].push(fieldPath);
+      if (result.kind === 'expressions') {
+        serviceExpressionMethodCount++;
+        let items = result.items;
+        while (items.kind === 'cons') {
+          serviceExpressionCount++;
+          items = items.tail;
+        }
       } else {
-        unresolvedBreakdown['Other Unresolved'].push(`${fieldPath} (${reasonRule})`);
+        serviceVoidMethodCount++;
       }
     }
   }
 
-  // Check routes
-  const routesList = (graph.routes || []) as Array<Record<string, unknown>>;
-  for (const route of routesList) {
-    if (route.response) {
-      const nameStr = typeof route.name === 'string' ? route.name : 'UnknownRoute';
-      checkField(route.response as Record<string, unknown>, nameStr);
-    }
-  }
+  console.log(chalk.bold('\nService Graph Coverage\n──────────────────────'));
+  console.log(`Methods: ${serviceMethodCount}`);
+  console.log(`Methods with return expressions: ${serviceExpressionMethodCount}/${serviceMethodCount}`);
+  console.log(`Void methods: ${serviceVoidMethodCount}`);
+  console.log(`Resolved return expressions carried to consumer: ${serviceExpressionCount}\n`);
 
-  // Check resources
-  const resourcesList = (graph.resources || []) as Array<Record<string, unknown>>;
-  for (const resource of resourcesList) {
-    if (resource.fields) {
-      const resName = typeof resource.name === 'string' ? resource.name : 'UnknownResource';
-      const modelsList = (graph.models || []) as Array<Record<string, unknown>>;
-      const contextModel = modelsList.find((m) => m.name === resName.replace('Resource', ''));
-      const fields = resource.fields as Record<string, unknown>;
-      for (const [key, val] of Object.entries(fields)) {
-        checkField(val as Record<string, unknown>, `${resName}.${key}`, contextModel);
-      }
-    }
-  }
-
-  console.log(chalk.bold('\nSemantic Coverage\n─────────────────'));
-
-  const coverage = explainableCount > 0 ? Math.round((resolvedCount / explainableCount) * 100) : 0;
-  console.log(`Resolved: ${coverage === 100 ? chalk.green('100%') : chalk.yellow(coverage + '%')}`);
-  console.log(`Explainable: ${chalk.green('100%')}\n`);
-
-  let hasUnresolved = false;
-  for (const items of Object.values(unresolvedBreakdown)) {
-    if (items.length > 0) hasUnresolved = true;
-  }
-
-  if (hasUnresolved) {
-    console.log(chalk.bold('Unresolved:'));
-    for (const [category, items] of Object.entries(unresolvedBreakdown)) {
-      if (items.length > 0) {
-        console.log(`  ${category}: ${items.length}`);
+  if (options.verbose) {
+    console.log(chalk.bold('Service Result ADT'));
+    for (const entry of serviceEntries) {
+      const service = entry.service;
+      for (const method of service.methods) {
+        const methodName = `${service.name.value.value}.${method.name.value.value}`;
+        console.log(`  ${methodName}: ${JSON.stringify(method.result)}`);
       }
     }
     console.log('');
-
-    if (options.verbose) {
-      for (const [category, items] of Object.entries(unresolvedBreakdown)) {
-        if (items.length > 0) {
-          console.log(chalk.yellow(`[${category}]`));
-          items.forEach(i => console.log(`  - ${i}`));
-        }
-      }
-      console.log(chalk.bold('Suggested Action:'));
-      console.log('Implement Laravel Attribute Resolver / Check dynamic runtime values.\n');
-    } else {
-      console.log(chalk.gray('Run `routesync audit --verbose` for details.\n'));
-    }
   }
 }

@@ -7,6 +7,7 @@ import type { SourceSpan } from './provenance';
 import type { TypeExpression } from './typeVocabulary';
 import type { ModelReference, PropertyReference, ResourceReference } from './semanticReferences';
 import type { RouteAuthentication, RouteMethod, RouteTarget } from './route';
+import type { RouteCapabilityContract } from './route';
 import type { EndpointRequestBinding, EndpointResponseBinding } from './endpointBindings';
 import type { ResponseJsonPayload, ResponseJsonShape, ResponseResult } from './response';
 import type { RouteMiddlewares, RouteParameters, ValidationRules } from './collections';
@@ -24,6 +25,7 @@ export type RouteEndpointContract = {
   readonly target: RouteTarget;
   readonly parameters: RouteParameters;
   readonly authentication: RouteAuthentication;
+  readonly capability: RouteCapabilityContract;
   readonly middleware: RouteMiddlewares;
   readonly request: EndpointRequestBinding;
   readonly response: EndpointResponseBinding;

@@ -10,21 +10,50 @@ import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { findControllerResourceBinding } from "../controller/resourceDataflowAggregator";
 import { matchLookup } from "../../../../types/upstream/collections";
+import type { ModelName, ResourceName, RelationName } from "../../../../types/upstream/names";
 
 export interface ResourceRelationEdge {
-    readonly parentResource: string;
-    readonly childResource: string;
-    readonly relationKey: string;
+    readonly parentResource: ResourceName;
+    readonly childResource: ResourceName;
+    readonly relationKey: RelationName;
+}
+
+function sameResourceName(left: ResourceName, right: ResourceName): boolean {
+    return left.value.value === right.value.value;
+}
+
+function findResolvedModel(
+    resolvedModels: ReadonlyMap<ResourceName, OriginModelSymbol>,
+    resourceName: ResourceName
+): OriginModelSymbol | undefined {
+    for (const [key, value] of resolvedModels) {
+        if (sameResourceName(key, resourceName)) return value;
+    }
+    return undefined;
+}
+
+function setResolvedModel(
+    resolvedModels: Map<ResourceName, OriginModelSymbol>,
+    resourceName: ResourceName,
+    model: OriginModelSymbol
+): void {
+    for (const key of resolvedModels.keys()) {
+        if (sameResourceName(key, resourceName)) {
+            resolvedModels.set(key, model);
+            return;
+        }
+    }
+    resolvedModels.set(resourceName, model);
 }
 
 /**
  * Resolves initial model for a resource via controller dataflow or naming convention.
  */
 export function resolveInitialModel(
-    resourceName: string,
+    resourceName: ResourceName,
     modelSymbolTable: ModelSymbolTable,
     controllerDataflowMap: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow | undefined,
-    resolvedModels: Map<string, OriginModelSymbol>
+    resolvedModels: Map<ResourceName, OriginModelSymbol>
 ): void {
     const binding = controllerDataflowMap
         ? findControllerResourceBinding(controllerDataflowMap, resourceName)
@@ -38,7 +67,7 @@ export function resolveInitialModel(
             found: ({ value }) => value
         });
         if (sym !== undefined) {
-            resolvedModels.set(resourceName, sym);
+            setResolvedModel(resolvedModels, resourceName, sym);
             return;
         }
     }
@@ -47,7 +76,7 @@ export function resolveInitialModel(
         found: ({ value }) => value
     });
     if (conventionSym !== undefined) {
-        resolvedModels.set(resourceName, conventionSym);
+        setResolvedModel(resolvedModels, resourceName, conventionSym);
     }
 }
 
@@ -56,11 +85,11 @@ export function resolveInitialModel(
  */
 export function propagateRelationEdges(
     relationEdges: readonly ResourceRelationEdge[],
-    resolvedModels: Map<string, OriginModelSymbol>,
+    resolvedModels: Map<ResourceName, OriginModelSymbol>,
     modelSymbolTable: ModelSymbolTable,
     maxIterations = 5
-): Map<string, string> {
-    const relationPropagationMap = new Map<string, string>();
+): Map<ResourceName, ModelName> {
+    const relationPropagationMap = new Map<ResourceName, ModelName>();
     let changed = true;
     let iteration = 0;
 
@@ -68,20 +97,21 @@ export function propagateRelationEdges(
         changed = false;
         iteration++;
         for (const edge of relationEdges) {
-            if (resolvedModels.has(edge.parentResource) && !resolvedModels.has(edge.childResource)) {
-                const parentSym = resolvedModels.get(edge.parentResource)!;
+            const parentSym = findResolvedModel(resolvedModels, edge.parentResource);
+            const childAlreadyResolved = findResolvedModel(resolvedModels, edge.childResource) !== undefined;
+            if (parentSym !== undefined && !childAlreadyResolved) {
                 const rel = matchLookup(parentSym.relation(edge.relationKey), {
                     missing: () => undefined,
                     found: ({ value }) => value
                 });
                 if (rel) {
-                    const childSym = matchLookup(modelSymbolTable.get(rel.targetModel.value.value), {
+                    const childSym = matchLookup(modelSymbolTable.get(rel.targetModel), {
                         missing: () => undefined,
                         found: ({ value }) => value
                     });
                     if (childSym !== undefined) {
-                        resolvedModels.set(edge.childResource, childSym);
-                        relationPropagationMap.set(edge.childResource, rel.targetModel.value.value);
+                        setResolvedModel(resolvedModels, edge.childResource, childSym);
+                        relationPropagationMap.set(edge.childResource, rel.targetModel);
                         changed = true;
                     }
                 }

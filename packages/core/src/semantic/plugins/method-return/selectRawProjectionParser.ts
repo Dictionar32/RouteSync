@@ -1,7 +1,7 @@
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { ResponseFieldName } from '../../../types/domain/semanticValues';
 import type { QueryProjectionField } from '../../../types/domain/semanticResolution';
-import type { ModelSemanticDefinition } from '../../../types/domain/models';
+import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 import { aggregateType } from './selectRawProjectionTypes';
 
 export function parseSelectRawFields(

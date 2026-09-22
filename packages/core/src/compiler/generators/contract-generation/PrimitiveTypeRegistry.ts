@@ -53,7 +53,8 @@ export class PrimitiveTypeRegistry {
         // Avoid evaluating the browser-only File constructor when an SDK is
         // imported during SSR. The predicate is evaluated only on validation.
         [PrimitiveKind.FILE, "z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)"],
-        [PrimitiveKind.UNKNOWN, 'z.unknown()']
+        [PrimitiveKind.UNKNOWN, 'z.unknown()'],
+        [PrimitiveKind.UNSPECIFIED, 'z.unknown()']
     ]);
 
     /**

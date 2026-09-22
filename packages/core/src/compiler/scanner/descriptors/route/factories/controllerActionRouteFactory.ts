@@ -16,15 +16,16 @@ import type {
 import type { ControllerActionInfo } from "../../requestDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 import type { RouteBoundaryOptions } from "../../../resolvers";
+import type { DomainTypeName, ResourceName, RoutePath, PropertyName } from "../../../../../types/upstream/names";
 
 export type ControllerActionRouteOptions = {
     readonly method: HttpMethod;
-    readonly path: string;
+    readonly path: RoutePath;
     readonly action: ControllerActionInfo;
-    readonly domain?: string;
-    readonly resourceName?: string;
+    readonly domain?: DomainTypeName;
+    readonly resourceName?: ResourceName;
     readonly auth?: boolean;
-    readonly middleware?: readonly string[];
+    readonly middleware?: readonly PropertyName[];
     readonly parameters?: readonly RouteParameter[];
     readonly pathParameters?: readonly RouteParameter[];
     readonly queryParameters?: readonly RouteQueryParameter[];
@@ -57,7 +58,7 @@ export function createRouteFromControllerAction(
         resourceName,
         controllerName: action.controllerName,
         actionName: action.actionName,
-        action: action.target,
+        action: action.actionName,
         handler: action.handler,
         response: action.response,
         sourceFile: action.sourceFile,

@@ -1,16 +1,17 @@
 import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { PhpAstValue, PhpStatement, PhpAssignmentTarget, PhpIfAlternative, PhpForClause } from '../../lexer/phpAstTypes';
 import type { ControllerAst } from '../../../../types/upstream/ast';
-import type { ControllerAction, ControllerSemanticDataflow, ControllerStatement } from '../../../../types/upstream/controller';
+import type { ControllerAction, ControllerSemanticDataflow, ControllerResponse } from '../../../../types/upstream/controller';
+import type { SourceStatement, SourceStatements } from '../../../../types/upstream/sourceStatements';
 import type { Assignment, AssignmentTarget } from '../../../../types/upstream/assignment';
 import type { Expression, ResolvedExpression } from '../../../../types/upstream/expression';
 import type { Sequence } from '../../../../types/upstream/collections';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
+import type { ResponseReference } from '../../../../types/upstream/semanticReferences';
 import type { StringValue } from '../../../../types/upstream/valueObjects';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
-import { createControllerDataflowContract, createControllerReturnSet } from './controllerDataflowContract';
-import { resolveControllerExpression } from '../../descriptors/request/controllerExpressionContract';
+import { createControllerDataflowContract, createControllerReturnSet, type ControllerResourceResponseEvidence } from './controllerDataflowContract';
 
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
@@ -23,12 +24,18 @@ const sequence = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequ
   { kind: 'empty' }
 );
 
-const span = (file: string, line: number): SourceSpan => ({
+const span = (file: string, start: number, end: number = start): SourceSpan => ({
   kind: 'source_span',
   file: { kind: 'source_file', value: stringValue(file) },
-  start: { kind: 'number_value', value: line },
-  end: { kind: 'number_value', value: line },
+  start: { kind: 'number_value', value: start },
+  end: { kind: 'number_value', value: end },
 });
+
+const tokenSpan = (file: string, token: { readonly startOffset: number; readonly endOffset: number }): SourceSpan =>
+  span(file, token.startOffset, token.endOffset);
+
+const valueSpan = (file: string, value: PhpAstValue): SourceSpan =>
+  span(file, value.source.startOffset, value.source.endOffset);
 
 const expression = (value: PhpAstValue, file: string): Expression => mapResourcePhpAstToUpstream(value, file);
 
@@ -41,6 +48,8 @@ function assignmentTarget(target: PhpAssignmentTarget, file: string): Assignment
   }
 }
 
+export type StatementExpressionResolver = (value: PhpAstValue, file: string, statementIndex: number) => ResolvedExpression;
+
 export function resolvedExpression(value: PhpAstValue, method: ControllerMethodAst, file: string, statementIndex: number): ResolvedExpression {
   const semantic = method.body.dataflow.definitions.find(definition => definition.value === value)?.semantic;
   const result: SemanticValue = semanticValue(semantic);
@@ -51,9 +60,9 @@ function semanticValue(value: import('../../../../types/upstream/controller').Co
   if (!value) return { kind: 'unresolved', reason: 'external' };
   switch (value.kind) {
     case 'model_origin':
-      return { kind: 'reference', name: { kind: 'domain_type_name', value: value.origin.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_null' } };
+      return { kind: 'reference', name: { kind: 'domain_type_name', value: value.origin.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } };
     case 'request_origin':
-      return { kind: 'reference', name: { kind: 'domain_type_name', value: value.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_null' } };
+      return { kind: 'reference', name: { kind: 'domain_type_name', value: value.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } };
     case 'expression':
       return { kind: 'unresolved', reason: 'unsupported' };
     case 'external':
@@ -61,35 +70,51 @@ function semanticValue(value: import('../../../../types/upstream/controller').Co
   }
 }
 
-function statement(value: PhpStatement, file: string, index: number, method: ControllerMethodAst): ControllerStatement {
-  const source = span(file, index + 1);
+function forClause(value: PhpForClause, file: string, index: number, resolve: StatementExpressionResolver): import('../../../../types/upstream/sourceStatements').SourceForClause {
   switch (value.kind) {
-    case 'expression_statement': return { kind: 'expression', value: expression(value.expression, file), source };
-    case 'return_with_value': return { kind: 'return', expression: expression(value.expression, file), source };
-    case 'return_void': return { kind: 'return', expression: expression({ kind: 'literal', literalType: 'null', value: null }, file), source };
-    case 'assignment': return { kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(value.target, file), expression: resolvedExpression(value.value, method, file, index), source }, source };
-    case 'if_statement': return { kind: 'conditional', condition: expression(value.condition, file), branches: branches(value.alternative, value.thenBlock.statements, file, index, method), source };
-    case 'foreach_statement': return { kind: 'for_each', iterable: expression(value.iterable, file), variable: variableName(value.target.kind === 'value' ? value.target.variable : value.target.value), body: controllerStatements(value.body.statements, file, method), source };
-    case 'for_statement': return { kind: 'for_each', iterable: forClauseExpression(value.initializer, file), variable: { kind: 'variable_name', value: stringValue('__for') }, body: controllerStatements(value.body.statements, file, method), source };
-    case 'try_statement': return { kind: 'try', body: controllerStatements(value.body.statements, file, method), catches: { kind: 'catch_handlers', items: sequence(value.catches.map((item, catchIndex) => ({ kind: 'catch_handler', variable: variableName(item.variable), exception: exceptionName(item.exceptionType), body: controllerStatements(item.body.statements, file, method), source: span(file, index + catchIndex + 1) }))) }, source };
-    case 'throw_statement': return { kind: 'throw', error: expression(value.expression, file), source };
+    case 'empty': return { kind: 'empty' };
+    case 'expression': return { kind: 'expression', value: resolve(value.value, file, index) };
+    case 'assignment': return { kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(value.target, file), expression: resolve(value.value, file, index), source: statementSource(value, file) } };
   }
 }
 
-export function controllerStatements(values: readonly PhpStatement[], file: string, method: ControllerMethodAst): { kind: 'controller_statements'; items: Sequence<ControllerStatement> } {
-  return { kind: 'controller_statements', items: sequence(values.map((value, index) => statement(value, file, index, method))) };
+function statementSource(value: PhpStatement, file: string): SourceSpan {
+  return tokenSpan(file, value.source);
 }
 
-function branches(alternative: PhpIfAlternative, thenValues: readonly PhpStatement[], file: string, index: number, method: ControllerMethodAst) {
-  if (alternative.kind === 'none') return { kind: 'then_only' as const, whenTrue: controllerStatements(thenValues, file, method) };
-  if (alternative.kind === 'else_block') return { kind: 'then_else' as const, whenTrue: controllerStatements(thenValues, file, method), whenFalse: controllerStatements(alternative.block.statements, file, method) };
-  return { kind: 'then_else' as const, whenTrue: controllerStatements(thenValues, file, method), whenFalse: { kind: 'controller_statements' as const, items: sequence([statement(alternative.statement, file, index, method)]) } };
+function sourceStatement(value: PhpStatement, file: string, index: number, resolve: StatementExpressionResolver): SourceStatement {
+  const source = statementSource(value, file);
+  switch (value.kind) {
+    case 'expression_statement': return { kind: 'expression', value: resolve(value.expression, file, index), source };
+    case 'return_with_value': return { kind: 'return', expression: resolve(value.expression, file, index), source };
+    case 'return_void': return { kind: 'return_void', source };
+    case 'assignment': return { kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(value.target, file), expression: resolve(value.value, file, index), source }, source };
+    case 'if_statement': return { kind: 'conditional', condition: resolve(value.condition, file, index), branches: sourceBranches(value.alternative, value.thenBlock.statements, file, index, resolve), source };
+    case 'foreach_statement': return { kind: 'for_each', iterable: resolve(value.iterable, file, index), variable: variableName(value.target.kind === 'value' ? value.target.variable : value.target.value), body: sourceStatements(value.body.statements, file, resolve), source };
+    case 'for_statement': return { kind: 'for_loop', initializer: forClause(value.initializer, file, index, resolve), condition: forClause(value.condition, file, index, resolve), update: forClause(value.update, file, index, resolve), body: sourceStatements(value.body.statements, file, resolve), source };
+    case 'try_statement': return { kind: 'try', body: sourceStatements(value.body.statements, file, resolve), catches: { kind: 'catch_handlers', items: sequence(value.catches.map((item, catchIndex) => ({ kind: 'catch_handler', variable: variableName(item.variable), exception: exceptionName(item.exceptionType), body: sourceStatements(item.body.statements, file, resolve), source: tokenSpan(file, item.source) }))) }, source };
+    case 'throw_statement': return { kind: 'throw', error: resolve(value.expression, file, index), source };
+  }
+}
+
+export function sourceStatements(values: readonly PhpStatement[], file: string, resolve: StatementExpressionResolver): SourceStatements {
+  return { kind: 'source_statements', items: sequence(values.map((value, index) => sourceStatement(value, file, index, resolve))) };
+}
+
+export function controllerStatements(values: readonly PhpStatement[], file: string, method: ControllerMethodAst): SourceStatements {
+  return sourceStatements(values, file, (value, sourceFile, statementIndex) => resolvedExpression(value, method, sourceFile, statementIndex));
+}
+
+function sourceBranches(alternative: PhpIfAlternative, thenValues: readonly PhpStatement[], file: string, index: number, resolve: StatementExpressionResolver) {
+  if (alternative.kind === 'none') return { kind: 'then_only' as const, whenTrue: sourceStatements(thenValues, file, resolve) };
+  if (alternative.kind === 'else_block') return { kind: 'then_else' as const, whenTrue: sourceStatements(thenValues, file, resolve), whenFalse: sourceStatements(alternative.block.statements, file, resolve) };
+  return { kind: 'then_else' as const, whenTrue: sourceStatements(thenValues, file, resolve), whenFalse: { kind: 'source_statements' as const, items: sequence([sourceStatement(alternative.statement, file, index, resolve)]) } };
 }
 
 function forClauseExpression(clause: PhpForClause, file: string): Expression {
   if (clause.kind === 'expression') return expression(clause.value, file);
   if (clause.kind === 'assignment') return expression(clause.value, file);
-  return { kind: 'literal', value: { kind: 'null_literal' }, source: span(file, 0) };
+  throw new Error('Empty for clause cannot be converted to an expression');
 }
 
 function requestBinding(method: ControllerMethodAst): ControllerAction['request'] {
@@ -98,11 +123,14 @@ function requestBinding(method: ControllerMethodAst): ControllerAction['request'
   return { kind: 'bound_request', name: request.semantic.name };
 }
 
-function semantic(method: ControllerMethodAst, file: string): ControllerSemanticDataflow {
+function semantic(method: ControllerMethodAst, file: string, response: ControllerResponse): ControllerSemanticDataflow {
   const contract = createControllerDataflowContract(
     method.body.dataflow,
     method.parameters,
-    createControllerReturnSet(method.returns.map(item => item.expression))
+    createControllerReturnSet(method.returns.map(item => item.expression)),
+    response.kind === 'response_present'
+      ? { kind: 'present', response: response.response } satisfies ControllerResourceResponseEvidence
+      : { kind: 'absent' } satisfies ControllerResourceResponseEvidence
   );
   const variables = method.body.dataflow.definitions.map(definition => ({
     variable: variableName(definition.name),
@@ -116,13 +144,14 @@ function semantic(method: ControllerMethodAst, file: string): ControllerSemantic
       expression: expression(definition.value, file),
       semantic: definition.semantic,
       availability: availability(definition.availability),
-      source: span(file, definition.statementIndex + 1),
+      source: tokenSpan(file, definition.value.source),
     }])
   }));
   const resources = contract.resourceBindings.map(binding => ({
     resource: { kind: 'resource_reference' as const, name: { kind: 'resource_name' as const, value: binding.resourceName.value } },
     model: toUpstreamModel(binding.model),
-    source: span(file, 0),
+    response: binding.response,
+    source: binding.source,
   }));
   const returned = method.returns.length === 0
     ? { kind: 'absent' as const }
@@ -142,15 +171,16 @@ function toUpstreamModel(origin: import('./controllerDataflowContract').Controll
   return { kind: 'model_class', name: { kind: 'model_name', value: origin.name.value } };
 }
 
-export function controllerAstFromMethod(method: ControllerMethodAst, controllerName: string, file: string): ControllerAst {
+export function controllerAstFromMethod(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse): ControllerAst {
   const action: ControllerAction = {
     kind: 'controller_action',
     controller: { kind: 'controller_name', value: stringValue(controllerName) },
     action: { kind: 'action_name', value: stringValue(method.name) },
     request: requestBinding(method),
+    response,
     statements: controllerStatements(method.body.statements, file, method),
-    semantic: semantic(method, file),
-    source: span(file, Number(method.source.line)),
+    semantic: semantic(method, file, response),
+    source: tokenSpan(file, method.source),
   };
   return { kind: 'controller_ast', action, source: action.source };
 }

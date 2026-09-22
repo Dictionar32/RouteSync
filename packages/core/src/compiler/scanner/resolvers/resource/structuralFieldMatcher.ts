@@ -9,6 +9,7 @@
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { matchLookup } from "../../../../types/upstream/collections";
+import { createPropertyName } from "../../../../types/upstream/names";
 
 const GENERIC_COLUMNS = new Set([
     'id',
@@ -41,8 +42,8 @@ export function matchStructuralFields(
 
         for (const field of fieldNames) {
             const lowerField = field.toLowerCase();
-            const col = matchLookup(model.column(field), {
-                missing: () => model.column(lowerField),
+            const col = matchLookup(model.column(createPropertyName(field)), {
+                missing: () => model.column(createPropertyName(lowerField)),
                 found: lookup => lookup
             });
             if (col.kind === 'found') {

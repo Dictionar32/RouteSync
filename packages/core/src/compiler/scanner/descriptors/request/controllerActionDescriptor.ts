@@ -21,6 +21,8 @@ import {
     buildRouteHandler
 } from "./controllerActionTypes";
 import { emptyControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
+import type { ActionName, ControllerName, SourceFile } from "../../../../types/upstream/names";
+import { createActionName, createControllerName, createSourceFile } from "../../../../types/domain/semanticValues";
 
 export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
 
@@ -28,11 +30,10 @@ export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCr
  * Reusable Constructor: Scanned Controller Action Descriptor.
  */
 export class ScannedControllerActionDescriptor implements ControllerActionInfo {
-    public readonly controllerName: string;
-    public readonly actionName: string;
-    public readonly target: string;
+    public readonly controllerName: ControllerName;
+    public readonly actionName: ActionName;
     public readonly handler: RouteHandlerDescriptor;
-    public readonly sourceFile: string;
+    public readonly sourceFile: SourceFile;
     public readonly sourceLine: number;
     public readonly response: ResponseDescriptor;
     public readonly runtimeReturn: import('./controllerActionContract').RuntimeReturnContract;
@@ -44,7 +45,6 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
     constructor(params: ScannedControllerActionParams) {
         this.controllerName = params.controllerName;
         this.actionName = params.actionName;
-        this.target = params.target;
         this.handler = params.handler;
         this.sourceFile = params.sourceFile;
         this.sourceLine = params.sourceLine;
@@ -58,13 +58,10 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
     }
 
     public static create(params: ControllerActionCreateOptions): ScannedControllerActionDescriptor {
-        const target = `${params.controllerName}@${params.actionName}`;
-
         return new ScannedControllerActionDescriptor({
             controllerName: params.controllerName,
             actionName: params.actionName,
-            target,
-            handler: buildRouteHandler(params.controllerName, params.actionName, target),
+            handler: buildRouteHandler(params.controllerName, params.actionName),
             sourceFile: params.sourceFile,
             sourceLine: params.sourceLine,
             response: params.response,
@@ -78,9 +75,9 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
 
     public static empty(controllerName: string, actionName: string, sourceFile: string): ScannedControllerActionDescriptor {
         return ScannedControllerActionDescriptor.create({
-            controllerName,
-            actionName,
-            sourceFile,
+            controllerName: createControllerName(controllerName),
+            actionName: createActionName(actionName),
+            sourceFile: createSourceFile(sourceFile),
             sourceLine: 1,
             response: new (VoidResponseDescriptor)(),
             runtimeReturn: { kind: 'none' },

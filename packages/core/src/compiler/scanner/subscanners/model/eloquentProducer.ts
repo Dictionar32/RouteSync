@@ -17,8 +17,18 @@ export type EloquentRelationProducerInput = {
     readonly source: SourceSpan;
 };
 
+export type EloquentRelationProductionResult =
+    | { readonly kind: 'produced'; readonly relation: EloquentRelationAst }
+    | { readonly kind: 'not_a_relation' }
+    | {
+        readonly kind: 'unsupported';
+        readonly method: EloquentRelationMethodName;
+        readonly reason: 'related_model_not_explicit';
+        readonly source: SourceSpan;
+    };
+
 export interface EloquentRelationProducer {
-    readonly produce: (input: EloquentRelationProducerInput) => EloquentRelationAst | undefined;
+    readonly produce: (input: EloquentRelationProducerInput) => EloquentRelationProductionResult;
 }
 
 const sequence = <T>(items: readonly T[]): Sequence<T> =>
@@ -31,15 +41,22 @@ const relationMethodName = (value: string): EloquentRelationMethodName => ({ kin
 
 const modelReference = (model: ReturnType<typeof createClassName>): TypeExpression => ({ kind: 'reference', value: { kind: 'class', name: model } });
 
-const produceRelation = (input: EloquentRelationProducerInput): EloquentRelationAst | undefined => {
+const produceRelation = (input: EloquentRelationProducerInput): EloquentRelationProductionResult => {
     const { method, returned, sourceModel, source } = input;
-    if (returned.kind !== 'method_chain') return undefined;
-    if (returned.receiver.kind !== 'variable_reference' || returned.receiver.name.value !== 'this') return undefined;
+    if (returned.kind !== 'method_chain') return { kind: 'not_a_relation' };
+    if (returned.receiver.kind !== 'variable_reference' || returned.receiver.name.value !== 'this') return { kind: 'not_a_relation' };
     const relationMethod = relationMethodName(returned.property.value);
-    if (!eloquentRelationClassifier.isRelationMethod(relationMethod)) return undefined;
+    if (!eloquentRelationClassifier.isRelationMethod(relationMethod)) return { kind: 'not_a_relation' };
 
     const related = returned.arguments[0]?.value;
-    if (related?.kind !== 'class_reference') return undefined;
+    if (related?.kind !== 'class_reference') {
+        return {
+            kind: 'unsupported',
+            method: relationMethod,
+            reason: 'related_model_not_explicit',
+            source
+        };
+    }
 
     const descriptor = eloquentRelationClassifier.descriptor(relationMethod);
     const modelName = extractClassBasename(related.className.value);
@@ -59,7 +76,7 @@ const produceRelation = (input: EloquentRelationProducerInput): EloquentRelation
         ? { kind: 'collection' as const, model: targetModel }
         : { kind: 'model' as const, model: targetModel };
 
-    return {
+    return { kind: 'produced', relation: {
         kind: 'eloquent_relation_ast',
         name: createRelationName(method.name.value),
         sourceModel,
@@ -75,7 +92,7 @@ const produceRelation = (input: EloquentRelationProducerInput): EloquentRelation
         targetShape,
         traversalTarget,
         key: { kind: 'convention' }
-    };
+    } };
 };
 
 export const eloquentRelationProducer: EloquentRelationProducer = {

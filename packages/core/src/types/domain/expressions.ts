@@ -6,6 +6,9 @@ import type { BoundSemanticNode } from "./boundAst";
 import type { ResourceFieldSemantic } from './resourceFieldSemantic';
 import type { ResourceExpressionFieldModel, ResourceExpressionModel } from './resourceExpressionModel';
 import type { Expression } from '../upstream/expression';
+import type { Assignment, AssignmentDestructuringPattern, AssignmentOperator, AssignmentReferenceMode } from '../upstream/assignment';
+import type { SourceSpan } from '../upstream/provenance';
+import type { ExceptionName } from '../upstream/names';
 
 export interface ResourceFieldDescriptor {
   readonly name: ResponseFieldName;
@@ -219,14 +222,20 @@ export interface InstanceOfResourceExpression extends BaseResourceFieldExpressio
 export type ResourceClosureAssignmentTarget =
   | { readonly kind: 'variable'; readonly name: VariableName }
   | { readonly kind: 'variables'; readonly names: readonly VariableName[] }
+  | { readonly kind: 'destructuring'; readonly pattern: AssignmentDestructuringPattern }
   | { readonly kind: 'property'; readonly target: ResourceFieldExpression; readonly property: PropertyName }
-  | { readonly kind: 'array_element'; readonly target: ResourceFieldExpression; readonly index: ResourceFieldExpression };
+  | { readonly kind: 'static_property'; readonly owner: ClassName | { readonly kind: 'self' } | { readonly kind: 'static' } | { readonly kind: 'parent' }; readonly property: PropertyName }
+  | { readonly kind: 'array_element'; readonly target: ResourceFieldExpression; readonly index: ResourceFieldExpression }
+  | { readonly kind: 'append'; readonly target: ResourceFieldExpression };
+
+export type ResourceClosureAssignmentOperator = AssignmentOperator;
+export type ResourceClosureAssignmentReference = AssignmentReferenceMode;
 
 export type ResourceClosureStatement =
   | { readonly kind: 'expression_statement'; readonly expression: ResourceFieldExpression }
   | { readonly kind: 'return_with_value'; readonly expression: ResourceFieldExpression }
   | { readonly kind: 'return_void' }
-  | { readonly kind: 'assignment'; readonly target: ResourceClosureAssignmentTarget; readonly value: ResourceFieldExpression }
+  | { readonly kind: 'assignment'; readonly upstream: Assignment; readonly target: ResourceClosureAssignmentTarget; readonly value: ResourceFieldExpression; readonly operator: ResourceClosureAssignmentOperator; readonly reference: ResourceClosureAssignmentReference; readonly source: SourceSpan }
   | { readonly kind: 'if_statement'; readonly condition: ResourceFieldExpression; readonly thenBlock: readonly ResourceClosureStatement[]; readonly alternative: ResourceClosureIfAlternative }
   | { readonly kind: 'foreach_statement'; readonly iterable: ResourceFieldExpression; readonly target: ResourceClosureForeachTarget; readonly body: readonly ResourceClosureStatement[] }
   | { readonly kind: 'for_statement'; readonly initializer: ResourceClosureForClause; readonly condition: ResourceClosureForClause; readonly update: ResourceClosureForClause; readonly body: readonly ResourceClosureStatement[] }
@@ -245,10 +254,10 @@ export type ResourceClosureForeachTarget =
 export type ResourceClosureForClause =
   | { readonly kind: 'empty' }
   | { readonly kind: 'expression'; readonly value: ResourceFieldExpression }
-  | { readonly kind: 'assignment'; readonly target: ResourceClosureAssignmentTarget; readonly value: ResourceFieldExpression };
+  | { readonly kind: 'assignment'; readonly upstream: Assignment; readonly target: ResourceClosureAssignmentTarget; readonly value: ResourceFieldExpression; readonly operator: ResourceClosureAssignmentOperator; readonly reference: ResourceClosureAssignmentReference; readonly source: SourceSpan };
 
 export interface ResourceClosureCatchClause {
-  readonly exceptionType: string;
+  readonly exceptionType: ExceptionName;
   readonly variable: VariableName;
   readonly body: readonly ResourceClosureStatement[];
 }

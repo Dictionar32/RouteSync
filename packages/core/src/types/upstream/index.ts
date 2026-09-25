@@ -36,3 +36,6 @@ export * from './endpointBindings';
 export type { Option, Lookup } from './collections';
 
 export type { ChannelDefinition, ChannelKind } from './channel';
+
+export * from './query';
+export * from './eloquent';

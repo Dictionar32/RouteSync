@@ -22,6 +22,7 @@ import {
 } from "./controllerActionTypes";
 import { emptyControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
 import type { ActionName, ControllerName, SourceFile } from "../../../../types/upstream/names";
+import type { ControllerRequestBinding } from './controllerActionContract';
 import { createActionName, createControllerName, createSourceFile } from "../../../../types/domain/semanticValues";
 
 export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
@@ -37,7 +38,8 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
     public readonly sourceLine: number;
     public readonly response: ResponseDescriptor;
     public readonly runtimeReturn: import('./controllerActionContract').RuntimeReturnContract;
-    public readonly request: import("../../../../types/domain/request").RouteRequestBinding;
+    public readonly semanticReturn: import('../../../../types/upstream/controller').ControllerReturnSemantic;
+    public readonly request: ControllerRequestBinding;
     public readonly schema: RouteSchemaPayload;
     public readonly dataflow: import("../../subscanners/controller/controllerDataflowContract").ControllerDataflowContract;
     public readonly errorResponses: readonly HttpErrorResponseDescriptor[];
@@ -50,6 +52,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
         this.sourceLine = params.sourceLine;
         this.response = params.response;
         this.runtimeReturn = params.runtimeReturn;
+        this.semanticReturn = params.semanticReturn;
         this.request = params.request;
         this.schema = params.schema;
         this.dataflow = params.dataflow;
@@ -66,6 +69,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             sourceLine: params.sourceLine,
             response: params.response,
             runtimeReturn: params.runtimeReturn,
+            semanticReturn: params.semanticReturn,
             request: params.request,
             schema: params.schema,
             dataflow: params.dataflow,
@@ -81,6 +85,7 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             sourceLine: 1,
             response: new (VoidResponseDescriptor)(),
             runtimeReturn: { kind: 'none' },
+            semanticReturn: { kind: 'absent' },
             request: { kind: 'no_request' },
             schema: ScannedRouteSchemaPayload.empty(),
             dataflow: emptyControllerDataflowContract(),

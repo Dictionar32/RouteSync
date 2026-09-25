@@ -1,7 +1,7 @@
-import type { FormRequestSource, RouteRequestBinding } from '../../../../types/domain/request';
+import type { FormRequestSource } from '../../../../types/domain/request';
 import type { SourceProjectIdentity } from '../../../../types/upstream/highLevelSourceModel';
-import { createActionName } from '../../../../types/domain/semanticValues';
-import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
+import { createActionName, type ActionName, type ControllerName, type SourceFile } from '../../../../types/upstream/names';
 import type { RouteSchemaPayload } from '../../../../types/route';
 import { ScannedFormRequestDescriptor, type ResponseDescriptor } from '../../../../types/route';
 import type { ControllerMethodAst, ControllerParameterAst, PhpParameterTypeAst } from '../../lexer/controllerAstTypes';
@@ -12,6 +12,7 @@ import { VoidResponseDescriptor } from '../../../../types/route';
 import { resolveControllerBody, type ControllerBodyResolution } from '../../subscanners/controller/controllerBodyResolver';
 import { resolveActionSchema } from '../../subscanners/controller/actionValidationExtractor';
 import { createControllerDataflowContract, createControllerReturnSet, type ControllerDataflowContract, type ControllerReturnSet, type ControllerResourceResponseEvidence } from '../../subscanners/controller/controllerDataflowContract';
+import { controllerReturnSemanticFromMethod } from '../../subscanners/controller/controllerAstCanonical';
 
 export interface ControllerActionIdentity {
     readonly controllerName: ControllerName;
@@ -21,6 +22,7 @@ export interface ControllerActionIdentity {
 export type ControllerRequestBinding =
     | { readonly kind: 'no_request' }
     | { readonly kind: 'form_request'; readonly source: FormRequestSource }
+    | { readonly kind: 'framework_request'; readonly type: import('../../../../types/upstream/names').ClassName }
     | { readonly kind: 'typed'; readonly type: PhpParameterTypeAst };
 
 /**
@@ -37,6 +39,7 @@ export interface ControllerActionContract {
     readonly request: RequestContract;
     readonly response: ResponseDescriptor;
     readonly runtimeReturn: RuntimeReturnContract;
+    readonly semanticReturn: import('../../../../types/upstream/controller').ControllerReturnSemantic;
     readonly body: ControllerBodyResolution;
     readonly dataflow: ControllerDataflowContract;
     readonly schema: RouteSchemaPayload;
@@ -58,6 +61,9 @@ export function resolveControllerActionContract(
     const body = resolveControllerBody(method.body);
     const returned = createControllerReturnSet(method.returns.map(item => item.expression));
     const response = resolveResponse(method, context.sourceProject, returned);
+    const semanticReturn = controllerReturnSemanticFromMethod(method, sourceFile.value.value, response.kind === 'resource'
+        ? { kind: 'response_present', response: { kind: 'response_reference', name: response.responseTypeName() } }
+        : { kind: 'response_absent' });
     const resourceResponse: ControllerResourceResponseEvidence = response.kind === 'resource'
         ? { kind: 'present', response: { kind: 'response_reference', name: response.responseTypeName() } }
         : { kind: 'absent' };
@@ -69,6 +75,7 @@ export function resolveControllerActionContract(
         request,
         response,
         runtimeReturn: resolveRuntimeReturn(method),
+        semanticReturn,
         body,
         dataflow,
         schema: resolveSchema(request, body, context.formRequestMap, sourceFile.value.value),
@@ -85,9 +92,11 @@ function resolveRequest(
     if (!parameter) return { kind: 'no_request' };
     if (parameter.type.kind !== 'named') return { kind: 'typed', type: parameter.type };
     const source = formRequestMap.get(parameter.type.name);
-    return source === undefined
-        ? { kind: 'typed', type: parameter.type }
-        : { kind: 'form_request', source };
+    if (source !== undefined) return { kind: 'form_request', source };
+    if (parameter.type.name === 'Request') {
+        return { kind: 'framework_request', type: SemanticValueFactory.className(parameter.type.name) };
+    }
+    return { kind: 'typed', type: parameter.type };
 }
 
 function resolveResponse(method: ControllerMethodAst, sourceProject: SourceProjectIdentity, returned: ControllerReturnSet): ResponseDescriptor {
@@ -107,9 +116,6 @@ function resolveRuntimeReturn(method: ControllerMethodAst): RuntimeReturnContrac
     };
 }
 
-function resolveSchema(request: RequestContract, body: ControllerBodyResolution, formRequestMap: ReadonlyMap<string, FormRequestSource>, sourceFile: string): RouteSchemaPayload {
-    const inlineSchema = body.schema;
-    const requestBinding = request.kind === 'form_request' ? request : { kind: 'no_request' as const };
-    const resolvedSchema = resolveActionSchema(requestBinding, formRequestMap, inlineSchema);
-    return resolvedSchema;
+function resolveSchema(request: RequestContract, body: ControllerBodyResolution): RouteSchemaPayload {
+    return resolveActionSchema(request, body.schema);
 }

@@ -1,19 +1,23 @@
 import type { PropertyName, ColumnName, ModelName, TableName, MethodName, RelationName, TraitName } from './names';
 import type { TypeExpression } from './typeVocabulary';
+import type { CastType } from './expression';
 import type { SourceSpan } from './provenance';
 import type { Presence, Nullability } from './primitiveVocabulary';
 import type { TruthValue } from './valueObjects';
 import type { DatabaseType } from './databaseVocabulary';
-import type { RelationKey, RelationKind, ModelKeyKind, ModelSchema } from './model';
-import type { EloquentRelationCardinality } from './modelVocabulary';
+import type { RelationKey, RelationKind, ModelKeyKind, ModelSchema, ModelBehavior, ModelMethodResult, ModelConstantVisibility, ModelMethodVisibility } from './model';
+import type { EloquentRelationCardinality, ModelAccessorResult, ModelAccessorVisibility, ModelConfigurationVisibility } from './modelVocabulary';
+import type { SourceStatements } from './sourceStatements';
 import type { Sequence } from './collections';
+import type { EloquentRelationAst } from './eloquent';
 
 export type ModelColumnType =
   | { readonly kind: 'native'; readonly value: TypeExpression }
   | { readonly kind: 'casted'; readonly value: TypeExpression; readonly cast: import('./expression').CastType; readonly source: SourceSpan };
 
 export type ModelColumnFact = { readonly kind: 'model_column'; readonly property: PropertyName; readonly column: ColumnName; readonly databaseType: DatabaseType; readonly type: ModelColumnType; readonly presence: Presence; readonly nullability: Nullability; readonly source: SourceSpan };
-export type ModelAccessorFact = { readonly kind: 'model_accessor'; readonly property: PropertyName; readonly method: MethodName; readonly computation: import('./modelVocabulary').ModelAccessorComputation; readonly result: TypeExpression; readonly source: SourceSpan };
+export type ModelAccessorFact = { readonly kind: 'model_accessor'; readonly property: PropertyName; readonly method: MethodName; readonly visibility: ModelAccessorVisibility; readonly computation: import('./modelVocabulary').ModelAccessorComputation; readonly result: ModelAccessorResult; readonly source: SourceSpan };
+export type ModelCastFact = { readonly kind: 'model_cast'; readonly property: PropertyName; readonly target: CastType; readonly source: SourceSpan };
 export type ModelRelationMultiplicity =
   | { readonly kind: 'single' }
   | { readonly kind: 'collection' };
@@ -26,28 +30,13 @@ export type ModelRelationTraversalTarget =
   | { readonly kind: 'model'; readonly model: ModelName }
   | { readonly kind: 'collection'; readonly model: ModelName };
 
-export type ModelRelationFact = {
-  readonly kind: 'model_relation';
-  readonly name: RelationName;
-  readonly sourceModel: ModelName;
-  readonly target: ModelName;
-  readonly relation: RelationKind;
-  readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
-  readonly cardinality: EloquentRelationCardinality;
-  readonly multiplicity: ModelRelationMultiplicity;
-  readonly targetShape: ModelRelationTargetShape;
-  readonly traversalTarget: ModelRelationTraversalTarget;
-  readonly semanticType: TypeExpression;
-  readonly key: RelationKey;
-  readonly source: SourceSpan;
-};
-export type ModelMethodFact = { readonly kind: 'model_method'; readonly name: MethodName; readonly result: TypeExpression; readonly body: SourceSpan; readonly source: SourceSpan };
-export type ModelConstantFact = { readonly kind: 'model_constant'; readonly name: import('./names').ConstantName; readonly value: import('./expression').Expression; readonly source: SourceSpan };
+export type ModelMethodFact = { readonly kind: 'model_method'; readonly name: MethodName; readonly visibility: ModelMethodVisibility; readonly result: ModelMethodResult; readonly body: SourceStatements; readonly source: SourceSpan };
+export type ModelConstantFact = { readonly kind: 'model_constant'; readonly name: import('./names').ConstantName; readonly visibility: ModelConstantVisibility; readonly value: import('./expression').Expression; readonly source: SourceSpan };
 export type ModelTraitFacts = { readonly kind: 'model_traits'; readonly items: Sequence<TraitName> };
 export type ModelSurfaceMemberFact =
   | ModelColumnFact
   | ModelAccessorFact
-  | ModelRelationFact
+  | ModelCastFact
   | ModelMethodFact
   | ModelConstantFact;
 
@@ -55,8 +44,12 @@ export type ModelSurfaceFacts = {
   readonly kind: 'model_surface_facts';
   readonly members: Sequence<ModelSurfaceMemberFact>;
 };
-export type ModelExposureFacts = { readonly kind: 'model_exposure_facts'; readonly fillable: Sequence<PropertyName>; readonly guarded: Sequence<PropertyName>; readonly hidden: Sequence<PropertyName>; readonly appends: Sequence<PropertyName> };
-export type ModelIdentityFacts = { readonly kind: 'model_identity_facts'; readonly name: ModelName; readonly shortName: ModelName; readonly table: TableName; readonly inheritance: import('./model').ModelInheritance; readonly source: SourceSpan };
-export type ModelKeyFacts = { readonly kind: 'model_key_facts'; readonly column: ColumnName; readonly type: ModelKeyKind; readonly semanticType: TypeExpression; readonly autoGenerated: TruthValue };
-export type ModelBehaviorFacts = { readonly kind: 'model_behavior_facts'; readonly incrementing: TruthValue; readonly softDeletes: TruthValue; readonly timestamps: TruthValue };
+export type ModelConfigurationVisibilityFact =
+  | { readonly kind: 'absent' }
+  | { readonly kind: 'present'; readonly visibility: ModelConfigurationVisibility };
+
+export type ModelExposureFacts = { readonly kind: 'model_exposure_facts'; readonly fillable: Sequence<PropertyName>; readonly guarded: Sequence<PropertyName>; readonly hidden: Sequence<PropertyName>; readonly appends: Sequence<PropertyName>; readonly tableDeclaration: ModelConfigurationVisibilityFact; readonly fillableDeclaration: ModelConfigurationVisibilityFact; readonly castsDeclaration: ModelConfigurationVisibilityFact; readonly hiddenDeclaration: ModelConfigurationVisibilityFact; readonly appendsDeclaration: ModelConfigurationVisibilityFact };
+export type ModelIdentityFacts = { readonly kind: 'model_identity_facts'; readonly name: ModelName; readonly shortName: ModelName; readonly table: import('./model').ModelTable; readonly inheritance: import('./model').ModelInheritance; readonly source: SourceSpan };
+export type ModelKeyFacts = { readonly kind: 'model_key_facts'; readonly column: ColumnName; readonly type: ModelKeyKind; readonly semanticType: TypeExpression; readonly autoGenerated: TruthValue; readonly origin: import('./model').ModelKeyOrigin };
+export type ModelBehaviorFacts = { readonly kind: 'model_behavior_facts'; readonly value: ModelBehavior };
 export type ModelFacts = { readonly kind: 'model_facts'; readonly identity: ModelIdentityFacts; readonly key: ModelKeyFacts; readonly behavior: ModelBehaviorFacts; readonly exposure: ModelExposureFacts; readonly capabilities: ModelTraitFacts; readonly surface: ModelSurfaceFacts; readonly schema: ModelSchema; readonly source: SourceSpan };

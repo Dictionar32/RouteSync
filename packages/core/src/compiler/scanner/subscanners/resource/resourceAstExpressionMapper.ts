@@ -11,6 +11,9 @@ import type { ResourceExpressionModel, ResourceExpressionBindingRequirement, Res
 import type { ResourceArrayEntry, ResourceArrayKey } from '../../../../types/domain/expressions';
 import { mapResourceBinaryOperator } from './resourceExpressionOperator';
 import { mapResourcePhpAstToUpstream } from './resourceUpstreamExpressionCanonical';
+import { mapClosureAssignment as mapCanonicalClosureAssignment, mapClosureForAssignment as mapCanonicalClosureForAssignment } from './resourceUpstreamExpressionClosure';
+import { mapAssignmentTarget as mapCanonicalAssignmentTarget } from './resourceUpstreamExpressionMappings';
+import type { Assignment, AssignmentTarget } from '../../../../types/upstream/assignment';
 import type { Expression } from '../../../../types/upstream/expression';
 
 type DomainExpressionModel = Omit<ResourceExpressionModel, 'upstream'>;
@@ -22,6 +25,7 @@ const accessMode = (mode: PhpAccessMode): ResourceAccessMode => mode;
 const variable = (value: string) => SemanticValueFactory.variableName(value);
 const model = (value: string) => SemanticValueFactory.modelName(value);
 const className = (value: string) => SemanticValueFactory.className(value);
+const exceptionName = (value: string): import('../../../../types/upstream/names').ExceptionName => ({ kind: 'exception_name', value: { kind: 'string_value', value } });
 const resource = (value: string) => SemanticValueFactory.resourceName(value);
 const property = (value: string) => SemanticValueFactory.propertyName(value);
 const method = (value: string) => SemanticValueFactory.methodName(value);
@@ -67,11 +71,11 @@ function mapNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): Domai
 
 export function mapAstValueToExpression(value: PhpAstValue, sourceFile = '<scanner>'): ResourceExpressionModel {
   const upstream = mapResourcePhpAstToUpstream(value, sourceFile);
-  const model = mapAstValueToDomainExpression(value);
+  const model = mapAstValueToDomainExpression(value, sourceFile);
   return { ...model, upstream };
 }
 
-function mapAstValueToDomainExpression(value: PhpAstValue): DomainExpressionModel {
+function mapAstValueToDomainExpression(value: PhpAstValue, sourceFile = '<scanner>'): DomainExpressionModel {
   const model = matchPhpAstValue<DomainExpressionModel>(value, {
     resourceCollection: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName), { kind: 'collection' }), new ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.resource('', v.resourceName))),
     resourceSingle: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName)), ReferenceType.resource('', v.resourceName)),
@@ -93,7 +97,7 @@ function mapAstValueToDomainExpression(value: PhpAstValue): DomainExpressionMode
     classReference: v => ({ expression: ResourceFieldExpressionFactory.classReference(className(v.className)), semantic: { kind: 'requires_binding', requirement: { kind: 'class_reference', className: className(v.className) } } }),
     construct: mapConstruct,
     instanceOf: mapInstanceOf,
-    closure: mapClosure,
+    closure: v => mapClosure(v, sourceFile),
     arrowFunction: mapArrowFunction,
     unsupported: () => rejected(ResourceFieldExpressionFactory.unsupported('unsupported_syntax'))
   });
@@ -102,10 +106,10 @@ function mapAstValueToDomainExpression(value: PhpAstValue): DomainExpressionMode
 
 
 
-function mapClosure(v: Extract<PhpAstValue, { kind: 'closure' }>): DomainExpressionModel {
+function mapClosure(v: Extract<PhpAstValue, { kind: 'closure' }>, sourceFile: string): DomainExpressionModel {
   const parameters = v.parameters.map(parameter => variable(parameter.variable));
   const captures = v.captures.map(capture => ({ kind: capture.kind, variable: variable(capture.variable) } as const));
-  const body = v.body.statements.map(mapClosureStatement);
+  const body = v.body.statements.map(item => mapClosureStatement(item, sourceFile));
   const expression = ResourceFieldExpressionFactory.closure(parameters, captures, body);
   return required(expression, { kind: 'closure', parameters, captures, body });
 }
@@ -117,32 +121,37 @@ function mapArrowFunction(v: Extract<PhpAstValue, { kind: 'arrow_function' }>): 
   return required(expression, { kind: 'arrow_function', parameters, body });
 }
 
-function mapClosureStatement(statement: import('../../lexer/phpAstStatementTypes').PhpStatement): import('../../../../types/domain/expressions').ResourceClosureStatement {
+function mapClosureStatement(statement: import('../../lexer/phpAstStatementTypes').PhpStatement, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureStatement {
   return matchPhpStatement(statement, {
-    expression_statement: node => ({ kind: 'expression_statement', expression: mapAstValueToExpression(node.expression).expression }),
-    return_with_value: node => ({ kind: 'return_with_value', expression: mapAstValueToExpression(node.expression).expression }),
+    expression_statement: node => ({ kind: 'expression_statement', expression: mapAstValueToExpression(node.expression, sourceFile).expression }),
+    return_with_value: node => ({ kind: 'return_with_value', expression: mapAstValueToExpression(node.expression, sourceFile).expression }),
     return_void: () => ({ kind: 'return_void' }),
-    assignment: node => ({ kind: 'assignment', target: mapClosureAssignmentTarget(node.target), value: mapAstValueToExpression(node.value).expression }),
-    if_statement: node => ({ kind: 'if_statement', condition: mapAstValueToExpression(node.condition).expression, thenBlock: node.thenBlock.statements.map(mapClosureStatement), alternative: mapClosureIfAlternative(node.alternative) }),
-    foreach_statement: node => ({ kind: 'foreach_statement', iterable: mapAstValueToExpression(node.iterable).expression, target: mapClosureForeachTarget(node.target), body: node.body.statements.map(mapClosureStatement) }),
-    for_statement: node => ({ kind: 'for_statement', initializer: mapClosureForClause(node.initializer), condition: mapClosureForClause(node.condition), update: mapClosureForClause(node.update), body: node.body.statements.map(mapClosureStatement) }),
-    try_statement: node => ({ kind: 'try_statement', body: node.body.statements.map(mapClosureStatement), catches: node.catches.map(mapClosureCatch), finallyBlock: mapClosureFinally(node.finallyBlock) }),
-    throw_statement: node => ({ kind: 'throw_statement', expression: mapAstValueToExpression(node.expression).expression })
+    assignment: node => { const upstream = mapCanonicalClosureAssignment(node, sourceFile, (value, file) => mapResourcePhpAstToUpstream(value, file)); return { kind: 'assignment', upstream, target: mapClosureAssignmentTarget(node.target, sourceFile), value: mapAstValueToExpression(node.value, sourceFile).expression, operator: upstream.operator, reference: upstream.reference, source: upstream.source }; },
+    if_statement: node => ({ kind: 'if_statement', condition: mapAstValueToExpression(node.condition, sourceFile).expression, thenBlock: node.thenBlock.statements.map(item => mapClosureStatement(item, sourceFile)), alternative: mapClosureIfAlternative(node.alternative, sourceFile) }),
+    foreach_statement: node => ({ kind: 'foreach_statement', iterable: mapAstValueToExpression(node.iterable, sourceFile).expression, target: mapClosureForeachTarget(node.target), body: node.body.statements.map(item => mapClosureStatement(item, sourceFile)) }),
+    for_statement: node => ({ kind: 'for_statement', initializer: mapClosureForClause(node.initializer, sourceFile), condition: mapClosureForClause(node.condition, sourceFile), update: mapClosureForClause(node.update, sourceFile), body: node.body.statements.map(item => mapClosureStatement(item, sourceFile)) }),
+    try_statement: node => ({ kind: 'try_statement', body: node.body.statements.map(item => mapClosureStatement(item, sourceFile)), catches: node.catches.map(item => mapClosureCatch(item, sourceFile)), finallyBlock: mapClosureFinally(node.finallyBlock, sourceFile) }),
+    throw_statement: node => ({ kind: 'throw_statement', expression: mapAstValueToExpression(node.expression, sourceFile).expression })
   });
 }
 
-function mapClosureAssignmentTarget(target: import('../../lexer/phpAstStatementTypes').PhpAssignmentTarget): import('../../../../types/domain/expressions').ResourceClosureAssignmentTarget {
-  if (target.kind === 'variable') return { kind: 'variable', name: variable(target.name) };
-  if (target.kind === 'variables') return { kind: 'variables', names: target.names.map(variable) };
-  if (target.kind === 'property') return { kind: 'property', target: mapAstValueToExpression(target.receiver).expression, property: property(target.property) };
-  return { kind: 'array_element', target: mapAstValueToExpression(target.target).expression, index: mapAstValueToExpression(target.index).expression };
+function mapClosureIfAlternative(alternative: import('../../lexer/phpAstStatementTypes').PhpIfAlternative, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureIfAlternative {
+  if (alternative.kind === 'none') return { kind: 'none' };
+  if (alternative.kind === 'else_block') return { kind: 'else_block', block: alternative.block.statements.map(item => mapClosureStatement(item, sourceFile)) };
+  return { kind: 'else_if', statement: mapClosureStatement(alternative.statement, sourceFile) as Extract<import('../../../../types/domain/expressions').ResourceClosureStatement, { kind: 'if_statement' }> };
 }
 
-
-function mapClosureIfAlternative(alternative: import('../../lexer/phpAstStatementTypes').PhpIfAlternative): import('../../../../types/domain/expressions').ResourceClosureIfAlternative {
-  if (alternative.kind === 'none') return { kind: 'none' };
-  if (alternative.kind === 'else_block') return { kind: 'else_block', block: alternative.block.statements.map(mapClosureStatement) };
-  return { kind: 'else_if', statement: mapClosureStatement(alternative.statement) as Extract<import('../../../../types/domain/expressions').ResourceClosureStatement, { kind: 'if_statement' }> };
+function mapClosureAssignmentTarget(target: import('../../lexer/phpAstStatementTypes').PhpAssignmentTarget, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureAssignmentTarget {
+  const canonical = mapCanonicalAssignmentTarget(target, (value, file) => mapResourcePhpAstToUpstream(value, file), sourceFile);
+  switch (target.kind) {
+    case 'variable': return { kind: 'variable', name: variable(target.name) };
+    case 'variables': return { kind: 'variables', names: target.names.map(name => variable(name)) };
+    case 'destructuring': { if (canonical.kind === 'destructuring') return { kind: 'destructuring', pattern: canonical.pattern }; throw new Error('Canonical assignment target mismatch: destructuring'); }
+    case 'property': return { kind: 'property', target: mapAstValueToExpression(target.receiver, sourceFile).expression, property: property(target.property) };
+    case 'static_property': return { kind: 'static_property', owner: target.owner.kind === 'named_class' ? className(target.owner.name) : { kind: target.owner.kind }, property: property(target.property) };
+    case 'array_element': return { kind: 'array_element', target: mapAstValueToExpression(target.target, sourceFile).expression, index: mapAstValueToExpression(target.index, sourceFile).expression };
+    case 'append': return { kind: 'append', target: mapAstValueToExpression(target.target, sourceFile).expression };
+  }
 }
 
 function mapClosureForeachTarget(target: import('../../lexer/phpAstStatementTypes').PhpForeachTarget): import('../../../../types/domain/expressions').ResourceClosureForeachTarget {
@@ -150,19 +159,19 @@ function mapClosureForeachTarget(target: import('../../lexer/phpAstStatementType
   return { kind: 'key_value', key: variable(target.key), value: variable(target.value) };
 }
 
-function mapClosureForClause(clause: import('../../lexer/phpAstStatementTypes').PhpForClause): import('../../../../types/domain/expressions').ResourceClosureForClause {
+function mapClosureForClause(clause: import('../../lexer/phpAstStatementTypes').PhpForClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureForClause {
   if (clause.kind === 'empty') return { kind: 'empty' };
-  if (clause.kind === 'assignment') return { kind: 'assignment', target: mapClosureAssignmentTarget(clause.target), value: mapAstValueToExpression(clause.value).expression };
-  return { kind: 'expression', value: mapAstValueToExpression(clause.value).expression };
+  if (clause.kind === 'assignment') { const upstream = mapCanonicalClosureForAssignment(clause, sourceFile, (value, file) => mapResourcePhpAstToUpstream(value, file)); return { kind: 'assignment', upstream, target: mapClosureAssignmentTarget(clause.target, sourceFile), value: mapAstValueToExpression(clause.value, sourceFile).expression, operator: upstream.operator, reference: upstream.reference, source: upstream.source }; }
+  return { kind: 'expression', value: mapAstValueToExpression(clause.value, sourceFile).expression };
 }
 
-function mapClosureCatch(clause: import('../../lexer/phpAstStatementTypes').PhpCatchClause): import('../../../../types/domain/expressions').ResourceClosureCatchClause {
-  return { exceptionType: clause.exceptionType, variable: variable(clause.variable), body: clause.body.statements.map(mapClosureStatement) };
+function mapClosureCatch(clause: import('../../lexer/phpAstStatementTypes').PhpCatchClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureCatchClause {
+  return { exceptionType: exceptionName(clause.exceptionType), variable: variable(clause.variable), body: clause.body.statements.map(item => mapClosureStatement(item, sourceFile)) };
 }
 
-function mapClosureFinally(clause: import('../../lexer/phpAstStatementTypes').PhpFinallyClause): import('../../../../types/domain/expressions').ResourceClosureFinallyClause {
+function mapClosureFinally(clause: import('../../lexer/phpAstStatementTypes').PhpFinallyClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureFinallyClause {
   if (clause.kind === 'absent') return { kind: 'absent' };
-  return { kind: 'present', block: clause.block.statements.map(mapClosureStatement) };
+  return { kind: 'present', block: clause.block.statements.map(item => mapClosureStatement(item, sourceFile)) };
 }
 
 function mapUnary(v: Extract<PhpAstValue, { kind: 'unary_expression' }>): DomainExpressionModel {

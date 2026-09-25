@@ -31,12 +31,13 @@ export function parseModelAccessors(declaration: ModelDeclarationAst, accessors:
     for (const method of declaration.methods) {
         const name = method.name.value;
         const legacy = name.startsWith('get') && name.endsWith('Attribute');
-        const modern = method.returnType.kind === 'class_reference' && method.returnType.className.value === 'Attribute';
+        const modern = method.returnType.kind === 'present' && method.returnType.value.kind === 'class_reference' && method.returnType.value.className.value === 'Attribute';
         if (!legacy && !modern) continue;
+        if (method.returnType.kind === 'absent') continue;
         const propertyName = legacy
             ? `${name.slice(3, -9).charAt(0).toLowerCase()}${name.slice(3, -9).slice(1)}`
             : name;
-        const hinted = method.returnType.kind === 'class_reference' ? method.returnType.className.value : 'string';
+        const hinted = method.returnType.value.kind === 'class_reference' ? method.returnType.value.className.value : 'string';
         const result = accessorSemanticType(modern ? 'textual' : parseAccessorReturnType(hinted));
         const returned = method.returns[0];
         accessors.push({

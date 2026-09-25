@@ -28,7 +28,8 @@ export {
 } from "./fieldBinder";
 
 export {
-    bindResource
+    bindResource,
+    bindResourceDefinition
 } from "./resourceBinder";
 
 export {

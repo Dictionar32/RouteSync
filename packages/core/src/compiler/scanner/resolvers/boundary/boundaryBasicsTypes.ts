@@ -17,6 +17,7 @@ import type {
 import type { ScannedRouteCompleteContracts } from "../../descriptors/route/routeContracts";
 import type { RouteRequestBinding } from "../../../../types/domain/request";
 import type { ControllerRuntimeReturn } from "../../../../types/domain/controllerExpression";
+import type { ControllerReturnSemantic } from "../../../../types/upstream/controller";
 import type {
     ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath, SourceFile
 } from "../../../../types/upstream/names";
@@ -46,6 +47,7 @@ export interface RouteBoundaryCommonOptions {
     readonly schema: RouteSchemaPayload;
     readonly request: RouteRequestBinding;
     readonly runtimeReturn: ControllerRuntimeReturn;
+    readonly semanticReturn: ControllerReturnSemantic;
 }
 
 export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOptions {

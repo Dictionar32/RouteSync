@@ -1,5 +1,6 @@
 import type { ChannelName } from './names';
 import type { RouteParameter } from './route';
+import type { Sequence } from './collections';
 
 export type ChannelKind =
   | { readonly kind: 'public' }
@@ -12,6 +13,6 @@ export type ChannelDefinition = {
   readonly channelKind: ChannelKind;
   readonly pattern: ChannelName;
   readonly runtimePattern: ChannelName;
-  readonly parameters: readonly RouteParameter[];
+  readonly parameters: Sequence<RouteParameter>;
   readonly requiresAuthentication: { readonly kind: 'true' } | { readonly kind: 'false' };
 };

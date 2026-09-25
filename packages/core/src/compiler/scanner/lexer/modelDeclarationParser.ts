@@ -17,6 +17,16 @@ const matching = (tokens: readonly TokenDescriptor[], start: number): number => 
 };
 const offset = (value: TokenDescriptor): ReturnType<typeof createSourceOffset> => createSourceOffset(Number(value.startOffset));
 const line = (value: TokenDescriptor): ReturnType<typeof createSourceLineNumber> => createSourceLineNumber(Number(value.startLine));
+const visibility = (tokens: readonly TokenDescriptor[], index: number): ModelMethodAst['visibility'] => {
+  for (let cursor = index - 1; cursor >= Math.max(0, index - 6); cursor -= 1) {
+    const value = tokens[cursor].value;
+    if (value === 'public') return { kind: 'public' };
+    if (value === 'protected') return { kind: 'protected' };
+    if (value === 'private') return { kind: 'private' };
+    if (value === ';' || value === '}' || value === '{') break;
+  }
+  return { kind: 'public' };
+};
 
 export function parseModelDeclaration(tokens: readonly TokenDescriptor[]): ModelDeclarationAst {
   const classIndex = tokens.findIndex(item => item.value === 'class');
@@ -50,7 +60,7 @@ export function parseModelDeclaration(tokens: readonly TokenDescriptor[]): Model
       if (methodName) {
         const colon = tokens.findIndex((value, cursor) => cursor > index + 1 && cursor < bodyStart && value.value === ':');
         const returnTokens = colon >= 0 ? tokens.slice(colon + 1, bodyStart) : [];
-        const returnType = returnTokens.length > 0 ? classifyAstTokens(returnTokens) : { kind: 'class_reference' as const, className: createAstIdentifier('mixed') };
+        const returnType = returnTokens.length > 0 ? { kind: 'present' as const, value: classifyAstTokens(returnTokens) } : { kind: 'absent' as const };
         const returns = [];
         if (bodyStart >= 0) {
           let depth = 1;
@@ -71,7 +81,7 @@ export function parseModelDeclaration(tokens: readonly TokenDescriptor[]): Model
           }
         }
         const endToken = token(tokens, bodyEnd) ?? item;
-        methods.push({ kind: 'model_method', name: createAstIdentifier(methodName.value), returnType, returns, bodyStart: offset(token(tokens, bodyStart) ?? item), bodyEnd: offset(endToken), startOffset: offset(item), endOffset: offset(endToken), startLine: line(item), endLine: line(endToken) });
+        methods.push({ kind: 'model_method', name: createAstIdentifier(methodName.value), visibility: visibility(tokens, index), returnType, returns, bodyStart: offset(token(tokens, bodyStart) ?? item), bodyEnd: offset(endToken), startOffset: offset(item), endOffset: offset(endToken), startLine: line(item), endLine: line(endToken) });
         index = bodyEnd;
       }
     }
@@ -82,7 +92,7 @@ export function parseModelDeclaration(tokens: readonly TokenDescriptor[]): Model
       if (nameToken && equals >= 0 && semi >= 0) {
         const value = classifyAstTokens(tokens.slice(equals + 1, semi));
         const endToken = token(tokens, semi) ?? nameToken;
-        constants.push({ kind: 'model_constant', name: createAstIdentifier(nameToken.value), value, startOffset: offset(item), endOffset: offset(endToken), startLine: line(item), endLine: line(endToken) });
+        constants.push({ kind: 'model_constant', visibility: visibility(tokens, index), name: createAstIdentifier(nameToken.value), value, startOffset: offset(item), endOffset: offset(endToken), startLine: line(item), endLine: line(endToken) });
         index = semi;
       }
     }

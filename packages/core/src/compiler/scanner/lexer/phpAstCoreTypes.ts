@@ -18,7 +18,7 @@ export type TokenType =
     | 'NULL_COALESCE' | 'SHORT_TERNARY' | 'NULL_COALESCE_ASSIGN'
     | 'GREATER_THAN' | 'LESS_THAN' | 'GREATER_OR_EQUAL' | 'LESS_OR_EQUAL'
     | 'PLUS' | 'MINUS' | 'MULTIPLY' | 'DIVIDE' | 'MODULO' | 'LOGICAL_AND' | 'LOGICAL_OR'
-    | 'NOT' | 'BITWISE_NOT' | 'CONCAT' | 'PUNCTUATION' | 'EOF';
+    | 'NOT' | 'BITWISE_NOT' | 'CONCAT' | 'ELLIPSIS' | 'PUNCTUATION' | 'EOF';
 
 export interface TokenDescriptor {
     readonly type: TokenType;

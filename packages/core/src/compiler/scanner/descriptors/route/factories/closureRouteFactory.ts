@@ -12,7 +12,7 @@ import {
     type RouteParameter,
     type RouteQueryParameter,
     type ResponseDescriptor,
-    ResourceResponseDescriptor,
+    VoidResponseDescriptor,
     type RouteCacheInvalidationDescriptor,
     RouteHandlerKind
 } from "../../../../../types/route";
@@ -21,6 +21,7 @@ import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { ActionName, DomainTypeName, ResourceName, RoutePath, SourceFile, PropertyName } from "../../../../../types/upstream/names";
+import type { ControllerReturnSemantic } from "../../../../../types/upstream/controller";
 
 export type ClosureRouteOptions = {
     readonly method: HttpMethod;
@@ -29,6 +30,7 @@ export type ClosureRouteOptions = {
     readonly sourceFile: SourceFile;
     readonly sourceLine: number;
     readonly response?: ResponseDescriptor;
+    readonly semanticReturn: ControllerReturnSemantic;
     readonly domain?: DomainTypeName;
     readonly resourceName?: ResourceName;
     readonly auth?: boolean;
@@ -52,6 +54,7 @@ export function createRouteFromClosure(
         sourceFile,
         sourceLine,
         response,
+        semanticReturn,
         auth = false,
         middleware = [],
         parameters = [],
@@ -60,9 +63,7 @@ export function createRouteFromClosure(
         invalidation
     } = options;
 
-    const resolvedResponse = response !== undefined
-        ? response
-        : new ResourceResponseDescriptor({ resourceName: `${resourceName ?? "Closure"}Resource`, shape: "single" });
+    const resolvedResponse = response ?? new VoidResponseDescriptor();
 
     return createFn({
         origin: "closure",
@@ -75,14 +76,15 @@ export function createRouteFromClosure(
         controllerName: SemanticValueFactory.controllerName(""),
         handler: Object.freeze({
             kind: RouteHandlerKind.Closure,
-            actionName: SemanticValueFactory.actionName(actionName),
-            target: SemanticValueFactory.className(`closure@${actionName}`)
+            actionName,
+            target: SemanticValueFactory.className(`closure@${actionName.value.value}`)
         }),
         sourceFile,
         sourceLine,
         response: resolvedResponse,
         request: { kind: 'no_request' },
         runtimeReturn: { kind: 'none' },
+        semanticReturn,
         schema: ScannedRouteSchemaPayload.empty(),
         auth,
         middleware,

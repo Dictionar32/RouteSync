@@ -52,3 +52,16 @@ describe('ecommerce_shop PHP AST boundary Phase 87.2', () => {
         expect(entry.key).toEqual({ kind: 'string', value: 'produk_item_id' });
     });
 });
+
+test('preserves anonymous class constructor and its method body', () => {
+    const ast = LaravelSourceLexer.classifyAstValue(
+        'new class extends Migration { public function up() { Schema::create(\'x\', function ($table) { $table->id(); }); } }'
+    );
+
+    expect(ast.kind).toBe('anonymous_class_construct');
+    if (ast.kind !== 'anonymous_class_construct') return;
+    expect(ast.class.kind).toBe('anonymous_class');
+    expect(ast.class.extendsClass).toBe('Migration');
+    expect(ast.class.members).toHaveLength(1);
+    expect(ast.class.members[0]?.kind).toBe('method');
+});

@@ -60,7 +60,21 @@ export function resourceAstFromParsed(
             source,
         };
     });
-    const properties: PropertyDefinition[] = fields.map(field => ({ kind: 'property', name: field.name, type: field.type, presence: field.presence, origin: { kind: 'computed' }, source }));
+    const properties: PropertyDefinition[] = fields.map(field => ({
+        kind: 'property',
+        name: field.name,
+        type: field.type,
+        presence: field.presence,
+        declaration: { kind: 'resource_projection' },
+        visibility: { kind: 'public' },
+        storage: { kind: 'instance_mutable' },
+        initialization: { kind: 'not_applicable' },
+        promotion: { kind: 'declared' },
+        access: { kind: 'readable' },
+        source,
+    }));
+    const framework = { kind: 'resource_framework_features' as const, collection: { kind: 'resource_collection_features' as const, preserveKeys: truth(false), collects: { kind: 'collection_resource_inference' as const }, paginationInformation: { kind: 'pagination_information_absent' as const }, preserveQuery: { kind: 'preserve_query_absent' as const }, withQuery: { kind: 'with_query_absent' as const }, count: { kind: 'count_override_absent' as const } }, jsonApi: { kind: 'json_api_absent' as const }, with: { kind: 'with_absent' as const }, withResponse: { kind: 'with_response_absent' as const }, paginationInformation: { kind: 'pagination_information_absent' as const }, additional: { kind: 'supported_at_invocation' as const }, forceWrapping: truth(false), jsonOptions: { kind: 'json_options_absent' as const }, toJson: { kind: 'to_json_absent' as const }, toPrettyJson: { kind: 'to_pretty_json_absent' as const }, response: { kind: 'response_absent' as const }, toResponse: { kind: 'to_response_absent' as const }, withProperty: { kind: 'with_property_absent' as const }, additionalProperty: { kind: 'additional_property_absent' as const } };
+    const contract = { kind: 'resource_serialization_contract' as const, representation: { kind: 'json_resource' as const }, wrapping: { kind: 'framework_default' as const }, inputModel: modelRef(resource.binding.model.kind === 'model' ? resource.binding.model.modelName.value.value : 'unresolved'), requestAware: truth(true), request: { kind: 'request_parameter_declared' as const, parameter: { kind: 'variable_name' as const, value: str('request') } }, operations: { kind: 'resource_operations' as const, items: seq([]) }, responseCustomization: { kind: 'response_customization_absent' as const }, fields: { kind: 'resource_fields' as const, items: seq(fields) }, dynamicEntries: { kind: 'resource_dynamic_entries' as const, items: seq([]) }, framework };
     const definition: ResourceDefinition = {
         kind: 'resource',
         name: resourceName(resource.identity.name.value.value),

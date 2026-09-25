@@ -43,7 +43,7 @@ export function parseModelCasts(
     source: import("../../../../types/upstream/provenance").SourceSpan
 ): void {
     for (const property of propertyAsts) {
-        if (property.name.value === '$casts') readArray(property.value, casts, source);
+        if (property.name.value === '$casts' && property.value.kind === 'present') readArray(property.value.value, casts, source);
     }
     for (const method of declaration.methods) {
         if (method.name.value !== 'casts') continue;

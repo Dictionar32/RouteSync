@@ -11,7 +11,8 @@ import type {
     RouteValidationRuleEntry,
     RouteSchemaPayload
 } from '../../../../types/route';
-import type { RequestField, FormRequestSource, RouteRequestBinding } from '../../../../types/domain/request';
+import type { RequestField, FormRequestSource } from '../../../../types/domain/request';
+import type { ControllerRequestBinding } from '../../descriptors/request/controllerActionContract';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { ScannedRouteValidationRuleEntry, ScannedRouteSchemaPayload } from '../../descriptors/validationDescriptors';
 
@@ -37,14 +38,12 @@ export function extractInlineValidation(
 }
 
 export function resolveActionSchema(
-    request: RouteRequestBinding,
-    formRequestMap: ReadonlyMap<string, FormRequestSource>,
+    request: ControllerRequestBinding,
     inlineSchema: RouteSchemaPayload
 ): RouteSchemaPayload {
     const formFields: RequestField[] = [];
     if (request.kind === 'form_request') {
-        const requestSource = formRequestMap.get(request.source.identity.requestClass.value);
-        if (requestSource !== undefined) formFields.push(...requestSource.fields);
+        formFields.push(...request.source.fields);
     }
     if (formFields.length === 0) return inlineSchema;
     if (inlineSchema.fields.length === 0 && inlineSchema.messages.length === 0 && inlineSchema.attributes.length === 0) {

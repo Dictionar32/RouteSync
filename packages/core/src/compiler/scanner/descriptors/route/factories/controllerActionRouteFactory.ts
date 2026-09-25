@@ -17,13 +17,14 @@ import type { ControllerActionInfo } from "../../requestDescriptors";
 import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { DomainTypeName, ResourceName, RoutePath, PropertyName } from "../../../../../types/upstream/names";
+import type { RouteRequestBinding } from "../../../../../types/domain/request";
 
 export type ControllerActionRouteOptions = {
     readonly method: HttpMethod;
     readonly path: RoutePath;
     readonly action: ControllerActionInfo;
     readonly domain?: DomainTypeName;
-    readonly resourceName?: ResourceName;
+    readonly resourceName: ResourceName;
     readonly auth?: boolean;
     readonly middleware?: readonly PropertyName[];
     readonly parameters?: readonly RouteParameter[];
@@ -31,6 +32,26 @@ export type ControllerActionRouteOptions = {
     readonly queryParameters?: readonly RouteQueryParameter[];
     readonly invalidation?: RouteCacheInvalidationDescriptor;
 };
+
+function bindControllerRequest(
+    request: import('../../request/controllerActionContract').ControllerRequestBinding,
+    resourceName: ResourceName
+): RouteRequestBinding {
+    switch (request.kind) {
+        case 'form_request':
+            return {
+                kind: 'form_request',
+                identity: { source: request.source.identity, resource: resourceName },
+                source: request.source
+            };
+        case 'framework_request':
+            return { kind: 'framework_request', type: request.type };
+        case 'no_request':
+            return { kind: 'no_request' };
+        case 'typed':
+            return { kind: 'no_request' };
+    }
+}
 
 export function createRouteFromControllerAction(
     createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
@@ -63,8 +84,9 @@ export function createRouteFromControllerAction(
         response: action.response,
         sourceFile: action.sourceFile,
         sourceLine: action.sourceLine,
-        request: action.request,
+        request: bindControllerRequest(action.request, resourceName),
         runtimeReturn: action.runtimeReturn,
+        semanticReturn: action.semanticReturn,
         schema: action.schema,
         auth,
         middleware,

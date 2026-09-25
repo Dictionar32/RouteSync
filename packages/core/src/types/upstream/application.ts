@@ -1,6 +1,6 @@
 import type { SourceDiscovery, Sequence } from './collections';
 import type { ControllerAction } from './controller';
-import type { Expression, ResolvedExpression } from './expression';
+import type { Expression, ResolvedExpression, ExpressionArguments } from './expression';
 import type { PropertyDefinition } from './property';
 import type { ClassName, MethodName, SourceFile } from './names';
 import type { SourceSpan } from './provenance';
@@ -10,7 +10,24 @@ export type DtoDefinition = { readonly kind: 'dto'; readonly name: ClassName; re
 export type DtoProperty = { readonly kind: 'dto_property'; readonly property: PropertyDefinition; readonly declared: DeclaredType; readonly source: SourceSpan };
 export type DtoMethod = { readonly kind: 'dto_method'; readonly name: MethodName; readonly action: ControllerAction; readonly source: SourceSpan };
 export type MiddlewareDefinition = { readonly kind: 'middleware'; readonly name: ClassName; readonly file: SourceFile; readonly handle: ControllerAction; readonly source: SourceSpan };
-export type ProviderDefinition = { readonly kind: 'provider'; readonly name: ClassName; readonly file: SourceFile; readonly register: Expression; readonly boot: Expression; readonly source: SourceSpan };
+export type ContainerOperationName = import('./names').MethodName;
+export type ProviderContainerOperation = {
+  readonly kind: 'provider_container_operation';
+  readonly name: ContainerOperationName;
+  readonly arguments: ExpressionArguments;
+  readonly source: SourceSpan;
+};
+export type ProviderContainerOperations = {
+  readonly kind: 'provider_container_operations';
+  readonly items: Sequence<ProviderContainerOperation>;
+};
+export type ProviderSourceAst = {
+  readonly kind: 'provider_source_ast';
+  readonly className: import('../../compiler/scanner/lexer/phpAstTypes').AstIdentifier;
+  readonly methods: readonly import('../../compiler/scanner/lexer/controllerAstTypes').ControllerMethodAst[];
+  readonly source: SourceSpan;
+};
+export type ProviderDefinition = { readonly kind: 'provider'; readonly name: ClassName; readonly file: SourceFile; readonly register: Expression; readonly boot: Expression; readonly containerOperations: ProviderContainerOperations; readonly source: SourceSpan };
 export type AttributeDefinition = { readonly kind: 'attribute'; readonly name: ClassName; readonly file: SourceFile; readonly constructor: Expression; readonly source: SourceSpan };
 export type MiddlewareAsts = { readonly kind: 'middleware_asts'; readonly items: SourceDiscovery<import('./ast').MiddlewareAst> };
 export type ProviderAsts = { readonly kind: 'provider_asts'; readonly items: SourceDiscovery<import('./ast').ProviderAst> };

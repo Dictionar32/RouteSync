@@ -42,7 +42,8 @@ const propertyArray = (value: PhpAstValue): PropertyName[] => {
 
 export function applyModelPropertyAst(property: PhpClassPropertyAst, state: ModelPropertyState): void {
     const name = property.name;
-    const value = property.value;
+    if (property.value.kind === 'absent') return;
+    const value = property.value.value;
     if (name === 'table') { const item = stringValue(value); if (item !== undefined) state.table = createTableName(item); return; }
     if (name === 'primaryKey') { const item = stringValue(value); if (item !== undefined) state.primaryKey = createColumnName(item); return; }
     if (name === 'keyType') { const item = stringValue(value); if (item !== undefined) state.keyType = keyTypeValue(item); return; }

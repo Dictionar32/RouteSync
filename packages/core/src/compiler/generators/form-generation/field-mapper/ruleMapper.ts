@@ -71,6 +71,11 @@ const ARRAY_ELEMENT_TYPES: {
 const EFFECTS: ValidationRuleVisitor<RuleEffect> = {
   required: () => ({ ...emptyEffect(), required: true }),
   required_with: emptyEffect,
+  required_with_all: emptyEffect,
+  required_without: emptyEffect,
+  required_without_all: emptyEffect,
+  required_if: emptyEffect,
+  required_unless: emptyEffect,
   nullable: () => ({ ...emptyEffect(), nullable: true }),
   optional: emptyEffect,
   string: () => emptyEffect(new PrimitiveType(PrimitiveKind.STRING)),

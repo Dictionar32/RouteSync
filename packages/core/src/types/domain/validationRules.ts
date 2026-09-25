@@ -13,6 +13,11 @@ import { SemanticValueFactory } from './semanticValues';
 export const ValidationRuleKind = Object.freeze({
   Required: 'required',
   RequiredWith: 'required_with',
+  RequiredWithAll: 'required_with_all',
+  RequiredWithout: 'required_without',
+  RequiredWithoutAll: 'required_without_all',
+  RequiredIf: 'required_if',
+  RequiredUnless: 'required_unless',
   Nullable: 'nullable',
   Optional: 'optional',
   String: 'string',
@@ -44,10 +49,12 @@ export interface RequiredValidationRuleNode extends BaseValidationRuleNode<'requ
   readonly kind: 'required';
 }
 
-export interface RequiredWithValidationRuleNode extends BaseValidationRuleNode<'required_with'> {
-  readonly kind: 'required_with';
-  readonly fields: readonly PropertyName[];
-}
+export interface RequiredWithValidationRuleNode extends BaseValidationRuleNode<'required_with'> { readonly kind: 'required_with'; readonly fields: readonly PropertyName[]; }
+export interface RequiredWithAllValidationRuleNode extends BaseValidationRuleNode<'required_with_all'> { readonly kind: 'required_with_all'; readonly fields: readonly PropertyName[]; }
+export interface RequiredWithoutValidationRuleNode extends BaseValidationRuleNode<'required_without'> { readonly kind: 'required_without'; readonly fields: readonly PropertyName[]; }
+export interface RequiredWithoutAllValidationRuleNode extends BaseValidationRuleNode<'required_without_all'> { readonly kind: 'required_without_all'; readonly fields: readonly PropertyName[]; }
+export interface RequiredIfValidationRuleNode extends BaseValidationRuleNode<'required_if'> { readonly kind: 'required_if'; readonly field: PropertyName; readonly values: readonly ValidationParameter[]; }
+export interface RequiredUnlessValidationRuleNode extends BaseValidationRuleNode<'required_unless'> { readonly kind: 'required_unless'; readonly field: PropertyName; readonly values: readonly ValidationParameter[]; }
 
 export interface NullableValidationRuleNode extends BaseValidationRuleNode<'nullable'> {
   readonly kind: 'nullable';
@@ -309,6 +316,11 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
 export type ValidationRuleVisitor<R> = {
   readonly required: (rule: RequiredValidationRuleNode) => R;
   readonly required_with: (rule: RequiredWithValidationRuleNode) => R;
+  readonly required_with_all: (rule: RequiredWithAllValidationRuleNode) => R;
+  readonly required_without: (rule: RequiredWithoutValidationRuleNode) => R;
+  readonly required_without_all: (rule: RequiredWithoutAllValidationRuleNode) => R;
+  readonly required_if: (rule: RequiredIfValidationRuleNode) => R;
+  readonly required_unless: (rule: RequiredUnlessValidationRuleNode) => R;
   readonly nullable: (rule: NullableValidationRuleNode) => R;
   readonly optional: (rule: OptionalValidationRuleNode) => R;
   readonly string: (rule: StringValidationRuleNode) => R;
@@ -350,6 +362,11 @@ export const matchRule = matchValidationRule;
 export class ValidationRuleNodeFactory {
   public static required(): RequiredValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Required }); }
   public static requiredWith(fields: readonly PropertyName[]): RequiredWithValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredWith, fields: Object.freeze([...fields]) }); }
+  public static requiredWithAll(fields: readonly PropertyName[]): RequiredWithAllValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredWithAll, fields: Object.freeze([...fields]) }); }
+  public static requiredWithout(fields: readonly PropertyName[]): RequiredWithoutValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredWithout, fields: Object.freeze([...fields]) }); }
+  public static requiredWithoutAll(fields: readonly PropertyName[]): RequiredWithoutAllValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredWithoutAll, fields: Object.freeze([...fields]) }); }
+  public static requiredIf(field: PropertyName, values: readonly ValidationParameter[]): RequiredIfValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredIf, field, values: Object.freeze([...values]) }); }
+  public static requiredUnless(field: PropertyName, values: readonly ValidationParameter[]): RequiredUnlessValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.RequiredUnless, field, values: Object.freeze([...values]) }); }
   public static nullable(): NullableValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Nullable }); }
   public static optional(): OptionalValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.Optional }); }
   public static string(): StringValidationRuleNode { return Object.freeze({ kind: ValidationRuleKind.String }); }
@@ -397,8 +414,12 @@ export class ValidationRuleParser {
     switch (name) {
       case 'required':
         return ValidationRuleNodeFactory.required();
-      case 'required_with':
-        return ValidationRuleNodeFactory.requiredWith(params.map(value => SemanticValueFactory.propertyName(value)));
+      case 'required_with': return ValidationRuleNodeFactory.requiredWith(params.map(value => SemanticValueFactory.propertyName(value)));
+      case 'required_with_all': return ValidationRuleNodeFactory.requiredWithAll(params.map(value => SemanticValueFactory.propertyName(value)));
+      case 'required_without': return ValidationRuleNodeFactory.requiredWithout(params.map(value => SemanticValueFactory.propertyName(value)));
+      case 'required_without_all': return ValidationRuleNodeFactory.requiredWithoutAll(params.map(value => SemanticValueFactory.propertyName(value)));
+      case 'required_if': return params.length > 0 ? ValidationRuleNodeFactory.requiredIf(SemanticValueFactory.propertyName(params[0]), params.slice(1).map(validationParameter)) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
+      case 'required_unless': return params.length > 0 ? ValidationRuleNodeFactory.requiredUnless(SemanticValueFactory.propertyName(params[0]), params.slice(1).map(validationParameter)) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
       case 'nullable':
         return ValidationRuleNodeFactory.nullable();
       case 'sometimes':

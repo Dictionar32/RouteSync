@@ -21,7 +21,7 @@ import { collectPhpFiles } from "./scannerUtils";
 import { scanControllerAction } from "./controller";
 import type { ModelSymbolTable } from "../symbols/ModelSymbolTable";
 import { extractResourceDataflow } from "./controller/resourceDataflowAggregator";
-import { controllerAstFromMethod } from "./controller/controllerAstCanonical";
+import { controllerProducer } from "./controller/controllerProducer";
 
 export class ControllerScanner {
     private static async scanOnce(
@@ -60,7 +60,18 @@ export class ControllerScanner {
                         name: result.descriptor.response.responseTypeName()
                     }
                 };
-                asts.push(controllerAstFromMethod(method, controllerName, fullPath, response));
+                asts.push(controllerProducer.produce({
+                    method,
+                    controller: createControllerName(controllerName),
+                    file: createSourceFile(fullPath),
+                    source: {
+                        kind: 'source_span',
+                        file: createSourceFile(fullPath),
+                        start: { kind: 'number_value', value: method.source.startOffset },
+                        end: { kind: 'number_value', value: method.source.endOffset },
+                    },
+                    response,
+                }));
                 actionMap.set(result.actionName, result.descriptor);
             }
             controllerMap.set(controllerName, actionMap);

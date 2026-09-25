@@ -1,5 +1,6 @@
 import type { StringValue } from './valueObjects';
 export interface ModelName { readonly kind: 'model_name'; readonly value: StringValue }
+export interface ServiceName { readonly kind: 'service_name'; readonly value: StringValue }
 export interface ResourceName { readonly kind: 'resource_name'; readonly value: StringValue }
 export interface PropertyName { readonly kind: 'property_name'; readonly value: StringValue }
 export interface RouteParameterName { readonly kind: 'route_parameter_name'; readonly value: StringValue }
@@ -27,19 +28,23 @@ export interface MiddlewareName { readonly kind: 'middleware_name'; readonly val
 export interface TraitName { readonly kind: 'trait_name'; readonly value: StringValue }
 
 export const createModelName = (value: string): ModelName => Object.freeze({ kind: 'model_name' as const, value: stringValue(value) });
+export const createClassName = (value: string): ClassName => Object.freeze({ kind: 'class_name' as const, value: stringValue(value) });
 export const classNameEquals = (left: ClassName, right: ClassName): boolean => left.value.value === right.value.value;
 export const modelNameMatchesClassName = (model: ModelName, className: ClassName): boolean => model.value.value === className.value.value;
 export const createTableName = (value: string): TableName => Object.freeze({ kind: 'table_name' as const, value: stringValue(value) });
 export const createColumnName = (value: string): ColumnName => Object.freeze({ kind: 'column_name' as const, value: stringValue(value) });
-export type Name = ChannelName | ModelName | ResourceName | PropertyName | RouteParameterName | VariableName | ClassName | ColumnName | RelationName | RouteName | RoutePath | ControllerName | RequestName | FormTypeName | ActionName | ConstantName | IndexName | ExceptionName | MethodName | FunctionName | ResponseTypeName | SourceFile | DomainTypeName | TableName | MiddlewareName | TraitName;
+export type Name = ChannelName | ServiceName | ModelName | ResourceName | PropertyName | RouteParameterName | VariableName | ClassName | ColumnName | RelationName | RouteName | RoutePath | ControllerName | RequestName | FormTypeName | ActionName | ConstantName | IndexName | ExceptionName | MethodName | FunctionName | ResponseTypeName | SourceFile | DomainTypeName | TableName | MiddlewareName | TraitName;
 
 
 const stringValue = (value: string): StringValue =>
   Object.freeze({ kind: 'string_value' as const, value });
 
+export const createServiceName = (value: string): ServiceName => Object.freeze({ kind: 'service_name', value: stringValue(value) });
+
 export const createResourceName = (value: string): ResourceName => Object.freeze({ kind: 'resource_name', value: stringValue(value) });
 export const createControllerName = (value: string): ControllerName => Object.freeze({ kind: 'controller_name', value: stringValue(value) });
 export const createActionName = (value: string): ActionName => Object.freeze({ kind: 'action_name', value: stringValue(value) });
+export const createConstantName = (value: string): ConstantName => Object.freeze({ kind: 'constant_name', value: stringValue(value) });
 export const createSourceFile = (value: string): SourceFile => Object.freeze({ kind: 'source_file', value: stringValue(value) });
 export const createChannelName = (value: string): ChannelName => Object.freeze({ kind: 'channel_name', value: stringValue(value) });
 

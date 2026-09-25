@@ -1,5 +1,7 @@
 /** Scanner-boundary aggregate for complete validation facts. */
 import { createPropertyName } from "../../../../types/upstream/names";
+import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
+import { RequestFieldMeaningFactory } from "../../../../types/domain/requestFieldMeaning";
 import type { RequestField } from '../../../../types/domain/request';
 import type { ValidationFieldNode } from '../../../../types/domain/validationFields';
 import type {
@@ -7,7 +9,6 @@ import type {
     ValidationFieldShape,
     ValidationFieldProperty
 } from '../../../../types/domain/validationRules';
-import { ScannedFormFieldDescriptor } from '../request/formFieldDescriptor';
 import type { TypeInterner } from '../../../types/TypeInterner';
 import { ObjectType, ReadonlyCollectionType, CollectionKind, type ObjectProperty, type SemanticType } from '../../../types/SemanticType';
 import { ScannedScalarFieldNode, ScannedObjectFieldNode, ScannedArrayFieldNode } from './fieldNodes';
@@ -42,6 +43,7 @@ interface RootValidationField {
     readonly name: import("../../../../types/upstream/names").PropertyName;
     readonly semanticType: SemanticType;
     readonly presence: RouteValidationRuleEntry['presence'];
+    readonly requirement: import('../../../../types/domain/request').RequestFieldRequirement;
     readonly validation: RouteValidationRuleEntry['validation'];
     readonly source: RouteValidationRuleEntry['source'];
     readonly shape: ValidationFieldShape;
@@ -59,6 +61,7 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): ReadonlyMap
                 name: rootPropertyName,
                 semanticType: entry.semanticType,
                 presence: entry.presence,
+                requirement: requirementFromValidation(entry.validation),
                 validation: entry.validation,
                 source: entry.source,
                 shape: entry.shape,
@@ -70,7 +73,8 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): ReadonlyMap
         roots.set(rootName, {
             name: rootPropertyName,
             semanticType: entry.semanticType,
-            presence: entry.presence,
+            presence: existing?.presence ?? entry.presence,
+            requirement: existing?.requirement ?? requirementFromValidation(entry.validation),
             validation: existing?.validation ?? [],
             source: existing?.source ?? entry.source,
             shape: existing?.shape ?? entry.shape,
@@ -127,11 +131,28 @@ function mergePropertyShape(
     };
 }
 
+function requirementFromValidation(validation: readonly import('../../../../types/domain/validationRules').ValidationRuleNode[]): import('../../../../types/domain/request').RequestFieldRequirement {
+    const rule = validation.find(item => item.kind === 'required_with');
+    if (rule?.kind === 'required_with') {
+        return { kind: 'required_with', fields: Object.freeze([...rule.fields]) };
+    }
+    return { kind: 'unconditional' };
+}
+
 function toRequestField(root: RootValidationField, interner: TypeInterner): RequestField {
     const type = root.properties.length > 0
         ? interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, objectType(root.name, root.properties)))
         : root.semanticType;
-    return ScannedFormFieldDescriptor.fromResolved(root.name, type, root.presence, root.validation, undefined, root.source);
+    return {
+        name: SemanticValueFactory.requestFieldName(root.name.value.value),
+        sourceName: root.name,
+        meaning: RequestFieldMeaningFactory.fromSemanticType(type),
+        presence: root.presence,
+        requirement: root.requirement,
+        validation: Object.freeze([...root.validation]),
+        fileConstraints: Object.freeze([]),
+        source: root.source
+    };
 }
 
 function objectType(name: import("../../../../types/upstream/names").PropertyName, properties: readonly ValidationFieldProperty[]): ObjectType {

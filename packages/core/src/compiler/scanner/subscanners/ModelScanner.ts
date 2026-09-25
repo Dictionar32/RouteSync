@@ -9,9 +9,9 @@ import { readSourceText } from './scannerUtils';
  */
 
 import path from "path";
-import * as fs from "node:fs";
 import type { ModelCast } from "../../../types/upstream/model";
-import type { ModelAccessorFact, ModelRelationFact } from "../../../types/upstream/modelSourceFacts";
+import type { ModelAccessorFact } from "../../../types/upstream/modelSourceFacts";
+import type { EloquentRelationAst } from "../../../types/upstream/eloquent";
 import type { ModelAst } from "../../../types/upstream/ast";
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import { createModelName } from "../../../types/upstream/names";
@@ -21,20 +21,17 @@ import { parseModelPropertyAsts } from "./model/modelPropertyAstParser";
 import { parseModelCasts } from "./model/memberCastsParser";
 import { parseModelAccessors } from "./model/memberAccessorsParser";
 import { parseModelRelations } from "./model/memberRelationsParser";
-import { modelAstFromSemantic } from "./model/modelCanonical";
+import { modelProducer } from "./modelProducer";
 import { collectPhpFiles } from "./scannerUtils";
 import {
     scanMigrations,
-    resolveModelColumns,
-    buildModelSemanticDefinitionFromAst,
-    resolveModelSchema
+    resolveModelColumns
 } from "./model";
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)
 export {
     scanMigrations,
-    resolveModelColumns,
-    buildModelSemanticDefinitionFromAst
+    resolveModelColumns
 };
 
 /**
@@ -59,14 +56,20 @@ export async function scanModelAsts(
         const declaration = parseModelDeclaration(tokens);
         const casts: ModelCast[] = [];
         const accessors: ModelAccessorFact[] = [];
-        const relations: ModelRelationFact[] = [];
+        const eloquentRelations: EloquentRelationAst[] = [];
         const sourceSpan = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } };
         parseModelCasts(propertyAsts, declaration, casts, sourceSpan);
         parseModelAccessors(declaration, accessors, sourceSpan);
-        parseModelRelations(declaration, createModelName(modelName), relations, sourceSpan);
-        const semantic = buildModelSemanticDefinitionFromAst(source, modelName, migrations, propertyAsts, declaration, casts, accessors, relations, fullPath);
-        const schema = resolveModelSchema(semantic.identity.table, migrations);
-        asts.push(modelAstFromSemantic(semantic, schema, casts, accessors, relations, fullPath, source.length, declaration));
+        eloquentRelations.push(...parseModelRelations(declaration, createModelName(modelName), sourceSpan));
+        asts.push(modelProducer.produce({
+            sourceSpan,
+            migrations,
+            propertyAsts,
+            declaration,
+            casts,
+            accessors,
+            eloquentRelations,
+        }));
     }
     return asts;
 }

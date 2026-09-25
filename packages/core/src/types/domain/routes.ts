@@ -22,6 +22,7 @@ import type { RouteSchemaPayload } from "./validation";
 import type { RouteHandlerDescriptor } from "./routeHandlers";
 import type { ActionName, DomainName, ResourceName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
 import type { RouteRequestBinding } from "./request";
+import type { RouteCapabilityContract } from "../upstream/route";
 
 /**
  * Route Parameter Specification Contract.
@@ -66,6 +67,7 @@ export interface RouteOperationBinding {
  * Route binding contains relationships, not scalar projections of those relationships.
  */
 import type { ControllerRuntimeReturn } from './controllerExpression';
+import type { ControllerReturnSemantic } from '../upstream/controller';
 
 export interface RouteBindingContract {
   readonly operation: RouteOperationBinding;
@@ -73,6 +75,7 @@ export interface RouteBindingContract {
   readonly response: ResponseDescriptor;
   readonly request: RouteRequestBinding;
   readonly runtimeReturn: ControllerRuntimeReturn;
+  readonly semanticReturn: ControllerReturnSemantic;
   readonly assignments: readonly ResourceAssignment[];
 }
 

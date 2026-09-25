@@ -3,13 +3,17 @@ import type { PhpAstValue, PhpPropertyPath } from './phpAstTypes';
 
 export interface PhpAstValueVisitor<R> {
     readonly literal: (node: Extract<PhpAstValue, { kind: 'literal' }>) => R;
+    readonly interpolatedString: (node: Extract<PhpAstValue, { kind: 'interpolated_string' }>) => R;
     readonly resourceSingle: (node: Extract<PhpAstValue, { kind: 'resource_single' }>) => R;
     readonly resourceCollection: (node: Extract<PhpAstValue, { kind: 'resource_collection' }>) => R;
     readonly methodChain: (node: Extract<PhpAstValue, { kind: 'method_chain' }>) => R;
     readonly propertyAccess: (node: Extract<PhpAstValue, { kind: 'property_access' }>) => R;
     readonly arrayAccess: (node: Extract<PhpAstValue, { kind: 'array_access' }>) => R;
     readonly functionCall: (node: Extract<PhpAstValue, { kind: 'function_call' }>) => R;
+    readonly callableCall: (node: Extract<PhpAstValue, { kind: 'callable_call' }>) => R;
     readonly variableReference: (node: Extract<PhpAstValue, { kind: 'variable_reference' }>) => R;
+    readonly magicConstant: (node: Extract<PhpAstValue, { kind: 'magic_constant' }>) => R;
+    readonly constantReference: (node: Extract<PhpAstValue, { kind: 'constant_reference' }>) => R;
     readonly shortTernary: (node: Extract<PhpAstValue, { kind: 'short_ternary' }>) => R;
     readonly nullCoalesce: (node: Extract<PhpAstValue, { kind: 'null_coalesce' }>) => R;
     readonly binaryExpression: (node: Extract<PhpAstValue, { kind: 'binary_expression' }>) => R;
@@ -19,7 +23,11 @@ export interface PhpAstValueVisitor<R> {
     readonly nestedArray: (node: Extract<PhpAstValue, { kind: 'nested_array' }>) => R;
     readonly staticCall: (node: Extract<PhpAstValue, { kind: 'static_call' }>) => R;
     readonly classReference: (node: Extract<PhpAstValue, { kind: 'class_reference' }>) => R;
+    readonly classConstant: (node: Extract<PhpAstValue, { kind: 'class_constant' }>) => R;
     readonly construct: (node: Extract<PhpAstValue, { kind: 'construct' }>) => R;
+    readonly assignmentExpression: (node: Extract<PhpAstValue, { kind: 'assignment_expression' }>) => R;
+    readonly dynamicConstruct: (node: Extract<PhpAstValue, { kind: 'dynamic_construct' }>) => R;
+    readonly anonymousClassConstruct: (node: Extract<PhpAstValue, { kind: 'anonymous_class_construct' }>) => R;
     readonly instanceOf: (node: Extract<PhpAstValue, { kind: 'instance_of' }>) => R;
     readonly closure: (node: Extract<PhpAstValue, { kind: 'closure' }>) => R;
     readonly arrowFunction: (node: Extract<PhpAstValue, { kind: 'arrow_function' }>) => R;
@@ -43,13 +51,17 @@ export function matchPhpPropertyPath<R>(path: PhpPropertyPath, visitor: PhpPrope
 export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {
     switch (ast.kind) {
         case 'literal': return visitor.literal(ast);
+        case 'interpolated_string': return visitor.interpolatedString(ast);
         case 'resource_single': return visitor.resourceSingle(ast);
         case 'resource_collection': return visitor.resourceCollection(ast);
         case 'method_chain': return visitor.methodChain(ast);
         case 'property_access': return visitor.propertyAccess(ast);
         case 'array_access': return visitor.arrayAccess(ast);
         case 'function_call': return visitor.functionCall(ast);
+        case 'callable_call': return visitor.callableCall(ast);
         case 'variable_reference': return visitor.variableReference(ast);
+        case 'magic_constant': return visitor.magicConstant(ast);
+        case 'constant_reference': return visitor.constantReference(ast);
         case 'short_ternary': return visitor.shortTernary(ast);
         case 'null_coalesce': return visitor.nullCoalesce(ast);
         case 'binary_expression': return visitor.binaryExpression(ast);
@@ -59,7 +71,11 @@ export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisito
         case 'nested_array': return visitor.nestedArray(ast);
         case 'static_call': return visitor.staticCall(ast);
         case 'class_reference': return visitor.classReference(ast);
+        case 'class_constant': return visitor.classConstant(ast);
         case 'construct': return visitor.construct(ast);
+        case 'assignment_expression': return visitor.assignmentExpression(ast);
+        case 'dynamic_construct': return visitor.dynamicConstruct(ast);
+        case 'anonymous_class_construct': return visitor.anonymousClassConstruct(ast);
         case 'instance_of': return visitor.instanceOf(ast);
         case 'closure': return visitor.closure(ast);
         case 'arrow_function': return visitor.arrowFunction(ast);

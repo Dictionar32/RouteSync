@@ -8,24 +8,31 @@ import { ValidationRuleParser, ValidationRuleNodeFactory } from '../../../../typ
 import type { PhpArrayEntry, PhpAstValue } from '../../lexer/PhpAst';
 import type { TypeInterner } from '../../../types/TypeInterner';
 import type { RouteValidationRuleEntry } from '../../../../types/domain/validationRules';
-import { ScannedRouteValidationRuleEntry } from '../../descriptors/validation/validationRuleEntry';
-import { ScannedRouteValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
+import { CanonicalRouteValidationRuleEntry } from './canonicalValidationRuleEntry';
+import type { CanonicalValidationRuleSet } from './validationFieldAssembler';
+import { assembleCanonicalValidationFields } from './validationFieldAssembler';
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
+
+export function parseCanonicalValidationRuleEntries(
+  entries: readonly PhpArrayEntry[],
+  sourceFile = '<validation>'
+): readonly RouteValidationRuleEntry[] {
+  return Object.freeze(entries.map(entry => {
+    const fieldName = requireStringArrayKey(entry.key);
+    const rules = readValidationRules(entry.value, sourceFile);
+    return CanonicalRouteValidationRuleEntry.create(fieldName, [], rules, sourceSpanFromPhpRange(entry.source, sourceFile));
+  }));
+}
 
 export function partitionValidationRules(
   entries: readonly PhpArrayEntry[],
   interner: TypeInterner,
   sourceFile = '<validation>'
-): ScannedRouteValidationRuleSet {
-  const validationEntries: RouteValidationRuleEntry[] = entries.map(entry => {
-    const fieldName = requireStringArrayKey(entry.key);
-    const rules = readValidationRules(entry.value, sourceFile);
-    return ScannedRouteValidationRuleEntry.create(fieldName, [], rules, sourceSpanFromPhpRange(entry.source, sourceFile));
-  });
-
-  return ScannedRouteValidationRuleSet.create(validationEntries, interner);
+): CanonicalValidationRuleSet {
+  const validationEntries = parseCanonicalValidationRuleEntries(entries, sourceFile);
+  return assembleCanonicalValidationFields(validationEntries, interner);
 }
 
 export function parseValidationRules(rules: readonly string[]): readonly ValidationRuleNode[] {

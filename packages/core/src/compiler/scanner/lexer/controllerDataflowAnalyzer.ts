@@ -1,4 +1,6 @@
 import type { AstIdentifier, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
+import { createSourceOffset } from './phpAstCoreTypes';
+import { PhpAstFactory } from './phpAstFactory';
 import type { ControllerDataflowAst, ControllerVariableDefinition, ControllerVariableReference, ControllerDefinitionAvailability } from './controllerBodyAstTypes';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 export interface ControllerDataflowReference extends ControllerVariableReference {
@@ -71,7 +73,7 @@ function walkTry(s: Extract<PhpStatement, { kind: 'try_statement' }>, state: Flo
     const body = walkBlock(s.body, { ...state, path: [...state.path, index] }, defs, refs, nextIndex);
     const paths = s.catches.map(c => {
         const catchState = { ...state, path: [...state.path, index] };
-        defs.push({ name: c.variable, statementIndex: index, origin: { kind: 'catch', statementIndex: index }, value: { kind: 'unsupported', reason: 'dynamic_construct', tokens: [] }, semantic: { kind: 'external' }, availability: { kind: 'catch_conditional', branchPath: catchState.path } });
+        defs.push({ name: c.variable, statementIndex: index, origin: { kind: 'catch', statementIndex: index }, value: Object.freeze({ ...PhpAstFactory.variableReference(c.variable), source: { startOffset: createSourceOffset(0), endOffset: createSourceOffset(0) } }), semantic: { kind: 'external' }, availability: { kind: 'catch_conditional', branchPath: catchState.path } });
         return walkBlock(c.body, withDefinite(catchState, c.variable, index), defs, refs, nextIndex);
     });
     const merged = paths.reduce<FlowState>((set, item) => intersect(set, item, state.path), body);

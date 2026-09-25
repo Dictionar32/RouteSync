@@ -12,7 +12,7 @@ import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
 import type { PhpParameterTypeAst } from '../lexer/phpMethodAstTypes';
 import { parsePhpMethod } from '../lexer/phpMethodParser';
 import type { ServiceAst } from '../../../types/upstream/ast';
-import type { ServiceDefinition, ServiceMethod, ServiceParameter, ServiceDependencyFact, ServiceMethodResultIndex, ServiceMethodResultEntry } from '../../../types/upstream/service';
+import type { ServiceDefinition, ServiceMethod, ServiceParameter, ServiceDependencyFact, ServiceMethodResultIndex, ServiceMethodResultEntry, ServiceSourceAst } from '../../../types/upstream/service';
 import type { DeclaredType, TypeExpression } from '../../../types/upstream/typeVocabulary';
 import type { SemanticValue } from '../../../types/upstream/primitiveVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -267,11 +267,54 @@ function className(tokens: readonly { readonly value: string }[]): string {
   throw new Error('Service class declaration not found');
 }
 
+export function buildServiceAstFromSource(source: ServiceSourceAst, file: import('../../../types/upstream/names').SourceFile, span: SourceSpan, models: ModelSymbolTable): ServiceAst {
+  let methodResults: ServiceMethodResultIndex = { kind: 'service_method_result_index', items: { kind: 'empty' } };
+  let methods = source.methods.map(item => method(item, file.value.value, models, methodResults));
+  let changed = true;
+  while (changed) {
+    const nextEntries: ServiceMethodResultEntry[] = [];
+    for (const serviceMethod of methods) {
+      const summary = semanticResultSummary(serviceMethod.result);
+      if (summary.kind === 'some') nextEntries.push({ kind: 'service_method_result_entry', method: serviceMethod.name, result: summary.value });
+    }
+    const nextResults: ServiceMethodResultIndex = { kind: 'service_method_result_index', items: sequence(nextEntries) };
+    changed = !isDeepStrictEqual(methodResults, nextResults);
+    methodResults = nextResults;
+    if (changed) methods = source.methods.map(item => method(item, file.value.value, models, methodResults));
+  }
+  const dependencyFacts: ServiceDependencyFact[] = source.methods.flatMap(methodItem =>
+    methodItem.parameters.flatMap(item => {
+      const type = item.type;
+      const expression = type.kind === 'nullable' ? type.inner : type;
+      if (expression.kind !== 'named') return [];
+      if (classNameEquals({ kind: 'class_name', value: stringValue(expression.name) }, { kind: 'class_name', value: stringValue(source.className.value) })) return [];
+      return [{ kind: 'service_dependency_fact' as const, target: { kind: 'class_name' as const, value: stringValue(expression.name) }, originMethod: { kind: 'action_name' as const, value: stringValue(methodItem.name) }, source: { kind: 'source_span' as const, file, start: { kind: 'number_value' as const, value: Number(item.source.line) }, end: { kind: 'number_value' as const, value: Number(item.source.line) } } }];
+    })
+  );
+  const bodyFacts: ServiceDependencyFact[] = source.methods.flatMap(methodItem => {
+    const parameterModels = parameterModelTypes(methodItem);
+    return methodItem.body.flatMap(statement =>
+      serviceSourceStatements(statement).flatMap(rawExpression => {
+        const upstream = mapResourcePhpAstToUpstream(rawExpression, file.value.value);
+        const targets: import('../../../types/upstream/names').ClassName[] = [];
+        collectTypedParameterModels(upstream, parameterModels, targets);
+        return targets.map(target => ({ kind: 'service_dependency_fact' as const, target, originMethod: { kind: 'action_name' as const, value: stringValue(methodItem.name) }, source: upstream.source }));
+      })
+    );
+  });
+  const definition: ServiceDefinition = {
+    kind: 'service_definition', name: { kind: 'class_name', value: stringValue(source.className.value) }, file,
+    methods: { kind: 'service_methods', items: sequence(methods) }, dependencies: { kind: 'service_dependency_facts', items: sequence([...dependencyFacts, ...bodyFacts]) }, source: span,
+  };
+  return { kind: 'service_ast', definition, source: span };
+}
+
 export async function scanServiceAsts(sourceProject: SourceProjectIdentity, models: ModelSymbolTable): Promise<readonly ServiceAst[]> {
-    const sourceRoot = sourceProject.root.value.value;
+  const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Services');
   const files = await collectPhpFiles(directory);
   const asts: ServiceAst[] = [];
+  const { serviceProducer } = await import('./serviceProducer');
   for (const file of files) {
     const text = await readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(text);
@@ -279,74 +322,13 @@ export async function scanServiceAsts(sourceProject: SourceProjectIdentity, mode
     for (let index = 0; index < tokens.length; index += 1) {
       if (tokens[index].value !== 'function') continue;
       const parsed = parsePhpMethod(text, tokens, index);
-      if (parsed === undefined) {
-        throw new Error(`Service method parse gap in ${file}:${tokens[index].line}: function declaration could not be parsed`);
-      }
+      if (parsed === undefined) throw new Error(`Service method parse gap in ${file}:${tokens[index].line}: function declaration could not be parsed`);
       parsedMethods.push(parsed);
     }
-    const declaration = { className: createAstIdentifier(className(tokens)), methods: parsedMethods, source: tokens[0] };
+    const declaration: ServiceSourceAst = { kind: 'service_source_ast', className: createAstIdentifier(className(tokens)), methods: parsedMethods, source: tokens[0] };
+    const fileValue = { kind: 'source_file' as const, value: stringValue(file) };
     const span = source(file, Number(declaration.source.line));
-    let methodResults: ServiceMethodResultIndex = { kind: 'service_method_result_index', items: { kind: 'empty' } };
-    let methods = declaration.methods.map(item => method(item, file, models, methodResults));
-    let changed = true;
-    while (changed) {
-      const nextEntries: ServiceMethodResultEntry[] = [];
-      for (const serviceMethod of methods) {
-        const summary = semanticResultSummary(serviceMethod.result);
-        if (summary.kind === 'some') nextEntries.push({ kind: 'service_method_result_entry', method: serviceMethod.name, result: summary.value });
-      }
-      const nextResults: ServiceMethodResultIndex = { kind: 'service_method_result_index', items: sequence(nextEntries) };
-      changed = false;
-      changed = !isDeepStrictEqual(methodResults, nextResults);
-      methodResults = nextResults;
-      if (changed) methods = declaration.methods.map(item => method(item, file, models, methodResults));
-    }
-    const dependencyFacts: ServiceDependencyFact[] = declaration.methods.flatMap(methodItem =>
-      methodItem.parameters.flatMap(item => {
-        const type = item.type;
-        const expression = type.kind === 'nullable' ? type.inner : type;
-        if (expression.kind !== 'named') return [];
-        if (classNameEquals({ kind: 'class_name', value: stringValue(expression.name) }, { kind: 'class_name', value: stringValue(declaration.className) })) return [];
-        return [{
-          kind: 'service_dependency_fact' as const,
-          target: { kind: 'class_name', value: stringValue(expression.name) },
-          originMethod: { kind: 'action_name' as const, value: stringValue(methodItem.name) },
-          source: {
-            kind: 'source_span' as const,
-            file: { kind: 'source_file' as const, value: stringValue(file) },
-            start: { kind: 'number_value' as const, value: Number(item.source.line) },
-            end: { kind: 'number_value' as const, value: Number(item.source.line) },
-          }
-        }];
-      })
-    );
-    const bodyFacts: ServiceDependencyFact[] = declaration.methods.flatMap(methodItem => {
-      const parameterModels = parameterModelTypes(methodItem);
-      return methodItem.body.statements.flatMap(statement =>
-        bodyExpressions(statement).flatMap(rawExpression => {
-          const upstream = mapResourcePhpAstToUpstream(rawExpression, file);
-          const targets: import('../../../types/upstream/names').ClassName[] = [];
-          collectTypedParameterModels(upstream, parameterModels, targets);
-          return targets.map(target => ({
-            kind: 'service_dependency_fact' as const,
-            target,
-            originMethod: { kind: 'action_name' as const, value: stringValue(methodItem.name) },
-            source: upstream.source,
-          }));
-        })
-      );
-    });
-    const allDependencyFacts = [...dependencyFacts, ...bodyFacts];
-
-    const definition: ServiceDefinition = {
-      kind: 'service_definition',
-      name: { kind: 'class_name', value: stringValue(declaration.className) },
-      file: { kind: 'source_file', value: stringValue(file) },
-      methods: { kind: 'service_methods', items: sequence(methods) },
-      dependencies: { kind: 'service_dependency_facts', items: sequence(allDependencyFacts) },
-      source: span,
-    };
-    asts.push({ kind: 'service_ast', definition, source: span });
+    asts.push(serviceProducer.produce({ source: declaration, file: fileValue, sourceSpan: span, models }));
   }
   return Object.freeze(asts);
 }

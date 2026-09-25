@@ -56,7 +56,7 @@ export function assembleFormFields(
       let semanticType: SemanticType;
 
       if (isArrayRule) {
-        const unknownType = interner.intern(new PrimitiveType(PrimitiveKind.UNKNOWN));
+        const unknownType = interner.intern(new PrimitiveType(PrimitiveKind.UNSPECIFIED));
         semanticType = interner.intern(new ReadonlyCollectionType(CollectionKind.ARRAY, unknownType));
       } else {
         let primKind = PrimitiveKind.STRING;

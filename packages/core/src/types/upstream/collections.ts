@@ -3,7 +3,7 @@ import type { SourceStatement, SourceCatchHandler } from './sourceStatements';
 import type { Expression, ResolvedExpression } from './expression';
 import type { ModelAccessor, ModelCast, ModelConstant, ModelMethod, ModelRelation } from './model';
 import type { PropertyDefinition } from './property';
-import type { RequestField, ValidationRule } from './request';
+import type { RequestField, ValidationRuleEntry } from './request';
 import type { ResourceAction, ResourceField } from './resource';
 import type { RouteAst, ModelAst, ResourceAst, RequestAst, ControllerAst, ServiceAst, MigrationAst, ResponseAst, DtoAst, MiddlewareAst, ProviderAst, AttributeAst } from './ast';
 import type { RouteMiddleware, RouteMethod, RouteParameter } from './route';
@@ -43,20 +43,20 @@ export type SourceDiscoveryVisitor<T, R> = {
 };
 
 export function matchSourceDiscovery<T, R>(discovery: SourceDiscovery<T>, visitor: SourceDiscoveryVisitor<T, R>): R {
-  return {
-    not_scanned: value => visitor.notScanned(value),
-    scanned: value => visitor.scanned(value),
-  }[discovery.kind](discovery as never);
+  switch (discovery.kind) {
+    case 'not_scanned': return visitor.notScanned(discovery);
+    case 'scanned': return visitor.scanned(discovery);
+  }
 }
 
 export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
   readonly empty: (value: Extract<Discovered<T>, { readonly kind: 'discovered_empty' }>) => R;
   readonly many: (value: Extract<Discovered<T>, { readonly kind: 'discovered_many' }>) => R;
 }): R {
-  return {
-    discovered_empty: value => visitor.empty(value),
-    discovered_many: value => visitor.many(value),
-  }[discovery.kind](discovery as never);
+  switch (discovery.kind) {
+    case 'discovered_empty': return visitor.empty(discovery);
+    case 'discovered_many': return visitor.many(discovery);
+  }
 }
 
 export type SemanticValues = { readonly kind: 'semantic_values'; readonly items: Sequence<SemanticValue> };
@@ -65,6 +65,11 @@ export type Expressions = { readonly kind: 'expressions'; readonly items: Sequen
 export type SqlExpressions = { readonly kind: 'sql_expressions'; readonly items: Sequence<import('./expression').SqlExpression> };
 export type ResolvedExpressions = { readonly kind: 'resolved_expressions'; readonly items: Sequence<ResolvedExpression> };
 export type Assignments = { readonly kind: 'assignments'; readonly items: Sequence<Assignment> };
+export type AssignmentAsts = { readonly kind: 'assignment_asts'; readonly items: Sequence<import('./ast').AssignmentAst> };
+export type MutationAsts = { readonly kind: 'mutation_asts'; readonly items: Sequence<import('./ast').MutationAst> };
+export type PropertyAsts = { readonly kind: 'property_asts'; readonly items: Sequence<import('./ast').PropertyAst> };
+export type QueryAsts = { readonly kind: 'query_asts'; readonly items: SourceDiscovery<import('./query').QueryAst> };
+export type ExpressionAsts = { readonly kind: 'expression_asts'; readonly items: Sequence<import('./ast').ExpressionAst> };
 export type CatchHandlers = { readonly kind: 'catch_handlers'; readonly items: Sequence<SourceCatchHandler> };
 export type ObjectProperties = { readonly kind: 'object_properties'; readonly items: Sequence<import('./expression').ObjectProperty> };
 export type MatchArms = { readonly kind: 'match_arms'; readonly items: Sequence<import('./expression').MatchArm> };
@@ -81,7 +86,7 @@ export type ResourceFields = { readonly kind: 'resource_fields'; readonly items:
 export type ResourceActions = { readonly kind: 'resource_actions'; readonly items: Sequence<ResourceAction> };
 export type RoutePaths = { readonly kind: 'route_paths'; readonly items: Sequence<import('./names').RoutePath> };
 export type RequestFields = { readonly kind: 'request_fields'; readonly items: Sequence<RequestField> };
-export type ValidationRules = { readonly kind: 'validation_rules'; readonly items: Sequence<ValidationRule> };
+export type ValidationRules = { readonly kind: 'validation_rules'; readonly items: Sequence<ValidationRuleEntry> };
 export type RouteMethods = { readonly kind: 'route_methods'; readonly items: Sequence<RouteMethod> };
 export type RouteParameters = { readonly kind: 'route_parameters'; readonly items: Sequence<RouteParameter> };
 export type RouteMiddlewares = { readonly kind: 'route_middlewares'; readonly items: Sequence<RouteMiddleware> };
@@ -96,14 +101,15 @@ export type RouteAsts = { readonly kind: 'route_asts'; readonly items: SourceDis
 export type ControllerAsts = { readonly kind: 'controller_asts'; readonly items: SourceDiscovery<ControllerAst> };
 export type ServiceAsts = { readonly kind: 'service_asts'; readonly items: SourceDiscovery<ServiceAst> };
 export type MigrationAsts = { readonly kind: 'migration_asts'; readonly items: SourceDiscovery<MigrationAst> };
+export type SchemaAsts = { readonly kind: 'schema_asts'; readonly items: SourceDiscovery<import('./schema').SchemaAst> };
 export type ResponseAsts = { readonly kind: 'response_asts'; readonly items: SourceDiscovery<ResponseAst> };
 export type DtoAsts = { readonly kind: 'dto_asts'; readonly items: SourceDiscovery<DtoAst> };
 import type { MiddlewareAsts, ProviderAsts, AttributeAsts } from './application';
-export type SourceAsts = { readonly kind: 'source_asts'; readonly models: ModelAsts; readonly resources: ResourceAsts; readonly requests: RequestAsts; readonly routes: RouteAsts; readonly controllers: ControllerAsts; readonly services: ServiceAsts; readonly migrations: MigrationAsts; readonly responses: ResponseAsts; readonly dtos: DtoAsts; readonly middlewares: MiddlewareAsts; readonly providers: ProviderAsts; readonly attributes: AttributeAsts; readonly channels: ChannelAsts };
+export type SourceAsts = { readonly kind: 'source_asts'; readonly schemas: SchemaAsts; readonly models: ModelAsts; readonly resources: ResourceAsts; readonly requests: RequestAsts; readonly routes: RouteAsts; readonly controllers: ControllerAsts; readonly services: ServiceAsts; readonly migrations: MigrationAsts; readonly responses: ResponseAsts; readonly dtos: DtoAsts; readonly middlewares: MiddlewareAsts; readonly providers: ProviderAsts; readonly attributes: AttributeAsts; readonly channels: ChannelAsts; readonly properties: PropertyAsts; readonly assignments: AssignmentAsts; readonly expressions: ExpressionAsts; readonly queries: QueryAsts };
 export type PropertyPaths = { readonly kind: 'property_paths'; readonly items: Sequence<PropertyPath> };
 export type ColumnNames = { readonly kind: 'column_names'; readonly items: Sequence<import('./names').ColumnName> };
 export type RelationPaths = { readonly kind: 'relation_paths'; readonly items: Sequence<RelationPath> };
-export type RelationPath = { readonly kind: 'relation_path'; readonly segments: Sequence<RelationName> };
+export type RelationPath = { readonly kind: 'relation_path'; readonly segments: Sequence<RelationName>; readonly selectedColumns: Option<PropertyNames> };
 export type PropertyPath = { readonly kind: 'property_path'; readonly segments: Sequence<PropertyName> };
 export type ClosureCaptures = { readonly kind: 'closure_captures'; readonly items: Sequence<import('./expression').ClosureCapture> };
 export type VariableNames = { readonly kind: 'variable_names'; readonly items: Sequence<VariableName> };

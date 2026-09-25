@@ -29,6 +29,7 @@ export function buildRouteBindingContract(
         responseTypeName,
         request,
         runtimeReturn: params.runtimeReturn,
+        semanticReturn: params.semanticReturn,
         assignments: Object.freeze([])
     });
 }

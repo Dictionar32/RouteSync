@@ -1,6 +1,5 @@
 import type { PhpAstValue, TokenDescriptor } from './phpAstTypes';
 import { classifyAstTokens } from './astClassifier';
-import { parsePhpArray } from './arrayParser';
 import type { ReturnStatementAst } from './controllerAstTypes';
 
 export function parseControllerReturns(source: string, tokens: readonly TokenDescriptor[]): readonly ReturnStatementAst[] {
@@ -26,12 +25,6 @@ function collectExpression(tokens: readonly TokenDescriptor[], start: number): r
   return result;
 }
 
-function classifyReturnExpression(source: string, tokens: readonly TokenDescriptor[]): PhpAstValue {
-  const jsonIndex = tokens.findIndex(token => token.value === 'json');
-  const arrayStart = tokens.findIndex((token, index) => index > jsonIndex && token.value === '[');
-  if (jsonIndex >= 0 && arrayStart >= 0) return { kind: 'nested_array', entries: parsePhpArray(source, tokens, arrayStart).entries };
-  const first = tokens[0];
-  const last = tokens[tokens.length - 1];
-  const raw = first && last ? source.slice(first.startOffset, last.endOffset) : '';
+function classifyReturnExpression(_source: string, tokens: readonly TokenDescriptor[]): PhpAstValue {
   return classifyAstTokens(tokens);
 }

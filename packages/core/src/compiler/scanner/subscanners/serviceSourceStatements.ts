@@ -12,6 +12,7 @@ import type { ModelName } from '../../../types/upstream/names';
 import type { ServiceMethodResultIndex } from '../../../types/upstream/service';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
 import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
+import { mapAssignmentTarget, mapAssignmentOperator, assignmentReferenceMode } from './resource/resourceUpstreamExpressionMappings';
 
 type Binding = { readonly variable: VariableName; readonly value: SemanticValue };
 
@@ -172,6 +173,8 @@ function semanticExpression(expression: Expression, environment: Environment, mo
         result,
       };
     }
+    case 'assignment_expression':
+      return { kind: 'unresolved', reason: 'external' };
     case 'static_method':
       return {
         kind: 'static_call',
@@ -213,12 +216,7 @@ function semanticExpression(expression: Expression, environment: Environment, mo
 }
 
 function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget {
-  switch (target.kind) {
-    case 'variable': return { kind: 'variable', name: variableName(target.name) };
-    case 'variables': return { kind: 'variables', names: { kind: 'variable_names', items: sequence(target.names.map(variableName)) } };
-    case 'property': return { kind: 'property', receiver: mapResourcePhpAstToUpstream(target.receiver, file), name: propertyName(target.property) };
-    case 'array_element': return { kind: 'index', receiver: mapResourcePhpAstToUpstream(target.target, file), key: mapResourcePhpAstToUpstream(target.index, file) };
-  }
+  return mapAssignmentTarget(target, mapResourcePhpAstToUpstream, file);
 }
 
 function bind(target: AssignmentTarget, value: SemanticValue, environment: Map<VariableName, Binding>): void {
@@ -234,7 +232,7 @@ function forClause(value: import('../lexer/phpAstStatementTypes').PhpForClause, 
       const target = assignmentTarget(value.target, file);
       const resolved = resolveExpression(value.value, file, environment, models, methodResults);
       bind(target, resolved.result, environment);
-      return { kind: 'assignment', value: { kind: 'assignment', target, expression: resolved, source: resolved.expression.source } };
+      return { kind: 'assignment', value: { kind: 'assignment', target, expression: resolved.expression, operator: mapAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source: sourceSpanFromToken(file, value.source) } };
     }
   }
 }
@@ -245,8 +243,8 @@ function statement(value: PhpStatement, file: string, environment: Map<VariableN
       const target = assignmentTarget(value.target, file);
       const resolved = resolveExpression(value.value, file, environment, models, methodResults);
       bind(target, resolved.result, environment);
-      const source = resolved.expression.source;
-      const assignment: Assignment = { kind: 'assignment', target, expression: resolved, source };
+      const source = sourceSpanFromToken(file, value.source);
+      const assignment: Assignment = { kind: 'assignment', target, expression: resolved.expression, operator: mapAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source };
       return { kind: 'assignment', value: assignment, source };
     }
     case 'expression_statement': { const resolved = resolveExpression(value.expression, file, environment, models, methodResults); return { kind: 'expression', value: resolved, source: resolved.expression.source }; }

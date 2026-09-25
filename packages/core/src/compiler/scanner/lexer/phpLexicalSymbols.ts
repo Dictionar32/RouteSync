@@ -48,4 +48,5 @@ export type QuoteKind = 'single' | 'double';
 /** Kategori token leksikal pada scanner. */
 export type TokenType =
     | 'STRING' | 'NUMBER' | 'TRUE' | 'FALSE' | 'NULL' | 'IDENTIFIER' | 'VARIABLE'
-    | 'ARROW' | 'DOUBLE_COLON' | 'OBJECT_OPERATOR' | 'NULLSAFE_OPERATOR' | 'PUNCTUATION' | 'EOF';
+    | 'ARROW' | 'DOUBLE_COLON' | 'OBJECT_OPERATOR' | 'NULLSAFE_OPERATOR' | 'QUESTION' | 'COLON' | 'ASSIGN' | 'EQUAL' | 'IDENTICAL' | 'NOT_EQUAL' | 'NOT_IDENTICAL'
+    | 'NULL_COALESCE' | 'SHORT_TERNARY' | 'NULL_COALESCE_ASSIGN' | 'CONCAT' | 'ELLIPSIS' | 'PUNCTUATION' | 'EOF';

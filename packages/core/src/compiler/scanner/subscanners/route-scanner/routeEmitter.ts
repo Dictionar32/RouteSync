@@ -19,6 +19,8 @@ import { ControllerActionInfo } from "../../descriptors/requestDescriptors";
 import { ScannedRouteDescriptor } from "../../descriptors/routeDescriptors";
 import { resolveRoutePath, type ResolvedRoutePath } from "./routePathParser";
 import { createActionName } from "../../../../types/upstream/names";
+import type { ControllerReturnSemantic } from "../../../../types/upstream/controller";
+import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 
 export function mapMethodDetails(method: HttpMethod): {
     method: HttpMethod;
@@ -33,13 +35,14 @@ export function emitApiResourceRoutes(
     resolvedBasePath: ResolvedRoutePath,
     resourceName: ResourceName,
     controllerName: ControllerName | undefined,
-    controllerMap: Map<string, Map<string, ControllerActionInfo>>,
+    controllerMap: Map<string, Map<string, ControllerActionInfo>> | undefined,
     resolvedResponse: ResponseDescriptor,
     isAuth: boolean,
     currentMiddlewares: readonly PropertyName[],
-    routesFile: SourceFile
-): readonly ParsedRoute[] {
-    const routes: ParsedRoute[] = [];
+    routesFile: SourceFile,
+    sourceLine: number
+): readonly ScannedRouteDescriptor[] {
+    const routes: ScannedRouteDescriptor[] = [];
     const resourceActions = [
         { method: 'GET' as const, suffix: '', actionName: 'index' },
         { method: 'POST' as const, suffix: '', actionName: 'store' },
@@ -50,7 +53,7 @@ export function emitApiResourceRoutes(
 
     for (const resAction of resourceActions) {
         const path = resolveRoutePath(`${resolvedBasePath.path}${resAction.suffix}`, []);
-        const action = controllerName ? controllerMap.get(controllerName.value.value)?.get(resAction.actionName) : undefined;
+        const action = controllerName ? controllerMap?.get(controllerName.value.value)?.get(resAction.actionName) : undefined;
         if (action) {
             routes.push(ScannedRouteDescriptor.fromControllerAction({
                 method: resAction.method,
@@ -67,13 +70,14 @@ export function emitApiResourceRoutes(
             routes.push(ScannedRouteDescriptor.fromControllerReference({
                 method: resAction.method,
                 path: path.path,
-                resourceName: createResourceName(resourceName),
+                resourceName,
                 actionName: createActionName(resAction.actionName),
                 controllerName,
                 auth: isAuth,
                 middleware: currentMiddlewares,
                 response: resolvedResponse,
                 sourceFile: routesFile,
+                sourceLine,
                 parameters: path.parameters
             }));
             continue;
@@ -84,7 +88,9 @@ export function emitApiResourceRoutes(
             resourceName,
             actionName: createActionName(resAction.actionName),
             sourceFile: routesFile,
+            sourceLine,
             response: resolvedResponse,
+            semanticReturn: { kind: "absent" },
             auth: isAuth,
             middleware: currentMiddlewares,
             parameters: path.parameters
@@ -97,7 +103,7 @@ export function emitApiResourceRoutes(
 export type StandardRouteTarget =
     | { readonly kind: "controller_action"; readonly action: ControllerActionInfo }
     | { readonly kind: "controller_reference"; readonly controllerName: import("../../../../types/upstream/names").ControllerName; readonly actionName: import("../../../../types/upstream/names").ActionName; readonly response: ResponseDescriptor }
-    | { readonly kind: "closure"; readonly actionName: ActionName; readonly response: ResponseDescriptor };
+    | { readonly kind: "closure"; readonly actionName: ActionName; readonly response: ResponseDescriptor; readonly semanticReturn: ControllerReturnSemantic };
 
 export function emitStandardRoutes(
     targetMethods: readonly HttpMethod[],
@@ -106,9 +112,10 @@ export function emitStandardRoutes(
     target: StandardRouteTarget,
     isAuth: boolean,
     currentMiddlewares: readonly PropertyName[],
-    routesFile: SourceFile
-): readonly ParsedRoute[] {
-    const routes: ParsedRoute[] = [];
+    routesFile: SourceFile,
+    sourceLine: number
+): readonly ScannedRouteDescriptor[] {
+    const routes: ScannedRouteDescriptor[] = [];
 
     for (const method of targetMethods) {
         const { method: canonicalMethod } = mapMethodDetails(method);
@@ -129,10 +136,11 @@ export function emitStandardRoutes(
             routes.push(ScannedRouteDescriptor.fromControllerReference({
                 method: canonicalMethod,
                 path: resolvedPath.path,
-                resourceName: createResourceName(resourceName),
+                resourceName,
                 actionName: target.actionName,
                 controllerName: target.controllerName,
-                sourceFile: createSourceFile(routesFile),
+                sourceFile: SemanticValueFactory.sourceFilePath(routesFile.value.value),
+                sourceLine,
                 response: target.response,
                 auth: isAuth,
                 middleware: currentMiddlewares,
@@ -143,11 +151,13 @@ export function emitStandardRoutes(
 
         routes.push(ScannedRouteDescriptor.fromClosure({
             method: canonicalMethod,
-            path: resolvedPath.path.value.value,
+            path: resolvedPath.path,
             resourceName,
             actionName: target.actionName,
             sourceFile: routesFile,
+            sourceLine,
             response: target.response,
+            semanticReturn: target.semanticReturn,
             auth: isAuth,
             middleware: currentMiddlewares,
             parameters: resolvedPath.parameters

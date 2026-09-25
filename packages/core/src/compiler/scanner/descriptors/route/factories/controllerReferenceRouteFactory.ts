@@ -65,7 +65,7 @@ export function createRouteFromControllerReference(
         response,
         sourceFile,
         sourceLine,
-        request: request === undefined ? { kind: 'no_request' } : request, runtimeReturn: { kind: 'none' }, schema, auth, middleware, parameters,
+        request: request === undefined ? { kind: 'no_request' } : request, runtimeReturn: { kind: 'none' }, semanticReturn: { kind: 'absent' }, schema, auth, middleware, parameters,
         pathParameters, queryParameters, invalidation
     });
 }

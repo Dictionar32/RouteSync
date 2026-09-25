@@ -14,9 +14,10 @@ import type {
 } from "../../../../types/route";
 import { RouteHandlerKind } from "../../../../types/route";
 import type { ControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
-import type { RouteRequestBinding } from "../../../../types/domain/request";
+import type { ControllerRequestBinding } from './controllerActionContract';
 import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
 import type { RuntimeReturnContract } from './controllerActionContract';
+import type { ControllerReturnSemantic } from '../../../../types/upstream/controller';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 
 export type ControllerActionInfo = ScannedControllerActionParams;
@@ -33,7 +34,8 @@ export interface ScannedControllerActionParamsContract {
     readonly sourceLine: number;
     readonly response: ResponseDescriptor;
     readonly runtimeReturn: RuntimeReturnContract;
-    readonly request: RouteRequestBinding;
+    readonly semanticReturn: ControllerReturnSemantic;
+    readonly request: ControllerRequestBinding;
     readonly schema: RouteSchemaPayload;
     readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
@@ -53,7 +55,8 @@ export interface ControllerActionCreateOptionsContract {
     readonly sourceLine: number;
     readonly response: ResponseDescriptor;
     readonly runtimeReturn: RuntimeReturnContract;
-    readonly request: RouteRequestBinding;
+    readonly semanticReturn: ControllerReturnSemantic;
+    readonly request: ControllerRequestBinding;
     readonly schema: RouteSchemaPayload;
     readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];

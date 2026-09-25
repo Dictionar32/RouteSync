@@ -15,10 +15,12 @@ import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSou
 import type { RequestAsts, Sequence } from "../../../types/upstream/collections";
 import type { SourceSpan } from "../../../types/upstream/provenance";
 import type { NumberValue } from "../../../types/upstream/valueObjects";
-import { requestAstFromSource } from "./requestAstCanonical";
+import { requestProducer } from "./requestProducer";
 import { TypeInterner } from "../../types/TypeInterner";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
+import { parsePhpMethod } from "../lexer/phpMethodParser";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
+import { readFileSync } from "node:fs";
 
 
 import { collectPhpFiles } from "./scannerUtils";
@@ -27,7 +29,8 @@ import { partitionValidationRules } from "./form-request";
 export class FormRequestScanner {
     private static async scanSources(
         sourceProject: SourceProjectIdentity,
-        interner: TypeInterner = new TypeInterner()
+        interner: TypeInterner = new TypeInterner(),
+        includeLegacyFields = true
     ): Promise<readonly FormRequestSource[]> {
         const sourceRoot = sourceProject.root.value.value;
         const reqDir = path.join(sourceRoot, 'app', 'Http', 'Requests');
@@ -46,7 +49,10 @@ export class FormRequestScanner {
                 if (retIdx !== -1) rulesIndex = retIdx;
             }
             const parsedArray = LaravelSourceLexer.parseArray(source, tokens, rulesIndex);
-            const partitioned = partitionValidationRules(parsedArray.entries, interner, fullPath);
+            const methods = parseRequestMethods(tokens);
+            const properties = parseModelPropertyAsts(tokens);
+            const authorize = methods.find(method => method.name.value === 'authorize');
+            if (!authorize) throw new Error(`FormRequest ${reqName} must declare authorize()`);
 
             sources.push(Object.freeze({
                 identity: Object.freeze({
@@ -56,7 +62,9 @@ export class FormRequestScanner {
                 sourceFile: SemanticValueFactory.sourceFilePath(fullPath),
                 source: requestSourceSpan(fullPath, source.length),
                 authorization: parseAuthorization(tokens),
-                fields: Object.freeze([...partitioned.fields]),
+                fields: includeLegacyFields
+                    ? Object.freeze([...partitionValidationRules(parsedArray.entries, interner, fullPath).fields])
+                    : Object.freeze([]),
             }));
         }
 
@@ -66,10 +74,30 @@ export class FormRequestScanner {
         sourceProject: SourceProjectIdentity,
         interner: TypeInterner
     ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[] }> {
-        const sources = await FormRequestScanner.scanSources(sourceProject, interner);
+        const sources = await FormRequestScanner.scanSources(sourceProject, interner, false);
         return {
             sources,
-            asts: Object.freeze(sources.map(requestAstFromSource))
+            asts: Object.freeze(sources.map(source => {
+                const sourceName = source.identity.requestClass.value.value;
+                const rulesMethod = parseRequestMethods(LaravelSourceLexer.tokenize(readSourceForProducer(source.sourceFile.value))).find(method => method.name.value === 'rules');
+                const authorizeMethod = parseRequestMethods(LaravelSourceLexer.tokenize(readSourceForProducer(source.sourceFile.value))).find(method => method.name.value === 'authorize');
+                if (!rulesMethod || !authorizeMethod) throw new Error(`FormRequest ${sourceName} is missing rules()/authorize()`);
+                const sourceText = readSourceForProducer(source.sourceFile.value);
+                const tokens = LaravelSourceLexer.tokenize(sourceText);
+                const rulesIndex = tokens.findIndex((t, idx) => t.value === 'return' && idx > tokens.findIndex((x, i) => x.value === 'rules' && tokens[i - 1]?.value === 'function'));
+                const rules = LaravelSourceLexer.parseArray(sourceText, tokens, rulesIndex).entries;
+                return requestProducer.produce({
+                    requestName: { kind: 'request_name', value: { kind: 'string_value', value: sourceName } },
+                    formType: source.identity.formType,
+                    source: source.source,
+                    rules,
+                    authorize: authorizeMethod,
+                    methods: parseRequestMethods(tokens),
+                    properties: parseModelPropertyAsts(tokens),
+                    sourceFile: source.sourceFile.value,
+                    interner
+                });
+            }))
         };
     }
 
@@ -138,4 +166,22 @@ function requestSourceSpan(file: string, length: number): SourceSpan {
         start: numberValue(0),
         end: numberValue(length),
     };
+}
+
+function readSourceForProducer(file: string): string {
+    return readFileSync(file, 'utf8');
+}
+
+function parseRequestMethods(tokens: readonly import('../lexer/PhpAst').TokenDescriptor[]): readonly import('../lexer/phpMethodAstTypes').PhpMethodAst[] {
+    const methods: import('../lexer/phpMethodAstTypes').PhpMethodAst[] = [];
+    let depth = 0;
+    for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index];
+        if (token.value === '{') depth += 1;
+        if (token.value === '}') depth -= 1;
+        if (token.value !== 'function' || depth !== 1) continue;
+        const parsed = parsePhpMethod('', tokens, index);
+        if (parsed) methods.push(parsed);
+    }
+    return methods;
 }

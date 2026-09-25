@@ -83,6 +83,10 @@ function parseParameters(tokens: readonly TokenDescriptor[], start: number): Con
 
 
 function parameterSemantic(typeName: string): ControllerVariableSemantic {
+    if (typeName === 'Request') {
+        const name: RequestName = { kind: 'request_name', value: { kind: 'string_value', value: typeName } };
+        return { kind: 'request_origin', name };
+    }
     if (typeName.endsWith('Request') && typeName !== 'Request') {
         const name: RequestName = { kind: 'request_name', value: { kind: 'string_value', value: typeName } };
         return { kind: 'request_origin', name };

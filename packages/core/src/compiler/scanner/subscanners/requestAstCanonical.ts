@@ -1,6 +1,6 @@
 import type { FormRequestSource, RequestField } from '../../../types/domain/request';
 import type { RequestAst } from '../../../types/upstream/ast';
-import type { RequestDefinition, RequestFieldTarget, RequestField as UpstreamRequestField, ValidationRule } from '../../../types/upstream/request';
+import type { RequestDefinition, RequestFieldTarget, RequestField as UpstreamRequestField, ValidationRule, FileValidationConstraint, FileValidationConstraints } from '../../../types/upstream/request';
 import type { RequestFields, ValidationRules, Sequence, PropertyPath } from '../../../types/upstream/collections';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { Presence } from '../../../types/upstream/primitiveVocabulary';
@@ -8,7 +8,7 @@ import type { TypeExpression } from '../../../types/upstream/typeVocabulary';
 import type { PropertyName, RequestName, FormTypeName, TableName, ColumnName } from '../../../types/upstream/names';
 import type { NumberValue, StringValue, StringValues } from '../../../types/upstream/valueObjects';
 import type { PropertyReference } from '../../../types/upstream/semanticReferences';
-import { PrimitiveKind } from '../../types/SemanticType';
+import { PrimitiveKind, type SemanticTypeVisitor } from '../../types/SemanticType';
 import type { RequestFieldMeaning, RequestFieldMeaningVisitor } from '../../../types/domain/requestFieldMeaning';
 
 const str = (value: string): StringValue => ({ kind: 'string_value', value });
@@ -22,6 +22,10 @@ const propertyReference = (value: string): PropertyReference => ({ kind: 'proper
 
 function path(value: string): PropertyPath {
     return { kind: 'property_path', segments: seq(value.split('.').filter(Boolean).map(propertyName)) };
+}
+
+function propertyPath(value: string): PropertyPath {
+    return path(value);
 }
 
 function presence(field: RequestField): Presence {
@@ -47,7 +51,7 @@ function semanticTypeFromMeaning(meaning: RequestFieldMeaning, fieldSource: Sour
         collection: value => ({ kind: 'array' as const, element: semanticTypeFromMeaningLike(value.element, fieldSource) }),
         resourceCollection: value => ({ kind: 'array' as const, element: { kind: 'reference' as const, value: { kind: 'domain' as const, name: { kind: 'domain_type_name' as const, value: str(value.resourceName.value.value) } } } }),
         jsonValue: () => ({ kind: 'primitive' as const, value: { kind: 'json' as const } }),
-        never: () => ({ kind: 'never' as const }),
+        never: () => ({ kind: 'uninhabited' as const }),
         error: value => ({ kind: 'error' as const, diagnostic: value.diagnosticMessage }),
         union: value => ({ kind: 'union' as const, members: { kind: 'type_expressions' as const, items: seq(value.members.map(member => semanticTypeFromMeaningLike(member, fieldSource))) } }),
         intersection: value => ({ kind: 'intersection' as const, members: { kind: 'type_expressions' as const, items: seq(value.members.map(member => semanticTypeFromMeaningLike(member, fieldSource))) } }),
@@ -61,12 +65,12 @@ function semanticTypeFromMeaningLike(meaning: RequestFieldMeaning, fieldSource: 
 }
 
 function semanticTypeFromDomainType(type: import('../../types/SemanticType').SemanticType, fieldSource: SourceSpan): TypeExpression {
-    return type.accept({
+    const visitor: SemanticTypeVisitor<TypeExpression> = {
         primitive: value => scalarType(value.type),
-        jsonValue: () => ({ kind: 'mixed' }),
+        jsonValue: (): TypeExpression => ({ kind: 'mixed' }),
         optional: value => ({ kind: 'optional', value: semanticTypeFromDomainType(value.innerType, fieldSource) }),
         nullable: value => ({ kind: 'nullable', value: semanticTypeFromDomainType(value.innerType, fieldSource) }),
-        never: () => ({ kind: 'never' }),
+        never: (): TypeExpression => ({ kind: 'uninhabited' }),
         error: value => ({ kind: 'error', diagnostic: value.diagnosticMessage }),
         reference: value => ({ kind: 'reference', value: { kind: 'domain', name: { kind: 'domain_type_name', value: str(value.name) } } }),
         union: value => ({ kind: 'union', members: { kind: 'type_expressions', items: seq(value.members.map(member => semanticTypeFromDomainType(member, fieldSource))) } }),
@@ -74,8 +78,9 @@ function semanticTypeFromDomainType(type: import('../../types/SemanticType').Sem
         readonlyCollection: value => ({ kind: 'array', element: semanticTypeFromDomainType(value.elementType, fieldSource) }),
         mutableCollection: value => ({ kind: 'array', element: semanticTypeFromDomainType(value.elementType, fieldSource) }),
         generic: value => ({ kind: 'generic', base: { kind: 'domain', name: { kind: 'domain_type_name', value: str(value.base.name) } }, parameters: { kind: 'type_parameters', items: seq(value.parameters.map(parameter => ({ kind: 'type_parameter', name: parameter.name, type: semanticTypeFromDomainType(parameter.type, fieldSource), source: fieldSource }))) } }),
-        object: () => ({ kind: 'mixed' })
-    });
+        object: (): TypeExpression => ({ kind: 'mixed' })
+    };
+    return type.accept(visitor);
 }
 
 function scalarType(kind: PrimitiveKind): TypeExpression {
@@ -102,14 +107,23 @@ function target(field: RequestField): RequestFieldTarget {
 }
 
 function rules(field: RequestField): ValidationRules {
-    const mapped = field.validation.map(rule => mapRule(rule, field.source));
+    const mapped = field.validation.map(rule => ({
+        kind: 'validation_rule_entry' as const,
+        rule: mapRule(rule, field.source),
+        provenance: { kind: 'validation_rule_source' as const, source: field.source }
+    }));
     return { kind: 'validation_rules', items: seq(mapped) };
 }
 
 function mapRule(rule: RequestField['validation'][number], fieldSource: SourceSpan): ValidationRule {
     switch (rule.kind) {
         case 'required': return { kind: 'required' };
-        case 'required_with': return { kind: 'required_with', fields: { kind: 'property_paths', items: seq(rule.fields.map(field => path(field.value))) } };
+        case 'required_with': return { kind: 'required_with', fields: { kind: 'property_paths', items: seq(rule.fields.map(field => path(field.value.value))) } };
+        case 'required_with_all': return { kind: 'required_with_all', fields: { kind: 'property_paths', items: seq(rule.fields.map(field => path(field.value.value))) } };
+        case 'required_without': return { kind: 'required_without', fields: { kind: 'property_paths', items: seq(rule.fields.map(field => path(field.value.value))) } };
+        case 'required_without_all': return { kind: 'required_without_all', fields: { kind: 'property_paths', items: seq(rule.fields.map(field => path(field.value.value))) } };
+        case 'required_if': return { kind: 'required_if', field: path(rule.field.value), values: { kind: 'string_values', items: seq(rule.values.map(value => str(value.value))) } };
+        case 'required_unless': return { kind: 'required_unless', field: path(rule.field.value), values: { kind: 'string_values', items: seq(rule.values.map(value => str(value.value))) } };
         case 'nullable': return { kind: 'nullable' };
         case 'optional': return { kind: 'optional' };
         case 'string': return { kind: 'string' };
@@ -125,35 +139,35 @@ function mapRule(rule: RequestField['validation'][number], fieldSource: SourceSp
         case 'between': return { kind: 'between', min: { kind: 'validation_constraint_value', value: { kind: 'number_value', value: rule.min.value } }, max: { kind: 'validation_constraint_value', value: { kind: 'number_value', value: rule.max.value } } };
         case 'in': return { kind: 'in', values: { kind: 'string_values', items: seq(rule.values.map(value => str(value.value))) } };
         case 'exists': return { kind: 'exists', table: tableName(rule.table.value.value), column: rule.column.kind === 'explicit_column' ? { kind: 'explicit_column', column: columnName(rule.column.column.value.value) } : { kind: 'default_column' } };
-        case 'unique': return { kind: 'unique', table: tableName(rule.table.value.value), column: rule.column.kind === 'explicit_column' ? { kind: 'explicit_column', column: columnName(rule.column.column.value.value) } : { kind: 'default_column' }, target: rule.target.kind === 'ignore' ? { kind: 'ignore', value: rule.target.value } : { kind: 'all' } };
+        case 'unique': return { kind: 'unique', table: tableName(rule.table.value.value), column: rule.column.kind === 'explicit_column' ? { kind: 'explicit_column', column: columnName(rule.column.column.value.value) } : { kind: 'default_column' }, target: rule.target.kind === 'ignore' ? { kind: 'ignore', value: { kind: 'expression', expression: rule.target.value } } : { kind: 'all' } };
         case 'file': return { kind: 'file' };
         case 'image': return { kind: 'image' };
-        case 'custom': return { kind: 'custom', rule: { kind: 'validation_rule_name', value: str(rule.rule.value) }, parameters: seq(rule.parameters.map(value => ({ kind: 'validation_parameter' as const, value: str(value.value) }))) };
+        case 'custom': return { kind: 'named', rule: { kind: 'validation_rule_name', value: str(rule.rule.value) }, parameters: seq(rule.parameters.map(value => ({ kind: 'validation_parameter' as const, value: str(value.value) }))) };
     }
 }
 
 const tableName = (value: string): TableName => ({ kind: 'table_name', value: str(value) });
 const columnName = (value: string): ColumnName => ({ kind: 'column_name', value: str(value) });
 
-function field(field: RequestField, request: FormRequestSource): UpstreamRequestField {
+export function requestFieldFromSource(field: RequestField): UpstreamRequestField {
     const fieldSource = field.source;
-    const fileConstraints = {
-        kind: 'file_validation_constraints' as const,
-        items: seq(field.fileConstraints.map(constraint => constraint.accept({
-            image: () => ({ kind: 'image' as const }),
+    const fileConstraints: FileValidationConstraints = {
+        kind: 'file_validation_constraints',
+        items: seq(field.fileConstraints.map(constraint => constraint.accept<FileValidationConstraint>({
+            image: (): FileValidationConstraint => ({ kind: 'image' }),
             extensions: value => ({
-                kind: 'extensions' as const,
-                values: { kind: 'string_values' as const, items: seq(value.values.map(item => str(item))) }
+                kind: 'extensions',
+                values: { kind: 'string_values', items: seq(value.values.map(item => str(item))) }
             }),
             mimeTypes: value => ({
-                kind: 'mime_types' as const,
-                values: { kind: 'string_values' as const, items: seq(value.values.map(item => str(item))) }
+                kind: 'mime_types',
+                values: { kind: 'string_values', items: seq(value.values.map(item => str(item))) }
             }),
             maxBytes: value => ({
-                kind: 'max_bytes' as const,
-                value: { kind: 'number_value' as const, value: value.value }
+                kind: 'max_bytes',
+                value: { kind: 'number_value', value: value.value }
             })
-        })))
+        })) )
     };
     return {
         kind: 'request_field',
@@ -161,6 +175,11 @@ function field(field: RequestField, request: FormRequestSource): UpstreamRequest
         target: target(field),
         type: fieldType(field),
         presence: presence(field),
+        requirement: field.requirement.kind === 'unconditional'
+            ? { kind: 'unconditional' }
+            : field.requirement.kind === 'required_with' || field.requirement.kind === 'required_with_all' || field.requirement.kind === 'required_without' || field.requirement.kind === 'required_without_all'
+                ? { kind: field.requirement.kind, fields: { kind: 'property_paths', items: seq(field.requirement.fields.map(value => propertyPath(value.value.value))) } }
+                : { kind: field.requirement.kind, field: propertyPath(field.requirement.field.value), values: { kind: 'string_values', items: seq(field.requirement.values.map(value => str(value.value))) } },
         rules: rules(field),
         fileConstraints,
         default: { kind: 'none' },
@@ -170,11 +189,60 @@ function field(field: RequestField, request: FormRequestSource): UpstreamRequest
 
 export function requestAstFromSource(request: FormRequestSource): RequestAst {
     const sourceSpan = source(request);
+    const fields: RequestFields = {
+        kind: 'request_fields',
+        items: seq(request.fields.map(item => field(item, request)))
+    };
+    const schema = {
+        kind: 'request_schema' as const,
+        fields,
+        policy: {
+            kind: 'request_validation_policy' as const,
+            failure: { kind: 'continue' as const },
+            unknownFields: { kind: 'accepted' as const, origin: { kind: 'laravel_default' as const } }
+        },
+        messages: { kind: 'validation_messages' as const, items: seq([]) },
+        attributes: { kind: 'validation_attributes' as const, items: seq([]) }
+    };
+    const lifecycle = {
+        kind: 'request_validation_lifecycles' as const,
+        items: seq([])
+    };
+    const authorization = request.authorization.kind === 'authorized'
+        ? { kind: 'authorized' as const, origin: { kind: 'source_explicit' as const } }
+        : { kind: 'denied' as const, origin: { kind: 'source_explicit' as const } };
+    const validation = {
+        kind: 'form_request_validation' as const,
+        authorization,
+        schema,
+        lifecycle,
+        failureResponse: {
+            kind: 'request_failure_response_configuration' as const,
+            redirect: { kind: 'default' as const },
+            errorBag: { kind: 'default' as const }
+        },
+        validatedInput: seq([])
+    };
+    const http = {
+        kind: 'request_http_context' as const,
+        method: { kind: 'unspecified' as const },
+        routeMethod: { kind: 'unspecified' as const },
+        path: { kind: 'unspecified' as const },
+        url: { kind: 'unspecified' as const },
+        host: { kind: 'unspecified' as const },
+        httpHost: { kind: 'unspecified' as const },
+        schemeAndHttpHost: { kind: 'unspecified' as const },
+        inputAccesses: { kind: 'request_input_accesses' as const, items: seq([]) }
+    };
     const definition: RequestDefinition = {
         kind: 'request',
-        identity: { kind: 'request_identity', request: requestName(request.identity.requestClass.value.value), formType: formTypeName(request.identity.formType.value.value) },
-        authorization: request.authorization,
-        schema: { kind: 'request_schema', fields: { kind: 'request_fields', items: seq(request.fields.map(item => field(item, request))) } as RequestFields },
+        identity: {
+            kind: 'form_request_identity',
+            request: requestName(request.identity.requestClass.value.value),
+            formType: formTypeName(request.identity.formType.value.value)
+        },
+        http,
+        validation,
         source: sourceSpan,
     };
     return { kind: 'request_ast', definition, source: sourceSpan };

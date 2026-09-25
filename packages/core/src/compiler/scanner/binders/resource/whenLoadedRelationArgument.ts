@@ -38,7 +38,8 @@ function readRelationArgument(argument: PhpArgument): Lookup<RelationName> {
         variableReference: missingArgument, shortTernary: missingArgument, nullCoalesce: missingArgument,
         binaryExpression: missingArgument, unaryExpression: missingArgument, castExpression: missingArgument,
         ternaryExpression: missingArgument, nestedArray: missingArgument, staticCall: missingArgument,
-        classReference: missingArgument, construct: missingArgument, instanceOf: missingArgument,
+        classConstant: missingArgument,
+        classReference: missingArgument, construct: missingArgument, dynamicConstruct: missingArgument, instanceOf: missingArgument,
         closure: missingArgument, arrowFunction: missingArgument, matchExpression: missingArgument, unsupported: missingArgument,
     });
 }

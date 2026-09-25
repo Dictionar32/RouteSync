@@ -12,13 +12,14 @@ export type TypeExpression =
   | { readonly kind: 'primitive'; readonly value: PrimitiveVocabulary }
   | { readonly kind: 'reference'; readonly value: TypeReference }
   | { readonly kind: 'array'; readonly element: TypeExpression }
+  | { readonly kind: 'array_map'; readonly key: TypeExpression; readonly value: TypeExpression }
   | { readonly kind: 'mixed' }
   | { readonly kind: 'union'; readonly members: TypeExpressions }
   | { readonly kind: 'intersection'; readonly members: TypeExpressions }
   | { readonly kind: 'nullable'; readonly value: TypeExpression }
   | { readonly kind: 'callable'; readonly parameters: TypeParameters; readonly result: TypeExpression }
   | { readonly kind: 'optional'; readonly value: TypeExpression }
-  | { readonly kind: 'never' }
+  | { readonly kind: 'uninhabited' }
   | { readonly kind: 'error'; readonly diagnostic: StringValue }
   | { readonly kind: 'object'; readonly properties: TypeProperties }
   | { readonly kind: 'generic'; readonly base: TypeReference; readonly parameters: TypeParameters };

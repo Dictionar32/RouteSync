@@ -29,12 +29,22 @@ export type FileValidationConstraint =
 
 export type FileValidationConstraints = readonly FileValidationConstraint[];
 
+export type RequestFieldRequirement =
+    | { readonly kind: 'unconditional' }
+    | { readonly kind: 'required_with'; readonly fields: readonly PropertyName[] }
+    | { readonly kind: 'required_with_all'; readonly fields: readonly PropertyName[] }
+    | { readonly kind: 'required_without'; readonly fields: readonly PropertyName[] }
+    | { readonly kind: 'required_without_all'; readonly fields: readonly PropertyName[] }
+    | { readonly kind: 'required_if'; readonly field: PropertyName; readonly values: readonly ValidationParameter[] }
+    | { readonly kind: 'required_unless'; readonly field: PropertyName; readonly values: readonly ValidationParameter[] };
+
 export interface RequestField {
     readonly sourceName: PropertyName;
     readonly name: RequestFieldName;
     readonly meaning: RequestFieldMeaning;
     readonly fileConstraints: FileValidationConstraints;
     readonly presence: RequestFieldPresence;
+    readonly requirement: RequestFieldRequirement;
     readonly validation: readonly ValidationRuleNode[];
     readonly source: SourceSpan;
 }
@@ -95,6 +105,10 @@ export type RouteRequestBinding =
         readonly kind: 'form_request';
         readonly identity: RequestIdentity;
         readonly source: FormRequestSource;
+    }
+    | {
+        readonly kind: 'framework_request';
+        readonly type: ClassName;
     }
     | {
         readonly kind: 'no_request';

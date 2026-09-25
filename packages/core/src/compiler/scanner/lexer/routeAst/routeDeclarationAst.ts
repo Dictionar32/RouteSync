@@ -1,5 +1,5 @@
 /** Syntax AST for Laravel Route facade declarations. */
-import type { AstIdentifier, TokenDescriptor } from "../phpAstTypes";
+import type { AstIdentifier, TokenDescriptor, PhpAstValue } from "../phpAstTypes";
 
 export type LaravelRouteMethod =
   | "get" | "post" | "put" | "patch" | "delete"
@@ -12,7 +12,7 @@ export type RoutePrefixAst = string & { readonly __routePrefixAst: unique symbol
 export type RouteTargetAst =
   | { readonly kind: "controller_action"; readonly controller: AstIdentifier; readonly action: AstIdentifier }
   | { readonly kind: "controller_invokable"; readonly controller: AstIdentifier }
-  | { readonly kind: "closure"; readonly action: AstIdentifier };
+  | { readonly kind: "closure"; readonly action: AstIdentifier; readonly returns: readonly PhpAstValue[] };
 
 export interface RouteDeclarationAst {
   readonly method: LaravelRouteMethod;

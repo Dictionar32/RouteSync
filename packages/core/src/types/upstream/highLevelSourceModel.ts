@@ -1,7 +1,7 @@
 import type { ModelAst, ControllerAst, ServiceAst } from './ast';
 import type { ModelFacts } from './modelSourceFacts';
 import type { ResourceFacts } from './resource';
-import type { RequestFacts } from './request';
+import { matchRequestValidationCapability, type RequestFacts } from './request';
 import type { ResponseFacts } from './response';
 import type { RouteFacts } from './route';
 import type { RouteEndpointContract } from './highLevelContracts';
@@ -127,8 +127,8 @@ const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNod
   facts: {
     kind: 'request_facts',
     identity: ast.definition.identity,
-    authorization: ast.definition.authorization,
-    schema: ast.definition.schema,
+    http: ast.definition.http,
+    validation: ast.definition.validation,
     source: ast.source,
   },
   source: ast.source,
@@ -147,6 +147,7 @@ const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
     middleware: definition.middleware,
     request: definition.request,
     response: { kind: 'declared_response', response: definition.response },
+    returnSemantic: definition.returnSemantic,
     source: ast.source,
   };
   return {
@@ -158,6 +159,7 @@ const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
       domain: definition.domain,
       endpoint,
       response: definition.response,
+      returnSemantic: definition.returnSemantic,
       source: ast.source,
     },
     source: ast.source,
@@ -172,6 +174,8 @@ const responseNodeFromAst = (ast: import('./ast').ResponseAst): ResponseSemantic
     identity: { kind: 'response_reference', name: ast.definition.typeName },
     typeName: ast.definition.typeName,
     output: ast.definition.output,
+    transport: ast.definition.transport,
+    outcome: ast.definition.outcome,
     source: ast.source,
   },
   source: ast.source,
@@ -236,7 +240,10 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
 
   let requests = catalog.requests;
   while (requests.kind === 'cons') {
-    let fields = requests.head.facts.schema.fields.items;
+    let fields = matchRequestValidationCapability(requests.head.facts.validation, {
+      no_form_request_validation: () => ({ kind: 'empty' as const }),
+      form_request_validation: value => value.schema.fields.items
+    });
     while (fields.kind === 'cons') {
       const target = fields.head.target;
       if (target.kind === 'input_property') {

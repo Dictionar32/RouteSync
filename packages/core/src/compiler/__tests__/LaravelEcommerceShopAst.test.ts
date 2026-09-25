@@ -38,6 +38,14 @@ describe('ecommerce_shop source AST vocabulary', () => {
         expect(ast.kind).toBe('match_expression');
     });
 
+    it('preserves anonymous migration class and its extends datum', () => {
+        const ast = classifyAstValue('new class extends Migration { public function up(): void { Schema::create(\'x\', function () {}); } }');
+        expect(ast.kind).toBe('anonymous_class_construct');
+        if (ast.kind !== 'anonymous_class_construct') return;
+        expect(ast.class.extendsClass).toBe('Migration');
+        expect(ast.class.members.length).toBe(1);
+    });
+
     it('preserves array access and cast nodes', () => {
         const access = classifyAstValue("$payload['transaction_id']");
         expect(access.kind).toBe('array_access');

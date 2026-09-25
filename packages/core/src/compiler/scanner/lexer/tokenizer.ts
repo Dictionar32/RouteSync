@@ -18,6 +18,7 @@ import {
     scanColon,
     scanEquals,
     scanMinus,
+    scanDot,
     scanSimpleOperator,
     scanWordOrUnknown
 } from './tokenize';
@@ -109,8 +110,7 @@ export function tokenizePhpSource(source: string): readonly TokenDescriptor[] {
                 break;
 
             case '.':
-                stream.advance();
-                tokens.push(stream.emitToken('CONCAT', tokenMark));
+                scanDot(stream, tokenMark, nextChar, tokens);
                 break;
 
             case '$':

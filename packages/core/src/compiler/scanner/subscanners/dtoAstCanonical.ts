@@ -38,14 +38,23 @@ function declared(type: PhpPropertyTypeAst): DeclaredType {
   return { kind: 'declared_type', value, nullability: type.nullable ? { kind: 'nullable' } : { kind: 'non_nullable' } };
 }
 
-function property(file: string, item: ResponseDtoPropertyAst): DtoProperty {
+function property(file: string, item: ResponseDtoPropertyAst, owner: string): DtoProperty {
   const span = source(file, Number(item.source.line));
   const definition: PropertyDefinition = {
     kind: 'property',
     name: { kind: 'property_name', value: stringValue(item.name) },
     type: typeExpression(item.type),
     presence: { kind: 'required' } satisfies Presence,
-    origin: { kind: 'computed' },
+    declaration: {
+      kind: 'class_property',
+      owner: { kind: 'class_name', value: stringValue(owner) },
+      role: { kind: 'dto_field' },
+    },
+    visibility: { kind: 'public' },
+    storage: { kind: 'instance_mutable' },
+    initialization: { kind: 'uninitialized' },
+    promotion: { kind: 'declared' },
+    access: { kind: 'read_write' },
     source: span,
   };
   return { kind: 'dto_property', property: definition, declared: declared(item.type), source: span };
@@ -64,7 +73,7 @@ export async function scanDtoAsts(sourceProject: SourceProjectIdentity): Promise
     const className = createAstIdentifier(tokens[tokens.indexOf(classToken) + 1].value);
     const declaration = parseResponseDtoDeclaration(tokens, className);
     const span = source(file, Number(declaration.source.line));
-    const properties: DtoProperties = { kind: 'dto_properties', items: sequence(declaration.properties.map(item => property(file, item))) };
+    const properties: DtoProperties = { kind: 'dto_properties', items: sequence(declaration.properties.map(item => property(file, item, declaration.className))) };
     const methods: DtoMethods = { kind: 'dto_methods', items: sequence([]) };
     const definition: DtoDefinition = {
       kind: 'dto',

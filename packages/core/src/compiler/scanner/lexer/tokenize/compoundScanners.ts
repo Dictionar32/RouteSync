@@ -53,6 +53,12 @@ export function scanEquals(stream: SourceStream, tokenMark: CursorMark, nextChar
   tokens.push(stream.emitToken('ASSIGN', tokenMark));
 }
 
+export function scanDot(stream: SourceStream, tokenMark: CursorMark, nextChar: string, tokens: TokenDescriptor[]): void {
+  if (nextChar === '.' && stream.peek(2) === '.') { stream.advanceBy(3); tokens.push(stream.emitToken('ELLIPSIS', tokenMark)); return; }
+  stream.advance();
+  tokens.push(stream.emitToken('CONCAT', tokenMark));
+}
+
 export function scanMinus(stream: SourceStream, tokenMark: CursorMark, nextChar: string, tokens: TokenDescriptor[]): void {
   if (nextChar === '>') { stream.advanceBy(2); tokens.push(stream.emitToken('OBJECT_OPERATOR', tokenMark)); return; }
   stream.advance();

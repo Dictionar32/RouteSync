@@ -24,11 +24,14 @@ export function scanControllerAction(
     actionName: contract.identity.actionName,
     response: contract.response,
     runtimeReturn: contract.runtimeReturn,
+    semanticReturn: contract.semanticReturn,
     sourceFile: contract.sourceFile,
     sourceLine: contract.sourceLine,
     request: contract.request.kind === 'form_request'
       ? { kind: 'form_request', source: contract.request.source }
-      : { kind: 'no_request' },
+      : contract.request.kind === 'framework_request'
+        ? { kind: 'framework_request', type: contract.request.type }
+        : { kind: 'no_request' },
     schema: contract.schema,
     dataflow: contract.dataflow,
     errorResponses

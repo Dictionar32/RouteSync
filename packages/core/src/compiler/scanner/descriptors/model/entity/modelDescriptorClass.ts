@@ -7,7 +7,8 @@
  */
 
 import { ModelSemanticPropertyIndex, ModelSemanticRelationIndex, type ModelSemanticDefinition } from '../../../../../types/upstream/model';
-import type { ModelColumnFact, ModelAccessorFact, ModelRelationFact } from '../../../../../types/upstream/modelSourceFacts';
+import type { ModelColumnFact, ModelAccessorFact } from '../../../../../types/upstream/modelSourceFacts';
+import type { EloquentRelationAst } from '../../../../../types/upstream/eloquent';
 import type { ModelCast } from '../../../../../types/upstream/model';
 import type { PropertyName } from "../../../../../types/upstream/names";
 import { createPropertyName } from "../../../../../types/upstream/names";
@@ -54,7 +55,7 @@ function buildModelAccessors(
 }
 
 function buildModelRelations(
-    relations: readonly ModelRelationFact[]
+    relations: readonly EloquentRelationAst[]
 ): readonly ModelSemanticRelation[] {
     return relations.map(relation => Object.freeze({
         kind: 'relation' as const,
@@ -65,22 +66,23 @@ function buildModelRelations(
         relationKind: relation.relation,
         eloquentType: relation.eloquentType,
         semanticType: relation.semanticType,
-        targetModel: relation.target,
-        cardinality: relation.cardinality,
-        multiplicity: relation.multiplicity,
-        boundCardinality: relation.multiplicity,
-        resourceCardinality: relation.multiplicity,
+        targetModel: relation.targetModel,
+        cardinality: relation.descriptor.cardinality,
+        multiplicity: relation.descriptor.multiplicity,
+        boundCardinality: relation.descriptor.multiplicity,
+        resourceCardinality: relation.descriptor.multiplicity,
         targetShape: relation.targetShape,
         traversalTarget: relation.traversalTarget,
         foreignKey: relation.key,
-        traversal: { kind: 'relation' as const, targetModel: relation.target, eloquentType: relation.eloquentType, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
+        source: relation.source,
+        traversal: { kind: 'relation' as const, targetModel: relation.targetModel, eloquentType: relation.eloquentType, cardinality: relation.descriptor.cardinality, multiplicity: relation.descriptor.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
     }));
 }
 
 function buildModelProperties(
     columns: readonly ModelColumnFact[],
     accessors: readonly ModelAccessorFact[],
-    relations: readonly ModelRelationFact[],
+    relations: readonly EloquentRelationAst[],
     hidden: readonly PropertyName[]
 ): readonly ModelSemanticProperty[] {
     const hiddenNames = new Set(hidden.map(value => value.value.value));
@@ -117,16 +119,17 @@ function buildModelProperties(
             type: relation.eloquentType,
             relationKind: relation.relation,
             eloquentType: relation.eloquentType,
-            targetModel: relation.target,
-            cardinality: relation.cardinality,
-            multiplicity: relation.multiplicity,
-            boundCardinality: relation.multiplicity,
-            resourceCardinality: relation.multiplicity,
+            targetModel: relation.targetModel,
+            cardinality: relation.descriptor.cardinality,
+            multiplicity: relation.descriptor.multiplicity,
+            boundCardinality: relation.descriptor.multiplicity,
+            resourceCardinality: relation.descriptor.multiplicity,
             targetShape: relation.targetShape,
             traversalTarget: relation.traversalTarget,
             foreignKey: relation.key,
             semanticType: relation.semanticType,
-            traversal: { kind: 'relation' as const, targetModel: relation.target, eloquentType: relation.eloquentType, cardinality: relation.cardinality, multiplicity: relation.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
+            source: relation.source,
+            traversal: { kind: 'relation' as const, targetModel: relation.targetModel, eloquentType: relation.eloquentType, cardinality: relation.descriptor.cardinality, multiplicity: relation.descriptor.multiplicity, targetShape: relation.targetShape, traversalTarget: relation.traversalTarget, semanticType: relation.semanticType }
         }));
     }
     return properties;
@@ -144,6 +147,10 @@ function buildModelSurface(
 }
 
 export function buildModelSemanticDefinition(params: {
+    readonly inheritance: ModelInheritance;
+    readonly capabilities: ModelSourceCapabilities;
+    readonly methods: readonly ModelMethod[];
+    readonly constants: readonly ModelConstant[];
     readonly identity: ModelSemanticDefinition['identity'];
     readonly key: ModelSemanticDefinition['key'];
     readonly behavior: ModelSemanticDefinition['behavior'];
@@ -151,7 +158,7 @@ export function buildModelSemanticDefinition(params: {
     readonly columnFacts: readonly ModelColumnFact[];
     readonly casts: readonly ModelCast[];
     readonly accessors: readonly ModelAccessorFact[];
-    readonly relations: readonly ModelRelationFact[];
+    readonly relations: readonly EloquentRelationAst[];
 }): ModelSemanticDefinition {
     const columnFacts = Object.freeze(params.columnFacts);
     const fillable = Object.freeze(params.exposure.fillable);
@@ -162,6 +169,10 @@ export function buildModelSemanticDefinition(params: {
     const semanticRelations = buildModelRelations(params.relations);
 
     return Object.freeze({
+        inheritance: params.inheritance,
+        capabilities: params.capabilities,
+        methods: Object.freeze([...params.methods]),
+        constants: Object.freeze([...params.constants]),
         identity: Object.freeze(params.identity),
         key: Object.freeze(params.key),
         behavior: Object.freeze(params.behavior),

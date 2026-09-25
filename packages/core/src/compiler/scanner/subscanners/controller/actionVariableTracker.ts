@@ -211,11 +211,14 @@ export function resolveBoundModel(
     parameters: ActionParameterIndex,
 ): BoundModelReference | undefined {
     return matchPhpAstValue(firstArg, {
+        magicConstant: () => undefined,
+        constantReference: () => undefined,
         variableReference: node => {
             const variable = SemanticValueFactory.variableName(node.name);
             const binding = environment.get(variable);
             return binding === undefined ? undefined : resolveLocalBinding(binding, environment);
         },
+        classConstant: () => undefined,
         classReference: node => ({ kind: 'model', name: SemanticValueFactory.className(node.name.value) }),
         staticCall: node => {
             const root = node.className;
@@ -237,6 +240,7 @@ export function resolveBoundModel(
         ternaryExpression: () => undefined,
         nestedArray: () => undefined,
         construct: () => undefined,
+        dynamicConstruct: () => undefined,
         instanceOf: () => undefined,
         closure: () => undefined,
         arrowFunction: () => undefined,

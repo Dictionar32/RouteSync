@@ -19,9 +19,9 @@ import {
   HttpStatusCode,
   matchHttpMethod,
   type RequestContentType,
-  type RoutePolicyDescriptor,
-  type RouteSecurityDescriptor
+  type RoutePolicyDescriptor
 } from "./security";
+import type { RouteSecurityDescriptor } from "../upstream/route";
 import type { RouteSchemaPayload } from "./validation";
 import type { RouteName, RoutePath, DomainName, ResourceName, PropertyName, ResponseTypeName, HttpErrorName } from "./semanticValues";
 import type { HttpErrorSchema } from "./httpErrors";

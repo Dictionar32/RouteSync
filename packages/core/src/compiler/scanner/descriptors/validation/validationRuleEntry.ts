@@ -171,7 +171,7 @@ function isCollection(type: SemanticType): boolean {
 }
 
 function collectionElementType(type: SemanticType): SemanticType {
-    if (type.kind !== 'readonly_collection' && type.kind !== 'mutable_collection') return new PrimitiveType(PrimitiveKind.UNKNOWN);
+    if (type.kind !== 'readonly_collection' && type.kind !== 'mutable_collection') return new PrimitiveType(PrimitiveKind.UNSPECIFIED);
     return type.elementType;
 }
 
@@ -180,7 +180,7 @@ function resolveSemanticType(validation: readonly ValidationRuleNode[]): Semanti
         rule.kind === 'string' || rule.kind === 'number' || rule.kind === 'boolean' ||
         rule.kind === 'array' || rule.kind === 'date' || rule.kind === 'file' || rule.kind === 'image'
     );
-    if (!explicit) return new PrimitiveType(PrimitiveKind.UNKNOWN);
+    if (!explicit) return new PrimitiveType(PrimitiveKind.UNSPECIFIED);
     if (explicit.kind === 'number') return new PrimitiveType(PrimitiveKind.NUMBER);
     if (explicit.kind === 'boolean') return new PrimitiveType(PrimitiveKind.BOOLEAN);
     if (explicit.kind === 'date') return new PrimitiveType(PrimitiveKind.DATETIME);

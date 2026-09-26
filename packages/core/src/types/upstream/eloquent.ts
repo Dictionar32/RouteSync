@@ -3,7 +3,7 @@ import type { ClassName, ModelName, RelationName } from './names';
 import type { EloquentRelationDescriptor, EloquentRelationType } from './modelVocabulary';
 import type { TypeExpression } from './typeVocabulary';
 import type { RelationKey } from './model';
-import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from './modelSourceFacts';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from './model';
 import type { RelationKind } from './model';
 import type { SourceSpan } from './provenance';
 

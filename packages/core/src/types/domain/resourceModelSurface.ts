@@ -1,6 +1,6 @@
 import type { ParsedModel } from './models';
 import type { ModelSemanticDefinition, ModelSemanticProperty, ModelPropertyMultiplicity, EloquentRelationCardinality, BoundCardinality, RelationKind, RelationKey } from '../upstream/model';
-import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/modelSourceFacts';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
 import type { ModelName, PropertyName, RelationName } from '../upstream/names';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import { createResourceModelMethodSurface, type ResourceModelMethodSurface } from './resourceModelMethodSurface';

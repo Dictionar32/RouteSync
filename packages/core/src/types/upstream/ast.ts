@@ -9,7 +9,6 @@ import type { MigrationDefinition } from './migration';
 import type { ResponseDefinition } from './response';
 import type { DtoDefinition, MiddlewareDefinition, ProviderDefinition, AttributeDefinition } from './application';
 import type { SourceAsts } from './collections';
-import type { ModelFacts } from './modelSourceFacts';
 import type { RouteDefinition } from './route';
 import type { ChannelDefinition } from './channel';
 import type { Expression } from './expression';
@@ -17,7 +16,7 @@ import type { ModelName, ResourceName, RequestName, ControllerName, ServiceName,
 
 export const completeSourceProof: unique symbol = Symbol('completeSourceProof');
 
-export type ModelAst = { readonly kind: 'model_ast'; readonly definition: ModelDefinition; readonly facts: ModelFacts; readonly source: SourceSpan };
+export type ModelAst = { readonly kind: 'model_ast'; readonly definition: ModelDefinition; readonly source: SourceSpan };
 export type ResourceAst = { readonly kind: 'resource_ast'; readonly definition: ResourceDefinition; readonly source: SourceSpan };
 export type RequestAst = { readonly kind: 'request_ast'; readonly definition: RequestDefinition; readonly source: SourceSpan };
 export type RouteAst = { readonly kind: 'route_ast'; readonly declaration: RouteDeclarationAst; readonly definition: RouteDefinition; readonly source: SourceSpan };

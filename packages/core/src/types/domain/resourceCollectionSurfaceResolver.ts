@@ -3,7 +3,7 @@ import type { ResourceModelSurface } from './resourceModelSurface';
 import type { ResourceCollectionState } from './resourceCollectionTransformation';
 
 export type ResourceCollectionMemberResolution =
-  | { readonly kind: 'relation'; readonly relation: RelationName; readonly sourceModel: ModelName; readonly semantic: Extract<import('../upstream/model').ModelSemanticProperty, { readonly kind: 'relation' }>; readonly targetModel: ModelName; readonly type: import('../../compiler/types/SemanticType').SemanticType; readonly cardinality: import('../upstream/model').EloquentRelationCardinality; readonly targetShape: import('../upstream/modelSourceFacts').ModelRelationTargetShape; readonly traversalTarget: import('../upstream/modelSourceFacts').ModelRelationTraversalTarget }
+  | { readonly kind: 'relation'; readonly relation: RelationName; readonly sourceModel: ModelName; readonly semantic: Extract<import('../upstream/model').ModelSemanticProperty, { readonly kind: 'relation' }>; readonly targetModel: ModelName; readonly type: import('../../compiler/types/SemanticType').SemanticType; readonly cardinality: import('../upstream/model').EloquentRelationCardinality; readonly targetShape: import('../upstream/model').ModelRelationTargetShape; readonly traversalTarget: import('../upstream/model').ModelRelationTraversalTarget }
   | { readonly kind: 'property'; readonly property: PropertyName; readonly sourceModel: ModelName; readonly semantic: Extract<import('./models').ModelSemanticProperty, { readonly kind: 'column' | 'accessor' }>; readonly type: import('../../compiler/types/SemanticType').SemanticType }
   | { readonly kind: 'missing'; readonly name: PropertyName };
 

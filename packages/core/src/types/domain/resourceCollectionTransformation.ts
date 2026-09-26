@@ -1,7 +1,7 @@
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { ModelName, MethodName, PropertyName, RelationName, ResourceName, VariableName } from '../upstream/names';
 import type { EloquentRelationCardinality } from '../upstream/model';
-import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/modelSourceFacts';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
 import type { ResourceCollectionCallbackModel } from './resourceCollectionCallbackModel';
 import type { ModelSemanticProperty } from './models';

@@ -1,8 +1,5 @@
 import type { ModelAst, ControllerAst, ServiceAst } from './ast';
-import type { ModelFacts } from './modelSourceFacts';
-import type { ResourceFacts } from './resource';
-import { matchRequestValidationCapability, type RequestFacts } from './request';
-import type { ResponseFacts } from './response';
+import { matchRequestValidationCapability } from './request';
 import type { RouteDefinition } from './route';
 import type { SourceSpan } from './provenance';
 import type { SourceFile } from './names';
@@ -21,15 +18,15 @@ export type SourceProjectIdentity = {
 export type ModelSemanticNode = {
   readonly kind: 'model_semantic_node';
   readonly identity: ModelReference;
-  readonly facts: ModelFacts;
+  readonly definition: import('./model').ModelDefinition;
   readonly source: SourceSpan;
 };
 
 export function modelSemanticNodeFromAst(ast: ModelAst): ModelSemanticNode {
   return {
     kind: 'model_semantic_node',
-    identity: { kind: 'model_reference', name: ast.facts.identity.name },
-    facts: ast.facts,
+    identity: { kind: 'model_reference', name: ast.definition.identity.name },
+    definition: ast.definition,
     source: ast.source
   };
 }
@@ -37,21 +34,21 @@ export function modelSemanticNodeFromAst(ast: ModelAst): ModelSemanticNode {
 export type ResourceSemanticNode = {
   readonly kind: 'resource_semantic_node';
   readonly identity: ResourceReference;
-  readonly facts: ResourceFacts;
+  readonly definition: import('./resource').ResourceDefinition;
   readonly source: SourceSpan;
 };
 
 export type RequestSemanticNode = {
   readonly kind: 'request_semantic_node';
   readonly identity: RequestReference;
-  readonly facts: RequestFacts;
+  readonly definition: import('./request').RequestDefinition;
   readonly source: SourceSpan;
 };
 
 export type ResponseSemanticNode = {
   readonly kind: 'response_semantic_node';
   readonly identity: ResponseReference;
-  readonly facts: ResponseFacts;
+  readonly definition: import('./response').ResponseDefinition;
   readonly source: SourceSpan;
 };
 
@@ -80,7 +77,7 @@ export type ChannelSemanticNode = {
 export type RouteSemanticNode = {
   readonly kind: 'route_semantic_node';
   readonly identity: RouteReference;
-  readonly facts: RouteDefinition;
+  readonly definition: RouteDefinition;
   readonly source: SourceSpan;
 };
 
@@ -115,33 +112,14 @@ const controllerNodesFromAst = (ast: ControllerAst): readonly ControllerSemantic
 const resourceNodeFromAst = (ast: import('./ast').ResourceAst): ResourceSemanticNode => ({
   kind: 'resource_semantic_node',
   identity: { kind: 'resource_reference', name: ast.definition.name },
-  facts: {
-    kind: 'resource_facts',
-    identity: { kind: 'resource_reference', name: ast.definition.name },
-    model: ast.definition.model,
-    response: ast.definition.response,
-    fields: ast.definition.fields,
-    assignments: ast.definition.assignments,
-    sourceProperties: ast.definition.sourceProperties,
-    actions: ast.definition.actions,
-    endpoints: ast.definition.endpoints,
-    synthetic: ast.definition.synthetic,
-    contract: ast.definition.contract,
-    source: ast.source,
-  },
+  definition: ast.definition,
   source: ast.source,
 });
 
 const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNode => ({
   kind: 'request_semantic_node',
   identity: { kind: 'request_reference', name: ast.definition.identity.request },
-  facts: {
-    kind: 'request_facts',
-    identity: ast.definition.identity,
-    http: ast.definition.http,
-    validation: ast.definition.validation,
-    source: ast.source,
-  },
+  definition: ast.definition,
   source: ast.source,
 });
 
@@ -150,7 +128,7 @@ const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
   return {
     kind: 'route_semantic_node',
     identity,
-    facts: ast.definition,
+    definition: ast.definition,
     source: ast.source,
   };
 };
@@ -158,15 +136,7 @@ const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
 const responseNodeFromAst = (ast: import('./ast').ResponseAst): ResponseSemanticNode => ({
   kind: 'response_semantic_node',
   identity: { kind: 'response_reference', name: ast.definition.typeName },
-  facts: {
-    kind: 'response_facts',
-    identity: { kind: 'response_reference', name: ast.definition.typeName },
-    typeName: ast.definition.typeName,
-    output: ast.definition.output,
-    transport: ast.definition.transport,
-    outcome: ast.definition.outcome,
-    source: ast.source,
-  },
+  definition: ast.definition,
   source: ast.source,
 });
 
@@ -222,14 +192,14 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
   let resources = catalog.resources;
   while (resources.kind === 'cons') {
     const resource = resources.head;
-    relationValues.push({ kind: 'resource_model', resource: resource.identity, model: resource.facts.model });
-    relationValues.push({ kind: 'response_resource', response: resource.facts.response, resource: resource.identity });
+    relationValues.push({ kind: 'resource_model', resource: resource.identity, model: resource.definition.model });
+    relationValues.push({ kind: 'response_resource', response: resource.definition.response, resource: resource.identity });
     resources = resources.tail;
   }
 
   let requests = catalog.requests;
   while (requests.kind === 'cons') {
-    let fields = matchRequestValidationCapability(requests.head.facts.validation, {
+    let fields = matchRequestValidationCapability(requests.head.definition.validation, {
       no_form_request_validation: () => ({ kind: 'empty' as const }),
       form_request_validation: value => value.schema.fields.items
     });
@@ -249,11 +219,11 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
   let routes = catalog.routes;
   while (routes.kind === 'cons') {
     const route = routes.head;
-    const request = route.facts.bindings.request;
+    const request = route.definition.bindings.request;
     if (request.kind === 'form_request') {
       relationValues.push({ kind: 'route_request', route: route.identity, request: request.request });
     }
-    const response = route.facts.bindings.response;
+    const response = route.definition.bindings.response;
     switch (response.kind) {
       case 'declared_response':
         relationValues.push({ kind: 'route_response', route: route.identity, response: response.response });
@@ -264,7 +234,7 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
       case 'empty_response':
         break;
     }
-    const target = route.facts.bindings.target;
+    const target = route.definition.bindings.target;
     switch (target.kind) {
       case 'controller_action':
       case 'controller_invokable':
@@ -356,11 +326,11 @@ export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSou
         const fact = facts.head;
         let modelItems = models;
         while (modelItems.kind === 'cons') {
-          if (modelNameMatchesClassName(modelItems.head.facts.identity.name, fact.target)) {
+          if (modelNameMatchesClassName(modelItems.head.definition.identity.name, fact.target)) {
             resolved.push({
               kind: 'resolved_service_dependency',
               fact,
-              target: { kind: 'model_reference', name: modelItems.head.facts.identity.name },
+              target: { kind: 'model_reference', name: modelItems.head.definition.identity.name },
             });
             break;
           }

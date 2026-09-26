@@ -8,7 +8,7 @@ import type { SourceSpan } from './provenance';
 import type { TruthValue } from './valueObjects';
 import type { ModelReference, PropertyReference, ResourceReference, ResponseReference } from './semanticReferences';
 import type { EloquentRelationCardinality, ModelPropertyMultiplicity } from './model';
-import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from './modelSourceFacts';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from './model';
 
 
 export type ResourceDocumentation = {

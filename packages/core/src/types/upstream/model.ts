@@ -63,9 +63,9 @@ export type ModelPropertyTraversalMeaning =
       readonly targetModel: ModelName;
       readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
       readonly cardinality: EloquentRelationCardinality;
-      readonly multiplicity: import('./modelSourceFacts').ModelRelationMultiplicity;
-      readonly targetShape: import('./modelSourceFacts').ModelRelationTargetShape;
-      readonly traversalTarget: import('./modelSourceFacts').ModelRelationTraversalTarget;
+      readonly multiplicity: ModelRelationMultiplicity;
+      readonly targetShape: ModelRelationTargetShape;
+      readonly traversalTarget: ModelRelationTraversalTarget;
       readonly semanticType: TypeExpression;
     };
 
@@ -97,8 +97,8 @@ export type ModelSemanticRelation = {
   readonly targetModel: ModelName;
   readonly cardinality: EloquentRelationCardinality;
   readonly multiplicity: ModelPropertyMultiplicity;
-  readonly targetShape: import('./modelSourceFacts').ModelRelationTargetShape;
-  readonly traversalTarget: import('./modelSourceFacts').ModelRelationTraversalTarget;
+  readonly targetShape: ModelRelationTargetShape;
+  readonly traversalTarget: ModelRelationTraversalTarget;
   readonly boundCardinality: BoundCardinality;
   readonly resourceCardinality: ModelPropertyMultiplicity;
   readonly foreignKey: RelationKey;
@@ -246,6 +246,17 @@ export type ModelExposure = {
 };
 export type ModelSourceCapabilities = { readonly kind: 'model_source_capabilities'; readonly traits: ModelTraits };
 export type RelationKind = { readonly kind: 'has_one' } | { readonly kind: 'has_many' } | { readonly kind: 'belongs_to' } | { readonly kind: 'belongs_to_many' } | { readonly kind: 'has_one_through' } | { readonly kind: 'has_many_through' } | { readonly kind: 'morph_to' } | { readonly kind: 'morph_one' } | { readonly kind: 'morph_many' } | { readonly kind: 'morph_to_many' } | { readonly kind: 'morphed_by_many' };
+export type ModelRelationMultiplicity =
+  | { readonly kind: 'single' }
+  | { readonly kind: 'collection' };
+
+export type ModelRelationTargetShape =
+  | { readonly kind: 'single'; readonly model: ModelName }
+  | { readonly kind: 'collection'; readonly model: ModelName };
+
+export type ModelRelationTraversalTarget =
+  | { readonly kind: 'model'; readonly model: ModelName }
+  | { readonly kind: 'collection'; readonly model: ModelName };
 export type RelationKeyOrigin = { readonly kind: 'convention' } | { readonly kind: 'explicit' };
 export type RelationKey = { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly foreign: ColumnName; readonly local: ColumnName };
 export type ModelRelation = {
@@ -255,9 +266,9 @@ export type ModelRelation = {
   readonly relation: RelationKind;
   readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
   readonly cardinality: import('./modelVocabulary').EloquentRelationCardinality;
-  readonly multiplicity: import('./modelSourceFacts').ModelRelationMultiplicity;
-  readonly targetShape: import('./modelSourceFacts').ModelRelationTargetShape;
-  readonly traversalTarget: import('./modelSourceFacts').ModelRelationTraversalTarget;
+  readonly multiplicity: ModelRelationMultiplicity;
+  readonly targetShape: ModelRelationTargetShape;
+  readonly traversalTarget: ModelRelationTraversalTarget;
   readonly semanticType: TypeExpression;
   readonly key: RelationKey;
   readonly source: SourceSpan;

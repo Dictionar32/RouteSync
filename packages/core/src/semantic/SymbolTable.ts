@@ -11,7 +11,7 @@ export class ModelSymbol {
 
     constructor(public readonly node: ModelNode) {
         this.name = node.definition.semantic.identity.name.value.value;
-        for (const fact of node.facts.surface.members.filter((fact): fact is ModelColumnFact => fact.kind === 'model_column')) this.columnFactsByName.set(fact.column.value.value, fact);
+        for (const fact of node.definition.semantic.columnFacts) this.columnFactsByName.set(fact.column.value.value, fact);
         for (const property of node.definition.semantic.surface.properties) {
             if (property.kind === 'relation') this.relationsByName.set(property.relation.value.value, property);
             if (property.kind === 'accessor') this.accessorsByName.set(property.property.value.value, property);

@@ -3,7 +3,7 @@ import type { ModelSemanticDefinition } from '../upstream/model';
 import type { ResourceExpressionModel } from './resourceExpressionModel';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
 import type { SemanticType } from '../../compiler/types/SemanticType';
-import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/modelSourceFacts';
+import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
 
 export type ResourceTraversalCardinality =
   | { readonly kind: 'single' }

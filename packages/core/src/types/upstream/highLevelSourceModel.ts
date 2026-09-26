@@ -147,30 +147,29 @@ const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNod
 
 const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
   const definition = ast.definition;
+  const identity: RouteReference = { kind: 'route_reference', name: definition.identity.name };
   const endpoint: RouteEndpointContract = {
     kind: 'route_endpoint_contract',
-    method: definition.method,
-    path: definition.path,
-    target: definition.target,
-    parameters: definition.parameters,
-    authentication: definition.auth,
+    method: definition.identity.method,
+    path: definition.identity.path,
+    target: definition.bindings.target,
+    parameters: definition.bindings.parameters,
+    authentication: definition.security.authentication,
     capability: definition.capability,
-    middleware: definition.middleware,
-    request: definition.request,
-    response: { kind: 'declared_response', response: definition.response },
+    middleware: definition.security.middleware,
+    request: definition.bindings.request,
+    response: definition.bindings.response,
     returnSemantic: definition.returnSemantic,
     source: ast.source,
   };
   return {
     kind: 'route_semantic_node',
-    identity: { kind: 'route_reference', name: definition.name },
+    identity,
     facts: {
       kind: 'route_facts',
-      identity: { kind: 'route_reference', name: definition.name },
+      identity,
       domain: definition.domain,
       endpoint,
-      response: definition.response,
-      returnSemantic: definition.returnSemantic,
       source: ast.source,
     },
     source: ast.source,
@@ -275,10 +274,28 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
     if (request.kind === 'form_request') {
       relationValues.push({ kind: 'route_request', route: route.identity, request: request.request });
     }
-    relationValues.push({ kind: 'route_response', route: route.identity, response: route.facts.response });
+    const response = route.facts.endpoint.response;
+    switch (response.kind) {
+      case 'declared_response':
+        relationValues.push({ kind: 'route_response', route: route.identity, response: response.response });
+        break;
+      case 'inline_response':
+      case 'redirect_response':
+      case 'file_response':
+      case 'empty_response':
+        break;
+    }
     const target = route.facts.endpoint.target;
-    if (target.kind === 'controller') {
-      relationValues.push({ kind: 'route_controller', route: route.identity, controller: target.controller });
+    switch (target.kind) {
+      case 'controller_action':
+      case 'controller_invokable':
+        relationValues.push({ kind: 'route_controller', route: route.identity, controller: target.controller });
+        break;
+      case 'closure':
+      case 'redirect':
+      case 'view':
+      case 'fallback':
+        break;
     }
     routes = routes.tail;
   }

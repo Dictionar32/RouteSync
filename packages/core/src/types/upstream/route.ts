@@ -1,5 +1,5 @@
 import type { ActionName, DomainTypeName, RouteName, RoutePath, RouteParameterName, PropertyName } from './names';
-import type { ResponseReference } from './semanticReferences';
+import type { RouteAst } from './ast';
 import type { ControllerReturnSemantic } from './controller';
 import type { Option } from './collections';
 import type { EndpointRequestBinding, EndpointResponseBinding } from './endpointBindings';
@@ -112,16 +112,14 @@ export type RouteAuthentication =
 export type RouteFacts = {
   readonly kind: 'route_facts';
   readonly identity: import('./semanticReferences').RouteReference;
-  readonly domain: DomainTypeName;
+  readonly domain: RouteDomain;
   readonly endpoint: import('./highLevelContracts').RouteEndpointContract;
-  readonly response: ResponseReference;
-  readonly returnSemantic: ControllerReturnSemantic;
   readonly source: SourceSpan;
 };
 
 export interface RouteIdentity {
   readonly kind: 'route_identity';
-  readonly name: Option<RouteName>;
+  readonly name: RouteName;
   readonly method: RouteMethod;
   readonly methods: RouteMethods;
   readonly path: RoutePath;
@@ -263,7 +261,7 @@ export interface RouteProducerInput {
 }
 
 export interface RouteProducer {
-  readonly produce: (input: RouteProducerInput) => RouteDefinition;
+  readonly produce: (input: RouteProducerInput) => RouteAst;
 }
 
 export type RouteDefinition = {

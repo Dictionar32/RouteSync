@@ -12,7 +12,8 @@ import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
 import type { PhpParameterTypeAst } from '../lexer/phpMethodAstTypes';
 import { parsePhpMethod } from '../lexer/phpMethodParser';
 import type { ServiceAst } from '../../../types/upstream/ast';
-import type { ServiceDefinition, ServiceMethod, ServiceParameter, ServiceDependencyFact, ServiceMethodResultIndex, ServiceMethodResultEntry, ServiceSourceAst } from '../../../types/upstream/service';
+import type { ServiceDefinition, ServiceMethod, ServiceParameter, ServiceDependencyFact, ServiceMethodResultIndex, ServiceMethodResultEntry } from '../../../types/upstream/service';
+import type { ServiceDeclarationAst } from '../lexer/serviceAstTypes';
 import type { DeclaredType, TypeExpression } from '../../../types/upstream/typeVocabulary';
 import type { SemanticValue } from '../../../types/upstream/primitiveVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -267,9 +268,10 @@ function className(tokens: readonly { readonly value: string }[]): string {
   throw new Error('Service class declaration not found');
 }
 
-export function buildServiceAstFromSource(source: ServiceSourceAst, file: import('../../../types/upstream/names').SourceFile, span: SourceSpan, models: ModelSymbolTable): ServiceAst {
+export function buildServiceAstFromSource(syntax: ServiceDeclarationAst, span: SourceSpan, models: ModelSymbolTable): ServiceAst {
+  const file = span.file;
   let methodResults: ServiceMethodResultIndex = { kind: 'service_method_result_index', items: { kind: 'empty' } };
-  let methods = source.methods.map(item => method(item, file.value.value, models, methodResults));
+  let methods = syntax.methods.map(item => method(item, file.value.value, models, methodResults));
   let changed = true;
   while (changed) {
     const nextEntries: ServiceMethodResultEntry[] = [];
@@ -280,18 +282,18 @@ export function buildServiceAstFromSource(source: ServiceSourceAst, file: import
     const nextResults: ServiceMethodResultIndex = { kind: 'service_method_result_index', items: sequence(nextEntries) };
     changed = !isDeepStrictEqual(methodResults, nextResults);
     methodResults = nextResults;
-    if (changed) methods = source.methods.map(item => method(item, file.value.value, models, methodResults));
+    if (changed) methods = syntax.methods.map(item => method(item, file.value.value, models, methodResults));
   }
-  const dependencyFacts: ServiceDependencyFact[] = source.methods.flatMap(methodItem =>
+  const dependencyFacts: ServiceDependencyFact[] = syntax.methods.flatMap(methodItem =>
     methodItem.parameters.flatMap(item => {
       const type = item.type;
       const expression = type.kind === 'nullable' ? type.inner : type;
       if (expression.kind !== 'named') return [];
-      if (classNameEquals({ kind: 'class_name', value: stringValue(expression.name) }, { kind: 'class_name', value: stringValue(source.className.value) })) return [];
+      if (classNameEquals({ kind: 'class_name', value: stringValue(expression.name) }, { kind: 'class_name', value: stringValue(syntax.className) })) return [];
       return [{ kind: 'service_dependency_fact' as const, target: { kind: 'class_name' as const, value: stringValue(expression.name) }, originMethod: { kind: 'action_name' as const, value: stringValue(methodItem.name) }, source: { kind: 'source_span' as const, file, start: { kind: 'number_value' as const, value: Number(item.source.line) }, end: { kind: 'number_value' as const, value: Number(item.source.line) } } }];
     })
   );
-  const bodyFacts: ServiceDependencyFact[] = source.methods.flatMap(methodItem => {
+  const bodyFacts: ServiceDependencyFact[] = syntax.methods.flatMap(methodItem => {
     const parameterModels = parameterModelTypes(methodItem);
     return methodItem.body.flatMap(statement =>
       serviceSourceStatements(statement).flatMap(rawExpression => {
@@ -303,7 +305,7 @@ export function buildServiceAstFromSource(source: ServiceSourceAst, file: import
     );
   });
   const definition: ServiceDefinition = {
-    kind: 'service_definition', name: { kind: 'class_name', value: stringValue(source.className.value) }, file,
+    kind: 'service_definition', name: { kind: 'class_name', value: stringValue(syntax.className) }, file,
     methods: { kind: 'service_methods', items: sequence(methods) }, dependencies: { kind: 'service_dependency_facts', items: sequence([...dependencyFacts, ...bodyFacts]) }, source: span,
   };
   return { kind: 'service_ast', definition, source: span };
@@ -325,10 +327,9 @@ export async function scanServiceAsts(sourceProject: SourceProjectIdentity, mode
       if (parsed === undefined) throw new Error(`Service method parse gap in ${file}:${tokens[index].line}: function declaration could not be parsed`);
       parsedMethods.push(parsed);
     }
-    const declaration: ServiceSourceAst = { kind: 'service_source_ast', className: createAstIdentifier(className(tokens)), methods: parsedMethods, source: tokens[0] };
-    const fileValue = { kind: 'source_file' as const, value: stringValue(file) };
-    const span = source(file, Number(declaration.source.line));
-    asts.push(serviceProducer.produce({ source: declaration, file: fileValue, sourceSpan: span, models }));
+    const syntax: ServiceDeclarationAst = { kind: 'service_declaration_ast', className: createAstIdentifier(className(tokens)), methods: parsedMethods };
+    const span = source(file, Number(tokens[0]?.line ?? 1));
+    asts.push(serviceProducer.produce({ syntax, source: span, models }));
   }
   return Object.freeze(asts);
 }

@@ -1,21 +1,12 @@
 import type { ActionName, ClassName, SourceFile } from './names';
-import type { PhpMethodAst } from '../../compiler/scanner/lexer/phpMethodAstTypes';
-import type { AstIdentifier } from '../../compiler/scanner/lexer/phpAstTypes';
 import type { DeclaredType } from './typeVocabulary';
 import type { Expression, ResolvedExpression } from './expression';
 import type { SourceStatements, ServiceParameters } from './collections';
 import type { SourceSpan } from './provenance';
 import type { Sequence } from './collections';
-import type { ModelReference } from './semanticReferences';
+import type { ModelReference, ServiceReference } from './semanticReferences';
 import type { SemanticValue } from './primitiveVocabulary';
 
-
-export type ServiceSourceAst = {
-  readonly kind: 'service_source_ast';
-  readonly className: AstIdentifier;
-  readonly methods: readonly PhpMethodAst[];
-  readonly source: SourceSpan;
-};
 
 export type ServiceReturnType =
   | { readonly kind: 'absent' }
@@ -73,8 +64,13 @@ export type ServiceDependencyFacts = {
 export type ResolvedServiceDependency = {
   readonly kind: 'resolved_service_dependency';
   readonly fact: ServiceDependencyFact;
-  readonly target: ModelReference;
+  readonly target: ServiceDependencyTarget;
 };
+
+export type ServiceDependencyTarget =
+  | ModelReference
+  | ServiceReference
+  | { readonly kind: 'class_reference'; readonly name: ClassName };
 
 export type ResolvedServiceDependencies = {
   readonly kind: 'resolved_service_dependencies';

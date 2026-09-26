@@ -5,6 +5,15 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 
 ---
 
+### Issue 50: Channel AST Was Constructed Inline From an Incompatible Descriptor
+**Symptom** → `scanSourceAsts` wrapped a legacy `BroadcastChannelDescriptor` directly as `ChannelAst.definition` and assigned the project-root span rather than the declaration in `routes/channels.php`.
+
+**Root cause** → Channel discovery preserved its descriptor API but had no canonical producer that mapped it into the distinct upstream `ChannelDefinition` contract with declaration provenance.
+
+**Fix** → Added `channelProducer` and `ChannelScanner.scanCanonicalAsts`. The legacy descriptor scanner remains available, while the source-AST path now produces `ChannelAst` values with canonical names, kind, parameters, authentication requirement, runtime pattern, and declaration-level source span.
+
+**Regression test** → `packages/sdk/tests/channelProducer.spec.ts` › `ChannelAst producer` verifies direct production plus a Laravel `Broadcast::channel('orders.{orderId}', ...)` source fixture. The ecommerce fixture currently has no optional `routes/channels.php` file.
+
 ### Issue 49: Attribute AST Was Constructed Inline Instead of at a Producer Boundary
 **Symptom** → `scanAttributeAsts` combined PHP discovery, lexer parsing, constructor selection, closure lowering, and `AttributeAst` construction in one scanner.
 

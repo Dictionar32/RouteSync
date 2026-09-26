@@ -166,8 +166,7 @@ export async function scanSourceAsts(sourceProject: SourceProjectIdentity): Prom
     const controllerDataflow = ControllerScanner.extractResourceDataflow(controllerBundle.controllerMap);
     const resources: readonly ResourceAst[] = await ResourceScanner.scanAsts(sourceProject, modelSymbolTable, controllerDataflow);
     const routes: readonly RouteAst[] = await RouteScanner.scanAsts(sourceProject, requestSources, controllerBundle.controllerMap);
-    const channelDescriptors = await ChannelScanner.scan(sourceProject);
-    const channels: readonly ChannelAst[] = channelDescriptors.map(definition => ({ kind: 'channel_ast', definition, source: sourceProject.source }));
+    const channels: readonly ChannelAst[] = await ChannelScanner.scanCanonicalAsts(sourceProject);
     const expressions = [
         ...expressionAstsFromModels(models),
         ...expressionAstsFromResources(resources),

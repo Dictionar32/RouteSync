@@ -10,9 +10,9 @@ import {
   BroadcastChannelKind,
   type PublicBroadcastChannelDescriptor,
   type PrivateBroadcastChannelDescriptor,
-  type PresenceBroadcastChannelDescriptor,
-  type RouteParameter
-} from '../../../../types/route';
+  type PresenceBroadcastChannelDescriptor
+} from '../../../../types/domain/channels';
+import type { RouteParameter } from '../../../../types/upstream/route';
 import { compileBroadcastRuntimePattern } from './patternCompiler';
 import {
   ScannedBroadcastChannelDescriptor,

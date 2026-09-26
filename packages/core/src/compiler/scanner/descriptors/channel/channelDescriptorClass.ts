@@ -11,9 +11,9 @@ import {
   type BroadcastChannelDescriptor,
   type PublicBroadcastChannelDescriptor,
   type PrivateBroadcastChannelDescriptor,
-  type PresenceBroadcastChannelDescriptor,
-  type RouteParameter
-} from '../../../../types/route';
+  type PresenceBroadcastChannelDescriptor
+} from '../../../../types/domain/channels';
+import type { RouteParameter } from '../../../../types/upstream/route';
 import {
   createBroadcastChannel,
   createPublicChannel,

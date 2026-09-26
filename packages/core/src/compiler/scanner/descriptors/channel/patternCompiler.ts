@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/descriptors/channel
  */
 
-import type { RouteParameter } from '../../../../types/route';
+import type { RouteParameter } from '../../../../types/upstream/route';
 
 export function compileBroadcastRuntimePattern(
   pattern: string,

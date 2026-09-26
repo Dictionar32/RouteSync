@@ -5,6 +5,24 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 
 ---
 
+### Issue 49: Attribute AST Was Constructed Inline Instead of at a Producer Boundary
+**Symptom** → `scanAttributeAsts` combined PHP discovery, lexer parsing, constructor selection, closure lowering, and `AttributeAst` construction in one scanner.
+
+**Root cause** → Attribute scanning had not adopted the source-to-AST producer boundary used by the other canonical upstream categories.
+
+**Fix** → Added `attributeProducer`, whose input is the complete `ControllerDeclarationAst` plus `SourceSpan`. The scanner now only discovers PHP files, tokenizes, parses declaration syntax, and delegates constructor lowering plus canonical AST construction to the producer.
+
+**Regression test** → `packages/sdk/tests/attributeProducer.spec.ts` › `AttributeAst producer` parses the real ecommerce `Response` attribute and verifies constructor-interface production plus scanner delegation.
+
+### Issue 48: Middleware AST Was Constructed Inline Instead of at a Producer Boundary
+**Symptom** → `scanMiddlewareAsts` combined PHP discovery, lexer parsing, `handle` selection, controller-action lowering, and `MiddlewareAst` construction in one scanner.
+
+**Root cause** → Middleware scanning had not adopted the source-to-AST producer boundary used by other upstream categories.
+
+**Fix** → Added `middlewareProducer`, whose input is the complete `ControllerDeclarationAst` plus `SourceSpan`. The scanner now only discovers PHP files, tokenizes, parses the declaration syntax, and delegates `handle` selection and canonical AST construction to the producer.
+
+**Regression test** → `packages/sdk/tests/middlewareProducer.spec.ts` › `MiddlewareAst producer` parses the real ecommerce `AdminMiddleware` source and verifies the producer boundary plus scanner delegation. Controller dataflow lowering is intentionally outside this boundary test.
+
 ### Issue 47: DTO AST Was Constructed Inline Instead of at a Producer Boundary
 **Symptom** → `scanDtoAsts` combined file discovery, lexer parsing, DTO semantic conversion, and `DtoAst` construction in one scanner. This left no dedicated source-to-AST producer for DTOs and made the semantic boundary inconsistent with other upstream categories.
 **Where** → `packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts`.

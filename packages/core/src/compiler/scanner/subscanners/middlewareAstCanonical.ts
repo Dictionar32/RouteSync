@@ -4,11 +4,10 @@ import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from './scannerUtils';
-import { controllerActionFromMethod } from './controller/controllerAstCanonical';
 import type { MiddlewareAst } from '../../../types/upstream/ast';
-import type { MiddlewareDefinition } from '../../../types/upstream/application';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
+import { middlewareProducer } from './middlewareProducer';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({
@@ -36,18 +35,8 @@ export async function scanMiddlewareAsts(sourceProject: SourceProjectIdentity): 
     const tokens = LaravelSourceLexer.tokenize(text);
     const name = className(tokens);
     const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
-    const handle = declaration.methods.find(method => method.name === 'handle');
-    if (!handle) throw new Error(`Middleware handle method not found: ${file}`);
-    const action = controllerActionFromMethod(handle, name, file, { kind: 'response_absent' });
     const span = source(file, Number(declaration.source.line));
-    const definition: MiddlewareDefinition = {
-      kind: 'middleware',
-      name: { kind: 'class_name', value: stringValue(name) },
-      file: { kind: 'source_file', value: stringValue(file) },
-      handle: action,
-      source: span,
-    };
-    asts.push({ kind: 'middleware_ast', definition, source: span });
+    asts.push(middlewareProducer.produce({ declaration, source: span }));
   }
 
   return Object.freeze(asts);

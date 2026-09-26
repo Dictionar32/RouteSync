@@ -37,6 +37,7 @@ export type ModelSurfaceMemberFact =
   | ModelColumnFact
   | ModelAccessorFact
   | ModelCastFact
+  | EloquentRelationAst
   | ModelMethodFact
   | ModelConstantFact;
 

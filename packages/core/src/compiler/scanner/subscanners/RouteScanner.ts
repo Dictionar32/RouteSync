@@ -21,7 +21,7 @@ import type { FormRequestSource } from "../../../types/domain/request";
 import type { RouteAst } from "../../../types/upstream/ast";
 import type { RouteDeclarationAst } from "../lexer/routeAst";
 import type { RouteMethod, RouteTarget, RouteAuthentication, RouteSpecialKind, RouteGroupContext, RouteSecurityContract, RouteDefaults, RouteTransportContract, RouteDomain, RouteProducerInput } from "../../../types/upstream/route";
-import type { RouteMethods, RouteParameters, RouteMiddlewares } from "../../../types/upstream/collections";
+import type { RouteMethods, RouteParameters } from "../../../types/upstream/collections";
 import { controllerReturnSemanticFromValues } from './controller/controllerAstCanonical';
 import type { EndpointRequestBinding, EndpointResponseBinding, EndpointResponseStatus, ResponseCardinality } from "../../../types/upstream/endpointBindings";
 import { matchRouteHandler } from "../../../types/domain/routeHandlers";
@@ -199,10 +199,11 @@ export class RouteScanner {
             kind: 'route_methods',
             items: preservedMethods.reduceRight<RouteMethods['items']>((tail, routeMethod) => ({ kind: 'cons', head: routeMethod, tail }), { kind: 'empty' })
         };
-        const method: RouteMethod = preservedMethods.length > 1
-            ? { kind: 'match', methods: preservedMethodList }
-            : fallbackMethod;
-        const methods: RouteMethods = preservedMethodList;
+        const method: RouteMethod = declaration.method === 'any'
+            ? { kind: 'any' }
+            : declaration.method === 'match'
+                ? { kind: 'match', methods: preservedMethodList }
+                : fallbackMethod;
         const target: RouteTarget = matchRouteHandler<RouteTarget>(route.binding.operation.handler, {
             controllerAction: handler => ({
                 kind: 'controller_action',
@@ -214,7 +215,6 @@ export class RouteScanner {
             }),
             closure: handler => ({ kind: 'closure', action: handler.actionName })
         });
-        const middleware: RouteMiddlewares = route.capability.middleware;
         const request: EndpointRequestBinding = route.binding.request.kind === 'form_request'
             ? { kind: 'form_request', request: { kind: 'request_reference', name: createRequestName(route.binding.request.identity.source.requestClass.value.value) } }
             : route.binding.request.kind === 'framework_request'
@@ -245,15 +245,10 @@ export class RouteScanner {
                 name: route.identity.domain.resource,
                 controller: route.binding.operation.handler.kind === 'controller_action' || route.binding.operation.handler.kind === 'invokable_controller'
                     ? {
-                        kind: 'controller_reference',
-                        name: SemanticValueFactory.controllerName(route.binding.operation.handler.controllerName.value.value),
-                        action: route.binding.operation.handler.actionName
+                        kind: 'conventional_controller',
+                        className: SemanticValueFactory.className(route.binding.operation.handler.controllerName.value.value)
                     }
-                    : {
-                        kind: 'controller_reference',
-                        name: SemanticValueFactory.controllerName(''),
-                        action: route.binding.operation.handler.actionName
-                    },
+                    : { kind: 'framework_convention' },
                 only: { kind: 'empty' },
                 except: { kind: 'empty' },
                 shallow: { kind: 'truth_value', value: false },
@@ -265,7 +260,6 @@ export class RouteScanner {
             } }
             : { kind: 'standard' };
         const group: RouteGroupContext = {
-            middleware,
             middlewareMutations: { kind: 'empty' },
             prefix: declaration.prefix.length === 0
                 ? { kind: 'none' }
@@ -278,8 +272,6 @@ export class RouteScanner {
         };
         const security: RouteSecurityContract = {
             authentication,
-            middleware,
-            security: route.capability.security,
             signature: { kind: 'not_signed' }
         };
         const defaults: RouteDefaults = { kind: 'route_defaults', items: { kind: 'empty' } };
@@ -288,14 +280,21 @@ export class RouteScanner {
             httpOnly: { kind: 'truth_value', value: false },
             httpsOnly: { kind: 'truth_value', value: false }
         };
+        const sourceFile = SemanticValueFactory.sourceFilePath(route.provenance.sourceFile.value.value);
+        const sourceFilePath = route.provenance.sourceFile.value.value.split(path.sep).join('/');
+        const fileContext = sourceFilePath === 'routes/api.php' || sourceFilePath.endsWith('/routes/api.php')
+            ? { kind: 'api_routes' as const }
+            : sourceFilePath === 'routes/web.php' || sourceFilePath.endsWith('/routes/web.php')
+                ? { kind: 'web_routes' as const }
+                : { kind: 'custom_routes' as const, file: sourceFile };
         const producerInput: RouteProducerInput = {
             declaration,
             source,
             identity: {
                 kind: 'route_identity',
-                name: route.identity.coordinates.name,
+                key: route.identity.coordinates.name,
+                declaredName: { kind: 'none' },
                 method,
-                methods,
                 path: route.identity.coordinates.path
             },
             special,
@@ -307,7 +306,11 @@ export class RouteScanner {
             capability: route.capability,
             defaults,
             transport,
-            provenance: { source: SemanticValueFactory.sourceFilePath(route.provenance.sourceFile.value.value), span: source }
+            provenance: {
+                source: sourceFile,
+                span: source,
+                fileContext
+            }
         };
         return routeProducer.produce(producerInput);
     }

@@ -1,9 +1,8 @@
-import type { ActionName, DomainTypeName, RouteName, RoutePath, RouteParameterName, PropertyName } from './names';
+import type { ActionName, ClassName, DomainTypeName, ResourceName, RouteName, RoutePath, RouteParameterName, PropertyName, SourceFile } from './names';
 import type { RouteAst } from './ast';
 import type { ControllerReturnSemantic } from './controller';
 import type { Option } from './collections';
 import type { EndpointRequestBinding, EndpointResponseBinding } from './endpointBindings';
-import type { SourceFile } from './names';
 import type { SourceSpan } from './provenance';
 import type { RouteMiddlewares, RouteMethods, RouteParameters, Sequence } from './collections';
 import type { MiddlewareName } from './names';
@@ -109,19 +108,11 @@ export type RouteParameter = RouteParameterBase & { readonly location: RoutePara
 export type RouteAuthentication =
   | { readonly kind: 'public' }
   | { readonly kind: 'authenticated'; readonly scheme: SecuritySchemeKind; readonly guard: Option<import('./names').GuardName> };
-export type RouteFacts = {
-  readonly kind: 'route_facts';
-  readonly identity: import('./semanticReferences').RouteReference;
-  readonly domain: RouteDomain;
-  readonly endpoint: import('./highLevelContracts').RouteEndpointContract;
-  readonly source: SourceSpan;
-};
-
 export interface RouteIdentity {
   readonly kind: 'route_identity';
-  readonly name: RouteName;
+  readonly key: RouteName;
+  readonly declaredName: Option<RouteName>;
   readonly method: RouteMethod;
-  readonly methods: RouteMethods;
   readonly path: RoutePath;
 }
 
@@ -134,15 +125,19 @@ export interface RouteBindings {
 
 export interface RouteSecurityContract {
   readonly authentication: RouteAuthentication;
-  readonly middleware: RouteMiddlewares;
-  readonly security: RouteSecurityDescriptor;
   readonly signature: RouteSignatureRequirement;
 }
 
 export interface RouteProvenance {
   readonly source: SourceFile;
   readonly span: SourceSpan;
+  readonly fileContext: RouteFileContext;
 }
+
+export type RouteFileContext =
+  | { readonly kind: 'web_routes' }
+  | { readonly kind: 'api_routes' }
+  | { readonly kind: 'custom_routes'; readonly file: SourceFile };
 
 export type RouteGroupBindingScope =
   | { readonly kind: 'default' }
@@ -150,7 +145,6 @@ export type RouteGroupBindingScope =
   | { readonly kind: 'without_scoped' };
 
 export interface RouteGroupContext {
-  readonly middleware: RouteMiddlewares;
   readonly middlewareMutations: Sequence<RouteMiddlewareMutation>;
   readonly prefix: Option<RoutePath>;
   readonly namePrefix: Option<StringValue>;
@@ -162,10 +156,6 @@ export interface RouteGroupContext {
 
 export type RouteSpecialKind =
   | { readonly kind: 'standard' }
-  | { readonly kind: 'fallback' }
-  | { readonly kind: 'redirect' }
-  | { readonly kind: 'permanent_redirect' }
-  | { readonly kind: 'view' }
   | { readonly kind: 'resource'; readonly resource: RouteResourceRegistration }
   | { readonly kind: 'api_resource'; readonly resource: RouteResourceRegistration }
   | { readonly kind: 'singleton'; readonly resource: RouteResourceRegistration }
@@ -186,8 +176,8 @@ export type RouteViewData =
 
 export type RouteResourceRegistration = {
   readonly kind: 'route_resource_registration';
-  readonly name: import('./names').Name;
-  readonly controller: ControllerReference;
+  readonly name: ResourceName;
+  readonly controller: RouteResourceController;
   readonly only: Sequence<ActionName>;
   readonly except: Sequence<ActionName>;
   readonly shallow: TruthValue;
@@ -197,6 +187,11 @@ export type RouteResourceRegistration = {
   readonly destroyable: TruthValue;
   readonly middleware: Sequence<RouteResourceMiddlewareRule>;
 };
+
+export type RouteResourceController =
+  | { readonly kind: 'framework_convention' }
+  | { readonly kind: 'conventional_controller'; readonly className: ClassName }
+  | { readonly kind: 'explicit_controller'; readonly className: ClassName };
 
 export type RouteResourceMiddlewareRule = {
   readonly kind: 'route_resource_middleware';

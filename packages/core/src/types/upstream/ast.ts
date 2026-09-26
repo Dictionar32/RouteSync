@@ -17,8 +17,7 @@ import type { ModelName, ResourceName, RequestName, ControllerName, ServiceName,
 
 export const completeSourceProof: unique symbol = Symbol('completeSourceProof');
 
-import type { EloquentModelAst } from './eloquent';
-export type ModelAst = { readonly kind: 'model_ast'; readonly definition: ModelDefinition; readonly facts: ModelFacts; readonly eloquent: EloquentModelAst; readonly source: SourceSpan };
+export type ModelAst = { readonly kind: 'model_ast'; readonly definition: ModelDefinition; readonly facts: ModelFacts; readonly source: SourceSpan };
 export type ResourceAst = { readonly kind: 'resource_ast'; readonly definition: ResourceDefinition; readonly source: SourceSpan };
 export type RequestAst = { readonly kind: 'request_ast'; readonly definition: RequestDefinition; readonly source: SourceSpan };
 export type RouteAst = { readonly kind: 'route_ast'; readonly declaration: RouteDeclarationAst; readonly definition: RouteDefinition; readonly source: SourceSpan };

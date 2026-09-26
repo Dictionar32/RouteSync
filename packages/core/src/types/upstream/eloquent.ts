@@ -24,7 +24,6 @@ export type EloquentRelationAst = {
   readonly descriptor: EloquentRelationDescriptor;
   readonly targetModel: ModelName;
   readonly targetClass: ClassName;
-  readonly arguments: Sequence<Expression>;
   readonly invocation: Expression;
   readonly source: SourceSpan;
   readonly semanticType: TypeExpression;

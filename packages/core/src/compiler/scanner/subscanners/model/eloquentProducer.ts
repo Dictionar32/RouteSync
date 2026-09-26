@@ -1,7 +1,6 @@
 import { eloquentRelationClassifier, type EloquentRelationMethodName } from './eloquentRelationVocabulary';
 import { extractClassBasename } from '../../../../utils/resource-naming';
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
-import type { Sequence } from '../../../../types/upstream/collections';
 import { createClassName, createModelName, createRelationName } from '../../../../types/upstream/names';
 import type { ModelDeclarationAst } from '../../lexer';
 import type { ModelName } from '../../../../types/upstream/names';
@@ -31,12 +30,6 @@ export interface EloquentRelationProducer {
     readonly produce: (input: EloquentRelationProducerInput) => EloquentRelationProductionResult;
 }
 
-const sequence = <T>(items: readonly T[]): Sequence<T> =>
-    items.reduceRight<Sequence<T>>(
-        (tail, head) => ({ kind: 'cons', head, tail }),
-        { kind: 'empty' }
-    );
-
 const relationMethodName = (value: string): EloquentRelationMethodName => ({ kind: 'eloquent_relation_method_name', value: { kind: 'string_value', value } });
 
 const modelReference = (model: ReturnType<typeof createClassName>): TypeExpression => ({ kind: 'reference', value: { kind: 'class', name: model } });
@@ -62,10 +55,6 @@ const produceRelation = (input: EloquentRelationProducerInput): EloquentRelation
     const modelName = extractClassBasename(related.className.value);
     const targetModel = createModelName(modelName);
     const invocation = mapResourcePhpAstToUpstream(returned, source.file.value.value);
-    const arguments_ = sequence(returned.arguments.map(argument =>
-        mapResourcePhpAstToUpstream(argument.value, source.file.value.value)
-    ));
-
     const semanticType: TypeExpression = descriptor.multiplicity.kind === 'collection'
         ? { kind: 'array', element: modelReference(createClassName(modelName)) }
         : modelReference(createClassName(modelName));
@@ -85,7 +74,6 @@ const produceRelation = (input: EloquentRelationProducerInput): EloquentRelation
         descriptor,
         targetModel,
         targetClass: createClassName(modelName),
-        arguments: arguments_,
         invocation,
         source,
         semanticType,

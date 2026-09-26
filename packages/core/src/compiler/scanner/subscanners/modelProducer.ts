@@ -41,7 +41,6 @@ const modelProducer: ModelProducer = {
             input.accessors,
             relations,
             input.sourceSpan,
-            input.eloquentRelations,
         );
     },
 };

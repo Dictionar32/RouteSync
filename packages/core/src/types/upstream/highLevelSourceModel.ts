@@ -3,8 +3,7 @@ import type { ModelFacts } from './modelSourceFacts';
 import type { ResourceFacts } from './resource';
 import { matchRequestValidationCapability, type RequestFacts } from './request';
 import type { ResponseFacts } from './response';
-import type { RouteFacts } from './route';
-import type { RouteEndpointContract } from './highLevelContracts';
+import type { RouteDefinition } from './route';
 import type { SourceSpan } from './provenance';
 import type { SourceFile } from './names';
 import { matchDiscovered, matchSourceDiscovery } from './collections';
@@ -81,7 +80,7 @@ export type ChannelSemanticNode = {
 export type RouteSemanticNode = {
   readonly kind: 'route_semantic_node';
   readonly identity: RouteReference;
-  readonly facts: RouteFacts;
+  readonly facts: RouteDefinition;
   readonly source: SourceSpan;
 };
 
@@ -106,7 +105,7 @@ const controllerNodesFromAst = (ast: ControllerAst): readonly ControllerSemantic
         action: method,
         source: method.source,
       });
-    }Saya
+    }
     methods = methods.tail;
   }
   return nodes;
@@ -127,6 +126,7 @@ const resourceNodeFromAst = (ast: import('./ast').ResourceAst): ResourceSemantic
     actions: ast.definition.actions,
     endpoints: ast.definition.endpoints,
     synthetic: ast.definition.synthetic,
+    contract: ast.definition.contract,
     source: ast.source,
   },
   source: ast.source,
@@ -146,32 +146,11 @@ const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNod
 });
 
 const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
-  const definition = ast.definition;
-  const identity: RouteReference = { kind: 'route_reference', name: definition.identity.name };
-  const endpoint: RouteEndpointContract = {
-    kind: 'route_endpoint_contract',
-    method: definition.identity.method,
-    path: definition.identity.path,
-    target: definition.bindings.target,
-    parameters: definition.bindings.parameters,
-    authentication: definition.security.authentication,
-    capability: definition.capability,
-    middleware: definition.security.middleware,
-    request: definition.bindings.request,
-    response: definition.bindings.response,
-    returnSemantic: definition.returnSemantic,
-    source: ast.source,
-  };
+  const identity: RouteReference = { kind: 'route_reference', name: ast.definition.identity.key };
   return {
     kind: 'route_semantic_node',
     identity,
-    facts: {
-      kind: 'route_facts',
-      identity,
-      domain: definition.domain,
-      endpoint,
-      source: ast.source,
-    },
+    facts: ast.definition,
     source: ast.source,
   };
 };
@@ -270,11 +249,11 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
   let routes = catalog.routes;
   while (routes.kind === 'cons') {
     const route = routes.head;
-    const request = route.facts.endpoint.request;
+    const request = route.facts.bindings.request;
     if (request.kind === 'form_request') {
       relationValues.push({ kind: 'route_request', route: route.identity, request: request.request });
     }
-    const response = route.facts.endpoint.response;
+    const response = route.facts.bindings.response;
     switch (response.kind) {
       case 'declared_response':
         relationValues.push({ kind: 'route_response', route: route.identity, response: response.response });
@@ -285,7 +264,7 @@ export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog
       case 'empty_response':
         break;
     }
-    const target = route.facts.endpoint.target;
+    const target = route.facts.bindings.target;
     switch (target.kind) {
       case 'controller_action':
       case 'controller_invokable':

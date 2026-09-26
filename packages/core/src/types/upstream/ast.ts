@@ -94,4 +94,4 @@ export type { PropertyAst } from './property';
 export type { AssignmentAst, MutationAst, SourceMutation } from './assignment';
 export type { QueryAst } from './query';
 
-export type { EloquentAst, EloquentModelAst, EloquentRelationAst } from './eloquent';
+export type { EloquentRelationAst } from './eloquent';

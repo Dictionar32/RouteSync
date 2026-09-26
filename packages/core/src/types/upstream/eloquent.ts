@@ -6,7 +6,6 @@ import type { RelationKey } from './model';
 import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from './modelSourceFacts';
 import type { RelationKind } from './model';
 import type { SourceSpan } from './provenance';
-import type { Sequence } from './collections';
 
 /**
  * Canonical upstream Eloquent relation AST.
@@ -30,17 +29,4 @@ export type EloquentRelationAst = {
   readonly targetShape: ModelRelationTargetShape;
   readonly traversalTarget: ModelRelationTraversalTarget;
   readonly key: RelationKey;
-};
-
-export type EloquentModelAst = {
-  readonly kind: 'eloquent_model_ast';
-  readonly model: ModelName;
-  readonly relations: Sequence<EloquentRelationAst>;
-  readonly source: SourceSpan;
-};
-
-export type EloquentAst = {
-  readonly kind: 'eloquent_ast';
-  readonly models: Sequence<EloquentModelAst>;
-  readonly source: SourceSpan;
 };

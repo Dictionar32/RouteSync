@@ -5,6 +5,16 @@ Append-only log of diagnosed issues in this repo, newest first. Format per entry
 
 ---
 
+### Issue 47: DTO AST Was Constructed Inline Instead of at a Producer Boundary
+**Symptom** → `scanDtoAsts` combined file discovery, lexer parsing, DTO semantic conversion, and `DtoAst` construction in one scanner. This left no dedicated source-to-AST producer for DTOs and made the semantic boundary inconsistent with other upstream categories.
+**Where** → `packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts`.
+**Root cause** → The initial DTO scanner predates the producer-based upstream architecture, so its `DtoDefinition`, property vocabulary, and `DtoAst` were constructed inline.
+**Fix** → Added `dtoProducer` with the complete `ResponseDtoDeclarationAst` plus `SourceSpan` input contract. The scanner now only discovers PHP files, tokenizes, parses the DTO syntax ADT, and delegates semantic AST construction to this producer.
+**Regression test** → `packages/sdk/tests/dtoAstProducer.spec.ts` › `DtoAst producer`.
+**Status** → Diagnosed & Fixed.
+
+---
+
 ### Issue 20: `routesync.manifest.json` Stale in `ecommerce_shop` — `resources[]`/`models[]` Empty
 **Symptom** → `routesync.manifest.json` committed in the `ecommerce_shop` project has empty `resources[]` and `models[]`, only `routes[]` (35 routes, all `response.kind: 'model'` or `'object'`). The resource-dedup logic verified in `resourceAliasDedup.spec.ts` cannot be exercised against this project's real manifest as a result.
 **Where** → `packages/cli/src/commands/sync.ts` — the `sync` command's `--models` flag gate.

@@ -5,6 +5,11 @@ All notable changes to RouteSync will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **DTO source now crosses one explicit AST/ADT producer boundary (Issue #47)**:
+  - Added `dtoProducer`, which transforms `ResponseDtoDeclarationAst` and its source span into the canonical `DtoAst`/`DtoDefinition` vocabulary.
+  - Kept `scanDtoAsts` as discovery-only orchestration; it now tokenizes and parses Laravel source before delegating DTO construction to the producer.
+  - Preserves the `RegisterResponse` field types (`bool`, `string`, `mixed`) and per-property Laravel source lines from the ecommerce fixture.
+  - **Regression Test**: Added `packages/sdk/tests/dtoAstProducer.spec.ts`.
 - **Elevation of Upstream Incremental Scanner to Level 7 Higher-Level Domain Models (Issue #46)**:
   - Mengeliminasi porositas tinggi (12 `?:`, 7 `| null`, 5 naked `Record<string, unknown>`) pada antarmuka pemindaian bertahap (`ScannedRoute`, `ScannedResource`, `ScannedModel`, `ScannedManifest`).
   - Memperkuat atom primitif dengan nominal branding (`types/nominalAtoms.ts`, $\le 45$ baris): `ScannedRouteMethod`, `ScannedRoutePath`, `ScannedRouteName`, `ScannedStableHash`, `SourceFilePath`, `SourceLineNumber`.

@@ -59,7 +59,7 @@ export type ResponseSemanticNode = {
 export type ControllerSemanticNode = {
   readonly kind: 'controller_semantic_node';
   readonly identity: ControllerReference;
-  readonly action: ControllerAst['action'];
+  readonly action: import('./controller').ControllerAction;
   readonly source: SourceSpan;
 };
 
@@ -94,12 +94,23 @@ const serviceNodeFromAst = (ast: ServiceAst): ServiceSemanticNode => ({
   source: ast.source,
 });
 
-const controllerNodeFromAst = (ast: ControllerAst): ControllerSemanticNode => ({
-  kind: 'controller_semantic_node',
-  identity: { kind: 'controller_reference', name: ast.action.controller, action: ast.action.action },
-  action: ast.action,
-  source: ast.source,
-});
+const controllerNodesFromAst = (ast: ControllerAst): readonly ControllerSemanticNode[] => {
+  const nodes: ControllerSemanticNode[] = [];
+  let methods = ast.methods;
+  while (methods.kind === 'cons') {
+    const method = methods.head;
+    if (method.kind === 'controller_action') {
+      nodes.push({
+        kind: 'controller_semantic_node',
+        identity: { kind: 'controller_reference', name: method.controller, action: method.action },
+        action: method,
+        source: method.source,
+      });
+    }Saya
+    methods = methods.tail;
+  }
+  return nodes;
+};
 
 
 const resourceNodeFromAst = (ast: import('./ast').ResourceAst): ResourceSemanticNode => ({
@@ -328,7 +339,15 @@ export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSou
   };
   const catalog: SourceModelCatalog = {
     kind: 'source_model_catalog',
-    controllers: toSequence(controllers, controllerNodeFromAst),
+    controllers: (() => {
+      const nodes: ControllerSemanticNode[] = [];
+      let items = controllers;
+      while (items.kind === 'cons') {
+        nodes.push(...controllerNodesFromAst(items.head));
+        items = items.tail;
+      }
+      return nodes.reduceRight<Sequence<ControllerSemanticNode>>((tail, node) => ({ kind: 'cons', head: node, tail }), { kind: 'empty' });
+    })(),
     models: toSequence(models, modelNodeFromAst),
     resources: toSequence(resources, resourceNodeFromAst),
     requests: toSequence(requests, requestNodeFromAst),

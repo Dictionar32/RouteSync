@@ -4,7 +4,7 @@ import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from './scannerUtils';
-import { controllerAstFromMethod } from './controller/controllerAstCanonical';
+import { controllerActionFromMethod } from './controller/controllerAstCanonical';
 import type { MiddlewareAst } from '../../../types/upstream/ast';
 import type { MiddlewareDefinition } from '../../../types/upstream/application';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -38,7 +38,7 @@ export async function scanMiddlewareAsts(sourceProject: SourceProjectIdentity): 
     const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
     const handle = declaration.methods.find(method => method.name === 'handle');
     if (!handle) throw new Error(`Middleware handle method not found: ${file}`);
-    const action = controllerAstFromMethod(handle, name, file, { kind: 'response_absent' }).action;
+    const action = controllerActionFromMethod(handle, name, file, { kind: 'response_absent' });
     const span = source(file, Number(declaration.source.line));
     const definition: MiddlewareDefinition = {
       kind: 'middleware',

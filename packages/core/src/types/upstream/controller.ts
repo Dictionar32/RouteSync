@@ -133,7 +133,7 @@ export type ControllerHelper = ControllerMethodContract & {
   readonly statements: SourceStatements;
 };
 
-export type ControllerAction = ControllerMethodContract & {
+export type ControllerAction = {
   readonly kind: 'controller_action';
   readonly controller: ControllerName;
   readonly action: ActionName;

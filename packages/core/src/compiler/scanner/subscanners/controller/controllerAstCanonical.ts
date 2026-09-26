@@ -320,7 +320,7 @@ export function controllerReturnSemanticFromValues(
   return returnSetSemantic(values, file, []);
 }
 
-export function controllerAstFromMethod(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse): ControllerAst {
+export function controllerActionFromMethod(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse): ControllerAction {
   const action: ControllerAction = {
     kind: 'controller_action',
     controller: { kind: 'controller_name', value: stringValue(controllerName) },
@@ -331,5 +331,5 @@ export function controllerAstFromMethod(method: ControllerMethodAst, controllerN
     semantic: semantic(method, file, response),
     source: tokenSpan(file, method.source),
   };
-  return { kind: 'controller_ast', action, source: action.source };
+  return action;
 }

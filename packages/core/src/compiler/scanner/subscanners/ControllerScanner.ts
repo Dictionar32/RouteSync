@@ -1,6 +1,6 @@
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 
-import { createControllerName, createSourceFile } from '../../../types/domain/semanticValues';
+import { createControllerName, createSourceFile } from '../../../types/upstream/names';
 import { readSourceText } from './scannerUtils';
 /**
  * ControllerScanner.ts
@@ -16,6 +16,7 @@ import type { FormRequestSource } from "../../../types/domain/request";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import type { ControllerActionInfo } from "../descriptors/requestDescriptors";
 import type { ControllerAst } from "../../../types/upstream/ast";
+import type { ControllerResponse } from "../../../types/upstream/controller";
 import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from "./scannerUtils";
 import { scanControllerAction } from "./controller";
@@ -44,6 +45,7 @@ export class ControllerScanner {
                 createAstIdentifier(controllerName)
             );
             const actionMap = new Map<string, ControllerActionInfo>();
+            const controllerMethods: { readonly method: typeof declaration.methods[number]; readonly response: ControllerResponse }[] = [];
 
             for (const method of declaration.methods) {
                 const result = scanControllerAction(
@@ -60,19 +62,21 @@ export class ControllerScanner {
                         name: result.descriptor.response.responseTypeName()
                     }
                 };
+                controllerMethods.push({ method, response });
+                actionMap.set(result.actionName.value.value, result.descriptor);
+            }
+            if (controllerMethods.length > 0) {
                 asts.push(controllerProducer.produce({
-                    method,
+                    methods: controllerMethods,
                     controller: createControllerName(controllerName),
                     file: createSourceFile(fullPath),
                     source: {
                         kind: 'source_span',
                         file: createSourceFile(fullPath),
-                        start: { kind: 'number_value', value: method.source.startOffset },
-                        end: { kind: 'number_value', value: method.source.endOffset },
+                        start: { kind: 'number_value', value: declaration.source.startOffset },
+                        end: { kind: 'number_value', value: declaration.source.endOffset },
                     },
-                    response,
                 }));
-                actionMap.set(result.actionName, result.descriptor);
             }
             controllerMap.set(controllerName, actionMap);
         }

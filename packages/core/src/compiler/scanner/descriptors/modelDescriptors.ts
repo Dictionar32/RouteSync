@@ -18,10 +18,6 @@ import {
     ScannedModelColumnParams,
     ScannedModelColumnDescriptor
 } from './model/modelColumnDescriptor';
-import {
-    ScannedModelAccessorParams,
-    ScannedModelAccessorDescriptor
-} from './model/modelAccessorDescriptor';
 
 export { buildModelSemanticDefinition };
 
@@ -34,9 +30,6 @@ export function createScannedCast(params: Parameters<typeof ScannedModelCastDesc
 export function createScannedRelation(params: Parameters<typeof ScannedModelRelationDescriptor.create>[0]): ScannedModelRelationDescriptor {
     return ScannedModelRelationDescriptor.create(params);
 }
-export function createScannedAccessor(params: Parameters<typeof ScannedModelAccessorDescriptor.create>[0]): ScannedModelAccessorDescriptor {
-    return ScannedModelAccessorDescriptor.create(params);
-}
 
 export {
     ScannedModelCastParams,
@@ -45,6 +38,4 @@ export {
     ScannedModelRelationDescriptor,
     ScannedModelColumnParams,
     ScannedModelColumnDescriptor,
-    ScannedModelAccessorParams,
-    ScannedModelAccessorDescriptor
 };

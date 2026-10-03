@@ -2,6 +2,7 @@ import type { SemanticType } from "../../compiler/types/SemanticType";
 import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType, primitiveType } from "../../compiler/types/SemanticType";
 import { SemanticValueFactory, type ClassName, type ColumnName, type MethodName, type ModelName, type PropertyName, type RelationName, type CastTypeName, type SemanticOperator } from './semanticValues';
 import type { Cardinality } from '../upstream/primitiveVocabulary';
+import type { ModelAccessorComputation } from '../upstream/modelVocabulary';
 import { relationEqual } from '../../semantic/kernel/semanticRelations';
 import { relationGate, relationOptionFold, relationSome, relationRefine } from '../../semantic/kernel/relationalSequence';
 

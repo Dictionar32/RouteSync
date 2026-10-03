@@ -51,7 +51,7 @@ const routeLegacy = read('packages/core/src/compiler/scanner/descriptors/route/p
 
 let inactive = { allCandidatesEmpty: false };
 try {
-  inactive = JSON.parse(cp.execFileSync(process.execPath, [path.join(root, 'scripts/audit-phase525-inactive-file-vacuum.cjs')], { encoding: 'utf8' }));
+  inactive = JSON.parse(cp.execFileSync(process.execPath, [path.join(root, 'scripts/audit-phase525-inactive-file-vacuum.cjs')], { encoding: 'utf8', cwd: root }));
 } catch (error) {
   inactive = { status: 'FAIL', error: String(error.stdout || error.message) };
 }

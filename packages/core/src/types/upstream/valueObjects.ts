@@ -11,6 +11,9 @@ export interface NumberValue {
   readonly value: number;
 }
 
+export const numberValue = (value: number): NumberValue =>
+  Object.freeze({ kind: 'number_value' as const, value });
+
 export interface TruthValue {
   readonly kind: 'truth_value';
   readonly value: boolean;

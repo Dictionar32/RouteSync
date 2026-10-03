@@ -17,6 +17,7 @@ import {
 import type { RouteRateLimit } from "../../../types/upstream/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import type { PropertyName } from "../../../types/upstream/names";
+import { numberValue } from "../../../types/upstream/valueObjects";
 
 export interface RouteSecurityResolution {
     readonly security: RouteSecurityDescriptor;
@@ -75,8 +76,8 @@ const policyForMiddleware = (middleware: string): MiddlewarePolicyResult => {
     const throttleValue = relationTextFields(throttle, ",");
     const throttlePart = (index: number, fallback: string): string =>
         relationOptionFold(relationAt(throttleValue, index), () => fallback, value => value);
-    const maxAttempts = relationTextNumber(throttlePart(0, ''), 0);
-    const decayMinutes = relationTextNumber(throttlePart(1, '1'), 1);
+    const maxAttempts = numberValue(relationTextNumber(throttlePart(0, ''), 0));
+    const decayMinutes = numberValue(relationTextNumber(throttlePart(1, '1'), 1));
     const rateLimit = relationGate(
         relationAll([throttle.length > 0, relationEqual(relationTextNumber(throttlePart(0, ''), -1) >= 0, true)]),
         () => Object.freeze({ kind: 'fixed' as const, limit: Object.freeze({ kind: 'fixed' as const, maxAttempts, decayMinutes }) }),

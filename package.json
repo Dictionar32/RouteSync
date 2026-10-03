@@ -161,7 +161,8 @@
     "audit:phase707:resource-type-adt": "node scripts/audit-phase707-resource-type-adt.cjs",
     "audit:phase708:model-type-diagnostic-frontier": "node scripts/audit-phase708-model-type-diagnostic-frontier.cjs",
     "audit:phase709:diagnostic-trace-suggestion": "node scripts/audit-phase709-diagnostic-trace-suggestion.cjs",
-    "audit:request-domain:phase710": "node scripts/audit-phase710-request-domain-ast-frontier.cjs"
+    "audit:request-domain:phase710": "node scripts/audit-phase710-request-domain-ast-frontier.cjs",
+    "audit:phase711-route-security-number-adt": "node scripts/audit-phase711-route-security-number-adt.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

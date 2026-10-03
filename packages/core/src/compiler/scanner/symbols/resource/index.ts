@@ -1,6 +1,5 @@
 export {
     ResourceModelBindingSource,
-    type ResourceModelBindingSource,
     type MonoModelBinding,
     type PolyModelBinding,
     type UnbackedDtoBinding,

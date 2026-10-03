@@ -42,11 +42,16 @@ import type { ResourceAst } from "../../../types/upstream/ast";
 import type { ResourceExpressionModel } from "../../../types/domain/resourceExpressionModel";
 import type { ResourceName, SourceFile } from "../../../types/upstream/names";
 
-interface ParsedResourceFile {
+interface ResourceScanIdentityEvidence {
+    readonly kind: 'resource_scan_identity';
     readonly resourceName: ResourceName;
     readonly sourceFile: SourceFile;
     readonly sourceLine: number;
     readonly sourceLength: number;
+}
+
+interface ResourceScanSyntaxEvidence {
+    readonly kind: 'resource_scan_syntax';
     readonly entries: readonly PhpArrayEntry[];
     readonly assignments: readonly PhpStatement[];
     readonly method: import('../lexer/phpMethodAstTypes').PhpMethodAst;
@@ -62,11 +67,18 @@ interface ParsedResourceFile {
     readonly includesPreviouslyLoadedRelationships: import('../../../types/upstream/valueObjects').TruthValue;
     readonly jsonAttributes: readonly PhpArrayEntry[];
     readonly jsonRelationships: readonly PhpArrayEntry[];
+    readonly collectsResource: import('../../../types/upstream/resource').ResourceCollectionFeatures['collects'];
+}
+
+interface ResourceScanEvidence {
+    readonly kind: 'resource_scan_evidence';
+    readonly identity: ResourceScanIdentityEvidence;
+    readonly syntax: ResourceScanSyntaxEvidence;
 }
 
 interface BoundResourceFile {
     readonly resource: ResourceAst;
-    readonly file: ParsedResourceFile;
+    readonly evidence: ResourceScanEvidence;
 }
 
 export class ResourceScanner {
@@ -81,7 +93,7 @@ export class ResourceScanner {
 
         const state = await relationAsyncFold(
             files,
-            { parsedFiles: [] as ParsedResourceFile[], relationEdges: [] as ResourceRelationEdge[], initialResolutions: [] as ResourceModelResolutionFact[] },
+            { parsedFiles: [] as ResourceScanEvidence[], relationEdges: [] as ResourceRelationEdge[], initialResolutions: [] as ResourceModelResolutionFact[] },
             async (state, fullPath) => {
                 const source = await readSourceText(fullPath);
                 const tokens = LaravelSourceLexer.tokenize(source);
@@ -99,18 +111,34 @@ export class ResourceScanner {
                     parameter => parameter.name,
                 );
                 const documentationMixins = parseResourceDocumentationMixins(source);
-                const parsedFile: ParsedResourceFile = {
-                    resourceName: resourceNameValue,
-                    sourceFile: SemanticValueFactory.sourceFilePath(fullPath),
-                    sourceLine,
-                    sourceLength: source.length,
-                    entries: parsedArray.entries,
-                    assignments: parseMethodAssignments(tokens, returnIndex),
-                    method,
-                    baseClass: { kind: 'class_name', value: { kind: 'string_value', value: baseClass } },
-                    wrapping,
-                    requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } },
-                    documentationMixins
+                const parsedFile: ResourceScanEvidence = {
+                    kind: 'resource_scan_evidence',
+                    identity: {
+                        kind: 'resource_scan_identity',
+                        resourceName: resourceNameValue,
+                        sourceFile: SemanticValueFactory.sourceFilePath(fullPath),
+                        sourceLine,
+                        sourceLength: source.length,
+                    },
+                    syntax: {
+                        kind: 'resource_scan_syntax',
+                        entries: parsedArray.entries,
+                        assignments: parseMethodAssignments(tokens, returnIndex),
+                        method,
+                        baseClass: { kind: 'class_name', value: { kind: 'string_value', value: baseClass } },
+                        wrapping,
+                        requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } },
+                        documentationMixins,
+                        methods: parseResourceMethods(tokens),
+                        properties: parseModelPropertyAsts(tokens),
+                        preserveKeys: parseBooleanProperty(tokens, 'preserveKeys'),
+                        forceWrapping: parseBooleanProperty(tokens, 'forceWrapping'),
+                        usesRequestQueryString: parseBooleanProperty(tokens, 'usesRequestQueryString'),
+                        includesPreviouslyLoadedRelationships: parseBooleanProperty(tokens, 'includesPreviouslyLoadedRelationships'),
+                        jsonAttributes: parseClassArrayProperty(source, tokens, 'attributes'),
+                        jsonRelationships: parseClassArrayProperty(source, tokens, 'relationships'),
+                        collectsResource: parseCollectsResource(tokens),
+                    },
                 };
                 const initialResolution = resolveInitialModel(resourceNameValue, modelSymbolTable, presenceOf(controllerDataflowMap));
                 const nextInitialResolutions = relationExpand([initialResolution], resolution =>
@@ -138,22 +166,22 @@ export class ResourceScanner {
         return relationProject(parsedFiles, file => ({
             file,
             resource: SemanticResourceBinder.bindResourceAst({
-                resourceName: file.resourceName,
-                entries: file.entries,
+                resourceName: file.identity.resourceName,
+                entries: file.syntax.entries,
                 source: {
                     kind: 'source_span',
-                    file: file.sourceFile,
+                    file: file.identity.sourceFile,
                     start: { kind: 'number_value', value: 0 },
-                    end: { kind: 'number_value', value: file.sourceLength },
+                    end: { kind: 'number_value', value: file.identity.sourceLength },
                 },
                 modelSymbolTable,
                 knowledgeDataFlow,
-                assignments: file.assignments,
-                method: file.method,
-                baseClass: file.baseClass,
-                wrapping: file.wrapping,
-                requestParameter: file.requestParameter,
-                documentationMixins: file.documentationMixins,
+                assignments: file.syntax.assignments,
+                method: file.syntax.method,
+                baseClass: file.syntax.baseClass,
+                wrapping: file.syntax.wrapping,
+                requestParameter: file.syntax.requestParameter,
+                documentationMixins: file.syntax.documentationMixins,
             })
         }));
     }
@@ -185,7 +213,7 @@ export class ResourceScanner {
         const files = await collectPhpFiles(resDir);
         const state = await relationAsyncFold(
             files,
-            { parsedFiles: [] as ParsedResourceFile[], resolutionFacts: [] as ResourceModelResolutionFact[] },
+            { parsedFiles: [] as ResourceScanEvidence[], resolutionFacts: [] as ResourceModelResolutionFact[] },
             async (state, fullPath) => {
                 const source = await readSourceText(fullPath);
                 const tokens = LaravelSourceLexer.tokenize(source);
@@ -208,7 +236,11 @@ export class ResourceScanner {
                 const usesRequestQueryString = parseBooleanProperty(tokens, 'usesRequestQueryString');
                 const includesPreviouslyLoadedRelationships = parseBooleanProperty(tokens, 'includesPreviouslyLoadedRelationships');
                 const collectsResource = parseCollectsResource(tokens);
-                const parsedFile: ParsedResourceFile = { resourceName: resourceNameValue, sourceFile: SemanticValueFactory.sourceFilePath(fullPath), sourceLine, sourceLength: source.length, entries: parsedArray.entries, assignments: parseMethodAssignments(tokens, returnIndex), method, baseClass: { kind: 'class_name', value: { kind: 'string_value', value: baseClass } }, wrapping, requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } }, documentationMixins, methods, properties, preserveKeys, forceWrapping, usesRequestQueryString, includesPreviouslyLoadedRelationships, jsonAttributes, jsonRelationships, collectsResource };
+                const parsedFile: ResourceScanEvidence = {
+                    kind: 'resource_scan_evidence',
+                    identity: { kind: 'resource_scan_identity', resourceName: resourceNameValue, sourceFile: SemanticValueFactory.sourceFilePath(fullPath), sourceLine, sourceLength: source.length },
+                    syntax: { kind: 'resource_scan_syntax', entries: parsedArray.entries, assignments: parseMethodAssignments(tokens, returnIndex), method, baseClass: { kind: 'class_name', value: { kind: 'string_value', value: baseClass } }, wrapping, requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } }, documentationMixins, methods, properties, preserveKeys, forceWrapping, usesRequestQueryString, includesPreviouslyLoadedRelationships, jsonAttributes, jsonRelationships, collectsResource }
+                };
                 const conventionLookup = modelSymbolTable.findForResource(resourceNameValue);
                 const resolutionFacts = relationExpand([conventionLookup], lookup =>
                     relationGate(relationEqual(lookup.kind, 'found'), () => [{ kind: 'resource_model_resolution', resource: resourceNameValue, model: lookup.value.identity.name, origin: ResourceModelResolutionOrigin.convention, viaRelation: { kind: 'absent' } }], () => []),
@@ -223,17 +255,17 @@ export class ResourceScanner {
                 kind: 'resource_model_knowledge_data_flow',
                 relations: [],
                 resolutions: resolutionFacts,
-            }, file.resourceName);
+            }, file.identity.resourceName);
             return presenceFold(resolution,
-                () => { throw Error(`Resource '${file.resourceName.value.value}' has no model from upstream model producer.`); },
+                () => { throw Error(`Resource '${file.identity.resourceName.value.value}' has no model from upstream model producer.`); },
                 resolved => {
                     const modelLookup = modelSymbolTable.get(resolved.model);
                     matchLookup(modelLookup, {
-                        missing: () => { throw Error(`Resource '${file.resourceName.value.value}' resolved to an unknown model.`); },
+                        missing: () => { throw Error(`Resource '${file.identity.resourceName.value.value}' resolved to an unknown model.`); },
                         found: ({ value: model }) => resourceProducer.produce({
-                            resourceName: file.resourceName, entries: file.entries,
-                            source: { kind: 'source_span', file: file.sourceFile, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: file.sourceLength } },
-                            model, assignments: file.assignments, method: file.method, baseClass: file.baseClass, wrapping: file.wrapping, requestParameter: file.requestParameter, documentationMixins: file.documentationMixins, methods: file.methods, properties: file.properties, preserveKeys: file.preserveKeys, forceWrapping: file.forceWrapping, usesRequestQueryString: file.usesRequestQueryString, includesPreviouslyLoadedRelationships: file.includesPreviouslyLoadedRelationships, jsonAttributes: file.jsonAttributes, jsonRelationships: file.jsonRelationships, collectsResource: file.collectsResource,
+                            resourceName: file.identity.resourceName, entries: file.syntax.entries,
+                            source: { kind: 'source_span', file: file.identity.sourceFile, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: file.identity.sourceLength } },
+                            model, assignments: file.syntax.assignments, method: file.syntax.method, baseClass: file.syntax.baseClass, wrapping: file.syntax.wrapping, requestParameter: file.syntax.requestParameter, documentationMixins: file.syntax.documentationMixins, methods: file.syntax.methods, properties: file.syntax.properties, preserveKeys: file.syntax.preserveKeys, forceWrapping: file.syntax.forceWrapping, usesRequestQueryString: file.syntax.usesRequestQueryString, includesPreviouslyLoadedRelationships: file.syntax.includesPreviouslyLoadedRelationships, jsonAttributes: file.syntax.jsonAttributes, jsonRelationships: file.syntax.jsonRelationships, collectsResource: file.syntax.collectsResource,
                         }),
                     });
                 },

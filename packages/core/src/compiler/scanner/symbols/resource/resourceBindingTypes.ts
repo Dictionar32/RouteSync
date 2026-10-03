@@ -1,14 +1,11 @@
 /**
- * resourceBindingTypes.ts
+ * Canonical semantic algebra for Laravel Resource -> Model resolution.
  *
- * Guaranteed ADT Model Binding Contract for Laravel JsonResources.
- * Conforms to Rule 10 (0 '?') and Rule 12 (Catamorphic Eliminator).
- *
- * @module compiler/scanner/symbols/resource
+ * A binding is a closed judgment, not a parsed descriptor.  Each variant owns
+ * its catamorphic eliminator so downstream code never has to recover a
+ * concrete variant through host-language narrowing.
  */
 
-import { relationGate } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import type { OriginModelSymbol } from "../model/originModelSymbol";
 import type { StringValue } from '../../../../types/upstream/valueObjects';
 
@@ -25,55 +22,87 @@ export const ResourceModelBindingSource = Object.freeze({
     structural: Object.freeze({ kind: 'structural' as const }),
 });
 
-export interface MonoModelBinding {
-    readonly kind: 'mono';
-    readonly model: OriginModelSymbol;
-    readonly source: ResourceModelBindingSource;
-}
-
-export interface PolyModelBinding {
-    readonly kind: 'poly';
-    readonly models: readonly OriginModelSymbol[];
-    readonly source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }>;
-}
-
-export interface UnbackedDtoBinding {
-    readonly kind: 'unbacked_dto';
-    readonly reason: StringValue;
-}
-
-export type ResourceModelBinding =
-    | MonoModelBinding
-    | PolyModelBinding
-    | UnbackedDtoBinding;
-
 export interface ResourceModelBindingVisitor<R> {
     mono(binding: MonoModelBinding): R;
     poly(binding: PolyModelBinding): R;
     unbacked_dto(binding: UnbackedDtoBinding): R;
 }
 
-/**
- * Catamorphic eliminator for ResourceModelBinding (0 'if', 0 'switch' in consumer).
- */
+export interface MonoModelBinding {
+    readonly kind: 'mono';
+    readonly model: OriginModelSymbol;
+    readonly source: ResourceModelBindingSource;
+    readonly fold: <R>(visitor: ResourceModelBindingVisitor<R>) => R;
+}
+
+export interface PolyModelBinding {
+    readonly kind: 'poly';
+    readonly models: readonly OriginModelSymbol[];
+    readonly source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }>;
+    readonly fold: <R>(visitor: ResourceModelBindingVisitor<R>) => R;
+}
+
+export interface UnbackedDtoBinding {
+    readonly kind: 'unbacked_dto';
+    readonly reason: StringValue;
+    readonly fold: <R>(visitor: ResourceModelBindingVisitor<R>) => R;
+}
+
+export type ResourceModelBinding = MonoModelBinding | PolyModelBinding | UnbackedDtoBinding;
+
 export function matchResourceModelBinding<R>(
     binding: ResourceModelBinding,
     visitor: ResourceModelBindingVisitor<R>
 ): R {
-    return relationGate(relationEqual(binding.kind, 'mono'), () => visitor.mono(binding),
-        () => relationGate(relationEqual(binding.kind, 'poly'), () => visitor.poly(binding), () => visitor.unbacked_dto(binding)));
+    return binding.fold(visitor);
 }
 
+const monoBinding = (model: OriginModelSymbol, source: ResourceModelBindingSource): MonoModelBinding => {
+    const binding = {
+        kind: 'mono' as const,
+        model,
+        source,
+        fold: <R>(visitor: ResourceModelBindingVisitor<R>): R => visitor.mono(binding),
+    };
+    return Object.freeze(binding);
+};
+
+const polyBinding = (
+    models: readonly OriginModelSymbol[],
+    source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }>
+): PolyModelBinding => {
+    const binding = {
+        kind: 'poly' as const,
+        models: Object.freeze([...models]),
+        source,
+        fold: <R>(visitor: ResourceModelBindingVisitor<R>): R => visitor.poly(binding),
+    };
+    return Object.freeze(binding);
+};
+
+const unbackedDtoBinding = (reason: StringValue): UnbackedDtoBinding => {
+    const binding = {
+        kind: 'unbacked_dto' as const,
+        reason,
+        fold: <R>(visitor: ResourceModelBindingVisitor<R>): R => visitor.unbacked_dto(binding),
+    };
+    return Object.freeze(binding);
+};
+
+/** Canonical constructors for the closed binding judgment. */
 export class ResourceModelBindingFactory {
     public static mono(model: OriginModelSymbol, source: ResourceModelBindingSource): MonoModelBinding {
-        return Object.freeze({ kind: 'mono', model, source });
+        return monoBinding(model, source);
     }
 
-    public static poly(models: readonly OriginModelSymbol[], source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }> = ResourceModelBindingSource.controllerDataflow): PolyModelBinding {
-        return Object.freeze({ kind: 'poly', models: Object.freeze([...models]), source });
+    public static poly(
+        models: readonly OriginModelSymbol[],
+        source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }> = ResourceModelBindingSource.controllerDataflow
+    ): PolyModelBinding {
+        return polyBinding(models, source);
     }
 
     public static unbackedDto(reason: StringValue): UnbackedDtoBinding {
-        return Object.freeze({ kind: 'unbacked_dto', reason });
+        return unbackedDtoBinding(reason);
     }
 }

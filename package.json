@@ -169,7 +169,8 @@
     "audit:phase714-semantic-frontier": "node scripts/audit-phase714-semantic-frontier.cjs",
     "audit:phase715-resource-model-highest-interface": "node scripts/audit-phase715-resource-model-highest-interface.cjs",
     "audit:phase716-resource-model-highest-interface": "node scripts/audit-phase716-resource-model-highest-interface.cjs",
-    "audit:phase717-resource-binding-export": "node scripts/audit-phase717-resource-binding-export.cjs"
+    "audit:phase717-resource-binding-export": "node scripts/audit-phase717-resource-binding-export.cjs",
+    "audit:phase718-resource-evidence-interface": "node scripts/audit-phase718-resource-evidence-interface.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

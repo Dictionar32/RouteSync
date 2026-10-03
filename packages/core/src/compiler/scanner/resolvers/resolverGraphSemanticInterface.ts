@@ -5,7 +5,7 @@
  * program. The semantic interface exposes only the saturated judgment.
  */
 import type { CrudRole, HttpMethod, RouteSecurityDescriptor } from '../../../types/route';
-import type { RoutePath } from '../../../types/upstream/names';
+import type { PropertyName, RoutePath } from '../../../types/upstream/names';
 import type { AstMappingInterface } from '../../../types/upstream/astMappingInterface';
 import type { RouteDomainResolutionContext, RouteDomainResolutionJudgment } from './RouteDomainResolver';
 import type { RouteSecurityResolution } from './RouteSecurityResolver';
@@ -14,7 +14,7 @@ import { RouteSecurityResolver } from './RouteSecurityResolver';
 import { RouteCrudClassifier } from './RouteCrudClassifier';
 import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 import { relationProject } from '../../../semantic/kernel/relationalSequence';
-import { solveClosedSemanticRelations, semanticTextTerm, type SemanticRewriteFact, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
+import { solveClosedSemanticRelations, semanticTextTerm, type SemanticRewriteFact, type SemanticRewritePattern, type SemanticRewritePatternTerm, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
 
 export type ResolverGraphRelation =
   | 'route_input'
@@ -62,18 +62,44 @@ export type ResolverGraphSemanticInterface = Readonly<{
 
 export type ResolverGraphInput = Readonly<{
   readonly domain: RouteDomainResolutionContext;
-  readonly middleware: readonly string[];
+  readonly middleware: readonly PropertyName[];
   readonly auth: boolean;
   readonly method: HttpMethod;
   readonly path: RoutePath;
   readonly mapping: AstMappingInterface;
 }>;
 
+const resolverGraphPattern = (relation: ResolverGraphRelation, polarity: 'positive' | 'negative', route: string): SemanticRewritePattern<ResolverGraphRelation> => Object.freeze({
+  relation,
+  arguments: Object.freeze([semanticTextTerm(route)] as readonly SemanticRewritePatternTerm[]),
+  polarity,
+});
+
+const resolverGraphRule = (
+  id: string,
+  priority: number,
+  when: readonly SemanticRewritePattern<ResolverGraphRelation>[],
+  then: readonly SemanticRewritePattern<ResolverGraphRelation>[],
+): SemanticRewriteRule<ResolverGraphRelation> => Object.freeze({
+  id,
+  priority,
+  when: Object.freeze(when),
+  then: Object.freeze(then),
+});
+
 const resolverGraphRules: readonly SemanticRewriteRule<ResolverGraphRelation>[] = Object.freeze([
-  Object.freeze({ id: 'resolver-map', priority: 4, when: [{ relation: 'route_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }, { relation: 'mapping_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }], then: [{ relation: 'mapping_refinement', arguments: [semanticTextTerm('route')], polarity: 'positive' }] }),
-  Object.freeze({ id: 'resolver-domain', priority: 3, when: [{ relation: 'route_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }, { relation: 'domain_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }], then: [{ relation: 'domain_resolution', arguments: [semanticTextTerm('route')], polarity: 'positive' }] }),
-  Object.freeze({ id: 'resolver-security', priority: 2, when: [{ relation: 'route_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }, { relation: 'security_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }], then: [{ relation: 'security_resolution', arguments: [semanticTextTerm('route')], polarity: 'positive' }] }),
-  Object.freeze({ id: 'resolver-crud', priority: 1, when: [{ relation: 'route_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }, { relation: 'crud_input', arguments: [semanticTextTerm('route')], polarity: 'positive' }], then: [{ relation: 'crud_resolution', arguments: [semanticTextTerm('route')], polarity: 'positive' }] }),
+  resolverGraphRule('resolver-map', 4,
+    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('mapping_input', 'positive', 'route')]),
+    Object.freeze([resolverGraphPattern('mapping_refinement', 'positive', 'route')])),
+  resolverGraphRule('resolver-domain', 3,
+    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('domain_input', 'positive', 'route')]),
+    Object.freeze([resolverGraphPattern('domain_resolution', 'positive', 'route')])),
+  resolverGraphRule('resolver-security', 2,
+    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('security_input', 'positive', 'route')]),
+    Object.freeze([resolverGraphPattern('security_resolution', 'positive', 'route')])),
+  resolverGraphRule('resolver-crud', 1,
+    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('crud_input', 'positive', 'route')]),
+    Object.freeze([resolverGraphPattern('crud_resolution', 'positive', 'route')])),
 ]);
 
 const relation = <R extends ResolverGraphRelation>(name: R, route: string): SemanticRewriteFact<R> => Object.freeze({ relation: name, arguments: Object.freeze([semanticTextTerm(route)]) });

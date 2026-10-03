@@ -30,7 +30,6 @@ export {
 } from "./fieldBinder";
 
 export {
-    bindResource,
     bindResourceDefinition
 } from "./resourceBinder";
 

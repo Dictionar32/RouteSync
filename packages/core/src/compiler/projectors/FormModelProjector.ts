@@ -30,12 +30,13 @@ export class FormModelProjector {
 
     public project(artifact: RequestTypesArtifact, sink: CodeSink): GeneratedFormArtifact {
         const formTypes: FormTypeDefinition[] = artifact.requestTypes.map(reqType => {
+            const resourceName = reqType.identity.resource.value.value;
             const actions = reqType.actions.map(act =>
                 this.actionGenerator.generateAction(act.name, act.fields)
             );
             return {
-                resourceName: reqType.resourceName,
-                formTypeName: `${reqType.resourceName}Form`,
+                resourceName,
+                formTypeName: `${resourceName}Form`,
                 actions
             };
         });

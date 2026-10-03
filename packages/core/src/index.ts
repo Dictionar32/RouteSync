@@ -944,6 +944,7 @@ export {
   ScannedRequestTypeDescriptor,
   type ScannedRequestTypeParams,
   type ControllerActionInfo,
+  type RequestActionDefinition,
   buildRequestTypeWithActions,
 } from './compiler/scanner/descriptors'
 

@@ -9,7 +9,7 @@ import { toCamelCase, toPascalCase, ResourceNamingConvention } from '../../../ut
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath } from '../../../types/upstream/names';
 import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../../semantic/kernel/relationalSequence';
 
 export interface RouteDomainResolutionContext {
   readonly domain: RelationOption<DomainTypeName>;
@@ -22,24 +22,40 @@ export interface RouteDomainResolutionContext {
 export interface RouteDomainResolutionJudgment {
   readonly kind: 'route_domain_resolution_judgment';
   readonly input: RouteDomainResolutionContext;
-  readonly candidates: readonly DomainTypeName[];
+  readonly candidates: readonly RouteDomainCandidate[];
   readonly result: DomainTypeName;
   readonly resolution: 'ranked_relation_candidates';
   readonly closed: true;
 }
 
-type Candidate = readonly [number, DomainTypeName];
+export type RouteDomainCandidateKind =
+  | 'explicit_domain'
+  | 'controller_domain'
+  | 'resource_domain'
+  | 'register_domain'
+  | 'path_domain'
+  | 'action_domain';
+
+export interface RouteDomainCandidate {
+  readonly kind: 'route_domain_candidate';
+  readonly source: RouteDomainCandidateKind;
+  readonly domain: DomainTypeName;
+}
 
 const candidateFromOption = <T>(
-  rank: number,
+  sourceKind: RouteDomainCandidateKind,
   source: RelationOption<T>,
   present: (value: T) => boolean,
   project: (value: T) => DomainTypeName,
-): readonly Candidate[] =>
+): readonly RouteDomainCandidate[] =>
   relationOptionFold(
     source,
     () => Object.freeze([]),
-    value => relationGate(present(value), () => Object.freeze([[rank, project(value)]]), () => Object.freeze([])),
+    value => relationGate(
+      present(value),
+      () => Object.freeze([{ kind: 'route_domain_candidate' as const, source: sourceKind, domain: project(value) }]),
+      () => Object.freeze([]),
+    ),
   );
 
 const segmentEvidence = (path: string): readonly string[] =>
@@ -81,15 +97,15 @@ const actionDomain = (action: ActionName): DomainTypeName =>
   );
 
 export const resolveRouteDomainJudgment = (context: RouteDomainResolutionContext): RouteDomainResolutionJudgment => {
-  const explicit = candidateFromOption(0, context.domain, () => true, value => value);
+  const explicit = candidateFromOption('explicit_domain', context.domain, () => true, value => value);
   const controller = candidateFromOption(
-    1,
+    'controller_domain',
     context.controllerName,
     () => true,
     value => SemanticValueFactory.domainName(relationTextRemoveSuffix(value.value.value, 'Controller')),
   );
   const resource = candidateFromOption(
-    2,
+    'resource_domain',
     context.resourceName,
     () => true,
     value => SemanticValueFactory.domainName(ResourceNamingConvention.stripSuffix(value.value.value)),
@@ -105,28 +121,28 @@ export const resolveRouteDomainJudgment = (context: RouteDomainResolutionContext
           relationEqual(path.value.value, '/register'),
           relationEqual(action.value.value, 'register'),
           relationGate(
-            action.value.value.endsWith('register'),
+            relationTextEndsWith(action.value.value, 'register'),
             () => true,
             () => false,
           ),
         ]),
-        () => Object.freeze([[3, SemanticValueFactory.domainName('Register')]]),
+        () => Object.freeze([{ kind: 'route_domain_candidate' as const, source: 'register_domain' as const, domain: SemanticValueFactory.domainName('Register') }]),
         () => Object.freeze([]),
       ),
     ),
   );
-  const path = candidateFromOption(4, context.path, () => true, value => domainFromSegments(segmentEvidence(value.value.value)));
-  const action = candidateFromOption(5, context.actionName, () => true, actionDomain);
+  const path = candidateFromOption('path_domain', context.path, () => true, value => domainFromSegments(segmentEvidence(value.value.value)));
+  const action = candidateFromOption('action_domain', context.actionName, () => true, actionDomain);
   const candidates = Object.freeze([...explicit, ...controller, ...resource, ...register, ...path, ...action]);
   const result = relationOptionFold(
-    relationFirstOption(candidates, entry => relationNotEqual(entry[1].value.value, '')),
+    relationFirstOption(candidates, entry => relationNotEqual(entry.domain.value.value, '')),
     () => SemanticValueFactory.domainName('App'),
-    entry => entry[1],
+    entry => entry.domain,
   );
   return Object.freeze({
     kind: 'route_domain_resolution_judgment',
     input: context,
-    candidates: Object.freeze(relationProject(candidates, entry => entry[1])),
+    candidates,
     result,
     resolution: 'ranked_relation_candidates',
     closed: true,

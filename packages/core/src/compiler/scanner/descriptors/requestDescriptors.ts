@@ -11,7 +11,7 @@
 import { relationProject } from "../../../semantic/kernel/relationalSequence";
 import type { SemanticType } from "../../types/SemanticType";
 import type { RequestFieldPresence } from "../../../types/domain/requestFieldPresence";
-import type { FormActionName } from "../../../types/domain/request";
+import type { FormActionName, RequestIdentity, FormRequestSource, RequestResponse } from "../../../types/domain/request";
 import {
     type ControllerActionInfo,
     type ScannedControllerActionParams,
@@ -40,27 +40,39 @@ export {
  * Active Consumer: Coordinates the assembly of a complete ScannedRequestTypeDescriptor
  * by actively instantiating form fields and actions from raw inputs.
  */
+export interface RequestActionDefinition {
+    readonly actionName: FormActionName;
+    readonly fields: readonly {
+        readonly name: string;
+        readonly type: SemanticType;
+        readonly presence: RequestFieldPresence;
+    }[];
+}
+
+/**
+ * Constructs the canonical request ADT from already-resolved semantic identity
+ * and source evidence. No legacy scalar resource projection is accepted.
+ */
 export function buildRequestTypeWithActions(
-    resourceName: string,
-    actionDefinitions: readonly {
-        readonly actionName: FormActionName;
-        readonly fields: readonly {
-            readonly name: string;
-            readonly type: SemanticType;
-            readonly presence: RequestFieldPresence;
-        }[];
-    }[]
+    identity: RequestIdentity,
+    source: FormRequestSource,
+    actionDefinitions: readonly RequestActionDefinition[],
+    response: RequestResponse = { kind: 'none' },
 ): ScannedRequestTypeDescriptor {
     const actions = relationProject(actionDefinitions, def => {
-        const fields = relationProject(def.fields, f => ScannedFormFieldDescriptor.fromResolved(f.name, f.type, f.presence));
+        const fields = relationProject(def.fields, field =>
+            ScannedFormFieldDescriptor.fromResolved(field.name, field.type, field.presence),
+        );
         return ScannedFormActionDescriptor.create({
             name: def.actionName,
-            fields
+            fields,
         });
     });
 
     return ScannedRequestTypeDescriptor.create({
-        resourceName,
-        actions
+        identity,
+        source,
+        actions,
+        response,
     });
 }

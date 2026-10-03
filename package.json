@@ -170,7 +170,10 @@
     "audit:phase715-resource-model-highest-interface": "node scripts/audit-phase715-resource-model-highest-interface.cjs",
     "audit:phase716-resource-model-highest-interface": "node scripts/audit-phase716-resource-model-highest-interface.cjs",
     "audit:phase717-resource-binding-export": "node scripts/audit-phase717-resource-binding-export.cjs",
-    "audit:phase718-resource-evidence-interface": "node scripts/audit-phase718-resource-evidence-interface.cjs"
+    "audit:phase718-resource-evidence-interface": "node scripts/audit-phase718-resource-evidence-interface.cjs",
+    "audit:phase720-php-ast-request-projector": "node scripts/audit-phase720-php-ast-request-projector.cjs",
+    "audit:phase721-resource-field-semantic-boundary": "node scripts/audit-phase721-resource-field-semantic-boundary.cjs",
+    "audit:phase722-resource-binding-import-frontier": "node scripts/audit-phase722-resource-binding-import-frontier.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

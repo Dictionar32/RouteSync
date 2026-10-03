@@ -25,8 +25,6 @@ export {
     type RouteSemanticFlowParams,
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams,
-    ScannedResourceFieldDescriptor,
-    type ScannedResourceFieldParams,
     compileBroadcastRuntimePattern,
     ScannedFormFieldDescriptor,
     type ScannedFormFieldParams,
@@ -40,6 +38,8 @@ export {
     type RequestActionDefinition,
     buildRequestTypeWithActions,
 } from "./descriptors";
+
+export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from "./semantic/resourceFieldSemanticBinding";
 
 export {
     collectPhpFiles,

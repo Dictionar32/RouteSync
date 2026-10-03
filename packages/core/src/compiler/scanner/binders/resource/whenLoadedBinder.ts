@@ -5,7 +5,7 @@ import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import type { RelationName } from "../../../../types/upstream/names";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 import { bindWhenLoadedResolution, resolveWhenLoadedRelation } from "./whenLoadedSemanticBinder";
-import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
 import { ErrorType } from "../../../types/SemanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";

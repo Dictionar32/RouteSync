@@ -6,7 +6,7 @@ import { toCamelCase } from "../../../../utils/resource-naming";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
-import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
 import { ErrorType, NullableType, type SemanticType } from "../../../types/SemanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
@@ -31,7 +31,7 @@ function bindColumn(key: string, isNullsafe: boolean, model: OriginModelSymbol, 
     const boundAst = BoundSemanticFactory.modelColumn({ model: model.name, column: value.source.column, dbType: value.source.databaseType, castType: { kind: 'no_cast' }, semanticType });
     const target = ResourceFieldExpressionFactory.model(model.name);
     const expression = accessExpression(target, isNullsafe, t => ResourceFieldExpressionFactory.propertyAccess(t, value.source.property), t => ResourceFieldExpressionFactory.nullsafePropertyAccess(t, value.source.property));
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { descriptor, boundAst };
 }
 
@@ -40,7 +40,7 @@ function bindAccessor(key: string, isNullsafe: boolean, model: OriginModelSymbol
     const boundAst = BoundSemanticFactory.methodCall({ targetModel: { kind: 'model', name: model.name }, methodName: value.source.method, returnType: semanticType, cardinality: { kind: 'single' }, nullability: toNullability(semanticType) });
     const target = ResourceFieldExpressionFactory.model(model.name);
     const expression = matchPhpAccessMode(relationResolve(isNullsafe, () => ({ kind: 'nullsafe' as const }), () => ({ kind: 'direct' as const })), { direct: () => ResourceFieldExpressionFactory.methodCall(target, value.source.method), nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target, value.source.method) });
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { descriptor, boundAst };
 }
 
@@ -48,13 +48,13 @@ function bindRelation(key: string, model: OriginModelSymbol, value: Extract<Retu
     const semanticType = value.semanticType;
     const boundAst = BoundSemanticFactory.relation({ sourceModel: model.name, relationName: value.source.relation, relationType: value.source.type, targetModel: value.source.targetModel, cardinality: value.source.boundCardinality, nullability: toNullability(semanticType), semanticType });
     const expression = ResourceFieldExpressionFactory.resource(SemanticValueFactory.resourceName(value.source.targetModel.value.value), value.source.resourceCardinality);
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { descriptor, boundAst };
 }
 
 function unresolved(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unresolved_property');
     const expression = ResourceFieldExpressionFactory.unsupported('unresolved_property');
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, scannerSemanticType.error('Model property could not be resolved'), toCamelCase(key), boundAst);
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, scannerSemanticType.error('Model property could not be resolved'), toCamelCase(key), boundAst);
     return { descriptor, boundAst };
 }

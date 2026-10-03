@@ -4,7 +4,7 @@ import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ModelSemanticRelation } from "../../../../types/upstream/model";
-import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
 import { ErrorType } from "../../../types/SemanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
@@ -51,14 +51,14 @@ function bindResolvedWhenLoaded(key: string, relation: ModelSemanticRelation): B
         { kind: 'resource_name', value: relation.targetModel.value },
         relation.resourceCardinality,
     );
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { descriptor, boundAst };
 }
 
 function unresolvedWhenLoaded(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unresolved_relation');
     const expression = ResourceFieldExpressionFactory.unsupported('unresolved_relation');
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(
         key, expression, scannerSemanticType.error('whenLoaded relation could not be resolved'), toCamelCase(key), boundAst,
     );
     return { descriptor, boundAst };

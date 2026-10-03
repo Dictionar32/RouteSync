@@ -9,7 +9,7 @@
 
 import type { ModelSymbolTable, OriginModelSymbol } from "../symbols/ModelSymbolTable";
 import type { PhpAstValue, PhpArrayEntry } from "../lexer/PhpAst";
-import type { ResourceFieldDescriptor } from "../../../types/route";
+import type { ResourceFieldSemanticBinding } from "../semantic/resourceFieldSemanticBinding";
 import type { BoundSemanticNode } from "../../../types/domain/boundAst";
 import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { ModelName, ResourceName, SourceFile } from "../../../types/upstream/names";
@@ -29,7 +29,7 @@ import {
 } from "./resource";
 
 export interface BoundResourceFieldResult {
-    readonly descriptor: ResourceFieldDescriptor;
+    readonly binding: ResourceFieldSemanticBinding;
     readonly boundAst: BoundSemanticNode;
 }
 

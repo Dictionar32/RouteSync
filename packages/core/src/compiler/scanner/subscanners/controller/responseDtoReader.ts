@@ -2,7 +2,7 @@ import { readSourceTextSync } from '../scannerUtils';
 /** Reads Laravel response DTOs into a verified contract boundary. */
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import type { ResourceFieldDescriptor } from '../../../../types/route';
-import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
+import { ResourceFieldSemanticBinding } from '../../semantic/resourceFieldSemanticBinding';
 import { type SemanticType } from '../../../types/SemanticType';
 import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
 import { createAstIdentifier } from '../../lexer/phpAstTypes';
@@ -44,7 +44,7 @@ function toField(property: ResponseDtoDeclarationAst['properties'][number]): Res
     const resolvedType = resolveSemanticType(property.type);
     const expression = toFieldExpression(property.type);
 
-    return ScannedResourceFieldDescriptor.fromExpression(
+    return ResourceFieldSemanticBinding.fromExpression(
         property.name, expression, resolvedType, property.name, BoundSemanticFactory.unsupported('parser_gap')
     );
 }

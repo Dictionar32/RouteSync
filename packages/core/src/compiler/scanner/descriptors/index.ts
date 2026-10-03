@@ -34,11 +34,6 @@ export {
 } from "./routeDescriptors";
 
 export {
-    ScannedResourceFieldDescriptor,
-    type ScannedResourceFieldParams,
-} from "./resourceDescriptors";
-
-export {
 } from "./modelDescriptors";
 
 export {

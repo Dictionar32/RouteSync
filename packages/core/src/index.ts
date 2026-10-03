@@ -932,8 +932,6 @@ export {
   type RouteSemanticFlowParams,
   type ScannedRouteParameterParams,
   type ScannedRouteQueryParameterParams,
-  ScannedResourceFieldDescriptor,
-  type ScannedResourceFieldParams,
   compileBroadcastRuntimePattern,
   ScannedFormFieldDescriptor,
   type ScannedFormFieldParams,
@@ -947,6 +945,8 @@ export {
   type RequestActionDefinition,
   buildRequestTypeWithActions,
 } from './compiler/scanner/descriptors'
+
+export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from './compiler/scanner/semantic/resourceFieldSemanticBinding'
 
 export {
   type RouteDomainResolutionContext,

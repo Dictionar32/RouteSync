@@ -8,8 +8,7 @@
  */
 
 import type { PhpAstNode, ArrayEntryAstNode } from './nodes';
-import { relationProject, relationResolve } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationProject, relationOptionFold, relationRefine } from '../../../semantic/kernel/relationalSequence';
 import type { PhpArgument, PhpPropertyName, PhpBlock, PhpStatement, PhpReturnExpression, ArrayKey } from './astValues';
 import type { PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode, BinaryAstNode, UnaryAstNode, TypeCastAstNode, TernaryAstNode, ArrayAstNode, LiteralAstNode, StaticConstantAstNode, VariableAstNode, UnsupportedAstNode } from './nodes';
 
@@ -37,9 +36,61 @@ export interface PhpAstVisitor<R> {
     readonly unsupported: (node: UnsupportedAstNode) => R;
 }
 
+const dispatchPhpAstKind = <K extends PhpAstNode['kind'], R>(
+    node: PhpAstNode,
+    kind: K,
+    handler: (value: Extract<PhpAstNode, { readonly kind: K }>) => R,
+    fallback: () => R,
+): R => relationOptionFold(
+    relationRefine(node, (candidate): candidate is Extract<PhpAstNode, { readonly kind: K }> => candidate.kind === kind),
+    fallback,
+    handler,
+);
+
 export function matchPhpAstNode<R>(node: PhpAstNode, visitor: PhpAstVisitor<R>): R {
-    const handler = visitor[node.kind];
-    return handler(node as never);
+    return dispatchPhpAstKind(node, 'property_lookup', visitor.property_lookup, () =>
+        dispatchPhpAstKind(node, 'nullsafe_property_lookup', visitor.nullsafe_property_lookup, () =>
+            dispatchPhpAstKind(node, 'offset_lookup', visitor.offset_lookup, () =>
+                dispatchPhpAstKind(node, 'static_property_lookup', visitor.static_property_lookup, () =>
+                    dispatchPhpAstKind(node, 'function_call', visitor.function_call, () =>
+                        dispatchPhpAstKind(node, 'method_call', visitor.method_call, () =>
+                            dispatchPhpAstKind(node, 'nullsafe_method_call', visitor.nullsafe_method_call, () =>
+                                dispatchPhpAstKind(node, 'static_method_call', visitor.static_method_call, () =>
+                                    dispatchPhpAstKind(node, 'variable_call', visitor.variable_call, () =>
+                                        dispatchPhpAstKind(node, 'new_instance', visitor.new_instance, () =>
+                                            dispatchPhpAstKind(node, 'closure', visitor.closure, () =>
+                                                dispatchPhpAstKind(node, 'arrow_func', visitor.arrow_func, () =>
+                                                    dispatchPhpAstKind(node, 'binary', visitor.binary, () =>
+                                                        dispatchPhpAstKind(node, 'unary', visitor.unary, () =>
+                                                            dispatchPhpAstKind(node, 'type_cast', visitor.type_cast, () =>
+                                                                dispatchPhpAstKind(node, 'ternary', visitor.ternary, () =>
+                                                                    dispatchPhpAstKind(node, 'array', visitor.array, () =>
+                                                                        dispatchPhpAstKind(node, 'literal', visitor.literal, () =>
+                                                                            dispatchPhpAstKind(node, 'static_constant', visitor.static_constant, () =>
+                                                                                dispatchPhpAstKind(node, 'variable', visitor.variable, () =>
+                                                                                    dispatchPhpAstKind(node, 'unsupported', visitor.unsupported, () => {
+                                                                                        throw Error('Unreachable PhpAstNode kind');
+                                                                                    })
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    );
 }
 
 export type FoldedPhpArgument<R> =
@@ -75,28 +126,30 @@ export type FoldedArrayKey<R> =
     | { readonly kind: 'implicit' }
     | { readonly kind: 'explicit'; readonly expression: R };
 
-function foldPhpArrayKey<R>(key: ArrayKey, folder: PhpAstFolder<R>): FoldedArrayKey<R> {
-    return relationResolve(
-        relationEqual(key.kind, 'implicit'),
-        () => ({ kind: 'implicit' as const }),
-        () => ({ kind: 'explicit' as const, expression: foldPhpAstNode(key.expression, folder) }),
+const foldPhpArrayKey = <R>(key: ArrayKey, folder: PhpAstFolder<R>): FoldedArrayKey<R> =>
+    relationOptionFold(
+        relationRefine(key, (candidate): candidate is Extract<ArrayKey, { readonly kind: 'explicit' }> => candidate.kind === 'explicit'),
+        () => ({ kind: 'implicit' }),
+        explicit => ({ kind: 'explicit', expression: foldPhpAstNode(explicit.expression, folder) }),
     );
-}
 
 const foldPhpArgumentValue = <R>(argument: PhpArgument, folder: PhpAstFolder<R>): R =>
     foldPhpAstNode(argument.value, folder);
 
-function foldPhpAstArgument<R>(argument: PhpArgument, folder: PhpAstFolder<R>): FoldedPhpArgument<R> {
-    return relationResolve(
-        relationEqual(argument.kind, 'positional'),
-        () => ({ kind: 'positional' as const, value: foldPhpArgumentValue(argument, folder) }),
-        () => relationResolve(
-            relationEqual(argument.kind, 'named'),
-            () => ({ kind: 'named' as const, name: argument.name, value: foldPhpArgumentValue(argument, folder) }),
-            () => ({ kind: 'unpacked' as const, value: foldPhpArgumentValue(argument, folder) }),
+const foldPhpAstArgument = <R>(argument: PhpArgument, folder: PhpAstFolder<R>): FoldedPhpArgument<R> =>
+    relationOptionFold(
+        relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'positional' }> => candidate.kind === 'positional'),
+        () => relationOptionFold(
+            relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'named' }> => candidate.kind === 'named'),
+            () => relationOptionFold(
+                relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'unpacked' }> => candidate.kind === 'unpacked'),
+                () => ({ kind: 'unpacked', value: foldPhpArgumentValue(argument, folder) }),
+                unpacked => ({ kind: 'unpacked', value: foldPhpArgumentValue(unpacked, folder) }),
+            ),
+            named => ({ kind: 'named', name: named.name, value: foldPhpArgumentValue(named, folder) }),
         ),
+        positional => ({ kind: 'positional', value: foldPhpArgumentValue(positional, folder) }),
     );
-}
 
 export type FoldedPhpReturnExpression<R> =
     | { readonly kind: 'value'; readonly value: R }
@@ -106,21 +159,23 @@ export type FoldedPhpStatement<R> =
     | { readonly kind: 'expression_statement'; readonly expression: R }
     | { readonly kind: 'return_statement'; readonly expression: FoldedPhpReturnExpression<R> };
 
-function foldPhpReturnExpression<R>(expression: PhpReturnExpression, folder: PhpAstFolder<R>): FoldedPhpReturnExpression<R> {
-    return relationResolve(
-        relationEqual(expression.kind, 'void'),
-        () => ({ kind: 'void' as const }),
-        () => ({ kind: 'value' as const, value: foldPhpAstNode(expression.value, folder) }),
+const foldPhpReturnExpression = <R>(expression: PhpReturnExpression, folder: PhpAstFolder<R>): FoldedPhpReturnExpression<R> =>
+    relationOptionFold(
+        relationRefine(expression, (candidate): candidate is Extract<PhpReturnExpression, { readonly kind: 'value' }> => candidate.kind === 'value'),
+        () => ({ kind: 'void' }),
+        value => ({ kind: 'value', value: foldPhpAstNode(value.value, folder) }),
     );
-}
 
-function foldPhpStatement<R>(statement: PhpStatement, folder: PhpAstFolder<R>): FoldedPhpStatement<R> {
-    return relationResolve(
-        relationEqual(statement.kind, 'expression_statement'),
-        () => ({ kind: 'expression_statement' as const, expression: foldPhpAstNode(statement.expression, folder) }),
-        () => ({ kind: 'return_statement' as const, expression: foldPhpReturnExpression(statement.expression, folder) }),
+const foldPhpStatement = <R>(statement: PhpStatement, folder: PhpAstFolder<R>): FoldedPhpStatement<R> =>
+    relationOptionFold(
+        relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { readonly kind: 'expression_statement' }> => candidate.kind === 'expression_statement'),
+        () => relationOptionFold(
+            relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { readonly kind: 'return_statement' }> => candidate.kind === 'return_statement'),
+            () => { throw Error('Unreachable PhpStatement kind'); },
+            returned => ({ kind: 'return_statement', expression: foldPhpReturnExpression(returned.expression, folder) }),
+        ),
+        expression => ({ kind: 'expression_statement', expression: foldPhpAstNode(expression.expression, folder) }),
     );
-}
 
 function foldPhpBlock<R>(block: PhpBlock, folder: PhpAstFolder<R>): readonly FoldedPhpStatement<R>[] {
     return relationProject(block.statements, statement => foldPhpStatement(statement, folder));
@@ -150,6 +205,5 @@ export function foldPhpAstNode<R>(node: PhpAstNode, folder: PhpAstFolder<R>): R 
         variable: (n) => folder.variable(n),
         unsupported: (n) => folder.unsupported(n)
     };
-    const handler = FOLD_DISPATCH[node.kind];
-    return handler(node as never);
+    return matchPhpAstNode(node, FOLD_DISPATCH);
 }

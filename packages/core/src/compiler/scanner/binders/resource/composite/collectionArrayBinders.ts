@@ -15,7 +15,7 @@ import {
 } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
-import { ScannedResourceFieldDescriptor } from "../../../descriptors/resourceDescriptors";
+import { ResourceFieldSemanticBinding } from "../../../semantic/resourceFieldSemanticBinding";
 import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
@@ -53,7 +53,7 @@ export function bindResourceCollectionField(
         SemanticValueFactory.resourceName(value.resourceName),
         cardinality
     );
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
         relationGate(isCollection,
@@ -83,7 +83,7 @@ export function bindNestedArrayField(
             () => relationGate(relationEqual(childEntry.key.kind, 'string'), () => childEntry.key.value, () => String(index)),
             () => String(index));
         const childResult = bindFieldFn({ key: childKey, value: childEntry.value, modelSymbol, modelSymbolTable });
-        return Object.freeze([...fields, childResult.descriptor]);
+        return Object.freeze([...fields, childResult.binding]);
     });
 
     const resultingType = scannerSemanticType.object({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' });
@@ -111,7 +111,7 @@ export function bindNestedArrayField(
         const type = requireResourceFieldType(field.semantic);
         return { name: field.propertyName, type, description: "", origin: { kind: 'derived' as const, reason: 'nested_object' as const } };
     });
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
         scannerSemanticType.object({ name: "InlineObject", baseName: "InlineObject", properties: objectProperties, role: "plain" }),

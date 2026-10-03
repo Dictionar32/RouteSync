@@ -372,8 +372,6 @@ export {
     type RouteSemanticFlowParams,
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams,
-    ScannedResourceFieldDescriptor,
-    type ScannedResourceFieldParams,
       compileBroadcastRuntimePattern,
     ScannedFormFieldDescriptor,
     type ScannedFormFieldParams,
@@ -402,4 +400,6 @@ export {
     SemanticTypeDeriver,
     TypeDeriver
 } from './scanner/StaticLaravelScanner';
+
+export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from './scanner/semantic/resourceFieldSemanticBinding';
 

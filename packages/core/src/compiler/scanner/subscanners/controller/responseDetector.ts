@@ -3,7 +3,7 @@ import type { Token } from '../lexer/types';
 import { ResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldDescriptor } from '../../../../types/route';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { toPascalCase } from '../../../../utils/resource-naming';
-import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
+import { ResourceFieldSemanticBinding } from '../../semantic/resourceFieldSemanticBinding';
 import { ResourceScanner } from '../ResourceScanner';
 import { ErrorType } from '../../../types/SemanticType';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
@@ -53,7 +53,7 @@ export function detectInlineResponse(source: string, tokens: readonly Token[], k
   const fields: ResourceFieldDescriptor[] = relationProject(json.parsed.entries, entry => {
     const mapped = ResourceScanner.resolveAstValueToExpression(entry.value);
     const semanticType = relationGate(relationEqual(mapped.semantic.kind, 'known'), () => mapped.semantic.type, () => ErrorType('Inline response field requires verified semantic binding'));
-    return ScannedResourceFieldDescriptor.fromExpression(entry.key, mapped.expression, semanticType, entry.key, BoundSemanticFactory.unsupported('parser_gap'));
+    return ResourceFieldSemanticBinding.fromExpression(entry.key, mapped.expression, semanticType, entry.key, BoundSemanticFactory.unsupported('parser_gap'));
   });
   const domain = resolveInlineDomain(controllerName, actionName);
   return relationGate(relationAll([shape, json.found, json.parsed.entries.length > 0]), () => relationSome(InlineResponseDescriptor.create({ domain, baseName: toPascalCase(domain), typeName: `${toPascalCase(domain)}Transformed`, fields, shape: 'single', origin: { kind: 'inferred', sourceFile: SemanticValueFactory.sourceFilePath('<inline>'), trace: Object.freeze([]) }, semanticContract: { kind: 'object', name: `${toPascalCase(domain)}Transformed`, shape: 'single', fields: Object.freeze([]) } })), () => relationNone());

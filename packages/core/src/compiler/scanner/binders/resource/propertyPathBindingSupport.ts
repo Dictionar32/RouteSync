@@ -5,7 +5,7 @@ import { ErrorType } from "../../../types/SemanticType";
 import type { ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import type { ModelName } from "../../../../types/domain/semanticValues";
-import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import { relationFold, relationProject, relationResolve } from "../../../../semantic/kernel/relationalSequence";
@@ -45,5 +45,5 @@ export function expressionForPath(rootModel: ModelName, steps: readonly Resource
 
 export function unresolved(key: string, reason: 'missing_property' | 'non_terminal_scalar' | 'missing_target_model'): BoundResourceFieldResult {
   const boundAst = BoundSemanticFactory.unsupported('unresolved_property');
-  return { descriptor: ScannedResourceFieldDescriptor.fromExpression(key, ResourceFieldExpressionFactory.unsupported('unresolved_property'), scannerSemanticType.error('Property path could not be resolved'), toCamelCase(key), boundAst), boundAst };
+  return { binding: ResourceFieldSemanticBinding.fromExpression(key, ResourceFieldExpressionFactory.unsupported('unresolved_property'), scannerSemanticType.error('Property path could not be resolved'), toCamelCase(key), boundAst), boundAst };
 }

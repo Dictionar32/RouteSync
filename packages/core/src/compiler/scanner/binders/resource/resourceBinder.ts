@@ -64,28 +64,6 @@ function modelRelation(relationName: import('../../../../types/upstream/names').
     return model.relation(relationName);
 }
 
-function fieldMeaning(field: ResourceFieldDescriptor, expression: Expression, resource: string, model: string, modelSymbol: import('../../../../compiler/scanner/symbols/model/originModelSymbol').OriginModelSymbol): ResourceFieldMeaning {
-    return relationGate(relationEqual(field.semantic.kind, 'verified'),
-        () => matchBoundSemantic<ResourceFieldMeaning>(field.semantic.bound, {
-            bound_model_column: () => ({ kind: 'property_projection', property: propertyRef(field.name.value), model: modelRef(model) }),
-            bound_relation: bound => relationGate(relationEqual(modelRelation(bound.relationName, modelSymbol).kind, 'found'),
-                () => ({ kind: 'relation_projection', relation: propertyRef(field.name.value), projection: { kind: 'value', expression } }),
-                () => ({ kind: 'computed_projection', expression })),
-            bound_primitive: () => ({ kind: 'computed_projection', expression }),
-            bound_model_reference: () => ({ kind: 'computed_projection', expression }),
-            bound_resource_reference: () => ({ kind: 'computed_projection', expression }),
-            bound_property_chain: () => ({ kind: 'computed_projection', expression }),
-            bound_conditional: () => ({ kind: 'computed_projection', expression }),
-            bound_binary: () => ({ kind: 'computed_projection', expression }),
-            bound_ternary: () => ({ kind: 'computed_projection', expression }),
-            bound_method_call: () => ({ kind: 'computed_projection', expression }),
-            bound_query_projection: () => ({ kind: 'computed_projection', expression }),
-            bound_projection_field: () => ({ kind: 'computed_projection', expression }),
-            bound_unsupported: () => ({ kind: 'computed_projection', expression }),
-        }),
-        () => ({ kind: 'computed_projection', expression }));
-}
-
 function operationDefault(argumentsAst: readonly import('../../lexer/phpAstTypes').PhpArgument[], index: number, file: string): ResourceOperationDefault {
     return relationGate(index < argumentsAst.length,
         () => ({ kind: 'expression', expression: resolveAstValueToExpression(argumentsAst[index].value, file).upstream }),

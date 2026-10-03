@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SemanticTypeResolver } from '../../../compiler/domain/common/SemanticTypeResolver';
 import { BoundSemanticFactory } from '../boundAst';
-import { ScannedResourceFieldDescriptor } from '../../../compiler/scanner/descriptors/resource/resourceFieldDescriptor';
+import { ResourceFieldSemanticBinding } from '../../../compiler/scanner/semantic/resourceFieldSemanticBinding';
 import { ResourceFieldExpressionFactory } from '../../route';
 import { SemanticValueFactory } from '../semanticValues';
 import { PrimitiveType } from '../../../compiler/types/SemanticType';
@@ -15,7 +15,7 @@ describe('phase 110 semantic field boundary', () => {
             resultingType: type,
             nullability: { kind: 'non_nullable' }
         });
-        const field = ScannedResourceFieldDescriptor.fromExpression(
+        const field = ResourceFieldSemanticBinding.fromExpression(
             'promotion',
             ResourceFieldExpressionFactory.primitive('string'),
             new PrimitiveType('boolean'),

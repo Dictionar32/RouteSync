@@ -1,6 +1,6 @@
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
-import { ScannedResourceFieldDescriptor } from "../../descriptors/resourceDescriptors";
+import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
 import type { ResourcePropertyPathResult } from "../../../../types/domain/resourcePropertyPathModel";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
@@ -17,7 +17,7 @@ export function bindPropertyPathField(key: string, value: Member, rootModel: Ori
     const resultingType = resolved.type;
     const boundAst = BoundSemanticFactory.propertyChain({ rootModel: resolved.rootModel.identity.name, steps, resultingType, nullability: relationResolve(resultingType.isNullable(), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })) });
     const expression = expressionForPath(resolved.rootModel.identity.name, resolved.steps);
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
+    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
     return { descriptor, boundAst };
   }, () => unresolved(key, (semanticPath as Exclude<ResourcePropertyPathResult, { kind: 'resolved' }>).reason));
 }

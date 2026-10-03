@@ -58,6 +58,22 @@ export type SemanticPresence<T> = {
 export const SEMANTIC_ABSENCE_REASON_KNOWLEDGE: readonly SemanticAbsenceReasonDefinition[] = Object.freeze(typedDefine(['not_applicable', 'not_provided', 'empty_clause', 'void_emission'] satisfies SemanticAbsenceReasonCode[], code => Object.freeze({ code }) satisfies SemanticAbsenceReasonDefinition));
 export const semanticPresent = <T>(value: T): SemanticPresence<T> => Object.freeze({ kind: 'present', value });
 export const semanticAbsent = <T>(code: SemanticAbsenceReasonCode): SemanticPresence<T> => Object.freeze({ kind: 'absent', reason: Object.freeze({ code }) });
+function semanticPresenceRefine<T, U extends T>(
+    value: SemanticPresence<T>,
+    predicate: (candidate: SemanticPresence<T>) => candidate is { readonly kind: 'present'; readonly value: U },
+): readonly { readonly kind: 'present'; readonly value: U }[];
+function semanticPresenceRefine<T>(
+    value: SemanticPresence<T>,
+    predicate: (candidate: SemanticPresence<T>) => boolean,
+): readonly SemanticPresence<T>[] {
+    return relationResolve(predicate(value), () => [value], () => []);
+}
+export function semanticPresenceFold<T, R1, R2>(presence: SemanticPresence<T>, absentBranch: () => R1, presentBranch: (value: T) => R2): R1 | R2;
+export function semanticPresenceFold<T, R>(presence: SemanticPresence<T>, absentBranch: () => R, presentBranch: (value: T) => R): R;
+export function semanticPresenceFold<T, R1, R2>(presence: SemanticPresence<T>, absentBranch: () => R1, presentBranch: (value: T) => R2): R1 | R2 {
+    const witnesses = semanticPresenceRefine(presence, (candidate): candidate is { readonly kind: 'present'; readonly value: T } => relationEqual(candidate.kind, 'present'));
+    return relationResolve(witnesses.length > 0, () => presentBranch(witnesses[0].value), absentBranch);
+}
 export interface SemanticKnowledgeIdentity {
     readonly kind: 'knowledge-identity';
     readonly source: SemanticSource;

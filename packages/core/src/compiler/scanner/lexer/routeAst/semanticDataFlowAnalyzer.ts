@@ -2,7 +2,7 @@ import { relationResolve } from '../../../relational/sequence';
 import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
 import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { relationFold } from '../../../../semantic/kernel/relationalSequence';
-import type { KnowledgeId, SemanticDataFlowFact, SemanticFlowGuard, SemanticKnowledgeDataFlow, SemanticPredicatePolarity, } from './semanticKnowledgeDataFlowRelations';
+import { semanticPresenceFold, type KnowledgeId, type SemanticDataFlowFact, type SemanticFlowGuard, type SemanticKnowledgeDataFlow, type SemanticPredicatePolarity, } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 import { typedDistinct, typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
@@ -30,7 +30,7 @@ export interface SemanticDataFlowJudgment {
     readonly closed: true;
 }
 const sameId = (left: KnowledgeId, right: KnowledgeId): boolean => relationEqual(knowledgeIdKey(left), knowledgeIdKey(right));
-const appendGuard = (guards: readonly SemanticFlowGuard[], guard: SemanticDataFlowFact['guard']): readonly SemanticFlowGuard[] => relationResolve(relationEqual(guard.kind, 'present'), () => [...guards, guard.value], () => guards);
+const appendGuard = (guards: readonly SemanticFlowGuard[], guard: SemanticDataFlowFact['guard']): readonly SemanticFlowGuard[] => semanticPresenceFold(guard, () => guards, value => [...guards, value]);
 const sameGuard = (left: SemanticFlowGuard, right: SemanticFlowGuard): boolean => relationAll([relationEqual(knowledgeIdKey(left.predicate), knowledgeIdKey(right.predicate)), relationEqual(left.polarity, right.polarity)]);
 const guardKey = (guard: SemanticFlowGuard): string => `${knowledgeIdKey(guard.predicate)}:${guard.polarity}`;
 const pathKey = (path: SemanticDataFlowPath): string => `${knowledgeIdKey(path.source)}>${knowledgeIdKey(path.target)}|${[...typedProject(typedRelation(path.guards), guardKey).tuples].sort().join(',')}`;

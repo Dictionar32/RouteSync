@@ -1,15 +1,9 @@
 /**
- * routeParameters.ts
- *
- * Scanned Route Parameter Descriptors (Path, Query, Header).
- * Active Consumer: Orchestrates route parameter descriptors.
- *
- * @module core/compiler/scanner/descriptors/route/routeParameters
+ * Canonical route parameter semantic boundary.
  */
 
 export {
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams,
-    ScannedRouteParameterDescriptor,
-    ScannedRouteQueryParameterDescriptor
+    RouteParameterSemanticFactory
 } from './params/index';

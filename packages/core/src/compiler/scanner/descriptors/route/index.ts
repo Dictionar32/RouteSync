@@ -15,8 +15,7 @@ export type {
 
 // 2. Sub-Domain Parameters (Path, Query, Header)
 export {
-    ScannedRouteParameterDescriptor,
-    ScannedRouteQueryParameterDescriptor,
+    RouteParameterSemanticFactory,
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams
 } from "./routeParameters";

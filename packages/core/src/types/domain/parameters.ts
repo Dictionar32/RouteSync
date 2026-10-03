@@ -17,8 +17,8 @@ export const RouteParameterLocation = Object.freeze({
 
 export type RouteParameterTypeKind = RouteParameterType['kind'];
 export const RouteParameterType = Object.freeze({
-  String: 'string' as const, Number: 'number' as const, Boolean: 'boolean' as const,
-  Uuid: 'uuid' as const, Ulid: 'ulid' as const, Date: 'date' as const, Slug: 'slug' as const
+  String: 'string' as const, Integer: 'integer' as const, Number: 'number' as const, Boolean: 'boolean' as const,
+  Uuid: 'uuid' as const, Ulid: 'ulid' as const, Date: 'date' as const, Slug: 'slug' as const, Model: 'model' as const
 });
 
 export interface RouteParameterTypeSpecification<K extends RouteParameterTypeKind = RouteParameterTypeKind> {
@@ -37,13 +37,15 @@ export type RouteParameterTypeRegistry = {
 };
 
 export const ROUTE_PARAMETER_TYPE_REGISTRY: RouteParameterTypeRegistry = Object.freeze({
+  [RouteParameterType.Integer]: { type: RouteParameterType.Integer, tsType: 'number', isNumeric: true, isStringLike: false, isIdentifier: true, pattern: '^\\d+$', zodValidator: 'z.coerce.number().int()', description: 'Integer path or query parameter' },
   [RouteParameterType.Number]: { type: RouteParameterType.Number, tsType: 'number', isNumeric: true, isStringLike: false, isIdentifier: true, pattern: '^\\d+$', zodValidator: 'z.coerce.number()', description: 'Numeric path or query parameter' },
   [RouteParameterType.String]: { type: RouteParameterType.String, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: false, pattern: '.*', zodValidator: 'z.string()', description: 'Generic string parameter' },
   [RouteParameterType.Boolean]: { type: RouteParameterType.Boolean, tsType: 'boolean', isNumeric: false, isStringLike: false, isIdentifier: false, pattern: '^(true|false|1|0)$', zodValidator: 'z.coerce.boolean()', description: 'Boolean flag parameter' },
   [RouteParameterType.Uuid]: { type: RouteParameterType.Uuid, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: true, pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$', zodValidator: 'z.string().uuid()', description: 'RFC 4122 Universally Unique Identifier' },
   [RouteParameterType.Ulid]: { type: RouteParameterType.Ulid, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: true, pattern: '^[0-7][0-9A-HJKMNP-TV-Z]{25}$', zodValidator: 'z.string().ulid()', description: 'Universally Unique Lexicographically Sortable Identifier' },
   [RouteParameterType.Date]: { type: RouteParameterType.Date, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: false, pattern: '^\\d{4}-\\d{2}-\\d{2}$', zodValidator: 'z.string().date()', description: 'ISO-8601 date parameter' },
-  [RouteParameterType.Slug]: { type: RouteParameterType.Slug, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: true, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', zodValidator: 'z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)', description: 'URL-friendly slug identifier' }
+  [RouteParameterType.Slug]: { type: RouteParameterType.Slug, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: true, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', zodValidator: 'z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)', description: 'URL-friendly slug identifier' },
+  [RouteParameterType.Model]: { type: RouteParameterType.Model, tsType: 'string', isNumeric: false, isStringLike: true, isIdentifier: true, pattern: '.*', zodValidator: 'z.string()', description: 'Laravel implicit model-bound route parameter' }
 });
 
 export type RouteParameterTypeVisitor<R> = {

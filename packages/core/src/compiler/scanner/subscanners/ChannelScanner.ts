@@ -9,7 +9,7 @@ import type { RouteParameter } from '../../../types/upstream/route';
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import type { TokenDescriptor } from '../lexer/phpAstTypes';
 import { createBroadcastChannel } from "../descriptors/channel/channelFactories";
-import { ScannedRouteParameterDescriptor } from '../descriptors/route/params/routeParameterDescriptorClass';
+import { RouteParameterSemanticFactory } from '../semantic/route/routeParameterSemanticFactory';
 import { channelProducer } from './channelProducer';
 import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
 import { relationGate, relationProject } from '../../../semantic/kernel/relationalSequence';
@@ -107,6 +107,6 @@ export class ChannelScanner {
 
     public static extractPathParams(routePath: string): readonly RouteParameter[] {
         const matches = Array.from(routePath.matchAll(/\{([^}]+)\}/g));
-        return relationProject(matches, match => ScannedRouteParameterDescriptor.fromPathSegment(match[1]));
+        return relationProject(matches, match => RouteParameterSemanticFactory.fromPathSegment(match[1]));
     }
 }

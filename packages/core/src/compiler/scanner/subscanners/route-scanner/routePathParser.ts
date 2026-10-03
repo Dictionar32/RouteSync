@@ -10,7 +10,7 @@ import type { RouteParameter } from "../../../../types/upstream/route";
 import { createRoutePath, type RoutePath } from "../../../../types/upstream/names";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ResourceName } from "../../../../types/upstream/names";
-import { ScannedRouteParameterDescriptor } from "../../descriptors/routeDescriptors";
+import { RouteParameterSemanticFactory } from "../../descriptors/routeDescriptors";
 import { relationGate, relationProject, relationSelect, relationResolve, relationAll } from "../../../relational/sequence";
 import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from "../../../../semantic/kernel/relationalSequence";
 import { relationNotEqual } from "../../../../semantic/kernel/semanticRelations";
@@ -57,7 +57,7 @@ export function resolveRoutePath(
 
 export function extractPathParams(routePath: RoutePath): readonly RouteParameter[] {
     const matches = [...routePath.value.value.matchAll(/\{([^}]+)\}/g)];
-    return Object.freeze(relationProject(matches, match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
+    return Object.freeze(relationProject(matches, match => RouteParameterSemanticFactory.fromPathSegment(match[1])));
 }
 
 /** @deprecated Use resolveRoutePath. */

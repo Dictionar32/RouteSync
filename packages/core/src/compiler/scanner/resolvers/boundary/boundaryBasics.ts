@@ -8,7 +8,7 @@ import type { RouteActionKind, RouteParameter, RouteQueryParameter } from "../..
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath } from "../../../../types/upstream/names";
 import { HTTP_METHOD_REGISTRY, ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
-import { ScannedRouteParameterDescriptor } from "../../descriptors/routeDescriptors";
+import { RouteParameterSemanticFactory } from "../../descriptors/routeDescriptors";
 import { toCamelCase, toSnakeCase } from "../../../../utils/resource-naming";
 import { RouteDomainResolver } from "../RouteDomainResolver";
 import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from "../../../../semantic/kernel/semanticRelations";
@@ -163,7 +163,7 @@ export const resolveRouteBoundaryBasicsJudgment = (input: RouteBoundaryBasicsSem
         boundaryPresence(input.pathParameters),
         relationOptionFold(
             relationFirstOption(inputParameters, () => true),
-            () => relationProject(relationTextEnclosedFields(path, "{", "}"), value => ScannedRouteParameterDescriptor.fromPathSegment(value)),
+            () => relationProject(relationTextEnclosedFields(path, "{", "}"), value => RouteParameterSemanticFactory.fromPathSegment(value)),
             () => relationSelect(inputParameters, parameter => relationEqual(parameter.location.kind, "path")),
         ),
     );

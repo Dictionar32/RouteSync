@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { ScannedRouteParameterDescriptor } from './routeParameterDescriptorClass';
+import { RouteParameterSemanticFactory } from '../../../semantic/route/routeParameterSemanticFactory';
 
 describe('Laravel route parameter semantics', () => {
   it('keeps ordinary placeholders as convention parameters', () => {
-    const parameter = ScannedRouteParameterDescriptor.fromPathSegment('user');
+    const parameter = RouteParameterSemanticFactory.fromPathSegment('user');
     expect(parameter.binding.kind).toBe('convention');
     expect(parameter.type).toEqual({ kind: 'string' });
   });
 
   it('represents {post:slug} as implicit model binding with a custom key', () => {
-    const parameter = ScannedRouteParameterDescriptor.fromPathSegment('post:slug');
+    const parameter = RouteParameterSemanticFactory.fromPathSegment('post:slug');
     expect(parameter.binding).toEqual({
       kind: 'implicit_model',
       model: { kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: 'Post' } } },

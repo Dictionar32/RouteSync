@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { ParsedChannel, ScannedRouteParameterDescriptor, ScannedBroadcastChannelDescriptor } from '@routesync/core'
+import { ParsedChannel, RouteParameterSemanticFactory, ScannedBroadcastChannelDescriptor } from '@routesync/core'
 
 export class LaravelChannelParser {
   async parse(channelFilePath: string = 'routes/channels.php'): Promise<ParsedChannel[]> {
@@ -16,7 +16,7 @@ export class LaravelChannelParser {
     while ((match = regex.exec(content)) !== null) {
       const pattern = match[1]
       const paramMatches = Array.from(pattern.matchAll(/\{([^}]+)\}/g))
-      const parameters = paramMatches.map(m => ScannedRouteParameterDescriptor.fromPathSegment(m[1]))
+      const parameters = paramMatches.map(m => RouteParameterSemanticFactory.fromPathSegment(m[1]))
 
       channels.push(ScannedBroadcastChannelDescriptor.fromPattern({
         name: pattern,

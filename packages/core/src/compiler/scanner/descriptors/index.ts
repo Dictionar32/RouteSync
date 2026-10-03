@@ -25,8 +25,7 @@ export {
 
 export {
     RouteSemanticFlowFactory,
-    ScannedRouteParameterDescriptor,
-    ScannedRouteQueryParameterDescriptor,
+    RouteParameterSemanticFactory,
     type RouteSemanticFlowCompleteContracts,
     type RouteSemanticFlowConstructorInput,
     type RouteSemanticFlowParams,

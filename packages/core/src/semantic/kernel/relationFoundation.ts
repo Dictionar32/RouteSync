@@ -44,6 +44,17 @@ export type RelationNone = { readonly kind: 'none' };
 export const relationIsSome = <T>(option: RelationOption<T>): option is RelationSome<T> => relationEqual(option.kind, 'some');
 export const relationIsNone = <T>(option: RelationOption<T>): option is RelationNone => relationEqual(option.kind, 'none');
 
+function relationRefineSingleton<T, U extends T>(
+  value: T,
+  predicate: (candidate: T) => candidate is U,
+): readonly U[];
+function relationRefineSingleton<T>(
+  value: T,
+  predicate: (candidate: T) => boolean,
+): readonly T[] {
+  return relationResolve(predicate(value), () => [value], () => []);
+}
+
 export function relationOptionFold<T, R>(
   option: RelationOption<T>,
   noneBranch: () => R,
@@ -59,7 +70,8 @@ export function relationOptionFold<T, R1, R2>(
   noneBranch: () => R1,
   someBranch: (value: T) => R2,
 ): R1 | R2 {
-  return relationResolve(relationEqual(option.kind, 'some'), () => someBranch(option.value), noneBranch);
+  const witnesses = relationRefineSingleton(option, relationIsSome);
+  return relationResolve(witnesses.length > 0, () => someBranch(witnesses[0].value), noneBranch);
 }
 
 export const RELATION_NONE: unique symbol = Symbol('relation-none');

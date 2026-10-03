@@ -98,7 +98,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
             }>) => {
                 {
                     const receiver = expression(value.receiver, `${base}:receiver`);
-                    const id = add({ kind: 'access', value: { id: base, receiver, member: semanticIdentifier(value.property), mode: semanticAccessMode(value.access.kind), source } });
+                    const id = add({ kind: 'access', value: { id: base, receiver, member: { kind: 'identifier', value: semanticIdentifier(value.property) }, mode: semanticAccessMode(value.access.kind), source } });
                     relate(id, receiver, 'depends_on', 'receiver');
                     return id;
                 }
@@ -109,7 +109,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                 {
                     const receiver = expression(value.target, `${base}:target`);
                     const index = expression(value.index, `${base}:index`);
-                    const id = add({ kind: 'access', value: { id: base, receiver, member: index, mode: semanticAccessMode('direct'), source } });
+                    const id = add({ kind: 'access', value: { id: base, receiver, member: { kind: 'knowledge-id', value: index }, mode: semanticAccessMode('direct'), source } });
                     relate(id, receiver, 'depends_on', 'receiver');
                     relate(id, index, 'depends_on', 'index');
                     return id;

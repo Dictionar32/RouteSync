@@ -117,14 +117,14 @@ export function producePhpAstSemanticKnowledgeDataFlow(block: PhpBlock, filePath
             variable: () => semanticVariable(target.name, source),
             property: () => {
                 const receiver = expression(target.receiver, `${id}:receiver`);
-                const accessId = add({ kind: 'access', value: { id, receiver, member: semanticIdentifier(target.property), mode: semanticAccessMode('direct'), source } });
+                const accessId = add({ kind: 'access', value: { id, receiver, member: { kind: 'identifier', value: semanticIdentifier(target.property) }, mode: semanticAccessMode('direct'), source } });
                 relate(accessId, receiver, 'depends_on', 'receiver');
                 return accessId;
             },
             array_element: () => {
                 const receiver = expression(target.target, `${id}:target`);
                 const index = expression(target.index, `${id}:index`);
-                const accessId = add({ kind: 'access', value: { id, receiver, member: index, mode: semanticAccessMode('direct'), source } });
+                const accessId = add({ kind: 'access', value: { id, receiver, member: { kind: 'knowledge-id', value: index }, mode: semanticAccessMode('direct'), source } });
                 relate(accessId, receiver, 'depends_on', 'receiver');
                 relate(accessId, index, 'depends_on', 'index');
                 return accessId;

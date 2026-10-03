@@ -405,10 +405,17 @@ export interface SemanticAccessModeDefinition {
     readonly code: SemanticAccessModeCode;
 }
 export const SEMANTIC_ACCESS_MODE_KNOWLEDGE: readonly SemanticAccessModeDefinition[] = Object.freeze(typedDefine(['direct', 'nullsafe'] satisfies SemanticAccessModeCode[], code => Object.freeze({ code }) satisfies SemanticAccessModeDefinition));
+export type SemanticAccessMember = {
+    readonly kind: 'knowledge-id';
+    readonly value: KnowledgeId;
+} | {
+    readonly kind: 'identifier';
+    readonly value: SemanticIdentifier;
+};
 export interface SemanticAccess {
     readonly id: KnowledgeId;
     readonly receiver: KnowledgeId;
-    readonly member: SemanticIdentifier | KnowledgeId;
+    readonly member: SemanticAccessMember;
     readonly mode: SemanticAccessModeDefinition;
     readonly source: SemanticSource;
 }

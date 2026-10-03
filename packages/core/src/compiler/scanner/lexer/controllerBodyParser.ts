@@ -144,10 +144,10 @@ function parseErrorStatus(tokens: readonly TokenDescriptor[], index: number): Re
     const token = tokenAt(tokens, index);
     const next = tokenAt(tokens, index + 1);
     const statusToken = tokenAt(tokens, index + 2);
-    const abort = relationOptionFold(token, () => relationNone<TokenDescriptor>(), current =>
-        relationOptionFold(next, () => relationNone<TokenDescriptor>(), open =>
+    const abort = relationOptionFold(token, () => relationNone<number>(), current =>
+        relationOptionFold(next, () => relationNone<number>(), open =>
             relationGate(relationAll([relationEqual(current.value, 'abort'), relationEqual(open.value, '(')]), () =>
-                relationOptionFold(statusToken, () => relationNone<TokenDescriptor>(), status => numericStatus(status.value)),
+                relationOptionFold(statusToken, () => relationNone<number>(), status => numericStatus(status.value)),
                 () => relationNone<number>())));
     return relationOptionFold(abort, () => parseJsonStatus(tokens, index), value => relationSome(value));
 }
@@ -156,9 +156,9 @@ function parseJsonStatus(tokens: readonly TokenDescriptor[], index: number): Rel
     const previous = tokenAt(tokens, index - 1);
     const token = tokenAt(tokens, index);
     const open = tokenAt(tokens, index + 1);
-    return relationOptionFold(previous, () => relationNone<TokenDescriptor>(), previousToken =>
-        relationOptionFold(token, () => relationNone<TokenDescriptor>(), current =>
-            relationOptionFold(open, () => relationNone<TokenDescriptor>(), openToken =>
+    return relationOptionFold(previous, () => relationNone<number>(), previousToken =>
+        relationOptionFold(token, () => relationNone<number>(), current =>
+            relationOptionFold(open, () => relationNone<number>(), openToken =>
                 relationGate(relationAll([relationEqual(previousToken.value, '->'), relationEqual(current.value, 'json'), relationEqual(openToken.value, '(')]), () =>
                     scanJsonStatus(tokens, index + 2, 1),
                     () => relationNone<number>()))));
@@ -166,11 +166,11 @@ function parseJsonStatus(tokens: readonly TokenDescriptor[], index: number): Rel
 
 function scanJsonStatus(tokens: readonly TokenDescriptor[], cursor: number, depth: number): RelationOption<number> {
     const current = tokenAt(tokens, cursor);
-    return relationOptionFold(current, () => relationNone<TokenDescriptor>(), token => {
+    return relationOptionFold(current, () => relationNone<number>(), token => {
         const nextDepth = relationGate(relationAny([relationEqual(token.value, '('), relationEqual(token.value, '[')]), () => depth + 1,
             () => relationGate(relationAny([relationEqual(token.value, ')'), relationEqual(token.value, ']')]), () => depth - 1, () => depth));
         const candidate = relationGate(relationAll([relationEqual(depth, 1), relationEqual(token.value, ',')]), () =>
-            relationOptionFold(tokenAt(tokens, cursor + 1), () => relationNone<TokenDescriptor>(), status => numericStatus(status.value)),
+            relationOptionFold(tokenAt(tokens, cursor + 1), () => relationNone<number>(), status => numericStatus(status.value)),
             () => relationNone<number>());
         return relationOptionFold(candidate,
             () => relationGate(relationAny([relationEqual(token.value, ';'), relationEqual(nextDepth, 0)]),

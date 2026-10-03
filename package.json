@@ -185,7 +185,8 @@
     "audit:phase734-model-relation-target-interface": "node scripts/audit-phase734-model-relation-target-interface.cjs",
     "audit:phase735-relation-option-fold-foundation": "node scripts/audit-phase735-relation-option-fold-foundation.cjs",
     "audit:phase736-scanner-ast-interface": "node scripts/audit-phase736-scanner-ast-interface.cjs",
-    "audit:phase737-scanner-presence-frontier": "node scripts/audit-phase737-scanner-presence-frontier.cjs"
+    "audit:phase737-scanner-presence-frontier": "node scripts/audit-phase737-scanner-presence-frontier.cjs",
+    "audit:phase738-upstream-access-adt": "node scripts/audit-phase738-upstream-access-adt.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

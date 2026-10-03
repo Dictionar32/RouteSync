@@ -1,7 +1,5 @@
-import { relationResolve } from '../../../relational/sequence';
-import { absent, present, type Presence } from '../../../../types/upstream/presence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import type { KnowledgeId, SemanticAssignment, SemanticDataFlowFact, SemanticFact, SemanticKnowledgeDataFlow, SemanticAccess, SemanticMerge, SemanticSource, SemanticIdentifier, } from './semanticKnowledgeDataFlowRelations';
+import type { KnowledgeId, SemanticAssignment, SemanticDataFlowFact, SemanticFact, SemanticKnowledgeDataFlow, SemanticAccess, SemanticMerge, SemanticSource, } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import { relationVariantValue, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
@@ -19,13 +17,7 @@ export type SemanticStateLocation = {
 } | {
     readonly kind: 'member';
     readonly receiver: KnowledgeId;
-    readonly member: {
-        readonly kind: 'knowledge-id';
-        readonly value: KnowledgeId;
-    } | {
-        readonly kind: 'identifier';
-        readonly value: SemanticIdentifier;
-    };
+    readonly member: SemanticAccessMember;
 };
 export type SemanticStateAccessKind = 'def' | 'use' | 'merge';
 export interface SemanticStateDef {
@@ -46,7 +38,7 @@ export interface SemanticStateMerge {
     readonly id: KnowledgeId;
     readonly location: SemanticStateLocation;
     readonly incoming: readonly KnowledgeId[];
-    readonly selector: Presence<KnowledgeId>;
+    readonly selector: SemanticPresence<KnowledgeId>;
     readonly source: SemanticSource;
 }
 export type SemanticStateAccess = SemanticStateDef | SemanticStateUse | SemanticStateMerge;
@@ -90,7 +82,7 @@ const accessUse = (access: SemanticAccess): SemanticStateUse => ({
     location: {
         kind: 'member',
         receiver: access.receiver,
-        member: relationResolve(relationEqual(access.member.kind, 'knowledge-id'), () => ({ kind: 'knowledge-id', value: access.member }), () => ({ kind: 'identifier', value: access.member })),
+        member: relationVariantValue(access.member, access.member.kind),
     },
     source: access.source,
 });
@@ -104,7 +96,7 @@ const mergeFacts = (facts: readonly SemanticFact[]): readonly SemanticStateMerge
         id: merge.id,
         location: { kind: 'variable' as const, variable: merge.id },
         incoming: merge.values,
-        selector: relationResolve(relationEqual(merge.selector.kind, 'present'), () => present(merge.selector.value), () => absent<KnowledgeId>()),
+        selector: merge.selector,
         source: merge.source,
     };
 }).tuples;

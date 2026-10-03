@@ -93,37 +93,40 @@ const VALUE_FACTS: Catalog<LexicalFact> = Object.freeze([
   ['class', { kind: 'class_keyword', value: 'class' }],
 ]);
 
-export const SYNTAX_KIND_GROUPS = Object.freeze({
-  strings: Object.freeze(['string']),
-  identifiers: Object.freeze(['identifier']),
-  routeRoots: Object.freeze(['route']),
-  separators: Object.freeze(['separator']),
-  groups: Object.freeze(['group']),
-  statementEnds: Object.freeze(['statement_end']),
-  commas: Object.freeze(['comma']),
-  openParens: Object.freeze(['open_paren']),
-  closeParens: Object.freeze(['close_paren']),
-  arrows: Object.freeze(['arrow']),
-  classKeywords: Object.freeze(['class_keyword']),
-  arrayOpeners: Object.freeze(['open_bracket', 'open_brace']),
-  arrayClosers: Object.freeze(['close_bracket', 'close_brace']),
+export const SYNTAX_KIND_GROUPS: Readonly<{
+  readonly strings: readonly SyntaxTokenFact['kind'][];
+  readonly identifiers: readonly SyntaxTokenFact['kind'][];
+  readonly routeRoots: readonly SyntaxTokenFact['kind'][];
+  readonly separators: readonly SyntaxTokenFact['kind'][];
+  readonly groups: readonly SyntaxTokenFact['kind'][];
+  readonly statementEnds: readonly SyntaxTokenFact['kind'][];
+  readonly commas: readonly SyntaxTokenFact['kind'][];
+  readonly openParens: readonly SyntaxTokenFact['kind'][];
+  readonly closeParens: readonly SyntaxTokenFact['kind'][];
+  readonly arrows: readonly SyntaxTokenFact['kind'][];
+  readonly classKeywords: readonly SyntaxTokenFact['kind'][];
+  readonly arrayOpeners: readonly SyntaxTokenFact['kind'][];
+  readonly arrayClosers: readonly SyntaxTokenFact['kind'][];
+}> = Object.freeze({
+  strings: Object.freeze(['string']), identifiers: Object.freeze(['identifier']), routeRoots: Object.freeze(['route']),
+  separators: Object.freeze(['separator']), groups: Object.freeze(['group']), statementEnds: Object.freeze(['statement_end']),
+  commas: Object.freeze(['comma']), openParens: Object.freeze(['open_paren']), closeParens: Object.freeze(['close_paren']),
+  arrows: Object.freeze(['arrow']), classKeywords: Object.freeze(['class_keyword']),
+  arrayOpeners: Object.freeze(['open_bracket', 'open_brace']), arrayClosers: Object.freeze(['close_bracket', 'close_brace']),
 });
 
-export const SYNTAX_OPERATION_GROUPS = Object.freeze({
-  withTrashed: Object.freeze(['withTrashed']),
-  actionFilters: Object.freeze(['only', 'except']),
-  pairMaps: Object.freeze(['names', 'parameters']),
-  scoped: Object.freeze(['scoped']),
-  resourceActions: Object.freeze(['shallow', 'creatable', 'destroyable']),
-  names: Object.freeze(['names']),
-  parameters: Object.freeze(['parameters']),
-  shallow: Object.freeze(['shallow']),
-  creatable: Object.freeze(['creatable']),
-  destroyable: Object.freeze(['destroyable']),
-  middlewareFor: Object.freeze(['middlewareFor']),
-  withoutMiddlewareFor: Object.freeze(['withoutMiddlewareFor']),
-  middleware: Object.freeze(['middleware', 'middlewareFor', 'withoutMiddlewareFor']),
-  missing: Object.freeze(['missing']),
+export const SYNTAX_OPERATION_GROUPS: Readonly<{
+  readonly withTrashed: readonly SyntaxOperation[]; readonly actionFilters: readonly SyntaxOperation[]; readonly pairMaps: readonly SyntaxOperation[];
+  readonly scoped: readonly SyntaxOperation[]; readonly resourceActions: readonly SyntaxOperation[]; readonly names: readonly SyntaxOperation[];
+  readonly parameters: readonly SyntaxOperation[]; readonly shallow: readonly SyntaxOperation[]; readonly creatable: readonly SyntaxOperation[];
+  readonly destroyable: readonly SyntaxOperation[]; readonly middlewareFor: readonly SyntaxOperation[]; readonly withoutMiddlewareFor: readonly SyntaxOperation[];
+  readonly middleware: readonly SyntaxOperation[]; readonly missing: readonly SyntaxOperation[];
+}> = Object.freeze({
+  withTrashed: Object.freeze(['withTrashed']), actionFilters: Object.freeze(['only', 'except']), pairMaps: Object.freeze(['names', 'parameters']),
+  scoped: Object.freeze(['scoped']), resourceActions: Object.freeze(['shallow', 'creatable', 'destroyable']), names: Object.freeze(['names']),
+  parameters: Object.freeze(['parameters']), shallow: Object.freeze(['shallow']), creatable: Object.freeze(['creatable']), destroyable: Object.freeze(['destroyable']),
+  middlewareFor: Object.freeze(['middlewareFor']), withoutMiddlewareFor: Object.freeze(['withoutMiddlewareFor']),
+  middleware: Object.freeze(['middleware', 'middlewareFor', 'withoutMiddlewareFor']), missing: Object.freeze(['missing']),
 });
 
 const lookupValue = <T>(catalog: Catalog<T>, key: string): RelationOption<T> => {

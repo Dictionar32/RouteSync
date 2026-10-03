@@ -16,9 +16,23 @@ import {
     relationEqual,
     relationAll,
     relationAny,
+    relationRefine,
+    relationSome,
+    relationNone,
     type RelationOption,
 } from '../../../semantic/kernel/relationalSequence';
 import type { PhpArrayEntry, PhpArrayKey } from './PhpAst';
+import type { RelationVariant } from '../../../semantic/kernel/relationalSequence';
+
+type ControllerParseState = Readonly<{
+    readonly validations: readonly InlineValidationAst[];
+    readonly errors: readonly ControllerErrorAst[];
+}>;
+
+const emptyControllerParseState = (): ControllerParseState => Object.freeze({
+    validations: Object.freeze([]),
+    errors: Object.freeze([]),
+});
 
 export function parseControllerBody(
     source: string,
@@ -29,22 +43,20 @@ export function parseControllerBody(
 ): ControllerBodyAst {
     const state = relationFold(
         tokens,
-        { validations: [] as InlineValidationAst[], errors: [] as ControllerErrorAst[] },
+        emptyControllerParseState(),
         (current, token, index) => {
-            const validation = relationOptionFold(
-                parseValidation(tokens, source, index),
-                () => ({ kind: 'none' as const }),
-                parsed => ({ kind: 'validation' as const, parsed }),
-            );
+            const validation = parseValidation(tokens, source, index);
             const next = relationOptionFold(
-                relationGate(relationEqual(validation.kind, 'validation'),
-                    () => ({ kind: 'none' as const }),
-                    () => parseErrorStatus(tokens, index)),
+                validation,
+                () => relationOptionFold(
+                    parseErrorStatus(tokens, index),
+                    () => current,
+                    status => ({
+                        validations: current.validations,
+                        errors: [...current.errors, { status: createHttpErrorStatus(status), source: token }],
+                    }),
+                ),
                 () => current,
-                status => ({
-                    validations: current.validations,
-                    errors: [...current.errors, { status: createHttpErrorStatus(status), source: token }],
-                }),
             );
             return relationOptionFold(
                 validation,
@@ -83,28 +95,41 @@ function parseValidation(
 ): RelationOption<{ readonly entries: readonly PhpArrayEntry[]; readonly endIndex: number }> {
     const token = tokenAt(tokens, index);
     const open = tokenAt(tokens, index + 1);
-    return relationOptionFold(token, () => ({ kind: 'none' }), current =>
-        relationOptionFold(open, () => ({ kind: 'none' }), next =>
-            relationGate(relationAll([relationEqual(current.value, 'validate'), relationEqual(next.value, '(')]), () => {
-                const parsed = parsePhpArray(source, tokens, index + 1);
-                return { kind: 'some', value: { entries: parsed.entries, endIndex: parsed.endIndex } };
-            }, () => ({ kind: 'none' }))));
+    return relationOptionFold(token, relationNone, current =>
+        relationOptionFold(open, relationNone, next =>
+            relationGate(
+                relationAll([relationEqual(current.value, 'validate'), relationEqual(next.value, '(')]),
+                () => {
+                    const parsed = parsePhpArray(source, tokens, index + 1);
+                    return relationSome({ entries: parsed.entries, endIndex: parsed.endIndex });
+                },
+                relationNone,
+            ),
+        ),
+    );
 }
 
 function toValidations(entries: readonly PhpArrayEntry[], source: TokenDescriptor): readonly InlineValidationAst[] {
     return relationProject(entries, entry => {
-        const keyed = requireStringArrayKey(entry.key);
+        const keyed = relationRefine(
+            entry,
+            (candidate): candidate is RelationVariant<PhpArrayEntry, 'keyed'> => relationEqual(candidate.kind, 'keyed'),
+        );
         return relationOptionFold(
             keyed,
             () => { throw Error('Validation rules require keyed PHP array entries'); },
-            field => {
-                const raw = relationOptionFold(
-                    relationGate(relationAll([relationEqual(entry.value.kind, 'literal'), relationEqual(entry.value.literalType, 'string')]),
-                        () => ({ kind: 'some' as const, value: entry.value.value }),
-                        () => ({ kind: 'none' as const })),
-                    () => '',
+            current => {
+                const field = relationOptionFold(
+                    requireStringArrayKey(current.value),
+                    () => { throw Error('Validation rule keys require string keys'); },
                     value => value,
                 );
+                const literal = relationRefine(
+                    current.value,
+                    (candidate): candidate is Extract<typeof candidate, { readonly kind: 'literal'; readonly literalType: 'string' }> =>
+                        relationAll([relationEqual(candidate.kind, 'literal'), relationEqual(candidate.literalType, 'string')]),
+                );
+                const raw = relationOptionFold(literal, () => '', value => value.value);
                 const rules = relationSelect(raw.split('|'), rule => rule.length > 0);
                 return Object.freeze({
                     field: createAstIdentifier(field),
@@ -120,55 +145,59 @@ function parseErrorStatus(tokens: readonly TokenDescriptor[], index: number): Re
     const token = tokenAt(tokens, index);
     const next = tokenAt(tokens, index + 1);
     const statusToken = tokenAt(tokens, index + 2);
-    const abort = relationOptionFold(token, () => ({ kind: 'none' }), current =>
-        relationOptionFold(next, () => ({ kind: 'none' }), open =>
+    const abort = relationOptionFold(token, () => (relationNone()), current =>
+        relationOptionFold(next, () => (relationNone()), open =>
             relationGate(relationAll([relationEqual(current.value, 'abort'), relationEqual(open.value, '(')]), () =>
-                relationOptionFold(statusToken, () => ({ kind: 'none' }), status => numericStatus(status.value)),
-                () => ({ kind: 'none' }))));
-    return relationOptionFold(abort, () => parseJsonStatus(tokens, index), value => ({ kind: 'some', value }));
+                relationOptionFold(statusToken, () => (relationNone()), status => numericStatus(status.value)),
+                () => (relationNone()))));
+    return relationOptionFold(abort, () => parseJsonStatus(tokens, index), value => (relationSome(value)));
 }
 
 function parseJsonStatus(tokens: readonly TokenDescriptor[], index: number): RelationOption<number> {
     const previous = tokenAt(tokens, index - 1);
     const token = tokenAt(tokens, index);
     const open = tokenAt(tokens, index + 1);
-    return relationOptionFold(previous, () => ({ kind: 'none' }), previousToken =>
-        relationOptionFold(token, () => ({ kind: 'none' }), current =>
-            relationOptionFold(open, () => ({ kind: 'none' }), openToken =>
+    return relationOptionFold(previous, () => (relationNone()), previousToken =>
+        relationOptionFold(token, () => (relationNone()), current =>
+            relationOptionFold(open, () => (relationNone()), openToken =>
                 relationGate(relationAll([relationEqual(previousToken.value, '->'), relationEqual(current.value, 'json'), relationEqual(openToken.value, '(')]), () =>
                     scanJsonStatus(tokens, index + 2, 1),
-                    () => ({ kind: 'none' })))));
+                    () => (relationNone())))));
 }
 
 function scanJsonStatus(tokens: readonly TokenDescriptor[], cursor: number, depth: number): RelationOption<number> {
     const current = tokenAt(tokens, cursor);
-    return relationOptionFold(current, () => ({ kind: 'none' }), token => {
+    return relationOptionFold(current, () => (relationNone()), token => {
         const nextDepth = relationGate(relationAny([relationEqual(token.value, '('), relationEqual(token.value, '[')]), () => depth + 1,
             () => relationGate(relationAny([relationEqual(token.value, ')'), relationEqual(token.value, ']')]), () => depth - 1, () => depth));
         const candidate = relationGate(relationAll([relationEqual(depth, 1), relationEqual(token.value, ',')]), () =>
-            relationOptionFold(tokenAt(tokens, cursor + 1), () => ({ kind: 'none' }), status => numericStatus(status.value)),
-            () => ({ kind: 'none' }));
+            relationOptionFold(tokenAt(tokens, cursor + 1), () => (relationNone()), status => numericStatus(status.value)),
+            () => (relationNone()));
         return relationOptionFold(candidate,
             () => relationGate(relationAny([relationEqual(token.value, ';'), relationEqual(nextDepth, 0)]),
-                () => ({ kind: 'none' }),
+                () => (relationNone()),
                 () => scanJsonStatus(tokens, cursor + 1, nextDepth)),
-            value => ({ kind: 'some', value }));
+            value => (relationSome(value)));
     });
 }
 
 function numericStatus(value: string): RelationOption<number> {
     return relationGate(/^\d+$/.test(value), () => {
         const status = Number(value);
-        return relationGate(relationAll([status >= 400, status < 600]), () => ({ kind: 'some', value: status }), () => ({ kind: 'none' }));
-    }, () => ({ kind: 'none' }));
+        return relationGate(relationAll([status >= 400, status < 600]), () => (relationSome(status)), () => (relationNone()));
+    }, () => (relationNone()));
 }
 
 function tokenAt(tokens: readonly TokenDescriptor[], index: number): RelationOption<TokenDescriptor> {
     return relationGate(relationAll([index >= 0, index < tokens.length]),
-        () => ({ kind: 'some', value: tokens[index] }),
-        () => ({ kind: 'none' }));
+        () => (relationSome(tokens[index])),
+        () => (relationNone()));
 }
 
 function requireStringArrayKey(key: PhpArrayKey): RelationOption<string> {
-    return relationGate(relationEqual(key.kind, 'string'), () => ({ kind: 'some', value: key.value }), () => ({ kind: 'none' }));
+    const refined = relationRefine(
+        key,
+        (candidate): candidate is Extract<PhpArrayKey, { readonly kind: 'string' }> => relationEqual(candidate.kind, 'string'),
+    );
+    return relationOptionFold(refined, relationNone, value => relationSome(value.value));
 }

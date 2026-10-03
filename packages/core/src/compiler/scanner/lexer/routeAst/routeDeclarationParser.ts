@@ -45,7 +45,7 @@ export function parseRouteDeclarations(tokens: readonly TokenDescriptor[]): read
   let pending: GroupState = emptyRouteGroupState();
   const scan = syntaxScan(TokenCursor.start(tokens), cursor => {
     pending = routeGroupPendingState(cursor, pending);
-    const transition = advanceRouteGroupState(presenceFold(cursor.currentPresence, absent, token => present(token.value)), groups, pending);
+    const transition = advanceRouteGroupState(presenceFold(cursor.currentPresence, () => absent<string>(), token => present(token.value)), groups, pending);
     groups = Object.freeze([...transition.groups]);
     pending = transition.pending;
     return continueScan(cursor.advance(), ...presenceValues(routeDeclarationAt(cursor, groups)));
@@ -61,7 +61,7 @@ function routeDeclarationAt(cursor: TokenCursor, groups: readonly GroupState[]):
     routeInvocationMethod(cursor),
     () => ({ kind: 'absent' }),
     method => presenceFold(
-      presenceOf(findPathCursor(cursor.callArgumentCursor, method)),
+      findPathCursor(cursor.callArgumentCursor, method),
       () => ({ kind: 'absent' }),
       pathCursor => presenceFold(
         presenceOf(pathCursor.current),
@@ -83,8 +83,8 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
   const end = findDeclarationEnd(cursor.afterNextCursor);
   const effective = mergeRouteGroupStates(groups);
   const targetMethodSet = routeTargetMethodSet(cursor.callArgumentCursor, method);
-  const source = presenceFold(presenceOf(cursor.current), () => path, value => value);
-  const terminal = presenceFold(presenceOf(end.terminal), () => path, value => value);
+  const source = presenceFold(cursor.currentPresence, () => path, value => value);
+  const terminal = presenceFold(end.terminalPresence, () => path, value => value);
   return Object.freeze({
     method,
     targetMethods: targetMethodSet.methods,
@@ -115,7 +115,7 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
   });
 }
 
-function readMiddleware(call: TokenCursor): MiddlewareNameAst[] {
+function readMiddleware(call: TokenCursor): readonly MiddlewareNameAst[] {
   return presenceFold(
     call.callClosePresence,
     () => [],
@@ -123,8 +123,8 @@ function readMiddleware(call: TokenCursor): MiddlewareNameAst[] {
   );
 }
 
-function findPathCursor(start: TokenCursor, method: LaravelRouteMethod): ReturnType<TokenCursor['find']> {
-  return start.find((token, at) => relationAll([tokenHasKind(token, SYNTAX_KIND_GROUPS.strings), isRoutePathToken(at, method)]));
+function findPathCursor(start: TokenCursor, method: LaravelRouteMethod): Presence<TokenCursor> {
+  return start.findWitness((token, at) => relationAll([tokenHasKind(token, SYNTAX_KIND_GROUPS.strings), isRoutePathToken(at, method)]));
 }
 
 function targetAt(route: TokenCursor, method: LaravelRouteMethod): RouteTargetAst { return routeTargetAst(route, method); }
@@ -155,7 +155,7 @@ function readRouteConstraints(start: TokenCursor, end: TokenCursor): readonly {
   return expandRelation(syntaxRange(start, end).project((_, cursor) => routeConstraintFact(cursor)), presenceValues);
 }
 
-function readRouteMiddleware(start: TokenCursor, end: TokenCursor): MiddlewareNameAst[] {
+function readRouteMiddleware(start: TokenCursor, end: TokenCursor): readonly MiddlewareNameAst[] {
   return expandRelation(syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middleware))), cursor => readMiddleware(cursor.callArgumentCursor));
 }
 

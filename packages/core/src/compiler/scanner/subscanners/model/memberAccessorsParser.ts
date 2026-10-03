@@ -82,14 +82,14 @@ const buildAccessor = (
             () => ({
                 name: { kind: 'method_name', value: { kind: 'string_value', value: name } },
                 propertyName: { kind: 'property_name', value: { kind: 'string_value', value: propertyName } },
-                computation: { kind: 'rejected', reason: 'missing_return_expression', result },
+                computation: { kind: 'rejected', reason: 'missing_return_expression', result, source },
                 result,
                 source,
             }),
             value => ({
                 name: { kind: 'method_name', value: { kind: 'string_value', value: name } },
                 propertyName: { kind: 'property_name', value: { kind: 'string_value', value: propertyName } },
-                computation: { kind: 'expression', expression: resolveModelAccessorReturnExpression(value), result },
+                computation: { kind: 'expression', expression: resolveModelAccessorReturnExpression(value, source.file), result },
                 result,
                 source,
             }),

@@ -7,14 +7,14 @@
  */
 
 import type {
-    ParsedRelation,
+    ModelRelationDescriptor,
     SingleRelationDescriptor,
     CollectionRelationDescriptor,
     EloquentRelationCardinality
 } from '../../../../../types/route';
 import { EloquentRelationType } from '../../../../../types/route';
 import { SemanticValueFactory, type RelationName, type ModelName, type ColumnName } from '../../../../../types/domain/semanticValues';
-import { relationGate, relationEqual } from '../../../../../semantic/kernel/relationalSequence';
+
 import type { SemanticType } from '../../../../types/SemanticType';
 import type { ScannedModelRelationParams } from './types';
 import {
@@ -27,7 +27,7 @@ import {
 /**
  * Reusable Constructor: Scanned Model Relation Descriptor.
  */
-export interface ScannedModelRelationDescriptor extends ParsedRelation {
+export interface ScannedModelRelationDescriptor extends ModelRelationDescriptor {
     readonly name: RelationName;
     readonly type: EloquentRelationType;
     readonly sourceModel: ModelName;
@@ -40,7 +40,9 @@ export interface ScannedModelRelationDescriptor extends ParsedRelation {
     readonly foreignKey: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
 }
 
-const relationDescriptor = (params: ScannedModelRelationParams): ScannedModelRelationDescriptor => Object.freeze({
+const relationDescriptor = <T extends EloquentRelationCardinality>(
+    params: ScannedModelRelationParams & { readonly cardinality: T },
+): ScannedModelRelationDescriptor & { readonly cardinality: T } => Object.freeze({
     name: params.name,
     type: params.type,
     sourceModel: params.modelName,
@@ -50,7 +52,7 @@ const relationDescriptor = (params: ScannedModelRelationParams): ScannedModelRel
     semanticType: params.semanticType,
     targetShape: params.targetShape,
     traversalTarget: params.traversalTarget,
-    foreignKey: relationGate(relationEqual(params.foreignKey.kind, 'convention'), () => ({ kind: 'convention' as const }), () => ({ kind: 'explicit' as const, column: params.foreignKey.column }))
+    foreignKey: params.foreignKey,
 });
 
 export const ScannedModelRelationDescriptor = Object.freeze({

@@ -171,7 +171,7 @@ export type EloquentCastTarget =
   | { readonly kind: 'custom'; readonly className: ClassName };
 
 /** First-class Eloquent attribute cast contract. */
-export interface ParsedCast {
+export interface ModelCastDescriptor {
   readonly column: ColumnName;
   readonly target: EloquentCastTarget;
   readonly castKind: EloquentCastKind;
@@ -180,12 +180,8 @@ export interface ParsedCast {
 }
 
 /** First-class Eloquent computed/accessor contract. */
-export type { ModelAccessorExpression, ModelAccessorMatchArm } from '../upstream/modelVocabulary';
-export type ModelAccessorComputation =
-  | { readonly kind: 'expression'; readonly expression: ModelAccessorExpression; readonly result: SemanticType }
-  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression'; readonly result: SemanticType };
-
-export interface ParsedAccessor {
+export type { ModelAccessorComputation } from '../upstream/modelVocabulary';
+export interface ModelAccessorDescriptor {
   readonly name: MethodName;
   readonly propertyName: PropertyName;
   readonly computation: ModelAccessorComputation;
@@ -324,7 +320,7 @@ export type RelationTargetShape =
   | { readonly kind: 'single'; readonly model: ModelName }
   | { readonly kind: 'collection'; readonly model: ModelName };
 
-export interface ParsedRelation {
+export interface ModelRelationDescriptor {
   readonly name: RelationName;
   readonly type: EloquentRelationType;
   readonly sourceModel: ModelName;
@@ -338,11 +334,11 @@ export interface ParsedRelation {
   readonly foreignKey: RelationForeignKey;
 }
 
-export interface SingleRelationDescriptor extends ParsedRelation {
+export interface SingleRelationDescriptor extends ModelRelationDescriptor {
   readonly cardinality: { readonly kind: 'one' };
 }
 
-export interface CollectionRelationDescriptor extends ParsedRelation {
+export interface CollectionRelationDescriptor extends ModelRelationDescriptor {
   readonly cardinality: { readonly kind: 'many' };
 }
 
@@ -382,24 +378,24 @@ export function matchRelationCardinality<R>(
 export const matchRelation = matchRelationCardinality;
 
 export interface EloquentRelationTypeVisitor<R> {
-  readonly hasOne: (rel: ParsedRelation) => R;
-  readonly hasMany: (rel: ParsedRelation) => R;
-  readonly belongsTo: (rel: ParsedRelation) => R;
-  readonly belongsToMany: (rel: ParsedRelation) => R;
-  readonly hasOneThrough: (rel: ParsedRelation) => R;
-  readonly hasManyThrough: (rel: ParsedRelation) => R;
-  readonly morphTo: (rel: ParsedRelation) => R;
-  readonly morphOne: (rel: ParsedRelation) => R;
-  readonly morphMany: (rel: ParsedRelation) => R;
-  readonly morphToMany: (rel: ParsedRelation) => R;
-  readonly morphedByMany: (rel: ParsedRelation) => R;
+  readonly hasOne: (rel: ModelRelationDescriptor) => R;
+  readonly hasMany: (rel: ModelRelationDescriptor) => R;
+  readonly belongsTo: (rel: ModelRelationDescriptor) => R;
+  readonly belongsToMany: (rel: ModelRelationDescriptor) => R;
+  readonly hasOneThrough: (rel: ModelRelationDescriptor) => R;
+  readonly hasManyThrough: (rel: ModelRelationDescriptor) => R;
+  readonly morphTo: (rel: ModelRelationDescriptor) => R;
+  readonly morphOne: (rel: ModelRelationDescriptor) => R;
+  readonly morphMany: (rel: ModelRelationDescriptor) => R;
+  readonly morphToMany: (rel: ModelRelationDescriptor) => R;
+  readonly morphedByMany: (rel: ModelRelationDescriptor) => R;
 }
 
 /**
  * 0 `if` Catamorphism: Mengeksekusi logic spesifik tipe relasi Eloquent
  */
 export function matchRelationType<R>(
-  relation: ParsedRelation,
+  relation: ModelRelationDescriptor,
   visitor: EloquentRelationTypeVisitor<R>
 ): R {
   return visitor[relation.type](relation);

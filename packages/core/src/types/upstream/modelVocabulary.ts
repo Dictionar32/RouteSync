@@ -44,33 +44,9 @@ export type ModelAccessorResult =
   | { readonly kind: 'absent' }
   | { readonly kind: 'present'; readonly type: TypeExpression };
 
-export type ModelAccessorExpression =
-  | { readonly kind: 'literal'; readonly value: LiteralValue }
-  | { readonly kind: 'variable_read'; readonly variable: import('./names').VariableName }
-  | { readonly kind: 'property_read'; readonly property: PropertyName; readonly receiver: ModelAccessorExpression; readonly access: string }
-  | { readonly kind: 'method_call'; readonly method: MethodName; readonly receiver: ModelAccessorExpression; readonly arguments: readonly ModelAccessorExpression[]; readonly access: string }
-  | { readonly kind: 'array_read'; readonly target: ModelAccessorExpression; readonly index: ModelAccessorExpression }
-  | { readonly kind: 'function_call'; readonly functionName: PhpFunctionName; readonly arguments: readonly ModelAccessorExpression[] }
-  | { readonly kind: 'static_call'; readonly className: ClassName; readonly method: MethodName; readonly arguments: readonly ModelAccessorExpression[] }
-  | { readonly kind: 'binary'; readonly operator: SemanticOperator; readonly left: ModelAccessorExpression; readonly right: ModelAccessorExpression }
-  | { readonly kind: 'unary'; readonly operator: { readonly kind: 'semantic_unary_operator'; readonly value: 'not' | 'negative' | 'positive' | 'bitwise_not' }; readonly operand: ModelAccessorExpression }
-  | { readonly kind: 'cast'; readonly castType: { readonly kind: 'semantic_cast'; readonly value: string }; readonly operand: ModelAccessorExpression }
-  | { readonly kind: 'ternary'; readonly condition: ModelAccessorExpression; readonly truthy: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
-  | { readonly kind: 'short_ternary'; readonly condition: ModelAccessorExpression; readonly falsy: ModelAccessorExpression }
-  | { readonly kind: 'array_literal'; readonly entries: readonly { readonly kind: string; readonly value: ModelAccessorExpression }[] }
-  | { readonly kind: 'match'; readonly subject: ModelAccessorExpression; readonly arms: readonly ModelAccessorMatchArm[] }
-  | { readonly kind: 'class_reference'; readonly className: ClassName }
-  | { readonly kind: 'resource'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
-  | { readonly kind: 'resource_collection'; readonly resourceName: ClassName; readonly argument: ModelAccessorExpression }
-  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression' };
-
-export type ModelAccessorMatchArm =
-  | { readonly kind: 'conditional'; readonly conditions: readonly ModelAccessorExpression[]; readonly value: ModelAccessorExpression }
-  | { readonly kind: 'default'; readonly value: ModelAccessorExpression };
-
 export type ModelAccessorComputation =
-  | { readonly kind: 'expression'; readonly expression: import('./expression').Expression }
-  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression'; readonly source: SourceSpan };
+  | { readonly kind: 'expression'; readonly expression: import('./expression').Expression; readonly result: TypeExpression }
+  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression'; readonly result: TypeExpression; readonly source: SourceSpan };
 
 export type EloquentRelationType =
   | { readonly kind: 'has_one' }

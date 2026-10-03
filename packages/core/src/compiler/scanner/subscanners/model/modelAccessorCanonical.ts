@@ -1,22 +1,17 @@
 import type { ModelAccessorComputation } from '../../../../types/upstream/modelVocabulary';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
 import type { ResolvedExpression, Expression } from '../../../../types/upstream/expression';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';
 import { semanticType } from './semanticTypeCanonical';
 
-const primitives: readonly (readonly [string, PrimitiveVocabulary])[] = [
-  ['string', { kind: 'string' }], ['number', { kind: 'number' }], ['boolean', { kind: 'boolean' }],
-  ['datetime', { kind: 'date_time' }], ['file', { kind: 'file' }], ['json_value', { kind: 'json' }],
-  ['optional', { kind: 'json' }], ['nullable', { kind: 'json' }], ['never', { kind: 'json' }],
-  ['error', { kind: 'json' }], ['reference', { kind: 'json' }], ['union', { kind: 'json' }],
-  ['intersection', { kind: 'json' }], ['readonly_collection', { kind: 'json' }],
-  ['mutable_collection', { kind: 'json' }], ['generic', { kind: 'json' }], ['object', { kind: 'json' }],
-];
-
 export function accessorExpression(computation: ModelAccessorComputation, source: SourceSpan): ResolvedExpression {
-  const reasons = { rejected: 'unsupported_syntax' as const, known: 'unsupported_syntax' as const, requires_binding: 'unsupported_syntax' as const };
-  const reason = reasons[computation.kind];
-  const expression: Expression = { kind: 'unsupported_expression', reason: { kind: reason }, source };
+  const expression: Expression = relationGate(
+    relationEqual(computation.kind, 'expression'),
+    () => computation.expression,
+    () => ({ kind: 'unsupported_expression', reason: { kind: 'unsupported_syntax' }, source }),
+  );
   return { kind: 'resolved_expression', expression, result: semanticValue(computation.result) };
 }
 

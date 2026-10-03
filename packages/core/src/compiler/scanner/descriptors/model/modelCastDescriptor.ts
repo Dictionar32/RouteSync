@@ -7,7 +7,7 @@
  */
 
 import {
-    type ParsedCast,
+    type ModelCastDescriptor,
     type EloquentCastKind,
     EloquentCastMapper
 } from '../../../../types/route';
@@ -26,7 +26,7 @@ export interface ScannedModelCastParams {
 /**
  * Reusable Constructor: Scanned Model Cast Descriptor.
  */
-export interface ScannedModelCastDescriptor extends ParsedCast {
+export interface ScannedModelCastDescriptor extends ModelCastDescriptor {
     readonly column: ColumnName;
     readonly targetType: CastTypeName;
     readonly target: EloquentCastTarget;

@@ -99,7 +99,7 @@ export function computeCollectionRelationParams({
         targetModel,
         cardinality: { kind: "many" },
         multiplicity: { kind: 'collection' },
-        semanticType: ReadonlyCollectionType(CollectionKind.COLLECTION, ReferenceType.model('', targetModel)),
+        semanticType: ReadonlyCollectionType(CollectionKind.COLLECTION, ReferenceType.model('', targetModel.value.value)),
         targetShape: { kind: 'collection', model: targetModel },
         traversalTarget: { kind: 'collection', model: targetModel },
         foreignKey

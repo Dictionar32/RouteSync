@@ -6,7 +6,7 @@
  */
 import type { ModelAst } from '../types/upstream/ast';
 import type { ParsedColumn } from '../types/domain/databaseColumns';
-import type { ParsedCast, ParsedAccessor, ParsedRelation } from '../types/domain/eloquentTypes';
+import type { ModelCastDescriptor, ModelAccessorDescriptor, ModelRelationDescriptor } from '../types/domain/eloquentTypes';
 import type { SemanticResolution } from '../types/domain/semanticResolution';
 import type { FieldNode } from '../types/field';
 import type { VariableName } from '../types/domain/semanticValues';
@@ -16,10 +16,10 @@ import { relationEqual } from './kernel/semanticRelations';
 
 export type ModelColumn = ParsedColumn;
 export type ModelColumnContract = ParsedColumn;
-export type ModelRelation = ParsedRelation;
-export type ModelRelationContract = ParsedRelation;
-export type ModelAccessor = ParsedAccessor;
-export type ModelAccessorContract = ParsedAccessor;
+export type ModelRelation = ModelRelationDescriptor;
+export type ModelRelationContract = ModelRelationDescriptor;
+export type ModelAccessor = ModelAccessorDescriptor;
+export type ModelAccessorContract = ModelAccessorDescriptor;
 
 /** Complete semantic value produced for a local assignment at the model boundary. */
 export interface ModelAssignmentValue {

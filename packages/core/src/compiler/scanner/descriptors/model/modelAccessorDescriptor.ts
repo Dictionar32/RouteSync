@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/descriptors/model/modelAccessorDescriptor
  */
 
-import { ParsedAccessor } from "../../../../types/route";
+import type { ModelAccessorDescriptor } from "../../../../types/domain/eloquentTypes";
 import type { ModelAccessorComputation } from "../../../../types/domain/eloquentTypes";
 import { SemanticValueFactory, type MethodName, type PropertyName } from "../../../../types/domain/semanticValues";
 
@@ -19,7 +19,7 @@ export interface ScannedModelAccessorParams {
 /**
  * Reusable Constructor: Scanned Model Accessor Descriptor.
  */
-export interface ScannedModelAccessorDescriptor extends ParsedAccessor {
+export interface ScannedModelAccessorDescriptor extends ModelAccessorDescriptor {
     readonly name: MethodName;
     readonly propertyName: PropertyName;
     readonly computation: ModelAccessorComputation;

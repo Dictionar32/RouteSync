@@ -29,6 +29,6 @@ export interface ParsedModel {
   readonly source: {
     readonly columns: readonly ParsedColumn[];
     readonly columnFacts: readonly import('../upstream/modelSourceFacts').ModelColumnFact[];
-    readonly casts: readonly import('./eloquentTypes').ParsedCast[];
+    readonly casts: readonly import('./eloquentTypes').ModelCastDescriptor[];
   };
 }

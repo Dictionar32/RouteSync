@@ -153,7 +153,8 @@
     "audit:build:phase686": "node scripts/audit-phase686-build-diagnostic.cjs",
     "audit:semantic:phase688": "node scripts/audit-phase688-semantic-build-frontier.cjs",
     "audit:semantic:phase689": "node scripts/audit-phase689-semantic-interface.cjs",
-    "audit:semantic:phase690": "node scripts/audit-phase690-diagnostic-semantic-frontier.cjs"
+    "audit:semantic:phase690": "node scripts/audit-phase690-diagnostic-semantic-frontier.cjs",
+    "audit:semantic:phase691": "node scripts/audit-phase691-ir-semantic-frontier.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

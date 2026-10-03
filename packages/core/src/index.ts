@@ -1014,7 +1014,6 @@ export type {
   HttpHeaderName
 } from './types/ir'
 export { createResourceId, createRequestId, createHttpHeaderName } from './types/ir/nominalVocabulary'
-export { OptimizedContractIRBuilder } from './ir/ContractIRBuilder'
 
 // Utilities & Type Guards
 export {

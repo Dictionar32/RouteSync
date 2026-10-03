@@ -12,6 +12,8 @@ export {
     bindNestedArrayField,
     bindLiteralField,
     bindTernaryField,
+    bindBinaryField,
+    bindNullCoalesceField,
     bindShortTernaryField,
     bindCastField,
     bindFallbackField

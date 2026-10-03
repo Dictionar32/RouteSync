@@ -40,12 +40,12 @@ import {
 
 export function createDefaultSemanticTypeHandlers(): readonly SemanticTypeHandler[] {
     return Object.freeze([
-        new PrimitiveTypeHandler(),
-        new ReferenceTypeHandler(),
-        new CollectionTypeHandler(),
-        new NullableWrapperHandler(),
-        new DefaultObjectHandler(),
-        new UnionTypeHandler(),
-        new IntersectionTypeHandler()
+        PrimitiveTypeHandler,
+        ReferenceTypeHandler,
+        CollectionTypeHandler,
+        NullableWrapperHandler,
+        DefaultObjectHandler,
+        UnionTypeHandler,
+        IntersectionTypeHandler
     ]);
 }

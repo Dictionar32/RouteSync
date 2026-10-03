@@ -9,6 +9,8 @@ import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from './scannerUtils';
 
 import { readSourceText } from './scannerUtils';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationGate, relationAsyncFold, relationFirst, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from '../../../semantic/kernel/relationalSequence';
 const span = (file: string, line: number): SourceSpan => ({
   kind: 'source_span',
   file: { kind: 'source_file', value: stringValue(file) },
@@ -17,23 +19,26 @@ const span = (file: string, line: number): SourceSpan => ({
 });
 
 function primitiveType(name: PhpPropertyTypeAst['name']): TypeExpression {
-  switch (name) {
-    case 'bool': return { kind: 'primitive', value: { kind: 'boolean' } };
-    case 'int':
-    case 'float': return { kind: 'primitive', value: { kind: 'number' } };
-    case 'string': return { kind: 'primitive', value: { kind: 'string' } };
-  }
+  const candidates: readonly { readonly name: PhpPropertyTypeAst['name']; readonly value: TypeExpression }[] = [
+    { name: 'bool', value: { kind: 'primitive', value: { kind: 'boolean' } } },
+    { name: 'int', value: { kind: 'primitive', value: { kind: 'number' } } },
+    { name: 'float', value: { kind: 'primitive', value: { kind: 'number' } } },
+    { name: 'string', value: { kind: 'primitive', value: { kind: 'string' } } },
+  ];
+  return relationOptionFold(
+    relationFirst(candidates, candidate => relationEqual(candidate.name, name)),
+    () => ({ kind: 'mixed' }),
+    candidate => candidate.value,
+  );
 }
 
 function typeExpression(type: PhpPropertyTypeAst): TypeExpression {
-  let value: TypeExpression;
-  switch (type.kind) {
-    case 'primitive': value = primitiveType(type.name); break;
-    case 'mixed': value = { kind: 'mixed' }; break;
-    case 'named': value = { kind: 'reference', value: { kind: 'class', name: { kind: 'class_name', value: stringValue(type.name) } } }; break;
-  }
-  if (type.nullable) return { kind: 'nullable', value };
-  return value;
+  const value = relationGate(relationEqual(type.kind, 'primitive'),
+    () => primitiveType(type.name),
+    () => relationGate(relationEqual(type.kind, 'mixed'),
+      () => ({ kind: 'mixed' } as const),
+      () => ({ kind: 'reference', value: { kind: 'class', name: { kind: 'class_name', value: stringValue(type.name) } } } as const)));
+  return relationGate(type.nullable, () => ({ kind: 'nullable', value }), () => value);
 }
 
 const defaultResponseStatus: HttpStatusCode = {
@@ -52,10 +57,32 @@ function definition(ast: ResponseDtoDeclarationAst, file: string): ResponseAst {
 }
 
 function className(tokens: readonly { readonly value: string }[]): string {
-  for (let index = 0; index + 1 < tokens.length; index += 1) {
-    if (tokens[index].value === 'class') return tokens[index + 1].value;
-  }
-  throw new Error('Response DTO class declaration not found');
+  const seek = (index: number): ReturnType<typeof relationNone<string>> | ReturnType<typeof relationSome<string>> => relationGate(index + 1 < tokens.length,
+    () => relationGate(relationEqual(tokens[index].value, 'class'), () => relationSome(tokens[index + 1].value), () => seek(index + 1)),
+    () => relationNone());
+  return relationOptionFold(seek(0),
+    () => { throw Error('Response DTO class declaration not found'); },
+    value => value);
+}
+
+async function scanFiles(files: readonly string[], asts: readonly ResponseAst[]): Promise<readonly ResponseAst[]> {
+  return relationAsyncFold(files, asts, async (current, file) => {
+    const source = await readSourceText(file);
+    const tokens = LaravelSourceLexer.tokenize(source);
+    const ast = LaravelSourceLexer.parseResponseDtoDeclaration(tokens, createAstIdentifier(className(tokens)));
+    return Object.freeze([...current, definition(ast, file)]);
+  });
+}
+
+async function scanControllerFiles(files: readonly string[], asts: readonly ResponseAst[]): Promise<readonly ResponseAst[]> {
+  return relationAsyncFold(files, asts, async (current, file) => {
+    const source = await readSourceText(file);
+    const tokens = LaravelSourceLexer.tokenize(source);
+    const declaration = LaravelSourceLexer.parseControllerDeclaration(source, tokens, createAstIdentifier(path.basename(file, '.php')));
+    const produced = relationProject(relationSelect(declaration.methods, method => relationGate(relationEqual(method.returns.length, 0), () => false, () => true)), method =>
+      responseProducer.produce({ kind: 'controller', method, source: span(file, Number(method.source.line)) }));
+    return Object.freeze([...current, ...produced]);
+  });
 }
 
 export async function scanResponseAsts(sourceProject: SourceProjectIdentity): Promise<readonly ResponseAst[]> {
@@ -64,22 +91,6 @@ export async function scanResponseAsts(sourceProject: SourceProjectIdentity): Pr
   const controllerDirectory = path.join(sourceRoot, 'app', 'Http', 'Controllers');
   const files = await collectPhpFiles(directory);
   const controllerFiles = await collectPhpFiles(controllerDirectory);
-  const asts: ResponseAst[] = [];
-  for (const file of files) {
-    const source = await readSourceText(file);
-    const tokens = LaravelSourceLexer.tokenize(source);
-    const ast = LaravelSourceLexer.parseResponseDtoDeclaration(tokens, createAstIdentifier(className(tokens)));
-    asts.push(definition(ast, file));
-  }
-  for (const file of controllerFiles) {
-    const source = await readSourceText(file);
-    const tokens = LaravelSourceLexer.tokenize(source);
-    const declaration = LaravelSourceLexer.parseControllerDeclaration(source, tokens, createAstIdentifier(path.basename(file, '.php')));
-    for (const method of declaration.methods) {
-      if (method.returns.length === 0) continue;
-      const sourceSpan = span(file, Number(method.source.line));
-      asts.push(responseProducer.produce({ kind: 'controller', method, source: sourceSpan }));
-    }
-  }
-  return Object.freeze(asts);
+  const dtoAsts = await scanFiles(files, Object.freeze([]));
+  return Object.freeze(await scanControllerFiles(controllerFiles, dtoAsts));
 }

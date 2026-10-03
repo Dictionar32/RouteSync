@@ -1,0 +1,55 @@
+{
+  "phase": 601,
+  "productionFiles": 1006,
+  "selectedFiles": 253,
+  "global": {
+    "if": 349,
+    "while": 6,
+    "for": 107,
+    "switch": 42,
+    "map": 142,
+    "filter": 20,
+    "reduce": 6,
+    "flatMap": 3,
+    "undefined": 63,
+    "null": 14,
+    "??": 48,
+    "===": 300,
+    "!==": 71,
+    "as unknown": 8,
+    "Set": 24,
+    "Map": 76,
+    "any": 4,
+    "new": 474,
+    "ternary": 149
+  },
+  "selected": {
+    "if": 10,
+    "while": 0,
+    "for": 1,
+    "switch": 0,
+    "map": 0,
+    "filter": 0,
+    "reduce": 0,
+    "flatMap": 0,
+    "undefined": 14,
+    "null": 7,
+    "??": 5,
+    "===": 15,
+    "!==": 9,
+    "as unknown": 0,
+    "Set": 0,
+    "Map": 1,
+    "any": 3,
+    "new": 15,
+    "ternary": 5
+  },
+  "modified": [
+    "compiler/scanner/lexer/phpAstFactory.ts",
+    "compiler/compatibility/ContractInputBoundary.ts"
+  ],
+  "deleted": [
+    "compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+    "compiler/generators/mapper-generation/MapperCodeBuilder.ts"
+  ]
+}

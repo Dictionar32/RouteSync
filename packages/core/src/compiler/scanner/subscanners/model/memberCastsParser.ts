@@ -1,17 +1,21 @@
-/**
- * Semantic cast derivation from canonical PHP AST values.
- * Syntax/token recognition is owned by the lexer AST producer.
- */
+/** Semantic cast derivation from canonical PHP AST values. */
 import type { ModelCast } from "../../../../types/upstream/model";
 import type { PhpClassPropertyAst, ModelDeclarationAst, PhpAstValue } from "../../lexer";
 import { EloquentCastMapper } from "../../../../types/domain/eloquentTypes";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
+import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationExpand, relationFold, relationGate, relationProject, relationSelect } from "../../../../semantic/kernel/relationalSequence";
 
-function readCastValue(value: PhpAstValue): string {
-    if (value.kind === 'literal' && value.literalType === 'string') return value.value;
-    if (value.kind === 'class_reference') return value.className.value;
-    throw new Error('Model cast value must be a string literal or class reference');
-}
+const readCastValue = (value: PhpAstValue): string =>
+    relationGate(
+        relationAll([relationEqual(value.kind, 'literal'), relationEqual(value.literalType, 'string')]),
+        () => value.value,
+        () => relationGate(
+            relationEqual(value.kind, 'class_reference'),
+            () => value.className.value,
+            () => { throw Error('Model cast value must be a string literal or class reference'); },
+        ),
+    );
 
 const castTargets = {
     integer: { kind: 'integer' }, float: { kind: 'float' }, boolean: { kind: 'boolean' }, string: { kind: 'string' },
@@ -20,33 +24,53 @@ const castTargets = {
     encrypted: { kind: 'string' }, custom: { kind: 'string' }
 } as const;
 
-function readArray(value: PhpAstValue, casts: ModelCast[], source: import("../../../../types/upstream/provenance").SourceSpan): void {
-    if (value.kind !== 'nested_array') return;
-    for (const entry of value.entries) {
-        if (entry.kind !== 'keyed' || entry.key.kind !== 'string') continue;
-        const rawTargetType = readCastValue(entry.value);
-        const mapped = EloquentCastMapper.map(rawTargetType);
-        const targetType = SemanticValueFactory.castTypeName(rawTargetType);
-        casts.push({
-            kind: 'model_cast',
-            property: SemanticValueFactory.propertyName(entry.key.value),
-            target: castTargets[mapped.castKind],
-            source
-        });
-    }
-}
+type SourceSpan = import("../../../../types/upstream/provenance").SourceSpan;
+
+const readArray = (value: PhpAstValue, source: SourceSpan): readonly ModelCast[] =>
+    relationGate(
+        relationEqual(value.kind, 'nested_array'),
+        () => relationProject(
+            relationSelect(value.entries, entry => relationAll([relationEqual(entry.kind, 'keyed'), relationEqual(entry.key.kind, 'string')])),
+            entry => {
+                const rawTargetType = readCastValue(entry.value);
+                const mapped = EloquentCastMapper.resolve(rawTargetType);
+                return {
+                    kind: 'model_cast',
+                    property: SemanticValueFactory.propertyName(entry.key.value),
+                    target: castTargets[mapped.castKind],
+                    source,
+                };
+            },
+        ),
+        () => [],
+    );
+
+const propertyCasts = (propertyAsts: readonly PhpClassPropertyAst[], source: SourceSpan): readonly ModelCast[] =>
+    relationFold(propertyAsts, [] as readonly ModelCast[], (casts, property) => [
+        ...casts,
+        ...relationGate(
+            relationAll([relationEqual(property.name.value, '$casts'), relationEqual(property.value.kind, 'present')]),
+            () => readArray(property.value.value, source),
+            () => [],
+        ),
+    ]);
+
+const methodCasts = (declaration: ModelDeclarationAst, source: SourceSpan): readonly ModelCast[] =>
+    relationFold(declaration.methods, [] as readonly ModelCast[], (casts, method) => [
+        ...casts,
+        ...relationGate(
+            relationEqual(method.name.value, 'casts'),
+            () => relationExpand(method.returns, returned => readArray(returned, source)),
+            () => [],
+        ),
+    ]);
 
 export function parseModelCasts(
     propertyAsts: readonly PhpClassPropertyAst[],
     declaration: ModelDeclarationAst,
     casts: ModelCast[],
-    source: import("../../../../types/upstream/provenance").SourceSpan
+    source: SourceSpan,
 ): void {
-    for (const property of propertyAsts) {
-        if (property.name.value === '$casts' && property.value.kind === 'present') readArray(property.value.value, casts, source);
-    }
-    for (const method of declaration.methods) {
-        if (method.name.value !== 'casts') continue;
-        for (const returned of method.returns) readArray(returned, casts, source);
-    }
+    const discovered = [...propertyCasts(propertyAsts, source), ...methodCasts(declaration, source)];
+    relationFold(discovered, casts, (target, value) => [...target, value]);
 }

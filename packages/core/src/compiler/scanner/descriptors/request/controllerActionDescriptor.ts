@@ -1,19 +1,14 @@
 /**
- * controllerActionDescriptor.ts
- *
- * AST descriptors for Controller Actions.
- *
- * @module core/compiler/scanner/descriptors/request/controllerActionDescriptor
+ * AST descriptor for a scanned controller action.
+ * Semantic construction is an immutable structural projection.
  */
-
 import {
     VoidResponseDescriptor,
-    RouteHandlerDescriptor,
     RouteSchemaPayload,
     ResponseDescriptor,
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
-import { ScannedRouteSchemaPayload } from "../validationDescriptors";
+import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
 import {
     ControllerActionInfo,
     ScannedControllerActionParams,
@@ -22,46 +17,33 @@ import {
 } from "./controllerActionTypes";
 import { emptyControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
 import type { ActionName, ControllerName, SourceFile } from "../../../../types/upstream/names";
+import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { ControllerRequestBinding } from './controllerActionContract';
 import { createActionName, createControllerName, createSourceFile } from "../../../../types/domain/semanticValues";
 
 export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
 
-/**
- * Reusable Constructor: Scanned Controller Action Descriptor.
- */
-export class ScannedControllerActionDescriptor implements ControllerActionInfo {
-    public readonly controllerName: ControllerName;
-    public readonly actionName: ActionName;
-    public readonly handler: RouteHandlerDescriptor;
-    public readonly sourceFile: SourceFile;
-    public readonly sourceLine: number;
-    public readonly response: ResponseDescriptor;
-    public readonly runtimeReturn: import('./controllerActionContract').RuntimeReturnContract;
-    public readonly semanticReturn: import('../../../../types/upstream/controller').ControllerReturnSemantic;
-    public readonly request: ControllerRequestBinding;
-    public readonly schema: RouteSchemaPayload;
-    public readonly dataflow: import("../../subscanners/controller/controllerDataflowContract").ControllerDataflowContract;
-    public readonly errorResponses: readonly HttpErrorResponseDescriptor[];
+export type ScannedControllerActionDescriptor = ControllerActionInfo;
 
-    constructor(params: ScannedControllerActionParams) {
-        this.controllerName = params.controllerName;
-        this.actionName = params.actionName;
-        this.handler = params.handler;
-        this.sourceFile = params.sourceFile;
-        this.sourceLine = params.sourceLine;
-        this.response = params.response;
-        this.runtimeReturn = params.runtimeReturn;
-        this.semanticReturn = params.semanticReturn;
-        this.request = params.request;
-        this.schema = params.schema;
-        this.dataflow = params.dataflow;
-        this.errorResponses = Object.freeze([...params.errorResponses]);
-        Object.freeze(this);
-    }
+const createControllerActionDescriptor = (params: ScannedControllerActionParams): ScannedControllerActionDescriptor => Object.freeze({
+    controllerName: params.controllerName,
+    actionName: params.actionName,
+    handler: params.handler,
+    sourceFile: params.sourceFile,
+    sourceLine: params.sourceLine,
+    response: params.response,
+    runtimeReturn: params.runtimeReturn,
+    semanticReturn: params.semanticReturn,
+    request: params.request,
+    schema: params.schema,
+    dataflow: params.dataflow,
+    errorResponses: Object.freeze([...params.errorResponses]),
+    parameters: Object.freeze([...params.parameters]),
+});
 
-    public static create(params: ControllerActionCreateOptions): ScannedControllerActionDescriptor {
-        return new ScannedControllerActionDescriptor({
+export const ScannedControllerActionDescriptor = Object.freeze({
+    create(params: ControllerActionCreateOptions): ScannedControllerActionDescriptor {
+        return createControllerActionDescriptor({
             controllerName: params.controllerName,
             actionName: params.actionName,
             handler: buildRouteHandler(params.controllerName, params.actionName),
@@ -73,23 +55,25 @@ export class ScannedControllerActionDescriptor implements ControllerActionInfo {
             request: params.request,
             schema: params.schema,
             dataflow: params.dataflow,
-            errorResponses: Object.freeze([...params.errorResponses])
+            errorResponses: Object.freeze([...params.errorResponses]),
+            parameters: Object.freeze([...params.parameters]),
         });
-    }
-
-    public static empty(controllerName: string, actionName: string, sourceFile: string): ScannedControllerActionDescriptor {
-        return ScannedControllerActionDescriptor.create({
+    },
+    empty(controllerName: string, actionName: string, sourceFile: string): ScannedControllerActionDescriptor {
+        return createControllerActionDescriptor({
             controllerName: createControllerName(controllerName),
             actionName: createActionName(actionName),
             sourceFile: createSourceFile(sourceFile),
             sourceLine: 1,
-            response: new (VoidResponseDescriptor)(),
+            response: VoidResponseDescriptor.create(),
             runtimeReturn: { kind: 'none' },
             semanticReturn: { kind: 'absent' },
             request: { kind: 'no_request' },
-            schema: ScannedRouteSchemaPayload.empty(),
+            schema: emptyRouteSchemaPayload(),
             dataflow: emptyControllerDataflowContract(),
-            errorResponses: []
+            errorResponses: [],
+            parameters: [],
+            handler: buildRouteHandler(createControllerName(controllerName), createActionName(actionName)),
         });
-    }
-}
+    },
+});

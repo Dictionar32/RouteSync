@@ -12,7 +12,7 @@ import crypto from 'crypto';
 import chalk from 'chalk';
 import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core';
 
-import type { ScannedRoute, ScannedManifest } from '../../utils/incremental/incrementalTypes';
+import type { RouteSemanticFlow, ScannedManifest } from '../../utils/incremental/incrementalTypes';
 
 export async function auditManifestDrift(manifestOption: string, cwd: string = process.cwd()): Promise<void> {
   const manifestPath = path.resolve(cwd, manifestOption);
@@ -25,8 +25,8 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
   const freshManifest = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(cwd));
   const routes = (freshManifest.routes || []) as any[];
 
-  const freshRoutes = new Map<string, ScannedRoute>();
-  routes.forEach((r: ScannedRoute) => {
+  const freshRoutes = new Map<string, RouteSemanticFlow>();
+  routes.forEach((r: RouteSemanticFlow) => {
     const replacer = (key: string, value: unknown) => {
       if (key === 'resolved' || key === 'parsed_ast') return undefined;
       return value;
@@ -43,9 +43,9 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
     freshRoutes.set(`${r.method}:${r.path}`, { ...r, stableHash: hash });
   });
 
-  const manifestRoutes = new Map<string, ScannedRoute>();
+  const manifestRoutes = new Map<string, RouteSemanticFlow>();
   if (manifest.routes) {
-    manifest.routes.forEach((r: ScannedRoute) => {
+    manifest.routes.forEach((r: RouteSemanticFlow) => {
       manifestRoutes.set(`${r.method}:${r.path}`, r);
     });
   }

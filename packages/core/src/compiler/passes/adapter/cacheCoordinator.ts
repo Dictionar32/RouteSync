@@ -12,6 +12,7 @@ import type { CompilationState } from '../CompilationState';
 import type { CompilationContext } from '../CompilationContext';
 import type { CacheDescriptor } from '../../cache/ArtifactCache';
 import { computeFingerprintHash } from '../../fingerprint/Fingerprint';
+import { relationProject } from '../../../semantic/kernel/relationalSequence';
 
 export function createPassCacheDescriptor<
     I extends readonly ArtifactKey[],
@@ -24,7 +25,7 @@ export function createPassCacheDescriptor<
     const fingerprint = context.getFingerprint();
     return {
         passName: pass.name,
-        inputs: pass.inputWitnesses.map((witness) => {
+        inputs: relationProject(pass.inputWitnesses, (witness) => {
             const artifact = witness.read(state);
             return {
                 artifactKey: witness.key,

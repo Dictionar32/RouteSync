@@ -1,52 +1,22 @@
-/**
- * formActionDescriptor.ts
- *
- * AST descriptors for Scanned Form Actions.
- *
- * @module core/compiler/scanner/descriptors/request/formActionDescriptor
- */
-
-import {
-    FormAction,
-    FormActionName,
-    RequestField
-} from "../../../artifacts/RequestTypesArtifact";
+import type { FormAction, FormActionName, RequestField } from "../../../artifacts/RequestTypesArtifact";
 
 export interface ScannedFormActionParams {
     readonly name: FormActionName;
     readonly fields: readonly RequestField[];
 }
 
-/**
- * Reusable Constructor: Scanned Form Action Descriptor.
- */
-export class ScannedFormActionDescriptor implements FormAction {
-    public readonly name: FormActionName;
-    public readonly fields: readonly RequestField[];
+export type ScannedFormActionDescriptor = FormAction;
 
-    constructor({ name, fields }: ScannedFormActionParams) {
-        this.name = name;
-        this.fields = fields;
-        Object.freeze(this);
-    }
+const createFormActionDescriptor = ({ name, fields }: ScannedFormActionParams): ScannedFormActionDescriptor => Object.freeze({
+    name,
+    fields: Object.freeze([...fields]),
+});
 
-    public static create({
-        name,
-        fields = []
-    }: {
-        readonly name: FormActionName;
-        readonly fields?: readonly RequestField[];
-    }): ScannedFormActionDescriptor {
-        return new ScannedFormActionDescriptor({
-            name,
-            fields: Object.freeze([...fields])
-        });
-    }
-
-    public static empty(name: FormActionName): ScannedFormActionDescriptor {
-        return new ScannedFormActionDescriptor({
-            name,
-            fields: Object.freeze([])
-        });
-    }
-}
+export const ScannedFormActionDescriptor = Object.freeze({
+    create({ name, fields = [] }: { readonly name: FormActionName; readonly fields?: readonly RequestField[] }): ScannedFormActionDescriptor {
+        return createFormActionDescriptor({ name, fields });
+    },
+    empty(name: FormActionName): ScannedFormActionDescriptor {
+        return createFormActionDescriptor({ name, fields: [] });
+    },
+});

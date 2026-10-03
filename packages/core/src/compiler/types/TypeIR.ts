@@ -4,6 +4,8 @@
  * Every variant has a closed discriminator and variant-specific fields.
  */
 
+import { relationGate } from '../../semantic/kernel/relationalSequence';
+
 export interface PrimitiveTypeIR {
     readonly kind: 'primitive';
     readonly type: 'string' | 'number' | 'boolean' | 'datetime' | 'unknown';
@@ -59,47 +61,27 @@ export type TypeIR =
     | UnionTypeIR
     | LiteralTypeIR;
 
-export function primitiveType(
-    type: PrimitiveTypeIR['type'],
-    format?: string,
-): PrimitiveTypeIR {
-    return format === undefined
-        ? { kind: 'primitive', type }
-        : { kind: 'primitive', type, format };
+export function primitiveType(type: PrimitiveTypeIR['type'], format?: string): PrimitiveTypeIR {
+    return relationGate(arguments.length > 1, () => ({ kind: 'primitive', type, format: format as string }), () => ({ kind: 'primitive', type }));
 }
 
-export function referenceType(
-    target: string,
-    module?: string,
-): ReferenceTypeIR {
-    return module === undefined
-        ? { kind: 'reference', target }
-        : { kind: 'reference', target, module };
+export function referenceType(target: string, module?: string): ReferenceTypeIR {
+    return relationGate(arguments.length > 1, () => ({ kind: 'reference', target, module: module as string }), () => ({ kind: 'reference', target }));
 }
 
-export function arrayType(
-    items: TypeIR,
-    options: { minItems?: number; maxItems?: number } = {},
-): ArrayTypeIR {
-    const { minItems, maxItems } = options;
-
-    return {
-        kind: 'array',
-        items,
-        ...(minItems === undefined ? {} : { minItems }),
-        ...(maxItems === undefined ? {} : { maxItems }),
-    };
+export function arrayType(items: TypeIR, options: { minItems?: number; maxItems?: number } = {}): ArrayTypeIR {
+    const minItems = relationGate(Object.prototype.hasOwnProperty.call(options, 'minItems'), () => options.minItems as number, () => -1);
+    const maxItems = relationGate(Object.prototype.hasOwnProperty.call(options, 'maxItems'), () => options.maxItems as number, () => -1);
+    const base = { kind: 'array' as const, items };
+    return Object.freeze({
+        ...base,
+        ...relationGate(Object.is(minItems, -1), () => ({}), () => ({ minItems })),
+        ...relationGate(Object.is(maxItems, -1), () => ({}), () => ({ maxItems }))
+    });
 }
 
-export function inlineObjectType(
-    properties: Readonly<Record<string, TypeIR>>,
-    additionalProperties = false,
-): InlineObjectTypeIR {
-    return {
-        kind: 'inline_object',
-        properties,
-        additionalProperties,
-    };
+export function inlineObjectType(properties: Readonly<Record<string, TypeIR>>, additionalProperties = false): InlineObjectTypeIR {
+    return { kind: 'inline_object', properties, additionalProperties };
 }
 
 export function nullableType(inner: TypeIR): NullableTypeIR {

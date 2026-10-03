@@ -1,80 +1,54 @@
-/**
- * @file SymbolAnalysis.ts
- * @description Symbol database and reference tracking orchestrator.
- * Active Consumer delegating to focused symbol sub-domain components.
- *
- * @module compiler/analysis/SymbolAnalysis
- */
-
-import {
-    type SymbolNode,
-    type SymbolStats,
-    SymbolReferenceGraph,
-    resolveClassHierarchy,
-    filterSymbolsByKind,
-    filterSymbolsByNamespace,
-    filterSymbolsByParent
-} from './symbol';
+/** Relation-backed symbol database and reference analysis. */
+import type { SymbolNode, SymbolStats } from './symbol';
+import { createSymbolReferenceGraph, type SymbolReferenceGraph, resolveClassHierarchy, filterSymbolsByKind, filterSymbolsByNamespace, filterSymbolsByParent } from './symbol';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/kernel/relationMembership';
+import { relationSelect, relationFold } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/relationFoundation';
+import type { RelationOption } from '../../semantic/kernel/relationFoundation';
 
 export { type SymbolNode, type SymbolStats };
 
-export class SymbolDatabase {
-    private readonly symbols = new Map<string, SymbolNode>();
-    private readonly referenceGraph = new SymbolReferenceGraph();
-
-    public registerSymbol(node: SymbolNode): void {
-        this.symbols.set(node.id, node);
-    }
-
-    public addReference(fromId: string, toId: string): void {
-        this.referenceGraph.addReference(fromId, toId);
-    }
-
-    public getSymbol(id: string): SymbolNode | undefined {
-        return this.symbols.get(id);
-    }
-
-    public getReferences(fromId: string): ReadonlySet<string> {
-        return this.referenceGraph.getReferences(fromId);
-    }
-
-    public findReferencingSymbols(symbolId: string): ReadonlySet<string> {
-        return this.referenceGraph.findReferencingSymbols(symbolId);
-    }
-
-    public getSymbolsByKind(kind: SymbolNode['kind']): readonly SymbolNode[] {
-        return filterSymbolsByKind(this.symbols.values(), kind);
-    }
-
-    public getSymbolsInNamespace(namespace: string): readonly SymbolNode[] {
-        return filterSymbolsByNamespace(this.symbols.values(), namespace);
-    }
-
-    public getChildren(parentId: string): readonly SymbolNode[] {
-        return filterSymbolsByParent(this.symbols.values(), parentId);
-    }
-
-    public getClassHierarchy(classId: string): readonly string[] {
-        return resolveClassHierarchy(classId, id => this.getSymbol(id));
-    }
-
-    public isUnused(symbolId: string): boolean {
-        return this.referenceGraph.isUnused(symbolId);
-    }
-
-    public clear(): void {
-        this.symbols.clear();
-        this.referenceGraph.clear();
-    }
-
-    public getStats(): SymbolStats {
-        const symbols = Array.from(this.symbols.values());
-        return {
-            totalSymbols: symbols.length,
-            classes: symbols.filter(s => s.kind === 'class').length,
-            methods: symbols.filter(s => s.kind === 'method').length,
-            properties: symbols.filter(s => s.kind === 'property').length,
-            totalReferences: this.referenceGraph.countTotalReferences()
-        };
-    }
+export interface SymbolDatabase {
+    readonly registerSymbol: (node: SymbolNode) => void;
+    readonly addReference: (fromId: string, toId: string) => void;
+    readonly getSymbol: (id: string) => RelationOption<SymbolNode>;
+    readonly getReferences: (fromId: string) => RelationOption<readonly string[]>;
+    readonly findReferencingSymbols: (symbolId: string) => readonly string[];
+    readonly getSymbolsByKind: (kind: SymbolNode['kind']) => readonly SymbolNode[];
+    readonly getSymbolsInNamespace: (namespace: string) => readonly SymbolNode[];
+    readonly getChildren: (parentId: string) => readonly SymbolNode[];
+    readonly getClassHierarchy: (classId: string) => readonly string[];
+    readonly isUnused: (symbolId: string) => boolean;
+    readonly clear: () => void;
+    readonly getStats: () => SymbolStats;
 }
+
+export const createSymbolDatabase = (): SymbolDatabase => {
+    let symbols: RelationIndex<string, SymbolNode> = Object.freeze([]);
+    const referenceGraph: SymbolReferenceGraph = createSymbolReferenceGraph();
+    const getSymbol = (id: string): RelationOption<SymbolNode> => relationIndexLookup(symbols, id);
+    const symbolValues = (): readonly SymbolNode[] => relationFold(symbols, Object.freeze([] as readonly SymbolNode[]), (output, entry) => [...output, entry[1]]);
+    return {
+        registerSymbol: node => { symbols = relationIndexAdd(symbols, node.id, node); },
+        addReference: (fromId, toId) => referenceGraph.addReference(fromId, toId),
+        getSymbol,
+        getReferences: referenceGraph.getReferences,
+        findReferencingSymbols: referenceGraph.findReferencingSymbols,
+        getSymbolsByKind: kind => filterSymbolsByKind(symbolValues(), kind),
+        getSymbolsInNamespace: namespace => filterSymbolsByNamespace(symbolValues(), namespace),
+        getChildren: parentId => filterSymbolsByParent(symbolValues(), parentId),
+        getClassHierarchy: classId => resolveClassHierarchy(classId, getSymbol),
+        isUnused: referenceGraph.isUnused,
+        clear: () => { symbols = Object.freeze([]); referenceGraph.clear(); },
+        getStats: () => {
+            const values = symbolValues();
+            return {
+                totalSymbols: values.length,
+                classes: relationSelect(values, symbol => relationEqual(symbol.kind, 'class')).length,
+                methods: relationSelect(values, symbol => relationEqual(symbol.kind, 'method')).length,
+                properties: relationSelect(values, symbol => relationEqual(symbol.kind, 'property')).length,
+                totalReferences: referenceGraph.countTotalReferences(),
+            };
+        },
+    };
+};

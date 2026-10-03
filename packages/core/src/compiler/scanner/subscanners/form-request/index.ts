@@ -6,4 +6,4 @@
  * @module core/compiler/scanner/subscanners/form-request
  */
 
-export { partitionValidationRules } from './ruleCollector';
+export { partitionValidationRules, parseCanonicalValidationRuleEntries } from './ruleCollector';

@@ -3,7 +3,7 @@
  * This is an upstream query-expression boundary: downstream accessors never
  * parse SQL or infer fields from the base model.
  */
-import type { MethodCallField } from '../../../types/field';
+import type { MethodCallField, FieldArgument, FieldNode, LiteralField } from '../../../types/field';
 import type { SemanticResolution } from '../../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
@@ -11,6 +11,13 @@ import type { ModelName } from '../../../types/domain/semanticValues';
 import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 import type { SemanticTraceNode } from '../../../types/domain/semanticResolution';
 import { parseSelectRawFields } from './selectRawProjectionParser';
+import { relationOptionFold, relationProject, relationResolve, relationRefine } from '../../kernel/relationalSequence';
+import { relationEqual } from '../../kernel/semanticRelations';
+
+type LiteralOption = { readonly kind: 'none' } | { readonly kind: 'some'; readonly value: string };
+const noneLiteral = (): LiteralOption => ({ kind: 'none' });
+const someLiteral = (value: string): LiteralOption => ({ kind: 'some', value });
+
 
 export function resolveSelectRawProjection(
   meta: MethodCallField,
@@ -19,40 +26,58 @@ export function resolveSelectRawProjection(
   sourceTrace: readonly SemanticTraceNode[],
   confidence: number,
 ): SemanticResolution {
-  const sql = firstLiteral(meta);
-  if (sql === null) return unknown('selectRaw requires a literal SQL projection', sourceTrace);
-  const fields = parseProjection(sql, sourceDefinition);
-  if (fields.length === 0) return unknown('selectRaw projection has no aliased fields', sourceTrace);
-  const surface = SemanticResolutionFactory.queryProjectionSurface(fields);
-  const boundAst = BoundSemanticFactory.queryProjection({
+  return relationOptionFold(firstLiteral(meta),
+    () => indeterminate('selectRaw requires a literal SQL projection', sourceTrace),
+    sql => {
+      const fields = parseProjection(sql, sourceDefinition);
+      return relationResolve(fields.length > 0,
+        () => {
+          const surface = SemanticResolutionFactory.queryProjectionSurface(fields);
+          const boundAst = BoundSemanticFactory.queryProjection({
     sourceModel,
     surface,
     cardinality: { kind: 'collection' },
     nullability: { kind: 'non_nullable' },
-  });
-  const trace = [...sourceTrace, {
+          });
+          const trace = [...sourceTrace, {
     source: 'SelectRawProjectionResolver',
     rule: 'selectRaw aliases become query projection fields',
     input: sql,
-    output: fields.map(field => field.name.value).join(', '),
-  }];
-  return SemanticResolutionFactory.queryProjection({
-    status: 'resolved', confidence, trace, boundAst, sourceModel, sourceDefinition, surface,
-    cardinality: { kind: 'collection' }, nullability: { kind: 'non_nullable' },
-  });
+            output: relationProject(fields, field => field.name.value).join(', '),
+          }];
+          return SemanticResolutionFactory.queryProjection({
+            status: 'resolved', confidence, trace, boundAst, sourceModel, sourceDefinition, surface,
+            cardinality: { kind: 'collection' }, nullability: { kind: 'non_nullable' },
+          });
+        },
+        () => indeterminate('selectRaw projection has no aliased fields', sourceTrace),
+      );
+    },
+  );
 }
 
-function firstLiteral(meta: MethodCallField): string | null {
-  const argument = meta.args[0];
-  if (!argument || argument.kind !== 'positional') return null;
-  const value = argument.value;
-  return value.kind === 'literal' && typeof value.value === 'string' ? value.value : null;
+function firstLiteral(meta: MethodCallField): LiteralOption {
+  const isPositional = (value: FieldArgument): value is Extract<FieldArgument, { kind: 'positional' }> => relationEqual(value.kind, 'positional');
+  const isLiteral = (value: FieldNode): value is LiteralField => relationEqual(value.kind, 'literal');
+  return relationOptionFold(
+    relationRefine(meta.args[0], isPositional),
+    noneLiteral,
+    positional => relationOptionFold(
+      relationRefine(positional.value, isLiteral),
+      noneLiteral,
+      literal => relationOptionFold(
+        relationRefine(literal.value, (value): value is string => Object.is(typeof value, 'string')),
+        noneLiteral,
+        someLiteral,
+      ),
+    ),
+  );
 }
 
 function parseProjection(sql: string, sourceDefinition: ModelSemanticDefinition) {
   return parseSelectRawFields(sql, sourceDefinition);
 }
 
-function unknown(rule: string, trace: readonly SemanticTraceNode[]): SemanticResolution {
-  return SemanticResolutionFactory.unknown({ status: 'unknown', confidence: 0, trace: [...trace, { source: 'SelectRawProjectionResolver', rule, input: 'selectRaw', output: 'unknown' }], boundAst: BoundSemanticFactory.unsupported('unsupported_syntax') });
+function indeterminate(rule: string, trace: readonly SemanticTraceNode[]): SemanticResolution {
+  return SemanticResolutionFactory.indeterminate({ status: 'indeterminate', confidence: 0, trace: [...trace, { source: 'SelectRawProjectionResolver', rule, input: 'selectRaw', output: 'indeterminate' }], boundAst: BoundSemanticFactory.unsupported('unsupported_syntax') });
 }

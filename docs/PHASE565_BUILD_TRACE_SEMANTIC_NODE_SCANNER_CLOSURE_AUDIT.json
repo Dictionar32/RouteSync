@@ -1,0 +1,14 @@
+{
+  "phase": 565,
+  "frontier": "build-trace-semantic-node-scanner-closure",
+  "inputs": ["build(1).log"],
+  "repairs": [
+    "semanticTypes.distributiveSemanticNode",
+    "buildIRNode.relationalSemanticDispatch",
+    "schemaProducer.canonicalExport",
+    "resourceAstExpressionMapper.closureExportAlignment"
+  ],
+  "transpileDiagnosticsClean": true,
+  "fullBuildExecuted": false,
+  "fullBuildReason": "checkpoint has no node_modules"
+}

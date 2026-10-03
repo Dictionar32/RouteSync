@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
-    TypedCache,
-    QueryDatabase,
+    createTypedCache,
+    createQueryDatabase,
     createMemoizedQueryKey,
 } from '../TypedCache';
 
 describe('TypedCache structured query boundary', () => {
     it('preserves a concrete result type without runtime casts', () => {
-        const cache = new TypedCache();
+        const cache = createTypedCache();
         const key = createMemoizedQueryKey<{ id: number }>('item');
         const value = { id: 7 };
 
@@ -15,13 +15,13 @@ describe('TypedCache structured query boundary', () => {
 
         const cached = cache.get(key);
 
-        expect(cached).toBe(value);
-        expect(cached?.id).toBe(7);
+        expect(cached).toEqual({ kind: 'some', value });
+        expect(cached.kind).toBe('some');
         expect(cache.has(key)).toBe(true);
     });
 
     it('keeps scoped keys isolated while preserving their output type', () => {
-        const cache = new TypedCache();
+        const cache = createTypedCache();
         const root = createMemoizedQueryKey<number>('count');
         const first = root.scope('count:revision:1');
         const second = root.scope('count:revision:2');
@@ -29,12 +29,12 @@ describe('TypedCache structured query boundary', () => {
         cache.set(first, 42);
         cache.set(second, 84);
 
-        expect(cache.get(first)).toBe(42);
-        expect(cache.get(second)).toBe(84);
+        expect(cache.get(first)).toEqual({ kind: 'some', value: 42 });
+        expect(cache.get(second)).toEqual({ kind: 'some', value: 84 });
     });
 
     it('supports typed QueryDatabase memoization', () => {
-        const database = new QueryDatabase();
+        const database = createQueryDatabase();
         const key = createMemoizedQueryKey<{ value: string }>('query');
         let executions = 0;
 

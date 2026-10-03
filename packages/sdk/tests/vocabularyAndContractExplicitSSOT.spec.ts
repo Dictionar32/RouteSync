@@ -5,7 +5,7 @@ import {
   HttpStatusCode,
   RouteSecurityClassifier,
   SecuritySchemeKind,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedModelColumnDescriptor,
   RouteParameterType,
   PrimitiveKind
@@ -58,8 +58,8 @@ describe('Explicit Core Vocabulary & Domain Models SSOT', () => {
     expect(security.abilities).toEqual(['admin', 'manage-orders', 'view-reports'])
   })
 
-  it('4. ScannedRouteDescriptor should parse throttle middleware into RateLimitDescriptor', () => {
-    const route = ScannedRouteDescriptor.create({
+  it('4. RouteSemanticFlowFactory should parse throttle middleware into RateLimitDescriptor', () => {
+    const route = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/login',
       resourceName: 'AuthResource',

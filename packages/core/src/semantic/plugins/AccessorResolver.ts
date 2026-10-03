@@ -1,59 +1,59 @@
 import type { SemanticResolution, SemanticTraceNode } from '../../types/domain/semanticResolution';
-import { unknownResolution, resolutionLabel } from '../semanticResolutionSupport';
-import type { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode, ModelAccessor } from '../types';
+import { indeterminateResolution, resolutionLabel } from '../semanticResolutionSupport';
+import type { ResolverPlugin, ResolutionContext, ResolverMeta, ModelNode } from '../types';
+import type { ModelSemanticAccessor } from '../../types/upstream/model';
 import { modelScope } from '../resolutionScope';
 import { resolveInScope } from '../kernel/resolveInScope';
+import { matchLookup } from '../../types/upstream/collections';
+import { relationEqual, relationResolve } from '../kernel/semanticRelations';
+import { relationOptionFold, relationRefine } from '../kernel/relationalSequence';
 
-export class AccessorResolver implements ResolverPlugin {
-  canResolve(meta: ResolverMeta): boolean {
-    return !!(meta && meta.kind === 'model_accessor');
-  }
+type AccessorMeta = Extract<ResolverMeta, { kind: 'model_accessor' }>;
+type ExpressionComputation = Extract<ModelSemanticAccessor['computation'], { kind: 'expression' }>;
+const isAccessorMeta = (meta: ResolverMeta): meta is AccessorMeta => relationEqual(meta.kind, 'model_accessor');
+const isExpressionComputation = (computation: ModelSemanticAccessor['computation']): computation is ExpressionComputation => relationEqual(computation.kind, 'expression');
 
-  resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    if (meta.kind !== 'model_accessor') {
-      return unknownResolution('AccessorResolver', 'Unsupported accessor metadata', 'model_accessor', 'invalid_boundary_input');
-    }
-    const symbol = context.symbolTable.get(meta.model);
-    if (!symbol) {
-      return unknownResolution('AccessorResolver', `Model ${meta.model} not found in manifest`, meta.model, 'unresolved_symbol');
-    }
+const resolveAccessor = (acc: ModelSemanticAccessor, currentModel: ModelNode, context: ResolutionContext): SemanticResolution =>
+  relationOptionFold(
+    relationRefine(acc.computation, isExpressionComputation),
+    () => indeterminateResolution('AccessorResolver', 'Accessor computation is rejected or has no return expression', currentModel.name, 'unsupported_syntax'),
+    computation => resolveInScope(context.kernel, computation.expression, modelScope(currentModel)),
+  );
 
-    const colName = meta.column;
-    const acc = symbol.accessor(colName);
-    if (acc) {
-      const model = symbol.node;
-      const nodeId = `${model.definition.identity.name.value}.${colName}`;
-      if (!context.cycleDetector.enter(nodeId)) {
-         return unknownResolution('AccessorResolver', `Cycle detected at accessor ${nodeId}`, nodeId, 'invalid_boundary_input');
-      }
-      
-      const res = this.resolveAccessor(acc, model, context);
+const resolveWithCycle = (acc: ModelSemanticAccessor, currentModel: ModelNode, context: ResolutionContext): SemanticResolution => {
+  const nodeId = `${currentModel.definition.identity.name.value}.${acc.property.value}`;
+  return relationResolve(
+    context.cycleDetector.enter(nodeId),
+    () => {
+      const resolved = resolveAccessor(acc, currentModel, context);
       context.cycleDetector.leave(nodeId);
-      
       const trace: SemanticTraceNode[] = [{
         source: 'AccessorResolver',
-        rule: `Accessor lookup: ${model.definition.identity.name.value}.${colName}`,
-        input: colName,
-        output: resolutionLabel(res),
-      }, ...res.trace];
-      return { ...res, trace };
-    }
+        rule: `Accessor lookup: ${currentModel.definition.identity.name.value}.${acc.property.value}`,
+        input: acc.property.value,
+        output: resolutionLabel(resolved),
+      }, ...resolved.trace];
+      return { ...resolved, trace };
+    },
+    () => indeterminateResolution('AccessorResolver', `Cycle detected at accessor ${nodeId}`, nodeId, 'invalid_boundary_input'),
+  );
+};
 
-    return unknownResolution('AccessorResolver', `Accessor ${colName} not found on model ${symbol.name}`, colName, 'unresolved_property');
-  }
-
-  private resolveAccessor(acc: ModelAccessor, currentModel: ModelNode, context: ResolutionContext): SemanticResolution {
-    // Cache: already resolved by a previous scan (incremental.ts always
-    // sets `semantic` to the resolved outcome, never a raw meta — unlike
-    // the old `expression` field, there's no ambiguity to check for here).
-    if (acc.semantic && acc.semantic.status === 'resolved') {
-      return acc.semantic;
-    }
-
-    if (acc.ast) {
-      return resolveInScope(context.kernel, acc.ast, modelScope(currentModel));
-    }
-
-    return unknownResolution('AccessorResolver', 'Accessor has no expression or static resolution', currentModel.name, 'unsupported_syntax');
-  }
-}
+export const AccessorResolver: ResolverPlugin = Object.freeze({
+  canResolve: (meta: ResolverMeta): boolean => relationOptionFold(
+    relationRefine(meta, isAccessorMeta),
+    () => false,
+    () => true,
+  ),
+  resolve: (meta: ResolverMeta, context: ResolutionContext): SemanticResolution => relationOptionFold(
+    relationRefine(meta, isAccessorMeta),
+    () => indeterminateResolution('AccessorResolver', 'Unsupported accessor metadata', 'model_accessor', 'invalid_boundary_input'),
+    value => matchLookup(context.symbolTable.lookup(value.model), {
+      missing: () => indeterminateResolution('AccessorResolver', `Model ${value.model} not found in manifest`, value.model, 'unresolved_symbol'),
+      found: symbol => matchLookup(symbol.accessor(value.column), {
+        missing: () => indeterminateResolution('AccessorResolver', `Accessor ${value.column} not found on model ${symbol.name}`, value.column, 'unresolved_property'),
+        found: accessor => resolveWithCycle(accessor, symbol.node, context),
+      }),
+    }),
+  ),
+});

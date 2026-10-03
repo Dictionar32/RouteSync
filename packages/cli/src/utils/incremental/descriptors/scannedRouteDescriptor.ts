@@ -2,7 +2,7 @@
  * scannedRouteDescriptor.ts
  *
  * First-Class Level 7 Domain Descriptor for Scanned Routes.
- * Implements ScannedRouteContract with 100% direct assignment and zero null sentinels.
+ * Implements RouteSemanticFlowContract with 100% direct assignment and zero null sentinels.
  *
  * @module cli/utils/incremental/descriptors
  */
@@ -10,22 +10,22 @@
 import { SourceRef, SourceRefFactory } from '@routesync/core';
 import {
   NominalAtomFactory,
-  type ScannedRouteMethod,
-  type ScannedRoutePath,
-  type ScannedRouteName,
+  type RouteSemanticFlowMethod,
+  type RouteSemanticFlowPath,
+  type RouteSemanticFlowName,
   type ScannedStableHash
 } from '../types/nominalAtoms';
 import type { RouteResponsePayloadContract } from '../types/responsePayloadTypes';
-import type { ScannedRouteContract, ScannedRouteOptions } from '../types/scannedRouteTypes';
+import type { RouteSemanticFlowContract, RouteSemanticFlowOptions } from '../types/scannedRouteTypes';
 
-export class ScannedRouteDescriptor implements ScannedRouteContract {
-  public readonly method: ScannedRouteMethod;
-  public readonly path: ScannedRoutePath;
+export class RouteSemanticFlowFactory implements RouteSemanticFlowContract {
+  public readonly method: RouteSemanticFlowMethod;
+  public readonly path: RouteSemanticFlowPath;
   public readonly auth: boolean;
   public readonly schemaEntries: readonly (readonly [string, unknown])[];
   public readonly responsePayload: RouteResponsePayloadContract;
   public readonly assignmentEntries: readonly (readonly [string, string])[];
-  public readonly name: ScannedRouteName;
+  public readonly name: RouteSemanticFlowName;
   public readonly source: SourceRef;
 
   public stableHash: ScannedStableHash;
@@ -33,7 +33,7 @@ export class ScannedRouteDescriptor implements ScannedRouteContract {
   public assignments?: Record<string, string> | null;
   public schema?: Record<string, unknown> | null;
 
-  public constructor(contract: ScannedRouteContract) {
+  public constructor(contract: RouteSemanticFlowContract) {
     this.method = contract.method;
     this.path = contract.path;
     this.auth = contract.auth;
@@ -57,7 +57,7 @@ export class ScannedRouteDescriptor implements ScannedRouteContract {
     return this.source.line || null;
   }
 
-  public static create(options: ScannedRouteOptions): ScannedRouteDescriptor {
+  public static create(options: RouteSemanticFlowOptions): RouteSemanticFlowFactory {
     const method = NominalAtomFactory.method(options.method);
     const path = NominalAtomFactory.path(options.path);
     const auth = Boolean(options.auth);
@@ -73,16 +73,16 @@ export class ScannedRouteDescriptor implements ScannedRouteContract {
 
     const responsePayload: RouteResponsePayloadContract = { kind: 'unknown', raw: options.response };
 
-    return new ScannedRouteDescriptor({
+    return new RouteSemanticFlowFactory({
       method, path, auth, schemaEntries, responsePayload, assignmentEntries, stableHash, name, source
     });
   }
 
-  public static empty(): ScannedRouteDescriptor {
-    return ScannedRouteDescriptor.create({ method: 'GET', path: '/' });
+  public static empty(): RouteSemanticFlowFactory {
+    return RouteSemanticFlowFactory.create({ method: 'GET', path: '/' });
   }
 
-  public static fromRaw(raw: Record<string, unknown>): ScannedRouteDescriptor {
-    return ScannedRouteDescriptor.create(raw as unknown as ScannedRouteOptions);
+  public static fromRaw(raw: Record<string, unknown>): RouteSemanticFlowFactory {
+    return RouteSemanticFlowFactory.create(raw as unknown as RouteSemanticFlowOptions);
   }
 }

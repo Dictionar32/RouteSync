@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   BroadcastChannelKind,
   RouteParameterType
 } from '../../core/src'
@@ -30,7 +30,7 @@ describe('Complete Structured Constructors Finalization SSOT', () => {
     expect(channels).toEqual([])
   })
 
-  it('2. PHPRouteParser returns canonical ScannedRouteDescriptor instances', () => {
+  it('2. PHPRouteParser returns canonical RouteSemanticFlowFactory instances', () => {
     const parser = new PHPRouteParser()
     const content = `
       $router->get('/api/users', 'UserController@index');
@@ -54,7 +54,7 @@ describe('Complete Structured Constructors Finalization SSOT', () => {
     expect(postRoute.isMutating).toBe(true)
   })
 
-  it('3. OpenApiParser returns canonical ScannedRouteDescriptor instances', () => {
+  it('3. OpenApiParser returns canonical RouteSemanticFlowFactory instances', () => {
     const parser = new OpenApiParser()
     const spec = {
       paths: {

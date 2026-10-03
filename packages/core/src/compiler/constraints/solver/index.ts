@@ -4,4 +4,5 @@
  */
 
 export { solveConstraintStep } from './constraintStep';
+export type { ConstraintStateIndex, ConstraintStep } from './constraintStep';
 export { joinTypes, resolveVariableFromBounds } from './variableResolver';

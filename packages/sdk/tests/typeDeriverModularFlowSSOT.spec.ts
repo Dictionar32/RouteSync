@@ -6,7 +6,7 @@ import {
   ValidationRuleFieldLowerer,
   PrimitiveKind,
   ReadonlyCollectionType,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteSchemaPayload,
   ScannedRouteValidationRuleEntry,
   ScannedResourceDescriptor,
@@ -66,7 +66,7 @@ describe('TypeDeriver Modular Flow & SSOT Architecture', () => {
       ScannedRouteValidationRuleEntry.create('notes', ['nullable', 'string'])
     ];
 
-    const route = ScannedRouteDescriptor.fromSparse({
+    const route = RouteSemanticFlowFactory.fromSparse({
       method: 'POST',
       path: '/api/orders',
       schema: ScannedRouteSchemaPayload.fromRules(rulesList)
@@ -89,7 +89,7 @@ describe('TypeDeriver Modular Flow & SSOT Architecture', () => {
   });
 
   it('4. TypeDeriver facade transparently delegates to RequestTypeDeriver and SemanticTypeDeriver', () => {
-    const mockRoute = ScannedRouteDescriptor.fromSparse({
+    const mockRoute = RouteSemanticFlowFactory.fromSparse({
       path: '/api/users',
       resourceName: 'UserResource',
       method: 'POST',

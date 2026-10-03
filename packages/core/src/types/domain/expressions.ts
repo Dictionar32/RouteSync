@@ -562,6 +562,8 @@ export const matchResourceExpression = matchResourceFieldExpression;
  *
  * Canonical Factory for Structured ResourceFieldExpression AST Nodes.
  */
+export const resourceNullLiteralValue = (): Extract<ResourceLiteralValue, { readonly kind: 'null' }> => ({ kind: 'null', value: null });
+
 export class ResourceFieldExpressionFactory {
   public static primitive(type: PrimitiveKind): PrimitiveResourceExpression {
     return Object.freeze({ kind: ResourceExpressionKind.Primitive, type });

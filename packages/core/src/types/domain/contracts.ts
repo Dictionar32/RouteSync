@@ -8,7 +8,7 @@ import type { RouteParameterSpecification } from "./routes";
 import { type ResponseDescriptor, ResponseShape, matchResponse } from "./responses";
 import { matchRouteHandler } from "./routeHandlers";
 import type {
-  ParsedRoute,
+  RouteSemanticFlow,
   RouteIdentityContract,
   RouteBindingContract,
   RouteCapabilityContract,
@@ -24,8 +24,19 @@ import {
 import type { RouteSecurityDescriptor } from "../upstream/route";
 import type { RouteSchemaPayload } from "./validation";
 import type { RouteName, RoutePath, DomainName, ResourceName, PropertyName, ResponseTypeName, HttpErrorName } from "./semanticValues";
-import type { HttpErrorSchema } from "./httpErrors";
+import type { HttpErrorSchema } from "../upstream/routeErrorVocabulary";
 import { SemanticValueFactory } from './semanticValues';
+import type { Sequence } from '../upstream/collections';
+
+function sequenceToArray<T>(sequence: Sequence<T>): readonly T[] {
+  const values: T[] = [];
+  let current: Sequence<T> = sequence;
+  while (current.kind === 'cons') {
+    values.push(current.head);
+    current = current.tail;
+  }
+  return values;
+}
 
 // ============================================================================
 // ENDPOINT CONTRACT ADT & COMPLETE CONTRACT ARCHITECTURE (CDA)
@@ -107,7 +118,7 @@ export class ScannedEndpointContract implements EndpointContract {
     Object.freeze(this);
   }
 
-  public static fromRoute(route: ParsedRoute): ScannedEndpointContract {
+  public static fromRoute(route: RouteSemanticFlow): ScannedEndpointContract {
     return ScannedEndpointContract.fromSubcontracts({
       identity: route.identity,
       binding: route.binding,
@@ -122,12 +133,14 @@ export class ScannedEndpointContract implements EndpointContract {
     readonly capability: RouteCapabilityContract;
     readonly provenance: RouteProvenanceContract;
   }): ScannedEndpointContract {
-    const errors = Object.freeze(subcontracts.capability.errorResponses.map(error => ({
-      statusCode: error.statusCode,
-      name: error.name,
-      typeName: error.typeName,
-      schema: error.schema
-    })));
+    const errors: readonly EndpointErrorResponseContract[] = Object.freeze(
+      sequenceToArray(subcontracts.capability.errorResponses).map((error): EndpointErrorResponseContract => ({
+        statusCode: error.statusCode.value.value,
+        name: SemanticValueFactory.httpErrorName(error.name.value.value),
+        typeName: SemanticValueFactory.responseTypeName(error.typeName.value.value),
+        schema: error.schema
+      }))
+    );
 
     const successStatus = matchHttpMethod(subcontracts.identity.coordinates.method, {
       POST: () => HttpStatusCode.Created,
@@ -175,7 +188,7 @@ export class ScannedEndpointContract implements EndpointContract {
 
 }
 
-export function createEndpointContract(route: ParsedRoute): EndpointContract {
+export function createEndpointContract(route: RouteSemanticFlow): EndpointContract {
   return ScannedEndpointContract.fromRoute(route);
 }
 
@@ -192,9 +205,9 @@ export function matchEndpointResponse<R>(
 }
 
 /**
- * Guarantees a non-null EndpointContract from any ParsedRoute.
+ * Guarantees a non-null EndpointContract from any RouteSemanticFlow.
  */
-export function getRouteContract(route: ParsedRoute): EndpointContract {
+export function getRouteContract(route: RouteSemanticFlow): EndpointContract {
   return route.contract;
 }
 

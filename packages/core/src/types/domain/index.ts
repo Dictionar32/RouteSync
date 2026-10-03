@@ -319,7 +319,7 @@ export {
   SecuritySchemeKind,
   type RouteSecurityDescriptor,
   type ScannedRouteSecurityParams,
-  ScannedRouteSecurityDescriptor,
+  RouteSemanticFlowSecurityDescriptor,
   RouteSecurityClassifier,
   type SecuritySchemeSpecification,
   type SecuritySchemeRegistry,
@@ -360,8 +360,8 @@ export {
   type AnyInvalidationTarget,
   ScannedInvalidationTarget,
   type RouteCacheInvalidationDescriptor,
-  ScannedRouteCacheInvalidationDescriptor,
-  ScannedRouteInvalidationPayload,
+  RouteSemanticFlowCacheInvalidationDescriptor,
+  RouteSemanticFlowInvalidationPayload,
 } from './cacheInvalidation';
 
 export {
@@ -414,7 +414,7 @@ export {
   type RouteHookKindVisitor,
   matchRouteHookKind,
   matchHookKind,
-  ScannedRouteHookDescriptor,
+  RouteSemanticFlowHookDescriptor,
   type BaseCrudRoleDescriptor,
   type IndexCrudRoleDescriptor,
   type ShowCrudRoleDescriptor,
@@ -497,7 +497,7 @@ export {
   type RouteExecutionSignatureVisitor,
   matchRouteExecutionSignature,
   matchRoutePayloadMode,
-  ScannedRouteExecutionSignature,
+  RouteSemanticFlowExecutionSignature,
 } from './executionSignatures';
 
 export {
@@ -839,7 +839,7 @@ export {
   type RouteProvenanceContract,
   type RouteBindingContract,
   type RouteCapabilityContract,
-  type ParsedRoute,
+  type RouteSemanticFlow,
   type GetCollectionRouteDescriptor,
   type GetItemRouteDescriptor,
   type MutationRouteDescriptor,
@@ -854,7 +854,7 @@ export {
   type RouteDescriptorRegistry,
   ROUTE_DESCRIPTOR_REGISTRY,
   type RouteCollectionRegistry,
-  ScannedRouteRegistry,
+  RouteSemanticFlowRegistry,
 } from './routes';
 
 export {

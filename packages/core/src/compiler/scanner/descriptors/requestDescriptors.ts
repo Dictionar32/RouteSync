@@ -8,6 +8,7 @@
  * @module core/compiler/scanner/descriptors/requestDescriptors
  */
 
+import { relationProject } from "../../../semantic/kernel/relationalSequence";
 import type { SemanticType } from "../../types/SemanticType";
 import type { RequestFieldPresence } from "../../../types/domain/requestFieldPresence";
 import type { FormActionName } from "../../../types/domain/request";
@@ -50,10 +51,8 @@ export function buildRequestTypeWithActions(
         }[];
     }[]
 ): ScannedRequestTypeDescriptor {
-    const actions = actionDefinitions.map(def => {
-        const fields = def.fields.map(f =>
-            ScannedFormFieldDescriptor.fromResolved(f.name, f.type, f.presence)
-        );
+    const actions = relationProject(actionDefinitions, def => {
+        const fields = relationProject(def.fields, f => ScannedFormFieldDescriptor.fromResolved(f.name, f.type, f.presence));
         return ScannedFormActionDescriptor.create({
             name: def.actionName,
             fields

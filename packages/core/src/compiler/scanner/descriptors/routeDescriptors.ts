@@ -9,9 +9,9 @@
 
 // 1. Sub-Domain Contracts & Parameterization
 export type {
-    ScannedRouteCompleteContracts,
-    ScannedRouteConstructorInput,
-    ScannedRouteParams
+    RouteSemanticFlowCompleteContracts,
+    RouteSemanticFlowConstructorInput,
+    RouteSemanticFlowParams
 } from "./route/routeContracts";
 
 // 2. Sub-Domain Parameters (Path, Query, Header)
@@ -22,21 +22,7 @@ export {
     type ScannedRouteQueryParameterParams
 } from "./route/routeParameters";
 
-// 3. Sub-Domain Security & Policies
-export {
-    ScannedRoutePolicyDescriptor,
-    ScannedRateLimitDescriptor,
-    type ScannedRoutePolicyParams,
-    type ScannedRateLimitParams
-} from "./route/routeSecurity";
-
-// 4. Sub-Domain Error Responses
-export {
-    ScannedHttpErrorResponseDescriptor,
-    type ScannedHttpErrorResponseParams
-} from "./route/routeResponses";
-
 // 5. The Unifying Composite Consumer Model
 export {
-    ScannedRouteDescriptor
-} from "./route/ScannedRouteDescriptor";
+    RouteSemanticFlowFactory
+} from "./route/RouteSemanticFlowFactory";

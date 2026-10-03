@@ -1,6 +1,5 @@
 import { readSourceTextSync } from '../scannerUtils';
 /** Reads Laravel response DTOs into a verified contract boundary. */
-import * as fs from 'node:fs';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import type { ResourceFieldDescriptor } from '../../../../types/route';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
@@ -12,6 +11,7 @@ import type { ResponseDtoDeclarationAst } from '../../lexer/responseDtoAstTypes'
 import type { ResponseContractField, ResponseNullability, ResponseValueContract } from '../../../../types/domain/responseContracts';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { createResponseFieldName, createResponseTypeName } from '../../../../types/domain/semanticValueFactories';
+import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 
 export interface ResponseDtoAnalysis {
     readonly fields: readonly ResourceFieldDescriptor[];
@@ -20,8 +20,8 @@ export interface ResponseDtoAnalysis {
 
 export function readResponseDtoAnalysis(file: string): ResponseDtoAnalysis {
     const ast = parse(file);
-    const fields = ast.properties.map(toField);
-    const contractFields = ast.properties.map(toContractField);
+    const fields = relationProject(ast.properties, toField);
+    const contractFields = relationProject(ast.properties, toContractField);
     return Object.freeze({
         fields: Object.freeze(fields),
         contractFields: Object.freeze(contractFields)
@@ -40,9 +40,11 @@ function parse(file: string): ResponseDtoDeclarationAst {
 
 function toField(property: ResponseDtoDeclarationAst['properties'][number]): ResourceFieldDescriptor {
     const resolvedType = resolveSemanticType(property.type);
-    const expression = property.type.kind === 'primitive'
-        ? { kind: 'primitive' as const, type: toPrimitiveKind(property.type) }
-        : { kind: 'unsupported' as const, reason: 'unsupported_syntax' as const };
+    const expression = relationGate(
+        relationEqual(property.type.kind, 'primitive'),
+        () => ({ kind: 'primitive' as const, type: toPrimitiveKind(property.type as Extract<PhpPropertyTypeAst, { kind: 'primitive' }>) }),
+        () => ({ kind: 'unsupported' as const, reason: 'unsupported_syntax' as const }),
+    );
 
     return ScannedResourceFieldDescriptor.fromExpression(
         property.name, expression, resolvedType, property.name, BoundSemanticFactory.unsupported('parser_gap')
@@ -50,18 +52,16 @@ function toField(property: ResponseDtoDeclarationAst['properties'][number]): Res
 }
 
 function resolveSemanticType(type: PhpPropertyTypeAst): SemanticType {
-    const base = (() => {
-        switch (type.kind) {
-            case 'primitive':
-                return new PrimitiveType(toPrimitiveKind(type));
-            case 'named':
-                return ReferenceType.response('response', type.name);
-            case 'mixed':
-                return new JsonValueType();
-        }
-    })();
-
-    return type.nullable ? new NullableType(base) : base;
+    const base = relationGate(
+        relationEqual(type.kind, 'primitive'),
+        () => primitiveType(toPrimitiveKind(type as Extract<PhpPropertyTypeAst, { kind: 'primitive' }>)),
+        () => relationGate(
+            relationEqual(type.kind, 'named'),
+            () => ReferenceType.response('response', (type as Extract<PhpPropertyTypeAst, { kind: 'named' }>).name),
+            () => JsonValueType(),
+        ),
+    );
+    return relationGate(type.nullable, () => NullableType(base), () => base);
 }
 
 function toContractField(property: ResponseDtoDeclarationAst['properties'][number]): ResponseContractField {
@@ -73,44 +73,73 @@ function toContractField(property: ResponseDtoDeclarationAst['properties'][numbe
     });
 }
 
-function toNullability(nullable: boolean): ResponseNullability {
-    return nullable ? { kind: 'nullable' } : { kind: 'required' };
-}
+const toNullability = (nullable: boolean): ResponseNullability => relationGate(
+    nullable,
+    () => ({ kind: 'nullable' }),
+    () => ({ kind: 'required' }),
+);
 
 function toResponseValueContract(type: PhpPropertyTypeAst): ResponseValueContract {
-    switch (type.kind) {
-        case 'primitive':
-            switch (type.name) {
-                case 'string': return { kind: 'scalar', value: { kind: 'textual' } };
-                case 'int': return { kind: 'scalar', value: { kind: 'whole_number' } };
-                case 'float': return { kind: 'scalar', value: { kind: 'decimal_number' } };
-                case 'bool': return { kind: 'scalar', value: { kind: 'boolean_flag' } };
-            }
-        case 'mixed':
-            return { kind: 'unresolved_declaration', reason: 'mixed_declaration' };
-        case 'named':
-            return { kind: 'named_type', name: createResponseTypeName(type.name) };
-    }
+    return relationGate(
+        relationEqual(type.kind, 'primitive'),
+        () => toPrimitiveResponseValue(type as Extract<PhpPropertyTypeAst, { kind: 'primitive' }>),
+        () => relationGate(
+            relationEqual(type.kind, 'named'),
+            () => ({ kind: 'named_type', name: createResponseTypeName((type as Extract<PhpPropertyTypeAst, { kind: 'named' }>).name) }),
+            () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+        ),
+    );
+}
+
+function toPrimitiveResponseValue(type: Extract<PhpPropertyTypeAst, { kind: 'primitive' }>): ResponseValueContract {
+    return relationGate(
+        relationEqual(type.name, 'string'),
+        () => ({ kind: 'scalar', value: { kind: 'textual' } }),
+        () => relationGate(
+            relationEqual(type.name, 'int'),
+            () => ({ kind: 'scalar', value: { kind: 'whole_number' } }),
+            () => relationGate(
+                relationEqual(type.name, 'float'),
+                () => ({ kind: 'scalar', value: { kind: 'decimal_number' } }),
+                () => relationGate(
+                    relationEqual(type.name, 'bool'),
+                    () => ({ kind: 'scalar', value: { kind: 'boolean_flag' } }),
+                    () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+                ),
+            ),
+        ),
+    );
 }
 
 function findClassName(tokens: readonly { readonly value: string }[]) {
-    for (let i = 0; i + 1 < tokens.length; i++) {
-        if (tokens[i].value === 'class') return createAstIdentifier(tokens[i + 1].value);
-    }
-    throw new Error('Response DTO class declaration not found');
+    const find = (index: number): RelationOption<string> => relationGate(
+        index >= tokens.length,
+        () => ({ kind: 'none' }),
+        () => relationGate(
+            relationEqual(tokens[index].value, 'class'),
+            () => relationGate(
+                index + 1 < tokens.length,
+                () => relationSome(tokens[index + 1].value),
+                () => ({ kind: 'none' }),
+            ),
+            () => find(index + 1),
+        ),
+    );
+    return relationOptionFold(find(0), () => { throw Error('Response DTO class declaration not found'); }, value => createAstIdentifier(value));
 }
 
-function toPrimitiveKind(type: PhpPropertyTypeAst): PrimitiveKind {
-    switch (type.kind) {
-        case 'primitive':
-            switch (type.name) {
-                case 'string': return PrimitiveKind.STRING;
-                case 'int':
-                case 'float': return PrimitiveKind.NUMBER;
-                case 'bool': return PrimitiveKind.BOOLEAN;
-            }
-        case 'mixed':
-        case 'named':
-            return PrimitiveKind.UNKNOWN;
-    }
+function toPrimitiveKind(type: Extract<PhpPropertyTypeAst, { kind: 'primitive' }>): PrimitiveKind {
+    return relationGate(
+        relationEqual(type.name, 'string'),
+        () => PrimitiveKind.STRING,
+        () => relationGate(
+            relationEqual(type.name, 'bool'),
+            () => PrimitiveKind.BOOLEAN,
+            () => relationGate(
+                relationEqual(type.name, 'int'),
+                () => PrimitiveKind.NUMBER,
+                () => relationGate(relationEqual(type.name, 'float'), () => PrimitiveKind.NUMBER, () => PrimitiveKind.INDETERMINATE),
+            ),
+        ),
+    );
 }

@@ -7,6 +7,7 @@
  */
 
 import type { ResolvedSemanticType } from '../types/ResolvedSemanticType';
+import { relationResolve, relationProject } from '../../semantic/kernel/relationalSequence';
 import {
     type LegacyPrimitiveValue,
     type LegacyResourceValue,
@@ -33,54 +34,29 @@ export {
     ContractInputBoundaryError
 };
 
-export class ContractInputBoundary {
-    public resolve(value: LegacyContractValue): ResolvedSemanticType {
-        switch (value.kind) {
-            case 'primitive':
-                return {
-                    kind: 'primitive',
-                    type: resolveLegacyPrimitive(value.type),
-                    ...(value.format === undefined ? {} : { format: value.format }),
-                };
+type LegacyVisitor<R> = {
+    readonly [K in LegacyContractValue['kind']]: (value: Extract<LegacyContractValue, { readonly kind: K }>) => R;
+};
 
-            case 'resource':
-                return {
-                    kind: 'resource',
-                    resource: value.resource,
-                    collection: value.collection,
-                };
+const visitLegacyContractValue = <R>(value: LegacyContractValue, visitor: LegacyVisitor<R>): R => visitor[value.kind](value);
 
-            case 'model':
-                return {
-                    kind: 'model',
-                    model: value.model,
-                };
-
-            case 'object':
-                return {
-                    kind: 'object',
-                    properties: Object.fromEntries(
-                        Object.entries(value.properties).map(([name, property]) => [
-                            name,
-                            this.resolve(property),
-                        ]),
-                    ),
-                };
-
-            case 'array':
-                return {
-                    kind: 'array',
-                    items: this.resolve(value.items),
-                };
-
-            case 'union':
-                return resolveLegacyUnion(value.types, (v) => this.resolve(v));
-
-            case 'literal':
-                return {
-                    kind: 'literal',
-                    value: value.value,
-                };
-        }
-    }
-}
+export const ContractInputBoundary = Object.freeze({
+    resolve(value: LegacyContractValue): ResolvedSemanticType {
+        return visitLegacyContractValue(value, {
+            primitive: current => ({
+                kind: 'primitive',
+                type: resolveLegacyPrimitive(current.type),
+                ...relationResolve(Object.hasOwn(current, 'format'), () => ({ format: current.format }), () => ({})),
+            }),
+            resource: current => ({ kind: 'resource', resource: current.resource, collection: current.collection }),
+            model: current => ({ kind: 'model', model: current.model }),
+            object: current => ({
+                kind: 'object',
+                properties: Object.fromEntries(relationProject(Object.entries(current.properties), ([name, property]) => [name, ContractInputBoundary.resolve(property)])),
+            }),
+            array: current => ({ kind: 'array', items: ContractInputBoundary.resolve(current.items) }),
+            union: current => resolveLegacyUnion(current.types, item => ContractInputBoundary.resolve(item)),
+            literal: current => ({ kind: 'literal', value: current.value }),
+        });
+    },
+});

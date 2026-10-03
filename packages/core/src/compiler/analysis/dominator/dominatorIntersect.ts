@@ -1,41 +1,35 @@
-/**
- * dominatorIntersect.ts
- *
- * Intersection (common dominator) computation for two blocks in a CFG.
- *
- * @module core/compiler/analysis/dominator
- */
+/** Declarative dominator intersection over relation-backed idom facts. */
+import { relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
 
-/**
- * Find intersection (common dominator) of two blocks along the dominator tree.
- *
- * @param b1 - First block ID
- * @param b2 - Second block ID
- * @param rpo - Reverse postorder sequence
- * @param idoms - Immediate dominators map
- * @returns Common dominator block ID
- */
-export function intersectDominators(
-    b1: number,
-    b2: number,
-    rpo: readonly number[],
-    idoms: ReadonlyMap<number, number>
-): number {
-    let finger1 = b1;
-    let finger2 = b2;
-    const rpoIndex = new Map<number, number>(rpo.map((id, idx) => [id, idx]));
+const rpoIndex = (rpo: readonly number[], value: number, index = 0): number => relationResolve(
+  relationEqual(index, rpo.length),
+  () => -1,
+  () => relationResolve(
+    relationEqual(rpo[index], value),
+    () => index,
+    () => rpoIndex(rpo, value, index + 1),
+  ),
+);
 
-    // Walk up dominator tree until common ancestor is reached
-    while (finger1 !== finger2) {
-        const idx1 = rpoIndex.get(finger1) ?? -1;
-        const idx2 = rpoIndex.get(finger2) ?? -1;
-
-        if (idx1 > idx2) {
-            finger1 = idoms.get(finger1)!;
-        } else {
-            finger2 = idoms.get(finger2)!;
-        }
-    }
-
-    return finger1;
-}
+export const intersectDominators = (
+  first: number,
+  second: number,
+  rpo: readonly number[],
+  idoms: RelationIndex<number, number>,
+): number => {
+  const step = (left: number, right: number): number => relationResolve(
+    relationEqual(left, right),
+    () => left,
+    () => {
+      const leftIndex = rpoIndex(rpo, left);
+      const rightIndex = rpoIndex(rpo, right);
+      return relationResolve(
+        leftIndex > rightIndex,
+        () => relationOptionFold(relationIndexLookup(idoms, left), () => left, next => step(next, right)),
+        () => relationOptionFold(relationIndexLookup(idoms, right), () => right, next => step(left, next)),
+      );
+    },
+  );
+  return step(first, second);
+};

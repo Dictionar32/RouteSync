@@ -2,7 +2,7 @@ import type { CompilerIR, ResolvedResponse, ResolvedRoute } from './semanticType
 import type {
     InlineResponseDescriptor,
     ModelResponseDescriptor,
-    ParsedRoute,
+    RouteSemanticFlow,
     ResourceFieldDescriptor,
     ResourceResponseDescriptor,
 } from '@routesync/core';
@@ -46,7 +46,7 @@ export class ResponseResolver {
         }
     }
 
-    public static resolveResponse(route: ParsedRoute, context: SemanticResolutionContext): ResolvedResponse {
+    public static resolveResponse(route: RouteSemanticFlow, context: SemanticResolutionContext): ResolvedResponse {
         const response = route.binding.response;
         const name = resolveResponseName(route, response);
         const actionName = resolveCanonicalAction(route.identity.method);

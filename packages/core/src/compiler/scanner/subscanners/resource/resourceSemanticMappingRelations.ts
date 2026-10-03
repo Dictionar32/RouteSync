@@ -1,0 +1,115 @@
+/**
+ * Declarative semantic mapping program for upstream resource expression vocabulary.
+ *
+ * Source syntax is evidence. Meaning is represented as relations and resolved by
+ * the shared semantic relation solver. The registry below is only a derived
+ * constructor index; it is not the semantic authority.
+ */
+import {
+  solveSemanticRelations,
+  type SemanticRelation,
+  type SemanticRelationRewrite,
+} from '../../lexer/routeAst/semanticRelationSolver';
+import { relationLookup, relationOptionFold, relationProject } from '../../../../semantic/kernel/relationalSequence';
+
+export type ResourceMappingRelation =
+  | 'source_kind'
+  | 'semantic_kind'
+  | 'literal_kind'
+  | 'literal_semantic_kind';
+
+type MappingRule = SemanticRelationRewrite<ResourceMappingRelation>;
+
+const source = (value: string): SemanticRelation<ResourceMappingRelation> => ({ relation: 'source_kind', arguments: [value] });
+
+const rule = (id: string, from: string, to: string, priority = 0): MappingRule => ({
+  id,
+  priority,
+  when: [{ relation: 'source_kind', arguments: [from] }],
+  then: [{ relation: 'semantic_kind', arguments: [to] }],
+});
+
+export const RESOURCE_SEMANTIC_MAPPING_RULES: readonly MappingRule[] = Object.freeze([
+  ...relationProject([
+    ['binary_identical', 'strict_equal'], ['binary_equal', 'equal'], ['binary_not_identical', 'strict_not_equal'], ['binary_not_equal', 'not_equal'],
+    ['binary_greater_than', 'greater'], ['binary_greater_or_equal', 'greater_equal'], ['binary_less_than', 'less'], ['binary_less_or_equal', 'less_equal'],
+    ['binary_addition', 'add'], ['binary_subtraction', 'subtract'], ['binary_multiplication', 'multiply'], ['binary_division', 'divide'], ['binary_modulo', 'modulo'],
+    ['binary_logical_and', 'and'], ['binary_logical_or', 'or'], ['binary_bitwise_or', 'bitwise_or'], ['binary_concat', 'concat'],
+    ['unary_negative', 'negate'], ['unary_positive', 'positive'], ['unary_bitwise_not', 'bitwise_not'], ['unary_not', 'not'],
+    ['cast_int', 'integer'], ['cast_float', 'float'], ['cast_string', 'string'], ['cast_bool', 'boolean'], ['cast_array', 'array'], ['cast_object', 'json'],
+    ['assignment_set', 'set'], ['assignment_add', 'add'], ['assignment_subtract', 'subtract'], ['assignment_multiply', 'multiply'],
+    ['assignment_divide', 'divide'], ['assignment_modulo', 'modulo'], ['assignment_concatenate', 'concatenate'], ['assignment_null_coalesce', 'null_coalesce'],
+    ['assignment_power', 'power'], ['assignment_bitwise_and', 'bitwise_and'], ['assignment_bitwise_or', 'bitwise_or'], ['assignment_bitwise_xor', 'bitwise_xor'],
+    ['assignment_shift_left', 'shift_left'], ['assignment_shift_right', 'shift_right'],
+    ['reference_by_value', 'by_value'], ['reference_by_reference', 'by_reference'],
+    ['static_receiver_DB', 'framework_database'], ['static_receiver_Attribute', 'framework_attribute'], ['static_receiver_class', 'class'],
+    ['static_action_DB_raw', 'database_raw'], ['static_action_domain', 'domain'],
+  ], ([from, to], index) => rule(`resource-semantic-map-${index}`, from, to)),
+]);
+
+const semanticKind = (sourceKind: string): string => {
+  const solved = solveSemanticRelations([source(sourceKind)], RESOURCE_SEMANTIC_MAPPING_RULES);
+  const fact = relationLookup(
+    relationProject(solved, item => [item.relation, item] as const),
+    'semantic_kind',
+  );
+  return relationOptionFold(
+    fact,
+    () => { throw Error(`No declarative semantic mapping for ${sourceKind}`); },
+    item => String(item.arguments[0]),
+  );
+};
+
+export const resolveResourceSemanticKind = semanticKind;
+
+export const resourceMappingConstructors = Object.freeze({
+  strict_equal: () => ({ kind: 'strict_equal' as const }), equal: () => ({ kind: 'equal' as const }), strict_not_equal: () => ({ kind: 'strict_not_equal' as const }), not_equal: () => ({ kind: 'not_equal' as const }),
+  greater: () => ({ kind: 'greater' as const }), greater_equal: () => ({ kind: 'greater_equal' as const }), less: () => ({ kind: 'less' as const }), less_equal: () => ({ kind: 'less_equal' as const }),
+  add: () => ({ kind: 'add' as const }), subtract: () => ({ kind: 'subtract' as const }), multiply: () => ({ kind: 'multiply' as const }), divide: () => ({ kind: 'divide' as const }), modulo: () => ({ kind: 'modulo' as const }),
+  and: () => ({ kind: 'and' as const }), or: () => ({ kind: 'or' as const }), bitwise_or: () => ({ kind: 'bitwise_or' as const }), concat: () => ({ kind: 'concat' as const }),
+  negate: () => ({ kind: 'negate' as const }), positive: () => ({ kind: 'positive' as const }), bitwise_not: () => ({ kind: 'bitwise_not' as const }), not: () => ({ kind: 'not' as const }),
+  integer: () => ({ kind: 'integer' as const }), float: () => ({ kind: 'float' as const }), string: () => ({ kind: 'string' as const }), boolean: () => ({ kind: 'boolean' as const }), array: () => ({ kind: 'array' as const }), json: () => ({ kind: 'json' as const }),
+  set: () => ({ kind: 'set' as const }), concatenate: () => ({ kind: 'concatenate' as const }), null_coalesce: () => ({ kind: 'null_coalesce' as const }), power: () => ({ kind: 'power' as const }),
+  bitwise_and: () => ({ kind: 'bitwise_and' as const }), bitwise_xor: () => ({ kind: 'bitwise_xor' as const }), shift_left: () => ({ kind: 'shift_left' as const }), shift_right: () => ({ kind: 'shift_right' as const }),
+  by_value: () => ({ kind: 'by_value' as const }), by_reference: () => ({ kind: 'by_reference' as const }),
+});
+
+export const resolveResourceMappingConstructor = <T extends keyof typeof resourceMappingConstructors>(sourceKind: string): ReturnType<(typeof resourceMappingConstructors)[T]> => {
+  const semantic = resolveResourceSemanticKind(sourceKind) as T;
+  const constructor = relationLookup(
+    Object.entries(resourceMappingConstructors) as readonly (readonly [string, () => object])[],
+    semantic,
+  );
+  return relationOptionFold(
+    constructor,
+    () => { throw Error(`No constructor registered for semantic mapping ${semantic}`); },
+    build => build() as ReturnType<(typeof resourceMappingConstructors)[T]>,
+  );
+};
+
+
+export const RESOURCE_STRUCTURAL_MAPPING_RULES: readonly MappingRule[] = Object.freeze([
+  ...relationProject([
+    ['argument_positional', 'positional'], ['argument_named', 'named'], ['argument_unpacked', 'unpacked'],
+    ['array_entry_positional', 'implicit'], ['array_entry_keyed', 'keyed'], ['array_entry_unpacked', 'unpacked'],
+    ['array_key_string', 'string_literal'], ['array_key_integer', 'number_literal'], ['array_key_expression', 'expression'],
+    ['assignment_target_variable', 'variable'], ['assignment_target_variables', 'variables'], ['assignment_target_destructuring', 'destructuring'],
+    ['assignment_target_property', 'property'], ['assignment_target_static_property', 'static_property'], ['assignment_target_array_element', 'index'], ['assignment_target_append', 'append'],
+    ['destructuring_variable', 'variable'], ['destructuring_reference_variable', 'reference_variable'], ['destructuring_keyed', 'keyed'], ['destructuring_nested', 'nested'], ['destructuring_skipped', 'skipped'],
+    ['static_property_owner_named_class', 'named_class'], ['static_property_owner_self', 'self'], ['static_property_owner_static', 'static'], ['static_property_owner_parent', 'parent'],
+    ['parameter_type_primitive', 'primitive'], ['parameter_type_named', 'named'], ['parameter_type_nullable', 'nullable'],
+    ['access_direct', 'direct'], ['access_nullsafe', 'nullsafe'],
+    ['literal_string', 'string'], ['literal_number', 'number'], ['literal_boolean', 'boolean'], ['literal_null', 'null'],
+    ['primitive_bool', 'boolean'], ['primitive_string', 'string'], ['primitive_int', 'number'], ['primitive_float', 'number'], ['primitive_mixed', 'mixed'], ['primitive_array', 'unspecified'],
+  ], ([from, to], index): MappingRule => ({
+    id: `resource-structural-map-${index}`,
+    priority: 0,
+    when: [{ relation: 'source_kind', arguments: [from] }],
+    then: [{ relation: 'semantic_kind', arguments: [to] }],
+  })),
+]);
+
+export const RESOURCE_ALL_MAPPING_RULES: readonly MappingRule[] = Object.freeze([
+  ...RESOURCE_SEMANTIC_MAPPING_RULES,
+  ...RESOURCE_STRUCTURAL_MAPPING_RULES,
+]);

@@ -1,0 +1,309 @@
+{
+  "phase": 385,
+  "filesScanned": 179,
+  "zeroViolationFiles": 98,
+  "violationFiles": 81,
+  "totals": {
+    "if": 340,
+    "for": 53,
+    "while": 11,
+    "switch": 14,
+    "map": 23,
+    "filter": 2,
+    "reduce": 0,
+    "flatMap": 0,
+    "undefined": 0,
+    "nullish": 18,
+    "null": 55,
+    "strictEquality": 738,
+    "as": 210,
+    "unknown": 38
+  },
+  "topFiles": [
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 26,
+        "strictEquality": 210,
+        "as": 36,
+        "unknown": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "counts": {
+        "if": 46,
+        "for": 11,
+        "while": 2,
+        "switch": 1,
+        "map": 3,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 69,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "counts": {
+        "if": 23,
+        "for": 6,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 4,
+        "null": 0,
+        "strictEquality": 33,
+        "as": 5,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+      "counts": {
+        "if": 17,
+        "for": 3,
+        "while": 0,
+        "switch": 2,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 5,
+        "null": 0,
+        "strictEquality": 24,
+        "as": 6,
+        "unknown": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "counts": {
+        "if": 24,
+        "for": 6,
+        "while": 0,
+        "switch": 1,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 28,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/cli/src/generators/semantic/context/astExtractors.ts",
+      "counts": {
+        "if": 14,
+        "for": 0,
+        "while": 0,
+        "switch": 1,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 7,
+        "strictEquality": 18,
+        "as": 6,
+        "unknown": 8
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts",
+      "counts": {
+        "if": 17,
+        "for": 0,
+        "while": 0,
+        "switch": 1,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 33,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "counts": {
+        "if": 14,
+        "for": 0,
+        "while": 4,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 2,
+        "null": 1,
+        "strictEquality": 29,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "counts": {
+        "if": 12,
+        "for": 2,
+        "while": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 1,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 1,
+        "null": 0,
+        "strictEquality": 21,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/method-return/selectRawProjectionParser.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 2,
+        "null": 11,
+        "strictEquality": 22,
+        "as": 2,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/cli/src/resolvers/intent/cartGroupDetector.ts",
+      "counts": {
+        "if": 16,
+        "for": 2,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 1,
+        "strictEquality": 15,
+        "as": 0,
+        "unknown": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 6,
+        "as": 21,
+        "unknown": 6
+      }
+    },
+    {
+      "file": "packages/cli/src/resolvers/plugins/AccessorResolver.ts",
+      "counts": {
+        "if": 8,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 10,
+        "as": 6,
+        "unknown": 9
+      }
+    },
+    {
+      "file": "packages/cli/src/resolvers/plugins/method-return/methodCallHandler.ts",
+      "counts": {
+        "if": 15,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 1,
+        "strictEquality": 15,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/cli/src/generators/semantic/context/manifestNormalizer.ts",
+      "counts": {
+        "if": 9,
+        "for": 5,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 14,
+        "as": 0,
+        "unknown": 0
+      }
+    }
+  ]
+}

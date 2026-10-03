@@ -16,5 +16,9 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "audit:scanner-lexer:phase534": "node scripts/audit-phase534-relational-solver-frontier.cjs",
+    "audit:phase599-relational-frontier": "node ../../scripts/audit-phase599-relational-frontier.cjs"
   }
 }

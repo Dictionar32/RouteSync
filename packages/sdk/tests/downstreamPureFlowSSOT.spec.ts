@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   RouteManifest,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteParameterDescriptor,
   RouteParameterType,
   ScannedRouteValidationRuleEntry,
@@ -14,7 +14,7 @@ describe('Downstream Pure Flow SSOT', () => {
   it('1. ConstantsGenerator emits strongly-typed path parameter signatures from route.pathParameters', () => {
     const manifest: RouteManifest = {
       routes: [
-        ScannedRouteDescriptor.create({
+        RouteSemanticFlowFactory.create({
           method: 'GET',
           path: '/api/users/{id}',
           resourceName: 'User',
@@ -25,7 +25,7 @@ describe('Downstream Pure Flow SSOT', () => {
             ScannedRouteParameterDescriptor.create({ name: 'id', type: RouteParameterType.Number })
           ]
         }),
-        ScannedRouteDescriptor.create({
+        RouteSemanticFlowFactory.create({
           method: 'GET',
           path: '/api/posts/{slug}',
           resourceName: 'Post',
@@ -55,7 +55,7 @@ describe('Downstream Pure Flow SSOT', () => {
   it('2. ConstantsGenerator extracts Enums directly from ValidationRuleKind.In AST and route.groupName', () => {
     const manifest: RouteManifest = {
       routes: [
-        ScannedRouteDescriptor.create({
+        RouteSemanticFlowFactory.create({
           method: 'POST',
           path: '/api/orders',
           resourceName: 'Order',

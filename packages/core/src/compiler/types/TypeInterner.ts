@@ -1,83 +1,46 @@
 /**
- * @module compiler/types/TypeInterner
- * @description Type interning for deduplication and memory efficiency
- * 
- * The TypeInterner maintains a cache of all types seen during compilation,
- * ensuring that structurally identical types share the same instance.
- * This provides:
- * - Memory efficiency (no duplicate type objects)
- * - Fast equality checking (reference equality)
- * - Consistent type identity across compilation
+ * Relation-backed semantic type interning.
+ *
+ * Identity is represented as immutable hash/type facts. The interner is a
+ * projection over that relation rather than a host Map-backed cache.
  */
 
-import { SemanticType } from './SemanticType';
-import { TypeHasher, HashContext } from './TypeHasher';
+import type { SemanticType } from './SemanticType';
+import { TypeHasher, createHashContext } from './TypeHasher';
+import {
+    relationIndexAdd,
+    relationIndexLookup,
+    type RelationIndex,
+} from '../../semantic/kernel/relationMembership';
+import { relationOptionFold } from '../../semantic/kernel/relationalSequence';
 
-/**
- * Type interner for deduplication.
- * 
- * Maintains a global cache of types keyed by their structural hash.
- * Ensures that structurally identical types are represented by the same instance.
- * 
- * @example
- * ```typescript
- * const interner = new TypeInterner();
- * 
- * const type1 = new PrimitiveType(PrimitiveKind.STRING);
- * const type2 = new PrimitiveType(PrimitiveKind.STRING);
- * 
- * const interned1 = interner.intern(type1);
- * const interned2 = interner.intern(type2);
- * 
- * // Reference equality - same instance
- * console.log(interned1 === interned2); // true
- * ```
- */
-export class TypeInterner {
-    private cache = new Map<string, SemanticType>();
-
-    /**
-     * Intern a semantic type.
-     * 
-     * If a structurally identical type has been seen before, returns the cached instance.
-     * Otherwise, caches the new type and returns it.
-     * 
-     * @param type - Type to intern
-     * @returns Canonical instance of the type
-     */
-    public intern(type: SemanticType): SemanticType {
-        // Compute structural hash
-        const ctx: HashContext = {
-            activeStack: [],
-            finalized: new WeakMap()
-        };
-        const hash = TypeHasher.hash(type, ctx);
-
-        // Check cache
-        let cached = this.cache.get(hash);
-        if (!cached) {
-            // First time seeing this type - cache it
-            cached = type;
-            this.cache.set(hash, type);
-        }
-
-        return cached;
-    }
-
-    /**
-     * Get cache size for debugging/monitoring.
-     * 
-     * @returns Number of unique types cached
-     */
-    public getCacheSize(): number {
-        return this.cache.size;
-    }
-
-    /**
-     * Clear the cache.
-     * Should only be used between compilation sessions.
-     */
-    public clear(): void {
-        this.cache.clear();
-    }
+export interface TypeInterner {
+    readonly intern: (type: SemanticType) => SemanticType;
+    readonly getCacheSize: () => number;
+    readonly clear: () => void;
 }
+
+const createInterner = (): TypeInterner => {
+    let cache: RelationIndex<string, SemanticType> = Object.freeze([]);
+    return Object.freeze({
+        intern: (type: SemanticType): SemanticType => {
+            const hash = TypeHasher.hash(type, createHashContext());
+            return relationOptionFold(
+                relationIndexLookup(cache, hash),
+                () => {
+                    cache = relationIndexAdd(cache, hash, type);
+                    return type;
+                },
+                value => value,
+            );
+        },
+        getCacheSize: (): number => cache.length,
+        clear: (): void => {
+            cache = Object.freeze([]);
+        },
+    });
+};
+
+export const TypeInterner = Object.freeze({
+    create: createInterner,
+});

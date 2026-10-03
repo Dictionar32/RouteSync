@@ -2,16 +2,14 @@ import type { PhpArgument, PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAstValue } from "../../lexer/PhpAst";
 import { createRelationName } from "../../../../types/upstream/names";
 import type { RelationName } from "../../../../types/upstream/names";
+import { relationFold, relationGate } from "../../../../semantic/kernel/relationalSequence";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 
 export function readWhenLoadedRelation(argumentsAst: readonly PhpArgument[]): Lookup<RelationName> {
-    return argumentsAst.reduce<Lookup<RelationName>>(
-        (result, argument) => matchLookup(result, {
-            missing: () => readRelationArgument(argument),
-            found: () => result,
-        }),
-        { kind: 'missing' },
-    );
+    return relationFold(argumentsAst, { kind: 'missing' } as Lookup<RelationName>, (result, argument) => matchLookup(result, {
+        missing: () => readRelationArgument(argument),
+        found: () => result,
+    }));
 }
 
 const literalRelationReaders: {

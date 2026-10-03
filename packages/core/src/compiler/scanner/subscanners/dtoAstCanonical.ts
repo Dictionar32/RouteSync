@@ -9,6 +9,8 @@ import type { DtoAst } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import { dtoProducer } from './dtoProducer';
+import { relationFirst, relationOptionFold, relationProject, relationAsyncFold, relationAt, relationAdvanceIndex } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({ kind: 'source_span', file: { kind: 'source_file', value: stringValue(file) }, start: { kind: 'number_value', value: line }, end: { kind: 'number_value', value: line } });
@@ -17,16 +19,15 @@ export async function scanDtoAsts(sourceProject: SourceProjectIdentity): Promise
     const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Http', 'DTOs');
   const files = await collectPhpFiles(directory);
-  const asts: DtoAst[] = [];
-  for (const file of files) {
+  const asts = await relationAsyncFold(files, [] as DtoAst[], async (result, file) => {
     const text = await readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(text);
-    const classToken = tokens.find((token, index) => token.value === 'class' && tokens[index + 1]);
-    if (!classToken) throw new Error(`DTO class declaration not found: ${file}`);
-    const className = createAstIdentifier(tokens[tokens.indexOf(classToken) + 1].value);
+    const classToken = relationOptionFold(relationFirst(tokens, token => relationEqual(token.value, 'class')), () => { throw Error(`DTO class declaration not found: ${file}`); }, value => value);
+    const classIndex = tokens.indexOf(classToken);
+    const className = createAstIdentifier(relationOptionFold(relationAt(tokens, relationAdvanceIndex(classIndex, 1)), () => { throw Error(`DTO class name not found: ${file}`); }, token => token.value));
     const declaration = parseResponseDtoDeclaration(tokens, className);
     const span = source(file, Number(declaration.source.line));
-    asts.push(dtoProducer.produce({ declaration, source: span }));
-  }
+    return [...result, dtoProducer.produce({ declaration, source: span })];
+  });
   return Object.freeze(asts);
 }

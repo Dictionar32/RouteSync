@@ -1,80 +1,48 @@
 import type { SemanticResolution } from '../../types/domain/semanticResolution';
-import type { SemanticTraceNode } from '../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
-import { BoundSemanticFactory } from '../../types/domain/boundAst';
-import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../compiler/types/SemanticType';
-import { SemanticValueFactory } from '../../types/domain/semanticValues';
+import { PrimitiveKind, PrimitiveType, primitiveType } from '../../compiler/types/SemanticType';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import { resolveInScope } from '../kernel/resolveInScope';
-import { unknownResolution } from '../semanticResolutionSupport';
+import { indeterminateResolution } from '../semanticResolutionSupport';
+import { relationEqual } from '../kernel/semanticRelations';
+import { relationOptionFold, relationRefine, relationResolve, type RelationOption } from '../kernel/relationalSequence';
 
-function primitiveType(value: string): SemanticType {
-  switch (value) {
-    case 'number':
-    case 'int':
-    case 'integer':
-    case 'float':
-    case 'double': return new PrimitiveType(PrimitiveKind.NUMBER);
-    case 'string': return new PrimitiveType(PrimitiveKind.STRING);
-    case 'boolean':
-    case 'bool': return new PrimitiveType(PrimitiveKind.BOOLEAN);
-    case 'datetime': return new PrimitiveType(PrimitiveKind.DATETIME);
-    case 'file': return new PrimitiveType(PrimitiveKind.FILE);
-    default: return new PrimitiveType(PrimitiveKind.UNKNOWN);
-  }
-}
+const CAST_RULES: readonly [string, PrimitiveKind][] = [
+  ['int', PrimitiveKind.NUMBER], ['float', PrimitiveKind.NUMBER],
+  ['string', PrimitiveKind.STRING], ['bool', PrimitiveKind.BOOLEAN],
+];
 
-function scalar(
-  type: SemanticType,
-  value: string | number | boolean | null,
-  trace: readonly SemanticTraceNode[],
-  nullable: boolean,
-): SemanticResolution {
+type CastMeta = Extract<ResolverMeta, { kind: 'type_cast' }>;
+
+const resolveCast = (meta: CastMeta, context: ResolutionContext): SemanticResolution => {
+  const casted = relationOptionFold(
+    relationRefine(CAST_RULES, ([name]) => relationEqual(name, meta.castType.kind)),
+    () => primitiveType(PrimitiveKind.INDETERMINATE),
+    ([, kind]) => primitiveType(kind),
+  );
+  const expression = resolveInScope(context.kernel, meta.expression, context.scope);
   return SemanticResolutionFactory.scalar({
-    status: type.kind === 'primitive' && type.type !== PrimitiveKind.UNKNOWN ? 'resolved' : 'unknown',
-    confidence: 100, trace, nullability: nullable ? { kind: 'nullable' } : { kind: 'non_nullable' }, semanticType: type,
-    boundAst: BoundSemanticFactory.primitive(type, value === null
-      ? SemanticValueFactory.literalValue({ kind: 'null' })
-      : typeof value === 'number'
-        ? SemanticValueFactory.literalValue({ kind: 'number', value })
-        : typeof value === 'boolean'
-          ? SemanticValueFactory.literalValue({ kind: 'boolean', value })
-          : SemanticValueFactory.literalValue({ kind: 'string', value })),
+    status: relationResolve(relationEqual(casted.type, PrimitiveKind.INDETERMINATE), () => 'indeterminate', () => 'resolved'),
+    confidence: 100,
+    trace: [{ source: 'PrimitiveResolver', rule: `Type cast relation: ${meta.castType.kind}`, input: meta.castType.kind, output: casted.kind }, ...expression.trace],
+    nullability: { kind: 'non_nullable' },
+    semanticType: casted,
+    boundAst: expression.boundAst,
   });
-}
+};
 
-export class PrimitiveResolver implements ResolverPlugin {
-  canResolve(meta: ResolverMeta): boolean {
-    return meta.kind === 'literal' || meta.kind === 'type_cast';
-  }
+const resolveByRelation = (meta: ResolverMeta, context: ResolutionContext): RelationOption<SemanticResolution> =>
+  relationOptionFold(
+    relationRefine(meta, (value): value is CastMeta => relationEqual(value.kind, 'type_cast')),
+    () => ({ kind: 'none' }),
+    value => ({ kind: 'some', value: resolveCast(value, context) }),
+  );
 
-  resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    if (meta.kind === 'literal') {
-      const value = meta.value;
-      const type = value === null ? new PrimitiveType(PrimitiveKind.UNKNOWN) : primitiveType(typeof value);
-      return scalar(type, value, [{
-        source: 'PrimitiveResolver', rule: 'Literal type mapping', input: String(value), output: type.kind,
-      }], value === null);
-    }
-
-    if (meta.kind === 'type_cast') {
-      const castType = meta.castType.kind;
-      const casted = castType === 'int' || castType === 'float'
-        ? new PrimitiveType(PrimitiveKind.NUMBER)
-        : castType === 'string'
-          ? new PrimitiveType(PrimitiveKind.STRING)
-          : new PrimitiveType(PrimitiveKind.BOOLEAN);
-      const trace: SemanticTraceNode[] = [{
-        source: 'PrimitiveResolver', rule: `Type cast to ${castType}`, input: castType, output: casted.kind,
-      }];
-      const expression = resolveInScope(context.kernel, meta.expression, context.scope);
-      trace.push(...expression.trace);
-      return SemanticResolutionFactory.scalar({
-        status: 'resolved', confidence: 100, trace, nullability: { kind: 'non_nullable' }, semanticType: casted,
-        boundAst: expression.boundAst,
-      });
-    }
-
-    return unknownResolution('PrimitiveResolver', 'Unsupported primitive metadata', meta.kind, 'invalid_boundary_input');
-  }
-}
+export const PrimitiveResolver: ResolverPlugin = Object.freeze({
+  canResolve: (meta: ResolverMeta): boolean => relationEqual(meta.kind, 'type_cast'),
+  resolve: (meta: ResolverMeta, context: ResolutionContext): SemanticResolution => relationOptionFold(
+    resolveByRelation(meta, context),
+    () => indeterminateResolution('PrimitiveResolver', 'Unsupported primitive metadata', meta.kind, 'invalid_boundary_input'),
+    value => value,
+  ),
+});

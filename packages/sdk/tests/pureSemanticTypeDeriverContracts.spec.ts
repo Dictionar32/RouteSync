@@ -16,7 +16,7 @@ import {
     ScannedModelDescriptor,
     ScannedResourceDescriptor,
     ScannedResourceFieldDescriptor,
-    ScannedRouteDescriptor
+    RouteSemanticFlowFactory
 } from '@routesync/core';
 
 describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
@@ -202,7 +202,7 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
         });
 
         it('derives inline response types from routes', () => {
-            const mockRoute = ScannedRouteDescriptor.fromSparse({
+            const mockRoute = RouteSemanticFlowFactory.fromSparse({
                 method: 'GET',
                 path: '/api/stats',
                 actionName: 'StatsController@index',

@@ -4,13 +4,15 @@ import type { ControllerMethodAst } from '../lexer/controllerAstTypes';
 import { controllerReturnSemanticFromMethod } from './controller/controllerAstCanonical';
 import type { ControllerReturnSemantic } from '../../../types/upstream/controller';
 import type { ResponseResult, ResponseStatus } from '../../../types/upstream/response';
-import { mapAstValueToExpression } from './resource/resourceAstExpressionMapper';
 import { createResponseTypeName } from '../../../types/upstream/names';
 import type { Sequence } from '../../../types/upstream/collections';
 import type { TypeExpression, TypeProperty } from '../../../types/upstream/typeVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
+import type { Lookup } from '../../../types/upstream/collections';
 import type { HttpStatusCode, StringValue } from '../../../types/upstream/valueObjects';
 import { createPropertyName } from '../../../types/upstream/names';
+import { relationEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
+import { relationLookup, relationOptionFold, relationProject, relationNone, relationSome } from '../../../semantic/kernel/relationalSequence';
 
 export type ResponseProducerInput =
   | { readonly kind: 'dto'; readonly declaration: ResponseDtoDeclarationAst; readonly source: SourceSpan }
@@ -21,28 +23,26 @@ export interface ResponseProducer {
 }
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
-const sequence = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>(
-  (tail, item) => ({ kind: 'cons', head: item, tail }),
-  { kind: 'empty' },
-);
+const sequence = <T>(items: readonly T[], index = items.length - 1, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> => relationGate(index < 0, () => tail, () => sequence(items, index - 1, { kind: 'cons', head: items[index], tail }));
 
-function primitiveType(name: Extract<PhpPropertyTypeAst, { readonly kind: 'primitive' }>['name']): TypeExpression {
-  switch (name) {
-    case 'bool': return { kind: 'primitive', value: { kind: 'boolean' } };
-    case 'int':
-    case 'float': return { kind: 'primitive', value: { kind: 'number' } };
-    case 'string': return { kind: 'primitive', value: { kind: 'string' } };
-  }
-}
+type PrimitiveName = Extract<PhpPropertyTypeAst, { readonly kind: 'primitive' }>['name'];
+const primitiveTypeCatalog: readonly (readonly [PrimitiveName, TypeExpression])[] = Object.freeze([
+  ['bool', { kind: 'primitive', value: { kind: 'boolean' } }],
+  ['int', { kind: 'primitive', value: { kind: 'number' } }],
+  ['float', { kind: 'primitive', value: { kind: 'number' } }],
+  ['string', { kind: 'primitive', value: { kind: 'string' } }],
+]);
+const primitiveType = (name: PrimitiveName): TypeExpression => relationLookup(primitiveTypeCatalog, name);
 
+type TypeResolution = (type: PhpPropertyTypeAst) => TypeExpression;
+const typeCatalog: readonly (readonly [PhpPropertyTypeAst['kind'], TypeResolution])[] = Object.freeze([
+  ['primitive', type => primitiveType(type.name)],
+  ['mixed', () => ({ kind: 'mixed' } as TypeExpression)],
+  ['named', type => ({ kind: 'reference', value: { kind: 'class', name: { kind: 'class_name', value: stringValue(type.name) } } } as TypeExpression)],
+]);
 function typeExpression(type: PhpPropertyTypeAst): TypeExpression {
-  let value: TypeExpression;
-  switch (type.kind) {
-    case 'primitive': value = primitiveType(type.name); break;
-    case 'mixed': value = { kind: 'mixed' }; break;
-    case 'named': value = { kind: 'reference', value: { kind: 'class', name: { kind: 'class_name', value: stringValue(type.name) } } }; break;
-  }
-  return type.nullable ? { kind: 'nullable', value } : value;
+  const value = relationOptionFold(relationLookup(typeCatalog, type.kind), () => ({ kind: 'mixed' } as TypeExpression), resolver => resolver(type));
+  return relationGate(relationEqual(type.nullable, true), () => ({ kind: 'nullable', value }), () => value);
 }
 
 const defaultStatus: HttpStatusCode = {
@@ -57,7 +57,7 @@ const emptyTransport = (): import('../../../types/upstream/response').ResponseTr
 });
 
 function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan): ResponseAst {
-  const properties: readonly TypeProperty[] = declaration.properties.map(property => ({
+  const properties: readonly TypeProperty[] = relationProject(declaration.properties, property => ({
     kind: 'type_property',
     name: createPropertyName(property.name),
     type: typeExpression(property.type),
@@ -108,7 +108,9 @@ function controllerResponse(method: ControllerMethodAst, source: SourceSpan): Re
       typeName: createResponseTypeName(`${String(method.name)}Response`),
       output,
       transport: emptyTransport(),
-      outcome: result === undefined ? { kind: 'success', result: { kind: 'content', body: { kind: 'empty' }, status: frameworkStatus() } } : { kind: 'success', result },
+      outcome: relationGate(relationEqual(result.kind, 'missing'),
+        () => ({ kind: 'success', result: { kind: 'content', body: { kind: 'empty' }, status: frameworkStatus() } }),
+        () => ({ kind: 'success', result: result.value })),
       source,
     },
     source,
@@ -119,51 +121,67 @@ function frameworkStatus(): ResponseStatus {
   return { kind: 'response_status', value: defaultStatus, origin: { kind: 'framework_default' } };
 }
 
-function responseResultFromReturn(returned: ControllerReturnSemantic): ResponseResult | undefined {
-  switch (returned.kind) {
-    case 'absent': return undefined;
-    case 'response': return returned.result;
-    case 'resource': return {
-      kind: 'resource',
-      resource: returned.resource,
-      model: {
-        kind: 'model_reference',
-        name: returned.model.kind === 'model_class' ? returned.model.name : { kind: 'model_name', value: { kind: 'string_value', value: returned.model.name.value } },
-      },
-      status: frameworkStatus(),
-    };
-    case 'model': return {
-      kind: 'content',
-      body: { kind: 'json', shape: { kind: 'single', payload: { kind: 'model', model: { kind: 'model_reference', name: returned.model.kind === 'model_class' ? returned.model.name : { kind: 'model_name', value: { kind: 'string_value', value: returned.model.name.value } } } } } },
-      status: frameworkStatus(),
-    };
-    case 'expression': return {
-      kind: 'content',
-      body: { kind: 'json', shape: { kind: 'single', payload: { kind: 'expression', expression: returned.expression } } },
-      status: frameworkStatus(),
-    };
-    case 'branches': {
-      const branches = sequence(returned.branches.kind === 'empty' ? [] : sequenceToArray(returned.branches).map(responseResultFromReturn).filter((item): item is ResponseResult => item !== undefined));
-      return { kind: 'branches', branches };
-    }
-  }
+type ReturnResolution = (returned: ControllerReturnSemantic) => Lookup<ResponseResult>;
+const responseResultCatalog: readonly (readonly [ControllerReturnSemantic['kind'], ReturnResolution])[] = Object.freeze([
+  ['absent', () => ({ kind: 'missing' })],
+  ['response', returned => ({ kind: 'found', value: returned.result })],
+  ['resource', returned => ({ kind: 'found', value: {
+    kind: 'resource',
+    resource: returned.resource,
+    model: {
+      kind: 'model_reference',
+      name: relationGate(relationEqual(returned.model.kind, 'model_class'), () => returned.model.name, () => ({ kind: 'model_name', value: { kind: 'string_value', value: returned.model.name.value } })),
+    },
+    cardinality: returned.cardinality,
+    status: frameworkStatus(),
+  } })],
+  ['model', returned => ({ kind: 'found', value: {
+    kind: 'content',
+    body: { kind: 'json', shape: { kind: 'single', payload: { kind: 'model', model: { kind: 'model_reference', name: relationGate(relationEqual(returned.model.kind, 'model_class'), () => returned.model.name, () => ({ kind: 'model_name', value: { kind: 'string_value', value: returned.model.name.value } })) } } } },
+    status: frameworkStatus(),
+  } })],
+  ['expression', returned => ({ kind: 'found', value: {
+    kind: 'content',
+    body: { kind: 'json', shape: { kind: 'single', payload: { kind: 'expression', expression: returned.expression } } },
+    status: frameworkStatus(),
+  } })],
+  ['branches', returned => ({ kind: 'found', value: {
+    kind: 'branches',
+    branches: sequence(foundBranchResults(returned.branches)),
+  } })],
+]);
+const responseResultFromReturn = (returned: ControllerReturnSemantic): Lookup<ResponseResult> => relationOptionFold(
+  relationLookup(responseResultCatalog, returned.kind),
+  () => ({ kind: 'missing' }),
+  resolver => resolver(returned),
+);
+
+
+function foundBranchResults(branches: Sequence<ControllerReturnSemantic>, output: ResponseResult[] = []): readonly ResponseResult[] {
+  return relationGate(relationEqual(branches.kind, 'empty'), () => output, () => {
+    const resolved = responseResultFromReturn(branches.head);
+    return relationOptionFold(
+      relationGate(relationEqual(resolved.kind, 'found'), () => relationSome(resolved.value), () => relationNone()),
+      () => foundBranchResults(branches.tail, output),
+      value => foundBranchResults(branches.tail, output.concat([value])),
+    );
+  });
 }
 
-function sequenceToArray<T>(sequenceValue: Sequence<T>): readonly T[] {
-  const items: T[] = [];
-  let current = sequenceValue;
-  while (current.kind === 'cons') {
-    items.push(current.head);
-    current = current.tail;
-  }
-  return items;
-}
 
-export const responseProducer: ResponseProducer = {
-  produce: input => {
-    switch (input.kind) {
-      case 'dto': return dtoResponse(input.declaration, input.source);
-      case 'controller': return controllerResponse(input.method, input.source);
-    }
-  },
-};
+
+type ProducerResolution<K extends ResponseProducerInput['kind']> = (input: Extract<ResponseProducerInput, { readonly kind: K }>) => ResponseAst;
+const producerRule = <K extends ResponseProducerInput['kind']>(kind: K, resolve: ProducerResolution<K>): readonly [K, (input: ResponseProducerInput) => ResponseAst] => [
+  kind,
+  input => resolve(input as Extract<ResponseProducerInput, { readonly kind: K }>),
+];
+const producerCatalog: readonly (readonly [ResponseProducerInput['kind'], (input: ResponseProducerInput) => ResponseAst])[] = Object.freeze([
+  producerRule('dto', input => dtoResponse(input.declaration, input.source)),
+  producerRule('controller', input => controllerResponse(input.method, input.source)),
+]);
+const producerResolution = (input: ResponseProducerInput): ResponseAst => relationOptionFold(
+  relationLookup(producerCatalog, input.kind),
+  () => { throw Error(`Unsupported response producer input: ${input.kind}`); },
+  resolver => resolver(input),
+);
+export const responseProducer: ResponseProducer = { produce: producerResolution };

@@ -22,9 +22,17 @@ export interface ExpressionProducer {
     produce(input: ExpressionProducerInput): ExpressionAst;
 }
 
+/**
+ * Canonical generic PHP-expression lowering used by domain producers.
+ * Domain producers keep ownership of their own semantics; they delegate only
+ * the PHP expression syntax itself to this boundary.
+ */
+export const expressionFromPhpAst = (syntax: PhpAstValue, file: string): import('../../../types/upstream/expression').Expression =>
+    mapResourcePhpAstToUpstream(syntax, file);
+
 export const expressionProducer: ExpressionProducer = {
     produce(input): ExpressionAst {
-        const expression = mapResourcePhpAstToUpstream(
+        const expression = expressionFromPhpAst(
             input.syntax,
             input.source.file.value.value,
         );

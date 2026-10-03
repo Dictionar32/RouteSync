@@ -1,0 +1,10 @@
+{
+  "phase": 577,
+  "frontier": "cli-semantic-export-and-adt-consumer",
+  "changes": [
+    "export ServiceResult from the core public barrel",
+    "replace EchoGenerator string-indexing of RouteParameterType ADT with matchRouteParameterType"
+  ],
+  "fullBuildVerified": false,
+  "verificationBlocker": "workspace dependency/type-definition installation is absent"
+}

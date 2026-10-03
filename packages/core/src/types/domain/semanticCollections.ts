@@ -1,608 +1,87 @@
-/**
- * Semantic Domain Collection Maps (Pure Encapsulated Collection ADTs)
- *
- * Dedicated Value Objects replacing naked Record in Semantic IR.
- * Conforms to Rule 8, 10, 11, and 12: Complete Contracts (0 '?', 0 'null'),
- * 0 'any', 0 naked Record, and pure encapsulation via private ReadonlyMap.
- *
- * @module types/domain/semanticCollections
- */
-
+/** Immutable relation-backed semantic collections. */
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { EloquentRelationType } from './eloquentTypes';
 import type { Nullability } from './modelContracts';
 import { SemanticValueFactory } from './semanticValues';
 import type { ColumnName, ModelName, RelationName, PropertyName, VariableName, MethodName } from './semanticValues';
 import type { Lookup } from '../upstream/collections';
-
-/**
- * Model Field Column Metadata
- */
-export interface ModelFieldInfo {
-  readonly type: SemanticType;
-  readonly nullability: Nullability;
-}
-
-export interface ModelFieldEntry {
-  readonly column: ColumnName;
-  readonly info: ModelFieldInfo;
-}
-
-export class ModelFieldMap implements Iterable<ModelFieldEntry> {
-  public readonly entries: readonly ModelFieldEntry[];
-  private readonly _lookup: ReadonlyMap<ColumnName, ModelFieldInfo>;
-
-  constructor(entries: readonly ModelFieldEntry[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<ColumnName, ModelFieldInfo>();
-    for (const e of entries) {
-      map.set(e.column, e.info);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty(): ModelFieldMap {
-    return new ModelFieldMap([]);
-  }
-
-  public static fromObject(record: Readonly<{ readonly [column: string]: ModelFieldInfo }>): ModelFieldMap {
-    const entries: ModelFieldEntry[] = Object.entries(record).map(([column, info]) => ({
-      column: SemanticValueFactory.columnName(column),
-      info
-    }));
-    return new ModelFieldMap(entries);
-  }
-
-  public static fromRecord(record: Readonly<{ readonly [column: string]: ModelFieldInfo }>): ModelFieldMap {
-    return ModelFieldMap.fromObject(record);
-  }
-
-  public static fromEntries(entries: readonly ModelFieldEntry[]): ModelFieldMap {
-    return new ModelFieldMap(entries);
-  }
-
-  public lookup(column: ColumnName): Lookup<ModelFieldInfo> {
-    const value = this._lookup.get(column);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<ModelFieldEntry> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[ColumnName, ModelFieldInfo]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [column: string]: ModelFieldInfo } {
-    const rec: { [column: string]: ModelFieldInfo } = {};
-    for (const e of this.entries) {
-      rec[e.column.value.value] = e.info;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [column: string]: ModelFieldInfo } {
-    return this.toObject();
-  }
-}
-
-/**
- * Model Relation Metadata
- */
-export interface ModelRelationInfo {
-  readonly type: EloquentRelationType;
-  readonly model: ModelName;
-}
-
-export interface ModelRelationEntry {
-  readonly relationName: RelationName;
-  readonly info: ModelRelationInfo;
-}
-
-export class ModelRelationMap implements Iterable<ModelRelationEntry> {
-  public readonly entries: readonly ModelRelationEntry[];
-  private readonly _lookup: ReadonlyMap<RelationName, ModelRelationInfo>;
-
-  constructor(entries: readonly ModelRelationEntry[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<RelationName, ModelRelationInfo>();
-    for (const e of entries) {
-      map.set(e.relationName, e.info);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty(): ModelRelationMap {
-    return new ModelRelationMap([]);
-  }
-
-  public static fromObject(record: Readonly<{ readonly [relationName: string]: ModelRelationInfo }>): ModelRelationMap {
-    const entries: ModelRelationEntry[] = Object.entries(record).map(([relationName, info]) => ({
-      relationName: SemanticValueFactory.relationName(relationName),
-      info
-    }));
-    return new ModelRelationMap(entries);
-  }
-
-  public static fromRecord(record: Readonly<{ readonly [relationName: string]: ModelRelationInfo }>): ModelRelationMap {
-    return ModelRelationMap.fromObject(record);
-  }
-
-  public static fromEntries(entries: readonly ModelRelationEntry[]): ModelRelationMap {
-    return new ModelRelationMap(entries);
-  }
-
-  public lookup(relationName: RelationName): Lookup<ModelRelationInfo> {
-    const value = this._lookup.get(relationName);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<ModelRelationEntry> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[RelationName, ModelRelationInfo]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [relationName: string]: ModelRelationInfo } {
-    const rec: { [relationName: string]: ModelRelationInfo } = {};
-    for (const e of this.entries) {
-      rec[e.relationName.value.value] = e.info;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [relationName: string]: ModelRelationInfo } {
-    return this.toObject();
-  }
-}
-
-/**
- * Model Accessor Metadata Entry
- */
-export interface ModelAccessorInfo<TSource, TAst, TSemantic> {
-  readonly source: TSource;
-  readonly ast: TAst;
-  readonly semantic: TSemantic;
-}
-
-export interface ModelAccessorEntry<T> {
-  readonly name: MethodName;
-  readonly accessor: T;
-}
-
-export class ModelAccessorMap<T> implements Iterable<ModelAccessorEntry<T>> {
-  public readonly entries: readonly ModelAccessorEntry<T>[];
-  private readonly _lookup: ReadonlyMap<string, T>;
-
-  constructor(entries: readonly ModelAccessorEntry<T>[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<string, T>();
-    for (const e of entries) {
-      map.set(e.name.value.value, e.accessor);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty<T>(): ModelAccessorMap<T> {
-    return new ModelAccessorMap<T>([]);
-  }
-
-  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelAccessorMap<T> {
-    const entries: ModelAccessorEntry<T>[] = Object.entries(record).map(([name, accessor]) => ({
-      name: SemanticValueFactory.methodName(name),
-      accessor
-    }));
-    return new ModelAccessorMap<T>(entries);
-  }
-
-  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelAccessorMap<TValue> {
-    return ModelAccessorMap.fromObject<TValue>(record);
-  }
-
-  public static fromEntries<T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> {
-    return new ModelAccessorMap<T>(entries);
-  }
-
-  public lookup(name: MethodName): Lookup<T> {
-    const value = this._lookup.get(name.value.value);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<ModelAccessorEntry<T>> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[string, T]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [name: string]: T } {
-    const rec: { [name: string]: T } = {};
-    for (const e of this.entries) {
-      rec[e.name] = e.accessor;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [name: string]: T } {
-    return this.toObject();
-  }
-}
-
-/**
- * Service Node Map for ServiceGraph
- */
-export interface ModelServiceEntry<T> {
-  readonly name: string;
-  readonly service: T;
-}
-
-export class ModelServiceMap<T> implements Iterable<ModelServiceEntry<T>> {
-  public readonly entries: readonly ModelServiceEntry<T>[];
-  private readonly _lookup: ReadonlyMap<string, T>;
-
-  constructor(entries: readonly ModelServiceEntry<T>[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<string, T>();
-    for (const e of entries) {
-      map.set(e.name, e.service);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty<T>(): ModelServiceMap<T> {
-    return new ModelServiceMap<T>([]);
-  }
-
-  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelServiceMap<T> {
-    const entries: ModelServiceEntry<T>[] = Object.entries(record).map(([name, service]) => ({
-      name,
-      service
-    }));
-    return new ModelServiceMap<T>(entries);
-  }
-
-  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelServiceMap<TValue> {
-    return ModelServiceMap.fromObject<TValue>(record);
-  }
-
-  public static fromEntries<T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> {
-    return new ModelServiceMap<T>(entries);
-  }
-
-  public lookup(name: string): Lookup<T> {
-    const value = this._lookup.get(name);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<ModelServiceEntry<T>> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[string, T]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [name: string]: T } {
-    const rec: { [name: string]: T } = {};
-    for (const e of this.entries) {
-      rec[e.name] = e.service;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [name: string]: T } {
-    return this.toObject();
-  }
-}
-
-/**
- * Controller Node Map for ServiceGraph
- */
-export interface ModelControllerEntry<T> {
-  readonly name: string;
-  readonly controller: T;
-}
-
-export class ModelControllerMap<T> implements Iterable<ModelControllerEntry<T>> {
-  public readonly entries: readonly ModelControllerEntry<T>[];
-  private readonly _lookup: ReadonlyMap<string, T>;
-
-  constructor(entries: readonly ModelControllerEntry<T>[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<string, T>();
-    for (const e of entries) {
-      map.set(e.name, e.controller);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty<T>(): ModelControllerMap<T> {
-    return new ModelControllerMap<T>([]);
-  }
-
-  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelControllerMap<T> {
-    const entries: ModelControllerEntry<T>[] = Object.entries(record).map(([name, controller]) => ({
-      name,
-      controller
-    }));
-    return new ModelControllerMap<T>(entries);
-  }
-
-  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelControllerMap<TValue> {
-    return ModelControllerMap.fromObject<TValue>(record);
-  }
-
-  public static fromEntries<T>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> {
-    return new ModelControllerMap<T>(entries);
-  }
-
-  public lookup(name: string): Lookup<T> {
-    const value = this._lookup.get(name);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<ModelControllerEntry<T>> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[string, T]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [name: string]: T } {
-    const rec: { [name: string]: T } = {};
-    for (const e of this.entries) {
-      rec[e.name] = e.controller;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [name: string]: T } {
-    return this.toObject();
-  }
-}
-
-/**
- * Model Node Map for ServiceGraph
- */
-export interface ModelNodeEntry<T> {
-  readonly name: string;
-  readonly model: T;
-}
-
-export class ModelNodeMap<T> implements Iterable<ModelNodeEntry<T>> {
-  public readonly entries: readonly ModelNodeEntry<T>[];
-  private readonly _lookup: ReadonlyMap<string, T>;
-
-  constructor(entries: readonly ModelNodeEntry<T>[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<string, T>();
-    for (const e of entries) {
-      map.set(e.name, e.model);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty<T>(): ModelNodeMap<T> {
-    return new ModelNodeMap<T>([]);
-  }
-
-  public static fromObject<T>(record: Readonly<{ readonly [name: string]: T }>): ModelNodeMap<T> {
-    const entries: ModelNodeEntry<T>[] = Object.entries(record).map(([name, model]) => ({
-      name,
-      model
-    }));
-    return new ModelNodeMap<T>(entries);
-  }
-
-  public static fromRecord <TValue>(record: Readonly<{ readonly [name: string]: TValue }>): ModelNodeMap<TValue> {
-    return ModelNodeMap.fromObject<TValue>(record);
-  }
-
-  public static fromEntries<T>(entries: readonly ModelNodeEntry<T>[]): ModelNodeMap<T> {
-    return new ModelNodeMap<T>(entries);
-  }
-
-  public lookup(name: string): Lookup<T> {
-    const value = this._lookup.get(name);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<ModelNodeEntry<T>> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[string, T]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [name: string]: T } {
-    const rec: { [name: string]: T } = {};
-    for (const e of this.entries) {
-      rec[e.name] = e.model;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [name: string]: T } {
-    return this.toObject();
-  }
-}
-
-/**
- * Semantic Model Map for IRContext
- */
-export interface SemanticModelEntry<T> {
-  readonly modelName: ModelName;
-  readonly modelType: T;
-}
-
-export class SemanticModelMap<T> implements Iterable<SemanticModelEntry<T>> {
-  public readonly entries: readonly SemanticModelEntry<T>[];
-  private readonly _lookup: ReadonlyMap<string, T>;
-
-  constructor(entries: readonly SemanticModelEntry<T>[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<string, T>();
-    for (const e of entries) {
-      map.set(e.modelName.value.value, e.modelType);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty<T>(): SemanticModelMap<T> {
-    return new SemanticModelMap<T>([]);
-  }
-
-  public static fromObject<T>(record: Readonly<{ readonly [modelName: string]: T }>): SemanticModelMap<T> {
-    const entries: SemanticModelEntry<T>[] = Object.entries(record).map(([modelName, modelType]) => ({
-      modelName: SemanticValueFactory.modelName(modelName),
-      modelType
-    }));
-    return new SemanticModelMap<T>(entries);
-  }
-
-  public static fromRecord <TValue>(record: Readonly<{ readonly [modelName: string]: TValue }>): SemanticModelMap<TValue> {
-    return SemanticModelMap.fromObject<TValue>(record);
-  }
-
-  public static fromEntries<T>(entries: readonly SemanticModelEntry<T>[]): SemanticModelMap<T> {
-    return new SemanticModelMap<T>(entries);
-  }
-
-  public lookup(modelName: ModelName): Lookup<T> {
-    const value = this._lookup.get(modelName.value.value);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<SemanticModelEntry<T>> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[string, T]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [modelName: string]: T } {
-    const rec: { [modelName: string]: T } = {};
-    for (const e of this.entries) {
-      rec[e.modelName] = e.modelType;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [modelName: string]: T } {
-    return this.toObject();
-  }
-}
-
-/**
- * Semantic Relation Map for IRContext
- */
-export interface SemanticRelationEntry<T> {
-  readonly relationName: RelationName;
-  readonly relation: T;
-}
-
-export class SemanticRelationMap<T> implements Iterable<SemanticRelationEntry<T>> {
-  public readonly entries: readonly SemanticRelationEntry<T>[];
-  private readonly _lookup: ReadonlyMap<string, T>;
-
-  constructor(entries: readonly SemanticRelationEntry<T>[]) {
-    this.entries = Object.freeze([...entries]);
-    const map = new Map<string, T>();
-    for (const e of entries) {
-      map.set(e.relationName.value.value, e.relation);
-    }
-    this._lookup = map;
-    Object.freeze(this);
-  }
-
-  public static empty<T>(): SemanticRelationMap<T> {
-    return new SemanticRelationMap<T>([]);
-  }
-
-  public static fromObject<T>(record: Readonly<{ readonly [relationName: string]: T }>): SemanticRelationMap<T> {
-    const entries: SemanticRelationEntry<T>[] = Object.entries(record).map(([relationName, relation]) => ({
-      relationName: SemanticValueFactory.relationName(relationName),
-      relation
-    }));
-    return new SemanticRelationMap<T>(entries);
-  }
-
-  public static fromRecord <TValue>(record: Readonly<{ readonly [relationName: string]: TValue }>): SemanticRelationMap<TValue> {
-    return SemanticRelationMap.fromObject<TValue>(record);
-  }
-
-  public static fromEntries<T>(entries: readonly SemanticRelationEntry<T>[]): SemanticRelationMap<T> {
-    return new SemanticRelationMap<T>(entries);
-  }
-
-  public lookup(relationName: RelationName): Lookup<T> {
-    const value = this._lookup.get(relationName.value.value);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-  }
-
-  public get size(): number {
-    return this._lookup.size;
-  }
-
-  public [Symbol.iterator](): Iterator<SemanticRelationEntry<T>> {
-    return this.entries[Symbol.iterator]();
-  }
-
-  public entriesIterator(): IterableIterator<[string, T]> {
-    return this._lookup.entries();
-  }
-
-  public toObject(): { readonly [relationName: string]: T } {
-    const rec: { [relationName: string]: T } = {};
-    for (const e of this.entries) {
-      rec[e.relationName] = e.relation;
-    }
-    return rec;
-  }
-
-  public toRecord(): { readonly [relationName: string]: T } {
-    return this.toObject();
-  }
-}
+import { relationOptionFold, relationProject, relationFold } from '../../semantic/kernel/relationalSequence';
+import { relationIndexLookup, type RelationIndex } from '../../semantic/kernel/relationMembership';
+
+export interface ModelFieldInfo { readonly type: SemanticType; readonly nullability: Nullability; }
+export interface ModelFieldEntry { readonly column: ColumnName; readonly info: ModelFieldInfo; }
+export interface ModelRelationInfo { readonly type: EloquentRelationType; readonly model: ModelName; }
+export interface ModelRelationEntry { readonly relationName: RelationName; readonly info: ModelRelationInfo; }
+export interface ModelAccessorInfo<TSource, TAst, TSemantic> { readonly source: TSource; readonly ast: TAst; readonly semantic: TSemantic; }
+export interface ModelAccessorEntry<T> { readonly name: MethodName; readonly accessor: T; }
+export interface ModelServiceEntry<T> { readonly name: PropertyName; readonly service: T; }
+export interface ModelControllerEntry<T> { readonly name: VariableName; readonly controller: T; }
+export interface ModelNodeEntry<T> { readonly name: ModelName; readonly node: T; }
+export interface SemanticModelEntry<T> { readonly name: ModelName; readonly model: T; }
+export interface SemanticRelationEntry<T> { readonly name: RelationName; readonly relation: T; }
+
+type Catalog<E, K, V> = Readonly<{
+  readonly entries: readonly E[];
+  readonly empty: () => Catalog<E, K, V>;
+  readonly fromEntries: (entries: readonly E[]) => Catalog<E, K, V>;
+  readonly fromObject: (record: Readonly<{ readonly [key: string]: V }>) => Catalog<E, K, V>;
+  readonly fromRecord: (record: Readonly<{ readonly [key: string]: V }>) => Catalog<E, K, V>;
+  readonly lookup: (key: K) => Lookup<V>;
+  readonly size: number;
+  readonly entriesIterator: () => IterableIterator<readonly [K, V]>;
+  readonly toObject: () => { readonly [key: string]: V };
+  readonly toRecord: () => { readonly [key: string]: V };
+  readonly [Symbol.iterator]: () => Iterator<E>;
+}>;
+
+type EntryCodec<E, K, V> = Readonly<{
+  readonly key: (entry: E) => K;
+  readonly value: (entry: E) => V;
+  readonly entry: (key: string, value: V) => E;
+  readonly keyText: (key: K) => string;
+}>;
+
+const stringValue = (value: { readonly value: { readonly value: string } }): string => value.value.value;
+const catalog = <E, K, V>(entries: readonly E[], codec: EntryCodec<E, K, V>): Catalog<E, K, V> => {
+  const frozenEntries = Object.freeze([...entries]);
+  const indexed: RelationIndex<K, V> = Object.freeze(relationProject(frozenEntries, entry => [codec.key(entry), codec.value(entry)] as const));
+  const fromEntries = (next: readonly E[]): Catalog<E, K, V> => catalog(next, codec);
+  const fromObject = (record: Readonly<{ readonly [key: string]: V }>): Catalog<E, K, V> => fromEntries(relationProject(Object.entries(record), ([key, value]) => codec.entry(key, value)));
+  const lookup = (key: K): Lookup<V> => relationOptionFold(relationIndexLookup(indexed, key), () => ({ kind: 'missing' as const }), value => ({ kind: 'found' as const, value }));
+  const pairs = (): readonly (readonly [K, V])[] => relationProject(frozenEntries, entry => [codec.key(entry), codec.value(entry)] as const);
+  const entriesIterator = (): IterableIterator<readonly [K, V]> => pairs()[Symbol.iterator]();
+  const toObject = (): { readonly [key: string]: V } => relationFold(frozenEntries, {} as { [key: string]: V }, (output, entry) => ({ ...output, [codec.keyText(codec.key(entry))]: codec.value(entry) }));
+  return Object.freeze({ entries: frozenEntries, empty: () => fromEntries([]), fromEntries, fromObject, fromRecord: fromObject, lookup, size: frozenEntries.length, entriesIterator, toObject, toRecord: toObject, [Symbol.iterator]: () => frozenEntries[Symbol.iterator]() });
+};
+
+export type ModelFieldMap = Catalog<ModelFieldEntry, ColumnName, ModelFieldInfo>;
+const modelFieldCatalog = (entries: readonly ModelFieldEntry[]): ModelFieldMap => catalog(entries, { key: entry => entry.column, value: entry => entry.info, entry: (key, value) => ({ column: SemanticValueFactory.columnName(key), info: value }), keyText: stringValue }) as ModelFieldMap;
+export const ModelFieldMap = Object.freeze({ empty: (): ModelFieldMap => modelFieldCatalog([]), fromEntries: (entries: readonly ModelFieldEntry[]): ModelFieldMap => modelFieldCatalog(entries), fromObject: (record: Readonly<{ readonly [key: string]: ModelFieldInfo }>): ModelFieldMap => modelFieldCatalog([]).fromObject(record), fromRecord: (record: Readonly<{ readonly [key: string]: ModelFieldInfo }>): ModelFieldMap => modelFieldCatalog([]).fromObject(record) });
+
+export type ModelRelationMap = Catalog<ModelRelationEntry, RelationName, ModelRelationInfo>;
+const modelRelationCatalog = (entries: readonly ModelRelationEntry[]): ModelRelationMap => catalog(entries, { key: entry => entry.relationName, value: entry => entry.info, entry: (key, value) => ({ relationName: SemanticValueFactory.relationName(key), info: value }), keyText: stringValue }) as ModelRelationMap;
+export const ModelRelationMap = Object.freeze({ empty: (): ModelRelationMap => modelRelationCatalog([]), fromEntries: (entries: readonly ModelRelationEntry[]): ModelRelationMap => modelRelationCatalog(entries), fromObject: (record: Readonly<{ readonly [key: string]: ModelRelationInfo }>): ModelRelationMap => modelRelationCatalog([]).fromObject(record), fromRecord: (record: Readonly<{ readonly [key: string]: ModelRelationInfo }>): ModelRelationMap => modelRelationCatalog([]).fromObject(record) });
+
+export type ModelAccessorMap<T> = Catalog<ModelAccessorEntry<T>, string, T>;
+const modelAccessorCatalog = <T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> => catalog(entries, { key: entry => stringValue(entry.name), value: entry => entry.accessor, entry: (key, value) => ({ name: SemanticValueFactory.methodName(key), accessor: value }), keyText: value => value }) as ModelAccessorMap<T>;
+export const ModelAccessorMap = Object.freeze({ empty: <T>(): ModelAccessorMap<T> => modelAccessorCatalog<T>([]), fromEntries: <T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> => modelAccessorCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelAccessorMap<T> => modelAccessorCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelAccessorMap<T> => modelAccessorCatalog<T>([]).fromObject(record) });
+
+export type ModelServiceMap<T> = Catalog<ModelServiceEntry<T>, string, T>;
+const modelServiceCatalog = <T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> => catalog(entries, { key: entry => stringValue(entry.name), value: entry => entry.service, entry: (key, value) => ({ name: SemanticValueFactory.propertyName(key), service: value }), keyText: value => value }) as ModelServiceMap<T>;
+export const ModelServiceMap = Object.freeze({ empty: <T>(): ModelServiceMap<T> => modelServiceCatalog<T>([]), fromEntries: <T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> => modelServiceCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelServiceMap<T> => modelServiceCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelServiceMap<T> => modelServiceCatalog<T>([]).fromObject(record) });
+
+export type ModelControllerMap<T> = Catalog<ModelControllerEntry<T>, string, T>;
+const modelControllerCatalog = <T>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> => catalog(entries, { key: entry => stringValue(entry.name), value: entry => entry.controller, entry: (key, value) => ({ name: SemanticValueFactory.variableName(key), controller: value }), keyText: value => value }) as ModelControllerMap<T>;
+export const ModelControllerMap = Object.freeze({ empty: <T>(): ModelControllerMap<T> => modelControllerCatalog<T>([]), fromEntries: <T>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> => modelControllerCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelControllerMap<T> => modelControllerCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelControllerMap<T> => modelControllerCatalog<T>([]).fromObject(record) });
+
+export type ModelNodeMap<T> = Catalog<ModelNodeEntry<T>, ModelName, T>;
+const modelNodeCatalog = <T>(entries: readonly ModelNodeEntry<T>[]): ModelNodeMap<T> => catalog(entries, { key: entry => entry.name, value: entry => entry.node, entry: (key, value) => ({ name: SemanticValueFactory.modelName(key), node: value }), keyText: stringValue }) as ModelNodeMap<T>;
+export const ModelNodeMap = Object.freeze({ empty: <T>(): ModelNodeMap<T> => modelNodeCatalog<T>([]), fromEntries: <T>(entries: readonly ModelNodeEntry<T>[]): ModelNodeMap<T> => modelNodeCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelNodeMap<T> => modelNodeCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelNodeMap<T> => modelNodeCatalog<T>([]).fromObject(record) });
+
+export type SemanticModelMap<T> = Catalog<SemanticModelEntry<T>, ModelName, T>;
+const semanticModelCatalog = <T>(entries: readonly SemanticModelEntry<T>[]): SemanticModelMap<T> => catalog(entries, { key: entry => entry.name, value: entry => entry.model, entry: (key, value) => ({ name: SemanticValueFactory.modelName(key), model: value }), keyText: stringValue }) as SemanticModelMap<T>;
+export const SemanticModelMap = Object.freeze({ empty: <T>(): SemanticModelMap<T> => semanticModelCatalog<T>([]), fromEntries: <T>(entries: readonly SemanticModelEntry<T>[]): SemanticModelMap<T> => semanticModelCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): SemanticModelMap<T> => semanticModelCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): SemanticModelMap<T> => semanticModelCatalog<T>([]).fromObject(record) });
+
+export type SemanticRelationMap<T> = Catalog<SemanticRelationEntry<T>, RelationName, T>;
+const semanticRelationCatalog = <T>(entries: readonly SemanticRelationEntry<T>[]): SemanticRelationMap<T> => catalog(entries, { key: entry => entry.name, value: entry => entry.relation, entry: (key, value) => ({ name: SemanticValueFactory.relationName(key), relation: value }), keyText: stringValue }) as SemanticRelationMap<T>;
+export const SemanticRelationMap = Object.freeze({ empty: <T>(): SemanticRelationMap<T> => semanticRelationCatalog<T>([]), fromEntries: <T>(entries: readonly SemanticRelationEntry<T>[]): SemanticRelationMap<T> => semanticRelationCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): SemanticRelationMap<T> => semanticRelationCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): SemanticRelationMap<T> => semanticRelationCatalog<T>([]).fromObject(record) });

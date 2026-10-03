@@ -3,7 +3,7 @@
  *
  * Resolves raw Laravel route paths into one canonical route-path value.
  *
- * @module core/compiler/scanner/subscanners/route-scanner
+ * @module compiler/scanner/subscanners/route-scanner
  */
 
 import type { RouteParameter } from "../../../../types/upstream/route";
@@ -11,6 +11,9 @@ import { createRoutePath, type RoutePath } from "../../../../types/upstream/name
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ResourceName } from "../../../../types/upstream/names";
 import { ScannedRouteParameterDescriptor } from "../../descriptors/routeDescriptors";
+import { relationGate, relationProject, relationSelect, relationResolve, relationAll } from "../../../relational/sequence";
+import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from "../../../../semantic/kernel/relationalSequence";
+import { relationNotEqual } from "../../../../semantic/kernel/semanticRelations";
 
 export interface ResolvedRoutePath {
     readonly path: RoutePath;
@@ -18,37 +21,50 @@ export interface ResolvedRoutePath {
     readonly parameters: readonly RouteParameter[];
 }
 
+const boundaryPath = (rawPath: string): string => relationTextTrimEndChars(relationTextTrimChars(rawPath, ['/']), ['/']);
+const prefixPath = (prefixStack: readonly string[]): string =>
+    relationProject(relationSelect(prefixStack, value => value.length > 0), value => value).join('/');
+const joinPath = (prefix: string, path: string): string =>
+    relationGate(prefix.length > 0, () => `/${prefix}/${path}`, () => `/${path}`);
+const apiPath = (path: string): string =>
+    relationGate(relationTextStartsWith(path, '/api'), () => path, () => `/api${path}`);
+
 export function resolveRoutePath(
     rawPath: string,
     prefixStack: readonly string[]
 ): ResolvedRoutePath {
-    const cleanRaw = rawPath.replace(/^\/+|\/+$/g, '');
-    const combinedPrefix = prefixStack.filter(Boolean).join('/');
-    const fullPath = combinedPrefix ? `/${combinedPrefix}/${cleanRaw}` : `/${cleanRaw}`;
-    const normalizedPath = fullPath.startsWith('/api') ? fullPath : `/api${fullPath}`;
-    const segments = normalizedPath.split('/').filter(
-        segment => segment && segment !== 'api' && !segment.startsWith('{')
+    const cleanRaw = boundaryPath(rawPath);
+    const combinedPrefix = prefixPath(prefixStack);
+    const normalizedPath = apiPath(joinPath(combinedPrefix, cleanRaw));
+    const segments = relationProject(
+        relationSelect(
+            relationTextFields(normalizedPath, '/'),
+            segment => relationAll([segment.length > 0, relationNotEqual(segment, 'api'), relationNotEqual(relationTextStartsWith(segment, '{'), true)]),
+        ),
+        segment => segment,
     );
-    const resourceName = SemanticValueFactory.resourceName(segments[0] || 'general');
+    const resourceName = SemanticValueFactory.resourceName(
+        relationResolve(segments.length > 0, () => segments[0], () => 'general'),
+    );
     const path = createRoutePath(normalizedPath);
 
     return Object.freeze({
         path,
         resourceName,
-        parameters: extractPathParams(path)
+        parameters: extractPathParams(path),
     });
 }
 
 export function extractPathParams(routePath: RoutePath): readonly RouteParameter[] {
     const matches = [...routePath.value.value.matchAll(/\{([^}]+)\}/g)];
-    return Object.freeze(matches.map(match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
+    return Object.freeze(relationProject(matches, match => ScannedRouteParameterDescriptor.fromPathSegment(match[1])));
 }
 
 /** @deprecated Use resolveRoutePath. */
 export function normalizeRoutePath(
     rawPath: string,
-    prefixStack: readonly string[]
- ): { normalizedPath: RoutePath; resourceName: ResourceName } {
+    prefixStack: readonly string[],
+): { normalizedPath: RoutePath; resourceName: ResourceName } {
     const resolved = resolveRoutePath(rawPath, prefixStack);
     return { normalizedPath: resolved.path, resourceName: resolved.resourceName };
 }

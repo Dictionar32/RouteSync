@@ -1,53 +1,42 @@
-/**
- * VariableResolver.ts
- *
- * Semantic resolution plugin for variable lookups ($this, assignments, model names).
- * Active Consumer orchestrating variable resolution sub-domains.
- *
- * @module semantic/plugins/VariableResolver
- */
-
 import type { SemanticResolution } from '../../types/domain/semanticResolution';
-import { unknownResolution } from '../semanticResolutionSupport';
+import { indeterminateResolution } from '../semanticResolutionSupport';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
-import {
-  resolveThisVariable,
-  resolveAssignmentVariable,
-  resolveModelByName
-} from './variable';
+import { resolveThisVariable, resolveAssignmentVariable, resolveModelByName } from './variable';
+import type { VariableResolutionResult } from './variable/variableResolutionResult';
+import { relationEqual, relationGate } from '../kernel/semanticRelations';
+import { relationFirst, relationOptionFold } from '../kernel/relationalSequence';
 
-export {
-  resolveThisVariable,
-  resolveAssignmentVariable,
-  resolveModelByName
+export { resolveThisVariable, resolveAssignmentVariable, resolveModelByName };
+
+type VariableCandidate = Readonly<{ readonly resolve: () => VariableResolutionResult }>;
+
+const resolveVariable = (meta: Extract<ResolverMeta, { kind: 'variable' }>, context: ResolutionContext): SemanticResolution => {
+  const name = meta.name.value;
+  const scope = context.scope;
+  const candidates: readonly VariableCandidate[] = Object.freeze([
+    { resolve: () => relationGate(relationEqual(name, 'this'), () => resolveThisVariable(context, scope), () => ({ kind: 'not_found', reason: 'no_context_model' })) },
+    { resolve: () => resolveAssignmentVariable(name, context, scope) },
+    { resolve: () => resolveModelByName(name, context.symbolTable) },
+  ]);
+  return relationOptionFold(
+    relationFirst(candidates, candidate => relationEqual(candidate.resolve().kind, 'resolved')),
+    () => indeterminateResolution('VariableResolver', 'Unknown variable', name, 'unresolved_symbol'),
+    candidate => {
+      const result = candidate.resolve();
+      return relationGate(
+        relationEqual(result.kind, 'resolved'),
+        () => result.value,
+        () => indeterminateResolution('VariableResolver', 'Unknown variable', name, 'unresolved_symbol'),
+      );
+    },
+  );
 };
 
-export class VariableResolver implements ResolverPlugin {
-  canResolve(meta: ResolverMeta): boolean {
-    return !!(meta && meta.kind === 'variable');
-  }
-
-  resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    if (meta.kind !== 'variable') {
-      return unknownResolution('VariableResolver', 'Unsupported variable metadata', 'variable', 'invalid_boundary_input');
-    }
-    const name = meta.name.value;
-    const scope = context.scope;
-
-    // 1. Resolve 'this'
-    if (name === 'this') {
-      const thisRes = resolveThisVariable(context, scope);
-      if (thisRes.kind === 'resolved') return thisRes.value;
-    }
-
-    // 2 & 3. Check assignments (resolved and raw)
-    const assignmentRes = resolveAssignmentVariable(name, context, scope);
-    if (assignmentRes.kind === 'resolved') return assignmentRes.value;
-
-    // 4. Match against models by name (including plural/singular heuristics)
-    const modelRes = resolveModelByName(name, context.symbolTable);
-    if (modelRes) return modelRes;
-
-    return unknownResolution('VariableResolver', 'Unknown variable', name, 'unresolved_symbol');
-  }
-}
+export const VariableResolver: ResolverPlugin = Object.freeze({
+  canResolve: (meta: ResolverMeta): boolean => relationEqual(meta.kind, 'variable'),
+  resolve: (meta: ResolverMeta, context: ResolutionContext): SemanticResolution => relationGate(
+    relationEqual(meta.kind, 'variable'),
+    () => resolveVariable(meta, context),
+    () => indeterminateResolution('VariableResolver', 'Unsupported variable metadata', 'variable', 'invalid_boundary_input'),
+  ),
+});

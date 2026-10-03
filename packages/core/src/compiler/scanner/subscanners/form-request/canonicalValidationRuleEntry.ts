@@ -18,6 +18,15 @@ import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../..
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ValidationRuleParser } from "../../../../types/domain/validationRules";
 import type { SourceSpan } from "../../../../types/upstream/provenance";
+import {
+    relationGate,
+    relationIndexOf,
+    relationProject,
+    relationFirstOption,
+    relationOptionFold,
+    relationAnyMatch,
+    relationRange,
+} from "../../../../semantic/kernel/relationalSequence";
 
 export interface ScannedRouteValidationRuleParams {
     readonly fieldName: PropertyName;
@@ -30,39 +39,31 @@ export interface ScannedRouteValidationRuleParams {
     readonly source: SourceSpan;
 }
 
-export class CanonicalRouteValidationRuleEntry implements RouteValidationRuleEntry {
-    public readonly fieldName: PropertyName;
-    public readonly sourceField: PropertyName;
-    public readonly location: ValidationFieldLocation;
-    public readonly shape: ValidationFieldShape;
-    public readonly semanticType: SemanticType;
-    public readonly presence: RequestFieldPresence;
-    public readonly validation: readonly ValidationRuleNode[];
-    public readonly source: SourceSpan;
+export type CanonicalRouteValidationRuleEntry = RouteValidationRuleEntry;
 
-    constructor(params: ScannedRouteValidationRuleParams) {
-        this.fieldName = params.fieldName;
-        this.sourceField = params.sourceField;
-        this.location = params.location;
-        this.shape = params.shape;
-        this.semanticType = params.semanticType;
-        this.presence = params.presence;
-        this.validation = Object.freeze([...params.validation]);
-        this.source = params.source;
-        Object.freeze(this);
-    }
+const createCanonicalRouteValidationRuleEntry = (params: ScannedRouteValidationRuleParams): CanonicalRouteValidationRuleEntry => Object.freeze({
+    fieldName: params.fieldName,
+    sourceField: params.sourceField,
+    location: params.location,
+    shape: params.shape,
+    semanticType: params.semanticType,
+    presence: params.presence,
+    validation: Object.freeze([...params.validation]),
+    source: params.source
+});
 
-    public static create(
+export const CanonicalRouteValidationRuleEntry = Object.freeze({
+    create: (
         fieldName: string,
         rules: readonly string[],
         validation: readonly ValidationRuleNode[] = ValidationRuleParser.parseAll(rules),
         source: SourceSpan = { kind: 'source_span', file: SemanticValueFactory.sourceFilePath('<validation>'), start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } }
-    ): CanonicalRouteValidationRuleEntry {
+    ): CanonicalRouteValidationRuleEntry => {
         const sourceField = SemanticValueFactory.propertyName(fieldName);
         const semanticType = resolveSemanticType(validation);
         const presence = resolvePresence(validation);
         const location = resolveLocation(fieldName);
-        return new CanonicalRouteValidationRuleEntry({
+        return createCanonicalRouteValidationRuleEntry({
             fieldName: canonicalFieldName(fieldName, location),
             sourceField,
             location,
@@ -73,47 +74,40 @@ export class CanonicalRouteValidationRuleEntry implements RouteValidationRuleEnt
             source
         });
     }
-}
+});
 
 function canonicalFieldName(fieldName: string, location: ValidationFieldLocation): PropertyName {
-    return location.kind === 'root' ? SemanticValueFactory.propertyName(fieldName) : location.collection;
+    return relationGate(Object.is(location.kind, 'root'), () => SemanticValueFactory.propertyName(fieldName), () => location.collection);
 }
 
 function resolveLocation(fieldName: string): ValidationFieldLocation {
     const parts = fieldName.split('.');
-    const wildcardIndex = parts.indexOf('*');
-    if (wildcardIndex === -1) return { kind: 'root' };
-    const collection = parts.slice(0, wildcardIndex).join('.');
-    const path = parts.slice(wildcardIndex + 1).map(SemanticValueFactory.propertyName);
-    return {
-        kind: 'collection_element',
-        collection: SemanticValueFactory.propertyName(collection),
-        path: Object.freeze(path)
-    };
+    const wildcardIndex = relationIndexOf(parts, part => Object.is(part, '*'));
+    return relationGate(Object.is(wildcardIndex, -1),
+        () => ({ kind: 'root' as const }),
+        () => ({
+            kind: 'collection_element' as const,
+            collection: SemanticValueFactory.propertyName(relationRange(parts, 0, wildcardIndex).join('.')),
+            path: Object.freeze(relationProject(relationRange(parts, wildcardIndex + 1, parts.length), SemanticValueFactory.propertyName))
+        }));
 }
 
 function resolveShape(fieldName: string, semanticType: SemanticType, validation: readonly ValidationRuleNode[], source: SourceSpan): ValidationFieldShape {
     const parts = fieldName.split('.');
-    const wildcardIndex = parts.indexOf('*');
-    if (wildcardIndex === -1) {
-        if (isCollection(semanticType)) {
+    const wildcardIndex = relationIndexOf(parts, part => Object.is(part, '*'));
+    return relationGate(Object.is(wildcardIndex, -1),
+        () => relationGate(isCollection(semanticType),
+            () => ({ kind: 'collection' as const, elementType: collectionElementType(semanticType), element: { kind: 'scalar' as const } }),
+            () => ({ kind: 'scalar' as const })),
+        () => {
+            const tail = relationProject(relationRange(parts, wildcardIndex + 1, parts.length), SemanticValueFactory.propertyName);
+            const element = buildNestedObjectShape(tail, semanticType, validation, source);
             return {
-                kind: 'collection',
-                elementType: collectionElementType(semanticType),
-                element: { kind: 'scalar' }
+                kind: 'collection' as const,
+                elementType: objectTypeForShape(relationRange(parts, 0, wildcardIndex).join('.'), element),
+                element
             };
-        }
-        return { kind: 'scalar' };
-    }
-
-    const tail = parts.slice(wildcardIndex + 1).map(SemanticValueFactory.propertyName);
-    const element = buildNestedObjectShape(tail, semanticType, validation, source);
-    const elementType = objectTypeForShape(parts.slice(0, wildcardIndex).join('.'), element);
-    return {
-        kind: 'collection',
-        elementType,
-        element
-    };
+        });
 }
 
 function buildNestedObjectShape(
@@ -122,91 +116,97 @@ function buildNestedObjectShape(
     validation: readonly ValidationRuleNode[],
     source: SourceSpan
 ): ValidationFieldShape {
-    if (path.length === 0) return { kind: 'scalar' };
-
-    const [head, ...tail] = path;
-    const childShape = tail.length === 0
-        ? { kind: 'scalar' as const }
-        : buildNestedObjectShape(tail, leafType, validation, source);
-    const childType = tail.length === 0
-        ? leafType
-        : objectTypeForShape(head.value.value, childShape);
-    const childPresence = tail.length === 0
-        ? resolvePresence(validation)
-        : RequestFieldPresenceFactory.unspecified();
-    const childValidation = tail.length === 0 ? validation : Object.freeze([]);
-
-    return {
-        kind: 'object',
-        fields: Object.freeze([{
-            name: head,
-            semanticType: childType,
-            presence: childPresence,
-            validation: childValidation,
-            shape: childShape,
-            source
-        }])
-    };
+    return relationGate(Object.is(path.length, 0),
+        () => ({ kind: 'scalar' as const }),
+        () => {
+            const head = path[0];
+            const tail = relationRange(path, 1, path.length);
+            const childShape = relationGate(Object.is(tail.length, 0),
+                () => ({ kind: 'scalar' as const }),
+                () => buildNestedObjectShape(tail, leafType, validation, source));
+            const childType = relationGate(Object.is(tail.length, 0),
+                () => leafType,
+                () => objectTypeForShape(head.value.value, childShape));
+            const childPresence = relationGate(Object.is(tail.length, 0),
+                () => resolvePresence(validation),
+                () => RequestFieldPresenceFactory.unspecified());
+            const childValidation = relationGate(Object.is(tail.length, 0),
+                () => validation,
+                () => Object.freeze([] as readonly ValidationRuleNode[]));
+            return {
+                kind: 'object' as const,
+                fields: Object.freeze([{
+                    name: head,
+                    semanticType: childType,
+                    presence: childPresence,
+                    validation: childValidation,
+                    shape: childShape,
+                    source
+                }])
+            };
+        });
 }
 
 function objectTypeForShape(name: string, shape: ValidationFieldShape): ObjectType {
-    if (shape.kind !== 'object') {
-        return new ObjectType({ name, baseName: name, properties: [], role: 'plain' });
-    }
-    return new ObjectType({
-        name,
-        baseName: name,
-        properties: shape.fields.map(field => ({
-            name: field.name,
-            type: field.semanticType,
-            description: '',
-            origin: { kind: 'validation_field', field: field.name.value.value }
-        })),
-        role: 'plain'
-    });
+    return relationGate(Object.is(shape.kind, 'object'),
+        () => ObjectType({
+            name,
+            baseName: name,
+            properties: relationProject(shape.fields, field => ({
+                name: field.name,
+                type: field.semanticType,
+                description: '',
+                origin: { kind: 'validation_field' as const, field: field.name.value.value }
+            })),
+            role: 'plain'
+        }),
+        () => ObjectType({ name, baseName: name, properties: [], role: 'plain' }));
 }
 
 function isCollection(type: SemanticType): boolean {
-    return type.kind === 'readonly_collection' || type.kind === 'mutable_collection';
+    return relationAnyMatch([type.kind], kind => relationAnyMatch(['readonly_collection', 'mutable_collection'], candidate => Object.is(candidate, kind)));
 }
 
 function collectionElementType(type: SemanticType): SemanticType {
-    if (type.kind !== 'readonly_collection' && type.kind !== 'mutable_collection') return new PrimitiveType(PrimitiveKind.UNSPECIFIED);
-    return type.elementType;
+    return relationGate(isCollection(type),
+        () => (type as ReadonlyCollectionType).elementType,
+        () => primitiveType(PrimitiveKind.UNSPECIFIED));
 }
 
 function resolveSemanticType(validation: readonly ValidationRuleNode[]): SemanticType {
-    const explicit = validation.find(rule =>
-        rule.kind === 'string' || rule.kind === 'number' || rule.kind === 'boolean' ||
-        rule.kind === 'array' || rule.kind === 'date' || rule.kind === 'file' || rule.kind === 'image'
-    );
-    if (!explicit) return new PrimitiveType(PrimitiveKind.UNSPECIFIED);
-    if (explicit.kind === 'number') return new PrimitiveType(PrimitiveKind.NUMBER);
-    if (explicit.kind === 'boolean') return new PrimitiveType(PrimitiveKind.BOOLEAN);
-    if (explicit.kind === 'date') return new PrimitiveType(PrimitiveKind.DATETIME);
-    if (explicit.kind === 'file' || explicit.kind === 'image') return new PrimitiveType(PrimitiveKind.FILE);
-    if (explicit.kind === 'array') {
-        const element = explicit.elementType;
-        return new ReadonlyCollectionType(
-            CollectionKind.ARRAY,
-            element.kind === 'specified' ? element.type : new PrimitiveType(PrimitiveKind.UNSPECIFIED)
-        );
-    }
-    return new PrimitiveType(PrimitiveKind.STRING);
+    const explicit = relationFirstOption(validation, rule => relationAnyMatch(
+        ['string', 'number', 'boolean', 'array', 'date', 'file', 'image'],
+        kind => Object.is(kind, rule.kind)
+    ));
+    return relationOptionFold(explicit,
+        () => primitiveType(PrimitiveKind.UNSPECIFIED),
+        rule => relationGate(Object.is(rule.kind, 'number'),
+            () => primitiveType(PrimitiveKind.NUMBER),
+            () => relationGate(Object.is(rule.kind, 'boolean'),
+                () => primitiveType(PrimitiveKind.BOOLEAN),
+                () => relationGate(Object.is(rule.kind, 'date'),
+                    () => primitiveType(PrimitiveKind.DATETIME),
+                    () => relationGate(relationAnyMatch(['file', 'image'], kind => Object.is(kind, rule.kind)),
+                        () => primitiveType(PrimitiveKind.FILE),
+                        () => relationGate(Object.is(rule.kind, 'array'),
+                            () => {
+                                const element = rule.elementType;
+                                return ReadonlyCollectionType(CollectionKind.ARRAY,
+                                    relationGate(Object.is(element.kind, 'specified'), () => element.type, () => primitiveType(PrimitiveKind.UNSPECIFIED)));
+                            },
+                            () => primitiveType(PrimitiveKind.STRING)))))));
 }
 
 function resolvePresence(validation: readonly ValidationRuleNode[]): RequestFieldPresence {
-    const required = validation.some(rule => rule.kind === 'required');
-    const conditional = validation.some(rule =>
-        rule.kind === 'required_with' ||
-        rule.kind === 'required_with_all' ||
-        rule.kind === 'required_without' ||
-        rule.kind === 'required_without_all' ||
-        rule.kind === 'required_if' ||
-        rule.kind === 'required_unless'
-    );
-    const nullable = validation.some(rule => rule.kind === 'nullable');
-    if (required) return RequestFieldPresenceFactory.required(nullable);
-    if (conditional) return RequestFieldPresenceFactory.unspecified();
-    return RequestFieldPresenceFactory.optional(nullable);
+    const required = relationAnyMatch(validation, rule => Object.is(rule.kind, 'required'));
+    const conditional = relationAnyMatch(validation, rule => relationAnyMatch(
+        ['required_with', 'required_with_all', 'required_without', 'required_without_all', 'required_if', 'required_unless'],
+        kind => Object.is(kind, rule.kind)
+    ));
+    const nullable = relationAnyMatch(validation, rule => Object.is(rule.kind, 'nullable'));
+    return relationGate(required,
+        () => RequestFieldPresenceFactory.required(nullable),
+        () => relationGate(conditional,
+            () => RequestFieldPresenceFactory.unspecified(),
+            () => RequestFieldPresenceFactory.optional(nullable)));
 }

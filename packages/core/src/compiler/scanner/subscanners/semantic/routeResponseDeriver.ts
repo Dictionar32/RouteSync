@@ -2,8 +2,6 @@
  * routeResponseDeriver.ts
  *
  * Active Consumer: Derives canonical ObjectType instances for routes with inline or anonymous response structures.
- *
- * @module core/compiler/scanner/subscanners/semantic/routeResponseDeriver
  */
 
 import { ObjectType } from '../../../types/SemanticType';
@@ -12,28 +10,41 @@ import {
     extractRouteResponseShape,
     processResponseProperties
 } from './route-response';
+import { relationAll, relationEqual, relationFold, relationGate, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 
 export function deriveRouteResponseTypes(
     context: SemanticDerivationContext,
-    seenNames: Set<string>
+    seenNames: RelationMembership<string>
 ): readonly ObjectType[] {
-    const types: ObjectType[] = [];
-    const interner = context.interner;
-
-    for (const route of context.routes) {
-        const shape = extractRouteResponseShape(route);
-        if (!shape) continue;
-
-        const { typeName, baseName, fields } = shape;
-
-        const typeNameValue = typeName.value.value;
-        const baseNameValue = baseName.value.value;
-        if (typeNameValue.length > 0 && !seenNames.has(typeNameValue)) {
-            seenNames.add(typeNameValue);
-            const properties = processResponseProperties(fields, context);
-            types.push(interner.intern(new ObjectType({ name: typeNameValue, baseName: baseNameValue, properties, role: 'response' })) as ObjectType);
-        }
-    }
-
-    return types;
+    return relationFold(
+        context.routes,
+        [] as ObjectType[],
+        (types, route) => relationOptionFold(
+            extractRouteResponseShape(route),
+            () => types,
+            shape => {
+                const typeNameValue = shape.typeName.value.value;
+                const baseNameValue = shape.baseName.value.value;
+                return relationGate(
+                    relationAll([typeNameValue.length > 0, relationEqual(relationContains(seenNames, typeNameValue), false)]),
+                    () => {
+                        seenNames = relationInsert(seenNames, typeNameValue);
+                        const properties = processResponseProperties(shape.fields, context);
+                        return [
+                            ...types,
+                            context.interner.intern(ObjectType({
+                                name: typeNameValue,
+                                baseName: baseNameValue,
+                                properties,
+                                role: 'response',
+                            })) as ObjectType,
+                        ];
+                    },
+                    () => types,
+                );
+            },
+        ),
+    );
 }
+

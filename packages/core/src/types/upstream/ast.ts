@@ -41,6 +41,7 @@ export type ExpressionOrigin =
 
 export type ExpressionSurface =
   | { readonly kind: 'php_literal' }
+  | { readonly kind: 'php_resource_reference' }
   | { readonly kind: 'php_variable' }
   | { readonly kind: 'php_magic_constant' }
   | { readonly kind: 'php_constant_reference' }

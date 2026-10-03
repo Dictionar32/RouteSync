@@ -6,15 +6,21 @@
  * @module compiler/utils
  */
 
-// Data structures
-export { FIFOQueue } from './Queue';
+// Relation-native graph model
 export {
-    DependencyGraph,
-    FrozenSet,
-    DependencyGraphBuilder,
-    IncrementalInvalidator,
-    TarjanSCC,
-    UnionFind
+    type DependencyGraph,
+    type DependencyEdge,
+    createDependencyGraph,
+    addDependency,
+    dependencyForward,
+    dependencyReverse,
+    dependencyNodes,
+    dependencyClosure,
+    invalidateDependencies,
+    stronglyConnectedComponents,
+    type GraphUnionFind,
+    createGraphUnionFind,
+    graphUnionFindUnion
 } from './Graph';
 
 // Arena allocators

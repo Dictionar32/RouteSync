@@ -1,0 +1,688 @@
+{
+  "phase": 384,
+  "filesScanned": 149,
+  "totals": {
+    "if": 3,
+    "for": 0,
+    "while": 0,
+    "switch": 1,
+    "map": 15,
+    "filter": 1,
+    "reduce": 0,
+    "flatMap": 0,
+    "undefined": 0,
+    "nullish": 5,
+    "null": 15,
+    "strictEquality": 89,
+    "as": 129,
+    "unknown": 11
+  },
+  "zeroViolationFiles": 114,
+  "violations": [
+    {
+      "file": "packages/core/src/semantic/plugins/EloquentMethodResolver.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 1,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 2,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/frameworkModelResolution.ts",
+      "counts": {
+        "if": 1,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 1,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/method-return/selectRawProjectionParser.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 2,
+        "null": 11,
+        "strictEquality": 22,
+        "as": 2,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/method-return/selectRawProjectionTypes.ts",
+      "counts": {
+        "if": 2,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 5,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingKnowledgeCatalog.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 2,
+        "as": 2,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingResolutionResolver.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 5,
+        "as": 10,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeConstraintKnowledgeCatalog.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 1,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 11,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeGroupAstAdapter.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 5,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 1,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeGroupSemanticResolver.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 13,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareIdentity.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 1,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 1,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 1,
+        "as": 5,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMissingAstAdapter.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 2,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMissingSemanticResolver.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 1,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeResourceCapabilityCatalog.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 4,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataModel.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 6,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 12,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 0,
+        "unknown": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 1,
+        "null": 0,
+        "strictEquality": 3,
+        "as": 2,
+        "unknown": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 8,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 0,
+        "unknown": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 5,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationParser.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 10,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 1,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 1,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 6,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 5,
+        "as": 1,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 1,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 1,
+        "strictEquality": 7,
+        "as": 1,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 2,
+        "strictEquality": 0,
+        "as": 2,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 1,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundaryManifest.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 4,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 1,
+        "null": 1,
+        "strictEquality": 14,
+        "as": 0,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 0,
+        "as": 0,
+        "unknown": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 7,
+        "as": 6,
+        "unknown": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEquality": 6,
+        "as": 21,
+        "unknown": 6
+      }
+    }
+  ]
+}

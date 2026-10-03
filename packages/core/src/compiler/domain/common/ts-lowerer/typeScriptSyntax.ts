@@ -7,6 +7,8 @@
  */
 
 import { TypeScriptToken, TypeScriptAliasSuffix } from './typeScriptVocabulary';
+import { relationProject, relationResolve } from '../../../../semantic/kernel/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
 
 export class TypeScriptSyntax {
     /**
@@ -17,7 +19,7 @@ export class TypeScriptSyntax {
         formatter: (item: T) => string,
         separator: string
     ): string {
-        return items.map(formatter).join(separator);
+        return relationProject(items, formatter).join(separator);
     }
 
     /**
@@ -53,16 +55,11 @@ export class TypeScriptSyntax {
     }
 
     public static array(elementType: string): string {
-        if (elementType.startsWith('{') || elementType.endsWith('}')) {
-            return `${elementType}[]`;
-        }
-        return this.enclose(TypeScriptToken.ArrayOpen, elementType, TypeScriptToken.ArrayClose);
+        return relationResolve(relationAny([elementType.startsWith('{'), elementType.endsWith('}')]), () => `${elementType}[]`, () => this.enclose(TypeScriptToken.ArrayOpen, elementType, TypeScriptToken.ArrayClose));
     }
 
     public static inlineObject<T>(properties: readonly T[], formatter: (prop: T) => string): string {
-        if (properties.length === 0) return '{}';
-        const formatted = properties.map(formatter);
-        return `{\n  ${formatted.join('\n  ')}\n}`;
+        return relationResolve(relationEqual(properties.length, 0), () => '{}', () => `{\n  ${relationProject(properties, formatter).join('\n  ')}\n}`);
     }
 
     public static formatInterface<T>(

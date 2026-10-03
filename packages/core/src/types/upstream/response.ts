@@ -23,6 +23,10 @@ export type PaginationKind =
   | { readonly kind: 'simple_paginate' }
   | { readonly kind: 'cursor_paginate' };
 
+export type ResponseCardinality =
+  | { readonly kind: 'single' }
+  | { readonly kind: 'collection' };
+
 export type ResponseJsonShape =
   | { readonly kind: 'single'; readonly payload: ResponseJsonPayload }
   | { readonly kind: 'collection'; readonly payload: ResponseJsonPayload }
@@ -100,7 +104,7 @@ export type ResponseResult =
   | { readonly kind: 'content'; readonly body: ResponseContent; readonly status: ResponseStatus }
   | { readonly kind: 'redirect'; readonly redirect: ResponseRedirect; readonly status: ResponseStatus }
   | { readonly kind: 'no_content'; readonly status: ResponseStatus }
-  | { readonly kind: 'resource'; readonly resource: ResourceReference; readonly model: ModelReference; readonly status: ResponseStatus }
+  | { readonly kind: 'resource'; readonly resource: ResourceReference; readonly model: ModelReference; readonly cardinality: ResponseCardinality; readonly status: ResponseStatus }
   | { readonly kind: 'responsable'; readonly type: TypeExpression; readonly status: ResponseStatus }
   | { readonly kind: 'json_serializable'; readonly type: TypeExpression; readonly status: ResponseStatus };
 
@@ -116,14 +120,14 @@ export type ResponseOutcome =
   | { readonly kind: 'success'; readonly result: ResponseResult }
   | { readonly kind: 'failure'; readonly failure: ResponseFailure };
 
-export type ResponseDefinition = {
+export interface ResponseDefinition {
   readonly kind: 'response';
   readonly typeName: ResponseTypeName;
   readonly output: TypeExpression;
   readonly transport: ResponseTransport;
   readonly outcome: ResponseOutcome;
   readonly source: SourceSpan;
-};
+}
 
 export type ResponseFacts = {
   readonly kind: 'response_facts';
@@ -135,7 +139,7 @@ export type ResponseFacts = {
   readonly source: SourceSpan;
 };
 
-export type ResponseContract = {
+export interface ResponseContract {
   readonly kind: 'response_contract';
   readonly definition: ResponseDefinition;
-};
+}

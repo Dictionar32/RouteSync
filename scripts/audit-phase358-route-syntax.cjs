@@ -1,0 +1,11 @@
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const canonical = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
+const legacy = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxModel.ts');
+const strip = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+const source = strip(fs.readFileSync(canonical, 'utf8'));
+const patterns = [/\bif\b/, /\bfor\b/, /\bwhile\b/, /\bswitch\b/, /\.map\s*\(/, /\.filter\s*\(/, /\.reduce\s*\(/, /\.flatMap\s*\(/, /\bundefined\b/, /\bnull\b/, /\b===\b/, /\?\?/, /\bas\b/];
+const violations = source.split('\n').flatMap((line, i) => patterns.filter(re => re.test(line)).map(re => ({line:i+1, pattern:String(re)})));
+console.log(JSON.stringify({phase:358, canonical: path.relative(root, canonical), violations, legacyBytes: fs.statSync(legacy).size}, null, 2));
+process.exitCode = violations.length || fs.statSync(legacy).size !== 0 ? 1 : 0;

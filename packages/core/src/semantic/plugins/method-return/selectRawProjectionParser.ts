@@ -1,100 +1,129 @@
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import type { ResponseFieldName } from '../../../types/domain/semanticValues';
 import type { QueryProjectionField } from '../../../types/domain/semanticResolution';
 import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 import { aggregateType } from './selectRawProjectionTypes';
+import { relationResolve, relationFirst, relationOptionFold, relationTextSlice, relationGate } from '../../kernel/relationalSequence';
+import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../kernel/semanticRelations';
+import { matchLookup } from '../../../types/upstream/collections';
+import type { RelationOption } from '../../kernel/relationalSequence';
 
-export function parseSelectRawFields(
-  sql: string,
-  sourceDefinition: ModelSemanticDefinition,
-): readonly QueryProjectionField[] {
-  const fields: QueryProjectionField[] = [];
-  for (const part of splitTopLevel(sql)) {
-    const alias = aliasAfterAs(part);
-    if (alias === null) continue;
-    const aggregate = aggregateKind(part);
-    if (aggregate !== null) {
-      const source = aggregateSource(part, aggregate);
-      fields.push({
-        kind: 'aggregate', name: SemanticValueFactory.responseFieldName(alias), aggregate, source,
-        type: aggregateType(aggregate, source, sourceDefinition),
-      });
-      continue;
-    }
-    const column = projectedColumn(part);
-    if (column !== null) {
-      const property = sourceDefinition.surface.byName.column(SemanticValueFactory.propertyName(column));
-      if (property.kind === 'missing') continue;
-      fields.push({
-        kind: 'column', name: SemanticValueFactory.responseFieldName(alias),
-        source: SemanticValueFactory.columnName(column), type: property.value.semanticType,
-      });
-    }
-  }
-  return Object.freeze(fields);
+type Aggregate = 'avg' | 'count' | 'sum' | 'min' | 'max';
+const AGGREGATES: readonly [Aggregate, string][] = [
+  ['avg', 'AVG'], ['count', 'COUNT'], ['sum', 'SUM'], ['min', 'MIN'], ['max', 'MAX'],
+];
+
+export function parseSelectRawFields(sql: string, sourceDefinition: ModelSemanticDefinition): readonly QueryProjectionField[] {
+  return Object.freeze(projectParts(splitTopLevel(sql), sourceDefinition));
 }
 
-function aggregateKind(expression: string): 'avg' | 'count' | 'sum' | 'min' | 'max' | null {
+const projectParts = (parts: readonly string[], sourceDefinition: ModelSemanticDefinition, index = 0, output: readonly QueryProjectionField[] = []): readonly QueryProjectionField[] =>
+  relationResolve(index < parts.length,
+    () => {
+      const part = parts[index];
+      return relationOptionFold(
+        aliasAfterAs(part),
+        () => projectParts(parts, sourceDefinition, index + 1, output),
+        alias => projectParts(parts, sourceDefinition, index + 1, projectPart(part, alias, sourceDefinition, output)),
+      );
+    },
+    () => output);
+
+const projectPart = (part: string, alias: string, sourceDefinition: ModelSemanticDefinition, output: readonly QueryProjectionField[]): readonly QueryProjectionField[] =>
+  relationOptionFold(
+    aggregateKind(part),
+    () => projectColumn(part, alias, sourceDefinition, output),
+    aggregate => [...output, {
+      kind: 'aggregate', name: SemanticValueFactory.responseFieldName(alias), aggregate,
+      source: aggregateSource(part, aggregate), type: aggregateType(aggregate, aggregateSource(part, aggregate), sourceDefinition),
+    }],
+  );
+
+const projectColumn = (part: string, alias: string, sourceDefinition: ModelSemanticDefinition, output: readonly QueryProjectionField[]): readonly QueryProjectionField[] =>
+  relationOptionFold(
+    projectedColumn(part),
+    () => output,
+    column => matchLookup(
+      sourceDefinition.surface.byName.column(SemanticValueFactory.propertyName(column)),
+      {
+        missing: () => output,
+        found: lookup => [...output, {
+          kind: 'column', name: SemanticValueFactory.responseFieldName(alias), source: SemanticValueFactory.columnName(column),
+          type: lookup.value.semanticType,
+        }],
+      },
+    ),
+  );
+
+function aggregateKind(expression: string): RelationOption<Aggregate> {
   const upper = expression.toUpperCase();
-  if (containsToken(upper, 'AVG')) return 'avg';
-  if (containsToken(upper, 'COUNT')) return 'count';
-  if (containsToken(upper, 'SUM')) return 'sum';
-  if (containsToken(upper, 'MIN')) return 'min';
-  if (containsToken(upper, 'MAX')) return 'max';
-  return null;
+  return relationOptionFold(relationFirst(AGGREGATES, ([, token]) => containsToken(upper, token)), () => ({ kind: 'none' }), ([kind]) => ({ kind: 'some', value: kind }));
 }
 
-function aggregateSource(expression: string, aggregate: 'avg' | 'count' | 'sum' | 'min' | 'max') {
-  if (aggregate === 'count' && /COUNT\s*\(\s*\*\s*\)/i.test(expression)) return { kind: 'rows' } as const;
+function aggregateSource(expression: string, aggregate: Aggregate) {
+  const upper = expression.toUpperCase();
+  const rows = relationResolve(relationEqual(aggregate, 'count'), () => /COUNT\s*\(\s*\*\s*\)/i.test(expression), () => false);
   const marker = `${aggregate.toUpperCase()}(`;
-  const start = expression.toUpperCase().indexOf(marker);
-  if (start < 0) return { kind: 'rows' } as const;
-  const inner = expression.slice(start + marker.length).split(')')[0].trim().replace(/^[`"']|[`"']$/g, '');
-  return { kind: 'column', column: SemanticValueFactory.columnName(inner) } as const;
+  const start = upper.indexOf(marker);
+  return relationResolve(relationAny([rows, start < 0]),
+    () => ({ kind: 'rows' } as const),
+    () => ({ kind: 'column', column: SemanticValueFactory.columnName(relationTextSlice(expression, start + marker.length, expression.length).split(')')[0].replace(/^[`"']|[`"']$/g, '')) } as const));
 }
 
-function projectedColumn(expression: string): string | null {
-  const beforeAs = expression.split(/\bas\b/i)[0].trim();
-  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(beforeAs) ? beforeAs : null;
+function projectedColumn(expression: string): RelationOption<string> {
+  const beforeAs = expression.split(/\bas\b/i)[0].replace(/^\s+|\s+$/g, '');
+  return relationGate(/^[A-Za-z_][A-Za-z0-9_]*$/.test(beforeAs), () => ({ kind: 'some', value: beforeAs }), () => ({ kind: 'none' }));
 }
 
 function containsToken(value: string, token: string): boolean {
-  let index = value.indexOf(token + '(');
-  while (index >= 0) {
-    if (index === 0 || !isWord(value[index - 1])) return true;
-    index = value.indexOf(token + '(', index + 1);
-  }
-  return false;
+  const normalizedValue = value.toUpperCase();
+  const normalizedToken = token.toUpperCase();
+  const scan = (index: number): boolean => relationResolve(
+    index < normalizedValue.length,
+    () => relationGate(
+      relationEqual(normalizedValue.slice(index, index + normalizedToken.length), normalizedToken),
+      () => relationAll([
+        relationGate(index > 0, () => !/[A-Z0-9_]/.test(normalizedValue[index - 1]), () => true),
+        relationGate(index + normalizedToken.length < normalizedValue.length, () => !/[A-Z0-9_]/.test(normalizedValue[index + normalizedToken.length]), () => true),
+      ]),
+      () => scan(index + 1),
+    ),
+    () => false,
+  );
+  return scan(0);
 }
 
-function aliasAfterAs(expression: string): string | null {
-  const words = expression.trim().split(' ').filter(Boolean);
-  for (let i = 0; i + 1 < words.length; i += 1) if (words[i].toLowerCase() === 'as') return cleanAlias(words[i + 1]);
-  return null;
+function aliasAfterAs(expression: string): RelationOption<string> {
+  const match = relationFirst([...expression.matchAll(/\bas\s+([^\s]+)/ig)], () => true);
+  return relationOptionFold(match, () => ({ kind: 'none' }), value => cleanAlias(String(value[1])));
 }
 
-function cleanAlias(value: string): string | null {
-  const alias = value.trim().split('`').join('').split(',').join('').split(';').join('');
-  return alias.length > 0 ? alias : null;
+function cleanAlias(value: string): RelationOption<string> {
+  const alias = value.replace(/^\s+|\s+$/g, '').split('`').join('').split(',').join('').split(';').join('');
+  return relationGate(alias.length > 0, () => ({ kind: 'some', value: alias }), () => ({ kind: 'none' }));
 }
 
-function splitTopLevel(value: string): readonly string[] {
-  const result: string[] = [];
-  let start = 0;
-  let depth = 0;
-  let quote = '';
-  for (let i = 0; i < value.length; i += 1) {
-    const char = value[i];
-    if (quote !== '') { if (char === quote && value[i - 1] !== '\\') quote = ''; continue; }
-    if (char === "'" || char === '"') { quote = char; continue; }
-    if (char === '(') depth += 1;
-    if (char === ')') depth -= 1;
-    if (char === ',' && depth === 0) { result.push(value.slice(start, i)); start = i + 1; }
-  }
-  result.push(value.slice(start));
-  return result;
-}
-
-function isWord(value: string | undefined): boolean {
-  return value !== undefined && /[A-Za-z0-9_]/.test(value);
+function splitTopLevel(value: string, index = 0, start = 0, depth = 0, quote = '', output: readonly string[] = []): readonly string[] {
+  return relationResolve(index < value.length,
+    () => {
+      const char = value[index];
+      const escapedQuote = relationNotEqual(relationAny([
+        relationEqual(quote, ''),
+        relationAll([relationEqual(char, quote), relationEqual(value[index - 1], '\\')]),
+      ]), true);
+      const nextQuote = relationResolve(
+        relationEqual(quote, ''),
+        () => relationResolve(relationEqual(char, "'"), () => char, () => relationResolve(relationEqual(char, '"'), () => char, () => '')),
+        () => relationResolve(escapedQuote, () => '', () => quote),
+      );
+      const nextDepth = relationResolve(
+        relationAll([relationEqual(quote, ''), relationEqual(char, '(')]),
+        () => depth + 1,
+        () => relationResolve(relationAll([relationEqual(quote, ''), relationEqual(char, ')')]), () => depth - 1, () => depth),
+      );
+      const splitPoint = relationAll([relationEqual(quote, ''), relationEqual(char, ','), relationEqual(depth, 0)]);
+      const nextOutput = relationResolve(splitPoint, () => [...output, relationTextSlice(value, start, index)], () => output);
+      const nextStart = relationResolve(splitPoint, () => index + 1, () => start);
+      return splitTopLevel(value, index + 1, nextStart, nextDepth, nextQuote, nextOutput);
+    },
+    () => [...output, relationTextSlice(value, start, value.length)]);
 }

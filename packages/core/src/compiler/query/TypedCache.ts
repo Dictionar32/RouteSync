@@ -1,101 +1,56 @@
-/**
- * @fileoverview Type-safe memoized query cache.
- *
- * Query values stay associated with their MemoizedQueryKey<O>.
- * The cache never needs a Map<string, unknown> or a generic result assertion.
- */
+/** Relation-backed type-safe memoized query cache. */
+import { type QueryStorage, type MemoizedQueryKey, createMemoizedQueryKey } from './cache';
+import type { RelationOption } from '../../semantic/kernel/relationFoundation';
+import { relationContains } from '../../semantic/kernel/relationMembership';
+import { relationFold, relationOptionFold, relationResolve } from '../../semantic/kernel/relationalSequence';
 
-import {
-    type QueryStorage,
-    type MemoizedQueryKey,
-    createMemoizedQueryKey
-} from './cache';
+export { type QueryStorage, type MemoizedQueryKey, createMemoizedQueryKey };
 
-export {
-    type QueryStorage,
-    type MemoizedQueryKey,
-    createMemoizedQueryKey
+export interface TypedCache {
+  readonly get: <O>(key: MemoizedQueryKey<O>) => RelationOption<O>;
+  readonly set: <O>(key: MemoizedQueryKey<O>, value: O) => void;
+  readonly has: <O>(key: MemoizedQueryKey<O>) => boolean;
+  readonly delete: <O>(key: MemoizedQueryKey<O>) => boolean;
+  readonly size: number;
+  readonly clear: () => void;
+}
+
+export const createTypedCache = (): TypedCache => {
+  let storages: readonly QueryStorage[] = Object.freeze([]);
+  return {
+    get: key => key.read(),
+    set: (key, value) => { key.write(value); storages = relationResolve(relationContains(storages, key.storage()), () => storages, () => Object.freeze([...storages, key.storage()])); },
+    has: key => key.hasValue(),
+    delete: key => key.deleteValue(),
+    get size(): number { return relationFold(storages, 0, (total, storage) => total + storage.size); },
+    clear: (): void => { relationFold(storages, false, (_cleared, storage) => { storage.clear(); return true; }); storages = Object.freeze([]); },
+  };
 };
 
-/**
- * Typed cache facade.
- *
- * The cache tracks storage handles, never erased values.
- */
-export class TypedCache {
-    private readonly storages = new Set<QueryStorage>();
-
-    public get<O>(key: MemoizedQueryKey<O>): O | undefined {
-        return key.read();
-    }
-
-    public set<O>(
-        key: MemoizedQueryKey<O>,
-        value: O,
-    ): void {
-        key.write(value);
-        this.storages.add(key.storage());
-    }
-
-    public has<O>(key: MemoizedQueryKey<O>): boolean {
-        return key.hasValue();
-    }
-
-    public delete<O>(key: MemoizedQueryKey<O>): boolean {
-        return key.deleteValue();
-    }
-
-    public get size(): number {
-        let total = 0;
-        for (const storage of this.storages) {
-            total += storage.size;
-        }
-        return total;
-    }
-
-    public clear(): void {
-        for (const storage of this.storages) {
-            storage.clear();
-        }
-        this.storages.clear();
-    }
-}
-
 export interface QueryDescriptor<I, O> {
-    readonly key: MemoizedQueryKey<O>;
-    readonly inputHash: string;
-    readonly compute: (input: I) => O;
+  readonly key: MemoizedQueryKey<O>;
+  readonly inputHash: string;
+  readonly compute: (input: I) => O;
 }
 
-export class QueryDatabase {
-    private readonly cache = new TypedCache();
-
-    public executeQuery<I, O>(
-        query: QueryDescriptor<I, O>,
-        input: I,
-        dependencyFingerprint: string,
-    ): O {
-        const cacheId =
-            `${query.key.id}:${query.inputHash}:${dependencyFingerprint}`;
-
-        const cacheKey = query.key.scope(cacheId);
-        const cached = this.cache.get(cacheKey);
-
-        if (this.cache.has(cacheKey) && cached !== undefined) {
-            return cached;
-        }
-
-        const value = query.compute(input);
-        this.cache.set(cacheKey, value);
-
-        return value;
-    }
-
-    public get size(): number {
-        return this.cache.size;
-    }
-
-    public clear(): void {
-        this.cache.clear();
-    }
+export interface QueryDatabase {
+  readonly executeQuery: <I, O>(query: QueryDescriptor<I, O>, input: I, dependencyFingerprint: string) => O;
+  readonly size: number;
+  readonly clear: () => void;
 }
+
+export const createQueryDatabase = (): QueryDatabase => {
+  const cache = createTypedCache();
+  return {
+    executeQuery: (query, input, dependencyFingerprint) => {
+      const cacheId = `${query.key.id}:${query.inputHash}:${dependencyFingerprint}`;
+      const cacheKey = query.key.scope(cacheId);
+      return relationOptionFold(cache.get(cacheKey),
+        () => { const value = query.compute(input); cache.set(cacheKey, value); return value; },
+        value => value,
+      );
+    },
+    get size(): number { return cache.size; },
+    clear: (): void => cache.clear(),
+  };
+};

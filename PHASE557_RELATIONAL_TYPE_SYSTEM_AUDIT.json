@@ -1,0 +1,49 @@
+{
+  "phase": 557,
+  "frontier": "scanner-lexer-resolver-parser-adapter-generic-solver-relational-substrate-type-system",
+  "scannedFiles": 488,
+  "hostLeakCount": 0,
+  "leakingFiles": [],
+  "modelEvidence": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "null": 2,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/method-return/selectRawProjectionParser.ts",
+      "null": 15,
+      "never": 0
+    }
+  ],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": true,
+  "architecture": {
+    "typeHierarchy": "explicit Presence relation instead of host optional sentinel",
+    "subtype": "declarative ordered relation catalog + recursive hierarchy closure",
+    "assignability": "relation-based subtype/union witness search",
+    "lattice": "relation-driven join/meet rules",
+    "rewrite": "semantic relations are the decision authority; host control flow is absent from frontier"
+  }
+}

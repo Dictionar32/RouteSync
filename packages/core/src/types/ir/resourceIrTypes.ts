@@ -10,6 +10,7 @@
 import type { TypeProjections } from './typeIrTypes';
 import type { TransformFunction } from './mapperIrTypes';
 import type { DescriptionText, GeneratorName } from '../upstream/valueObjects';
+import type { ResponseCardinality } from '../upstream/response';
 import type { ValidationRules } from '../upstream/collections';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { CodeExpression, ControllerName, ModelName, PropertyName, ResourceId, ResourceName, RouteName, SourceFilePath } from './nominalVocabulary';
@@ -33,7 +34,7 @@ export interface ResourceAliasIR {
     readonly name: ResourceName;
     readonly kind: 'show' | 'index' | 'collection' | 'paginated';
     readonly target: ResourceName;
-    readonly cardinality: 'single' | 'collection';
+    readonly cardinality: ResponseCardinality;
 }
 
 export interface VariantMetadata {

@@ -34,11 +34,11 @@
  * } from './compiler/types';
  * 
  * // Create types
- * const stringType = new PrimitiveType(PrimitiveKind.STRING);
- * const userType = new ReferenceType('App\\Models', 'User');
+ * const stringType = primitiveType(PrimitiveKind.STRING);
+ * const userType = ReferenceType('App\\Models', 'User');
  * 
  * // Intern for deduplication
- * const interner = new TypeInterner();
+ * const interner = TypeInterner.create();
  * const canonical = interner.intern(stringType);
  * 
  * // Type operations
@@ -94,7 +94,9 @@ export {
 
 // Type system operations
 export {
-    TypeSystem
+    createTypeSystem,
+    isSubtype,
+    isAssignable
 } from './TypeSystem';
 
 // File spans and source locations

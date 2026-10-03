@@ -24,7 +24,7 @@ export {
     type RouteHookKindVisitor,
     matchRouteHookKind,
     matchHookKind,
-    ScannedRouteHookDescriptor,
+    RouteSemanticFlowHookDescriptor,
     type BaseCrudRoleDescriptor,
     type IndexCrudRoleDescriptor,
     type ShowCrudRoleDescriptor,
@@ -57,8 +57,8 @@ export {
     matchInvalidationTarget,
     ScannedInvalidationTarget,
     type RouteCacheInvalidationDescriptor,
-    ScannedRouteCacheInvalidationDescriptor,
-    ScannedRouteInvalidationPayload
+    RouteSemanticFlowCacheInvalidationDescriptor,
+    RouteSemanticFlowInvalidationPayload
 } from "./cacheInvalidation";
 
 export {
@@ -75,6 +75,6 @@ export {
     type RouteExecutionSignatureVisitor,
     matchRouteExecutionSignature,
     matchRoutePayloadMode,
-    ScannedRouteExecutionSignature
+    RouteSemanticFlowExecutionSignature
 } from "./executionSignatures";
 

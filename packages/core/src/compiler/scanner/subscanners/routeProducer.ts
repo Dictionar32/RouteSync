@@ -1,9 +1,9 @@
+import type { RouteProducer } from '../../../types/upstream/route';
 import type { RouteAst } from '../../../types/upstream/ast';
-import type { RouteDefinition, RouteProducer } from '../../../types/upstream/route';
 
 const implementation: RouteProducer = {
   produce(input): RouteAst {
-    const definition: RouteDefinition = {
+    const definition = {
       kind: 'route',
       identity: input.identity,
       special: input.special,
@@ -17,12 +17,12 @@ const implementation: RouteProducer = {
       transport: input.transport,
       provenance: input.provenance,
     };
-    return {
-      kind: 'route_ast',
+    return Object.freeze({
+      kind: 'route_ast' as const,
       declaration: input.declaration,
       definition,
       source: input.source,
-    };
+    });
   },
 };
 

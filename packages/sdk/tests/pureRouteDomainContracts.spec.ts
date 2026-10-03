@@ -14,7 +14,7 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteParameterDescriptor,
   RouteParameterType,
   CrudRole,
@@ -22,7 +22,7 @@ import {
   RouteActionKind,
   RequestContentType,
   RouteHandlerKind,
-  ScannedRouteCacheInvalidationDescriptor,
+  RouteSemanticFlowCacheInvalidationDescriptor,
   ResourceResponseDescriptor,
   ScannedHttpErrorResponseDescriptor,
   ScannedEndpointContract,
@@ -35,12 +35,12 @@ import {
   type RouteCapabilityContract,
   type RouteProvenanceContract,
   type RouteParameterSpecification,
-  type ParsedRoute
+  type RouteSemanticFlow
 } from "@routesync/core";
 
 describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
-  it("1. ScannedRouteDescriptor.create() aggregates 4 frozen non-nullable sub-contracts at Origin Boundary", () => {
-    const route = ScannedRouteDescriptor.create({
+  it("1. RouteSemanticFlowFactory.create() aggregates 4 frozen non-nullable sub-contracts at Origin Boundary", () => {
+    const route = RouteSemanticFlowFactory.create({
       name: "orders.show",
       method: "GET",
       path: "/api/orders/{id}",
@@ -154,7 +154,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
       middleware: [],
       policies: [],
       rateLimit: null,
-      invalidation: ScannedRouteCacheInvalidationDescriptor.none(),
+      invalidation: RouteSemanticFlowCacheInvalidationDescriptor.none(),
       crudRole: CrudRole.Index,
       hookKind: RouteHookKind.Query,
       actionKind: "read" as RouteActionKind,
@@ -183,7 +183,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
       provenance
     });
 
-    const route = ScannedRouteDescriptor.fromScanned({
+    const route = RouteSemanticFlowFactory.fromContracts({
       identity,
       binding,
       capability,
@@ -191,7 +191,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
       contract
     });
 
-    const routeFromParts = ScannedRouteDescriptor.fromSubcontracts({
+    const routeFromParts = RouteSemanticFlowFactory.fromSubcontracts({
       identity,
       binding,
       capability,
@@ -218,7 +218,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
   });
 
   it("3. withInvalidation() preserves identity, binding, and provenance while updating capability immutably", () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: "POST",
       path: "/api/orders",
       domain: "Order",
@@ -226,7 +226,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
       actionName: "store"
     });
 
-    const customInvalidation = ScannedRouteCacheInvalidationDescriptor.none();
+    const customInvalidation = RouteSemanticFlowCacheInvalidationDescriptor.none();
     const updatedRoute = route.withInvalidation(customInvalidation);
 
     // References to other subcontracts are strictly preserved
@@ -242,7 +242,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
   });
 
   it("4. Pure Dataflow Generator *projectToHookSource() streams lines without intermediate buffers", () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: "GET",
       path: "/api/users",
       domain: "User",
@@ -304,7 +304,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
     expect(Object.isFrozen(res)).toBe(true);
   });
 
-  it("8. RouteBoundaryAdapter synthesizes 4 Complete Sub-Contracts and is consumed by ScannedRouteDescriptor", () => {
+  it("8. RouteBoundaryAdapter synthesizes 4 Complete Sub-Contracts and is consumed by RouteSemanticFlowFactory", () => {
     const contracts = RouteBoundaryAdapter.toSubcontracts({
       method: "POST",
       path: "/api/articles",
@@ -323,7 +323,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
     expect(contracts.capability.crudRole).toBe(CrudRole.Create);
     expect(contracts.capability.auth).toBe(true);
 
-    const route = ScannedRouteDescriptor.create(contracts);
+    const route = RouteSemanticFlowFactory.create(contracts);
     expect(route.identity).toBe(contracts.identity);
     expect(route.binding).toBe(contracts.binding);
     expect(route.capability).toBe(contracts.capability);

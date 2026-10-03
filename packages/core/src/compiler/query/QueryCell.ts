@@ -80,8 +80,10 @@ export function createReadyCell<V>(
  * @param cell Query cell to check
  * @returns True if the cell is ready
  */
+import { relationEqual, relationResolve } from '../../semantic/kernel/relationFoundation';
+
 export function isReady<V>(cell: QueryCell<V>): cell is Extract<QueryCell<V>, { kind: 'Ready' }> {
-    return cell.kind === 'Ready';
+    return relationEqual(cell.kind, 'Ready');
 }
 
 /**
@@ -91,7 +93,7 @@ export function isReady<V>(cell: QueryCell<V>): cell is Extract<QueryCell<V>, { 
  * @returns True if the cell is pending
  */
 export function isPending<V>(cell: QueryCell<V>): cell is Extract<QueryCell<V>, { kind: 'Pending' }> {
-    return cell.kind === 'Pending';
+    return relationEqual(cell.kind, 'Pending');
 }
 
 /**
@@ -104,18 +106,8 @@ export function isPending<V>(cell: QueryCell<V>): cell is Extract<QueryCell<V>, 
 export function addDependency<V>(cell: QueryCell<V>, dependency: string): QueryCell<V> {
     const newDeps = [...cell.dependencies, dependency];
 
-    if (cell.kind === 'Ready') {
-        return {
-            kind: 'Ready',
-            value: cell.value,
-            dependencies: newDeps,
-            verifiedAtRevision: cell.verifiedAtRevision
-        };
-    } else {
-        return {
-            kind: 'Pending',
-            dependencies: newDeps,
-            verifiedAtRevision: cell.verifiedAtRevision
-        };
-    }
+    return relationResolve(relationEqual(cell.kind, 'Ready'),
+        () => ({ kind: 'Ready' as const, value: (cell as Extract<QueryCell<V>, { kind: 'Ready' }>).value, dependencies: newDeps, verifiedAtRevision: cell.verifiedAtRevision }),
+        () => ({ kind: 'Pending' as const, dependencies: newDeps, verifiedAtRevision: cell.verifiedAtRevision }),
+    );
 }

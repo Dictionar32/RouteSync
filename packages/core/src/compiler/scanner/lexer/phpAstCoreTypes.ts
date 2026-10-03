@@ -6,10 +6,13 @@ export type SourceRange = { readonly startOffset: SourceOffset; readonly endOffs
 
 export const createSourceOffset = (value: number): SourceOffset => Math.max(0, value) as SourceOffset;
 export const createSourceLineNumber = (value: number): SourceLineNumber => Math.max(1, value) as SourceLineNumber;
-export const createAstIdentifier = (value: string): AstIdentifier => {
-    if (!value) throw new Error('AST identifier cannot be empty');
-    return value as AstIdentifier;
-};
+import { relationGate, relationEqual } from '../../../semantic/kernel/semanticRelations';
+
+export const createAstIdentifier = (value: string): AstIdentifier => relationGate(
+    relationEqual(value.length, 0),
+    () => { throw Error('AST identifier cannot be empty'); },
+    () => value as AstIdentifier,
+);
 
 export type TokenType =
     | 'STRING' | 'NUMBER' | 'TRUE' | 'FALSE' | 'NULL' | 'IDENTIFIER' | 'VARIABLE'

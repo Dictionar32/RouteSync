@@ -21,7 +21,7 @@ import type {
 
 import { DiagnosticCollector } from './domain/irTypes';
 import { FieldTypeResolver } from './domain/FieldTypeResolver';
-import { ResourceMapperBuilder } from './domain/ResourceMapperBuilder';
+import { createResourceMapperBuilder, type ResourceMapperBuilder } from './domain/ResourceMapperBuilder';
 import { ResourceIRBuilder } from './domain/ResourceIRBuilder';
 import { RequestEndpointBuilder } from './domain/RequestEndpointBuilder';
 import { ContractMetadataBuilder } from './domain/ContractMetadataBuilder';
@@ -60,7 +60,7 @@ export class OptimizedContractIRBuilder {
         }
     }) {
         this.fieldTypeResolver = new FieldTypeResolver(this.diagnostics, context.config.naming.caseTransform);
-        this.mapperBuilder = new ResourceMapperBuilder();
+        this.mapperBuilder = createResourceMapperBuilder();
         this.resourceIRBuilder = new ResourceIRBuilder(this.fieldTypeResolver, this.mapperBuilder);
         this.requestEndpointBuilder = new RequestEndpointBuilder(this.fieldTypeResolver);
         this.metadataBuilder = new ContractMetadataBuilder();

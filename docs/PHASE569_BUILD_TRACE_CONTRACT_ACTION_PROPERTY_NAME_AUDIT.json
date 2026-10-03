@@ -1,0 +1,8 @@
+{
+  "phase": 569,
+  "frontier": "contract-generation-resolved-property-nominal-name",
+  "sourceDiagnostic": "ContractActionGenerator.ts(56,57): TS2345 string is not assignable to PropertyName",
+  "repair": "createPropertyName(f.name)",
+  "fullBuildExecutedInCheckpoint": false,
+  "environmentBlocker": ["@types/node", "vitest/globals"]
+}

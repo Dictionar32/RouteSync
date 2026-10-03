@@ -1,0 +1,51 @@
+{
+  "phase": 608,
+  "title": "descriptor-elimination-relational-analysis",
+  "workspace": "/mnt/data/RouteSync-phase606-work/RouteSync-phase594-work",
+  "deletedUnusedProductionSurfaces": [
+    "packages/core/src/compiler/scanner/descriptors/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/route/error-response/errorFactories.ts",
+    "packages/core/src/compiler/scanner/descriptors/route/error-response/types.ts",
+    "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts",
+    "packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts",
+    "packages/core/src/compiler/scanner/descriptors/validation/schemaPayload.ts",
+    "packages/core/src/compiler/scanner/descriptors/channel/channelDescriptorClass.ts",
+    "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/manifestDescriptors.ts",
+    "packages/core/src/compiler/scanner/descriptors/manifest/index.ts"
+  ],
+  "zeroByteProductionFiles": 0,
+  "remainingScannerDescriptorClasses": 0,
+  "modifiedFileTranspileDiagnostics": 0,
+  "fullTypecheck": {
+    "status": "blocked",
+    "diagnostics": [
+      "TS2688 Cannot find type definition file for node",
+      "TS2688 Cannot find type definition file for vitest/globals"
+    ]
+  },
+  "globalProductionAstAuditExcludingTestsAndLegacy": {
+    "files": 997,
+    "if": 348,
+    "while": 3,
+    "for": 102,
+    "switch": 38,
+    "map": 144,
+    "filter": 20,
+    "reduce": 6,
+    "flatMap": 3,
+    "undefined": 74,
+    "null": 40,
+    "coalesce": 44,
+    "strictEqual": 307,
+    "strictNotEqual": 75,
+    "asUnknown": 8,
+    "setIdentifier": 16,
+    "mapIdentifier": 58,
+    "anyIdentifier": 4,
+    "newExpression": 396,
+    "ternary": 147
+  },
+  "note": "Global counts are not claimed as semantic leakage: they include remaining infrastructure, target/runtime code, source-language vocabulary, and legacy-compatible surfaces. The scanner descriptor production frontier itself is constructor/class free."
+}

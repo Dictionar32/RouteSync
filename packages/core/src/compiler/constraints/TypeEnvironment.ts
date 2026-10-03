@@ -1,23 +1,32 @@
 /**
- * TypeEnvironment.ts
- * Type environment for constraint solving
+ * Relation-valued type environment.
+ *
+ * Bindings are immutable keyed facts.  Absence is represented by
+ * RelationOption, never by host null/undefined or a mutable Map.
  */
-
 import type { SemanticType } from '../types/SemanticType';
+import {
+  relationIndexAdd,
+  relationIndexLookup,
+  type RelationIndex,
+} from '../../semantic/kernel/relationMembership';
+import { relationOptionFold, type RelationOption } from '../../semantic/kernel/relationalSequence';
 
-export class TypeEnvironment {
-    constructor(private readonly bindings: ReadonlyMap<number, SemanticType> = new Map()) { }
-
-    public bind(id: number, type: SemanticType): TypeEnvironment {
-        return new TypeEnvironment(new Map([...this.bindings, [id, type]]));
-    }
-
-    public resolve(variable: number): SemanticType | undefined {
-        return this.bindings.get(variable);
-    }
+export interface TypeEnvironment {
+  readonly bindings: RelationIndex<number, SemanticType>;
+  readonly bind: (id: number, type: SemanticType) => TypeEnvironment;
+  readonly resolve: (variable: number) => RelationOption<SemanticType>;
 }
 
+const createEnvironment = (bindings: RelationIndex<number, SemanticType>): TypeEnvironment => Object.freeze({
+  bindings,
+  bind: (id, type) => createEnvironment(relationIndexAdd(bindings, id, type)),
+  resolve: variable => relationIndexLookup(bindings, variable),
+});
+
+export const createTypeEnvironment = (): TypeEnvironment => createEnvironment(Object.freeze([]));
+
 export interface VariableState {
-    readonly lowerBounds: Set<SemanticType>;
-    readonly upperBounds: Set<SemanticType>;
+  readonly lowerBounds: readonly SemanticType[];
+  readonly upperBounds: readonly SemanticType[];
 }

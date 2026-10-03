@@ -7,7 +7,7 @@
  * @module cli/generators/semantic/SemanticResolutionContext
  */
 
-import type { ParsedModel, ParsedResource, ParsedRoute, RouteManifest } from '@routesync/core';
+import type { ParsedModel, ParsedResource, RouteSemanticFlow, RouteManifest } from '@routesync/core';
 import type { ActionType } from '../canonical-names';
 import {
     resolveCanonicalAction,
@@ -29,14 +29,14 @@ export {
  * and O(1) indexed lookups for models and resources.
  */
 export class SemanticResolutionContext {
-    public readonly routes: readonly ParsedRoute[];
+    public readonly routes: readonly RouteSemanticFlow[];
     public readonly models: readonly ParsedModel[];
     public readonly resources: readonly ParsedResource[];
     public readonly modelsByName: ReadonlyMap<string, ParsedModel>;
     public readonly resourcesByName: ReadonlyMap<string, ParsedResource>;
 
     constructor(
-        routes: readonly ParsedRoute[],
+        routes: readonly RouteSemanticFlow[],
         models: readonly ParsedModel[],
         resources: readonly ParsedResource[],
         modelsByName: ReadonlyMap<string, ParsedModel>,

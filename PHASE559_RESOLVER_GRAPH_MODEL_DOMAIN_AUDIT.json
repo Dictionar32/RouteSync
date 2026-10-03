@@ -1,0 +1,11 @@
+{
+  "phase": 559,
+  "frontier": "scanner-lexer-plus-resolver-graph-model-domain",
+  "scannedFiles": 394,
+  "hostLeakCount": 0,
+  "leakingFiles": [],
+  "modelEvidence": [],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": true
+}

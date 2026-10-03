@@ -4,14 +4,14 @@ import {
   ScannedBroadcastChannelDescriptor,
   ScannedResourceRouteGroupDescriptor,
   ScannedRouteManifestDescriptor,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   RouteManifest,
   BroadcastChannelKind
 } from '@routesync/core'
 
 describe('Manifest Scanner Channels & Groups SSOT', () => {
   it('1. ScannedResourceRouteGroupDescriptor creates frozen route groups', () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users',
       resourceName: 'User'
@@ -55,17 +55,17 @@ describe('Manifest Scanner Channels & Groups SSOT', () => {
     const scanner = new StaticLaravelScanner({ projectRoot: '/non-existent-path-for-unit-test' })
     
     // Test the grouping logic directly
-    const route1 = ScannedRouteDescriptor.create({
+    const route1 = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders',
       resourceName: 'Order'
     })
-    const route2 = ScannedRouteDescriptor.create({
+    const route2 = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/orders',
       resourceName: 'Order'
     })
-    const route3 = ScannedRouteDescriptor.create({
+    const route3 = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users',
       resourceName: 'User'

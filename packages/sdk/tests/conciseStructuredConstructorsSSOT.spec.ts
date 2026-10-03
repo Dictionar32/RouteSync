@@ -3,7 +3,7 @@ import {
   ValidationRuleNodeFactory,
   ValidationRuleKind,
   ValidationRuleParser,
-  ScannedRouteSecurityDescriptor,
+  RouteSemanticFlowSecurityDescriptor,
   RouteSecurityClassifier,
   SecuritySchemeKind,
   ScannedPaginatedEnvelopeDescriptor,
@@ -51,8 +51,8 @@ describe('Concise Reusable Structured Constructors SSOT', () => {
     }
   })
 
-  it('3. ScannedRouteSecurityDescriptor encapsulates security metadata with smart defaults', () => {
-    const pub = ScannedRouteSecurityDescriptor.public()
+  it('3. RouteSemanticFlowSecurityDescriptor encapsulates security metadata with smart defaults', () => {
+    const pub = RouteSemanticFlowSecurityDescriptor.public()
     expect(pub.isProtected).toBe(false)
     expect(pub.scheme).toBe(SecuritySchemeKind.Public)
     expect(pub.guards).toEqual([])

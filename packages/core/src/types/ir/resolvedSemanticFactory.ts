@@ -1,7 +1,10 @@
 /** Compatibility constructors backed by the canonical SemanticType ADT. */
+import type { ResponseCardinality } from '../upstream/response';
+
 import {
-  PrimitiveType,
+  primitiveType,
   PrimitiveKind,
+  type PrimitiveType,
   ReferenceType,
   ObjectType,
   NullableType,
@@ -9,42 +12,24 @@ import {
   CollectionKind,
   UnionType,
   type SemanticType,
+  type ObjectTypeDescriptorParams,
 } from '../../compiler/types/SemanticType';
+import { relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
 
-export class ResolvedSemanticTypeFactory {
-  static primitive(type: PrimitiveKind): PrimitiveType {
-    return new PrimitiveType(type);
-  }
-
-  static resource(resource: string, cardinality: 'single' | 'collection' = 'single'): SemanticType {
+export const ResolvedSemanticTypeFactory = Object.freeze({
+  primitive: (type: PrimitiveKind): PrimitiveType => primitiveType(type),
+  resource: (resource: string, cardinality: ResponseCardinality = { kind: 'single' }): SemanticType => {
     const reference = ReferenceType.resource('', resource);
-    return cardinality === 'collection'
-      ? new ReadonlyCollectionType(CollectionKind.ARRAY, reference)
-      : reference;
-  }
-
-  static model(model: string): ReferenceType {
-    return ReferenceType.model('', model);
-  }
-
-  static object(properties: ConstructorParameters<typeof ObjectType>[0]['properties']): ObjectType {
-    return ObjectType.create({
-      name: 'InlineObject',
-      baseName: 'InlineObject',
-      properties,
-      role: 'plain',
-    });
-  }
-
-  static nullable(innerType: SemanticType): NullableType {
-    return new NullableType(innerType);
-  }
-
-  static array(items: SemanticType): ReadonlyCollectionType {
-    return new ReadonlyCollectionType(CollectionKind.ARRAY, items);
-  }
-
-  static union(types: readonly SemanticType[]): UnionType {
-    return UnionType.of(types);
-  }
-}
+    return relationResolve(relationEqual(cardinality.kind, 'collection'),
+      () => ReadonlyCollectionType(CollectionKind.ARRAY, reference),
+      () => reference);
+  },
+  model: (model: string): ReferenceType => ReferenceType.model('', model),
+  object: (properties: ObjectTypeDescriptorParams['properties']): ObjectType => ObjectType.create({
+    name: 'InlineObject', baseName: 'InlineObject', properties, role: 'plain',
+  }),
+  nullable: (innerType: SemanticType): NullableType => NullableType(innerType),
+  array: (items: SemanticType): ReadonlyCollectionType => ReadonlyCollectionType(CollectionKind.ARRAY, items),
+  union: (types: readonly SemanticType[]): UnionType => UnionType.of(types),
+});

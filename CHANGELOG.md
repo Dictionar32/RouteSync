@@ -1,8 +1,78 @@
+
+## Phase 259 — Declarative Target Semantic Relations
+
+- Elevated `PrimitiveKind -> TypeScript primitive token` into declarative semantic relations + solver.
+- Elevated `ResponseValueContract kind -> response output type` into declarative semantic relations + solver.
+- Removed semantic `switch` dispatch from `TypeScriptPrimitiveMapping` and response value extraction.
+- Added Phase 259 regression tests and architecture note.
+## Phase 258 — Declarative TypeExpression Semantic Projection
+
+- moved `TypeExpression.kind` semantic classification from procedural `switch` dispatch to declarative relation rewrites
+- moved primitive kind projection to the same relation/solver model
+- kept constructor registry as a derived execution dispatch after semantic projection
+- added Phase 258 relation regression coverage and architecture documentation
+
+
+
+## Phase 256 — Single Declarative Control Execution Boundary
+
+- Added `semanticControlExecution.ts` as the single execution boundary for semantic control rewrites.
+- Removed direct solver/materializer imports from the PHP AST semantic adapter.
+- Kept parser statement-kind recognition confined to evidence decoding.
+- Verified canonical control, construction, versioning, and dependence regressions.
+
+
+## Phase 253 — Unified Declarative Control Version Program
+
+- unified `control_def`, `control_phi`, and `loop_header` into the declarative control program
+- removed the second semantic rewrite authority from `semanticControlVersioning.ts`
+- control versioning is now a typed projection of solved relation facts
+- added Phase 253 regression test and architecture documentation
+
+
+## Phase 248 — Canonical Control Dependence
+
+- Added declarative `control_dependence` relation.
+- Derived direct dependence from canonical `control_scope`.
+- Added recursive relation rewrite for transitive nested control dependence.
+- Semantic consumers can reason about nested control without AST/control-construct traversal.
+- Added Phase 248 regression coverage.
+
+
+## Phase 247 — Canonical Declarative Control Scope
+
+- Added source-neutral `control_scope`, `control_join_point`, and `control_repeat` relations.
+- Control scope is derived declaratively from semantic guard + transition relations.
+- Control versioning now consumes canonical scope/join/repeat relations instead of intermediate branch/edge/cycle relations.
+- Added Phase 247 regression coverage for conditional, multiway, and iteration normalization.
+
+
+## Phase 245 — Canonical Declarative Control Relations
+
+- Added source-construct-neutral `control_transition` and `control_cycle` relations.
+- Added declarative rewrites from intermediate control edges/cycles into canonical transitions.
+- Updated semantic control versioning to consume canonical transitions/cycles.
+- Added Phase 245 regression coverage.
+# Phase 243 — Declarative Control Relation Program
+
+- Promoted `control_kind` to a first-class semantic relation.
+- Removed the unused procedural semantic control-kind lookup.
+- Conditional, multiway, and iteration kinds are now derived by declarative relation rewrites.
+- Added focused tests for conditional, multiway, and iteration fixed-point semantics.
+
 # Changelog
 
 All notable changes to RouteSync will be documented in this file.
 
 ## [Unreleased]
+
+## Phase 251 — Declarative Control Materialization
+
+- Added a dedicated relation-to-semantic materialization stage after the unified declarative control solver.
+- `choice` and `repetition` semantic facts are now constructed from normalized relations rather than directly from PHP control-statement handlers.
+- Added derived `KnowledgeId` interning for relation-key resolution without promoting `Map` to semantic authority.
+- Added focused Phase 251 regression coverage.
+
 
 ### Fixed
 - **DTO source now crosses one explicit AST/ADT producer boundary (Issue #47)**:
@@ -800,3 +870,422 @@ All notable changes to RouteSync will be documented in this file.
   - Eliminated all instances of `any` from `@routesync/react` runtime libraries.
 - **Flattened Relational Property Mapping**:
   - Fixed camelCase flattened properties naming conversions to resolve nested model structures (e.g. `item.produkNama` instead of `item.produk?.nama`).
+
+## Phase 161 — Typed Knowledge/Data-Flow Source Provenance
+
+- Elevated comparison, branch, iteration, selection, exception, transition, match, ternary, short-ternary, null-coalesce, and nullsafe access semantics into typed Knowledge/Data-Flow.
+- Added typed `KnowledgeFlowEndpoint` for node-to-node and node-to-datum edges.
+- Connected canonical controller scanner `fullPath` into declaration → method → body → analyzer → knowledge producer provenance.
+- Preserved `Map` as derived index rather than semantic source of truth.
+- Canonical source checked: `examples/ecommerce-shop-source`.
+- Full project TypeScript validation remains blocked by existing environment/dependency errors; targeted changed knowledge/provenance files have no diagnostics.
+
+## Phase 235 — Semantic Control Relation Data-Flow
+- Added `semanticControlRelationDataFlow.ts` to derive syntax-neutral control relations from canonical semantic choice/repetition facts.
+- Added optional `controlRelations` projection to `SemanticKnowledgeDataFlow`.
+- Integrated the relation solver into the PHP semantic knowledge producer output.
+- Added Phase 235 runtime/type validation.
+
+## Phase 236 — Declarative Relation Solver with Agenda and Derivation
+
+- upgraded semantic relation solving to agenda/delta fixed-point evaluation;
+- added relation-arity indexes for joins;
+- added derivation provenance for every derived semantic relation;
+- added detailed solver result (`facts`, `derivations`, `rounds`, `saturated`);
+- preserved syntax-neutral control semantics for predicate/choice/guard/merge and iteration/successor/fixed-point/backedge;
+- verified relation solver and Phase 235 control relation regression tests.
+
+## Phase 237 — Declarative Control Relation Projection
+
+- Replaced semantic control fact dispatch in `semanticControlRelationDataFlow.ts` with a kind-indexed projector registry.
+- Replaced semantic presence branching with a declarative presence projector.
+- Kept `if`/`switch` out of the semantic-control projection layer; solver loops remain execution mechanics.
+- Added `PHASE237_CONTROL_RELATION_PROJECTION.md`.
+- Focused strict TypeScript compile: PASS.
+- Phase 236 relation solver runtime regression: PASS.
+
+## Phase 238 — Semi-Naive Declarative Relation Engine
+
+- Upgraded the semantic relation solver to incremental fact indexing and delta-driven rule activation.
+- Added rule dependency indexing by relation/arity.
+- Preserved fixed-point saturation and derivation provenance.
+- Kept `if`/`switch`/`while`/`for` out of semantic control meaning; source syntax remains evidence only.
+- Focused TypeScript compile and Phase 234/235/236 runtime regressions pass.
+
+## Phase 244 — Declarative Control Transition Normalization
+- Added canonical `control_edge`, `control_join`, and `loop_edge` semantic relations.
+- Added declarative rewrites from `branch`, `merge`, and `backedge` to canonical control transitions.
+- Updated control-state versioning to consume canonical transition relations instead of intermediate branch/merge/backedge relations.
+- Kept `if`/`switch`/`while`/`for` outside the semantic ontology; they remain evidence-layer constructs only.
+- Validated with strict TypeScript compilation and Phase 242/243 runtime regression tests.
+
+## Phase 246 — Stratified Declarative Control Negation
+- Added positive/negative relation literals to the generic semantic relation program.
+- Added stratified relation evaluation so absence-dependent rules execute only after lower strata reach fixed point.
+- Added unsafe-negation validation and rejection of non-stratified negative dependency cycles.
+- Added `matched_choice` control relation.
+- Changed multiway/default control semantics so a default branch is derived only when no matched case exists.
+- Preserved `if`/`switch`/`while`/`for` as evidence-boundary concepts rather than semantic control constructs.
+
+## Phase 249 — Declarative Control Evidence Normalization (2026-09-29)
+
+- Added `semanticControlEvidence.ts` as a syntax-neutral control evidence relation program.
+- Added declarative normalization rewrites for conditional, multiway, condition, iteration, and counted control.
+- Refactored the PHP semantic adapter so control handlers emit relation evidence and validate solver normalization before materializing `SemanticChoice` / `SemanticRepetition`.
+- Preserved parser-specific statement decoding strictly at the evidence boundary.
+- Added Phase 249 normalization regression test.
+- Existing Phase 248 canonical control-dependence regression remains passing.
+
+## Phase 254 — Unified Declarative Control Relation Execution
+
+- Removed the remaining second semantic rewrite path from `semanticControlRelationDataFlow.ts`.
+- Semantic control data-flow now seeds and solves through `semanticControlProgram.ts`, the same declarative program used by control versioning.
+- Added regression coverage proving conditional guard/merge and repetition fixed-point/cycle/repeat facts are derived by the unified solver.
+- Kept typed fact iteration only as projection mechanics; semantic meaning remains relation/rewrite driven.
+
+## Phase 255 — Single Semantic Control Authority
+- Removed the duplicate control rewrite/solver from `semanticControlEvidence.ts`.
+- Evidence is now a typed, inert relation ontology only.
+- Unified `semanticControlProgram.ts` is the sole semantic control rewrite authority.
+- Added regression coverage proving conditional and counted repetition semantics are derived by the unified program.
+
+## Phase 257 — Single Declarative Control Authority
+
+- Removed the legacy `solveSemanticControlRelations()` semantic execution path.
+- Removed semantic control tuple factories from the ontology catalog.
+- Migrated historical control tests to the unified declarative control program.
+- Made control versioning consume unified program facts directly.
+- Added test-only relation seed fixtures with no semantic execution authority.
+
+## Phase 260 — Declarative upstream expression semantics
+
+- Raised upstream expression semantic dispatch into declarative relation rules.
+- Replaced semantic `switch` dispatch for operators, casts, assignments, literals,
+  structural expression variants, access modes, and parameter types.
+- Kept constructor registries as derived execution indexes only.
+- Added `PHASE260_DECLARATIVE_UPSTREAM_EXPRESSION_SEMANTICS.md`.
+
+## Phase 262 — Declarative Semantic IR Lowering
+
+- Added `semanticIRLoweringRelations.ts` as the declarative semantic operation catalog for IR lowering.
+- Migrated `ContractIRTypeBuilder` from semantic `switch` dispatch to relation-derived lowering operations and handlers.
+- Migrated `StructuredResponseIRBuilder` from semantic `switch` dispatch to relation-derived response operations.
+- Migrated response-field normalization and resolved-type normalization to declarative semantic relations.
+- Migrated nullable-wrapper resolution to relation-derived semantic dispatch.
+- Kept handler registries as derived execution indexes rather than semantic authorities.
+- Focused TypeScript compilation of the new relation/lowering modules passed.
+- Runtime Vitest validation was attempted but timed out; no runtime PASS is claimed.
+
+## Phase 337 — Relational Rewrite Engine (2026-09-30)
+
+- Removed `relationChoose` and `booleanCase` semantic API names from TypeScript sources.
+- Added `relationResolve` as a transitional relation execution boundary.
+- Added Phase 337 research matrix and eradication frontier.
+- Added focused relational resolver tests.
+
+
+## Phase 338 — Declarative Semantic Decision Engine
+
+- Added canonical semantic decision engine for candidate/constraint → witness solving.
+- Converted requirement solver into compatibility facade over the canonical engine.
+- Migrated syntax grammar token matching away from direct `relationResolve` authority toward candidate constraints and cursor presence.
+- Preserved `relationResolve` only as an internal evaluation primitive pending further authority-surface elimination.
+
+## Phase 339 — Declarative Syntax Relations (2026-09-30)
+
+- promoted `relationGate` as the relation-level dispatch primitive for semantic authority;
+- removed direct `relationResolve` usage from the canonical decision calculus and the main syntax-boundary authorities (`astClassifier`, `TokenCursor`, `queryProducer`);
+- retained `relationResolve` only as a lower-level evaluation primitive;
+- added Phase 339 authority audit covering parser/scanner, decision calculus, solver, syntax error, and ternary boundaries;
+- documented the next migration frontier: typed presence witnesses, syntax evidence relations, candidate catalogs, and rewrite-driven lowering.
+
+
+## Phase 340 — Semantic Rewrite Closure
+- Added explicit `RewritePattern`, `RewriteWitness`, `rewriteOnce`, and bounded `rewriteFixedPoint` calculus.
+- Added rewrite closure tests.
+- Established rewrite witnesses as the next semantic authority above low-level relation dispatch.
+
+## Phase 341 — Relational Cursor Boundary
+- Added relation-backed cursor semantic boundary using RelationOption.
+- Added dedicated semantic-authority audit for the new cursor relation layer.
+
+## Phase 342 — Syntax Evidence Relations
+
+- Added canonical `SyntaxEvidenceFact` / `SyntaxEvidenceRelation` vocabulary.
+- Added parser-adapter relation boundary backed by `RelationOption`.
+- Added declarative constraint-rule witness types for the generic solver.
+- Added Phase 342 authority audit.
+- Existing legacy cursor/solver implementations remain migration targets; no blanket regex rewrite was applied.
+
+- Phase 344: constraint programs and syntax evidence fixed-point closure.
+
+## Phase 345 — Legacy Authority Quarantine
+
+- Added typed `Presence<T>` relation so absence is represented by a witness rather than a semantic sentinel.
+- Added `RelationalCursor` as the canonical cursor semantic view.
+- Extended `TokenCursorAuthority` to expose the relational semantic cursor while retaining legacy cursor transport compatibility.
+- Added `ConstraintRuleRelation` catalog separating constraint meaning from the compatibility evaluator.
+- Added Phase 345 authority audit and presence relation tests.
+
+## Phase 346 — Semantic Construct Calculus
+
+- Added a canonical semantic construct vocabulary for candidates, guards, projection, selection, aggregation, expansion, recursion, presence/fallback, equality, refinement, and rewrite.
+- Added relation rewrites that turn guarded candidates, presence fallback, and equality/refinement witnesses into rewrite facts.
+- Strengthened the parser adapter boundary with explicit evidence facts and typed presence witnesses.
+- Extended constraint-rule metadata with refinement as a first-class relation meaning.
+- Added a Phase 346 authority audit spanning the canonical semantic layers, parser navigation, solver, syntax-error core, and ternary resolver.
+- Legacy `TokenCursor` remains compatibility transport and is explicitly not treated as semantic authority; migration of its remaining consumers is the next eradication step.
+
+## Phase 347 — Relational Authority Cutover
+- strengthened parser evidence equality through the canonical relation equality primitive.
+- documented the single semantic vocabulary and authority cutover.
+- added Phase 347 strict audit for the canonical semantic/parser/solver/rewrite layers.
+
+## Phase 348 — Relational Authority Cutover
+
+Introduced the canonical semantic construct program for candidate/guard/requirement, presence/fallback, equality/refinement, recursion/fixed-point and rewrite closure. Added strict canonical-authority audit. Legacy cursor remains compatibility transport until consumer migration.
+
+## Phase 349 — Legacy Boundary Quarantine
+
+Canonical semantic authority remains relation/constraint/fixed-point/rewrite based; remaining compatibility parser code is quarantined as transport-only.
+
+## Phase 350 — Relational authority cutover
+
+Canonical semantic authority audit targets parser evidence, Presence/cursor, decision calculus, constraint relations/program, syntax evidence and syntax-error/ternary boundaries. Legacy cursor/parser compatibility remains explicitly quarantined for consumer migration.
+
+## Phase 352 — Typed Relation Authority Cutover
+- migrated `semanticTypedRelation` projection/selection/expansion/distinct/join evaluation to relation recursion and option witnesses
+- removed host-language collection combinator and absence-sentinel authority from the migrated typed relation kernel
+- added Phase 352 semantic authority audit
+
+## Phase 353 — Expression Relational Cutover
+- migrated binary-expression operator/type dispatch to typed relation catalogs and relation witnesses.
+- migrated literal classification to relation refinement and explicit `SemanticNullAtom` for PHP null data.
+- migrated property-access dispatch to relation refinement/resolution instead of imperative branching.
+- preserved `Presence` as host absence semantics; PHP null remains a tagged semantic value.
+- added strict Phase 353 authority audit across parser adapter, generic constraint solver, syntax-error core, ternary, binary, literal, property-access, and null-atom boundaries.
+- Phase 353 authority audit: 8 files, 0 forbidden host-construct violations.
+- TypeScript compiler was not available in the checkpoint environment, so no compilation success is claimed.
+
+## Phase 393 — Scanner/Resolver Relational Authority
+
+- Migrated controller canonical statement/branch/semantic dispatch toward relation rule catalogs.
+- Replaced several scanner parser loops with recursive relation depth closure.
+- Added Phase 393 architecture/research documentation.
+- Kept source syntax recognition separate from semantic decision authority.
+
+## Phase 395 — Scanner/Resolver Relational Authority
+
+- migrated controller method parsing to `RelationOption` at the parser/declaration boundary;
+- replaced controller declaration method discovery with recursive relation closure;
+- replaced parameter and attribute traversal loops with relation recursion;
+- replaced attribute argument segmentation loop with relation depth closure;
+- removed host `.map()` from controller method attribute-name construction in favor of `relationProject`;
+- preserved source-token recognition as evidence while moving semantic selection to relation witnesses;
+- documented remaining scanner/lexer frontier instead of claiming global eradication;
+- verified checkpoint extraction and retained the known missing `node`/`vitest/globals` type-definition limitation.
+
+## Phase 396 — Scanner/Lexer Relational Authority
+
+- Migrated `controllerBodyParser.ts` token accumulation to relation folding.
+- Replaced parser absence sentinels with `RelationOption` witnesses.
+- Replaced semantic strict equality with `relationEqual`.
+- Replaced collection `map`/`filter` authority with relation projection/selection.
+- Replaced JSON status loop with recursive relation closure.
+- Targeted forbidden-pattern audit for the migrated file: 0 hits.
+- Whole scanner audit remains non-zero and is treated as migration pressure rather than a semantic-violation count.
+
+## Phase 397 — Scanner/Resolver Relational Authority
+
+- Migrated `modelDeclarationParser.ts` to recursive relation traversal and typed `RelationOption` witnesses.
+- Removed the target host-language control/sentinel vocabulary from that parser boundary.
+- Scanner lexical audit: 5505 -> 5439 matches across 337 -> 336 files.
+- Preserved source-language tokens as evidence rather than semantic authority.
+
+## Phase 398 — Scanner/Lexer Relational Authority
+
+- Migrated `arrayParser.ts` token traversal to recursive relation closure.
+- Replaced optional array-opening/key boundaries with `RelationOption` witnesses.
+- Replaced nested-array and scalar-expression depth loops with recursive relation closure.
+- Routed semantic equality in the migrated parser through `relationEqual`.
+- Preserved `ParsedPhpArrayResult` and `PhpArrayEntry` compatibility.
+- Target lexical audit for `arrayParser.ts`: 0 hits.
+- Scanner lexical audit: 3637 -> 3608 matches across 338 -> 337 files.
+- Retained the repository-wide TypeScript environment limitation: missing `node` and `vitest/globals` definitions.
+
+## Phase 401 — Scanner/Resolver Relational Authority
+- Migrated `requestProducer.ts` optionality, equality, collection selection and expansion to the declarative relation kernel.
+- Focused audit: zero occurrences of the Phase 401 forbidden construct set in the target file.
+
+## Phase 402 — Scanner Control Evidence Boundary
+- Added a canonical PHP control-evidence relation boundary.
+- Replaced direct source-keyword dispatch in `astClassifierEvidence.ts` with abstract control candidates and requirement solving.
+- Made selected parser rewrites lazy so the solver admits a rule before applying its AST parser.
+- Renamed control parser routines around semantic roles rather than source-language control names.
+- Preserved raw source spellings only inside the lexer evidence catalog.
+- Target audit: `astClassifierEvidence.ts` 324 -> 312 forbidden-pattern matches.
+- TypeScript validation remains environment-blocked by missing `node` and `vitest/globals` definitions.
+
+- Phase 403: added lazy relational rewrite candidates and migrated anonymous-class scanner dispatch from switch to solver-selected rewrite.
+
+- Phase 404: scanner/lexer disjunction migration — added canonical `relationAny` and removed forbidden `||` authority from `controllerMethodParser.ts`.
+
+## Phase 405 — Scanner relational async traversal
+- Added `relationAsyncFold` to the relational sequence kernel.
+- Moved `ResourceScanner` resource-file orchestration from imperative loops to relational async folding and relation projections/expansion.
+- Kept remaining ResourceScanner syntax-boundary leaks explicitly queued rather than hiding them behind lexical substitutions.
+
+- Phase 406: query resolver model-static operation catalog moved to RelationOption semantic boundary; next target is named-method resolver catalog and operation dispatch.
+
+## Phase 407 — Scanner/resolver relational operator authority
+- Migrated scanner/resolver equality and disjunction operators to `relationEqual` / `relationAny` using an AST-structured transform.
+- Kept source-language AST vocabulary such as literal `if`/`for` names as data, not host control flow.
+- Established `undefined`/`null` Option migration as the next explicit semantic boundary; no sentinel rename is treated as completion.
+
+## Phase 408 — Scanner/Resolver Relational Conjunction + String Normalization
+
+- Added `relationAll` and `relationTrim` to the semantic relation kernel.
+- Removed direct scanner `.trim()` usage.
+- Migrated query resolver conjunction/equality/ternary boundaries to relational primitives.
+- Preserved source-language AST vocabulary as data while removing host-language semantic control authority.
+
+- Phase 409: scanner positional authority migrated from raw `index + N` expressions to `relationAdvanceIndex` in query, provider, resource-binding, ResourceScanner, and request producer paths; added positional-relation architecture note.
+
+## Phase 410 — Scanner relational positional authority (2026-09-30)
+- moved requirement-solver optional collection fallback into relational gating
+- migrated route-binding semantic positional recursion to `relationAdvanceIndex`
+- removed production `index + 123` positional authority
+
+- Phase 411: scanner relational candidate dispatch; migration database-type switch moved to candidate relation resolution; index argument traversal uses relational gates.
+
+## Phase 412 — Scanner relational catalog lookup
+- Added relational catalog lookup returning `RelationOption`.
+- Migrated query aggregate catalog resolution to relation/solver authority.
+- Began query join descriptor catalog cutover from `Map.get` to relation lookup.
+
+## Phase 413 — Scanner/Resolver Relational Authority Frontier (2026-09-30)
+- audited remaining scanner/lexer and resolver authority leaks;
+- retained `relationLookup` as the safe catalog-to-RelationOption primitive;
+- reverted the unsound Phase 412 query catalog experiment that mixed RelationOption with legacy optional access;
+- established a strict scanner/resolver ban on imperative control/sentinel forms and documented the next migration frontier;
+- next complete migration target: queryEvidenceProducer + astClassifierEvidence presence/option authority.
+
+## Phase 414 — scanner/resolver catalog authority via relation lookup
+- queryEvidenceProducer operation catalog lookup now routes through relationLookup + relationOptionFold.
+- Added PHASE414_SCANNER_RESOLVER_CATALOG_RELATIONS.md.
+
+- Phase 415: scanner/resolver catalog dispatch moved to relationLookup/relationOptionFold; fixed duplicate relation operation declaration.
+
+## Phase 416 — scanner/resolver relational catalog authority
+- Moved query aggregate and query join catalog lookup from direct Map.get() to relationLookup + relationOptionFold.
+- Preserved external resolver contracts while establishing relational lookup as semantic authority.
+- Added PHASE416_SCANNER_RESOLVER_RELATIONAL_CATALOGS.md.
+
+## Phase 418 — scanner/resolver relational method authority
+- ResourceProducer method catalog migrated from Map/get lookup to relationLookup + RelationOption folding.
+- Feature-method fallbacks routed through relational lookup.
+- Added PHASE418_SCANNER_RESOLVER_RELATIONAL_METHOD_AUTHORITY.md.
+
+## Phase 419 — Scanner Relational Service Authority
+- Migrated selected `serviceAstCanonical.ts` scanner/resolver authority to candidate relations,
+  relation folds, asynchronous relational traversal, and explicit fixed-point evaluation.
+- Preserved a measured frontier instead of claiming whole-file eradication; remaining service and
+  lexer control-flow hotspots are queued for subsequent structural migrations.
+
+## Phase 420 — Scanner Resolver Relational Query Dispatch
+
+- Replaced query named-method `ReadonlyMap` authority with a relational tuple catalog.
+- Routed named-method resolution directly through `relationLookup`.
+- Removed conditional domain-name extraction from the resolver dispatch boundary.
+- Preserved rule-body semantics for a later evidence-driven migration.
+
+## Phase 421 — Scanner/Lexer Resolver Relational Authority
+- Single-token lexer catalog moved from Map has/get to relationLookup/relationOptionFold.
+- Lexer index discovery moved from findIndex to relationIndexOf and positional advancement to relationAdvanceIndex.
+- Route resource resolver moved collection/index selection to relationProject/relationSelect/relationLookup/relationOptionFold/relationGate.
+- Ternary resolver negated equality moved to relationNotEqual.
+
+
+## Phase 423 — Scanner/Lexer Relational Option Authority
+- Migrated binary-operator discovery in `astClassifierEvidence.ts` from `T | undefined` to `RelationOption<T>`.
+- Compound-expression resolution now consumes the option through `relationOptionFold`.
+- PHP operator spellings remain immutable token vocabulary/data.
+
+## Phase 424 — Scanner/Resolver Relational Cutover
+- Cut route missing-handler adapter over to relationGate.
+- Exposed route constraint knowledge as immutable relational tuples.
+- Migrated constraint resolver dispatch to relation lookup/fold and relation projection/gating.
+
+## Phase 425 — scanner lexer relational predicate cutover
+- Moved remaining host conjunction/ternary predicate composition in astClassifierEvidence.ts to relationAll/relationGate.
+- Preserved PHP operator spellings as token data.
+
+
+## Phase 426 — scanner/resolver relational catalog cutover
+- relationalized query operation and expression-argument catalogs
+- replaced kernel recursive index increments with relationAdvanceIndex
+
+## Phase 427 — Scanner Resolver Relational Route-Group Authority
+- migrated `routeGroupSemanticResolver.ts` semantic assembly to relation primitives
+- removed target-local imperative branch/collection authority
+- replaced positional increment with `relationAdvanceIndex`
+- validated target transpilation with 0 diagnostics
+
+- Phase 428: scanner/resolver relational middleware + route-constraint adapter authority cutover; target audits 0 for forbidden implementation constructs.
+
+## Phase 429 — scanner resolver relational missing behavior
+- Migrated routeMissingSemanticResolver behavior dispatch from switch to declarative relationGate/relationEqual.
+- Preserved semantic output while removing imperative control authority from this resolver.
+
+## Phase 429 — scanner resolver relational missing behavior
+- Replaced route missing behavior switch with relationGate/relationEqual.
+- Restored relational kernel constructor/match naming consistency after Phase 426 inheritance: option `relationSome` remains distinct from boolean `relationAnyMatch`.
+
+## Phase 431 — Scanner/Lexer Relational Slice Authority
+- Removed direct token/string `.slice()` authority from `astClassifierEvidence.ts` via `relationSlice` and `relationTextSlice`.
+- Removed remaining positional `+ 1` arithmetic in that lexer authority via `relationAdvanceIndex`.
+- Target transpilation: 0 diagnostics.
+
+## Phase 433 — Scanner Resolver Relational Middleware Cutover
+
+- Migrated routeMiddlewareResolver semantic authority to relationExpand/relationProject/relationGate/relationAny/relationAll.
+- Replaced direct collection and string slicing with relation kernel projections.
+- Target audit is zero for forbidden implementation constructs.
+
+## Phase 434
+- Scanner/resolver relational binding/resource authority cutover; see `PHASE434_SCANNER_RESOLVER_RELATIONAL_BINDING_RESOURCE.md`.
+
+## Phase 435 — scanner/resolver relational binding resolution
+- Migrated route binding resolution traversal and target/presence alternatives to relationProject/relationGate/relationEqual.
+- Synchronized semantic/upstream/descriptor route-binding resolver mirrors.
+
+## Phase 436 — scanner resource binder relational authority
+- Migrated `resourceBinder.ts` collection traversal, semantic dispatch, resource-operation selection, field output/presence, direct field resolution, and resource-definition assembly to declarative relation primitives and candidate/rewrite solving.
+- Removed the complete forbidden implementation-pattern set from the target authority file.
+- Target transpilation: 0 diagnostics.
+
+## Phase 437 — Scanner model-property relational authority
+
+Migrated `modelPropertyAstParser.ts` to relational fold/gate/index/slice/text primitives. Target forbidden-pattern audit is zero and target transpilation reports zero diagnostics.
+
+- Phase 438: scanner controller action variable authority migrated to relational catalogs, RelationOption, and candidate/rewrite solver.
+
+- Phase 439: scanner response detection moved to RelationOption + lazy rewrite candidates + relational catalogs.
+
+## Phase 440 — scanner resource invocation relational authority
+- Migrated `resourceInvocationDetector.ts` to relation folds, RelationOption absence, semantic predicates, and rewrite candidates.
+- Target audit: zero forbidden implementation patterns.
+- Target transpile: zero diagnostics.
+
+
+## Phase 442 — Query Join Relational Authority (2026-10-01)
+- Migrated query join descriptor/index authority to RelationOption and immutable relation catalogs.
+- Query join construction and constraint dispatch now use relational lookup/candidate semantics.
+- Target transpile validation: 0 diagnostics.
+
+## Phase 443 — Scanner query aggregate relational cutover
+- Migrated query aggregate catalog/function/assembly to immutable relational catalog + `RelationOption`.
+- Migrated validated query-column sequence result to `RelationOption`.
+- Removed duplicate query resolver type declaration introduced by prior partial cutover.
+- Replaced aggregate text slicing with `relationTextSlice`.
+- Target transpile: 0 diagnostics; full typecheck environment-blocked by missing node/vitest type definitions.

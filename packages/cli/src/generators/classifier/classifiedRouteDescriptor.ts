@@ -7,25 +7,25 @@
  */
 
 import {
-  type ParsedRoute,
+  type RouteSemanticFlow,
   type EndpointContract,
   type CrudRole
 } from '@routesync/core';
 
 export interface ClassifiedRouteContract {
-  readonly raw: ParsedRoute;
+  readonly raw: RouteSemanticFlow;
   readonly contract: EndpointContract;
   readonly groupName: string;
   readonly actionName: string;
   readonly runtimePath: string;
-  readonly method: ParsedRoute['identity']['method'];
+  readonly method: RouteSemanticFlow['identity']['method'];
   readonly hasParams: boolean;
   readonly hasTrailingParam: boolean;
   readonly crudRole: CrudRole;
 }
 
 export type ClassifiedRoute = {
-  raw: ParsedRoute;
+  raw: RouteSemanticFlow;
   contract: EndpointContract;
   groupName: string;
   actionName: string;
@@ -37,19 +37,19 @@ export type ClassifiedRoute = {
 };
 
 export interface ScannedClassifiedRouteParams {
-  readonly raw: ParsedRoute;
+  readonly raw: RouteSemanticFlow;
   readonly contract: EndpointContract;
   readonly groupName: string;
   readonly actionName: string;
   readonly runtimePath: string;
-  readonly method: ParsedRoute['identity']['method'];
+  readonly method: RouteSemanticFlow['identity']['method'];
   readonly hasParams: boolean;
   readonly hasTrailingParam: boolean;
   readonly crudRole: CrudRole;
 }
 
 export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {
-  public readonly raw: ParsedRoute;
+  public readonly raw: RouteSemanticFlow;
   public readonly contract: EndpointContract;
   public readonly groupName: string;
   public readonly actionName: string;
@@ -73,10 +73,10 @@ export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {
   }
 
   public static fromRoute(
-    raw: ParsedRoute,
+    raw: RouteSemanticFlow,
     meta: {
       readonly groupName: string; readonly actionName: string; readonly runtimePath: string;
-      readonly method: ParsedRoute['identity']['method']; readonly hasParams: boolean; readonly hasTrailingParam: boolean;
+      readonly method: RouteSemanticFlow['identity']['method']; readonly hasParams: boolean; readonly hasTrailingParam: boolean;
       readonly crudRole: CrudRole; readonly contract: EndpointContract;
     }
   ): ScannedClassifiedRouteDescriptor {

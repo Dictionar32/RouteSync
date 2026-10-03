@@ -91,7 +91,7 @@ export interface RouteProvenanceContract {
   readonly uri: RoutePath;
 }
 
-export interface ParsedRoute {
+export interface RouteSemanticFlow {
   /**
    * Canonical route model. All route semantics live in closed sub-contracts.
    * Consumers must read identity, binding, capability and provenance rather
@@ -106,22 +106,22 @@ export interface ParsedRoute {
 
 
 // ============================================================================
-// ROUTE DESCRIPTOR ADT (Direct Extension of ParsedRoute — 100% Data Connected)
+// ROUTE DESCRIPTOR ADT (Direct Extension of RouteSemanticFlow — 100% Data Connected)
 // ============================================================================
 
-export interface GetCollectionRouteDescriptor extends ParsedRoute {
+export interface GetCollectionRouteDescriptor extends RouteSemanticFlow {
   readonly kind: 'get_collection';
 }
 
-export interface GetItemRouteDescriptor extends ParsedRoute {
+export interface GetItemRouteDescriptor extends RouteSemanticFlow {
   readonly kind: 'get_item';
 }
 
-export interface MutationRouteDescriptor extends ParsedRoute {
+export interface MutationRouteDescriptor extends RouteSemanticFlow {
   readonly kind: 'mutation';
 }
 
-export interface DeletionRouteDescriptor extends ParsedRoute {
+export interface DeletionRouteDescriptor extends RouteSemanticFlow {
   readonly kind: 'deletion';
 }
 
@@ -131,7 +131,7 @@ export type RouteDescriptor =
   | MutationRouteDescriptor
   | DeletionRouteDescriptor;
 
-export type RouteClassifier = (route: ParsedRoute) => RouteDescriptor;
+export type RouteClassifier = (route: RouteSemanticFlow) => RouteDescriptor;
 
 export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.freeze({
   index: (route): GetCollectionRouteDescriptor => ({
@@ -170,9 +170,9 @@ export const CRUD_DISPATCH_REGISTRY: Record<CrudRole, RouteClassifier> = Object.
 });
 
 /**
- * 0 `if` Classifier: Mengonversi ParsedRoute menjadi RouteDescriptor ADT utuh
+ * 0 `if` Classifier: Mengonversi RouteSemanticFlow menjadi RouteDescriptor ADT utuh
  */
-export const classifyRoute = (route: ParsedRoute): RouteDescriptor =>
+export const classifyRoute = (route: RouteSemanticFlow): RouteDescriptor =>
   CRUD_DISPATCH_REGISTRY[route.capability.crudRole](route);
 
 export interface RouteVisitor<R> {
@@ -267,7 +267,7 @@ export interface RouteCollectionRegistry {
   matchAll<R>(visitor: RouteVisitor<R>): readonly R[];
 }
 
-export class ScannedRouteRegistry implements RouteCollectionRegistry {
+export class RouteSemanticFlowRegistry implements RouteCollectionRegistry {
   public readonly all: readonly RouteDescriptor[];
   public readonly collections: readonly GetCollectionRouteDescriptor[];
   public readonly items: readonly GetItemRouteDescriptor[];
@@ -295,7 +295,7 @@ export class ScannedRouteRegistry implements RouteCollectionRegistry {
     Object.freeze(this);
   }
 
-  public static fromRoutes(routes: readonly ParsedRoute[]): ScannedRouteRegistry {
+  public static fromRoutes(routes: readonly RouteSemanticFlow[]): RouteSemanticFlowRegistry {
     const all = routes.map(classifyRoute);
     const collections: GetCollectionRouteDescriptor[] = [];
     const items: GetItemRouteDescriptor[] = [];
@@ -311,7 +311,7 @@ export class ScannedRouteRegistry implements RouteCollectionRegistry {
 
     all.forEach(desc => matchRoute(desc, PARTITION_DISPATCH));
 
-    return new ScannedRouteRegistry({
+    return new RouteSemanticFlowRegistry({
       all: Object.freeze(all),
       collections: Object.freeze(collections),
       items: Object.freeze(items),

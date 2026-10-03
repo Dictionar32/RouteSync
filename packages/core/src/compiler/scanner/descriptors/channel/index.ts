@@ -15,7 +15,3 @@ export {
   createNoneChannel,
   createEmptyChannel
 } from './channelFactories';
-export {
-  ScannedBroadcastChannelDescriptor,
-  type ScannedBroadcastChannelParams
-} from './channelDescriptorClass';

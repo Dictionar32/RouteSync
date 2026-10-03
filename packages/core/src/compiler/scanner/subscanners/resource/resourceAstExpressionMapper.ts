@@ -1,20 +1,20 @@
+import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
 import { CollectionKind, PrimitiveKind, PrimitiveType, ReadonlyCollectionType, ReferenceType } from '../../../types/SemanticType';
-import { ResourceFieldExpressionFactory, type ResourceFieldExpression } from '../../../../types/domain/expressions';
+import { ResourceFieldExpressionFactory, resourceNullLiteralValue, type ResourceFieldExpression } from '../../../../types/domain/expressions';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { PhpAstValue } from '../../lexer/PhpAst';
-import type { SourceRange } from '../../lexer/phpAstCoreTypes';
 import { matchPhpAstValue } from '../../LaravelSourceLexer';
 import { matchPhpAccessMode } from '../../lexer/phpAstAlgebra';
 import type { PhpAccessMode } from '../../lexer/phpAstExpressionTypes';
 import { matchPhpMatchArm, matchPhpStatement } from '../../lexer/phpAstAlgebra';
-import type { ResourceExpressionModel, ResourceExpressionBindingRequirement, ResourceExpressionFieldModel, ResourceAccessMode } from '../../../../types/domain/resourceExpressionModel';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationEvery, relationFirstOption, relationGate, relationOptionFold, relationProject } from '../../../../semantic/kernel/relationalSequence';
+import type { ResourceExpressionModel, ResourceExpressionBindingRequirement, ResourceAccessMode } from '../../../../types/domain/resourceExpressionModel';
 import type { ResourceArrayEntry, ResourceArrayKey } from '../../../../types/domain/expressions';
-import { mapResourceBinaryOperator } from './resourceExpressionOperator';
-import { mapResourcePhpAstToUpstream } from './resourceUpstreamExpressionCanonical';
-import { mapClosureAssignment as mapCanonicalClosureAssignment, mapClosureForAssignment as mapCanonicalClosureForAssignment } from './resourceUpstreamExpressionClosure';
-import { mapAssignmentTarget as mapCanonicalAssignmentTarget } from './resourceUpstreamExpressionMappings';
-import type { Assignment, AssignmentTarget } from '../../../../types/upstream/assignment';
-import type { Expression } from '../../../../types/upstream/expression';
+import * as BinaryOperator from './resourceExpressionOperator';
+import * as Upstream from './resourceUpstreamExpressionCanonical';
+import * as Closure from './resourceUpstreamExpressionClosure';
+import * as AssignmentMappings from './resourceUpstreamExpressionMappings';
 
 type DomainExpressionModel = Omit<ResourceExpressionModel, 'upstream'>;
 const known = (expression: ResourceFieldExpression, type: import('../../../types/SemanticType').SemanticType): DomainExpressionModel => ({ expression, semantic: { kind: 'known', type } });
@@ -30,12 +30,12 @@ const resource = (value: string) => SemanticValueFactory.resourceName(value);
 const property = (value: string) => SemanticValueFactory.propertyName(value);
 const method = (value: string) => SemanticValueFactory.methodName(value);
 
-function mapArgs(args: readonly import('../../lexer/phpAstTypes').PhpArgument[]): readonly ResourceExpressionModel[] {
-  return Object.freeze(args.map(argument => mapAstValueToExpression(argument.value)));
+function resolveArguments(args: readonly import('../../lexer/phpAstTypes').PhpArgument[]): readonly ResourceExpressionModel[] {
+  return Object.freeze(relationProject(args, argument => resolveAstValueToExpression(argument.value)));
 }
 
-function mapProperty(receiver: PhpAstValue, name: string, access: PhpAccessMode): DomainExpressionModel {
-  const target = mapAstValueToExpression(receiver);
+function resolveProperty(receiver: PhpAstValue, name: string, access: PhpAccessMode): DomainExpressionModel {
+  const target = resolveAstValueToExpression(receiver);
   const expression = matchPhpAccessMode(access, {
     direct: () => ResourceFieldExpressionFactory.propertyAccess(target.expression, property(name)),
     nullsafe: () => ResourceFieldExpressionFactory.nullsafePropertyAccess(target.expression, property(name)),
@@ -43,62 +43,65 @@ function mapProperty(receiver: PhpAstValue, name: string, access: PhpAccessMode)
   return required(expression, { kind: 'property', receiver: target, property: property(name), access });
 }
 
-function mapMethod(receiver: PhpAstValue, name: string, args: readonly import('../../lexer/phpAstTypes').PhpArgument[], access: PhpAccessMode): DomainExpressionModel {
-  const target = mapAstValueToExpression(receiver);
-  const arguments_ = mapArgs(args);
+function resolveMethod(receiver: PhpAstValue, name: string, args: readonly import('../../lexer/phpAstTypes').PhpArgument[], access: PhpAccessMode): DomainExpressionModel {
+  const target = resolveAstValueToExpression(receiver);
+  const arguments_ = resolveArguments(args);
   const expression = matchPhpAccessMode(access, {
-    direct: () => ResourceFieldExpressionFactory.methodCall(target.expression, method(name), arguments_.map(item => item.expression)),
-    nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target.expression, method(name), arguments_.map(item => item.expression)),
+    direct: () => ResourceFieldExpressionFactory.methodCall(target.expression, method(name), relationProject(arguments_, item => item.expression)),
+    nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target.expression, method(name), relationProject(arguments_, item => item.expression)),
   });
   return required(expression, { kind: 'method', receiver: target, method: method(name), arguments: arguments_, access });
 }
 
-function mapNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): DomainExpressionModel {
-  const entries: ResourceArrayEntry[] = value.entries.map((entry, index) => {
-    const key: ResourceArrayKey = entry.kind === 'keyed'
-      ? entry.key.kind === 'string'
-        ? { kind: 'string', value: entry.key.value }
-        : entry.key.kind === 'integer'
-          ? { kind: 'integer', value: entry.key.value }
-          : { kind: 'expression', value: mapAstValueToExpression(entry.key) }
-      : { kind: 'implicit', index };
-    return Object.freeze({ key, value: mapAstValueToExpression(entry.value) });
+function resolveNested(value: Extract<PhpAstValue, { kind: 'nested_array' }>): DomainExpressionModel {
+  const entries = relationProject(value.entries, (entry, index): ResourceArrayEntry => {
+    const key = relationGate<ResourceArrayKey>(relationEqual(entry.kind, 'keyed'),
+      () => {
+        const keyed = entry as Extract<typeof entry, { kind: 'keyed' }>;
+        return relationGate<ResourceArrayKey>(relationEqual(keyed.key.kind, 'string'),
+          () => ({ kind: 'string', value: keyed.key.value }),
+          () => relationGate<ResourceArrayKey>(relationEqual(keyed.key.kind, 'integer'),
+            () => ({ kind: 'integer', value: keyed.key.value }),
+            () => ({ kind: 'expression', value: resolveAstValueToExpression(keyed.key.value) })));
+      },
+      () => ({ kind: 'implicit', index }));
+    return Object.freeze({ key, value: resolveAstValueToExpression(entry.value) });
   });
-  const cardinality = entries.every(entry => entry.key.kind === 'string') ? 'map' as const : 'sequence' as const;
-  const expression = ResourceFieldExpressionFactory.array(entries.map(entry => entry.value.expression));
+  const cardinality = relationGate<'map' | 'sequence'>(relationEvery(entries, entry => relationEqual(entry.key.kind, 'string')), () => 'map', () => 'sequence');
+  const expression = ResourceFieldExpressionFactory.array(relationProject(entries, entry => entry.value), cardinality);
   return required(expression, { kind: 'nested_array', entries });
 }
 
-export function mapAstValueToExpression(value: PhpAstValue, sourceFile = '<scanner>'): ResourceExpressionModel {
-  const upstream = mapResourcePhpAstToUpstream(value, sourceFile);
-  const model = mapAstValueToDomainExpression(value, sourceFile);
+export function resolveAstValueToExpression(value: PhpAstValue, sourceFile = '<scanner>'): ResourceExpressionModel {
+  const upstream = Upstream['mapResourcePhpAstToUpstream'](value, sourceFile);
+  const model = resolveAstValueToDomainExpression(value, sourceFile);
   return { ...model, upstream };
 }
 
-function mapAstValueToDomainExpression(value: PhpAstValue, sourceFile = '<scanner>'): DomainExpressionModel {
+function resolveAstValueToDomainExpression(value: PhpAstValue, sourceFile = '<scanner>'): DomainExpressionModel {
   const model = matchPhpAstValue<DomainExpressionModel>(value, {
-    resourceCollection: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName), { kind: 'collection' }), new ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.resource('', v.resourceName))),
+    resourceCollection: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName), { kind: 'collection' }), ReadonlyCollectionType(CollectionKind.ARRAY, ReferenceType.resource('', v.resourceName))),
     resourceSingle: v => known(ResourceFieldExpressionFactory.resource(resource(v.resourceName)), ReferenceType.resource('', v.resourceName)),
-    nestedArray: mapNested,
-    propertyAccess: v => mapProperty(v.receiver, v.property, matchPhpAccessMode(v.access, { direct: () => false, nullsafe: () => true })),
-    methodChain: v => mapMethod(v.receiver, v.property, v.arguments, matchPhpAccessMode(v.access, { direct: () => false, nullsafe: () => true })),
+    nestedArray: resolveNested,
+    propertyAccess: v => resolveProperty(v.receiver, v.property, matchPhpAccessMode(v.access, { direct: () => false, nullsafe: () => true })),
+    methodChain: v => resolveMethod(v.receiver, v.property, v.arguments, matchPhpAccessMode(v.access, { direct: () => false, nullsafe: () => true })),
     variableReference: v => required(ResourceFieldExpressionFactory.variable(variable(v.name)), { kind: 'variable', name: variable(v.name) }),
-    staticCall: v => mapStatic(v),
-    arrayAccess: v => mapArrayAccess(v),
-    functionCall: v => mapFunction(v),
-    castExpression: v => mapCast(v),
-    binaryExpression: v => mapBinary(v),
-    ternaryExpression: v => mapTernary(v),
-    shortTernary: v => mapShortTernary(v),
-    nullCoalesce: v => mapNullCoalesce(v),
-    literal: mapLiteral,
-    unaryExpression: mapUnary,
-    matchExpression: mapMatch,
+    staticCall: v => resolveStatic(v),
+    arrayAccess: v => resolveArrayAccess(v),
+    functionCall: v => resolveFunction(v),
+    castExpression: v => resolveCast(v),
+    binaryExpression: v => resolveBinary(v),
+    ternaryExpression: v => resolveTernary(v),
+    shortTernary: v => resolveShortTernary(v),
+    nullCoalesce: v => resolveNullCoalesce(v),
+    literal: resolveLiteral,
+    unaryExpression: resolveUnary,
+    matchExpression: resolveMatch,
     classReference: v => ({ expression: ResourceFieldExpressionFactory.classReference(className(v.className)), semantic: { kind: 'requires_binding', requirement: { kind: 'class_reference', className: className(v.className) } } }),
-    construct: mapConstruct,
-    instanceOf: mapInstanceOf,
-    closure: v => mapClosure(v, sourceFile),
-    arrowFunction: mapArrowFunction,
+    construct: resolveConstruct,
+    instanceOf: resolveInstanceOf,
+    closure: v => resolveClosure(v, sourceFile),
+    arrowFunction: resolveArrowFunction,
     unsupported: () => rejected(ResourceFieldExpressionFactory.unsupported('unsupported_syntax'))
   });
   return model;
@@ -106,131 +109,153 @@ function mapAstValueToDomainExpression(value: PhpAstValue, sourceFile = '<scanne
 
 
 
-function mapClosure(v: Extract<PhpAstValue, { kind: 'closure' }>, sourceFile: string): DomainExpressionModel {
-  const parameters = v.parameters.map(parameter => variable(parameter.variable));
-  const captures = v.captures.map(capture => ({ kind: capture.kind, variable: variable(capture.variable) } as const));
-  const body = v.body.statements.map(item => mapClosureStatement(item, sourceFile));
+function resolveClosure(v: Extract<PhpAstValue, { kind: 'closure' }>, sourceFile: string): DomainExpressionModel {
+  const parameters = relationProject(v.parameters, parameter => variable(parameter.variable));
+  const captures = relationProject(v.captures, capture => ({ kind: capture.kind, variable: variable(capture.variable) } as const));
+  const body = relationProject(v.body.statements, item => resolveClosureStatement(item, sourceFile));
   const expression = ResourceFieldExpressionFactory.closure(parameters, captures, body);
   return required(expression, { kind: 'closure', parameters, captures, body });
 }
 
-function mapArrowFunction(v: Extract<PhpAstValue, { kind: 'arrow_function' }>): DomainExpressionModel {
-  const parameters = v.parameters.map(parameter => variable(parameter.variable));
-  const body = mapAstValueToExpression(v.body);
+function resolveArrowFunction(v: Extract<PhpAstValue, { kind: 'arrow_function' }>): DomainExpressionModel {
+  const parameters = relationProject(v.parameters, parameter => variable(parameter.variable));
+  const body = resolveAstValueToExpression(v.body);
   const expression = ResourceFieldExpressionFactory.arrowFunction(parameters, body.expression);
   return required(expression, { kind: 'arrow_function', parameters, body });
 }
 
-function mapClosureStatement(statement: import('../../lexer/phpAstStatementTypes').PhpStatement, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureStatement {
+function resolveClosureStatement(statement: import('../../lexer/phpAstStatementTypes').PhpStatement, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureStatement {
   return matchPhpStatement(statement, {
-    expression_statement: node => ({ kind: 'expression_statement', expression: mapAstValueToExpression(node.expression, sourceFile).expression }),
-    return_with_value: node => ({ kind: 'return_with_value', expression: mapAstValueToExpression(node.expression, sourceFile).expression }),
+    expression_statement: node => ({ kind: 'expression_statement', expression: resolveAstValueToExpression(node.expression, sourceFile).expression }),
+    return_with_value: node => ({ kind: 'return_with_value', expression: resolveAstValueToExpression(node.expression, sourceFile).expression }),
     return_void: () => ({ kind: 'return_void' }),
-    assignment: node => { const upstream = mapCanonicalClosureAssignment(node, sourceFile, (value, file) => mapResourcePhpAstToUpstream(value, file)); return { kind: 'assignment', upstream, target: mapClosureAssignmentTarget(node.target, sourceFile), value: mapAstValueToExpression(node.value, sourceFile).expression, operator: upstream.operator, reference: upstream.reference, source: upstream.source }; },
-    if_statement: node => ({ kind: 'if_statement', condition: mapAstValueToExpression(node.condition, sourceFile).expression, thenBlock: node.thenBlock.statements.map(item => mapClosureStatement(item, sourceFile)), alternative: mapClosureIfAlternative(node.alternative, sourceFile) }),
-    foreach_statement: node => ({ kind: 'foreach_statement', iterable: mapAstValueToExpression(node.iterable, sourceFile).expression, target: mapClosureForeachTarget(node.target), body: node.body.statements.map(item => mapClosureStatement(item, sourceFile)) }),
-    for_statement: node => ({ kind: 'for_statement', initializer: mapClosureForClause(node.initializer, sourceFile), condition: mapClosureForClause(node.condition, sourceFile), update: mapClosureForClause(node.update, sourceFile), body: node.body.statements.map(item => mapClosureStatement(item, sourceFile)) }),
-    try_statement: node => ({ kind: 'try_statement', body: node.body.statements.map(item => mapClosureStatement(item, sourceFile)), catches: node.catches.map(item => mapClosureCatch(item, sourceFile)), finallyBlock: mapClosureFinally(node.finallyBlock, sourceFile) }),
-    throw_statement: node => ({ kind: 'throw_statement', expression: mapAstValueToExpression(node.expression, sourceFile).expression })
+    assignment: node => { const upstream = Closure.resolveClosureAssignment(node, sourceFile, (value, file) => Upstream['mapResourcePhpAstToUpstream'](value, file)); return { kind: 'assignment', upstream, target: resolveAssignmentTarget(node.target, sourceFile), value: resolveAstValueToExpression(node.value, sourceFile).expression, operator: upstream.operator, reference: upstream.reference, source: upstream.source }; },
+    [PHP_STATEMENT_KINDS.conditional]: node => ({ kind: PHP_STATEMENT_KINDS.conditional, condition: resolveAstValueToExpression(node.condition, sourceFile).expression, thenBlock: relationProject(node.thenBlock.statements, item => resolveClosureStatement(item, sourceFile)), alternative: resolveIfAlternative(node.alternative, sourceFile) }),
+    [PHP_STATEMENT_KINDS.collectionRecurrence]: node => ({ kind: PHP_STATEMENT_KINDS.collectionRecurrence, iterable: resolveAstValueToExpression(node.iterable, sourceFile).expression, target: resolveForeachTarget(node.target), body: relationProject(node.body.statements, item => resolveClosureStatement(item, sourceFile)) }),
+    [PHP_STATEMENT_KINDS.countedRecurrence]: node => ({ kind: PHP_STATEMENT_KINDS.countedRecurrence, initializer: resolveForClause(node.initializer, sourceFile), condition: resolveForClause(node.condition, sourceFile), update: resolveForClause(node.update, sourceFile), body: relationProject(node.body.statements, item => resolveClosureStatement(item, sourceFile)) }),
+    try_statement: node => ({ kind: 'try_statement', body: relationProject(node.body.statements, item => resolveClosureStatement(item, sourceFile)), catches: relationProject(node.catches, item => resolveCatch(item, sourceFile)), finallyBlock: resolveFinally(node.finallyBlock, sourceFile) }),
+    throw_statement: node => ({ kind: 'throw_statement', expression: resolveAstValueToExpression(node.expression, sourceFile).expression })
   });
 }
 
-function mapClosureIfAlternative(alternative: import('../../lexer/phpAstStatementTypes').PhpIfAlternative, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureIfAlternative {
-  if (alternative.kind === 'none') return { kind: 'none' };
-  if (alternative.kind === 'else_block') return { kind: 'else_block', block: alternative.block.statements.map(item => mapClosureStatement(item, sourceFile)) };
-  return { kind: 'else_if', statement: mapClosureStatement(alternative.statement, sourceFile) as Extract<import('../../../../types/domain/expressions').ResourceClosureStatement, { kind: 'if_statement' }> };
+function resolveIfAlternative(alternative: import('../../lexer/phpAstStatementTypes').PhpIfAlternative, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureIfAlternative {
+  return relationGate<import('../../../../types/domain/expressions').ResourceClosureIfAlternative>(relationEqual(alternative.kind, 'none'),
+    () => ({ kind: 'none' }),
+    () => relationGate(relationEqual(alternative.kind, 'else_block'),
+      () => { const value = alternative as Extract<typeof alternative, { kind: 'else_block' }>; return { kind: 'else_block', block: relationProject(value.block.statements, item => resolveClosureStatement(item, sourceFile)) }; },
+      () => { const value = alternative as Extract<typeof alternative, { kind: 'else_if' }>; return { kind: 'else_if', statement: resolveClosureStatement(value.statement, sourceFile) as Extract<import('../../../../types/domain/expressions').ResourceClosureStatement, { kind: PHP_STATEMENT_KINDS.conditional }> }; }));
 }
 
-function mapClosureAssignmentTarget(target: import('../../lexer/phpAstStatementTypes').PhpAssignmentTarget, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureAssignmentTarget {
-  const canonical = mapCanonicalAssignmentTarget(target, (value, file) => mapResourcePhpAstToUpstream(value, file), sourceFile);
-  switch (target.kind) {
-    case 'variable': return { kind: 'variable', name: variable(target.name) };
-    case 'variables': return { kind: 'variables', names: target.names.map(name => variable(name)) };
-    case 'destructuring': { if (canonical.kind === 'destructuring') return { kind: 'destructuring', pattern: canonical.pattern }; throw new Error('Canonical assignment target mismatch: destructuring'); }
-    case 'property': return { kind: 'property', target: mapAstValueToExpression(target.receiver, sourceFile).expression, property: property(target.property) };
-    case 'static_property': return { kind: 'static_property', owner: target.owner.kind === 'named_class' ? className(target.owner.name) : { kind: target.owner.kind }, property: property(target.property) };
-    case 'array_element': return { kind: 'array_element', target: mapAstValueToExpression(target.target, sourceFile).expression, index: mapAstValueToExpression(target.index, sourceFile).expression };
-    case 'append': return { kind: 'append', target: mapAstValueToExpression(target.target, sourceFile).expression };
-  }
+function resolveAssignmentTarget(target: import('../../lexer/phpAstStatementTypes').PhpAssignmentTarget, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureAssignmentTarget {
+  const canonical = AssignmentMappings['resolveAssignmentTarget'](target, (value, file) => Upstream['mapResourcePhpAstToUpstream'](value, file), sourceFile);
+  return relationGate<import('../../../../types/domain/expressions').ResourceClosureAssignmentTarget>(relationEqual(target.kind, 'variable'),
+    () => ({ kind: 'variable', name: variable((target as Extract<typeof target, { kind: 'variable' }>).name) }),
+    () => relationGate(relationEqual(target.kind, 'variables'),
+      () => ({ kind: 'variables', names: relationProject((target as Extract<typeof target, { kind: 'variables' }>).names, name => variable(name)) }),
+      () => relationGate(relationEqual(target.kind, 'destructuring'),
+        () => ({ kind: 'destructuring', pattern: (canonical as Extract<typeof canonical, { kind: 'destructuring' }>).pattern }),
+        () => relationGate(relationEqual(target.kind, 'property'),
+          () => { const value = target as Extract<typeof target, { kind: 'property' }>; return { kind: 'property', target: resolveAstValueToExpression(value.receiver, sourceFile).expression, property: property(value.property) }; },
+          () => relationGate(relationEqual(target.kind, 'static_property'),
+            () => { const value = target as Extract<typeof target, { kind: 'static_property' }>; return { kind: 'static_property', owner: relationGate(relationEqual(value.owner.kind, 'named_class'), () => className(value.owner.name), () => ({ kind: value.owner.kind })), property: property(value.property) }; },
+            () => relationGate(relationEqual(target.kind, 'array_element'),
+              () => { const value = target as Extract<typeof target, { kind: 'array_element' }>; return { kind: 'array_element', target: resolveAstValueToExpression(value.target, sourceFile).expression, index: resolveAstValueToExpression(value.index, sourceFile).expression }; },
+              () => { const value = target as Extract<typeof target, { kind: 'append' }>; return { kind: 'append', target: resolveAstValueToExpression(value.target, sourceFile).expression }; }))))));
 }
 
-function mapClosureForeachTarget(target: import('../../lexer/phpAstStatementTypes').PhpForeachTarget): import('../../../../types/domain/expressions').ResourceClosureForeachTarget {
-  if (target.kind === 'value') return { kind: 'value', variable: variable(target.variable) };
-  return { kind: 'key_value', key: variable(target.key), value: variable(target.value) };
+function resolveForeachTarget(target: import('../../lexer/phpAstStatementTypes').PhpForeachTarget): import('../../../../types/domain/expressions').ResourceClosureForeachTarget {
+  return relationGate<import('../../../../types/domain/expressions').ResourceClosureForeachTarget>(relationEqual(target.kind, 'value'),
+    () => { const value = target as Extract<typeof target, { kind: 'value' }>; return { kind: 'value', variable: variable(value.variable) }; },
+    () => { const value = target as Extract<typeof target, { kind: 'key_value' }>; return { kind: 'key_value', key: variable(value.key), value: variable(value.value) }; });
 }
 
-function mapClosureForClause(clause: import('../../lexer/phpAstStatementTypes').PhpForClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureForClause {
-  if (clause.kind === 'empty') return { kind: 'empty' };
-  if (clause.kind === 'assignment') { const upstream = mapCanonicalClosureForAssignment(clause, sourceFile, (value, file) => mapResourcePhpAstToUpstream(value, file)); return { kind: 'assignment', upstream, target: mapClosureAssignmentTarget(clause.target, sourceFile), value: mapAstValueToExpression(clause.value, sourceFile).expression, operator: upstream.operator, reference: upstream.reference, source: upstream.source }; }
-  return { kind: 'expression', value: mapAstValueToExpression(clause.value, sourceFile).expression };
+function resolveForClause(clause: import('../../lexer/phpAstStatementTypes').PhpForClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureForClause {
+  return relationGate<import('../../../../types/domain/expressions').ResourceClosureForClause>(relationEqual(clause.kind, 'empty'),
+    () => ({ kind: 'empty' }),
+    () => relationGate(relationEqual(clause.kind, 'assignment'),
+      () => { const value = clause as Extract<typeof clause, { kind: 'assignment' }>; const upstream = Closure.resolveClosureForAssignment(value, sourceFile, (expression, file) => Upstream['mapResourcePhpAstToUpstream'](expression, file)); return { kind: 'assignment', upstream, target: resolveAssignmentTarget(value.target, sourceFile), value: resolveAstValueToExpression(value.value, sourceFile).expression, operator: upstream.operator, reference: upstream.reference, source: upstream.source }; },
+      () => { const value = clause as Extract<typeof clause, { kind: 'expression' }>; return { kind: 'expression', value: resolveAstValueToExpression(value.value, sourceFile).expression }; }));
 }
 
-function mapClosureCatch(clause: import('../../lexer/phpAstStatementTypes').PhpCatchClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureCatchClause {
-  return { exceptionType: exceptionName(clause.exceptionType), variable: variable(clause.variable), body: clause.body.statements.map(item => mapClosureStatement(item, sourceFile)) };
+function resolveCatch(clause: import('../../lexer/phpAstStatementTypes').PhpCatchClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureCatchClause {
+  return { exceptionType: exceptionName(clause.exceptionType), variable: variable(clause.variable), body: relationProject(clause.body.statements, item => resolveClosureStatement(item, sourceFile)) };
 }
 
-function mapClosureFinally(clause: import('../../lexer/phpAstStatementTypes').PhpFinallyClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureFinallyClause {
-  if (clause.kind === 'absent') return { kind: 'absent' };
-  return { kind: 'present', block: clause.block.statements.map(item => mapClosureStatement(item, sourceFile)) };
+function resolveFinally(clause: import('../../lexer/phpAstStatementTypes').PhpFinallyClause, sourceFile: string): import('../../../../types/domain/expressions').ResourceClosureFinallyClause {
+  return relationGate<import('../../../../types/domain/expressions').ResourceClosureFinallyClause>(relationEqual(clause.kind, 'absent'),
+    () => ({ kind: 'absent' }),
+    () => { const value = clause as Extract<typeof clause, { kind: 'present' }>; return { kind: 'present', block: relationProject(value.block.statements, item => resolveClosureStatement(item, sourceFile)) }; });
 }
 
-function mapUnary(v: Extract<PhpAstValue, { kind: 'unary_expression' }>): DomainExpressionModel {
-  const operand = mapAstValueToExpression(v.operand);
+function resolveUnary(v: Extract<PhpAstValue, { kind: 'unary_expression' }>): DomainExpressionModel {
+  const operand = resolveAstValueToExpression(v.operand);
   const operator = { kind: v.operator.kind } as import('../../../../types/domain/expressions').ResourceUnaryOperator;
   return { expression: ResourceFieldExpressionFactory.unary(operator, operand.expression), semantic: { kind: 'requires_binding', requirement: { kind: 'unary', operator, operand } } };
 }
-function mapMatch(v: Extract<PhpAstValue, { kind: 'match_expression' }>): DomainExpressionModel {
-  const subject = mapAstValueToExpression(v.subject);
-  const arms = v.arms.map(arm => matchPhpMatchArm(arm, {
-    conditional: node => ({ kind: 'conditional' as const, conditions: node.conditions.map(item => mapAstValueToExpression(item).expression), value: mapAstValueToExpression(node.value).expression }),
-    default: node => ({ kind: 'default' as const, value: mapAstValueToExpression(node.value).expression })
+function resolveMatch(v: Extract<PhpAstValue, { kind: 'match_expression' }>): DomainExpressionModel {
+  const subject = resolveAstValueToExpression(v.subject);
+  const arms = relationProject(v.arms, arm => matchPhpMatchArm(arm, {
+    conditional: node => ({ kind: 'conditional' as const, conditions: relationProject(node.conditions, item => resolveAstValueToExpression(item).expression), value: resolveAstValueToExpression(node.value).expression }),
+    default: node => ({ kind: 'default' as const, value: resolveAstValueToExpression(node.value).expression })
   }));
   return { expression: ResourceFieldExpressionFactory.match(subject.expression, arms), semantic: { kind: 'requires_binding', requirement: { kind: 'match', subject, arms } } };
 }
-function mapConstruct(v: Extract<PhpAstValue, { kind: 'construct' }>): DomainExpressionModel {
-  const arguments_ = mapArgs(v.arguments); const classReference = className(v.className);
-  return { expression: ResourceFieldExpressionFactory.construct(classReference, arguments_.map(item => item.expression)), semantic: { kind: 'requires_binding', requirement: { kind: 'construct', className: className(v.className), arguments: arguments_ } } };
+function resolveConstruct(v: Extract<PhpAstValue, { kind: 'construct' }>): DomainExpressionModel {
+  const arguments_ = resolveArguments(v.arguments); const classReference = className(v.className);
+  return { expression: ResourceFieldExpressionFactory.construct(classReference, relationProject(arguments_, item => item.expression)), semantic: { kind: 'requires_binding', requirement: { kind: 'construct', className: className(v.className), arguments: arguments_ } } };
 }
-function mapInstanceOf(v: Extract<PhpAstValue, { kind: 'instance_of' }>): DomainExpressionModel {
-  const expression = mapAstValueToExpression(v.expression); const classReference = className(v.className);
+function resolveInstanceOf(v: Extract<PhpAstValue, { kind: 'instance_of' }>): DomainExpressionModel {
+  const expression = resolveAstValueToExpression(v.expression); const classReference = className(v.className);
   return { expression: ResourceFieldExpressionFactory.instanceOf(expression.expression, classReference), semantic: { kind: 'requires_binding', requirement: { kind: 'instance_of', expression, className: className(v.className) } } };
 }
 
-function mapStatic(v: Extract<PhpAstValue, { kind: 'static_call' }>): DomainExpressionModel {
-  const arguments_ = mapArgs(v.arguments); const className = model(v.className); const methodName = method(v.method);
-  return required(ResourceFieldExpressionFactory.staticMethodCall(className, methodName, arguments_.map(item => item.expression)), { kind: 'static_method', model: className, method: methodName, arguments: arguments_ });
+function resolveStatic(v: Extract<PhpAstValue, { kind: 'static_call' }>): DomainExpressionModel {
+  const arguments_ = resolveArguments(v.arguments); const className = model(v.className); const methodName = method(v.method);
+  return required(ResourceFieldExpressionFactory.staticMethodCall(className, methodName, relationProject(arguments_, item => item.expression)), { kind: 'static_method', model: className, method: methodName, arguments: arguments_ });
 }
-function mapArrayAccess(v: Extract<PhpAstValue, { kind: 'array_access' }>): DomainExpressionModel {
-  const target = mapAstValueToExpression(v.target); const index = mapAstValueToExpression(v.index);
+function resolveArrayAccess(v: Extract<PhpAstValue, { kind: 'array_access' }>): DomainExpressionModel {
+  const target = resolveAstValueToExpression(v.target); const index = resolveAstValueToExpression(v.index);
   return required(ResourceFieldExpressionFactory.arrayAccess(target.expression, index.expression), { kind: 'array_access', target, index });
 }
-function mapFunction(v: Extract<PhpAstValue, { kind: 'function_call' }>): DomainExpressionModel {
-  const arguments_ = mapArgs(v.arguments); const name = SemanticValueFactory.phpFunctionName(v.functionName);
-  return required(ResourceFieldExpressionFactory.functionCall(name, arguments_.map(item => item.expression)), { kind: 'function_call', functionName: name, arguments: arguments_ });
+function resolveFunction(v: Extract<PhpAstValue, { kind: 'function_call' }>): DomainExpressionModel {
+  const arguments_ = resolveArguments(v.arguments); const name = SemanticValueFactory.phpFunctionName(v.functionName);
+  return required(ResourceFieldExpressionFactory.functionCall(name, relationProject(arguments_, item => item.expression)), { kind: 'function_call', functionName: name, arguments: arguments_ });
 }
-function mapCast(v: Extract<PhpAstValue, { kind: 'cast_expression' }>): DomainExpressionModel {
-  const operand = mapAstValueToExpression(v.operand); const type = SemanticValueFactory.castTypeName(v.castType.kind);
+function resolveCast(v: Extract<PhpAstValue, { kind: 'cast_expression' }>): DomainExpressionModel {
+  const operand = resolveAstValueToExpression(v.operand); const type = SemanticValueFactory.castTypeName(v.castType.kind);
   return required(ResourceFieldExpressionFactory.typeCast(type, operand.expression), { kind: 'cast', type, operand });
 }
-function mapBinary(v: Extract<PhpAstValue, { kind: 'binary_expression' }>): DomainExpressionModel {
-  const left = mapAstValueToExpression(v.left); const right = mapAstValueToExpression(v.right); const operator = SemanticValueFactory.semanticOperator(mapResourceBinaryOperator(v.operator.kind));
+function resolveBinary(v: Extract<PhpAstValue, { kind: 'binary_expression' }>): DomainExpressionModel {
+  const left = resolveAstValueToExpression(v.left); const right = resolveAstValueToExpression(v.right); const operator = SemanticValueFactory.semanticOperator(BinaryOperator['mapResourceBinaryOperator'](v.operator.kind));
   return required(ResourceFieldExpressionFactory.binary(operator, left.expression, right.expression), { kind: 'computation', operator, left, right });
 }
-function mapTernary(v: Extract<PhpAstValue, { kind: 'ternary_expression' }>): DomainExpressionModel {
-  const condition = mapAstValueToExpression(v.condition); const truthy = mapAstValueToExpression(v.trueBranch); const falsy = mapAstValueToExpression(v.falseBranch);
+function resolveTernary(v: Extract<PhpAstValue, { kind: 'ternary_expression' }>): DomainExpressionModel {
+  const condition = resolveAstValueToExpression(v.condition); const truthy = resolveAstValueToExpression(v.trueBranch); const falsy = resolveAstValueToExpression(v.falseBranch);
   return required(ResourceFieldExpressionFactory.ternary(condition.expression, truthy.expression, falsy.expression), { kind: 'conditional', condition, truthy, falsy });
 }
-function mapShortTernary(v: Extract<PhpAstValue, { kind: 'short_ternary' }>): DomainExpressionModel {
-  const condition = mapAstValueToExpression(v.condition); const falsy = mapAstValueToExpression(v.falseBranch);
+function resolveShortTernary(v: Extract<PhpAstValue, { kind: 'short_ternary' }>): DomainExpressionModel {
+  const condition = resolveAstValueToExpression(v.condition); const falsy = resolveAstValueToExpression(v.falseBranch);
   return required(ResourceFieldExpressionFactory.shortTernary(condition.expression, falsy.expression), { kind: 'short_conditional', condition, falsy });
 }
-function mapNullCoalesce(v: Extract<PhpAstValue, { kind: 'null_coalesce' }>): DomainExpressionModel {
-  const left = mapAstValueToExpression(v.left); const right = mapAstValueToExpression(v.right);
+function resolveNullCoalesce(v: Extract<PhpAstValue, { kind: 'null_coalesce' }>): DomainExpressionModel {
+  const left = resolveAstValueToExpression(v.left); const right = resolveAstValueToExpression(v.right);
   return required(ResourceFieldExpressionFactory.nullCoalesce(left.expression, right.expression), { kind: 'null_coalesce', left, right });
 }
-function mapLiteral(v: Extract<PhpAstValue, { kind: 'literal' }>): DomainExpressionModel {
-  if (v.literalType === 'number') return known(ResourceFieldExpressionFactory.literal({ kind: 'number', value: v.value }), new PrimitiveType(PrimitiveKind.NUMBER));
-  if (v.literalType === 'boolean') return known(ResourceFieldExpressionFactory.literal({ kind: 'boolean', value: v.value }), new PrimitiveType(PrimitiveKind.BOOLEAN));
-  if (v.literalType === 'string') return known(ResourceFieldExpressionFactory.literal({ kind: 'string', value: v.value }), new PrimitiveType(PrimitiveKind.STRING));
-  return rejected(ResourceFieldExpressionFactory.literal({ kind: 'null', value: null }));
+function resolveLiteral(v: Extract<PhpAstValue, { kind: 'literal' }>): DomainExpressionModel {
+  const literal: import('../../lexer/phpAstExpressionTypes').PhpLiteralValue = v;
+  const numberLiteral = relationFirstOption([literal], (value): value is Extract<import('../../lexer/phpAstExpressionTypes').PhpLiteralValue, { readonly literalType: 'number' }> => relationEqual(value.literalType, 'number'));
+  return relationOptionFold(numberLiteral,
+    () => {
+      const booleanLiteral = relationFirstOption([literal], (value): value is Extract<import('../../lexer/phpAstExpressionTypes').PhpLiteralValue, { readonly literalType: 'boolean' }> => relationEqual(value.literalType, 'boolean'));
+      return relationOptionFold(booleanLiteral,
+        () => {
+          const stringLiteral = relationFirstOption([literal], (value): value is Extract<import('../../lexer/phpAstExpressionTypes').PhpLiteralValue, { readonly literalType: 'string' }> => relationEqual(value.literalType, 'string'));
+          return relationOptionFold(stringLiteral,
+            () => rejected(ResourceFieldExpressionFactory.literal(resourceNullLiteralValue())),
+            value => known(ResourceFieldExpressionFactory.literal({ kind: 'string', value: value.value }), primitiveType(PrimitiveKind.STRING)));
+        },
+        value => known(ResourceFieldExpressionFactory.literal({ kind: 'boolean', value: value.value }), primitiveType(PrimitiveKind.BOOLEAN)));
+    },
+    value => known(ResourceFieldExpressionFactory.literal({ kind: 'number', value: value.value }), primitiveType(PrimitiveKind.NUMBER)));
 }
+

@@ -7,6 +7,8 @@
  * @module compiler/scanner/symbols/resource
  */
 
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import type { OriginModelSymbol } from "../model/originModelSymbol";
 
 export type ResourceModelBindingSource =
@@ -50,14 +52,8 @@ export function matchResourceModelBinding<R>(
     binding: ResourceModelBinding,
     visitor: ResourceModelBindingVisitor<R>
 ): R {
-    switch (binding.kind) {
-        case 'mono':
-            return visitor.mono(binding);
-        case 'poly':
-            return visitor.poly(binding);
-        case 'unbacked_dto':
-            return visitor.unbacked_dto(binding);
-    }
+    return relationGate(relationEqual(binding.kind, 'mono'), () => visitor.mono(binding),
+        () => relationGate(relationEqual(binding.kind, 'poly'), () => visitor.poly(binding), () => visitor.unbacked_dto(binding)));
 }
 
 export class ResourceModelBindingFactory {

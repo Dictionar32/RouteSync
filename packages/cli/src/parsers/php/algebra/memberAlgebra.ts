@@ -1,15 +1,19 @@
+import { projectRelation } from '@routesync/core';
 import type { FieldNode, FieldArgument, FieldStatement, FoldedPhpArgument } from '@routesync/core';
 import type {
   PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode,
   StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode,
   NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode,
-  NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode
+  NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode,
 } from '@routesync/core';
 
-const foldArguments = (args: readonly FoldedPhpArgument<FieldNode>[]): readonly FieldArgument[] => args.map(argument => {
-  if (argument.kind === 'positional') return { kind: 'positional', value: argument.value };
-  if (argument.kind === 'named') return { kind: 'named', name: argument.name, value: argument.value };
-  return { kind: 'unpacked', value: argument.value };
+const foldArguments = (args: readonly FoldedPhpArgument<FieldNode>[]): readonly FieldArgument[] => projectRelation(args, argument => {
+  const readers: Readonly<Record<string, () => FieldArgument>> = Object.freeze({
+    positional: () => ({ kind: 'positional', value: argument.value }),
+    named: () => ({ kind: 'named', name: argument.name, value: argument.value }),
+    unpacked: () => ({ kind: 'unpacked', value: argument.value }),
+  });
+  return (readers[argument.kind] ?? (() => { throw new Error(`Unknown PHP argument kind: ${argument.kind}`); }))();
 });
 
 export const MEMBER_ALGEBRA_SLICE = Object.freeze({
@@ -24,5 +28,5 @@ export const MEMBER_ALGEBRA_SLICE = Object.freeze({
   variableCall: (node: VariableCallAstNode, args: readonly FoldedPhpArgument<FieldNode>[]): FieldNode => Object.freeze({ kind: 'variable_call', originalCode: node.originalCode, source: node.source, name: node.name, args: foldArguments(args) }),
   newInstance: (node: NewInstanceAstNode, args: readonly FoldedPhpArgument<FieldNode>[]): FieldNode => Object.freeze({ kind: 'new_instance', originalCode: node.originalCode, source: node.source, className: node.className, args: foldArguments(args) }),
   closure: (node: ClosureAstNode, body: readonly FieldStatement[]): FieldNode => Object.freeze({ kind: 'closure', originalCode: node.originalCode, source: node.source, parameters: node.parameters, captures: node.captures, body }),
-  arrowFunc: (node: ArrowFuncAstNode, body: FieldNode): FieldNode => Object.freeze({ kind: 'arrow_func', originalCode: node.originalCode, source: node.source, parameters: node.parameters, body })
+  arrowFunc: (node: ArrowFuncAstNode, body: FieldNode): FieldNode => Object.freeze({ kind: 'arrow_func', originalCode: node.originalCode, source: node.source, parameters: node.parameters, body }),
 });

@@ -22,13 +22,11 @@ import {
     type ResolvedPrimitiveKind
 } from '../ResolvedSemanticType';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
+import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
 
-export class PrimitiveTypeHandler implements SemanticTypeHandler {
-    supports(type: SemanticType): boolean {
-        return type.kind === 'primitive';
-    }
-
-    resolve(type: SemanticType): ResolvedSemanticType {
+export const PrimitiveTypeHandler: SemanticTypeHandler = Object.freeze({
+    supports: (type: SemanticType): boolean => relationEqual(type.kind, 'primitive'),
+    resolve: (type: SemanticType): ResolvedSemanticType => {
         const prim = type as PrimitiveType;
         const primitiveKindMap: { readonly [K in PrimitiveKind]: ResolvedPrimitiveKind } = {
             [PrimitiveKind.STRING]: 'string',
@@ -36,31 +34,28 @@ export class PrimitiveTypeHandler implements SemanticTypeHandler {
             [PrimitiveKind.BOOLEAN]: 'boolean',
             [PrimitiveKind.DATETIME]: 'datetime',
             [PrimitiveKind.FILE]: 'file',
-            [PrimitiveKind.UNKNOWN]: 'unknown',
+            [PrimitiveKind.INDETERMINATE]: 'unknown',
             [PrimitiveKind.UNSPECIFIED]: 'unspecified'
         };
-        return new ResolvedPrimitiveType({ primitiveKind: primitiveKindMap[prim.type] });
-    }
-}
+        return ResolvedPrimitiveType.create({ primitiveKind: primitiveKindMap[prim.type] });
+    },
+});
 
-export class ReferenceTypeHandler implements SemanticTypeHandler {
-    supports(type: SemanticType): boolean {
-        return type.kind === 'reference';
-    }
-
-    resolve(type: SemanticType): ResolvedSemanticType {
+export const ReferenceTypeHandler: SemanticTypeHandler = Object.freeze({
+    supports: (type: SemanticType): boolean => relationEqual(type.kind, 'reference'),
+    resolve: (type: SemanticType): ResolvedSemanticType => {
         const ref = type as ReferenceType;
-        return new ResolvedReferenceType({ name: ref.name, namespace: ref.namespace });
-    }
-}
+        return ResolvedReferenceType.create({ name: ref.name, namespace: ref.namespace });
+    },
+});
 
-export class CollectionTypeHandler implements SemanticTypeHandler {
-    supports(type: SemanticType): boolean {
-        return type.kind === 'readonly_collection' || type.kind === 'mutable_collection';
-    }
-
-    resolve(type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType {
+export const CollectionTypeHandler: SemanticTypeHandler = Object.freeze({
+    supports: (type: SemanticType): boolean => relationAny([
+        relationEqual(type.kind, 'readonly_collection'),
+        relationEqual(type.kind, 'mutable_collection'),
+    ]),
+    resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => {
         const col = type as ReadonlyCollectionType | MutableCollectionType;
-        return new ResolvedCollectionType({ elementType: resolver.resolve(col.elementType) });
-    }
-}
+        return ResolvedCollectionType.create({ elementType: resolver.resolve(col.elementType) });
+    },
+});

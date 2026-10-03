@@ -1,89 +1,47 @@
-/**
- * dependencyGraph.ts
- *
- * Dependency graph tracking for registry-typed analysis passes.
- *
- * @module compiler/analysis/manager
- */
-
+/** Relation-backed analysis dependency graph. */
 import type { AnalysisKey } from '../../passes/PassResult';
 import type { AnalysisKeyName, AnalysisRegistry } from '../AnalysisRegistry';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationSelect, relationProject, relationFold } from '../../../semantic/kernel/relationalSequence';
+import { relationNotEqual } from '../../../semantic/kernel/semanticRelations';
 
 export type AnyAnalysisKey<R extends object> = AnalysisKey<R, AnalysisKeyName<R>>;
+type Adjacency<R extends object> = RelationIndex<AnyAnalysisKey<R>, readonly AnyAnalysisKey<R>[]>;
 
-export class AnalysisDependencyGraph<R extends object = AnalysisRegistry> {
-    private readonly dependentsMap = new Map<
-        AnyAnalysisKey<R>,
-        Set<AnyAnalysisKey<R>>
-    >();
-
-    private readonly dependenciesMap = new Map<
-        AnyAnalysisKey<R>,
-        Set<AnyAnalysisKey<R>>
-    >();
-
-    public addDependency<
-        TParent extends AnalysisKeyName<R>,
-        TChild extends AnalysisKeyName<R>,
-    >(
-        parent: AnalysisKey<R, TParent>,
-        child: AnalysisKey<R, TChild>,
-    ): void {
-        const deps = this.dependentsMap.get(parent) ?? new Set<AnyAnalysisKey<R>>();
-        deps.add(child);
-        this.dependentsMap.set(parent, deps);
-
-        const reverse = this.dependenciesMap.get(child) ?? new Set<AnyAnalysisKey<R>>();
-        reverse.add(parent);
-        this.dependenciesMap.set(child, reverse);
-    }
-
-    public removeDependency<
-        TParent extends AnalysisKeyName<R>,
-        TChild extends AnalysisKeyName<R>,
-    >(
-        parent: AnalysisKey<R, TParent>,
-        child: AnalysisKey<R, TChild>,
-    ): void {
-        const deps = this.dependentsMap.get(parent);
-        if (deps) {
-            deps.delete(child);
-            if (deps.size === 0) {
-                this.dependentsMap.delete(parent);
-            }
-        }
-
-        const reverse = this.dependenciesMap.get(child);
-        if (reverse) {
-            reverse.delete(parent);
-            if (reverse.size === 0) {
-                this.dependenciesMap.delete(child);
-            }
-        }
-    }
-
-    public dependents<K extends AnalysisKeyName<R>>(
-        key: AnalysisKey<R, K>,
-    ): ReadonlySet<AnyAnalysisKey<R>> {
-        return this.dependentsMap.get(key) ?? new Set<AnyAnalysisKey<R>>();
-    }
-
-    public dependencies<K extends AnalysisKeyName<R>>(
-        key: AnalysisKey<R, K>,
-    ): ReadonlySet<AnyAnalysisKey<R>> {
-        return this.dependenciesMap.get(key) ?? new Set<AnyAnalysisKey<R>>();
-    }
-
-    public dependencyCount(): number {
-        let total = 0;
-        for (const deps of this.dependentsMap.values()) {
-            total += deps.size;
-        }
-        return total;
-    }
-
-    public clear(): void {
-        this.dependentsMap.clear();
-        this.dependenciesMap.clear();
-    }
+export interface AnalysisDependencyGraph<R extends object = AnalysisRegistry> {
+    readonly addDependency: <TParent extends AnalysisKeyName<R>, TChild extends AnalysisKeyName<R>>(parent: AnalysisKey<R, TParent>, child: AnalysisKey<R, TChild>) => void;
+    readonly removeDependency: <TParent extends AnalysisKeyName<R>, TChild extends AnalysisKeyName<R>>(parent: AnalysisKey<R, TParent>, child: AnalysisKey<R, TChild>) => void;
+    readonly dependents: <K extends AnalysisKeyName<R>>(key: AnalysisKey<R, K>) => readonly AnyAnalysisKey<R>[];
+    readonly dependencies: <K extends AnalysisKeyName<R>>(key: AnalysisKey<R, K>) => readonly AnyAnalysisKey<R>[];
+    readonly dependencyCount: () => number;
+    readonly clear: () => void;
 }
+
+const adjacencyRead = <R extends object>(index: Adjacency<R>, key: AnyAnalysisKey<R>): readonly AnyAnalysisKey<R>[] =>
+    relationOptionFold(relationIndexLookup(index, key), () => [], value => value);
+
+const adjacencyWrite = <R extends object>(index: Adjacency<R>, key: AnyAnalysisKey<R>, value: readonly AnyAnalysisKey<R>[]): Adjacency<R> =>
+    relationIndexAdd(index, key, Object.freeze(relationSelect(value, candidate => relationNotEqual(candidate, key))));
+
+const adjacencyRemove = <R extends object>(index: Adjacency<R>, key: AnyAnalysisKey<R>, target: AnyAnalysisKey<R>): Adjacency<R> =>
+    relationIndexAdd(index, key, Object.freeze(relationSelect(adjacencyRead(index, key), candidate => relationNotEqual(candidate, target))));
+
+export const createAnalysisDependencyGraph = <R extends object = AnalysisRegistry>(): AnalysisDependencyGraph<R> => {
+    let dependentsIndex: Adjacency<R> = Object.freeze([]);
+    let dependenciesIndex: Adjacency<R> = Object.freeze([]);
+    const addDependency = <TParent extends AnalysisKeyName<R>, TChild extends AnalysisKeyName<R>>(parent: AnalysisKey<R, TParent>, child: AnalysisKey<R, TChild>): void => {
+        const parentKey = parent as AnyAnalysisKey<R>;
+        const childKey = child as AnyAnalysisKey<R>;
+        dependentsIndex = adjacencyWrite(dependentsIndex, parentKey, [...adjacencyRead(dependentsIndex, parentKey), childKey]);
+        dependenciesIndex = adjacencyWrite(dependenciesIndex, childKey, [...adjacencyRead(dependenciesIndex, childKey), parentKey]);
+    };
+    const removeDependency = <TParent extends AnalysisKeyName<R>, TChild extends AnalysisKeyName<R>>(parent: AnalysisKey<R, TParent>, child: AnalysisKey<R, TChild>): void => {
+        dependentsIndex = adjacencyRemove(dependentsIndex, parent as AnyAnalysisKey<R>, child as AnyAnalysisKey<R>);
+        dependenciesIndex = adjacencyRemove(dependenciesIndex, child as AnyAnalysisKey<R>, parent as AnyAnalysisKey<R>);
+    };
+    const dependents = <K extends AnalysisKeyName<R>>(key: AnalysisKey<R, K>): readonly AnyAnalysisKey<R>[] => adjacencyRead(dependentsIndex, key as AnyAnalysisKey<R>);
+    const dependencies = <K extends AnalysisKeyName<R>>(key: AnalysisKey<R, K>): readonly AnyAnalysisKey<R>[] => adjacencyRead(dependenciesIndex, key as AnyAnalysisKey<R>);
+    const dependencyCount = (): number => relationFold(dependentsIndex, 0, (total, entry) => total + entry[1].length);
+    const clear = (): void => { dependentsIndex = Object.freeze([]); dependenciesIndex = Object.freeze([]); };
+    return Object.freeze({ addDependency, removeDependency, dependents, dependencies, dependencyCount, clear });
+};

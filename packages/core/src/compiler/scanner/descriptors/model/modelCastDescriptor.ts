@@ -1,7 +1,7 @@
 /**
  * modelCastDescriptor.ts
  *
- * AST descriptor for Eloquent model attribute casts.
+ * AST descriptor of Eloquent model attribute casts.
  *
  * @module core/compiler/scanner/descriptors/model
  */
@@ -13,6 +13,8 @@ import {
 } from '../../../../types/route';
 import type { EloquentCastValueType, EloquentCastTarget } from '../../../../types/domain/eloquentTypes';
 import { SemanticValueFactory, type ColumnName, type CastTypeName } from '../../../../types/domain/semanticValues';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
 
 export interface ScannedModelCastParams {
     readonly column: ColumnName;
@@ -24,33 +26,34 @@ export interface ScannedModelCastParams {
 /**
  * Reusable Constructor: Scanned Model Cast Descriptor.
  */
-export class ScannedModelCastDescriptor implements ParsedCast {
-    public readonly column: ColumnName;
-    public readonly targetType: CastTypeName;
-    public readonly target: EloquentCastTarget;
-    public readonly castKind: EloquentCastKind;
-    public readonly valueType: EloquentCastValueType;
+export interface ScannedModelCastDescriptor extends ParsedCast {
+    readonly column: ColumnName;
+    readonly targetType: CastTypeName;
+    readonly target: EloquentCastTarget;
+    readonly castKind: EloquentCastKind;
+    readonly valueType: EloquentCastValueType;
+}
 
-    constructor({ column, targetType, castKind, valueType }: ScannedModelCastParams) {
-        this.column = column;
-        this.targetType = targetType;
-        this.target = castKind === 'custom'
-            ? { kind: 'custom', className: SemanticValueFactory.className(targetType.value) }
-            : { kind: 'builtin', castKind };
-        this.castKind = castKind;
-        this.valueType = valueType;
-        Object.freeze(this);
-    }
+const castDescriptor = ({ column, targetType, castKind, valueType }: ScannedModelCastParams): ScannedModelCastDescriptor => Object.freeze({
+    column,
+    targetType,
+    target: relationGate(
+        relationEqual(castKind, 'custom'),
+        () => ({ kind: 'custom' as const, className: SemanticValueFactory.className(targetType.value) }),
+        () => ({ kind: 'builtin' as const, castKind })
+    ),
+    castKind,
+    valueType
+});
 
-    public static create({ column, targetType }: { readonly column: string; readonly targetType: string }): ScannedModelCastDescriptor {
-        const mapped = EloquentCastMapper.map(targetType);
-        return new ScannedModelCastDescriptor({
+export const ScannedModelCastDescriptor = Object.freeze({
+    create: ({ column, targetType }: { readonly column: string; readonly targetType: string }): ScannedModelCastDescriptor => {
+        const mapped = EloquentCastMapper.resolve(targetType);
+        return castDescriptor({
             column: SemanticValueFactory.columnName(column),
             targetType: SemanticValueFactory.castTypeName(targetType),
             castKind: mapped.castKind,
             valueType: mapped.valueType
         });
     }
-
-
-}
+});

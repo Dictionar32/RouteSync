@@ -1,47 +1,21 @@
-/**
- * ssaRepresentation.ts
- *
- * SSA (Static Single Assignment) data structures and basic block representation.
- *
- * @module core/compiler/analysis/ssa/ssaRepresentation
- */
+/** Immutable relation-backed SSA representation. */
 
-import type { BasicBlock } from '../../utils/ControlFlowGraph';
+import type { BasicBlockRelation, ControlFlowGraph } from '../../utils/ControlFlowGraph';
+import { basicBlockLookup, basicBlockIds, createControlFlowGraph } from '../../utils/ControlFlowGraph';
+export type SSABasicBlock = import('../../utils/ControlFlowGraph').BasicBlock;
 
-/**
- * SSA basic block type
- * Currently aliases BasicBlock - SSA form uses same structure
- */
-export type SSABasicBlock = BasicBlock;
-
-/**
- * SSA representation of program
- * 
- * In SSA form:
- * - Each variable defined exactly once
- * - Each use refers to single definition
- * - Phi functions at join points to merge values
- */
-export class SSARepresentation {
-    constructor(
-        /** Entry block ID */
-        public readonly entryBlock: number,
-
-        /** Map of block ID -> SSA basic block */
-        public readonly blocks: ReadonlyMap<number, SSABasicBlock>
-    ) { }
-
-    /**
-     * Get block by ID
-     */
-    public getBlock(id: number): SSABasicBlock | undefined {
-        return this.blocks.get(id);
-    }
-
-    /**
-     * Get all block IDs
-     */
-    public get blockIds(): readonly number[] {
-        return Array.from(this.blocks.keys());
-    }
+export interface SSARepresentation {
+    readonly entryBlock: number;
+    readonly blocks: BasicBlockRelation;
+    readonly getBlock: (id: number) => ReturnType<typeof basicBlockLookup>;
+    readonly blockIds: readonly number[];
 }
+
+export const createSSARepresentation = (cfg: ControlFlowGraph): SSARepresentation => Object.freeze({
+    entryBlock: cfg.entryBlock,
+    blocks: cfg.blocks,
+    getBlock: (id: number) => basicBlockLookup(cfg.blocks, id),
+    blockIds: basicBlockIds(cfg.blocks),
+});
+
+export const SSARepresentation = Object.freeze({ create: createSSARepresentation });

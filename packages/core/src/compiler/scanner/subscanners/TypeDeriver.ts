@@ -9,11 +9,8 @@
  * @module core/compiler/scanner/subscanners/TypeDeriver
  */
 
-import type { ModelAst } from "../../../types/upstream/ast";
-import {
-    ParsedRoute,
-    ParsedResource
-} from "../../../types/route";
+import type { ModelAst, ResourceAst, RequestAst } from "../../../types/upstream/ast";
+import type { RouteSemanticFlow } from "../../../types/route";
 import { RequestType } from "../../artifacts/RequestTypesArtifact";
 import { ObjectType } from "../../types/SemanticType";
 import { TypeInterner } from "../../types/TypeInterner";
@@ -26,21 +23,22 @@ export class TypeDeriver {
      * Derives Canonical RequestType[] AST streams from parsed routes and resources.
      */
     public static deriveRequestTypes(
-        routes: readonly ParsedRoute[] = [],
-        resources: readonly ParsedResource[] = [],
-        interner: TypeInterner = new TypeInterner()
+        routes: readonly RouteSemanticFlow[] = [],
+        resources: readonly ResourceAst[] = [],
+        requests: readonly RequestAst[] = [],
+        interner: TypeInterner = TypeInterner.create()
     ): readonly RequestType[] {
-        return RequestTypeDeriver.derive(routes, resources, interner);
+        return RequestTypeDeriver.derive(routes, resources, requests, interner);
     }
 
     /**
      * Derives Canonical ObjectType[] AST streams leveraging Core TypeInterner and SymbolTable.
      */
     public static deriveSemanticTypes(
-        resources: readonly ParsedResource[] = [],
+        resources: readonly ResourceAst[] = [],
         models: readonly ModelAst[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        routes: readonly ParsedRoute[] = []
+        interner: TypeInterner = TypeInterner.create(),
+        routes: readonly RouteSemanticFlow[] = []
     ): readonly ObjectType[] {
         return SemanticTypeDeriver.derive(resources, models, interner, routes);
     }

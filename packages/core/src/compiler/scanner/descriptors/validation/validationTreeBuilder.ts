@@ -1,12 +1,7 @@
-/**
- * Projects the already-resolved validation tree from the scanner model.
- * No validation classification or shape reconstruction happens here.
- */
+/** Projects the canonical validation relation tree without reconstruction. */
 import type { ValidationFieldNode } from '../../../../types/route';
 import type { RouteValidationRuleSet } from './validationRuleSet';
 
-export class ValidationTreeBuilder {
-    public static buildTree(ruleSet: RouteValidationRuleSet): readonly ValidationFieldNode[] {
-        return ruleSet.tree;
-    }
-}
+export const ValidationTreeBuilder = Object.freeze({
+    buildTree: (ruleSet: RouteValidationRuleSet): readonly ValidationFieldNode[] => ruleSet.tree
+});

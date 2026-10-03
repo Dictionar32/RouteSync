@@ -71,8 +71,8 @@ export class FormGeneratorPass implements CompilerPass<readonly ['RequestTypes']
                 this.actionGenerator.generateAction(act.name, act.fields)
             );
             formTypes.push({
-                resourceName: reqType.resourceName,
-                formTypeName: `${reqType.resourceName}Form`,
+                resourceName: reqType.identity.resource.value.value,
+                formTypeName: `${reqType.identity.resource.value.value}Form`,
                 actions
             });
         }

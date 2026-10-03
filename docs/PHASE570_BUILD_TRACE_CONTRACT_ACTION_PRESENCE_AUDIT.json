@@ -1,0 +1,11 @@
+{
+  "phase": 570,
+  "frontier": "contract-generation-resolved-property-presence",
+  "inputTrace": "build(6).log",
+  "sourceError": "ContractActionGenerator.ts:57 — boolean is not assignable to semantic Presence",
+  "fix": "relationResolve(ActionField.required) -> required|optional Presence",
+  "nameBoundaryPreserved": true,
+  "imperativeHostFallbackIntroduced": false,
+  "fullBuildExecuted": false,
+  "fullBuildBlockedByEnvironment": true
+}

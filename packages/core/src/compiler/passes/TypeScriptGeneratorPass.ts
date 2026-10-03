@@ -62,7 +62,7 @@ export class TypeScriptGeneratorPass implements CompilerPass<readonly ['Semantic
     }
 
     constructor({
-        codeBuilder = new TypeScriptCodeBuilder()
+        codeBuilder = TypeScriptCodeBuilder()
     }: TypeScriptGeneratorPassDependencies = {}) {
         this.codeBuilder = codeBuilder;
         Object.freeze(this);

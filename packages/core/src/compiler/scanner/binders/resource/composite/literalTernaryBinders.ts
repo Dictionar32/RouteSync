@@ -1,132 +1,156 @@
+import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
 /**
- * literalTernaryBinders.ts
+ * Declarative resource-expression binders.
  *
- * Binders for literals, ternary expressions, and raw expression fallbacks.
- *
- * @module core/compiler/scanner/binders/resource/composite
+ * PHP conditional syntax remains syntax evidence. Its binding is expressed as
+ * relation-shaped data and catalog selection; host-language branch syntax is
+ * not used as the semantic dispatcher.
  */
-
+import { relationResolve } from "../../../../relational/sequence";
+import { relationContains } from '../../../../../semantic/kernel/relationMembership';
+import { relationAll, relationEqual } from "../../../../../semantic/kernel/semanticRelations";
+import { relationFirst, relationOptionFold, relationSome, relationNone } from "../../../../../semantic/kernel/relationalSequence";
 import type { OriginModelSymbol, ModelSymbolTable } from "../../../symbols/ModelSymbolTable";
 import type { PhpAstValue } from "../../../lexer/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
 import { ScannedResourceFieldDescriptor } from "../../../descriptors/resourceDescriptors";
-import { ErrorType, PrimitiveKind, PrimitiveType } from "../../../../types/SemanticType";
+import { PrimitiveKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 
+type BindField = (params: {
+    readonly key: string;
+    readonly value: PhpAstValue;
+    readonly modelSymbol: OriginModelSymbol;
+    readonly modelSymbolTable: ModelSymbolTable;
+}) => BoundResourceFieldResult;
+
+type RuntimeLiteralType = 'number' | 'boolean' | 'string';
+const RUNTIME_LITERAL_TYPE: Readonly<Record<string, RuntimeLiteralType>> = Object.freeze({
+    number: 'number',
+    boolean: 'boolean',
+    string: 'string',
+});
+const PRIMITIVE_KIND: Readonly<Record<RuntimeLiteralType, PrimitiveKind>> = Object.freeze({
+    number: PrimitiveKind.NUMBER,
+    boolean: PrimitiveKind.BOOLEAN,
+    string: PrimitiveKind.STRING,
+});
+
+const literalValue = (value: Extract<PhpAstValue, { kind: 'literal' }>) => {
+    const readers = Object.freeze({
+        number: () => ({ kind: 'number' as const, value: value.value }),
+        boolean: () => ({ kind: 'boolean' as const, value: value.value }),
+        null: () => ({ kind: 'null' as const, value: null }),
+        string: () => ({ kind: 'string' as const, value: value.value }),
+    });
+    return readers[value.literalType]();
+};
+
+const literalBoundValue = (value: Extract<PhpAstValue, { kind: 'literal' }>) => {
+    const readers = Object.freeze({
+        number: () => ({ kind: 'number' as const, value: value.value }),
+        boolean: () => ({ kind: 'boolean' as const, value: value.value }),
+        null: () => ({ kind: 'null' as const }),
+        string: () => ({ kind: 'string' as const, value: value.value }),
+    });
+    return readers[value.literalType]();
+};
+
 export function bindLiteralField(
     key: string,
-    value: Extract<PhpAstValue, { kind: 'literal' }>
+    value: Extract<PhpAstValue, { kind: 'literal' }>,
 ): BoundResourceFieldResult {
-    const literalType = typeof value.value === 'number'
-        ? 'number'
-        : typeof value.value === 'boolean'
-            ? 'boolean'
-            : 'string';
-
-    const primKind = literalType === 'number'
-        ? PrimitiveKind.NUMBER
-        : literalType === 'boolean'
-            ? PrimitiveKind.BOOLEAN
-            : PrimitiveKind.STRING;
-
-    const boundAst = BoundSemanticFactory.primitive(
-        new PrimitiveType(primKind),
-        value.literalType === 'null'
-            ? { kind: 'null' }
-            : value.literalType === 'number'
-                ? { kind: 'number', value: value.value }
-                : value.literalType === 'boolean'
-                    ? { kind: 'boolean', value: value.value }
-                    : { kind: 'string', value: value.value }
+    const runtimeType = relationOptionFold(
+        relationFirst(Object.entries(RUNTIME_LITERAL_TYPE), entry => relationEqual(entry[0], typeof value.value)),
+        () => 'string' as RuntimeLiteralType,
+        entry => entry[1],
     );
-    const literal = value.literalType === 'number'
-        ? { kind: 'number' as const, value: value.value }
-        : value.literalType === 'boolean'
-            ? { kind: 'boolean' as const, value: value.value }
-            : value.literalType === 'null'
-                ? { kind: 'null' as const, value: null }
-                : { kind: 'string' as const, value: value.value };
-    const expression = ResourceFieldExpressionFactory.literal(literal);
+    const primKind = PRIMITIVE_KIND[runtimeType];
+    const primitive = scannerSemanticType.primitive(primKind);
+    const boundAst = BoundSemanticFactory.primitive(primitive, literalBoundValue(value));
+    const expression = ResourceFieldExpressionFactory.literal(literalValue(value));
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        new PrimitiveType(primKind),
+        primitive,
         toCamelCase(key),
-        boundAst
+        boundAst,
     );
-
     return { descriptor, boundAst };
 }
 
+const verifiedType = (result: BoundResourceFieldResult, fallback: () => ErrorType) =>
+    relationResolve(
+        relationEqual(result.descriptor.semantic.kind, 'verified'),
+        () => result.descriptor.semantic.type,
+        fallback,
+    );
+
+const branchType = (
+    first: BoundResourceFieldResult,
+    second: BoundResourceFieldResult,
+    message: string,
+) => relationResolve(
+    relationEqual(first.descriptor.semantic.kind, 'verified'),
+    () => first.descriptor.semantic.type,
+    () => relationResolve(
+        relationEqual(second.descriptor.semantic.kind, 'verified'),
+        () => second.descriptor.semantic.type,
+        () => scannerSemanticType.error(message),
+    ),
+);
 
 export function bindShortTernaryField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'short_ternary' }>,
     modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: (params: {
-        readonly key: string;
-        readonly value: PhpAstValue;
-        readonly modelSymbol: OriginModelSymbol;
-        readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult
+    bindFieldFn: BindField,
 ): BoundResourceFieldResult {
     const condition = bindFieldFn({ key, value: value.condition, modelSymbol, modelSymbolTable });
     const falsy = bindFieldFn({ key, value: value.falseBranch, modelSymbol, modelSymbolTable });
-    const semanticType = condition.descriptor.semantic.kind === 'verified'
-        ? condition.descriptor.semantic.type
-        : falsy.descriptor.semantic.kind === 'verified'
-            ? falsy.descriptor.semantic.type
-            : new ErrorType('Short ternary branches could not be semantically resolved');
+    const semanticType = branchType(condition, falsy, 'Short ternary branches could not be semantically resolved');
     const boundAst = BoundSemanticFactory.ternary({
         conditionExpression: SemanticValueFactory.conditionExpression(value.condition.kind),
-        truthy: condition.boundAst,
-        falsy: falsy.boundAst,
+        branches: { kind: 'then_else', whenTrue: condition.boundAst, whenFalse: falsy.boundAst },
         resultingType: semanticType,
     });
-    const expression = ResourceFieldExpressionFactory.shortTernary(
-        condition.descriptor.expression,
-        falsy.descriptor.expression,
-    );
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(
-        key, expression, semanticType, toCamelCase(key), boundAst,
-    );
+    const expression = ResourceFieldExpressionFactory.shortTernary(condition.descriptor.expression, falsy.descriptor.expression);
+    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { descriptor, boundAst };
 }
+
+const CAST_KIND: Readonly<Record<string, PrimitiveKind>> = Object.freeze({
+    int: PrimitiveKind.NUMBER,
+    float: PrimitiveKind.NUMBER,
+    bool: PrimitiveKind.BOOLEAN,
+    string: PrimitiveKind.STRING,
+});
 
 export function bindCastField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'cast_expression' }>,
     modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: (params: {
-        readonly key: string;
-        readonly value: PhpAstValue;
-        readonly modelSymbol: OriginModelSymbol;
-        readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult
+    bindFieldFn: BindField,
 ): BoundResourceFieldResult {
     const operand = bindFieldFn({ key, value: value.operand, modelSymbol, modelSymbolTable });
-    const semanticType = value.castType.kind === 'int' || value.castType.kind === 'float'
-        ? new PrimitiveType(PrimitiveKind.NUMBER)
-        : value.castType.kind === 'bool'
-            ? new PrimitiveType(PrimitiveKind.BOOLEAN)
-            : value.castType.kind === 'string'
-                ? new PrimitiveType(PrimitiveKind.STRING)
-                : operand.descriptor.semantic.kind === 'verified'
-                    ? operand.descriptor.semantic.type
-                    : new ErrorType('Cast operand could not be semantically resolved');
+    const castKind = relationFirst(Object.entries(CAST_KIND), entry => relationEqual(entry[0], value.castType.kind));
+    const semanticType = relationResolve(
+        relationEqual(castKind.kind, 'some'),
+        () => scannerSemanticType.primitive(relationOptionFold(castKind, () => PrimitiveKind.STRING, entry => entry[1])),
+        () => verifiedType(operand, () => scannerSemanticType.error('Cast operand could not be semantically resolved')),
+    );
     const expression = ResourceFieldExpressionFactory.typeCast(
         SemanticValueFactory.castTypeName(value.castType.kind),
         operand.descriptor.expression,
     );
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(
-        key, expression, semanticType, toCamelCase(key), operand.boundAst,
-    );
-    return { descriptor, boundAst: operand.boundAst };
+    const boundAst = operand.boundAst;
+    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { descriptor, boundAst };
 }
 
 export function bindTernaryField(
@@ -134,93 +158,73 @@ export function bindTernaryField(
     value: Extract<PhpAstValue, { kind: 'ternary_expression' }>,
     modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: (params: {
-        readonly key: string;
-        readonly value: PhpAstValue;
-        readonly modelSymbol: OriginModelSymbol;
-        readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult
+    bindFieldFn: BindField,
 ): BoundResourceFieldResult {
-    const trueBranch = bindFieldFn({
-        key,
-        value: value.trueBranch,
-        modelSymbol,
-        modelSymbolTable
-    });
-
-    const falseBranch = bindFieldFn({
-        key,
-        value: value.falseBranch,
-        modelSymbol,
-        modelSymbolTable
-    });
-
-    const semanticType = trueBranch.descriptor.semantic.kind === 'verified'
-        ? trueBranch.descriptor.semantic.type
-        : falseBranch.descriptor.semantic.kind === 'verified'
-            ? falseBranch.descriptor.semantic.type
-            : new ErrorType('Ternary branches could not be semantically resolved');
-
+    const trueBranch = bindFieldFn({ key, value: value.trueBranch, modelSymbol, modelSymbolTable });
+    const falseBranch = bindFieldFn({ key, value: value.falseBranch, modelSymbol, modelSymbolTable });
+    const semanticType = branchType(trueBranch, falseBranch, 'Ternary branches could not be semantically resolved');
     const boundAst = BoundSemanticFactory.ternary({
         conditionExpression: SemanticValueFactory.conditionExpression(value.condition.kind),
-        truthy: trueBranch.boundAst,
-        falsy: falseBranch.boundAst,
+        branches: { kind: 'then_else', whenTrue: trueBranch.boundAst, whenFalse: falseBranch.boundAst },
         resultingType: semanticType,
     });
-
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         trueBranch.descriptor.expression,
         semanticType,
         toCamelCase(key),
-        boundAst
+        boundAst,
     );
-
     return { descriptor, boundAst };
 }
 
+const BINARY_OPERATOR: Readonly<Record<string, string>> = Object.freeze({
+    addition: 'add', subtraction: 'subtract', multiplication: 'multiply', division: 'divide', modulo: 'modulo',
+    equal: 'equal', identical: 'equal', not_equal: 'not_equal', not_identical: 'not_equal',
+    less_than: 'less_than', less_or_equal: 'less_than_or_equal', greater_than: 'greater_than', greater_or_equal: 'greater_than_or_equal',
+    logical_and: 'and', logical_or: 'or',
+});
+const NUMERIC_OPERATORS = Object.freeze(['add', 'subtract', 'multiply', 'divide', 'modulo']);
+const BOOLEAN_OPERATORS = Object.freeze(['equal', 'not_equal', 'less_than', 'less_than_or_equal', 'greater_than', 'greater_than_or_equal', 'and', 'or']);
+
+const binaryOperator = (kind: string) => ({
+    kind: 'semantic_operator' as const,
+    value: relationOptionFold(
+        relationFirst(Object.entries(BINARY_OPERATOR), entry => relationEqual(entry[0], kind)),
+        () => 'concat' as const,
+        entry => entry[1],
+    ),
+});
 
 export function bindBinaryField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'binary_expression' }>,
     modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: (params: {
-        readonly key: string;
-        readonly value: PhpAstValue;
-        readonly modelSymbol: OriginModelSymbol;
-        readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult
+    bindFieldFn: BindField,
 ): BoundResourceFieldResult {
     const left = bindFieldFn({ key, value: value.left, modelSymbol, modelSymbolTable });
     const right = bindFieldFn({ key, value: value.right, modelSymbol, modelSymbolTable });
-    if (left.descriptor.semantic.kind !== 'verified' || right.descriptor.semantic.kind !== 'verified') {
-        return bindFallbackField(key);
-    }
-    const operator = {
-        kind: 'semantic_operator' as const,
-        value: value.operator.kind === 'addition' ? 'add' :
-            value.operator.kind === 'subtraction' ? 'subtract' :
-            value.operator.kind === 'multiplication' ? 'multiply' :
-            value.operator.kind === 'division' ? 'divide' :
-            value.operator.kind === 'modulo' ? 'modulo' :
-            value.operator.kind === 'equal' || value.operator.kind === 'identical' ? 'equal' :
-            value.operator.kind === 'not_equal' || value.operator.kind === 'not_identical' ? 'not_equal' :
-            value.operator.kind === 'less_than' ? 'less_than' :
-            value.operator.kind === 'less_or_equal' ? 'less_than_or_equal' :
-            value.operator.kind === 'greater_than' ? 'greater_than' :
-            value.operator.kind === 'greater_or_equal' ? 'greater_than_or_equal' :
-            value.operator.kind === 'logical_and' ? 'and' :
-            value.operator.kind === 'logical_or' ? 'or' :
-            'concat'
-    };
-    const numeric = operator.value === 'add' || operator.value === 'subtract' || operator.value === 'multiply' || operator.value === 'divide' || operator.value === 'modulo';
-    const comparison = operator.value === 'equal' || operator.value === 'not_equal' || operator.value === 'less_than' || operator.value === 'less_than_or_equal' || operator.value === 'greater_than' || operator.value === 'greater_than_or_equal' || operator.value === 'and' || operator.value === 'or';
-    const resultingType = numeric ? new PrimitiveType(PrimitiveKind.NUMBER) : comparison ? new PrimitiveType(PrimitiveKind.BOOLEAN) : left.descriptor.semantic.type;
-    const expression = ResourceFieldExpressionFactory.binary(operator, left.descriptor.expression, right.descriptor.expression);
-    const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const verified = relationAll([
+        relationEqual(left.descriptor.semantic.kind, 'verified'),
+        relationEqual(right.descriptor.semantic.kind, 'verified'),
+    ]);
+    return relationResolve(
+        verified,
+        () => {
+            const operator = binaryOperator(value.operator.kind);
+            const resultingType = relationResolve(
+                relationContains(NUMERIC_OPERATORS, operator.value),
+                () => scannerSemanticType.number(),
+                () => relationResolve(relationContains(BOOLEAN_OPERATORS, operator.value), () => scannerSemanticType.boolean(), () => left.descriptor.semantic.type),
+            );
+            const expression = ResourceFieldExpressionFactory.binary(operator, left.descriptor.expression, right.descriptor.expression);
+            const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
+            const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
+            return { descriptor, boundAst };
+        },
+        () => bindFallbackField(key),
+    );
 }
 
 export function bindNullCoalesceField(
@@ -228,24 +232,30 @@ export function bindNullCoalesceField(
     value: Extract<PhpAstValue, { kind: 'null_coalesce' }>,
     modelSymbol: OriginModelSymbol,
     modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: (params: {
-        readonly key: string;
-        readonly value: PhpAstValue;
-        readonly modelSymbol: OriginModelSymbol;
-        readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult
+    bindFieldFn: BindField,
 ): BoundResourceFieldResult {
     const left = bindFieldFn({ key, value: value.left, modelSymbol, modelSymbolTable });
     const right = bindFieldFn({ key, value: value.right, modelSymbol, modelSymbolTable });
-    if (left.descriptor.semantic.kind !== 'verified' || right.descriptor.semantic.kind !== 'verified') {
-        return bindFallbackField(key);
-    }
-    const operator = { kind: 'semantic_operator' as const, value: 'null_coalesce' as const };
-    const resultingType = left.descriptor.semantic.type.isNullable() ? right.descriptor.semantic.type : left.descriptor.semantic.type;
-    const expression = ResourceFieldExpressionFactory.binary(operator, left.descriptor.expression, right.descriptor.expression);
-    const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
-    const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const verified = relationAll([
+        relationEqual(left.descriptor.semantic.kind, 'verified'),
+        relationEqual(right.descriptor.semantic.kind, 'verified'),
+    ]);
+    return relationResolve(
+        verified,
+        () => {
+            const operator = { kind: 'semantic_operator' as const, value: 'null_coalesce' as const };
+            const resultingType = relationResolve(
+                left.descriptor.semantic.type.isNullable(),
+                () => right.descriptor.semantic.type,
+                () => left.descriptor.semantic.type,
+            );
+            const expression = ResourceFieldExpressionFactory.binary(operator, left.descriptor.expression, right.descriptor.expression);
+            const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
+            const descriptor = ScannedResourceFieldDescriptor.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
+            return { descriptor, boundAst };
+        },
+        () => bindFallbackField(key),
+    );
 }
 
 export function bindFallbackField(key: string): BoundResourceFieldResult {
@@ -254,10 +264,9 @@ export function bindFallbackField(key: string): BoundResourceFieldResult {
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
         key,
         expression,
-        new ErrorType('Resource expression requires semantic binding before a type can be assigned'),
+        scannerSemanticType.error('Resource expression requires semantic binding before a type can be assigned'),
         toCamelCase(key),
-        boundAst
+        boundAst,
     );
-
     return { descriptor, boundAst };
 }

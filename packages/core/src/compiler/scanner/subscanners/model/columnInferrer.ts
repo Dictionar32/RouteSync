@@ -1,55 +1,89 @@
 /**
- * Canonical migration-column boundary. Model columns are sourced directly
- * from MigrationAst/ColumnDefinition; no ParsedColumn reconstruction and no
- * Map<string, Columns> semantic boundary are allowed here.
+ * Canonical migration-column boundary. Schema discovery is expressed as a
+ * recursive relation over migration and operation evidence.
  */
 import type { Columns, Indexes, ForeignKeys } from '../../../../types/upstream/collections';
 import type { MigrationAst } from '../../../../types/upstream/ast';
 import type { MigrationOperation } from '../../../../types/upstream/migration';
 import type { TableName } from '../../../../types/upstream/names';
+import { relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
+import { relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+
+type SchemaWitness = {
+    readonly columns: Columns;
+    readonly indexes: Indexes;
+    readonly foreignKeys: ForeignKeys;
+};
+
+const operationWitness = (table: TableName, operation: MigrationOperation): RelationOption<SchemaWitness> =>
+    relationGate(
+        relationEqual(operation.kind, 'create_table'),
+        () => relationGate(
+            relationEqual(operation.table.value.value, table.value.value),
+            () => relationSome({ columns: operation.columns, indexes: operation.indexes, foreignKeys: operation.foreignKeys }),
+            relationNone<SchemaWitness>,
+        ),
+        () => relationGate(
+            relationEqual(operation.kind, 'alter_table'),
+            () => relationGate(
+                relationEqual(operation.table.value.value, table.value.value),
+                () => relationSome({ columns: operation.additions, indexes: operation.indexes, foreignKeys: operation.foreignKeys }),
+                relationNone<SchemaWitness>,
+            ),
+            relationNone<SchemaWitness>,
+        ),
+    );
+
+const operationsWitness = (table: TableName, operations: MigrationAst['definition']['operations']['items']): RelationOption<SchemaWitness> =>
+    relationGate(
+        relationEqual(operations.kind, 'cons'),
+        () => {
+            const head = operationWitness(table, operations.head);
+            return relationGate(
+                relationEqual(head.kind, 'some'),
+                () => head,
+                () => operationsWitness(table, operations.tail),
+            );
+        },
+        relationNone<SchemaWitness>,
+    );
+
+const schemaWitness = (table: TableName, migrations: readonly MigrationAst[], index = 0): RelationOption<SchemaWitness> =>
+    relationGate(
+        relationEqual(index, migrations.length),
+        () => relationNone<SchemaWitness>,
+        () => {
+            const witness = operationsWitness(table, migrations[index].definition.operations.items);
+            return relationGate(
+                relationEqual(witness.kind, 'some'),
+                () => witness,
+                () => schemaWitness(table, migrations, index + 1),
+            );
+        },
+    );
+
+const requireSchema = (table: TableName, migrations: readonly MigrationAst[]): SchemaWitness =>
+    relationOptionFold(
+        schemaWitness(table, migrations),
+        () => {
+            throw Error(`Model boundary violation: schema associated with table "${table.value.value}" was not found.`);
+        },
+        witness => witness,
+    );
 
 export function resolveModelColumns(
     table: TableName,
-    migrations: readonly MigrationAst[]
+    migrations: readonly MigrationAst[],
 ): Columns {
-    for (const migration of migrations) {
-        let operations = migration.definition.operations.items;
-        while (operations.kind === 'cons') {
-            const operation: MigrationOperation = operations.head;
-            if (operation.kind === 'create_table' && operation.table.value.value === table.value.value) {
-                return operation.columns;
-            }
-            if (operation.kind === 'alter_table' && operation.table.value.value === table.value.value) {
-                return operation.additions;
-            }
-            operations = operations.tail;
-        }
-    }
-
-    throw new Error(
-        `Model boundary violation: migration schema for table "${table.value.value}" was not found. ` +
-        'Model columns cannot be synthesized from Eloquent naming conventions.'
-    );
+    return requireSchema(table, migrations).columns;
 }
 
 export type ResolvedModelSchema = { readonly columns: Columns; readonly indexes: Indexes; readonly foreignKeys: ForeignKeys };
 
 export function resolveModelSchema(
     table: TableName,
-    migrations: readonly MigrationAst[]
+    migrations: readonly MigrationAst[],
 ): ResolvedModelSchema {
-    for (const migration of migrations) {
-        let operations = migration.definition.operations.items;
-        while (operations.kind === 'cons') {
-            const operation: MigrationOperation = operations.head;
-            if (operation.kind === 'create_table' && operation.table.value.value === table.value.value) {
-                return { columns: operation.columns, indexes: operation.indexes, foreignKeys: operation.foreignKeys };
-            }
-            if (operation.kind === 'alter_table' && operation.table.value.value === table.value.value) {
-                return { columns: operation.additions, indexes: operation.indexes, foreignKeys: operation.foreignKeys };
-            }
-            operations = operations.tail;
-        }
-    }
-    throw new Error(`Model boundary violation: schema for table "${table.value.value}" was not found.`);
+    const witness = requireSchema(table, migrations);
+    return { columns: witness.columns, indexes: witness.indexes, foreignKeys: witness.foreignKeys };
 }

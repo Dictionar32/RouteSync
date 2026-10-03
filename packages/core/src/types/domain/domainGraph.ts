@@ -1,7 +1,7 @@
 import type { RouteManifest } from "./base";
 import type { EndpointContract } from "./contracts";
 import type { ParsedModel } from "./database";
-import type { ParsedRoute } from "./routes";
+import type { RouteSemanticFlow } from "./routes";
 import type { DomainOperationGraph } from './operationGraph';
 import { createDomainOperationGraph } from './operationGraph';
 import {
@@ -20,7 +20,7 @@ import {
  * Guarantees that resource groups are categorized into typed subgraphs
  * at the Origin Boundary with 0 downstream re-classification or switch checks.
  */
-export interface ResourceGroupGraph<TRoute = ParsedRoute> {
+export interface ResourceGroupGraph<TRoute = RouteSemanticFlow> {
   /** Fine-grained subgraphs */
   readonly fullCrud: readonly FullCrudResourceGroupDescriptor<TRoute>[];
   readonly readOnlyCrud: readonly ReadOnlyCrudResourceGroupDescriptor<TRoute>[];
@@ -42,7 +42,7 @@ export interface ResourceGroupGraph<TRoute = ParsedRoute> {
  * into a partitioned ResourceGroupGraph in a single O(N) pass.
  * Pure function: Zero `new`, zero object lifecycle ceremony, zero duplicate copying.
  */
-export function createResourceGroupGraph<TRoute = ParsedRoute>(
+export function createResourceGroupGraph<TRoute = RouteSemanticFlow>(
   groups: readonly ResourceGroupDescriptor<TRoute>[]
 ): ResourceGroupGraph<TRoute> {
   const fullCrud: FullCrudResourceGroupDescriptor<TRoute>[] = [];
@@ -83,7 +83,7 @@ export const ScannedResourceGroupGraph = Object.freeze({
 /**
  * Top-Level Classified Domain Graph (SSOT Data Carrier).
  */
-export interface ClassifiedDomainGraph<TRoute = ParsedRoute> {
+export interface ClassifiedDomainGraph<TRoute = RouteSemanticFlow> {
   readonly manifest: RouteManifest;
   readonly contracts: readonly EndpointContract[];
   readonly resourceGroups: readonly ResourceGroupDescriptor<TRoute>[];
@@ -93,7 +93,7 @@ export interface ClassifiedDomainGraph<TRoute = ParsedRoute> {
   readonly operations: DomainOperationGraph;
 }
 
-export function attachDomainOperations<TRoute extends ParsedRoute>(
+export function attachDomainOperations<TRoute extends RouteSemanticFlow>(
   graph: Omit<ClassifiedDomainGraph<TRoute>, 'operations'>
 ): ClassifiedDomainGraph<TRoute> {
   return Object.freeze({

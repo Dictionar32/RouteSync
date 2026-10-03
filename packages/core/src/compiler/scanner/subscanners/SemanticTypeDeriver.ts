@@ -1,82 +1,50 @@
-/**
- * SemanticTypeDeriver.ts
- *
- * Active Consumer & Orchestrator: Derives Canonical ObjectType[] AST streams.
- * Consumes modular sub-domains from semantic/ with zero wildcard re-exports.
- *
- * @module core/compiler/scanner/subscanners
- */
-
-import type {
-    ParsedRoute,
-    ParsedResource,
-} from '../../../types/route';
+/** Relational semantic type derivation facade. */
 import type { ObjectType } from '../../types/SemanticType';
-import type { ModelAst } from '../../../types/upstream/ast';
+import type { RouteSemanticFlow } from '../../../types/route';
+import type { ModelAst, ResourceAst } from '../../../types/upstream/ast';
 import { TypeInterner } from '../../types/TypeInterner';
-
-// Sub-domain imports
+import { relationUnique } from '../../../semantic/kernel/relationMembership';
+import type { RelationMembership } from '../../../semantic/kernel/relationMembership';
 import { SemanticDerivationContext } from './semantic/SemanticDerivationContext';
-
 import { deriveResourceTypes } from './semantic/resourceTypeDeriver';
 import { deriveRouteResponseTypes } from './semantic/routeResponseDeriver';
 import { deriveModelTypes } from './semantic/modelTypeDeriver';
 
-// ─── Active Consumer Orchestrator: Pure Flow ──────────────────────────────────
-
-export class SemanticTypeDeriver {
-    public readonly context: SemanticDerivationContext;
-
-    public constructor(context: SemanticDerivationContext) {
-        this.context = context;
-        Object.freeze(this);
-    }
-
-    public static create(context: SemanticDerivationContext): SemanticTypeDeriver {
-        return new SemanticTypeDeriver(context);
-    }
-
-    public static fromContext(
-        resources: readonly ParsedResource[] = [],
-        models: readonly ModelAst[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        routes: readonly ParsedRoute[] = []
-    ): SemanticTypeDeriver {
-        return new SemanticTypeDeriver(SemanticDerivationContext.create(resources, models, interner, routes));
-    }
-
-    /**
-     * Derives Canonical ObjectType[] AST streams leveraging Core TypeInterner and SymbolTable.
-     */
-    public static derive(
-        resources: readonly ParsedResource[] = [],
-        models: readonly ModelAst[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        routes: readonly ParsedRoute[] = []
-    ): readonly ObjectType[] {
-        const deriver = SemanticTypeDeriver.fromContext(resources, models, interner, routes);
-        return deriver.run();
-    }
-
-    /**
-     * Pure Flow Declaration: Resources -> Route Responses -> Models -> Unified ObjectType Stream
-     */
-    public run(): readonly ObjectType[] {
-        const seenNames = new Set<string>();
-        const resourceTypes = deriveResourceTypes(this.context, seenNames);
-        const routeTypes = deriveRouteResponseTypes(this.context, seenNames);
-        const modelTypes = deriveModelTypes(this.context, seenNames);
-
-        return Object.freeze([...resourceTypes, ...routeTypes, ...modelTypes]);
-    }
+export interface SemanticTypeDeriver {
+  readonly context: SemanticDerivationContext;
+  readonly run: () => readonly ObjectType[];
 }
 
-// ─── Explicit Named Exports (Rule 14: Zero Wildcard Re-export) ────────────────
-
-export {
-    SemanticDerivationContext,
-    deriveResourceTypes,
-    deriveRouteResponseTypes,
-    deriveModelTypes
+const fromContext = (context: SemanticDerivationContext): SemanticTypeDeriver => {
+  const run = (): readonly ObjectType[] => {
+    const seenNames: RelationMembership<string> = relationUnique([]);
+    const resourceTypes = deriveResourceTypes(context, seenNames);
+    const routeTypes = deriveRouteResponseTypes(context, seenNames);
+    const modelTypes = deriveModelTypes(context, seenNames);
+    return Object.freeze([...resourceTypes, ...routeTypes, ...modelTypes]);
+  };
+  return Object.freeze({ context, run });
 };
 
+export const SemanticTypeDeriver = Object.freeze({
+  create: fromContext,
+  fromContext: (
+    resources: readonly ResourceAst[] = [],
+    models: readonly ModelAst[] = [],
+    interner: TypeInterner = TypeInterner.create(),
+    routes: readonly RouteSemanticFlow[] = [],
+  ): SemanticTypeDeriver => fromContext(SemanticDerivationContext.create(resources, models, interner, routes)),
+  derive: (
+    resources: readonly ResourceAst[] = [],
+    models: readonly ModelAst[] = [],
+    interner: TypeInterner = TypeInterner.create(),
+    routes: readonly RouteSemanticFlow[] = [],
+  ): readonly ObjectType[] => fromContext(SemanticDerivationContext.create(resources, models, interner, routes)).run(),
+});
+
+export {
+  SemanticDerivationContext,
+  deriveResourceTypes,
+  deriveRouteResponseTypes,
+  deriveModelTypes,
+};

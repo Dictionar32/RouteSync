@@ -1,0 +1,7 @@
+{
+  "phase": 624,
+  "policy": "preserve-unused-file-paths-but-empty-implementation",
+  "deleted_files": 0,
+  "emptied_files": 9,
+  "all_emptied_files_zero_bytes": true
+}

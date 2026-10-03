@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   getRouteContract,
   CrudRole,
   ResourceGroupKind,
@@ -16,7 +16,7 @@ import {
 describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11, & 12)', () => {
   describe('1. ScannedClassifiedRouteDescriptor Complete Contract & Factory', () => {
     it('requires complete non-nullable contract in constructor and freezes instance', () => {
-      const raw = ScannedRouteDescriptor.create({
+      const raw = RouteSemanticFlowFactory.create({
         method: 'GET',
         path: '/api/v1/products',
         resourceName: 'Product'
@@ -48,7 +48,7 @@ describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11,
     })
 
     it('creates descriptor via static semantic factory .fromRoute with automatic contract derivation', () => {
-      const raw = ScannedRouteDescriptor.create({
+      const raw = RouteSemanticFlowFactory.create({
         method: 'POST',
         path: '/api/v1/products',
         resourceName: 'Product'
@@ -74,11 +74,11 @@ describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11,
   describe('2. Deterministic Route Classification (classifyRoutes)', () => {
     it('classifies REST routes into canonical crud roles and derives contracts at Origin Boundary', () => {
       const routes = [
-        ScannedRouteDescriptor.create({ method: 'GET', path: '/api/articles', resourceName: 'Article' }),
-        ScannedRouteDescriptor.create({ method: 'GET', path: '/api/articles/{id}', resourceName: 'Article' }),
-        ScannedRouteDescriptor.create({ method: 'POST', path: '/api/articles', resourceName: 'Article' }),
-        ScannedRouteDescriptor.create({ method: 'PUT', path: '/api/articles/{id}', resourceName: 'Article' }),
-        ScannedRouteDescriptor.create({ method: 'DELETE', path: '/api/articles/{id}', resourceName: 'Article' })
+        RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/articles', resourceName: 'Article' }),
+        RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/articles/{id}', resourceName: 'Article' }),
+        RouteSemanticFlowFactory.create({ method: 'POST', path: '/api/articles', resourceName: 'Article' }),
+        RouteSemanticFlowFactory.create({ method: 'PUT', path: '/api/articles/{id}', resourceName: 'Article' }),
+        RouteSemanticFlowFactory.create({ method: 'DELETE', path: '/api/articles/{id}', resourceName: 'Article' })
       ]
 
       const classified = classifyRoutes(routes)
@@ -101,11 +101,11 @@ describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11,
     it('partitions FullCrud group with unified type signatures and zero fallback', () => {
       const manifest: RouteManifest = {
         routes: [
-          ScannedRouteDescriptor.create({ method: 'GET', path: '/api/users', resourceName: 'User' }),
-          ScannedRouteDescriptor.create({ method: 'GET', path: '/api/users/{id}', resourceName: 'User' }),
-          ScannedRouteDescriptor.create({ method: 'POST', path: '/api/users', resourceName: 'User' }),
-          ScannedRouteDescriptor.create({ method: 'PUT', path: '/api/users/{id}', resourceName: 'User' }),
-          ScannedRouteDescriptor.create({ method: 'DELETE', path: '/api/users/{id}', resourceName: 'User' })
+          RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/users', resourceName: 'User' }),
+          RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/users/{id}', resourceName: 'User' }),
+          RouteSemanticFlowFactory.create({ method: 'POST', path: '/api/users', resourceName: 'User' }),
+          RouteSemanticFlowFactory.create({ method: 'PUT', path: '/api/users/{id}', resourceName: 'User' }),
+          RouteSemanticFlowFactory.create({ method: 'DELETE', path: '/api/users/{id}', resourceName: 'User' })
         ],
         models: [],
         resources: [],
@@ -127,8 +127,8 @@ describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11,
     it('partitions ReadOnlyCrud group when no mutations are present', () => {
       const manifest: RouteManifest = {
         routes: [
-          ScannedRouteDescriptor.create({ method: 'GET', path: '/api/logs', resourceName: 'Log' }),
-          ScannedRouteDescriptor.create({ method: 'GET', path: '/api/logs/{id}', resourceName: 'Log' })
+          RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/logs', resourceName: 'Log' }),
+          RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/logs/{id}', resourceName: 'Log' })
         ],
         models: [],
         resources: [],
@@ -148,8 +148,8 @@ describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11,
     it('partitions Singleton group when route has no trailing dynamic param', () => {
       const manifest: RouteManifest = {
         routes: [
-          ScannedRouteDescriptor.create({ method: 'GET', path: '/api/profile', resourceName: 'Profile' }),
-          ScannedRouteDescriptor.create({ method: 'POST', path: '/api/profile', resourceName: 'Profile' })
+          RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/profile', resourceName: 'Profile' }),
+          RouteSemanticFlowFactory.create({ method: 'POST', path: '/api/profile', resourceName: 'Profile' })
         ],
         models: [],
         resources: [],
@@ -168,7 +168,7 @@ describe('Pure Route Classifier Contracts & Zero-Branching SSOT (Rule 8, 10, 11,
     it('partitions Custom group when route has dynamic subresource trailing param', () => {
       const manifest: RouteManifest = {
         routes: [
-          ScannedRouteDescriptor.create({ method: 'POST', path: '/api/orders/{orderId}/pay' })
+          RouteSemanticFlowFactory.create({ method: 'POST', path: '/api/orders/{orderId}/pay' })
         ],
         models: [],
         resources: [],

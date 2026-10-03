@@ -1,0 +1,5 @@
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts:96:if_statement: value => {
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts:112:while_statement: value => {
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts:125:foreach_statement: value => {
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts:140:for_statement: value => {
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts:160:switch_statement: value => {

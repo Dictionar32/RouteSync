@@ -1,123 +1,132 @@
 /**
- * twoPassRelationResolver.ts
+ * Declarative Resource -> Model knowledge closure.
  *
- * Fixpoint iteration engine for propagating backing Eloquent models across nested Resource relations.
- *
- * @module core/compiler/scanner/subscanners/resource/twoPassRelationResolver
+ * Relations are facts; propagation is a monotone transfer over those facts.
+ * The fixed-point driver owns iteration, while semantic meaning remains in
+ * relation predicates and derived resolution facts.
  */
 
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
-import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { findControllerResourceBinding } from "../controller/resourceDataflowAggregator";
 import { matchLookup } from "../../../../types/upstream/collections";
-import type { ModelName, ResourceName, RelationName } from "../../../../types/upstream/names";
+import type { ResourceName } from "../../../../types/upstream/names";
+import { type Presence, fromOptional, presenceFold } from "../../../../types/upstream/presence";
+import {
+    createResourceModelResolutionFact,
+    createResourceRelationFact,
+    resourceModelResolutionFor,
+    type ResourceModelKnowledgeDataFlow,
+    type ResourceModelResolutionFact,
+    type ResourceRelationKnowledgeFact,
+} from "./resourceModelKnowledgeDataFlow";
+import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationFirst, relationOptionFold, relationProject, relationFold, relationLatticeFixedPoint } from "../../../../semantic/kernel/relationalSequence";
 
-export interface ResourceRelationEdge {
-    readonly parentResource: ResourceName;
-    readonly childResource: ResourceName;
-    readonly relationKey: RelationName;
+export type ResourceRelationEdge = ResourceRelationKnowledgeFact;
+
+function modelForResolution(
+    fact: ResourceModelResolutionFact,
+    modelSymbolTable: ModelSymbolTable,
+): Presence<ReturnType<ModelSymbolTable['get']>> {
+    return matchLookup(modelSymbolTable.get(fact.model), {
+        missing: () => ({ kind: 'absent' }),
+        found: ({ value }) => ({ kind: 'present', value }),
+    });
 }
 
-function sameResourceName(left: ResourceName, right: ResourceName): boolean {
-    return left.value.value === right.value.value;
-}
-
-function findResolvedModel(
-    resolvedModels: ReadonlyMap<ResourceName, OriginModelSymbol>,
-    resourceName: ResourceName
-): OriginModelSymbol | undefined {
-    for (const [key, value] of resolvedModels) {
-        if (sameResourceName(key, resourceName)) return value;
-    }
-    return undefined;
-}
-
-function setResolvedModel(
-    resolvedModels: Map<ResourceName, OriginModelSymbol>,
-    resourceName: ResourceName,
-    model: OriginModelSymbol
-): void {
-    for (const key of resolvedModels.keys()) {
-        if (sameResourceName(key, resourceName)) {
-            resolvedModels.set(key, model);
-            return;
-        }
-    }
-    resolvedModels.set(resourceName, model);
-}
-
-/**
- * Resolves initial model for a resource via controller dataflow or naming convention.
- */
 export function resolveInitialModel(
     resourceName: ResourceName,
     modelSymbolTable: ModelSymbolTable,
-    controllerDataflowMap: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow | undefined,
-    resolvedModels: Map<ResourceName, OriginModelSymbol>
-): void {
-    const binding = controllerDataflowMap
-        ? findControllerResourceBinding(controllerDataflowMap, resourceName)
-        : undefined;
-    if (binding) {
-        const lookup = binding.model.kind === 'table'
-            ? modelSymbolTable.findByTableName(binding.model.name)
-            : modelSymbolTable.get(binding.model.name);
-        const sym = matchLookup(lookup, {
-            missing: () => undefined,
-            found: ({ value }) => value
-        });
-        if (sym !== undefined) {
-            setResolvedModel(resolvedModels, resourceName, sym);
-            return;
-        }
-    }
-    const conventionSym = matchLookup(modelSymbolTable.findForResource(resourceName), {
-        missing: () => undefined,
-        found: ({ value }) => value
-    });
-    if (conventionSym !== undefined) {
-        setResolvedModel(resolvedModels, resourceName, conventionSym);
-    }
+    controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow,
+): Presence<ResourceModelResolutionFact> {
+    return presenceFold(
+        fromOptional(controllerDataflowMap),
+        () => presenceFold(
+            matchLookup(modelSymbolTable.findForResource(resourceName), {
+                missing: () => ({ kind: 'absent' }),
+                found: ({ value }) => ({ kind: 'present', value }),
+            }),
+            () => ({ kind: 'absent' }),
+            value => ({ kind: 'present', value: createResourceModelResolutionFact(resourceName, value.identity.name, 'convention') })
+        ),
+        dataflow => relationOptionFold(
+            findControllerResourceBinding(dataflow, resourceName),
+            () => presenceFold(
+                matchLookup(modelSymbolTable.findForResource(resourceName), {
+                    missing: () => ({ kind: 'absent' }),
+                    found: ({ value }) => ({ kind: 'present', value }),
+                }),
+                () => ({ kind: 'absent' }),
+                value => ({ kind: 'present', value: createResourceModelResolutionFact(resourceName, value.identity.name, 'convention') })
+            ),
+            binding => presenceFold(
+                matchLookup(
+                    relationGate(
+                        relationEqual(binding.model.kind, 'table'),
+                        () => modelSymbolTable.findByTableName(binding.model.name),
+                        () => modelSymbolTable.get(binding.model.name),
+                    ),
+                    {
+                        missing: () => ({ kind: 'absent' }),
+                        found: ({ value }) => ({ kind: 'present', value }),
+                    },
+                ),
+                () => ({ kind: 'absent' }),
+                value => ({ kind: 'present', value: createResourceModelResolutionFact(resourceName, value.identity.name, 'controller_dataflow') }),
+            ),
+        ),
+    );
 }
 
-/**
- * Propagates backing models across parent-child resource relations until fixpoint.
- */
 export function propagateRelationEdges(
     relationEdges: readonly ResourceRelationEdge[],
-    resolvedModels: Map<ResourceName, OriginModelSymbol>,
+    initialResolutions: readonly ResourceModelResolutionFact[],
     modelSymbolTable: ModelSymbolTable,
-    maxIterations = 5
-): Map<ResourceName, ModelName> {
-    const relationPropagationMap = new Map<ResourceName, ModelName>();
-    let changed = true;
-    let iteration = 0;
-
-    while (changed && iteration < maxIterations) {
-        changed = false;
-        iteration++;
-        for (const edge of relationEdges) {
-            const parentSym = findResolvedModel(resolvedModels, edge.parentResource);
-            const childAlreadyResolved = findResolvedModel(resolvedModels, edge.childResource) !== undefined;
-            if (parentSym !== undefined && !childAlreadyResolved) {
-                const rel = matchLookup(parentSym.relation(edge.relationKey), {
-                    missing: () => undefined,
-                    found: ({ value }) => value
-                });
-                if (rel) {
-                    const childSym = matchLookup(modelSymbolTable.get(rel.targetModel), {
-                        missing: () => undefined,
-                        found: ({ value }) => value
-                    });
-                    if (childSym !== undefined) {
-                        setResolvedModel(resolvedModels, edge.childResource, childSym);
-                        relationPropagationMap.set(edge.childResource, rel.targetModel);
-                        changed = true;
-                    }
-                }
-            }
-        }
-    }
-
-    return relationPropagationMap;
+    maxIterations = 5,
+): ResourceModelKnowledgeDataFlow {
+    const relations = Object.freeze(relationProject(
+        relationEdges,
+        edge => createResourceRelationFact(edge.parentResource, edge.childResource, edge.relationKey),
+    ));
+    type State = Readonly<{ readonly resolutions: readonly ResourceModelResolutionFact[] }>;
+    const seed: State = Object.freeze({ resolutions: Object.freeze([...initialResolutions]) });
+    const transfer = (state: State): State => Object.freeze({
+        resolutions: relationFold(
+            relationEdges,
+            state.resolutions,
+            (accumulator, edge) => {
+                const dataflow: ResourceModelKnowledgeDataFlow = { kind: 'resource_model_knowledge_data_flow', relations, resolutions: accumulator };
+                const parent = resourceModelResolutionFor(dataflow, edge.parentResource);
+                const child = resourceModelResolutionFor(dataflow, edge.childResource);
+                return presenceFold(parent, () => accumulator, parentResolution =>
+                    presenceFold(child, () => accumulator, () => {
+                        const parentSymbol = modelForResolution(parentResolution, modelSymbolTable);
+                        return presenceFold(parentSymbol, () => accumulator, symbol => {
+                            const relation = matchLookup(symbol.relation(edge.relationKey), {
+                                missing: () => ({ kind: 'absent' }),
+                                found: ({ value }) => ({ kind: 'present', value }),
+                            });
+                            return presenceFold(relation, () => accumulator, rel => {
+                                const childSymbol = matchLookup(modelSymbolTable.get(rel.targetModel), {
+                                    missing: () => ({ kind: 'absent' }),
+                                    found: ({ value }) => ({ kind: 'present', value }),
+                                });
+                                return presenceFold(childSymbol, () => accumulator, () => [
+                                    ...accumulator,
+                                    createResourceModelResolutionFact(edge.childResource, rel.targetModel, 'relation_propagation', edge.relationKey),
+                                ]);
+                            });
+                        });
+                    }),
+                );
+            },
+        ),
+    });
+    const lattice = {
+        bottom: seed,
+        join: (left: State, right: State): State => Object.freeze({ resolutions: relationGate(right.resolutions.length >= left.resolutions.length, () => right.resolutions, () => left.resolutions) }),
+        equal: (left: State, right: State): boolean => relationEqual(left.resolutions.length, right.resolutions.length),
+    };
+    const closure = relationLatticeFixedPoint(lattice, seed, transfer, maxIterations);
+    return Object.freeze({ kind: 'resource_model_knowledge_data_flow', relations, resolutions: Object.freeze(closure.value.resolutions) });
 }

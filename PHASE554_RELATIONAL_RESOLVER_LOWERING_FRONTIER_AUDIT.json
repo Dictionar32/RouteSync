@@ -1,0 +1,47 @@
+{
+  "phase": 554,
+  "frontier": "scanner-lexer-parser-adapter-generic-solver-syntax-error-core-ternary-semantic-resolver",
+  "scannedFiles": 482,
+  "hostLeakCount": 0,
+  "leakingFiles": [],
+  "modelEvidence": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "null": 2,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/method-return/selectRawProjectionParser.ts",
+      "null": 15,
+      "never": 0
+    }
+  ],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": true,
+  "architecture": {
+    "scopeResolution": "relation-driven candidate/witness/closure semantics",
+    "rewrite": "declarative relation catalogs consumed by projection/dispatch",
+    "fixedPoint": "recursive relation closure and lattice execution"
+  }
+}

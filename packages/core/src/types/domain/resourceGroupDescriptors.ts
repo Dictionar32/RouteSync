@@ -1,4 +1,4 @@
-import type { ParsedRoute } from "./routes";
+import type { RouteSemanticFlow } from "./routes";
 import type { PropertyName, ResourceName } from "./semanticValues";
 
 /**
@@ -164,6 +164,10 @@ export class ScannedResourceGroupTypeSignature implements BaseResourceGroupTypeS
   public readonly importedTypes: readonly string[];
   public readonly contractImportedTypes: readonly string[];
 
+  public static create(params: ResourceGroupTypeSignatureParams): ScannedResourceGroupTypeSignature {
+    return new ScannedResourceGroupTypeSignature(params);
+  }
+
   constructor(params: ResourceGroupTypeSignatureParams) {
     this.list = params.list;
     this.detail = params.detail;
@@ -205,7 +209,7 @@ export interface ResourceGroupPrimaryKey {
   readonly type: string;
 }
 
-export interface ResourceGroupIdentityTrait<TRoute = ParsedRoute> {
+export interface ResourceGroupIdentityTrait<TRoute = RouteSemanticFlow> {
   readonly identity: ResourceGroupIdentity;
   readonly primaryKey: ResourceGroupPrimaryKey;
   readonly routes: readonly TRoute[];
@@ -231,7 +235,7 @@ interface ResourceGroupQueryKeyInput {
  * Resource Group Read Endpoints Trait.
  * Guaranteed present on all CRUD variants (index, show).
  */
-export interface CrudEndpointsTrait<TRoute = ParsedRoute> {
+export interface CrudEndpointsTrait<TRoute = RouteSemanticFlow> {
   readonly index: TRoute;
   readonly show: TRoute;
 }
@@ -240,7 +244,7 @@ export interface CrudEndpointsTrait<TRoute = ParsedRoute> {
  * Resource Group Strict Mutation Endpoints Trait.
  * Guaranteed present on Full CRUD (create, update, delete).
  */
-export interface StrictMutationEndpointsTrait<TRoute = ParsedRoute> {
+export interface StrictMutationEndpointsTrait<TRoute = RouteSemanticFlow> {
   readonly create: TRoute;
   readonly update: TRoute;
   readonly delete: TRoute;
@@ -250,7 +254,7 @@ export interface StrictMutationEndpointsTrait<TRoute = ParsedRoute> {
  * Resource Group Flexible Mutation Endpoints Trait.
  * Expressed via the explicit MutationCapability ADT.
  */
-export interface FlexibleMutationEndpointsTrait<TRoute = ParsedRoute> {
+export interface FlexibleMutationEndpointsTrait<TRoute = RouteSemanticFlow> {
   readonly create: MutationCapability<TRoute>;
   readonly update: MutationCapability<TRoute>;
   readonly delete: MutationCapability<TRoute>;
@@ -260,7 +264,7 @@ export interface FlexibleMutationEndpointsTrait<TRoute = ParsedRoute> {
  * Resource Group Visitor Capability Trait.
  * Enables zero-switch, zero-if polymorphic catamorphism.
  */
-export interface ResourceGroupVisitorCapability<TRoute = ParsedRoute> {
+export interface ResourceGroupVisitorCapability<TRoute = RouteSemanticFlow> {
   readonly matchFineGrained: <R>(
     visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
   ) => R;
@@ -279,7 +283,7 @@ export interface ResourceGroupVisitorCapability<TRoute = ParsedRoute> {
  * Keep this contract outside BaseResourceGroupDescriptor so the canonical
  * domain model does not advertise code generation as part of its identity.
  */
-export interface ResourceGroupLoweringOperations<TRoute = ParsedRoute> {
+export interface ResourceGroupLoweringOperations<TRoute = RouteSemanticFlow> {
   lowerQueryKeyBlock(): IterableIterator<string>;
   lowerCacheConfig(addInvs: (route: TRoute, invs: string[]) => void): IterableIterator<string>;
 }
@@ -288,7 +292,7 @@ export interface ResourceGroupLoweringOperations<TRoute = ParsedRoute> {
  * Base Resource Group Descriptor.
  * Composes core identity, query key metadata, lowering traits, and polymorphic visitor capabilities.
  */
-export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface BaseResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends ResourceGroupIdentityTrait<TRoute>,
     ResourceGroupQueryKeysTrait,
     ResourceGroupVisitorCapability<TRoute> {
@@ -303,7 +307,7 @@ export interface BaseResourceGroupDescriptor<TRoute = ParsedRoute>
  * Base CRUD Resource Group Descriptor.
  * Guaranteed isCrud: true and mandatory read endpoints (index, show).
  */
-export interface BaseCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface BaseCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends BaseResourceGroupDescriptor<TRoute>,
     CrudEndpointsTrait<TRoute> {
   readonly isCrud: true;
@@ -313,7 +317,7 @@ export interface BaseCrudResourceGroupDescriptor<TRoute = ParsedRoute>
  * Full CRUD Resource Group Descriptor.
  * Composes Base CRUD with strict non-nullable mutation endpoints.
  */
-export interface FullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface FullCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends BaseCrudResourceGroupDescriptor<TRoute>,
     StrictMutationEndpointsTrait<TRoute> {
   readonly kind: typeof ResourceGroupKind.FullCrud;
@@ -324,7 +328,7 @@ export interface FullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
  * Read-Only CRUD Resource Group Descriptor.
  * Composes Base CRUD with Read-Only type signatures.
  */
-export interface ReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface ReadOnlyCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends BaseCrudResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.ReadOnlyCrud;
   readonly types: ReadOnlyCrudTypeSignature;
@@ -334,14 +338,14 @@ export interface ReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
  * Flexible CRUD Resource Group Descriptor.
  * Composes Base CRUD with MutationCapability ADTs.
  */
-export interface FlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface FlexibleCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends BaseCrudResourceGroupDescriptor<TRoute>,
     FlexibleMutationEndpointsTrait<TRoute> {
   readonly kind: typeof ResourceGroupKind.FlexibleCrud;
   readonly types: FlexibleCrudTypeSignature;
 }
 
-export type CrudResourceGroupDescriptor<TRoute = ParsedRoute> =
+export type CrudResourceGroupDescriptor<TRoute = RouteSemanticFlow> =
   | FullCrudResourceGroupDescriptor<TRoute>
   | ReadOnlyCrudResourceGroupDescriptor<TRoute>
   | FlexibleCrudResourceGroupDescriptor<TRoute>;
@@ -350,7 +354,7 @@ export type CrudResourceGroupDescriptor<TRoute = ParsedRoute> =
  * Singleton Resource Group Descriptor.
  * Composes Base Descriptor with isCrud: false.
  */
-export interface SingletonResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface SingletonResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends BaseResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.Singleton;
   readonly isCrud: false;
@@ -361,14 +365,14 @@ export interface SingletonResourceGroupDescriptor<TRoute = ParsedRoute>
  * Custom Resource Group Descriptor.
  * Composes Base Descriptor with isCrud: false.
  */
-export interface CustomResourceGroupDescriptor<TRoute = ParsedRoute>
+export interface CustomResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends BaseResourceGroupDescriptor<TRoute> {
   readonly kind: typeof ResourceGroupKind.Custom;
   readonly isCrud: false;
   readonly types: CustomTypeSignature;
 }
 
-export type ResourceGroupDescriptor<TRoute = ParsedRoute> =
+export type ResourceGroupDescriptor<TRoute = RouteSemanticFlow> =
   | FullCrudResourceGroupDescriptor<TRoute>
   | ReadOnlyCrudResourceGroupDescriptor<TRoute>
   | FlexibleCrudResourceGroupDescriptor<TRoute>
@@ -378,7 +382,7 @@ export type ResourceGroupDescriptor<TRoute = ParsedRoute> =
 /**
  * Common parameter traits for constructor initialization.
  */
-export interface BaseResourceGroupParams<TRoute = ParsedRoute> {
+export interface BaseResourceGroupParams<TRoute = RouteSemanticFlow> {
   readonly groupName: string;
   readonly keyName: string;
   readonly titleName: string;
@@ -388,24 +392,24 @@ export interface BaseResourceGroupParams<TRoute = ParsedRoute> {
   readonly customQueries: readonly TRoute[];
 }
 
-export interface BaseCrudParams<TRoute = ParsedRoute>
+export interface BaseCrudParams<TRoute = RouteSemanticFlow>
   extends BaseResourceGroupParams<TRoute>,
     CrudEndpointsTrait<TRoute> {
   readonly primaryKeyType: string;
 }
 
-export interface FullCrudParams<TRoute = ParsedRoute>
+export interface FullCrudParams<TRoute = RouteSemanticFlow>
   extends BaseCrudParams<TRoute>,
     StrictMutationEndpointsTrait<TRoute> {
   readonly types: FullCrudTypeSignature;
 }
 
-export interface ReadOnlyCrudParams<TRoute = ParsedRoute>
+export interface ReadOnlyCrudParams<TRoute = RouteSemanticFlow>
   extends BaseCrudParams<TRoute> {
   readonly types: ReadOnlyCrudTypeSignature;
 }
 
-export interface FlexibleCrudParams<TRoute = ParsedRoute>
+export interface FlexibleCrudParams<TRoute = RouteSemanticFlow>
   extends BaseCrudParams<TRoute>,
     FlexibleMutationEndpointsTrait<TRoute> {
   readonly types: FlexibleCrudTypeSignature;
@@ -414,14 +418,14 @@ export interface FlexibleCrudParams<TRoute = ParsedRoute>
 /**
  * Backward-compatibility alias for FlexibleCrudParams.
  */
-export type CrudResourceGroupDescriptorParams<TRoute = ParsedRoute> = FlexibleCrudParams<TRoute>;
+export type CrudResourceGroupDescriptorParams<TRoute = RouteSemanticFlow> = FlexibleCrudParams<TRoute>;
 
-export interface SingletonResourceGroupDescriptorParams<TRoute = ParsedRoute>
+export interface SingletonResourceGroupDescriptorParams<TRoute = RouteSemanticFlow>
   extends BaseResourceGroupParams<TRoute> {
   readonly types: SingletonTypeSignature;
 }
 
-export interface CustomResourceGroupDescriptorParams<TRoute = ParsedRoute>
+export interface CustomResourceGroupDescriptorParams<TRoute = RouteSemanticFlow>
   extends BaseResourceGroupParams<TRoute> {
   readonly detailKeyFn: string;
   readonly types: CustomTypeSignature;
@@ -479,7 +483,7 @@ function* lowerExtraMutations<TRoute>(
  * Abstract Base Class for Resource Group Descriptors.
  * Implements common identity, query key metadata, and frozen immutability.
  */
-export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
+export abstract class AbstractResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   implements BaseResourceGroupDescriptor<TRoute>
 {
   public abstract readonly kind: ResourceGroupKind;
@@ -551,7 +555,7 @@ export abstract class AbstractResourceGroupDescriptor<TRoute = ParsedRoute>
  * Abstract Base Class for CRUD Resource Group Descriptors.
  * Implements index, show, isCrud: true, and the unified CRUD visitor dispatcher.
  */
-export abstract class AbstractCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export abstract class AbstractCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractResourceGroupDescriptor<TRoute>
   implements BaseCrudResourceGroupDescriptor<TRoute>
 {
@@ -588,7 +592,7 @@ export abstract class AbstractCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export class ScannedFullCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements FullCrudResourceGroupDescriptor<TRoute>
 {
@@ -597,6 +601,10 @@ export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   public readonly create: TRoute;
   public readonly update: TRoute;
   public readonly delete: TRoute;
+
+  public static create<TRoute = RouteSemanticFlow>(params: FullCrudParams<TRoute>): ScannedFullCrudResourceGroupDescriptor<TRoute> {
+    return new ScannedFullCrudResourceGroupDescriptor<TRoute>(params);
+  }
 
   constructor(params: FullCrudParams<TRoute>) {
     super(params, {
@@ -633,12 +641,16 @@ export class ScannedFullCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements ReadOnlyCrudResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.ReadOnlyCrud;
   public readonly types: ReadOnlyCrudTypeSignature;
+
+  public static create<TRoute = RouteSemanticFlow>(params: ReadOnlyCrudParams<TRoute>): ScannedReadOnlyCrudResourceGroupDescriptor<TRoute> {
+    return new ScannedReadOnlyCrudResourceGroupDescriptor<TRoute>(params);
+  }
 
   constructor(params: ReadOnlyCrudParams<TRoute>) {
     super(params, {
@@ -665,7 +677,7 @@ export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements FlexibleCrudResourceGroupDescriptor<TRoute>
 {
@@ -674,6 +686,10 @@ export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   public readonly create: MutationCapability<TRoute>;
   public readonly update: MutationCapability<TRoute>;
   public readonly delete: MutationCapability<TRoute>;
+
+  public static create<TRoute = RouteSemanticFlow>(params: FlexibleCrudParams<TRoute>): ScannedFlexibleCrudResourceGroupDescriptor<TRoute> {
+    return new ScannedFlexibleCrudResourceGroupDescriptor<TRoute>(params);
+  }
 
   constructor(params: FlexibleCrudParams<TRoute>) {
     super(params, {
@@ -716,10 +732,10 @@ export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
+export class ScannedCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends ScannedFlexibleCrudResourceGroupDescriptor<TRoute>
 {
-  public static fromRoutes<TRoute = ParsedRoute>(params: {
+  public static fromRoutes<TRoute = RouteSemanticFlow>(params: {
     readonly groupName: string;
     readonly keyName: string;
     readonly titleName: string;
@@ -753,13 +769,17 @@ export class ScannedCrudResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
+export class ScannedSingletonResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractResourceGroupDescriptor<TRoute>
   implements SingletonResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.Singleton;
   public readonly isCrud = false as const;
   public readonly types: SingletonTypeSignature;
+
+  public static create<TRoute = RouteSemanticFlow>(params: SingletonResourceGroupDescriptorParams<TRoute>): ScannedSingletonResourceGroupDescriptor<TRoute> {
+    return new ScannedSingletonResourceGroupDescriptor<TRoute>(params);
+  }
 
   constructor(params: SingletonResourceGroupDescriptorParams<TRoute>) {
     super(
@@ -821,13 +841,17 @@ export class ScannedSingletonResourceGroupDescriptor<TRoute = ParsedRoute>
   }
 }
 
-export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
+export class ScannedCustomResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractResourceGroupDescriptor<TRoute>
   implements CustomResourceGroupDescriptor<TRoute>
 {
   public readonly kind = ResourceGroupKind.Custom;
   public readonly isCrud = false as const;
   public readonly types: CustomTypeSignature;
+
+  public static create<TRoute = RouteSemanticFlow>(params: CustomResourceGroupDescriptorParams<TRoute>): ScannedCustomResourceGroupDescriptor<TRoute> {
+    return new ScannedCustomResourceGroupDescriptor<TRoute>(params);
+  }
 
   constructor(params: CustomResourceGroupDescriptorParams<TRoute>) {
     super(
@@ -892,7 +916,7 @@ export class ScannedCustomResourceGroupDescriptor<TRoute = ParsedRoute>
 /**
  * Exhaustive Fine-Grained Resource Group Visitor (0 optional ?, 100% complete contract).
  */
-export interface ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute = ParsedRoute> {
+export interface ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute = RouteSemanticFlow> {
   readonly full_crud: (group: FullCrudResourceGroupDescriptor<TRoute>) => R;
   readonly read_only_crud: (group: ReadOnlyCrudResourceGroupDescriptor<TRoute>) => R;
   readonly flexible_crud: (group: FlexibleCrudResourceGroupDescriptor<TRoute>) => R;
@@ -903,7 +927,7 @@ export interface ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute = ParsedRou
 /**
  * Unified CRUD Resource Group Visitor (Collapses all CRUD variants into single mandatory crud handler).
  */
-export interface UnifiedCrudResourceGroupVisitor<R, TRoute = ParsedRoute> {
+export interface UnifiedCrudResourceGroupVisitor<R, TRoute = RouteSemanticFlow> {
   readonly crud: (group: CrudResourceGroupDescriptor<TRoute>) => R;
   readonly singleton: (group: SingletonResourceGroupDescriptor<TRoute>) => R;
   readonly custom: (group: CustomResourceGroupDescriptor<TRoute>) => R;
@@ -916,7 +940,7 @@ export interface UnifiedCrudResourceGroupVisitor<R, TRoute = ParsedRoute> {
  * - Either you supply all 5 fine-grained handlers (full_crud, read_only_crud, flexible_crud, singleton, custom)
  * - Or you supply unified CRUD handler (crud, singleton, custom)
  */
-export type ResourceGroupVisitor<R, TRoute = ParsedRoute> =
+export type ResourceGroupVisitor<R, TRoute = RouteSemanticFlow> =
   | ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
   | UnifiedCrudResourceGroupVisitor<R, TRoute>;
 
@@ -924,7 +948,7 @@ export type ResourceGroupVisitor<R, TRoute = ParsedRoute> =
  * Pure catamorphism pattern matcher for ResourceGroupDescriptor (Fine-Grained).
  * Delegates directly to the descriptor's intrinsic matchFineGrained capability with 0 if, 0 switch.
  */
-export function matchFineGrainedResourceGroup<R, TRoute = ParsedRoute>(
+export function matchFineGrainedResourceGroup<R, TRoute = RouteSemanticFlow>(
   group: ResourceGroupDescriptor<TRoute>,
   visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
 ): R {
@@ -935,7 +959,7 @@ export function matchFineGrainedResourceGroup<R, TRoute = ParsedRoute>(
  * Pure catamorphism pattern matcher for ResourceGroupDescriptor (Unified CRUD).
  * Delegates directly to the descriptor's intrinsic matchUnified capability with 0 if, 0 switch.
  */
-export function matchUnifiedResourceGroup<R, TRoute = ParsedRoute>(
+export function matchUnifiedResourceGroup<R, TRoute = RouteSemanticFlow>(
   group: ResourceGroupDescriptor<TRoute>,
   visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
 ): R {
@@ -946,15 +970,15 @@ export function matchUnifiedResourceGroup<R, TRoute = ParsedRoute>(
  * Pure catamorphism pattern matcher for ResourceGroupDescriptor.
  * Backward-compatibility bridge delegating directly to descriptor's intrinsic capabilities.
  */
-export function matchResourceGroup<R, TRoute = ParsedRoute>(
+export function matchResourceGroup<R, TRoute = RouteSemanticFlow>(
   group: ResourceGroupDescriptor<TRoute>,
   visitor: ExhaustiveFineGrainedResourceGroupVisitor<R, TRoute>
 ): R;
-export function matchResourceGroup<R, TRoute = ParsedRoute>(
+export function matchResourceGroup<R, TRoute = RouteSemanticFlow>(
   group: ResourceGroupDescriptor<TRoute>,
   visitor: UnifiedCrudResourceGroupVisitor<R, TRoute>
 ): R;
-export function matchResourceGroup<R, TRoute = ParsedRoute>(
+export function matchResourceGroup<R, TRoute = RouteSemanticFlow>(
   group: ResourceGroupDescriptor<TRoute>,
   visitor: ResourceGroupVisitor<R, TRoute>
 ): R {

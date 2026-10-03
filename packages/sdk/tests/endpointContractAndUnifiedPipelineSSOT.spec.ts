@@ -12,9 +12,9 @@ import {
   createEndpointContract,
   ScannedEndpointContract,
   matchEndpointResponse,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ResourceResponseDescriptor,
-  ScannedRouteCacheInvalidationDescriptor,
+  RouteSemanticFlowCacheInvalidationDescriptor,
   ScannedInvalidationTarget,
   ScannedHttpErrorResponseDescriptor,
   DatabaseColumnKind,
@@ -30,7 +30,7 @@ describe('EndpointContract ADT & Unified Compiler Pipeline SSOT', () => {
   const tmpDir = path.join(__dirname, 'tmp-endpoint-cda-test')
 
   it('1. createEndpointContract should assemble complete immutable EndpointContract from route', () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       name: 'orders.show',
       method: 'GET',
       path: '/api/orders/{id}',
@@ -46,7 +46,7 @@ describe('EndpointContract ADT & Unified Compiler Pipeline SSOT', () => {
         ScannedHttpErrorResponseDescriptor.unprocessableEntity(),
         ScannedHttpErrorResponseDescriptor.unauthorized()
       ],
-      invalidation: ScannedRouteCacheInvalidationDescriptor.fromTargets([
+      invalidation: RouteSemanticFlowCacheInvalidationDescriptor.fromTargets([
         ScannedInvalidationTarget.selfList('orders')
       ])
     })
@@ -87,7 +87,7 @@ describe('EndpointContract ADT & Unified Compiler Pipeline SSOT', () => {
   })
 
   it('2. matchEndpointResponse should execute pure catamorphism on EndpointResponseContract without if/switch', () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/orders',
       resourceName: 'Order',
@@ -205,8 +205,8 @@ describe('EndpointContract ADT & Unified Compiler Pipeline SSOT', () => {
     await fs.remove(tmpDir)
   })
 
-  it('5. ScannedRouteDescriptor.contract should be directly bound and immutable on route descriptor', () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+  it('5. RouteSemanticFlowFactory.contract should be directly bound and immutable on route descriptor', () => {
+    const mockRoute = RouteSemanticFlowFactory.create({
       name: 'products.show',
       method: 'GET',
       path: '/api/products/{id}',

@@ -16,11 +16,12 @@ import {
     type RouteCacheInvalidationDescriptor,
     RouteHandlerKind
 } from "../../../../../types/route";
-import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
-import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
+import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { ActionName, DomainTypeName, ResourceName, RoutePath, SourceFile, PropertyName } from "../../../../../types/upstream/names";
+import { relationOptionalFold } from "../../../../../semantic/kernel/relationalSequence";
 import type { ControllerReturnSemantic } from "../../../../../types/upstream/controller";
 
 export type ClosureRouteOptions = {
@@ -42,9 +43,9 @@ export type ClosureRouteOptions = {
 };
 
 export function createRouteFromClosure(
-    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => RouteSemanticFlowFactory,
     options: ClosureRouteOptions
-): ScannedRouteDescriptor {
+): RouteSemanticFlowFactory {
     const {
         method,
         path,
@@ -63,7 +64,7 @@ export function createRouteFromClosure(
         invalidation
     } = options;
 
-    const resolvedResponse = response ?? new VoidResponseDescriptor();
+    const resolvedResponse = relationOptionalFold(response, () => VoidResponseDescriptor.create(), value => value);
 
     return createFn({
         origin: "closure",
@@ -85,7 +86,7 @@ export function createRouteFromClosure(
         request: { kind: 'no_request' },
         runtimeReturn: { kind: 'none' },
         semanticReturn,
-        schema: ScannedRouteSchemaPayload.empty(),
+        schema: emptyRouteSchemaPayload(),
         auth,
         middleware,
         parameters,

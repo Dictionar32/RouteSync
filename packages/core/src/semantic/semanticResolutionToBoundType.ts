@@ -3,6 +3,7 @@ import { matchSemanticResolution } from '../types/domain/semanticResolution';
 import { ObjectType, PrimitiveKind, PrimitiveType, ReferenceType, ScannedObjectProperty } from '../compiler/types/SemanticType';
 import type { SemanticType } from '../compiler/types/SemanticType';
 import { SemanticValueFactory } from '../types/domain/semanticValues';
+import { relationProject } from './kernel/relationalSequence';
 
 export function semanticResolutionToBoundType(resolution: SemanticResolution): SemanticType {
   return matchSemanticResolution(resolution, {
@@ -13,7 +14,7 @@ export function semanticResolutionToBoundType(resolution: SemanticResolution): S
       name: 'AnonymousObject',
       baseName: 'AnonymousObject',
       role: 'plain',
-      properties: value.fields.map(field => ScannedObjectProperty.create({
+      properties: relationProject(value.fields, field => ScannedObjectProperty.create({
         name: SemanticValueFactory.propertyName(field.name.value), type: field.type, description: '', origin: { kind: 'derived', reason: 'semantic_resolution' },
       })),
     }),
@@ -21,10 +22,10 @@ export function semanticResolutionToBoundType(resolution: SemanticResolution): S
       name: 'QueryProjection',
       baseName: 'QueryProjection',
       role: 'plain',
-      properties: value.surface.fields.map(field => ScannedObjectProperty.create({
+      properties: relationProject(value.surface.fields, field => ScannedObjectProperty.create({
         name: SemanticValueFactory.propertyName(field.name.value), type: field.type, description: '', origin: { kind: 'derived', reason: 'semantic_resolution' },
       })),
     }),
-    unknown: () => new PrimitiveType(PrimitiveKind.UNKNOWN),
+    indeterminate: () => primitiveType(PrimitiveKind.INDETERMINATE),
   });
 }

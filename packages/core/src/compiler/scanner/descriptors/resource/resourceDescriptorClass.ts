@@ -1,15 +1,11 @@
 /**
- * resourceDescriptorClass.ts
- *
- * ScannedResourceDescriptor implementation and factory.
- *
- * @module core/compiler/scanner/descriptors/resource
+ * Canonical scanned resource descriptor.
+ * The descriptor is a structural semantic witness produced by an immutable
+ * catalog rather than a host-language constructor.
  */
-
 import type {
   ResourceFieldDescriptor,
   ParsedResource,
-  ResourceAssignment
 } from '../../../../types/route';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { ResourceName, ResponseTypeName } from '../../../../types/upstream/names';
@@ -18,50 +14,44 @@ import { ScannedResourceParams, CreateResourceDescriptorOptions } from './resour
 
 export { ScannedResourceParams, CreateResourceDescriptorOptions };
 
-/**
- * Reusable Constructor: Scanned Resource Descriptor.
- */
-export class ScannedResourceDescriptor implements ParsedResource {
-  public readonly identity: ParsedResource['identity'];
-  public readonly binding: ParsedResource['binding'];
-  public readonly surface: ParsedResource['surface'];
-  public readonly provenance: ParsedResource['provenance'];
+export type ScannedResourceDescriptor = ParsedResource;
 
-  constructor(params: ScannedResourceParams) {
-    this.identity = Object.freeze({
-      name: params.name,
-      baseName: params.baseName,
-      typeName: params.typeName
-    });
-    this.binding = Object.freeze({
-      model: { kind: 'model' as const, modelName: params.modelName }
-    });
-    this.surface = Object.freeze({
-      sanitizedName: SemanticValueFactory.propertyName(toCamelCase(params.name.value.value)),
-      fields: Object.freeze(params.fields),
-      assignments: Object.freeze(params.assignments)
-    });
-    this.provenance = Object.freeze({
-      sourceFile: params.sourceFile,
-      sourceLine: SemanticValueFactory.sourceLineNumber(params.sourceLine),
-      synthetic: params.isSynthetic
-    });
-    Object.freeze(this);
-  }
+const createResourceDescriptor = (params: ScannedResourceParams): ScannedResourceDescriptor => {
+  const identity = Object.freeze({
+    name: params.name,
+    baseName: params.baseName,
+    typeName: params.typeName,
+  });
+  const binding = Object.freeze({
+    model: { kind: 'model' as const, modelName: params.modelName },
+  });
+  const surface = Object.freeze({
+    sanitizedName: SemanticValueFactory.propertyName(toCamelCase(params.name.value.value)),
+    fields: Object.freeze(params.fields),
+    assignments: Object.freeze(params.assignments),
+  });
+  const provenance = Object.freeze({
+    sourceFile: params.sourceFile,
+    sourceLine: SemanticValueFactory.sourceLineNumber(params.sourceLine),
+    synthetic: params.isSynthetic,
+  });
+  return Object.freeze({ identity, binding, surface, provenance });
+};
 
-  public static create({
+export const ScannedResourceDescriptor = Object.freeze({
+  create({
     name,
     fields,
     sourceFile,
     sourceLine,
     assignments,
     modelName,
-    isSynthetic
+    isSynthetic,
   }: CreateResourceDescriptorOptions): ScannedResourceDescriptor {
     const baseNameValue = ResourceNamingConvention.stripSuffix(name.value.value);
     const baseName: ResourceName = SemanticValueFactory.resourceName(baseNameValue);
     const typeName: ResponseTypeName = SemanticValueFactory.responseTypeName(ResourceNamingConvention.toTransformedName(baseNameValue));
-    return new ScannedResourceDescriptor({
+    return createResourceDescriptor({
       name,
       baseName,
       typeName,
@@ -70,7 +60,7 @@ export class ScannedResourceDescriptor implements ParsedResource {
       assignments,
       sourceFile,
       sourceLine,
-      isSynthetic
+      isSynthetic,
     });
-  }
-}
+  },
+});

@@ -5,15 +5,20 @@ import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from './scannerUtils';
 import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
-import { mapClosureBody } from './resource/resourceUpstreamExpressionClosure';
-import type { ClosureStatement } from '../../../types/upstream/expression';
+import { resolveClosureBody } from './resource/resourceUpstreamExpressionClosure';
+import type { ClosureStatement, ExpressionArgument } from '../../../types/upstream/expression';
 import type { ProviderAst } from '../../../types/upstream/ast';
-import type { ProviderDefinition, ContainerOperationName, ProviderContainerOperation, ProviderSourceAst } from '../../../types/upstream/application';
+import type { ProviderDefinition, ProviderContainerOperation, ProviderContainerOperationName, ProviderContextualBinding, ProviderContainerBinding, ProviderContainerBindings, ProviderContextualGive, ProviderContainerLifecycleHook, ProviderContainerResolution, ProviderContainerAlias, ProviderContainerInvocation, ProviderContainerBoundCheck, ProviderContainerTagging, ProviderContainerTaggedResolution, ProviderContainerRegistration, ProviderSourceAst, ProviderBindingAttribute, ProviderBindingAttributes, ExpressionArgumentsOption } from '../../../types/upstream/application';
 import type { Expression, ExpressionArguments } from '../../../types/upstream/expression';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import type { ControllerMethodAst } from '../lexer/controllerAstTypes';
 import type { PhpStatement } from '../lexer/phpAstTypes';
+import { relationGate, relationSome, relationNone, relationResolve, type RelationOption } from '../../../semantic/kernel/semanticRelations';
+import { RELATION_NONE, relationIsNone, relationIsPresent, type RelationMaybe, type RelationNone } from '../../../semantic/kernel/relationalSequence';
+import { relationLookup } from '../../../semantic/kernel/relationalSequence';
+import { relationContains } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationAdvanceIndex, relationFirstOption, relationProject, relationSelect, relationAll, relationAny } from '../../../semantic/kernel/relationalSequence';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({
@@ -24,10 +29,12 @@ const source = (file: string, line: number): SourceSpan => ({
 });
 
 function className(tokens: readonly { readonly value: string }[]): string {
-  for (let index = 0; index + 1 < tokens.length; index += 1) {
-    if (tokens[index].value === 'class') return tokens[index + 1].value;
-  }
-  throw new Error('Provider class declaration not found');
+  const seek = (index: number): RelationOption<string> => relationGate(
+    relationAdvanceIndex(index, 1) >= tokens.length,
+    () => relationNone(),
+    () => relationGate(Object.is(tokens[index].value, 'class'), () => relationSome(tokens[relationAdvanceIndex(index, 1)].value), () => seek(relationAdvanceIndex(index, 1))),
+  );
+  return relationOptionFold(seek(0), () => { throw Error('Provider class declaration not found'); }, value => value);
 }
 
 function methodExpression(method: ControllerMethodAst, file: string): Expression {
@@ -38,7 +45,7 @@ function methodExpression(method: ControllerMethodAst, file: string): Expression
       kind: 'closure',
       parameters: { kind: 'variable_names', items: { kind: 'empty' } },
       captures: { kind: 'closure_captures', items: { kind: 'empty' } },
-      body: mapClosureBody(method.body.statements, file, mapResourcePhpAstToUpstream),
+      body: resolveClosureBody(method.body.statements, file, mapResourcePhpAstToUpstream),
       source: methodSource,
     },
     source: methodSource,
@@ -47,114 +54,339 @@ function methodExpression(method: ControllerMethodAst, file: string): Expression
 
 
 function sequence<T>(items: readonly T[]): import('../../../types/upstream/collections').Sequence<T> {
-  return items.reduceRight<import('../../../types/upstream/collections').Sequence<T>>(
-    (tail, head) => ({ kind: 'cons', head, tail }),
-    { kind: 'empty' },
+  const build = (index: number): import('../../../types/upstream/collections').Sequence<T> => relationGate(
+    index < 0,
+    () => ({ kind: 'empty' }),
+    () => ({ kind: 'cons', head: items[index], tail: build(index - 1) }),
+  );
+  return build(items.length - 1);
+}
+
+function expressionArguments(expression: Expression): RelationOption<ExpressionArguments> {
+  return relationGate(
+    Object.is(expression.kind, 'method'),
+    () => relationSome((expression as Extract<Expression, { readonly kind: 'method' }>).arguments),
+    () => relationGate(
+      Object.is(expression.kind, 'nullsafe_method'),
+      () => relationSome((expression as Extract<Expression, { readonly kind: 'nullsafe_method' }>).arguments),
+      () => relationNone(),
+    ),
   );
 }
 
-function expressionArguments(expression: Expression): ExpressionArguments | undefined {
-  if (expression.kind === 'method') return expression.arguments;
-  if (expression.kind === 'nullsafe_method') return expression.arguments;
-  return undefined;
-}
+const providerContainerOperationNames = Object.freeze([
+  'bind', 'bind_if', 'singleton', 'singleton_if', 'scoped', 'scoped_if',
+  'instance', 'alias', 'make', 'make_with', 'bound', 'call', 'when', 'needs', 'give', 'give_tagged', 'give_config',
+  'extend', 'resolving', 'after_resolving', 'rebinding', 'before_resolving', 'after_resolving_attribute', 'when_has_attribute',
+]);
 
-function containerOperationName(expression: Expression): ContainerOperationName | undefined {
-  if (expression.kind !== 'method' && expression.kind !== 'nullsafe_method') return undefined;
-  if (expression.operation.kind !== 'domain') return undefined;
-  return expression.operation.name;
+function containerOperationName(expression: Expression): RelationOption<ProviderContainerOperationName> {
+  return relationGate(
+    relationAny([Object.is(expression.kind, 'method'), Object.is(expression.kind, 'nullsafe_method')]),
+    () => relationGate(
+      Object.is(expression.operation.kind, 'domain'),
+      () => {
+        const name = expression.operation.name.value.value;
+        return relationGate(relationContains(providerContainerOperationNames, name), () => relationSome(name as ProviderContainerOperationName), () => relationNone());
+      },
+      () => relationNone(),
+    ),
+    () => relationNone(),
+  );
 }
 
 function isContainerReceiver(expression: Expression): boolean {
-  if (expression.kind === 'property') {
-    return expression.property.value.value === 'app' && expression.receiver.kind === 'variable' && expression.receiver.name.value.value === 'this';
-  }
-  if (expression.kind === 'method' || expression.kind === 'nullsafe_method') return isContainerReceiver(expression.receiver);
-  return false;
+  return relationGate(
+    Object.is(expression.kind, 'property'),
+    () => relationAll([Object.is(expression.property.value.value, 'app'), Object.is(expression.receiver.kind, 'variable'), Object.is(expression.receiver.name.value.value, 'this')]),
+    () => relationGate(
+      relationAny([Object.is(expression.kind, 'method'), Object.is(expression.kind, 'nullsafe_method')]),
+      () => isContainerReceiver(expression.receiver),
+      () => false,
+    ),
+  );
 }
 
 function collectContainerOperations(expression: Expression, operations: ProviderContainerOperation[]): void {
-  const name = containerOperationName(expression);
-  if (name !== undefined && isContainerReceiver(expression.receiver)) {
-    const args = expressionArguments(expression);
-    if (args !== undefined) operations.push({ kind: 'provider_container_operation', name, arguments: args, source: expression.source });
-  }
-  if (expression.kind === 'closure') {
-    if (expression.value.body.kind === 'expression_body') collectContainerOperations(expression.value.body.expression, operations);
-    else {
-      let items = expression.value.body.statements.items;
-      while (items.kind === 'cons') {
-        collectContainerOperationsFromClosureStatement(items.head, operations);
-        items = items.tail;
-      }
-    }
-    return;
-  }
-  if (expression.kind === 'method' || expression.kind === 'nullsafe_method') {
-    collectContainerOperations(expression.receiver, operations);
-    let args = expression.arguments.items;
-    while (args.kind === 'cons') { collectContainerOperations(args.head, operations); args = args.tail; }
-  }
+  const resolvedName = containerOperationName(expression);
+  const receiverMatch = relationGate(
+    relationAny([Object.is(expression.kind, 'method'), Object.is(expression.kind, 'nullsafe_method')]),
+    () => isContainerReceiver(expression.receiver),
+    () => false,
+  );
+  relationOptionFold(resolvedName, () => {}, name => relationGate(
+    receiverMatch,
+    () => relationOptionFold(expressionArguments(expression), () => {}, args => {
+      operations.push({ kind: 'provider_container_operation', name, arguments: args, source: expression.source });
+    }),
+    () => {},
+  ));
+  relationGate(Object.is(expression.kind, 'closure'), () => {
+    relationGate(Object.is(expression.value.body.kind, 'expression_body'), () => {
+      collectContainerOperations(expression.value.body.expression, operations);
+    }, () => {
+      const visit = (items: import('../../../types/upstream/collections').Sequence<import('../../../types/upstream/expression').ClosureStatement>): void => relationGate(
+        Object.is(items.kind, 'empty'),
+        () => {},
+        () => { collectContainerOperationsFromClosureStatement(items.head, operations); visit(items.tail); },
+      );
+      visit(expression.value.body.statements.items);
+    });
+  }, () => {
+    relationGate(relationAny([Object.is(expression.kind, 'method'), Object.is(expression.kind, 'nullsafe_method')]), () => {
+      collectContainerOperations(expression.receiver, operations);
+      const visitArgs = (items: import('../../../types/upstream/collections').ExpressionArguments['items']): void => relationGate(
+        Object.is(items.kind, 'empty'),
+        () => {},
+        () => { collectContainerOperations(items.head.value, operations); visitArgs(items.tail); },
+      );
+      visitArgs(expression.arguments.items);
+    }, () => {});
+  });
 }
 
+
+function semanticBindingAttributeName(value: string): RelationOption<ProviderBindingAttribute['name']> {
+  return relationLookup([
+    ['Bind', 'bind'],
+    ['BindWhen', 'bind_when'],
+    ['Singleton', 'singleton'],
+    ['Scoped', 'scoped'],
+  ] as const, value);
+}
+
+function lastPathSegment(value: string): string {
+  const parts = value.split('\\');
+  return parts[relationAdvanceIndex(parts.length, -1)];
+}
+
+function expressionArgument(argument: import('../lexer/controllerAstTypes').ControllerParameterAttributeArgumentAst, file: string): ExpressionArgument {
+  return relationGate(
+    Object.is(argument.kind, 'named'),
+    () => ({ kind: 'named', name: { kind: 'expression_argument_name', value: stringValue(argument.name.value) }, value: mapResourcePhpAstToUpstream(argument.value, file) }),
+    () => relationGate(
+      Object.is(argument.kind, 'unpacked'),
+      () => ({ kind: 'unpacked', value: mapResourcePhpAstToUpstream(argument.value, file) }),
+      () => ({ kind: 'positional', value: mapResourcePhpAstToUpstream(argument.value, file) }),
+    ),
+  );
+}
+
+function semanticBindingAttributes(source: ProviderSourceAst, file: string): ProviderBindingAttributes {
+  const accepted = relationSelect(source.attributes, attribute => relationIsPresent(semanticBindingAttributeName(lastPathSegment(attribute.name.value))));
+  const items = relationProject(accepted, attribute => relationOptionFold(
+    semanticBindingAttributeName(lastPathSegment(attribute.name.value)),
+    () => { throw Error('Provider binding attribute relation became absent after selection'); },
+    name => ({
+      kind: 'provider_binding_attribute',
+      name,
+      arguments: { kind: 'expression_arguments', items: sequence(relationProject(attribute.arguments, argument => expressionArgument(argument, file))) },
+      source: sourceSpanFromToken(attribute.source, file),
+    }),
+  ));
+  return { kind: 'provider_binding_attributes', items: sequence(items) };
+}
+
+function sourceSpanFromToken(token: { readonly line: string | number }, file: string): SourceSpan {
+  const line = Number(token.line);
+  return source(file, line);
+}
+
+function expressionArgumentList(value: RelationMaybe<ExpressionArgument>): ExpressionArguments {
+  return relationGate(
+    relationIsNone(value),
+    () => ({ kind: 'expression_arguments', items: { kind: 'empty' } }),
+    () => ({ kind: 'expression_arguments', items: { kind: 'cons', head: value, tail: { kind: 'empty' } } }),
+  );
+}
+
+function argumentOption(items: import('../../../types/upstream/expression').ExpressionArguments['items'], offset: number): RelationMaybe<ExpressionArgument> {
+  return relationGate(
+    Object.is(items.kind, 'cons'),
+    () => relationGate(Object.is(offset, 0), () => items.head, () => argumentOption(items.tail, relationAdvanceIndex(offset, -1))),
+    () => RELATION_NONE,
+  );
+}
+
+function parametersOption(items: import('../../../types/upstream/expression').ExpressionArguments['items']): ExpressionArgumentsOption {
+  return relationGate(
+    Object.is(items.kind, 'cons'),
+    () => relationGate(Object.is(items.tail.kind, 'empty'), () => ({ kind: 'absent' }), () => ({ kind: 'present', value: { kind: 'expression_arguments', items: items.tail } })),
+    () => ({ kind: 'absent' }),
+  );
+}
+
+function isGiveName(name: ProviderContainerOperationName): boolean {
+  return relationAny([
+    Object.is(name, 'give'),
+    Object.is(name, 'give_tagged'),
+    Object.is(name, 'give_config'),
+  ]);
+}
+
+function contextualBindingOption(operations: readonly ProviderContainerOperation[], index: number): RelationOption<{ readonly when: ProviderContainerOperation; readonly needs: ProviderContainerOperation; readonly give: ProviderContainerOperation }> {
+  return relationGate(
+    relationAll([
+      relationAdvanceIndex(index, 2) < operations.length,
+      Object.is(operations[index].name, 'when'),
+      Object.is(operations[relationAdvanceIndex(index, 1)].name, 'needs'),
+      isGiveName(operations[relationAdvanceIndex(index, 2)].name),
+    ]),
+    () => relationSome({ when: operations[index], needs: operations[relationAdvanceIndex(index, 1)], give: operations[relationAdvanceIndex(index, 2)] }),
+    () => relationNone(),
+  );
+}
+
+function bindingOption(operation: ProviderContainerOperation): RelationOption<ProviderContainerBinding> {
+  const lifecycleNames: readonly ProviderContainerLifecycleHook['operation'][] = [
+    'extend', 'resolving', 'after_resolving', 'rebinding', 'before_resolving', 'after_resolving_attribute', 'when_has_attribute',
+  ];
+  return relationGate(
+    lifecycleNames.includes(operation.name as ProviderContainerLifecycleHook['operation']),
+    () => relationSome({ kind: 'provider_container_lifecycle_hook', operation: operation.name as ProviderContainerLifecycleHook['operation'], arguments: operation.arguments, source: operation.source }),
+    () => relationGate(
+      relationAny([Object.is(operation.name, 'make'), Object.is(operation.name, 'make_with')]),
+      () => relationSome({ kind: 'provider_container_resolution', operation: operation.name, target: expressionArgumentList(argumentOption(operation.arguments.items, 0)), parameters: parametersOption(operation.arguments.items), source: operation.source } satisfies ProviderContainerResolution),
+      () => relationGate(
+        Object.is(operation.name, 'alias'),
+        () => relationSome({ kind: 'provider_container_alias', target: expressionArgumentList(argumentOption(operation.arguments.items, 0)), alias: expressionArgumentList(argumentOption(operation.arguments.items, 1)), source: operation.source } satisfies ProviderContainerAlias),
+        () => relationGate(
+          Object.is(operation.name, 'call'),
+          () => relationSome({ kind: 'provider_container_invocation', operation: 'call', callable: expressionArgumentList(argumentOption(operation.arguments.items, 0)), parameters: parametersOption(operation.arguments.items), source: operation.source } satisfies ProviderContainerInvocation),
+          () => relationGate(
+            Object.is(operation.name, 'bound'),
+            () => relationSome({ kind: 'provider_container_bound_check', target: expressionArgumentList(argumentOption(operation.arguments.items, 0)), source: operation.source } satisfies ProviderContainerBoundCheck),
+            () => relationGate(
+              Object.is(operation.name, 'tag'),
+              () => relationSome({ kind: 'provider_container_tagging', services: expressionArgumentList(argumentOption(operation.arguments.items, 0)), tag: expressionArgumentList(argumentOption(operation.arguments.items, 1)), source: operation.source } satisfies ProviderContainerTagging),
+              () => relationGate(
+                Object.is(operation.name, 'tagged'),
+                () => relationSome({ kind: 'provider_container_tagged_resolution', tag: expressionArgumentList(argumentOption(operation.arguments.items, 0)), source: operation.source } satisfies ProviderContainerTaggedResolution),
+                () => relationGate(
+                  relationAny([
+                    Object.is(operation.name, 'when'), Object.is(operation.name, 'needs'), Object.is(operation.name, 'give'),
+                    Object.is(operation.name, 'give_tagged'), Object.is(operation.name, 'give_config'), Object.is(operation.name, 'make'),
+                    Object.is(operation.name, 'make_with'), Object.is(operation.name, 'alias'), Object.is(operation.name, 'call'), Object.is(operation.name, 'bound'),
+                    Object.is(operation.name, 'tag'), Object.is(operation.name, 'tagged'), Object.is(operation.name, 'extend'), Object.is(operation.name, 'resolving'),
+                    Object.is(operation.name, 'after_resolving'), Object.is(operation.name, 'rebinding'), Object.is(operation.name, 'before_resolving'),
+                    Object.is(operation.name, 'after_resolving_attribute'), Object.is(operation.name, 'when_has_attribute'),
+                  ]),
+                  () => relationNone(),
+                  () => relationSome({ kind: 'provider_container_registration', operation: operation.name, arguments: operation.arguments, source: operation.source } satisfies ProviderContainerRegistration),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+function semanticBindings(operations: readonly ProviderContainerOperation[]): ProviderContainerBindings {
+  const build = (index: number, bindings: readonly ProviderContainerBinding[]): readonly ProviderContainerBinding[] => relationGate(
+    index >= operations.length,
+    () => bindings,
+    () => relationOptionFold(
+      contextualBindingOption(operations, index),
+      () => relationOptionFold(
+        bindingOption(operations[index]),
+        () => build(relationAdvanceIndex(index, 1), bindings),
+        binding => build(relationAdvanceIndex(index, 1), [...bindings, binding]),
+      ),
+      contextual => {
+        const giveKind: ProviderContextualGive = relationGate(
+          Object.is(contextual.give.name, 'give_tagged'),
+          () => ({ kind: 'tagged', arguments: contextual.give.arguments }),
+          () => relationGate(Object.is(contextual.give.name, 'give_config'), () => ({ kind: 'config', arguments: contextual.give.arguments }), () => ({ kind: 'implementation', arguments: contextual.give.arguments })),
+        );
+        return build(relationAdvanceIndex(index, 3), [...bindings, { kind: 'provider_contextual_binding', context: contextual.when.arguments, needs: contextual.needs.arguments, give: giveKind, source: contextual.when.source }]);
+      },
+    ),
+  );
+  return { kind: 'provider_container_bindings', items: sequence(build(0, [])) };
+}
+
+type ClosureStatementHandler = (statement: import('../../../types/upstream/expression').ClosureStatement, operations: ProviderContainerOperation[]) => void;
+
+const collectClosureList = (items: Extract<import('../../../types/upstream/expression').ClosureStatement, { readonly kind: 'if' }>['thenBlock']['items'], operations: ProviderContainerOperation[]): void =>
+  relationResolve(
+    Object.is(items.kind, 'cons'),
+    () => { collectContainerOperationsFromClosureStatement(items.head, operations); collectClosureList(items.tail, operations); },
+    () => {},
+  );
+
+const CLOSURE_STATEMENT_HANDLERS: Readonly<Record<import('../../../types/upstream/expression').ClosureStatement['kind'], ClosureStatementHandler>> = {
+  expression: (statement, operations) => collectContainerOperations(statement.expression, operations),
+  return_value: (statement, operations) => collectContainerOperations(statement.expression, operations),
+  assignment: (statement, operations) => collectContainerOperations(statement.value.expression, operations),
+  throw: (statement, operations) => collectContainerOperations(statement.expression, operations),
+  'if': (statement, operations) => { collectContainerOperations(statement.condition, operations); collectClosureList(statement.thenBlock.items, operations); },
+  foreach: (statement, operations) => { collectContainerOperations(statement.iterable, operations); collectClosureList(statement.body.items, operations); },
+  'for': () => {},
+  try: (statement, operations) => collectClosureList(statement.body.items, operations),
+  return_void: () => {},
+};
+
 function collectContainerOperationsFromClosureStatement(statement: import('../../../types/upstream/expression').ClosureStatement, operations: ProviderContainerOperation[]): void {
-  switch (statement.kind) {
-    case 'expression': collectContainerOperations(statement.expression, operations); return;
-    case 'return_value': collectContainerOperations(statement.expression, operations); return;
-    case 'assignment': collectContainerOperations(statement.value.expression, operations); return;
-    case 'throw': collectContainerOperations(statement.expression, operations); return;
-    case 'if': collectContainerOperations(statement.condition, operations); { let items = statement.thenBlock.items; while (items.kind === 'cons') { collectContainerOperationsFromClosureStatement(items.head, operations); items = items.tail; } return; }
-    case 'foreach': collectContainerOperations(statement.iterable, operations); { let items = statement.body.items; while (items.kind === 'cons') { collectContainerOperationsFromClosureStatement(items.head, operations); items = items.tail; } return; }
-    case 'for': return;
-    case 'try': { let items = statement.body.items; while (items.kind === 'cons') { collectContainerOperationsFromClosureStatement(items.head, operations); items = items.tail; } return; }
-    case 'return_void': return;
-  }
+  CLOSURE_STATEMENT_HANDLERS[statement.kind](statement, operations);
 }
 
 export function buildProviderAstFromSource(sourceAst: ProviderSourceAst, fileValue: import('../../../types/upstream/provenance').SourceFile, span: SourceSpan): ProviderAst {
-  const register = sourceAst.methods.find(method => method.name === 'register');
-  const boot = sourceAst.methods.find(method => method.name === 'boot');
-  if (!register || !boot) throw new Error(`Provider register/boot methods not found: ${fileValue.value.value}`);
-  const registerExpression = methodExpression(register, fileValue.value.value);
-  const bootExpression = methodExpression(boot, fileValue.value.value);
-  const operations: ProviderContainerOperation[] = [];
-  collectContainerOperations(registerExpression, operations);
-  collectContainerOperations(bootExpression, operations);
-  const definition: ProviderDefinition = {
-    kind: 'provider',
-    name: { kind: 'class_name', value: sourceAst.className.value },
-    file: fileValue,
-    register: registerExpression,
-    boot: bootExpression,
-    containerOperations: { kind: 'provider_container_operations', items: sequence(operations) },
-    source: span,
-  };
-  return { kind: 'provider_ast', definition, source: span };
+  const register = relationFirstOption(sourceAst.methods, method => Object.is(method.name, 'register'));
+  const boot = relationFirstOption(sourceAst.methods, method => Object.is(method.name, 'boot'));
+  return relationOptionFold(register, () => { throw Error(`Provider register method not found: ${fileValue.value.value}`); }, registerMethod => relationOptionFold(boot, () => { throw Error(`Provider boot method not found: ${fileValue.value.value}`); }, bootMethod => {
+    const registerExpression = methodExpression(registerMethod, fileValue.value.value);
+    const bootExpression = methodExpression(bootMethod, fileValue.value.value);
+    const operations: ProviderContainerOperation[] = [];
+    collectContainerOperations(registerExpression, operations);
+    collectContainerOperations(bootExpression, operations);
+    const bindings = semanticBindings(operations);
+    const bindingAttributes = semanticBindingAttributes(sourceAst, fileValue.value.value);
+    const definition: ProviderDefinition = {
+      kind: 'provider',
+      name: { kind: 'class_name', value: sourceAst.className.value },
+      file: fileValue,
+      register: registerExpression,
+      boot: bootExpression,
+      bindings,
+      bindingAttributes,
+      source: span,
+    };
+    return { kind: 'provider_ast', definition, source: span };
+  }));
 }
 
 export async function scanProviderAsts(sourceProject: SourceProjectIdentity): Promise<readonly ProviderAst[]> {
-    const sourceRoot = sourceProject.root.value.value;
+  const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Providers');
   const files = await collectPhpFiles(directory);
   const { providerProducer } = await import('./providerProducer');
-  const asts: ProviderAst[] = [];
-  for (const file of files) {
-    const text = await readSourceText(file);
-    const tokens = LaravelSourceLexer.tokenize(text);
-    const name = className(tokens);
-    const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
-    const span = source(file, Number(declaration.source.line));
-    const sourceAst: ProviderSourceAst = {
-      kind: 'provider_source_ast',
-      className: createAstIdentifier(name),
-      methods: declaration.methods,
-      source: span,
-    };
-    asts.push(providerProducer.produce({
-      source: sourceAst,
-      file: { kind: 'source_file', value: stringValue(file) },
-      sourceSpan: span,
-    }));
-  }
-  return Object.freeze(asts);
+  const scan = async (index: number, asts: readonly ProviderAst[]): Promise<readonly ProviderAst[]> => relationGate(
+    index >= files.length,
+    () => Object.freeze(asts),
+    async () => {
+      const file = files[index];
+      const text = await readSourceText(file);
+      const tokens = LaravelSourceLexer.tokenize(text);
+      const name = className(tokens);
+      const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
+      const span = source(file, Number(declaration.source.line));
+      const sourceAst: ProviderSourceAst = {
+        kind: 'provider_source_ast',
+        attributes: declaration.attributes,
+        className: createAstIdentifier(name),
+        methods: declaration.methods,
+        source: span,
+      };
+      const ast = providerProducer.produce({
+        source: sourceAst,
+        file: { kind: 'source_file', value: stringValue(file) },
+        sourceSpan: span,
+      });
+      return scan(relationAdvanceIndex(index, 1), [...asts, ast]);
+    },
+  );
+  return scan(0, Object.freeze([]));
 }
+

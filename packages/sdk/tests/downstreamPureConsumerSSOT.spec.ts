@@ -5,16 +5,16 @@ import {
   PolymorphicRelationDescriptor,
   ResourceResponseDescriptor,
   ResponseShape,
-  ParsedRoute,
+  RouteSemanticFlow,
   RequestContentType,
   RouteSecurityClassifier,
   RouteHookKind,
   CrudRole,
-  ScannedRouteCacheInvalidationDescriptor,
+  RouteSemanticFlowCacheInvalidationDescriptor,
   ScannedInvalidationTarget,
   RouteParameterType,
   ScannedRouteParameterDescriptor,
-  ScannedRouteDescriptor
+  RouteSemanticFlowFactory
 } from '../../core/src'
 import { HookGenerator } from '../../cli/src/generators/HookGenerator'
 import { SDKGenerator } from '../../cli/src/generators/SDKGenerator'
@@ -66,7 +66,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('3. SDKGenerator should consume route.response.readTypeName, mapperName, and validatorName directly without string heuristics', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users/{id}',
       resourceName: 'User',
@@ -95,7 +95,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('4. HookGenerator should consume route.response.readTypeName directly from SSOT', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders/{id}',
       resourceName: 'Order',
@@ -115,14 +115,14 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('5. HookGenerator should consume route.invalidation.queryKeyExpressions directly from explicit descriptor', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/orders',
       resourceName: 'Order',
       actionName: 'create',
       actionKind: 'create',
       isMutating: true,
-      invalidation: ScannedRouteCacheInvalidationDescriptor.fromTargets([
+      invalidation: RouteSemanticFlowCacheInvalidationDescriptor.fromTargets([
         ScannedInvalidationTarget.selfList('orders'),
         ScannedInvalidationTarget.parentList('users')
       ]),
@@ -140,7 +140,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('6. HookGenerator should resolve list and detail types purely from response descriptors without intermediate artifact maps', async () => {
-    const indexRoute = ScannedRouteDescriptor.create({
+    const indexRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/products',
       resourceName: 'Product',
@@ -150,7 +150,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
       crudRole: CrudRole.Index,
       response: ResourceResponseDescriptor.collection('ProductResource')
     })
-    const showRoute = ScannedRouteDescriptor.create({
+    const showRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/products/{id}',
       resourceName: 'Product',
@@ -233,7 +233,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('8. CompilerBridge.emitAll should write all 5 compiler artifacts to target directory', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders',
       resourceName: 'Order',
@@ -268,7 +268,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('9. QueryKeyGenerator should resolve primary key type from route pathParameters SSOT without fuzzy model matching', async () => {
-    const indexRoute = ScannedRouteDescriptor.create({
+    const indexRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/devices',
       resourceName: 'Device',
@@ -279,7 +279,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
       response: ResourceResponseDescriptor.collection('DeviceResource')
     })
 
-    const showRoute = ScannedRouteDescriptor.create({
+    const showRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/devices/{id}',
       resourceName: 'Device',
@@ -336,7 +336,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('11. MswGenerator should consume matchResponseShape pure catamorphism for collection vs single responses', async () => {
-    const listRoute = ScannedRouteDescriptor.create({
+    const listRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/items',
       resourceName: 'Item',
@@ -346,7 +346,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
       crudRole: CrudRole.Index,
       response: ResourceResponseDescriptor.collection('ItemResource')
     })
-    const singleRoute = ScannedRouteDescriptor.create({
+    const singleRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/items/{id}',
       resourceName: 'Item',
@@ -378,7 +378,7 @@ describe('Downstream Pure Consumer & Manifest Descriptors SSOT', () => {
   })
 
   it('12. NextActionGenerator should consume executionSignature SSOT to generate typed server action signatures', async () => {
-    const mutatingRoute = ScannedRouteDescriptor.create({
+    const mutatingRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/items',
       resourceName: 'Item',

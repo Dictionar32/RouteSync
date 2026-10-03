@@ -1,19 +1,16 @@
-/**
- * Validates compiler-pass dependencies and computes deterministic execution
- * order or parallel execution layers.
- */
 import type { ArtifactKey } from '../artifacts/types';
 import type { ExecutablePass } from './ExecutablePass';
 import {
     buildAdjacency,
     resolveTopologicalOrder,
-    resolveParallelLayers
+    resolveParallelLayers,
+    type AdjacencyRelation
 } from './graph';
 
 export class PassGraph {
     public static buildAdjacency(
         passes: readonly ExecutablePass[]
-    ): Map<ArtifactKey, Set<ExecutablePass>> {
+    ): AdjacencyRelation {
         return buildAdjacency(passes);
     }
 

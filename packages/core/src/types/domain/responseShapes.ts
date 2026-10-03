@@ -1,3 +1,4 @@
+import type { Cardinality } from '../upstream/primitiveVocabulary';
 import type {
   EloquentRelationCardinality,
   EloquentRelationType
@@ -42,21 +43,21 @@ export type ResponseShapeRegistry = {
 export const RESPONSE_SHAPE_REGISTRY: ResponseShapeRegistry = Object.freeze({
   [ResponseShape.Paginated]: {
     shape: ResponseShape.Paginated,
-    cardinality: 'many',
+    cardinality: { kind: 'many' },
     pagination: 'paginated',
     defaultWrapperKey: { kind: 'data_wrapper', key: SemanticValueFactory.responseDataKey('data') },
     description: 'Paginated envelope containing a collection of records with pagination metadata'
   },
   [ResponseShape.Collection]: {
     shape: ResponseShape.Collection,
-    cardinality: 'many',
+    cardinality: { kind: 'many' },
     pagination: 'none',
     defaultWrapperKey: { kind: 'data_wrapper', key: SemanticValueFactory.responseDataKey('data') },
     description: 'Direct array or collection of records'
   },
   [ResponseShape.Single]: {
     shape: ResponseShape.Single,
-    cardinality: 'one',
+    cardinality: { kind: 'one' },
     pagination: 'none',
     defaultWrapperKey: { kind: 'no_wrapper' },
     description: 'Single item or record object'
@@ -208,27 +209,27 @@ export interface BasePolymorphicRelationDescriptor<T extends PolymorphicMorphTyp
 
 export interface MorphToRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphTo'> {
   readonly morphType: 'morphTo';
-  readonly cardinality: 'one';
+  readonly cardinality: Cardinality;
 }
 
 export interface MorphOneRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphOne'> {
   readonly morphType: 'morphOne';
-  readonly cardinality: 'one';
+  readonly cardinality: Cardinality;
 }
 
 export interface MorphManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphMany'> {
   readonly morphType: 'morphMany';
-  readonly cardinality: 'many';
+  readonly cardinality: Cardinality;
 }
 
 export interface MorphToManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphToMany'> {
   readonly morphType: 'morphToMany';
-  readonly cardinality: 'many';
+  readonly cardinality: Cardinality;
 }
 
 export interface MorphedByManyRelationDescriptor extends BasePolymorphicRelationDescriptor<'morphedByMany'> {
   readonly morphType: 'morphedByMany';
-  readonly cardinality: 'many';
+  readonly cardinality: Cardinality;
 }
 
 export type PolymorphicRelationDescriptor<T extends PolymorphicMorphType = PolymorphicMorphType> =
@@ -256,35 +257,35 @@ export type PolymorphicRelationRegistry = {
 export const POLYMORPHIC_RELATION_REGISTRY: PolymorphicRelationRegistry = Object.freeze({
   [PolymorphicMorphType.MorphTo]: {
     morphType: PolymorphicMorphType.MorphTo,
-    cardinality: 'one',
+    cardinality: { kind: 'one' },
     defaultIdColumn: SemanticValueFactory.columnName('commentable_id'),
     defaultTypeColumn: SemanticValueFactory.columnName('commentable_type'),
     defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('CommentableTarget')
   },
   [PolymorphicMorphType.MorphOne]: {
     morphType: PolymorphicMorphType.MorphOne,
-    cardinality: 'one',
+    cardinality: { kind: 'one' },
     defaultIdColumn: SemanticValueFactory.columnName('commentable_id'),
     defaultTypeColumn: SemanticValueFactory.columnName('commentable_type'),
     defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('CommentableTarget')
   },
   [PolymorphicMorphType.MorphMany]: {
     morphType: PolymorphicMorphType.MorphMany,
-    cardinality: 'many',
+    cardinality: { kind: 'many' },
     defaultIdColumn: SemanticValueFactory.columnName('commentable_id'),
     defaultTypeColumn: SemanticValueFactory.columnName('commentable_type'),
     defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('CommentableTarget')
   },
   [PolymorphicMorphType.MorphToMany]: {
     morphType: PolymorphicMorphType.MorphToMany,
-    cardinality: 'many',
+    cardinality: { kind: 'many' },
     defaultIdColumn: SemanticValueFactory.columnName('taggable_id'),
     defaultTypeColumn: SemanticValueFactory.columnName('taggable_type'),
     defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('TaggableTarget')
   },
   [PolymorphicMorphType.MorphedByMany]: {
     morphType: PolymorphicMorphType.MorphedByMany,
-    cardinality: 'many',
+    cardinality: { kind: 'many' },
     defaultIdColumn: SemanticValueFactory.columnName('taggable_id'),
     defaultTypeColumn: SemanticValueFactory.columnName('taggable_type'),
     defaultUnionTypeName: SemanticValueFactory.envelopeTypeName('TaggableTarget')

@@ -14,6 +14,4 @@ export {
   createPresenceChannel,
   createNoneChannel,
   createEmptyChannel,
-  ScannedBroadcastChannelDescriptor,
-  type ScannedBroadcastChannelParams
 } from './channel';

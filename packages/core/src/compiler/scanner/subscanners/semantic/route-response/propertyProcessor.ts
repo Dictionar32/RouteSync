@@ -13,16 +13,18 @@ import { matchResourceFieldExpression } from '../../../../../types/domain/expres
 import { toCamelCase } from '../../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from '../SemanticDerivationContext';
 import { matchBoundSemanticNode } from '../../../../../types/domain/boundAst';
+import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
+import { relationFold, relationGate, relationSlice } from '../../../../../semantic/kernel/relationalSequence';
 
 export function processResponseProperties(
     fields: readonly ResourceFieldDescriptor[],
     context: SemanticDerivationContext,
     prefix = ''
 ): ObjectProperty[] {
-    const properties: ObjectProperty[] = [];
-    for (const field of fields) {
-        processField(field, context, prefix, properties);
-    }
+    const properties = relationFold(fields, [] as ObjectProperty[], (output, field) => {
+        processField(field, context, prefix, output);
+        return output;
+    });
     return properties;
 }
 
@@ -33,9 +35,9 @@ function processField(
     properties: ObjectProperty[]
 ): void {
     const camelName = toCamelCase(field.name.value);
-    const name = prefix.length > 0
-        ? `${prefix}${camelName.charAt(0).toUpperCase()}${camelName.slice(1)}`
-        : camelName;
+    const name = relationGate(relationEqual(prefix.length, 0),
+        () => camelName,
+        () => `${prefix}${camelName.charAt(0).toUpperCase()}${relationSlice(Array.from(camelName), 1, camelName.length).join('')}`);
 
     matchResourceFieldExpression(field.expression, {
         object: expression => {
@@ -73,11 +75,11 @@ function pushLeaf(
 }
 
 function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticType {
-    if (field.semantic.kind === 'rejected') {
-        throw new Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`);
-    }
-    const boundAst = field.semantic.bound;
-    return matchBoundSemanticNode(boundAst, {
+    return relationGate(relationEqual(field.semantic.kind, 'rejected'),
+        () => { throw Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`); },
+        () => {
+            const boundAst = field.semantic.bound;
+            return matchBoundSemanticNode(boundAst, {
         bound_model_reference: node => field.semantic.type,
         bound_resource_reference: node => field.semantic.type,
         bound_primitive: node => node.semanticType,
@@ -91,7 +93,8 @@ function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticTyp
         bound_query_projection: node => field.semantic.type,
         bound_projection_field: node => node.semanticType,
         bound_unsupported: node => field.semantic.type
-    });
+            });
+        });
 }
 function property(name: string, type: SemanticType): ObjectProperty {
     return ScannedObjectProperty.create({

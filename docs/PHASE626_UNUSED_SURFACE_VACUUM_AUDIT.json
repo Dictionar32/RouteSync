@@ -1,0 +1,71 @@
+{
+  "phase": 626,
+  "policy": "preserve-unused-file-paths-but-empty-implementation",
+  "emptied_files": 9,
+  "deleted_files": 0,
+  "all_emptied_files_zero_bytes": true,
+  "files": [
+    {
+      "path": "packages/cli/src/generators/TypeScriptWriter.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/cli/src/generators/semantic/FieldTypeMapper.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/types/semantic/parsedAstAlgebra.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/types/upstream/routeResource.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/compiler/contracts.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/compiler/formatting/typescript/TSFormatter.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/compiler/emitters/typescript/TypeScriptEmitter.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/compiler/domain/common/ResourceFieldFlattener.ts",
+      "bytes": 0
+    },
+    {
+      "path": "packages/core/src/compiler/domain/common/ResponseFieldFlattener.ts",
+      "bytes": 0
+    }
+  ],
+  "production_descriptor_class_count": 23,
+  "production_descriptor_classes": [
+    "packages/cli/src/generators/classifier/classifiedRouteDescriptor.ts:51:ScannedClassifiedRouteDescriptor",
+    "packages/cli/src/generators/routes/pageEndpointDescriptor.ts:25:ScannedPageEndpointDescriptor",
+    "packages/cli/src/utils/incremental/descriptors/scannedResourceDescriptor.ts:16:ScannedResourceDescriptor",
+    "packages/cli/src/utils/incremental/descriptors/scannedManifestDescriptor.ts:19:ScannedManifestDescriptor",
+    "packages/core/src/types/request.ts:94:RequestOptionsDescriptor",
+    "packages/core/src/types/request.ts:252:RouteDefinitionDescriptor",
+    "packages/core/src/types/domain/crudRoles.ts:194:RouteSemanticFlowHookDescriptor",
+    "packages/core/src/types/domain/crudRoles.ts:445:ScannedCrudRoleDescriptor",
+    "packages/core/src/types/domain/httpVocabulary.ts:517:ScannedRequestContentTypeDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:486:AbstractResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:558:AbstractCrudResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:595:ScannedFullCrudResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:644:ScannedReadOnlyCrudResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:680:ScannedFlexibleCrudResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:735:ScannedCrudResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:772:ScannedSingletonResourceGroupDescriptor",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:844:ScannedCustomResourceGroupDescriptor",
+    "packages/core/src/types/domain/cacheInvalidation.ts:158:RouteSemanticFlowCacheInvalidationDescriptor",
+    "packages/core/src/types/domain/authAndPolicy.ts:37:RouteSemanticFlowSecurityDescriptor",
+    "packages/core/src/types/domain/responseShapes.ts:334:ScannedPaginatedEnvelopeDescriptor",
+    "packages/core/src/types/domain/responseShapes.ts:420:ScannedPolymorphicRelationDescriptor",
+    "packages/core/src/types/domain/provenance/endpointProvenance.ts:23:ScannedEndpointProvenanceDescriptor",
+    "packages/core/src/types/semantic/irHints.ts:80:IRRawNodeDescriptor"
+  ]
+}

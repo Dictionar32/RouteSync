@@ -20,6 +20,8 @@ export {
     bindNestedArrayField,
     bindLiteralField,
     bindTernaryField,
+    bindBinaryField,
+    bindNullCoalesceField,
     bindFallbackField
 } from "./compositeBinders";
 

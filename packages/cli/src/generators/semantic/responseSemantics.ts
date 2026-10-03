@@ -1,19 +1,19 @@
-import type { InlineResponseDescriptor, ParsedRoute } from '@routesync/core';
+import type { InlineResponseDescriptor, RouteSemanticFlow } from '@routesync/core';
 import { ResponseShape, matchResponse } from '@routesync/core';
 import type { ResponseCardinality, ResponseEnvelope, ResponseNullability } from './semanticTypes';
 
-export function resolveResponseCardinality(response: ParsedRoute['binding']['response']): ResponseCardinality {
+export function resolveResponseCardinality(response: RouteSemanticFlow['binding']['response']): ResponseCardinality {
     const shape = response.shape;
     if (shape === ResponseShape.Paginated) return { kind: 'paginated_collection' };
     if (shape === ResponseShape.Collection) return { kind: 'collection' };
     return { kind: 'single' };
 }
 
-export function resolveResponseEnvelope(response: ParsedRoute['binding']['response']): ResponseEnvelope {
+export function resolveResponseEnvelope(response: RouteSemanticFlow['binding']['response']): ResponseEnvelope {
     return response.shape === ResponseShape.Paginated ? { kind: 'wrapped' } : { kind: 'direct' };
 }
 
-export function resolveResponseNullability(response: ParsedRoute['binding']['response']): ResponseNullability {
+export function resolveResponseNullability(response: RouteSemanticFlow['binding']['response']): ResponseNullability {
     return matchResponse(response, {
         resource: () => ({ kind: 'non_nullable' }),
         model: () => ({ kind: 'non_nullable' }),

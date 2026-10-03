@@ -77,14 +77,14 @@ export type ResolvedServiceDependencies = {
   readonly items: Sequence<ResolvedServiceDependency>;
 };
 
-export type ServiceDefinition = {
+export interface ServiceDefinition {
   readonly kind: 'service_definition';
   readonly name: ClassName;
   readonly file: SourceFile;
   readonly methods: ServiceMethods;
   readonly dependencies: ServiceDependencyFacts;
   readonly source: SourceSpan;
-};
+}
 
 export type ServiceMethods = {
   readonly kind: 'service_methods';

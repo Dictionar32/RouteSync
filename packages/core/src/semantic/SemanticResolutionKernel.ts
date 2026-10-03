@@ -8,7 +8,8 @@
  */
 
 import type { SemanticResolution } from '../types/domain/semanticResolution';
-import { unknownResolution } from './semanticResolutionSupport';
+import type { VerifiedModelGraph } from './VerifiedModelGraph';
+import { indeterminateResolution } from './semanticResolutionSupport';
 import type {
   ResolverPlugin,
   SemanticResolutionKernelContract,
@@ -17,52 +18,58 @@ import type {
   ModelNode,
   ModelNodeInput
 } from './types';
-import { CycleDetector } from './types';
+import { createCycleDetector, type CycleDetector } from './CycleDetector';
 import type { ResolutionScope } from './resolutionScope';
 import { verifyModelNode } from './modelNodes';
-import { SymbolTable } from './SymbolTable';
+import { createSymbolTable, type SymbolTable } from './SymbolTable';
 import {
   mapSqlTypeToTs,
   mapCastToTs,
   buildResolutionContext,
-  createDefaultPlugins
+  createDefaultPlugins,
+  relationFirst,
+  relationProject,
+  relationSelect,
+  relationOptionFold,
 } from './kernel';
+import { relationEqual } from './kernel/semanticRelations';
 
 export { mapSqlTypeToTs, mapCastToTs };
 
-export type { ModelGraphInput, VerifiedModelGraph } from './VerifiedModelGraph';
+export type { ModelGraphInput } from './VerifiedModelGraph';
 export { verifyModelGraph } from './VerifiedModelGraph';
 
 export class SemanticResolutionKernel implements SemanticResolutionKernelContract {
-  private models: ModelNode[];
-  private plugins: ResolverPlugin[];
+  private models: readonly ModelNode[];
+  private plugins: readonly ResolverPlugin[];
   private cycleDetector: CycleDetector;
   private symbolTable: SymbolTable;
 
   constructor(inputs: readonly ModelNodeInput[] = [], private resources: readonly { readonly name: string }[] = []) {
-    this.models = inputs.map(verifyModelNode);
-    this.cycleDetector = new CycleDetector();
-    this.symbolTable = new SymbolTable(this.models);
+    this.models = relationProject(inputs, verifyModelNode);
+    this.cycleDetector = createCycleDetector();
+    this.symbolTable = createSymbolTable(this.models);
     this.plugins = createDefaultPlugins();
   }
 
-  public getModels(): ModelNode[] {
+  public getModels(): readonly ModelNode[] {
     return this.models;
   }
 
   public loadGraph(graph: VerifiedModelGraph): void {
-    const existingNames = new Set(this.models.map(model => model.definition.identity.name.value));
-    const additions = graph.models.filter(model => !existingNames.has(model.definition.identity.name.value));
-    if (additions.length === 0) return;
-    this.models.push(...additions);
-    this.symbolTable = new SymbolTable(this.models);
+    const additions = relationSelect(
+      graph.models,
+      model => relationOptionFold(
+        relationFirst(this.models, existing => relationEqual(existing.definition.identity.name.value, model.definition.identity.name.value)),
+        () => true,
+        () => false,
+      ),
+    );
+    this.models = Object.freeze([...this.models, ...additions]);
+    this.symbolTable = createSymbolTable(this.models);
   }
 
   public resolve(meta: ResolverMeta, scope: ResolutionScope): SemanticResolution {
-    if (meta.kind === 'unknown') {
-      return unknownResolution('SemanticResolutionKernel', 'No metadata available', 'metadata', 'invalid_boundary_input');
-    }
-
     const context: ResolutionContext = buildResolutionContext(
       this.models,
       this.resources,
@@ -72,13 +79,12 @@ export class SemanticResolutionKernel implements SemanticResolutionKernelContrac
       scope
     );
 
-    for (const plugin of this.plugins) {
-      if (plugin.canResolve(meta)) {
-        return plugin.resolve(meta, context);
-      }
-    }
-
-    return unknownResolution('SemanticResolutionKernel', `Unsupported kind: ${meta.kind}`, meta.kind, 'unsupported_syntax');
+    const plugin = relationFirst(this.plugins, candidate => candidate.canResolve(meta));
+    return relationOptionFold(
+      plugin,
+      () => indeterminateResolution('SemanticResolutionKernel', `Unsupported kind: ${meta.kind}`, meta.kind, 'unsupported_syntax'),
+      candidate => candidate.resolve(meta, context),
+    );
   }
 
   public mapSqlTypeToTs(sqlType: string): string {

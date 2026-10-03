@@ -7,6 +7,6 @@
  */
 
 export {
-    AnalysisDependencyGraph,
+    type AnalysisDependencyGraph,
     type AnyAnalysisKey
 } from './dependencyGraph';

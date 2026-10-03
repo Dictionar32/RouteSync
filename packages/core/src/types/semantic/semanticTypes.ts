@@ -7,6 +7,8 @@
  */
 
 import type { SemanticResolution } from '../contract';
+import { relationOptionFold, relationFirstOption, relationProject, relationRefine } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
 import type { PropertyName } from '../domain/semanticValues';
 
 export type SemanticType = import('../../compiler/types/SemanticType').SemanticType;
@@ -24,15 +26,10 @@ const fieldKey = (name: PropertyName): string => `${name.kind}:${name.value}`;
 
 export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
   public readonly entries: readonly SemanticFieldEntry[];
-  private readonly _lookup: ReadonlyMap<string, SemanticFieldEntry>;
+
 
   constructor(entries: readonly SemanticFieldEntry[]) {
     this.entries = Object.freeze([...entries]);
-    const map = new Map<string, SemanticFieldEntry>();
-    for (const entry of entries) {
-      map.set(fieldKey(entry.name), entry);
-    }
-    this._lookup = map;
     Object.freeze(this);
   }
 
@@ -45,10 +42,11 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
   }
 
   public lookup(name: PropertyName): SemanticFieldLookup {
-    const entry = this._lookup.get(fieldKey(name));
-    return entry === undefined
-      ? { kind: 'missing', name }
-      : { kind: 'found', entry };
+    return relationOptionFold(
+      relationFirstOption(this.entries, entry => relationEqual(fieldKey(entry.name), fieldKey(name))),
+      () => ({ kind: 'missing', name }),
+      entry => ({ kind: 'found', entry }),
+    );
   }
 
   public getType(name: PropertyName): SemanticFieldLookup {
@@ -56,7 +54,7 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
   }
 
   public has(name: PropertyName): boolean {
-    return this._lookup.has(fieldKey(name));
+    return relationOptionFold(relationFirstOption(this.entries, entry => relationEqual(fieldKey(entry.name), fieldKey(name))), () => false, () => true);
   }
 
   public hasField(name: PropertyName): boolean {
@@ -64,7 +62,7 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
   }
 
   public get size(): number {
-    return this._lookup.size;
+    return this.entries.length;
   }
 
   public [Symbol.iterator](): Iterator<SemanticFieldEntry> {
@@ -72,7 +70,49 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
   }
 }
 
-export interface SemanticNode extends Omit<SemanticResolution, 'fields'> {
-  readonly type: SemanticType;
-  readonly fields: SemanticFieldSet;
+type SemanticNodeVariant<T extends SemanticResolution> =
+  Omit<T, 'fields'> & {
+    readonly type: SemanticType;
+    readonly fields: SemanticFieldSet;
+  };
+
+export type SemanticNode = SemanticResolution extends infer T
+  ? T extends SemanticResolution
+    ? SemanticNodeVariant<T>
+    : never
+  : never;
+
+
+export type SemanticNodeScalar = Extract<SemanticNode, { readonly kind: 'scalar' }>;
+export type SemanticNodeModel = Extract<SemanticNode, { readonly kind: 'model' }>;
+export type SemanticNodeResource = Extract<SemanticNode, { readonly kind: 'resource' }>;
+export type SemanticNodeObject = Extract<SemanticNode, { readonly kind: 'object' }>;
+export type SemanticNodeProjection = Extract<SemanticNode, { readonly kind: 'query_projection' }>;
+export type SemanticNodeIndeterminate = Extract<SemanticNode, { readonly kind: 'indeterminate' }>;
+
+export function matchSemanticNode<T>(
+  node: SemanticNode,
+  visitor: {
+    scalar: (value: SemanticNodeScalar) => T;
+    model: (value: SemanticNodeModel) => T;
+    resource: (value: SemanticNodeResource) => T;
+    object: (value: SemanticNodeObject) => T;
+    query_projection: (value: SemanticNodeProjection) => T;
+    indeterminate: (value: SemanticNodeIndeterminate) => T;
+  },
+): T {
+  const scalar = relationRefine(node, (value): value is SemanticNodeScalar => relationEqual(value.kind, 'scalar'));
+  return relationOptionFold(scalar, () => {
+    const model = relationRefine(node, (value): value is SemanticNodeModel => relationEqual(value.kind, 'model'));
+    return relationOptionFold(model, () => {
+      const resource = relationRefine(node, (value): value is SemanticNodeResource => relationEqual(value.kind, 'resource'));
+      return relationOptionFold(resource, () => {
+        const object = relationRefine(node, (value): value is SemanticNodeObject => relationEqual(value.kind, 'object'));
+        return relationOptionFold(object, () => {
+          const projection = relationRefine(node, (value): value is SemanticNodeProjection => relationEqual(value.kind, 'query_projection'));
+          return relationOptionFold(projection, () => visitor.indeterminate(node as SemanticNodeIndeterminate), visitor.query_projection);
+        }, visitor.object);
+      }, visitor.resource);
+    }, visitor.model);
+  }, visitor.scalar);
 }

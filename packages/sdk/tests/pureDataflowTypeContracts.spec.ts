@@ -18,7 +18,7 @@ import {
     lowerContractsOutput,
     lowerApiFieldsOutput,
     lowerMappersOutput,
-    ScannedRouteDescriptor,
+    RouteSemanticFlowFactory,
     ScannedRouteParameterDescriptor,
     ScannedRoutePolicyDescriptor,
     ScannedRateLimitDescriptor,
@@ -38,7 +38,7 @@ import {
     RouteActionKind,
     RouteHookKind,
     RequestContentType,
-    ScannedRouteCacheInvalidationDescriptor,
+    RouteSemanticFlowCacheInvalidationDescriptor,
     ScannedRouteSchemaPayload,
     EmptyResponseDescriptor,
     RouteHandlerKind
@@ -143,8 +143,8 @@ describe("Pure Dataflow & Complete Contract Architecture Suite", () => {
             expect(Object.isFrozen(policy)).toBe(true);
         });
 
-        it("ScannedRouteDescriptor constructor should perform 100% direct assignment from ScannedRouteParams", () => {
-            const route = ScannedRouteDescriptor.create({
+        it("RouteSemanticFlowFactory constructor should perform 100% direct assignment from RouteSemanticFlowParams", () => {
+            const route = RouteSemanticFlowFactory.create({
                 method: "GET" as HttpMethod,
                 path: "/api/users",
                 resourceName: "User",
@@ -163,8 +163,8 @@ describe("Pure Dataflow & Complete Contract Architecture Suite", () => {
             expect(Object.isFrozen(route)).toBe(true);
         });
 
-        it("ScannedRouteDescriptor.fromControllerReference should construct complete route with controller handler", () => {
-            const route = ScannedRouteDescriptor.fromControllerReference({
+        it("RouteSemanticFlowFactory.fromControllerReference should construct complete route with controller handler", () => {
+            const route = RouteSemanticFlowFactory.fromControllerReference({
                 method: "POST" as HttpMethod,
                 path: "/api/users",
                 resourceName: "User",
@@ -178,15 +178,15 @@ describe("Pure Dataflow & Complete Contract Architecture Suite", () => {
             expect(route.isMutating).toBe(true);
         });
 
-        it("ScannedRouteDescriptor.withInvalidation should return new immutable instance with updated invalidation", () => {
-            const original = ScannedRouteDescriptor.create({
+        it("RouteSemanticFlowFactory.withInvalidation should return new immutable instance with updated invalidation", () => {
+            const original = RouteSemanticFlowFactory.create({
                 method: "DELETE" as HttpMethod,
                 path: "/api/users/{id}",
                 resourceName: "User",
                 actionName: "destroy"
             });
 
-            const newInv = ScannedRouteCacheInvalidationDescriptor.none();
+            const newInv = RouteSemanticFlowCacheInvalidationDescriptor.none();
             const updated = original.withInvalidation(newInv);
 
             expect(updated).not.toBe(original);
@@ -209,7 +209,7 @@ describe("Pure Dataflow & Complete Contract Architecture Suite", () => {
             contractImportedTypes: []
         });
 
-        const dummyRoute = ScannedRouteDescriptor.create({
+        const dummyRoute = RouteSemanticFlowFactory.create({
             method: "GET" as HttpMethod,
             path: "/api/users",
             resourceName: "User",

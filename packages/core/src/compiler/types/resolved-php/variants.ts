@@ -1,135 +1,54 @@
-/**
- * variants.ts
- *
- * Concrete variant classes for ResolvedPhpType ADT.
- *
- * @module compiler/types/resolved-php
- */
+/** Structural witnesses for the resolved PHP type algebra. */
 
-import { PrimitiveKind, ObjectProperty } from '../SemanticType';
+import { PrimitiveKind, type ObjectProperty } from '../SemanticType';
 
-export class PrimitivePhpType {
-    public readonly kind = 'primitive' as const;
-    public readonly primitiveKind: PrimitiveKind;
-    public readonly nullable: boolean;
-
-    public constructor(params: {
-        readonly primitiveKind: PrimitiveKind;
-        readonly nullable: boolean;
-    }) {
-        this.primitiveKind = params.primitiveKind;
-        this.nullable = params.nullable;
-        Object.freeze(this);
-    }
-
-    public static create(primitiveKind: PrimitiveKind, nullable: boolean): PrimitivePhpType {
-        return new PrimitivePhpType({ primitiveKind, nullable });
-    }
-
-    public static string(nullable = false): PrimitivePhpType {
-        return new PrimitivePhpType({ primitiveKind: PrimitiveKind.STRING, nullable });
-    }
-
-    public static number(nullable = false): PrimitivePhpType {
-        return new PrimitivePhpType({ primitiveKind: PrimitiveKind.NUMBER, nullable });
-    }
-
-    public static boolean(nullable = false): PrimitivePhpType {
-        return new PrimitivePhpType({ primitiveKind: PrimitiveKind.BOOLEAN, nullable });
-    }
-
-    public static datetime(nullable = false): PrimitivePhpType {
-        return new PrimitivePhpType({ primitiveKind: PrimitiveKind.DATETIME, nullable });
-    }
+export interface PrimitivePhpType {
+    readonly kind: 'primitive';
+    readonly primitiveKind: PrimitiveKind;
+    readonly nullable: boolean;
 }
 
-export class EloquentModelPhpType {
-    public readonly kind = 'model' as const;
-    public readonly modelName: string;
-    public readonly baseName: string;
-    public readonly properties: readonly ObjectProperty[];
-    public readonly nullable: boolean;
+export const PrimitivePhpType = Object.freeze({
+    create: (primitiveKind: PrimitiveKind, nullable: boolean): PrimitivePhpType => Object.freeze({ kind: 'primitive' as const, primitiveKind, nullable }),
+    string: (nullable = false): PrimitivePhpType => Object.freeze({ kind: 'primitive' as const, primitiveKind: PrimitiveKind.STRING, nullable }),
+    number: (nullable = false): PrimitivePhpType => Object.freeze({ kind: 'primitive' as const, primitiveKind: PrimitiveKind.NUMBER, nullable }),
+    boolean: (nullable = false): PrimitivePhpType => Object.freeze({ kind: 'primitive' as const, primitiveKind: PrimitiveKind.BOOLEAN, nullable }),
+    datetime: (nullable = false): PrimitivePhpType => Object.freeze({ kind: 'primitive' as const, primitiveKind: PrimitiveKind.DATETIME, nullable }),
+});
 
-    public constructor(params: {
-        readonly modelName: string;
-        readonly baseName: string;
-        readonly properties: readonly ObjectProperty[];
-        readonly nullable: boolean;
-    }) {
-        this.modelName = params.modelName;
-        this.baseName = params.baseName;
-        this.properties = params.properties;
-        this.nullable = params.nullable;
-        Object.freeze(this);
-    }
-
-    public static create(params: {
-        readonly modelName: string;
-        readonly baseName: string;
-        readonly properties: readonly ObjectProperty[];
-        readonly nullable: boolean;
-    }): EloquentModelPhpType {
-        return new EloquentModelPhpType(params);
-    }
+export interface EloquentModelPhpType {
+    readonly kind: 'model';
+    readonly modelName: string;
+    readonly baseName: string;
+    readonly properties: readonly ObjectProperty[];
+    readonly nullable: boolean;
 }
 
-export class ResourceWrapperPhpType {
-    public readonly kind = 'resource' as const;
-    public readonly resourceName: string;
-    public readonly targetTypeName: string;
-    public readonly isCollection: boolean;
-    public readonly nullable: boolean;
+export const EloquentModelPhpType = Object.freeze({
+    create: (params: { readonly modelName: string; readonly baseName: string; readonly properties: readonly ObjectProperty[]; readonly nullable: boolean }): EloquentModelPhpType => Object.freeze({ kind: 'model' as const, ...params }),
+});
 
-    public constructor(params: {
-        readonly resourceName: string;
-        readonly targetTypeName: string;
-        readonly isCollection: boolean;
-        readonly nullable: boolean;
-    }) {
-        this.resourceName = params.resourceName;
-        this.targetTypeName = params.targetTypeName;
-        this.isCollection = params.isCollection;
-        this.nullable = params.nullable;
-        Object.freeze(this);
-    }
-
-    public static create(params: {
-        readonly resourceName: string;
-        readonly targetTypeName: string;
-        readonly isCollection: boolean;
-        readonly nullable: boolean;
-    }): ResourceWrapperPhpType {
-        return new ResourceWrapperPhpType(params);
-    }
+export interface ResourceWrapperPhpType {
+    readonly kind: 'resource';
+    readonly resourceName: string;
+    readonly targetTypeName: string;
+    readonly isCollection: boolean;
+    readonly nullable: boolean;
 }
 
-export class VoidPhpType {
-    public readonly kind = 'void' as const;
+export const ResourceWrapperPhpType = Object.freeze({
+    create: (params: { readonly resourceName: string; readonly targetTypeName: string; readonly isCollection: boolean; readonly nullable: boolean }): ResourceWrapperPhpType => Object.freeze({ kind: 'resource' as const, ...params }),
+});
 
-    public constructor() {
-        Object.freeze(this);
-    }
+export interface VoidPhpType { readonly kind: 'void'; }
+export const VoidPhpType = Object.freeze({ create: (): VoidPhpType => Object.freeze({ kind: 'void' as const }) });
 
-    public static create(): VoidPhpType {
-        return new VoidPhpType();
-    }
+export interface UnknownPhpType {
+    readonly kind: 'unknown';
+    readonly rawExpression: string;
+    readonly nullable: boolean;
 }
 
-export class UnknownPhpType {
-    public readonly kind = 'unknown' as const;
-    public readonly rawExpression: string;
-    public readonly nullable: boolean;
-
-    public constructor(params: {
-        readonly rawExpression: string;
-        readonly nullable: boolean;
-    }) {
-        this.rawExpression = params.rawExpression;
-        this.nullable = params.nullable;
-        Object.freeze(this);
-    }
-
-    public static create(rawExpression: string, nullable = false): UnknownPhpType {
-        return new UnknownPhpType({ rawExpression, nullable });
-    }
-}
+export const UnknownPhpType = Object.freeze({
+    create: (rawExpression: string, nullable = false): UnknownPhpType => Object.freeze({ kind: 'unknown' as const, rawExpression, nullable }),
+});

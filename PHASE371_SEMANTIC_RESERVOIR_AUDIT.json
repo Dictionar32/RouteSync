@@ -1,0 +1,503 @@
+{
+  "phase": 371,
+  "files": 241,
+  "counts": {
+    "if": 622,
+    "for": 126,
+    "strictEqual": 1406,
+    "undefined": 614,
+    "strictNotEqual": 258,
+    "as": 592,
+    "switch": 93,
+    "nullish": 86,
+    "null": 37,
+    "unknownType": 13,
+    "map": 207,
+    "filter": 19,
+    "while": 35,
+    "flatMap": 31,
+    "reduce": 2
+  },
+  "examples": [
+    {
+      "file": "packages/core/src/semantic/CycleDetector.ts",
+      "kind": "if",
+      "line": 13,
+      "text": "if (this.visited.has(nodeId)) {\n      return false; // Cycle detected\n    }"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "for",
+      "line": 14,
+      "text": "for (const fact of node.definition.semantic.columnFacts) this.columnFactsByName.set(fact.column.value.value, fact);"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "for",
+      "line": 15,
+      "text": "for (const property of node.definition.semantic.surface.properties) {\n            if (property.kind === 'relation') this.relationsByName.set(property.relation.value.value, property"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "if",
+      "line": 16,
+      "text": "if (property.kind === 'relation') this.relationsByName.set(property.relation.value.value, property);"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 16,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "if",
+      "line": 17,
+      "text": "if (property.kind === 'accessor') this.accessorsByName.set(property.property.value.value, property);"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 17,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 23,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "undefined",
+      "line": 23,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 28,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "undefined",
+      "line": 28,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 33,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "undefined",
+      "line": 33,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "for",
+      "line": 43,
+      "text": "for (const model of models) {\n            const symbol = new ModelSymbol(model);\n            const name = model.definition.semantic.identity.name.value.value;\n            this.byNa"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "if",
+      "line": 48,
+      "text": "if (!this.byLowerName.has(lower)) this.byLowerName.set(lower, symbol);"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 54,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "undefined",
+      "line": 54,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "strictEqual",
+      "line": 59,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "undefined",
+      "line": 59,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "for",
+      "line": 62,
+      "text": "for (const symbol of this.byName.values()) if (predicate(symbol.node)) return symbol;"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "if",
+      "line": 62,
+      "text": "if (predicate(symbol.node)) return symbol;"
+    },
+    {
+      "file": "packages/core/src/semantic/SymbolTable.ts",
+      "kind": "undefined",
+      "line": 63,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/modelNodes.ts",
+      "kind": "for",
+      "line": 40,
+      "text": "for (const assignment of assignments) lookup.set(assignment.name, assignment);"
+    },
+    {
+      "file": "packages/core/src/semantic/modelNodes.ts",
+      "kind": "strictEqual",
+      "line": 47,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/modelNodes.ts",
+      "kind": "undefined",
+      "line": 47,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "strictEqual",
+      "line": 9,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "if",
+      "line": 13,
+      "text": "if (meta.kind !== 'model_accessor') {\n      return unknownResolution('AccessorResolver', 'Unsupported accessor metadata', 'model_accessor', 'invalid_boundary_input');\n    }"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "strictNotEqual",
+      "line": 13,
+      "text": "!=="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "if",
+      "line": 17,
+      "text": "if (!symbol) {\n      return unknownResolution('AccessorResolver', `Model ${meta.model} not found in manifest`, meta.model, 'unresolved_symbol');\n    }"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "if",
+      "line": 23,
+      "text": "if (acc) {\n      const model = symbol.node;\n      const nodeId = `${model.definition.identity.name.value}.${colName}`;\n      if (!context.cycleDetector.enter(nodeId)) {\n         re"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "if",
+      "line": 26,
+      "text": "if (!context.cycleDetector.enter(nodeId)) {\n         return unknownResolution('AccessorResolver', `Cycle detected at accessor ${nodeId}`, nodeId, 'invalid_boundary_input');\n      }"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "if",
+      "line": 49,
+      "text": "if (acc.semantic && acc.semantic.status === 'resolved') {\n      return acc.semantic;\n    }"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "strictEqual",
+      "line": 49,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/AccessorResolver.ts",
+      "kind": "if",
+      "line": 53,
+      "text": "if (acc.ast) {\n      return resolveInScope(context.kernel, acc.ast, modelScope(currentModel));\n    }"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 11,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 15,
+      "text": "if (meta.kind !== 'method_call') return unsupported(meta.kind);"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictNotEqual",
+      "line": 15,
+      "text": "!=="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 16,
+      "text": "if (meta.args.length >= 2) return resolveValue(meta, context);"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 17,
+      "text": "if (meta.name.value === 'whenLoaded' && meta.args.length === 1) return resolveRelation(meta, context);"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 17,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 17,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "as",
+      "line": 25,
+      "text": "meta.name.value as 'whenLoaded' | 'when' | 'mergeWhen'"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 28,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 42,
+      "text": "if (context.scope.kind !== 'model') return unsupported('whenLoaded relation has no model context');"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictNotEqual",
+      "line": 42,
+      "text": "!=="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 46,
+      "text": "if (property.kind === 'missing') {\n    return unsupported(`Relation ${relationName} is not declared on ${model.definition.identity.name.value}`);\n  }"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 46,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 52,
+      "text": "if (targetSymbol === undefined) return unsupported(`Relation target ${targetModel.value} is not a verified model`);"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 52,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "undefined",
+      "line": 52,
+      "text": "undefined"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 81,
+      "text": "if (first.kind === 'literal' && typeof first.value === 'string') return first.value;"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 81,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 81,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "if",
+      "line": 82,
+      "text": "if (first.kind === 'variable') return first.name.value;"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ConditionalWrapperResolver.ts",
+      "kind": "strictEqual",
+      "line": 82,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/EloquentMethodResolver.ts",
+      "kind": "strictEqual",
+      "line": 10,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/EloquentMethodResolver.ts",
+      "kind": "strictEqual",
+      "line": 10,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/EloquentMethodResolver.ts",
+      "kind": "switch",
+      "line": 14,
+      "text": "switch (meta.kind) {\n      case 'static_method_call':\n        return resolveStaticMethodCall(meta, context, 'EloquentMethodResolver');\n      case 'method_call':\n        return reso"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ExpressionResolver.ts",
+      "kind": "as",
+      "line": 12,
+      "text": "meta as Extract<ResolverMeta, { kind: 'literal' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ExpressionResolver.ts",
+      "kind": "as",
+      "line": 13,
+      "text": "meta as Extract<ResolverMeta, { kind: 'binary_expression' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ExpressionResolver.ts",
+      "kind": "as",
+      "line": 14,
+      "text": "meta as Extract<ResolverMeta, { kind: 'ternary' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ExpressionResolver.ts",
+      "kind": "as",
+      "line": 15,
+      "text": "meta as Extract<ResolverMeta, { kind: 'property_access' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ExpressionResolver.ts",
+      "kind": "as",
+      "line": 16,
+      "text": "meta as Extract<ResolverMeta, { kind: 'nullsafe_property_access' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ExpressionResolver.ts",
+      "kind": "nullish",
+      "line": 26,
+      "text": "??"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/MethodReturnResolver.ts",
+      "kind": "as",
+      "line": 9,
+      "text": "meta as Extract<ResolverMeta, { kind: 'static_method_call' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/MethodReturnResolver.ts",
+      "kind": "as",
+      "line": 10,
+      "text": "meta as Extract<ResolverMeta, { kind: 'method_call' }>"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/MethodReturnResolver.ts",
+      "kind": "nullish",
+      "line": 20,
+      "text": "??"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "switch",
+      "line": 13,
+      "text": "switch (type) {\n    case 'number': return new PrimitiveType(PrimitiveKind.NUMBER);\n    case 'boolean': return new PrimitiveType(PrimitiveKind.BOOLEAN);\n    case 'datetime': return "
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "strictEqual",
+      "line": 25,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "if",
+      "line": 29,
+      "text": "if (meta.kind !== 'model_column') return unknown();"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "strictNotEqual",
+      "line": 29,
+      "text": "!=="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "if",
+      "line": 32,
+      "text": "if (!symbol) return unknown(`Model ${meta.model} not found in manifest`);"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "if",
+      "line": 35,
+      "text": "if (columnFact.kind === 'found') return this.resolveColumn(symbol, meta.column.value, columnFact.value);"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "strictEqual",
+      "line": 35,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "if",
+      "line": 38,
+      "text": "if (accessor.kind === 'found') {\n      return resolveInScope(context.kernel, { kind: 'model_accessor', model: SemanticValueFactory.modelName(symbol.name), column: SemanticValueFact"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "strictEqual",
+      "line": 38,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "strictEqual",
+      "line": 46,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "strictEqual",
+      "line": 47,
+      "text": "==="
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "as",
+      "line": 47,
+      "text": "{ kind: 'cast', type: fact.type.cast.kind } as const"
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/ModelColumnResolver.ts",
+      "kind": "as",
+      "line": 47,
+      "text": "{ kind: 'no_cast' } as const"
+    }
+  ]
+}

@@ -9,7 +9,8 @@
 
 export {
     type SSABasicBlock,
-    SSARepresentation
+    SSARepresentation,
+    createSSARepresentation
 } from "./ssaRepresentation";
 
 export {
@@ -17,5 +18,6 @@ export {
 } from "./ssaBuilder";
 
 export {
-    SSARenamer
+    SSARenamer,
+    createSSARenamer
 } from "./ssaRenamer";

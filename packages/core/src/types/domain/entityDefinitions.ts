@@ -34,9 +34,6 @@ export {
   createHttpVerb
 } from './routeEntityDefinition';
 
-export {
-  RouteDefDescriptor
-} from './routeEntityDescriptor';
 
 export type {
   ColumnDefinitionContract,
@@ -49,8 +46,3 @@ export type {
   ResourceDef,
 } from './modelEntityDefinition';
 
-export {
-  ResourceDefDescriptor,
-  ModelSemanticDefinitionDescriptor,
-  ModelDefDescriptor
-} from './modelEntityDescriptor';

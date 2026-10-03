@@ -3,10 +3,14 @@ import type { ControllerBodyAst } from '../../lexer/controllerBodyAstTypes';
 import type { PhpStatement } from '../../lexer/phpAstTypes';
 import type { ControllerDataflowAst } from '../../lexer/controllerBodyAstTypes';
 import type { RouteSchemaPayload, HttpErrorResponseDescriptor } from '../../../../types/route';
-import { ScannedRouteSchemaPayload, ScannedRouteValidationRuleEntry } from '../../descriptors/validationDescriptors';
-import { ScannedRouteValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
+import { createRouteSchemaPayload } from '../../../../types/domain/validationRules';
+import { ScannedRouteValidationRuleEntry } from '../../descriptors/validation/validationRuleEntry';
+import { RouteSemanticFlowValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
 import { TypeInterner } from '../../../types/TypeInterner';
-import { ScannedHttpErrorResponseDescriptor } from '../../descriptors/routeDescriptors';
+import { httpErrorResponseBadRequest, httpErrorResponseUnauthorized, httpErrorResponseForbidden, httpErrorResponseNotFound, httpErrorResponseValidation, httpErrorResponseServerError } from '../../../../types/domain/httpErrors';
+import { relationProject, relationExpand, relationOptionFold, relationNone, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirst } from '../../../../semantic/kernel/relationalSequence';
 
 export interface ControllerBodyResolution {
     readonly statements: readonly PhpStatement[];
@@ -15,33 +19,34 @@ export interface ControllerBodyResolution {
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 
-export function resolveControllerBody(body: ControllerBodyAst): ControllerBodyResolution {
-    const validationEntries = body.validations.map(validation =>
-        ScannedRouteValidationRuleEntry.create(validation.field, validation.rules)
+const KNOWN_ERRORS: readonly (readonly [number, () => HttpErrorResponseDescriptor])[] = Object.freeze([
+    [400, (): HttpErrorResponseDescriptor => httpErrorResponseBadRequest()],
+    [401, (): HttpErrorResponseDescriptor => httpErrorResponseUnauthorized()],
+    [403, (): HttpErrorResponseDescriptor => httpErrorResponseForbidden()],
+    [404, (): HttpErrorResponseDescriptor => httpErrorResponseNotFound()],
+    [422, (): HttpErrorResponseDescriptor => httpErrorResponseValidation()],
+    [500, (): HttpErrorResponseDescriptor => httpErrorResponseServerError()],
+]);
+
+const resolveKnownError = (status: number): RelationOption<HttpErrorResponseDescriptor> =>
+    relationOptionFold(
+        relationFirst(KNOWN_ERRORS, entry => relationEqual(entry[0], status)),
+        () => relationNone(),
+        entry => relationSome(entry[1]()),
     );
-    const fields = ScannedRouteValidationRuleSet.create(validationEntries, new TypeInterner()).fields;
-    const schema = ScannedRouteSchemaPayload.fromFields(fields);
-    const errorResponses: HttpErrorResponseDescriptor[] = [];
-    for (const error of body.errors) {
-        const descriptor = resolveKnownError(error.status);
-        if (descriptor) errorResponses.push(descriptor);
-    }
+
+export function resolveControllerBody(body: ControllerBodyAst): ControllerBodyResolution {
+    const validationEntries = relationProject(body.validations, validation =>
+        ScannedRouteValidationRuleEntry.create(validation.field, validation.rules));
+    const fields = RouteSemanticFlowValidationRuleSet.create(validationEntries, TypeInterner.create()).fields;
+    const schema = createRouteSchemaPayload(fields);
+    const errorResponses = relationProject(body.errors, error => resolveKnownError(error.status));
+    const resolvedErrors = relationExpand(errorResponses, result =>
+        relationOptionFold(result, () => Object.freeze([] as readonly HttpErrorResponseDescriptor[]), descriptor => Object.freeze([descriptor])));
     return Object.freeze({
-        statements: Object.freeze([...body.statements]),
+        statements: Object.freeze(relationProject(body.statements, statement => statement)),
         dataflow: body.dataflow,
         schema,
-        errorResponses: Object.freeze(errorResponses),
+        errorResponses: Object.freeze(resolvedErrors),
     });
-}
-
-function resolveKnownError(status: number): HttpErrorResponseDescriptor | undefined {
-    switch (status) {
-        case 400: return ScannedHttpErrorResponseDescriptor.badRequest();
-        case 401: return ScannedHttpErrorResponseDescriptor.unauthorized();
-        case 403: return ScannedHttpErrorResponseDescriptor.forbidden();
-        case 404: return ScannedHttpErrorResponseDescriptor.notFound();
-        case 422: return ScannedHttpErrorResponseDescriptor.unprocessableEntity();
-        case 500: return ScannedHttpErrorResponseDescriptor.internalServerError();
-        default: return undefined;
-    }
 }

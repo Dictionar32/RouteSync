@@ -5,13 +5,13 @@ import {
   matchCrudRole,
   CrudRoleVisitor,
   ScannedCrudRoleDescriptor,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   HttpMethod,
   RouteHookKind,
   RouteActionKind
 } from '../../core/src'
 import { classifyRoutes } from '../../cli/src/generators/route-classifier'
-import type { ParsedRoute } from '../../core/src'
+import type { RouteSemanticFlow } from '../../core/src'
 
 describe('CrudRole ADT Flow SSOT (Pure Functional Catamorphism Suite)', () => {
   test('1. CRUD_ROLE_REGISTRY is immutable and exhaustively maps all CrudRole variants', () => {
@@ -153,32 +153,32 @@ describe('CrudRole ADT Flow SSOT (Pure Functional Catamorphism Suite)', () => {
   })
 
   test('6. classifyRoutes integrates seamlessly with CRUD_ROLE_REGISTRY', () => {
-    const mockRoutes: ParsedRoute[] = [
-      ScannedRouteDescriptor.fromSparse({
+    const mockRoutes: RouteSemanticFlow[] = [
+      RouteSemanticFlowFactory.fromSparse({
         name: 'produk.index',
         method: 'GET',
         path: '/produk',
         actionName: 'index'
       }),
-      ScannedRouteDescriptor.fromSparse({
+      RouteSemanticFlowFactory.fromSparse({
         name: 'produk.show',
         method: 'GET',
         path: '/produk/{id}',
         actionName: 'show'
       }),
-      ScannedRouteDescriptor.fromSparse({
+      RouteSemanticFlowFactory.fromSparse({
         name: 'produk.store',
         method: 'POST',
         path: '/produk',
         actionName: 'store'
       }),
-      ScannedRouteDescriptor.fromSparse({
+      RouteSemanticFlowFactory.fromSparse({
         name: 'produk.update',
         method: 'PUT',
         path: '/produk/{id}',
         actionName: 'update'
       }),
-      ScannedRouteDescriptor.fromSparse({
+      RouteSemanticFlowFactory.fromSparse({
         name: 'produk.destroy',
         method: 'DELETE',
         path: '/produk/{id}',
@@ -201,14 +201,14 @@ describe('CrudRole ADT Flow SSOT (Pure Functional Catamorphism Suite)', () => {
   })
 
   test('9. Universal API version handling (v1, v2, v3) without hardcoded version strings', () => {
-    const v2Route = ScannedRouteDescriptor.fromSparse({
+    const v2Route = RouteSemanticFlowFactory.fromSparse({
       method: 'GET',
       path: '/api/v2/products'
     })
     expect(v2Route.crudRole).toBe(CrudRole.Index)
     expect(v2Route.domain).toBe('products')
 
-    const v3Route = ScannedRouteDescriptor.fromSparse({
+    const v3Route = RouteSemanticFlowFactory.fromSparse({
       method: 'GET',
       path: '/api/v3/orders/{id}'
     })

@@ -9,17 +9,14 @@
 import type { ArtifactKey } from '../../artifacts/types';
 import type { CompilationState } from '../CompilationState';
 import { tupleAt, type ResolveArtifacts } from '../ArtifactKeyWitness';
+import { relationFold } from '../../../semantic/kernel/relationalSequence';
 
 export function applyPassOutputs<O extends readonly ArtifactKey[]>(
     state: CompilationState,
     outputKeys: O,
     outputs: ResolveArtifacts<O>
 ): CompilationState {
-    let nextState = state;
-    for (let i = 0; i < outputKeys.length; i++) {
-        const key = outputKeys[i]!;
-        const output = tupleAt(outputs, i);
-        nextState = nextState.put(key, output);
-    }
-    return nextState;
+    return relationFold(outputKeys, state, (nextState, key, index) =>
+        nextState.put(key, tupleAt(outputs, index)),
+    );
 }

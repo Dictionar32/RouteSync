@@ -3,6 +3,7 @@ import { resolveRouteBoundaryBasics } from "./boundaryBasics";
 import { resolveRouteBinding } from "./bindingResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
+import { relationGate, relationSome, relationNone, relationOptionValue } from "../../../../semantic/kernel/relationalSequence";
 
 export function resolveRouteBoundaryInput(
     params: RouteBoundaryOptions
@@ -27,8 +28,8 @@ export function resolveRouteBoundaryInput(
         sourceFile: provenance.sourceFile,
         sourceLine: provenance.sourceLine,
         handler: params.handler,
-        auth: params.auth === true,
-        middleware: Object.freeze([...(params.middleware ?? [])]),
+        auth: relationEqual(params.auth, true),
+        middleware: Object.freeze(relationOptionValue(relationGate(Boolean(params.middleware), () => relationSome(params.middleware as NonNullable<RouteBoundaryOptions['middleware']>), () => relationNone()), [])),
         parameters: basics.resolvedParameters,
         pathParameters: basics.resolvedPathParameters,
         queryParameters: basics.resolvedQueryParameters,

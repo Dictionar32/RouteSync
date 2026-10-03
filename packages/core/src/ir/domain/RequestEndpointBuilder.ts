@@ -9,14 +9,14 @@ import type {
     RequestIR,
     EndpointIR,
     ParsedRequest,
-    ParsedRoute,
+    RouteSemanticFlow,
     ManifestAction,
     RequestActionIR,
     ParameterIR,
     ResponseReference,
     RequestReference
 } from '../../types/ir';
-import type { ParsedRoute as DomainParsedRoute } from '../../types/domain/routes';
+import type { RouteSemanticFlow as DomainRouteSemanticFlow } from '../../types/domain/routes';
 
 import type { PrimitiveKind } from '../../compiler/types/SemanticType';
 import type { FieldTypeResolver } from './FieldTypeResolver';
@@ -59,7 +59,7 @@ export class RequestEndpointBuilder {
         };
     }
 
-    public buildEndpointIR(route: DomainParsedRoute, requests: Map<string, RequestIR>): EndpointIR {
+    public buildEndpointIR(route: DomainRouteSemanticFlow, requests: Map<string, RequestIR>): EndpointIR {
         return {
             id: route.identity.name,
             method: route.identity.method,
@@ -84,7 +84,7 @@ export class RequestEndpointBuilder {
         };
     }
 
-    public extractPathParams(path: DomainParsedRoute['identity']['path']): ParameterIR[] {
+    public extractPathParams(path: DomainRouteSemanticFlow['identity']['path']): ParameterIR[] {
         return extractPathParams(path);
     }
 
@@ -92,11 +92,11 @@ export class RequestEndpointBuilder {
         return inferParamType(name);
     }
 
-    public buildRequestReference(route: DomainParsedRoute, requests: Map<string, RequestIR>): RequestReference {
+    public buildRequestReference(route: DomainRouteSemanticFlow, requests: Map<string, RequestIR>): RequestReference {
         return buildRequestReference(route, requests);
     }
 
-    public buildResponseReference(route: DomainParsedRoute): ResponseReference {
+    public buildResponseReference(route: DomainRouteSemanticFlow): ResponseReference {
         return buildResponseReference(route);
     }
 

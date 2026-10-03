@@ -1,48 +1,26 @@
-/**
- * typeLattice.ts
- *
- * Join and meet lattice operations on SemanticType.
- *
- * @module compiler/types/system
- */
+/** Declarative join/meet relations over the semantic type lattice. */
 
-import {
-    SemanticType,
-    UnionType,
-    NeverType
-} from '../SemanticType';
+import { SemanticType, UnionType, NeverType } from '../SemanticType';
 import { TypeHasher, HashContext } from '../TypeHasher';
+import { relationEqual, relationResolve } from '../../../semantic/kernel/semanticRelations';
+
+const structuralEqual = (a: SemanticType, b: SemanticType, ctx: HashContext): boolean =>
+  relationEqual(TypeHasher.hash(a, ctx), TypeHasher.hash(b, ctx));
 
 export function computeJoin(a: SemanticType, b: SemanticType): SemanticType {
-    const ctx: HashContext = {
-        activeStack: [],
-        finalized: new WeakMap()
-    };
-
-    // Structural equality
-    if (TypeHasher.hash(a, ctx) === TypeHasher.hash(b, ctx)) {
-        return a;
-    }
-
-    // never is bottom type
-    if (a.kind === 'never') return b;
-    if (b.kind === 'never') return a;
-
-    // General case: create union
-    return UnionType.of(a, b);
+  const ctx: HashContext = TypeHasher.createContext();
+  return relationResolve(
+    structuralEqual(a, b, ctx),
+    () => a,
+    () => relationResolve(
+      relationEqual(a.kind, 'never'),
+      () => b,
+      () => relationResolve(relationEqual(b.kind, 'never'), () => a, () => UnionType.of(a, b)),
+    ),
+  );
 }
 
 export function computeMeet(a: SemanticType, b: SemanticType): SemanticType {
-    const ctx: HashContext = {
-        activeStack: [],
-        finalized: new WeakMap()
-    };
-
-    // Structural equality
-    if (TypeHasher.hash(a, ctx) === TypeHasher.hash(b, ctx)) {
-        return a;
-    }
-
-    // Most type pairs have empty meet
-    return new NeverType();
+  const ctx: HashContext = TypeHasher.createContext();
+  return relationResolve(structuralEqual(a, b, ctx), () => a, () => NeverType());
 }

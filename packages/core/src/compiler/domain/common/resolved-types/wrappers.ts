@@ -1,95 +1,76 @@
-/**
- * wrappers.ts
- *
- * Reference, Optional, Nullable, and Collection wrappers for ResolvedSemanticType.
- *
- * @module compiler/domain/common/resolved-types/wrappers
- */
-
-import { ResolvedSemanticTypeBase } from './base';
+/** Relation-backed wrapper resolved semantic types. */
 import type { ResolvedSemanticType } from './catamorphism';
-import type {
-    ResolvedReferenceTypeParams,
-    ResolvedOptionalTypeParams,
-    ResolvedNullableTypeParams,
-    ResolvedCollectionTypeParams
-} from './types';
+import type { ResolvedSemanticTypeBase } from './base';
+import type { ResolvedReferenceTypeParams, ResolvedOptionalTypeParams, ResolvedNullableTypeParams, ResolvedCollectionTypeParams } from './types';
 
-export class ResolvedReferenceType extends ResolvedSemanticTypeBase {
-    readonly kind = 'reference' as const;
+export interface ResolvedReferenceType extends ResolvedSemanticTypeBase {
+    readonly kind: 'reference';
     readonly name: string;
     readonly namespace: string;
-
-    constructor({ name, namespace }: ResolvedReferenceTypeParams) {
-        super();
-        this.name = name;
-        this.namespace = namespace;
-        Object.freeze(this);
-    }
-
-    public static create(name: string, namespace: string): ResolvedReferenceType {
-        return new ResolvedReferenceType({ name, namespace });
-    }
-
-    public static named(name: string, namespace: string): ResolvedReferenceType {
-        return new ResolvedReferenceType({ name, namespace });
-    }
-
-    override formatChildArrayMapper(name: string): string {
-        const childResource = this.name.replace(/(Transformed|ApiResponse)$/, '');
-        return `  ${name}: api.${name}?.map(to${childResource}Read),`;
-    }
 }
+export const ResolvedReferenceType = Object.freeze({
+    create: ({ name, namespace }: ResolvedReferenceTypeParams): ResolvedReferenceType => {
+        const witness: ResolvedReferenceType = {
+            kind: 'reference' as const, name, namespace,
+            formatChildArrayMapper: (field: string) => {
+                const childResource = name.replace(/(Transformed|ApiResponse)$/, '');
+                return `  ${field}: api.${field}?.map(to${childResource}Read),`;
+            },
+            formatProperty: (field: string, lower: (t: ResolvedSemanticType) => string) => `${field}: ${lower(witness)};`,
+            formatMapperAssignment: (field: string) => `  ${field}: api.${field},`,
+        } satisfies ResolvedReferenceType;
+        return Object.freeze(witness);
+    },
+    named: (name: string, namespace: string): ResolvedReferenceType => ResolvedReferenceType.create({ name, namespace }),
+});
 
-export class ResolvedOptionalType extends ResolvedSemanticTypeBase {
-    readonly kind = 'optional' as const;
+export interface ResolvedOptionalType extends ResolvedSemanticTypeBase {
+    readonly kind: 'optional';
     readonly innerType: ResolvedSemanticType;
-
-    constructor({ innerType }: ResolvedOptionalTypeParams) {
-        super();
-        this.innerType = innerType;
-        Object.freeze(this);
-    }
-
-    public static of(innerType: ResolvedSemanticType): ResolvedOptionalType {
-        return new ResolvedOptionalType({ innerType });
-    }
-
-    override formatProperty(name: string, lower: (t: ResolvedSemanticType) => string): string {
-        return `${name}?: ${lower(this.innerType)};`;
-    }
 }
+export const ResolvedOptionalType = Object.freeze({
+    create: ({ innerType }: ResolvedOptionalTypeParams): ResolvedOptionalType => {
+        const witness: ResolvedOptionalType = {
+            kind: 'optional' as const, innerType,
+            formatProperty: (name: string, lower: (t: ResolvedSemanticType) => string) => `${name}?: ${lower(innerType)};`,
+            formatMapperAssignment: (name: string) => `  ${name}: api.${name},`,
+            formatChildArrayMapper: (name: string) => `  ${name}: api.${name},`,
+        } satisfies ResolvedOptionalType;
+        return Object.freeze(witness);
+    },
+    of: (innerType: ResolvedSemanticType): ResolvedOptionalType => ResolvedOptionalType.create({ innerType }),
+});
 
-export class ResolvedNullableType extends ResolvedSemanticTypeBase {
-    readonly kind = 'nullable' as const;
+export interface ResolvedNullableType extends ResolvedSemanticTypeBase {
+    readonly kind: 'nullable';
     readonly innerType: ResolvedSemanticType;
-
-    constructor({ innerType }: ResolvedNullableTypeParams) {
-        super();
-        this.innerType = innerType;
-        Object.freeze(this);
-    }
-
-    public static of(innerType: ResolvedSemanticType): ResolvedNullableType {
-        return new ResolvedNullableType({ innerType });
-    }
 }
+export const ResolvedNullableType = Object.freeze({
+    create: ({ innerType }: ResolvedNullableTypeParams): ResolvedNullableType => {
+        const witness: ResolvedNullableType = {
+            kind: 'nullable' as const, innerType,
+            formatProperty: (name: string, lower: (t: ResolvedSemanticType) => string) => `${name}: ${lower(witness)};`,
+            formatMapperAssignment: (name: string) => `  ${name}: api.${name},`,
+            formatChildArrayMapper: (name: string) => `  ${name}: api.${name},`,
+        } satisfies ResolvedNullableType;
+        return Object.freeze(witness);
+    },
+    of: (innerType: ResolvedSemanticType): ResolvedNullableType => ResolvedNullableType.create({ innerType }),
+});
 
-export class ResolvedCollectionType extends ResolvedSemanticTypeBase {
-    readonly kind = 'collection' as const;
+export interface ResolvedCollectionType extends ResolvedSemanticTypeBase {
+    readonly kind: 'collection';
     readonly elementType: ResolvedSemanticType;
-
-    constructor({ elementType }: ResolvedCollectionTypeParams) {
-        super();
-        this.elementType = elementType;
-        Object.freeze(this);
-    }
-
-    public static of(elementType: ResolvedSemanticType): ResolvedCollectionType {
-        return new ResolvedCollectionType({ elementType });
-    }
-
-    override formatMapperAssignment(name: string): string {
-        return this.elementType.formatChildArrayMapper(name);
-    }
 }
+export const ResolvedCollectionType = Object.freeze({
+    create: ({ elementType }: ResolvedCollectionTypeParams): ResolvedCollectionType => {
+        const witness: ResolvedCollectionType = {
+            kind: 'collection' as const, elementType,
+            formatProperty: (name: string, lower: (t: ResolvedSemanticType) => string) => `${name}: ${lower(witness)};`,
+            formatMapperAssignment: (name: string) => elementType.formatChildArrayMapper(name),
+            formatChildArrayMapper: (name: string) => `  ${name}: api.${name},`,
+        } satisfies ResolvedCollectionType;
+        return Object.freeze(witness);
+    },
+    of: (elementType: ResolvedSemanticType): ResolvedCollectionType => ResolvedCollectionType.create({ elementType }),
+});

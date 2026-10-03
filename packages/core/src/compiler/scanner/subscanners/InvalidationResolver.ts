@@ -1,141 +1,201 @@
 /**
- * InvalidationResolver.ts
+ * Declarative invalidation closure at the origin boundary.
  *
- * Resolves cache invalidations directly on routes at the Origin Boundary.
- *
- * @module core/compiler/scanner/subscanners/InvalidationResolver
+ * Invalidation targets are derived as relations over route, model, relation and
+ * group facts. Selection is performed by relation gates/folds; no host control
+ * construct is authoritative for the semantic decision.
  */
-
 import {
-    ParsedRoute,
+    RouteSemanticFlow,
     ResourceRouteGroup,
     RouteHookKind,
     InvalidationTarget,
     ScannedInvalidationTarget,
-    ResourceResponseDescriptor,
-    ModelResponseDescriptor,
-    EloquentRelationType,
-    ScannedRouteInvalidationPayload
+    RouteSemanticFlowInvalidationPayload,
 } from "../../../types/route";
 import type { ModelAst } from "../../../types/upstream/ast";
 import type { ResourceName } from "../../../types/upstream/names";
-import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
+import type { ModelRelation } from "../../../types/upstream/model";
+import { RouteSemanticFlowFactory } from "../descriptors/routeDescriptors";
+import { createResourceName } from "../../../types/upstream/names";
+import {
+    relationGate,
+    relationFold,
+    relationProject,
+    relationSelect,
+    relationFirst,
+    relationOptionFold,
+    relationNone,
+    relationSome,
+    relationRefine,
+    type RelationOption,
+} from "../../../semantic/kernel/relationalSequence";
+import { relationAny, relationEqual } from "../../../semantic/kernel/semanticRelations";
 
-function sequenceToArray<T>(items: import("../../../types/upstream/collections").Sequence<T>): T[] {
-    const result: T[] = [];
-    let current = items;
-    while (current.kind === 'cons') {
-        result.push(current.head);
-        current = current.tail;
-    }
-    return result;
-}
+type RouteInvalidationContext = Readonly<{
+    readonly route: RouteSemanticFlow;
+    readonly models: readonly ModelAst[];
+    readonly routeGroups: readonly ResourceRouteGroup[];
+}>;
 
-export class InvalidationResolver {
-    public static resolveRouteInvalidations(
-        routes: readonly ParsedRoute[],
-        models: readonly ModelAst[],
-        routeGroups: readonly ResourceRouteGroup[]
-    ): readonly ParsedRoute[] {
-        return routes.map(route => {
-            switch (route.capability.hookKind) {
-                case RouteHookKind.Query:
-                case RouteHookKind.InfiniteQuery:
-                    return route;
+const isCons = <T>(value: import("../../../types/upstream/collections").Sequence<T>): value is Extract<import("../../../types/upstream/collections").Sequence<T>, { readonly kind: 'cons' }> => relationEqual(value.kind, 'cons');
 
-                case RouteHookKind.Mutation: {
-                    const targets: InvalidationTarget[] = [];
+const sequenceToArray = <T>(items: import("../../../types/upstream/collections").Sequence<T>): readonly T[] =>
+    relationOptionFold(
+        relationRefine(items, isCons),
+        () => Object.freeze([]),
+        value => Object.freeze([value.head, ...sequenceToArray(value.tail)]),
+    );
 
-                    // A. Self Invalidation (resource group rute sendiri)
-                    targets.push(ScannedInvalidationTarget.selfList(route.identity.domain.resource));
+const responseModelName = (route: RouteSemanticFlow): RelationOption<string> => {
+    const responseAnalysis = route.contract.response.success.descriptor.toAnalysis(
+        route.identity.coordinates.name,
+        100,
+    );
+    const model = relationRefine(
+        responseAnalysis,
+        (candidate): candidate is Extract<typeof responseAnalysis, { readonly kind: 'model' }> => relationEqual(candidate.kind, 'model'),
+    );
+    return relationOptionFold(
+        model,
+        () => relationOptionFold(
+            relationRefine(
+                responseAnalysis,
+                (candidate): candidate is Extract<typeof responseAnalysis, { readonly kind: 'resource' }> => relationEqual(candidate.kind, 'resource'),
+            ),
+            () => relationNone(),
+            value => relationSome(value.resourceName.value.value),
+        ),
+        value => relationSome(value.modelName.value.value),
+    );
+};
 
-                    // B. Traverse semantic relations from the already-resolved response model.
-                    const responseAnalysis = route.contract.response.success.descriptor.toAnalysis(
-                        route.identity.coordinates.name,
-                        100
-                    );
-                    const responseModelName = responseAnalysis.kind === 'model'
-                        ? responseAnalysis.modelName.value.value
-                        : responseAnalysis.kind === 'resource'
-                            ? responseAnalysis.resourceName.value.value
-                            : undefined;
-                    const matchedModel = responseModelName === undefined
-                        ? undefined
-                        : models.find(model => model.definition.identity.name.value.value === responseModelName);
+const modelForName = (models: readonly ModelAst[], name: string): RelationOption<ModelAst> =>
+    relationFirst(models, model => relationEqual(model.definition.identity.name.value.value, name));
 
-                    if (matchedModel !== undefined) {
-                        for (const rel of matchedModel.definition.relations.items.kind === 'empty' ? [] : sequenceToArray(matchedModel.definition.relations.items)) {
-                            const sourceModel = matchedModel.definition.identity.name;
-                            switch (rel.relation.kind) {
-                                case 'belongs_to':
-                                    targets.push(ScannedInvalidationTarget.parentList(sourceModel));
-                                    targets.push(ScannedInvalidationTarget.parentDetail(sourceModel));
-                                    break;
-                                case 'has_many':
-                                case 'has_one':
-                                    targets.push(ScannedInvalidationTarget.resourceItem(sourceModel));
-                                    break;
-                                case 'belongs_to_many':
-                                    targets.push(ScannedInvalidationTarget.resourceList(sourceModel));
-                                    targets.push(ScannedInvalidationTarget.resourceItem(sourceModel));
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
+const relationTargets = (model: ModelAst): readonly InvalidationTarget[] => {
+    const relations: readonly ModelRelation[] = sequenceToArray(model.definition.relations.items);
+    return Object.freeze(relationFold(relations, Object.freeze([]) as readonly InvalidationTarget[], (targets, rel) => {
+        const sourceModel = model.definition.identity.name;
+        const additions = relationGate(
+            relationEqual(rel.relation.kind, 'belongs_to'),
+            () => Object.freeze([
+                ScannedInvalidationTarget.parentList(createResourceName(sourceModel.value.value)),
+                ScannedInvalidationTarget.parentDetail(createResourceName(sourceModel.value.value)),
+            ]),
+            () => relationGate(
+                relationAny([
+                    relationEqual(rel.relation.kind, 'has_many'),
+                    relationEqual(rel.relation.kind, 'has_one'),
+                ]),
+                () => Object.freeze([ScannedInvalidationTarget.resourceItem(createResourceName(sourceModel.value.value))]),
+                () => relationGate(
+                    relationEqual(rel.relation.kind, 'belongs_to_many'),
+                    () => Object.freeze([
+                        ScannedInvalidationTarget.resourceList(createResourceName(sourceModel.value.value)),
+                        ScannedInvalidationTarget.resourceItem(createResourceName(sourceModel.value.value)),
+                    ]),
+                    () => Object.freeze([]),
+                ),
+            ),
+        );
+        return Object.freeze([...targets, ...additions]);
+    }));
+};
 
-                    // C. Cascade / Parent Group Invalidation (0 if)
-                    const normalizedGroup = route.identity.domain.resource.value.value.toLowerCase();
-                    const matchedGroup = routeGroups.find(g => g.identity.resource.value.value.toLowerCase() === normalizedGroup);
-                    switch (matchedGroup !== undefined) {
-                        case true: {
-                            const groupName = (matchedGroup as ResourceRouteGroup).identity.resource;
-                            for (const g of routeGroups) {
-                                const isChild = g.identity.resource.value.value.toLowerCase().startsWith(groupName.value.value.toLowerCase()) && g.identity.resource.value.value !== groupName.value.value;
-                                switch (isChild) {
-                                    case true:
-                                        targets.push(ScannedInvalidationTarget.resourceList(g.identity.resource));
-                                        break;
-                                    case false:
-                                        break;
-                                }
-                            }
-                            break;
-                        }
-                        case false:
-                            break;
-                    }
+const childGroupTargets = (
+    groups: readonly ResourceRouteGroup[],
+    group: ResourceRouteGroup,
+): readonly InvalidationTarget[] => {
+    const groupName = group.identity.resource;
+    const prefix = groupName.value.value.toLowerCase();
+    return Object.freeze(relationProject(
+        relationSelect(
+            groups,
+            candidate => relationGate(
+                relationEqual(candidate.identity.resource.value.value, groupName.value.value),
+                () => false,
+                () => candidate.identity.resource.value.value.toLowerCase().startsWith(prefix),
+            ),
+        ),
+        candidate => ScannedInvalidationTarget.resourceList(candidate.identity.resource),
+    ));
+};
 
-                    // D. Auth / Logout Invalidation
-                    if (route.binding.operation.name.value.value === 'logout') {
-                        const authGroups: ResourceName[] = [];
-                        for (const r of routes) {
-                            if (r.capability.auth) {
-                                const resource = r.identity.domain.resource;
-                                if (!authGroups.some(existing => existing.value.value === resource.value.value)) {
-                                    authGroups.push(resource);
-                                }
-                            }
-                        }
-                        for (const grp of authGroups) {
-                            targets.push(ScannedInvalidationTarget.authResource(grp));
-                        }
-                    }
+const matchedGroup = (
+    groups: readonly ResourceRouteGroup[],
+    route: RouteSemanticFlow,
+): RelationOption<ResourceRouteGroup> => {
+    const normalized = route.identity.domain.resource.value.value.toLowerCase();
+    return relationFirst(groups, group => relationEqual(group.identity.resource.value.value.toLowerCase(), normalized));
+};
 
-                    // Complete Contract Invalidation Payload
-                    const invalidation = new ScannedRouteInvalidationPayload({
-                        targets: Object.freeze(targets)
-                    });
+const authGroups = (routes: readonly RouteSemanticFlow[]): readonly ResourceName[] => {
+    const authorized = relationSelect(routes, route => Boolean(route.capability.auth));
+    const names = relationProject(authorized, route => route.identity.domain.resource);
+    return Object.freeze(relationFold(names, Object.freeze([]) as readonly ResourceName[], (acc, name) =>
+        relationGate(
+            relationEqual(relationFirst(acc, existing => relationEqual(existing.value.value, name.value.value)).kind, 'some'),
+            () => acc,
+            () => Object.freeze([...acc, name]),
+        ),
+    ));
+};
 
-                    switch (route instanceof ScannedRouteDescriptor) {
-                        case true:
-                            return (route as ScannedRouteDescriptor).withInvalidation(invalidation);
-                        case false:
-                            return Object.freeze({ ...route, invalidation });
-                    }
-                }
-            }
-        });
-    }
-}
+const routeTargets = (context: RouteInvalidationContext, allRoutes: readonly RouteSemanticFlow[]): readonly InvalidationTarget[] => {
+    const base: readonly InvalidationTarget[] = Object.freeze([
+        ScannedInvalidationTarget.selfList(context.route.identity.domain.resource),
+    ]);
+    const modelTargets = relationOptionFold(
+        responseModelName(context.route),
+        () => Object.freeze([]),
+        name => relationOptionFold(
+            modelForName(context.models, name),
+            () => Object.freeze([]),
+            relationTargets,
+        ),
+    );
+    const groupTargets = relationOptionFold(
+        matchedGroup(context.routeGroups, context.route),
+        () => Object.freeze([]),
+        group => childGroupTargets(context.routeGroups, group),
+    );
+    const authTargets = relationGate(
+        relationEqual(context.route.binding.operation.name.value.value, 'logout'),
+        () => relationProject(authGroups(allRoutes), name => ScannedInvalidationTarget.authResource(name)),
+        () => Object.freeze([]),
+    );
+    return Object.freeze([...base, ...modelTargets, ...groupTargets, ...authTargets]);
+};
+
+const isRouteFactory = (route: RouteSemanticFlow): route is RouteSemanticFlowFactory => "withInvalidation" in route;
+
+const applyInvalidation = (
+    route: RouteSemanticFlow,
+    invalidation: RouteSemanticFlowInvalidationPayload,
+): RouteSemanticFlow => relationOptionFold(
+    relationRefine(route, isRouteFactory),
+    () => Object.freeze({ ...route, invalidation }),
+    value => value.withInvalidation(invalidation),
+);
+
+export const resolveRouteInvalidations = (
+    routes: readonly RouteSemanticFlow[],
+    models: readonly ModelAst[],
+    routeGroups: readonly ResourceRouteGroup[],
+): readonly RouteSemanticFlow[] => Object.freeze(relationProject(
+    routes,
+    route => relationGate(
+        relationAny([
+            relationEqual(route.capability.hookKind, RouteHookKind.Query),
+            relationEqual(route.capability.hookKind, RouteHookKind.InfiniteQuery),
+        ]),
+        () => route,
+        () => applyInvalidation(
+            route,
+            RouteSemanticFlowInvalidationPayload.fromTargets(routeTargets({ route, models, routeGroups }, routes)),
+        ),
+    ),
+));
+
+export const InvalidationResolver = Object.freeze({ resolveRouteInvalidations });

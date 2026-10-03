@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   PageEndpointKind,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteParameterDescriptor,
   RouteParameterType
 } from '@routesync/core'
@@ -15,7 +15,7 @@ import {
 
 describe('Route Classifier & Page Endpoint SSOT', () => {
   it('1. ScannedClassifiedRouteDescriptor creates frozen instances', () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders',
       resourceName: 'Order'
@@ -39,7 +39,7 @@ describe('Route Classifier & Page Endpoint SSOT', () => {
   })
 
   it('2. classifyRoutes directly consumes route.groupName, route.crudRole, and route.runtimePath', () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/v1/orders/{id}',
       resourceName: 'Order',

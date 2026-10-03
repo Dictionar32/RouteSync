@@ -1,91 +1,100 @@
-/**
- * blockInstructionRenamer.ts
- *
- * Instruction and phi renaming logic for basic blocks in SSA form.
- *
- * @module core/compiler/analysis/ssa/renamer
- */
-
-import type { BasicBlock, Instruction, Operand } from '../../../utils/ControlFlowGraph';
+/** Relation-driven instruction and phi renaming. */
+import { basicBlockLookup, basicBlockReplace, type Instruction, type Operand, type Expression, type BasicBlockRelation } from '../../../utils/ControlFlowGraph';
 import type { VariableVersionScope } from './variableVersionScope';
+import { relationOptionFold, relationResolve, relationProject, relationAll } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/relationFoundation';
 
-export function renameBlockInstructions(
-    instructions: readonly Instruction[],
-    scope: VariableVersionScope
-): Instruction[] {
-    const newInstructions: Instruction[] = [];
-
-    // First, rename phi instructions
-    for (const inst of instructions) {
-        if (inst.kind === 'Phi') {
-            const currentCount = scope.pushVersion(inst.target);
-            newInstructions.push({
-                kind: 'Phi',
-                target: currentCount,
-                incoming: inst.incoming
-            });
-        }
-    }
-
-    // Then, rename other instructions
-    for (const inst of instructions) {
-        if (inst.kind === 'Phi') continue;
-
-        let renamedInst = inst;
-
-        if (inst.kind === 'Assign') {
-            const currentCount = scope.pushVersion(inst.target);
-            renamedInst = {
-                kind: 'Assign',
-                target: currentCount,
-                value: scope.renameOperand(inst.value)
-            };
-        } else if (inst.kind === 'Call') {
-            if ('args' in inst) {
-                renamedInst = {
-                    ...inst,
-                    args: inst.args.map((arg: Operand) => scope.renameOperand(arg))
-                };
-            }
-        } else if (inst.kind === 'Return' && inst.value) {
-            renamedInst = {
-                kind: 'Return',
-                value: scope.renameOperand(inst.value)
-            };
-        }
-
-        newInstructions.push(renamedInst);
-    }
-
-    return newInstructions;
+export interface RenamedBlockInstructions {
+    readonly instructions: readonly (Expression | Instruction)[];
+    readonly scope: VariableVersionScope;
 }
 
-export function updateSuccessorPhis(
+const renamePhiIncoming = (
+    incoming: readonly (readonly [number, Operand])[],
+    predecessor: number,
+    scope: VariableVersionScope,
+    index = 0,
+    output: readonly (readonly [number, Operand])[] = [],
+): readonly (readonly [number, Operand])[] => relationResolve(
+    relationEqual(index, incoming.length),
+    () => Object.freeze(output),
+    () => {
+        const pair = incoming[index];
+        const next = relationResolve(
+            relationAll([relationEqual(pair[0], predecessor), relationEqual(pair[1].kind, 'Variable')]),
+            () => [...output, [pair[0], relationOptionFold(scope.getActiveVersion((pair[1] as Extract<Operand, { kind: 'Variable' }>).id), () => pair[1], value => ({ kind: 'SSAValue' as const, id: value }))] as const],
+            () => [...output, pair],
+        );
+        return renamePhiIncoming(incoming, predecessor, scope, index + 1, next);
+    },
+);
+
+export const renameBlockInstructions = (
+    instructions: readonly (Expression | Instruction)[],
+    scope: VariableVersionScope,
+    index = 0,
+    output: readonly (Expression | Instruction)[] = [],
+): RenamedBlockInstructions => relationResolve(
+    relationEqual(index, instructions.length),
+    () => ({ instructions: Object.freeze(output), scope }),
+    () => {
+        const inst = instructions[index];
+        const renamed = relationResolve(
+            relationEqual(inst.kind, 'Phi'),
+            () => {
+                const [nextScope, version] = scope.pushVersion((inst as Extract<Instruction, { kind: 'Phi' }>).target);
+                return { instruction: { kind: 'Phi', target: version, incoming: (inst as Extract<Instruction, { kind: 'Phi' }>).incoming } as Instruction, scope: nextScope };
+            },
+            () => relationResolve(
+                relationEqual(inst.kind, 'Assign'),
+                () => {
+                    const [nextScope, version] = scope.pushVersion((inst as Extract<Instruction, { kind: 'Assign' }>).target);
+                    return { instruction: { kind: 'Assign', target: version, value: scope.renameOperand((inst as Extract<Instruction, { kind: 'Assign' }>).value) } as Instruction, scope: nextScope };
+                },
+                () => relationResolve(
+                    relationAll([relationEqual(inst.kind, 'Call'), Object.prototype.hasOwnProperty.call(inst, 'target')]),
+                    () => ({ instruction: { ...inst, args: relationProject((inst as Extract<Instruction, { kind: 'Call' }>).args, argument => scope.renameOperand(argument)) } as Instruction, scope }),
+                    () => relationResolve(
+                        relationEqual(inst.kind, 'Return'),
+                        () => relationOptionFold(
+                            relationResolve(Object.prototype.hasOwnProperty.call(inst, 'value'), () => ({ kind: 'some' as const, value: (inst as Extract<Instruction, { kind: 'Return' }>).value as Operand }), () => ({ kind: 'none' as const })),
+                            () => ({ instruction: inst, scope }),
+                            value => ({ instruction: { kind: 'Return', value: scope.renameOperand(value) } as Instruction, scope }),
+                        ),
+                        () => ({ instruction: inst, scope }),
+                    ),
+                ),
+            ),
+        );
+        return renameBlockInstructions(instructions, renamed.scope, index + 1, [...output, renamed.instruction]);
+    },
+);
+
+export const updateSuccessorPhis = (
     blockId: number,
     successors: readonly number[],
-    blocks: Map<number, BasicBlock>,
-    scope: VariableVersionScope
-): void {
-    for (const succId of successors) {
-        const succ = blocks.get(succId);
-        if (succ) {
-            const updatedInsts = succ.instructions.map(inst => {
-                if (inst.kind === 'Phi') {
-                    const incoming = new Map<number, Operand>(inst.incoming);
-
-                    for (const [predId, op] of incoming) {
-                        if (predId === blockId && op.kind === 'Variable') {
-                            const activeVersion = scope.getActiveVersion(op.id) ?? op.id;
-                            incoming.set(predId, { kind: 'SSAValue', id: activeVersion });
-                        }
-                    }
-
-                    return { ...inst, incoming };
-                }
-                return inst;
-            });
-
-            blocks.set(succId, { ...succ, instructions: updatedInsts });
-        }
-    }
-}
+    blocks: BasicBlockRelation,
+    scope: VariableVersionScope,
+    index = 0,
+    output = blocks,
+): BasicBlockRelation => relationResolve(
+    relationEqual(index, successors.length),
+    () => output,
+    () => {
+        const successorId = successors[index];
+        const successor = basicBlockLookup(output, successorId);
+        const next = relationOptionFold(
+            successor,
+            () => output,
+            block => basicBlockReplace(output, successorId, Object.freeze({
+                ...block,
+                instructions: relationProject(block.instructions, instruction => relationResolve(
+                    relationEqual(instruction.kind, 'Phi'),
+                    () => ({ ...instruction, incoming: renamePhiIncoming((instruction as Extract<Instruction, { kind: 'Phi' }>).incoming, blockId, scope) } as Instruction),
+                    () => instruction,
+                )),
+            })),
+        );
+        return updateSuccessorPhis(blockId, successors, next, scope, index + 1, next);
+    },
+);

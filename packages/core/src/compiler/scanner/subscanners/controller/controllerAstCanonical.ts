@@ -1,3 +1,4 @@
+import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
 import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { PhpAstValue, PhpStatement, PhpAssignmentTarget, PhpIfAlternative, PhpForClause } from '../../lexer/phpAstTypes';
 import type { ControllerAst } from '../../../../types/upstream/ast';
@@ -12,8 +13,12 @@ import type { ResponseResult, ResponseStatus } from '../../../../types/upstream/
 import type { HttpStatusCode, StringValue } from '../../../../types/upstream/valueObjects';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
-import { mapAssignmentTarget, mapAssignmentOperator, assignmentReferenceMode } from '../resource/resourceUpstreamExpressionMappings';
+import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from '../resource/resourceUpstreamExpressionMappings';
 import { createControllerDataflowContract, createControllerReturnSet, type ControllerResourceResponseEvidence } from './controllerDataflowContract';
+import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny } from '../../../../semantic/kernel/semanticRelations';
+
+const relationCase = <T, R>(value: T, key: (value: T) => string, cases: Readonly<Record<string, (value: T) => R>>, fallback: (value: T) => R): R => relationOptionFold(relationFirstOption(Object.entries(cases), ([candidate]) => relationEqual(candidate, key(value))), () => fallback(value), ([, branch]) => branch(value));
 
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
@@ -21,10 +26,8 @@ const variableName = (value: string) => ({ kind: 'variable_name' as const, value
 const propertyName = (value: string) => ({ kind: 'property_name' as const, value: stringValue(value) });
 const exceptionName = (value: string) => ({ kind: 'exception_name' as const, value: stringValue(value) });
 
-const sequence = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>(
-  (tail, item) => ({ kind: 'cons', head: item, tail }),
-  { kind: 'empty' }
-);
+const sequence = <T>(items: readonly T[], index = items.length - 1, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> =>
+  relationGate(index < 0, () => tail, () => sequence(items, index - 1, { kind: 'cons', head: items[index], tail }));
 
 const span = (file: string, start: number, end: number = start): SourceSpan => ({
   kind: 'source_span',
@@ -42,60 +45,84 @@ const valueSpan = (file: string, value: PhpAstValue): SourceSpan =>
 const expression = (value: PhpAstValue, file: string): Expression => mapResourcePhpAstToUpstream(value, file);
 
 function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget {
-  return mapAssignmentTarget(target, expression, file);
+  return resolveAssignmentTarget(target, expression, file);
 }
 
 export type StatementExpressionResolver = (value: PhpAstValue, file: string, statementIndex: number) => ResolvedExpression;
 
 export function resolvedExpression(value: PhpAstValue, method: ControllerMethodAst, file: string, statementIndex: number): ResolvedExpression {
-  const semantic = method.body.dataflow.definitions.find(definition => definition.value === value)?.semantic;
+  const semantic = relationOptionMap(relationFirstOption(method.body.dataflow.definitions, definition => relationEqual(definition.value, value)), definition => definition.semantic);
   const result: SemanticValue = semanticValue(semantic);
   return { kind: 'resolved_expression', expression: expression(value, file), result };
 }
 
-function semanticValue(value: import('../../../../types/upstream/controller').ControllerVariableSemantic | undefined): SemanticValue {
-  if (!value) return { kind: 'unresolved', reason: 'external' };
-  switch (value.kind) {
-    case 'model_origin':
-      return { kind: 'reference', name: { kind: 'domain_type_name', value: value.origin.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } };
-    case 'request_origin':
-      return { kind: 'reference', name: { kind: 'domain_type_name', value: value.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } };
-    case 'expression':
-      return { kind: 'unresolved', reason: 'unsupported' };
-    case 'external':
-      return { kind: 'unresolved', reason: 'external' };
-  }
+type ControllerVariableSemantic = import('../../../../types/upstream/controller').ControllerVariableSemantic;
+
+type SemanticRule = {
+  readonly matches: (value: ControllerVariableSemantic) => boolean;
+  readonly resolve: (value: ControllerVariableSemantic) => SemanticValue;
+};
+
+const semanticRules: readonly SemanticRule[] = Object.freeze([
+  { matches: value => relationEqual(value.kind, 'model_origin'), resolve: value => ({ kind: 'reference', name: { kind: 'domain_type_name', value: value.origin.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } }) },
+  { matches: value => relationEqual(value.kind, 'request_origin'), resolve: value => ({ kind: 'reference', name: { kind: 'domain_type_name', value: value.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } }) },
+  { matches: value => relationEqual(value.kind, 'expression'), resolve: () => ({ kind: 'unresolved', reason: 'unsupported' }) },
+  { matches: value => relationEqual(value.kind, 'external'), resolve: () => ({ kind: 'unresolved', reason: 'external' }) },
+]);
+
+function semanticValue(value: RelationOption<ControllerVariableSemantic>): SemanticValue {
+  return relationOptionFold(
+    value,
+    () => ({ kind: 'unresolved', reason: 'external' }),
+    candidate => relationOptionFold(
+      relationFirst(semanticRules, rule => rule.matches(candidate)),
+      () => ({ kind: 'unresolved', reason: 'external' }),
+      rule => rule.resolve(candidate),
+    ),
+  );
 }
 
 function forClause(value: PhpForClause, file: string, index: number, resolve: StatementExpressionResolver): import('../../../../types/upstream/sourceStatements').SourceForClause {
-  switch (value.kind) {
-    case 'empty': return { kind: 'empty' };
-    case 'expression': return { kind: 'expression', value: resolve(value.value, file, index) };
-    case 'assignment': return { kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(value.target, file), expression: resolve(value.value, file, index).expression, operator: mapAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source: statementSource(value, file) } };
-  }
+  return relationCase<PhpForClause, import('../../../../types/upstream/sourceStatements').SourceForClause>(value, item => item.kind, {
+    empty: () => ({ kind: 'empty' as const }),
+    expression: item => forExpressionClause(item, file, index, resolve),
+    assignment: item => forAssignmentClause(item, file, index, resolve),
+  }, () => ({ kind: 'empty' as const }));
+}
+
+function forExpressionClause(value: Extract<PhpForClause, { kind: 'expression' }>, file: string, index: number, resolve: StatementExpressionResolver): import('../../../../types/upstream/sourceStatements').SourceForClause {
+  return { kind: 'expression', value: resolve(value.value, file, index) };
+}
+
+function forAssignmentClause(value: Extract<PhpForClause, { kind: 'assignment' }>, file: string, index: number, resolve: StatementExpressionResolver): import('../../../../types/upstream/sourceStatements').SourceForClause {
+  return { kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(value.target, file), expression: resolve(value.value, file, index).expression, operator: resolveAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source: statementSource(value, file) } };
 }
 
 function statementSource(value: PhpStatement, file: string): SourceSpan {
   return tokenSpan(file, value.source);
 }
 
+function foreachVariable(target: import('../../lexer/phpAstTypes').PhpForeachTarget) {
+  return relationGate(relationEqual(target.kind, 'value'), () => variableName(target.variable), () => variableName(target.value));
+}
+
 function sourceStatement(value: PhpStatement, file: string, index: number, resolve: StatementExpressionResolver): SourceStatement {
   const source = statementSource(value, file);
-  switch (value.kind) {
-    case 'expression_statement': return { kind: 'expression', value: resolve(value.expression, file, index), source };
-    case 'return_with_value': return { kind: 'return', expression: resolve(value.expression, file, index), source };
-    case 'return_void': return { kind: 'return_void', source };
-    case 'assignment': return { kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(value.target, file), expression: resolve(value.value, file, index).expression, operator: mapAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source }, source };
-    case 'if_statement': return { kind: 'conditional', condition: resolve(value.condition, file, index), branches: sourceBranches(value.alternative, value.thenBlock.statements, file, index, resolve), source };
-    case 'foreach_statement': return { kind: 'for_each', iterable: resolve(value.iterable, file, index), variable: variableName(value.target.kind === 'value' ? value.target.variable : value.target.value), body: sourceStatements(value.body.statements, file, resolve), source };
-    case 'for_statement': return { kind: 'for_loop', initializer: forClause(value.initializer, file, index, resolve), condition: forClause(value.condition, file, index, resolve), update: forClause(value.update, file, index, resolve), body: sourceStatements(value.body.statements, file, resolve), source };
-    case 'try_statement': return { kind: 'try', body: sourceStatements(value.body.statements, file, resolve), catches: { kind: 'catch_handlers', items: sequence(value.catches.map((item, catchIndex) => ({ kind: 'catch_handler', variable: variableName(item.variable), exception: exceptionName(item.exceptionType), body: sourceStatements(item.body.statements, file, resolve), source: tokenSpan(file, item.source) }))) }, source };
-    case 'throw_statement': return { kind: 'throw', error: resolve(value.expression, file, index), source };
-  }
+  return relationCase<PhpStatement, SourceStatement>(value, item => item.kind, {
+    expression_statement: item => ({ kind: 'expression', value: resolve(item.expression, file, index), source }),
+    return_with_value: item => ({ kind: 'return', expression: resolve(item.expression, file, index), source }),
+    return_void: () => ({ kind: 'return_void', source }),
+    assignment: item => ({ kind: 'assignment', value: { kind: 'assignment', target: assignmentTarget(item.target, file), expression: resolve(item.value, file, index).expression, operator: resolveAssignmentOperator(item.operator.kind), reference: assignmentReferenceMode(item.reference.kind), source }, source }),
+    [PHP_STATEMENT_KINDS.conditional]: item => ({ kind: 'conditional', condition: resolve(item.condition, file, index), branches: sourceBranches(item.alternative, item.thenBlock.statements, file, index, resolve), source }),
+    [PHP_STATEMENT_KINDS.collectionRecurrence]: item => ({ kind: 'for_each', iterable: resolve(item.iterable, file, index), variable: foreachVariable(item.target), body: sourceStatements(item.body.statements, file, resolve), source }),
+    [PHP_STATEMENT_KINDS.countedRecurrence]: item => ({ kind: 'for_loop', initializer: forClause(item.initializer, file, index, resolve), condition: forClause(item.condition, file, index, resolve), update: forClause(item.update, file, index, resolve), body: sourceStatements(item.body.statements, file, resolve), source }),
+    try_statement: item => ({ kind: 'try', body: sourceStatements(item.body.statements, file, resolve), catches: { kind: 'catch_handlers', items: sequence(relationProject(item.catches, catcher => ({ kind: 'catch_handler', variable: variableName(catcher.variable), exception: exceptionName(catcher.exceptionType), body: sourceStatements(catcher.body.statements, file, resolve), source: tokenSpan(file, catcher.source) }))) }, source }),
+    throw_statement: item => ({ kind: 'throw', error: resolve(item.expression, file, index), source }),
+  }, () => ({ kind: 'return_void', source }));
 }
 
 export function sourceStatements(values: readonly PhpStatement[], file: string, resolve: StatementExpressionResolver): SourceStatements {
-  return { kind: 'source_statements', items: sequence(values.map((value, index) => sourceStatement(value, file, index, resolve))) };
+  return { kind: 'source_statements', items: sequence(relationProject(values, (value, index) => sourceStatement(value, file, index, resolve))) };
 }
 
 export function controllerStatements(values: readonly PhpStatement[], file: string, method: ControllerMethodAst): SourceStatements {
@@ -103,84 +130,107 @@ export function controllerStatements(values: readonly PhpStatement[], file: stri
 }
 
 function sourceBranches(alternative: PhpIfAlternative, thenValues: readonly PhpStatement[], file: string, index: number, resolve: StatementExpressionResolver) {
-  if (alternative.kind === 'none') return { kind: 'then_only' as const, whenTrue: sourceStatements(thenValues, file, resolve) };
-  if (alternative.kind === 'else_block') return { kind: 'then_else' as const, whenTrue: sourceStatements(thenValues, file, resolve), whenFalse: sourceStatements(alternative.block.statements, file, resolve) };
-  return { kind: 'then_else' as const, whenTrue: sourceStatements(thenValues, file, resolve), whenFalse: { kind: 'source_statements' as const, items: sequence([sourceStatement(alternative.statement, file, index, resolve)]) } };
+  const thenOnly = { kind: 'then_only' as const, whenTrue: sourceStatements(thenValues, file, resolve) };
+  return relationCase<PhpIfAlternative, typeof thenOnly | { readonly kind: 'then_else'; readonly whenTrue: SourceStatements; readonly whenFalse: SourceStatements }>(alternative, item => item.kind, {
+    none: () => thenOnly,
+    else_block: item => ({ kind: 'then_else', whenTrue: sourceStatements(thenValues, file, resolve), whenFalse: sourceStatements(item.block.statements, file, resolve) }),
+    else_if: item => ({ kind: 'then_else', whenTrue: sourceStatements(thenValues, file, resolve), whenFalse: { kind: 'source_statements', items: sequence([sourceStatement(item.statement, file, index, resolve)]) } }),
+  }, () => thenOnly);
 }
 
 function forClauseExpression(clause: PhpForClause, file: string): Expression {
-  if (clause.kind === 'expression') return expression(clause.value, file);
-  if (clause.kind === 'assignment') return expression(clause.value, file);
-  throw new Error('Empty for clause cannot be converted to an expression');
+  return relationCase<PhpForClause, Expression>(clause, item => item.kind, {
+    expression: item => expression(item.value, file),
+    assignment: item => expression(item.value, file),
+  }, () => { throw Error('Empty recurrence clause cannot be converted to an expression'); });
 }
 
 function requestBinding(method: ControllerMethodAst): ControllerAction['request'] {
-  const request = method.parameters.find(parameter => parameter.semantic.kind === 'request_origin');
-  if (!request || request.semantic.kind !== 'request_origin') return { kind: 'no_request' };
-  return { kind: 'bound_request', name: request.semantic.name };
+  const rules = relationProject(method.parameters, parameter => ({
+    parameter,
+    matches: relationEqual(parameter.semantic.kind, 'request_origin'),
+  }));
+  return relationOptionFold(
+    relationFirst(rules, rule => rule.matches),
+    () => ({ kind: 'no_request' as const }),
+    rule => ({ kind: 'bound_request' as const, name: (rule.parameter.semantic as Extract<typeof rule.parameter.semantic, { kind: 'request_origin' }>).name }),
+  );
 }
 
 function semantic(method: ControllerMethodAst, file: string, response: ControllerResponse): ControllerSemanticDataflow {
   const contract = createControllerDataflowContract(
     method.body.dataflow,
     method.parameters,
-    createControllerReturnSet(method.returns.map(item => item.expression)),
-    response.kind === 'response_present'
-      ? { kind: 'present', response: response.response } satisfies ControllerResourceResponseEvidence
-      : { kind: 'absent' } satisfies ControllerResourceResponseEvidence
+    createControllerReturnSet(relationProject(method.returns, item => item.expression)),
+    relationGate(relationEqual(response.kind, 'response_present'), () => ({ kind: 'present', response: response.response } satisfies ControllerResourceResponseEvidence), () => ({ kind: 'absent' } satisfies ControllerResourceResponseEvidence))
   );
-  const variables = method.body.dataflow.definitions.map(definition => ({
-    variable: variableName(definition.name),
-    definitions: sequence([{
-      variable: variableName(definition.name),
-      origin: definition.origin.kind === 'assignment'
-        ? { kind: 'assignment' as const, statementIndex: definition.statementIndex }
-        : definition.origin.kind === 'foreach'
-          ? { kind: 'foreach' as const, statementIndex: definition.origin.statementIndex }
-          : { kind: 'catch' as const, statementIndex: definition.origin.statementIndex },
+
+  const variables = relationProject(contract.semantic.variables, binding => ({
+    variable: variableName(binding.variable),
+    definitions: sequence(relationProject(binding.definitions, definition => ({
+      variable: variableName(definition.variable),
+      origin: definition.origin,
       expression: expression(definition.value, file),
       semantic: definition.semantic,
-      availability: availability(definition.availability),
-      source: tokenSpan(file, definition.value.source),
-    }])
+      source: tokenSpan(file, definition.expression.source),
+    }))) 
   }));
-  const resources = contract.resourceBindings.map(binding => ({
+
+  const resources = relationProject(contract.resourceBindings, binding => ({
     resource: { kind: 'resource_reference' as const, name: { kind: 'resource_name' as const, value: binding.resourceName.value } },
     model: toUpstreamModel(binding.model),
     response: binding.response,
     source: binding.source,
   }));
-  const returned = method.returns.length === 0
-    ? { kind: 'absent' as const }
-    : returnSetSemantic(method.returns.map(item => item.expression), file, contract.resourceBindings);
+
+  const returned = relationGate(relationEqual(method.returns.length, 0),
+    () => ({ kind: 'absent' as const }),
+    () => returnSetSemantic(relationProject(method.returns, item => item.expression), file, contract.resourceBindings),
+  );
+
   return { variables: sequence(variables), resources: sequence(resources), returned };
 }
+
 
 const defaultStatus = (value: number): HttpStatusCode => ({
   kind: 'http_status_code',
   value: { kind: 'number_value', value },
 });
 
-const responseStatus = (value: number | undefined): ResponseStatus => value === undefined
-  ? { kind: 'response_status', value: defaultStatus(200), origin: { kind: 'framework_default' } }
-  : { kind: 'response_status', value: defaultStatus(value), origin: { kind: 'source_explicit', status: defaultStatus(value) } };
+const responseStatus = (value: RelationOption<number>): ResponseStatus =>
+  relationOptionFold(value,
+    () => ({ kind: 'response_status', value: defaultStatus(200), origin: { kind: 'framework_default' } }),
+    status => ({ kind: 'response_status', value: defaultStatus(status), origin: { kind: 'source_explicit', status: defaultStatus(status) } }));
 
 const redirectDefaultStatus: ResponseStatus = { kind: 'response_status', value: defaultStatus(302), origin: { kind: 'framework_default' } };
 
-function positional(value: import('../../lexer/phpAstTypes').PhpAstValue, index: number): import('../../lexer/phpAstTypes').PhpAstValue | undefined {
-  if (value.kind !== 'method_chain') return undefined;
-  const argument = value.arguments[index];
-  return argument?.kind === 'positional' ? argument.value : undefined;
+function positional(value: import('../../lexer/phpAstTypes').PhpAstValue, index: number): RelationOption<import('../../lexer/phpAstTypes').PhpAstValue> {
+  return relationGate(relationEqual(value.kind, 'method_chain'),
+    () => relationOptionFold(relationFirstOption(relationProject(value.arguments, (argument, offset) => [offset, argument] as const), entry => relationAll([relationEqual(entry[0], index), relationEqual(entry[1].kind, 'positional')])),
+      () => relationNone(),
+      entry => relationSome(entry[1].value)),
+    () => relationNone());
 }
 
-function literalNumber(value: import('../../lexer/phpAstTypes').PhpAstValue | undefined): number | undefined {
-  return value?.kind === 'literal' && value.literalType === 'number' ? value.value : undefined;
+function literalNumber(value: RelationOption<import('../../lexer/phpAstTypes').PhpAstValue>): RelationOption<number> {
+  return relationOptionFold(value,
+    () => relationNone(),
+    candidate => relationGate(relationAllLiteralNumber(candidate), () => relationSome(candidate.value), () => relationNone()));
 }
+
+const relationAllLiteralNumber = (value: import('../../lexer/phpAstTypes').PhpAstValue): value is Extract<import('../../lexer/phpAstTypes').PhpAstValue, { kind: 'literal'; literalType: 'number' }> =>
+  relationAll([relationEqual(value.kind, 'literal'), relationEqual(value.literalType, 'number')]);
 
 function responsePayload(value: import('../../lexer/phpAstTypes').PhpAstValue): import('../../types/upstream/response').ResponseJsonPayload {
   const semantic = expression(value, 'response-runtime');
-  if (value.kind === 'resource_single') return { kind: 'expression', expression: semantic };
-  return { kind: 'expression', expression: semantic };
+  return relationOptionFold(
+    relationFirst([
+      { kind: 'resource_single' as const, value: { kind: 'expression' as const, expression: semantic } },
+      { kind: 'default' as const, value: { kind: 'expression' as const, expression: semantic } },
+    ], candidate => relationEqual(candidate.kind, value.kind)),
+    () => ({ kind: 'expression' as const, expression: semantic }),
+    candidate => candidate.value,
+  );
 }
 
 function resourceReference(name: string): ResourceReference {
@@ -189,26 +239,28 @@ function resourceReference(name: string): ResourceReference {
 
 
 function collectNestedReturns(block: import('../../lexer/phpAstTypes').PhpBlock): readonly PhpAstValue[] {
-  const values: PhpAstValue[] = [];
-  const visitBlock = (current: import('../../lexer/phpAstTypes').PhpBlock): void => {
-    for (const statement of current.statements) {
-      if (statement.kind === 'return_with_value') values.push(statement.expression);
-      if (statement.kind === 'if_statement') {
-        visitBlock(statement.thenBlock);
-        if (statement.alternative.kind === 'else_block') visitBlock(statement.alternative.block);
-        if (statement.alternative.kind === 'else_if') visitBlock(statement.alternative.statement.thenBlock);
-      }
-      if (statement.kind === 'foreach') visitBlock(statement.body);
-      if (statement.kind === 'for' && statement.body) visitBlock(statement.body);
-      if (statement.kind === 'try_statement') {
-        visitBlock(statement.body);
-        for (const catcher of statement.catches) visitBlock(catcher.body);
-        if (statement.finallyBlock.kind === 'present') visitBlock(statement.finallyBlock.block);
-      }
-    }
-  };
-  visitBlock(block);
-  return values;
+  const visitBlock = (current: import('../../lexer/phpAstTypes').PhpBlock): readonly PhpAstValue[] =>
+    relationExpand(current.statements, statement => collectStatementReturns(statement));
+  const collectStatementReturns = (statement: PhpStatement): readonly PhpAstValue[] =>
+    relationCase<PhpStatement, readonly PhpAstValue[]>(statement, item => item.kind, {
+      return_with_value: item => [item.expression],
+      if_statement: item => [
+        ...visitBlock(item.thenBlock),
+        ...relationCase<PhpIfAlternative, readonly PhpAstValue[]>(item.alternative, alternative => alternative.kind, {
+          none: () => [],
+          else_block: alternative => visitBlock(alternative.block),
+          else_if: alternative => visitBlock(alternative.statement.thenBlock),
+        }, () => []),
+      ],
+      foreach_statement: item => visitBlock(item.body),
+      for_statement: item => visitBlock(item.body),
+      try_statement: item => [
+        ...visitBlock(item.body),
+        ...relationExpand(item.catches, catcher => visitBlock(catcher.body)),
+        ...relationGate(relationEqual(item.finallyBlock.kind, 'present'), () => visitBlock(item.finallyBlock.block), () => []),
+      ],
+    }, () => []);
+  return visitBlock(block);
 }
 
 function returnSetSemantic(
@@ -216,23 +268,51 @@ function returnSetSemantic(
   file: string,
   resourceBindings: readonly import('./controllerDataflowContract').ControllerResourceBinding[],
 ): import('../../types/upstream/controller').ControllerReturnSemantic {
-  const semantics = values.map(value => returnSemantic(value, file, resourceBindings));
-  if (semantics.length === 1) return semantics[0];
-  const expressions = semantics.map(item => item.expression);
-  return {
+  const semantics = relationProject(values, value => returnSemantic(value, file, resourceBindings));
+  return relationGate(relationEqual(semantics.length, 1), () => semantics[0], () => ({
     kind: 'branches',
     branches: sequence(semantics),
     expression: semantics[0].expression,
-  };
+  }));
 }
 
 function unwrapTransactionReturns(
   value: import('../../lexer/phpAstTypes').PhpAstValue,
 ): readonly PhpAstValue[] {
-  if (value.kind !== 'static_call' || value.className.value !== 'DB' || value.method.value !== 'transaction') return [];
-  const callback = value.arguments.find(argument => argument.kind === 'positional' && argument.value.kind === 'closure');
-  if (!callback || callback.kind !== 'positional' || callback.value.kind !== 'closure') return [];
-  return collectNestedReturns(callback.value.body);
+  return relationGate(
+    relationAll([
+      relationEqual(value.kind, 'static_call'),
+      relationEqual(value.className.value, 'DB'),
+      relationEqual(value.method.value, 'transaction'),
+    ]),
+    () => relationOptionFold(
+      relationFirstOption(value.arguments, argument => relationAll([
+        relationEqual(argument.kind, 'positional'),
+        relationEqual(argument.value.kind, 'closure'),
+      ])),
+      () => [],
+      argument => relationGate(relationEqual(argument.kind, 'positional'), () => relationGate(relationEqual(argument.value.kind, 'closure'), () => collectNestedReturns(argument.value.body), () => []), () => []),
+    ),
+    () => [],
+  );
+}
+
+const responseMethodHandlers: Readonly<Record<string, (value: Extract<PhpAstValue, { kind: 'method_chain' }>, file: string, semanticExpression: ResolvedExpression, status: ResponseStatus) => import('../../types/upstream/controller').ControllerReturnSemantic>> = Object.freeze({
+  json: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'json', shape: { kind: 'single', payload: relationOptionFold(positional(value, 0), () => ({ kind: 'expression' as const, expression: semanticExpression }), payload => responsePayload(payload)) } }, status }, expression: semanticExpression }),
+  jsonp: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'json_with_callback', shape: { kind: 'single', payload: relationOptionFold(positional(value, 1), () => ({ kind: 'expression' as const, expression: semanticExpression }), payload => responsePayload(payload)) }, callback: relationOptionFold(positional(value, 0), () => semanticExpression, callback => expression(callback, file)) }, status }, expression: semanticExpression }),
+  noContent: (_value, _file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'no_content', status }, expression: semanticExpression }),
+  download: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'download', file: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)), filename: relationOptionFold(positional(value, 1), () => semanticExpression, candidate => expression(candidate, file)) }, status }, expression: semanticExpression }),
+  file: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'file', file: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)) }, status }, expression: semanticExpression }),
+  stream: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'stream', callback: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)) }, status }, expression: semanticExpression }),
+  streamJson: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'stream_json', payload: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)) }, status }, expression: semanticExpression }),
+  eventStream: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'event_stream', callback: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)) }, status }, expression: semanticExpression }),
+  streamDownload: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'stream_download', callback: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)), filename: relationOptionFold(positional(value, 1), () => semanticExpression, candidate => expression(candidate, file)) }, status }, expression: semanticExpression }),
+  view: (value, file, semanticExpression, status) => ({ kind: 'response', result: { kind: 'content', body: { kind: 'view', view: { kind: 'view', view: relationOptionFold(positional(value, 0), () => semanticExpression, candidate => expression(candidate, file)), data: relationOptionFold(positional(value, 1), () => semanticExpression, candidate => expression(candidate, file)) } }, status }, expression: semanticExpression }),
+});
+
+function responseMethodSemantic(value: Extract<PhpAstValue, { kind: 'method_chain' }>, file: string, semanticExpression: ResolvedExpression): RelationOption<import('../../types/upstream/controller').ControllerReturnSemantic> {
+  const status = responseStatus(literalNumber(positional(value, 1)));
+  return relationOptionMap(relationFirstOption(Object.entries(responseMethodHandlers), ([method]) => relationEqual(method, value.property)), ([, handler]) => handler(value, file, semanticExpression, status));
 }
 
 function returnSemantic(
@@ -242,71 +322,34 @@ function returnSemantic(
 ): import('../../types/upstream/controller').ControllerReturnSemantic {
   const semanticExpression = expression(value, file);
   const transactionReturns = unwrapTransactionReturns(value);
-  if (transactionReturns.length > 0) return returnSetSemantic(transactionReturns, file, resourceBindings);
-  if (value.kind === 'method_chain' && value.receiver.kind === 'function_call' && value.receiver.functionName === 'response') {
-    const method = value.property;
-    const status = responseStatus(literalNumber(positional(value, 1)));
-    if (method === 'json' || method === 'jsonp') {
-      const payloadValue = method === 'jsonp' ? positional(value, 1) : positional(value, 0);
-      const payload = payloadValue ? responsePayload(payloadValue) : { kind: 'expression' as const, expression: semanticExpression };
-      const shape = { kind: 'single' as const, payload };
-      const body = method === 'jsonp'
-        ? { kind: 'json_with_callback' as const, shape, callback: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression }
-        : { kind: 'json' as const, shape };
-      return { kind: 'response', result: { kind: 'content', body, status }, expression: semanticExpression };
-    }
-    if (method === 'noContent') return { kind: 'response', result: { kind: 'no_content', status }, expression: semanticExpression };
-    if (method === 'download') return { kind: 'response', result: { kind: 'content', body: { kind: 'download', file: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression, filename: positional(value, 1) ? expression(positional(value, 1)!, file) : semanticExpression }, status }, expression: semanticExpression };
-    if (method === 'file') return { kind: 'response', result: { kind: 'content', body: { kind: 'file', file: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression }, status }, expression: semanticExpression };
-    if (method === 'stream') return { kind: 'response', result: { kind: 'content', body: { kind: 'stream', callback: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression }, status }, expression: semanticExpression };
-    if (method === 'streamJson') return { kind: 'response', result: { kind: 'content', body: { kind: 'stream_json', payload: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression }, status }, expression: semanticExpression };
-    if (method === 'eventStream') return { kind: 'response', result: { kind: 'content', body: { kind: 'event_stream', callback: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression }, status }, expression: semanticExpression };
-    if (method === 'streamDownload') return { kind: 'response', result: { kind: 'content', body: { kind: 'stream_download', callback: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression, filename: positional(value, 1) ? expression(positional(value, 1)!, file) : semanticExpression }, status }, expression: semanticExpression };
-    if (method === 'view') return { kind: 'response', result: { kind: 'content', body: { kind: 'view', view: { kind: 'view', view: positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression, data: positional(value, 1) ? expression(positional(value, 1)!, file) : semanticExpression } }, status }, expression: semanticExpression };
-  }
-  if (value.kind === 'method_chain' && value.receiver.kind === 'function_call' && value.receiver.functionName === 'redirect') {
-    const method = value.property;
-    const target = positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression;
-    const redirect = method === 'away'
-      ? { kind: 'away' as const, target }
-      : method === 'route'
-        ? { kind: 'route' as const, target }
-        : method === 'action'
-          ? { kind: 'action' as const, target }
-          : method === 'intended'
-            ? { kind: 'intended' as const, fallback: target }
-            : { kind: 'internal' as const, target };
-    return { kind: 'response', result: { kind: 'redirect', redirect, status: redirectDefaultStatus }, expression: semanticExpression };
-  }
-  if (value.kind === 'function_call' && value.functionName === 'redirect') {
-    const target = value.arguments[0]?.kind === 'positional' ? expression(value.arguments[0].value, file) : semanticExpression;
-    return { kind: 'response', result: { kind: 'redirect', redirect: { kind: 'internal', target }, status: redirectDefaultStatus }, expression: semanticExpression };
-  }
-  if (value.kind === 'method_chain' && value.property === 'download') {
-    const target = expression(value.receiver, file);
-    const filename = positional(value, 0) ? expression(positional(value, 0)!, file) : semanticExpression;
-    return { kind: 'response', result: { kind: 'content', body: { kind: 'download', file: target, filename }, status: responseStatus(undefined) }, expression: semanticExpression };
-  }
-  if (value.kind === 'resource_collection' || value.kind === 'resource_single') {
-    const resource = resourceReference(value.resourceName);
-    const binding = resourceBindings.find(item => item.resourceName.value === value.resourceName);
-    if (binding) return { kind: 'resource', resource, model: toUpstreamModel(binding.model), expression: semanticExpression };
-  }
-  if (value.kind === 'literal' && value.literalType === 'string') return { kind: 'response', result: { kind: 'content', body: { kind: 'text', body: semanticExpression }, status: responseStatus(undefined) }, expression: semanticExpression };
-  if (value.kind === 'nested_array') return { kind: 'response', result: { kind: 'content', body: { kind: 'json', shape: { kind: 'single', payload: { kind: 'expression', expression: semanticExpression } } }, status: responseStatus(undefined) }, expression: semanticExpression };
-  return { kind: 'expression', expression: semanticExpression };
+  return relationGate(relationAny([transactionReturns.length > 0]),
+    () => returnSetSemantic(transactionReturns, file, resourceBindings),
+    () => relationCase<PhpAstValue, import('../../types/upstream/controller').ControllerReturnSemantic>(value, item => item.kind, {
+      method_chain: item => relationGate(relationAll([relationEqual(item.receiver.kind, 'function_call'), relationEqual(item.receiver.functionName, 'response')]),
+        () => relationOptionFold(responseMethodSemantic(item, file, semanticExpression), () => relationCase<PhpAstValue, import('../../types/upstream/controller').ControllerReturnSemantic>(item, node => node.kind, {
+          method_chain: () => relationGate(relationEqual(item.property, 'download'), () => ({ kind: 'response', result: { kind: 'content', body: { kind: 'download', file: expression(item.receiver, file), filename: relationOptionFold(positional(item, 0), () => semanticExpression, candidate => expression(candidate, file)) }, status: responseStatus(relationNone()) }, expression: semanticExpression }), () => ({ kind: 'expression', expression: semanticExpression })),
+        }, () => ({ kind: 'expression', expression: semanticExpression })), response => response),
+        () => ({ kind: 'expression', expression: semanticExpression })),
+      function_call: item => relationGate(relationEqual(item.functionName, 'redirect'),
+        () => ({ kind: 'response', result: { kind: 'redirect', redirect: { kind: 'internal', target: relationOptionFold(relationFirstOption(item.arguments, argument => relationEqual(argument.kind, 'positional')), () => semanticExpression, argument => expression(argument.value, file)) }, status: redirectDefaultStatus }, expression: semanticExpression }),
+        () => ({ kind: 'expression', expression: semanticExpression })),
+      resource_collection: item => resourceReturnSemantic(item, semanticExpression, resourceBindings, true),
+      resource_single: item => resourceReturnSemantic(item, semanticExpression, resourceBindings, false),
+      literal: item => relationGate(relationEqual(item.literalType, 'string'), () => ({ kind: 'response', result: { kind: 'content', body: { kind: 'text', body: semanticExpression }, status: responseStatus(relationNone()) }, expression: semanticExpression }), () => ({ kind: 'expression', expression: semanticExpression })),
+      nested_array: () => ({ kind: 'response', result: { kind: 'content', body: { kind: 'json', shape: { kind: 'single', payload: { kind: 'expression', expression: semanticExpression } } }, status: responseStatus(relationNone()) }, expression: semanticExpression }),
+    }, () => ({ kind: 'expression', expression: semanticExpression })),
+  );
 }
 
-
-function availability(value: import('../../lexer/controllerBodyAstTypes').ControllerDefinitionAvailability): import('../../../../types/upstream/controller').ControllerDefinitionAvailability {
-  if (value.kind === 'definite') return value;
-  const kind = value.kind === 'branch_conditional' ? 'branch_conditional' : value.kind === 'loop_conditional' ? 'loop_conditional' : 'catch_conditional';
-  return { kind, branchPath: sequence(value.branchPath) };
+function resourceReturnSemantic(value: Extract<PhpAstValue, { kind: 'resource_collection' | 'resource_single' }>, semanticExpression: ResolvedExpression, resourceBindings: readonly import('./controllerDataflowContract').ControllerResourceBinding[], collection: boolean): import('../../types/upstream/controller').ControllerReturnSemantic {
+  const resource = resourceReference(value.resourceName);
+  return relationOptionFold(relationFirstOption(resourceBindings, item => relationEqual(item.resourceName.value, value.resourceName)),
+    () => ({ kind: 'expression', expression: semanticExpression }),
+    binding => ({ kind: 'resource', resource, model: toUpstreamModel(binding.model), cardinality: relationGate(collection, () => ({ kind: 'collection' }), () => ({ kind: 'single' })), expression: semanticExpression }));
 }
 
 function toUpstreamModel(origin: import('./controllerDataflowContract').ControllerModelOrigin): import('../../../../types/upstream/controller').ControllerModelOrigin {
-  if (origin.kind === 'table') return { kind: 'table', name: { kind: 'table_name', value: origin.name.value } };
-  return { kind: 'model_class', name: { kind: 'model_name', value: origin.name.value } };
+  return relationGate(relationEqual(origin.kind, 'table'), () => ({ kind: 'table', name: { kind: 'table_name', value: origin.name.value } }), () => ({ kind: 'model_class', name: { kind: 'model_name', value: origin.name.value } }));
 }
 
 export function controllerReturnSemanticFromMethod(method: ControllerMethodAst, file: string, response: ControllerResponse): import('../../../../types/upstream/controller').ControllerReturnSemantic {
@@ -320,13 +363,14 @@ export function controllerReturnSemanticFromValues(
   return returnSetSemantic(values, file, []);
 }
 
-export function controllerActionFromMethod(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse): ControllerAction {
+export function controllerActionFromMethod(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse, dependencies: readonly import('../../../../types/upstream/controller').ControllerDependency[] = []): ControllerAction {
   const action: ControllerAction = {
     kind: 'controller_action',
     controller: { kind: 'controller_name', value: stringValue(controllerName) },
     action: { kind: 'action_name', value: stringValue(method.name) },
     request: requestBinding(method),
     response,
+    dependencies: sequence(dependencies),
     statements: controllerStatements(method.body.statements, file, method),
     semantic: semantic(method, file, response),
     source: tokenSpan(file, method.source),

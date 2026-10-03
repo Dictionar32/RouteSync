@@ -12,6 +12,8 @@ import type { RelationName, PropertyName, VariableName, TraitName } from './name
 import type { SemanticValue } from './primitiveVocabulary';
 import type { ServiceParameter } from './service';
 import type { CompletenessFailure } from './completeness';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationOptionFold, relationRefine } from '../../semantic/kernel/relationalSequence';
 
 export type Option<T> =
   | { readonly kind: 'none' }
@@ -26,11 +28,23 @@ export type LookupVisitor<T, R> = {
   readonly found: (lookup: Extract<Lookup<T>, { readonly kind: 'found' }>) => R;
 };
 
+const isFoundLookup = <T>(value: Lookup<T>): value is Extract<Lookup<T>, { readonly kind: 'found' }> => relationEqual(value.kind, 'found');
+const isScannedDiscovery = <T>(value: SourceDiscovery<T>): value is Extract<SourceDiscovery<T>, { readonly kind: 'scanned' }> => relationEqual(value.kind, 'scanned');
+const isDiscoveredMany = <T>(value: Discovered<T>): value is Extract<Discovered<T>, { readonly kind: 'discovered_many' }> => relationEqual(value.kind, 'discovered_many');
+
 export function matchLookup<T, R>(lookup: Lookup<T>, visitor: LookupVisitor<T, R>): R {
-  switch (lookup.kind) {
-    case 'missing': return visitor.missing(lookup);
-    case 'found': return visitor.found(lookup);
-  }
+  return relationOptionFold(relationRefine(lookup, isFoundLookup), () => visitor.missing({ kind: 'missing' }), visitor.found);
+}
+
+export function matchSourceDiscovery<T, R>(discovery: SourceDiscovery<T>, visitor: SourceDiscoveryVisitor<T, R>): R {
+  return relationOptionFold(relationRefine(discovery, isScannedDiscovery), () => visitor.notScanned({ kind: 'not_scanned' }), visitor.scanned);
+}
+
+export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
+  readonly empty: (value: Extract<Discovered<T>, { readonly kind: 'discovered_empty' }>) => R;
+  readonly many: (value: Extract<Discovered<T>, { readonly kind: 'discovered_many' }>) => R;
+}): R {
+  return relationOptionFold(relationRefine(discovery, isDiscoveredMany), () => visitor.empty({ kind: 'discovered_empty' }), visitor.many);
 }
 
 export type Sequence<T> = { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: Sequence<T> };
@@ -41,23 +55,6 @@ export type SourceDiscoveryVisitor<T, R> = {
   readonly notScanned: (discovery: Extract<SourceDiscovery<T>, { readonly kind: 'not_scanned' }>) => R;
   readonly scanned: (discovery: Extract<SourceDiscovery<T>, { readonly kind: 'scanned' }>) => R;
 };
-
-export function matchSourceDiscovery<T, R>(discovery: SourceDiscovery<T>, visitor: SourceDiscoveryVisitor<T, R>): R {
-  switch (discovery.kind) {
-    case 'not_scanned': return visitor.notScanned(discovery);
-    case 'scanned': return visitor.scanned(discovery);
-  }
-}
-
-export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
-  readonly empty: (value: Extract<Discovered<T>, { readonly kind: 'discovered_empty' }>) => R;
-  readonly many: (value: Extract<Discovered<T>, { readonly kind: 'discovered_many' }>) => R;
-}): R {
-  switch (discovery.kind) {
-    case 'discovered_empty': return visitor.empty(discovery);
-    case 'discovered_many': return visitor.many(discovery);
-  }
-}
 
 export type SemanticValues = { readonly kind: 'semantic_values'; readonly items: Sequence<SemanticValue> };
 export type PropertyNames = { readonly kind: 'property_names'; readonly items: Sequence<PropertyName> };

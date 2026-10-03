@@ -1,117 +1,84 @@
-/**
- * dominatorTree.ts
- *
- * Dominator tree representation and iterative computation using Lengauer-Tarjan variant.
- *
- * @module core/compiler/analysis/dominator
- */
+/** Relation-backed dominator tree. */
 
 import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
+import { basicBlockLookup } from '../../utils/ControlFlowGraph';
 import { computeRPO } from './dominatorRpo';
 import { intersectDominators } from './dominatorIntersect';
+import { relationIndexLookup, relationIndexAdd, relationContains, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationFold, relationFixedPoint, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
+import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
 
-/**
- * Dominator tree for CFG analysis.
- * Node A dominates node B if all paths from entry to B must go through A.
- */
-export class DominatorTree {
-    /** Immediate dominator map: blockId -> immediate dominator blockId */
-    private idoms = new Map<number, number>();
-
-    /** Dominator tree structure: blockId -> set of immediately dominated children */
-    private domTree = new Map<number, Set<number>>();
-
-    /**
-     * Compute dominator tree for given CFG.
-     */
-    public compute(cfg: ControlFlowGraph): void {
-        const blocks = Array.from(cfg.blocks.values());
-        if (blocks.length === 0) return;
-
-        const startNode = cfg.entryBlock;
-        // Entry node dominates itself
-        this.idoms.set(startNode, startNode);
-
-        // Compute in reverse postorder for faster convergence
-        const rpo = computeRPO(cfg);
-
-        // Iterative fixed-point computation
-        let changed = true;
-        while (changed) {
-            changed = false;
-
-            for (const blockId of rpo) {
-                if (blockId === startNode) continue;
-
-                const block = cfg.blocks.get(blockId)!;
-
-                // Only consider predecessors with an existing dominator
-                const processedPreds = block.predecessors.filter(p => this.idoms.has(p));
-                if (processedPreds.length === 0) continue;
-
-                // Find common dominator across all predecessors
-                let newIdom = processedPreds[0]!;
-                for (let i = 1; i < processedPreds.length; i++) {
-                    const pred = processedPreds[i]!;
-                    newIdom = intersectDominators(pred, newIdom, rpo, this.idoms);
-                }
-
-                // Update if changed
-                if (this.idoms.get(blockId) !== newIdom) {
-                    this.idoms.set(blockId, newIdom);
-                    changed = true;
-                }
-            }
-        }
-
-        // Build dominator tree structure
-        for (const [node, idom] of this.idoms) {
-            if (node === startNode) continue;
-            const children = this.domTree.get(idom) ?? new Set();
-            children.add(node);
-            this.domTree.set(idom, children);
-        }
-    }
-
-    /**
-     * Get immediate dominator of given block.
-     */
-    public getImmediateDominator(blockId: number): number | undefined {
-        return this.idoms.get(blockId);
-    }
-
-    /**
-     * Get all blocks immediately dominated by given block.
-     */
-    public getChildren(blockId: number): ReadonlySet<number> {
-        return this.domTree.get(blockId) ?? new Set();
-    }
-
-    /**
-     * Check if ancestor dominates descendant.
-     */
-    public dominates(ancestor: number, descendant: number): boolean {
-        let current: number | undefined = descendant;
-
-        while (current !== undefined) {
-            if (current === ancestor) return true;
-
-            const next: number | undefined = this.getImmediateDominator(current);
-
-            // Prevent infinite loop (self-domination)
-            if (next === current) break;
-
-            current = next;
-        }
-
-        return false;
-    }
-
-    /**
-     * Clear all dominator information.
-     */
-    public clear(): void {
-        this.idoms.clear();
-        this.domTree.clear();
-    }
+export interface DominatorTree {
+    readonly idoms: RelationIndex<number, number>;
+    readonly children: RelationIndex<number, readonly number[]>;
+    readonly getImmediateDominator: (blockId: number) => RelationOption<number>;
+    readonly getChildren: (blockId: number) => readonly number[];
+    readonly dominates: (ancestor: number, descendant: number) => boolean;
 }
+
+const processedPredecessors = (cfg: ControlFlowGraph, idoms: RelationIndex<number, number>, blockId: number): readonly number[] => relationOptionFold(
+    basicBlockLookup(cfg.blocks, blockId),
+    () => [],
+    block => relationFold(block.predecessors, [], (acc, predecessor) => relationOptionFold(relationIndexLookup(idoms, predecessor), () => acc, () => [...acc, predecessor])),
+);
+
+const relationIndexEqual = <K, V>(left: RelationIndex<K, V>, right: RelationIndex<K, V>, index = 0): boolean => relationResolve(
+    relationEqual(left.length, right.length),
+    () => relationResolve(index >= left.length, () => true, () => relationResolve(relationEqual(left[index][0], right[index][0]) && relationEqual(left[index][1], right[index][1]), () => relationIndexEqual(left, right, index + 1), () => false)),
+    () => false,
+);
+
+const computeIdoms = (cfg: ControlFlowGraph): RelationIndex<number, number> => {
+    const rpo = computeRPO(cfg);
+    const seed: RelationIndex<number, number> = Object.freeze([[cfg.entryBlock, cfg.entryBlock] as const]);
+    const step = (idoms: RelationIndex<number, number>): RelationIndex<number, number> => relationFold(
+        rpo,
+        idoms,
+        (current, blockId) => relationResolve(
+            relationEqual(blockId, cfg.entryBlock),
+            () => current,
+            () => {
+                const predecessors = processedPredecessors(cfg, current, blockId);
+                return relationResolve(
+                    relationEqual(predecessors.length, 0),
+                    () => current,
+                    () => relationIndexAdd(current, blockId, relationFold(predecessors, predecessors[0], (accumulator, predecessor) => intersectDominators(predecessor, accumulator, rpo, current), 1)),
+                );
+            },
+        ),
+    );
+    return relationFixedPoint(seed, step, relationIndexEqual).value;
+};
+
+const buildChildren = (idoms: RelationIndex<number, number>, entry: number): RelationIndex<number, readonly number[]> => relationFold(
+    idoms,
+    [] as RelationIndex<number, readonly number[]>,
+    (children, pair) => relationResolve(
+        relationEqual(pair[0], entry),
+        () => children,
+        () => relationIndexAdd(children, pair[1], Object.freeze([
+            ...relationOptionFold(relationIndexLookup(children, pair[1]), () => [] as readonly number[], value => value),
+            pair[0],
+        ])),
+    ),
+);
+
+const dominatesFrom = (idoms: RelationIndex<number, number>, ancestor: number, current: number): boolean => relationResolve(
+    relationEqual(current, ancestor),
+    () => true,
+    () => relationOptionFold(relationIndexLookup(idoms, current), () => false, next => relationResolve(relationEqual(next, current), () => false, () => dominatesFrom(idoms, ancestor, next))),
+);
+
+export const createDominatorTree = (cfg: ControlFlowGraph): DominatorTree => {
+    const idoms = computeIdoms(cfg);
+    const children = buildChildren(idoms, cfg.entryBlock);
+    return Object.freeze({
+        idoms,
+        children,
+        getImmediateDominator: (blockId: number) => relationIndexLookup(idoms, blockId),
+        getChildren: (blockId: number) => relationOptionFold(relationIndexLookup(children, blockId), () => [], value => value),
+        dominates: (ancestor: number, descendant: number) => dominatesFrom(idoms, ancestor, descendant),
+    });
+};
+
+export const DominatorTree = Object.freeze({ compute: createDominatorTree });

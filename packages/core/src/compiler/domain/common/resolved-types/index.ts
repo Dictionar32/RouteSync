@@ -27,10 +27,8 @@ export type {
     ResolvedUnknownTypeParams
 } from './types';
 
-export {
-    ResolvedSemanticTypeBase,
-    ResolvedPrimitiveType
-} from './base';
+export { ResolvedPrimitiveType } from './base';
+export type { ResolvedSemanticTypeBase } from './base';
 
 export {
     ResolvedReferenceType,

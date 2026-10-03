@@ -1,38 +1,46 @@
-/**
- * RouteCrudClassifier.ts
- *
- * First-Class Domain Model: Determines CrudRole from HTTP method and path shape.
- * O(1) pattern-based classification eliminating downstream ternary chaining.
- *
- * @module core/compiler/scanner/resolvers/RouteCrudClassifier
- */
-
+/** Declarative route CRUD classification through semantic relations. */
 import { CrudRole, HttpMethod, matchHttpMethod } from "../../../types/route";
+import { relationEqual, relationGate, relationAll, relationAny } from "../../../semantic/kernel/semanticRelations";
+import { relationFirstOption, relationOptionFold, relationProject, relationSelect } from "../../../semantic/kernel/relationalSequence";
+
+const HTTP_METHODS: readonly (readonly [string, HttpMethod])[] = [
+  ['GET', 'GET'], ['POST', 'POST'], ['PUT', 'PUT'], ['PATCH', 'PATCH'],
+  ['DELETE', 'DELETE'], ['OPTIONS', 'OPTIONS'], ['HEAD', 'HEAD'],
+];
+
+const canonicalMethod = (value: string): HttpMethod =>
+  relationOptionFold(
+    relationFirstOption(HTTP_METHODS, entry => relationEqual(entry[0], value.toUpperCase())),
+    () => 'GET',
+    entry => entry[1],
+  );
+
+const pathSegments = (path: string): readonly string[] =>
+  relationSelect(path.replace(/^\//, '').split('/'), segment => Boolean(segment));
+
+const staticSegments = (segments: readonly string[]): readonly string[] =>
+  relationSelect(segments, segment => relationAll([!segment.startsWith('{'), !segment.startsWith(':'), !relationEqual(segment, 'api'), !/^v\d+$/i.test(segment)]));
+
+const parameterSegments = (segments: readonly string[]): readonly string[] =>
+  relationSelect(segments, segment => relationAny([segment.startsWith('{'), segment.startsWith(':')]));
+
+const roleForMethod = (method: HttpMethod, hasTrailingParam: boolean, parameterCount: number): CrudRole =>
+  matchHttpMethod(method, {
+    GET: () => relationGate(relationAll([hasTrailingParam, relationEqual(parameterCount, 1)]), () => CrudRole.Show, () => relationGate(relationAll([!hasTrailingParam, relationEqual(parameterCount, 0)]), () => CrudRole.Index, () => CrudRole.Custom)),
+    POST: () => relationGate(relationAll([!hasTrailingParam, relationEqual(parameterCount, 0)]), () => CrudRole.Create, () => CrudRole.Custom),
+    PUT: () => relationGate(relationAll([hasTrailingParam, relationEqual(parameterCount, 1)]), () => CrudRole.Update, () => CrudRole.Custom),
+    PATCH: () => relationGate(relationAll([hasTrailingParam, relationEqual(parameterCount, 1)]), () => CrudRole.Update, () => CrudRole.Custom),
+    DELETE: () => relationGate(relationAll([hasTrailingParam, relationEqual(parameterCount, 1)]), () => CrudRole.Delete, () => CrudRole.Custom),
+    OPTIONS: () => CrudRole.Custom,
+    HEAD: () => CrudRole.Custom,
+  });
 
 export class RouteCrudClassifier {
-    /**
-     * Classifies a route into a canonical CrudRole based on method and path pattern.
-     */
-    public static classify(method: HttpMethod, path: string): CrudRole {
-        const upperMethod = method.toUpperCase() as HttpMethod;
-        const segments = path.replace(/^\//, "").split("/").filter(Boolean);
-        const staticSegments = segments.filter(s => !s.startsWith("{") && !s.startsWith(":") && s !== "api" && !/^v\d+$/i.test(s));
-        const hasTrailingParam = path.endsWith("}") || path.endsWith(":id") || /\{[^}]+\}$/.test(path);
-        const paramCount = segments.filter(s => s.startsWith("{") || s.startsWith(":")).length;
-        const isSimpleResourcePath = staticSegments.length <= 1;
-
-        if (!isSimpleResourcePath) {
-            return CrudRole.Custom;
-        }
-
-        return matchHttpMethod(upperMethod, {
-            GET: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Show : (!hasTrailingParam && paramCount === 0) ? CrudRole.Index : CrudRole.Custom,
-            POST: () => (!hasTrailingParam && paramCount === 0) ? CrudRole.Create : CrudRole.Custom,
-            PUT: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Update : CrudRole.Custom,
-            PATCH: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Update : CrudRole.Custom,
-            DELETE: () => (hasTrailingParam && paramCount === 1) ? CrudRole.Delete : CrudRole.Custom,
-            OPTIONS: () => CrudRole.Custom,
-            HEAD: () => CrudRole.Custom,
-        });
-    }
+  public static classify(method: HttpMethod, path: string): CrudRole {
+    const segments = pathSegments(path);
+    const statics = staticSegments(segments);
+    const parameters = parameterSegments(segments);
+    const hasTrailingParam = relationAny([path.endsWith('}'), path.endsWith(':id'), /\{[^}]+\}$/.test(path)]);
+    return relationGate(statics.length <= 1, () => roleForMethod(canonicalMethod(method), hasTrailingParam, parameters.length), () => CrudRole.Custom);
+  }
 }

@@ -1,11 +1,12 @@
 import type { Assignment } from './assignment';
+import type { ExpressionArguments } from './expression';
 import type { Expression } from './expression';
 import type { ActionName, ClassName, ControllerName, ExceptionName, MethodName, ModelName, RequestName, ResourceName, TableName, VariableName } from './names';
 import type { SourceSpan } from './provenance';
 import type { CatchHandlers, SourceStatements, Sequence } from './collections';
 import type { SourceConditionalBranches } from './sourceStatements';
 import type { ModelReference, ResourceReference, ResponseReference } from './semanticReferences';
-import type { ResponseResult } from './response';
+import type { ResponseCardinality, ResponseResult } from './response';
 import type { HttpStatusCode, StatementIndex, StatementPath } from './valueObjects';
 
 export type RequestBinding = { readonly kind: 'bound_request'; readonly name: RequestName } | { readonly kind: 'no_request' };
@@ -29,9 +30,56 @@ export interface ControllerParameter {
   readonly source: SourceSpan;
 }
 
-export type ControllerDependency =
-  | { readonly kind: 'constructor'; readonly type: ClassName }
-  | { readonly kind: 'method'; readonly type: ClassName };
+export type ControllerDependencyInjection =
+  | { readonly kind: 'constructor' }
+  | { readonly kind: 'method' };
+
+/** Semantic resolution mechanism; route/model binding is deliberately a separate route contract. */
+export type ControllerContextualAttributeName =
+  | 'auth'
+  | 'authenticated'
+  | 'cache'
+  | 'config'
+  | 'context'
+  | 'db'
+  | 'database'
+  | 'give'
+  | 'log'
+  | 'request_attribute'
+  | 'route_parameter'
+  | 'storage'
+  | 'tag'
+  | 'current_user';
+
+export interface ControllerContextualAttribute {
+  readonly kind: 'laravel_contextual_attribute';
+  readonly name: ControllerContextualAttributeName;
+  readonly arguments: ExpressionArguments;
+}
+
+export interface ControllerCustomContextualAttribute {
+  readonly kind: 'custom_contextual_attribute';
+  readonly name: ClassName;
+  readonly arguments: ExpressionArguments;
+}
+
+export type ControllerResolvedContextualAttribute =
+  | ControllerContextualAttribute
+  | ControllerCustomContextualAttribute;
+
+export type ControllerDependencyResolution =
+  | { readonly kind: 'container' }
+  | { readonly kind: 'contextual_attribute'; readonly attribute: ControllerResolvedContextualAttribute };
+
+/** Semantic dependency contract exposed upstream; injection mode and resolution remain ADTs. */
+export interface ControllerDependency {
+  readonly kind: 'controller_dependency';
+  readonly injection: ControllerDependencyInjection;
+  readonly resolution: ControllerDependencyResolution;
+  /** Semantic parameter identity; downstream never needs the PHP AST parameter. */
+  readonly parameter: VariableName;
+  readonly type: ClassName;
+}
 
 export type ControllerOperation =
   | { readonly kind: 'model_query'; readonly model: ModelName }
@@ -66,12 +114,6 @@ export type ControllerVariableOrigin =
   | { readonly kind: 'catch'; readonly statementIndex: StatementIndex }
   | { readonly kind: 'external' };
 
-export type ControllerDefinitionAvailability =
-  | { readonly kind: 'definite' }
-  | { readonly kind: 'branch_conditional'; readonly branchPath: StatementPath }
-  | { readonly kind: 'loop_conditional'; readonly branchPath: StatementPath }
-  | { readonly kind: 'catch_conditional'; readonly branchPath: StatementPath };
-
 export type ControllerVariableSemantic =
   | { readonly kind: 'model_origin'; readonly origin: ControllerModelOrigin }
   | { readonly kind: 'request_origin'; readonly name: RequestName }
@@ -96,7 +138,6 @@ export interface ControllerVariableDefinition {
   readonly origin: ControllerVariableOrigin;
   readonly expression: Expression;
   readonly semantic: ControllerVariableSemantic;
-  readonly availability: ControllerDefinitionAvailability;
   readonly source: SourceSpan;
 }
 
@@ -116,7 +157,7 @@ export type ControllerReturnSemantic =
   | { readonly kind: 'absent' }
   | { readonly kind: 'response'; readonly result: ResponseResult; readonly expression: Expression }
   | { readonly kind: 'branches'; readonly branches: Sequence<ControllerReturnSemantic>; readonly expression: Expression }
-  | { readonly kind: 'resource'; readonly resource: ResourceReference; readonly model: ControllerModelOrigin; readonly expression: Expression }
+  | { readonly kind: 'resource'; readonly resource: ResourceReference; readonly model: ControllerModelOrigin; readonly cardinality: ResponseCardinality; readonly expression: Expression }
   | { readonly kind: 'model'; readonly model: ControllerModelOrigin; readonly expression: Expression }
   | { readonly kind: 'expression'; readonly expression: Expression };
 
@@ -133,15 +174,17 @@ export type ControllerHelper = ControllerMethodContract & {
   readonly statements: SourceStatements;
 };
 
-export type ControllerAction = {
+export interface ControllerAction {
   readonly kind: 'controller_action';
   readonly controller: ControllerName;
   readonly action: ActionName;
   readonly request: RequestBinding;
   readonly response: ControllerResponse;
+  /** Resolved method-level container dependencies; route/model bindings are excluded. */
+  readonly dependencies: Sequence<ControllerDependency>;
   readonly statements: SourceStatements;
   readonly semantic: ControllerSemanticDataflow;
   readonly source: SourceSpan;
-};
+}
 
 export type ControllerMethod = ControllerAction | ControllerHelper;

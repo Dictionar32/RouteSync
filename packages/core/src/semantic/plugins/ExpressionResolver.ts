@@ -1,65 +1,53 @@
-/**
- * ExpressionResolver.ts
- *
- * Active Consumer Orchestrator for resolving PHP syntax expressions in SemanticResolutionKernel.
- * Coordinates resolution of literals, binary operations, ternaries, and property access chains.
- *
- * @module semantic/plugins
- */
-
+/** Declarative expression resolver projection. */
 import type { SemanticResolution } from '../../types/domain/semanticResolution';
-import { unknownResolution } from '../semanticResolutionSupport';
+import { indeterminateResolution } from '../semanticResolutionSupport';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
-import {
-    resolveLiteral,
-    resolveBinaryExpression,
-    resolveTernary,
-    resolvePropertyAccess
-} from './expression';
+import { resolveLiteral, resolveBinaryExpression, resolveTernary, resolvePropertyAccess } from './expression';
+import { relationEqual } from '../kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationOptionMap, relationRefine, type RelationOption } from '../kernel/relationalSequence';
 
-// Explicit named re-exports (Rule 14: 0 wildcard re-exports)
-export {
-    resolveLiteral,
-    resolveBinaryExpression,
-    resolveTernary,
-    resolvePropertyAccess
+export { resolveLiteral, resolveBinaryExpression, resolveTernary, resolvePropertyAccess };
+
+type ResolverRule = (meta: ResolverMeta, context: ResolutionContext) => RelationOption<SemanticResolution>;
+
+const literalRule: ResolverRule = (meta, _context) =>
+  relationOptionMap(relationRefine(meta, (value): value is Extract<ResolverMeta, { kind: 'literal' }> => relationEqual(value.kind, 'literal')), resolveLiteral);
+
+const binaryRule: ResolverRule = (meta, context) =>
+  relationOptionMap(relationRefine(meta, (value): value is Extract<ResolverMeta, { kind: 'binary_expression' }> => relationEqual(value.kind, 'binary_expression')), value => resolveBinaryExpression(value, context, context.scope));
+
+const ternaryRule: ResolverRule = (meta, context) =>
+  relationOptionMap(relationRefine(meta, (value): value is Extract<ResolverMeta, { kind: 'ternary' }> => relationEqual(value.kind, 'ternary')), value => resolveTernary(value, context, context.scope));
+
+const propertyRule: ResolverRule = (meta, context) =>
+  relationOptionMap(relationRefine(meta, (value): value is Extract<ResolverMeta, { kind: 'property_access' }> => relationEqual(value.kind, 'property_access')), value => resolvePropertyAccess(value, context));
+
+const nullsafePropertyRule: ResolverRule = (meta, context) =>
+  relationOptionMap(relationRefine(meta, (value): value is Extract<ResolverMeta, { kind: 'nullsafe_property_access' }> => relationEqual(value.kind, 'nullsafe_property_access')), value => resolvePropertyAccess(value, context));
+
+const RESOLVABLE_KINDS = Object.freeze(['literal', 'binary_expression', 'ternary', 'property_access', 'nullsafe_property_access']);
+
+const resolverCatalog: readonly ResolverRule[] = Object.freeze([
+  literalRule,
+  binaryRule,
+  ternaryRule,
+  propertyRule,
+  nullsafePropertyRule,
+]);
+
+const resolveByRelation = (meta: ResolverMeta, context: ResolutionContext): RelationOption<SemanticResolution> => {
+  const rule = relationFirstOption(resolverCatalog, candidate => relationEqual(candidate(meta, context).kind, 'some'));
+  return relationOptionFold(rule, () => ({ kind: 'none' }), candidate => candidate(meta, context));
 };
 
-export class ExpressionResolver implements ResolverPlugin {
-    canResolve(meta: ResolverMeta): boolean {
-        return !!(meta && (
-            meta.kind === 'literal' ||
-            meta.kind === 'binary_expression' ||
-            meta.kind === 'ternary' ||
-            meta.kind === 'property_access' ||
-            meta.kind === 'nullsafe_property_access'
-        ));
-    }
+const canResolve = (meta: ResolverMeta): boolean => relationEqual(relationFirstOption(RESOLVABLE_KINDS, kind => relationEqual(kind, meta.kind)).kind, 'some');
 
-    resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-        const scope = context.scope;
+const resolve = (meta: ResolverMeta, context: ResolutionContext): SemanticResolution => {
+    return relationOptionFold(
+      resolveByRelation(meta, context),
+      () => indeterminateResolution('ExpressionResolver', 'Unsupported expression kind', meta.kind, 'unsupported_syntax'),
+      value => value,
+    );
+};
 
-        switch (meta.kind) {
-            case 'literal':
-                return resolveLiteral(meta);
-
-            case 'binary_expression':
-                return resolveBinaryExpression(meta, context, scope);
-
-            case 'ternary':
-                return resolveTernary(meta, context, scope);
-
-            case 'property_access':
-            case 'nullsafe_property_access':
-                return resolvePropertyAccess(meta, context);
-
-            default:
-                return unknownResolution(
-                    'ExpressionResolver',
-                    'Unsupported expression kind',
-                    meta.kind,
-                    'unsupported_syntax',
-                );
-        }
-    }
-}
+export const ExpressionResolver: ResolverPlugin = Object.freeze({ canResolve, resolve });

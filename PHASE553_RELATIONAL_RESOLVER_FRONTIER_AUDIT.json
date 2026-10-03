@@ -1,0 +1,37 @@
+{
+  "phase": 553,
+  "frontier": "scanner-lexer-parser-adapter-syntax-error-ternary-generic-solver-resolver",
+  "scannedFiles": 404,
+  "hostLeakCount": 0,
+  "leakingFiles": [],
+  "modelNullEvidence": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+      "count": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "count": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "count": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "count": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "count": 2
+    }
+  ],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": true,
+  "basis": {
+    "scopeGraphs": "Statix-style declarative scopes/edges/declarations",
+    "rewrite": "MLIR PDL/PDLL-style declarative match/rewrite separation",
+    "fixedPoint": "relational/lattice closure as the semantic execution substrate"
+  }
+}

@@ -7,16 +7,16 @@
 
 import type {
   EndpointContract,
-  ParsedRoute,
+  RouteSemanticFlow,
   RouteManifest
 } from '@routesync/core'
 
-export interface SerializableManifestRoute extends Omit<ParsedRoute, 'contract'> {
+export interface SerializableManifestRoute extends Omit<RouteSemanticFlow, 'contract'> {
   readonly contract: SerializableManifestContract;
-  readonly identity: ParsedRoute['identity'];
-  readonly binding: ParsedRoute['binding'];
-  readonly capability: ParsedRoute['capability'];
-  readonly provenance: ParsedRoute['provenance'];
+  readonly identity: RouteSemanticFlow['identity'];
+  readonly binding: RouteSemanticFlow['binding'];
+  readonly capability: RouteSemanticFlow['capability'];
+  readonly provenance: RouteSemanticFlow['provenance'];
 }
 
 export type SerializableManifestContract = EndpointContract;
@@ -26,7 +26,7 @@ export interface SerializableManifest extends Omit<RouteManifest, 'routes' | 'co
   readonly contracts: readonly SerializableManifestContract[];
 }
 
-function serializeRoute(route: ParsedRoute): SerializableManifestRoute {
+function serializeRoute(route: RouteSemanticFlow): SerializableManifestRoute {
   const { contract: _contract, ...routeFields } = route;
 
   return Object.freeze({

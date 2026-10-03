@@ -4,7 +4,7 @@ import type {
   ControllerNode,
   ServiceModelNode,
   ExecutionLayer,
-  ServiceDependency
+  ServiceDependency,
 } from '../types/semantic';
 import type { RouteManifest } from '../types/route';
 import type { RouteSyncManifest } from '../types/upstream/manifest';
@@ -12,21 +12,36 @@ import type { ModelSemanticDefinition } from '../types/upstream/model';
 import type { ActionName } from '../types/upstream/names';
 import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies } from '../types/upstream/service';
 import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nominalVocabulary';
+import type { Lookup } from '../types/upstream/collections';
 import { GraphNodeIndex } from './service/graphNodeIndex';
+import type { GraphNodeReference } from './service/graphNodeIndex';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/kernel/relationMembership';
+import { relationNone, relationSome } from '../semantic/kernel/relationFoundation';
 import {
   detectExecutionLayer,
   buildServiceNode,
   buildControllerNode,
   buildModelNode,
   assembleServiceGraph,
-  compileGraphFromManifest
+  compileGraphFromManifest,
 } from './service';
+import type { ResourceReference } from '../types/upstream/semanticReferences';
+
+const modelReference = (name: string): GraphNodeReference => ({
+  kind: 'model_reference',
+  name: { kind: 'model_name', value: { kind: 'string_value', value: name } },
+});
+
+const serviceReference = (name: string): GraphNodeReference => ({
+  kind: 'service_reference',
+  name: { kind: 'class_name', value: { kind: 'string_value', value: name } },
+});
 
 export class ServiceGraphBuilder {
   private readonly modelsMap = GraphNodeIndex.empty<ServiceModelNode>();
   private readonly servicesMap = GraphNodeIndex.empty<ServiceNode>();
-  private readonly controllersMap = new Map<string, ControllerNode>();
-  private readonly edges: ServiceDependency[] = [];
+  private controllersIndex: RelationIndex<string, ControllerNode> = Object.freeze([]);
+  private edges: readonly ServiceDependency[] = Object.freeze([]);
 
   public detectLayer(filePath: string, code: string): ExecutionLayer {
     return detectExecutionLayer(filePath, code);
@@ -36,7 +51,12 @@ export class ServiceGraphBuilder {
     return [];
   }
 
-  public buildServiceNode(name: ServiceNodeName, methods: ServiceMethod[], dependencyFacts: ServiceDependencyFacts, resolvedDependencies: ResolvedServiceDependencies): ServiceNode {
+  public buildServiceNode(
+    name: ServiceNodeName,
+    methods: ServiceMethod[],
+    dependencyFacts: ServiceDependencyFacts,
+    resolvedDependencies: ResolvedServiceDependencies,
+  ): ServiceNode {
     return buildServiceNode(name, methods, [], dependencyFacts, resolvedDependencies);
   }
 
@@ -49,71 +69,67 @@ export class ServiceGraphBuilder {
   }
 
   public registerModel(name: string, model: ServiceModelNode): void {
-    this.modelsMap.set({ kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: name } } }, model);
+    this.modelsMap.set(modelReference(name), model);
   }
 
   public registerService(name: string, service: ServiceNode): void {
-    this.servicesMap.set({ kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: name } } }, service);
+    this.servicesMap.set(serviceReference(name), service);
   }
 
   public registerController(name: string, controller: ControllerNode): void {
-    this.controllersMap.set(name, controller);
+    this.controllersIndex = relationIndexAdd(this.controllersIndex, name, controller);
   }
 
-  public getModel(name: string): ServiceModelNode | undefined {
-    const result = this.modelsMap.lookup({ kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: name } } });
-    return result.kind === 'found' ? result.value : undefined;
+  public getModel(name: string): Lookup<ServiceModelNode> {
+    return this.modelsMap.lookup(modelReference(name));
   }
 
-  public getService(name: string): ServiceNode | undefined {
-    const result = this.servicesMap.lookup({ kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: name } } });
-    return result.kind === 'found' ? result.value : undefined;
+  public getService(name: string): Lookup<ServiceNode> {
+    return this.servicesMap.lookup(serviceReference(name));
   }
 
-  public getController(name: string): ControllerNode | undefined {
-    return this.controllersMap.get(name);
+  public getController(name: string): Lookup<ControllerNode> {
+    return relationOptionFold(
+      relationIndexLookup(this.controllersIndex, name),
+      () => ({ kind: 'missing' } as const),
+      value => ({ kind: 'found', value } as const),
+    );
   }
 
   public linkGraph(
-    fromNode: import('../types/upstream/semanticReferences').ModelReference | import('../types/upstream/semanticReferences').ResourceReference | import('../types/upstream/semanticReferences').ServiceReference,
-    toNode: import('../types/upstream/semanticReferences').ModelReference | import('../types/upstream/semanticReferences').ResourceReference | import('../types/upstream/semanticReferences').ServiceReference,
+    fromNode: GraphNodeReference | ResourceReference,
+    toNode: GraphNodeReference | ResourceReference,
     type: ServiceDependency['type'],
     weight = 1.0,
-    relationKind?: string
   ): void {
-    this.edges.push({
-      from: fromNode,
-      to: toNode,
-      type,
-      relationKind,
-      weight
-    });
+    this.edges = Object.freeze([
+      ...this.edges,
+      { from: fromNode, to: toNode, type, weight },
+    ]);
   }
 
   public getGraph(): ServiceGraph {
-    return assembleServiceGraph(this.modelsMap, this.servicesMap, this.controllersMap, this.edges);
+    return assembleServiceGraph(this.modelsMap, this.servicesMap, this.controllersIndex, this.edges);
+  }
+
+  private graphContext() {
+    const owner = this;
+    return {
+      modelsMap: owner.modelsMap,
+      servicesMap: owner.servicesMap,
+      controllersIndex: owner.controllersIndex,
+      setController: (name: string, controller: ControllerNode): void => owner.registerController(name, controller),
+      edges: owner.edges,
+      linkGraph: (fromNode: GraphNodeReference | ResourceReference, toNode: GraphNodeReference | ResourceReference, type: ServiceDependency['type'], weight: number = 1.0): void =>
+        owner.linkGraph(fromNode, toNode, type, weight),
+    };
   }
 
   public buildFromManifest(manifest: RouteManifest): ServiceGraph {
-    return compileGraphFromManifest(manifest, {
-      modelsMap: this.modelsMap,
-      servicesMap: this.servicesMap,
-      controllersMap: this.controllersMap,
-      edges: this.edges,
-      linkGraph: (fromNode, toNode, type, weight, relationKind) =>
-        this.linkGraph(fromNode, toNode, type, weight, relationKind)
-    });
+    return compileGraphFromManifest(manifest, this.graphContext(), relationNone());
   }
 
   public buildFromRouteSyncManifest(manifest: RouteSyncManifest, routeManifest: RouteManifest): ServiceGraph {
-    return compileGraphFromManifest(routeManifest, {
-      modelsMap: this.modelsMap,
-      servicesMap: this.servicesMap,
-      controllersMap: this.controllersMap,
-      edges: this.edges,
-      linkGraph: (fromNode, toNode, type, weight, relationKind) =>
-        this.linkGraph(fromNode, toNode, type, weight, relationKind)
-    }, manifest.sourceModel.value);
+    return compileGraphFromManifest(routeManifest, this.graphContext(), relationSome(manifest.sourceModel));
   }
-
 }

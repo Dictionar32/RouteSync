@@ -6,7 +6,7 @@ export type {
   ResourceSemanticResolution,
   ObjectSemanticResolution,
   QueryProjectionSemanticResolution,
-  UnknownSemanticResolution,
+  IndeterminateSemanticResolution,
   SemanticTraceNode,
   ResolutionCardinality,
   ResolutionStatus,

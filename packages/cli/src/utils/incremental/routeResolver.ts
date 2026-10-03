@@ -8,7 +8,7 @@
 
 import { SemanticIRNode, IRNodeRegistry } from '@routesync/core';
 import { PhpCodeParser } from '../../parsers/PhpCodeParser';
-import { ScannedManifest, ScannedRoute, ScannedModel, KernelResolver } from './incrementalTypes';
+import { ScannedManifest, RouteSemanticFlow, ScannedModel, KernelResolver } from './incrementalTypes';
 import { calculateRouteHash } from './routeHasher';
 import { canonicalizeCollectionDescriptor } from './collectionCanonicalizer';
 import { FieldResolverFn } from './fieldResolver';
@@ -16,7 +16,7 @@ import { resolveRouteResponse } from './routeResponseResolver';
 
 export interface ResolveRoutesParams {
   manifest: ScannedManifest;
-  prevRouteMap: Map<string, ScannedRoute>;
+  prevRouteMap: Map<string, RouteSemanticFlow>;
   prevIRNodes: Record<string, SemanticIRNode>;
   models: ScannedModel[] | undefined;
   kernel: KernelResolver;
@@ -36,7 +36,7 @@ export function resolveRoutes({
   const availableModelNames = (models || []).map((m) => m.name);
   if (!manifest.routes) return;
 
-  manifest.routes.forEach((route: ScannedRoute) => {
+  manifest.routes.forEach((route: RouteSemanticFlow) => {
     const hash = calculateRouteHash(route, availableModelNames);
     route.stableHash = hash;
 

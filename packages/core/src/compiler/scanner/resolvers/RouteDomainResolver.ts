@@ -1,66 +1,121 @@
 /**
- * RouteDomainResolver.ts
+ * Declarative route-domain resolution.
  *
- * First-Class Domain Model: Canonical Domain Resolution at Origin Boundary.
- * Replaces heuristic procedural branching with structured domain resolution stages.
- *
- * @module core/compiler/scanner/resolvers/RouteDomainResolver
+ * Domain candidates are facts ordered by rank. Resolution is a relation fold;
+ * there is no resolver class, mutable registry, or host branching authority.
  */
-
-import { toCamelCase, toPascalCase, ResourceNamingConvention } from "../../../utils/resource-naming";
-import { SemanticValueFactory } from "../../../types/domain/semanticValues";
-import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath } from "../../../types/upstream/names";
+import { toCamelCase, toPascalCase, ResourceNamingConvention } from '../../../utils/resource-naming';
+import { SemanticValueFactory } from '../../../types/domain/semanticValues';
+import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath } from '../../../types/upstream/names';
+import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationProject, relationSelect } from '../../../semantic/kernel/relationalSequence';
 
 export interface RouteDomainResolutionContext {
-    readonly domain?: DomainTypeName;
-    readonly resourceName?: ResourceName;
-    readonly controllerName?: ControllerName;
-    readonly path?: RoutePath;
-    readonly actionName?: ActionName;
+  readonly domain?: DomainTypeName;
+  readonly resourceName?: ResourceName;
+  readonly controllerName?: ControllerName;
+  readonly path?: RoutePath;
+  readonly actionName?: ActionName;
 }
 
-export class RouteDomainResolver {
-    /**
-     * Resolves the canonical domain name deterministically from context.
-     * Evaluated once at Origin Boundary; downstream components consume guaranteed non-nullable domain.
-     */
-    public static resolve(context: RouteDomainResolutionContext): DomainTypeName {
-        if (context.domain) {
-            const explicitDomain = context.domain.value.value;
-            if (explicitDomain.length > 0) {
-                return context.domain;
-            }
-        }
+type Candidate = readonly [number, DomainTypeName];
 
-        const controllerName = context.controllerName?.value.value ?? "";
-        if (controllerName.length > 0) {
-            return SemanticValueFactory.domainName(controllerName.replace(/Controller$/, ""));
-        }
+const candidateFrom = <T>(
+  rank: number,
+  source: readonly T[],
+  present: (value: T) => boolean,
+  project: (value: T) => DomainTypeName,
+): readonly Candidate[] =>
+  relationOptionFold(
+    relationFirstOption(source, present),
+    () => Object.freeze([] as Candidate[]),
+    value => Object.freeze([[rank, project(value)] as const]),
+  );
 
-        const resourceName = context.resourceName?.value.value ?? "";
-        if (resourceName.length > 0) {
-            return SemanticValueFactory.domainName(ResourceNamingConvention.stripSuffix(resourceName));
-        }
+const segmentEvidence = (path: string): readonly string[] =>
+  relationSelect(
+    path.replace(/^\/+/, '').split('/'),
+    segment => relationAll([
+      segment.length > 0,
+      !relationEqual(segment, 'api'),
+      !/^v\d+$/i.test(segment),
+      !segment.startsWith('{'),
+      !segment.startsWith(':'),
+    ]),
+  );
 
-        const path = context.path?.value.value ?? "";
-        const actionName = context.actionName?.value.value ?? "";
-        if (path === "/register" || actionName.endsWith("register")) {
-            return SemanticValueFactory.domainName("Register");
-        }
+const domainFromSegments = (segments: readonly string[]): DomainTypeName =>
+  relationOptionFold(
+    relationFirstOption([segments], value => value.length > 0),
+    () => SemanticValueFactory.domainName('App'),
+    () => SemanticValueFactory.domainName(
+      relationProject(
+        segments,
+        (segment, index) => relationGate(
+          relationEqual(index, 0),
+          () => toCamelCase(segment),
+          () => toPascalCase(toCamelCase(segment)),
+        ),
+      ).join(''),
+    ),
+  );
 
-        const rawSegments = path.replace(/^\/+/, "").split("/")
-            .filter(s => s.length > 0 && s !== "api" && !/^v\d+$/i.test(s) && !s.startsWith("{") && !s.startsWith(":"));
-        if (rawSegments.length > 0) {
-            return SemanticValueFactory.domainName(rawSegments.map((seg, idx) => idx === 0 ? toCamelCase(seg) : toPascalCase(toCamelCase(seg))).join(""));
-        }
+const actionDomain = (action: ActionName): DomainTypeName => {
+  const match = action.value.value.match(/([A-Z][a-zA-Z0-9_]*?)Controller/);
+  return relationGate(
+    relationAll([Boolean(match), Boolean(match?.[1])]),
+    () => SemanticValueFactory.domainName(String(match?.[1])),
+    () => SemanticValueFactory.domainName('App'),
+  );
+};
 
-        if (actionName.length > 0) {
-            const ctrlMatch = actionName.match(/([A-Z][a-zA-Z0-9_]*?)Controller/);
-            if (ctrlMatch && ctrlMatch[1]) {
-                return SemanticValueFactory.domainName(ctrlMatch[1]);
-            }
-        }
+export const resolveRouteDomain = (context: RouteDomainResolutionContext): DomainTypeName => {
+  const explicit = candidateFrom(0, relationGate(Boolean(context.domain), () => [context.domain!], () => []), () => true, value => value);
+  const controller = candidateFrom(
+    1,
+    relationGate(Boolean(context.controllerName), () => [context.controllerName!], () => []),
+    () => true,
+    value => SemanticValueFactory.domainName(value.value.value.replace(/Controller$/, '')),
+  );
+  const resource = candidateFrom(
+    2,
+    relationGate(Boolean(context.resourceName), () => [context.resourceName!], () => []),
+    () => true,
+    value => SemanticValueFactory.domainName(ResourceNamingConvention.stripSuffix(value.value.value)),
+  );
+  const register = candidateFrom(
+    3,
+    relationGate(relationAll([Boolean(context.path), Boolean(context.actionName)]), () => [context.path!], () => []),
+    value => relationAny([
+      relationEqual(value.value.value, '/register'),
+      relationEqual(context.actionName?.value.value, 'register'),
+      relationGate(
+        Boolean(context.actionName),
+        () => Boolean(context.actionName?.value.value.endsWith('register')),
+        () => false,
+      ),
+    ]),
+    () => SemanticValueFactory.domainName('Register'),
+  );
+  const path = candidateFrom(
+    4,
+    relationGate(Boolean(context.path), () => [context.path!], () => []),
+    () => true,
+    value => domainFromSegments(segmentEvidence(value.value.value)),
+  );
+  const action = candidateFrom(
+    5,
+    relationGate(Boolean(context.actionName), () => [context.actionName!], () => []),
+    () => true,
+    value => actionDomain(value),
+  );
+  const candidates = Object.freeze([...explicit, ...controller, ...resource, ...register, ...path, ...action]);
+  return relationOptionFold(
+    relationFirstOption(candidates, entry => entry[1].value.value.length > 0),
+    () => SemanticValueFactory.domainName('App'),
+    entry => entry[1],
+  );
+};
 
-        return SemanticValueFactory.domainName("App");
-    }
-}
+/** Compatibility projection; semantic authority remains resolveRouteDomain. */
+export const RouteDomainResolver = Object.freeze({ resolve: resolveRouteDomain });

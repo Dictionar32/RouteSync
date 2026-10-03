@@ -8,7 +8,6 @@ const internalTypes = {
   '@routesync/core': './core',
   '@routesync/sdk': './sdk',
   '@routesync/react': './react',
-  '@routesync/vue': './vue'
 }
 
 async function rewriteDeclarationImports() {
@@ -76,13 +75,6 @@ export default defineConfig([
     ...shared,
     entry: {
       react: 'packages/react/src/index.ts'
-    },
-    format: ['esm', 'cjs']
-  },
-  {
-    ...shared,
-    entry: {
-      vue: 'packages/vue/src/index.ts'
     },
     format: ['esm', 'cjs']
   },

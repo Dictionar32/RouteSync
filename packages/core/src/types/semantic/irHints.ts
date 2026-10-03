@@ -7,6 +7,7 @@
  */
 
 import type { FieldNode } from '../field';
+import { relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
 
 export type IRKind =
   | "raw_code"
@@ -90,10 +91,10 @@ export class IRRawNodeDescriptor implements IRRawNode {
   }
 
   public static fromRawCode(code: string, hints?: IRHints): IRRawNodeDescriptor {
-    return new IRRawNodeDescriptor(code, hints ?? IRHintsFactory.default());
+    return relationOptionFold(relationFirstOption([hints], candidate => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default()), value => new IRRawNodeDescriptor(code, value));
   }
 
   public static withAst(code: string, ast: FieldNode, hints?: IRHints): IRRawNodeDescriptor {
-    return new IRRawNodeDescriptor(code, hints ?? IRHintsFactory.default(), ast);
+    return relationOptionFold(relationFirstOption([hints], candidate => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default(), ast), value => new IRRawNodeDescriptor(code, value, ast));
   }
 }

@@ -14,6 +14,8 @@ import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { ResolvedObjectType } from '../../domain/common/ResolvedSemanticType';
 import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
 import { toPascalCase } from '../../../utils/resource-naming';
+import { createPropertyName } from '../../../types/upstream/names';
+import { relationResolve } from '../../../semantic/kernel/relationalSequence';
 
 export interface ActionField {
     readonly name: string;
@@ -48,9 +50,13 @@ export class ContractActionGenerator {
     ): GeneratedContractAction {
         const resolvedFields = fields.map(f => {
             return {
-                name: f.name,
+                name: createPropertyName(f.name),
                 type: this.resolver.resolve(f.type),
-                presence: f.required
+                presence: relationResolve(
+                    f.required,
+                    () => ({ kind: 'required' as const }),
+                    () => ({ kind: 'optional' as const }),
+                )
             };
         });
         const resolvedObject = ResolvedObjectType.plain(resolvedFields);

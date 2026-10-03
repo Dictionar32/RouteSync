@@ -1,6 +1,8 @@
+import { relationResolve, relationEqual } from '../../semantic/kernel/semanticRelations';
 import type { ClassName, ColumnName, ModelName, PropertyName, RelationName } from './names';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';
+import type { Cardinality } from './primitiveVocabulary';
 
 
 export interface PhpFunctionName {
@@ -73,15 +75,20 @@ export const EloquentRelationType = Object.freeze({
   MorphedByMany: { kind: 'morphed_by_many' },
 } as const);
 
-export type EloquentRelationCardinality =
-  | { readonly kind: 'one' }
-  | { readonly kind: 'many' };
+export type EloquentRelationCardinality = Cardinality;
+
+
+export type EloquentRelationMultiplicity =
+  | { readonly kind: 'single' }
+  | { readonly kind: 'collection' };
+
+export const eloquentRelationMultiplicity = (cardinality: EloquentRelationCardinality): EloquentRelationMultiplicity =>
+  relationResolve(relationEqual(cardinality.kind, 'many'), () => ({ kind: 'collection' }), () => ({ kind: 'single' }));
 
 export type EloquentRelationDescriptor = {
   readonly type: EloquentRelationType;
   readonly relation: import('./model').RelationKind;
   readonly cardinality: EloquentRelationCardinality;
-  readonly multiplicity: { readonly kind: 'single' } | { readonly kind: 'collection' };
   readonly polymorphism: { readonly kind: 'non_polymorphic' } | { readonly kind: 'polymorphic' };
 };
 

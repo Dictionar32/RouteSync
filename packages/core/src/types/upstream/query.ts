@@ -39,7 +39,7 @@ export type QuerySubqueryAst = {
   readonly alias: Option<Expression>;
   readonly correlation: QuerySubqueryCorrelation;
   readonly expression: Expression;
-  readonly model: { readonly kind: 'known'; readonly name: ModelName } | { readonly kind: 'unknown' };
+  readonly model: { readonly kind: 'known'; readonly name: ModelName } | { readonly kind: 'indeterminate' };
   readonly source: SourceSpan;
   readonly nestedQueries: readonly QuerySubqueryAst[];
 };
@@ -48,7 +48,7 @@ export type QueryAst = {
   readonly kind: 'query_ast';
   readonly operations: Sequence<QueryOperationAst>;
   readonly expression: ExpressionAst;
-  readonly model: { readonly kind: 'known'; readonly name: ModelName } | { readonly kind: 'unknown' };
+  readonly model: { readonly kind: 'known'; readonly name: ModelName } | { readonly kind: 'indeterminate' };
   readonly source: SourceSpan;
   readonly nestedQueries: readonly QuerySubqueryAst[];
 };

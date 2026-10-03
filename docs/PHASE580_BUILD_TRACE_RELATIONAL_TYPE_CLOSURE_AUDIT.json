@@ -1,0 +1,19 @@
+{
+  "phase": 580,
+  "frontier": "build-trace-relational-type-closure",
+  "changedFiles": [
+    "packages/core/src/compiler/domain/common/semantic-resolver/compoundHandlers.ts",
+    "packages/core/src/compiler/domain/common/ResponseFieldFlattener.ts",
+    "packages/core/src/compiler/domain/common/SemanticTypeResolver.ts",
+    "packages/core/src/compiler/domain/common/resolved-types/compounds.ts",
+    "packages/core/src/compiler/constraints/ConstraintSolver.ts",
+    "packages/core/src/compiler/constraints/UnionFind.ts",
+    "packages/core/src/compiler/constraints/solver/constraintStep.ts",
+    "packages/core/src/compiler/constraints/solver/variableResolver.ts"
+  ],
+  "syntacticDiagnostics": 0,
+  "fullBuildVerified": false,
+  "fullBuildBlockedBy": "checkpoint node_modules lacks executable tsup and dependency restoration timed out",
+  "compatibilityWidening": false,
+  "globalProcessDeclarationAdded": false
+}

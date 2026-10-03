@@ -1,23 +1,19 @@
 /**
  * routeDeclarations.ts
  *
- * Complete field storage for ScannedRouteDescriptor.
- * The constructor is the scanner origin boundary: a route can only become
- * a descriptor after all semantic sub-contracts have been resolved.
+ * Structural route semantic projection. The route descriptor is an immutable
+ * semantic witness assembled from the four closed sub-contracts; construction
+ * is a relation projection, not a class/constructor boundary.
  */
 
 import type {
-    ParsedRoute,
+    RouteSemanticFlow,
     HttpMethod,
     RouteActionKind,
     CrudRole,
     RouteHookKind,
     RequestContentType,
-    RouteParameter,
-    RouteQueryParameter,
     ResponseDescriptor,
-    HttpErrorResponseDescriptor,
-    RouteCacheInvalidationDescriptor,
     RouteExecutionSignature,
     ResourceAssignment,
     EndpointContract,
@@ -28,99 +24,114 @@ import type {
     RouteCapabilityContract,
     RouteProvenanceContract
 } from "../../../../types/route";
-import type { RouteRateLimit, RouteSecurityDescriptor } from "../../../../types/upstream/route";
+import type { RouteSecurityDescriptor } from "../../../../types/upstream/route";
 import type { RouteMiddlewares } from "../../../../types/upstream/collections";
 import type { ControllerName } from "../../../../types/upstream/names";
-import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
-import type { ScannedRouteConstructorInput } from "./routeContracts";
+import type { RouteSemanticFlowConstructorInput } from "./routeContracts";
+import { relationGate } from "../../../../semantic/kernel/relationalSequence";
+import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
+import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 
-export abstract class ScannedRouteFields implements ParsedRoute {
-    public readonly identity: RouteIdentityContract;
-    public readonly binding: RouteBindingContract;
-    public readonly capability: RouteCapabilityContract;
-    public readonly provenance: RouteProvenanceContract;
-    public readonly contract: EndpointContract;
-    public readonly name: RouteIdentityContract["coordinates"]["name"];
-    public readonly method: HttpMethod;
-    public readonly path: RouteIdentityContract["coordinates"]["path"];
-    public readonly resourceName: RouteIdentityContract["domain"]["resource"];
-    public readonly domain: RouteIdentityContract["domain"];
-    public readonly action: RouteBindingContract["operation"]["name"];
-    public readonly handler: RouteHandlerDescriptor;
-    public readonly actionName: RouteBindingContract["operation"]["name"];
-    public readonly groupName: RouteIdentityContract["domain"]["group"];
-    public readonly crudRole: CrudRole;
-    public readonly runtimePath: RouteIdentityContract["coordinates"]["runtimePath"];
-    public readonly responseTypeName: ReturnType<RouteBindingContract["response"]["responseTypeName"]>;
-    public readonly actionKind: RouteActionKind;
-    public get isMutating(): boolean {
-        return ROUTE_ACTION_KIND_REGISTRY[this.actionKind].isMutating;
-    }
-    public readonly hookKind: RouteHookKind;
-    public readonly invalidation: RouteCapabilityContract["invalidation"];
-    public readonly executionSignature: RouteExecutionSignature;
-    public readonly requestContentType: RequestContentType;
-    public readonly auth: RouteCapabilityContract["auth"];
-    public readonly security: RouteSecurityDescriptor;
-    public readonly middleware: RouteMiddlewares;
-    public readonly policies: RouteCapabilityContract["policies"];
-    public readonly rateLimit: RouteRateLimit;
-    public readonly parameters: RouteIdentityContract["parameters"]["all"];
-    public readonly pathParameters: RouteIdentityContract["parameters"]["path"];
-    public readonly queryParameters: RouteIdentityContract["parameters"]["query"];
-    public readonly response: ResponseDescriptor;
-    public readonly errorResponses: RouteCapabilityContract["errorResponses"];
-    public readonly sourceFile: RouteProvenanceContract["sourceFile"];
-    public readonly sourceLine: RouteProvenanceContract["sourceLine"];
-    public readonly schema: RouteSchemaPayload;
-    public readonly runtimeReturn: RouteBindingContract["runtimeReturn"];
-    public readonly semanticReturn: RouteBindingContract["semanticReturn"];
-    public readonly assignments: readonly ResourceAssignment[];
-    public readonly uri: RouteProvenanceContract["uri"];
-    public readonly controllerName: ControllerName;
+export type RouteSemanticFlowFields = RouteSemanticFlow & {
+    readonly name: RouteIdentityContract["coordinates"]["name"];
+    readonly method: HttpMethod;
+    readonly path: RouteIdentityContract["coordinates"]["path"];
+    readonly resourceName: RouteIdentityContract["domain"]["resource"];
+    readonly domain: RouteIdentityContract["domain"];
+    readonly action: RouteBindingContract["operation"]["name"];
+    readonly handler: RouteHandlerDescriptor;
+    readonly actionName: RouteBindingContract["operation"]["name"];
+    readonly groupName: RouteIdentityContract["domain"]["group"];
+    readonly crudRole: CrudRole;
+    readonly runtimePath: RouteIdentityContract["coordinates"]["runtimePath"];
+    readonly responseTypeName: ReturnType<RouteBindingContract["response"]["responseTypeName"]>;
+    readonly actionKind: RouteActionKind;
+    readonly isMutating: boolean;
+    readonly hookKind: RouteHookKind;
+    readonly invalidation: RouteCapabilityContract["invalidation"];
+    readonly executionSignature: RouteExecutionSignature;
+    readonly requestContentType: RequestContentType;
+    readonly auth: RouteCapabilityContract["auth"];
+    readonly security: RouteSecurityDescriptor;
+    readonly middleware: RouteMiddlewares;
+    readonly policies: RouteCapabilityContract["policies"];
+    readonly rateLimit: RouteCapabilityContract["rateLimit"];
+    readonly parameters: RouteIdentityContract["parameters"]["all"];
+    readonly pathParameters: RouteIdentityContract["parameters"]["path"];
+    readonly queryParameters: RouteIdentityContract["parameters"]["query"];
+    readonly response: ResponseDescriptor;
+    readonly errorResponses: RouteCapabilityContract["errorResponses"];
+    readonly sourceFile: RouteProvenanceContract["sourceFile"];
+    readonly sourceLine: RouteProvenanceContract["sourceLine"];
+    readonly schema: RouteSchemaPayload;
+    readonly runtimeReturn: RouteBindingContract["runtimeReturn"];
+    readonly semanticReturn: RouteBindingContract["semanticReturn"];
+    readonly assignments: readonly ResourceAssignment[];
+    readonly uri: RouteProvenanceContract["uri"];
+    readonly controllerName: ControllerName;
+};
 
-    protected constructor(params: ScannedRouteConstructorInput) {
-        const { identity, binding, capability, provenance, contract } = params;
-        this.identity = identity;
-        this.binding = binding;
-        this.capability = capability;
-        this.provenance = provenance;
-        this.contract = contract;
-        this.name = identity.coordinates.name;
-        this.method = identity.coordinates.method;
-        this.path = identity.coordinates.path;
-        this.runtimePath = identity.coordinates.runtimePath;
-        this.resourceName = identity.domain.resource;
-        this.domain = identity.domain;
-        this.groupName = identity.domain.group;
-        this.parameters = identity.parameters.all;
-        this.pathParameters = identity.parameters.path;
-        this.queryParameters = identity.parameters.query;
-        this.handler = binding.operation.handler;
-        this.action = binding.operation.name;
-        this.actionName = binding.operation.name;
-        this.controllerName = binding.operation.handler.kind === "controller_action" || binding.operation.handler.kind === "invokable_controller" ? SemanticValueFactory.controllerName(binding.operation.handler.controllerName.value.value) : SemanticValueFactory.controllerName("");
-        this.schema = binding.schema;
-        this.runtimeReturn = binding.runtimeReturn;
-        this.semanticReturn = binding.semanticReturn;
-        this.response = binding.response;
-        this.responseTypeName = binding.response.responseTypeName();
-        this.assignments = binding.assignments;
-        this.auth = capability.auth;
-        this.security = capability.security;
-        this.middleware = capability.middleware;
-        this.policies = capability.policies;
-        this.rateLimit = capability.rateLimit;
-        this.invalidation = capability.invalidation;
-        this.crudRole = capability.crudRole;
-        this.hookKind = capability.hookKind;
-        this.actionKind = capability.actionKind;
-        this.requestContentType = capability.requestContentType;
-        this.executionSignature = capability.executionSignature;
-        this.errorResponses = capability.errorResponses;
-        this.sourceFile = provenance.sourceFile;
-        this.sourceLine = provenance.sourceLine;
-        this.uri = provenance.uri;
-    }
-}
+export const createRouteSemanticFlowFields = (
+    params: RouteSemanticFlowConstructorInput
+): RouteSemanticFlowFields => {
+    const identity = params.identity;
+    const binding = params.binding;
+    const capability = params.capability;
+    const provenance = params.provenance;
+    const contract = params.contract;
+    const handler = binding.operation.handler;
+    const controllerName = relationGate(
+        relationEqual(handler.kind, "controller_action"),
+        () => SemanticValueFactory.controllerName(handler.controllerName.value.value),
+        () => relationGate(
+            relationEqual(handler.kind, "invokable_controller"),
+            () => SemanticValueFactory.controllerName(handler.controllerName.value.value),
+            () => SemanticValueFactory.controllerName("")
+        )
+    );
+
+    return Object.freeze({
+        identity,
+        binding,
+        capability,
+        provenance,
+        contract,
+        name: identity.coordinates.name,
+        method: identity.coordinates.method,
+        path: identity.coordinates.path,
+        runtimePath: identity.coordinates.runtimePath,
+        resourceName: identity.domain.resource,
+        domain: identity.domain,
+        groupName: identity.domain.group,
+        parameters: identity.parameters.all,
+        pathParameters: identity.parameters.path,
+        queryParameters: identity.parameters.query,
+        handler,
+        action: binding.operation.name,
+        actionName: binding.operation.name,
+        controllerName,
+        schema: binding.schema,
+        runtimeReturn: binding.runtimeReturn,
+        semanticReturn: binding.semanticReturn,
+        response: binding.response,
+        responseTypeName: binding.response.responseTypeName(),
+        assignments: binding.assignments,
+        auth: capability.auth,
+        security: capability.security,
+        middleware: capability.middleware,
+        policies: capability.policies,
+        rateLimit: capability.rateLimit,
+        invalidation: capability.invalidation,
+        crudRole: capability.crudRole,
+        hookKind: capability.hookKind,
+        actionKind: capability.actionKind,
+        isMutating: ROUTE_ACTION_KIND_REGISTRY[capability.actionKind].isMutating,
+        requestContentType: capability.requestContentType,
+        executionSignature: capability.executionSignature,
+        errorResponses: capability.errorResponses,
+        sourceFile: provenance.sourceFile,
+        sourceLine: provenance.sourceLine,
+        uri: provenance.uri
+    });
+};

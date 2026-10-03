@@ -1,13 +1,24 @@
 import type { MigrationAst } from '../../../types/upstream/ast';
 import type { ColumnDefinition, DatabaseType, ForeignKeyAction, ForeignKey, IndexDefinition } from '../../../types/upstream/databaseVocabulary';
 import type { MigrationOperation } from '../../../types/upstream/migration';
-import type { Sequence, Columns, Indexes, ForeignKeys } from '../../../types/upstream/collections';
+import type { Sequence } from '../../../types/upstream/collections';
 import type { PrimitiveVocabulary, Presence, Nullability } from '../../../types/upstream/primitiveVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { SourceFile, TableName, DomainTypeName } from '../../../types/upstream/names';
 import { createColumnName, createIndexName, createTableName } from '../../../types/domain/modelValueFactories';
 import type { TokenDescriptor } from '../LaravelSourceLexer';
 import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
+import { relationAny, relationAll, relationEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
+import {
+    RELATION_NONE,
+    relationAdvanceIndex,
+    relationFirstOption,
+    relationOptionFold,
+    relationProject,
+    relationSome,
+    relationTextSlice,
+    type RelationOption,
+} from '../../../semantic/kernel/relationalSequence';
 
 export type MigrationSourceAst = {
     readonly kind: 'migration_source_ast';
@@ -26,9 +37,15 @@ export interface MigrationProducer {
     readonly produce: (input: MigrationProducerInput) => MigrationAst;
 }
 
-const seq = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
+const seq = <T>(items: readonly T[], index = 0): Sequence<T> =>
+    relationGate(
+        relationEqual(index, items.length),
+        () => ({ kind: 'empty' }),
+        () => ({ kind: 'cons', head: items[index], tail: seq(items, relationAdvanceIndex(index, 1)) }),
+    );
+
 const primitive = (kind: PrimitiveVocabulary['kind']): PrimitiveVocabulary => ({ kind });
-const nullability = (nullable: boolean): Nullability => nullable ? { kind: 'nullable' } : { kind: 'non_nullable' };
+const nullability = (nullable: boolean): Nullability => relationGate(nullable, () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' }));
 const presence: Presence = { kind: 'required' };
 const truth = (value: boolean) => ({ kind: 'truth_value' as const, value });
 
@@ -36,137 +53,217 @@ function source(file: string, line = 0): SourceSpan {
     return { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: file } }, start: { kind: 'number_value', value: line }, end: { kind: 'number_value', value: line } };
 }
 
+const tokenOption = (tokens: readonly TokenDescriptor[], index: number): RelationOption<TokenDescriptor> =>
+    relationGate(index < tokens.length, () => relationSome(tokens[index]), () => ({ kind: 'none' }));
+
+const tokenValue = (tokens: readonly TokenDescriptor[], index: number): RelationOption<string> =>
+    relationOptionFold(tokenOption(tokens, index), () => ({ kind: 'none' }), token => relationSome(token.value));
+
+const tokenType = (tokens: readonly TokenDescriptor[], index: number): RelationOption<string> =>
+    relationOptionFold(tokenOption(tokens, index), () => ({ kind: 'none' }), token => relationSome(token.type));
+
+const tokenIs = (tokens: readonly TokenDescriptor[], index: number, value: string): boolean =>
+    relationOptionFold(tokenValue(tokens, index), () => false, actual => relationEqual(actual, value));
+
+const tokenIsType = (tokens: readonly TokenDescriptor[], index: number, type: string): boolean =>
+    relationOptionFold(tokenType(tokens, index), () => false, actual => relationEqual(actual, type));
+
 function databaseType(method: string): DatabaseType {
-    switch (method) {
-        case 'boolean': return { kind: 'boolean' };
-        case 'json': case 'jsonb': return { kind: 'json' };
-        case 'text': case 'longText': case 'mediumText': return { kind: 'text' };
-        case 'timestamp': case 'dateTime': case 'date': return { kind: 'date_time' };
-        case 'decimal': case 'float': case 'double': return { kind: 'decimal', precision: { kind: 'number_value', value: 0 }, scale: { kind: 'number_value', value: 0 } };
-        case 'id': case 'bigInteger': case 'unsignedBigInteger': case 'foreignId': return { kind: 'integer', width: { kind: 'big' }, signed: truth(!method.startsWith('unsigned') && method !== 'foreignId') };
-        case 'integer': case 'unsignedInteger': return { kind: 'integer', width: { kind: 'normal' }, signed: truth(!method.startsWith('unsigned')) };
-        case 'tinyInteger': case 'unsignedTinyInteger': return { kind: 'integer', width: { kind: 'tiny' }, signed: truth(!method.startsWith('unsigned')) };
-        case 'smallInteger': case 'unsignedSmallInteger': return { kind: 'integer', width: { kind: 'small' }, signed: truth(!method.startsWith('unsigned')) };
-        default: return { kind: 'string', length: { kind: 'number_value', value: 255 } };
-    }
+    const candidates: readonly { readonly names: readonly string[]; readonly value: DatabaseType }[] = Object.freeze([
+        { names: ['boolean'], value: { kind: 'boolean' } },
+        { names: ['json', 'jsonb'], value: { kind: 'json' } },
+        { names: ['text', 'longText', 'mediumText'], value: { kind: 'text' } },
+        { names: ['timestamp', 'dateTime', 'date'], value: { kind: 'date_time' } },
+        { names: ['decimal', 'float', 'double'], value: { kind: 'decimal', precision: { kind: 'number_value', value: 0 }, scale: { kind: 'number_value', value: 0 } } },
+        { names: ['id', 'bigInteger', 'unsignedBigInteger', 'foreignId'], value: { kind: 'integer', width: { kind: 'big' }, signed: truth(relationAny([relationEqual(method.startsWith('unsigned'), false), relationEqual(method, 'foreignId')])) } },
+        { names: ['integer', 'unsignedInteger'], value: { kind: 'integer', width: { kind: 'normal' }, signed: truth(relationEqual(method.startsWith('unsigned'), false)) } },
+        { names: ['tinyInteger', 'unsignedTinyInteger'], value: { kind: 'integer', width: { kind: 'tiny' }, signed: truth(relationEqual(method.startsWith('unsigned'), false)) } },
+        { names: ['smallInteger', 'unsignedSmallInteger'], value: { kind: 'integer', width: { kind: 'small' }, signed: truth(relationEqual(method.startsWith('unsigned'), false)) } },
+    ]);
+    const hit = relationFirstOption(candidates, candidate => relationAny(relationProject(candidate.names, name => relationEqual(name, method))));
+    return relationOptionFold(hit, () => ({ kind: 'string', length: { kind: 'number_value', value: 255 } }), candidate => candidate.value);
 }
 
 function column(method: string, name: string, nullable: boolean, primary: boolean, file: string, line: number): ColumnDefinition {
     const database = databaseType(method);
-    const semantic: PrimitiveVocabulary = database.kind === 'boolean' ? primitive('boolean') : database.kind === 'json' ? primitive('json') : database.kind === 'date_time' ? primitive('date_time') : database.kind === 'integer' || database.kind === 'decimal' ? primitive('number') : primitive('string');
-    return { kind: 'column', name: createColumnName(name), databaseType: database, semanticType: semantic, presence, nullability: nullability(nullable), default: { kind: 'none' }, primary: truth(method === 'id' || primary), autoGenerated: truth(method === 'id'), source: source(file, line) };
+    const semantic = relationGate(
+        relationEqual(database.kind, 'boolean'),
+        () => primitive('boolean'),
+        () => relationGate(
+            relationEqual(database.kind, 'json'),
+            () => primitive('json'),
+            () => relationGate(
+                relationEqual(database.kind, 'date_time'),
+                () => primitive('date_time'),
+                () => relationGate(
+                    relationAny([relationEqual(database.kind, 'integer'), relationEqual(database.kind, 'decimal')]),
+                    () => primitive('number'),
+                    () => primitive('string'),
+                ),
+            ),
+        ),
+    );
+    return { kind: 'column', name: createColumnName(name), databaseType: database, semanticType: semantic, presence, nullability: nullability(nullable), default: { kind: 'none' }, primary: truth(relationAny([relationEqual(method, 'id'), primary])), autoGenerated: truth(relationEqual(method, 'id')), source: source(file, line) };
 }
 
-function collectIndexArguments(tokens: readonly TokenDescriptor[], start: number): { readonly columns: readonly string[]; readonly name: string | undefined } {
-    let cursor = start;
-    while (cursor < tokens.length && tokens[cursor].value !== '(' && tokens[cursor].value !== ';') cursor += 1;
-    if (tokens[cursor]?.value !== '(') return { columns: [], name: undefined };
-    cursor += 1;
-    const columns: string[] = [];
-    let arrayDepth = 0;
-    let sawArray = false;
-    let arrayClosed = false;
-    let explicitName: string | undefined;
-    for (; cursor < tokens.length && tokens[cursor].value !== ';'; cursor += 1) {
-        const value = tokens[cursor].value;
-        if (value === '[') { sawArray = true; arrayDepth += 1; continue; }
-        if (value === ']') { arrayDepth = Math.max(0, arrayDepth - 1); arrayClosed = true; continue; }
-        if (tokens[cursor].type !== 'STRING') continue;
-        if (arrayDepth > 0 || (!sawArray && columns.length === 0)) columns.push(value);
-        else if (explicitName === undefined && (!sawArray || arrayClosed)) explicitName = value;
-    }
-    return { columns, name: explicitName };
+type IndexArguments = { readonly columns: readonly string[]; readonly name: RelationOption<string> };
+
+function collectIndexArguments(tokens: readonly TokenDescriptor[], start: number): IndexArguments {
+    const scanOpening = (cursor: number): RelationOption<number> =>
+        relationGate(
+            relationAny([relationEqual(cursor, tokens.length), tokenIs(tokens, cursor, '('), tokenIs(tokens, cursor, ';')]),
+            () => relationGate(tokenIs(tokens, cursor, '('), () => relationSome(cursor), () => ({ kind: 'none' })),
+            () => scanOpening(relationAdvanceIndex(cursor, 1)),
+        );
+    const opening = scanOpening(start);
+    return relationOptionFold(
+        opening,
+        () => ({ columns: Object.freeze([]), name: { kind: 'none' } }),
+        cursor => {
+            const visit = (position: number, depth: number, sawArray: boolean, arrayClosed: boolean, columns: readonly string[], explicitName: RelationOption<string>): IndexArguments =>
+                relationGate(
+                    relationAny([relationEqual(position, tokens.length), tokenIs(tokens, position, ';')]),
+                    () => ({ columns, name: explicitName }),
+                    () => {
+                        const value = relationOptionFold(tokenValue(tokens, position), () => '', actual => actual);
+                        const openingArray = relationEqual(value, '[');
+                        const closingArray = relationEqual(value, ']');
+                        const nextDepth = relationGate(openingArray, () => depth + 1, () => relationGate(closingArray, () => Math.max(0, depth - 1), () => depth));
+                        const nextSawArray = relationAny([sawArray, openingArray]);
+                        const nextClosed = relationAny([arrayClosed, closingArray]);
+                        const stringToken = tokenIsType(tokens, position, 'STRING');
+                        const columnCondition = relationAll([stringToken, relationAny([relationEqual(depth > 0, true), relationAll([relationEqual(sawArray, false), relationEqual(columns.length, 0)])])]);
+                        const nextColumns = relationGate(columnCondition, () => [...columns, value], () => columns);
+                        const nameCondition = relationAll([stringToken, relationOptionFold(explicitName, () => true, () => false), relationAny([relationEqual(sawArray, false), arrayClosed])]);
+                        const nextName = relationGate(nameCondition, () => relationSome(value), () => explicitName);
+                        return visit(relationAdvanceIndex(position, 1), nextDepth, nextSawArray, nextClosed, nextColumns, nextName);
+                    },
+                );
+            return visit(relationAdvanceIndex(cursor, 1), 0, false, false, Object.freeze([]), { kind: 'none' });
+        },
+    );
 }
 
-function createOperations(tokens: readonly TokenDescriptor[], file: string): readonly MigrationOperation[] {
-    const operations: MigrationOperation[] = [];
-    for (let i = 0; i + 4 < tokens.length; i += 1) {
-        if (tokens[i].value !== 'Schema' || tokens[i + 1].value !== '::') continue;
-        const action = tokens[i + 2].value;
-        if (action !== 'create' && action !== 'table') continue;
-        const table = tokens[i + 4];
-        if (!table || table.type !== 'STRING') continue;
-        const columns: ColumnDefinition[] = [];
-        const indexItems: IndexDefinition[] = [];
-        const foreignKeyItems: ForeignKey[] = [];
-        let k = i + 5;
-        while (k < tokens.length && tokens[k].value !== '{') k += 1;
-        for (k += 1; k + 3 < tokens.length && tokens[k].value !== '}'; k += 1) {
-            if (tokens[k].value !== '$table' || (tokens[k + 1].value !== '->' && tokens[k + 1].value !== '?->')) continue;
-            const method = tokens[k + 2].value;
-            const name = tokens[k + 4]?.type === 'STRING' ? tokens[k + 4].value : method === 'id' ? 'id' : undefined;
-            if (!name && method !== 'timestamps' && method !== 'softDeletes') continue;
-            if (method === 'timestamps') { columns.push(column('timestamp', 'created_at', true, false, file, tokens[k].line), column('timestamp', 'updated_at', true, false, file, tokens[k].line)); continue; }
-            if (method === 'softDeletes') { columns.push(column('timestamp', 'deleted_at', true, false, file, tokens[k].line)); continue; }
-            let nullable = false;
-            let primary = false;
-            let chainedUnique = false;
-            let chainedIndex = false;
-            for (let p = k + 5; p < Math.min(tokens.length, k + 30) && tokens[p].value !== ';'; p += 1) {
-                if (tokens[p].value === 'nullable') nullable = true;
-                if (tokens[p].value === 'primary') primary = true;
-                if (tokens[p].value === 'unique') chainedUnique = true;
-                if (tokens[p].value === 'index') chainedIndex = true;
-            }
-            columns.push(column(method, name as string, nullable, primary, file, tokens[k].line));
-            if (method !== 'foreignId' && (chainedUnique || chainedIndex)) {
-                const suffix = chainedUnique ? 'unique' : 'index';
-                indexItems.push({ kind: 'index', columns: { kind: 'column_names', items: seq([createColumnName(name as string)]) }, unique: truth(chainedUnique), name: createIndexName(`${table.value}_${name}_${suffix}`), source: source(file, tokens[k].line) });
-            }
-        }
-        const tableName: TableName = createTableName(table.value);
-        for (let m = i + 5; m + 3 < tokens.length && tokens[m].value !== '}'; m += 1) {
-            if (tokens[m].value !== '$table' || (tokens[m + 1].value !== '->' && tokens[m + 1].value !== '?->')) continue;
-            const method = tokens[m + 2].value;
-            const args: string[] = [];
-            for (let a = m + 3; a < Math.min(tokens.length, m + 30) && tokens[a].value !== ';'; a += 1) if (tokens[a].type === 'STRING') args.push(tokens[a].value);
-            const span = source(file, tokens[m].line);
-            if (method === 'unique' || method === 'index') {
-                const parsedIndex = collectIndexArguments(tokens, m + 3);
-                if (parsedIndex.columns.length > 0) {
-                    const unique = truth(method === 'unique');
-                    const indexName = parsedIndex.name ?? `${table.value}_${parsedIndex.columns.join('_')}_${method}`;
-                    indexItems.push({ kind: 'index', columns: { kind: 'column_names', items: seq(parsedIndex.columns.map(createColumnName)) }, unique, name: createIndexName(indexName), source: span });
-                }
-            }
-            if (method === 'foreignId' && args.length > 0) {
-                const columnName = args[0];
-                let constrained = false;
-                let onDelete: ForeignKeyAction = { kind: 'no_action' };
-                for (let a = m + 3; a < Math.min(tokens.length, m + 30) && tokens[a].value !== ';'; a += 1) {
-                    if (tokens[a].value === 'constrained') constrained = true;
-                    if (tokens[a].value === 'cascadeOnDelete') onDelete = { kind: 'cascade' };
-                    if (tokens[a].value === 'nullOnDelete') onDelete = { kind: 'set_null' };
-                    if (tokens[a].value === 'restrictOnDelete') onDelete = { kind: 'restrict' };
-                }
-                if (constrained) {
-                    const constrainedArgument = (() => {
-                        for (let a = m + 3; a + 2 < Math.min(tokens.length, m + 40) && tokens[a].value !== ';'; a += 1) if (tokens[a].value === 'constrained' && tokens[a + 2]?.type === 'STRING') return tokens[a + 2].value;
-                        return undefined;
-                    })();
-                    const base = columnName.endsWith('_id') ? columnName.slice(0, -3) : columnName;
-                    const targetTable = constrainedArgument ?? `${base}s`;
-                    const referencesModel: DomainTypeName = { kind: 'domain_type_name', value: { kind: 'string_value', value: targetTable } };
-                    foreignKeyItems.push({ kind: 'foreign_key', column: createColumnName(columnName), referencesModel, referencesColumn: createColumnName('id'), onDelete, onUpdate: { kind: 'no_action' }, source: span });
-                }
-            }
-            if (method === 'foreign' && args.length > 0) {
-                let referencesColumn = 'id';
-                let referencesTable = '';
-                let onDelete: ForeignKeyAction = { kind: 'no_action' };
-                for (let a = m + 3; a + 2 < Math.min(tokens.length, m + 40) && tokens[a].value !== ';'; a += 1) {
-                    if (tokens[a].value === 'references' && tokens[a + 2]?.type === 'STRING') referencesColumn = tokens[a + 2].value;
-                    if (tokens[a].value === 'on' && tokens[a + 2]?.type === 'STRING') referencesTable = tokens[a + 2].value;
-                    if (tokens[a].value === 'cascadeOnDelete') onDelete = { kind: 'cascade' };
-                    if (tokens[a].value === 'nullOnDelete') onDelete = { kind: 'set_null' };
-                    if (tokens[a].value === 'restrictOnDelete') onDelete = { kind: 'restrict' };
-                }
-                if (referencesTable.length > 0) foreignKeyItems.push({ kind: 'foreign_key', column: createColumnName(args[0]), referencesModel: { kind: 'domain_type_name', value: { kind: 'string_value', value: referencesTable } }, referencesColumn: createColumnName(referencesColumn), onDelete, onUpdate: { kind: 'no_action' }, source: span });
-            }
-        }
-        operations.push({ kind: 'create_table', table: tableName, columns: { kind: 'columns', items: seq(columns) }, indexes: { kind: 'indexes', items: seq(indexItems) }, foreignKeys: { kind: 'foreign_keys', items: seq(foreignKeyItems) } });
-    }
-    return Object.freeze(operations);
+const tokenStrings = (tokens: readonly TokenDescriptor[], start: number, limit: number, index = start, output: readonly string[] = Object.freeze([])): readonly string[] =>
+    relationGate(
+        relationAny([relationEqual(index, tokens.length), relationEqual(index, limit), tokenIs(tokens, index, ';')]),
+        () => output,
+        () => relationGate(tokenIsType(tokens, index, 'STRING'), () => tokenStrings(tokens, start, limit, relationAdvanceIndex(index, 1), [...output, tokens[index].value]), () => tokenStrings(tokens, start, limit, relationAdvanceIndex(index, 1), output)),
+    );
+
+const findBodyOpen = (tokens: readonly TokenDescriptor[], index: number): RelationOption<number> =>
+    relationGate(
+        relationAny([relationEqual(index, tokens.length), tokenIs(tokens, index, '{')]),
+        () => relationGate(tokenIs(tokens, index, '{'), () => relationSome(index), () => ({ kind: 'none' })),
+        () => findBodyOpen(tokens, relationAdvanceIndex(index, 1)),
+    );
+
+const chainFlags = (tokens: readonly TokenDescriptor[], start: number, limit: number, index = start, state = { nullable: false, primary: false, unique: false, index: false }): typeof state =>
+    relationGate(
+        relationAny([relationEqual(index, tokens.length), relationEqual(index, limit), tokenIs(tokens, index, ';')]),
+        () => state,
+        () => chainFlags(tokens, start, limit, relationAdvanceIndex(index, 1), {
+            nullable: relationAny([state.nullable, tokenIs(tokens, index, 'nullable')]),
+            primary: relationAny([state.primary, tokenIs(tokens, index, 'primary')]),
+            unique: relationAny([state.unique, tokenIs(tokens, index, 'unique')]),
+            index: relationAny([state.index, tokenIs(tokens, index, 'index')]),
+        }),
+    );
+
+function createColumnItems(tokens: readonly TokenDescriptor[], file: string, start: number, index = start, output: readonly ColumnDefinition[] = Object.freeze([]), indexes: readonly IndexDefinition[] = Object.freeze([])): { readonly columns: readonly ColumnDefinition[]; readonly indexes: readonly IndexDefinition[] } {
+    return relationGate(
+        relationAny([relationEqual(index, tokens.length), tokenIs(tokens, index, '}')]),
+        () => ({ columns: output, indexes }),
+        () => relationGate(
+            relationAll([tokenIs(tokens, index, '$table'), relationAny([tokenIs(tokens, relationAdvanceIndex(index, 1), '->'), tokenIs(tokens, relationAdvanceIndex(index, 1), '?->')])]),
+            () => {
+                const method = tokens[relationAdvanceIndex(index, 2)].value;
+                const nameOption = relationGate(tokenIsType(tokens, relationAdvanceIndex(index, 4), 'STRING'), () => relationSome(tokens[relationAdvanceIndex(index, 4)].value), () => relationGate(relationEqual(method, 'id'), () => relationSome('id'), () => ({ kind: 'none' })));
+                const flags = chainFlags(tokens, relationAdvanceIndex(index, 5), Math.min(tokens.length, relationAdvanceIndex(index, 30)));
+                const special = relationAny([relationEqual(method, 'timestamps'), relationEqual(method, 'softDeletes')]);
+                const nextOutput = relationGate(
+                    special,
+                    () => relationGate(relationEqual(method, 'timestamps'), () => [...output, column('timestamp', 'created_at', true, false, file, tokens[index].line), column('timestamp', 'updated_at', true, false, file, tokens[index].line)], () => [...output, column('timestamp', 'deleted_at', true, false, file, tokens[index].line)]),
+                    () => relationOptionFold(nameOption, () => output, name => [...output, column(method, name, flags.nullable, flags.primary, file, tokens[index].line)]),
+                );
+                const nextIndexes = relationGate(
+                    relationAll([relationEqual(method, 'foreignId'), false]),
+                    () => indexes,
+                    () => relationOptionFold(nameOption, () => indexes, name => relationGate(relationAny([flags.unique, flags.index]), () => [...indexes, { kind: 'index', columns: { kind: 'column_names', items: seq([createColumnName(name)]) }, unique: truth(flags.unique), name: createIndexName(`${tokens[relationAdvanceIndex(index, 4)].value}_${name}_${relationGate(flags.unique, () => 'unique', () => 'index')}`), source: source(file, tokens[index].line) }], () => indexes)),
+                );
+                return createColumnItems(tokens, file, start, relationAdvanceIndex(index, 1), nextOutput, nextIndexes);
+            },
+            () => createColumnItems(tokens, file, start, relationAdvanceIndex(index, 1), output, indexes),
+        ),
+    );
+}
+
+function createRelationItems(tokens: readonly TokenDescriptor[], file: string, table: string, start: number, index = start, indexes: readonly IndexDefinition[] = Object.freeze([]), foreignKeys: readonly ForeignKey[] = Object.freeze([])): { readonly indexes: readonly IndexDefinition[]; readonly foreignKeys: readonly ForeignKey[] } {
+    return relationGate(
+        relationAny([relationEqual(index, tokens.length), tokenIs(tokens, index, '}')]),
+        () => ({ indexes, foreignKeys }),
+        () => relationGate(
+            relationAll([tokenIs(tokens, index, '$table'), relationAny([tokenIs(tokens, relationAdvanceIndex(index, 1), '->'), tokenIs(tokens, relationAdvanceIndex(index, 1), '?->')])]),
+            () => {
+                const method = tokens[relationAdvanceIndex(index, 2)].value;
+                const args = tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 30)));
+                const span = source(file, tokens[index].line);
+                const parsedIndex = collectIndexArguments(tokens, relationAdvanceIndex(index, 3));
+                const nextIndexes = relationGate(
+                    relationAny([relationEqual(method, 'unique'), relationEqual(method, 'index')]),
+                    () => relationGate(parsedIndex.columns.length > 0, () => [...indexes, { kind: 'index', columns: { kind: 'column_names', items: seq(relationProject(parsedIndex.columns, value => createColumnName(value))) }, unique: truth(relationEqual(method, 'unique')), name: createIndexName(relationOptionFold(parsedIndex.name, () => `${table}_${parsedIndex.columns.join('_')}_${method}`, value => value)), source: span }], () => indexes),
+                    () => indexes,
+                );
+                const nextForeignKeys = relationGate(
+                    relationEqual(method, 'foreignId'),
+                    () => relationOptionFold(relationGate(args.length > 0, () => relationSome(args[0]), () => ({ kind: 'none' })), () => foreignKeys, columnName => {
+                        const constrained = tokenIs(tokens, relationAdvanceIndex(index, 4), 'constrained');
+                        const deleteAction = relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'cascadeOnDelete'), () => ({ kind: 'cascade' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'nullOnDelete'), () => ({ kind: 'set_null' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'restrictOnDelete'), () => ({ kind: 'restrict' as const }), () => ({ kind: 'no_action' as const }))));
+                        return relationGate(constrained, () => {
+                            const constrainedIndex = relationFirstOption(relationProject(tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40))), value => value), value => relationEqual(value, 'constrained'));
+                            const target = relationOptionFold(constrainedIndex, () => '', value => value);
+                            const base = relationGate(columnName.endsWith('_id'), () => relationTextSlice(columnName, 0, relationAdvanceIndex(columnName.length, -3)), () => columnName);
+                            const targetTable = relationGate(target.length > 0, () => target, () => `${base}s`);
+                            return [...foreignKeys, { kind: 'foreign_key', column: createColumnName(columnName), referencesModel: { kind: 'domain_type_name', value: { kind: 'string_value', value: targetTable } }, referencesColumn: createColumnName('id'), onDelete: deleteAction, onUpdate: { kind: 'no_action' }, source: span }];
+                        }, () => foreignKeys);
+                    }),
+                    () => relationGate(
+                        relationEqual(method, 'foreign'),
+                        () => relationGate(args.length > 0, () => {
+                            const referencesColumn = relationOptionFold(relationFirstOption(tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40))), value => relationEqual(value, 'references')), () => 'id', value => value);
+                            const referencesTable = relationOptionFold(relationFirstOption(tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40))), value => relationEqual(value, 'on')), () => '', value => value);
+                            const onDelete = relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'cascadeOnDelete'), () => ({ kind: 'cascade' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'nullOnDelete'), () => ({ kind: 'set_null' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'restrictOnDelete'), () => ({ kind: 'restrict' as const }), () => ({ kind: 'no_action' as const }))));
+                            return relationGate(referencesTable.length > 0, () => [...foreignKeys, { kind: 'foreign_key', column: createColumnName(args[0]), referencesModel: { kind: 'domain_type_name', value: { kind: 'string_value', value: referencesTable } }, referencesColumn: createColumnName(referencesColumn), onDelete, onUpdate: { kind: 'no_action' }, source: span }], () => foreignKeys);
+                        }, () => foreignKeys),
+                        () => foreignKeys,
+                    ),
+                );
+                return createRelationItems(tokens, file, table, start, relationAdvanceIndex(index, 1), nextIndexes, nextForeignKeys);
+            },
+            () => createRelationItems(tokens, file, table, start, relationAdvanceIndex(index, 1), indexes, foreignKeys),
+        ),
+    );
+}
+
+function createOperations(tokens: readonly TokenDescriptor[], file: string, index = 0, output: readonly MigrationOperation[] = Object.freeze([])): readonly MigrationOperation[] {
+    return relationGate(
+        relationEqual(index + 4, tokens.length),
+        () => output,
+        () => relationGate(
+            relationAll([tokenIs(tokens, index, 'Schema'), tokenIs(tokens, relationAdvanceIndex(index, 1), '::'), relationAny([tokenIs(tokens, relationAdvanceIndex(index, 2), 'create'), tokenIs(tokens, relationAdvanceIndex(index, 2), 'table')]), tokenIsType(tokens, relationAdvanceIndex(index, 4), 'STRING')]),
+            () => {
+                const table = tokens[relationAdvanceIndex(index, 4)];
+                const opening = findBodyOpen(tokens, relationAdvanceIndex(index, 5));
+                return relationOptionFold(opening, () => createOperations(tokens, file, relationAdvanceIndex(index, 1), output), body => {
+                    const columnItems = createColumnItems(tokens, file, body);
+                    const relations = createRelationItems(tokens, file, table.value, body);
+                    const operation: MigrationOperation = { kind: 'create_table', table: createTableName(table.value), columns: { kind: 'columns', items: seq(columnItems.columns) }, indexes: { kind: 'indexes', items: seq([...columnItems.indexes, ...relations.indexes]) }, foreignKeys: { kind: 'foreign_keys', items: seq(relations.foreignKeys) } };
+                    return createOperations(tokens, file, relationAdvanceIndex(index, 1), [...output, operation]);
+                });
+            },
+            () => createOperations(tokens, file, relationAdvanceIndex(index, 1), output),
+        ),
+    );
 }
 
 export const migrationProducer: MigrationProducer = {

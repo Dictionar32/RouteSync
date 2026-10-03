@@ -20,13 +20,15 @@ export function correlateModelColumnFacts(
     casts: readonly ModelCast[],
     source: SourceSpan
 ): readonly ModelColumnFact[] {
-    const castsByColumn = new Map(casts.map(cast => [cast.property.value.value, cast] as const));
-    return columns.map(item => {
+    const castsByColumn = relationProject(casts, cast => [cast.property.value.value, cast] as const);
+    return relationProject(columns, item => {
         const propertyName = property(item.name.value.value.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase()));
-        const cast = castsByColumn.get(item.name.value.value);
-        const type: ModelColumnType = cast === undefined
-            ? { kind: 'native', value: semanticType(item.semanticType) }
-            : { kind: 'casted', value: primitive(castExpressionKinds[cast.target.kind]), cast: castKinds[cast.target.kind], source };
+        const cast = relationLookup(castsByColumn, item.name.value.value);
+        const type: ModelColumnType = relationOptionFold(
+            cast,
+            () => ({ kind: 'native', value: semanticType(item.semanticType) }),
+            resolved => ({ kind: 'casted', value: primitive(castExpressionKinds[resolved.target.kind]), cast: castKinds[resolved.target.kind], source }),
+        );
         return {
             kind: 'model_column',
             property: propertyName,

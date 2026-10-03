@@ -9,7 +9,17 @@
 
 export {
     type BridgeMetadata,
-    type CompiledContractBundle,
+    type CompiledContractsBundle,
+    type EmittedCompilerArtifacts,
+    type FullBundleEmittedArtifacts,
+    type CompilerBundleOptions,
+    type CompilerEmitContext,
+    type CompilerEmitter,
+    type CompilerOutput,
+    type FormOutput,
+    type ContractOutput,
+    type ApiFieldOutput,
+    type MapperOutput,
     type BridgeEmitPipelineDeps,
     CompilerBridgePipeline
 } from './bridgeTypes';

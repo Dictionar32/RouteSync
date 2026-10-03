@@ -1,12 +1,9 @@
 /**
- * nodeFactories.ts
+ * Declarative graph-node construction and execution-layer inference.
  *
- * Factories for building ServiceNode, ControllerNode, and service-graph model nodes,
- * and layer detection heuristics.
- *
- * @module core/graph/service
+ * Knowledge is represented as data; selection is performed by the relation
+ * algebra rather than host-language collection control flow.
  */
-
 import type {
   ServiceNode,
   ControllerNode,
@@ -15,27 +12,35 @@ import type {
 } from '../../types/semantic';
 import type { ModelSemanticDefinition } from '../../types/upstream/model';
 import type { ActionName } from '../../types/upstream/names';
-import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies } from '../../types/upstream/service';
+import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies, ServiceDependency } from '../../types/upstream/service';
 import type { ControllerNodeName, ServiceNodeName } from '../../types/semantic/nominalVocabulary';
 import { createConfidenceScore } from '../../types/semantic/nominalVocabulary';
+import { EXECUTION_LAYER_KNOWLEDGE } from '../../types/semantic/semanticKnowledge';
+import { relationAny, relationAnyMatch, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/kernel/relationalSequence';
 
-/**
- * Detects the execution layer based on file path and code heuristics.
- */
-export function detectExecutionLayer(filePath: string, code: string): ExecutionLayer {
-  if (filePath.includes('Controller.php') || filePath.match(/Controller\.php$/)) {
-    return 'controller';
-  }
-  if (filePath.includes('Service.php') || filePath.match(/Service\.php$/)) {
-    return 'service';
-  }
-  if (filePath.includes('Models/') || filePath.match(/Model\.php$/)) {
-    return 'model';
-  }
-  return 'repository';
+export const EXECUTION_LAYER_RULES = EXECUTION_LAYER_KNOWLEDGE;
+
+const ruleMatches = (filePath: string, rule: typeof EXECUTION_LAYER_RULES[number]): boolean =>
+  relationAny([
+    relationAnyMatch(rule.pathFragments, fragment => filePath.includes(fragment)),
+    relationAnyMatch(rule.fileSuffixes, suffix => filePath.endsWith(suffix)),
+  ]);
+
+export function detectExecutionLayer(filePath: string, _code: string): ExecutionLayer {
+  return relationOptionFold(
+    relationFirstOption(EXECUTION_LAYER_RULES, candidate => ruleMatches(filePath, candidate)),
+    () => 'repository' as const,
+    rule => rule.layer,
+  );
 }
 
-export function buildServiceNode(name: ServiceNodeName, methods: ServiceMethod[], dependencies: ServiceDependency[] = [], dependencyFacts: ServiceDependencyFacts, resolvedDependencies: ResolvedServiceDependencies): ServiceNode {
+export function buildServiceNode(
+  name: ServiceNodeName,
+  methods: ServiceMethod[],
+  dependencies: ServiceDependency[] = [],
+  dependencyFacts: ServiceDependencyFacts,
+  resolvedDependencies: ResolvedServiceDependencies,
+): ServiceNode {
   return {
     kind: 'service_node',
     name,
@@ -44,7 +49,7 @@ export function buildServiceNode(name: ServiceNodeName, methods: ServiceMethod[]
     dependencies,
     dependencyFacts,
     resolvedDependencies,
-    confidence: createConfidenceScore(1)
+    confidence: createConfidenceScore(1),
   };
 }
 
@@ -53,10 +58,10 @@ export function buildControllerNode(name: ControllerNodeName, routes: string[], 
     kind: 'controller_node',
     name,
     routes,
-    actions: actions.map(a => ({ name: a })),
+    actions: relationProject(actions, action => ({ name: action })),
     layer: 'controller',
     calls: [],
-    confidence: createConfidenceScore(1)
+    confidence: createConfidenceScore(1),
   };
 }
 
@@ -64,6 +69,6 @@ export function buildModelNode(model: ModelSemanticDefinition): ServiceModelNode
   return {
     kind: 'model_node',
     model,
-    layer: 'model'
+    layer: 'model',
   };
 }

@@ -1,86 +1,81 @@
-/**
- * ssaRenamer.ts
- *
- * Active Consumer: SSA variable renaming using Cytron et al. dominator tree traversal.
- *
- * @module core/compiler/analysis/ssa/ssaRenamer
- */
+/** Relation-driven SSA variable renaming over the canonical CFG relation. */
 
-import { ControlFlowGraph, type BasicBlock } from '../../utils/ControlFlowGraph';
+import type { ControlFlowGraph, BasicBlockRelation, Expression, Instruction } from '../../utils/ControlFlowGraph';
 import type { DominatorTree } from '../DominatorAnalysis';
-import {
-    VariableVersionScope,
-    renameBlockInstructions,
-    updateSuccessorPhis
-} from './renamer';
+import { createVariableVersionScope, type VariableVersionScope } from './renamer/variableVersionScope';
+import { renameBlockInstructions, updateSuccessorPhis } from './renamer';
+import { basicBlockLookup, basicBlockReplace, createControlFlowGraph } from '../../utils/ControlFlowGraph';
+import { relationFold, relationOptionFold, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/relationFoundation';
 
-/**
- * SSA variable renaming
- *
- * Renames variables in SSA form so that each definition gets a unique name.
- * Implements algorithm from Cytron et al.
- */
-export class SSARenamer {
-    private scope = new VariableVersionScope();
+export interface SSARenamer { readonly rename: (cfg: ControlFlowGraph, dom: DominatorTree) => ControlFlowGraph; }
 
-    /**
-     * Rename variables in CFG for SSA form
-     *
-     * @param cfg - CFG with phi nodes inserted
-     * @param dom - Dominator tree
-     * @returns CFG with renamed variables
-     */
-    public rename(cfg: ControlFlowGraph, dom: DominatorTree): ControlFlowGraph {
-        const blocks = new Map<number, BasicBlock>(cfg.blocks);
+const relationIsDefinition = (instruction: Expression | Instruction): boolean =>
+    relationResolve(relationEqual(instruction.kind, 'Assign'), () => true, () => relationEqual(instruction.kind, 'Phi'));
 
-        // Initialize counters and stacks
-        for (const [_, block] of cfg.blocks) {
-            for (const inst of block.instructions) {
-                if (inst.kind === 'Assign') {
-                    this.scope.init(inst.target);
-                }
-            }
-        }
+const definitionTarget = (instruction: Instruction): number => relationResolve(
+    relationEqual(instruction.kind, 'Assign'),
+    () => (instruction as Extract<Instruction, { kind: 'Assign' }>).target,
+    () => (instruction as Extract<Instruction, { kind: 'Phi' }>).target,
+);
 
-        // Recursive renaming starting from entry
-        this.renameBlock(cfg.entryBlock, blocks, dom, cfg);
+const initializeScope = (blocks: BasicBlockRelation): VariableVersionScope => relationFold(
+    blocks,
+    createVariableVersionScope(),
+    (scope, entry) => relationFold(
+        entry[1].instructions,
+        scope,
+        (current, instruction) => relationResolve(
+            relationEqual(instruction.kind, 'Assign'),
+            () => current.init((instruction as Extract<Instruction, { kind: 'Assign' }>).target),
+            () => current,
+        ),
+    ),
+);
 
-        return new ControlFlowGraph(cfg.entryBlock, cfg.exitBlock, blocks);
-    }
+const popDefinitions = (
+    instructions: readonly (Expression | Instruction)[],
+    scope: VariableVersionScope,
+    index = 0,
+): VariableVersionScope => relationResolve(
+    index >= instructions.length,
+    () => scope,
+    () => {
+        const instruction = instructions[index];
+        const next = relationResolve(
+            relationIsDefinition(instruction),
+            () => scope.popVersion(definitionTarget(instruction as Instruction)),
+            () => scope,
+        );
+        return popDefinitions(instructions, next, index + 1);
+    },
+);
 
-    /**
-     * Rename variables in single block and recursively process children
-     */
-    private renameBlock(
-        blockId: number,
-        blocks: Map<number, BasicBlock>,
-        dom: DominatorTree,
-        cfg: ControlFlowGraph
-    ): void {
-        const block = blocks.get(blockId);
-        if (!block) return;
+const renameBlock = (
+    blockId: number,
+    blocks: BasicBlockRelation,
+    scope: VariableVersionScope,
+    dom: DominatorTree,
+): readonly [BasicBlockRelation, VariableVersionScope] => relationOptionFold(
+    basicBlockLookup(blocks, blockId),
+    () => [blocks, scope] as const,
+    block => {
+        const instructionFacts = relationFold(block.instructions, [] as readonly Instruction[], (facts, instruction) => relationResolve('kind' in instruction, () => [...facts, instruction as Instruction], () => facts));
+        const renamed = renameBlockInstructions(instructionFacts, scope);
+        const withBlock = basicBlockReplace(blocks, blockId, Object.freeze({ ...block, instructions: renamed.instructions }));
+        const withSuccessorPhis = updateSuccessorPhis(blockId, block.successors, withBlock, renamed.scope);
+        const descended = relationFold(dom.getChildren(blockId), [withSuccessorPhis, renamed.scope] as const, (state, childId) => renameBlock(childId, state[0], state[1], dom));
+        return [descended[0], popDefinitions(block.instructions, descended[1])] as const;
+    },
+);
 
-        const newInstructions = renameBlockInstructions(block.instructions, this.scope);
+export const createSSARenamer = (): SSARenamer => Object.freeze({
+    rename: (cfg: ControlFlowGraph, dom: DominatorTree) => {
+        const initialized = initializeScope(cfg.blocks);
+        const [blocks] = renameBlock(cfg.entryBlock, cfg.blocks, initialized, dom);
+        return createControlFlowGraph(cfg.entryBlock, cfg.exitBlock, blocks);
+    },
+});
 
-        blocks.set(blockId, {
-            ...block,
-            instructions: newInstructions
-        });
-
-        // Update phi nodes in successors
-        updateSuccessorPhis(blockId, block.successors, blocks, this.scope);
-
-        // Recursively process dominated children
-        const children = dom.getChildren(blockId);
-        for (const childId of children) {
-            this.renameBlock(childId, blocks, dom, cfg);
-        }
-
-        // Pop versions after processing block
-        for (const inst of block.instructions) {
-            if (inst.kind === 'Assign' || inst.kind === 'Phi') {
-                this.scope.popVersion(inst.target);
-            }
-        }
-    }
-}
+export const SSARenamer = Object.freeze({ create: createSSARenamer });
+export const renameSSA = (cfg: ControlFlowGraph, dom: DominatorTree): ControlFlowGraph => createSSARenamer().rename(cfg, dom);

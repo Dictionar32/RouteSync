@@ -17,7 +17,7 @@ import {
     type ConfidenceScore
 } from '../ir/ResponseArtifact';
 import { ResponseAnalysisArtifact } from '../artifacts/ResponseAnalysisArtifact';
-import type { ParsedRoute, ResponseDescriptor, RouteResponseAnalysis } from '../../types/route';
+import type { RouteSemanticFlow, ResponseDescriptor, RouteResponseAnalysis } from '../../types/route';
 
 export interface ResponseAnalysisPassDependencies {
     readonly defaultConfidence?: number;
@@ -25,7 +25,7 @@ export interface ResponseAnalysisPassDependencies {
 }
 
 export function analyzeRouteResponse(
-    route: ParsedRoute,
+    route: RouteSemanticFlow,
     confidence: number
 ): RouteResponseAnalysis {
     return route.response.toAnalysis(route.name, confidence);

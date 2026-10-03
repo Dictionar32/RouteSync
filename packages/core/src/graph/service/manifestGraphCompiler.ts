@@ -1,13 +1,7 @@
-/**
- * manifestGraphCompiler.ts
- *
- * Traverses RouteManifest to index models, resources, controllers, and dependency edges.
- *
- * @module core/graph/service
- */
-
+/** Declarative graph compilation from canonical route/source relations. */
 import type { RouteManifest } from '../../types/route';
-import type { CompleteLaravelSourceModel, ServiceSemanticNode } from '../../types/upstream/highLevelSourceModel';
+import type { CompleteLaravelSourceModel } from '../../types/upstream/highLevelSourceModel';
+import type { ServiceSemanticContract } from '../../types/upstream/highLevelContracts';
 import type { ServiceGraph, ServiceNode, ControllerNode, ServiceModelNode, ServiceDependency } from '../../types/semantic';
 import { buildModelNode, buildServiceNode, buildControllerNode } from './nodeFactories';
 import { createActionName } from '../../types/upstream/names';
@@ -16,122 +10,136 @@ import { GraphNodeIndex } from './graphNodeIndex';
 import { createControllerNodeName, createServiceNodeName } from '../../types/semantic/nominalVocabulary';
 import { assembleServiceGraph } from './graphAssembler';
 import type { ServiceMethod } from '../../types/upstream/service';
+import type { RelationIndex } from '../../semantic/kernel/relationMembership';
+import { relationIndexLookup } from '../../semantic/kernel/relationMembership';
+import { relationContains } from '../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationProject, relationSelect } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationResolve } from '../../semantic/kernel/relationFoundation';
+import { relationSome, type RelationOption } from '../../semantic/kernel/relationFoundation';
+import type { Sequence } from '../../types/upstream/collections';
+import { matchRouteHandler } from '../../types/domain/routeHandlers';
 
 export interface GraphBuilderContext {
   readonly modelsMap: GraphNodeIndex<ServiceModelNode>;
   readonly servicesMap: GraphNodeIndex<ServiceNode>;
-  readonly controllersMap: Map<string, ControllerNode>;
-  readonly edges: ServiceDependency[];
-  linkGraph(fromNode: ServiceReference | ResourceReference | ModelReference, toNode: ServiceReference | ResourceReference | ModelReference, type: ServiceDependency['type'], weight?: number, relationKind?: string): void;
+  readonly controllersIndex: RelationIndex<string, ControllerNode>;
+  readonly edges: readonly ServiceDependency[];
+  setController(name: string, controller: ControllerNode): void;
+  linkGraph(
+    fromNode: ServiceReference | ResourceReference | ModelReference,
+    toNode: ServiceReference | ResourceReference | ModelReference,
+    type: ServiceDependency['type'],
+    weight: number,
+  ): void;
 }
 
-function serviceMethods(service: ServiceSemanticNode): ServiceMethod[] {
-  const methods: ServiceMethod[] = [];
-  let items = service.definition.methods.items;
-  while (items.kind === 'cons') {
-    methods.push(items.head);
-    items = items.tail;
-  }
-  return methods;
-}
+const sequenceToArray = <T>(items: Sequence<T>): readonly T[] => relationResolve(
+  relationEqual(items.kind, 'empty'),
+  () => [],
+  () => [items.head, ...sequenceToArray(items.tail)],
+);
 
-function serviceDependencies(
-  service: ServiceSemanticNode
-): ServiceDependency[] {
-  const dependencies: ServiceDependency[] = [];
-  let items = service.resolvedDependencies.items;
+const serviceMethods = (service: ServiceSemanticContract): readonly ServiceMethod[] => sequenceToArray(service.methods.items);
+
+const serviceDependencies = (service: ServiceSemanticContract): readonly ServiceDependency[] => {
   const from: ServiceReference = { kind: 'service_reference', name: service.identity.name };
-  while (items.kind === 'cons') {
-    const resolved = items.head;
-    dependencies.push({
-      from,
-      to: resolved.target,
-      type: 'depends_on_model',
-      weight: 1,
-    });
-    items = items.tail;
-  }
-  return dependencies;
+  return relationProject(
+    sequenceToArray(service.resolvedDependencies.items),
+    resolved => ({ from, to: resolved.target, type: 'depends_on_model', weight: 1 }),
+  );
+};
+
+const registerService = (service: ServiceSemanticContract, builder: GraphBuilderContext): void => {
+  const reference: ServiceReference = { kind: 'service_reference', name: service.name };
+  const dependencies = serviceDependencies(service);
+  builder.servicesMap.set(reference, buildServiceNode(
+    createServiceNodeName(reference.name.value.value),
+    [...serviceMethods(service)],
+    [...dependencies],
+    service.dependencies,
+    service.resolvedDependencies,
+  ));
+  relationProject(
+    relationSelect(dependencies, dependency => builder.modelsMap.has(dependency.to)),
+    dependency => builder.linkGraph(dependency.from, dependency.to, dependency.type, dependency.weight),
+  );
+};
+
+export function registerServicesFromSourceModel(sourceModel: CompleteLaravelSourceModel, builder: GraphBuilderContext): void {
+  relationProject(sequenceToArray(sourceModel.contracts.services), service => registerService(service, builder));
 }
 
-export function registerServicesFromSourceModel(
-  sourceModel: CompleteLaravelSourceModel,
-  builder: GraphBuilderContext
-): void {
-  let services = sourceModel.catalog.services;
-  while (services.kind === 'cons') {
-    const service = services.head;
-    const reference: ServiceReference = { kind: 'service_reference', name: service.identity.name };
-    const dependencies = serviceDependencies(service);
-    builder.servicesMap.set(reference, buildServiceNode(
-      createServiceNodeName(reference.name.value.value),
-      serviceMethods(service),
-      dependencies,
-      service.definition.dependencies,
-      service.resolvedDependencies
-    ));
-    for (const dependency of dependencies) {
-      if (builder.modelsMap.has(dependency.to)) builder.edges.push(dependency);
-    }
-    services = services.tail;
-  }
-}
+const routeControllerName = (route: RouteManifest['routes'][number]): RelationOption<string> =>
+  matchRouteHandler(route.binding.operation.handler, {
+    controllerAction: handler => relationSome(handler.controllerName.value.value),
+    invokableController: handler => relationSome(handler.controllerName.value.value),
+    closure: () => ({ kind: 'none' } as const),
+  });
+
+const addRouteFact = (route: RouteManifest['routes'][number], builder: GraphBuilderContext): void => {
+  const controller = routeControllerName(route);
+  relationOptionFold(
+    controller,
+    () => false,
+    controllerName => {
+      const current = relationOptionFold(
+        relationIndexLookup(builder.controllersIndex, controllerName),
+        () => buildControllerNode(createControllerNodeName(controllerName), [], []),
+        value => value,
+      );
+      const path = route.provenance.uri.value.value;
+      const action = route.binding.operation.name.value.value;
+      const routeAddition = relationResolve(
+        relationContains(current.routes, path),
+        () => [],
+        () => [path],
+      );
+      const actionNames = relationProject(current.actions, value => value.name.value.value);
+      const actionAddition = relationResolve(
+        relationContains(actionNames, action),
+        () => [],
+        () => [{ name: createActionName(action) }],
+      );
+      const nextController: ControllerNode = {
+        ...current,
+        routes: [...current.routes, ...routeAddition],
+        actions: [...current.actions, ...actionAddition],
+      };
+      builder.setController(controllerName, nextController);
+    },
+  );
+};
 
 export function compileGraphFromManifest(
   manifest: RouteManifest,
   builder: GraphBuilderContext,
-  sourceModel?: CompleteLaravelSourceModel
+  sourceModel: RelationOption<CompleteLaravelSourceModel>,
 ): ServiceGraph {
-  // 1. Models Indexing & Relations Traversal
-  for (const m of manifest.models) {
-    const modelNode = buildModelNode(m.semantic);
-    const modelReference: ModelReference = { kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: m.name.value } } };
+  relationProject(manifest.models, model => {
+    const modelNode = buildModelNode(model.definition.semantic);
+    const modelReference: ModelReference = { kind: 'model_reference', name: model.definition.identity.name };
     builder.modelsMap.set(modelReference, modelNode);
+    relationProject(
+      sequenceToArray(model.definition.relations.items),
+      relation => builder.linkGraph(
+        modelReference,
+        relation.target,
+        'depends_on_model',
+        1.0,
+      ),
+    );
+  });
 
-    if (m.relations) {
-      for (const rel of m.relations) {
-        const from: ModelReference = modelReference;
-      const to: ModelReference = { kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: rel.targetModel.value } } };
-      builder.linkGraph(from, to, 'depends_on_model', 1.0, rel.type);
-      }
-    }
-  }
+  relationOptionFold(sourceModel, () => false, value => { registerServicesFromSourceModel(value, builder); return true; });
 
-  // 2. Services come from canonical ServiceAst elevation, never from resource reclassification.
-  if (sourceModel) {
-    registerServicesFromSourceModel(sourceModel, builder);
-  }
+  relationProject(manifest.resources, resource => builder.linkGraph(
+    { kind: 'resource_reference', name: resource.definition.name },
+    resource.definition.model,
+    'depends_on_model',
+    1.0,
+  ));
 
-  // 3. Resources retain only their explicit model relation.
-  for (const res of manifest.resources) {
-    if (res.baseModel) {
-      const from: ResourceReference = { kind: 'resource_reference', name: { kind: 'resource_name', value: { kind: 'string_value', value: res.name } } };
-      const to: ModelReference = { kind: 'model_reference', name: { kind: 'model_name', value: { kind: 'string_value', value: res.baseModel } } };
-      builder.linkGraph(from, to, 'depends_on_model');
-    }
-  }
+  relationProject(manifest.routes, route => addRouteFact(route, builder));
 
-  // 4. Controllers & Route Endpoints Indexing
-  for (const route of manifest.routes) {
-    const controllerName = route.controllerName || `${route.resourceName}Controller`;
-
-    let controller: ControllerNode | undefined = builder.controllersMap.get(controllerName);
-    if (!controller) {
-      controller = buildControllerNode(createControllerNodeName(controllerName), [], []);
-      builder.controllersMap.set(controllerName, controller);
-    }
-
-    if (!controller.routes.includes(route.path)) {
-      controller.routes.push(route.path);
-    }
-
-    const actionName = route.actionName || 'index';
-    if (!controller.actions.some(a => a.name.value.value === actionName)) {
-      controller.actions.push({ name: createActionName(actionName) });
-    }
-
-
-  }
-
-  return assembleServiceGraph(builder.modelsMap, builder.servicesMap, builder.controllersMap, builder.edges);
+  return assembleServiceGraph(builder.modelsMap, builder.servicesMap, builder.controllersIndex, builder.edges);
 }

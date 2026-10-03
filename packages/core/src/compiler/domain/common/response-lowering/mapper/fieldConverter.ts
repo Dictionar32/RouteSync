@@ -7,134 +7,94 @@
  */
 
 import type { ParsedResponseField } from '../../../../generators/contract-generation/ResponseFieldParser';
-import { ConversionResult } from '../../ConversionResult';
-import type { SemanticTypeResolver } from '../../SemanticTypeResolver';
+import { ConversionResult, createConversionResult } from '../../ConversionResult';
+import type { SemanticTypeResolverInstance } from '../../SemanticTypeResolver';
 import type {
-    ResolvedSemanticType,
-    ResolvedUnknownType
+    ResolvedSemanticType
 } from '../../ResolvedSemanticType';
 import {
     type StageResult,
     partitionResults
 } from '../loweringContracts';
+import { resolveResponseFieldOperation, type ResponseFieldOperation } from './responseFieldSemanticRelations';
+import { relationFold, relationOptionFold, relationFirst, relationResolve, relationProject } from '../../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
 
 export function convertResolvedTypeToResponseField(
     fieldName: string,
     resolved: ResolvedSemanticType,
-    resolver: SemanticTypeResolver
+    resolver: SemanticTypeResolverInstance
 ): StageResult<ParsedResponseField> {
-    switch (resolved.kind) {
-        case 'primitive':
-            return new ConversionResult({
-                fields: [{
-                    name: fieldName,
-                    kind: 'primitive',
-                    type: resolved.primitiveKind,
-                    nullable: false,
-                    optional: false,
-                    fields: Object.freeze([]),
-                    itemType: undefined
-                }]
-            });
-
-        case 'reference':
-            return new ConversionResult({
-                fields: [{
-                    name: fieldName,
-                    kind: 'primitive',
-                    type: resolved.name,
-                    nullable: false,
-                    optional: false,
-                    fields: Object.freeze([]),
-                    itemType: undefined
-                }]
-            });
-
-        case 'nullable': {
-            const innerResult = convertResolvedTypeToResponseField(fieldName, resolved.innerType, resolver);
-            const itemType = innerResult.fields[0];
-            switch (itemType) {
-                case undefined:
-                    return new ConversionResult();
-                default:
-                    return new ConversionResult({
-                        fields: [{
-                            ...itemType,
-                            nullable: true
-                        }],
-                        warnings: innerResult.warnings
-                    });
-            }
-        }
-
-        case 'optional': {
-            const innerResult = convertResolvedTypeToResponseField(fieldName, resolved.innerType, resolver);
-            const itemType = innerResult.fields[0];
-            switch (itemType) {
-                case undefined:
-                    return new ConversionResult();
-                default:
-                    return new ConversionResult({
-                        fields: [{
-                            ...itemType,
-                            optional: true
-                        }],
-                        warnings: innerResult.warnings
-                    });
-            }
-        }
-
-        case 'collection': {
-            const innerResult = convertResolvedTypeToResponseField('item', resolved.elementType, resolver);
-            return new ConversionResult({
-                fields: [{
-                    name: fieldName,
-                    kind: 'array',
-                    type: 'array',
-                    nullable: false,
-                    optional: false,
-                    fields: Object.freeze([]),
-                    itemType: innerResult.fields[0]
-                }],
-                warnings: innerResult.warnings
-            });
-        }
-
-        case 'object': {
-            const conversionResults = resolved.fields.map(({ name: propName, type: propType, presence }) => {
-                const fieldResult = convertResolvedTypeToResponseField(propName.value.value, propType, resolver);
-                if (presence.kind === 'required') {
-                    return fieldResult;
-                }
-                const item = fieldResult.fields[0];
-                if (!item) {
-                    return fieldResult;
-                }
-                return new ConversionResult({
-                    fields: [{ ...item, optional: true }],
-                    warnings: fieldResult.warnings
-                });
-            });
-            const { fields: nestedFields, warnings: nestedWarnings } = partitionResults(conversionResults);
-
-            return new ConversionResult({
-                fields: [{
-                    name: fieldName,
-                    kind: 'object',
-                    type: 'object',
-                    nullable: false,
-                    optional: false,
-                    fields: nestedFields,
-                    itemType: undefined
-                }],
-                warnings: nestedWarnings
-            });
-        }
-
-        case 'unknown':
-        default:
-            return new ConversionResult({
-                warnings: [`Skipped field '${fieldName}': ${(resolved as ResolvedUnknownType).diagnosticMessage ?? 'unsupported SemanticType'}`]
-            });
-    }
+    const operation = resolveResponseFieldOperation(resolved.kind);
+    return RESPONSE_FIELD_CONVERTERS[operation](fieldName, resolved, resolver);
 }
+
+type ResponseFieldConverterRegistry = {
+    readonly [K in ResponseFieldOperation]: (
+        fieldName: string,
+        resolved: ResolvedSemanticType,
+        resolver: SemanticTypeResolverInstance,
+    ) => StageResult<ParsedResponseField>;
+};
+
+const RESPONSE_FIELD_CONVERTERS: ResponseFieldConverterRegistry = Object.freeze({
+    primitive: (fieldName, resolved) => createConversionResult({
+        fields: [{ name: fieldName, kind: 'primitive', type: (resolved as Extract<ResolvedSemanticType, { kind: 'primitive' }>).primitiveKind, nullable: false, optional: false, fields: Object.freeze([]),  }],
+    }),
+    reference: (fieldName, resolved) => createConversionResult({
+        fields: [{ name: fieldName, kind: 'primitive', type: (resolved as Extract<ResolvedSemanticType, { kind: 'reference' }>).name, nullable: false, optional: false, fields: Object.freeze([]),  }],
+    }),
+    nullable: (fieldName, resolved, resolver) => {
+        const innerResult = convertResolvedTypeToResponseField(fieldName, (resolved as Extract<ResolvedSemanticType, { kind: 'nullable' | 'optional' }>).innerType, resolver);
+        return relationOptionFold(
+            relationFirst(innerResult.fields, () => true),
+            () => createConversionResult(),
+            itemType => createConversionResult({ fields: [{ ...itemType, nullable: true }], warnings: innerResult.warnings }),
+        );
+    },
+    optional: (fieldName, resolved, resolver) => {
+        const innerResult = convertResolvedTypeToResponseField(fieldName, (resolved as Extract<ResolvedSemanticType, { kind: 'nullable' | 'optional' }>).innerType, resolver);
+        return relationOptionFold(
+            relationFirst(innerResult.fields, () => true),
+            () => createConversionResult(),
+            itemType => createConversionResult({ fields: [{ ...itemType, optional: true }], warnings: innerResult.warnings }),
+        );
+    },
+    collection: (fieldName, resolved, resolver) => {
+        const innerResult = convertResolvedTypeToResponseField('item', (resolved as Extract<ResolvedSemanticType, { kind: 'collection' }>).elementType, resolver);
+        return createConversionResult({
+            fields: [{ name: fieldName, kind: 'array', type: 'array', nullable: false, optional: false, fields: Object.freeze([]), ...relationOptionFold(
+                relationFirst(innerResult.fields, () => true),
+                () => ({}),
+                item => ({ itemType: item }),
+            ) }],
+            warnings: innerResult.warnings,
+        });
+    },
+    object: (fieldName, resolved, resolver) => {
+        const conversionResults = relationProject((resolved as Extract<ResolvedSemanticType, { kind: 'object' }>).fields, ({ name: propName, type: propType, presence }) => {
+            const fieldResult = convertResolvedTypeToResponseField(propName.value.value, propType, resolver);
+            return relationOptionFold(
+                relationFirst(fieldResult.fields, () => true),
+                () => fieldResult,
+                item => relationResolve(
+                    relationEqual(presence.kind, 'required'),
+                    () => fieldResult,
+                    () => createConversionResult({ fields: [{ ...item, optional: true }], warnings: fieldResult.warnings }),
+                ),
+            );
+        });
+        const { fields: nestedFields, warnings: nestedWarnings } = partitionResults(conversionResults);
+        return createConversionResult({
+            fields: [{ name: fieldName, kind: 'object', type: 'object', nullable: false, optional: false, fields: nestedFields,  }],
+            warnings: nestedWarnings,
+        });
+    },
+    unknown: (fieldName, resolved) => createConversionResult({
+        warnings: [`Skipped field '${fieldName}': ${(resolved as Extract<ResolvedSemanticType, { kind: 'unknown' }>).diagnosticMessage}`],
+    }),
+    unsupported: (fieldName, resolved) => createConversionResult({
+        warnings: [`Skipped field '${fieldName}': unsupported SemanticType kind '${resolved.kind}'`],
+    }),
+
+});

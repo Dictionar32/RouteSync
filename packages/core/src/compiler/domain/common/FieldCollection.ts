@@ -38,10 +38,12 @@ export function createFieldCollection<TField>(
  * @param transformFn - Mapping function for each field element
  * @returns Transformed FieldCollection<TTarget>
  */
+import { relationProject } from '../../../semantic/kernel/relationalSequence';
+
 export function mapFieldCollection<TSource, TTarget>(
     collection: FieldCollection<TSource>,
     transformFn: (item: TSource, index: number) => TTarget
 ): FieldCollection<TTarget> {
-    const transformedFields = collection.fields.map(transformFn);
+    const transformedFields = relationProject(collection.fields, transformFn);
     return { fields: transformedFields };
 }

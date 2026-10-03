@@ -16,9 +16,12 @@ import { RouteHandlerKind } from "../../../../types/route";
 import type { ControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
 import type { ControllerRequestBinding } from './controllerActionContract';
 import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
+import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { RuntimeReturnContract } from './controllerActionContract';
 import type { ControllerReturnSemantic } from '../../../../types/upstream/controller';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 
 export type ControllerActionInfo = ScannedControllerActionParams;
 
@@ -39,6 +42,8 @@ export interface ScannedControllerActionParamsContract {
     readonly schema: RouteSchemaPayload;
     readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
+    /** Upstream parameter facts retained so route binding can be resolved semantically. */
+    readonly parameters: readonly ControllerParameterAst[];
 }
 
 export type ScannedControllerActionParams = ScannedControllerActionParamsContract;
@@ -60,6 +65,7 @@ export interface ControllerActionCreateOptionsContract {
     readonly schema: RouteSchemaPayload;
     readonly dataflow: ControllerDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
+    readonly parameters: readonly ControllerParameterAst[];
 }
 
 
@@ -69,8 +75,8 @@ export function buildRouteHandler(controllerName: ControllerName, actionName: Ac
     const actionNameValue = actionName.value.value;
     const target = `${controllerNameValue}@${actionNameValue}`;
     return Object.freeze(
-        actionNameValue === '__invoke'
-            ? { kind: RouteHandlerKind.InvokableController, controllerName: controllerNameValue, actionName: '__invoke', target: SemanticValueFactory.className(target) }
-            : { kind: RouteHandlerKind.ControllerAction, controllerName: controllerNameValue, actionName: actionNameValue, target: SemanticValueFactory.className(target) }
+        relationGate(relationEqual(actionNameValue, '__invoke'),
+            () => ({ kind: RouteHandlerKind.InvokableController, controllerName: SemanticValueFactory.controllerName(controllerNameValue), actionName: '__invoke', target: SemanticValueFactory.className(target) }),
+            () => ({ kind: RouteHandlerKind.ControllerAction, controllerName: SemanticValueFactory.controllerName(controllerNameValue), actionName: actionNameValue, target: SemanticValueFactory.className(target) }))
     );
 }

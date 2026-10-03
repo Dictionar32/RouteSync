@@ -1,0 +1,19 @@
+{
+  "phase": 628,
+  "policy": "preserve-unused-file-paths-but-empty-implementation",
+  "deleted_files": 0,
+  "emptied_files": 10,
+  "emptied_files_zero_bytes": true,
+  "files": [
+    "packages/cli/src/parsers/OpenApiParser.ts",
+    "packages/cli/src/parsers/PHPRouteParser.ts",
+    "packages/cli/src/parsers/php/ast/offsetCatamorphism.ts",
+    "packages/core/src/compiler/domain/common/ArtifactContract.ts",
+    "packages/core/src/compiler/ir/StructuredContractIRBuilder.ts",
+    "packages/core/src/compiler/ir/StructuredResponseIRBuilder.ts",
+    "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+    "packages/core/src/types/semantic/parsedAstTypes.ts",
+    "packages/core/src/types/upstream/routeBindingResolution.ts",
+    "packages/core/src/types/upstream/routeMissing.ts"
+  ]
+}

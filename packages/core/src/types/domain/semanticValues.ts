@@ -209,3 +209,7 @@ export const SemanticValueFactory = Object.freeze({
   phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value: stringValue(value) }); },
   literalValue(value: BoundLiteralValue): BoundLiteralValue { return Object.freeze(value); },
 });
+
+// Construction helpers are defined in the upstream nominal vocabulary; re-export them here
+// for legacy domain consumers without introducing a second semantic identity implementation.
+export { createActionName, createControllerName, createSourceFile } from '../upstream/names';

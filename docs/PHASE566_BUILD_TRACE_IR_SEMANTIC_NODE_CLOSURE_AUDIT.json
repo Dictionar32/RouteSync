@@ -1,0 +1,12 @@
+{
+  "phase": 566,
+  "frontier": "build-trace-ir-semantic-node-closure",
+  "repairs": [
+    "balanced buildIRNode semantic visitor",
+    "relation-backed SemanticNode discriminant matcher",
+    "preserve relationProject for canonical field projection"
+  ],
+  "transpileDiagnosticsClean": true,
+  "fullBuildExecuted": false,
+  "fullBuildReason": "extracted checkpoint has no node_modules"
+}

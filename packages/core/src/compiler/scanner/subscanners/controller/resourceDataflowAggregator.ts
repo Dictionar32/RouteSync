@@ -1,7 +1,11 @@
-/** Aggregates explicit controller resource bindings without collapsing them to strings. */
+/** Aggregates explicit controller resource bindings as relation evidence. */
 import type { ControllerActionInfo } from '../../descriptors/requestDescriptors';
 import type { ControllerResourceBinding } from './controllerDataflowContract';
 import type { ResourceName } from '../../../../types/domain/semanticValues';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirst, relationExpand, relationProject } from '../../../../semantic/kernel/relationalSequence';
+import type { RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import type { RelationIndex } from '../../../../semantic/kernel/relationMembership';
 
 export interface ControllerResourceDataflow {
     readonly bindings: readonly ControllerResourceBinding[];
@@ -10,18 +14,22 @@ export interface ControllerResourceDataflow {
 export function findControllerResourceBinding(
     dataflow: ControllerResourceDataflow,
     resourceName: ResourceName
-): ControllerResourceBinding | undefined {
-    return dataflow.bindings.find(binding => binding.resourceName.value.value === resourceName.value.value);
+): RelationOption<ControllerResourceBinding> {
+    return relationFirst(
+        dataflow.bindings,
+        binding => relationEqual(binding.resourceName.value.value, resourceName.value.value),
+    );
 }
 
 export function extractResourceDataflow(
-    controllerMap: ReadonlyMap<string, ReadonlyMap<string, ControllerActionInfo>>
+    controllerIndex: RelationIndex<string, RelationIndex<string, ControllerActionInfo>>
 ): ControllerResourceDataflow {
-    const bindings: ControllerResourceBinding[] = [];
-    for (const actionMap of controllerMap.values()) {
-        for (const action of actionMap.values()) {
-            bindings.push(...action.dataflow.resourceBindings);
-        }
-    }
+    const bindings = relationExpand(
+        relationProject(controllerIndex, ([, actions]) => actions),
+        actionIndex => relationExpand(
+            relationProject(actionIndex, ([, action]) => action),
+            action => action.dataflow.resourceBindings,
+        ),
+    );
     return Object.freeze({ bindings: Object.freeze(bindings) });
 }

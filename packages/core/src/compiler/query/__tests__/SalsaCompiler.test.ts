@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
     createQueryKey,
-    QueryCycleError,
-    SalsaCompiler,
+    createQueryCycleError,
+    createSalsaCompiler,
 } from '../SalsaCompiler';
-import { SymbolDatabase } from '../../analysis';
+import { createSymbolDatabase } from '../../analysis';
 
 describe('SalsaCompiler typed query boundary', () => {
     it('returns the concrete query output type from a cache hit', () => {
-        const compiler = new SalsaCompiler(new SymbolDatabase());
+        const compiler = createSalsaCompiler(createSymbolDatabase());
         const key = createQueryKey<{ value: number }>(
             'test',
             'item',
@@ -43,7 +43,7 @@ describe('SalsaCompiler typed query boundary', () => {
     });
 
     it('recomputes after a new revision', () => {
-        const compiler = new SalsaCompiler(new SymbolDatabase());
+        const compiler = createSalsaCompiler(createSymbolDatabase());
         const key = createQueryKey<number>(
             'revisioned',
             'item',
@@ -78,7 +78,7 @@ describe('SalsaCompiler typed query boundary', () => {
     });
 
     it('detects recursive query execution', () => {
-        const compiler = new SalsaCompiler(new SymbolDatabase());
+        const compiler = createSalsaCompiler(createSymbolDatabase());
         const key = createQueryKey<number>('cycle', 'node', 'default');
 
         expect(() =>
@@ -93,6 +93,6 @@ describe('SalsaCompiler typed query boundary', () => {
                 undefined,
                 1,
             ),
-        ).toThrow(QueryCycleError);
+        ).toThrow(/Query cycle detected/);
     });
 });

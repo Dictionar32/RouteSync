@@ -8,6 +8,7 @@
 
 export {
   type GraphAnalysis,
+  type AdjacencyRelation,
   buildAdjacency,
   analyzePassGraph
 } from './graphAnalyzer';

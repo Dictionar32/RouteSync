@@ -3,8 +3,8 @@
  *
  * Comprehensive Level 7 SSOT Regression Suite for Incremental Scanner Models.
  * Tests:
- * 1. Nominal Branded Atoms creation & normalization (ScannedRouteMethod, ScannedRoutePath, etc.)
- * 2. ScannedRouteDescriptor Complete Contract (0 ?, 0 null, entry tuples, backward-compat facade)
+ * 1. Nominal Branded Atoms creation & normalization (RouteSemanticFlowMethod, RouteSemanticFlowPath, etc.)
+ * 2. RouteSemanticFlowFactory Complete Contract (0 ?, 0 null, entry tuples, backward-compat facade)
  * 3. ScannedResourceDescriptor Complete Contract & semantic factories (.create(), .empty(), .fromRaw())
  * 4. ScannedManifestDescriptor Complete Contract & composition
  * 5. Catamorphic matchRouteResponsePayload ADT eliminator (0 if, 0 switch)
@@ -16,7 +16,7 @@ import {
   NominalAtomFactory,
   matchRouteResponsePayload,
   type RouteResponsePayloadContract,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedResourceDescriptor,
   ScannedManifestDescriptor,
   calculateRouteHash,
@@ -50,9 +50,9 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
     });
   });
 
-  describe('ScannedRouteDescriptor & Complete Contracts', () => {
+  describe('RouteSemanticFlowFactory & Complete Contracts', () => {
     it('constructs a complete route contract with entry tuples and facade accessors', () => {
-      const route = ScannedRouteDescriptor.create({
+      const route = RouteSemanticFlowFactory.create({
         method: 'GET',
         path: '/api/users',
         auth: true,
@@ -82,13 +82,13 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
     });
 
     it('creates empty routes and parses raw route objects', () => {
-      const emptyRoute = ScannedRouteDescriptor.empty();
+      const emptyRoute = RouteSemanticFlowFactory.empty();
       expect(emptyRoute.method).toBe('GET');
       expect(emptyRoute.path).toBe('/');
       expect(emptyRoute.schemaEntries).toEqual([]);
       expect(emptyRoute.assignmentEntries).toEqual([]);
 
-      const rawRoute = ScannedRouteDescriptor.fromRaw({
+      const rawRoute = RouteSemanticFlowFactory.fromRaw({
         method: 'delete',
         path: 'orders/1'
       });
@@ -142,7 +142,7 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
       });
 
       expect(manifest.routes).toHaveLength(1);
-      expect(manifest.routes[0]).toBeInstanceOf(ScannedRouteDescriptor);
+      expect(manifest.routes[0]).toBeInstanceOf(RouteSemanticFlowFactory);
       expect(manifest.routes[0].path).toBe('/health');
 
       expect(manifest.models).toHaveLength(1);
@@ -184,10 +184,10 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
   });
 
   describe('Integration with Route Hasher & Incremental Pipeline', () => {
-    it('calculates deterministic hashes from ScannedRouteDescriptor instances', () => {
-      const route1 = ScannedRouteDescriptor.create({ method: 'GET', path: '/api/v1/posts', auth: false });
-      const route2 = ScannedRouteDescriptor.create({ method: 'GET', path: '/api/v1/posts', auth: false });
-      const route3 = ScannedRouteDescriptor.create({ method: 'POST', path: '/api/v1/posts', auth: true });
+    it('calculates deterministic hashes from RouteSemanticFlowFactory instances', () => {
+      const route1 = RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/v1/posts', auth: false });
+      const route2 = RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/v1/posts', auth: false });
+      const route3 = RouteSemanticFlowFactory.create({ method: 'POST', path: '/api/v1/posts', auth: true });
 
       const hash1 = calculateRouteHash(route1);
       const hash2 = calculateRouteHash(route2);
@@ -199,7 +199,7 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
     });
 
     it('seamlessly works with resolveManifestIncrementally', () => {
-      const route = ScannedRouteDescriptor.create({
+      const route = RouteSemanticFlowFactory.create({
         method: 'GET',
         path: '/items',
         auth: false,

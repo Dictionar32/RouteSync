@@ -7,18 +7,18 @@
  */
 
 import type { IRNodeRegistry } from '@routesync/core';
-import type { ScannedRouteContract, ScannedRouteLegacy } from './scannedRouteTypes';
+import type { RouteSemanticFlowContract, RouteSemanticFlowLegacy } from './scannedRouteTypes';
 import type { ScannedModelContract, ScannedModelLegacy } from './scannedModelTypes';
 import type { ScannedResourceContract, ScannedResourceLegacy } from './scannedResourceTypes';
 
 export interface ScannedManifestContract {
-  readonly routes: readonly ScannedRouteContract[];
+  readonly routes: readonly RouteSemanticFlowContract[];
   readonly models: readonly ScannedModelContract[];
   readonly resources: readonly ScannedResourceContract[];
 }
 
 export interface ScannedManifestOptions {
-  readonly routes?: readonly (ScannedRouteContract | ScannedRouteLegacy)[];
+  readonly routes?: readonly (RouteSemanticFlowContract | RouteSemanticFlowLegacy)[];
   readonly models?: readonly (ScannedModelContract | ScannedModelLegacy)[];
   readonly resources?: readonly (ScannedResourceContract | ScannedResourceLegacy)[];
 }

@@ -20,7 +20,7 @@ import {
 import type { FileValidationConstraint, FileValidationConstraints } from '../../../types/domain/request';
 import type { MappedField } from './types';
 
-const stringType = (): SemanticType => new PrimitiveType(PrimitiveKind.STRING);
+const stringType = (): SemanticType => primitiveType(PrimitiveKind.STRING);
 
 const constraint = {
   image: (): FileValidationConstraint => Object.freeze({
@@ -78,22 +78,22 @@ const EFFECTS: ValidationRuleVisitor<RuleEffect> = {
   required_unless: emptyEffect,
   nullable: () => ({ ...emptyEffect(), nullable: true }),
   optional: emptyEffect,
-  string: () => emptyEffect(new PrimitiveType(PrimitiveKind.STRING)),
-  number: () => emptyEffect(new PrimitiveType(PrimitiveKind.NUMBER)),
-  boolean: () => emptyEffect(new PrimitiveType(PrimitiveKind.BOOLEAN)),
-  array: rule => ({ ...emptyEffect(new ReadonlyCollectionType(CollectionKind.ARRAY, ARRAY_ELEMENT_TYPES[rule.elementType.kind](rule.elementType))) }),
+  string: () => emptyEffect(primitiveType(PrimitiveKind.STRING)),
+  number: () => emptyEffect(primitiveType(PrimitiveKind.NUMBER)),
+  boolean: () => emptyEffect(primitiveType(PrimitiveKind.BOOLEAN)),
+  array: rule => ({ ...emptyEffect(ReadonlyCollectionType(CollectionKind.ARRAY, ARRAY_ELEMENT_TYPES[rule.elementType.kind](rule.elementType))) }),
   email: emptyEffect,
   url: emptyEffect,
   uuid: emptyEffect,
-  date: () => emptyEffect(new PrimitiveType(PrimitiveKind.DATETIME)),
+  date: () => emptyEffect(primitiveType(PrimitiveKind.DATETIME)),
   min: emptyEffect,
   max: rule => ({ ...emptyEffect(), maxBytes: [rule.value.value * 1024] }),
   between: emptyEffect,
   in: emptyEffect,
   exists: emptyEffect,
   unique: emptyEffect,
-  file: () => emptyEffect(new PrimitiveType(PrimitiveKind.FILE)),
-  image: () => ({ ...emptyEffect(new PrimitiveType(PrimitiveKind.FILE)), fileConstraints: [constraint.image()] }),
+  file: () => emptyEffect(primitiveType(PrimitiveKind.FILE)),
+  image: () => ({ ...emptyEffect(primitiveType(PrimitiveKind.FILE)), fileConstraints: [constraint.image()] }),
   custom: emptyEffect
 };
 
@@ -105,7 +105,7 @@ const PRIMITIVE_MAX_CONSTRAINTS: { readonly [K in PrimitiveKind]: (values: reado
   [PrimitiveKind.BOOLEAN]: () => [],
   [PrimitiveKind.DATETIME]: () => [],
   [PrimitiveKind.FILE]: FILE_MAX_CONSTRAINTS,
-  [PrimitiveKind.UNKNOWN]: () => [],
+  [PrimitiveKind.INDETERMINATE]: () => [],
   [PrimitiveKind.UNSPECIFIED]: () => []
 });
 

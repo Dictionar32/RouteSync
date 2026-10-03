@@ -1,77 +1,86 @@
 /**
- * structuralFieldMatcher.ts
+ * Declarative structural field matching.
  *
- * Weighted Structural Field Matching (Tier 4) for resolving Eloquent models from Resource fields.
- *
- * @module compiler/scanner/resolvers/resource/structuralFieldMatcher
+ * Candidate scoring is represented as a relation fold. The scanner observes
+ * field evidence; the resolver derives a model witness from that evidence.
  */
-
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { matchLookup } from "../../../../types/upstream/collections";
 import { createPropertyName } from "../../../../types/upstream/names";
+import { present, absent, type Presence } from "../../../../types/upstream/presence";
+import { relationEqual, relationAny } from "../../../../semantic/kernel/semanticRelations";
+import { relationResolve, relationFold } from "../../../../semantic/kernel/relationalSequence";
+import { relationContains } from "../../../../semantic/kernel/relationMembership";
 
-const GENERIC_COLUMNS = new Set([
-    'id',
-    'created_at',
-    'updated_at',
-    'deleted_at',
-    'status',
-    'name',
-    'type',
-    'description',
-    'uuid',
-    'is_active'
+const GENERIC_COLUMNS = Object.freeze([
+    'id', 'created_at', 'updated_at', 'deleted_at', 'status', 'name',
+    'type', 'description', 'uuid', 'is_active'
 ]);
 
-/**
- * Matches field names against Eloquent models using weighted scoring.
- */
+type Candidate = Readonly<{
+    readonly model: OriginModelSymbol;
+    readonly score: number;
+    readonly matchedCount: number;
+    readonly distinctiveScore: number;
+}>;
+
+type State = Readonly<{
+    readonly best: Presence<Candidate>;
+    readonly runnerUp: number;
+}>;
+
+const emptyState = (): State => ({ best: absent(), runnerUp: 0 });
+
 export function matchStructuralFields(
     fieldNames: readonly string[],
-    modelSymbolTable: ModelSymbolTable
-): OriginModelSymbol | undefined {
-    let bestModel: OriginModelSymbol | undefined;
-    let highestScore = 0;
-    let runnerUpScore = 0;
-
-    for (const model of modelSymbolTable.all()) {
-        let score = 0;
-        let matchedCount = 0;
-        let distinctiveScore = 0;
-
-        for (const field of fieldNames) {
+    modelSymbolTable: ModelSymbolTable,
+): Presence<OriginModelSymbol> {
+    const state = relationFold(modelSymbolTable.all(), emptyState(), (current, model) => {
+        const candidate = relationFold(fieldNames, { model, score: 0, matchedCount: 0, distinctiveScore: 0 }, (score, field) => {
             const lowerField = field.toLowerCase();
-            const col = matchLookup(model.column(createPropertyName(field)), {
+            const column = matchLookup(model.column(createPropertyName(field)), {
                 missing: () => model.column(createPropertyName(lowerField)),
-                found: lookup => lookup
+                found: lookup => lookup,
             });
-            if (col.kind === 'found') {
-                matchedCount++;
-                if (GENERIC_COLUMNS.has(lowerField)) {
-                    score += 0.1;
-                } else {
-                    score += 1.0;
-                    distinctiveScore += 1.0;
-                }
-            }
-        }
+            return relationResolve(
+                relationEqual(column.kind, 'found'),
+                () => relationResolve(
+                    relationContains(GENERIC_COLUMNS, lowerField),
+                    () => ({ model, score: score.score + 0.1, matchedCount: score.matchedCount + 1, distinctiveScore: score.distinctiveScore }),
+                    () => ({ model, score: score.score + 1.0, matchedCount: score.matchedCount + 1, distinctiveScore: score.distinctiveScore + 1.0 }),
+                ),
+                () => score,
+            );
+        });
+        const coverage = relationResolve(
+            relationEqual(fieldNames.length, 0),
+            () => 0,
+            () => candidate.matchedCount / fieldNames.length,
+        );
+        const eligible = relationAll([candidate.matchedCount >= 2, candidate.distinctiveScore >= 1.0, coverage >= 0.4]);
+        return relationResolve(
+            eligible,
+            () => relationResolve(
+                relationEqual(current.best.kind, 'absent'),
+                () => ({ best: present(candidate), runnerUp: current.runnerUp }),
+                () => relationResolve(
+                    candidate.score > current.best.value.score,
+                    () => ({ best: present(candidate), runnerUp: current.best.value.score }),
+                    () => ({ best: current.best, runnerUp: relationResolve(candidate.score > current.runnerUp, () => candidate.score, () => current.runnerUp) }),
+                ),
+            ),
+            () => current,
+        );
+    }, emptyState());
 
-        const coverage = fieldNames.length > 0 ? matchedCount / fieldNames.length : 0;
-        if (matchedCount >= 2 && distinctiveScore >= 1.0 && coverage >= 0.4) {
-            if (score > highestScore) {
-                runnerUpScore = highestScore;
-                highestScore = score;
-                bestModel = model;
-            } else if (score > runnerUpScore) {
-                runnerUpScore = score;
-            }
-        }
-    }
-
-    if (bestModel && (highestScore - runnerUpScore >= 0.5 || runnerUpScore === 0)) {
-        return bestModel;
-    }
-
-    return undefined;
+    return relationResolve(
+        relationEqual(state.best.kind, 'absent'),
+        () => absent(),
+        () => relationResolve(
+            relationAny([state.best.value.score - state.runnerUp >= 0.5, relationEqual(state.runnerUp, 0)]),
+            () => present(state.best.value.model),
+            () => absent(),
+        ),
+    );
 }

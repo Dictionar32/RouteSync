@@ -2,6 +2,9 @@ import type { ValidationRuleNode } from "./validationRules";
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import type { RequestFieldPresence } from "./requestFieldPresence";
 import type { PropertyName } from "../upstream/names";
+import { createPropertyName } from "../upstream/names";
+import { toCamelCase } from "../../utils/resource-naming";
+import { relationGate } from "../../semantic/kernel/relationalSequence";
 
 export interface ScalarValidationFieldNode {
   readonly kind: 'scalar';
@@ -60,6 +63,11 @@ export const VALIDATION_FIELD_REGISTRY: ValidationFieldRegistry = Object.freeze(
   [ValidationFieldKind.Object]: { kind: ValidationFieldKind.Object, isContainer: true, allowsChildren: true }
 });
 
+
+export const createScalarValidationFieldNode = (fieldName: PropertyName, semanticType: SemanticType, presence: RequestFieldPresence, rules: readonly ValidationRuleNode[] = [], propertyName?: PropertyName): ScalarValidationFieldNode => Object.freeze({ kind: ValidationFieldKind.Scalar, fieldName, propertyName: relationGate(typeof propertyName === 'object', () => propertyName as PropertyName, () => createPropertyName(toCamelCase(fieldName.value.value))), semanticType, presence, rules: Object.freeze([...rules]) });
+export const createObjectValidationFieldNode = (fieldName: PropertyName, semanticType: SemanticType, presence: RequestFieldPresence, fields: readonly ValidationFieldNode[] = [], propertyName?: PropertyName): ObjectValidationFieldNode => Object.freeze({ kind: ValidationFieldKind.Object, fieldName, propertyName: relationGate(typeof propertyName === 'object', () => propertyName as PropertyName, () => createPropertyName(toCamelCase(fieldName.value.value))), semanticType, presence, fields: Object.freeze([...fields]) });
+export const createArrayValidationFieldNode = (fieldName: PropertyName, semanticType: SemanticType, presence: RequestFieldPresence, element: ValidationFieldNode, rules: readonly ValidationRuleNode[] = [], propertyName?: PropertyName): ArrayValidationFieldNode => Object.freeze({ kind: ValidationFieldKind.Array, fieldName, propertyName: relationGate(typeof propertyName === 'object', () => propertyName as PropertyName, () => createPropertyName(toCamelCase(fieldName.value.value))), semanticType, presence, rules: Object.freeze([...rules]), element });
+
 export interface ValidationFieldVisitor<R> {
   readonly scalar: (node: ScalarValidationFieldNode) => R;
   readonly array: (node: ArrayValidationFieldNode) => R;
@@ -77,9 +85,10 @@ export interface ValidationFieldFolder<R> {
 }
 
 export function foldValidationField<R>(node: ValidationFieldNode, folder: ValidationFieldFolder<R>): R {
-  switch (node.kind) {
-    case 'scalar': return folder.scalar(node);
-    case 'array': return folder.array(node, foldValidationField(node.element, folder));
-    case 'object': return folder.object(node, node.fields.map(child => foldValidationField(child, folder)));
-  }
+  const folded = {
+    scalar: () => folder.scalar(node as ScalarValidationFieldNode),
+    array: () => folder.array(node as ArrayValidationFieldNode, foldValidationField((node as ArrayValidationFieldNode).element, folder)),
+    object: () => folder.object(node as ObjectValidationFieldNode, (node as ObjectValidationFieldNode).fields.map(child => foldValidationField(child, folder)))
+  };
+  return folded[node.kind]();
 }

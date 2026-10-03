@@ -1,42 +1,18 @@
-/**
- * dependencyGraph.ts
- *
- * DependencyGraph data structure and builder.
- *
- * @module core/compiler/utils/graph
- */
+/** Canonical immutable dependency relation. */
+import { relationFixedPoint, relationProject, relationSelect, relationUnique, relationAll, relationEqual } from '../../../semantic/kernel/relationalSequence';
 
-import { FrozenSet } from './frozenSet';
-
+export type DependencyEdge = readonly [string, string];
 export interface DependencyGraph {
-  readonly forward: ReadonlyMap<string, ReadonlySet<string>>;
-  readonly reverse: ReadonlyMap<string, ReadonlySet<string>>;
+  readonly edges: readonly DependencyEdge[];
 }
 
-export class DependencyGraphBuilder {
-  private readonly forward = new Map<string, Set<string>>();
-  private readonly reverse = new Map<string, Set<string>>();
+export const createDependencyGraph = (edges: readonly DependencyEdge[] = []): DependencyGraph => Object.freeze({ edges: Object.freeze(relationUnique(edges)) });
+export const addDependency = (graph: DependencyGraph, from: string, to: string): DependencyGraph => createDependencyGraph([...graph.edges, [from, to]]);
+export const dependencyForward = (graph: DependencyGraph, node: string): readonly string[] => relationUnique(relationProject(relationSelect(graph.edges, edge => relationEqual(edge[0], node)), edge => edge[1]));
+export const dependencyReverse = (graph: DependencyGraph, node: string): readonly string[] => relationUnique(relationProject(relationSelect(graph.edges, edge => relationEqual(edge[1], node)), edge => edge[0]));
+export const dependencyNodes = (graph: DependencyGraph): readonly string[] => relationUnique(relationProject(graph.edges, edge => edge[0]).concat(relationProject(graph.edges, edge => edge[1])));
 
-  public addDependency(from: string, to: string): this {
-    const forwardDeps = this.forward.get(from) || new Set();
-    forwardDeps.add(to);
-    this.forward.set(from, forwardDeps);
-
-    const reverseDeps = this.reverse.get(to) || new Set();
-    reverseDeps.add(from);
-    this.reverse.set(to, reverseDeps);
-    return this;
-  }
-
-  public build(): DependencyGraph {
-    const finalForward = new Map<string, FrozenSet<string>>();
-    for (const [k, v] of this.forward.entries()) finalForward.set(k, new FrozenSet(v));
-
-    const finalReverse = new Map<string, FrozenSet<string>>();
-    for (const [k, v] of this.reverse.entries()) finalReverse.set(k, new FrozenSet(v));
-
-    const result = { forward: finalForward, reverse: finalReverse };
-    Object.freeze(result);
-    return result;
-  }
-}
+export const dependencyClosure = (graph: DependencyGraph, seed: readonly string[]): readonly string[] => {
+  const step = (current: readonly string[]): readonly string[] => relationUnique([...current, ...relationProject(relationProject(current, node => dependencyForward(graph, node)), value => value)]);
+  return relationFixedPoint(Object.freeze(relationUnique(seed)), step, (left, right) => relationAll([relationEqual(left.length, right.length), relationAll(relationProject(left, (value, index) => relationEqual(value, right[index])))])).value;
+};

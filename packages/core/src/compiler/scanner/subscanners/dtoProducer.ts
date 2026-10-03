@@ -18,7 +18,7 @@ export interface DtoProducer {
 }
 
 const sequence = <T>(items: readonly T[]): Sequence<T> =>
-  items.reduceRight<Sequence<T>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
+  relationFoldRight(items, { kind: 'empty' } as Sequence<T>, (head, tail) => ({ kind: 'cons', head, tail }));
 
 const sourceAtLine = (source: SourceSpan, line: number): SourceSpan => ({
   kind: 'source_span',
@@ -27,31 +27,39 @@ const sourceAtLine = (source: SourceSpan, line: number): SourceSpan => ({
   end: { kind: 'number_value', value: line },
 });
 
-const baseTypeExpression = (type: PhpPropertyTypeAst): TypeExpression => {
-  switch (type.kind) {
-    case 'primitive':
-      return {
-        kind: 'primitive',
-        value: type.name === 'bool'
-          ? { kind: 'boolean' }
-          : type.name === 'string'
-            ? { kind: 'string' }
-            : { kind: 'number' },
-      };
-    case 'mixed':
-      return { kind: 'mixed' };
-    case 'named':
-      return { kind: 'reference', value: { kind: 'class', name: createClassName(type.name) } };
-  }
-};
+const primitiveTypeNames: readonly (readonly [string, TypeExpression])[] = Object.freeze([
+  ['bool', { kind: 'primitive', value: { kind: 'boolean' } }],
+  ['string', { kind: 'primitive', value: { kind: 'string' } }],
+  ['int', { kind: 'primitive', value: { kind: 'number' } }],
+  ['float', { kind: 'primitive', value: { kind: 'number' } }],
+]);
+
+const baseTypeExpression = (type: PhpPropertyTypeAst): TypeExpression =>
+  relationGate(relationEqual(type.kind, 'primitive'),
+    () => {
+      const primitive = type as Extract<PhpPropertyTypeAst, { readonly kind: 'primitive' }>;
+      return relationOptionFold(
+        relationFirst(primitiveTypeNames, entry => relationEqual(entry[0], primitive.name)),
+        () => ({ kind: 'primitive', value: { kind: 'number' } }),
+        entry => entry[1],
+      );
+    },
+    () => relationGate(relationEqual(type.kind, 'mixed'),
+      () => ({ kind: 'mixed' }),
+      () => {
+        const named = type as Extract<PhpPropertyTypeAst, { readonly kind: 'named' }>;
+        return { kind: 'reference', value: { kind: 'class', name: createClassName(named.name) } };
+      }));
 
 const typeExpression = (type: PhpPropertyTypeAst): TypeExpression =>
-  type.nullable ? { kind: 'nullable', value: baseTypeExpression(type) } : baseTypeExpression(type);
+  relationGate(relationEqual(type.nullable, true),
+    () => ({ kind: 'nullable', value: baseTypeExpression(type) }),
+    () => baseTypeExpression(type));
 
 const declared = (type: PhpPropertyTypeAst): DeclaredType => ({
   kind: 'declared_type',
   value: typeExpression(type),
-  nullability: type.nullable ? { kind: 'nullable' } : { kind: 'non_nullable' },
+  nullability: relationGate(relationEqual(type.nullable, true), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })),
 });
 
 const property = (input: DtoProducerInput, item: ResponseDtoPropertyAst): DtoProperty => {
@@ -80,7 +88,7 @@ export const dtoProducer: DtoProducer = {
   produce(input): DtoAst {
     const properties: DtoProperties = {
       kind: 'dto_properties',
-      items: sequence(input.declaration.properties.map(item => property(input, item))),
+      items: sequence(relationProject(input.declaration.properties, item => property(input, item))),
     };
     const methods: DtoMethods = { kind: 'dto_methods', items: sequence([]) };
     const definition: DtoDefinition = {

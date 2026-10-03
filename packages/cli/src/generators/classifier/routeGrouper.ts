@@ -1,7 +1,7 @@
 /**
  * routeGrouper.ts
  *
- * Projects already-resolved ParsedRoute values into classifier views.
+ * Projects already-resolved RouteSemanticFlow values into classifier views.
  * Classification is an upstream responsibility: this module never
  * derives CRUD meaning from method/path.
  *
@@ -9,7 +9,7 @@
  */
 
 import {
-  type ParsedRoute,
+  type RouteSemanticFlow,
   CRUD_ROLE_REGISTRY,
   matchCrudRole
 } from '@routesync/core'
@@ -23,11 +23,11 @@ import {
  * Project resolved routes into the legacy ClassifiedRoute surface.
  *
  * IMPORTANT:
- * ParsedRoute.capability.crudRole is authoritative.
+ * RouteSemanticFlow.capability.crudRole is authoritative.
  * No path inspection, HTTP-method classification, or fallback role exists here.
  */
 export function classifyRoutes(
-  routes: readonly ParsedRoute[],
+  routes: readonly RouteSemanticFlow[],
   groupAliases?: Readonly<Record<string, string>>
 ): ClassifiedRoute[] {
   const usedActions = new Map<string, Set<string>>()

@@ -6,7 +6,7 @@ import {
   PrimitiveKind
 } from '@routesync/core'
 import { classifyRoutes } from '@routesync/cli/src/generators/route-classifier'
-import { ScannedRouteDescriptor } from '@routesync/core'
+import { RouteSemanticFlowFactory } from '@routesync/core'
 
 describe('Ternary Cleanliness & Expression Factory SSOT', () => {
   it('1. ResourceFieldExpressionFactory generates structured and frozen AST nodes', () => {
@@ -48,17 +48,17 @@ describe('Ternary Cleanliness & Expression Factory SSOT', () => {
   })
 
   it('3. classifyRoutes accurately assigns CrudRole without nested ternaries', () => {
-    const indexRoute = ScannedRouteDescriptor.create({
+    const indexRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/posts',
       resourceName: 'Post'
     })
-    const showRoute = ScannedRouteDescriptor.create({
+    const showRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/posts/{id}',
       resourceName: 'Post'
     })
-    const customRoute = ScannedRouteDescriptor.create({
+    const customRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/posts/popular/{category}',
       resourceName: 'Post'

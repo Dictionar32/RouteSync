@@ -1,4 +1,5 @@
 import type { Expression } from './expression';
+import type { ExpressionAst } from './ast';
 import type { ActionName, ClassName, MethodName, PropertyName, ResourceName, RoutePath } from './names';
 import type { StringValue } from './valueObjects';
 import type { Assignments, Properties, ResourceFields, ResourceActions, RoutePaths, Sequence, SourceStatements } from './collections';
@@ -52,6 +53,13 @@ export type ResourceWrapping =
 export type ResourceFieldPresence =
   | { readonly kind: 'always_present' }
   | { readonly kind: 'relation_loaded'; readonly relation: import('./names').RelationName }
+  | { readonly kind: 'relation_counted'; readonly relation: import('./names').RelationName }
+  | { readonly kind: 'relation_aggregated'; readonly relation: import('./names').RelationName; readonly column: import('./names').ColumnName; readonly aggregate: import('./resourceVocabulary').ResourceAggregateFunction }
+  | { readonly kind: 'relation_exists_loaded'; readonly relation: import('./names').RelationName }
+  | { readonly kind: 'attribute_present'; readonly attribute: import('./names').PropertyName }
+  | { readonly kind: 'attribute_appended'; readonly attribute: import('./names').PropertyName }
+  | { readonly kind: 'pivot_loaded'; readonly table: import('./names').TableName }
+  | { readonly kind: 'pivot_loaded_as'; readonly accessor: import('./names').PropertyName; readonly table: import('./names').TableName }
   | { readonly kind: 'conditional'; readonly condition: Expression }
   | { readonly kind: 'null_when_unavailable' };
 
@@ -166,7 +174,7 @@ export type ResourceFrameworkFeatures = {
   readonly additionalProperty: Expression | { readonly kind: 'additional_property_absent' };
 };
 
-export type ResourceSerializationContract = {
+export interface ResourceSerializationContract {
   readonly kind: 'resource_serialization_contract';
   readonly representation: ResourceRepresentation;
   readonly wrapping: ResourceWrapping;
@@ -178,7 +186,7 @@ export type ResourceSerializationContract = {
   readonly fields: ResourceFields;
   readonly dynamicEntries: ResourceDynamicEntries;
   readonly framework: ResourceFrameworkFeatures;
-};
+}
 
 export type ResourceRelationProjection =
   | { readonly kind: 'value'; readonly expression: Expression }
@@ -201,6 +209,8 @@ export type ResourceField = {
   readonly kind: 'resource_field';
   readonly name: PropertyName;
   readonly expression: Expression;
+  /** Canonical source expression; semantic `expression` is derived from this source datum. */
+  readonly expressionAst: ExpressionAst;
   readonly meaning: ResourceFieldMeaning;
   readonly type: TypeExpression;
   readonly presence: ResourceFieldPresence;
@@ -223,7 +233,7 @@ export type ResourceFacts = {
   readonly source: SourceSpan;
 };
 
-export type ResourceDefinition = {
+export interface ResourceDefinition {
   readonly kind: 'resource';
   readonly name: ResourceName;
   readonly baseName: ResourceName;
@@ -241,7 +251,7 @@ export type ResourceDefinition = {
   readonly contract: ResourceSerializationContract;
   readonly framework: ResourceFrameworkFeatures;
   readonly source: SourceSpan;
-};
+}
 
 export type ResourceBody = { readonly kind: 'body_absent' } | { readonly kind: 'body_present' };
 export type ResourceResponsePresence = { readonly kind: 'response_absent' } | { readonly kind: 'response_present' };

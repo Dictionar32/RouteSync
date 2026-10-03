@@ -4,6 +4,7 @@
  */
 
 import type { ControlFlowGraph, BasicBlock } from '../utils/ControlFlowGraph';
+import type { RelationIndex } from '../../semantic/kernel/relationMembership';
 import {
   type FlowState,
   type TransferFn,
@@ -20,7 +21,7 @@ export class DataFlowAnalysis<T> {
     initialState: T,
     transfer: (block: BasicBlock, state: T) => T,
     merge: (states: readonly T[]) => T
-  ): ReadonlyMap<number, FlowState<T>> {
+  ): RelationIndex<number, FlowState<T>> {
     return runForwardAnalysis(cfg, initialState, transfer, merge);
   }
 
@@ -29,7 +30,7 @@ export class DataFlowAnalysis<T> {
     initialState: T,
     transfer: (block: BasicBlock, state: T) => T,
     merge: (states: readonly T[]) => T
-  ): ReadonlyMap<number, FlowState<T>> {
+  ): RelationIndex<number, FlowState<T>> {
     return runBackwardAnalysis(cfg, initialState, transfer, merge);
   }
 }

@@ -1,0 +1,32 @@
+{
+  "phase": 623,
+  "deleted_surface_reference_scan": "clean",
+  "production_descriptor_class_count": 23,
+  "production_descriptor_classes": [
+    "packages/core/src/types/semantic/irHints.ts:80:export class IRRawNodeDescriptor implements IRRawNode {",
+    "packages/core/src/types/request.ts:94:export class RequestOptionsDescriptor implements RequestOptionsContract {",
+    "packages/core/src/types/request.ts:252:export class RouteDefinitionDescriptor<",
+    "packages/core/src/types/domain/authAndPolicy.ts:37:export class RouteSemanticFlowSecurityDescriptor implements RouteSecurityDescriptor {",
+    "packages/core/src/types/domain/cacheInvalidation.ts:158:export class RouteSemanticFlowCacheInvalidationDescriptor implements RouteCacheInvalidationDescriptor {",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:486:export abstract class AbstractResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:558:export abstract class AbstractCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:595:export class ScannedFullCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:644:export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:680:export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:735:export class ScannedCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:772:export class ScannedSingletonResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/resourceGroupDescriptors.ts:844:export class ScannedCustomResourceGroupDescriptor<TRoute = RouteSemanticFlow>",
+    "packages/core/src/types/domain/httpVocabulary.ts:517:export class ScannedRequestContentTypeDescriptor implements BaseRequestContentTypeDescriptor {",
+    "packages/core/src/types/domain/crudRoles.ts:194:export class RouteSemanticFlowHookDescriptor<K extends RouteHookKind = RouteHookKind>",
+    "packages/core/src/types/domain/crudRoles.ts:445:export class ScannedCrudRoleDescriptor implements BaseCrudRoleDescriptor {",
+    "packages/core/src/types/domain/provenance/endpointProvenance.ts:23:export class ScannedEndpointProvenanceDescriptor implements EndpointProvenanceDescriptor {",
+    "packages/core/src/types/domain/responseShapes.ts:334:export class ScannedPaginatedEnvelopeDescriptor<K extends PaginationKind = PaginationKind>",
+    "packages/core/src/types/domain/responseShapes.ts:420:export class ScannedPolymorphicRelationDescriptor implements BasePolymorphicRelationDescriptor {",
+    "packages/cli/src/utils/incremental/descriptors/scannedManifestDescriptor.ts:19:export class ScannedManifestDescriptor implements ScannedManifestContract {",
+    "packages/cli/src/utils/incremental/descriptors/scannedResourceDescriptor.ts:16:export class ScannedResourceDescriptor implements ScannedResourceContract {",
+    "packages/cli/src/generators/routes/pageEndpointDescriptor.ts:25:export class ScannedPageEndpointDescriptor implements PageEndpointDescriptor {",
+    "packages/cli/src/generators/classifier/classifiedRouteDescriptor.ts:51:export class ScannedClassifiedRouteDescriptor implements ClassifiedRoute {"
+  ],
+  "tsc_status": "blocked: missing type definitions for node and vitest/globals",
+  "source_vocabulary_policy": "retain source-language/AST vocabulary; eliminate host-language authority"
+}

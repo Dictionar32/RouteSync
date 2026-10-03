@@ -9,6 +9,7 @@ import { meaningFor } from './resourceModelMethodResolverMeaning';
 import { resolveResourceQueryProjection } from './resourceModelMethodResolverProjection';
 import { resolveResourceQueryOperation } from './resourceModelMethodResolverOperation';
 import type { ResourceResolvedQueryOperation } from './resourceQueryOperation';
+import { relationEqual, relationResolve } from '../../semantic/kernel/relationalSequence';
 
 export { meaningFor };
 export { knownMethodNames } from './resourceModelMethodResolverMeaning';
@@ -18,17 +19,17 @@ function semanticOrigin(state: ResourceQueryState, method: MethodName): Resource
 function modelType(model: ModelSemanticDefinition): SemanticType { return ReferenceType.model('', model.identity.name.value.value); }
 function collectionType(model: ModelSemanticDefinition): { readonly elementType: SemanticType; readonly semanticType: SemanticType } {
   const elementType = modelType(model);
-  return Object.freeze({ elementType, semanticType: new ReadonlyCollectionType(CollectionKind.ARRAY, elementType) });
+  return Object.freeze({ elementType, semanticType: ReadonlyCollectionType(CollectionKind.ARRAY, elementType) });
 }
 function scalarType(operation: Extract<ResourceModelMethodMeaning, { kind: 'scalar' }>['operation']): SemanticType {
   const types: Readonly<Record<'exists' | 'count' | 'sum' | 'avg' | 'min' | 'max' | 'value', SemanticType>> = {
-    exists: new PrimitiveType(PrimitiveKind.BOOLEAN),
-    count: new PrimitiveType(PrimitiveKind.NUMBER),
-    sum: new PrimitiveType(PrimitiveKind.NUMBER),
-    avg: new PrimitiveType(PrimitiveKind.NUMBER),
-    min: new PrimitiveType(PrimitiveKind.NUMBER),
-    max: new PrimitiveType(PrimitiveKind.NUMBER),
-    value: new PrimitiveType(PrimitiveKind.NUMBER),
+    exists: primitiveType(PrimitiveKind.BOOLEAN),
+    count: primitiveType(PrimitiveKind.NUMBER),
+    sum: primitiveType(PrimitiveKind.NUMBER),
+    avg: primitiveType(PrimitiveKind.NUMBER),
+    min: primitiveType(PrimitiveKind.NUMBER),
+    max: primitiveType(PrimitiveKind.NUMBER),
+    value: primitiveType(PrimitiveKind.NUMBER),
   };
   return types[operation];
 }
@@ -47,7 +48,7 @@ function singleModelResult(state: ResourceQueryState, method: MethodName, meanin
 
 function modelCollectionResult(state: ResourceQueryState, method: MethodName): ResourceMethodResult {
   const elementType = modelType(state.model);
-  const semanticType = new ReadonlyCollectionType(CollectionKind.ARRAY, elementType);
+  const semanticType = ReadonlyCollectionType(CollectionKind.ARRAY, elementType);
   const origin = semanticOrigin(state, method);
   const traversal: Extract<ResourceMethodTraversalProjection, { kind: 'model_collection' }> = {
     kind: 'model_collection', model: state.model, elementType, semanticType,
@@ -59,7 +60,7 @@ function modelCollectionResult(state: ResourceQueryState, method: MethodName): R
 
 function paginatedCollectionResult(state: ResourceQueryState, method: MethodName, meaning: Extract<ResourceModelMethodMeaning, { kind: 'paginated_collection' }>): ResourceMethodResult {
   const elementType = modelType(state.model);
-  const semanticType = new ReadonlyCollectionType(CollectionKind.ARRAY, elementType);
+  const semanticType = ReadonlyCollectionType(CollectionKind.ARRAY, elementType);
   const origin = semanticOrigin(state, method);
   const traversal: Extract<ResourceMethodTraversalProjection, { kind: 'paginated_collection' }> = {
     kind: 'paginated_collection', model: state.model, elementType, semanticType,
@@ -76,30 +77,45 @@ function scalarResult(state: ResourceQueryState, method: MethodName, meaning: Ex
 }
 
 function rejected(state: ResourceQueryState, method: MethodName, reason: 'value_collection' | 'unsupported'): ResourceMethodResult {
-  return { kind: 'unsupported', origin: semanticOrigin(state, method), method, semanticType: new ErrorType('resource method result rejected'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason } };
+  return { kind: 'unsupported', origin: semanticOrigin(state, method), method, semanticType: ErrorType('resource method result rejected'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason } };
 }
 
 export function resolveResourceModelMethod(state: ResourceQueryState, method: MethodName): ResourceMethodResult {
   const meaning = meaningFor(method);
-  if (state.kind === 'model_instance' && meaning.kind !== 'query_origin') return rejected(state, method, 'unsupported');
-  return matchResourceModelMethodMeaning(meaning, {
-    query_origin: value => queryBuilderResult(state, method, value),
-    query_mutation: value => queryBuilderResult(state, method, value),
-    single_model: value => singleModelResult(state, method, value),
-    model_collection: () => modelCollectionResult(state, method),
-    paginated_collection: value => paginatedCollectionResult(state, method, value),
-    scalar: value => scalarResult(state, method, value),
-    value_collection: () => rejected(state, method, 'value_collection'),
-    unsupported: () => rejected(state, method, 'unsupported'),
-  });
+  return relationResolve(relationEqual(state.kind, 'model_instance'),
+    () => relationResolve(relationEqual(meaning.kind, 'query_origin'),
+      () => matchResourceModelMethodMeaning(meaning, {
+        query_origin: value => queryBuilderResult(state, method, value),
+        query_mutation: value => queryBuilderResult(state, method, value),
+        single_model: value => singleModelResult(state, method, value),
+        model_collection: () => modelCollectionResult(state, method),
+        paginated_collection: value => paginatedCollectionResult(state, method, value),
+        scalar: value => scalarResult(state, method, value),
+        value_collection: () => rejected(state, method, 'value_collection'),
+        unsupported: () => rejected(state, method, 'unsupported'),
+      }),
+      () => rejected(state, method, 'unsupported')
+    ),
+    () => matchResourceModelMethodMeaning(meaning, {
+      query_origin: value => queryBuilderResult(state, method, value),
+      query_mutation: value => queryBuilderResult(state, method, value),
+      single_model: value => singleModelResult(state, method, value),
+      model_collection: () => modelCollectionResult(state, method),
+      paginated_collection: value => paginatedCollectionResult(state, method, value),
+      scalar: value => scalarResult(state, method, value),
+      value_collection: () => rejected(state, method, 'value_collection'),
+      unsupported: () => rejected(state, method, 'unsupported'),
+    })
+  );
 }
 
 export function resolveResourceMethodInvocation(state: ResourceQueryState, method: MethodName, arguments_: readonly ResourceExpressionModel[]): ResourceMethodInvocation {
   const meaning = meaningFor(method);
   const operation = resolveResourceQueryOperation(method, meaning, arguments_);
-  let result: ResourceMethodResult;
-  if (operation.kind === 'projection') result = resolveProjectionInvocation(state, method, operation, createResourceModelSemanticSurface(state.model));
-  else result = resolveResourceModelMethod(state, method);
+  const result = relationResolve(relationEqual(operation.kind, 'projection'),
+    () => resolveProjectionInvocation(state, method, operation as Extract<ResourceResolvedQueryOperation, { readonly kind: 'projection' }>, createResourceModelSemanticSurface(state.model)),
+    () => resolveResourceModelMethod(state, method)
+  );
   return Object.freeze({ method, operation, meaning, result });
 }
 

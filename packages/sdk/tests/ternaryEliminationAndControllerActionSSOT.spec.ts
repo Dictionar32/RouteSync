@@ -7,7 +7,7 @@ import {
   RouteParameterType,
   ResourceResponseDescriptor,
   StaticLaravelScanner,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteValidationRuleEntry,
   ScannedRouteSchemaPayload,
   ScannedFormRequestDescriptor
@@ -73,7 +73,7 @@ describe('Ternary Elimination & ScannedControllerAction SSOT', () => {
 
   it('4. StaticLaravelScanner.deriveRequestTypes should cleanly derive request types without chained ternaries', () => {
     const routes = [
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: 'POST',
         path: '/api/orders',
         resourceName: 'Order',

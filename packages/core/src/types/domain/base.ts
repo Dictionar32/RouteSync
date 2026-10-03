@@ -2,8 +2,8 @@ import type { RequestType } from "../../compiler/artifacts/RequestTypesArtifact"
 import type { ObjectType } from "../../compiler/types/SemanticType";
 import type { BroadcastChannelDescriptor } from "./channels";
 import type { ModelAst } from "../upstream/ast";
-import type { ParsedResource } from "./expressions";
-import type { ParsedRoute } from "./routes";
+import type { ResourceAst } from "../upstream/ast";
+import type { RouteSemanticFlow } from "./routes";
 import type { ResourceGroupDescriptor } from "./resourceGroupDescriptors";
 import type { PageValue } from "./pageValues";
 import type { DomainName, ModelName, ResourceName, RouteName, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
@@ -94,7 +94,7 @@ export interface PageConfig {
  * Classification, identity, capabilities and routes are one semantic ADT;
  * consumers must not reconstruct a group kind from a route array.
  */
-export type ResourceRouteGroup = ResourceGroupDescriptor<ParsedRoute>;
+export type ResourceRouteGroup = ResourceGroupDescriptor<RouteSemanticFlow>;
 
 export type FrontendConfiguration =
   | { readonly kind: 'disabled' }
@@ -103,8 +103,8 @@ export type FrontendConfiguration =
 export interface RouteManifest {
   readonly version: string;
   readonly baseURL: string;
-  readonly routes: readonly ParsedRoute[];
-  readonly resources: readonly ParsedResource[];
+  readonly routes: readonly RouteSemanticFlow[];
+  readonly resources: readonly ResourceAst[];
   readonly models: readonly ModelAst[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
   readonly requestTypes: readonly RequestType[];              // ✅ 100% Guaranteed directly from Upstream Scanner!

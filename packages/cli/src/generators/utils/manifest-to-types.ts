@@ -7,7 +7,7 @@
  * @module cli/generators/utils
  */
 
-import type { RouteManifest, ParsedRoute } from '../../../../core/src/types/route';
+import type { RouteManifest, RouteSemanticFlow } from '../../../../core/src/types/route';
 import type { SemanticTypesArtifact } from '../../../../core/src/compiler/artifacts/SemanticTypesArtifact';
 import type { RequestTypesArtifact } from '../../../../core/src/compiler/artifacts/RequestTypesArtifact';
 
@@ -40,6 +40,6 @@ export function manifestToContractInput(manifest: RouteManifest): RequestTypesAr
 /**
  * 4. Helper Facade for legacy tests.
  */
-export function generateInlineResourceName(route: ParsedRoute): string {
+export function generateInlineResourceName(route: RouteSemanticFlow): string {
     return route.responseTypeName;
 }

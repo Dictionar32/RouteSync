@@ -1,131 +1,119 @@
 /**
- * @module compiler/types/TypeHasher
- * @description Type hashing with cycle detection for semantic types
- * 
- * Provides deterministic hash computation for semantic types, handling:
- * - Recursive types (via cycle detection)
- * - Structural equality
- * - Canonical ordering for sets/unions
+ * Relation-driven structural hashing for semantic types.
+ *
+ * Hashing is expressed as a visitor relation plus recursive sequence algebra.
+ * The implementation deliberately has no host dispatch statement or mutable
+ * keyed cache; cycle/finalization facts live in relations.
  */
 
-import { SemanticType, PrimitiveKind } from './SemanticType';
+import type { SemanticType, SemanticTypeVisitor } from './SemanticType';
+import {
+    relationIndexAdd,
+    relationIndexLookup,
+    type RelationIndex,
+} from '../../semantic/kernel/relationMembership';
+import {
+    relationAdvanceIndex,
+    relationIndexOf,
+    relationOptionFold,
+    relationProject,
+    relationResolve,
+} from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
 
-/**
- * Hash context for tracking visited types during hash computation.
- * Prevents infinite recursion in cyclic type structures.
- */
 export interface HashContext {
-    readonly activeStack: SemanticType[];
-    readonly finalized: WeakMap<SemanticType, string>;
+    readonly activeStack: readonly SemanticType[];
+    finalized: RelationIndex<SemanticType, string>;
 }
 
-/**
- * Type hasher with cycle detection.
- * Computes stable, deterministic hashes for semantic types.
- * 
- * @example
- * ```typescript
- * const ctx: HashContext = { 
- *   activeStack: [], 
- *   finalized: new WeakMap() 
- * };
- * const hash = TypeHasher.hash(myType, ctx);
- * ```
- */
-export class TypeHasher {
-    /**
-     * Compute hash for a semantic type with cycle detection.
-     * 
-     * Uses cycle detection to handle recursive type references:
-     * - Maintains an active stack of types being hashed
-     * - When a cycle is detected, generates a backreference marker
-     * - Caches finalized hashes in WeakMap
-     * 
-     * @param type - Type to hash
-     * @param context - Hash context with cycle tracking
-     * @returns Deterministic hash string
-     */
-    public static hash(type: SemanticType, context: HashContext): string {
-        // Check if already finalized
-        const final = context.finalized.get(type);
-        if (final) return final;
+const sequenceDelimited = (values: readonly string[], separator: string, index = 0, output = ''): string =>
+    relationResolve(
+        index < values.length,
+        () => sequenceDelimited(
+            values,
+            separator,
+            relationAdvanceIndex(index, 1),
+            `${output}${relationResolve(relationEqual(index, 0), () => '', () => separator)}${values[index]}`,
+        ),
+        () => output,
+    );
 
-        // Cycle detection - check if type is in active stack
-        const index = context.activeStack.indexOf(type);
-        if (index !== -1) {
-            const distance = context.activeStack.length - index;
-            return `ref^${distance}`; // Backreference marker
-        }
+const orderedInsert = (values: readonly string[], value: string, index = 0): readonly string[] =>
+    relationResolve(
+        index < values.length,
+        () => relationResolve(
+            values[index] > value,
+            () => Object.freeze([...values.slice(0, index), value, ...values.slice(index)]),
+            () => orderedInsert(values, value, relationAdvanceIndex(index, 1)),
+        ),
+        () => Object.freeze([...values, value]),
+    );
 
-        // Push to stack, compute hash, then pop
-        context.activeStack.push(type);
-        const baseHash = this.computeHash(type, context);
-        context.activeStack.pop();
+const orderedUnique = (values: readonly string[], index = 0, output: readonly string[] = []): readonly string[] =>
+    relationResolve(
+        index < values.length,
+        () => orderedUnique(values, relationAdvanceIndex(index, 1), orderedInsert(output, values[index])),
+        () => output,
+    );
 
-        // Cache the result
-        context.finalized.set(type, baseHash);
-        return baseHash;
-    }
+const hashSequence = (values: readonly SemanticType[], context: HashContext): readonly string[] =>
+    relationProject(values, value => TypeHasher.hash(value, context));
 
-    /**
-     * Internal hash computation without cycle check.
-     * Called after cycle detection passes.
-     */
-    private static computeHash(type: SemanticType, context: HashContext): string {
-        switch (type.kind) {
-            case 'primitive':
-                return `primitive:${type.type}`;
+const visitor = (context: HashContext): SemanticTypeVisitor<string> => ({
+    primitive: type => `primitive:${type.type}`,
+    jsonValue: () => 'json_value',
+    optional: type => `optional<${TypeHasher.hash(type.innerType, context)}>`,
+    nullable: type => `nullable<${TypeHasher.hash(type.innerType, context)}>`,
+    never: () => 'never',
+    error: type => `error:${type.diagnosticMessage.value}`,
+    reference: type => `reference:${type.namespace}\\${type.name}`,
+    readonlyCollection: type => `readonly_collection:${type.collectionKind}<${TypeHasher.hash(type.elementType, context)}>`,
+    mutableCollection: type => `mutable_collection:${type.collectionKind}<${TypeHasher.hash(type.elementType, context)}>`,
+    generic: type => {
+        const parameters = relationProject(type.parameters, parameter => `${parameter.name}[${parameter.variance}]:${TypeHasher.hash(parameter.type, context)}`);
+        return `generic:${TypeHasher.hash(type.base, context)}<${sequenceDelimited(parameters, ',')}>`;
+    },
+    union: type => `union[${sequenceDelimited(orderedUnique(hashSequence(type.members, context)) , ',')}]`,
+    intersection: type => `intersection[${sequenceDelimited(orderedUnique(hashSequence(type.members, context)), ',')}]`,
+    object: type => {
+        const properties = relationProject(
+            type.properties,
+            property => `${property.name.value.value}:${relationResolve(property.type.isOptional(), () => 'opt', () => 'req')}:${TypeHasher.hash(property.type, context)}`,
+        );
+        const name = relationResolve(type.name.length > 0, () => type.name, () => 'anonymous');
+        return `object:${name}{${sequenceDelimited(properties, ',')}}`;
+    },
+});
 
-            case 'never':
-                return 'never';
+export const createHashContext = (): HashContext => ({
+    activeStack: Object.freeze([]),
+    finalized: Object.freeze([]),
+});
 
-            case 'error':
-                return `error:${type.diagnosticMessage.value}`;
-
-            case 'reference':
-                return `reference:${type.namespace}\\${type.name}`;
-
-            case 'readonly_collection':
-                return `readonly_collection:${type.collectionKind}<${this.hash(type.elementType, context)}>`;
-
-            case 'mutable_collection':
-                return `mutable_collection:${type.collectionKind}<${this.hash(type.elementType, context)}>`;
-
-            case 'generic': {
-                const paramHashes = type.parameters.map(
-                    p => `${p.name}[${p.variance}]:${this.hash(p.type, context)}`
+export const TypeHasher = Object.freeze({
+    createContext: createHashContext,
+    hash: (type: SemanticType, context: HashContext): string => {
+        const final = relationIndexLookup(context.finalized, type);
+        return relationOptionFold(
+            final,
+            () => {
+                const index = relationIndexOf(context.activeStack, candidate => relationEqual(candidate, type));
+                return relationResolve(
+                    index >= 0,
+                    () => `ref^${context.activeStack.length - index}`,
+                    () => {
+                        const nestedContext: HashContext = {
+                            activeStack: Object.freeze([...context.activeStack, type]),
+                            finalized: context.finalized,
+                        };
+                        const baseHash = type.accept(visitor(nestedContext));
+                        const finalized = relationIndexAdd(context.finalized, type, baseHash);
+                        context.finalized = finalized;
+                        return baseHash;
+                    },
                 );
-                return `generic:${this.hash(type.base, context)}<${paramHashes.join(',')}>`;
-            }
-
-            case 'union': {
-                // Sort for canonical ordering
-                const hashes = Array.from(type.members.values())
-                    .map(m => this.hash(m, context))
-                    .sort();
-                return `union[${hashes.join(',')}]`;
-            }
-
-            case 'intersection': {
-                // Sort for canonical ordering
-                const interHashes = Array.from(type.members.values())
-                    .map(m => this.hash(m, context))
-                    .sort();
-                return `intersection[${interHashes.join(',')}]`;
-            }
-
-            case 'nullable':
-                return `nullable<${this.hash(type.innerType, context)}>`;
-
-            case 'object': {
-                const propHashes = type.properties.map(
-                    p => `${p.name.value.value}:${p.type.isOptional() ? 'opt' : 'req'}:${this.hash(p.type, context)}`
-                );
-                return `object:${type.name || 'anonymous'}{${propHashes.join(',')}}`;
-            }
-
-            default:
-                return 'unknown';
-        }
-    }
-}
+            },
+            value => value,
+        );
+    },
+});

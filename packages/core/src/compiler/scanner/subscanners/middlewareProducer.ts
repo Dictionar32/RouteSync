@@ -1,3 +1,5 @@
+import { relationOptionFold, relationFirst } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 import type { MiddlewareAst } from '../../../types/upstream/ast';
 import type { MiddlewareDefinition } from '../../../types/upstream/application';
 import { createClassName } from '../../../types/upstream/names';
@@ -23,8 +25,7 @@ export interface MiddlewareProducer {
 
 export const middlewareProducer: MiddlewareProducer = {
   produce(input): MiddlewareAst {
-    const handle = input.declaration.methods.find(method => method.name === 'handle');
-    if (!handle) throw new Error(`Middleware handle method not found: ${input.source.file.value.value}`);
+    const handle = relationOptionFold(relationFirst(input.declaration.methods, method => relationEqual(method.name, 'handle')), () => { throw Error(`Middleware handle method not found: ${input.source.file.value.value}`); }, value => value);
 
     const name = createClassName(input.declaration.className);
     const definition: MiddlewareDefinition = {

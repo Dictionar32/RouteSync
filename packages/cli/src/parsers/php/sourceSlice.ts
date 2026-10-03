@@ -1,4 +1,5 @@
 /** Extract source text from a parser node with verified location data. */
+import { relationResolve } from '@routesync/core';
 
 interface LocatedNode {
     readonly loc?: {
@@ -8,20 +9,26 @@ interface LocatedNode {
 }
 
 export function sliceNodeSource(node: unknown, source: string): string {
-    if (!isLocatedNode(node)) {
-        throw new Error('PHP AST source boundary: node has no usable location');
-    }
+    const located = requireLocatedNode(node);
+    return source.slice(located.loc.start.offset, located.loc.end.offset);
+}
 
-    return source.slice(node.loc.start.offset, node.loc.end.offset);
+function requireLocatedNode(value: unknown): RequiredLocationNode {
+    return relationResolve(isLocatedNode(value),
+        () => value as RequiredLocationNode,
+        () => { throw new Error('PHP AST source boundary: node has no usable location'); });
 }
 
 function isLocatedNode(value: unknown): value is RequiredLocationNode {
-    if (typeof value !== 'object' || value === null || !('loc' in value)) return false;
-    const loc = value.loc;
-    if (typeof loc !== 'object' || loc === null || !('start' in loc) || !('end' in loc)) return false;
-    const start = loc.start;
-    const end = loc.end;
-    return isOffset(start) && isOffset(end);
+    const candidate = value as LocatedNode | null;
+    return relationResolve(typeof candidate === 'object' && candidate !== null && candidate.loc !== undefined,
+        () => {
+            const loc = candidate?.loc;
+            return relationResolve(typeof loc === 'object' && loc !== null && loc.start !== undefined && loc.end !== undefined,
+                () => isOffset(loc.start) && isOffset(loc.end),
+                () => false);
+        },
+        () => false);
 }
 
 interface RequiredLocationNode {
@@ -32,5 +39,6 @@ interface RequiredLocationNode {
 }
 
 function isOffset(value: unknown): value is { readonly offset: number } {
-    return typeof value === 'object' && value !== null && 'offset' in value && typeof value.offset === 'number';
+    const candidate = value as { readonly offset?: unknown } | null;
+    return typeof candidate === 'object' && candidate !== null && typeof candidate.offset === 'number';
 }

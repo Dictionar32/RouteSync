@@ -9,7 +9,7 @@
  * @module compiler/generators/contract-generation
  */
 
-import { PrimitiveType, PrimitiveKind } from '../../types/SemanticType';
+import { PrimitiveType, PrimitiveKind, primitiveType } from '../../types/SemanticType';
 
 /**
  * Error thrown when primitive type is not supported
@@ -34,7 +34,7 @@ export class PrimitiveNotFoundError extends Error {
  * ```typescript
  * const registry = new PrimitiveTypeRegistry();
  * const stringSchema = registry.getZodSchema(
- *   new PrimitiveType(PrimitiveKind.STRING)
+ *   primitiveType(PrimitiveKind.STRING)
  * );
  * // Result: "z.string()"
  * ```
@@ -53,7 +53,7 @@ export class PrimitiveTypeRegistry {
         // Avoid evaluating the browser-only File constructor when an SDK is
         // imported during SSR. The predicate is evaluated only on validation.
         [PrimitiveKind.FILE, "z.custom<File>((value) => typeof File !== 'undefined' && value instanceof File)"],
-        [PrimitiveKind.UNKNOWN, 'z.unknown()'],
+        [PrimitiveKind.INDETERMINATE, 'z.unknown()'],
         [PrimitiveKind.UNSPECIFIED, 'z.unknown()']
     ]);
 

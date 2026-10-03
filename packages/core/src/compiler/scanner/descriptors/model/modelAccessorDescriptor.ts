@@ -19,35 +19,28 @@ export interface ScannedModelAccessorParams {
 /**
  * Reusable Constructor: Scanned Model Accessor Descriptor.
  */
-export class ScannedModelAccessorDescriptor implements ParsedAccessor {
-    public readonly name: MethodName;
-    public readonly propertyName: PropertyName;
-    public readonly computation: ModelAccessorComputation;
+export interface ScannedModelAccessorDescriptor extends ParsedAccessor {
+    readonly name: MethodName;
+    readonly propertyName: PropertyName;
+    readonly computation: ModelAccessorComputation;
+}
 
-    constructor({ name, propertyName, computation }: ScannedModelAccessorParams) {
-        this.name = name;
-        this.propertyName = propertyName;
-        this.computation = Object.freeze(computation);
-        Object.freeze(this);
-    }
+const accessorDescriptor = (params: ScannedModelAccessorParams): ScannedModelAccessorDescriptor => Object.freeze({
+    name: params.name,
+    propertyName: params.propertyName,
+    computation: Object.freeze(params.computation)
+});
 
-    public static fromReturnType({
-        name,
-        propertyName,
-        computation
-    }: {
+export const ScannedModelAccessorDescriptor = Object.freeze({
+    fromReturnType: ({ name, propertyName, computation }: {
         readonly name: string;
         readonly propertyName: string;
         readonly computation: ModelAccessorComputation;
-    }): ScannedModelAccessorDescriptor {
-        return new ScannedModelAccessorDescriptor({
-            name: SemanticValueFactory.methodName(name),
-            propertyName: SemanticValueFactory.propertyName(propertyName),
-            computation
-        });
-    }
-
-    public static create(params: Parameters<typeof ScannedModelAccessorDescriptor.fromReturnType>[0]): ScannedModelAccessorDescriptor {
-        return ScannedModelAccessorDescriptor.fromReturnType(params);
-    }
-}
+    }): ScannedModelAccessorDescriptor => accessorDescriptor({
+        name: SemanticValueFactory.methodName(name),
+        propertyName: SemanticValueFactory.propertyName(propertyName),
+        computation
+    }),
+    create: (params: Parameters<typeof ScannedModelAccessorDescriptor.fromReturnType>[0]): ScannedModelAccessorDescriptor =>
+        ScannedModelAccessorDescriptor.fromReturnType(params)
+});

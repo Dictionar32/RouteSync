@@ -23,6 +23,7 @@ import { parseModelAccessors } from "./model/memberAccessorsParser";
 import { parseModelRelations } from "./model/memberRelationsParser";
 import { modelProducer } from "./modelProducer";
 import { collectPhpFiles } from "./scannerUtils";
+import { relationAsyncFold } from "../../../semantic/kernel/relationalSequence";
 import {
     scanMigrations,
     resolveModelColumns
@@ -47,8 +48,7 @@ export async function scanModelAsts(
     const sourceRoot = sourceProject.root.value.value;
     const modelDir = path.join(sourceRoot, "app", "Models");
     const files = await collectPhpFiles(modelDir);
-    const asts: ModelAst[] = [];
-    for (const fullPath of files) {
+    return relationAsyncFold(files, [] as ModelAst[], async (asts, fullPath) => {
         const source = await readSourceText(fullPath);
         const modelName = path.basename(fullPath, ".php");
         const tokens = LaravelSourceLexer.tokenize(source);
@@ -56,22 +56,12 @@ export async function scanModelAsts(
         const declaration = parseModelDeclaration(tokens);
         const casts: ModelCast[] = [];
         const accessors: ModelAccessorFact[] = [];
-        const eloquentRelations: EloquentRelationAst[] = [];
+        const eloquentRelations = parseModelRelations(declaration, createModelName(modelName), { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } });
         const sourceSpan = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } };
         parseModelCasts(propertyAsts, declaration, casts, sourceSpan);
         parseModelAccessors(declaration, accessors, sourceSpan);
-        eloquentRelations.push(...parseModelRelations(declaration, createModelName(modelName), sourceSpan));
-        asts.push(modelProducer.produce({
-            sourceSpan,
-            migrations,
-            propertyAsts,
-            declaration,
-            casts,
-            accessors,
-            eloquentRelations,
-        }));
-    }
-    return asts;
+        return [...asts, modelProducer.produce({ sourceSpan, migrations, propertyAsts, declaration, casts, accessors, eloquentRelations })];
+    });
 }
 
 

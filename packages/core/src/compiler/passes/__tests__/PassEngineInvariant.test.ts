@@ -4,7 +4,7 @@ import { ScopeGraphArtifact } from '../../artifacts/ScopeGraphArtifact';
 import { CompilationState } from '../CompilationState';
 import { ArtifactKeyWitness, type ResolveArtifacts } from '../ArtifactKeyWitness';
 import type { CompilerPass } from '../CompilerPass';
-import { TypedPassAdapter } from '../TypedPassAdapter';
+import { createTypedPassAdapter } from '../TypedPassAdapter';
 import type { ExecutablePass } from '../ExecutablePass';
 import { PassGraph } from '../PassGraph';
 
@@ -140,7 +140,7 @@ describe('Pass Engine invariants', () => {
             ],
         };
 
-        expect(() => new TypedPassAdapter(pass)).not.toThrow();
+        expect(() => createTypedPassAdapter(pass)).not.toThrow();
     });
 
     it('accepts a pass whose typed contract matches its descriptor', () => {
@@ -162,7 +162,7 @@ describe('Pass Engine invariants', () => {
             ],
         };
 
-        expect(() => new TypedPassAdapter(pass)).not.toThrow();
+        expect(() => createTypedPassAdapter(pass)).not.toThrow();
     });
 
     it('detects duplicate pass names', () => {

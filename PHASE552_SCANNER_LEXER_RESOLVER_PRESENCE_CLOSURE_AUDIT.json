@@ -1,0 +1,21 @@
+{
+  "phase": 552,
+  "frontier": "scanner-lexer-resolver-presence-closure",
+  "phase549": {
+    "closedSurfaceClean": true,
+    "transpileDiagnosticsClean": true,
+    "ok": true
+  },
+  "phase550ScannerResolverAudit": {
+    "scannedFiles": 388,
+    "hostLeakCount": 0,
+    "leakingFiles": [],
+    "closedSurfaceClean": true,
+    "transpileDiagnosticsClean": true
+  },
+  "research": [
+    "Statix scope-graph constraints",
+    "MLIR PDL/PDLL declarative pattern rewriting",
+    "Flix relational/lattice fixpoints"
+  ]
+}

@@ -1,5 +1,5 @@
 /** Semantic binding produced after FieldNode parsing. */
-import type { SemanticResolution } from '../semanticResolution';
+import type { SemanticResolution } from './semanticResolution';
 import type { FieldNode } from '../field';
 
 export interface ResolvedFieldBinding {

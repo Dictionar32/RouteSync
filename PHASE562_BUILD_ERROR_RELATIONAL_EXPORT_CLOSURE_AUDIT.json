@@ -1,0 +1,14 @@
+{
+  "phase": 562,
+  "frontier": "build-error-relational-export-closure",
+  "source": "Phase 561 build log supplied by user",
+  "rootCause": "split relational substrate authority and stale module boundaries",
+  "modifiedFiles": 12,
+  "transpileDiagnosticsClean": true,
+  "phase561MissingRelationalExportsAddressed": true,
+  "phase561CreateQueryKeyImportAddressed": true,
+  "phase561ToCamelCaseImportAddressed": true,
+  "phase561ModelNodesLookupErrorAddressed": true,
+  "fullBundlerBuild": "not-run",
+  "bundlerReason": "checkpoint has no node_modules/.bin/tsup or node_modules/.bin/tsc"
+}

@@ -1,52 +1,43 @@
-/**
- * legacyResolver.ts
- *
- * Primitive and Union resolvers for ContractInputBoundary.
- *
- * @module compiler/compatibility/boundary
- */
-
+/** Declarative legacy boundary resolvers. */
 import type { ResolvedSemanticType } from '../../domain/common/resolved-types';
-import { PrimitiveKind, PrimitiveType, type SemanticType } from '../../types/SemanticType';
+import { PrimitiveKind, type PrimitiveType, type SemanticType } from '../../types/SemanticType';
 import { ResolvedPrimitiveType, ResolvedUnionType } from '../../domain/common/resolved-types';
 import { type LegacyContractValue, ContractInputBoundaryError } from './types';
+import { relationResolve, relationFold } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 
-export function resolveLegacyPrimitive(value: SemanticType): ResolvedPrimitiveType {
-    if (value instanceof PrimitiveType) {
-        switch (value.type) {
-            case PrimitiveKind.STRING:
-                return ResolvedPrimitiveType.string();
-            case PrimitiveKind.NUMBER:
-                return ResolvedPrimitiveType.number();
-            case PrimitiveKind.BOOLEAN:
-                return ResolvedPrimitiveType.boolean();
-            case PrimitiveKind.DATETIME:
-                return ResolvedPrimitiveType.datetime();
-            case PrimitiveKind.UNKNOWN:
-                return ResolvedPrimitiveType.unknown();
-            case PrimitiveKind.FILE:
-                return ResolvedPrimitiveType.file();
-        }
-    }
-    throw new ContractInputBoundaryError(
-        'Semantic type cannot be represented as a legacy primitive.'
+const isPrimitiveSemanticType = (value: SemanticType): value is PrimitiveType => relationEqual(value.kind, 'primitive');
+
+export const resolveLegacyPrimitive = (value: SemanticType): ResolvedPrimitiveType =>
+    relationResolve(
+        isPrimitiveSemanticType(value),
+        () => {
+            const primitive = value;
+
+            const catalog: Readonly<Record<PrimitiveKind, () => ResolvedPrimitiveType>> = Object.freeze({
+                [PrimitiveKind.STRING]: () => ResolvedPrimitiveType.string(),
+                [PrimitiveKind.NUMBER]: () => ResolvedPrimitiveType.number(),
+                [PrimitiveKind.BOOLEAN]: () => ResolvedPrimitiveType.boolean(),
+                [PrimitiveKind.DATETIME]: () => ResolvedPrimitiveType.datetime(),
+                [PrimitiveKind.INDETERMINATE]: () => ResolvedPrimitiveType.unknown(),
+                [PrimitiveKind.FILE]: () => ResolvedPrimitiveType.file(),
+            });
+            return relationResolve(
+                Object.hasOwn(catalog, primitive.type),
+                () => catalog[primitive.type](),
+                () => { throw new ContractInputBoundaryError('Semantic primitive kind cannot be represented as a legacy primitive.'); },
+            );
+        },
+        () => { throw new ContractInputBoundaryError('Semantic type cannot be represented as a legacy primitive.'); },
     );
-}
+
 export function resolveLegacyUnion(
     values: readonly LegacyContractValue[],
-    resolveItem: (v: LegacyContractValue) => ResolvedSemanticType
+    resolveItem: (value: LegacyContractValue) => ResolvedSemanticType,
 ): Extract<ResolvedSemanticType, { kind: 'union' }> {
-    if (values.length < 2) {
-        throw new ContractInputBoundaryError(
-            'A legacy union must contain at least two members.'
-        );
-    }
-
-    const [first, second, ...rest] = values;
-
-    return ResolvedUnionType.of([
-        resolveItem(first),
-        resolveItem(second),
-        ...rest.map((value) => resolveItem(value)),
-    ]);
+    return relationResolve(
+        relationResolve(values.length >= 2, () => true, () => false),
+        () => ResolvedUnionType.of(relationFold(values, Object.freeze([]) as readonly ResolvedSemanticType[], (items, value) => Object.freeze([...items, resolveItem(value)]))),
+        () => { throw new ContractInputBoundaryError('A legacy union must contain at least two members.'); },
+    );
 }

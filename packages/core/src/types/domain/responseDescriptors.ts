@@ -1,6 +1,7 @@
 import type { ResponseBody } from "../../compiler/ir/ResponseArtifact";
 import type { ObjectProperty } from "../../compiler/types/SemanticType";
-import { PrimitiveKind, type SemanticType } from "../../compiler/types/SemanticType";
+import type { SemanticType } from "../../compiler/types/SemanticType";
+import { relationProject } from '../../semantic/kernel/relationalSequence';
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldDescriptor } from "./expressions";
 import { requireResourceFieldType } from './resourceFieldSemantic';
@@ -42,13 +43,13 @@ export type RouteResponseAnalysis =
   | InlineRouteResponseAnalysis
   | VoidRouteResponseAnalysis;
 
-export abstract class ResponseDescriptorBase {
-  abstract readonly kind: ResponseKind;
-  abstract readonly shape: ResponseShape;
-  abstract responseTypeName(): ResponseTypeName;
-  abstract toSuccessStatusCode(): number;
-  abstract toAnalysis(routeName: RouteName, confidence: number): RouteResponseAnalysis;
-  abstract toResponseBody(): ResponseBody;
+export interface ResponseDescriptorBase {
+  readonly kind: ResponseKind;
+  readonly shape: ResponseShape;
+  readonly responseTypeName: () => ResponseTypeName;
+  readonly toSuccessStatusCode: () => number;
+  readonly toAnalysis: (routeName: RouteName, confidence: number) => RouteResponseAnalysis;
+  readonly toResponseBody: () => ResponseBody;
 }
 
 export interface ResourceResponseParams {
@@ -56,153 +57,77 @@ export interface ResourceResponseParams {
   readonly shape: ResponseShape;
 }
 
-export class ResourceResponseDescriptor extends ResponseDescriptorBase {
-  public readonly kind = 'resource' as const;
-  public readonly shape: ResponseShape;
-  public readonly resourceName: ResourceName;
-  constructor(params: ResourceResponseParams) {
-    super();
-    this.resourceName = params.resourceName;
-    this.shape = params.shape;
-    Object.freeze(this);
-  }
-
-  public static create({
-    resourceName,
-    shape = 'single'
-  }: {
-    readonly resourceName: ResourceName;
-    readonly shape?: ResponseShape;
-  }): ResourceResponseDescriptor {
-    return new ResourceResponseDescriptor({ resourceName, shape });
-  }
-
-  public static single(resourceName: ResourceName): ResourceResponseDescriptor {
-    return new ResourceResponseDescriptor({ resourceName, shape: 'single' });
-  }
-
-  public static collection(resourceName: ResourceName): ResourceResponseDescriptor {
-    return new ResourceResponseDescriptor({ resourceName, shape: 'collection' });
-  }
-
-  responseTypeName(): ResponseTypeName {
-    return SemanticValueFactory.responseTypeName(`${this.resourceName.value.value}Response`);
-  }
-
-  toSuccessStatusCode(): number {
-    return 200;
-  }
-
-  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
-    return {
-      routeName,
-      kind: this.kind,
-      shape: this.shape,
-      resourceName: this.resourceName,
-    };
-  }
-
-  toResponseBody(): ResponseBody {
-    return {
-      type: 'resource',
-      resource: this.resourceName.value.value,
-      shape: this.shape
-    };
-  }
+export interface ResourceResponseDescriptor extends ResponseDescriptorBase {
+  readonly kind: 'resource';
+  readonly resourceName: ResourceName;
 }
+
+const resourceDescriptor = (params: ResourceResponseParams): ResourceResponseDescriptor => {
+  const resourceName = params.resourceName;
+  const shape = params.shape;
+  const descriptor: ResourceResponseDescriptor = {
+    kind: 'resource',
+    resourceName,
+    shape,
+    responseTypeName: () => SemanticValueFactory.responseTypeName(`${resourceName.value.value}Response`),
+    toSuccessStatusCode: () => 200,
+    toAnalysis: (routeName) => ({ routeName, kind: 'resource', shape, resourceName }),
+    toResponseBody: () => ({ type: 'resource', resource: resourceName.value.value, shape }),
+  };
+  return Object.freeze(descriptor);
+};
+
+export const ResourceResponseDescriptor = Object.freeze({
+  create: ({ resourceName, shape = 'single' }: { readonly resourceName: ResourceName; readonly shape?: ResponseShape }) => resourceDescriptor({ resourceName, shape }),
+  single: (resourceName: ResourceName) => resourceDescriptor({ resourceName, shape: 'single' }),
+  collection: (resourceName: ResourceName) => resourceDescriptor({ resourceName, shape: 'collection' }),
+});
 
 export interface ModelResponseParams {
   readonly modelName: ModelName;
   readonly shape: ResponseShape;
 }
 
-export class ModelResponseDescriptor extends ResponseDescriptorBase {
-  public readonly kind = 'model' as const;
-  public readonly shape: ResponseShape;
-  public readonly modelName: ModelName;
-  constructor(params: ModelResponseParams) {
-    super();
-    this.modelName = params.modelName;
-    this.shape = params.shape;
-    Object.freeze(this);
-  }
+export interface ModelResponseDescriptor extends ResponseDescriptorBase {
+  readonly kind: 'model';
+  readonly modelName: ModelName;
+}
 
-  public static create({
+const modelDescriptor = (params: ModelResponseParams): ModelResponseDescriptor => {
+  const modelName = params.modelName;
+  const shape = params.shape;
+  const descriptor: ModelResponseDescriptor = {
+    kind: 'model',
     modelName,
-    shape = 'single'
-  }: {
-    readonly modelName: ModelName;
-    readonly shape?: ResponseShape;
-  }): ModelResponseDescriptor {
-    return new ModelResponseDescriptor({ modelName, shape });
-  }
+    shape,
+    responseTypeName: () => SemanticValueFactory.responseTypeName(`${modelName.value.value}Response`),
+    toSuccessStatusCode: () => 200,
+    toAnalysis: (routeName) => ({ routeName, kind: 'model', shape, modelName }),
+    toResponseBody: () => ({ type: 'model', model: modelName.value.value, shape }),
+  };
+  return Object.freeze(descriptor);
+};
 
-  public static single(modelName: ModelName): ModelResponseDescriptor {
-    return new ModelResponseDescriptor({ modelName, shape: 'single' });
-  }
+export const ModelResponseDescriptor = Object.freeze({
+  create: ({ modelName, shape = 'single' }: { readonly modelName: ModelName; readonly shape?: ResponseShape }) => modelDescriptor({ modelName, shape }),
+  single: (modelName: ModelName) => modelDescriptor({ modelName, shape: 'single' }),
+  collection: (modelName: ModelName) => modelDescriptor({ modelName, shape: 'collection' }),
+});
 
-  public static collection(modelName: ModelName): ModelResponseDescriptor {
-    return new ModelResponseDescriptor({ modelName, shape: 'collection' });
-  }
-
-  responseTypeName(): ResponseTypeName {
-    return SemanticValueFactory.responseTypeName(`${this.modelName.value.value}Response`);
-  }
-
-  toSuccessStatusCode(): number {
-    return 200;
-  }
-
-  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
-    return {
-      routeName,
-      kind: this.kind,
-      shape: this.shape,
-      modelName: this.modelName,
-    };
-  }
-
-  toResponseBody(): ResponseBody {
-    return {
-      type: 'model',
-      model: this.modelName.value.value,
-      shape: this.shape
-    };
-  }
+export interface VoidResponseDescriptor extends ResponseDescriptorBase {
+  readonly kind: 'void';
 }
 
-export class VoidResponseDescriptor extends ResponseDescriptorBase {
-  public readonly kind = 'void' as const;
-  public readonly shape = 'single' as const;
-  constructor() {
-    super();
-    Object.freeze(this);
-  }
+const voidDescriptor = (): VoidResponseDescriptor => Object.freeze({
+  kind: 'void' as const,
+  shape: 'single' as const,
+  responseTypeName: () => SemanticValueFactory.responseTypeName('void'),
+  toSuccessStatusCode: () => 204,
+  toAnalysis: (routeName) => ({ routeName, kind: 'void' as const, shape: 'single' as const }),
+  toResponseBody: () => ({ type: 'primitive' as const, primitiveType: 'void', shape: 'single' as const }),
+});
 
-  responseTypeName(): ResponseTypeName {
-    return SemanticValueFactory.responseTypeName("void");
-  }
-
-  toSuccessStatusCode(): number {
-    return 204;
-  }
-
-  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
-    return {
-      routeName,
-      kind: this.kind,
-      shape: this.shape,
-    };
-  }
-
-  toResponseBody(): ResponseBody {
-    return {
-      type: 'primitive',
-      primitiveType: 'void',
-      shape: 'single'
-    };
-  }
-}
+export const VoidResponseDescriptor = Object.freeze({ create: voidDescriptor });
 
 export type ResponseSemanticProperty = ObjectProperty;
 
@@ -228,37 +153,52 @@ export interface InlineResponseDescriptorParams {
   readonly semanticContract: ResponseSemanticContract;
 }
 
-export class InlineResponseDescriptor extends ResponseDescriptorBase {
-  public readonly kind = 'inline' as const;
-  public readonly shape: ResponseShape;
-  public readonly domain: DomainName;
-  public readonly baseName: ResourceName;
-  public readonly typeName: ResponseTypeName;
-  public readonly fields: readonly ResourceFieldDescriptor[];
-  public readonly origin: ResponseDescriptorOrigin;
-  public readonly semanticContract: ResponseSemanticContract;
+export interface InlineResponseDescriptor extends ResponseDescriptorBase {
+  readonly kind: 'inline';
+  readonly domain: DomainName;
+  readonly baseName: ResourceName;
+  readonly typeName: ResponseTypeName;
+  readonly fields: readonly ResourceFieldDescriptor[];
+  readonly origin: ResponseDescriptorOrigin;
+  readonly semanticContract: ResponseSemanticContract;
+}
 
-  constructor(params: InlineResponseDescriptorParams) {
-    super();
-    this.domain = params.domain;
-    this.baseName = params.baseName;
-    this.typeName = params.typeName;
-    this.fields = Object.freeze([...params.fields]);
-    this.shape = params.shape;
-    this.origin = params.origin;
-    this.semanticContract = params.semanticContract;
-    Object.freeze(this);
-  }
-
-  public static create({
-    domain,
-    baseName = SemanticValueFactory.resourceName(domain.value.value),
-    typeName = SemanticValueFactory.responseTypeName(`${baseName.value.value}Transformed`),
+const inlineDescriptor = (params: InlineResponseDescriptorParams): InlineResponseDescriptor => {
+  const fields = Object.freeze([...params.fields]);
+  const shape = params.shape;
+  const typeName = params.typeName;
+  const baseName = params.baseName;
+  const descriptor: InlineResponseDescriptor = {
+    kind: 'inline',
+    domain: params.domain,
+    baseName,
+    typeName,
     fields,
-    shape = ResponseShape.Single,
-    origin,
-    semanticContract
-  }: {
+    shape,
+    origin: params.origin,
+    semanticContract: params.semanticContract,
+    responseTypeName: () => typeName,
+    toSuccessStatusCode: () => 200,
+    toAnalysis: (routeName) => ({ routeName, kind: 'inline', shape, typeName }),
+    toResponseBody: () => ({
+      type: 'object',
+      schema: {
+        name: baseName.value.value,
+        properties: Object.freeze(relationProject(fields, field => ({
+          name: field.name.value,
+          type: semanticTypeToPropertyType(requireResourceFieldType(field.semantic)),
+          required: !requireResourceFieldType(field.semantic).isNullable(),
+        }))),
+        additionalProperties: false,
+      },
+      shape,
+    }),
+  };
+  return Object.freeze(descriptor);
+};
+
+export const InlineResponseDescriptor = Object.freeze({
+  create: ({ domain, baseName = SemanticValueFactory.resourceName(domain.value.value), typeName = SemanticValueFactory.responseTypeName(`${baseName.value.value}Transformed`), fields, shape = ResponseShape.Single, origin, semanticContract }: {
     readonly domain: DomainName;
     readonly baseName?: ResourceName;
     readonly typeName?: ResponseTypeName;
@@ -266,84 +206,25 @@ export class InlineResponseDescriptor extends ResponseDescriptorBase {
     readonly shape?: ResponseShape;
     readonly origin: ResponseDescriptorOrigin;
     readonly semanticContract: ResponseSemanticContract;
-  }): InlineResponseDescriptor {
-    return new InlineResponseDescriptor({
-      domain,
-      baseName,
-      typeName,
-      fields,
-      shape,
-      origin,
-      semanticContract
-    });
-  }
+  }) => inlineDescriptor({ domain, baseName, typeName, fields, shape, origin, semanticContract }),
+});
 
-  responseTypeName(): ResponseTypeName {
-    return this.typeName;
-  }
-
-  toSuccessStatusCode(): number {
-    return 200;
-  }
-
-  toAnalysis(routeName: RouteName, _confidence: number): RouteResponseAnalysis {
-    return {
-      routeName,
-      kind: this.kind,
-      shape: this.shape,
-      typeName: this.typeName,
-    };
-  }
-
-  toResponseBody(): ResponseBody {
-    const properties = this.fields.map(f => ({
-      name: f.name.value,
-      type: semanticTypeToPropertyType(requireResourceFieldType(f.semantic)),
-      required: !requireResourceFieldType(f.semantic).isNullable()
-    }));
-    return {
-      type: 'object',
-      schema: {
-        name: this.baseName.value.value,
-        properties,
-        additionalProperties: false
-      },
-      shape: this.shape
-    };
-  }
-}
-
-function semanticTypeToPropertyType(type: SemanticType): {
-  readonly kind: 'scalar';
-  readonly typeName: string;
-  readonly nullable: boolean;
-} {
-  switch (type.kind) {
-    case 'primitive':
-      return { kind: 'scalar', typeName: type.type, nullable: false };
-    case 'json_value':
-      return { kind: 'scalar', typeName: 'unknown', nullable: type.isNullable() };
-    case 'nullable': {
-      const inner = semanticTypeToPropertyType(type.innerType);
-      return { ...inner, nullable: true };
-    }
-    case 'reference':
-      return { kind: 'scalar', typeName: type.name, nullable: false };
-    case 'optional': {
-      const inner = semanticTypeToPropertyType(type.innerType);
-      return { ...inner, nullable: true };
-    }
-    case 'readonly_collection':
-    case 'mutable_collection':
-      return { kind: 'scalar', typeName: 'array', nullable: false };
-    case 'generic':
-    case 'union':
-    case 'intersection':
-    case 'object':
-    case 'never':
-    case 'error':
-      return { kind: 'scalar', typeName: 'unknown', nullable: type.isNullable() };
-  }
+function semanticTypeToPropertyType(type: SemanticType): { readonly kind: 'scalar'; readonly typeName: string; readonly nullable: boolean } {
+  return type.accept({
+    primitive: value => ({ kind: 'scalar' as const, typeName: value.type, nullable: false }),
+    jsonValue: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+    nullable: value => ({ ...semanticTypeToPropertyType(value.innerType), nullable: true }),
+    reference: value => ({ kind: 'scalar' as const, typeName: value.name, nullable: false }),
+    optional: value => ({ ...semanticTypeToPropertyType(value.innerType), nullable: true }),
+    readonlyCollection: () => ({ kind: 'scalar' as const, typeName: 'array', nullable: false }),
+    mutableCollection: () => ({ kind: 'scalar' as const, typeName: 'array', nullable: false }),
+    generic: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+    union: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+    intersection: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+    object: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+    never: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+    error: value => ({ kind: 'scalar' as const, typeName: 'unknown', nullable: value.isNullable() }),
+  });
 }
 
 export const ResponseKind = Object.freeze({
@@ -416,10 +297,11 @@ export function matchResponse<R>(
   descriptor: ResponseDescriptor,
   visitor: ResponseVisitor<R>
 ): R {
-  switch (descriptor.kind) {
-    case ResponseKind.Resource: return visitor.resource(descriptor);
-    case ResponseKind.Model: return visitor.model(descriptor);
-    case ResponseKind.Inline: return visitor.inline(descriptor);
-    case ResponseKind.Void: return visitor.void(descriptor);
-  }
+  const handlers = {
+    resource: visitor.resource,
+    model: visitor.model,
+    inline: visitor.inline,
+    void: visitor.void,
+  } as const;
+  return handlers[descriptor.kind](descriptor as never);
 }

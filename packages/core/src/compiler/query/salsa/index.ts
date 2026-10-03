@@ -12,7 +12,8 @@ export {
     type QueryNode,
     type QueryContext,
     type QueryFrame,
-    QueryCycleError,
+    type QueryCycleError,
+    createQueryCycleError,
     type ActiveQueryFrame,
     type SalsaCompilerStats
 } from "./salsaTypes";
@@ -22,7 +23,8 @@ export {
 } from "./queryKeyFactory";
 
 export {
-    QueryGraphManager
+    createQueryGraphManager,
+    type QueryGraphManager
 } from "./queryGraphManager";
 
 export {

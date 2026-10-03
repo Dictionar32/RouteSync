@@ -6,6 +6,7 @@
 
 import type { RouteCapabilityContract } from "../../../../types/route";
 import { RouteSecurityResolver } from "../RouteSecurityResolver";
+import { relationOptionFold, relationSome, relationNone, relationGate } from "../../../../semantic/kernel/relationalSequence";
 import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasics";
 import type { ResolvedRouteCapability } from "./capabilityResolution";
 
@@ -14,8 +15,8 @@ export function buildRouteCapabilityContract(
     basics: IntermediateRouteBoundaryBasics,
     resolved: ResolvedRouteCapability
 ): RouteCapabilityContract {
-    const middleware = params.middleware === undefined ? [] : params.middleware;
-    const auth = params.auth === true;
+    const middleware = relationOptionFold(relationGate(Boolean(params.middleware), () => relationSome(params.middleware as NonNullable<RouteBoundaryOptions['middleware']>), () => relationNone()), () => [], value => value);
+    const auth = relationEqual(params.auth, true);
     const security = RouteSecurityResolver.resolve(middleware, auth);
 
     return Object.freeze({

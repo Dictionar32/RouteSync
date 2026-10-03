@@ -1,40 +1,41 @@
 import type { FieldPresence, ResponseFieldData, ResponseFieldResolved } from './types';
-
-export function normalizeKind(kind: ResponseFieldData['kind']): 'primitive' | 'object' | 'array' {
-  switch (kind) {
-    case 'primitive': return 'primitive';
-    case 'object': return 'object';
-    case 'array': return 'array';
-    case 'variable':
-    case 'property_access': return 'primitive';
-  }
-}
+import { RESPONSE_FIELD_NORMALIZATION_RULES, RESPONSE_RESOLVED_TYPE_RULES, resolveLoweringOperation } from '../../../ir/semanticIRLoweringRelations';
 
 const TYPE_MAP: ReadonlyMap<string, string> = new Map([
   ['int', 'number'], ['integer', 'number'], ['float', 'number'], ['double', 'number'],
-  ['bool', 'boolean'], ['str', 'string']
+  ['bool', 'boolean'], ['str', 'string'],
 ]);
+
+export function normalizeKind(kind: ResponseFieldData['kind']): 'primitive' | 'object' | 'array' {
+  return resolveLoweringOperation(kind, RESPONSE_FIELD_NORMALIZATION_RULES) as 'primitive' | 'object' | 'array';
+}
 
 export function normalizeType(type: string): string {
   return TYPE_MAP.get(type.toLowerCase()) ?? type;
 }
 
 export function extractType(fieldData: ResponseFieldData): string {
-  switch (fieldData.kind) {
-    case 'primitive': return normalizeType(fieldData.type);
-    case 'object': return 'object';
-    case 'array': return 'array';
-    case 'variable':
-    case 'property_access': return resolvedType(fieldData.resolved);
-  }
+  const operation = resolveLoweringOperation(fieldData.kind, RESPONSE_FIELD_NORMALIZATION_RULES);
+  const handlers: Record<string, () => string> = {
+    primitive: () => normalizeType((fieldData as Extract<ResponseFieldData, { kind: 'primitive' }>).type),
+    object: () => 'object',
+    array: () => 'array',
+  };
+  const direct = handlers[operation];
+  return direct
+    ? direct()
+    : resolvedType((fieldData as Extract<ResponseFieldData, { kind: 'variable' }> | Extract<ResponseFieldData, { kind: 'property_access' }>).resolved);
 }
 
 function resolvedType(resolved: ResponseFieldResolved): string {
-  switch (resolved.kind) {
-    case 'reference': return resolved.typeName;
-    case 'type': return normalizeType(resolved.typeName);
-    case 'unresolved': return 'unknown';
-  }
+  const operation = resolveLoweringOperation(resolved.kind, RESPONSE_RESOLVED_TYPE_RULES);
+  const handlers: Record<string, () => string> = {
+    reference: () => (resolved as Extract<ResponseFieldResolved, { kind: 'reference' }>).typeName,
+    type: () => normalizeType((resolved as Extract<ResponseFieldResolved, { kind: 'type' }>).typeName),
+    unresolved: () => 'unknown',
+  };
+  const handler = handlers[operation];
+  return (handler ?? (() => { throw new Error(`No resolved response-field type handler for ${operation}`); }))();
 }
 
 export function isFieldNullable(fieldData: ResponseFieldData): boolean {

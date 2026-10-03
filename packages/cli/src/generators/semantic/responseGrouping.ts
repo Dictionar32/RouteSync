@@ -1,4 +1,4 @@
-import type { ParsedRoute } from '@routesync/core';
+import type { RouteSemanticFlow } from '@routesync/core';
 import type { CompilerIR } from './semanticTypes';
 import type { SemanticResolutionContext } from './SemanticResolutionContext';
 
@@ -10,6 +10,6 @@ export function countResponsesByGroup(context: SemanticResolutionContext, ir: Co
     }
 }
 
-export function deriveGroupName(route: ParsedRoute): string {
+export function deriveGroupName(route: RouteSemanticFlow): string {
     return route.identity.groupName;
 }

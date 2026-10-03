@@ -7,13 +7,13 @@ import {
   NoPayloadExecutionSignature,
   RequiredPayloadExecutionSignature,
   OptionalPayloadExecutionSignature,
-  ScannedRouteExecutionSignature,
+  RouteSemanticFlowExecutionSignature,
   RouteHookKind
 } from '../../core/src'
 
 describe('RouteExecutionSignature ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
   test('1. matchRouteExecutionSignature executes pure catamorphism for NoPayload signature', () => {
-    const sig: NoPayloadExecutionSignature = ScannedRouteExecutionSignature.noPayload()
+    const sig: NoPayloadExecutionSignature = RouteSemanticFlowExecutionSignature.noPayload()
 
     const result = matchRouteExecutionSignature(sig, {
       none: (s) => `NONE:${s.parameterDeclaration}:${s.hasPayload}:${s.isOptional}`,
@@ -30,7 +30,7 @@ describe('RouteExecutionSignature ADT Flow SSOT (Zero-if Catamorphism Suite)', (
   })
 
   test('2. matchRouteExecutionSignature executes pure catamorphism for RequiredPayload signature', () => {
-    const sig: RequiredPayloadExecutionSignature = ScannedRouteExecutionSignature.requiredPayload('CreateOrderPayload')
+    const sig: RequiredPayloadExecutionSignature = RouteSemanticFlowExecutionSignature.requiredPayload('CreateOrderPayload')
 
     const result = matchRouteExecutionSignature(sig, {
       none: () => 'NONE',
@@ -47,7 +47,7 @@ describe('RouteExecutionSignature ADT Flow SSOT (Zero-if Catamorphism Suite)', (
   })
 
   test('3. matchRouteExecutionSignature executes pure catamorphism for OptionalPayload signature', () => {
-    const sig: OptionalPayloadExecutionSignature = ScannedRouteExecutionSignature.optionalPayload('FilterOptions')
+    const sig: OptionalPayloadExecutionSignature = RouteSemanticFlowExecutionSignature.optionalPayload('FilterOptions')
 
     const result = matchRoutePayloadMode(sig, {
       none: () => 'NONE',
@@ -88,11 +88,11 @@ describe('RouteExecutionSignature ADT Flow SSOT (Zero-if Catamorphism Suite)', (
     expect(optSpec.formatDeclaration('UserForm')).toBe('payload: UserForm = {}')
   })
 
-  test('5. ScannedRouteExecutionSignature semantic factories produce frozen and complete instances', () => {
-    const noP = ScannedRouteExecutionSignature.noPayload()
-    const req = ScannedRouteExecutionSignature.requiredPayload('OrderForm')
-    const opt = ScannedRouteExecutionSignature.optionalPayload('OrderForm')
-    const fromM = ScannedRouteExecutionSignature.fromMode(RoutePayloadMode.Required, 'ProfileForm')
+  test('5. RouteSemanticFlowExecutionSignature semantic factories produce frozen and complete instances', () => {
+    const noP = RouteSemanticFlowExecutionSignature.noPayload()
+    const req = RouteSemanticFlowExecutionSignature.requiredPayload('OrderForm')
+    const opt = RouteSemanticFlowExecutionSignature.optionalPayload('OrderForm')
+    const fromM = RouteSemanticFlowExecutionSignature.fromMode(RoutePayloadMode.Required, 'ProfileForm')
 
     expect(Object.isFrozen(noP)).toBe(true)
     expect(Object.isFrozen(req)).toBe(true)
@@ -100,9 +100,9 @@ describe('RouteExecutionSignature ADT Flow SSOT (Zero-if Catamorphism Suite)', (
     expect(Object.isFrozen(fromM)).toBe(true)
   })
 
-  test('6. ScannedRouteExecutionSignature.create correctly maps boolean hasPayload', () => {
-    const withoutPayload = ScannedRouteExecutionSignature.create(RouteHookKind.Query, false, false)
-    const withPayload = ScannedRouteExecutionSignature.create(RouteHookKind.Mutation, false, true, 'CreateUserForm')
+  test('6. RouteSemanticFlowExecutionSignature.create correctly maps boolean hasPayload', () => {
+    const withoutPayload = RouteSemanticFlowExecutionSignature.create(RouteHookKind.Query, false, false)
+    const withPayload = RouteSemanticFlowExecutionSignature.create(RouteHookKind.Mutation, false, true, 'CreateUserForm')
 
     expect(withoutPayload.payloadMode).toBe(RoutePayloadMode.None)
     expect(withoutPayload.parameterDeclaration).toBe('')
@@ -113,9 +113,9 @@ describe('RouteExecutionSignature ADT Flow SSOT (Zero-if Catamorphism Suite)', (
 
   test('7. Pure functional signature builder folds declarations into TypeScript hook definition without branching', () => {
     const signatures = [
-      ScannedRouteExecutionSignature.noPayload(),
-      ScannedRouteExecutionSignature.requiredPayload('CreateProductForm'),
-      ScannedRouteExecutionSignature.optionalPayload('SearchFilters')
+      RouteSemanticFlowExecutionSignature.noPayload(),
+      RouteSemanticFlowExecutionSignature.requiredPayload('CreateProductForm'),
+      RouteSemanticFlowExecutionSignature.optionalPayload('SearchFilters')
     ]
 
     const hookSignatures = signatures.map(sig => matchRouteExecutionSignature(sig, {

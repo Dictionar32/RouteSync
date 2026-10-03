@@ -9,13 +9,13 @@
 
 import { buildSemanticIRNode, IRNodeRegistry, SemanticNode, SourceRef } from '@routesync/core';
 import {
-  ScannedRoute, ScannedModel, ScannedResource, ScannedManifest,
+  RouteSemanticFlow, ScannedModel, ScannedResource, ScannedManifest,
   KernelResolver, ResolveManifestResult,
   NominalAtomFactory, matchRouteResponsePayload,
-  ScannedRouteDescriptor, ScannedResourceDescriptor, ScannedManifestDescriptor,
-  type ScannedRouteMethod, type ScannedRoutePath, type ScannedRouteName,
+  RouteSemanticFlowFactory, ScannedResourceDescriptor, ScannedManifestDescriptor,
+  type RouteSemanticFlowMethod, type RouteSemanticFlowPath, type RouteSemanticFlowName,
   type ScannedStableHash, type SourceFilePath, type SourceLineNumber,
-  type ScannedRouteContract, type ScannedResourceContract, type ScannedModelContract,
+  type RouteSemanticFlowContract, type ScannedResourceContract, type ScannedModelContract,
   type ScannedManifestContract, type RouteResponsePayloadContract, type RouteResponsePayloadVisitor
 } from './incremental/incrementalTypes';
 import { calculateRouteHash } from './incremental/routeHasher';
@@ -35,15 +35,15 @@ export function resolveManifestIncrementally(
   const { prevManifest, prevIRNodes } = loadPreviousIncrementalState(prevManifestPath);
   const resolvedManifest = {
     ...newManifest,
-    routes: newManifest.routes.map(route => ({ ...route })),
-    resources: newManifest.resources.map(resource => ({ ...resource })),
-    models: newManifest.models.map(model => ({ ...model }))
+    routes: (newManifest.routes ?? []).map(route => ({ ...route })),
+    resources: (newManifest.resources ?? []).map(resource => ({ ...resource })),
+    models: (newManifest.models ?? []).map(model => ({ ...model }))
   } as ScannedManifest;
   const irRegistry = new IRNodeRegistry();
 
-  const prevRouteMap = new Map<string, ScannedRoute>();
+  const prevRouteMap = new Map<string, RouteSemanticFlow>();
   if (prevManifest && prevManifest.routes) {
-    prevManifest.routes.forEach((r: ScannedRoute) => prevRouteMap.set(`${r.method}:${r.path}`, r));
+    prevManifest.routes.forEach((r: RouteSemanticFlow) => prevRouteMap.set(`${r.method}:${r.path}`, r));
   }
 
   const registerIRNode = (id: string, source: SourceRef, rawCode: string, resolved: Record<string, unknown>, lineage: string[]) => {
@@ -61,12 +61,12 @@ export function resolveManifestIncrementally(
 }
 
 export {
-  ScannedRoute, ScannedModel, ScannedResource, ScannedManifest,
+  RouteSemanticFlow, ScannedModel, ScannedResource, ScannedManifest,
   KernelResolver, ResolveManifestResult, calculateRouteHash, canonicalizeCollectionDescriptor,
   NominalAtomFactory, matchRouteResponsePayload,
-  ScannedRouteDescriptor, ScannedResourceDescriptor, ScannedManifestDescriptor,
-  type ScannedRouteMethod, type ScannedRoutePath, type ScannedRouteName,
+  RouteSemanticFlowFactory, ScannedResourceDescriptor, ScannedManifestDescriptor,
+  type RouteSemanticFlowMethod, type RouteSemanticFlowPath, type RouteSemanticFlowName,
   type ScannedStableHash, type SourceFilePath, type SourceLineNumber,
-  type ScannedRouteContract, type ScannedResourceContract, type ScannedModelContract,
+  type RouteSemanticFlowContract, type ScannedResourceContract, type ScannedModelContract,
   type ScannedManifestContract, type RouteResponsePayloadContract, type RouteResponsePayloadVisitor
 };

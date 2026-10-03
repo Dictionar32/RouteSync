@@ -1,3 +1,5 @@
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationOptionFold, relationRefine } from '../../semantic/kernel/relationalSequence';
 /**
  * Closed semantic resolution ADT.
  *
@@ -9,7 +11,7 @@ import type { BoundSemanticNode, BoundNullability } from './boundAst';
 import type { ModelName, ResourceName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';
 
-export type ResolutionStatus = 'resolved' | 'unknown' | 'partial';
+export type ResolutionStatus = 'resolved' | 'indeterminate' | 'partial';
 
 export interface SemanticTraceNode {
   readonly source: string;
@@ -68,8 +70,8 @@ export interface ObjectSemanticResolution extends ResolutionBase {
   };
 }
 
-export interface UnknownSemanticResolution extends ResolutionBase {
-  readonly kind: 'unknown';
+export interface IndeterminateSemanticResolution extends ResolutionBase {
+  readonly kind: 'indeterminate';
 }
 
 export type SemanticResolution =
@@ -78,7 +80,7 @@ export type SemanticResolution =
   | ResourceSemanticResolution
   | ObjectSemanticResolution
   | QueryProjectionSemanticResolution
-  | UnknownSemanticResolution;
+  | IndeterminateSemanticResolution;
 
 export function matchSemanticResolution<T>(
   resolution: SemanticResolution,
@@ -88,15 +90,24 @@ export function matchSemanticResolution<T>(
     resource: (value: ResourceSemanticResolution) => T;
     object: (value: ObjectSemanticResolution) => T;
     query_projection: (value: QueryProjectionSemanticResolution) => T;
-    unknown: (value: UnknownSemanticResolution) => T;
+    indeterminate: (value: IndeterminateSemanticResolution) => T;
   }
 ): T {
-  switch (resolution.kind) {
-    case 'scalar': return visitor.scalar(resolution);
-    case 'model': return visitor.model(resolution);
-    case 'resource': return visitor.resource(resolution);
-    case 'object': return visitor.object(resolution);
-    case 'query_projection': return visitor.query_projection(resolution);
-    case 'unknown': return visitor.unknown(resolution);
-  }
+  const scalar = relationRefine(resolution, (value): value is ScalarSemanticResolution => relationEqual(value.kind, 'scalar'));
+  return relationOptionFold(scalar, () => {
+    const model = relationRefine(resolution, (value): value is ModelSemanticResolution => relationEqual(value.kind, 'model'));
+    return relationOptionFold(model, () => {
+      const resource = relationRefine(resolution, (value): value is ResourceSemanticResolution => relationEqual(value.kind, 'resource'));
+      return relationOptionFold(resource, () => {
+        const object = relationRefine(resolution, (value): value is ObjectSemanticResolution => relationEqual(value.kind, 'object'));
+        return relationOptionFold(object, () => {
+          const projection = relationRefine(resolution, (value): value is QueryProjectionSemanticResolution => relationEqual(value.kind, 'query_projection'));
+          return relationOptionFold(projection, () => {
+            const indeterminate = relationRefine(resolution, (value): value is IndeterminateSemanticResolution => relationEqual(value.kind, 'indeterminate'));
+            return relationOptionFold(indeterminate, () => visitor.indeterminate({ ...resolution, kind: 'indeterminate' }), visitor.indeterminate);
+          }, visitor.query_projection);
+        }, visitor.object);
+      }, visitor.resource);
+    }, visitor.model);
+  }, visitor.scalar);
 }

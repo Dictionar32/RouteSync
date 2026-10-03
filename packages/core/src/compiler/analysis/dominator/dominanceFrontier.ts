@@ -1,66 +1,72 @@
-/**
- * dominanceFrontier.ts
- *
- * Dominance frontier computation for CFGs. Used in SSA construction for phi node placement.
- *
- * @module core/compiler/analysis/dominator
- */
-
+/** Relation-backed dominance-frontier facts. */
 import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
-import { DominatorTree } from './dominatorTree';
+import type { DominatorTree } from './dominatorTree';
+import { relationContains, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
+import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
 
-/**
- * Dominance frontier computation.
- * Dominance frontier of node N is the set of nodes where:
- * - N dominates a predecessor of the node
- * - N does not strictly dominate the node itself
- */
-export class DominanceFrontier {
-    /** Dominance frontier map: blockId -> set of frontier blocks */
-    private frontiers = new Map<number, Set<number>>();
-
-    /**
-     * Compute dominance frontiers for all blocks in CFG.
-     */
-    public compute(cfg: ControlFlowGraph, dom: DominatorTree): void {
-        this.frontiers.clear();
-        for (const [blockId] of cfg.blocks) {
-            this.frontiers.set(blockId, new Set());
-        }
-
-        for (const [blockId, block] of cfg.blocks) {
-            // Only process join points (multiple predecessors)
-            if (block.predecessors.length >= 2) {
-                for (const predId of block.predecessors) {
-                    let runner: number | undefined = predId;
-                    const idom = dom.getImmediateDominator(blockId);
-
-                    while (runner !== idom && runner !== undefined) {
-                        this.frontiers.get(runner)?.add(blockId);
-
-                        const next: number | undefined = dom.getImmediateDominator(runner);
-
-                        // Prevent infinite loop
-                        if (next === runner) break;
-
-                        runner = next;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Get dominance frontier for given block.
-     */
-    public getFrontier(blockId: number): ReadonlySet<number> {
-        return this.frontiers.get(blockId) ?? new Set();
-    }
-
-    /**
-     * Clear all frontier information.
-     */
-    public clear(): void {
-        this.frontiers.clear();
-    }
+export interface DominanceFrontier {
+  readonly frontiers: RelationIndex<number, readonly number[]>;
+  readonly getFrontier: (blockId: number) => readonly number[];
 }
+
+const runnerClosure = (
+  runner: number,
+  idom: RelationOption<number>,
+  blockId: number,
+  dom: DominatorTree,
+  output: readonly number[],
+): readonly number[] => relationOptionFold(
+  idom,
+  () => output,
+  parent => relationResolve(
+    relationEqual(runner, parent),
+    () => output,
+    () => relationResolve(
+      relationContains(output, blockId),
+      () => output,
+      () => relationOptionFold(
+        dom.getImmediateDominator(runner),
+        () => Object.freeze([...output, blockId]),
+        next => relationResolve(relationEqual(next, runner), () => Object.freeze([...output, blockId]), () => runnerClosure(next, dom.getImmediateDominator(next), blockId, dom, Object.freeze([...output, blockId]))),
+      ),
+    ),
+  ),
+);
+
+export const createDominanceFrontier = (cfg: ControlFlowGraph, dom: DominatorTree): DominanceFrontier => {
+  const blocks = cfg.blocks;
+  const seed: RelationIndex<number, readonly number[]> = Object.freeze([]);
+  const frontiers = relationFold(
+    blocks,
+    seed,
+    (current, [blockId]) => relationIndexAdd(current, blockId, []),
+  );
+  const computed = relationFold(
+    blocks,
+    frontiers,
+    (current, [blockId, block]) => relationResolve(
+      block.predecessors.length >= 2,
+      () => relationFold(
+        block.predecessors,
+        current,
+        (state, predecessor) => relationOptionFold(
+          dom.getImmediateDominator(blockId),
+          () => state,
+          () => {
+            const path = runnerClosure(predecessor, dom.getImmediateDominator(predecessor), blockId, dom, []);
+            const previous = relationOptionFold(relationIndexLookup(state, predecessor), () => [], value => value);
+            return relationIndexAdd(state, predecessor, Object.freeze([...previous, ...path]));
+          },
+        ),
+      ),
+      () => current,
+    ),
+  );
+  return Object.freeze({
+    frontiers: computed,
+    getFrontier: (blockId: number) => relationOptionFold(relationIndexLookup(computed, blockId), () => [], value => value),
+  });
+};
+
+export const DominanceFrontier = Object.freeze({ compute: createDominanceFrontier });

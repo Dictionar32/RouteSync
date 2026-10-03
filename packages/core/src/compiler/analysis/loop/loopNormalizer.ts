@@ -1,90 +1,57 @@
-/**
- * Loop Normalization Utilities.
- * Transforms loops into canonical form for optimization (e.g. LICM).
- *
- * @module compiler/analysis/loop
- */
+/** Relation-driven loop normalization. */
+import type { ControlFlowGraph, BasicBlock, Instruction, BasicBlockRelation } from '../../utils/ControlFlowGraph';
+import { basicBlockLookup, basicBlockReplace, basicBlockIds, createControlFlowGraph } from '../../utils/ControlFlowGraph';
+import { relationContains } from '../../../semantic/kernel/relationMembership';
+import { relationFold, relationOptionFold, relationResolve, relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/relationFoundation';
 
-import { ControlFlowGraph, type BasicBlock, type Instruction } from '../../utils/ControlFlowGraph';
-
-export class LoopNormalizer {
-    /**
-     * Ensure loop has a pre-header block.
-     *
-     * Pre-header is a block with:
-     * - Single successor: loop header
-     * - All outside loop predecessors go through pre-header
-     */
-    public static ensurePreHeader(
-        cfg: ControlFlowGraph,
-        loopBlocks: ReadonlySet<number>,
-        headerId: number
-    ): { cfg: ControlFlowGraph; preHeaderId: number } {
-        const blocks = new Map<number, BasicBlock>(cfg.blocks);
-        const header = blocks.get(headerId);
-
-        if (!header) {
-            return { cfg, preHeaderId: cfg.entryBlock };
-        }
-
-        // Find predecessors outside loop
-        const outerPreds = header.predecessors.filter(p => !loopBlocks.has(p));
-
-        // Check if already has suitable pre-header
-        if (outerPreds.length === 1 && blocks.get(outerPreds[0])?.successors.length === 1) {
-            return { cfg, preHeaderId: outerPreds[0] };
-        }
-
-        // Create new pre-header block
-        const preHeaderId = Math.max(...cfg.blocks.keys()) + 1;
-        const jump: Instruction = { kind: 'Jump', targetBlockId: headerId };
-
-        const preHeaderBlock: BasicBlock = {
-            id: preHeaderId,
-            instructions: [jump],
-            successors: [headerId],
-            predecessors: outerPreds
-        };
-
-        blocks.set(preHeaderId, preHeaderBlock);
-
-        // Update outer predecessors to point to pre-header
-        for (const predId of outerPreds) {
-            const pred = blocks.get(predId);
-            if (pred) {
-                const nextSuccs = pred.successors.map(s => s === headerId ? preHeaderId : s);
-                const nextInsts = pred.instructions.map(inst => {
-                    if (inst.kind === 'Jump' && inst.targetBlockId === headerId) {
-                        return { ...inst, targetBlockId: preHeaderId };
-                    }
-                    if (inst.kind === 'Branch') {
-                        return {
-                            ...inst,
-                            trueBlockId: inst.trueBlockId === headerId ? preHeaderId : inst.trueBlockId,
-                            falseBlockId: inst.falseBlockId === headerId ? preHeaderId : inst.falseBlockId
-                        };
-                    }
-                    return inst;
-                });
-
-                blocks.set(predId, { ...pred, successors: nextSuccs, instructions: nextInsts });
-            }
-        }
-
-        // Update header predecessors
-        const nextHeaderPreds = header.predecessors.filter(p => loopBlocks.has(p));
-        nextHeaderPreds.push(preHeaderId);
-        blocks.set(headerId, { ...header, predecessors: nextHeaderPreds });
-
-        return {
-            cfg: new ControlFlowGraph(
-                cfg.entryBlock === headerId 
-                    ? preHeaderId 
-                    : cfg.entryBlock,
-                cfg.exitBlock,
-                blocks
-            ),
-            preHeaderId
-        };
-    }
+export interface LoopNormalizer {
+    readonly ensurePreHeader: (cfg: ControlFlowGraph, loopBlocks: readonly number[], headerId: number) => { readonly cfg: ControlFlowGraph; readonly preHeaderId: number };
 }
+
+export const createLoopNormalizer = (): LoopNormalizer => Object.freeze({
+    ensurePreHeader: (cfg: ControlFlowGraph, loopBlocks: readonly number[], headerId: number) => relationOptionFold(
+        basicBlockLookup(cfg.blocks, headerId),
+        () => ({ cfg, preHeaderId: cfg.entryBlock }),
+        header => {
+            const outerPreds = relationFold(header.predecessors, [] as readonly number[], (output, predecessor) => relationResolve(relationContains(loopBlocks, predecessor), () => output, () => [...output, predecessor]));
+            const existing = relationResolve(
+                relationEqual(outerPreds.length, 1),
+                () => relationOptionFold(basicBlockLookup(cfg.blocks, outerPreds[0]), () => false, block => relationEqual(block.successors.length, 1)),
+                () => false,
+            );
+            return relationResolve(existing,
+                () => ({ cfg, preHeaderId: outerPreds[0] }),
+                () => {
+                    const preHeaderId = Math.max(...basicBlockIds(cfg.blocks)) + 1;
+                    const jump: Instruction = { kind: 'Jump', targetBlockId: headerId };
+                    const preHeaderBlock: BasicBlock = { id: preHeaderId, instructions: [jump], successors: [headerId], predecessors: outerPreds };
+                    const updated = relationFold(outerPreds, basicBlockReplace(cfg.blocks, preHeaderId, preHeaderBlock), (blocks, predId) => relationOptionFold(
+                        basicBlockLookup(blocks, predId),
+                        () => blocks,
+                        pred => {
+                            const nextSuccs = relationFold(pred.successors, [] as readonly number[], (output, successor) => [...output, relationResolve(relationEqual(successor, headerId), () => preHeaderId, () => successor)]);
+                            const nextInsts = relationProject(pred.instructions, instruction => relationResolve(
+                                relationEqual(instruction.kind, 'Jump'),
+                                () => relationResolve(relationEqual((instruction as Extract<Instruction, { kind: 'Jump' }>).targetBlockId, headerId), () => ({ ...instruction, targetBlockId: preHeaderId }), () => instruction),
+                                () => relationResolve(relationEqual(instruction.kind, 'Branch'),
+                                    () => ({ ...instruction, trueBlockId: relationResolve(relationEqual((instruction as Extract<Instruction, { kind: 'Branch' }>).trueBlockId, headerId), () => preHeaderId, () => (instruction as Extract<Instruction, { kind: 'Branch' }>).trueBlockId), falseBlockId: relationResolve(relationEqual((instruction as Extract<Instruction, { kind: 'Branch' }>).falseBlockId, headerId), () => preHeaderId, () => (instruction as Extract<Instruction, { kind: 'Branch' }>).falseBlockId) }),
+                                    () => instruction),
+                            ));
+                            return basicBlockReplace(blocks, predId, { ...pred, successors: nextSuccs, instructions: nextInsts });
+                        },
+                    ));
+                    const nextHeaderPreds = relationFold(header.predecessors, [] as readonly number[], (output, predecessor) => relationResolve(relationContains(loopBlocks, predecessor), () => [...output, predecessor], () => output));
+                    const finalBlocks = basicBlockReplace(updated, headerId, { ...header, predecessors: [...nextHeaderPreds, preHeaderId] });
+                    const entry = relationResolve(relationEqual(cfg.entryBlock, headerId), () => preHeaderId, () => cfg.entryBlock);
+                    return { cfg: createControlFlowGraph(entry, cfg.exitBlock, finalBlocks), preHeaderId };
+                },
+            );
+        },
+    ),
+});
+
+export const LoopNormalizer = Object.freeze({ ensurePreHeader: createLoopNormalizer().ensurePreHeader });
+
+export interface LoopNormalizationResult { readonly cfg: ControlFlowGraph; readonly preHeaderId: number; }
+export const ensurePreHeader = (cfg: ControlFlowGraph, loopBlocks: readonly number[], headerId: number): LoopNormalizationResult => createLoopNormalizer().ensurePreHeader(cfg, loopBlocks, headerId);

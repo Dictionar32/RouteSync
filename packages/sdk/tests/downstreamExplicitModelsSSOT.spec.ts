@@ -5,12 +5,12 @@ import {
   SdkResponseKind,
   InvalidationTargetKind,
   ScannedInvalidationTarget,
-  ScannedRouteCacheInvalidationDescriptor,
-  ScannedRouteExecutionSignature,
+  RouteSemanticFlowCacheInvalidationDescriptor,
+  RouteSemanticFlowExecutionSignature,
   ScannedSdkResponseResolution,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   StaticLaravelScanner,
-  ParsedRoute,
+  RouteSemanticFlow,
   ParsedModel,
   ResourceRouteGroup,
   ScannedResourceRouteGroupDescriptor,
@@ -61,8 +61,8 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
     expect(auth.queryKeyExpression).toBe('QueryKey.profile.all')
   })
 
-  it('3. ScannedRouteCacheInvalidationDescriptor handles empty and target collections without null or undefined', () => {
-    const empty = ScannedRouteCacheInvalidationDescriptor.empty()
+  it('3. RouteSemanticFlowCacheInvalidationDescriptor handles empty and target collections without null or undefined', () => {
+    const empty = RouteSemanticFlowCacheInvalidationDescriptor.empty()
     expect(empty.targets).toEqual([])
     expect(empty.queryKeyExpressions).toEqual([])
     expect(Object.isFrozen(empty)).toBe(true)
@@ -73,7 +73,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       ScannedInvalidationTarget.selfList('orders'),
       ScannedInvalidationTarget.parentList('users')
     ]
-    const descriptor = ScannedRouteCacheInvalidationDescriptor.fromTargets(targets)
+    const descriptor = RouteSemanticFlowCacheInvalidationDescriptor.fromTargets(targets)
     expect(descriptor.targets.length).toBe(2)
     expect(descriptor.queryKeyExpressions).toEqual([
       'QueryKey.orders.all',
@@ -82,19 +82,19 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
     expect(Object.isFrozen(descriptor)).toBe(true)
   })
 
-  it('4. ScannedRouteExecutionSignature exposes typed factory methods for each payload mode', () => {
-    const noPayload = ScannedRouteExecutionSignature.noPayload()
+  it('4. RouteSemanticFlowExecutionSignature exposes typed factory methods for each payload mode', () => {
+    const noPayload = RouteSemanticFlowExecutionSignature.noPayload()
     expect(noPayload.payloadMode).toBe(RoutePayloadMode.None)
     expect(noPayload.parameterDeclaration).toBe('')
     expect(noPayload.callArgumentsExpression).toBe('')
     expect(Object.isFrozen(noPayload)).toBe(true)
 
-    const required = ScannedRouteExecutionSignature.requiredPayload('OrderForm')
+    const required = RouteSemanticFlowExecutionSignature.requiredPayload('OrderForm')
     expect(required.payloadMode).toBe(RoutePayloadMode.Required)
     expect(required.parameterDeclaration).toBe('payload: OrderForm')
     expect(required.callArgumentsExpression).toBe('payload')
 
-    const optional = ScannedRouteExecutionSignature.optionalPayload('OrderForm')
+    const optional = RouteSemanticFlowExecutionSignature.optionalPayload('OrderForm')
     expect(optional.payloadMode).toBe(RoutePayloadMode.Optional)
     expect(optional.parameterDeclaration).toBe('payload: OrderForm = {}')
     expect(optional.callArgumentsExpression).toBe('payload')
@@ -135,8 +135,8 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
     expect(validatedAndMapped.hasMapper).toBe(true)
   })
 
-  it('6. ScannedRouteDescriptor assigns hookKind and executionSignature automatically in factory', () => {
-    const queryRoute = ScannedRouteDescriptor.create({
+  it('6. RouteSemanticFlowFactory assigns hookKind and executionSignature automatically in factory', () => {
+    const queryRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders',
       resourceName: 'Order',
@@ -149,7 +149,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
     expect(queryRoute.executionSignature.payloadMode).toBe(RoutePayloadMode.None)
     expect(queryRoute.invalidation.targets).toEqual([])
 
-    const mutateRoute = ScannedRouteDescriptor.create({
+    const mutateRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/orders',
       resourceName: 'Order',
@@ -179,7 +179,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       ]
     })
 
-    const orderStoreRoute = ScannedRouteDescriptor.create({
+    const orderStoreRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/order-details',
       resourceName: 'OrderDetail',
@@ -189,7 +189,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       response: ResourceResponseDescriptor.single('OrderDetail')
     })
 
-    const logoutRoute = ScannedRouteDescriptor.create({
+    const logoutRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/logout',
       resourceName: 'logout',
@@ -198,7 +198,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       isMutating: true
     })
 
-    const protectedProfileRoute = ScannedRouteDescriptor.create({
+    const protectedProfileRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/profile',
       resourceName: 'Profile',
@@ -208,7 +208,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       auth: true
     })
 
-    const routes: readonly ParsedRoute[] = [orderStoreRoute, logoutRoute, protectedProfileRoute]
+    const routes: readonly RouteSemanticFlow[] = [orderStoreRoute, logoutRoute, protectedProfileRoute]
     const models: readonly ParsedModel[] = [orderDetailModel]
     const routeGroups: readonly ResourceRouteGroup[] = [
       ScannedResourceRouteGroupDescriptor.create({ resourceName: 'Order', routes: [] }),

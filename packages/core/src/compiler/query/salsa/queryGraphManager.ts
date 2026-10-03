@@ -1,113 +1,78 @@
-/**
- * queryGraphManager.ts
- *
- * Dependency graph and cache invalidation engine for Salsa incremental compiler.
- *
- * @module core/compiler/query/salsa/queryGraphManager
- */
-
+/** Relation-backed dependency graph and cache invalidation engine. */
 import type { QueryNode } from './salsaTypes';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../../semantic/kernel/relationFoundation';
+import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
+import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
 
-export class QueryGraphManager {
-    private readonly queryGraph = new Map<string, QueryNode>();
+export interface QueryGraphManager {
+  readonly getNode: (keyId: string) => RelationOption<QueryNode>;
+  readonly setNode: (keyId: string, node: QueryNode) => void;
+  readonly isCacheValid: (node: QueryNode, currentRevision: number) => boolean;
+  readonly recordDependency: (parentId: string, childId: string) => void;
+  readonly invalidateDependents: (keyId: string, revision: number) => void;
+  readonly size: number;
+  readonly clear: () => void;
+}
 
-    public getNode(keyId: string): QueryNode | undefined {
-        return this.queryGraph.get(keyId);
-    }
+export function createQueryGraphManager(): QueryGraphManager {
+  let graph: RelationIndex<string, QueryNode> = Object.freeze([]);
 
-    public setNode(keyId: string, node: QueryNode): void {
-        this.queryGraph.set(keyId, node);
-    }
+  const getNode = (keyId: string): RelationOption<QueryNode> => relationIndexLookup(graph, keyId);
+  const setNode = (keyId: string, node: QueryNode): void => { graph = relationIndexAdd(graph, keyId, node); };
+  const isCacheValid = (node: QueryNode, currentRevision: number): boolean => relationResolve(
+    relationNotEqual(node.lastVerifiedRevision, currentRevision),
+    () => false,
+    () => node.dependencies.every(dependencyId => relationOptionFold(
+      getNode(dependencyId),
+      () => false,
+      dependency => dependency.lastChangedRevision <= node.lastVerifiedRevision,
+    )),
+  );
 
-    public isCacheValid(
-        node: QueryNode,
-        currentRevision: number,
-    ): boolean {
-        if (node.lastVerifiedRevision !== currentRevision) {
-            return false;
-        }
+  const recordDependency = (parentId: string, childId: string): void => {
+    relationOptionFold(getNode(parentId), () => {}, parentNode => setNode(parentId, {
+      ...parentNode,
+      dependencies: relationInsert(parentNode.dependencies, childId),
+    }));
+    relationOptionFold(getNode(childId), () => {}, childNode => setNode(childId, {
+      ...childNode,
+      dependents: relationInsert(childNode.dependents, parentId),
+    }));
+  };
 
-        for (const dependencyId of node.dependencies) {
-            const dependency = this.queryGraph.get(dependencyId);
+  const invalidate = (queue: readonly string[], visited: readonly string[], revision: number): void => relationResolve(
+    relationEqual(queue.length, 0),
+    () => {},
+    () => {
+      const current = queue[0];
+      const nextQueue = queue.slice(1);
+      return relationResolve(relationContains(visited, current),
+        () => invalidate(nextQueue, visited, revision),
+        () => relationOptionFold(getNode(current),
+          () => invalidate(nextQueue, relationInsert(visited, current), revision),
+          node => {
+            const nextVisited = relationInsert(visited, current);
+            const next = relationFold(node.dependents, nextQueue, (items, dependentId) => relationOptionFold(
+              getNode(dependentId),
+              () => items,
+              () => relationResolve(relationContains(nextVisited, dependentId), () => items, () => [...items, dependentId]),
+            ));
+            relationFold(node.dependents, false, (changed, dependentId) => relationOptionFold(getNode(dependentId), () => changed, dependent => { setNode(dependentId, { ...dependent, lastVerifiedRevision: revision - 1 }); return true; }));
+            return invalidate(next, nextVisited, revision);
+          }),
+      );
+    },
+  );
 
-            if (
-                !dependency ||
-                dependency.lastChangedRevision > node.lastVerifiedRevision
-            ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public recordDependency(parentId: string, childId: string): void {
-        const parentNode = this.queryGraph.get(parentId);
-        if (parentNode) {
-            const dependencies = new Set(parentNode.dependencies);
-            dependencies.add(childId);
-
-            this.queryGraph.set(parentId, {
-                ...parentNode,
-                dependencies,
-            });
-        }
-
-        const childNode = this.queryGraph.get(childId);
-        if (childNode) {
-            const dependents = new Set(childNode.dependents);
-            dependents.add(parentId);
-
-            this.queryGraph.set(childId, {
-                ...childNode,
-                dependents,
-            });
-        }
-    }
-
-    public invalidateDependents(
-        keyId: string,
-        revision: number,
-    ): void {
-        const queue = [keyId];
-        const visited = new Set<string>();
-
-        while (queue.length > 0) {
-            const current = queue.shift();
-
-            if (!current || visited.has(current)) {
-                continue;
-            }
-
-            visited.add(current);
-
-            const node = this.queryGraph.get(current);
-            if (!node) {
-                continue;
-            }
-
-            for (const dependentId of node.dependents) {
-                const dependent = this.queryGraph.get(dependentId);
-
-                if (!dependent || visited.has(dependentId)) {
-                    continue;
-                }
-
-                this.queryGraph.set(dependentId, {
-                    ...dependent,
-                    lastVerifiedRevision: revision - 1,
-                });
-
-                queue.push(dependentId);
-            }
-        }
-    }
-
-    public get size(): number {
-        return this.queryGraph.size;
-    }
-
-    public clear(): void {
-        this.queryGraph.clear();
-    }
+  return {
+    getNode,
+    setNode,
+    isCacheValid,
+    recordDependency,
+    invalidateDependents: (keyId, revision) => invalidate([keyId], [], revision),
+    get size(): number { return graph.length; },
+    clear: () => { graph = Object.freeze([]); },
+  };
 }

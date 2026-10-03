@@ -51,3 +51,13 @@ export type SemanticReference =
   | PropertyReference
   | ChannelReference
   | ServiceReference;
+
+export const modelRef = (value: string): ModelReference => Object.freeze({
+  kind: 'model_reference',
+  name: Object.freeze({ kind: 'model_name', value: Object.freeze({ kind: 'string_value', value }) }),
+});
+
+export const responseRef = (value: string): ResponseReference => Object.freeze({
+  kind: 'response_reference',
+  name: Object.freeze({ kind: 'response_type_name', value: Object.freeze({ kind: 'string_value', value }) }),
+});

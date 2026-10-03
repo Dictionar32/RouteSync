@@ -12,6 +12,8 @@ import type { ColumnName } from '../upstream/names';
 import type { CastType } from '../upstream/expression';
 import type { ModelColumnFact } from '../upstream/modelSourceFacts';
 import type { ModelReference, ResourceReference, ServiceReference } from '../upstream/semanticReferences';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
 
 export type ExecutionLayer =
   | "controller"
@@ -37,13 +39,10 @@ export interface ModelCastEntry {
 
 export class ModelCastCollection implements Iterable<ModelCastEntry> {
   public readonly casts: readonly ModelCastEntry[];
-  private readonly _lookup: ReadonlyMap<string, ModelCastEntry>;
+
 
   constructor(casts: readonly ModelCastEntry[]) {
     this.casts = Object.freeze([...casts]);
-    const map = new Map<string, ModelCastEntry>();
-    for (const cast of casts) map.set(cast.column.value.value, cast);
-    this._lookup = map;
     Object.freeze(this);
   }
 
@@ -52,12 +51,15 @@ export class ModelCastCollection implements Iterable<ModelCastEntry> {
   }
 
   public lookup(column: ColumnName): Lookup<ModelCastEntry> {
-    const entry = this._lookup.get(column.value.value);
-    return entry === undefined ? { kind: 'missing' } : { kind: 'found', value: entry };
+    return relationOptionFold(
+      relationFirstOption(this.casts, cast => relationEqual(cast.column.value.value, column.value.value)),
+      () => ({ kind: 'missing' }),
+      value => ({ kind: 'found', value }),
+    );
   }
 
-  public has(column: ColumnName): boolean { return this._lookup.has(column.value.value); }
-  public get size(): number { return this._lookup.size; }
+  public has(column: ColumnName): boolean { return relationOptionFold(relationFirstOption(this.casts, cast => relationEqual(cast.column.value.value, column.value.value)), () => false, () => true); }
+  public get size(): number { return this.casts.length; }
   public [Symbol.iterator](): Iterator<ModelCastEntry> { return this.casts[Symbol.iterator](); }
 }
 

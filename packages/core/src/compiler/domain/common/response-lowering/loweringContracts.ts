@@ -5,7 +5,8 @@
  */
 
 import type { ParsedResponseField } from '../../../generators/contract-generation/ResponseFieldParser';
-import { ConversionResult } from '../ConversionResult';
+import { ConversionResult, createConversionResult } from '../ConversionResult';
+import { relationExpand } from '../../../../semantic/kernel/relationalSequence';
 
 /**
  * Result contract for Nullable Wrapper resolution
@@ -36,8 +37,8 @@ export type ResponseFieldConversionResult = ConversionResult<ParsedResponseField
 export function partitionResults<T>(
     results: readonly ConversionResult<T>[]
 ): ConversionResult<T> {
-    const fields = results.flatMap(r => r.fields);
-    const warnings = results.flatMap(r => r.warnings);
+    const fields = relationExpand(results, result => result.fields);
+    const warnings = relationExpand(results, result => result.warnings);
 
-    return new ConversionResult({ fields, warnings });
+    return createConversionResult({ fields, warnings });
 }

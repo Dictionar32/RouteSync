@@ -155,7 +155,7 @@ export interface RouteCacheInvalidationDescriptor {
 
 const EMPTY_INVALIDATION_TARGETS: readonly InvalidationTarget[] = Object.freeze([]);
 
-export class ScannedRouteCacheInvalidationDescriptor implements RouteCacheInvalidationDescriptor {
+export class RouteSemanticFlowCacheInvalidationDescriptor implements RouteCacheInvalidationDescriptor {
   public readonly targets: readonly InvalidationTarget[];
   public readonly queryKeyExpressions: readonly StringValue[];
 
@@ -169,18 +169,18 @@ export class ScannedRouteCacheInvalidationDescriptor implements RouteCacheInvali
     Object.freeze(this);
   }
 
-  public static empty(): ScannedRouteCacheInvalidationDescriptor {
-    return new ScannedRouteCacheInvalidationDescriptor({ targets: EMPTY_INVALIDATION_TARGETS });
+  public static empty(): RouteSemanticFlowCacheInvalidationDescriptor {
+    return new RouteSemanticFlowCacheInvalidationDescriptor({ targets: EMPTY_INVALIDATION_TARGETS });
   }
 
-  public static none(): ScannedRouteCacheInvalidationDescriptor {
-    return ScannedRouteCacheInvalidationDescriptor.empty();
+  public static none(): RouteSemanticFlowCacheInvalidationDescriptor {
+    return RouteSemanticFlowCacheInvalidationDescriptor.empty();
   }
 
-  public static fromTargets(targets: readonly InvalidationTarget[]): ScannedRouteCacheInvalidationDescriptor {
-    return new ScannedRouteCacheInvalidationDescriptor({ targets });
+  public static fromTargets(targets: readonly InvalidationTarget[]): RouteSemanticFlowCacheInvalidationDescriptor {
+    return new RouteSemanticFlowCacheInvalidationDescriptor({ targets });
   }
 }
 
-export const ScannedRouteInvalidationPayload = ScannedRouteCacheInvalidationDescriptor;
-export type ScannedRouteInvalidationPayload = ScannedRouteCacheInvalidationDescriptor;
+export const RouteSemanticFlowInvalidationPayload = RouteSemanticFlowCacheInvalidationDescriptor;
+export type RouteSemanticFlowInvalidationPayload = RouteSemanticFlowCacheInvalidationDescriptor;

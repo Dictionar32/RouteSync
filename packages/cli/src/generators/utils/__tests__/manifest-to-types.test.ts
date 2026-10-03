@@ -9,7 +9,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { manifestToContractInput, generateInlineResourceName } from '../manifest-to-types';
-import type { ParsedRoute } from '../../../../../core/src/types/route'
+import type { RouteSemanticFlow } from '../../../../../core/src/types/route'
 import { PrimitiveType, ObjectType, ReadonlyCollectionType, CollectionKind, PrimitiveKind } from '../../../../../core/src/compiler/types/SemanticType';
 import type { RouteManifest } from '../../../../../core/src/types/route';
 
@@ -220,7 +220,7 @@ describe('manifestToContractInput - inline responses', () => {
         ]
 
         for (const { path, expected } of cases) {
-            const name = generateInlineResourceName({ path } as ParsedRoute)
+            const name = generateInlineResourceName({ path } as RouteSemanticFlow)
             expect(name).toBe(expected)
         }
     })

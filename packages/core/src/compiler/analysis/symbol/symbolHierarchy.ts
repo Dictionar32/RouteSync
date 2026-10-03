@@ -1,48 +1,36 @@
-/**
- * symbolHierarchy.ts
- *
- * Traversal and query helpers for symbol inheritance and scope hierarchy.
- *
- * @module compiler/analysis/symbol
- */
-
+/** Declarative symbol hierarchy and relation projections. */
 import type { SymbolNode } from './symbolTypes';
+import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
+import { relationOptionFold, relationSelect, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/relationFoundation';
 
 export function resolveClassHierarchy(
     classId: string,
-    symbolLookup: (id: string) => SymbolNode | undefined
+    symbolLookup: (id: string) => RelationOption<SymbolNode>,
 ): readonly string[] {
-    const hierarchy: string[] = [classId];
-    let current = symbolLookup(classId);
-
-    while (current?.extendsId) {
-        hierarchy.push(current.extendsId);
-        current = symbolLookup(current.extendsId);
-
-        // Prevent infinite loop
-        if (hierarchy.length > 100) break;
-    }
-
-    return hierarchy;
+    const walk = (currentId: string, depth: number, output: readonly string[]): readonly string[] => relationResolve(
+        depth >= 100,
+        () => output,
+        () => relationOptionFold(symbolLookup(currentId),
+            () => output,
+            current => relationOptionFold(
+                relationResolve(Object.prototype.hasOwnProperty.call(current, 'extendsId'), () => ({ kind: 'some' as const, value: current.extendsId }), () => ({ kind: 'none' as const })),
+                () => output,
+                parentId => walk(parentId as string, depth + 1, [...output, parentId as string]),
+            ),
+        ),
+    );
+    return walk(classId, 0, [classId]);
 }
 
-export function filterSymbolsByKind(
-    symbols: Iterable<SymbolNode>,
-    kind: SymbolNode['kind']
-): readonly SymbolNode[] {
-    return Array.from(symbols).filter(s => s.kind === kind);
+export function filterSymbolsByKind(symbols: Iterable<SymbolNode>, kind: SymbolNode['kind']): readonly SymbolNode[] {
+    return relationSelect(Array.from(symbols), symbol => relationEqual(symbol.kind, kind));
 }
 
-export function filterSymbolsByNamespace(
-    symbols: Iterable<SymbolNode>,
-    namespace: string
-): readonly SymbolNode[] {
-    return Array.from(symbols).filter(s => s.namespace === namespace);
+export function filterSymbolsByNamespace(symbols: Iterable<SymbolNode>, namespace: string): readonly SymbolNode[] {
+    return relationSelect(Array.from(symbols), symbol => relationEqual(symbol.namespace, namespace));
 }
 
-export function filterSymbolsByParent(
-    symbols: Iterable<SymbolNode>,
-    parentId: string
-): readonly SymbolNode[] {
-    return Array.from(symbols).filter(s => s.parentId === parentId);
+export function filterSymbolsByParent(symbols: Iterable<SymbolNode>, parentId: string): readonly SymbolNode[] {
+    return relationSelect(Array.from(symbols), symbol => relationEqual(symbol.parentId, parentId));
 }

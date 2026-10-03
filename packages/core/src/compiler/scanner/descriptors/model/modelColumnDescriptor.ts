@@ -17,6 +17,8 @@ import type { PrimitiveVocabulary } from "../../../../types/upstream/primitiveVo
 import type { DatabaseColumnType, Nullability } from "../../../../types/domain/modelContracts";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { SemanticValueFactory, type ColumnName, type PropertyName } from "../../../../types/domain/semanticValues";
+import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationGate } from "../../../../semantic/kernel/relationalSequence";
 
 export interface ScannedModelColumnParams {
     readonly name: ColumnName;
@@ -34,8 +36,8 @@ const PRIMITIVE_VALUES: { readonly [K in PrimitiveKind]: PrimitiveVocabulary } =
     [PrimitiveKind.BOOLEAN]: { kind: 'boolean' },
     [PrimitiveKind.DATETIME]: { kind: 'date_time' },
     [PrimitiveKind.FILE]: { kind: 'file' },
-    [PrimitiveKind.UNKNOWN]: { kind: 'unknown' },
-    [PrimitiveKind.UNSPECIFIED]: { kind: 'unknown' }
+    [PrimitiveKind.INDETERMINATE]: { kind: 'indeterminate' },
+    [PrimitiveKind.UNSPECIFIED]: { kind: 'indeterminate' }
 };
 const primitiveType = (kind: PrimitiveKind): TypeExpression => ({ kind: 'primitive', value: PRIMITIVE_VALUES[kind] });
 
@@ -49,84 +51,68 @@ const DATABASE_TYPES: { readonly [K in DatabaseColumnKind]: DatabaseColumnType }
 };
 
 const databaseType = (kind: DatabaseColumnKind, enumValues: readonly string[]): DatabaseColumnType =>
-    kind === 'enum' ? { kind: 'enum', values: Object.freeze([...enumValues]) } : DATABASE_TYPES[kind];
+    relationGate(relationEqual(kind, 'enum'), () => ({ kind: 'enum', values: Object.freeze([...enumValues]) }), () => DATABASE_TYPES[kind]);
 
 /**
  * Reusable Constructor: Scanned Model Column Descriptor.
  */
-export class ScannedModelColumnDescriptor implements ParsedColumn {
-    public readonly name: ColumnName;
-    public readonly propertyName: PropertyName;
-    public readonly type: DatabaseColumnType;
-    public readonly columnKind: DatabaseColumnKind;
-    public readonly nullability: Nullability;
-    public readonly semanticType: TypeExpression;
-    public readonly enumValues: readonly string[];
-
-    constructor({ name, propertyName, type, columnKind, nullability, semanticType, enumValues }: ScannedModelColumnParams) {
-        this.name = name;
-        this.propertyName = propertyName;
-        this.type = type;
-        this.columnKind = columnKind;
-        this.nullability = nullability;
-        this.semanticType = semanticType;
-        this.enumValues = enumValues;
-        Object.freeze(this);
-    }
-
-    public static fromSchema({
-        name,
-        propertyName,
-        type = "varchar",
-        columnKind,
-        nullable = true,
-        semanticType,
-        enumValues = []
-    }: {
-        readonly name: string;
-        readonly propertyName?: string;
-        readonly type?: string;
-        readonly columnKind?: DatabaseColumnKind;
-        readonly nullable?: boolean;
-        readonly semanticType?: PrimitiveKind;
-        readonly enumValues?: readonly string[];
-    }): ScannedModelColumnDescriptor {
-        return new ScannedModelColumnDescriptor({
-            name: SemanticValueFactory.columnName(name),
-            propertyName: SemanticValueFactory.propertyName(propertyName ?? toCamelCase(name)),
-            type: databaseType(columnKind, enumValues),
-            columnKind,
-            nullability: nullable ? { kind: 'nullable' } : { kind: 'non_nullable' },
-            semanticType: primitiveType(semanticType),
-            enumValues: Object.freeze([...enumValues])
-        });
-    }
-
-    public static create(params: Parameters<typeof ScannedModelColumnDescriptor.fromSchema>[0]): ScannedModelColumnDescriptor {
-        return ScannedModelColumnDescriptor.fromSchema(params);
-    }
-
-    public static primaryKey(name: string = "id"): ScannedModelColumnDescriptor {
-        return new ScannedModelColumnDescriptor({
-            name: SemanticValueFactory.columnName(name),
-            propertyName: SemanticValueFactory.propertyName(toCamelCase(name)),
-            type: { kind: 'bigint' },
-            columnKind: DatabaseColumnKind.BigInt,
-            nullability: { kind: 'non_nullable' },
-            semanticType: primitiveType(PrimitiveKind.NUMBER),
-            enumValues: Object.freeze([])
-        });
-    }
-
-    public static string(name: string, nullable: boolean = false): ScannedModelColumnDescriptor {
-        return new ScannedModelColumnDescriptor({
-            name: SemanticValueFactory.columnName(name),
-            propertyName: SemanticValueFactory.propertyName(toCamelCase(name)),
-            type: { kind: 'string' },
-            columnKind: DatabaseColumnKind.String,
-            nullability: nullable ? { kind: 'nullable' } : { kind: 'non_nullable' },
-            semanticType: primitiveType(PrimitiveKind.STRING),
-            enumValues: Object.freeze([])
-        });
-    }
+export interface ScannedModelColumnDescriptor extends ParsedColumn {
+    readonly name: ColumnName;
+    readonly propertyName: PropertyName;
+    readonly type: DatabaseColumnType;
+    readonly columnKind: DatabaseColumnKind;
+    readonly nullability: Nullability;
+    readonly semanticType: TypeExpression;
+    readonly enumValues: readonly string[];
 }
+
+const columnDescriptor = (params: ScannedModelColumnParams): ScannedModelColumnDescriptor => Object.freeze({ ...params });
+
+const fromSchema = ({
+    name,
+    propertyName,
+    type = "varchar",
+    columnKind,
+    nullable = true,
+    semanticType,
+    enumValues = []
+}: {
+    readonly name: string;
+    readonly propertyName?: string;
+    readonly type?: string;
+    readonly columnKind?: DatabaseColumnKind;
+    readonly nullable?: boolean;
+    readonly semanticType?: PrimitiveKind;
+    readonly enumValues?: readonly string[];
+}): ScannedModelColumnDescriptor => columnDescriptor({
+    name: SemanticValueFactory.columnName(name),
+    propertyName: SemanticValueFactory.propertyName(relationGate(Object.is(typeof propertyName, 'string'), () => propertyName as string, () => toCamelCase(name))),
+    type: databaseType(columnKind, enumValues),
+    columnKind,
+    nullability: relationGate(relationEqual(nullable, true), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })),
+    semanticType: primitiveType(semanticType),
+    enumValues: Object.freeze([...enumValues])
+});
+
+export const ScannedModelColumnDescriptor = Object.freeze({
+    fromSchema,
+    create: (params: Parameters<typeof fromSchema>[0]): ScannedModelColumnDescriptor => fromSchema(params),
+    primaryKey: (name: string = "id"): ScannedModelColumnDescriptor => columnDescriptor({
+        name: SemanticValueFactory.columnName(name),
+        propertyName: SemanticValueFactory.propertyName(toCamelCase(name)),
+        type: { kind: 'bigint' },
+        columnKind: DatabaseColumnKind.BigInt,
+        nullability: { kind: 'non_nullable' },
+        semanticType: primitiveType(PrimitiveKind.NUMBER),
+        enumValues: Object.freeze([])
+    }),
+    string: (name: string, nullable: boolean = false): ScannedModelColumnDescriptor => columnDescriptor({
+        name: SemanticValueFactory.columnName(name),
+        propertyName: SemanticValueFactory.propertyName(toCamelCase(name)),
+        type: { kind: 'string' },
+        columnKind: DatabaseColumnKind.String,
+        nullability: relationGate(relationEqual(nullable, true), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })),
+        semanticType: primitiveType(PrimitiveKind.STRING),
+        enumValues: Object.freeze([])
+    })
+});

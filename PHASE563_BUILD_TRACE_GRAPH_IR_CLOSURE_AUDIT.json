@@ -1,0 +1,12 @@
+{
+  "phase": 563,
+  "frontier": "build-trace-graph-ir-closure",
+  "modifiedFiles": 4,
+  "transpileDiagnostics": 0,
+  "fullBuildExecutedInCheckpoint": false,
+  "primaryFixes": [
+    "direct relationIsSome export",
+    "leaf graph exports",
+    "SemanticResolution visitor narrowing for IR hashing"
+  ]
+}

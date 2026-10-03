@@ -1,10 +1,4 @@
-/**
- * ControlFlowGraph.ts
- * Control flow graph, basic blocks, instructions, and constants.
- * Active Consumer delegating to focused CFG sub-domain modules.
- *
- * @module compiler/utils/ControlFlowGraph
- */
+/** Relation-backed control-flow graph facade. */
 
 export {
     type SymbolReference,
@@ -15,7 +9,17 @@ export {
     type Expression,
     type SemanticValue,
     type Operand,
-    type Instruction,
-    type BasicBlock,
-    ControlFlowGraph
+    type Instruction
 } from './cfg';
+
+export {
+    type BasicBlock,
+    type BasicBlockRelation,
+    type ControlFlowGraph,
+    createBasicBlockRelation,
+    basicBlockLookup,
+    basicBlockReplace,
+    basicBlockEntries,
+    basicBlockIds,
+    createControlFlowGraph
+} from './cfg/basicBlock';

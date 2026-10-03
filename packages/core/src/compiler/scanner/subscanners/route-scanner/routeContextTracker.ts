@@ -1,66 +1,165 @@
 /**
  * routeContextTracker.ts
  *
- * Tracks prefix and middleware stacks during Route token scanning.
+ * Route context is represented as relation-backed evidence and option state.
  *
  * @module core/compiler/scanner/subscanners/route-scanner
  */
 
 import type { TokenDescriptor } from "../../lexer/phpAstTypes";
+import { routeAuthorizationKnowledge } from "../../semantic/route/routeMiddlewareKnowledgeCatalog";
+import { createMiddlewareName } from "../../../../types/upstream/names";
+import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import {
+    relationGate,
+    relationExpand,
+    relationFirstOption,
+    relationOptionFold,
+    relationProject,
+    relationRange,
+    relationSome,
+    relationNone,
+    type RelationOption,
+} from "../../../../semantic/kernel/relationalSequence";
+
+type ContextToken = TokenDescriptor;
+
+const tokenAt = (tokens: readonly ContextToken[], start: number): RelationOption<ContextToken> =>
+    relationFirstOption(relationRange(tokens, start, start + 1), () => true);
+
+const valueAt = (tokens: readonly ContextToken[], start: number): RelationOption<string> =>
+    relationOptionFold(tokenAt(tokens, start), () => relationNone<string>(), token => relationSome(token.value));
+
+const typeAt = (tokens: readonly ContextToken[], start: number): RelationOption<string> =>
+    relationOptionFold(tokenAt(tokens, start), () => relationNone<string>(), token => relationSome(token.type));
+
+const optionEquals = (value: RelationOption<string>, expected: string): boolean =>
+    relationOptionFold(value, () => false, candidate => relationEqual(candidate, expected));
+
+const optionAllEquals = (left: RelationOption<string>, first: string, right: RelationOption<string>, second: string): boolean =>
+    relationAll([optionEquals(left, first), optionEquals(right, second)]);
+
+const normalizePrefix = (value: string): string => value.replace(/^\/+|\/+$/g, '');
+
+const collectUntilClose = (
+    tokens: readonly ContextToken[],
+    index: number,
+    output: readonly string[] = [],
+): readonly string[] =>
+    relationGate(
+        index >= tokens.length,
+        () => output,
+        () => {
+            const token = tokens[index];
+            return relationGate(
+                relationEqual(token.value, ']'),
+                () => output,
+                () => {
+                    const next = relationGate(
+                        relationEqual(token.type, 'STRING'),
+                        () => [...output, token.value],
+                        () => output,
+                    );
+                    return collectUntilClose(tokens, index + 1, next);
+                },
+            );
+        },
+    );
+
+const collectMiddlewareValues = (tokens: readonly ContextToken[], start: number): readonly string[] =>
+    relationOptionFold<ContextToken, readonly string[]>(
+        relationFirstOption(relationRange(tokens, start, start + 1), token => relationEqual(token.value, '[')),
+        () => relationOptionFold(
+            relationFirstOption(relationRange(tokens, start, start + 1), token => relationEqual(token.type, 'STRING')),
+            () => [],
+            token => [token.value],
+        ),
+        () => collectUntilClose(tokens, start + 1),
+    );
+
+const cloneValues = (values: readonly string[]): string[] => [...relationProject(values, value => value)];
+
+const appendContext = <T>(stack: readonly T[], value: T): T[] => [...stack, value];
+
+const removeContext = <T>(stack: readonly T[]): T[] =>
+    relationGate(relationEqual(stack.length, 0), () => [], () => [...relationRange(stack, 0, stack.length - 1)]);
+
+const contextMiddleware = (stack: readonly string[][]): readonly string[] =>
+    [...relationExpand(stack, values => cloneValues(values))];
 
 export class RouteContextTracker {
     public prefixStack: string[] = [];
-    public pendingPrefix: string | null = null;
+    public pendingPrefix: RelationOption<string> = relationNone<string>();
     public middlewareStack: string[][] = [];
     public pendingMiddleware: string[] = [];
 
     public handleToken(tokens: readonly TokenDescriptor[], i: number): void {
-        // Track Route::prefix('v1')->group(...)
-        if (tokens[i].value === 'prefix' && tokens[i + 1]?.value === '(' && tokens[i + 2]?.type === 'STRING') {
-            this.pendingPrefix = tokens[i + 2].value.replace(/^\/+|\/+$/g, '');
-        }
+        const current = valueAt(tokens, i);
+        const next = valueAt(tokens, i + 1);
+        const nextTwo = valueAt(tokens, i + 2);
+        const currentIsPrefix = optionEquals(current, 'prefix');
+        const currentIsMiddleware = optionEquals(current, 'middleware');
+        const currentIsGroup = optionEquals(current, 'group');
+        const currentIsClose = optionEquals(current, '}');
 
-        // Track Route::middleware(...)
-        if (tokens[i].value === 'middleware' && tokens[i + 1]?.value === '(') {
-            this.pendingMiddleware = [];
-            let mIdx = i + 2;
-            if (tokens[mIdx]?.type === 'STRING') {
-                this.pendingMiddleware.push(tokens[mIdx].value);
-            } else if (tokens[mIdx]?.value === '[') {
-                mIdx++;
-                while (mIdx < tokens.length && tokens[mIdx].value !== ']') {
-                    if (tokens[mIdx].type === 'STRING') {
-                        this.pendingMiddleware.push(tokens[mIdx].value);
-                    }
-                    mIdx++;
-                }
-            }
-        }
+        relationGate(
+            currentIsPrefix,
+            () => relationGate(
+                optionAllEquals(next, '(', typeAt(tokens, i + 2), 'STRING'),
+                () => {
+                    this.pendingPrefix = relationOptionFold(nextTwo, () => relationNone<string>(), token => relationSome(normalizePrefix(token)));
+                },
+                () => false,
+            ),
+            () => false,
+        );
 
-        // Group open/close for middleware and prefix stacks
-        if (tokens[i].value === 'group' && tokens[i + 1]?.value === '(') {
-            this.middlewareStack.push([...this.pendingMiddleware]);
-            this.pendingMiddleware = [];
-            if (this.pendingPrefix !== null) {
-                this.prefixStack.push(this.pendingPrefix);
-                this.pendingPrefix = null;
-            } else {
-                this.prefixStack.push('');
-            }
-        }
-        if (tokens[i].value === '}' && this.middlewareStack.length > 0) {
-            this.middlewareStack.pop();
-            if (this.prefixStack.length > 0) {
-                this.prefixStack.pop();
-            }
-        }
+        relationGate(
+            currentIsMiddleware,
+            () => relationGate(
+                optionEquals(next, '('),
+                () => {
+                    this.pendingMiddleware = [...relationProject(collectMiddlewareValues(tokens, i + 2), value => value)];
+                },
+                () => false,
+            ),
+            () => false,
+        );
+
+        relationGate(
+            currentIsGroup,
+            () => relationGate(
+                optionEquals(next, '('),
+                () => {
+                    this.middlewareStack = appendContext(this.middlewareStack, cloneValues(this.pendingMiddleware));
+                    this.pendingMiddleware = [];
+                    this.prefixStack = appendContext(
+                        this.prefixStack,
+                        relationOptionFold(this.pendingPrefix, () => '', value => value),
+                    );
+                    this.pendingPrefix = relationNone<string>();
+                },
+                () => false,
+            ),
+            () => false,
+        );
+
+        relationGate(
+            currentIsClose,
+            () => {
+                this.middlewareStack = removeContext(this.middlewareStack);
+                this.prefixStack = removeContext(this.prefixStack);
+            },
+            () => false,
+        );
     }
 
     public getCurrentMiddlewares(): string[] {
-        return this.middlewareStack.flat();
+        return [...relationProject(contextMiddleware(this.middlewareStack), value => value)];
     }
 
     public isCurrentAuth(): boolean {
-        return this.getCurrentMiddlewares().some(m => m.startsWith('auth'));
+        const names = relationProject(this.getCurrentMiddlewares(), value => createMiddlewareName(value));
+        return relationEqual(routeAuthorizationKnowledge(names).kind, 'authorized');
     }
 }

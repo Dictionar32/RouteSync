@@ -1,13 +1,4 @@
-/**
- * Loop Analysis Subdomain Index.
- * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
- *
- * @module compiler/analysis/loop
- */
-
-export type { LoopInfo } from './loopTypes';
-export {
-    getNaturalLoopBlocks,
-    detectNaturalLoops
-} from './loopDetector';
-export { LoopNormalizer } from './loopNormalizer';
+/** Explicit relational loop-analysis exports. */
+export type { LoopInfo, LoopRelations } from './loopTypes';
+export { getNaturalLoopBlocks, computeLoopRelations, detectNaturalLoops } from './loopDetector';
+export { ensurePreHeader, type LoopNormalizationResult, LoopNormalizer } from './loopNormalizer';

@@ -1,0 +1,13 @@
+{
+  "phase": 576,
+  "frontier": "build-trace-canonical-barrel-vocabulary",
+  "changes": [
+    "validationDescriptors exports RouteValidationRuleSet",
+    "bridge index exports CompiledContractsBundle",
+    "IR barrel avoids duplicate ResolvedSemanticType wildcard exposure",
+    "upstream valueObjects defines GeneratorName and GenerationTimestamp"
+  ],
+  "targetedTranspileDiagnostics": [],
+  "fullBuildExecuted": false,
+  "fullBuildReason": "checkpoint lacks complete local TypeScript dependency/type-definition installation"
+}

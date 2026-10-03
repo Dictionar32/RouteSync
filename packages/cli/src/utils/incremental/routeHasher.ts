@@ -7,9 +7,9 @@
  */
 
 import crypto from 'crypto';
-import { ScannedRoute } from './incrementalTypes';
+import { RouteSemanticFlow } from './incrementalTypes';
 
-export function calculateRouteHash(route: ScannedRoute, availableModelNames: string[] = []): string {
+export function calculateRouteHash(route: RouteSemanticFlow, availableModelNames: string[] = []): string {
   const replacer = (key: string, value: unknown) => {
     if (key === 'resolved' || key === 'parsed_ast') return undefined;
     return value;

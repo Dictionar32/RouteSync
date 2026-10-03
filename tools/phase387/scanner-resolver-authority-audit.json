@@ -1,0 +1,1978 @@
+{
+  "phase": 387,
+  "scope": "packages/core/src/compiler/scanner",
+  "files": 492,
+  "zeroViolationFiles": 148,
+  "violationFiles": 344,
+  "totalViolations": 6221,
+  "rows": [
+    {
+      "file": "packages/core/src/compiler/scanner/LaravelSourceLexer.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/StaticLaravelScanner.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/__test__/StaticLaravelScanner.spec.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/__test__/ecommerceShopAstPhase87_2.spec.ts",
+      "violations": 14
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts",
+      "violations": 10
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/__test__/laravelSourceLexer.spec.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/audit/dataModelAudit.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/SemanticResourceBinder.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+      "violations": 16
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/compositeBinders.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts",
+      "violations": 13
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/propertyAccessBinder.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/propertyPathBinder.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/propertyPathBindingSupport.ts",
+      "violations": 19
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/propertyPathResolution.ts",
+      "violations": 36
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "violations": 84
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/whenLoadedBinder.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/whenLoadedRelationArgument.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/whenLoadedSemanticBinder.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/channel/channelDescriptorClass.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/channel/channelFactories.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/channel/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/manifest/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+      "violations": 48
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/manifestDescriptors.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelEntityFactory.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/types.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/modelEntityDescriptor.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/modelRelationDescriptor.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/types.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "violations": 52
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "violations": 8
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "violations": 68
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/resource/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-ast-adt-phase70.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-contract-phase56.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-explicit-phase58.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-identity-catalog-phase90.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-resolution-phase57.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-scoping-phase64.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-with-trashed-phase75.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-constraint-phase67.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-constraint-where-in-phase73.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-group-semantic-phase55.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-group-semantic-phase69.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-middleware-phase59.test.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-middleware-phase61.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-middleware-phase62.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-missing-ast-adt-phase71.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-missing-behavior-phase65.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-resource-capability-catalog-phase91.test.ts",
+      "violations": 8
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-resource-phase77.test.ts",
+      "violations": 30
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-semantic-flow-phase60.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/syntax-navigation-data-loss-phase103.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/errorFactories.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/types.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/params/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.phase6.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts",
+      "violations": 25
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeQueryParameterDescriptorClass.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/params/types.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingContractResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingResolutionResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingSemanticResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeConstraintAstAdapter.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeConstraintFlowResolver.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeContracts.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupSemanticResolver.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMiddlewareAstAdapter.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMiddlewareResolver.ts",
+      "violations": 31
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMissingAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMissingBehaviorResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMissingSemanticResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeParameters.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routePropertyAssigner.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResourceAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResourceCapabilityCatalog.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResourceSemanticResolver.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSemanticFactories.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSemanticFlowResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/types.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/schemaPayload.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts",
+      "violations": 44
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts",
+      "violations": 43
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationTreeBuilder.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validationDescriptors.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/PhpAst.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/SourceStream.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "violations": 51
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "violations": 357
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "violations": 52
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+      "violations": 56
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "violations": 136
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts",
+      "violations": 15
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/modelAstTypes.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "violations": 68
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstDeclarationTypes.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstStatementTypes.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstTypes.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpLexicalSymbols.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpMethodAstTypes.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "violations": 63
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/responseDtoAstTypes.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase162.test.ts",
+      "violations": 35
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase167.test.ts",
+      "violations": 234
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase212.test.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase214.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataModel.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSyntaxEvidenceRelationProgram.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "violations": 9
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationParser.ts",
+      "violations": 16
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxModel.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterConstructFree.phase273.test.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterRelationalBoundary.phase274.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.phase270.test.ts",
+      "violations": 10
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.phase271.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.phase266.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructBoundary.phase289.test.ts",
+      "violations": 16
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructBoundary.phase290.test.ts",
+      "violations": 18
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructFreeControl.phase272.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.phase215.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDeclarativeSyntax.phase300.test.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.phase287.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowModel.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.phase225.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.phase239.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts",
+      "violations": 13
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.phase268.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAuthority.phase286.test.ts",
+      "violations": 10
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase302.test.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase304.test.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundaryManifest.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase291.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase292.test.ts",
+      "violations": 14
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase293.test.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+      "violations": 28
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+      "violations": 9
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+      "violations": 16
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts",
+      "violations": 26
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalOntology.phase277.test.ts",
+      "violations": 14
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalProgram.phase279.test.ts",
+      "violations": 10
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.phase266.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.phase216.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts",
+      "violations": 9
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlow.phase218.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlow.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxCursorWitness.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxGrammar.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxNavigation.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.phase301.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "violations": 18
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/tokenCursor.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/tokenCursorAuthority.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/serviceAstTypes.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts",
+      "violations": 52
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenize/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/orchestrator/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
+      "violations": 61
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/RouteBoundaryAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/RouteCrudClassifier.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts",
+      "violations": 17
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/RouteSecurityResolver.ts",
+      "violations": 15
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/bindingBuilder.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/bindingResolution.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts",
+      "violations": 36
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/boundaryContractFactory.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/capabilityResolution.ts",
+      "violations": 18
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/identityBuilder.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/boundary/provenanceBuilder.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/resource/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts",
+      "violations": 14
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/scannerExports.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/scannerLegacyDelegates.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-ast-adt-phase70.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-contract-phase56.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-identity-catalog-phase90.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-knowledge-dataflow-phase209.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-resolution-phase57.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-scoping-phase64.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-binding-with-trashed-phase75.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-constraint-phase67.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-constraint-where-in-phase73.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-group-semantic-phase55.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-group-semantic-phase69.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-middleware-phase59.test.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-middleware-phase61.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-middleware-phase62.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-missing-ast-adt-phase71.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-missing-behavior-phase65.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-resource-capability-catalog-phase91.test.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-resource-phase77.test.ts",
+      "violations": 30
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/__tests__/route-semantic-flow-phase60.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingContractResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingKnowledgeCatalog.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingResolutionResolver.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeBindingSemanticResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeConstraintAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeConstraintFlowResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeConstraintKnowledgeCatalog.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeGroupAstAdapter.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeGroupContextResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeGroupSemanticResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareIdentity.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMissingAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMissingBehaviorResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMissingSemanticResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeResourceAstAdapter.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeResourceCapabilityCatalog.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeResourceSemanticResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeSemanticFlowResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts",
+      "violations": 14
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts",
+      "violations": 8
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts",
+      "violations": 40
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts",
+      "violations": 33
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/ModelScanner.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts",
+      "violations": 100
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/RouteScanner.ts",
+      "violations": 64
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/TypeDeriver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/ValidationRuleFieldLowerer.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/assignmentProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/attributeProducer.ts",
+      "violations": 8
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/channelProducer.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts",
+      "violations": 19
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
+      "violations": 79
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts",
+      "violations": 133
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts",
+      "violations": 76
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerErrorDetector.ts",
+      "violations": 26
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerReturnSemantic.phase10.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts",
+      "violations": 55
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts",
+      "violations": 56
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts",
+      "violations": 40
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/dtoProducer.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/expressionProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/form-request/canonicalValidationRuleEntry.ts",
+      "violations": 52
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/form-request/fieldAssembler.ts",
+      "violations": 8
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/form-request/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts",
+      "violations": 41
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/form-request/validationFieldAssembler.ts",
+      "violations": 53
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/migrationProducer.ts",
+      "violations": 123
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/columnInferrer.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/eloquentRelationVocabulary.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/memberAccessorsParser.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/memberCastsParser.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/memberPropertiesParser.ts",
+      "violations": 41
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/migrationScanner.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts",
+      "violations": 31
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelColumnFactsCanonical.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelColumnOrigin.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelMemberParser.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelParser.ts",
+      "violations": 21
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts",
+      "violations": 56
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts",
+      "violations": 34
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/modelProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
+      "violations": 140
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/providerProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts",
+      "violations": 833
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/queryProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/actionDeriver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/domainExtractor.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts",
+      "violations": 23
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/requestSourceMerger.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/responseDeriver.ts",
+      "violations": 24
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts",
+      "violations": 41
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/requestProducer.ts",
+      "violations": 95
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts",
+      "violations": 52
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingModelFactory.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts",
+      "violations": 20
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingProvenanceBuilder.ts",
+      "violations": 25
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts",
+      "violations": 44
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceExpressionOperator.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts",
+      "violations": 99
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.phase209.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts",
+      "violations": 52
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts",
+      "violations": 16
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts",
+      "violations": 16
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resourceProducer.ts",
+      "violations": 93
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/responseProducer.ts",
+      "violations": 15
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/responseScanner.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/route-scanner/index.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts",
+      "violations": 30
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.phase48.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/routeProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/scannerUtils.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/schemaProducer.ts",
+      "violations": 13
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/SemanticDerivationContext.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/modelExtractors.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/modelTypeDeriver.ts",
+      "violations": 8
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/resourceTypeDeriver.ts",
+      "violations": 11
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/route-response/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/route-response/propertyProcessor.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/route-response/shapeExtractor.ts",
+      "violations": 10
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/semantic/routeResponseDeriver.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts",
+      "violations": 90
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/serviceProducer.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts",
+      "violations": 74
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts",
+      "violations": 26
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/validationArrayPropLowerer.ts",
+      "violations": 6
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/validationRuleChecker.ts",
+      "violations": 3
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/ModelSymbolTable.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/__tests__/origin-model-relation-binding.phase-87-23.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
+      "violations": 17
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/originModelSymbol.ts",
+      "violations": 14
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/types.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/resource/index.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/resource/resourceBindingTypes.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-binding-ast-adt-phase70.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-binding-catalog-phase88.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-binding-contract-phase56.test.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-binding-resolution-phase57.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-binding-scoping-phase64.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-binding-with-trashed-phase75.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-constraint-phase67.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-constraint-where-in-phase73.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-group-semantic-phase55.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-group-semantic-phase69.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-middleware-phase59.test.ts",
+      "violations": 7
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-middleware-phase61.test.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-middleware-phase62.test.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-missing-ast-adt-phase71.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-missing-behavior-phase65.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-resource-phase77.test.ts",
+      "violations": 30
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/__tests__/route-semantic-flow-phase60.test.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeBindingAstAdapter.ts",
+      "violations": 15
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeBindingContractResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeBindingResolutionResolver.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeBindingSemanticResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeConstraintAstAdapter.ts",
+      "violations": 5
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeConstraintFlowResolver.ts",
+      "violations": 10
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeGroupAstAdapter.ts",
+      "violations": 4
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeGroupContextResolver.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts",
+      "violations": 12
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeMiddlewareAstAdapter.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeMiddlewareResolver.ts",
+      "violations": 28
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeMissingAstAdapter.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeMissingBehaviorResolver.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeMissingSemanticResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeResourceAstAdapter.ts",
+      "violations": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeResourceSemanticResolver.ts",
+      "violations": 39
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/route/routeSemanticFlowResolver.ts",
+      "violations": 2
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/routeAstConstruction.ts",
+      "violations": 1
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/upstreamManifestBuilder.ts",
+      "violations": 2
+    }
+  ]
+}

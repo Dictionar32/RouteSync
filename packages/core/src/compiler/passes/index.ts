@@ -26,7 +26,8 @@ export { CompilerPass } from './CompilerPass';
 export { ExecutablePass } from './ExecutablePass';
 
 // Pass adaptation
-export { TypedPassAdapter } from './TypedPassAdapter';
+export { createTypedPassAdapter } from './TypedPassAdapter';
+export type { TypedPassAdapter } from './TypedPassAdapter';
 
 // Dependency resolution
 export { PassGraph } from './PassGraph';

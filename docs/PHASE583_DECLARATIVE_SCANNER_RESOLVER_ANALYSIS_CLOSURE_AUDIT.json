@@ -1,0 +1,29 @@
+{
+  "phase": 583,
+  "frontier": [
+    "scanner model symbol indexing",
+    "controller parser semantic boundary",
+    "validation root aggregation",
+    "semantic derivation model index",
+    "forward dataflow fixed point",
+    "backward dataflow fixed point"
+  ],
+  "constructAudit": {
+    "if": 0,
+    "for": 0,
+    "while": 0,
+    "switch": 0,
+    "map": 0,
+    "filter": 0,
+    "reduce": 0,
+    "flatMap": 0,
+    "undefined": 0,
+    "strictEquality": 0,
+    "asUnknown": 0,
+    "set": 0,
+    "new": 0,
+    "typescriptAny": 0
+  },
+  "transpileDiagnostics": 0,
+  "fullBuild": "not-run: checkpoint does not contain complete project dependencies/type definitions"
+}

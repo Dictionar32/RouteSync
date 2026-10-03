@@ -25,7 +25,7 @@ import {
     type ResolvedUnionTypeParams,
     type ResolvedIntersectionTypeParams,
     type ResolvedUnknownTypeParams,
-    ResolvedSemanticTypeBase,
+    type ResolvedSemanticTypeBase,
     ResolvedPrimitiveType,
     ResolvedReferenceType,
     ResolvedOptionalType,
@@ -70,7 +70,6 @@ export type {
 };
 
 export {
-    ResolvedSemanticTypeBase,
     ResolvedPrimitiveType,
     ResolvedReferenceType,
     ResolvedOptionalType,

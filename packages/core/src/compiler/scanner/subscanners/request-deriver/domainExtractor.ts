@@ -6,14 +6,14 @@
  * to RequestType assembly.
  */
 
-import { ParsedRoute } from "../../../../types/route";
+import { RouteSemanticFlow } from "../../../../types/route";
 
 export interface RouteDomainInfo {
     readonly rawDomain: string;
     readonly bareDomain: string;
 }
 
-export function extractRouteDomain(route: ParsedRoute): RouteDomainInfo {
+export function extractRouteDomain(route: RouteSemanticFlow): RouteDomainInfo {
     const resourceName = route.identity.resourceName.value;
     return {
         rawDomain: resourceName,

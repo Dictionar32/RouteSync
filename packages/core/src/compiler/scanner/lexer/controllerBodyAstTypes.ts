@@ -1,6 +1,8 @@
 /** Typed AST for controller-body facts consumed by semantic resolution. */
 import type { AstIdentifier, TokenDescriptor, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
+import type { SemanticKnowledgeDataFlow } from './routeAst/semanticKnowledgeDataFlowRelations';
+import { relationAll, relationGate } from '../../../semantic/kernel/semanticRelations';
 
 export type ValidationRuleLiteralAst = string & { readonly __validationRuleAst: unique symbol };
 
@@ -22,7 +24,7 @@ export type ControllerVariableDefinitionOrigin =
     | { readonly kind: 'foreach'; readonly statementIndex: number }
     | { readonly kind: 'catch'; readonly statementIndex: number };
 
-export type ControllerDefinitionAvailability =
+export type LegacyControllerDefinitionAvailability =
     | { readonly kind: 'definite' }
     | { readonly kind: 'branch_conditional'; readonly branchPath: readonly number[] }
     | { readonly kind: 'loop_conditional'; readonly branchPath: readonly number[] }
@@ -35,7 +37,7 @@ export interface ControllerVariableDefinition {
     readonly value: PhpAstValue;
     /** Semantic fact produced at the scanner boundary; consumers must not infer model/resource meaning again. */
     readonly semantic: ControllerVariableSemantic;
-    readonly availability: ControllerDefinitionAvailability;
+    readonly availability: LegacyControllerDefinitionAvailability;
 }
 
 export type ControllerVariableOrigin =
@@ -54,6 +56,7 @@ export interface ControllerVariableReference {
 export interface ControllerDataflowAst {
     readonly definitions: readonly ControllerVariableDefinition[];
     readonly references: readonly ControllerVariableReference[];
+    readonly semanticKnowledgeDataFlow: SemanticKnowledgeDataFlow;
 }
 
 export interface ControllerBodyAst {
@@ -68,8 +71,9 @@ export function createValidationRuleLiteral(value: string): ValidationRuleLitera
 }
 
 export function createHttpErrorStatus(value: number): HttpErrorStatusAst {
-    if (!Number.isInteger(value) || value < 400 || value >= 600) {
-        throw new Error(`Invalid HTTP error status: ${value}`);
-    }
-    return value as HttpErrorStatusAst;
+    return relationGate(
+        relationAll([Number.isInteger(value), value >= 400, value < 600]),
+        () => value as HttpErrorStatusAst,
+        () => { throw Error(`Invalid HTTP error status: ${value}`); },
+    );
 }

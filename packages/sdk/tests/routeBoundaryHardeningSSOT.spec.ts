@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   RouteBoundaryContractFactory,
   RouteBoundaryAdapter,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   type RouteBoundaryContract,
   type RouteBoundaryOptions
 } from '@routesync/core';
@@ -57,21 +57,21 @@ describe('Route Boundary Hardening & Level 7 Contract SSOT (Issue #45)', () => {
     expect(contract.requestContentType).toBe('application/json');
   });
 
-  it('RouteBoundaryAdapter builds ScannedRouteDescriptor via fromBoundary and fromSparse seamlessly', () => {
+  it('RouteBoundaryAdapter builds RouteSemanticFlowFactory via fromBoundary and fromSparse seamlessly', () => {
     const contract = RouteBoundaryContractFactory.create({
       method: 'GET',
       path: '/api/v1/products/{id}',
       action: 'ProductController@show'
     });
 
-    const routeFromBoundary: ScannedRouteDescriptor = RouteBoundaryAdapter.fromBoundary(contract);
+    const routeFromBoundary: RouteSemanticFlowFactory = RouteBoundaryAdapter.fromBoundary(contract);
     expect(routeFromBoundary).toBeDefined();
     expect(routeFromBoundary.method).toBe('GET');
     expect(routeFromBoundary.path).toBe('/api/v1/products/{id}');
     expect(routeFromBoundary.controllerName).toBe('ProductController');
     expect(routeFromBoundary.actionName).toBe('show');
 
-    const routeFromSparse: ScannedRouteDescriptor = RouteBoundaryAdapter.fromSparse({
+    const routeFromSparse: RouteSemanticFlowFactory = RouteBoundaryAdapter.fromSparse({
       method: 'GET',
       path: '/api/v1/products/{id}',
       action: 'ProductController@show'

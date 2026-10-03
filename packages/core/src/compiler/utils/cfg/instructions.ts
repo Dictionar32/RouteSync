@@ -71,7 +71,7 @@ export type Instruction =
         /** Target for phi result */
         target: number;
         /** Map from predecessor block ID to operand value */
-        incoming: ReadonlyMap<number, Operand>;
+        incoming: readonly (readonly [number, Operand])[];
     }
     | {
         /** Load a property from an object */

@@ -5,7 +5,7 @@ import {
   matchDiagnosticCategory,
   DiagnosticBag,
   CompilerValidationError,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ResourceResponseDescriptor,
   BroadcastChannelDescriptor,
   BroadcastChannelKind
@@ -113,7 +113,7 @@ describe('Invariant-Driven / Verified Data Pipeline SSOT', () => {
     })
 
     it('5. MswGenerator should emit @provenance and @see JSDoc tags matching route contract', async () => {
-      const mockRoute = ScannedRouteDescriptor.create({
+      const mockRoute = RouteSemanticFlowFactory.create({
         method: 'GET',
         path: '/api/v1/products/{id}',
         resourceName: 'Product',

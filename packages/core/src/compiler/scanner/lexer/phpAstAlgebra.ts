@@ -1,4 +1,4 @@
-/** Exhaustive eliminator for scanner-level PHP syntax AST. */
+/** Exhaustive relational eliminator of scanner-level PHP syntax AST. */
 import type { PhpAstValue, PhpPropertyPath } from './phpAstTypes';
 
 export interface PhpAstValueVisitor<R> {
@@ -42,46 +42,48 @@ export interface PhpPropertyPathVisitor<R> {
 }
 
 export function matchPhpPropertyPath<R>(path: PhpPropertyPath, visitor: PhpPropertyPathVisitor<R>): R {
-    switch (path.kind) {
-        case 'single': return visitor.single(path);
-        case 'chain': return visitor.chain(path);
-    }
+    const handlers: Record<string, (node: PhpPropertyPath) => R> = {
+        single: node => visitor.single(node as Extract<PhpPropertyPath, { readonly kind: 'single' }>),
+        chain: node => visitor.chain(node as Extract<PhpPropertyPath, { readonly kind: 'chain' }>),
+    };
+    return handlers[path.kind](path);
 }
 
 export function matchPhpAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {
-    switch (ast.kind) {
-        case 'literal': return visitor.literal(ast);
-        case 'interpolated_string': return visitor.interpolatedString(ast);
-        case 'resource_single': return visitor.resourceSingle(ast);
-        case 'resource_collection': return visitor.resourceCollection(ast);
-        case 'method_chain': return visitor.methodChain(ast);
-        case 'property_access': return visitor.propertyAccess(ast);
-        case 'array_access': return visitor.arrayAccess(ast);
-        case 'function_call': return visitor.functionCall(ast);
-        case 'callable_call': return visitor.callableCall(ast);
-        case 'variable_reference': return visitor.variableReference(ast);
-        case 'magic_constant': return visitor.magicConstant(ast);
-        case 'constant_reference': return visitor.constantReference(ast);
-        case 'short_ternary': return visitor.shortTernary(ast);
-        case 'null_coalesce': return visitor.nullCoalesce(ast);
-        case 'binary_expression': return visitor.binaryExpression(ast);
-        case 'unary_expression': return visitor.unaryExpression(ast);
-        case 'cast_expression': return visitor.castExpression(ast);
-        case 'ternary_expression': return visitor.ternaryExpression(ast);
-        case 'nested_array': return visitor.nestedArray(ast);
-        case 'static_call': return visitor.staticCall(ast);
-        case 'class_reference': return visitor.classReference(ast);
-        case 'class_constant': return visitor.classConstant(ast);
-        case 'construct': return visitor.construct(ast);
-        case 'assignment_expression': return visitor.assignmentExpression(ast);
-        case 'dynamic_construct': return visitor.dynamicConstruct(ast);
-        case 'anonymous_class_construct': return visitor.anonymousClassConstruct(ast);
-        case 'instance_of': return visitor.instanceOf(ast);
-        case 'closure': return visitor.closure(ast);
-        case 'arrow_function': return visitor.arrowFunction(ast);
-        case 'match_expression': return visitor.matchExpression(ast);
-        case 'unsupported': return visitor.unsupported(ast);
-    }
+    const handlers: Record<string, (node: PhpAstValue) => R> = {
+        literal: node => visitor.literal(node as Extract<PhpAstValue, { kind: 'literal' }>),
+        interpolated_string: node => visitor.interpolatedString(node as Extract<PhpAstValue, { kind: 'interpolated_string' }>),
+        resource_single: node => visitor.resourceSingle(node as Extract<PhpAstValue, { kind: 'resource_single' }>),
+        resource_collection: node => visitor.resourceCollection(node as Extract<PhpAstValue, { kind: 'resource_collection' }>),
+        method_chain: node => visitor.methodChain(node as Extract<PhpAstValue, { kind: 'method_chain' }>),
+        property_access: node => visitor.propertyAccess(node as Extract<PhpAstValue, { kind: 'property_access' }>),
+        array_access: node => visitor.arrayAccess(node as Extract<PhpAstValue, { kind: 'array_access' }>),
+        function_call: node => visitor.functionCall(node as Extract<PhpAstValue, { kind: 'function_call' }>),
+        callable_call: node => visitor.callableCall(node as Extract<PhpAstValue, { kind: 'callable_call' }>),
+        variable_reference: node => visitor.variableReference(node as Extract<PhpAstValue, { kind: 'variable_reference' }>),
+        magic_constant: node => visitor.magicConstant(node as Extract<PhpAstValue, { kind: 'magic_constant' }>),
+        constant_reference: node => visitor.constantReference(node as Extract<PhpAstValue, { kind: 'constant_reference' }>),
+        short_ternary: node => visitor.shortTernary(node as Extract<PhpAstValue, { kind: 'short_ternary' }>),
+        null_coalesce: node => visitor.nullCoalesce(node as Extract<PhpAstValue, { kind: 'null_coalesce' }>),
+        binary_expression: node => visitor.binaryExpression(node as Extract<PhpAstValue, { kind: 'binary_expression' }>),
+        unary_expression: node => visitor.unaryExpression(node as Extract<PhpAstValue, { kind: 'unary_expression' }>),
+        cast_expression: node => visitor.castExpression(node as Extract<PhpAstValue, { kind: 'cast_expression' }>),
+        ternary_expression: node => visitor.ternaryExpression(node as Extract<PhpAstValue, { kind: 'ternary_expression' }>),
+        nested_array: node => visitor.nestedArray(node as Extract<PhpAstValue, { kind: 'nested_array' }>),
+        static_call: node => visitor.staticCall(node as Extract<PhpAstValue, { kind: 'static_call' }>),
+        class_reference: node => visitor.classReference(node as Extract<PhpAstValue, { kind: 'class_reference' }>),
+        class_constant: node => visitor.classConstant(node as Extract<PhpAstValue, { kind: 'class_constant' }>),
+        construct: node => visitor.construct(node as Extract<PhpAstValue, { kind: 'construct' }>),
+        assignment_expression: node => visitor.assignmentExpression(node as Extract<PhpAstValue, { kind: 'assignment_expression' }>),
+        dynamic_construct: node => visitor.dynamicConstruct(node as Extract<PhpAstValue, { kind: 'dynamic_construct' }>),
+        anonymous_class_construct: node => visitor.anonymousClassConstruct(node as Extract<PhpAstValue, { kind: 'anonymous_class_construct' }>),
+        instance_of: node => visitor.instanceOf(node as Extract<PhpAstValue, { kind: 'instance_of' }>),
+        closure: node => visitor.closure(node as Extract<PhpAstValue, { kind: 'closure' }>),
+        arrow_function: node => visitor.arrowFunction(node as Extract<PhpAstValue, { kind: 'arrow_function' }>),
+        match_expression: node => visitor.matchExpression(node as Extract<PhpAstValue, { kind: 'match_expression' }>),
+        unsupported: node => visitor.unsupported(node as Extract<PhpAstValue, { kind: 'unsupported' }>),
+    };
+    return handlers[ast.kind](ast);
 }
 
 export interface PhpAccessModeVisitor<R> {
@@ -90,10 +92,11 @@ export interface PhpAccessModeVisitor<R> {
 }
 
 export function matchPhpAccessMode<R>(mode: import('./phpAstExpressionTypes').PhpAccessMode, visitor: PhpAccessModeVisitor<R>): R {
-    switch (mode.kind) {
-        case 'direct': return visitor.direct(mode);
-        case 'nullsafe': return visitor.nullsafe(mode);
-    }
+    const handlers: Record<string, (node: import('./phpAstExpressionTypes').PhpAccessMode) => R> = {
+        direct: node => visitor.direct(node as Extract<import('./phpAstExpressionTypes').PhpAccessMode, { kind: 'direct' }>),
+        nullsafe: node => visitor.nullsafe(node as Extract<import('./phpAstExpressionTypes').PhpAccessMode, { kind: 'nullsafe' }>),
+    };
+    return handlers[mode.kind](mode);
 }
 
 export interface PhpMatchArmVisitor<R> {
@@ -102,10 +105,11 @@ export interface PhpMatchArmVisitor<R> {
 }
 
 export function matchPhpMatchArm<R>(arm: import('./phpAstExpressionTypes').PhpMatchArm, visitor: PhpMatchArmVisitor<R>): R {
-    switch (arm.kind) {
-        case 'conditional': return visitor.conditional(arm);
-        case 'default': return visitor.default(arm);
-    }
+    const handlers: Record<string, (node: import('./phpAstExpressionTypes').PhpMatchArm) => R> = {
+        conditional: node => visitor.conditional(node as Extract<import('./phpAstExpressionTypes').PhpMatchArm, { kind: 'conditional' }>),
+        default: node => visitor.default(node as Extract<import('./phpAstExpressionTypes').PhpMatchArm, { kind: 'default' }>),
+    };
+    return handlers[arm.kind](arm);
 }
 
 export interface PhpStatementVisitor<R> {
@@ -115,21 +119,30 @@ export interface PhpStatementVisitor<R> {
     readonly assignment: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'assignment' }>) => R;
     readonly if_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'if_statement' }>) => R;
     readonly foreach_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'foreach_statement' }>) => R;
+    readonly while_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'while_statement' }>) => R;
+    readonly switch_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'switch_statement' }>) => R;
     readonly for_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'for_statement' }>) => R;
     readonly try_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'try_statement' }>) => R;
     readonly throw_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'throw_statement' }>) => R;
+    readonly unset_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'unset_statement' }>) => R;
+    readonly include_statement: (node: Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'include_statement' }>) => R;
 }
 
 export function matchPhpStatement<R>(statement: import('./phpAstStatementTypes').PhpStatement, visitor: PhpStatementVisitor<R>): R {
-    switch (statement.kind) {
-        case 'expression_statement': return visitor.expression_statement(statement);
-        case 'return_with_value': return visitor.return_with_value(statement);
-        case 'return_void': return visitor.return_void(statement);
-        case 'assignment': return visitor.assignment(statement);
-        case 'if_statement': return visitor.if_statement(statement);
-        case 'foreach_statement': return visitor.foreach_statement(statement);
-        case 'for_statement': return visitor.for_statement(statement);
-        case 'try_statement': return visitor.try_statement(statement);
-        case 'throw_statement': return visitor.throw_statement(statement);
-    }
+    const handlers: Record<string, (node: import('./phpAstStatementTypes').PhpStatement) => R> = {
+        expression_statement: node => visitor.expression_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'expression_statement' }>),
+        return_with_value: node => visitor.return_with_value(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'return_with_value' }>),
+        return_void: node => visitor.return_void(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'return_void' }>),
+        assignment: node => visitor.assignment(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'assignment' }>),
+        if_statement: node => visitor.if_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'if_statement' }>),
+        foreach_statement: node => visitor.foreach_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'foreach_statement' }>),
+        while_statement: node => visitor.while_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'while_statement' }>),
+        switch_statement: node => visitor.switch_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'switch_statement' }>),
+        for_statement: node => visitor.for_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'for_statement' }>),
+        try_statement: node => visitor.try_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'try_statement' }>),
+        throw_statement: node => visitor.throw_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'throw_statement' }>),
+        unset_statement: node => visitor.unset_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'unset_statement' }>),
+        include_statement: node => visitor.include_statement(node as Extract<import('./phpAstStatementTypes').PhpStatement, { kind: 'include_statement' }>),
+    };
+    return handlers[statement.kind](statement);
 }

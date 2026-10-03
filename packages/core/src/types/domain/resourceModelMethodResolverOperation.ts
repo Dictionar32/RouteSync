@@ -4,15 +4,18 @@ import { matchResourceArgumentPresence, matchResourceStringLiteralResolution, ma
 import { SemanticValueFactory, type MethodName, type PropertyName } from './semanticValues';
 import { matchResourceQueryMutation, matchResourceModelMethodMeaning, type ResourceModelMethodMeaning } from './resourceModelMethodMeaning';
 import type { ResourceConditionalArguments, ResourceGroupingArguments, ResourcePaginationArguments, ResourceWindowArguments } from './resourceQueryOperation';
+import { relationAt, relationEqual, relationFold, relationLookup, relationOptionFold, relationProject, relationResolve } from '../../semantic/kernel/relationalSequence';
 
 function literalString(expression: ResourceExpressionModel): ResourceStringLiteralResolution {
-  if (expression.expression.kind !== 'literal') return { kind: 'not_string' };
-  return matchResourceLiteralValue<ResourceStringLiteralResolution>(expression.expression.value, {
+  return relationResolve(relationEqual(expression.expression.kind, 'literal'),
+    () => matchResourceLiteralValue<ResourceStringLiteralResolution>(expression.expression.value, {
     string: value => ({ kind: 'resolved', value: value.value }),
     number: () => ({ kind: 'not_string' }),
     boolean: () => ({ kind: 'not_string' }),
     null: () => ({ kind: 'not_string' }),
-  });
+  }),
+    () => ({ kind: 'not_string' }),
+  );
 }
 
 function relationLoadTargets(args: readonly ResourceExpressionModel[]): ResourceRelationLoadArguments {
@@ -30,16 +33,14 @@ function relationLoadTargets(args: readonly ResourceExpressionModel[]): Resource
 }
 
 function resolveRelationLoadBatch(values: readonly string[]): ResourceRelationLoadBatchResolution {
-  const resolutions = Object.freeze(values.map(parseResourceRelationLoadTarget));
-  return resolutions.reduce<ResourceRelationLoadBatchResolution>(
-    (batch, resolution) => matchResourceRelationLoadBatchResolution(batch, {
+  return relationFold(values, { kind: 'resolved', targets: Object.freeze([] as ResourceRelationLoadTarget[]) } as ResourceRelationLoadBatchResolution, (batch, value) =>
+    matchResourceRelationLoadBatchResolution(batch, {
       invalid: () => batch,
-      resolved: current => matchResourceRelationLoadTargetResolution<ResourceRelationLoadBatchResolution>(resolution, {
+      resolved: current => matchResourceRelationLoadTargetResolution<ResourceRelationLoadBatchResolution>(parseResourceRelationLoadTarget(value), {
         invalid: () => ({ kind: 'invalid', reason: 'invalid_target' }),
-        resolved: value => ({ kind: 'resolved', targets: Object.freeze([...current.targets, value.target]) }),
+        resolved: target => ({ kind: 'resolved', targets: Object.freeze([...current.targets, target.target]) }),
       }),
-    }),
-    { kind: 'resolved', targets: Object.freeze([]) },
+    })
   );
 }
 
@@ -53,7 +54,7 @@ function matchRelationLoadLexemes<R>(value: ResourceRelationLoadLexemes, visitor
   readonly empty: (value: Extract<ResourceRelationLoadLexemes, { readonly kind: 'empty' }>) => R;
   readonly invalid: (value: Extract<ResourceRelationLoadLexemes, { readonly kind: 'invalid' }>) => R;
 }): R {
-  return value.kind === 'targets' ? visitor.targets(value) : value.kind === 'empty' ? visitor.empty(value) : visitor.invalid(value);
+  return relationResolve(relationEqual(value.kind, 'targets'), () => visitor.targets(value as Extract<ResourceRelationLoadLexemes, { readonly kind: 'targets' }>), () => relationResolve(relationEqual(value.kind, 'empty'), () => visitor.empty(value as Extract<ResourceRelationLoadLexemes, { readonly kind: 'empty' }>), () => visitor.invalid(value as Extract<ResourceRelationLoadLexemes, { readonly kind: 'invalid' }>)));
 }
 
 function relationLoadLexemes(expression: ResourceExpressionModel): ResourceRelationLoadLexemes {
@@ -64,26 +65,31 @@ function relationLoadLexemes(expression: ResourceExpressionModel): ResourceRelat
 }
 
 function arrayLiteralValues(expression: ResourceExpressionModel): ResourceRelationLoadLexemes {
-  if (expression.expression.kind !== 'array') return { kind: 'invalid' };
-  const values: string[] = [];
-  for (const entry of expression.expression.entries) {
-    const resolution = matchResourceStringLiteralResolution<{ readonly kind: 'resolved'; readonly value: string } | { readonly kind: 'invalid' }>(literalString(entry.value), {
-      resolved: item => ({ kind: 'resolved', value: item.value }),
-      not_string: () => ({ kind: 'invalid' }),
-    });
-    if (resolution.kind === 'invalid') return { kind: 'invalid' };
-    values.push(resolution.value);
-  }
-  return values.length === 0
-    ? ({ kind: 'empty' } as const)
-    : ({ kind: 'targets', values: Object.freeze(values) } as const);
+  return relationResolve(relationEqual(expression.expression.kind, 'array'),
+    () => {
+      const folded = relationFold(expression.expression.entries, { kind: 'resolved', values: Object.freeze([] as string[]) } as ResourceRelationLoadLexemes, (state, entry) =>
+        relationResolve(relationEqual(state.kind, 'invalid'), () => state, () =>
+          matchResourceStringLiteralResolution<ResourceRelationLoadLexemes>(literalString(entry.value), {
+            resolved: item => { const current = state as Extract<ResourceRelationLoadLexemes, { readonly kind: 'resolved' }>; return { kind: 'resolved', values: Object.freeze([...current.values, item.value]) }; },
+            not_string: () => ({ kind: 'invalid' }),
+          })
+        )
+      );
+      return matchRelationLoadLexemes(folded, {
+        targets: value => relationResolve(relationEqual(value.values.length, 0), () => ({ kind: 'empty' }), () => value),
+        empty: value => value,
+        invalid: value => value,
+      });
+    },
+    () => ({ kind: 'invalid' }),
+  );
 }
 
 function matchRelationLoadArguments<R>(
   value: ResourceRelationLoadArguments,
   visitor: { readonly targets: (value: Extract<ResourceRelationLoadArguments, { readonly kind: 'targets' }>) => R; readonly invalid: (value: Extract<ResourceRelationLoadArguments, { readonly kind: 'invalid' }>) => R },
 ): R {
-  return value.kind === 'targets' ? visitor.targets(value) : visitor.invalid(value);
+  return relationResolve(relationEqual(value.kind, 'targets'), () => visitor.targets(value as Extract<ResourceRelationLoadArguments, { readonly kind: 'targets' }>), () => visitor.invalid(value as Extract<ResourceRelationLoadArguments, { readonly kind: 'invalid' }>));
 }
 
 type ComparisonOperatorLexeme =
@@ -101,8 +107,7 @@ const comparisonOperators: ComparisonOperatorRegistry = Object.freeze({
 });
 
 function comparisonOperatorFromLexeme(lexeme: string): ResourceComparisonOperatorResolution {
-  const operator = comparisonOperators[lexeme];
-  return operator === undefined ? { kind: 'unsupported' } : { kind: 'resolved', operator };
+  return relationOptionFold(relationLookup(Object.entries(comparisonOperators), lexeme), () => ({ kind: 'unsupported' }), ([, operator]) => ({ kind: 'resolved', operator }));
 }
 
 function predicatePropertyOperandShape(args: readonly ResourceExpressionModel[]): ResourcePredicateArgumentShape {
@@ -133,8 +138,7 @@ function predicateArgumentShape(args: readonly ResourceExpressionModel[]): Resou
     2: () => predicatePropertyOperandShape(args),
     3: () => predicatePropertyOperatorOperandShape(args),
   });
-  const resolver = resolvers[args.length];
-  return resolver === undefined ? { kind: 'invalid', reason: 'unsupported_arity' } : resolver();
+  return relationOptionFold(relationLookup(Object.entries(resolvers), String(args.length)), () => ({ kind: 'invalid', reason: 'unsupported_arity' }), ([, resolver]) => resolver());
 }
 
 function predicateFromShape(shape: ResourcePredicateArgumentShape): ResourceQueryFilterArgumentsResolution {
@@ -217,13 +221,12 @@ function projectionFromExpression(expression: ResourceExpressionModel): Resource
 }
 
 function projectionArguments(args: readonly ResourceExpressionModel[]): ResourceProjectionArguments {
-  const projections = Object.freeze(args.map(projectionFromExpression));
-  const primary = projections[0];
-  if (primary === undefined) return { kind: 'invalid', reason: 'empty_projection_list' };
-  return matchResourceQueryProjection<ResourceProjectionArguments>(primary, {
+  const projections = Object.freeze(relationProject(args, projectionFromExpression));
+  return relationOptionFold(relationAt(projections, 0), () => ({ kind: 'invalid', reason: 'empty_projection_list' }), primary => matchResourceQueryProjection<ResourceProjectionArguments>(primary, {
     property: value => ({ kind: 'resolved', projections, primary: value }),
     raw: () => ({ kind: 'invalid', reason: 'unsupported_primary_projection' }),
-  });
+  }),
+  );
 }
 
 function orderingTargetFromArguments(args: readonly ResourceExpressionModel[]): ResourceQueryOrderingTargetResolution {
@@ -273,17 +276,15 @@ function windowArguments(args: readonly ResourceExpressionModel[]): ResourceWind
 }
 
 function groupingPropertyBatch(args: readonly ResourceExpressionModel[]): ResourceGroupingPropertyBatchResolution {
-  const properties: PropertyName[] = [];
-  for (const argument of args) {
-    const resolution = propertyExpressionResolution(argument);
-    const property = matchResourcePropertyResolution<ResourceGroupingPropertyBatchResolution>(resolution, {
-      resolved: value => { properties.push(value.property); return { kind: 'resolved', properties: Object.freeze(properties) }; },
-      missing: () => ({ kind: 'invalid' as const, reason: 'invalid_property' as const }),
-      invalid_value: () => ({ kind: 'invalid' as const, reason: 'invalid_property' as const }),
-    });
-    if (property.kind === 'invalid') return property;
-  }
-  return { kind: 'resolved', properties: Object.freeze(properties) };
+  return relationFold(args, { kind: 'resolved', properties: Object.freeze([] as PropertyName[]) } as ResourceGroupingPropertyBatchResolution, (state, argument) =>
+    relationResolve(relationEqual(state.kind, 'invalid'), () => state, () =>
+      matchResourcePropertyResolution<ResourceGroupingPropertyBatchResolution>(propertyExpressionResolution(argument), {
+        resolved: value => { const current = state as Extract<ResourceGroupingPropertyBatchResolution, { readonly kind: 'resolved' }>; return { kind: 'resolved', properties: Object.freeze([...current.properties, value.property]) }; },
+        missing: () => ({ kind: 'invalid', reason: 'invalid_property' }),
+        invalid_value: () => ({ kind: 'invalid', reason: 'invalid_property' }),
+      })
+    )
+  );
 }
 
 function groupingArguments(args: readonly ResourceExpressionModel[]): ResourceGroupingArguments {
@@ -304,8 +305,7 @@ function conditionalArguments(args: readonly ResourceExpressionModel[]): Resourc
 }
 
 function argumentAt(args: readonly ResourceExpressionModel[], index: number): ResourceArgumentPresence {
-  const value = args[index];
-  return value === undefined ? { kind: 'missing', index } : { kind: 'present', value };
+  return relationOptionFold(relationAt(args, index), () => ({ kind: 'missing', index }), value => ({ kind: 'present', value }));
 }
 
 function queryOperationInput(
@@ -400,23 +400,23 @@ function matchResourceOrderingArguments<R>(value: ResourceOrderingArguments, vis
   readonly valid: (value: Extract<ResourceOrderingArguments, { readonly kind: 'valid' }>) => R;
   readonly invalid: (value: Extract<ResourceOrderingArguments, { readonly kind: 'invalid' }>) => R;
 }): R {
-  return value.kind === 'valid' ? visitor.valid(value) : visitor.invalid(value);
+  return relationResolve(relationEqual(value.kind, 'valid'), () => visitor.valid(value as Extract<ResourceOrderingArguments, { readonly kind: 'valid' }>), () => visitor.invalid(value as Extract<ResourceOrderingArguments, { readonly kind: 'invalid' }>));
 }
 
 function dispatchOperationInput(method: MethodName, input: ResourceQueryOperationInput): ResourceResolvedQueryOperation {
   return matchResourceQueryOperationInput(input, {
-    filter: value => mutationHandlers.filter(method, value),
-    relation_filter: value => mutationHandlers.relation_filter(method, value),
-    relation_load: value => mutationHandlers.relation_load(method, value),
-    ordering: value => mutationHandlers.ordering(method, value),
-    projection: value => mutationHandlers.projection(method, value),
-    pagination: value => mutationHandlers.pagination(method, value),
-    window: value => mutationHandlers.window(method, value),
-    grouping: value => mutationHandlers.grouping(method, value),
-    having: value => mutationHandlers.having(method, value),
-    locking: value => mutationHandlers.locking(method, value),
-    distinct: value => mutationHandlers.distinct(method, value),
-    conditional: value => mutationHandlers.conditional(method, value),
+    filter: value => mutationHandlers['filter'](method, value),
+    relation_filter: value => mutationHandlers['relation_filter'](method, value),
+    relation_load: value => mutationHandlers['relation_load'](method, value),
+    ordering: value => mutationHandlers['ordering'](method, value),
+    projection: value => mutationHandlers['projection'](method, value),
+    pagination: value => mutationHandlers['pagination'](method, value),
+    window: value => mutationHandlers['window'](method, value),
+    grouping: value => mutationHandlers['grouping'](method, value),
+    having: value => mutationHandlers['having'](method, value),
+    locking: value => mutationHandlers['locking'](method, value),
+    distinct: value => mutationHandlers['distinct'](method, value),
+    conditional: value => mutationHandlers['conditional'](method, value),
   });
 }
 

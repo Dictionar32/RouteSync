@@ -1,0 +1,77 @@
+{
+  "phase": 588,
+  "files": [
+    {
+      "file": "packages/core/src/compiler/passes/graph/graphAnalyzer.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "coalesce": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "and": 0,
+        "or": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/graph/topologicalSorter.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "coalesce": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "and": 0,
+        "or": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/PassGraph.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "coalesce": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "and": 0,
+        "or": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "any": 0,
+        "new": 0
+      }
+    }
+  ]
+}

@@ -218,7 +218,7 @@ export type RequestInputConditionalCallback = {
   readonly onMatch: import('./collections').SourceStatements;
   readonly onElse: import('./collections').SourceStatements | { readonly kind: 'absent' };
   readonly source: SourceSpan;
-};
+}
 
 export type RequestInputCallbackParameter = {
   readonly kind: 'request_input_callback_parameter';
@@ -464,17 +464,13 @@ export type RequestValidationCapabilityVisitor<T> = {
   readonly form_request_validation: (value: Extract<RequestValidationCapability, { readonly kind: 'form_request_validation' }>) => T;
 };
 
-export function matchRequestValidationCapability<T>(
+export const matchRequestValidationCapability = <T>(
   value: RequestValidationCapability,
   visitor: RequestValidationCapabilityVisitor<T>
-): T {
-  switch (value.kind) {
-    case 'no_form_request_validation':
-      return visitor.no_form_request_validation();
-    case 'form_request_validation':
-      return visitor.form_request_validation(value);
-  }
-}
+): T => ({
+  no_form_request_validation: () => visitor.no_form_request_validation(),
+  form_request_validation: () => visitor.form_request_validation(value as Extract<RequestValidationCapability, { readonly kind: 'form_request_validation' }>),
+}[value.kind])();
 
 export type RequestFacts = {
   readonly kind: 'request_facts';
@@ -490,7 +486,7 @@ export type RequestFacts = {
  * represented as a separate capability instead of being forced onto every
  * request.
  */
-export type RequestDefinition = {
+export interface RequestDefinition {
   readonly kind: 'request';
   readonly identity: RequestSourceIdentity;
   readonly http: RequestHttpContext;

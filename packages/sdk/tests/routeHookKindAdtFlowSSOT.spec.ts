@@ -4,7 +4,7 @@ import {
   matchHookKind,
   HOOK_KIND_REGISTRY,
   RouteHookKind,
-  ScannedRouteHookDescriptor,
+  RouteSemanticFlowHookDescriptor,
   ROUTE_DESCRIPTOR_REGISTRY,
   RouteDescriptorKind
 } from '../../core/src'
@@ -73,8 +73,8 @@ describe('RouteHookKind ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     expect(HOOK_KIND_REGISTRY[RouteHookKind.InfiniteQuery].supportsPagination).toBe(true)
   })
 
-  test('6. Semantic factory methods on ScannedRouteHookDescriptor instantiate guaranteed frozen ADT instances', () => {
-    const queryHook = ScannedRouteHookDescriptor.query()
+  test('6. Semantic factory methods on RouteSemanticFlowHookDescriptor instantiate guaranteed frozen ADT instances', () => {
+    const queryHook = RouteSemanticFlowHookDescriptor.query()
     expect(queryHook.kind).toBe(RouteHookKind.Query)
     expect(queryHook.tanstackHookName).toBe('useQuery')
     expect(queryHook.isMutating).toBe(false)
@@ -82,7 +82,7 @@ describe('RouteHookKind ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     expect(queryHook.supportsPagination).toBe(false)
     expect(Object.isFrozen(queryHook)).toBe(true)
 
-    const mutationHook = ScannedRouteHookDescriptor.mutation()
+    const mutationHook = RouteSemanticFlowHookDescriptor.mutation()
     expect(mutationHook.kind).toBe(RouteHookKind.Mutation)
     expect(mutationHook.tanstackHookName).toBe('useMutation')
     expect(mutationHook.isMutating).toBe(true)
@@ -90,7 +90,7 @@ describe('RouteHookKind ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     expect(mutationHook.supportsPagination).toBe(false)
     expect(Object.isFrozen(mutationHook)).toBe(true)
 
-    const infiniteHook = ScannedRouteHookDescriptor.infiniteQuery()
+    const infiniteHook = RouteSemanticFlowHookDescriptor.infiniteQuery()
     expect(infiniteHook.kind).toBe(RouteHookKind.InfiniteQuery)
     expect(infiniteHook.tanstackHookName).toBe('useInfiniteQuery')
     expect(infiniteHook.isMutating).toBe(false)
@@ -98,7 +98,7 @@ describe('RouteHookKind ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     expect(infiniteHook.supportsPagination).toBe(true)
     expect(Object.isFrozen(infiniteHook)).toBe(true)
 
-    const fromKind = ScannedRouteHookDescriptor.fromKind(RouteHookKind.Mutation)
+    const fromKind = RouteSemanticFlowHookDescriptor.fromKind(RouteHookKind.Mutation)
     expect(fromKind.kind).toBe(RouteHookKind.Mutation)
     expect(fromKind.tanstackHookName).toBe('useMutation')
   })

@@ -14,22 +14,27 @@ import {
     ScannedEndpointContract
 } from "../../../../../types/route";
 import { RouteBoundaryAdapter, type RouteBoundaryOptions } from "../../../resolvers";
-import type { ScannedRouteCompleteContracts } from "../routeContracts";
-import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import type { RouteSemanticFlowCompleteContracts } from "../routeContracts";
+import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 
-export type RouteDescriptorConstructor = new (params: ScannedRouteCompleteContracts) => ScannedRouteDescriptor;
+export type RouteDescriptorConstructor = (params: RouteSemanticFlowCompleteContracts | {
+    readonly identity: RouteIdentityContract;
+    readonly binding: RouteBindingContract;
+    readonly capability: RouteCapabilityContract;
+    readonly provenance: RouteProvenanceContract;
+}) => RouteSemanticFlowFactory;
 
 export function createRouteFromSubcontracts(
-    DescriptorClass: RouteDescriptorConstructor,
+    create: RouteDescriptorConstructor,
     subcontracts: {
         readonly identity: RouteIdentityContract;
         readonly binding: RouteBindingContract;
         readonly capability: RouteCapabilityContract;
         readonly provenance: RouteProvenanceContract;
     }
-): ScannedRouteDescriptor {
+): RouteSemanticFlowFactory {
     const contract = ScannedEndpointContract.fromSubcontracts(subcontracts);
-    return new DescriptorClass({
+    return create({
         identity: subcontracts.identity,
         binding: subcontracts.binding,
         capability: subcontracts.capability,
@@ -39,9 +44,9 @@ export function createRouteFromSubcontracts(
 }
 
 export function createRouteFromSparse(
-    DescriptorClass: RouteDescriptorConstructor,
+    create: RouteDescriptorConstructor,
     params: RouteBoundaryOptions
-): ScannedRouteDescriptor {
+): RouteSemanticFlowFactory {
     const contracts = RouteBoundaryAdapter.toSubcontracts(params);
-    return new DescriptorClass(contracts);
+    return create(contracts);
 }

@@ -8,6 +8,8 @@ import type { MiddlewareAst } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import { middlewareProducer } from './middlewareProducer';
+import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({
@@ -18,26 +20,21 @@ const source = (file: string, line: number): SourceSpan => ({
 });
 
 function className(tokens: readonly { readonly value: string }[]): string {
-  for (let index = 0; index + 1 < tokens.length; index += 1) {
-    if (tokens[index].value === 'class') return tokens[index + 1].value;
-  }
-  throw new Error('Middleware class declaration not found');
+  const index = relationIndexOf(tokens, token => relationEqual(token.value, 'class'));
+  return relationOptionFold(relationAt(tokens, relationAdvanceIndex(index, 1)), () => { throw Error('Middleware class declaration not found'); }, token => token.value);
 }
 
 export async function scanMiddlewareAsts(sourceProject: SourceProjectIdentity): Promise<readonly MiddlewareAst[]> {
     const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Http', 'Middleware');
   const files = await collectPhpFiles(directory);
-  const asts: MiddlewareAst[] = [];
-
-  for (const file of files) {
+  const asts = await relationAsyncFold(files, [] as MiddlewareAst[], async (result, file) => {
     const text = await readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(text);
     const name = className(tokens);
     const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
     const span = source(file, Number(declaration.source.line));
-    asts.push(middlewareProducer.produce({ declaration, source: span }));
-  }
-
+    return [...result, middlewareProducer.produce({ declaration, source: span })];
+  });
   return Object.freeze(asts);
 }

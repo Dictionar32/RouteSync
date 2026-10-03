@@ -1,7 +1,7 @@
 /**
  * Canonical scanned resource-field descriptor.
- * The public domain contract has one semantic boundary: `semantic`.
- * Legacy accessors are derived views and do not store duplicate state.
+ * Semantic state is an immutable structural witness; construction is exposed
+ * through a relation-style catalog rather than a class constructor.
  */
 import type { ResourceFieldDescriptor, ResourceFieldExpression } from '../../../../types/domain/expressions';
 import type { SemanticType } from '../../../types/SemanticType';
@@ -17,46 +17,41 @@ export interface ScannedResourceFieldParams {
   readonly semantic: ResourceFieldSemantic;
 }
 
-export class ScannedResourceFieldDescriptor implements ResourceFieldDescriptor {
-  public readonly name: ResourceFieldDescriptor['name'];
-  public readonly propertyName: ResourceFieldDescriptor['propertyName'];
-  public readonly expression: ResourceFieldExpression;
-  public readonly semantic: ResourceFieldSemantic;
+export type ScannedResourceFieldDescriptor = ResourceFieldDescriptor & {
+  readonly semantic: ResourceFieldSemantic;
+  readonly semanticType: SemanticType;
+  readonly boundAst: BoundSemanticNode;
+};
 
-  constructor({ name, propertyName, expression, semantic }: ScannedResourceFieldParams) {
-    this.name = name;
-    this.propertyName = propertyName;
-    this.expression = expression;
-    this.semantic = semantic;
-    Object.freeze(this);
-  }
+const createResourceFieldDescriptor = (params: ScannedResourceFieldParams): ScannedResourceFieldDescriptor => Object.freeze({
+  name: params.name,
+  propertyName: params.propertyName,
+  expression: params.expression,
+  semantic: params.semantic,
+  get semanticType(): SemanticType {
+    return requireResourceFieldType(params.semantic);
+  },
+  get boundAst(): BoundSemanticNode {
+    return params.semantic.bound;
+  },
+});
 
-  /** Transitional derived view. No semantic state is stored here. */
-  public get semanticType(): SemanticType {
-    return requireResourceFieldType(this.semantic);
-  }
-
-  /** Transitional derived view. No binding state is stored here. */
-  public get boundAst(): BoundSemanticNode {
-    return this.semantic.bound;
-  }
-
-  public static fromExpression(
+export const ScannedResourceFieldDescriptor = Object.freeze({
+  fromExpression(
     name: string,
     expression: ResourceFieldExpression,
     semanticType: SemanticType,
     propertyName: string = toCamelCase(name),
     boundAst: BoundSemanticNode,
   ): ScannedResourceFieldDescriptor {
-    return new ScannedResourceFieldDescriptor({
+    return createResourceFieldDescriptor({
       name: SemanticValueFactory.responseFieldName(name),
       propertyName: SemanticValueFactory.propertyName(propertyName),
       expression,
       semantic: createResourceFieldSemantic(semanticType, boundAst),
     });
-  }
-
-  public static create(params: ScannedResourceFieldParams): ScannedResourceFieldDescriptor {
-    return new ScannedResourceFieldDescriptor(params);
-  }
-}
+  },
+  create(params: ScannedResourceFieldParams): ScannedResourceFieldDescriptor {
+    return createResourceFieldDescriptor(params);
+  },
+});

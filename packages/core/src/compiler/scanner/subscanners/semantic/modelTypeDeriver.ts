@@ -9,62 +9,78 @@
 import {
     ObjectType,
     type ObjectProperty,
-    ScannedObjectProperty,
-    NullableType,
-    type SemanticType
+    ScannedObjectProperty
 } from '../../../types/SemanticType';
 import {
-    toCamelCase,
     toPascalCase
 } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
+import {
+    relationEqual,
+    relationFold,
+    relationGate,
+    relationProject
+} from '../../../../semantic/kernel/relationalSequence';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 
 function sequenceToArray<T>(items: import('../../../../types/upstream/collections').Sequence<T>): T[] {
-    const result: T[] = [];
-    let current = items;
-    while (current.kind === 'cons') { result.push(current.head); current = current.tail; }
-    return result;
+    const collect = (current: import('../../../../types/upstream/collections').Sequence<T>, result: T[]): T[] =>
+        relationGate(
+            relationEqual(current.kind, 'cons'),
+            () => collect(current.tail, [...result, current.head]),
+            () => result
+        );
+    return collect(items, []);
 }
 
 export function deriveModelTypes(
     context: SemanticDerivationContext,
-    seenNames: Set<string>
+    seenNames: RelationMembership<string>
 ): readonly ObjectType[] {
-    const types: ObjectType[] = [];
     const interner = context.interner;
-
-    for (const model of context.models) {
-        const modelTypeName = `${toPascalCase(model.definition.identity.name.value.value)}Transformed`;
-        const modelBaseName = toPascalCase(model.definition.identity.name.value.value);
-        if (!seenNames.has(modelTypeName)) {
-            seenNames.add(modelTypeName);
-            const properties: ObjectProperty[] = [];
-            const seenPropNames = new Set<string>();
-
-            const sourceProperties = sequenceToArray(model.definition.surface.properties.items);
-            for (const property of sourceProperties) {
-                const propName = property.name.value.value;
-                seenPropNames.add(propName);
-                properties.push(ScannedObjectProperty.create({
-                    name: { kind: 'property_name', value: propName },
-                    type: interner.intern(property.type),
-                    description: '',
-                    origin: property.origin.kind === 'column'
-                        ? { kind: 'model_column', model: model.definition.identity.name, property: property.name }
-                        : property.origin.kind === 'computed'
-                            ? { kind: 'model_accessor', model: model.definition.identity.name, property: property.name }
-                            : { kind: 'model_relation', model: model.definition.identity.name, property: property.name }
-                }));
-            }
-
-            types.push(interner.intern(new ObjectType({
-                name: modelTypeName,
-                baseName: modelBaseName,
-                properties,
-                role: 'model'
-            })) as ObjectType);
+    return relationFold(
+        context.models,
+        Object.freeze([]) as readonly ObjectType[],
+        (types, model) => {
+            const modelTypeName = `${toPascalCase(model.definition.identity.name.value.value)}Transformed`;
+            const modelBaseName = toPascalCase(model.definition.identity.name.value.value);
+            return relationGate(
+                relationEqual(relationContains(seenNames, modelTypeName), false),
+                () => {
+                    seenNames = relationInsert(seenNames, modelTypeName);
+                    const sourceProperties = sequenceToArray(model.definition.surface.properties.items);
+                    const properties = relationProject(
+                        sourceProperties,
+                        property => {
+                            const origin = relationGate(
+                                relationEqual(property.origin.kind, 'column'),
+                                () => ({ kind: 'model_column' as const, model: model.definition.identity.name, property: property.name }),
+                                () => relationGate(
+                                    relationEqual(property.origin.kind, 'computed'),
+                                    () => ({ kind: 'model_accessor' as const, model: model.definition.identity.name, property: property.name }),
+                                    () => ({ kind: 'model_relation' as const, model: model.definition.identity.name, property: property.name })
+                                )
+                            );
+                            return ScannedObjectProperty.create({
+                                name: { kind: 'property_name', value: property.name.value.value },
+                                type: interner.intern(property.type),
+                                description: '',
+                                origin
+                            });
+                        }
+                    );
+                    return Object.freeze([
+                        ...types,
+                        interner.intern(ObjectType({
+                            name: modelTypeName,
+                            baseName: modelBaseName,
+                            properties,
+                            role: 'model'
+                        })) as ObjectType
+                    ]);
+                },
+                () => types
+            );
         }
-    }
-
-    return types;
+    );
 }

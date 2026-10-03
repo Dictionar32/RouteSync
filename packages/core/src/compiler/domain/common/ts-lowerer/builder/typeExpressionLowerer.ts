@@ -14,6 +14,7 @@ import {
     TypeScriptPrimitiveMapping
 } from '../typeScriptVocabulary';
 import { TypeScriptSyntax } from '../typeScriptSyntax';
+import { relationProject, relationResolve } from '../../../../../semantic/kernel/relationalSequence';
 
 export function lowerTypeExpression(type: SemanticType): string {
     return type.accept({
@@ -28,12 +29,12 @@ export function lowerTypeExpression(type: SemanticType): string {
         intersection: value => TypeScriptSyntax.intersection(value.members, lowerTypeExpression),
         readonlyCollection: value => TypeScriptSyntax.array(lowerTypeExpression(value.elementType)),
         mutableCollection: value => TypeScriptSyntax.array(lowerTypeExpression(value.elementType)),
-        generic: value => `${value.base.name}<${value.parameters.map(parameter => lowerTypeExpression(parameter.type)).join(', ')}>`,
+        generic: value => `${value.base.name}<${relationProject(value.parameters, parameter => lowerTypeExpression(parameter.type)).join(', ')}>`,
         object: value => TypeScriptSyntax.inlineObject(value.properties, property => lowerProperty(property, true))
     });
 }
 
 export function lowerProperty(prop: ObjectProperty, includeJsDoc = true): string {
     const propertyCode = prop.type.formatProperty(prop.name.value.value, lowerTypeExpression);
-    return includeJsDoc ? `${TypeScriptSyntax.formatJsDoc(prop.description)}${propertyCode}` : propertyCode;
+    return relationResolve(includeJsDoc, () => `${TypeScriptSyntax.formatJsDoc(prop.description)}${propertyCode}`, () => propertyCode);
 }

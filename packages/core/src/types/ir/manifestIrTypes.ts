@@ -76,7 +76,7 @@ export type RouteResponseBinding =
       readonly pagination: NoPagination;
     };
 
-export type { ParsedRoute } from '../domain/routes';
+export type { RouteSemanticFlow } from '../domain/routes';
 
 export interface ManifestMetadata {
   readonly version: string;

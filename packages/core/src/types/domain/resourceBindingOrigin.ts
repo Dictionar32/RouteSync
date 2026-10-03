@@ -5,7 +5,7 @@ export type ResourceBindingModelOrigin =
   | { readonly kind: 'model'; readonly model: ModelName }
   | { readonly kind: 'resource'; readonly resource: ResourceName }
   | { readonly kind: 'variable'; readonly variable: VariableName }
-  | { readonly kind: 'unknown'; readonly reason: 'external_variable' | 'no_binding_origin' | 'unsupported_expression' };
+  | { readonly kind: 'indeterminate'; readonly reason: 'external_variable' | 'no_binding_origin' | 'unsupported_expression' };
 
 export type ResourceBindingOriginState =
   | { readonly kind: 'known'; readonly origins: readonly ResourceBindingModelOrigin[] }

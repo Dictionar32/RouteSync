@@ -6,6 +6,8 @@ import type { ModelName } from '../../../../types/upstream/names';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { ModelDeclarationAst } from '../../lexer';
 import type { EloquentRelationAst } from '../../../../types/upstream/eloquent';
+import { relationFold, relationGate } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { eloquentRelationProducer } from './eloquentProducer';
 
 export function parseModelRelations(
@@ -13,26 +15,11 @@ export function parseModelRelations(
     sourceModel: ModelName,
     source: SourceSpan
 ): readonly EloquentRelationAst[] {
-    const relations: EloquentRelationAst[] = [];
-    for (const method of declaration.methods) {
-        for (const returned of method.returns) {
-            const result = eloquentRelationProducer.produce({ method, returned, sourceModel, source });
-            switch (result.kind) {
-                case 'produced':
-                    relations.push(result.relation);
-                    break;
-                case 'not_a_relation':
-                    break;
-                case 'unsupported':
-                    throw new Error(
-                        `Unsupported Eloquent relation ${result.method.value.value}: ${result.reason} at ${result.source.file.value.value} (offset ${result.source.start.value})`
-                    );
-                default: {
-                    const exhaustive: never = result;
-                    throw new Error(`Unhandled Eloquent relation result: ${String(exhaustive)}`);
-                }
-            }
-        }
-    }
-    return relations;
+    return relationFold(declaration.methods, [] as EloquentRelationAst[], (relations, method) => relationFold(method.returns, relations, (next, returned) => {
+        const result = eloquentRelationProducer.produce({ method, returned, sourceModel, source });
+        return relationGate(relationEqual(result.kind, 'produced'), () => [...next, result.relation],
+            () => relationGate(relationEqual(result.kind, 'not_a_relation'), () => next, () => {
+                throw Error(`Unsupported Eloquent relation ${result.method.value.value}: ${result.reason} at ${result.source.file.value.value} (offset ${result.source.start.value})`);
+            }));
+    }));
 }

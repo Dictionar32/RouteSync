@@ -1,0 +1,9 @@
+{
+  "phase": 572,
+  "inputTrace": "build(8).log",
+  "frontier": "form-generation-request-identity-dts",
+  "error": "FormGeneratorPass.ts(74,39)/(75,42): Property 'resourceName' does not exist on type 'RequestType'",
+  "fix": "Use RequestType.identity.resource.value.value as the canonical string projection",
+  "fullBuildExecuted": false,
+  "workspaceToolchain": "node_modules unavailable in checkpoint workspace"
+}

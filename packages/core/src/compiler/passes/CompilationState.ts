@@ -1,93 +1,83 @@
 /**
- * Immutable container for compiler artifacts produced during a compilation.
+ * Relation-backed immutable compiler state.
  *
- * Artifact insertion validates the registry key and required metadata. Merging
- * preserves shared artifact instances but rejects conflicting values for the
- * same artifact key.
+ * Artifact facts are tuples. Presence, lookup, merge and validation are
+ * relation operations; semantic state is never mutated in place.
  */
-import type { ArtifactKey, ArtifactRegistry, ArtifactStorage } from '../artifacts/types';
+import type { ArtifactKey, ArtifactRegistry } from '../artifacts/types';
 import type { ArtifactKeyWitness } from './ArtifactKeyWitness';
+import {
+    relationEqual,
+    relationIndexAdd,
+    relationIndexEntries,
+    relationIndexLookup,
+    relationOptionFold,
+    relationProject,
+    relationFold,
+    relationResolve,
+    type RelationIndex,
+    type RelationOption,
+} from '../../semantic/kernel/relationalSequence';
 
-export class CompilationState {
-    private constructor(private readonly artifacts: Readonly<ArtifactStorage>) { }
+export type CompilationState = Readonly<{
+    readonly artifacts: RelationIndex<ArtifactKey, ArtifactRegistry[ArtifactKey]>;
+    readonly has: <K extends ArtifactKey>(key: K) => boolean;
+    readonly get: <K extends ArtifactKey>(key: K) => RelationOption<ArtifactRegistry[K]>;
+    readonly keys: () => readonly ArtifactKey[];
+    readonly put: <K extends ArtifactKey>(key: K, value: ArtifactRegistry[K]) => CompilationState;
+    readonly merge: (other: CompilationState) => CompilationState;
+    readonly require: <K extends ArtifactKey>(witness: ArtifactKeyWitness<K>) => ArtifactRegistry[K];
+}>;
 
-    /** Creates a state with no artifacts. */
-    public static empty(): CompilationState {
-        return new CompilationState({});
-    }
+type StoredArtifact = ArtifactRegistry[ArtifactKey];
 
+const artifactIsValid = <K extends ArtifactKey>(key: K, value: ArtifactRegistry[K]): boolean => relationResolve(
+    relationEqual(value.typeId, key),
+    () => relationEqual(typeof value.metadata.hash, 'string'),
+    () => false,
+);
 
-    /** Checks whether an artifact is present in the state. */
-    public has<K extends ArtifactKey>(key: K): boolean {
-        return this.artifacts[key] !== undefined;
-    }
+const createState = (artifacts: RelationIndex<ArtifactKey, StoredArtifact>): CompilationState => {
+    const frozen = Object.freeze(artifacts);
+    const state: CompilationState = {
+        artifacts: frozen,
+        has: key => relationOptionFold(
+            relationIndexLookup(frozen, key),
+            () => false,
+            () => true,
+        ),
+        get: key => relationIndexLookup(frozen, key) as RelationOption<ArtifactRegistry[typeof key]>,
+        keys: () => Object.freeze(relationProject(frozen, entry => entry[0])),
+        put: (key, value) => relationResolve(
+            artifactIsValid(key, value),
+            () => {
+                const existing = relationIndexLookup(frozen, key) as RelationOption<ArtifactRegistry[typeof key]>;
+                return relationOptionFold(
+                    existing,
+                    () => createState(relationIndexAdd(frozen, key, value)),
+                    current => relationResolve(
+                        relationEqual(current, value),
+                        () => state,
+                        () => { throw Error(`Artifact conflict for ${String(key)}: state already contains a different value`); },
+                    ),
+                );
+            },
+            () => { throw Error(`Invalid artifact for key ${String(key)}: typeId does not match the registry key`); },
+        ),
+        merge: other => relationFold(
+            other.artifacts,
+            state,
+            (merged, entry) => merged.put(entry[0], entry[1]),
+        ),
+        require: witness => relationOptionFold(
+            relationIndexLookup(frozen, witness.key),
+            () => { throw Error(`Missing artifact: ${witness.key}`); },
+            value => value as ArtifactRegistry[typeof witness.key],
+        ),
+    };
+    return Object.freeze(state);
+};
 
-
-    /** Reads an artifact without throwing when it is absent. */
-    public get<K extends ArtifactKey>(key: K): ArtifactRegistry[K] | undefined {
-        return this.artifacts[key];
-    }
-
-
-    /** Lists the artifact keys currently stored in the state. */
-    public keys(): readonly ArtifactKey[] {
-        return Object.keys(this.artifacts) as ArtifactKey[];
-    }
-
-
-    /** Adds an artifact and rejects replacement with a different value. */
-    public put<K extends ArtifactKey>(key: K, value: ArtifactRegistry[K]): CompilationState {
-        if (value === null || typeof value !== 'object' || value.typeId !== key) {
-            throw new Error(`Invalid artifact for key ${String(key)}: typeId does not match the registry key`);
-        }
-
-        if (!value.metadata || typeof value.metadata.hash !== 'string') {
-            throw new Error(`Invalid artifact for key ${String(key)}: missing artifact metadata`);
-        }
-
-        const existing = this.artifacts[key];
-        if (existing !== undefined && existing !== value) {
-            throw new Error(`Artifact conflict for ${String(key)}: state already contains a different value`);
-        }
-
-        if (existing === value) {
-            return this;
-        }
-
-        return new CompilationState({
-            ...this.artifacts,
-            [key]: value
-        });
-    }
-
-
-    /** Merges states while allowing only identical shared artifact instances. */
-    public merge(other: CompilationState): CompilationState {
-        let merged: CompilationState = this;
-
-        for (const key of other.keys()) {
-            const value = other.get(key);
-            if (value === undefined) continue;
-
-            const existing = merged.get(key);
-            if (existing !== undefined && existing !== value) {
-                throw new Error(`Artifact merge conflict for ${String(key)}`);
-            }
-
-            if (existing === undefined) {
-                merged = merged.put(key, value);
-            }
-        }
-
-        return merged;
-    }
-
-    /** Reads a required artifact and throws when it is missing. */
-    public require<K extends ArtifactKey>(witness: ArtifactKeyWitness<K>): ArtifactRegistry[K] {
-        const value = this.artifacts[witness.key];
-        if (value === undefined) {
-            throw new Error(`Missing artifact: ${witness.key}`);
-        }
-        return value;
-    }
-}
+export const CompilationState = Object.freeze({
+    empty: (): CompilationState => createState(Object.freeze([])),
+});

@@ -7,4 +7,4 @@
  */
 
 export type { QueryDescriptor } from './types';
-export { MemoizedQueryDatabase } from './memoizedDatabase';
+export { createMemoizedQueryDatabase, type MemoizedQueryDatabase } from './memoizedDatabase';

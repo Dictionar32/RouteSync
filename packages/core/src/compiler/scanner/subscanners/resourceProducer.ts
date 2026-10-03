@@ -2,26 +2,26 @@ import type { ResourceAst } from "../../../types/upstream/ast";
 import type { ResourceDefinition, ResourceField, ResourceTransformation, ResourceInheritance, ResourceDocumentation, ResourceRepresentation, ResourceDynamicEntry, ResourceDynamicEntries } from "../../../types/upstream/resource";
 import type { Assignments, Properties, Sequence } from "../../../types/upstream/collections";
 import type { Expression } from "../../../types/upstream/expression";
-import type { PropertyType } from "../../../types/upstream/property";
-import type { ResponseReference, ModelReference } from "../../../types/upstream/semanticReferences";
+import type { ResponseReference, ModelReference, ResourceReference } from "../../../types/upstream/semanticReferences";
 import type { SourceFile } from "../../../types/upstream/names";
 import { produceResourceField } from "./resource/resourceFieldProducer";
 import { propertyProducer } from './model/propertyProducer';
 import { mapResourcePhpStatementsToSourceStatements } from "./resource/resourceUpstreamExpressionCanonical";
-import { mapAssignmentTarget, mapAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from "./resource/resourceUpstreamExpressionMappings";
-import { mapAstValueToExpression } from "./resource/resourceAstExpressionMapper";
+import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from "./resource/resourceUpstreamExpressionMappings";
+import { resolveAstValueToExpression } from "./resource/resourceAstExpressionMapper";
 import { responseRef, modelRef } from "../../../types/upstream/semanticReferences";
 import type { SourceSpan } from "../../../types/upstream/provenance";
 import type { ResourceName, ClassName, VariableName } from "../../../types/upstream/names";
+import { createPropertyName } from "../../../types/upstream/names";
 import { createSourceFile } from "../../../types/upstream/names";
 import type { PhpArrayEntry } from "../lexer/PhpAst";
-import type { PhpArrayKey } from "../lexer/phpAstExpressionTypes";
 import type { PhpClassPropertyAst } from "../lexer/phpAstDeclarationTypes";
 import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { PhpMethodAst } from "../lexer/phpMethodAstTypes";
 import type { ResourceWrapping, ResourceFrameworkFeatures, ResourceCollectionFeatures, JsonApiResourceFeatures, JsonApiRelationshipDeclaration } from "../../../types/upstream/resource";
-import type { ModelReference } from "../../../types/upstream/semanticReferences";
 import type { OriginModelSymbol } from "../symbols/model/originModelSymbol";
+import { relationLookup, relationOptionFold, relationProject, relationGate, relationSelect, relationFirstOption, relationExpand, relationRefine, relationSome, relationNone } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 
 export type ResourceProducerInput = {
     readonly resourceName: ResourceName;
@@ -53,23 +53,33 @@ export const resourceProducer: ResourceProducer = {
     produce(input): ResourceAst {
         const sourceFile: SourceFile = input.source.file;
         const model = input.model;
-        const fields: ResourceField[] = input.entries.flatMap(entry => {
-            if (entry.kind !== 'keyed' || entry.key.kind !== 'string') return [];
-            return [produceResourceField(entry.key.value, entry.value, sourceFile.value.value, input.resourceName.value.value, model)];
-        });
+        const fields: ResourceField[] = relationExpand(input.entries, entry => relationGate(
+            relationEqual(entry.kind, 'keyed'),
+            () => relationGate(
+                relationEqual(entry.key.kind, 'string'),
+                () => [produceResourceField(entry.key.value, entry.value, sourceFile.value.value, input.resourceName.value.value, model)],
+                () => [],
+            ),
+            () => [],
+        ));
         const dynamicEntries: ResourceDynamicEntries = {
             kind: 'resource_dynamic_entries',
-            items: seq(input.entries.flatMap(entry => resourceDynamicEntry(entry, sourceFile.value.value))),
+            items: seq(relationExpand(input.entries, entry => resourceDynamicEntry(entry, sourceFile.value.value))),
         };
+        const assignmentStatements = relationExpand(input.assignments, statement => relationOptionFold(
+            relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { kind: 'assignment' }> => relationEqual(candidate.kind, 'assignment')),
+            () => [],
+            assignment => [assignment],
+        ));
         const assignments: Assignments = {
             kind: 'assignments',
-            items: seq(input.assignments.filter((statement): statement is Extract<PhpStatement, { kind: 'assignment' }> => statement.kind === 'assignment').map(statement => {
-                const expression: Expression = mapAstValueToExpression(statement.value, sourceFile.value.value).upstream;
+            items: seq(relationProject(assignmentStatements, statement => {
+                const expression: Expression = resolveAstValueToExpression(statement.value, sourceFile.value.value).upstream;
                 return {
                     kind: 'assignment' as const,
-                    target: mapAssignmentTarget(statement.target, (value, file) => mapAstValueToExpression(value, file).upstream, sourceFile.value.value),
+                    target: resolveAssignmentTarget(statement.target, (value, file) => resolveAstValueToExpression(value, file).upstream, sourceFile.value.value),
                     expression,
-                    operator: mapAssignmentOperator(statement.operator.kind),
+                    operator: resolveAssignmentOperator(statement.operator.kind),
                     reference: assignmentReferenceMode(statement.reference.kind),
                     source: sourceSpanFromRange(sourceFile, statement.source),
                 };
@@ -86,50 +96,51 @@ export const resourceProducer: ResourceProducer = {
         };
         const inheritance: ResourceInheritance = { kind: 'resource_inheritance', base: input.baseClass, source: input.source };
         const documentation: ResourceDocumentation = { kind: 'resource_documentation', mixins: seq(input.documentationMixins), source: input.source };
-        const methods = new Map(input.methods.map(method => [method.name.value, method] as const));
-        const sourceStatements = (method: PhpMethodAst | undefined) => method === undefined
-            ? undefined
-            : mapResourcePhpStatementsToSourceStatements(method.body, sourceFile.value.value);
-        const propertyValue = (name: string): PhpArrayEntry[] => {
-            const property = input.properties.find(item => item.name.value === name);
-            if (property?.initialization.kind !== 'present') return [];
-            const value = property.initialization.value;
-            return value.kind === 'array' ? value.entries : [];
-        };
-        const jsonApi = input.baseClass.value.value === 'JsonApiResource' ? buildJsonApiFeatures(input, methods, sourceStatements) : { kind: 'json_api_absent' as const };
+        const methods = relationProject(input.methods, method => [method.name.value, method] as const);
+        const sourceStatements = (method: PhpMethodAst) => mapResourcePhpStatementsToSourceStatements(method.body, sourceFile.value.value);
+        const methodStatementsOr = <T>(name: string, absent: T) => relationOptionFold(
+            relationLookup(methods, name),
+            () => absent,
+            value => mapResourcePhpStatementsToSourceStatements(value.body, sourceFile.value.value),
+        );
+        const jsonApi = relationGate(
+            relationEqual(input.baseClass.value.value, 'JsonApiResource'),
+            () => buildJsonApiFeatures(input, methods, sourceStatements),
+            () => ({ kind: 'json_api_absent' as const }),
+        );
         const collection: ResourceCollectionFeatures = {
             kind: 'resource_collection_features',
             preserveKeys: input.preserveKeys,
             collects: input.collectsResource,
-            paginationInformation: sourceStatements(methods.get('paginationInformation')) ?? { kind: 'pagination_information_absent' },
-            preserveQuery: sourceStatements(methods.get('preserveQuery')) ?? { kind: 'preserve_query_absent' },
-            withQuery: sourceStatements(methods.get('withQuery')) ?? { kind: 'with_query_absent' },
-            count: sourceStatements(methods.get('count')) ?? { kind: 'count_override_absent' },
+            paginationInformation: methodStatementsOr('paginationInformation', { kind: 'pagination_information_absent' }),
+            preserveQuery: methodStatementsOr('preserveQuery', { kind: 'preserve_query_absent' }),
+            withQuery: methodStatementsOr('withQuery', { kind: 'with_query_absent' }),
+            count: methodStatementsOr('count', { kind: 'count_override_absent' }),
         };
         const framework: ResourceFrameworkFeatures = {
             kind: 'resource_framework_features',
             collection,
             jsonApi,
-            with: sourceStatements(methods.get('with')) ?? { kind: 'with_absent' },
-            withResponse: sourceStatements(methods.get('withResponse')) ?? { kind: 'with_response_absent' },
-            paginationInformation: sourceStatements(methods.get('paginationInformation')) ?? { kind: 'pagination_information_absent' },
+            with: methodStatementsOr('with', { kind: 'with_absent' }),
+            withResponse: methodStatementsOr('withResponse', { kind: 'with_response_absent' }),
+            paginationInformation: methodStatementsOr('paginationInformation', { kind: 'pagination_information_absent' }),
             additional: { kind: 'supported_at_invocation' },
             forceWrapping: input.forceWrapping,
-            jsonOptions: sourceStatements(methods.get('jsonOptions')) ?? { kind: 'json_options_absent' },
-            toJson: sourceStatements(methods.get('toJson')) ?? { kind: 'to_json_absent' },
-            toPrettyJson: sourceStatements(methods.get('toPrettyJson')) ?? { kind: 'to_pretty_json_absent' },
-            response: sourceStatements(methods.get('response')) ?? { kind: 'response_absent' },
-            toResponse: sourceStatements(methods.get('toResponse')) ?? { kind: 'to_response_absent' },
+            jsonOptions: methodStatementsOr('jsonOptions', { kind: 'json_options_absent' }),
+            toJson: methodStatementsOr('toJson', { kind: 'to_json_absent' }),
+            toPrettyJson: methodStatementsOr('toPrettyJson', { kind: 'to_pretty_json_absent' }),
+            response: methodStatementsOr('response', { kind: 'response_absent' }),
+            toResponse: methodStatementsOr('toResponse', { kind: 'to_response_absent' }),
             withProperty: propertyExpressionOr(input.properties, 'with', sourceFile.value.value, { kind: 'with_property_absent' }),
             additionalProperty: propertyExpressionOr(input.properties, 'additional', sourceFile.value.value, { kind: 'additional_property_absent' }),
         };
-        const representation: ResourceRepresentation = input.baseClass.value.value === 'ResourceCollection' ? { kind: 'json_resource_collection' } : input.baseClass.value.value === 'JsonApiResource' ? { kind: 'json_api_resource' } : { kind: 'json_resource' };
+        const representation: ResourceRepresentation = relationGate(relationEqual(input.baseClass.value.value, 'ResourceCollection'), () => ({ kind: 'json_resource_collection' as const }), () => relationGate(relationEqual(input.baseClass.value.value, 'JsonApiResource'), () => ({ kind: 'json_api_resource' as const }), () => ({ kind: 'json_resource' as const })));
         const modelReference: ModelReference = modelRef(model.name.value.value);
         const response: ResponseReference = responseRef(input.resourceName);
         const resourceClassName: ClassName = { kind: 'class_name', value: { kind: 'string_value', value: input.resourceName.value.value } };
         const properties: Properties = {
             kind: 'properties',
-            items: seq(input.properties.map(property => propertyProducer.produce({
+            items: seq(relationProject(input.properties, property => propertyProducer.produce({
                 property,
                 context: {
                     kind: 'class_property',
@@ -144,7 +155,7 @@ export const resourceProducer: ResourceProducer = {
                 },
             }).definition))
         };
-        const operations = { kind: 'resource_operations' as const, items: seq(fields.flatMap(field => field.output.kind === 'operation' ? [field.output.operation] : [])) };
+        const operations = { kind: 'resource_operations' as const, items: seq(relationExpand(fields, field => relationGate(relationEqual(field.output.kind, 'operation'), () => [field.output.operation], () => []))) };
         const contract = {
             kind: 'resource_serialization_contract' as const,
             representation,
@@ -153,7 +164,11 @@ export const resourceProducer: ResourceProducer = {
             requestAware: { kind: 'truth_value', value: true },
             request: transformation.request,
             operations,
-            responseCustomization: input.methods.some(method => method.name.value === 'withResponse') ? { kind: 'response_customization_method' as const, withResponse: sourceStatements(input.methods.find(method => method.name.value === 'withResponse'))!, source: input.source } : { kind: 'response_customization_absent' as const },
+            responseCustomization: relationOptionFold(
+                relationFirstOption(input.methods, method => relationEqual(method.name.value, 'withResponse')),
+                () => ({ kind: 'response_customization_absent' as const }),
+                withResponse => ({ kind: 'response_customization_method' as const, withResponse: sourceStatements(withResponse), source: input.source }),
+            ),
             fields: { kind: 'resource_fields' as const, items: seq(fields) },
             dynamicEntries,
             framework,
@@ -176,9 +191,16 @@ function propertyExpressionOr<T>(
     sourceFile: string,
     absent: T,
 ): Expression | T {
-    const property = properties.find(item => item.name.value === name);
-    if (property?.initialization.kind !== 'present') return absent;
-    return mapAstValueToExpression(property.initialization.value, sourceFile).upstream;
+    const catalog = relationProject(properties, property => [property.name.value, property] as const);
+    return relationOptionFold(
+        relationLookup(catalog, name),
+        () => absent,
+        property => relationOptionFold(
+            relationGate(relationEqual(property.initialization.kind, 'present'), () => relationSome(property.initialization.value), () => relationNone()),
+            () => absent,
+            value => resolveAstValueToExpression(value, sourceFile).upstream,
+        ),
+    );
 }
 
 function propertyArrayEntryExpressionOr<T>(
@@ -188,85 +210,141 @@ function propertyArrayEntryExpressionOr<T>(
     sourceFile: string,
     absent: T,
 ): Expression | T {
-    const property = properties.find(item => item.name.value === propertyNameValue);
-    if (property?.initialization.kind !== 'present' || property.initialization.value.kind !== 'array') return absent;
-    const entry = property.initialization.value.entries.find(item => item.kind === 'keyed' && item.key.kind === 'string' && item.key.value === entryName);
-    if (entry?.kind !== 'keyed') return absent;
-    return mapAstValueToExpression(entry.value, sourceFile).upstream;
+    const catalog = relationProject(properties, property => [property.name.value, property] as const);
+    return relationOptionFold(
+        relationLookup(catalog, propertyNameValue),
+        () => absent,
+        property => relationGate(
+            relationEqual(property.initialization.kind, 'present'),
+            () => relationGate(
+                relationEqual(property.initialization.value.kind, 'array'),
+                () => relationOptionFold(
+                    relationLookup(
+                        relationProject(
+                            relationSelect(property.initialization.value.entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => true, () => false), () => false)),
+                            entry => [entry.key.value, entry] as const,
+                        ),
+                        entryName,
+                    ),
+                    () => absent,
+                    entry => resolveAstValueToExpression(entry.value, sourceFile).upstream,
+                ),
+                () => absent,
+            ),
+            () => absent,
+        ),
+    );
 }
 
 function hasPropertyTrue(properties: readonly PhpClassPropertyAst[], name: string): boolean {
-    const property = properties.find(item => item.name.value === name);
-    return property?.initialization.kind === 'present' && property.initialization.value.kind === 'literal' && property.initialization.value.value.kind === 'boolean' && property.initialization.value.value.value;
+    return relationOptionFold(
+        relationLookup(relationProject(properties, property => [property.name.value, property] as const), name),
+        () => false,
+        property => relationGate(
+            relationEqual(property.initialization.kind, 'present'),
+            () => relationGate(
+                relationEqual(property.initialization.value.kind, 'literal'),
+                () => relationGate(
+                    relationEqual(property.initialization.value.value.kind, 'boolean'),
+                    () => property.initialization.value.value.value,
+                    () => false,
+                ),
+                () => false,
+            ),
+            () => false,
+        ),
+    );
 }
-function returnExpression(method: PhpMethodAst | undefined, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {
-    const returned = method?.body.find(statement => statement.kind === 'return_with_value');
-    return returned?.kind === 'return_with_value' ? mapAstValueToExpression(returned.expression, input.source.file.value.value).upstream : { kind: fallback };
+function returnExpression(method: import('../../../semantic/kernel/relationalSequence').RelationOption<PhpMethodAst>, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {
+    return relationOptionFold(
+        method,
+        () => ({ kind: fallback }),
+        value => relationOptionFold(
+            relationFirstOption(value.body, statement => relationEqual(statement.kind, 'return_with_value')),
+            () => ({ kind: fallback }),
+            statement => relationGate(relationEqual(statement.kind, 'return_with_value'), () => resolveAstValueToExpression(statement.expression, input.source.file.value.value).upstream, () => ({ kind: fallback })),
+        ),
+    );
 }
 
-function buildJsonApiFeatures(input: ResourceProducerInput, methods: ReadonlyMap<string, PhpMethodAst>, sourceStatements: (method: PhpMethodAst | undefined) => import('../../../types/upstream/collections').SourceStatements | undefined): JsonApiResourceFeatures {
-    const attributeEntries = input.jsonAttributes;
-    const relationshipEntries = input.jsonRelationships;
-    const attributes = seq(attributeEntries.flatMap(entry => entry.kind === 'positional' && entry.value.kind === 'literal' && entry.value.value.kind === 'string' ? [{ kind: 'property_name' as const, value: { kind: 'string_value' as const, value: entry.value.value.value } }] : []));
-    const relationships = seq(relationshipEntries.flatMap(entry => {
-        if (entry.kind === 'positional' && entry.value.kind === 'literal' && entry.value.value.kind === 'string') return [{ kind: 'json_api_relationship' as const, name: { kind: 'property_name' as const, value: { kind: 'string_value' as const, value: entry.value.value.value } }, resource: { kind: 'resource_inference' as const }, source: input.source }];
-        if (entry.kind === 'keyed' && entry.key.kind === 'string') return [{ kind: 'json_api_relationship' as const, name: { kind: 'property_name' as const, value: { kind: 'string_value' as const, value: entry.key.value } }, resource: { kind: 'resource_inference' as const }, source: input.source }];
-        return [];
-    }));
+function buildJsonApiFeatures(
+    input: ResourceProducerInput,
+    methods: readonly (readonly [string, PhpMethodAst])[],
+    sourceStatements: (method: PhpMethodAst) => import('../../../types/upstream/collections').SourceStatements,
+): JsonApiResourceFeatures {
+    const keyedNames = (entries: readonly PhpArrayEntry[]) => relationProject(
+        relationSelect(entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => true, () => false), () => false)),
+        entry => createPropertyName(entry.key.value),
+    );
+    const relationships = relationProject(
+        relationSelect(input.jsonRelationships, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => true, () => false), () => false)),
+        entry => ({
+            kind: 'json_api_relationship' as const,
+            name: createPropertyName(entry.key.value),
+            resource: { kind: 'resource_inference' as const },
+            source: sourceSpanFromRange(createSourceFile(input.source.file.value.value), entry.source),
+        }),
+    );
+    const method = (name: string) => relationLookup(methods, name);
+    const methodOr = <T>(name: string, absent: T): T | import('../../../types/upstream/collections').SourceStatements => relationOptionFold(method(name), () => absent, sourceStatements);
+    const methodOption = (name: string) => relationLookup(methods, name);
     return {
         kind: 'json_api_resource_features',
-        attributes,
-        relationships,
-        toAttributes: sourceStatements(methods.get('toAttributes')) ?? { kind: 'to_attributes_absent' },
-        toRelationships: sourceStatements(methods.get('toRelationships')) ?? { kind: 'to_relationships_absent' },
-        type: returnExpression(methods.get('toType'), input, 'default_resource_type'),
-        id: returnExpression(methods.get('toId'), input, 'default_resource_id'),
-        links: sourceStatements(methods.get('toLinks')) ?? { kind: 'to_links_absent' },
-        meta: sourceStatements(methods.get('toMeta')) ?? { kind: 'to_meta_absent' },
-        resolveResourceObject: sourceStatements(methods.get('resolveResourceObject')) ?? { kind: 'resolve_resource_object_absent' },
-        resolveResourceIdentifier: sourceStatements(methods.get('resolveResourceIdentifier')) ?? { kind: 'resolve_resource_identifier_absent' },
-        resolveResourceType: sourceStatements(methods.get('resolveResourceType')) ?? { kind: 'resolve_resource_type_absent' },
-        resolveResourceAttributes: sourceStatements(methods.get('resolveResourceAttributes')) ?? { kind: 'resolve_resource_attributes_absent' },
-        resolveResourceRelationshipIdentifiers: sourceStatements(methods.get('resolveResourceRelationshipIdentifiers')) ?? { kind: 'resolve_resource_relationship_identifiers_absent' },
-        compileResourceRelationships: sourceStatements(methods.get('compileResourceRelationships')) ?? { kind: 'compile_resource_relationships_absent' },
-        resolveIncludedResourceObjects: sourceStatements(methods.get('resolveIncludedResourceObjects')) ?? { kind: 'resolve_included_resource_objects_absent' },
-        resolveResourceLinks: sourceStatements(methods.get('resolveResourceLinks')) ?? { kind: 'resolve_resource_links_absent' },
-        resolveResourceMetaInformation: sourceStatements(methods.get('resolveResourceMetaInformation')) ?? { kind: 'resolve_resource_meta_information_absent' },
-        respectFieldsAndIncludesMethod: sourceStatements(methods.get('respectFieldsAndIncludesInQueryString')) ?? { kind: 'respect_fields_and_includes_method_absent' },
-        ignoreFieldsAndIncludesInQueryString: sourceStatements(methods.get('ignoreFieldsAndIncludesInQueryString')) ?? { kind: 'ignore_fields_and_includes_absent' },
-        includePreviouslyLoadedRelationships: sourceStatements(methods.get('includePreviouslyLoadedRelationships')) ?? { kind: 'include_previously_loaded_relationships_absent' },
-        resolveJsonApiRequestFrom: sourceStatements(methods.get('resolveJsonApiRequestFrom')) ?? { kind: 'resolve_json_api_request_absent' },
-        configure: sourceStatements(methods.get('configure')) ?? { kind: 'json_api_configure_absent' },
-        sparseFieldsets: input.usesRequestQueryString.value ? { kind: 'enabled' } : { kind: 'disabled' },
-        includes: input.usesRequestQueryString.value ? { kind: 'enabled' } : { kind: 'disabled' },
-        previouslyLoadedRelationships: input.includesPreviouslyLoadedRelationships.value ? { kind: 'enabled' } : { kind: 'disabled' },
-        requestQueryIncludesRespect: input.usesRequestQueryString.value ? { kind: 'enabled' } : { kind: 'disabled' },
-        maxRelationshipDepth: methods.get('maxRelationshipDepth')?.body.find(statement => statement.kind === 'return_with_value')?.kind === 'return_with_value' ? mapAstValueToExpression(methods.get('maxRelationshipDepth')!.body.find(statement => statement.kind === 'return_with_value')!.expression, input.source.file.value.value).upstream : { kind: 'default_relationship_depth' },
+        attributes: seq(keyedNames(input.jsonAttributes)),
+        relationships: seq(relationships),
+        toAttributes: methodOr('toAttributes', { kind: 'to_attributes_absent' }),
+        toRelationships: methodOr('toRelationships', { kind: 'to_relationships_absent' }),
+        type: returnExpression(methodOption('resolveResourceType'), input, 'default_resource_type'),
+        id: returnExpression(methodOption('resolveResourceIdentifier'), input, 'default_resource_id'),
+        links: methodOr('toLinks', { kind: 'to_links_absent' }),
+        meta: methodOr('toMeta', { kind: 'to_meta_absent' }),
+        resolveResourceObject: methodOr('resolveResourceObject', { kind: 'resolve_resource_object_absent' }),
+        resolveResourceIdentifier: methodOr('resolveResourceIdentifier', { kind: 'resolve_resource_identifier_absent' }),
+        resolveResourceType: methodOr('resolveResourceType', { kind: 'resolve_resource_type_absent' }),
+        resolveResourceAttributes: methodOr('resolveResourceAttributes', { kind: 'resolve_resource_attributes_absent' }),
+        resolveResourceRelationshipIdentifiers: methodOr('resolveResourceRelationshipIdentifiers', { kind: 'resolve_resource_relationship_identifiers_absent' }),
+        compileResourceRelationships: methodOr('compileResourceRelationships', { kind: 'compile_resource_relationships_absent' }),
+        resolveIncludedResourceObjects: methodOr('resolveIncludedResourceObjects', { kind: 'resolve_included_resource_objects_absent' }),
+        resolveResourceLinks: methodOr('resolveResourceLinks', { kind: 'resolve_resource_links_absent' }),
+        resolveResourceMetaInformation: methodOr('resolveResourceMetaInformation', { kind: 'resolve_resource_meta_information_absent' }),
+        respectFieldsAndIncludesMethod: methodOr('respectFieldsAndIncludes', { kind: 'respect_fields_and_includes_method_absent' }),
+        ignoreFieldsAndIncludesInQueryString: methodOr('ignoreFieldsAndIncludesInQueryString', { kind: 'ignore_fields_and_includes_absent' }),
+        includePreviouslyLoadedRelationships: relationGate(input.includesPreviouslyLoadedRelationships.value, () => methodOr('includePreviouslyLoadedRelationships', { kind: 'include_previously_loaded_relationships_absent' }), () => ({ kind: 'include_previously_loaded_relationships_absent' as const })),
+        resolveJsonApiRequestFrom: methodOr('resolveJsonApiRequestFrom', { kind: 'resolve_json_api_request_absent' }),
+        configure: methodOr('configure', { kind: 'json_api_configure_absent' }),
+        sparseFieldsets: relationGate(hasPropertyTrue(input.properties, 'sparseFieldsets'), () => ({ kind: 'enabled' as const }), () => ({ kind: 'disabled' as const })),
+        includes: relationGate(hasPropertyTrue(input.properties, 'includes'), () => ({ kind: 'enabled' as const }), () => ({ kind: 'disabled' as const })),
+        previouslyLoadedRelationships: relationGate(input.includesPreviouslyLoadedRelationships.value, () => ({ kind: 'enabled' as const }), () => ({ kind: 'disabled' as const })),
+        requestQueryIncludesRespect: relationGate(input.usesRequestQueryString.value, () => ({ kind: 'enabled' as const }), () => ({ kind: 'disabled' as const })),
+        maxRelationshipDepth: propertyExpressionOr(input.properties, 'maxRelationshipDepth', input.source.file.value.value, { kind: 'default_relationship_depth' }),
         jsonApiInformation: propertyExpressionOr(input.properties, 'jsonApiInformation', input.source.file.value.value, { kind: 'json_api_configuration_absent' }),
-        jsonApiVersion: propertyArrayEntryExpressionOr(input.properties, 'jsonApiInformation', 'version', input.source.file.value.value, { kind: 'json_api_version_absent' }),
-        jsonApiExtensions: propertyArrayEntryExpressionOr(input.properties, 'jsonApiInformation', 'ext', input.source.file.value.value, { kind: 'json_api_extensions_absent' }),
-        jsonApiProfiles: propertyArrayEntryExpressionOr(input.properties, 'jsonApiInformation', 'profile', input.source.file.value.value, { kind: 'json_api_profiles_absent' }),
-        jsonApiMetaConfiguration: propertyArrayEntryExpressionOr(input.properties, 'jsonApiInformation', 'meta', input.source.file.value.value, { kind: 'json_api_meta_configuration_absent' }),
-        resourceLinksProperty: propertyExpressionOr(input.properties, 'jsonApiLinks', input.source.file.value.value, { kind: 'resource_links_property_absent' }),
-        resourceMetaProperty: propertyExpressionOr(input.properties, 'jsonApiMeta', input.source.file.value.value, { kind: 'resource_meta_property_absent' }),
+        jsonApiVersion: propertyExpressionOr(input.properties, 'jsonApiVersion', input.source.file.value.value, { kind: 'json_api_version_absent' }),
+        jsonApiExtensions: propertyExpressionOr(input.properties, 'jsonApiExtensions', input.source.file.value.value, { kind: 'json_api_extensions_absent' }),
+        jsonApiProfiles: propertyExpressionOr(input.properties, 'jsonApiProfiles', input.source.file.value.value, { kind: 'json_api_profiles_absent' }),
+        jsonApiMetaConfiguration: propertyExpressionOr(input.properties, 'jsonApiMeta', input.source.file.value.value, { kind: 'json_api_meta_configuration_absent' }),
+        resourceLinksProperty: propertyExpressionOr(input.properties, 'links', input.source.file.value.value, { kind: 'resource_links_property_absent' }),
+        resourceMetaProperty: propertyExpressionOr(input.properties, 'meta', input.source.file.value.value, { kind: 'resource_meta_property_absent' }),
     };
 }
 
 function resourceDynamicEntry(entry: PhpArrayEntry, file: string): readonly ResourceDynamicEntry[] {
-    const value = mapAstValueToExpression(entry.value, file).upstream;
+    const value = resolveAstValueToExpression(entry.value, file).upstream;
     const source = sourceSpanFromRange(createSourceFile(file), entry.source);
-    switch (entry.kind) {
-        case 'positional': return [{ kind: 'positional', value, source }];
-        case 'unpacked': return [{ kind: 'unpacked', value, source }];
-        case 'keyed':
-            switch (entry.key.kind) {
-                case 'string': return [];
-                case 'integer': return [{ kind: 'integer_key', key: { kind: 'number_value', value: entry.key.value }, value, source }];
-                case 'expression': return [{ kind: 'dynamic_key', key: mapAstValueToExpression(entry.key.value, file).upstream, value, source }];
-            }
-    }
+    return relationGate(relationEqual(entry.kind, 'positional'), () => [{ kind: 'positional' as const, value, source }], () => relationGate(
+        relationEqual(entry.kind, 'unpacked'),
+        () => [{ kind: 'unpacked' as const, value, source }],
+        () => relationGate(
+            relationEqual(entry.kind, 'keyed'),
+            () => relationGate(relationEqual(entry.key.kind, 'string'), () => [], () => relationGate(
+                relationEqual(entry.key.kind, 'integer'),
+                () => [{ kind: 'integer_key' as const, key: { kind: 'number_value', value: entry.key.value }, value, source }],
+                () => [{ kind: 'dynamic_key' as const, key: resolveAstValueToExpression(entry.key.value, file).upstream, value, source }],
+            )),
+            () => [],
+        ),
+    ));
 }
 
-function seq<T>(items: readonly T[]): Sequence<T> {
-    return items.reduceRight<Sequence<T>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
+function seq<T>(items: readonly T[], index = 0): Sequence<T> {
+    return relationGate(index >= items.length, () => ({ kind: 'empty' as const }), () => ({ kind: 'cons' as const, head: items[index], tail: seq(items, index + 1) }));
 }

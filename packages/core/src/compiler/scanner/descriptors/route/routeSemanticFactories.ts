@@ -1,7 +1,7 @@
 /**
  * routeSemanticFactories.ts
  *
- * Semantic factories for creating ScannedRouteDescriptor instances from
+ * Semantic factories for creating RouteSemanticFlowFactory instances from
  * ControllerAction ASTs, Controller References, Closures, and Synthetic test fixtures.
  * Active Consumer: Orchestrates route semantic factory methods.
  *

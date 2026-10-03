@@ -1,0 +1,26 @@
+{
+  "phase": 561,
+  "kind": "build-error-closure",
+  "sourceLog": "Teks yang ditempel (1)(7).txt",
+  "tracedDistinctErrors": 9,
+  "repairs": {
+    "semanticKernelDuplicateExports": "canonicalized",
+    "relationalOptionFoldBarrelExport": "restored",
+    "upstreamCollectionDuplicateVisitors": "collapsed-to-one-each",
+    "compilationResultImport": "./CompilationResult",
+    "salsaQueryTypesImport": "./salsaTypes",
+    "resolutionContextModels": "readonly",
+    "vueMissingEntry": "removed-nonexistent-bundle-entry-and-package-export"
+  },
+  "sourceLevelChecks": {
+    "duplicateMatchSourceDiscovery": false,
+    "duplicateMatchDiscovered": false,
+    "staleResultImport": false,
+    "staleQueryTypesImport": false,
+    "relationOptionFoldKernelExport": true,
+    "readonlyResolutionContext": true,
+    "vueBundleEntry": false
+  },
+  "fullBuildVerified": false,
+  "fullBuildVerificationBlocker": "materialized node_modules lacks runnable tsup/tsc; dependency installation exceeded transport timeout"
+}

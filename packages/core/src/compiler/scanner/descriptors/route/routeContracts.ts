@@ -14,7 +14,7 @@ import {
     RouteProvenanceContract
 } from "../../../../types/route";
 
-export interface ScannedRouteCompleteContracts {
+export interface RouteSemanticFlowCompleteContracts {
     readonly identity: RouteIdentityContract;
     readonly binding: RouteBindingContract;
     readonly capability: RouteCapabilityContract;
@@ -22,7 +22,7 @@ export interface ScannedRouteCompleteContracts {
     readonly contract: EndpointContract;
 }
 
-export type ScannedRouteConstructorInput = ScannedRouteCompleteContracts;
+export type RouteSemanticFlowConstructorInput = RouteSemanticFlowCompleteContracts;
 
 /**
  * Canonical constructor input for a scanned route.
@@ -30,4 +30,4 @@ export type ScannedRouteConstructorInput = ScannedRouteCompleteContracts;
  * Route scanning must consume the high-level semantic route contracts rather
  * than maintaining a second flat vocabulary of route fields.
  */
-export type ScannedRouteParams = ScannedRouteCompleteContracts;
+export type RouteSemanticFlowParams = RouteSemanticFlowCompleteContracts;

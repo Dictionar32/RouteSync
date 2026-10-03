@@ -1,122 +1,196 @@
 /**
  * arrayParser.ts
  *
- * Parses PHP array declarations into structured key-value entries leveraging exact source slicing.
+ * Parses PHP array declarations through recursive relation closure.
  *
  * @module core/compiler/scanner/lexer/arrayParser
  */
 
 import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey, createSourceOffset } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
+import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+
+const some = <T>(value: T): RelationOption<T> => ({ kind: 'some', value });
+const none = <T>(): RelationOption<T> => ({ kind: 'none' });
 
 /**
- * Parses a PHP array declaration into structured key-value entries leveraging exact source slicing.
+ * Parses a PHP array declaration into structured key-value entries.
+ * Collection traversal is represented as recursive relation closure.
  */
 export function parsePhpArray(
     source: string,
     tokens: readonly TokenDescriptor[],
     startIndex: number = 0
 ): ParsedPhpArrayResult {
-    const entries: PhpArrayEntry[] = [];
-    let endIndex = startIndex;
-
-    // Skip to array start: '[' or 'array('
-    while (endIndex < tokens.length) {
-        if (tokens[endIndex].value === '[') {
-            const prev = endIndex > startIndex ? tokens[endIndex - 1] : null;
-            const isSubscript = prev && (
-                prev.type === 'VARIABLE' ||
-                (prev.type === 'IDENTIFIER' && prev.value !== 'return' && prev.value !== 'yield') ||
-                prev.value === ')' ||
-                prev.value === ']' ||
-                prev.value === '}'
-            );
-            if (isSubscript) {
-                let depth = 1;
-                endIndex++;
-                while (endIndex < tokens.length && depth > 0) {
-                    if (tokens[endIndex].value === '[') depth++;
-                    else if (tokens[endIndex].value === ']') depth--;
-                    endIndex++;
-                }
-                continue;
-            }
-            endIndex++; // skip '['
-            break;
-        }
-        if (tokens[endIndex].value === 'array' && tokens[endIndex + 1]?.value === '(') {
-            endIndex += 2; // skip 'array' and '('
-            break;
-        }
-        endIndex++;
-    }
-    if (endIndex >= tokens.length) return { entries: [], endIndex };
-
-
-    while (endIndex < tokens.length) {
-        const token = tokens[endIndex];
-        if (token.value === ']' || token.value === ')') {
-            endIndex++;
-            break;
-        }
-
-        if (token.value === ',') {
-            endIndex++;
-            continue;
-        }
-
-        let key: PhpArrayKey | undefined;
-        if (endIndex + 1 < tokens.length && tokens[endIndex + 1].value === '=>') {
-            const keyToken = tokens[endIndex];
-            key = keyToken.type === 'STRING'
-                ? { kind: 'string', value: keyToken.value }
-                : keyToken.type === 'NUMBER'
-                    ? { kind: 'integer', value: Number(keyToken.value) }
-                    : { kind: 'expression', value: classifyAstTokens([keyToken]) };
-            endIndex += 2;
-        } else {
-        }
-
-        // Value parsing
-        if (endIndex < tokens.length) {
-            const valToken = tokens[endIndex];
-
-            // Nested Array
-            if (valToken.value === '[' || (valToken.value === 'array' && valToken.type === 'IDENTIFIER')) {
-                const nested = parsePhpArray(source, tokens, endIndex);
-                const source = { startOffset: createSourceOffset(valToken.startOffset), endOffset: createSourceOffset(tokens[nested.endIndex - 1]?.endOffset ?? valToken.endOffset) };
-                entries.push(key ? { kind: 'keyed', key, value: { kind: 'nested_array', entries: nested.entries }, source } : { kind: 'positional', value: { kind: 'nested_array', entries: nested.entries }, source });
-                endIndex = nested.endIndex;
-                continue;
-            }
-
-            // Scalar value / Chained Expression extraction via source.slice()
-            const valTokenIndex = endIndex;
-            let depth = 0;
-
-            while (endIndex < tokens.length) {
-                const nextToken = tokens[endIndex];
-
-                // Delimiter reached at top-level depth
-                if (depth === 0 && (nextToken.value === ',' || nextToken.value === ']' || nextToken.value === ')')) {
-                    break;
-                }
-
-                // Track nested depth
-                if (nextToken.value === '(' || nextToken.value === '[') {
-                    depth++;
-                } else if (nextToken.value === ')' || nextToken.value === ']') {
-                    depth--;
-                }
-
-                endIndex++;
-            }
-
-            const astValue = classifyAstTokens(tokens.slice(valTokenIndex, endIndex));
-            const source = { startOffset: createSourceOffset(valToken.startOffset), endOffset: createSourceOffset(tokens[Math.max(valTokenIndex, endIndex - 1)]?.endOffset ?? valToken.endOffset) };
-            entries.push(key ? { kind: 'keyed', key, value: astValue, source } : { kind: 'positional', value: astValue, source });
-        }
-    }
-
-    return { entries, endIndex };
+    const opening = locateArrayOpening(tokens, startIndex);
+    return relationOptionFold(opening, () => ({ entries: [], endIndex: startIndex }), index => parseArrayBody(source, tokens, index));
 }
+
+const locateArrayOpening = (
+    tokens: readonly TokenDescriptor[],
+    index: number,
+): RelationOption<number> =>
+    relationResolve(index < tokens.length,
+        () => relationResolve(isArrayLiteralOpening(tokens, index),
+            () => some(openingEnd(tokens, index)),
+            () => relationResolve(isSubscriptOpening(tokens, index),
+                () => locateAfterSubscript(tokens, index + 1, 1),
+                () => locateArrayOpening(tokens, index + 1))),
+        () => none());
+
+const isArrayLiteralOpening = (tokens: readonly TokenDescriptor[], index: number): boolean =>
+    relationResolve(relationEqual(tokens[index]?.value, '['),
+        () => !isSubscriptOpening(tokens, index),
+        () => relationAll([
+            relationEqual(tokens[index]?.value, 'array'),
+            relationEqual(tokens[index + 1]?.value, '('),
+        ]));
+
+const openingEnd = (tokens: readonly TokenDescriptor[], index: number): number =>
+    relationResolve(relationEqual(tokens[index]?.value, '['), () => index + 1, () => index + 2);
+
+const isSubscriptOpening = (tokens: readonly TokenDescriptor[], index: number): boolean => {
+    const previous = relationResolve(index > 0, () => tokens[index - 1], () => tokens[index]);
+    const variable = relationEqual(previous?.type, 'VARIABLE');
+    const identifier = relationResolve(relationEqual(previous?.type, 'IDENTIFIER'),
+        () => !relationResolve(relationEqual(previous?.value, 'return'), () => true, () => relationEqual(previous?.value, 'yield')),
+        () => false);
+    const postfix = relationResolve(relationEqual(previous?.value, ')'), () => true, () =>
+        relationResolve(relationEqual(previous?.value, ']'), () => true, () => relationEqual(previous?.value, '}')));
+    return relationResolve(relationEqual(tokens[index]?.value, '['),
+        () => relationResolve(variable, () => true, () => relationResolve(identifier, () => true, () => postfix)),
+        () => false);
+};
+
+const locateAfterSubscript = (
+    tokens: readonly TokenDescriptor[],
+    index: number,
+    depth: number,
+): RelationOption<number> =>
+    relationResolve(index < tokens.length,
+        () => {
+            const token = tokens[index];
+            const nextDepth = relationResolve(relationEqual(token.value, '['),
+                () => depth + 1,
+                () => relationResolve(relationEqual(token.value, ']'), () => depth - 1, () => depth));
+            return relationResolve(nextDepth <= 0,
+                () => locateArrayOpening(tokens, index + 1),
+                () => locateAfterSubscript(tokens, index + 1, nextDepth));
+        },
+        () => none());
+
+const parseArrayBody = (
+    source: string,
+    tokens: readonly TokenDescriptor[],
+    index: number,
+    entries: readonly PhpArrayEntry[] = [],
+): ParsedPhpArrayResult =>
+    relationResolve(index < tokens.length,
+        () => {
+            const token = tokens[index];
+            return relationResolve(relationResolve(relationEqual(token.value, ']'), () => true, () => relationEqual(token.value, ')')),
+                () => ({ entries: Object.freeze(entries), endIndex: index + 1 }),
+                () => relationResolve(relationEqual(token.value, ','),
+                    () => parseArrayBody(source, tokens, index + 1, entries),
+                    () => parseArrayEntry(source, tokens, index, entries)));
+        },
+        () => ({ entries: Object.freeze(entries), endIndex: index }));
+
+const parseArrayEntry = (
+    source: string,
+    tokens: readonly TokenDescriptor[],
+    index: number,
+    entries: readonly PhpArrayEntry[],
+): ParsedPhpArrayResult => {
+    const keyCandidate = relationResolve(relationEqual(tokens[index + 1]?.value, '=>'),
+        () => some(tokens[index]),
+        () => none<TokenDescriptor>());
+    const key = relationOptionFold(keyCandidate, () => none<PhpArrayKey>(), token => some(parseArrayKey(token)));
+    const valueIndex = relationResolve(relationEqual(tokens[index + 1]?.value, '=>'), () => index + 2, () => index);
+    return parseArrayValue(source, tokens, valueIndex, key, entries);
+};
+
+const parseArrayKey = (token: TokenDescriptor): PhpArrayKey =>
+    relationResolve(relationEqual(token.type, 'STRING'),
+        () => ({ kind: 'string', value: token.value }),
+        () => relationResolve(relationEqual(token.type, 'NUMBER'),
+            () => ({ kind: 'integer', value: Number(token.value) }),
+            () => ({ kind: 'expression', value: classifyAstTokens([token]) })));
+
+const parseArrayValue = (
+    source: string,
+    tokens: readonly TokenDescriptor[],
+    index: number,
+    key: RelationOption<PhpArrayKey>,
+    entries: readonly PhpArrayEntry[],
+): ParsedPhpArrayResult => {
+    const valueToken = tokens[index];
+    return relationResolve(index < tokens.length,
+        () => relationResolve(isNestedArrayStart(tokens, index),
+            () => {
+                const nested = parsePhpArray(source, tokens, index);
+                const endToken = relationOptionFold(relationFirst(relationSlice(tokens, Math.max(0, nested.endIndex - 1), nested.endIndex), () => true), () => valueToken, token => token);
+                const sourceRange = {
+                    startOffset: createSourceOffset(valueToken.startOffset),
+                    endOffset: createSourceOffset(endToken.endOffset),
+                };
+                const value = { kind: 'nested_array' as const, entries: nested.entries };
+                const entry = relationOptionFold(key,
+                    () => ({ kind: 'positional' as const, value, source: sourceRange }),
+                    current => ({ kind: 'keyed' as const, key: current, value, source: sourceRange }));
+                return parseArrayBody(source, tokens, nested.endIndex, [...entries, entry]);
+            },
+            () => parseScalarValue(source, tokens, index, key, entries)),
+        () => ({ entries: Object.freeze(entries), endIndex: index }));
+};
+
+const isNestedArrayStart = (tokens: readonly TokenDescriptor[], index: number): boolean =>
+    relationResolve(relationEqual(tokens[index]?.value, '['),
+        () => true,
+        () => relationAll([
+            relationEqual(tokens[index]?.value, 'array'),
+            relationEqual(tokens[index]?.type, 'IDENTIFIER'),
+        ]));
+
+const parseScalarValue = (
+    source: string,
+    tokens: readonly TokenDescriptor[],
+    index: number,
+    key: RelationOption<PhpArrayKey>,
+    entries: readonly PhpArrayEntry[],
+): ParsedPhpArrayResult => {
+    const endIndex = locateValueEnd(tokens, index, 0);
+    const astValue = classifyAstTokens(relationSlice(tokens, index, endIndex));
+    const firstToken = tokens[index];
+    const lastToken = relationOptionFold(relationFirst(relationSlice(tokens, Math.max(index, endIndex - 1), endIndex), () => true), () => firstToken, token => token);
+    const sourceRange = {
+        startOffset: createSourceOffset(firstToken.startOffset),
+        endOffset: createSourceOffset(lastToken.endOffset),
+    };
+    const entry = relationOptionFold(key,
+        () => ({ kind: 'positional' as const, value: astValue, source: sourceRange }),
+        current => ({ kind: 'keyed' as const, key: current, value: astValue, source: sourceRange }));
+    return parseArrayBody(source, tokens, endIndex, [...entries, entry]);
+};
+
+const locateValueEnd = (
+    tokens: readonly TokenDescriptor[],
+    index: number,
+    depth: number,
+): number =>
+    relationResolve(index < tokens.length,
+        () => {
+            const token = tokens[index];
+            const delimiter = relationAll([
+                relationEqual(depth, 0),
+                relationResolve(relationEqual(token.value, ','), () => true, () => relationResolve(relationEqual(token.value, ']'), () => true, () => relationEqual(token.value, ')'))),
+            ]);
+            const nextDepth = relationResolve(relationResolve(relationEqual(token.value, '('), () => true, () => relationEqual(token.value, '[')),
+                () => depth + 1,
+                () => relationResolve(relationResolve(relationEqual(token.value, ')'), () => true, () => relationEqual(token.value, ']')), () => depth - 1, () => depth));
+            return relationResolve(delimiter,
+                () => index,
+                () => locateValueEnd(tokens, index + 1, nextDepth));
+        },
+        () => index);

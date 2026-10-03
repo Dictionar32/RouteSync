@@ -13,7 +13,7 @@ export type PhpLiteralValue =
     | { readonly kind: 'literal'; readonly literalType: 'string'; readonly value: string }
     | { readonly kind: 'literal'; readonly literalType: 'number'; readonly value: number }
     | { readonly kind: 'literal'; readonly literalType: 'boolean'; readonly value: boolean }
-    | { readonly kind: 'literal'; readonly literalType: 'null'; readonly value: null };
+    | { readonly kind: 'literal'; readonly literalType: 'null' };
 export type PhpPropertyPath =
     | { readonly kind: 'single'; readonly root: AstIdentifier; readonly steps: readonly []; }
     | { readonly kind: 'chain'; readonly root: AstIdentifier; readonly steps: readonly AstIdentifier[] };

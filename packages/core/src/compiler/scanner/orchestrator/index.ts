@@ -5,6 +5,6 @@
  * @module core/compiler/scanner/orchestrator
  */
 
-export { scanRouteSyncManifest } from './upstreamManifestScanner';
+export { scanRouteSyncManifest, scanRouteSyncManifestFlow } from './upstreamManifestScanner';
 // Legacy RouteManifest compatibility is deliberately not exported from the canonical orchestrator.
 

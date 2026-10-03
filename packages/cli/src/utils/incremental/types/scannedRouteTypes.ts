@@ -1,7 +1,7 @@
 /**
  * scannedRouteTypes.ts
  *
- * Level 7 Complete Contract for ScannedRoute.
+ * Level 7 Complete Contract for RouteSemanticFlow.
  * Eliminates sentinel nulls, porous undefined, and naked records.
  *
  * @module cli/utils/incremental/types
@@ -9,26 +9,26 @@
 
 import type { SourceRef } from '@routesync/core';
 import type {
-  ScannedRouteMethod,
-  ScannedRoutePath,
-  ScannedRouteName,
+  RouteSemanticFlowMethod,
+  RouteSemanticFlowPath,
+  RouteSemanticFlowName,
   ScannedStableHash
 } from './nominalAtoms';
 import type { RouteResponsePayloadContract } from './responsePayloadTypes';
 
-export interface ScannedRouteContract {
-  readonly method: ScannedRouteMethod;
-  readonly path: ScannedRoutePath;
+export interface RouteSemanticFlowContract {
+  readonly method: RouteSemanticFlowMethod;
+  readonly path: RouteSemanticFlowPath;
   readonly auth: boolean;
   readonly schemaEntries: readonly (readonly [string, unknown])[];
   readonly responsePayload: RouteResponsePayloadContract;
   readonly assignmentEntries: readonly (readonly [string, string])[];
   readonly stableHash: ScannedStableHash;
-  readonly name: ScannedRouteName;
+  readonly name: RouteSemanticFlowName;
   readonly source: SourceRef;
 }
 
-export interface ScannedRouteOptions {
+export interface RouteSemanticFlowOptions {
   readonly method: string;
   readonly path: string;
   readonly auth?: boolean;
@@ -42,7 +42,7 @@ export interface ScannedRouteOptions {
   readonly source?: SourceRef;
 }
 
-export type ScannedRouteLegacy = {
+export type RouteSemanticFlowLegacy = {
   method: string;
   path: string;
   auth: boolean;

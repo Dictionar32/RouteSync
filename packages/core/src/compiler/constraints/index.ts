@@ -7,4 +7,4 @@ export type { TypeVariable } from './TypeVariable';
 export type { Constraint, ConstraintViolation } from './Constraint';
 export { TypeEnvironment, type VariableState } from './TypeEnvironment';
 export { UnionFind } from './UnionFind';
-export { ConstraintSolver } from './ConstraintSolver';
+export { solveConstraints, type ConstraintSolveResult } from './ConstraintSolver';

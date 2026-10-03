@@ -1,7 +1,7 @@
 /**
- * capabilityResolution.ts
- *
- * Resolves route capability values at the origin boundary.
+ * Declarative route capability resolution.
+ * Optional authoring inputs are boundary evidence; capability selection is a
+ * relation catalog, not imperative branching.
  */
 
 import type {
@@ -11,50 +11,76 @@ import type {
     RouteSchemaPayload,
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
-import { RequestContentType, RouteHookKind, ScannedRouteCacheInvalidationDescriptor, ScannedRouteExecutionSignature } from "../../../../types/route";
-import type { RequestContentType as RequestContentTypeType, RouteHookKind } from "../../../../types/route";
-import { ScannedHttpErrorResponseDescriptor } from "../../descriptors/routeDescriptors";
+import {
+    RequestContentType,
+    RouteHookKind,
+    RouteSemanticFlowCacheInvalidationDescriptor,
+    RouteSemanticFlowExecutionSignature
+} from "../../../../types/route";
+import type { RequestContentType as RequestContentTypeType, RouteHookKind as RouteHookKindType } from "../../../../types/route";
+import { httpErrorResponseValidation, httpErrorResponseUnauthorized } from "../../../../types/domain/httpErrors";
 import { RouteCrudClassifier } from "../RouteCrudClassifier";
 import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
-import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics, ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
+import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
+import { relationAll, relationAny, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
+import { relationProject, relationTextSlice } from "../../../../semantic/kernel/relationalSequence";
+import { present } from "../../../../types/upstream/presence";
 
 export interface ResolvedRouteCapability {
-    readonly hookKind: RouteHookKind;
+    readonly hookKind: RouteHookKindType;
     readonly crudRole: CrudRole;
     readonly requestContentType: RequestContentTypeType;
     readonly executionSignature: RouteExecutionSignature;
-    readonly invalidation: ReturnType<typeof ScannedRouteCacheInvalidationDescriptor.none>;
+    readonly invalidation: ReturnType<typeof RouteSemanticFlowCacheInvalidationDescriptor.none>;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
+
+const optional = <T>(value: T | void, fallback: T): T =>
+    relationGate(Boolean(value), () => value as T, () => fallback);
 
 export function resolveRouteCapability(
     params: RouteBoundaryOptions,
     basics: IntermediateRouteBoundaryBasics,
     parameterCount: number
 ): ResolvedRouteCapability {
-    const hookKind = params.hookKind
-        ? params.hookKind
-        : (basics.resolvedIsMutating ? RouteHookKind.Mutation : RouteHookKind.Query);
+    const hookKind = optional(
+        params.hookKind,
+        relationGate(basics.resolvedIsMutating, () => RouteHookKind.Mutation, () => RouteHookKind.Query),
+    );
     const schema = params.schema;
     const hasValidationRules = hasRules(schema);
-    const hasPayload = basics.resolvedIsMutating || hasValidationRules;
-    const payloadTypeName = resolvePayloadTypeName(params, basics, hasValidationRules);
-    const executionSignature = params.executionSignature
-        ? params.executionSignature
-        : ScannedRouteExecutionSignature.create(hookKind, parameterCount > 0, hasPayload, payloadTypeName);
+    const hasPayload = relationAny([basics.resolvedIsMutating, hasValidationRules]);
+    const payloadTypeName = resolvePayloadTypeName(params, basics);
+    const executionSignature = optional(
+        params.executionSignature,
+        RouteSemanticFlowExecutionSignature.create(
+            hookKind,
+            parameterCount > 0,
+            hasPayload,
+            present(payloadTypeName),
+        ),
+    );
     const method = params.method.toUpperCase() as HttpMethod;
-    const requestContentType = params.requestContentType
-        ? params.requestContentType
-        : detectContentType(method, schema);
-    const crudRole = params.crudRole
-        ? params.crudRole
-        : RouteCrudClassifier.classify(method, params.path);
-    const errorResponses = params.errorResponses
-        ? params.errorResponses
-        : defaultErrors(ROUTE_ACTION_KIND_REGISTRY[basics.resolvedActionKind].isMutating, hasValidationRules, params.auth === true);
-    const invalidation = params.invalidation
-        ? params.invalidation
-        : ScannedRouteCacheInvalidationDescriptor.none();
+    const requestContentType = optional(
+        params.requestContentType,
+        detectContentType(method, schema),
+    );
+    const crudRole = optional(
+        params.crudRole,
+        RouteCrudClassifier.classify(method, params.path),
+    );
+    const errorResponses = optional(
+        params.errorResponses,
+        defaultErrors(
+            ROUTE_ACTION_KIND_REGISTRY[basics.resolvedActionKind].isMutating,
+            hasValidationRules,
+            Boolean(params.auth),
+        ),
+    );
+    const invalidation = optional(
+        params.invalidation,
+        RouteSemanticFlowCacheInvalidationDescriptor.none(),
+    );
 
     return Object.freeze({
         hookKind,
@@ -66,23 +92,22 @@ export function resolveRouteCapability(
     });
 }
 
-function hasRules(schema: RouteSchemaPayload | undefined): boolean {
-    return schema !== undefined && schema.fields.length > 0;
+function hasRules(schema: RouteSchemaPayload | void): boolean {
+    return relationGate(Boolean(schema), () => Boolean((schema as RouteSchemaPayload).fields.length), () => false);
 }
 
 function resolvePayloadTypeName(
     params: RouteBoundaryOptions,
-    basics: IntermediateRouteBoundaryBasics,
-    hasValidationRules: boolean
+    basics: IntermediateRouteBoundaryBasics
 ): string {
-    if (params.request.kind === 'form_request') {
-        return params.request.source.identity.requestClass.value;
-    }
-    if (hasValidationRules) {
-        const action = basics.resolvedActionKind;
-        return `${basics.resolvedDomain.value.value}${action.charAt(0).toUpperCase()}${action.slice(1)}Payload`;
-    }
-    return "any";
+    return relationGate(
+        relationEqual(params.request.kind, 'form_request'),
+        () => params.request.source.identity.requestClass.value,
+        () => {
+            const action = basics.resolvedActionKind;
+            return `${basics.resolvedDomain.value.value}${action.charAt(0).toUpperCase()}${relationTextSlice(action, 1)}Payload`;
+        },
+    );
 }
 
 function defaultErrors(
@@ -90,29 +115,36 @@ function defaultErrors(
     hasValidationRules: boolean,
     auth: boolean
 ): readonly HttpErrorResponseDescriptor[] {
-    const errors: HttpErrorResponseDescriptor[] = [];
-    if (isMutating || hasValidationRules) {
-        errors.push(ScannedHttpErrorResponseDescriptor.unprocessableEntity());
-    }
-    if (auth) {
-        errors.push(ScannedHttpErrorResponseDescriptor.unauthorized());
-    }
-    return errors;
+    const conditions: readonly boolean[] = [
+        relationAny([isMutating, hasValidationRules]),
+        auth,
+    ];
+    return Object.freeze([
+        ...relationGate(conditions[0], () => [httpErrorResponseValidation()], () => []),
+        ...relationGate(conditions[1], () => [httpErrorResponseUnauthorized()], () => []),
+    ]);
 }
 
 function detectContentType(
     method: HttpMethod,
-    schema: RouteSchemaPayload | undefined
+    schema: RouteSchemaPayload | void
 ): RequestContentTypeType {
-    if (method === "GET" || method === "HEAD") {
-        return RequestContentType.None;
-    }
-    if (schema !== undefined && schema.fields.some(field => field.validation.some(containsFileRule))) {
-        return RequestContentType.Multipart;
-    }
-    return RequestContentType.Json;
+    return relationGate(
+        relationAny([relationEqual(method, "GET"), relationEqual(method, "HEAD")]),
+        () => RequestContentType.None,
+        () => relationGate(
+            relationAll([
+                Boolean(schema),
+                relationAny(relationProject((schema as RouteSchemaPayload).fields, field =>
+                    relationAny(relationProject(field.validation, containsFileRule)),
+                )),
+            ]),
+            () => RequestContentType.Multipart,
+            () => RequestContentType.Json,
+        ),
+    );
 }
 
 function containsFileRule(rule: { readonly kind: string }): boolean {
-    return rule.kind === "file" || rule.kind === "image";
+    return relationAny([relationEqual(rule.kind, "file"), relationEqual(rule.kind, "image")]);
 }

@@ -187,8 +187,7 @@ export interface BoundBinaryNode {
 export interface BoundTernaryNode {
   readonly kind: 'bound_ternary';
   readonly conditionExpression: ConditionExpression;
-  readonly truthy: BoundSemanticNode;
-  readonly falsy: BoundSemanticNode;
+  readonly branches: { readonly kind: 'then_else'; readonly whenTrue: BoundSemanticNode; readonly whenFalse: BoundSemanticNode };
   readonly resultingType: SemanticType;
 }
 
@@ -404,15 +403,13 @@ export const BoundSemanticFactory = Object.freeze({
 
   ternary(params: {
     readonly conditionExpression: ConditionExpression;
-    readonly truthy: BoundSemanticNode;
-    readonly falsy: BoundSemanticNode;
+    readonly branches: { readonly kind: 'then_else'; readonly whenTrue: BoundSemanticNode; readonly whenFalse: BoundSemanticNode };
     readonly resultingType: SemanticType;
   }): BoundTernaryNode {
     return Object.freeze({
       kind: 'bound_ternary',
       conditionExpression: params.conditionExpression,
-      truthy: params.truthy,
-      falsy: params.falsy,
+      branches: params.branches,
       resultingType: params.resultingType,
     });
   },

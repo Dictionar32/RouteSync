@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedModelDescriptor,
   ScannedRouteParameterDescriptor,
   ValidationTreeBuilder,
@@ -9,14 +9,14 @@ import {
   PrimitiveKind,
   RouteActionKind,
   RouteParameterType,
-  ParsedRoute,
+  RouteSemanticFlow,
   ParsedModel,
   ValidationRuleKind
 } from '@routesync/core';
 
 describe('Manifest Explicit Pipeline SSOT Suite', () => {
   it('1. Resolves RequestContentType: None for GET, Multipart for File uploads, Json for normal POST', () => {
-    const getRoute: ParsedRoute = ScannedRouteDescriptor.create({
+    const getRoute: RouteSemanticFlow = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users',
       resourceName: 'users',
@@ -26,7 +26,7 @@ describe('Manifest Explicit Pipeline SSOT Suite', () => {
     });
     expect(getRoute.requestContentType).toBe(RequestContentType.None);
 
-    const uploadRoute: ParsedRoute = ScannedRouteDescriptor.create({
+    const uploadRoute: RouteSemanticFlow = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/avatar',
       resourceName: 'avatar',
@@ -45,7 +45,7 @@ describe('Manifest Explicit Pipeline SSOT Suite', () => {
     });
     expect(uploadRoute.requestContentType).toBe(RequestContentType.Multipart);
 
-    const postJsonRoute: ParsedRoute = ScannedRouteDescriptor.create({
+    const postJsonRoute: RouteSemanticFlow = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/orders',
       resourceName: 'orders',
@@ -57,7 +57,7 @@ describe('Manifest Explicit Pipeline SSOT Suite', () => {
   });
 
   it('2. Segregates pathParameters and queryParameters with guaranteed propertyName', () => {
-    const route: ParsedRoute = ScannedRouteDescriptor.create({
+    const route: RouteSemanticFlow = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users/{user_id}/posts',
       resourceName: 'posts',
@@ -108,7 +108,7 @@ describe('Manifest Explicit Pipeline SSOT Suite', () => {
   });
 
   it('4. Provides First-Class HttpErrorResponseDescriptors (422 and 401)', () => {
-    const mutatingAuthRoute: ParsedRoute = ScannedRouteDescriptor.create({
+    const mutatingAuthRoute: RouteSemanticFlow = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/orders',
       resourceName: 'orders',

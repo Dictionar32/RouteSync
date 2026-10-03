@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ResourceResponseDescriptor,
   ResponseShape,
   BroadcastChannelKind,
@@ -14,8 +14,8 @@ import { QueryKeyGenerator } from '../../cli/src/generators/QueryKeyGenerator'
 import { LaravelChannelParser } from '../../cli/src/parsers/LaravelChannelParser'
 
 describe('Audited Explicit Model Data Flow SSOT', () => {
-  it('1. ScannedRouteDescriptor should guarantee groupName, crudRole, and runtimePath at Origin Boundary', () => {
-    const showRoute = ScannedRouteDescriptor.create({
+  it('1. RouteSemanticFlowFactory should guarantee groupName, crudRole, and runtimePath at Origin Boundary', () => {
+    const showRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users/{user_id}',
       resourceName: 'UserResource',
@@ -28,7 +28,7 @@ describe('Audited Explicit Model Data Flow SSOT', () => {
     expect(showRoute.crudRole).toBe('show')
     expect(showRoute.runtimePath).toBe('/api/users/:user_id')
 
-    const indexRoute = ScannedRouteDescriptor.create({
+    const indexRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users',
       resourceName: 'UserResource',
@@ -40,7 +40,7 @@ describe('Audited Explicit Model Data Flow SSOT', () => {
     expect(indexRoute.crudRole).toBe('index')
     expect(indexRoute.runtimePath).toBe('/api/users')
 
-    const createRoute = ScannedRouteDescriptor.create({
+    const createRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/users',
       resourceName: 'UserResource',
@@ -51,7 +51,7 @@ describe('Audited Explicit Model Data Flow SSOT', () => {
 
     expect(createRoute.crudRole).toBe('create')
 
-    const deleteRoute = ScannedRouteDescriptor.create({
+    const deleteRoute = RouteSemanticFlowFactory.create({
       method: 'DELETE',
       path: '/api/users/{id}',
       resourceName: 'UserResource',
@@ -63,8 +63,8 @@ describe('Audited Explicit Model Data Flow SSOT', () => {
     expect(deleteRoute.crudRole).toBe('delete')
   })
 
-  it('2. ScannedRouteDescriptor should extract Laravel policies from can: middleware', () => {
-    const protectedRoute = ScannedRouteDescriptor.create({
+  it('2. RouteSemanticFlowFactory should extract Laravel policies from can: middleware', () => {
+    const protectedRoute = RouteSemanticFlowFactory.create({
       method: 'PUT',
       path: '/api/orders/{id}',
       resourceName: 'OrderResource',

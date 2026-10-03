@@ -5,7 +5,7 @@ import type { SourceRef } from '../types/semantic';
 import type { SymbolTable } from './SymbolTable';
 import type { ResolutionScope } from './resolutionScope';
 
-import { CycleDetector } from './CycleDetector';
+import type { CycleDetector } from './CycleDetector';
 import type {
   ModelColumnContract,
   ModelColumn,
@@ -18,7 +18,7 @@ import type {
   ModelNodeInput
 } from './modelNodes';
 
-export { CycleDetector };
+export type { CycleDetector };
 export type {
   ModelColumnContract,
   ModelColumn,

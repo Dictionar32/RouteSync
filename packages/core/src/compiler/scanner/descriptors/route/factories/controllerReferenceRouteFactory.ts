@@ -11,9 +11,10 @@ import {
     type HttpMethod, type RouteParameter, type RouteQueryParameter, type ResponseDescriptor, VoidResponseDescriptor,
     type RouteCacheInvalidationDescriptor, type RouteSchemaPayload
 } from "../../../../../types/route";
+import { relationOptionalFold } from "../../../../../semantic/kernel/relationalSequence";
 import { buildRouteHandler } from "../../request/controllerActionTypes";
-import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
-import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
+import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { PropertyName } from "../../../../../types/upstream/names";
 import type { RouteRequestBinding } from "../../../../../types/domain/request";
@@ -40,13 +41,13 @@ export type ControllerReferenceRouteOptions = {
 };
 
 export function createRouteFromControllerReference(
-    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => RouteSemanticFlowFactory,
     options: ControllerReferenceRouteOptions
-): ScannedRouteDescriptor {
+): RouteSemanticFlowFactory {
     const {
         method, path, controllerName, actionName, domain, resourceName,
-        sourceFile, sourceLine, response = new VoidResponseDescriptor(), request,
-        schema = ScannedRouteSchemaPayload.empty(), auth = false,
+        sourceFile, sourceLine, response = VoidResponseDescriptor.create(), request,
+        schema = emptyRouteSchemaPayload(), auth = false,
         middleware = [], parameters = [], pathParameters, queryParameters = [], invalidation
     } = options;
 
@@ -65,7 +66,7 @@ export function createRouteFromControllerReference(
         response,
         sourceFile,
         sourceLine,
-        request: request === undefined ? { kind: 'no_request' } : request, runtimeReturn: { kind: 'none' }, semanticReturn: { kind: 'absent' }, schema, auth, middleware, parameters,
+        request: relationOptionalFold(request, () => ({ kind: 'no_request' as const }), value => value), runtimeReturn: { kind: 'none' }, semanticReturn: { kind: 'absent' }, schema, auth, middleware, parameters,
         pathParameters, queryParameters, invalidation
     });
 }

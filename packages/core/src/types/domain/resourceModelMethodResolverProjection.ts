@@ -5,6 +5,7 @@ import type { ResourceQueryProjection } from './resourceQueryOperation';
 import type { ResourceModelSurface } from './resourceModelSurface';
 import type { ModelSemanticColumn, ModelSemanticAccessor } from './models';
 import { meaningFor } from './resourceModelMethodResolverMeaning';
+import { relationEqual, relationLookup, relationOptionFold, relationResolve } from '../../semantic/kernel/relationalSequence';
 
 type ProjectionContext = {
   readonly state: ResourceQueryState;
@@ -31,18 +32,16 @@ export function resolveResourceQueryProjection(
   projection: Extract<ResourceQueryProjection, { readonly kind: 'property' }>,
   surface: ResourceModelSurface,
 ): ResourceMethodResult {
-  if (state.kind !== 'query_builder') return unsupported(state, method);
-  const member = surface.resolveProperty(projection.property);
-  if (member.kind !== 'found') return unsupported(state, method);
-  if (member.resolution.semantic.kind === 'relation') return unsupported(state, method);
-  const context: ProjectionContext = {
-    state,
-    method,
-    property: member.resolution.property,
-    semantic: member.resolution.semantic,
-    semanticType: member.resolution.semanticType,
-  };
-  return projectionHandlers[method.value.value as keyof typeof projectionHandlers](context);
+  return relationResolve(relationEqual(state.kind, 'query_builder'), () => unsupported(state, method), () => {
+    const member = surface.resolveProperty(projection.property);
+    return relationResolve(relationEqual(member.kind, 'found'), () => unsupported(state, method), () => {
+      const found = member as Extract<typeof member, { readonly kind: 'found' }>;
+      return relationResolve(relationEqual(found.resolution.semantic.kind, 'relation'), () => unsupported(state, method), () => {
+        const context: ProjectionContext = { state, method, property: found.resolution.property, semantic: found.resolution.semantic, semanticType: found.resolution.semanticType };
+        return relationOptionFold(relationLookup(Object.entries(projectionHandlers), method.value.value), () => unsupported(state, method), ([, handler]) => handler(context));
+      });
+    });
+  });
 }
 
 function origin(context: ProjectionContext) {
@@ -52,7 +51,7 @@ function origin(context: ProjectionContext) {
 function valueCollectionResult(context: ProjectionContext): ResourceMethodResult {
   const semantic = context.semantic;
   const semanticType = context.semanticType;
-  return { kind: 'value_collection', origin: origin(context), element: { kind: 'property', property: context.property, semantic, semanticType }, semanticType: new ReadonlyCollectionType(CollectionKind.ARRAY, semanticType), cardinality: { kind: 'collection' }, traversal: { kind: 'rejected', reason: 'value_collection' } };
+  return { kind: 'value_collection', origin: origin(context), element: { kind: 'property', property: context.property, semantic, semanticType }, semanticType: ReadonlyCollectionType(CollectionKind.ARRAY, semanticType), cardinality: { kind: 'collection' }, traversal: { kind: 'rejected', reason: 'value_collection' } };
 }
 
 function valueResult(context: ProjectionContext): ResourceMethodResult {
@@ -64,13 +63,13 @@ function valueResult(context: ProjectionContext): ResourceMethodResult {
 function aggregateResult(context: ProjectionContext, operation: 'sum' | 'avg' | 'min' | 'max'): ResourceMethodResult {
   const semantic = context.semantic;
   const semanticType = context.semanticType;
-  const resultType = new PrimitiveType(PrimitiveKind.NUMBER);
+  const resultType = primitiveType(PrimitiveKind.NUMBER);
   return { kind: 'scalar', origin: origin(context), operation, semanticType: resultType, cardinality: { kind: 'single' }, projection: { kind: 'aggregate', operation, property: context.property, semantic, inputType: semanticType, semanticType: resultType }, traversal: { kind: 'scalar', semanticType: resultType, target: { kind: 'scalar', semanticType: resultType }, cardinality: { kind: 'single' }, next: { kind: 'retain' } } };
 }
 
 
 
 function unsupported(state: ResourceQueryState, method: MethodName): ResourceMethodResult {
-  return { kind: 'unsupported', origin: Object.freeze({ receiver: state, method, meaning: meaningFor(method) }), method, semanticType: new ErrorType('resource method unsupported'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason: 'unsupported' } };
+  return { kind: 'unsupported', origin: Object.freeze({ receiver: state, method, meaning: meaningFor(method) }), method, semanticType: ErrorType('resource method unsupported'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason: 'unsupported' } };
 }
 

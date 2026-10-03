@@ -16,7 +16,7 @@ import type { SymbolTable } from '../SymbolTable';
 import type { ResolutionScope } from '../resolutionScope';
 
 export function buildResolutionContext(
-    models: ModelNode[],
+    models: readonly ModelNode[],
     resources: readonly { readonly name: string }[],
     kernel: SemanticResolutionKernelContract,
     cycleDetector: CycleDetector,

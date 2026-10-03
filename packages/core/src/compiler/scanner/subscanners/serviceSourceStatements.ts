@@ -1,282 +1,270 @@
+import { PHP_STATEMENT_KINDS } from '../lexer/phpAstStatementKinds';
 import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
-import type { PhpAssignmentTarget, PhpStatement } from '../lexer/phpAstStatementTypes';
+import type { PhpAssignmentTarget, PhpStatement, PhpForClause, PhpIfAlternative } from '../lexer/phpAstStatementTypes';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { SemanticValue } from '../../../types/upstream/primitiveVocabulary';
 import type { BinaryOperator, Expression, ResolvedExpression } from '../../../types/upstream/expression';
 import type { Assignment, AssignmentTarget } from '../../../types/upstream/assignment';
-import type { SourceStatement, SourceStatements, SourceConditionalBranches, SourceCatchHandler } from '../../../types/upstream/sourceStatements';
-import type { VariableName, PropertyName, ExceptionName, ActionName } from '../../../types/upstream/names';
+import type { SourceStatement, SourceStatements, SourceConditionalBranches, SourceCatchHandler, SourceForClause } from '../../../types/upstream/sourceStatements';
+import type { VariableName, PropertyName, ExceptionName, ActionName, ModelName } from '../../../types/upstream/names';
 import type { Option, Sequence } from '../../../types/upstream/collections';
 import type { DeclaredType } from '../../../types/upstream/typeVocabulary';
-import type { ModelName } from '../../../types/upstream/names';
 import type { ServiceMethodResultIndex } from '../../../types/upstream/service';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
 import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
-import { mapAssignmentTarget, mapAssignmentOperator, assignmentReferenceMode } from './resource/resourceUpstreamExpressionMappings';
+import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from './resource/resourceUpstreamExpressionMappings';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone } from '../../../semantic/kernel/relationalSequence';
 
 type Binding = { readonly variable: VariableName; readonly value: SemanticValue };
-
-type Environment = ReadonlyMap<VariableName, Binding>;
-
-function lookupMethodResult(index: ServiceMethodResultIndex, name: ActionName): Option<SemanticValue> {
-  let items = index.items;
-  while (items.kind === 'cons') {
-    if (items.head.method.value.value === name.value.value) return { kind: 'some', value: items.head.result };
-    items = items.tail;
-  }
-  return { kind: 'none' };
-}
+type Environment = RelationIndex<VariableName, Binding>;
 
 const stringValue = (value: string) => ({ kind: 'string_value' as const, value });
 const variableName = (value: string): VariableName => ({ kind: 'variable_name', value: stringValue(value) });
 const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: stringValue(value) });
 const exceptionName = (value: string): ExceptionName => ({ kind: 'exception_name', value: stringValue(value) });
-const sequence = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>((tail, item) => ({ kind: 'cons', head: item, tail }), { kind: 'empty' });
+const sequence = <T>(items: readonly T[], index = 0, output: Sequence<T> = { kind: 'empty' }): Sequence<T> =>
+  relationGate(index >= items.length, () => output, () => sequence(items, index + 1, { kind: 'cons', head: items[index], tail: output }));
 const sourceSpanFromToken = (file: string, token: { readonly startOffset: number; readonly endOffset: number }): SourceSpan => ({ kind: 'source_span', file: { kind: 'source_file', value: stringValue(file) }, start: { kind: 'number_value', value: token.startOffset }, end: { kind: 'number_value', value: token.endOffset } });
+
+const isSome = <T>(value: Option<T>): value is Extract<Option<T>, { readonly kind: 'some' }> => Object.is(value.kind, 'some');
+const isNone = <T>(value: Option<T>): value is Extract<Option<T>, { readonly kind: 'none' }> => Object.is(value.kind, 'none');
+const isReference = (value: SemanticValue): value is Extract<SemanticValue, { readonly kind: 'reference' }> => Object.is(value.kind, 'reference');
+const isResolvedProperty = (value: SemanticValue): value is Extract<SemanticValue, { readonly kind: 'resolved_property_access' }> => Object.is(value.kind, 'resolved_property_access');
+const isCallableValue = (value: SemanticValue): value is Extract<SemanticValue, { readonly kind: 'method_call' | 'static_call' | 'function_call' }> => relationAny([Object.is(value.kind, 'method_call'), Object.is(value.kind, 'static_call'), Object.is(value.kind, 'function_call')]);
+
+function lookupMethodResult(index: ServiceMethodResultIndex, name: ActionName): Option<SemanticValue> {
+  const entries = relationFold(index.items, [] as readonly { readonly name: ActionName; readonly result: SemanticValue }[], (output, item) => [...output, { name: item.method, result: item.result }]);
+  return relationOptionFold(relationLookup(relationProject(entries, item => [item.name.value.value, item.result] as const), name.value.value), () => ({ kind: 'none' }), value => ({ kind: 'some', value }));
+}
 
 function semanticFromType(type: DeclaredType): SemanticValue {
   const expression = type.value;
-  if (expression.kind === 'reference') {
-    return { kind: 'reference', name: { kind: 'domain_type_name', value: expression.value.name.value }, cardinality: { kind: 'one' }, nullability: type.nullability.kind === 'nullable' ? { kind: 'nullable' } : { kind: 'non_nullable' } };
-  }
-  return { kind: 'typed', type: expression };
+  return relationGate(Object.is(expression.kind, 'reference'), () => ({
+    kind: 'reference',
+    name: { kind: 'domain_type_name', value: expression.value.name.value },
+    cardinality: { kind: 'one' },
+    nullability: relationGate(Object.is(type.nullability.kind, 'nullable'), () => ({ kind: 'nullable' as const }), () => ({ kind: 'non_nullable' as const })),
+  }), () => ({ kind: 'typed', type: expression }));
 }
 
 function lookup(environment: Environment, name: VariableName): Option<SemanticValue> {
-  const binding = environment.get(name);
-  if (binding === undefined) return { kind: 'none' };
-  return { kind: 'some', value: binding.value };
+  return relationOptionFold(relationIndexLookup(environment, name), () => ({ kind: 'none' }), value => ({ kind: 'some', value: value.value }));
+}
+
+function modelNameFromReference(value: SemanticValue): RelationMaybe<ModelName> {
+  return relationOptionFold(relationRefine(value, isReference), () => relationOptionFold(relationRefine(value, isResolvedProperty), () => relationOptionFold(relationRefine(value, isCallableValue), () => RELATION_NONE, callable => modelNameFromReference(callable.result)), property => relationGate(Object.is(property.property.kind, 'relation'), () => property.property.targetModel, () => RELATION_NONE)), reference => ({ kind: 'model_name', value: reference.name.value }));
+}
+
+function unionValues(left: SemanticValue, right: SemanticValue): SemanticValue {
+  return { kind: 'union', members: { kind: 'semantic_values', items: sequence([left, right]) } };
+}
+
+function binarySemanticValue(operator: BinaryOperator): SemanticValue {
+  const booleanResult = relationAny([Object.is(operator.kind, 'equal'), Object.is(operator.kind, 'not_equal'), Object.is(operator.kind, 'greater'), Object.is(operator.kind, 'greater_equal'), Object.is(operator.kind, 'less'), Object.is(operator.kind, 'less_equal'), Object.is(operator.kind, 'and'), Object.is(operator.kind, 'or')]);
+  const numericResult = relationAny([Object.is(operator.kind, 'add'), Object.is(operator.kind, 'subtract'), Object.is(operator.kind, 'multiply'), Object.is(operator.kind, 'divide'), Object.is(operator.kind, 'modulo')]);
+  return relationGate(Object.is(operator.kind, 'concat'), () => ({ kind: 'typed', type: { kind: 'primitive', value: { kind: 'string' } } }), () =>
+    relationGate(booleanResult, () => ({ kind: 'typed', type: { kind: 'primitive', value: { kind: 'boolean' } } }), () =>
+      relationGate(numericResult, () => ({ kind: 'typed', type: { kind: 'primitive', value: { kind: 'number' } } }), () => ({ kind: 'unresolved', reason: 'external' }))));
+}
+
+function resolveMethodCallResult(expression: Extract<Expression, { readonly kind: 'method' | 'nullsafe_method' }>, methodResults: ServiceMethodResultIndex): SemanticValue {
+  const receiver = relationGate(Object.is(expression.receiver.kind, 'variable'), () => expression.receiver, () => RELATION_NONE as RelationNone);
+  return relationGate(!Object.is(receiver, RELATION_NONE), () => relationGate(Object.is((receiver as Extract<Expression, { readonly kind: 'variable' }>).name.value.value, '$this'), () => relationGate(Object.is(expression.operation.kind, 'domain'), () => relationOptionFold(lookupMethodResult(methodResults, expression.operation.name), () => ({ kind: 'unresolved', reason: 'missing_local_method' }), value => value), () => ({ kind: 'unresolved', reason: 'external' })), () => ({ kind: 'unresolved', reason: 'external' })), () => ({ kind: 'unresolved', reason: 'external' }));
+}
+
+function semanticExpression(expression: Expression, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+  return relationGate(Object.is(expression.kind, 'literal'), () => ({ kind: 'literal', value: expression.value }), () =>
+    relationGate(Object.is(expression.kind, 'variable'), () => relationOptionFold(lookup(environment, expression.name), () => ({ kind: 'unresolved', reason: 'missing_local_variable' }), value => value), () =>
+      relationGate(Object.is(expression.kind, 'property'), () => propertyExpression(expression, false, environment, models, methodResults), () =>
+        relationGate(Object.is(expression.kind, 'nullsafe_property'), () => propertyExpression(expression, true, environment, models, methodResults), () =>
+          relationGate(relationAny([Object.is(expression.kind, 'method'), Object.is(expression.kind, 'nullsafe_method')]), () => {
+            const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
+            return { kind: 'method_call', receiver, operation: expression.operation, arguments: expression.arguments, result: resolveMethodCallResult(expression, methodResults) };
+          }, () =>
+            relationGate(Object.is(expression.kind, 'relation'), () => relationExpression(expression, environment, models, methodResults), () =>
+              relationGate(Object.is(expression.kind, 'assignment_expression'), () => ({ kind: 'unresolved', reason: 'external' }), () =>
+                relationGate(Object.is(expression.kind, 'static_method'), () => ({ kind: 'static_call', receiver: expression.receiver, action: expression.action, arguments: expression.arguments, result: { kind: 'unresolved', reason: 'external' } }), () =>
+                  relationGate(Object.is(expression.kind, 'builtin'), () => builtinExpression(expression), () =>
+                    relationGate(Object.is(expression.kind, 'call'), () => ({ kind: 'function_call', function: expression.function, arguments: expression.arguments, result: { kind: 'unresolved', reason: 'external' } }), () =>
+                      relationGate(Object.is(expression.kind, 'coalesce'), () => unionValues(semanticExpression(expression.left, environment, models, methodResults), semanticExpression(expression.right, environment, models, methodResults)), () =>
+                        relationGate(Object.is(expression.kind, 'conditional'), () => conditionalExpression(expression, environment, models, methodResults), () =>
+                          relationGate(Object.is(expression.kind, 'binary'), () => binarySemanticValue(expression.operator), () =>
+                            relationGate(Object.is(expression.kind, 'unary'), () => semanticExpression(expression.operand, environment, models, methodResults), () =>
+                              relationGate(Object.is(expression.kind, 'cast'), () => castExpression(expression), () => ({ kind: 'unresolved', reason: 'external' }))))))))))))))));
+}
+
+function propertyExpression(expression: Extract<Expression, { readonly kind: 'property' | 'nullsafe_property' }>, nullable: boolean, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+  const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
+  const model = modelNameFromReference(receiver);
+  return relationGate(!Object.is(model, RELATION_NONE), () => {
+    const symbol = models.get(model as ModelName);
+    return relationGate(Object.is(symbol.kind, 'found'), () => {
+      const property = symbol.value.resolveProperty(expression.property);
+      return relationGate(Object.is(property.kind, 'found'), () => ({ kind: 'resolved_property_access', receiver, model: model as ModelName, property: property.value.source, nullability: relationGate(nullable, () => ({ kind: 'nullable' as const }), () => ({ kind: 'non_nullable' as const })) }), () => ({ kind: 'property_access', receiver, property: expression.property, nullability: relationGate(nullable, () => ({ kind: 'nullable' as const }), () => ({ kind: 'non_nullable' as const })) }));
+    }, () => ({ kind: 'property_access', receiver, property: expression.property, nullability: relationGate(nullable, () => ({ kind: 'nullable' as const }), () => ({ kind: 'non_nullable' as const })) }));
+  }, () => ({ kind: 'property_access', receiver, property: expression.property, nullability: relationGate(nullable, () => ({ kind: 'nullable' as const }), () => ({ kind: 'non_nullable' as const })) }));
+}
+
+function relationExpression(expression: Extract<Expression, { readonly kind: 'relation' }>, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+  const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
+  const model = modelNameFromReference(receiver);
+  return relationGate(!Object.is(model, RELATION_NONE), () => {
+    const symbol = models.get(model as ModelName);
+    return relationGate(Object.is(symbol.kind, 'found'), () => {
+      const property = symbol.value.relation(expression.relation);
+      return relationGate(Object.is(property.kind, 'found'), () => ({ kind: 'resolved_property_access', receiver, model: model as ModelName, property: property.value, nullability: { kind: 'non_nullable' } }), () => ({ kind: 'relation_access', receiver, relation: expression.relation, nullability: { kind: 'non_nullable' } }));
+    }, () => ({ kind: 'relation_access', receiver, relation: expression.relation, nullability: { kind: 'non_nullable' } }));
+  }, () => ({ kind: 'relation_access', receiver, relation: expression.relation, nullability: { kind: 'non_nullable' } }));
+}
+
+function builtinExpression(expression: Extract<Expression, { readonly kind: 'builtin' }>): SemanticValue {
+  const booleanFunctions = ['is_object', 'is_array', 'empty', 'in_array', 'method_exists'] as const;
+  const booleanResult = relationAny(relationProject(booleanFunctions, item => Object.is(item, expression.function.kind)));
+  const dateResult = Object.is(expression.function.kind, 'now');
+  const result = relationGate(booleanResult, () => ({ kind: 'typed' as const, type: { kind: 'primitive' as const, value: { kind: 'boolean' as const } } }), () => relationGate(dateResult, () => ({ kind: 'typed' as const, type: { kind: 'primitive' as const, value: { kind: 'date_time' as const } } }), () => ({ kind: 'unresolved' as const, reason: 'external' as const })));
+  return { kind: 'function_call', function: { kind: 'function_name', value: stringValue(expression.function.kind) }, arguments: expression.arguments, result };
+}
+
+function conditionalExpression(expression: Extract<Expression, { readonly kind: 'conditional' }>, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+  const whenTrue = semanticExpression(expression.branches.whenTrue, environment, models, methodResults);
+  return relationGate(Object.is(expression.branches.kind, 'then_only'), () => whenTrue, () => unionValues(whenTrue, semanticExpression(expression.branches.whenFalse, environment, models, methodResults)));
+}
+
+function castExpression(expression: Extract<Expression, { readonly kind: 'cast' }>): SemanticValue {
+  const numeric = relationAny([Object.is(expression.target.kind, 'integer'), Object.is(expression.target.kind, 'float')]);
+  const boolean = Object.is(expression.target.kind, 'boolean');
+  const primitive = relationGate(numeric, () => ({ kind: 'number' as const }), () => relationGate(boolean, () => ({ kind: 'boolean' as const }), () => ({ kind: 'string' as const })));
+  return { kind: 'typed', type: { kind: 'primitive', value: primitive } };
 }
 
 function resolveExpression(value: PhpAstValue, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): ResolvedExpression {
   const expression = mapResourcePhpAstToUpstream(value, file);
-  const result = semanticExpression(expression, environment, models, methodResults);
-  return { kind: 'resolved_expression', expression, result };
+  return { kind: 'resolved_expression', expression, result: semanticExpression(expression, environment, models, methodResults) };
 }
 
-function modelNameFromReference(value: SemanticValue): ModelName | undefined {
-  switch (value.kind) {
-    case 'reference':
-      return { kind: 'model_name', value: value.name.value };
-    case 'resolved_property_access':
-      return value.property.kind === 'relation' ? value.property.targetModel : undefined;
-    case 'method_call':
-    case 'static_call':
-    case 'function_call':
-      return modelNameFromReference(value.result);
-    default:
-      return undefined;
-  }
+function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget { return resolveAssignmentTarget(target, mapResourcePhpAstToUpstream, file); }
+
+type StatementResult = { readonly statement: SourceStatement; readonly environment: Environment };
+type ForClauseResult = { readonly clause: SourceForClause; readonly environment: Environment };
+
+function bindOne(target: AssignmentTarget, value: SemanticValue, environment: Environment): Environment {
+  return relationGate(Object.is(target.kind, 'variable'), () => relationIndexAdd(environment, target.name, { variable: target.name, value }), () =>
+    relationGate(Object.is(target.kind, 'variables'), () => bindSequence(target.names.items, value, environment), () => environment));
 }
 
-function unionValues(left: SemanticValue, right: SemanticValue): SemanticValue {
-  return {
-    kind: 'union',
-    members: {
-      kind: 'semantic_values',
-      items: sequence([left, right]),
-    },
-  };
+function bindSequence(values: Sequence<VariableName>, value: SemanticValue, environment: Environment): Environment {
+  return relationGate(Object.is(values.kind, 'empty'), () => environment, () => bindSequence(values.tail, value, relationIndexAdd(environment, values.head, { variable: values.head, value })));
 }
 
-function binarySemanticValue(operator: BinaryOperator): SemanticValue {
-  switch (operator.kind) {
-    case 'concat':
-      return { kind: 'typed', type: { kind: 'primitive', value: { kind: 'string' } } };
-    case 'equal':
-    case 'not_equal':
-    case 'greater':
-    case 'greater_equal':
-    case 'less':
-    case 'less_equal':
-    case 'and':
-    case 'or':
-      return { kind: 'typed', type: { kind: 'primitive', value: { kind: 'boolean' } } };
-    case 'add':
-    case 'subtract':
-    case 'multiply':
-    case 'divide':
-    case 'modulo':
-      return { kind: 'typed', type: { kind: 'primitive', value: { kind: 'number' } } };
-  }
-}
-
-function resolveMethodCallResult(expression: Extract<Expression, { readonly kind: 'method' | 'nullsafe_method' }>, methodResults: ServiceMethodResultIndex): SemanticValue {
-  if (expression.receiver.kind !== 'variable') return { kind: 'unresolved', reason: 'external' };
-  if (expression.receiver.name.value.value !== '$this') return { kind: 'unresolved', reason: 'external' };
-  if (expression.operation.kind !== 'domain') return { kind: 'unresolved', reason: 'external' };
-  const localResult = lookupMethodResult(methodResults, expression.operation.name);
-  if (localResult.kind === 'none') return { kind: 'unresolved', reason: 'missing_local_method' };
-  return localResult.value;
-}
-
-function semanticExpression(expression: Expression, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
-  switch (expression.kind) {
-    case 'literal':
-      return { kind: 'literal', value: expression.value };
-    case 'variable': {
-      const value = lookup(environment, expression.name);
-      if (value.kind === 'none') return { kind: 'unresolved', reason: 'missing_local_variable' };
-      return value.value;
-    }
-    case 'property': {
-      const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
-      const model = modelNameFromReference(receiver);
-      if (model !== undefined) {
-        const symbol = models.get(model);
-        if (symbol.kind === 'found') {
-          const property = symbol.value.resolveProperty(expression.property);
-          if (property.kind === 'found') {
-            return { kind: 'resolved_property_access', receiver, model, property: property.value.source, nullability: { kind: 'non_nullable' } };
-          }
-        }
-      }
-      return { kind: 'property_access', receiver, property: expression.property, nullability: { kind: 'non_nullable' } };
-    }
-    case 'nullsafe_property': {
-      const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
-      const model = modelNameFromReference(receiver);
-      if (model !== undefined) {
-        const symbol = models.get(model);
-        if (symbol.kind === 'found') {
-          const property = symbol.value.resolveProperty(expression.property);
-          if (property.kind === 'found') {
-            return { kind: 'resolved_property_access', receiver, model, property: property.value.source, nullability: { kind: 'nullable' } };
-          }
-        }
-      }
-      return { kind: 'property_access', receiver, property: expression.property, nullability: { kind: 'nullable' } };
-    }
-    case 'relation': {
-      const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
-      const model = modelNameFromReference(receiver);
-      if (model !== undefined) {
-        const symbol = models.get(model);
-        if (symbol.kind === 'found') {
-          const property = symbol.value.relation(expression.relation);
-          if (property.kind === 'found') {
-            return { kind: 'resolved_property_access', receiver, model, property: property.value, nullability: { kind: 'non_nullable' } };
-          }
-        }
-      }
-      return { kind: 'relation_access', receiver, relation: expression.relation, nullability: { kind: 'non_nullable' } };
-    }
-    case 'nullsafe_method':
-    case 'method': {
-      const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
-      const result = resolveMethodCallResult(expression, methodResults);
-      return {
-        kind: 'method_call',
-        receiver,
-        operation: expression.operation,
-        arguments: expression.arguments,
-        result,
-      };
-    }
-    case 'assignment_expression':
-      return { kind: 'unresolved', reason: 'external' };
-    case 'static_method':
-      return {
-        kind: 'static_call',
-        receiver: expression.receiver,
-        action: expression.action,
-        arguments: expression.arguments,
-        result: { kind: 'unresolved', reason: 'external' },
-      };
-    case 'builtin': {
-      const result = expression.function.kind === 'is_object' || expression.function.kind === 'is_array' || expression.function.kind === 'empty' || expression.function.kind === 'in_array' || expression.function.kind === 'method_exists'
-        ? { kind: 'typed' as const, type: { kind: 'primitive' as const, value: { kind: 'boolean' as const } } }
-        : expression.function.kind === 'now'
-          ? { kind: 'typed' as const, type: { kind: 'primitive' as const, value: { kind: 'date_time' as const } } }
-          : { kind: 'unresolved' as const, reason: 'external' as const };
-      return { kind: 'function_call', function: { kind: 'function_name', value: stringValue(expression.function.kind) }, arguments: expression.arguments, result };
-    }
-    case 'call':
-      return { kind: 'function_call', function: expression.function, arguments: expression.arguments, result: { kind: 'unresolved', reason: 'external' } };
-    case 'coalesce': {
-      const left = semanticExpression(expression.left, environment, models, methodResults);
-      const right = semanticExpression(expression.right, environment, models, methodResults);
-      return unionValues(left, right);
-    }
-    case 'conditional': {
-      const whenTrue = semanticExpression(expression.branches.whenTrue, environment, models, methodResults);
-      if (expression.branches.kind === 'then_only') return whenTrue;
-      const whenFalse = semanticExpression(expression.branches.whenFalse, environment, models, methodResults);
-      return unionValues(whenTrue, whenFalse);
-    }
-    case 'binary':
-      return binarySemanticValue(expression.operator);
-    case 'unary':
-      return semanticExpression(expression.operand, environment, models, methodResults);
-    case 'cast':
-      return { kind: 'typed', type: { kind: 'primitive', value: expression.target.kind === 'integer' || expression.target.kind === 'float' ? { kind: 'number' } : expression.target.kind === 'boolean' ? { kind: 'boolean' } : { kind: 'string' } } };
-    default:
-      return { kind: 'unresolved', reason: 'external' };
-  }
-}
-
-function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget {
-  return mapAssignmentTarget(target, mapResourcePhpAstToUpstream, file);
-}
-
-function bind(target: AssignmentTarget, value: SemanticValue, environment: Map<VariableName, Binding>): void {
-  if (target.kind === 'variable') environment.set(target.name, { variable: target.name, value });
-  if (target.kind === 'variables') { let items = target.names.items; while (items.kind === 'cons') { environment.set(items.head, { variable: items.head, value }); items = items.tail; } }
-}
-
-function forClause(value: import('../lexer/phpAstStatementTypes').PhpForClause, file: string, environment: Map<VariableName, Binding>, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): import('../../../types/upstream/sourceStatements').SourceForClause {
-  switch (value.kind) {
-    case 'empty': return { kind: 'empty' };
-    case 'expression': return { kind: 'expression', value: resolveExpression(value.value, file, environment, models, methodResults) };
-    case 'assignment': {
+function forClause(value: PhpForClause, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): ForClauseResult {
+  return relationGate(Object.is(value.kind, 'empty'), () => ({ clause: { kind: 'empty' }, environment }), () =>
+    relationGate(Object.is(value.kind, 'expression'), () => ({ clause: { kind: 'expression', value: resolveExpression(value.value, file, environment, models, methodResults) }, environment }), () => {
       const target = assignmentTarget(value.target, file);
       const resolved = resolveExpression(value.value, file, environment, models, methodResults);
-      bind(target, resolved.result, environment);
-      return { kind: 'assignment', value: { kind: 'assignment', target, expression: resolved.expression, operator: mapAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source: sourceSpanFromToken(file, value.source) } };
-    }
-  }
+      const nextEnvironment = bindOne(target, resolved.result, environment);
+      return { clause: { kind: 'assignment', value: { kind: 'assignment', target, expression: resolved.expression, operator: resolveAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source: sourceSpanFromToken(file, value.source) } }, environment: nextEnvironment };
+    }));
 }
 
-function statement(value: PhpStatement, file: string, environment: Map<VariableName, Binding>, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SourceStatement {
-  switch (value.kind) {
-    case 'assignment': {
-      const target = assignmentTarget(value.target, file);
-      const resolved = resolveExpression(value.value, file, environment, models, methodResults);
-      bind(target, resolved.result, environment);
-      const source = sourceSpanFromToken(file, value.source);
-      const assignment: Assignment = { kind: 'assignment', target, expression: resolved.expression, operator: mapAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source };
-      return { kind: 'assignment', value: assignment, source };
-    }
-    case 'expression_statement': { const resolved = resolveExpression(value.expression, file, environment, models, methodResults); return { kind: 'expression', value: resolved, source: resolved.expression.source }; }
-    case 'return_with_value': { const resolved = resolveExpression(value.expression, file, environment, models, methodResults); return { kind: 'return', expression: resolved, source: resolved.expression.source }; }
-    case 'return_void': return { kind: 'return_void', source: sourceSpanFromToken(file, value.source) };
-    case 'if_statement': { const condition = resolveExpression(value.condition, file, environment, models, methodResults); return { kind: 'conditional', condition, branches: branches(value.alternative, value.thenBlock.statements, file, environment, models, methodResults), source: condition.expression.source }; }
-    case 'foreach_statement': {
-      const iterable = resolveExpression(value.iterable, file, environment, models, methodResults);
-      const variable = variableName(value.target.kind === 'value' ? value.target.variable : value.target.value);
-      environment.set(variable, { variable, value: { kind: 'unresolved', reason: 'external' } });
-      return { kind: 'for_each', iterable, variable, body: statements(value.body.statements, file, environment, models, methodResults), source: iterable.expression.source };
-    }
-    case 'for_statement': { const initializer = forClause(value.initializer, file, environment, models, methodResults); const condition = forClause(value.condition, file, environment, models, methodResults); const update = forClause(value.update, file, environment, models, methodResults); const source = value.source; return { kind: 'for_loop', initializer, condition, update, body: statements(value.body.statements, file, new Map(environment), models, methodResults), source: sourceSpanFromToken(file, source) }; }
-    case 'try_statement': return { kind: 'try', body: statements(value.body.statements, file, environment, models, methodResults), catches: { kind: 'catch_handlers', items: sequence(value.catches.map((item): SourceCatchHandler => ({ kind: 'catch_handler', variable: variableName(item.variable), exception: exceptionName(item.exceptionType), body: statements(item.body.statements, file, new Map(environment), models, methodResults), source: sourceSpanFromToken(file, item.source) }))) }, source: sourceSpanFromToken(file, value.source) };
-    case 'throw_statement': { const error = resolveExpression(value.expression, file, environment, models, methodResults); return { kind: 'throw', error, source: error.expression.source }; }
-  }
+const statementResolverCatalog: readonly (readonly [string, (value: PhpStatement, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex) => StatementResult])[] = [
+  ['assignment', (value, file, environment, models, methodResults) => assignmentStatement(value as Extract<PhpStatement, { readonly kind: 'assignment' }>, file, environment, models, methodResults)],
+  ['expression_statement', (value, file, environment, models, methodResults) => expressionStatement(value as Extract<PhpStatement, { readonly kind: 'expression_statement' }>, file, environment, models, methodResults)],
+  ['return_with_value', (value, file, environment, models, methodResults) => returnStatement(value as Extract<PhpStatement, { readonly kind: 'return_with_value' }>, file, environment, models, methodResults)],
+  ['return_void', (value, file, environment) => ({ statement: { kind: 'return_void', source: sourceSpanFromToken(file, value.source) }, environment })],
+  [PHP_STATEMENT_KINDS.conditional, (value, file, environment, models, methodResults) => conditionalStatement(value as Extract<PhpStatement, { readonly kind: 'conditional' }>, file, environment, models, methodResults)],
+  [PHP_STATEMENT_KINDS.collectionRecurrence, (value, file, environment, models, methodResults) => recurrenceStatement(value as Extract<PhpStatement, { readonly kind: 'collection_recurrence' }>, file, environment, models, methodResults)],
+  [PHP_STATEMENT_KINDS.countedRecurrence, (value, file, environment, models, methodResults) => countedStatement(value as Extract<PhpStatement, { readonly kind: 'counted_recurrence' }>, file, environment, models, methodResults)],
+  ['try_statement', (value, file, environment, models, methodResults) => tryStatement(value as Extract<PhpStatement, { readonly kind: 'try_statement' }>, file, environment, models, methodResults)],
+  ['throw_statement', (value, file, environment, models, methodResults) => throwStatement(value as Extract<PhpStatement, { readonly kind: 'throw_statement' }>, file, environment, models, methodResults)],
+];
+
+function statement(value: PhpStatement, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  return relationOptionFold(relationLookup(statementResolverCatalog, value.kind), () => ({ statement: { kind: 'return_void', source: sourceSpanFromToken(file, value.source) }, environment }), resolver => resolver(value, file, environment, models, methodResults));
 }
 
-function branches(alternative: import('../lexer/phpAstStatementTypes').PhpIfAlternative, thenValues: readonly PhpStatement[], file: string, environment: Map<VariableName, Binding>, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SourceConditionalBranches {
-  if (alternative.kind === 'none') return { kind: 'then_only', whenTrue: statements(thenValues, file, environment, models, methodResults) };
-  if (alternative.kind === 'else_block') return { kind: 'then_else', whenTrue: statements(thenValues, file, environment, models, methodResults), whenFalse: statements(alternative.block.statements, file, environment, models, methodResults) };
-  return { kind: 'then_else', whenTrue: statements(thenValues, file, environment, models, methodResults), whenFalse: statements([alternative.statement], file, environment, models, methodResults) };
+function assignmentStatement(value: Extract<PhpStatement, { readonly kind: 'assignment' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const target = assignmentTarget(value.target, file);
+  const resolved = resolveExpression(value.value, file, environment, models, methodResults);
+  const nextEnvironment = bindOne(target, resolved.result, environment);
+  const source = sourceSpanFromToken(file, value.source);
+  const assignment: Assignment = { kind: 'assignment', target, expression: resolved.expression, operator: resolveAssignmentOperator(value.operator.kind), reference: assignmentReferenceMode(value.reference.kind), source };
+  return { statement: { kind: 'assignment', value: assignment, source }, environment: nextEnvironment };
 }
 
-function statements(values: readonly PhpStatement[], file: string, environment: Map<VariableName, Binding>, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SourceStatements {
-  return { kind: 'source_statements', items: sequence(values.map(value => statement(value, file, environment, models, methodResults))) };
+function expressionStatement(value: Extract<PhpStatement, { readonly kind: 'expression_statement' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const resolved = resolveExpression(value.expression, file, environment, models, methodResults);
+  return { statement: { kind: 'expression', value: resolved, source: resolved.expression.source }, environment };
 }
 
-export function serviceSourceStatements(values: readonly PhpStatement[], file: string, parameterTypes: ReadonlyMap<VariableName, DeclaredType>, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SourceStatements {
-  const environment = new Map<VariableName, Binding>();
-  parameterTypes.forEach((type, variable) => {
-    environment.set(variable, { variable, value: semanticFromType(type) });
+function returnStatement(value: Extract<PhpStatement, { readonly kind: 'return_with_value' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const resolved = resolveExpression(value.expression, file, environment, models, methodResults);
+  return { statement: { kind: 'return', expression: resolved, source: resolved.expression.source }, environment };
+}
+
+function conditionalStatement(value: Extract<PhpStatement, { readonly kind: 'conditional' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const condition = resolveExpression(value.condition, file, environment, models, methodResults);
+  const branchResult = branches(value.alternative, value.thenBlock.statements, file, environment, models, methodResults);
+  return { statement: { kind: 'conditional', condition, branches: branchResult.branches, source: condition.expression.source }, environment: branchResult.environment };
+}
+
+type BranchResult = { readonly branches: SourceConditionalBranches; readonly environment: Environment };
+
+function recurrenceStatement(value: Extract<PhpStatement, { readonly kind: 'collection_recurrence' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const iterable = resolveExpression(value.iterable, file, environment, models, methodResults);
+  const variable = variableName(relationGate(Object.is(value.target.kind, 'value'), () => value.target.variable, () => value.target.value));
+  const loopEnvironment = relationIndexAdd(environment, variable, { variable, value: { kind: 'unresolved', reason: 'external' } });
+  const body = statements(value.body.statements, file, loopEnvironment, models, methodResults);
+  return { statement: { kind: 'for_each', iterable, variable, body: body.statements }, environment };
+}
+
+function countedStatement(value: Extract<PhpStatement, { readonly kind: 'counted_recurrence' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const initializer = forClause(value.initializer, file, environment, models, methodResults);
+  const condition = forClause(value.condition, file, initializer.environment, models, methodResults);
+  const update = forClause(value.update, file, condition.environment, models, methodResults);
+  const body = statements(value.body.statements, file, update.environment, models, methodResults);
+  return { statement: { kind: 'for_loop', initializer: initializer.clause, condition: condition.clause, update: update.clause, body: body.statements, source: sourceSpanFromToken(file, value.source) }, environment };
+}
+
+function tryStatement(value: Extract<PhpStatement, { readonly kind: 'try_statement' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const body = statements(value.body.statements, file, environment, models, methodResults);
+  const catches = relationProject(value.catches, item => ({ kind: 'catch_handler' as const, variable: variableName(item.variable), exception: exceptionName(item.exceptionType), body: statements(item.body.statements, file, environment, models, methodResults).statements, source: sourceSpanFromToken(file, item.source) } as SourceCatchHandler));
+  return { statement: { kind: 'try', body: body.statements, catches: { kind: 'catch_handlers', items: sequence(catches) }, source: sourceSpanFromToken(file, value.source) }, environment: body.environment };
+}
+
+function throwStatement(value: Extract<PhpStatement, { readonly kind: 'throw_statement' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+  const error = resolveExpression(value.expression, file, environment, models, methodResults);
+  return { statement: { kind: 'throw', error, source: error.expression.source }, environment };
+}
+
+function branches(alternative: PhpIfAlternative, thenValues: readonly PhpStatement[], file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): BranchResult {
+  const whenTrue = statements(thenValues, file, environment, models, methodResults);
+  return relationGate(Object.is(alternative.kind, 'none'), () => ({ branches: { kind: 'then_only', whenTrue: whenTrue.statements }, environment: whenTrue.environment }), () =>
+    relationGate(Object.is(alternative.kind, 'else_block'), () => {
+      const whenFalse = statements(alternative.block.statements, file, environment, models, methodResults);
+      return { branches: { kind: 'then_else', whenTrue: whenTrue.statements, whenFalse: whenFalse.statements }, environment };
+    }, () => {
+      const whenFalse = statements([alternative.statement], file, environment, models, methodResults);
+      return { branches: { kind: 'then_else', whenTrue: whenTrue.statements, whenFalse: whenFalse.statements }, environment };
+    }));
+}
+
+type StatementsResult = { readonly statements: SourceStatements; readonly environment: Environment };
+
+function statements(values: readonly PhpStatement[], file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementsResult {
+  return relationFold(values, { statements: { kind: 'source_statements', items: sequence([]) }, environment }, (state, value) => {
+    const result = statement(value, file, state.environment, models, methodResults);
+    const existing = state.statements.items;
+    return { statements: { kind: 'source_statements', items: appendSequence(existing, result.statement) }, environment: result.environment };
   });
-  return statements(values, file, environment, models, methodResults);
+}
+
+function appendSequence<T>(items: Sequence<T>, value: T): Sequence<T> {
+  return relationGate(Object.is(items.kind, 'empty'), () => ({ kind: 'cons', head: value, tail: { kind: 'empty' as const } }), () => ({ kind: 'cons', head: items.head, tail: appendSequence(items.tail, value) }));
+}
+
+export function serviceSourceStatements(values: readonly PhpStatement[], file: string, parameterTypes: RelationIndex<VariableName, DeclaredType>, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SourceStatements {
+  const environment = relationFold(parameterTypes, [] as Environment, (output, entry) => relationIndexAdd(output, entry[0], { variable: entry[0], value: semanticFromType(entry[1]) }));
+  return statements(values, file, environment, models, methodResults).statements;
 }

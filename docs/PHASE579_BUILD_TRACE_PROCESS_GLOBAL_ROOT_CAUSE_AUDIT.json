@@ -1,0 +1,13 @@
+{
+  "phase": 579,
+  "frontier": "build-trace-process-global-root-cause",
+  "rootCause": "script-level process declaration shadowed Node's global process type across the program",
+  "changedFiles": [
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalOntology.phase277.test.ts"
+  ],
+  "globalProcessDeclarationCount": 0,
+  "globalRequireDeclarationCountInModifiedTest": 0,
+  "compatibilityWidening": false,
+  "productionApiChanged": false,
+  "fullBuildVerified": false
+}

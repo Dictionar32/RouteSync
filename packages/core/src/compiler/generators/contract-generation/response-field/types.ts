@@ -71,5 +71,5 @@ export interface ParsedResponseField {
   readonly nullable: boolean;
   readonly optional: boolean;
   readonly fields: readonly ParsedResponseField[];
-  readonly itemType: ParsedResponseField | undefined;
+  readonly itemType?: ParsedResponseField;
 }

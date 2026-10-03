@@ -4,12 +4,12 @@ import {
     SECURITY_SCHEME_REGISTRY,
     SecuritySchemeKind,
     RouteSecurityDescriptor,
-    ScannedRouteSecurityDescriptor
+    RouteSemanticFlowSecurityDescriptor
 } from '../../core/src'
 
 describe('RouteSecurity ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     test('1. matchRouteSecurity executes pure catamorphism for Sanctum scheme', () => {
-        const security = ScannedRouteSecurityDescriptor.create({
+        const security = RouteSemanticFlowSecurityDescriptor.create({
             isProtected: true,
             scheme: SecuritySchemeKind.Sanctum,
             guards: ['sanctum'],
@@ -27,7 +27,7 @@ describe('RouteSecurity ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     })
 
     test('2. matchRouteSecurity executes pure catamorphism for Bearer scheme', () => {
-        const security = ScannedRouteSecurityDescriptor.create({
+        const security = RouteSemanticFlowSecurityDescriptor.create({
             isProtected: true,
             scheme: SecuritySchemeKind.Bearer,
             guards: ['api'],
@@ -45,7 +45,7 @@ describe('RouteSecurity ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     })
 
     test('3. matchRouteSecurity executes pure catamorphism for Cookie scheme', () => {
-        const security = ScannedRouteSecurityDescriptor.create({
+        const security = RouteSemanticFlowSecurityDescriptor.create({
             isProtected: true,
             scheme: SecuritySchemeKind.Cookie,
             guards: ['web'],
@@ -63,7 +63,7 @@ describe('RouteSecurity ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     })
 
     test('4. matchRouteSecurity executes pure catamorphism for Public scheme', () => {
-        const security = ScannedRouteSecurityDescriptor.public()
+        const security = RouteSemanticFlowSecurityDescriptor.public()
 
         const headerConfig = matchRouteSecurity(security, {
             sanctum: () => 'AUTH:SANCTUM',

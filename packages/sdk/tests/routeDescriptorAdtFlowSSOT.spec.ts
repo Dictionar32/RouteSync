@@ -8,7 +8,7 @@ import {
     GetItemRouteDescriptor,
     MutationRouteDescriptor,
     DeletionRouteDescriptor,
-    ParsedRoute,
+    RouteSemanticFlow,
     RouteHookKind,
     RequestContentType,
     ResponseDescriptor,
@@ -19,11 +19,11 @@ import {
     RouteExecutionSignature,
     RouteDescriptorKind,
     ROUTE_DESCRIPTOR_REGISTRY,
-    ScannedRouteRegistry
+    RouteSemanticFlowRegistry
 } from '../../core/src'
 
 describe('RouteDescriptor ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
-    const createMockRoute = (overrides: Partial<ParsedRoute> = {}): ParsedRoute => {
+    const createMockRoute = (overrides: Partial<RouteSemanticFlow> = {}): RouteSemanticFlow => {
         return {
             name: 'orders.index',
             method: 'GET',
@@ -164,7 +164,7 @@ describe('RouteDescriptor ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
     })
 
     test('6. matchRoute executes pure visitor catamorphism with 0 if branching', () => {
-        const routes: ParsedRoute[] = [
+        const routes: RouteSemanticFlow[] = [
             createMockRoute({ crudRole: 'index', method: 'GET' }),
             createMockRoute({ crudRole: 'show', method: 'GET' }),
             createMockRoute({ crudRole: 'create', method: 'POST' }),
@@ -222,8 +222,8 @@ describe('RouteDescriptor ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
         })
     })
 
-    test('9. ScannedRouteRegistry automatically partitions routes into ADT collections without if', () => {
-        const routes: ParsedRoute[] = [
+    test('9. RouteSemanticFlowRegistry automatically partitions routes into ADT collections without if', () => {
+        const routes: RouteSemanticFlow[] = [
             createMockRoute({ crudRole: 'index', method: 'GET', name: 'orders.index' }),
             createMockRoute({ crudRole: 'show', method: 'GET', name: 'orders.show' }),
             createMockRoute({ crudRole: 'create', method: 'POST', name: 'orders.store' }),
@@ -231,7 +231,7 @@ describe('RouteDescriptor ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
             createMockRoute({ crudRole: 'delete', method: 'DELETE', name: 'orders.destroy' })
         ]
 
-        const registry = ScannedRouteRegistry.fromRoutes(routes)
+        const registry = RouteSemanticFlowRegistry.fromRoutes(routes)
 
         expect(registry.all).toHaveLength(5)
         expect(registry.collections).toHaveLength(1)

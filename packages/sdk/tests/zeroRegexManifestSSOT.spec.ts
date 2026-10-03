@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     ScannedResourceDescriptor,
-    ScannedRouteDescriptor,
+    RouteSemanticFlowFactory,
     RouteManifest
 } from '@routesync/core';
 import { buildEnumsLines } from '../../cli/src/generators/constants/enumConstantsBuilder';
@@ -30,7 +30,7 @@ describe('Rule 10 & 12: Zero Regex & Complete Guaranteed Manifest Contracts SSOT
 
     describe('RouteIdentity constantKey Contract', () => {
         it('guarantees constantKey is computed at Origin Boundary and frozen in RouteIdentityContract', () => {
-            const route = ScannedRouteDescriptor.create({
+            const route = RouteSemanticFlowFactory.create({
                 method: 'GET',
                 path: '/api/orders/{id}',
                 action: 'OrderController@show'
@@ -44,7 +44,7 @@ describe('Rule 10 & 12: Zero Regex & Complete Guaranteed Manifest Contracts SSOT
 
     describe('Zero Regex Generator Emitters', () => {
         it('buildRoutesLines consumes identity.constantKey directly without path splitting regex', () => {
-            const route = ScannedRouteDescriptor.create({
+            const route = RouteSemanticFlowFactory.create({
                 method: 'GET',
                 path: '/api/categories',
                 action: 'CategoryController@index',
@@ -62,7 +62,7 @@ describe('Rule 10 & 12: Zero Regex & Complete Guaranteed Manifest Contracts SSOT
         });
 
         it('buildEnumsLines processes enum rules from AST without regex fallback', () => {
-            const route = ScannedRouteDescriptor.create({
+            const route = RouteSemanticFlowFactory.create({
                 method: 'POST',
                 path: '/api/status/update',
                 schema: {

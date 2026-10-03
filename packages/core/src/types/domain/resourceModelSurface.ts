@@ -1,9 +1,11 @@
 import type { ParsedModel } from './models';
 import type { ModelSemanticDefinition, ModelSemanticProperty, ModelPropertyMultiplicity, EloquentRelationCardinality, BoundCardinality, RelationKind, RelationKey } from '../upstream/model';
 import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
+import { eloquentRelationMultiplicity } from '../upstream/modelVocabulary';
 import type { ModelName, PropertyName, RelationName } from '../upstream/names';
 import type { SemanticType } from '../../compiler/types/SemanticType';
 import { createResourceModelMethodSurface, type ResourceModelMethodSurface } from './resourceModelMethodSurface';
+import { relationEqual, relationProject, relationResolve } from '../../semantic/kernel/relationalSequence';
 
 export type ResourceModelMember =
   | { readonly kind: 'property'; readonly property: ModelSemanticProperty };
@@ -45,45 +47,39 @@ export interface ResourceModelSurface {
 
 export function createResourceModelSemanticSurface(model: ModelSemanticDefinition): ResourceModelSurface {
   const surface = model.surface;
-  const members = Object.freeze(surface.properties.map(property => Object.freeze({ kind: 'property' as const, property })));
+  const members = Object.freeze(relationProject(surface.properties, property => Object.freeze({ kind: 'property' as const, property })));
   const resolveProperty = (property: PropertyName): ResourceModelPropertyLookup => {
     const member = surface.byName.lookup(property);
-    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', property });
-    return Object.freeze({ kind: 'found', resolution: Object.freeze({ kind: 'property', property: member.value.property, semantic: member.value, semanticType: member.value.semanticType }) });
+    return relationResolve(relationEqual(member.kind, 'missing'),
+      () => Object.freeze({ kind: 'missing', property }),
+      () => Object.freeze({ kind: 'found', resolution: Object.freeze({ kind: 'property', property: member.value.property, semantic: member.value, semanticType: member.value.semanticType }) })
+    );
   };
   const resolveRelation = (relation: RelationName): ResourceModelRelationLookup => {
     const member = surface.relationsByName.lookup(relation);
-    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', relation });
-    const semantic = member.value;
-    return Object.freeze({ kind: 'found', resolution: Object.freeze({
-      relation: semantic.relation,
-      semantic,
-      sourceModel: semantic.sourceModel,
-      type: semantic.type,
-      targetModel: semantic.targetModel,
-      semanticType: semantic.semanticType,
-      cardinality: semantic.cardinality,
-      multiplicity: semantic.multiplicity,
-      targetShape: semantic.targetShape,
-      traversalTarget: semantic.traversalTarget,
-      boundCardinality: semantic.boundCardinality,
-      resourceCardinality: semantic.resourceCardinality,
-      foreignKey: semantic.foreignKey
-    }) });
+    return relationResolve(relationEqual(member.kind, 'missing'),
+      () => Object.freeze({ kind: 'missing', relation }),
+      () => {
+        const semantic = member.value;
+        return Object.freeze({ kind: 'found', resolution: Object.freeze({
+          relation: semantic.relation, semantic, sourceModel: semantic.sourceModel, type: semantic.type, targetModel: semantic.targetModel,
+          semanticType: semantic.semanticType, cardinality: semantic.cardinality, multiplicity: eloquentRelationMultiplicity(semantic.cardinality),
+          targetShape: semantic.targetShape, traversalTarget: semantic.traversalTarget, boundCardinality: semantic.boundCardinality,
+          resourceCardinality: semantic.resourceCardinality, foreignKey: semantic.foreignKey
+        }) });
+      }
+    );
   };
   return Object.freeze({ model: model.identity.name, members, methods: createResourceModelMethodSurface(model), resolveProperty, resolveRelation });
 }
 
 export function createResourceModelSurface(model: ParsedModel): ResourceModelSurface {
   const surface = model.semantic.surface;
-  const members = Object.freeze(surface.properties.map(property =>
-    Object.freeze({ kind: 'property' as const, property })
-  ));
+  const members = Object.freeze(relationProject(surface.properties, property => Object.freeze({ kind: 'property' as const, property })));
 
   const resolveProperty = (property: PropertyName): ResourceModelPropertyLookup => {
     const member = surface.byName.lookup(property);
-    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', property });
-    return Object.freeze({
+    return relationResolve(relationEqual(member.kind, 'missing'), () => Object.freeze({ kind: 'missing', property }), () => Object.freeze({
       kind: 'found',
       resolution: Object.freeze({
         kind: 'property',
@@ -91,14 +87,12 @@ export function createResourceModelSurface(model: ParsedModel): ResourceModelSur
         semantic: member.value,
         semanticType: member.value.semanticType
       })
-    });
+    }));
   };
 
   const resolveRelation = (relation: RelationName): ResourceModelRelationLookup => {
     const member = surface.relationsByName.lookup(relation);
-    if (member.kind === 'missing') return Object.freeze({ kind: 'missing', relation });
-    const semantic = member.value;
-    return Object.freeze({
+    return relationResolve(relationEqual(member.kind, 'missing'), () => Object.freeze({ kind: 'missing', relation }), () => { const semantic = member.value; return Object.freeze({
       kind: 'found',
       resolution: Object.freeze({
         relation: semantic.relation,
@@ -108,14 +102,14 @@ export function createResourceModelSurface(model: ParsedModel): ResourceModelSur
         targetModel: semantic.targetModel,
         semanticType: semantic.semanticType,
         cardinality: semantic.cardinality,
-        multiplicity: semantic.multiplicity,
+        multiplicity: eloquentRelationMultiplicity(semantic.cardinality),
         targetShape: semantic.targetShape,
         traversalTarget: semantic.traversalTarget,
         boundCardinality: semantic.boundCardinality,
         resourceCardinality: semantic.resourceCardinality,
         foreignKey: semantic.foreignKey
       })
-    });
+    }); });
   };
 
   return Object.freeze({

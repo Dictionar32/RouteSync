@@ -5,7 +5,7 @@ import {
     CrudRole,
     RouteHookKind,
     RequestContentType,
-    ScannedRouteDescriptor,
+    RouteSemanticFlowFactory,
     RouteBoundaryAdapter,
     type RouteBoundaryContract
 } from '@routesync/core';
@@ -61,7 +61,7 @@ describe('Route Boundary Contract & Factories SSOT Suite', () => {
     });
 
     it('2. Verifies createRouteFromControllerReference correctly produces frozen descriptor', () => {
-        const route = createRouteFromControllerReference(ScannedRouteDescriptor.create, {
+        const route = createRouteFromControllerReference(RouteSemanticFlowFactory.create, {
             method: HttpMethod.POST,
             path: '/api/v1/articles',
             controllerName: 'ArticleController',
@@ -81,7 +81,7 @@ describe('Route Boundary Contract & Factories SSOT Suite', () => {
     });
 
     it('3. Verifies createRouteFromClosure correctly handles closure actions and payload type', () => {
-        const route = createRouteFromClosure(ScannedRouteDescriptor.create, {
+        const route = createRouteFromClosure(RouteSemanticFlowFactory.create, {
             method: HttpMethod.GET,
             path: '/api/v1/health',
             actionName: 'healthCheck',
@@ -97,7 +97,7 @@ describe('Route Boundary Contract & Factories SSOT Suite', () => {
     });
 
     it('4. Verifies createSyntheticRoute creates frozen fixture with defaults', () => {
-        const synth = createSyntheticRoute(ScannedRouteDescriptor.create);
+        const synth = createSyntheticRoute(RouteSemanticFlowFactory.create);
 
         expect(synth.method).toBe('GET');
         expect(synth.path).toBe('/synthetic');

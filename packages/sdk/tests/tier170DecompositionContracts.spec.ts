@@ -257,10 +257,10 @@ describe('Tier 170-200 Active Consumer & Sub-Domain Decomposition Contracts', ()
         });
     });
 
-    describe('ScannedRouteDescriptor and RouteSemanticFactories Sub-domain', () => {
+    describe('RouteSemanticFlowFactory and RouteSemanticFactories Sub-domain', () => {
         it('creates synthetic and closure routes via semantic factories', async () => {
-            const { ScannedRouteDescriptor } = await import('@routesync/core/src/compiler/scanner/descriptors/route/ScannedRouteDescriptor');
-            const synth = ScannedRouteDescriptor.synthetic({
+            const { RouteSemanticFlowFactory } = await import('@routesync/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory');
+            const synth = RouteSemanticFlowFactory.synthetic({
                 path: '/test-synthetic',
                 resourceName: 'Item'
             });
@@ -269,7 +269,7 @@ describe('Tier 170-200 Active Consumer & Sub-Domain Decomposition Contracts', ()
             expect(synth.method).toBe('GET');
             expect(Object.isFrozen(synth)).toBe(true);
 
-            const closure = ScannedRouteDescriptor.fromClosure({
+            const closure = RouteSemanticFlowFactory.fromClosure({
                 method: 'POST',
                 path: '/api/closure-test',
                 actionName: 'testAction',

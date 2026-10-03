@@ -51,6 +51,8 @@ export type PhpStatement =
     | { readonly kind: 'if_statement'; readonly condition: PhpAstValue; readonly thenBlock: PhpBlock; readonly alternative: PhpIfAlternative; readonly source: TokenDescriptor }
     | { readonly kind: 'foreach_statement'; readonly iterable: PhpAstValue; readonly target: PhpForeachTarget; readonly body: PhpBlock; readonly source: TokenDescriptor }
     | { readonly kind: 'for_statement'; readonly initializer: PhpForClause; readonly condition: PhpForClause; readonly update: PhpForClause; readonly body: PhpBlock; readonly source: TokenDescriptor }
+    | { readonly kind: 'while_statement'; readonly condition: PhpAstValue; readonly body: PhpBlock; readonly source: TokenDescriptor }
+    | { readonly kind: 'switch_statement'; readonly subject: PhpAstValue; readonly cases: readonly PhpSwitchCase[]; readonly source: TokenDescriptor }
     | { readonly kind: 'try_statement'; readonly body: PhpBlock; readonly catches: readonly PhpCatchClause[]; readonly finallyBlock: PhpFinallyClause; readonly source: TokenDescriptor }
     | { readonly kind: 'throw_statement'; readonly expression: PhpAstValue; readonly source: TokenDescriptor }
     | { readonly kind: 'include_statement'; readonly includeKind: PhpIncludeKind; readonly expression: PhpAstValue; readonly source: TokenDescriptor };
@@ -62,6 +64,9 @@ export type PhpIncludeKind =
 export type PhpIfAlternative = { readonly kind: 'none' } | { readonly kind: 'else_block'; readonly block: PhpBlock } | { readonly kind: 'else_if'; readonly statement: Extract<PhpStatement, { kind: 'if_statement' }> };
 export type PhpForeachTarget = { readonly kind: 'value'; readonly variable: AstIdentifier } | { readonly kind: 'key_value'; readonly key: AstIdentifier; readonly value: AstIdentifier };
 export type PhpForClause = { readonly kind: 'empty' } | { readonly kind: 'expression'; readonly value: PhpAstValue } | { readonly kind: 'assignment'; readonly target: PhpAssignmentTarget; readonly operator: PhpAssignmentOperator; readonly reference: PhpAssignmentReference; readonly value: PhpAstValue; readonly source: TokenDescriptor };
+export type PhpSwitchCase =
+    | { readonly kind: 'case'; readonly labels: readonly PhpAstValue[]; readonly body: PhpBlock; readonly fallThrough: boolean; readonly source: TokenDescriptor }
+    | { readonly kind: 'default'; readonly body: PhpBlock; readonly fallThrough: boolean; readonly source: TokenDescriptor };
 export interface PhpCatchClause { readonly exceptionType: AstIdentifier; readonly variable: AstIdentifier; readonly body: PhpBlock; readonly source: TokenDescriptor; }
 export type PhpFinallyClause = { readonly kind: 'absent' } | { readonly kind: 'present'; readonly block: PhpBlock };
 export interface PhpBlock { readonly kind: 'block'; readonly statements: readonly PhpStatement[]; }

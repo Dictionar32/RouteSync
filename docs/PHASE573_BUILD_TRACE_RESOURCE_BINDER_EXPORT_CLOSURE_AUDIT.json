@@ -1,0 +1,18 @@
+{
+  "phase": 573,
+  "frontier": "build-dts-resource-binder-export-closure",
+  "changedFiles": [
+    "packages/core/src/compiler/scanner/binders/resource/index.ts"
+  ],
+  "closedExports": [
+    "bindBinaryField",
+    "bindNullCoalesceField"
+  ],
+  "implementationSources": [
+    "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts"
+  ],
+  "duplicateImplementationsAdded": false,
+  "compatibilityWrappersAdded": false,
+  "fullBuildExecuted": false,
+  "fullBuildBlocker": "checkpoint node_modules does not contain tsup; npm dependency bootstrap timed out"
+}

@@ -1,15 +1,17 @@
+import { relationNormalizeWhitespace, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
 /**
  * typeDeriverUtils.ts
  *
- * Centralized Domain Utilities for TypeDeriver Subsystem.
+ * Centralized Domain Utilities: TypeDeriver Subsystem.
  * Eliminates repetitive string heuristics and unifies domain name resolution.
  *
  * @module core/compiler/scanner/subscanners/typeDeriverUtils
  */
 
-import { ParsedRoute } from "../../../types/route";
+import { RouteSemanticFlow } from "../../../types/route";
 import { PrimitiveKind } from "../../types/SemanticType";
-import { ScannedRouteDescriptor } from "../descriptors/routeDescriptors";
+import { RouteSemanticFlowFactory } from "../descriptors/routeDescriptors";
 import type { DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName, RouteName } from "../../../types/upstream/names";
 
 /**
@@ -20,55 +22,48 @@ export function resolvePrimitiveKind(
     rawType: unknown,
     fallback: PrimitiveKind = PrimitiveKind.STRING
 ): PrimitiveKind {
-    if (rawType === undefined || rawType === null) {
-        return fallback;
-    }
+    const present = relationFirstOption(
+        [rawType],
+        value => !['[object Undefined]', '[object Null]'].includes(Object.prototype.toString.call(value)),
+    );
 
-    const typeStr = String(rawType).trim().toLowerCase();
-
-    if (typeStr === 'unknown') {
-        return PrimitiveKind.UNKNOWN;
-    }
-
-    if (
-        typeStr === 'number' ||
-        typeStr === 'int' ||
-        typeStr === 'integer' ||
-        typeStr === 'float' ||
-        typeStr === 'double' ||
-        typeStr === 'real' ||
-        typeStr.includes('int') ||
-        typeStr.includes('decimal') ||
-        typeStr.includes('float') ||
-        typeStr.includes('numeric') ||
-        typeStr.includes('digits')
-    ) {
-        return PrimitiveKind.NUMBER;
-    }
-
-    if (
-        typeStr === 'boolean' ||
-        typeStr === 'bool' ||
-        typeStr.includes('accepted') ||
-        typeStr.includes('declined')
-    ) {
-        return PrimitiveKind.BOOLEAN;
-    }
-
-    if (
-        typeStr === 'datetime' ||
-        typeStr === 'date' ||
-        typeStr === 'timestamp'
-    ) {
-        return PrimitiveKind.DATETIME;
-    }
-
-    if (typeStr === 'file' || typeStr === 'image') {
-        return PrimitiveKind.FILE;
-    }
-
-    return fallback;
+    return relationOptionFold(
+        present,
+        () => fallback,
+        value => resolvePrimitiveKindFromText(relationNormalizeWhitespace(String(value)).toLowerCase(), fallback),
+    );
 }
+
+const resolvePrimitiveKindFromText = (
+    typeStr: string,
+    fallback: PrimitiveKind,
+): PrimitiveKind => {
+    const candidates: readonly { readonly matches: boolean; readonly kind: PrimitiveKind }[] = [
+        { matches: relationEqual(typeStr, 'unknown'), kind: PrimitiveKind.INDETERMINATE },
+        {
+            matches: relationAny([
+                ['number', 'int', 'integer', 'float', 'double', 'real'].includes(typeStr),
+                ['int', 'decimal', 'float', 'numeric', 'digits'].some(fragment => typeStr.includes(fragment)),
+            ]),
+            kind: PrimitiveKind.NUMBER,
+        },
+        {
+            matches: relationAny([
+                ['boolean', 'bool'].includes(typeStr),
+                ['accepted', 'declined'].some(fragment => typeStr.includes(fragment)),
+            ]),
+            kind: PrimitiveKind.BOOLEAN,
+        },
+        { matches: ['datetime', 'date', 'timestamp'].includes(typeStr), kind: PrimitiveKind.DATETIME },
+        { matches: ['file', 'image'].includes(typeStr), kind: PrimitiveKind.FILE },
+    ];
+
+    return relationOptionFold(
+        relationFirstOption(candidates, candidate => candidate.matches),
+        () => fallback,
+        candidate => candidate.kind,
+    );
+};
 
 export type RouteDomainInput = {
     readonly domain: DomainTypeName;
@@ -80,10 +75,14 @@ export type RouteDomainInput = {
 };
 
 /**
- * Authoritative resolution of resource/domain name for a route.
+ * Authoritative resolution of resource/domain name within a route.
  * Canonical SSOT is pre-resolved on route.domain at Origin Boundary.
  */
 export function resolveRouteDomain(route: RouteDomainInput): DomainTypeName {
-    return route.domain || ScannedRouteDescriptor.resolveDomain(route);
+    return relationOptionFold(
+        relationFirstOption([route.domain, RouteSemanticFlowFactory.resolveDomain(route)], value => Boolean(value)),
+        () => RouteSemanticFlowFactory.resolveDomain(route),
+        value => value,
+    );
 }
 

@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteManifestDescriptor,
   ScannedEndpointContract,
   createEndpointContract,
   getRouteContract,
   getManifestContractMap,
   RouteManifest,
-  ParsedRoute,
+  RouteSemanticFlow,
   HttpMethod,
   CrudRole,
   RouteHookKind,
@@ -18,7 +18,7 @@ import { SDKGenerator } from '@routesync/cli/src/generators/SDKGenerator'
 import { HookGenerator } from '@routesync/cli/src/generators/HookGenerator'
 
 describe('Pure Contract-Driven Architecture (CDA) SSOT Suite', () => {
-  const sampleRoute = ScannedRouteDescriptor.create({
+  const sampleRoute = RouteSemanticFlowFactory.create({
     method: 'GET',
     path: '/api/v1/orders',
     resourceName: 'Order',
@@ -26,7 +26,7 @@ describe('Pure Contract-Driven Architecture (CDA) SSOT Suite', () => {
     actionName: 'index'
   })
 
-  const sampleMutateRoute = ScannedRouteDescriptor.create({
+  const sampleMutateRoute = RouteSemanticFlowFactory.create({
     method: 'POST',
     path: '/api/v1/orders',
     resourceName: 'Order',
@@ -85,7 +85,7 @@ describe('Pure Contract-Driven Architecture (CDA) SSOT Suite', () => {
       path: '/api/v1/health',
       resourceName: 'Health',
       actionName: 'check'
-    } as unknown as ParsedRoute
+    } as unknown as RouteSemanticFlow
 
     const contract = getRouteContract(looseRoute)
     expect(contract).toBeDefined()

@@ -1,12 +1,12 @@
 /**
  * actionDeriver.ts
  *
- * Derives FormAction descriptors and actions from ParsedRoute.
+ * Derives FormAction descriptors and actions from RouteSemanticFlow.
  *
  * @module core/compiler/scanner/subscanners/request-deriver
  */
 
-import { ParsedRoute, matchRouteActionKind } from "../../../../types/route";
+import { RouteSemanticFlow, matchRouteActionKind } from "../../../../types/route";
 import { FormActionName, type FormAction, type RequestField } from "../../../../types/domain/request";
 import type { Option } from "../../../../types/upstream/collections";
 import { ScannedFormActionDescriptor } from "../../descriptors/requestDescriptors";
@@ -14,13 +14,13 @@ import { ScannedFormActionDescriptor } from "../../descriptors/requestDescriptor
 export interface DerivedActionInfo {
     readonly formActionName: Option<FormActionName>;
     readonly actionObj: readonly FormAction[];
-    readonly fields: RequestField[];
+    readonly fields: readonly RequestField[];
 }
 
-export function deriveRouteAction(route: ParsedRoute): DerivedActionInfo {
+export function deriveRouteAction(route: RouteSemanticFlow): DerivedActionInfo {
     const actionKind = route.capability.actionKind;
 
-    const fields: RequestField[] = [...route.binding.schema.fields];
+    const fields: readonly RequestField[] = Object.freeze([...route.binding.schema.fields]);
 
     const formActionName: Option<FormActionName> = matchRouteActionKind(actionKind, {
         create: () => ({ kind: 'some', value: FormActionName.Create }),
@@ -30,8 +30,8 @@ export function deriveRouteAction(route: ParsedRoute): DerivedActionInfo {
     });
 
     const actionObj: readonly FormAction[] = matchRouteActionKind(actionKind, {
-        create: () => [new ScannedFormActionDescriptor({ name: FormActionName.Create, fields })],
-        update: () => [new ScannedFormActionDescriptor({ name: FormActionName.Update, fields })],
+        create: () => [ScannedFormActionDescriptor.create({ name: FormActionName.Create, fields })],
+        update: () => [ScannedFormActionDescriptor.create({ name: FormActionName.Update, fields })],
         read: () => [],
         delete: () => []
     });

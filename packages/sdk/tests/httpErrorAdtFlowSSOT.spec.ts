@@ -7,7 +7,7 @@ import {
   matchHttpError,
   HttpStatusCode,
   ScannedHttpErrorResponseDescriptor,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   CrudRole,
   RouteHookKind,
   ResourceResponseDescriptor,
@@ -116,7 +116,7 @@ describe('HTTP Error ADT Flow SSOT (Zero-if Error Catamorphism Suite)', () => {
   })
 
   it('5. HookGenerator should emit typed error slot when error responses are present in route contract', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       name: 'orders.store',
       method: 'POST',
       path: '/api/orders',

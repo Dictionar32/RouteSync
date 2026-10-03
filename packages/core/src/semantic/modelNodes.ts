@@ -11,6 +11,8 @@ import type { SemanticResolution } from '../types/domain/semanticResolution';
 import type { FieldNode } from '../types/field';
 import type { VariableName } from '../types/domain/semanticValues';
 import type { Lookup } from '../types/upstream/collections';
+import { relationFirst, relationOptionFold } from './kernel/relationalSequence';
+import { relationEqual } from './kernel/semanticRelations';
 
 export type ModelColumn = ParsedColumn;
 export type ModelColumnContract = ParsedColumn;
@@ -32,25 +34,22 @@ export interface ModelAssignmentBinding {
 }
 
 /** Typed assignment lookup. Consumers do not inspect string-keyed bags. */
-export class ModelAssignmentIndex {
-    private readonly lookup: ReadonlyMap<VariableName, ModelAssignmentBinding>;
-
-    constructor(assignments: readonly ModelAssignmentBinding[]) {
-        const lookup = new Map<VariableName, ModelAssignmentBinding>();
-        for (const assignment of assignments) lookup.set(assignment.name, assignment);
-        this.lookup = lookup;
-        Object.freeze(this);
-    }
-
-    public lookupBinding(name: VariableName): Lookup<ModelAssignmentBinding> {
-        const value = this.lookup.get(name);
-        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-    }
-
-    public get size(): number {
-        return this.lookup.size;
-    }
+export interface ModelAssignmentIndex {
+    readonly lookupBinding: (name: VariableName) => Lookup<ModelAssignmentBinding>;
+    readonly size: number;
 }
+
+export const createModelAssignmentIndex = (assignments: readonly ModelAssignmentBinding[]): ModelAssignmentIndex => {
+    const bindings = Object.freeze([...assignments]);
+    return Object.freeze({
+        lookupBinding: (name: VariableName): Lookup<ModelAssignmentBinding> => relationOptionFold(
+            relationFirst(bindings, binding => relationEqual(binding.name, name)),
+            () => ({ kind: 'missing' }),
+            binding => ({ kind: 'found', value: binding }),
+        ),
+        get size(): number { return bindings.length; },
+    });
+};
 
 export interface ModelResolutionState {
     readonly assignments: readonly ModelAssignmentBinding[];
@@ -59,7 +58,7 @@ export interface ModelResolutionState {
 
 export const EMPTY_MODEL_RESOLUTION_STATE: ModelResolutionState = Object.freeze({
     assignments: Object.freeze([]),
-    assignmentIndex: new ModelAssignmentIndex([]),
+    assignmentIndex: createModelAssignmentIndex([]),
 });
 
 export interface ModelNode extends ModelAst, ModelResolutionState {}
@@ -76,6 +75,6 @@ export function verifyModelNode(input: ModelNodeInput): ModelNode {
     return Object.freeze({
         ...input.model,
         assignments,
-        assignmentIndex: new ModelAssignmentIndex(assignments),
+        assignmentIndex: createModelAssignmentIndex(assignments),
     });
 }

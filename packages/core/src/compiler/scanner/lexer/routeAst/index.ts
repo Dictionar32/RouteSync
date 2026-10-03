@@ -12,3 +12,37 @@ export {
   createRoutePrefixAst
 } from './routeDeclarationAst';
 export { parseRouteDeclarations } from './routeDeclarationParser';
+
+export * from './semanticKnowledgeDataFlowRelations';
+export * from './semanticKnowledgeEvidenceAdapter';
+export * from './semanticKnowledgeDataFlowProducer';
+export { phpAstSemanticKnowledgeEvidenceAdapter } from './semanticKnowledgeDataFlowProducer';
+
+export * from './semanticDataFlowAnalyzer';
+export * from './semanticStateDataFlow';
+export * from './semanticVersionedStateDataFlowRelations';
+export * from './semanticInterproceduralDataFlowRelations';
+
+
+
+
+export * from './semanticObjectIdentityRelations';
+
+
+
+export * from './semanticConstraintCalculus';
+export * from './semanticRewriteEngine';
+export * from './semanticRelationalBehaviorKernel';
+export * from './semanticRelationTheory';
+
+export * from './semanticCanonicalRelationProjection';
+export * from './semanticEvidenceRelationCompiler';
+
+export * from './semanticClosureEngine';
+export * from './semanticCompilationArtifact';
+
+export * from './semanticTypedRelation';
+export * from './semanticRelationalExecutionPlan';
+export * from './syntaxRelationProgram';
+export * from './syntaxErrorRelationCore';
+export * from './semanticConstraintHandlingRules';

@@ -8,7 +8,7 @@ import {
   ParentDetailInvalidationTarget,
   AuthResourceInvalidationTarget,
   ScannedInvalidationTarget,
-  ScannedRouteCacheInvalidationDescriptor
+  RouteSemanticFlowCacheInvalidationDescriptor
 } from '../../core/src'
 
 describe('InvalidationTarget ADT Flow SSOT (Zero-if Catamorphism Suite)', () => {
@@ -108,8 +108,8 @@ describe('InvalidationTarget ADT Flow SSOT (Zero-if Catamorphism Suite)', () => 
     expect(resItem.kind).toBe(InvalidationTargetKind.ParentDetail)
   })
 
-  test('7. ScannedRouteCacheInvalidationDescriptor aggregates targets into queryKeyExpressions', () => {
-    const invalidation = ScannedRouteCacheInvalidationDescriptor.fromTargets([
+  test('7. RouteSemanticFlowCacheInvalidationDescriptor aggregates targets into queryKeyExpressions', () => {
+    const invalidation = RouteSemanticFlowCacheInvalidationDescriptor.fromTargets([
       ScannedInvalidationTarget.selfList('orders'),
       ScannedInvalidationTarget.parentList('users')
     ])

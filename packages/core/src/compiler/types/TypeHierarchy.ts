@@ -6,7 +6,8 @@
  * to determine subtyping relationships between reference types.
  */
 
-import { SemanticType } from './SemanticType';
+import type { SemanticType } from './SemanticType';
+import type { Presence } from '../../types/upstream/presence';
 
 /**
  * Type hierarchy interface.
@@ -19,7 +20,7 @@ import { SemanticType } from './SemanticType';
  * class ModelHierarchy implements TypeHierarchy {
  *   getParent(type: SemanticType): SemanticType | undefined {
  *     if (type.kind === 'reference' && type.name === 'Admin') {
- *       return new ReferenceType('App\\Models', 'User');
+ *       return ReferenceType('App\\Models', 'User');
  *     }
  *     return undefined;
  *   }
@@ -30,11 +31,11 @@ export interface TypeHierarchy {
     /**
      * Get the parent type of a given type.
      * 
-     * Returns undefined if the type has no parent (top of hierarchy).
+     * Returns an explicit absent relation if the type has no parent (top of hierarchy).
      * Used for subtyping checks in TypeSystem.
      * 
      * @param type - Type to query
      * @returns Parent type or undefined
      */
-    getParent(type: SemanticType): SemanticType | undefined;
+    getParent(type: SemanticType): Presence<SemanticType>;
 }

@@ -1,63 +1,42 @@
 /**
- * mapperAssembler.ts
- *
- * Assembles generated read/form mapper blocks and imports into final code and compiler artifacts.
- *
- * @module compiler/passes/mapper/mapperAssembler
+ * Relation-oriented mapper artifact assembly.
  */
-
 import type { GeneratedMapperArtifact } from '../../artifacts/GeneratedMapperArtifact';
 import { computeFingerprintHash, type CompilerFingerprint } from '../../fingerprint/Fingerprint';
 import type { CollectedMapperParts } from './resourceRegistry';
+import { relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
 
-/**
- * Assembles final TypeScript source code for mappers/api-mapper.ts.
- */
+const importBlock = (names: readonly string[], modulePath: string): string => relationResolve(
+    relationEqual(names.length, 0),
+    () => '',
+    () => `import type {\n  ${[...names].sort().join(',\n  ')}\n} from '${modulePath}';\n\n`,
+);
+
+const sectionBlock = (title: string, blocks: readonly string[]): string => relationResolve(
+    relationEqual(blocks.length, 0),
+    () => '',
+    () => `// ========== ${title} ==========\n${blocks.join('\n\n')}\n\n`,
+);
+
 export function assembleMapperCode(parts: CollectedMapperParts): string {
-    const imports: string[] = [];
-
-    if (parts.hasApiField) {
-        imports.push(`import { ApiApiField } from '../contracts/api-field';`);
-    }
-
-    if (parts.contractImports.size > 0) {
-        const sortedContractImports = Array.from(parts.contractImports).sort();
-        imports.push(
-            `import type {\n  ${sortedContractImports.join(',\n  ')}\n} from '../contracts/api-contract';`
-        );
-    }
-
-    if (parts.formTypeImports.size > 0) {
-        const sortedFormTypeImports = Array.from(parts.formTypeImports).sort();
-        imports.push(
-            `import type {\n  ${sortedFormTypeImports.join(',\n  ')}\n} from '../forms/api-form';`
-        );
-    }
-
-    if (parts.readTypeImports.size > 0) {
-        const sortedReadTypeImports = Array.from(parts.readTypeImports).sort();
-        imports.push(
-            `import type {\n  ${sortedReadTypeImports.join(',\n  ')}\n} from '../types/api-read';`
-        );
-    }
-
-    const sections: string[] = [];
-
-    if (parts.readMapperBlocks.length > 0) {
-        sections.push('// ========== READ MAPPERS ==========\n' + parts.readMapperBlocks.join('\n\n'));
-    }
-
-    if (parts.formMapperBlocks.length > 0) {
-        sections.push('// ========== FORM MAPPERS ==========\n' + parts.formMapperBlocks.join('\n\n'));
-    }
-
-    const header = imports.length > 0 ? imports.join('\n\n') + '\n\n' : '';
-    return header + sections.join('\n\n') + (sections.length > 0 ? '\n' : '');
+    const apiFieldImport = relationResolve(
+        relationEqual(parts.hasApiField, true),
+        () => "import { ApiApiField } from '../contracts/api-field';\n\n",
+        () => '',
+    );
+    const imports = [
+        apiFieldImport,
+        importBlock(parts.contractImports, '../contracts/api-contract'),
+        importBlock(parts.formTypeImports, '../forms/api-form'),
+        importBlock(parts.readTypeImports, '../types/api-read'),
+    ].join('');
+    const sections = [
+        sectionBlock('READ MAPPERS', parts.readMapperBlocks),
+        sectionBlock('FORM MAPPERS', parts.formMapperBlocks),
+    ].join('');
+    return `${imports}${sections}`;
 }
 
-/**
- * Wraps generated mapper source code into a GeneratedMapperArtifact.
- */
 export function buildMapperArtifact(code: string, producerName: string): GeneratedMapperArtifact {
     const fingerprint: CompilerFingerprint = {
         compilerVersion: '1.0.0',
@@ -66,9 +45,8 @@ export function buildMapperArtifact(code: string, producerName: string): Generat
         frameworkVersion: '10.0.0',
         targetBackend: 'typescript',
         strictMode: false,
-        featureFlags: new Map()
+        featureFlags: Object.freeze([]),
     };
-
     return {
         typeId: 'GeneratedMapper',
         metadata: {
@@ -76,15 +54,10 @@ export function buildMapperArtifact(code: string, producerName: string): Generat
             producer: producerName,
             dependencies: ['RequestTypes'],
             timestamp: Date.now(),
-            revision: '1.0.0'
+            revision: '1.0.0',
         },
-        code
+        code,
     };
 }
 
-/**
- * Builds an empty GeneratedMapperArtifact.
- */
-export function buildEmptyMapperArtifact(producerName: string): GeneratedMapperArtifact {
-    return buildMapperArtifact('', producerName);
-}
+export const buildEmptyMapperArtifact = (producerName: string): GeneratedMapperArtifact => buildMapperArtifact('', producerName);

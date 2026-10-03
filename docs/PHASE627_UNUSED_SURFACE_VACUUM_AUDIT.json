@@ -1,0 +1,17 @@
+{
+  "phase": 627,
+  "policy": "preserve-unused-file-paths-but-empty-implementation",
+  "deleted_files": 0,
+  "emptied_files": 3,
+  "all_emptied_files_zero_bytes": true,
+  "production_import_path_references": {
+    "routeResource": 0,
+    "routeSemanticFlow": 0,
+    "routeResourceMode": 0
+  },
+  "files": [
+    "packages/core/src/types/upstream/routeResource.ts",
+    "packages/core/src/types/upstream/routeSemanticFlow.ts",
+    "packages/core/src/types/upstream/routeResourceMode.ts"
+  ]
+}

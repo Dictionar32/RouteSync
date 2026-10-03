@@ -7,8 +7,10 @@ import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { TypeExpression } from '../../../types/upstream/typeVocabulary';
 import type { ControllerDeclarationAst, ControllerMethodAst } from '../lexer/controllerAstTypes';
 import type { PhpParameterTypeAst } from '../lexer/phpMethodAstTypes';
-import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
-import { mapClosureBody } from './resource/resourceUpstreamExpressionClosure';
+import { expressionFromPhpAst } from './expressionProducer';
+import { resolveClosureBody } from './resource/resourceUpstreamExpressionClosure';
+import { relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationFoldRight, relationGate, relationFirst, relationOptionFold, relationProject } from '../../../semantic/kernel/relationalSequence';
 
 /**
  * Syntax and provenance required to produce the canonical attribute AST.
@@ -20,6 +22,7 @@ import { mapClosureBody } from './resource/resourceUpstreamExpressionClosure';
 export type AttributeProducerInput = {
   readonly declaration: ControllerDeclarationAst;
   readonly source: SourceSpan;
+  readonly contextual?: boolean;
 };
 
 export interface AttributeProducer {
@@ -27,7 +30,7 @@ export interface AttributeProducer {
 }
 
 const sequence = <T>(items: readonly T[]): Sequence<T> =>
-  items.reduceRight<Sequence<T>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
+  relationFoldRight(items, { kind: 'empty' } as Sequence<T>, (head, tail) => ({ kind: 'cons', head, tail }));
 
 const sourceAtLine = (source: SourceSpan, line: number): SourceSpan => ({
   kind: 'source_span',
@@ -36,21 +39,34 @@ const sourceAtLine = (source: SourceSpan, line: number): SourceSpan => ({
   end: { kind: 'number_value', value: line },
 });
 
-const parameterType = (type: PhpParameterTypeAst): TypeExpression => {
-  switch (type.kind) {
-    case 'primitive':
-      switch (type.name) {
-        case 'bool': return { kind: 'primitive', value: { kind: 'boolean' } };
-        case 'string': return { kind: 'primitive', value: { kind: 'string' } };
-        case 'int':
-        case 'float': return { kind: 'primitive', value: { kind: 'number' } };
-        case 'mixed': return { kind: 'mixed' };
-        case 'array': return { kind: 'primitive', value: { kind: 'unspecified' } };
-      }
-    case 'named': return { kind: 'reference', value: { kind: 'class', name: createClassName(type.name) } };
-    case 'nullable': return { kind: 'nullable', value: parameterType(type.inner) };
-  }
-};
+const primitiveParameterTypes: readonly (readonly [string, TypeExpression])[] = Object.freeze([
+  ['bool', { kind: 'primitive', value: { kind: 'boolean' } }],
+  ['string', { kind: 'primitive', value: { kind: 'string' } }],
+  ['int', { kind: 'primitive', value: { kind: 'number' } }],
+  ['float', { kind: 'primitive', value: { kind: 'number' } }],
+  ['mixed', { kind: 'mixed' }],
+  ['array', { kind: 'primitive', value: { kind: 'unspecified' } }],
+]);
+
+const parameterType = (type: PhpParameterTypeAst): TypeExpression =>
+  relationGate(relationEqual(type.kind, 'primitive'),
+    () => {
+      const primitive = type as Extract<PhpParameterTypeAst, { readonly kind: 'primitive' }>;
+      return relationOptionFold(
+        relationFirst(primitiveParameterTypes, entry => relationEqual(entry[0], primitive.name)),
+        () => ({ kind: 'mixed' }),
+        entry => entry[1],
+      );
+    },
+    () => relationGate(relationEqual(type.kind, 'named'),
+      () => {
+        const named = type as Extract<PhpParameterTypeAst, { readonly kind: 'named' }>;
+        return { kind: 'reference', value: { kind: 'class', name: createClassName(named.name) } };
+      },
+      () => {
+        const nullable = type as Extract<PhpParameterTypeAst, { readonly kind: 'nullable' }>;
+        return { kind: 'nullable', value: parameterType(nullable.inner) };
+      }));
 
 const closureParameter = (methodParameter: ControllerMethodAst['parameters'][number], file: string): ClosureParameter => ({
   kind: 'closure_parameter',
@@ -58,9 +74,9 @@ const closureParameter = (methodParameter: ControllerMethodAst['parameters'][num
   type: { kind: 'present', value: parameterType(methodParameter.type) },
   passing: { kind: 'by_value' },
   variadic: { kind: 'fixed' },
-  defaultValue: methodParameter.defaultValue.kind === 'absent'
-    ? { kind: 'absent' }
-    : { kind: 'present', value: mapResourcePhpAstToUpstream(methodParameter.defaultValue.value, file) },
+  defaultValue: relationGate(relationEqual(methodParameter.defaultValue.kind, 'absent'),
+    () => ({ kind: 'absent' }),
+    () => ({ kind: 'present', value: expressionFromPhpAst(methodParameter.defaultValue.value, file) })),
 });
 
 const constructorExpression = (method: ControllerMethodAst, source: SourceSpan): Expression => {
@@ -71,13 +87,13 @@ const constructorExpression = (method: ControllerMethodAst, source: SourceSpan):
       kind: 'closure',
       parameters: {
         kind: 'closure_parameters',
-        items: sequence(method.parameters.map(parameter => closureParameter(parameter, source.file.value.value))),
+        items: sequence(relationProject(method.parameters, parameter => closureParameter(parameter, source.file.value.value))),
       },
       captures: { kind: 'closure_captures', items: { kind: 'empty' } },
-      returnType: method.declaredReturnType.kind === 'absent'
-        ? { kind: 'absent' }
-        : { kind: 'present', value: parameterType(method.declaredReturnType.type) },
-      body: mapClosureBody(method.body.statements, source.file.value.value, mapResourcePhpAstToUpstream),
+      returnType: relationGate(relationEqual(method.declaredReturnType.kind, 'absent'),
+        () => ({ kind: 'absent' }),
+        () => ({ kind: 'present', value: parameterType(method.declaredReturnType.type) })),
+      body: resolveClosureBody(method.body.statements, source.file.value.value, expressionFromPhpAst),
       source: methodSource,
     },
     source: methodSource,
@@ -86,21 +102,24 @@ const constructorExpression = (method: ControllerMethodAst, source: SourceSpan):
 
 export const attributeProducer: AttributeProducer = {
   produce(input): AttributeAst {
-    const constructor = input.declaration.methods.find(method => method.name === '__construct');
-    if (!constructor) throw new Error(`Attribute constructor not found: ${input.source.file.value.value}`);
-
-    const definition: AttributeDefinition = {
+    const constructor = relationFirst(input.declaration.methods, method => relationEqual(method.name, '__construct'));
+    return relationOptionFold(constructor,
+      () => { throw Error(`Attribute constructor not found: ${input.source.file.value.value}`); },
+      constructorMethod => {
+        const definition: AttributeDefinition = {
       kind: 'attribute',
       name: createClassName(input.declaration.className),
       file: input.source.file,
-      constructor: constructorExpression(constructor, input.source),
+      constructor: constructorExpression(constructorMethod, input.source),
+      contextual: relationEqual(input.contextual, true),
       source: input.source,
     };
 
-    return {
-      kind: 'attribute_ast',
-      definition,
-      source: input.source,
-    };
+        return {
+          kind: 'attribute_ast',
+          definition,
+          source: input.source,
+        };
+      });
   },
 };

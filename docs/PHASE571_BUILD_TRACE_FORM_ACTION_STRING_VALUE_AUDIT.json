@@ -1,0 +1,14 @@
+{
+  "phase": 571,
+  "frontier": "build-trace-form-action-string-value",
+  "source": "build(7).log",
+  "esmCjsBuild": "clean",
+  "dtsFailure": "FormActionGenerator.ts(72,32): StringValue is not assignable to string",
+  "fix": "project ResourceName.value through StringValue.value",
+  "filesChanged": [
+    "packages/core/src/compiler/generators/form-generation/FormActionGenerator.ts"
+  ],
+  "preventiveFix": "resourceCollection projection corrected for the same nested value-object shape",
+  "fullBuildRerun": false,
+  "fullBuildRerunReason": "phase workspace has no node_modules/toolchain; verification is source-level"
+}

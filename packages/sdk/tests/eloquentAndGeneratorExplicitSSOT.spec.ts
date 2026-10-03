@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   ScannedModelDescriptor,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   RouteParameterType,
   PrimitiveKind,
   BroadcastChannelKind,
@@ -29,8 +29,8 @@ const createMockManifest = (overrides: Partial<RouteManifest> = {}): RouteManife
 })
 
 describe('Eloquent & Generator Audited Explicit SSOT', () => {
-  it('1. ScannedRouteDescriptor should parse Laravel custom route model binding {post:slug}', () => {
-    const route = ScannedRouteDescriptor.create({
+  it('1. RouteSemanticFlowFactory should parse Laravel custom route model binding {post:slug}', () => {
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/posts/{post:slug}',
       resourceName: 'PostResource',
@@ -134,7 +134,7 @@ describe('Eloquent & Generator Audited Explicit SSOT', () => {
   it('5. MswGenerator should consume route.runtimePath without regex replacement', async () => {
     const manifest = createMockManifest({
       routes: [
-        ScannedRouteDescriptor.fromSparse({
+        RouteSemanticFlowFactory.fromSparse({
           method: 'GET',
           path: '/posts/{post}',
           runtimePath: '/posts/:post',

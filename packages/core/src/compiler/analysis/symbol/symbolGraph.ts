@@ -1,47 +1,36 @@
-/**
- * symbolGraph.ts
- *
- * Reference tracking and dependency graph between program symbols.
- *
- * @module compiler/analysis/symbol
- */
+/** Relation-native symbol reference graph. */
+import { relationIndexAdd, relationIndexLookup, type RelationIndex, relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationFold, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/relationFoundation';
+import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
 
-export class SymbolReferenceGraph {
-    private readonly referenceGraph = new Map<string, Set<string>>();
-
-    public addReference(fromId: string, toId: string): void {
-        const refs = this.referenceGraph.get(fromId) ?? new Set();
-        refs.add(toId);
-        this.referenceGraph.set(fromId, refs);
-    }
-
-    public getReferences(fromId: string): ReadonlySet<string> {
-        return this.referenceGraph.get(fromId) ?? new Set();
-    }
-
-    public findReferencingSymbols(symbolId: string): ReadonlySet<string> {
-        const referencers = new Set<string>();
-        for (const [fromId, refs] of this.referenceGraph) {
-            if (refs.has(symbolId)) {
-                referencers.add(fromId);
-            }
-        }
-        return referencers;
-    }
-
-    public isUnused(symbolId: string): boolean {
-        return this.findReferencingSymbols(symbolId).size === 0;
-    }
-
-    public clear(): void {
-        this.referenceGraph.clear();
-    }
-
-    public countTotalReferences(): number {
-        let total = 0;
-        for (const refs of this.referenceGraph.values()) {
-            total += refs.size;
-        }
-        return total;
-    }
+export interface SymbolReferenceGraph {
+    readonly addReference: (fromId: string, toId: string) => void;
+    readonly getReferences: (fromId: string) => RelationOption<readonly string[]>;
+    readonly findReferencingSymbols: (symbolId: string) => readonly string[];
+    readonly isUnused: (symbolId: string) => boolean;
+    readonly clear: () => void;
+    readonly countTotalReferences: () => number;
 }
+
+export const createSymbolReferenceGraph = (): SymbolReferenceGraph => {
+    let referenceGraph: RelationIndex<string, readonly string[]> = Object.freeze([]);
+    const getReferences = (fromId: string): RelationOption<readonly string[]> => relationIndexLookup(referenceGraph, fromId);
+    const addReference = (fromId: string, toId: string): void => {
+        const refs = relationOptionFold(getReferences(fromId), () => [], value => value);
+        referenceGraph = relationIndexAdd(referenceGraph, fromId, relationInsert(refs, toId));
+    };
+    const findReferencingSymbols = (symbolId: string): readonly string[] => relationFold(
+        referenceGraph,
+        Object.freeze([] as readonly string[]),
+        (referencers, entry) => relationResolve(relationContains(entry[1], symbolId), () => [...referencers, entry[0]], () => referencers),
+    );
+    return {
+        addReference,
+        getReferences,
+        findReferencingSymbols,
+        isUnused: symbolId => relationEqual(findReferencingSymbols(symbolId).length, 0),
+        clear: () => { referenceGraph = Object.freeze([]); },
+        countTotalReferences: () => relationFold(referenceGraph, 0, (total, entry) => total + entry[1].length),
+    };
+};

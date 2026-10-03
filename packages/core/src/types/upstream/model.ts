@@ -8,8 +8,11 @@ import type { SourceSpan } from './provenance';
 import type { ModelAccessors, ModelCasts, ModelConstants, ModelMethods, ModelRelations, ModelTraits, Properties, PropertyNames, Columns, ForeignKeys, Lookup, Sequence, ModelColumnFacts } from './collections';
 
 import type { ModelAccessorComputation, ModelAccessorResult, ModelAccessorVisibility, ModelConfigurationVisibility, EloquentRelationCardinality } from './modelVocabulary';
+export type { EloquentRelationCardinality } from './modelVocabulary';
 import type { SourceStatements } from './sourceStatements';
 import type { DatabaseType } from './databaseVocabulary';
+import { relationIndexLookup, type RelationIndex } from '../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationProject } from '../../semantic/kernel/relationalSequence';
 
 export type ModelTable =
   | { readonly kind: 'conventional'; readonly name: TableName }
@@ -115,60 +118,50 @@ export type ModelSemanticSurface = {
   readonly relationsByName: ModelSemanticRelationIndex;
 };
 
-export class ModelSemanticPropertyIndex {
-  private readonly lookupMap: ReadonlyMap<PropertyName, ModelSemanticProperty>;
+export type ModelSemanticPropertyIndex = RelationIndex<PropertyName, ModelSemanticProperty>;
 
-  constructor(properties: readonly ModelSemanticProperty[]) {
-    const lookup = new Map<PropertyName, ModelSemanticProperty>();
-    for (const property of properties) lookup.set(property.property, property);
-    this.lookupMap = lookup;
-    Object.freeze(this);
-  }
+export const modelSemanticPropertyIndexFrom = (
+  properties: readonly ModelSemanticProperty[],
+): ModelSemanticPropertyIndex => Object.freeze(relationProject(properties, property => [property.property, property] as const));
 
-  public lookup(property: PropertyName): Lookup<ModelSemanticProperty> {
-    const entry = this.lookupMap.get(property);
-    return entry === undefined ? { kind: 'missing' } : { kind: 'found', value: entry };
-  }
+export const modelSemanticPropertyLookup = (
+  index: ModelSemanticPropertyIndex,
+  property: PropertyName,
+): Lookup<ModelSemanticProperty> => relationOptionFold(
+  relationIndexLookup(index, property),
+  () => ({ kind: 'missing' as const }),
+  value => ({ kind: 'found' as const, value }),
+);
 
-  public has(property: PropertyName): boolean { return this.lookupMap.has(property); }
+export const modelSemanticPropertyHas = (
+  index: ModelSemanticPropertyIndex,
+  property: PropertyName,
+): boolean => relationOptionFold(
+  relationIndexLookup(index, property),
+  () => false,
+  () => true,
+);
 
-  public column(property: PropertyName): Lookup<ModelSemanticColumn> {
-    const entry = this.lookup(property);
-    if (entry.kind === 'missing') return entry;
-    return entry.value.kind === 'column' ? { kind: 'found', value: entry.value } : { kind: 'missing' };
-  }
-
-  public access(property: PropertyName): Lookup<ModelPropertyAccessFact> {
-    const entry = this.lookup(property);
-    if (entry.kind === 'missing') return entry;
-    if (entry.value.kind === 'relation') return { kind: 'found', value: { kind: 'relation', property: entry.value } };
-    return { kind: 'found', value: { kind: 'scalar', property: entry.value } };
-  }
-
-  public get size(): number { return this.lookupMap.size; }
-}
 
 export type ModelPropertyAccessFact =
   | { readonly kind: 'scalar'; readonly property: ModelSemanticColumn | ModelSemanticAccessor }
   | { readonly kind: 'relation'; readonly property: ModelSemanticRelation };
 
-export class ModelSemanticRelationIndex {
-  private readonly lookupMap: ReadonlyMap<RelationName, ModelSemanticRelation>;
+export type ModelSemanticRelationIndex = RelationIndex<RelationName, ModelSemanticRelation>;
 
-  constructor(relations: readonly ModelSemanticRelation[]) {
-    const lookup = new Map<RelationName, ModelSemanticRelation>();
-    for (const relation of relations) lookup.set(relation.relation, relation);
-    this.lookupMap = lookup;
-    Object.freeze(this);
-  }
+export const modelSemanticRelationIndexFrom = (
+  relations: readonly ModelSemanticRelation[],
+): ModelSemanticRelationIndex => Object.freeze(relationProject(relations, relation => [relation.relation, relation] as const));
 
-  public lookup(relation: RelationName): Lookup<ModelSemanticRelation> {
-    const entry = this.lookupMap.get(relation);
-    return entry === undefined ? { kind: 'missing' } : { kind: 'found', value: entry };
-  }
+export const modelSemanticRelationLookup = (
+  index: ModelSemanticRelationIndex,
+  relation: RelationName,
+): Lookup<ModelSemanticRelation> => relationOptionFold(
+  relationIndexLookup(index, relation),
+  () => ({ kind: 'missing' as const }),
+  value => ({ kind: 'found' as const, value }),
+);
 
-  public get size(): number { return this.lookupMap.size; }
-}
 
 export type ModelSemanticDefinition = {
   readonly inheritance: ModelInheritance;
@@ -305,4 +298,6 @@ export type ModelMethod = {
   readonly source: SourceSpan;
 };
 export type ModelAccessor = { readonly kind: 'model_accessor'; readonly name: PropertyName; readonly method: MethodName; readonly visibility: ModelAccessorVisibility; readonly computation: ModelAccessorComputation; readonly result: ModelAccessorResult; readonly source: SourceSpan };
-export type ModelDefinition = { readonly kind: 'model'; readonly identity: ModelIdentity; readonly source: SourceSpan; readonly file: SourceFile; readonly key: ModelKey; readonly behavior: ModelBehavior; readonly exposure: ModelExposure; readonly capabilities: ModelSourceCapabilities; readonly surface: PropertySurface; readonly semanticProperties: Sequence<ModelSemanticProperty>; readonly schema: ModelSchema; readonly properties: Properties; readonly relations: ModelRelations; readonly casts: ModelCasts; readonly computed: ModelAccessors; readonly constants: ModelConstants; readonly methods: ModelMethods; readonly semantic: ModelSemanticDefinition };
+export interface ModelDefinition {
+  readonly kind: 'model'; readonly identity: ModelIdentity; readonly source: SourceSpan; readonly file: SourceFile; readonly key: ModelKey; readonly behavior: ModelBehavior; readonly exposure: ModelExposure; readonly capabilities: ModelSourceCapabilities; readonly surface: PropertySurface; readonly semanticProperties: Sequence<ModelSemanticProperty>; readonly schema: ModelSchema; readonly properties: Properties; readonly relations: ModelRelations; readonly casts: ModelCasts; readonly computed: ModelAccessors; readonly constants: ModelConstants; readonly methods: ModelMethods; readonly semantic: ModelSemanticDefinition;
+}

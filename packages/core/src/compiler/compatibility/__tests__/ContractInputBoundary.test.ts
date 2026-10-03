@@ -6,7 +6,7 @@ import {
 } from '../ContractInputBoundary';
 
 describe('ContractInputBoundary', () => {
-    const boundary = new ContractInputBoundary();
+    const boundary = ContractInputBoundary;
 
     it('maps a fully structured primitive without inventing information', () => {
         const value: LegacyContractValue = {
@@ -17,7 +17,6 @@ describe('ContractInputBoundary', () => {
         expect(boundary.resolve(value)).toEqual({
             kind: 'primitive',
             type: 'number',
-            format: undefined,
         });
     });
 
@@ -60,8 +59,7 @@ describe('ContractInputBoundary', () => {
                 totalHarga: {
                     kind: 'primitive',
                     type: 'number',
-                    format: undefined,
-                },
+                        },
                 items: {
                     kind: 'array',
                     items: {
@@ -107,13 +105,11 @@ describe('ContractInputBoundary', () => {
                 {
                     kind: 'primitive',
                     type: 'string',
-                    format: undefined,
-                },
+                        },
                 {
                     kind: 'primitive',
                     type: 'number',
-                    format: undefined,
-                },
+                        },
             ],
         });
     });

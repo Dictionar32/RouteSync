@@ -1,4 +1,4 @@
-import type { ParsedRoute } from './routes';
+import type { RouteSemanticFlow } from './routes';
 import { CrudRole, CRUD_ROLE_REGISTRY } from './crudRoles';
 import type { ResourceName, RouteName } from './semanticValues';
 
@@ -23,7 +23,7 @@ export interface DomainOperationContract {
   readonly route: RouteName;
   readonly resource: ResourceName;
   readonly intent: DomainOperationIntent;
-  readonly provenance: ParsedRoute['provenance'];
+  readonly provenance: RouteSemanticFlow['provenance'];
 }
 export interface DomainOperationGraph { readonly operations: readonly DomainOperationContract[]; }
 
@@ -42,7 +42,7 @@ const INTENT_FACTORY: IntentFactoryRegistry = Object.freeze({
   [CrudRole.Custom]: role => createIntent('custom', role)
 });
 
-export function createDomainOperation(route: ParsedRoute): DomainOperationContract {
+export function createDomainOperation(route: RouteSemanticFlow): DomainOperationContract {
   const role = route.capability.crudRole;
   return {
     route: route.identity.coordinates.name,
@@ -52,6 +52,6 @@ export function createDomainOperation(route: ParsedRoute): DomainOperationContra
   };
 }
 
-export function createDomainOperationGraph(routes: readonly ParsedRoute[]): DomainOperationGraph {
+export function createDomainOperationGraph(routes: readonly RouteSemanticFlow[]): DomainOperationGraph {
   return Object.freeze({ operations: Object.freeze(routes.map(createDomainOperation)) });
 }

@@ -4,15 +4,15 @@ import { BoundSemanticFactory } from '../types/domain/boundAst';
 import { SemanticResolutionFactory } from '../types/domain/semanticResolutionFactory';
 import type { SemanticTraceNode } from '../types/domain/semanticResolution';
 
-export function unknownResolution(
+export function indeterminateResolution(
   source: string,
   rule: string,
   input: string,
   reason: Parameters<typeof BoundSemanticFactory.unsupported>[0] = 'unresolved_symbol',
 ): SemanticResolution {
-  const trace: SemanticTraceNode[] = [{ source, rule, input, output: 'unknown' }];
-  return SemanticResolutionFactory.unknown({
-    status: 'unknown', confidence: 0, trace,
+  const trace: SemanticTraceNode[] = [{ source, rule, input, output: 'indeterminate' }];
+  return SemanticResolutionFactory.indeterminate({
+    status: 'indeterminate', confidence: 0, trace,
     boundAst: BoundSemanticFactory.unsupported(reason),
   });
 }
@@ -24,6 +24,6 @@ export function resolutionLabel(resolution: SemanticResolution): string {
     resource: value => `resource (${value.resource.value})`,
     object: () => 'object',
     query_projection: value => `query_projection (${value.sourceModel.value})`,
-    unknown: () => 'unknown',
+    indeterminate: () => 'indeterminate',
   });
 }

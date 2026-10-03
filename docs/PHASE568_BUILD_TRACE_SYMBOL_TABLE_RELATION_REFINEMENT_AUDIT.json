@@ -1,0 +1,18 @@
+{
+  "phase": 568,
+  "sourceLog": "build(4).log",
+  "frontier": "symbol-table-relational-type-refinement",
+  "reportedBuildRoots": ["packages/core/src/semantic/SymbolTable.ts"],
+  "reportedErrorCount": 8,
+  "repair": [
+    "relationSelect type-refinement overload",
+    "relationFirstOption type-refinement overload",
+    "explicit relationOptionFold result types in SymbolTable"
+  ],
+  "postRepairProjectTypecheck": {
+    "status": "blocked",
+    "reason": "missing @types/node and vitest/globals in checkpoint environment"
+  },
+  "symbolTableDiagnosticsAfterRepair": 0,
+  "relationalSequenceDiagnosticsAfterRepair": 0
+}

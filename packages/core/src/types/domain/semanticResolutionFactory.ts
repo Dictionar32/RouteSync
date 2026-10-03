@@ -45,7 +45,7 @@ export const SemanticResolutionFactory = Object.freeze({
     const frozenFields = Object.freeze([...fields]);
     return Object.freeze({ fields: frozenFields, byName: new QueryProjectionFieldIndex(frozenFields) });
   },
-  unknown(input: Common): SemanticResolution {
-    return Object.freeze({ kind: 'unknown', ...input });
+  indeterminate(input: Common): SemanticResolution {
+    return Object.freeze({ kind: 'indeterminate', ...input });
   },
 });

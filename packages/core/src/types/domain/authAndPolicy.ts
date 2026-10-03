@@ -1,5 +1,6 @@
 import type { CrudRole } from "./lifecycle";
-
+import { SemanticValueFactory } from "./semanticValues";
+import { relationGate } from "../../semantic/kernel/relationalSequence";
 /**
  * Canonical Domain Vocabulary for Route Authentication Schemes.
  */
@@ -33,7 +34,7 @@ export interface ScannedRouteSecurityParams {
 /**
  * Reusable Constructor: Scanned Route Security Descriptor.
  */
-export class ScannedRouteSecurityDescriptor implements RouteSecurityDescriptor {
+export class RouteSemanticFlowSecurityDescriptor implements RouteSecurityDescriptor {
   public readonly isProtected: boolean;
   public readonly scheme: SecuritySchemeKind;
   public readonly guards: readonly string[];
@@ -57,8 +58,8 @@ export class ScannedRouteSecurityDescriptor implements RouteSecurityDescriptor {
     readonly scheme?: SecuritySchemeKind;
     readonly guards?: readonly string[];
     readonly abilities?: readonly string[];
-  } = {}): ScannedRouteSecurityDescriptor {
-    return new ScannedRouteSecurityDescriptor({
+  } = {}): RouteSemanticFlowSecurityDescriptor {
+    return new RouteSemanticFlowSecurityDescriptor({
       isProtected,
       scheme,
       guards,
@@ -66,8 +67,8 @@ export class ScannedRouteSecurityDescriptor implements RouteSecurityDescriptor {
     });
   }
 
-  public static public(): ScannedRouteSecurityDescriptor {
-    return new ScannedRouteSecurityDescriptor({
+  public static public(): RouteSemanticFlowSecurityDescriptor {
+    return new RouteSemanticFlowSecurityDescriptor({
       isProtected: false,
       scheme: SecuritySchemeKind.Public,
       guards: [],
@@ -79,8 +80,8 @@ export class ScannedRouteSecurityDescriptor implements RouteSecurityDescriptor {
     scheme: SecuritySchemeKind = SecuritySchemeKind.Bearer,
     guards: readonly string[] = [],
     abilities: readonly string[] = []
-  ): ScannedRouteSecurityDescriptor {
-    return new ScannedRouteSecurityDescriptor({
+  ): RouteSemanticFlowSecurityDescriptor {
+    return new RouteSemanticFlowSecurityDescriptor({
       isProtected: true,
       scheme,
       guards,
@@ -124,7 +125,7 @@ export class RouteSecurityClassifier {
       }
     }
 
-    return new ScannedRouteSecurityDescriptor({
+    return new RouteSemanticFlowSecurityDescriptor({
       isProtected,
       scheme,
       guards,
@@ -265,22 +266,31 @@ export type RoutePolicyDescriptor =
       readonly modelParameter: { readonly kind: 'none' } | { readonly kind: 'parameter'; readonly name: import('./semanticValues').PropertyName };
     };
 
+
+export const createRoutePolicyAbilityModel = (ability: string, modelParameter: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.AbilityModel, ability: SemanticValueFactory.abilityName(ability), modelParameter: SemanticValueFactory.propertyName(modelParameter) });
+export const createRoutePolicyGate = (ability: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.Gate, ability: SemanticValueFactory.abilityName(ability), modelParameter: { kind: 'none' as const } });
+export const createRoutePolicyCustom = (ability: string, modelParameter?: string): RoutePolicyDescriptor => {
+  const model = relationGate(typeof modelParameter === 'string', () => ({ kind: 'parameter' as const, name: SemanticValueFactory.propertyName(modelParameter as string) }), () => ({ kind: 'none' as const }));
+  return Object.freeze({ kind: RoutePolicyKind.Custom, ability: SemanticValueFactory.abilityName(ability), modelParameter: model });
+};
+export const createRoutePolicy = (input: { readonly ability: string; readonly modelParameter?: string; readonly kind?: RoutePolicyKind }): RoutePolicyDescriptor => {
+  const kind = relationGate(Object.prototype.hasOwnProperty.call(input, 'kind'), () => input.kind as RoutePolicyKind, () => RoutePolicyKind.Gate);
+  const variants = {
+    [RoutePolicyKind.AbilityModel]: () => relationGate(typeof input.modelParameter === 'string', () => createRoutePolicyAbilityModel(input.ability, input.modelParameter as string), () => createRoutePolicyGate(input.ability)),
+    [RoutePolicyKind.Gate]: () => createRoutePolicyGate(input.ability),
+    [RoutePolicyKind.Custom]: () => createRoutePolicyCustom(input.ability, input.modelParameter)
+  };
+  return variants[kind]();
+};
+export const createRateLimit = (maxAttempts: number, decayMinutes: number = 1): RateLimitDescriptor => Object.freeze({ maxAttempts, decayMinutes });
+export const noRateLimit = (): RateLimitDescriptor => Object.freeze({ maxAttempts: 0, decayMinutes: 0 });
+
 export interface RoutePolicyVisitor<R> {
   readonly ability_model: (desc: Extract<RoutePolicyDescriptor, { readonly kind: typeof RoutePolicyKind.AbilityModel }>) => R;
   readonly gate: (desc: Extract<RoutePolicyDescriptor, { readonly kind: typeof RoutePolicyKind.Gate }>) => R;
   readonly custom: (desc: Extract<RoutePolicyDescriptor, { readonly kind: typeof RoutePolicyKind.Custom }>) => R;
 }
 
-export function matchRoutePolicy<R>(
-  policy: RoutePolicyDescriptor,
-  visitor: RoutePolicyVisitor<R>
-): R {
-  switch (policy.kind) {
-    case RoutePolicyKind.AbilityModel:
-      return visitor.ability_model(policy);
-    case RoutePolicyKind.Gate:
-      return visitor.gate(policy);
-    case RoutePolicyKind.Custom:
-      return visitor.custom(policy);
-  }
+export function matchRoutePolicy<R>(policy: RoutePolicyDescriptor, visitor: RoutePolicyVisitor<R>): R {
+  return visitor[policy.kind](policy as never);
 }

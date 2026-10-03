@@ -13,23 +13,23 @@ import type {
   ScannedManifestOptions
 } from '../types/scannedManifestTypes';
 import type { ScannedModelContract } from '../types/scannedModelTypes';
-import { ScannedRouteDescriptor } from './scannedRouteDescriptor';
+import { RouteSemanticFlowFactory } from './scannedRouteDescriptor';
 import { ScannedResourceDescriptor } from './scannedResourceDescriptor';
 
 export class ScannedManifestDescriptor implements ScannedManifestContract {
-  public readonly routes: readonly ScannedRouteDescriptor[];
+  public readonly routes: readonly RouteSemanticFlowFactory[];
   public readonly models: readonly ScannedModelContract[];
   public readonly resources: readonly ScannedResourceDescriptor[];
 
   public constructor(contract: ScannedManifestContract) {
-    this.routes = contract.routes as readonly ScannedRouteDescriptor[];
+    this.routes = contract.routes as readonly RouteSemanticFlowFactory[];
     this.models = contract.models;
     this.resources = contract.resources as readonly ScannedResourceDescriptor[];
   }
 
   public static create(options: ScannedManifestOptions): ScannedManifestDescriptor {
     const routes = (options.routes || []).map((r) =>
-      r instanceof ScannedRouteDescriptor ? r : ScannedRouteDescriptor.create(r)
+      r instanceof RouteSemanticFlowFactory ? r : RouteSemanticFlowFactory.create(r)
     );
 
     const models: ScannedModelContract[] = (options.models || []).map((m) => ({

@@ -5,6 +5,7 @@ import type { SemanticTraceNode } from '../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../types/domain/semanticValues';
+import { relationResolve } from '../kernel/relationalSequence';
 
 export function resolveFrameworkModel(
   rule: Extract<FrameworkMethodRule['returns'], { kind: 'model' }>,
@@ -14,18 +15,17 @@ export function resolveFrameworkModel(
   confidence: number,
 ): SemanticResolution {
   const symbol = context.symbolTable.get(rule.model.value);
-  if (symbol === undefined) {
-    return SemanticResolutionFactory.unknown({
-      status: 'unknown', confidence: 0, trace,
-      boundAst: BoundSemanticFactory.unsupported('unresolved_symbol'),
-    });
-  }
-  return SemanticResolutionFactory.model({
+  return relationResolve(context.symbolTable.has(rule.model.value),
+    () => SemanticResolutionFactory.model({
     status: 'resolved', confidence,
     trace,
     boundAst: BoundSemanticFactory.modelReference(rule.model),
     model: rule.model,
     definition: symbol.node.definition,
     cardinality: rule.cardinality,
-  });
+  }),
+    () => SemanticResolutionFactory.indeterminate({
+      status: 'indeterminate', confidence: 0, trace,
+      boundAst: BoundSemanticFactory.unsupported('unresolved_symbol'),
+    }));
 }

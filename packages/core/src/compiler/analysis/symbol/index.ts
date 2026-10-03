@@ -1,13 +1,4 @@
-/**
- * Symbol analysis sub-domain.
- * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
- */
-
+/** Symbol analysis sub-domain: relation-backed declarations and projections. */
 export { type SymbolNode, type SymbolStats } from './symbolTypes';
-export { SymbolReferenceGraph } from './symbolGraph';
-export {
-    resolveClassHierarchy,
-    filterSymbolsByKind,
-    filterSymbolsByNamespace,
-    filterSymbolsByParent
-} from './symbolHierarchy';
+export { createSymbolReferenceGraph, type SymbolReferenceGraph } from './symbolGraph';
+export { resolveClassHierarchy, filterSymbolsByKind, filterSymbolsByNamespace, filterSymbolsByParent } from './symbolHierarchy';

@@ -1,6 +1,9 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType } from "../../compiler/types/SemanticType";
 import { SemanticValueFactory, type ClassName, type ColumnName, type MethodName, type ModelName, type PropertyName, type RelationName, type CastTypeName, type SemanticOperator } from './semanticValues';
+import type { Cardinality } from '../upstream/primitiveVocabulary';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationGate, relationOptionFold, relationSome } from '../../semantic/kernel/relationalSequence';
 
 /**
  * EloquentCastKind
@@ -44,18 +47,18 @@ export type EloquentCastKindRegistry = {
 const primitiveValue = (type: PrimitiveKind): EloquentCastValueType => ({
   kind: 'primitive',
   type,
-  semanticType: new PrimitiveType(type),
+  semanticType: primitiveType(type),
 });
 
 const jsonValue = (): EloquentCastValueType => ({
   kind: 'json',
-  semanticType: new JsonValueType(),
+  semanticType: JsonValueType(),
 });
 
 const collectionValue = (): EloquentCastValueType => ({
   kind: 'collection',
   element: jsonValue(),
-  semanticType: new ReadonlyCollectionType(CollectionKind.COLLECTION, new JsonValueType()),
+  semanticType: ReadonlyCollectionType(CollectionKind.COLLECTION, JsonValueType()),
 });
 
 export const ELOQUENT_CAST_REGISTRY: EloquentCastKindRegistry = Object.freeze({
@@ -86,77 +89,77 @@ export type EloquentCastKindVisitor<R> = {
   readonly [K in EloquentCastKind]: (spec: EloquentCastKindSpecification<K>) => R;
 };
 
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik varian EloquentCastKind dengan exhaustive type safety
- */
+/** Canonical relational visitor for the Eloquent cast vocabulary. */
 export function matchEloquentCastKind<R>(
   kind: EloquentCastKind,
   visitor: EloquentCastKindVisitor<R>
 ): R {
-  switch (kind) {
-    case EloquentCastKind.Integer: return visitor.integer(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Integer]);
-    case EloquentCastKind.Float: return visitor.float(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Float]);
-    case EloquentCastKind.Decimal: return visitor.decimal(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Decimal]);
-    case EloquentCastKind.Boolean: return visitor.boolean(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Boolean]);
-    case EloquentCastKind.String: return visitor.string(ELOQUENT_CAST_REGISTRY[EloquentCastKind.String]);
-    case EloquentCastKind.DateTime: return visitor.datetime(ELOQUENT_CAST_REGISTRY[EloquentCastKind.DateTime]);
-    case EloquentCastKind.Date: return visitor.date(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Date]);
-    case EloquentCastKind.Timestamp: return visitor.timestamp(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Timestamp]);
-    case EloquentCastKind.Array: return visitor.array(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Array]);
-    case EloquentCastKind.Json: return visitor.json(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Json]);
-    case EloquentCastKind.Object: return visitor.object(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Object]);
-    case EloquentCastKind.Collection: return visitor.collection(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Collection]);
-    case EloquentCastKind.Encrypted: return visitor.encrypted(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Encrypted]);
-    case EloquentCastKind.Custom: return visitor.custom(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom]);
-  }
+  const specs = Object.values(ELOQUENT_CAST_REGISTRY) as readonly EloquentCastKindSpecification[];
+  const visit = (index: number): R => relationGate(
+    relationEqual(index, specs.length),
+    () => visitor.custom(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom]),
+    () => relationGate(
+      relationEqual(kind, specs[index].kind),
+      () => relationGate(
+        relationEqual(kind, EloquentCastKind.Integer),
+        () => visitor.integer(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Integer]),
+        () => relationGate(relationEqual(kind, EloquentCastKind.Float), () => visitor.float(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Float]), () => relationGate(
+          relationEqual(kind, EloquentCastKind.Decimal), () => visitor.decimal(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Decimal]), () => relationGate(
+            relationEqual(kind, EloquentCastKind.Boolean), () => visitor.boolean(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Boolean]), () => relationGate(
+              relationEqual(kind, EloquentCastKind.String), () => visitor.string(ELOQUENT_CAST_REGISTRY[EloquentCastKind.String]), () => relationGate(
+                relationEqual(kind, EloquentCastKind.DateTime), () => visitor.datetime(ELOQUENT_CAST_REGISTRY[EloquentCastKind.DateTime]), () => relationGate(
+                  relationEqual(kind, EloquentCastKind.Date), () => visitor.date(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Date]), () => relationGate(
+                    relationEqual(kind, EloquentCastKind.Timestamp), () => visitor.timestamp(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Timestamp]), () => relationGate(
+                      relationEqual(kind, EloquentCastKind.Array), () => visitor.array(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Array]), () => relationGate(
+                        relationEqual(kind, EloquentCastKind.Json), () => visitor.json(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Json]), () => relationGate(
+                          relationEqual(kind, EloquentCastKind.Object), () => visitor.object(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Object]), () => relationGate(
+                            relationEqual(kind, EloquentCastKind.Collection), () => visitor.collection(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Collection]), () => relationGate(
+                              relationEqual(kind, EloquentCastKind.Encrypted), () => visitor.encrypted(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Encrypted]), () => visitor.custom(ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom])
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )),
+      ),
+      () => visit(index + 1),
+    ),
+  );
+  return visit(0);
 }
 
-/**
- * EloquentCastMapper
- *
- * Canonical Mapper from Laravel $casts string to EloquentCastKind and PrimitiveKind.
- * Pure O(1) dictionary lookup (0 regex, 0 .includes()).
- */
+/** Canonical cast resolver driven by a relation lookup and explicit fallback witness. */
 export class EloquentCastMapper {
   private static readonly CAST_MAP: ReadonlyMap<string, EloquentCastKind> = new Map([
-    ['int', EloquentCastKind.Integer],
-    ['integer', EloquentCastKind.Integer],
-    ['real', EloquentCastKind.Float],
-    ['float', EloquentCastKind.Float],
-    ['double', EloquentCastKind.Float],
-    ['decimal', EloquentCastKind.Decimal],
-    ['string', EloquentCastKind.String],
-    ['bool', EloquentCastKind.Boolean],
-    ['boolean', EloquentCastKind.Boolean],
-    ['object', EloquentCastKind.Object],
-    ['array', EloquentCastKind.Array],
-    ['json', EloquentCastKind.Json],
-    ['collection', EloquentCastKind.Collection],
-    ['date', EloquentCastKind.Date],
-    ['datetime', EloquentCastKind.DateTime],
-    ['custom_datetime', EloquentCastKind.DateTime],
-    ['timestamp', EloquentCastKind.Timestamp],
-    ['encrypted', EloquentCastKind.Encrypted],
-    ['hashed', EloquentCastKind.String],
-    ['asarrayobject', EloquentCastKind.Object],
-    ['ascollection', EloquentCastKind.Collection],
-    ['asenumcollection', EloquentCastKind.Collection],
-    ['immutable_date', EloquentCastKind.Date],
-    ['immutable_datetime', EloquentCastKind.DateTime]
+    ['int', EloquentCastKind.Integer], ['integer', EloquentCastKind.Integer], ['real', EloquentCastKind.Float],
+    ['float', EloquentCastKind.Float], ['double', EloquentCastKind.Float], ['decimal', EloquentCastKind.Decimal],
+    ['string', EloquentCastKind.String], ['bool', EloquentCastKind.Boolean], ['boolean', EloquentCastKind.Boolean],
+    ['object', EloquentCastKind.Object], ['array', EloquentCastKind.Array], ['json', EloquentCastKind.Json],
+    ['collection', EloquentCastKind.Collection], ['date', EloquentCastKind.Date], ['datetime', EloquentCastKind.DateTime],
+    ['custom_datetime', EloquentCastKind.DateTime], ['timestamp', EloquentCastKind.Timestamp], ['encrypted', EloquentCastKind.Encrypted],
+    ['hashed', EloquentCastKind.String], ['asarrayobject', EloquentCastKind.Object], ['ascollection', EloquentCastKind.Collection],
+    ['asenumcollection', EloquentCastKind.Collection], ['immutable_date', EloquentCastKind.Date], ['immutable_datetime', EloquentCastKind.DateTime]
   ]);
 
-  public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly valueType: EloquentCastValueType } {
-    const clean = rawTargetType.split(':')[0].trim().toLowerCase();
+  public static resolve(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly valueType: EloquentCastValueType } {
+    const clean = rawTargetType.split(':')[0].replace(/^\s+|\s+$/g, '').toLowerCase();
     const targetType = SemanticValueFactory.castTypeName(rawTargetType);
-    const builtinKind = this.CAST_MAP.get(clean);
-    if (builtinKind !== undefined) {
-      const spec = ELOQUENT_CAST_REGISTRY[builtinKind];
-      return { castKind: spec.kind, valueType: spec.resolveValueType(targetType) };
-    }
-    return {
-      castKind: EloquentCastKind.Custom,
-      valueType: ELOQUENT_CAST_REGISTRY[EloquentCastKind.Custom].resolveValueType(targetType)
-    };
+    const mapped = relationGate(
+      this.CAST_MAP.has(clean),
+      () => relationOptionFold(relationSome(this.CAST_MAP.get(clean)!), () => EloquentCastKind.Custom, kind => kind),
+      () => EloquentCastKind.Custom,
+    );
+    const spec = ELOQUENT_CAST_REGISTRY[mapped];
+    return relationGate(
+      relationEqual(mapped, EloquentCastKind.Custom),
+      () => ({ castKind: spec.kind, valueType: spec.resolveValueType(targetType) }),
+      () => ({ castKind: spec.kind, valueType: spec.resolveValueType(targetType) }),
+    );
   }
 }
 
@@ -209,13 +212,16 @@ export const EloquentRelationType = Object.freeze({
 
 export type EloquentRelationType = typeof EloquentRelationType[keyof typeof EloquentRelationType];
 
-export type EloquentRelationCardinality = 'one' | 'many';
+export type EloquentRelationCardinality = Cardinality;
+
+export type EloquentRelationPolymorphism =
+  | { readonly kind: 'non_polymorphic' }
+  | { readonly kind: 'polymorphic' };
 
 export interface EloquentRelationDescriptor<T extends EloquentRelationType = EloquentRelationType> {
   readonly type: T;
   readonly cardinality: EloquentRelationCardinality;
-  readonly isCollection: boolean;
-  readonly isPolymorphic: boolean;
+  readonly polymorphism: EloquentRelationPolymorphism;
 }
 
 /**
@@ -228,69 +234,58 @@ export type EloquentRelationRegistry = {
 export const ELOQUENT_RELATION_REGISTRY: EloquentRelationRegistry = Object.freeze({
   [EloquentRelationType.HasOne]: {
     type: EloquentRelationType.HasOne,
-    cardinality: 'one',
-    isCollection: false,
-    isPolymorphic: false
+    cardinality: { kind: 'one' },
+    polymorphism: { kind: 'non_polymorphic' }
   },
   [EloquentRelationType.HasMany]: {
     type: EloquentRelationType.HasMany,
-    cardinality: 'many',
-    isCollection: true,
-    isPolymorphic: false
+    cardinality: { kind: 'many' },
+    polymorphism: { kind: 'non_polymorphic' }
   },
   [EloquentRelationType.BelongsTo]: {
     type: EloquentRelationType.BelongsTo,
-    cardinality: 'one',
-    isCollection: false,
-    isPolymorphic: false
+    cardinality: { kind: 'one' },
+    polymorphism: { kind: 'non_polymorphic' }
   },
   [EloquentRelationType.BelongsToMany]: {
     type: EloquentRelationType.BelongsToMany,
-    cardinality: 'many',
-    isCollection: true,
-    isPolymorphic: false
+    cardinality: { kind: 'many' },
+    polymorphism: { kind: 'non_polymorphic' }
   },
   [EloquentRelationType.HasOneThrough]: {
     type: EloquentRelationType.HasOneThrough,
-    cardinality: 'one',
-    isCollection: false,
-    isPolymorphic: false
+    cardinality: { kind: 'one' },
+    polymorphism: { kind: 'non_polymorphic' }
   },
   [EloquentRelationType.HasManyThrough]: {
     type: EloquentRelationType.HasManyThrough,
-    cardinality: 'many',
-    isCollection: true,
-    isPolymorphic: false
+    cardinality: { kind: 'many' },
+    polymorphism: { kind: 'non_polymorphic' }
   },
   [EloquentRelationType.MorphTo]: {
     type: EloquentRelationType.MorphTo,
-    cardinality: 'one',
-    isCollection: false,
-    isPolymorphic: true
+    cardinality: { kind: 'one' },
+    polymorphism: { kind: 'polymorphic' }
   },
   [EloquentRelationType.MorphOne]: {
     type: EloquentRelationType.MorphOne,
-    cardinality: 'one',
-    isCollection: false,
-    isPolymorphic: true
+    cardinality: { kind: 'one' },
+    polymorphism: { kind: 'polymorphic' }
   },
   [EloquentRelationType.MorphMany]: {
     type: EloquentRelationType.MorphMany,
-    cardinality: 'many',
-    isCollection: true,
-    isPolymorphic: true
+    cardinality: { kind: 'many' },
+    polymorphism: { kind: 'polymorphic' }
   },
   [EloquentRelationType.MorphToMany]: {
     type: EloquentRelationType.MorphToMany,
-    cardinality: 'many',
-    isCollection: true,
-    isPolymorphic: true
+    cardinality: { kind: 'many' },
+    polymorphism: { kind: 'polymorphic' }
   },
   [EloquentRelationType.MorphedByMany]: {
     type: EloquentRelationType.MorphedByMany,
-    cardinality: 'many',
-    isCollection: true,
-    isPolymorphic: true
+    cardinality: { kind: 'many' },
+    polymorphism: { kind: 'polymorphic' }
   }
 });
 
@@ -310,11 +305,11 @@ export class EloquentRelationClassifier {
   }
 
   public static isCollection(type: EloquentRelationType): boolean {
-    return ELOQUENT_RELATION_REGISTRY[type].isCollection;
+    return ELOQUENT_RELATION_REGISTRY[type].cardinality.kind === 'many';
   }
 
   public static isPolymorphic(type: EloquentRelationType): boolean {
-    return ELOQUENT_RELATION_REGISTRY[type].isPolymorphic;
+    return ELOQUENT_RELATION_REGISTRY[type].polymorphism.kind === 'polymorphic';
   }
 }
 
@@ -344,11 +339,11 @@ export interface ParsedRelation {
 }
 
 export interface SingleRelationDescriptor extends ParsedRelation {
-  readonly cardinality: 'one';
+  readonly cardinality: { readonly kind: 'one' };
 }
 
 export interface CollectionRelationDescriptor extends ParsedRelation {
-  readonly cardinality: 'many';
+  readonly cardinality: { readonly kind: 'many' };
 }
 
 export type RelationCardinalityDescriptor =

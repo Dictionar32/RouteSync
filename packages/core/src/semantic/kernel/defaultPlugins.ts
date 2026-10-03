@@ -17,16 +17,16 @@ import { EloquentMethodResolver } from '../plugins/EloquentMethodResolver';
 import { ExpressionResolver } from '../plugins/ExpressionResolver';
 import { VariableResolver } from '../plugins/VariableResolver';
 
-export function createDefaultPlugins(): ResolverPlugin[] {
-    return [
-        new PrimitiveResolver(),
-        new ModelColumnResolver(),
-        new AccessorResolver(),
-        new ResourceGraphResolver(),
-        new ConditionalWrapperResolver(),
-        new FrameworkRegistryResolver(),
-        new EloquentMethodResolver(),
-        new ExpressionResolver(),
-        new VariableResolver(),
-    ];
+export function createDefaultPlugins(): readonly ResolverPlugin[] {
+    return Object.freeze([
+        PrimitiveResolver,
+        ModelColumnResolver,
+        AccessorResolver,
+        ResourceGraphResolver,
+        ConditionalWrapperResolver,
+        FrameworkRegistryResolver,
+        EloquentMethodResolver,
+        ExpressionResolver,
+        VariableResolver,
+    ]);
 }

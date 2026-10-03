@@ -13,6 +13,8 @@ import { EloquentRelationType, EloquentRelationClassifier } from '../../../../..
 import { ReadonlyCollectionType, CollectionKind, ReferenceType } from '../../../../types/SemanticType';
 import { SemanticValueFactory, type ModelName, type RelationName, type ColumnName } from '../../../../../types/domain/semanticValues';
 import type { ScannedModelRelationParams } from './types';
+import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
+import { relationGate } from '../../../../../semantic/kernel/relationalSequence';
 
 export function computeRelationParams({
     name,
@@ -32,24 +34,24 @@ export function computeRelationParams({
     const desc = EloquentRelationClassifier.getDescriptor(type);
     const resolvedCardinality = cardinality;
     const target = ReferenceType.model('', targetModel.value.value);
-    const targetShape = resolvedCardinality === 'many'
-        ? { kind: 'collection' as const, model: targetModel }
-        : { kind: 'single' as const, model: targetModel };
-    const semanticType = resolvedCardinality === 'many'
-        ? new ReadonlyCollectionType(CollectionKind.COLLECTION, target)
-        : target;
+    const targetShape = relationGate(relationEqual(resolvedCardinality, 'many'),
+        () => ({ kind: 'collection' as const, model: targetModel }),
+        () => ({ kind: 'single' as const, model: targetModel }));
+    const semanticType = relationGate(relationEqual(resolvedCardinality, 'many'),
+        () => ReadonlyCollectionType(CollectionKind.COLLECTION, target),
+        () => target);
     return {
         name,
         type,
         modelName,
         targetModel,
         cardinality: resolvedCardinality,
-        multiplicity: resolvedCardinality === 'many' ? { kind: 'collection' as const } : { kind: 'single' as const },
+        multiplicity: relationGate(relationEqual(resolvedCardinality, 'many'), () => ({ kind: 'collection' as const }), () => ({ kind: 'single' as const })),
         semanticType,
         targetShape,
-        traversalTarget: resolvedCardinality === 'many'
-            ? { kind: 'collection' as const, model: targetModel }
-            : { kind: 'model' as const, model: targetModel },
+        traversalTarget: relationGate(relationEqual(resolvedCardinality, 'many'),
+            () => ({ kind: 'collection' as const, model: targetModel }),
+            () => ({ kind: 'model' as const, model: targetModel })),
         foreignKey
     };
 }
@@ -72,7 +74,7 @@ export function computeSingleRelationParams({
         type,
         modelName,
         targetModel,
-        cardinality: "one",
+        cardinality: { kind: "one" },
         multiplicity: { kind: 'single' },
         semanticType: ReferenceType.model('', ''),
         targetShape: { kind: 'single', model: SemanticValueFactory.modelName('') },
@@ -99,9 +101,9 @@ export function computeCollectionRelationParams({
         type,
         modelName,
         targetModel,
-        cardinality: "many",
+        cardinality: { kind: "many" },
         multiplicity: { kind: 'collection' },
-        semanticType: new ReadonlyCollectionType(CollectionKind.COLLECTION, ReferenceType.model('', targetModel)),
+        semanticType: ReadonlyCollectionType(CollectionKind.COLLECTION, ReferenceType.model('', targetModel)),
         targetShape: { kind: 'collection', model: targetModel },
         traversalTarget: { kind: 'collection', model: targetModel },
         foreignKey
@@ -114,7 +116,7 @@ export function computeNoneRelationParams(): ScannedModelRelationParams {
         type: EloquentRelationType.HasOne,
         modelName: SemanticValueFactory.modelName(""),
         targetModel: SemanticValueFactory.modelName(""),
-        cardinality: "one",
+        cardinality: { kind: "one" },
         multiplicity: { kind: 'single' },
         semanticType: ReferenceType.model('', ''),
         targetShape: { kind: 'single', model: SemanticValueFactory.modelName('') },

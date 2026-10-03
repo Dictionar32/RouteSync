@@ -1,105 +1,62 @@
-/**
- * responseDetector.ts
- *
- * Detects response descriptors (Resource, Model, Inline) from controller action AST tokens.
- *
- * @module core/compiler/scanner/subscanners/controller
- */
-
+/* Relational response descriptor boundary. */
 import type { Token } from '../lexer/types';
-import {
-  ResponseDescriptor,
-  ModelResponseDescriptor,
-  InlineResponseDescriptor,
-  ResourceFieldDescriptor
-} from '../../../../types/route';
+import { ResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor, ResourceFieldDescriptor } from '../../../../types/route';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { toPascalCase } from '../../../../utils/resource-naming';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
 import { ResourceScanner } from '../ResourceScanner';
 import { ErrorType } from '../../../types/SemanticType';
+import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
-import {
-  DetectedResourceInvocation,
-  detectResourceInvocation
-} from './resourceInvocationDetector';
+import { DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';
+import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/requirementSolver';
 
 export { DetectedResourceInvocation, detectResourceInvocation };
 
-export function detectResourceResponse(
-  tokens: readonly Token[],
-  k: number
-): ResponseDescriptor | undefined {
-  return detectResourceInvocation(tokens, k)?.descriptor;
+export function detectResourceResponse(tokens: readonly Token[], k: number): RelationOption<ResponseDescriptor> {
+  return relationOptionFold(detectResourceInvocation(tokens, k), () => relationNone(), invocation => relationSome(invocation.descriptor));
 }
 
-export function detectModelResponse(
-  tokens: readonly Token[],
-  k: number
-): ResponseDescriptor | undefined {
-  if (tokens[k].value === 'return' && tokens[k + 1]?.type === 'IDENTIFIER' && tokens[k + 2]?.value === '::') {
-    const modelOrClass = tokens[k + 1].value;
-    const queryMethod = tokens[k + 3]?.value;
-    if (queryMethod === 'all' || queryMethod === 'paginate' || queryMethod === 'get' || queryMethod === 'cursor') {
-      return new ModelResponseDescriptor({ modelName: modelOrClass, shape: 'collection' });
-    }
-    if (queryMethod === 'find' || queryMethod === 'findOrFail' || queryMethod === 'first' || queryMethod === 'firstOrFail' || queryMethod === 'create') {
-      return new ModelResponseDescriptor({ modelName: modelOrClass, shape: 'single' });
-    }
-  }
-  return undefined;
+const modelCollectionMethods = Object.freeze([['all', true], ['paginate', true], ['get', true], ['cursor', true]] as const);
+const modelSingleMethods = Object.freeze([['find', true], ['findOrFail', true], ['first', true], ['firstOrFail', true], ['create', true]] as const);
+
+export function detectModelResponse(tokens: readonly Token[], k: number): RelationOption<ResponseDescriptor> {
+  const model = tokens[relationAdvanceIndex(k, 1)];
+  const method = tokens[relationAdvanceIndex(k, 3)]?.value;
+  return solveRewriteCandidate([
+    { id: 'collection', rewrite: () => ModelResponseDescriptor.collection(model!.value), requirements: [requirement('return', relationEqual(tokens[k]?.value, 'return')), requirement('model', relationEqual(model?.type, 'IDENTIFIER')), requirement('separator', relationEqual(tokens[relationAdvanceIndex(k, 2)]?.value, '::')), requirement('method', relationIsSome(relationLookup(modelCollectionMethods, method)))] },
+    { id: 'single', rewrite: () => ModelResponseDescriptor.single(model!.value), requirements: [requirement('return', relationEqual(tokens[k]?.value, 'return')), requirement('model', relationEqual(model?.type, 'IDENTIFIER')), requirement('separator', relationEqual(tokens[relationAdvanceIndex(k, 2)]?.value, '::')), requirement('method', relationIsSome(relationLookup(modelSingleMethods, method)))] },
+  ]);
 }
 
-export function detectInlineResponse(
-  source: string,
-  tokens: readonly Token[],
-  k: number,
-  controllerName: string,
-  actionName: string
-): ResponseDescriptor | undefined {
-  if (tokens[k].value === 'return' && tokens[k + 1]?.value === 'response' && tokens[k + 2]?.value === '(') {
-    let jIdx = k + 3;
-    while (jIdx < tokens.length && tokens[jIdx].value !== ';') {
-      if (tokens[jIdx].value === 'json' && tokens[jIdx + 1]?.value === '(') {
-        const parsedArray = LaravelSourceLexer.parseArray(source, tokens as Token[], jIdx + 1);
-        if (parsedArray.entries.length > 0) {
-          const rawDomain = resolveInlineDomain(controllerName, actionName);
-          const fields: ResourceFieldDescriptor[] = parsedArray.entries.map(e => {
-            const mapped = ResourceScanner.mapAstValueToExpression(e.value);
-            const semanticType = mapped.semantic.kind === 'known'
-              ? mapped.semantic.type
-              : new ErrorType('Inline response field requires verified semantic binding');
-            return ScannedResourceFieldDescriptor.fromExpression(
-              e.key,
-              mapped.expression,
-              semanticType,
-              undefined,
-              BoundSemanticFactory.unsupported('parser_gap')
-            );
-          });
-          return new InlineResponseDescriptor({
-            domain: rawDomain,
-            baseName: toPascalCase(rawDomain),
-            typeName: `${toPascalCase(rawDomain)}Transformed`,
-            fields,
-            shape: 'single'
-          });
-        }
-        break;
-      }
-      jIdx++;
-    }
-  }
-  return undefined;
+export function detectInlineResponse(source: string, tokens: readonly Token[], k: number, controllerName: string, actionName: string): RelationOption<ResponseDescriptor> {
+  const shape = relationAll([
+    relationEqual(tokens[k]?.value, 'return'),
+    relationEqual(tokens[relationAdvanceIndex(k, 1)]?.value, 'response'),
+    relationEqual(tokens[relationAdvanceIndex(k, 2)]?.value, '('),
+  ]);
+  const json = relationFold(tokens, { index: k, found: false, parsed: { entries: [] } as ReturnType<typeof LaravelSourceLexer.parseArray> }, (state, token, index) =>
+    relationGate(state.found, () => state, () => relationGate(relationAll([
+      relationEqual(token.value, 'json'),
+      relationEqual(tokens[relationAdvanceIndex(index, 1)]?.value, '(')
+    ]), () => ({ index, found: true, parsed: LaravelSourceLexer.parseArray(source, tokens as Token[], relationAdvanceIndex(index, 1)) }), () => state))
+  );
+  const fields: ResourceFieldDescriptor[] = relationProject(json.parsed.entries, entry => {
+    const mapped = ResourceScanner.resolveAstValueToExpression(entry.value);
+    const semanticType = relationGate(relationEqual(mapped.semantic.kind, 'known'), () => mapped.semantic.type, () => ErrorType('Inline response field requires verified semantic binding'));
+    return ScannedResourceFieldDescriptor.fromExpression(entry.key, mapped.expression, semanticType, entry.key, BoundSemanticFactory.unsupported('parser_gap'));
+  });
+  const domain = resolveInlineDomain(controllerName, actionName);
+  return relationGate(relationAll([shape, json.found, json.parsed.entries.length > 0]), () => relationSome(InlineResponseDescriptor.create({ domain, baseName: toPascalCase(domain), typeName: `${toPascalCase(domain)}Transformed`, fields, shape: 'single', origin: { kind: 'inferred', sourceFile: SemanticValueFactory.sourceFilePath('<inline>'), trace: Object.freeze([]) }, semanticContract: { kind: 'object', name: `${toPascalCase(domain)}Transformed`, shape: 'single', fields: Object.freeze([]) } })), () => relationNone());
 }
 
 function resolveInlineDomain(controllerName: string, actionName: string): string {
-  if (['index', 'show', 'store', 'update', 'destroy'].includes(actionName || '')) {
+  const conventional = Object.freeze([['index', true], ['show', true], ['store', true], ['update', true], ['destroy', true]] as const);
+  return relationGate(relationIsSome(relationLookup(conventional, actionName)), () => {
     const baseCtrl = controllerName.replace(/Controller$/, '');
-    if (baseCtrl === 'Category') return 'Categories';
-    if (baseCtrl === 'ProductReview') return 'ProdukReviews';
-    if (baseCtrl === 'Order') return 'Orders';
-    return baseCtrl;
-  }
-  return actionName ? actionName.charAt(0).toUpperCase() + actionName.slice(1) : 'Inline';
+    const mapped = relationLookup(Object.freeze([['Category', 'Categories'], ['ProductReview', 'ProdukReviews'], ['Order', 'Orders']] as const), baseCtrl);
+    return relationOptionFold(mapped, () => baseCtrl, value => value);
+  }, () => relationGate(actionName.length > 0, () => toPascalCase(actionName), () => 'Inline'));
 }

@@ -1,5 +1,5 @@
 import {
-  ParsedRoute,
+  RouteSemanticFlow,
   RouteManifest,
   ParsedChannel,
   ParsedResource,
@@ -14,7 +14,7 @@ import { serializeManifest } from './ManifestSerializer'
 import fs from 'fs-extra'
 
 export interface ManifestGeneratorOptions {
-  readonly routes: readonly ParsedRoute[];
+  readonly routes: readonly RouteSemanticFlow[];
   readonly baseURL: string;
   readonly channels: readonly ParsedChannel[];
   readonly resources: readonly ParsedResource[];
@@ -27,13 +27,13 @@ export interface ManifestGeneratorOptions {
   readonly version: string;
 }
 
-function createContracts(routes: readonly ParsedRoute[]) {
+function createContracts(routes: readonly RouteSemanticFlow[]) {
   return Object.freeze(routes.map(route => route.contract));
 }
 
 export class ManifestGenerator {
   static generate(
-    routes: readonly ParsedRoute[],
+    routes: readonly RouteSemanticFlow[],
     baseURL: string,
     channels: readonly ParsedChannel[] = [],
     resources: readonly ParsedResource[] = [],

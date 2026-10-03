@@ -48,7 +48,7 @@ import {
 export function createTypeScriptCodeBuilder(
     options: TypeScriptLowererOptions = {}
 ): TypeScriptCodeBuilder {
-    return new TypeScriptCodeBuilder(options);
+    return TypeScriptCodeBuilder(options);
 }
 
 /**
@@ -59,7 +59,7 @@ export function lowerTypeScriptTypes(
     types: readonly ObjectType[],
     options: TypeScriptLowererOptions = {}
 ): TypeScriptBuildResult {
-    const builder = new TypeScriptCodeBuilder(options);
+    const builder = TypeScriptCodeBuilder(options);
     return builder.build(types);
 }
 

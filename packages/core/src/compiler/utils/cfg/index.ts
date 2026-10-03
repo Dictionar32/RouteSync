@@ -1,8 +1,4 @@
-/**
- * CFG sub-domain.
- * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
- */
-
+/** Explicit CFG sub-domain exports. */
 export {
     type SymbolReference,
     ArrayConstant,
@@ -12,13 +8,15 @@ export {
     type Expression,
     type SemanticValue
 } from './constants';
-
-export {
-    type Operand,
-    type Instruction
-} from './instructions';
-
+export { type Operand, type Instruction } from './instructions';
 export {
     type BasicBlock,
-    ControlFlowGraph
+    type BasicBlockRelation,
+    type ControlFlowGraph,
+    createBasicBlockRelation,
+    basicBlockLookup,
+    basicBlockReplace,
+    basicBlockEntries,
+    basicBlockIds,
+    createControlFlowGraph
 } from './basicBlock';

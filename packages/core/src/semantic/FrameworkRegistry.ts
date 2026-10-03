@@ -1,8 +1,10 @@
-import { PrimitiveKind, PrimitiveType } from '../types/semantic';
+import { PrimitiveKind, PrimitiveType, primitiveType } from '../compiler/types/SemanticType';
 import type { ModelName } from '../types/domain/semanticValues';
 import type { BoundCardinality } from '../types/domain/boundAst';
 import type { SemanticType } from '../types/semantic';
 import { SemanticValueFactory } from '../types/domain/semanticValues';
+import { relationResolve, relationFirst, relationOptionMap, relationProject, type RelationOption } from './kernel/relationalSequence';
+import { relationIsSome } from './kernel/semanticRelations';
 
 /**
  * Roadmap: FrameworkRegistry (see design review thread — FrameworkRegistryResolver
@@ -43,57 +45,60 @@ export type FrameworkMethodRule = {
 };
 
 const scalar = (semanticType: SemanticType): FrameworkMethodRule =>
-  Object.freeze({ returns: Object.freeze({ kind: 'scalar' as const, semanticType }), confidence: 100 });
+  Object.freeze({ returns: Object.freeze({ kind: 'scalar', semanticType }), confidence: 100 });
 
 const model = (name: string, confidence = 100): FrameworkMethodRule =>
   Object.freeze({
     returns: Object.freeze({
-      kind: 'model' as const,
+      kind: 'model',
       model: SemanticValueFactory.modelName(name),
-      cardinality: { kind: 'single' } as const,
+      cardinality: { kind: 'single' },
     }),
     confidence,
   });
 
 const object = (fields: readonly { readonly name: string; readonly type: SemanticType }[] = []): FrameworkMethodRule =>
-  Object.freeze({ returns: Object.freeze({ kind: 'object' as const, fields: Object.freeze([...fields]) }), confidence: 100 });
+  Object.freeze({ returns: Object.freeze({ kind: 'object', fields: Object.freeze([...fields]) }), confidence: 100 });
 
-export const GLOBAL_FUNCTIONS: ReadonlyMap<string, FrameworkMethodRule> = new Map([
-  ...['strtoupper', 'strtolower', 'ucfirst', 'ucwords', 'asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'now']
-    .map(name => [name, scalar(new PrimitiveType(PrimitiveKind.STRING))] as const),
-  ...['intval', 'floatval', 'doubleval', 'count']
-    .map(name => [name, scalar(new PrimitiveType(PrimitiveKind.NUMBER))] as const),
-  ['boolval', scalar(new PrimitiveType(PrimitiveKind.BOOLEAN))],
+const entry = <T>(name: string, value: T): readonly [string, T] => [name, value];
+type Registry<T> = readonly (readonly [string, T])[];
+
+export const GLOBAL_FUNCTIONS: Registry<FrameworkMethodRule> = Object.freeze([
+  ...relationProject(['strtoupper', 'strtolower', 'ucfirst', 'ucwords', 'asset', 'url', 'route', 'ltrim', 'trim', 'strval', 'now'], name => entry(name, scalar(primitiveType(PrimitiveKind.STRING)))),
+  ...relationProject(['intval', 'floatval', 'doubleval', 'count'], name => entry(name, scalar(primitiveType(PrimitiveKind.NUMBER)))),
+  entry('boolval', scalar(primitiveType(PrimitiveKind.BOOLEAN))),
 ]);
 
-const CARBON_DATE_METHODS = [
+const CARBON_DATE_METHODS: readonly string[] = [
   'toDateTimeString', 'toISOString', 'toIso8601String', 'format',
   'diffForHumans', 'toDateString', 'toDateTime',
-] as const;
+];
 
 /** Method-name-only registry. Dynamic lookup remains confined to this boundary. */
-export const METHOD_REGISTRY: ReadonlyMap<string, FrameworkMethodRule> = new Map([
+export const METHOD_REGISTRY: Registry<FrameworkMethodRule> = Object.freeze([
   ['validated', object()],
   ['safe', object()],
-  ['createToken', object([{ name: 'plainTextToken', type: new PrimitiveType(PrimitiveKind.STRING) }])],
-  ...CARBON_DATE_METHODS.map(name => [name, scalar(new PrimitiveType(PrimitiveKind.STRING))] as const),
+  ['createToken', object([{ name: 'plainTextToken', type: primitiveType(PrimitiveKind.STRING) }])],
+  ...relationProject(CARBON_DATE_METHODS, name => entry(name, scalar(primitiveType(PrimitiveKind.STRING)))),
 ]);
 
 /** Variable helper lookup is also confined to the registry boundary. */
-export const VARIABLE_METHOD_REGISTRY: ReadonlyMap<string, ReadonlyMap<string, FrameworkMethodRule>> = new Map([
-  ['request', new Map([['user', model('User', 90)]])],
-  ['pdf', new Map([['download', scalar(new PrimitiveType(PrimitiveKind.FILE))]])],
+export const VARIABLE_METHOD_REGISTRY: Registry<Registry<FrameworkMethodRule>> = Object.freeze([
+  ['request', Object.freeze([['user', model('User', 90)] as const])],
+  ['pdf', Object.freeze([['download', scalar(primitiveType(PrimitiveKind.FILE))] as const])],
 ]);
 
-export function lookupGlobalFunction(name: string): FrameworkMethodRule | undefined {
-  return GLOBAL_FUNCTIONS.get(name)
+const lookup = <T>(source: Registry<T>, key: string): RelationOption<T> => relationOptionMap(relationFirst(source, ([candidate]) => Object.is(candidate, key)), pair => pair[1]);
+
+export function lookupGlobalFunction(name: string): RelationOption<FrameworkMethodRule> {
+  return lookup(GLOBAL_FUNCTIONS, name);
 }
 
-export function lookupMethod(name: string): FrameworkMethodRule | undefined {
-  return METHOD_REGISTRY.get(name)
+export function lookupMethod(name: string): RelationOption<FrameworkMethodRule> {
+  return lookup(METHOD_REGISTRY, name);
 }
 
-export function lookupVariableMethod(variableName: string, methodName: string): FrameworkMethodRule | undefined {
-  const methods = VARIABLE_METHOD_REGISTRY.get(variableName)
-  return methods === undefined ? undefined : methods.get(methodName)
+export function lookupVariableMethod(variableName: string, methodName: string): RelationOption<FrameworkMethodRule> {
+  const methods = lookup(VARIABLE_METHOD_REGISTRY, variableName);
+  return relationResolve(relationIsSome(methods), () => lookup(methods.value, methodName), () => ({ kind: 'none' }));
 }

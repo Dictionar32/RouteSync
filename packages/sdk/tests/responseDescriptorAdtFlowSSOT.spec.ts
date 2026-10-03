@@ -10,7 +10,7 @@ import {
     ResponseDescriptor,
     classifyRoute,
     matchRoute,
-    ParsedRoute,
+    RouteSemanticFlow,
     RouteHookKind,
     RequestContentType,
     RouteSecurityDescriptor,
@@ -108,7 +108,7 @@ describe('ResponseDescriptor ADT Flow SSOT (Zero-if Catamorphism Suite)', () => 
     })
 
     test('6. Full Pipeline: Composes matchRoute and matchResponse with 0 if branching', () => {
-        const route: ParsedRoute = {
+        const route: RouteSemanticFlow = {
             name: 'orders.show',
             method: 'GET',
             path: '/api/orders/{id}',

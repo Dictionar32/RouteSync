@@ -10,8 +10,8 @@
  */
 
 import {
-    ScannedRouteCompleteContracts,
-    ScannedRouteDescriptor
+    RouteSemanticFlowCompleteContracts,
+    RouteSemanticFlowFactory
 } from "../descriptors/routeDescriptors";
 import {
     RouteBoundaryContract,
@@ -26,16 +26,16 @@ export class RouteBoundaryAdapter {
      * Converts a perimeter options bag into 4 Complete Sub-Contracts and an EndpointContract.
      * Pure Flow Declaration (Active Consumer Orchestrator).
      */
-    public static toSubcontracts(params: RouteBoundaryOptions): ScannedRouteCompleteContracts {
+    public static toSubcontracts(params: RouteBoundaryOptions): RouteSemanticFlowCompleteContracts {
         return RouteBoundaryContractFactory.create(params);
     }
 
     /**
-     * Constructs a full ScannedRouteDescriptor directly from sparse perimeter parameters.
+     * Constructs a full RouteSemanticFlowFactory directly from sparse perimeter parameters.
      */
-    public static fromSparse(params: RouteBoundaryOptions): ScannedRouteDescriptor {
+    public static fromSparse(params: RouteBoundaryOptions): RouteSemanticFlowFactory {
         const contracts = RouteBoundaryAdapter.toSubcontracts(params);
-        return new ScannedRouteDescriptor(contracts);
+        return RouteSemanticFlowFactory.fromContracts(contracts);
     }
 
 }

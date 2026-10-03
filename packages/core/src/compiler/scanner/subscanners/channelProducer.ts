@@ -3,6 +3,8 @@ import type { ChannelAst } from '../../../types/upstream/ast';
 import type { ChannelDefinition, ChannelKind } from '../../../types/upstream/channel';
 import type { Sequence } from '../../../types/upstream/collections';
 import { createChannelName } from '../../../types/upstream/names';
+import { relationFoldRight, relationGate } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 
 /**
@@ -22,18 +24,12 @@ export interface ChannelProducer {
 }
 
 const sequence = <T>(items: readonly T[]): Sequence<T> =>
-  items.reduceRight<Sequence<T>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
+  relationFoldRight(items, { kind: 'empty' } as Sequence<T>, (head, tail) => ({ kind: 'cons', head, tail }));
 
-const channelKind = (kind: BroadcastChannelDescriptor['kind']): ChannelKind => {
-  switch (kind) {
-    case 'public': return { kind: 'public' };
-    case 'private': return { kind: 'private' };
-    case 'presence': return { kind: 'presence' };
-  }
-};
+const channelKind = (kind: BroadcastChannelDescriptor['kind']): ChannelKind => relationGate(relationEqual(kind, 'public'), () => ({ kind: 'public' as const }), () => relationGate(relationEqual(kind, 'private'), () => ({ kind: 'private' as const }), () => ({ kind: 'presence' as const })));
 
 const requiresAuthentication = (kind: BroadcastChannelDescriptor['kind']): ChannelDefinition['requiresAuthentication'] =>
-  kind === 'public' ? { kind: 'false' } : { kind: 'true' };
+  relationGate(relationEqual(kind, 'public'), () => ({ kind: 'false' as const }), () => ({ kind: 'true' as const }));
 
 export const channelProducer: ChannelProducer = {
   produce(input): ChannelAst {

@@ -1,5 +1,4 @@
 import type { ActionName, ClassName, DomainTypeName, ResourceName, RouteName, RoutePath, RouteParameterName, PropertyName, SourceFile } from './names';
-import type { RouteAst } from './ast';
 import type { ControllerReturnSemantic } from './controller';
 import type { Option } from './collections';
 import type { EndpointRequestBinding, EndpointResponseBinding } from './endpointBindings';
@@ -13,6 +12,7 @@ import type { ControllerReference, ModelReference } from './semanticReferences';
 import type { InvalidationTarget } from './routeInvalidationVocabulary';
 import type { HttpErrorResponse } from './routeErrorVocabulary';
 import type { CrudRole, RouteHookKind, RouteActionKind, RequestContentType, RouteExecutionSignature } from './routeExecutionVocabulary';
+import type { RouteAst } from './ast';
 export interface RouteCacheInvalidation {
   readonly targets: Sequence<InvalidationTarget>;
   readonly queryKeyExpressions: Sequence<StringValue>;
@@ -233,14 +233,16 @@ export type RouteTransportContract = {
 };
 
 /**
- * Semantic input boundary for RouteProducer.
+ * Upstream construction input for RouteProducer.
  *
- * The producer receives source declaration syntax plus already-owned upstream
- * facts from the Request/Response/Controller/Model producers. It must compose
- * those facts into RouteDefinition without re-classifying their meaning.
+ * The route producer deliberately lives on the AST/ADT side of the boundary:
+ * it receives the Laravel declaration AST together with already-resolved
+ * semantic facts, and constructs the canonical RouteAst. The AST is therefore
+ * preserved upstream rather than being removed merely to make an interface
+ * artificially AST-free.
  */
 export interface RouteProducerInput {
-  readonly declaration: import('../../compiler/scanner/lexer/routeAst').RouteDeclarationAst;
+  readonly declaration: import('../../compiler/scanner/lexer/routeAst/routeDeclarationAst').RouteDeclarationAst;
   readonly source: SourceSpan;
   readonly identity: RouteIdentity;
   readonly special: RouteSpecialKind;
@@ -256,10 +258,11 @@ export interface RouteProducerInput {
 }
 
 export interface RouteProducer {
+  /** Constructs the canonical upstream RouteAst from AST provenance plus semantic ADTs. */
   readonly produce: (input: RouteProducerInput) => RouteAst;
 }
 
-export type RouteDefinition = {
+export interface RouteDefinition {
   readonly kind: 'route';
   readonly identity: RouteIdentity;
   readonly special: RouteSpecialKind;
@@ -272,7 +275,7 @@ export type RouteDefinition = {
   readonly defaults: RouteDefaults;
   readonly transport: RouteTransportContract;
   readonly provenance: RouteProvenance;
-};
+}
 
 export const SecuritySchemeKind = Object.freeze({
   Sanctum: 'sanctum', Bearer: 'bearer', Cookie: 'cookie', Public: 'public'

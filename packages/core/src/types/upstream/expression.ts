@@ -5,7 +5,7 @@ import type { SourceSpan } from './provenance';
 import type { LiteralValue, SemanticValue } from './primitiveVocabulary';
 import type { Expressions, MatchArms, ObjectProperties, RelationPaths, RelationPath, PropertyPath, SqlExpressions, ClosureCaptures, PropertyPaths, Sequence, Option } from './collections';
 import type { NumberValue, StringValue } from './valueObjects';
-import type { AssignmentTarget } from './assignment';
+import type { Assignment, AssignmentTarget } from './assignment';
 import type { SourceStatements } from './sourceStatements';
 export type ConditionalExpressionBranches = { readonly kind: 'then_only'; readonly whenTrue: Expression } | { readonly kind: 'then_else'; readonly whenTrue: Expression; readonly whenFalse: Expression };
 export type InterpolatedStringPart = { readonly kind: 'text'; readonly value: StringValue } | { readonly kind: 'expression'; readonly value: Expression };

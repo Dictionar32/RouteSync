@@ -1,0 +1,25 @@
+{
+  "phase": 582,
+  "frontier": "scanner-lexer-route-ast-semantic-resolver",
+  "transpiledFiles": 62,
+  "transpileDiagnostics": 0,
+  "routeAstProductionFiles": 56,
+  "astAudit": {
+    "if": 0,
+    "for": 0,
+    "while": 0,
+    "switch": 0,
+    "map": 0,
+    "filter": 0,
+    "reduce": 0,
+    "flatMap": 0,
+    "undefined": 0,
+    "strictEquality": 0,
+    "asUnknown": 0,
+    "newMap": 0,
+    "newSet": 0,
+    "newExpression": 0
+  },
+  "fullBuild": "not_claimed_missing_project_node_modules",
+  "architecture": "typed semantic relations + recursive solver/rewrite closure"
+}

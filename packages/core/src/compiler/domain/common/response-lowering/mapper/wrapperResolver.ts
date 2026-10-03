@@ -1,65 +1,58 @@
 /**
- * wrapperResolver.ts
- *
- * Resolves nullable wrappers and converts ObjectType shapes.
- *
- * @module compiler/domain/common/response-lowering/mapper
+ * Relation-driven nullable wrapper resolver.
  */
-
 import type { ObjectType } from '../../../../types/SemanticType';
 import type { ParsedResponseField } from '../../../../generators/contract-generation/ResponseFieldParser';
-import type { SemanticTypeResolver } from '../../SemanticTypeResolver';
-import type {
-    NullableWrapperResult,
-    StageResult
-} from '../loweringContracts';
+import type { SemanticTypeResolverInstance } from '../../SemanticTypeResolver';
+import type { NullableWrapperResult, StageResult } from '../loweringContracts';
 import { convertResolvedTypeToResponseField } from './fieldConverter';
+import { NULLABLE_WRAPPER_RULES, resolveLoweringOperation } from '../../../../ir/semanticIRLoweringRelations';
+import { relationFirst, relationOptionFold, relationResolve } from '../../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
+import type { ResolvedSemanticType } from '../../ResolvedSemanticType';
 
-/**
- * Helper to resolve nullable wrapper object annotation via pure switch
- */
 export function resolveNullableWrapper(
     fieldName: string,
     objectType: ObjectType,
-    resolver: SemanticTypeResolver
+    resolver: SemanticTypeResolverInstance,
 ): NullableWrapperResult {
     const resolved = resolver.resolve(objectType);
-
-    switch (resolved.kind) {
-        case 'nullable': {
-            const innerResult = convertResolvedTypeToResponseField(fieldName, resolved.innerType, resolver);
-            const itemType = innerResult.fields[0];
-            switch (itemType) {
-                case undefined:
-                    return { isNullableWrapper: false };
-                default:
-                    return {
-                        isNullableWrapper: true,
-                        field: {
-                            name: itemType.name,
-                            kind: itemType.kind,
-                            type: itemType.type,
-                            nullable: true,
-                            optional: itemType.optional,
-                            fields: itemType.fields,
-                            itemType: itemType.itemType
-                        },
-                        warnings: innerResult.warnings
-                    };
-            }
-        }
-        default:
-            return { isNullableWrapper: false };
-    }
+    const operation = resolveLoweringOperation(resolved.kind, NULLABLE_WRAPPER_RULES);
+    const handlers: Record<string, () => NullableWrapperResult> = {
+        nullable_wrapper: () => {
+            const nullable = resolved as Extract<ResolvedSemanticType, { kind: 'nullable' }>;
+            const innerResult = convertResolvedTypeToResponseField(fieldName, nullable.innerType, resolver);
+            return relationOptionFold(
+                relationFirst(innerResult.fields, () => true),
+                () => ({ isNullableWrapper: false }),
+                itemType => ({
+                    isNullableWrapper: true,
+                    field: {
+                        name: itemType.name,
+                        kind: itemType.kind,
+                        type: itemType.type,
+                        nullable: true,
+                        optional: itemType.optional,
+                        fields: itemType.fields,
+                        ...relationResolve(Object.prototype.hasOwnProperty.call(itemType, 'itemType'), () => ({}), () => ({ itemType: itemType.itemType })),
+                    },
+                    warnings: innerResult.warnings,
+                }),
+            );
+        },
+        not_nullable_wrapper: () => ({ isNullableWrapper: false }),
+    };
+    return relationResolve(
+        Object.prototype.hasOwnProperty.call(handlers, operation),
+        () => handlers[operation](),
+        () => ({ isNullableWrapper: false }),
+    );
 }
 
-/**
- * Pure helper to convert ObjectType without redundant re-resolutions
- */
 export function convertObjectType(
     fieldName: string,
     objectType: ObjectType,
-    resolver: SemanticTypeResolver
+    resolver: SemanticTypeResolverInstance,
 ): StageResult<ParsedResponseField> {
     const resolved = resolver.resolve(objectType);
     return convertResolvedTypeToResponseField(fieldName, resolved, resolver);

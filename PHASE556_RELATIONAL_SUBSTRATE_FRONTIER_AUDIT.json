@@ -1,0 +1,59 @@
+{
+  "phase": 556,
+  "frontier": "scanner-lexer-resolver-parser-adapter-generic-solver-relational-substrate-syntax-error-core-ternary",
+  "scannedFiles": 483,
+  "hostLeakCount": 1,
+  "leakingFiles": [
+    {
+      "file": "packages/core/src/compiler/relational/sequence.ts",
+      "counts": {
+        "never": 1
+      }
+    }
+  ],
+  "modelEvidence": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "null": 1,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "null": 2,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/semantic/plugins/method-return/selectRawProjectionParser.ts",
+      "null": 15,
+      "never": 0
+    },
+    {
+      "file": "packages/core/src/compiler/relational/sequence.ts",
+      "null": 0,
+      "never": 1
+    }
+  ],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": false,
+  "architecture": {
+    "scopeResolution": "relation-driven candidate/witness/closure semantics",
+    "rewrite": "declarative relation catalogs consumed by projection/dispatch",
+    "fixedPoint": "recursive relation closure and lattice execution"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "phase": 625,
+  "policy": "preserve-unused-file-paths-but-empty-implementation",
+  "deleted_files": 0,
+  "newly_emptied_files": [
+    "packages/core/src/types/emitTypes.ts"
+  ],
+  "newly_emptied_files_zero_bytes": true,
+  "all_known_emptied_files_zero_bytes": true,
+  "known_emptied_file_count": 10,
+  "architectural_frontier": [
+    "scanner/lexer",
+    "graph resolver",
+    "AST/upstream mapping",
+    "analysis",
+    "semantic type lowering"
+  ],
+  "external_basis": [
+    "MLIR dialect conversion",
+    "MLIR declarative rewrite rules",
+    "MLIR canonicalization/fixpoint",
+    "Ascent relational fixed point",
+    "egglog equality saturation + Datalog"
+  ]
+}

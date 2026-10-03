@@ -1,82 +1,72 @@
 /**
- * SemanticType.ts — First-Class Semantic Type AST for RouteSync Compiler.
- * Pure Structured Domain Model (0 wrapper hacks, 0 artificial collections).
- * 
- * @module compiler/types
+ * Relation-native semantic type algebra.
+ *
+ * Semantic types are immutable witnesses.  There is no class hierarchy and
+ * no constructor-owned semantic state: each factory emits a closed structural
+ * witness whose kind and payload are the semantic facts.
  */
-
 import { TypeScriptSyntax } from '../domain/common/TypeScriptTypeLowerer';
 import type { ResourceFieldDescriptor } from '../../types/route';
-import { toCamelCase, ResourceNamingConvention } from '../../utils/resource-naming';
-import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
+import { toCamelCase } from '../../utils/resource-naming';
 import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrigin';
 import { SemanticValueFactory, type PropertyName, type VariableName } from '../../types/domain/semanticValues';
 import type { StringValue } from '../../types/upstream/valueObjects';
+import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
+import { expandRelation } from '../../semantic/kernel/relationalSequence';
+import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
 
-/**
- * @module compiler/types/SemanticType
- * @description Core semantic type system for RouteSync compiler
- * 
- * Defines the type hierarchy used throughout semantic analysis:
- * - Primitive types (string, number, boolean, datetime, file, unknown)
- * - Reference types (named types from Laravel models/resources)
- * - Collection types (arrays, nullable, etc.)
- * - Generic types with variance support
- * - Object types with structural typing
- * - Union and intersection types
- */
-
-/**
- * Primitive type kinds supported by the type system.
- */
 export enum PrimitiveKind {
-    STRING = 'string',
-    NUMBER = 'number',
-    BOOLEAN = 'boolean',
-    DATETIME = 'datetime',
-    /** Browser File submitted through multipart/form-data. */
-    FILE = 'file',
-    UNKNOWN = 'unknown',
-    /** Source explicitly declares a collection but omits its element type. */
-    UNSPECIFIED = 'unspecified'
+    STRING = 'string', NUMBER = 'number', BOOLEAN = 'boolean', DATETIME = 'datetime', FILE = 'file',
+    INDETERMINATE = 'indeterminate', UNSPECIFIED = 'unspecified'
 }
 
-/**
- * Collection type kinds for wrapping element types.
- */
-export enum CollectionKind {
-    ARRAY = 'array',
-    COLLECTION = 'collection',
-    NULLABLE = 'nullable'
-}
+export enum CollectionKind { ARRAY = 'array', COLLECTION = 'collection', NULLABLE = 'nullable' }
 
-/**
- * SemanticTypeKind
- *
- * Exhaustive Domain Vocabulary Model representing all first-class AST node kinds.
- */
 export const SemanticTypeKind = Object.freeze({
-    Primitive: 'primitive',
-    JsonValue: 'json_value',
-    Optional: 'optional',
-    Nullable: 'nullable',
-    Never: 'never',
-    Error: 'error',
-    Reference: 'reference',
-    Union: 'union',
-    Intersection: 'intersection',
-    ReadonlyCollection: 'readonly_collection',
-    MutableCollection: 'mutable_collection',
-    Generic: 'generic',
-    Object: 'object'
+    Primitive: 'primitive', JsonValue: 'json_value', Optional: 'optional', Nullable: 'nullable',
+    Never: 'never', Error: 'error', Reference: 'reference', Union: 'union', Intersection: 'intersection',
+    ReadonlyCollection: 'readonly_collection', MutableCollection: 'mutable_collection', Generic: 'generic', Object: 'object'
 } as const);
-
 export type SemanticTypeKind = typeof SemanticTypeKind[keyof typeof SemanticTypeKind];
 
-/**
- * Brand symbol for semantic type safety - prevents mixing with other types.
- */
-const semanticTypeBrand: unique symbol = Symbol('semanticTypeBrand');
+export type ObjectTypeRole = 'plain' | 'resource' | 'model' | 'response';
+export type GenericVariance = 'covariant' | 'contravariant' | 'invariant';
+
+export interface SemanticTypeBase {
+    readonly kind: SemanticTypeKind;
+    readonly accept: <R>(visitor: SemanticTypeVisitor<R>) => R;
+    readonly isNullable: () => boolean;
+    readonly isOptional: () => boolean;
+    readonly formatProperty: (name: string, lowerType: (type: SemanticType) => string) => string;
+}
+
+export interface PrimitiveType extends SemanticTypeBase { readonly kind: 'primitive'; readonly type: PrimitiveKind; }
+export interface JsonValueType extends SemanticTypeBase { readonly kind: 'json_value'; }
+export interface NeverType extends SemanticTypeBase { readonly kind: 'never'; }
+export interface ErrorType extends SemanticTypeBase { readonly kind: 'error'; readonly diagnosticMessage: StringValue; }
+export interface ReferenceType extends SemanticTypeBase {
+    readonly kind: 'reference'; readonly namespace: string; readonly name: string; readonly role: ObjectTypeRole; readonly emittedName: string;
+}
+export interface UnionType extends SemanticTypeBase { readonly kind: 'union'; readonly members: readonly SemanticType[]; }
+export interface IntersectionType extends SemanticTypeBase { readonly kind: 'intersection'; readonly members: readonly SemanticType[]; }
+export interface ReadonlyCollectionType extends SemanticTypeBase { readonly kind: 'readonly_collection'; readonly collectionKind: CollectionKind; readonly elementType: SemanticType; }
+export interface MutableCollectionType extends SemanticTypeBase { readonly kind: 'mutable_collection'; readonly collectionKind: CollectionKind; readonly elementType: SemanticType; }
+export interface GenericParameter { readonly name: VariableName; readonly variance: GenericVariance; readonly type: SemanticType; }
+export interface GenericType extends SemanticTypeBase { readonly kind: 'generic'; readonly base: ReferenceType; readonly parameters: readonly GenericParameter[]; }
+export interface OptionalType extends SemanticTypeBase { readonly kind: 'optional'; readonly innerType: SemanticType; }
+export interface NullableType extends SemanticTypeBase { readonly kind: 'nullable'; readonly innerType: SemanticType; }
+
+export interface ObjectProperty { readonly name: PropertyName; readonly type: SemanticType; readonly description: string; readonly origin: ObjectPropertyOrigin; }
+export interface ScannedObjectPropertyParams { readonly name: PropertyName; readonly type: SemanticType; readonly description: string; readonly origin: ObjectPropertyOrigin; }
+export interface ScannedObjectProperty extends ObjectProperty {}
+export interface ObjectTypeDescriptorParams {
+    readonly name: string; readonly baseName: string; readonly properties: readonly ObjectProperty[]; readonly role: ObjectTypeRole;
+    readonly baseObject?: ReferenceType; readonly interfaces?: readonly ReferenceType[];
+}
+export interface ObjectType extends SemanticTypeBase {
+    readonly kind: 'object'; readonly name: string; readonly baseName: string; readonly properties: readonly ObjectProperty[];
+    readonly role: ObjectTypeRole; readonly baseObject?: ReferenceType; readonly interfaces: readonly ReferenceType[];
+}
 
 export interface SemanticTypeVisitor<R> {
     readonly primitive: (type: PrimitiveType) => R;
@@ -94,471 +84,117 @@ export interface SemanticTypeVisitor<R> {
     readonly object: (type: ObjectType) => R;
 }
 
-/**
- * Base class for all semantic types.
- * Uses a brand to prevent accidental type confusion at runtime.
- */
-export abstract class SemanticTypeBase {
-    protected readonly [semanticTypeBrand] = true;
-    abstract readonly kind: SemanticTypeKind;
-    abstract accept<R>(visitor: SemanticTypeVisitor<R>): R;
+export type SemanticType = PrimitiveType | JsonValueType | OptionalType | NullableType | NeverType | ErrorType |
+    ReferenceType | UnionType | IntersectionType | ReadonlyCollectionType | MutableCollectionType | GenericType | ObjectType;
 
-    public isNullable(): boolean {
-        return false;
-    }
+const baseWitness = <K extends SemanticTypeKind>(kind: K, accept: SemanticTypeBase['accept'], nullable = false, optional = false) => ({
+    kind, accept, isNullable: () => nullable, isOptional: () => optional,
+});
 
-    public isOptional(): boolean {
-        return false;
-    }
-
-    /**
-     * Default polymorphic property formatting (0 type cast, 0 if branching).
-     */
-    public formatProperty(this: SemanticType, name: string, lowerType: (type: SemanticType) => string): string {
-        return TypeScriptSyntax.formatProperty(name, lowerType(this));
-    }
+export function primitiveType(type: PrimitiveKind): PrimitiveType {
+    const witness = {
+        ...baseWitness('primitive', visitor => visitor.primitive(witness)), type,
+        formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)),
+    } satisfies PrimitiveType;
+    return Object.freeze(witness);
 }
 
-/**
- * Primitive type node - represents basic scalar types.
- * 
- * @example
- * ```typescript
- * const stringType = new PrimitiveType(PrimitiveKind.STRING);
- * const numberType = new PrimitiveType(PrimitiveKind.NUMBER);
- * ```
- */
-export class PrimitiveType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.primitive(this); }
-
-    readonly kind = 'primitive';
-
-    constructor(public readonly type: PrimitiveKind) {
-        super();
-        Object.freeze(this);
-    }
-
-    /**
-     * Resolves PHP type representation into canonical PrimitiveType AST node.
-     */
-    public static fromPhpType(phpType: string): PrimitiveType {
-        switch (phpType.toLowerCase()) {
-            case 'int':
-            case 'integer':
-            case 'float':
-            case 'double':
-            case 'number':
-                return new PrimitiveType(PrimitiveKind.NUMBER);
-            case 'bool':
-            case 'boolean':
-                return new PrimitiveType(PrimitiveKind.BOOLEAN);
-            case 'datetime':
-            case 'date':
-            case 'timestamp':
-                return new PrimitiveType(PrimitiveKind.DATETIME);
-            case 'file':
-            case 'image':
-                return new PrimitiveType(PrimitiveKind.FILE);
-            case 'string':
-            case 'varchar':
-            case 'text':
-            default:
-                return new PrimitiveType(PrimitiveKind.STRING);
-        }
-    }
+export function JsonValueType(): JsonValueType {
+    const witness = { ...baseWitness('json_value', visitor => visitor.jsonValue(witness)), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies JsonValueType;
+    return Object.freeze(witness);
 }
 
-/**
- * JSON value semantic type.
- * Represents JSON data whose runtime shape is not declared by the source cast.
- * This is distinct from UNKNOWN: the value domain is known to be JSON.
- */
-export class JsonValueType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.jsonValue(this); }
-
-    readonly kind = 'json_value';
-    constructor() {
-        super();
-        Object.freeze(this);
-    }
+export function NeverType(): NeverType {
+    const witness = { ...baseWitness('never', visitor => visitor.never(witness)), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies NeverType;
+    return Object.freeze(witness);
 }
 
-/**
- * Never type - represents impossible/unreachable values.
- * Bottom type in the type hierarchy.
- */
-export class NeverType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.never(this); }
-
-    readonly kind = 'never';
+export function ErrorType(diagnosticMessage: string): ErrorType {
+    const witness = { ...baseWitness('error', visitor => visitor.error(witness)), diagnosticMessage: Object.freeze({ kind: 'string_value', value: diagnosticMessage }) as StringValue, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies ErrorType;
+    return Object.freeze(witness);
 }
 
-/**
- * Error type - represents a type error with diagnostic message.
- * Used to continue compilation after encountering type errors.
- */
-export class ErrorType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.error(this); }
-
-    readonly kind = 'error';
-    constructor(diagnosticMessage: string) {
-        super();
-        this.diagnosticMessage = Object.freeze({ kind: 'string_value', value: diagnosticMessage });
-    }
-
-    readonly diagnosticMessage: StringValue;
-}
-
-/**
- * Reference type - represents named types (Laravel models, resources, etc.).
- * 
- * @example
- * ```typescript
- * const userType = new ReferenceType('App\\Models', 'User');
- * const productResource = new ReferenceType('App\\Http\\Resources', 'ProductResource');
- * ```
- */
-export class ReferenceType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.reference(this); }
-
-    readonly kind = 'reference';
-    readonly role: ObjectTypeRole;
-    readonly emittedName: string;
-
-    constructor(
-        readonly namespace: string,
-        readonly name: string,
-        role: ObjectTypeRole = 'plain'
-    ) {
-        super();
-        this.role = role;
-        this.emittedName = role === 'resource' && !name.endsWith('Transformed')
-            ? `${name}Transformed`
-            : name;
-        Object.freeze(this);
-    }
-
-    public static model(namespace: string, name: string): ReferenceType {
-        return new ReferenceType(namespace, name, 'model');
-    }
-
-    public static resource(namespace: string, name: string): ReferenceType {
-        return new ReferenceType(namespace, name, 'resource');
-    }
-
-    public static response(namespace: string, name: string): ReferenceType {
-        return new ReferenceType(namespace, name, 'response');
-    }
-
-    public static plain(namespace: string, name: string): ReferenceType {
-        return new ReferenceType(namespace, name, 'plain');
-    }
-}
-
-/**
- * Union type - represents a choice between multiple types (A | B | C).
- * 
- * @example
- * ```typescript
- * const stringOrNumber = new UnionType(
- *   new ImmutableSet(new Set([
- *     new PrimitiveType(PrimitiveKind.STRING),
- *     new PrimitiveType(PrimitiveKind.NUMBER)
- *   ]))
- * );
- * ```
- */
-export class UnionType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.union(this); }
-
-    readonly kind = 'union';
-    constructor(readonly members: readonly SemanticType[]) {
-        super();
-        Object.freeze(this);
-    }
-
-    public static of(...members: readonly (SemanticType | readonly SemanticType[])[]): UnionType {
-        const flat = members.flat();
-        return new UnionType(flat as readonly SemanticType[]);
-    }
-}
-
-/**
- * Intersection type - represents a combination of multiple types (A & B & C).
- */
-export class IntersectionType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.intersection(this); }
-
-    readonly kind = 'intersection';
-    constructor(readonly members: readonly SemanticType[]) {
-        super();
-        Object.freeze(this);
-    }
-
-    public static of(...members: readonly (SemanticType | readonly SemanticType[])[]): IntersectionType {
-        const flat = members.flat();
-        return new IntersectionType(flat as readonly SemanticType[]);
-    }
-}
-
-/**
- * Readonly collection type - represents immutable collections.
- * Supports covariance for element types.
- * 
- * @example
- * ```typescript
- * const readonlyUsers = new ReadonlyCollectionType(
- *   CollectionKind.ARRAY,
- *   new ReferenceType('App\\Models', 'User')
- * );
- * ```
- */
-export class ReadonlyCollectionType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.readonlyCollection(this); }
-
-    readonly kind = 'readonly_collection';
-    constructor(
-        readonly collectionKind: CollectionKind,
-        readonly elementType: SemanticType
-    ) {
-        super();
-    }
-}
-
-/**
- * Mutable collection type - represents mutable collections.
- * Requires invariance for element types (no covariance).
- * 
- * @example
- * ```typescript
- * const mutableUsers = new MutableCollectionType(
- *   CollectionKind.ARRAY,
- *   new ReferenceType('App\\Models', 'User')
- * );
- * ```
- */
-export class MutableCollectionType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.mutableCollection(this); }
-
-    readonly kind = 'mutable_collection';
-    constructor(
-        readonly collectionKind: CollectionKind,
-        readonly elementType: SemanticType
-    ) {
-        super();
-    }
-}
-
-/**
- * Generic variance annotation - controls subtyping behavior.
- * 
- * - covariant: Producer position (readonly), allows subtypes
- * - contravariant: Consumer position (writeonly), allows supertypes
- * - invariant: Both positions, requires exact type match
- */
-export type GenericVariance = 'covariant' | 'contravariant' | 'invariant';
-
-/**
- * Generic type parameter with variance annotation.
- */
-export interface GenericParameter {
-    readonly name: VariableName;
-    readonly variance: GenericVariance;
-    readonly type: SemanticType;
-}
-
-/**
- * Generic type - represents parameterized types like Collection<T>.
- * 
- * @example
- * ```typescript
- * const collection = new GenericType(
- *   new ReferenceType('Illuminate\\Support', 'Collection'),
- *   [{ 
- *     name: SemanticValueFactory.variableName('T'), 
- *     variance: 'covariant',
- *     type: new ReferenceType('App\\Models', 'User')
- *   }]
- * );
- * ```
- */
-export class GenericType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.generic(this); }
-
-    readonly kind = 'generic';
-    constructor(
-        readonly base: ReferenceType,
-        readonly parameters: readonly GenericParameter[]
-    ) {
-        super();
-    }
-}
-
-/**
- * Object type - represents structural object types with ordered properties.
- * 
- * @example
- * ```typescript
- * const userObject = new ObjectType('User', [
- *   { name: 'id', type: new PrimitiveType(PrimitiveKind.NUMBER), required: true, nullable: false },
- *   { name: 'name', type: new PrimitiveType(PrimitiveKind.STRING), required: true, nullable: false }
- * ]);
- * ```
- */
-/**
- * First-Class Optional Type AST Node.
- * Models optionality (foo?: T) directly within the Semantic AST hierarchy.
- */
-export class OptionalType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.optional(this); }
-
-    readonly kind = 'optional';
-
-    constructor(public readonly innerType: SemanticType) {
-        super();
-        Object.freeze(this);
-    }
-
-    public override isOptional(): boolean {
-        return true;
-    }
-
-    /**
-     * Polymorphic override for optional property formatting (0 type cast, 0 if branching).
-     */
-    public override formatProperty(name: string, lowerType: (type: SemanticType) => string): string {
-        return TypeScriptSyntax.formatOptionalProperty(name, lowerType(this.innerType));
-    }
-}
-
-/**
- * First-Class Nullable Type AST Node.
- * Replaces legacy monkey-patched 'nullable_wrapper' with '__value' hack.
- */
-export class NullableType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.nullable(this); }
-
-    readonly kind = 'nullable';
-
-    constructor(public readonly innerType: SemanticType) {
-        super();
-        Object.freeze(this);
-    }
-
-    /**
-     * Polymorphic override (0 === string comparison).
-     */
-    public override isNullable(): boolean {
-        return true;
-    }
-}
-
-/**
- * First-Class Unified Object Property AST Node.
- * Pure Self-Contained Value Object (0 duplicated boolean flags, type is SSOT).
- */
-export type ObjectTypeRole = 'plain' | 'resource' | 'model' | 'response';
-
-export interface ObjectProperty {
-    readonly name: PropertyName;
-    readonly type: SemanticType;
-    readonly description: string;
-    readonly origin: ObjectPropertyOrigin;
-}
-
-export interface ScannedObjectPropertyParams {
-    readonly name: PropertyName;
-    readonly type: SemanticType;
-    readonly description: string;
-    readonly origin: ObjectPropertyOrigin;
-}
-
-export class ScannedObjectProperty implements ObjectProperty {
-    public readonly name: PropertyName;
-    public readonly type: SemanticType;
-    public readonly description: string;
-    public readonly origin: ObjectPropertyOrigin;
-
-    constructor({ name, type, description, origin }: ScannedObjectPropertyParams) {
-        this.name = name;
-        this.type = type;
-        this.description = description;
-        this.origin = origin;
-        Object.freeze(this);
-    }
-
-    public static create(params: ScannedObjectPropertyParams): ScannedObjectProperty {
-        return new ScannedObjectProperty(params);
-    }
-}
-
-export const ObjectProperty = {
-    fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
-        const type = SemanticTypeResolver.resolveField(field);
-        return new ScannedObjectProperty({
-            name: SemanticValueFactory.propertyName(toCamelCase(field.name.value)),
-            type,
-            description: '',
-            origin: { kind: 'bound_expression', bound: field.semantic.bound }
-        });
-    }
+const reference = (namespace: string, name: string, role: ObjectTypeRole): ReferenceType => {
+    const emittedName = relationResolve(relationEqual(role, 'resource'), () => relationResolve(name.endsWith('Transformed'), () => name, () => `${name}Transformed`), () => name);
+    const witness = { ...baseWitness('reference', visitor => visitor.reference(witness)), namespace, name, role, emittedName, formatProperty: (property: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(property, lower(witness)) } satisfies ReferenceType;
+    return Object.freeze(witness);
 };
 
-export interface ObjectTypeDescriptorParams {
-    readonly name: string;
-    readonly baseName: string;
-    readonly properties: readonly ObjectProperty[];
-    readonly role: ObjectTypeRole;
-    readonly baseObject?: ReferenceType;
-    readonly interfaces?: readonly ReferenceType[];
+export function ReferenceType(namespace: string, name: string, role: ObjectTypeRole = 'plain'): ReferenceType { return reference(namespace, name, role); }
+export namespace ReferenceType {
+    export const model = (namespace: string, name: string): ReferenceType => reference(namespace, name, 'model');
+    export const resource = (namespace: string, name: string): ReferenceType => reference(namespace, name, 'resource');
+    export const response = (namespace: string, name: string): ReferenceType => reference(namespace, name, 'response');
+    export const plain = (namespace: string, name: string): ReferenceType => reference(namespace, name, 'plain');
 }
 
-export class ObjectType extends SemanticTypeBase {
-    public accept<R>(visitor: SemanticTypeVisitor<R>): R { return visitor.object(this); }
+const compound = (kind: 'union' | 'intersection', members: readonly SemanticType[]): SemanticType => {
+    const witness = { ...baseWitness(kind, visitor => relationResolve(relationEqual(kind, 'union'), () => visitor.union(witness as UnionType), () => visitor.intersection(witness as IntersectionType))), members: Object.freeze([...members]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness as SemanticType)) };
+    return Object.freeze(witness);
+};
+export function UnionType(members: readonly SemanticType[]): UnionType { return compound('union', members) as UnionType; }
+export namespace UnionType { export const of = (...members: readonly (SemanticType | readonly SemanticType[])[]): UnionType => UnionType(expandRelation(members)); }
+export function IntersectionType(members: readonly SemanticType[]): IntersectionType { return compound('intersection', members) as IntersectionType; }
+export namespace IntersectionType { export const of = (...members: readonly (SemanticType | readonly SemanticType[])[]): IntersectionType => IntersectionType(expandRelation(members)); }
 
-    readonly kind = 'object';
-    public readonly name: string;
-    public readonly baseName: string;
-    public readonly properties: readonly ObjectProperty[];
-    public readonly role: ObjectTypeRole;
-    public readonly baseObject?: ReferenceType;
-    public readonly interfaces: readonly ReferenceType[];
-
-    constructor(params: ObjectTypeDescriptorParams) {
-        super();
-        this.name = params.name;
-        this.baseName = params.baseName;
-        this.properties = Object.freeze([...params.properties]);
-        this.role = params.role;
-        this.baseObject = params.baseObject;
-        this.interfaces = Object.freeze([...(params.interfaces ?? [])]);
-        Object.freeze(this);
-    }
-
-    public static create(params: ObjectTypeDescriptorParams): ObjectType {
-        return new ObjectType(params);
-    }
-
-    public static empty(name: string, baseName: string = name): ObjectType {
-        return new ObjectType({ name, baseName, properties: [], role: 'plain' });
-    }
+export function ReadonlyCollectionType(collectionKind: CollectionKind, elementType: SemanticType): ReadonlyCollectionType {
+    const witness = { ...baseWitness('readonly_collection', visitor => visitor.readonlyCollection(witness)), collectionKind, elementType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies ReadonlyCollectionType;
+    return Object.freeze(witness);
+}
+export function MutableCollectionType(collectionKind: CollectionKind, elementType: SemanticType): MutableCollectionType {
+    const witness = { ...baseWitness('mutable_collection', visitor => visitor.mutableCollection(witness)), collectionKind, elementType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies MutableCollectionType;
+    return Object.freeze(witness);
+}
+export function GenericType(base: ReferenceType, parameters: readonly GenericParameter[]): GenericType {
+    const witness = { ...baseWitness('generic', visitor => visitor.generic(witness)), base, parameters: Object.freeze([...parameters]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies GenericType;
+    return Object.freeze(witness);
+}
+export function OptionalType(innerType: SemanticType): OptionalType {
+    const witness = { ...baseWitness('optional', visitor => visitor.optional(witness), false, true), innerType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatOptionalProperty(name, lower(innerType)) } satisfies OptionalType;
+    return Object.freeze(witness);
+}
+export function NullableType(innerType: SemanticType): NullableType {
+    const witness = { ...baseWitness('nullable', visitor => visitor.nullable(witness), true, false), innerType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies NullableType;
+    return Object.freeze(witness);
 }
 
-/**
- * Union type of all semantic types.
- * This is the main type used throughout semantic analysis.
- */
-export type SemanticType =
-    | PrimitiveType
-    | JsonValueType
-    | OptionalType
-    | NullableType
-    | NeverType
-    | ErrorType
-    | ReferenceType
-    | UnionType
-    | IntersectionType
-    | ReadonlyCollectionType
-    | MutableCollectionType
-    | GenericType
-    | ObjectType;
+export function ScannedObjectProperty(params: ScannedObjectPropertyParams): ScannedObjectProperty { return Object.freeze({ ...params }); }
+export namespace ScannedObjectProperty { export const create = (params: ScannedObjectPropertyParams): ScannedObjectProperty => ScannedObjectProperty(params); }
+
+export const ObjectProperty = Object.freeze({
+    fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
+        const type = SemanticTypeResolver.resolveField(field);
+        return ScannedObjectProperty({ name: SemanticValueFactory.propertyName(toCamelCase(field.name.value)), type, description: '', origin: { kind: 'bound_expression', bound: field.semantic.bound } });
+    }
+});
+
+export function ObjectType(params: ObjectTypeDescriptorParams): ObjectType {
+    const interfaces = relationResolve(Object.prototype.hasOwnProperty.call(params, 'interfaces'), () => params.interfaces as readonly ReferenceType[], () => []);
+    const witness = {
+        ...baseWitness('object', visitor => visitor.object(witness)), name: params.name, baseName: params.baseName,
+        properties: Object.freeze([...params.properties]), role: params.role, baseObject: params.baseObject,
+        interfaces: Object.freeze([...interfaces]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness))
+    } satisfies ObjectType;
+    return Object.freeze(witness);
+}
+export namespace ObjectType {
+    export const create = (params: ObjectTypeDescriptorParams): ObjectType => ObjectType(params);
+    export const empty = (name: string, baseName = name): ObjectType => ObjectType({ name, baseName, properties: [], role: 'plain' });
+}
+
+export const SemanticTypeFactory = Object.freeze({
+    primitive: primitiveType,
+    json: JsonValueType,
+    never: NeverType,
+    error: ErrorType,
+    reference: ReferenceType,
+    nullable: NullableType,
+    optional: OptionalType,
+    collection: (kind: CollectionKind, element: SemanticType): ReadonlyCollectionType => ReadonlyCollectionType(kind, element),
+    mutableCollection: MutableCollectionType,
+    union: (members: readonly SemanticType[]): UnionType => UnionType(members),
+    intersection: (members: readonly SemanticType[]): IntersectionType => IntersectionType(members),
+    generic: GenericType,
+    object: ObjectType,
+});
+

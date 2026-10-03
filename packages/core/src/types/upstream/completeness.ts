@@ -13,7 +13,10 @@ export type UpstreamStage = { readonly kind: 'source_ast' } | { readonly kind: '
 export type CompletenessFailure =
   | { readonly kind: 'source_category_not_scanned'; readonly category: SourceCategory; readonly stage: UpstreamStage; readonly source: SourceSpan }
   | { readonly kind: 'unsupported_source_construct'; readonly source: SourceSpan };
-export type CompleteManifest = { readonly kind: 'complete_manifest'; readonly manifest: RouteSyncManifest };
+export interface CompleteManifest {
+  readonly kind: 'complete_manifest';
+  readonly manifest: RouteSyncManifest;
+}
 export type IncompleteUpstream = { readonly kind: 'incomplete_upstream'; readonly stage: UpstreamStage; readonly failures: CompletenessFailures };
 type Check = { readonly kind: 'valid'; readonly failures: Sequence<CompletenessFailure> } | { readonly kind: 'failure'; readonly failures: Sequence<CompletenessFailure> };
 const empty = <T>(): Sequence<T> => ({ kind: 'empty' });

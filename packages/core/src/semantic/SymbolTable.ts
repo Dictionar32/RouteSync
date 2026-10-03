@@ -1,65 +1,51 @@
+/** Relation-backed model symbol table and semantic model witness. */
 import type { ModelNode } from './modelNodes';
 import type { ModelColumnFact } from '../types/upstream/modelSourceFacts';
 import type { ModelSemanticAccessor, ModelSemanticRelation } from '../types/upstream/model';
 import type { Lookup } from '../types/upstream/collections';
+import { relationEqual } from './kernel/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject, relationSelect } from './kernel/relationalSequence';
 
-export class ModelSymbol {
+const found = <T>(value: T): Lookup<T> => ({ kind: 'found', value });
+const missing = <T>(): Lookup<T> => ({ kind: 'missing' });
+
+export interface ModelSymbol {
+    readonly node: ModelNode;
     readonly name: string;
-    private readonly columnFactsByName = new Map<string, ModelColumnFact>();
-    private readonly relationsByName = new Map<string, ModelSemanticRelation>();
-    private readonly accessorsByName = new Map<string, ModelSemanticAccessor>();
-
-    constructor(public readonly node: ModelNode) {
-        this.name = node.definition.semantic.identity.name.value.value;
-        for (const fact of node.definition.semantic.columnFacts) this.columnFactsByName.set(fact.column.value.value, fact);
-        for (const property of node.definition.semantic.surface.properties) {
-            if (property.kind === 'relation') this.relationsByName.set(property.relation.value.value, property);
-            if (property.kind === 'accessor') this.accessorsByName.set(property.property.value.value, property);
-        }
-    }
-
-    columnFact(name: string): Lookup<ModelColumnFact> {
-        const value = this.columnFactsByName.get(name);
-        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-    }
-
-    accessor(name: string): Lookup<ModelSemanticAccessor> {
-        const value = this.accessorsByName.get(name);
-        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-    }
-
-    relation(name: string): Lookup<ModelSemanticRelation> {
-        const value = this.relationsByName.get(name);
-        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-    }
-
+    readonly columnFact: (name: string) => Lookup<ModelColumnFact>;
+    readonly accessor: (name: string) => Lookup<ModelSemanticAccessor>;
+    readonly relation: (name: string) => Lookup<ModelSemanticRelation>;
 }
 
-export class SymbolTable {
-    private readonly byName = new Map<string, ModelSymbol>();
-    private readonly byLowerName = new Map<string, ModelSymbol>();
+export const createModelSymbol = (node: ModelNode): ModelSymbol => {
+    const name = node.definition.semantic.identity.name.value.value;
+    const columnFacts = relationProject(node.definition.semantic.columnFacts.items, fact => fact);
+    const properties = relationProject(node.definition.semantic.surface.properties, property => property);
+    const relations = relationSelect(properties, (property): property is ModelSemanticRelation => relationEqual(property.kind, 'relation'));
+    const accessors = relationSelect(properties, (property): property is ModelSemanticAccessor => relationEqual(property.kind, 'accessor'));
+    return Object.freeze({
+        node,
+        name,
+        columnFact: (column: string) => relationOptionFold(relationFirst(columnFacts, fact => relationEqual(fact.column.value.value, column)), missing, found),
+        accessor: (property: string) => relationOptionFold(relationFirst(accessors, accessorValue => relationEqual(accessorValue.property.value.value, property)), missing, found),
+        relation: (relationName: string) => relationOptionFold(relationFirst(relations, relationValue => relationEqual(relationValue.relation.value.value, relationName)), missing, found),
+    });
+};
 
-    constructor(models: readonly ModelNode[]) {
-        for (const model of models) {
-            const symbol = new ModelSymbol(model);
-            const name = model.definition.semantic.identity.name.value.value;
-            this.byName.set(name, symbol);
-            const lower = name.toLowerCase();
-            if (!this.byLowerName.has(lower)) this.byLowerName.set(lower, symbol);
-        }
-    }
-
-    lookup(name: string): Lookup<ModelSymbol> {
-        const value = this.byName.get(name);
-        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-    }
-
-    lookupCaseInsensitive(name: string): Lookup<ModelSymbol> {
-        const value = this.byLowerName.get(name.toLowerCase());
-        return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
-    }
-    findFirst(predicate: (node: ModelNode) => boolean): ModelSymbol | undefined {
-        for (const symbol of this.byName.values()) if (predicate(symbol.node)) return symbol;
-        return undefined;
-    }
+export interface SymbolTable {
+    readonly lookup: (name: string) => Lookup<ModelSymbol>;
+    readonly lookupCaseInsensitive: (name: string) => Lookup<ModelSymbol>;
+    readonly findFirst: (predicate: (node: ModelNode) => boolean) => Lookup<ModelSymbol>;
 }
+
+export const createSymbolTable = (models: readonly ModelNode[]): SymbolTable => {
+    const symbols = Object.freeze(relationProject(models, createModelSymbol));
+    return Object.freeze({
+        lookup: name => relationOptionFold(relationFirst(symbols, symbol => relationEqual(symbol.name, name)), missing, found),
+        lookupCaseInsensitive: name => {
+            const normalized = name.toLowerCase();
+            return relationOptionFold(relationFirst(symbols, symbol => relationEqual(symbol.name.toLowerCase(), normalized)), missing, found);
+        },
+        findFirst: predicate => relationOptionFold(relationFirst(symbols, symbol => predicate(symbol.node)), missing, found),
+    });
+};

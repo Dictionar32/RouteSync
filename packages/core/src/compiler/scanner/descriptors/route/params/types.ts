@@ -23,8 +23,8 @@ export interface ScannedRouteParameterParams {
 export interface RawScannedRouteParameterInput {
     readonly name: string;
     readonly propertyName: string;
-    readonly bindingField: string | undefined;
-    readonly location: RouteParameterLocation;
+    readonly bindingField?: string;
+    readonly location: RouteParameterLocation | RouteParameterLocation['kind'];
     readonly presence: Presence;
     readonly type: RouteParameterType;
     readonly constraint: RouteParameterConstraint;
@@ -39,4 +39,4 @@ export interface ScannedRouteQueryParameterParams {
     readonly defaultValue: Option<RequestRuntimeValue>;
 }
 
-export type ScannedRouteParameter = RouteParameter;
+export type RouteSemanticFlowParameter = RouteParameter;

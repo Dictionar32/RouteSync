@@ -1,53 +1,19 @@
-/**
- * DominatorAnalysis.ts
- *
- * Active Consumer Orchestrator for Dominance and Dominator Tree Analysis.
- * Coordinates DominatorTree computation and DominanceFrontier derivation.
- *
- * @module core/compiler/analysis/DominatorAnalysis
- */
-
+/** Declarative dominance-analysis projection. */
 import type { ControlFlowGraph } from '../utils/ControlFlowGraph';
-import {
-    DominatorTree,
-    DominanceFrontier
-} from './dominator';
+import { createDominatorTree, type DominatorTree } from './dominator/dominatorTree';
+import { createDominanceFrontier, type DominanceFrontier } from './dominator/dominanceFrontier';
 
-export {
-    DominatorTree,
-    DominanceFrontier
-};
+export { createDominatorTree, type DominatorTree, createDominanceFrontier, type DominanceFrontier };
 
 export interface DominanceAnalysisResult {
     readonly dominatorTree: DominatorTree;
     readonly dominanceFrontier: DominanceFrontier;
 }
 
-/**
- * Operational Coordinator for Dominance Analysis.
- * Active Consumer executing full dominance tree + frontier analysis.
- */
-export class DominatorAnalysisEngine {
-    /**
-     * Compute full dominance tree and dominance frontier for CFG.
-     */
-    public static analyze(cfg: ControlFlowGraph): DominanceAnalysisResult {
-        const dominatorTree = new DominatorTree();
-        dominatorTree.compute(cfg);
+export const computeDominanceAnalysis = (cfg: ControlFlowGraph): DominanceAnalysisResult => {
+    const dominatorTree = createDominatorTree(cfg);
+    const dominanceFrontier = createDominanceFrontier(cfg, dominatorTree);
+    return Object.freeze({ dominatorTree, dominanceFrontier });
+};
 
-        const dominanceFrontier = new DominanceFrontier();
-        dominanceFrontier.compute(cfg, dominatorTree);
-
-        return {
-            dominatorTree,
-            dominanceFrontier
-        };
-    }
-}
-
-/**
- * Functional entry point for Dominance Analysis.
- */
-export function computeDominanceAnalysis(cfg: ControlFlowGraph): DominanceAnalysisResult {
-    return DominatorAnalysisEngine.analyze(cfg);
-}
+export const DominatorAnalysisEngine = Object.freeze({ analyze: computeDominanceAnalysis });

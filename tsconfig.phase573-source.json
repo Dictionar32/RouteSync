@@ -1,0 +1,5 @@
+{
+  "extends":"./tsconfig.json",
+  "compilerOptions":{"types":[]},
+  "include":["packages/core/src/**/*.ts","packages/sdk/src/**/*.ts","packages/react/src/**/*.ts","packages/cli/src/**/*.ts","packages/graph-ir/src/**/*.ts"]
+}

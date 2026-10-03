@@ -7,27 +7,27 @@
  * @module cli/utils/incremental/types
  */
 
-export type ScannedRouteMethod = string & { readonly __brand: unique symbol };
-export type ScannedRoutePath = string & { readonly __brand: unique symbol };
-export type ScannedRouteName = string & { readonly __brand: unique symbol };
+export type RouteSemanticFlowMethod = string & { readonly __brand: unique symbol };
+export type RouteSemanticFlowPath = string & { readonly __brand: unique symbol };
+export type RouteSemanticFlowName = string & { readonly __brand: unique symbol };
 export type ScannedStableHash = string & { readonly __brand: unique symbol };
 export type SourceFilePath = string & { readonly __brand: unique symbol };
 export type SourceLineNumber = number & { readonly __brand: unique symbol };
 
 export class NominalAtomFactory {
-  public static method(method: string): ScannedRouteMethod {
+  public static method(method: string): RouteSemanticFlowMethod {
     const normalized = (method || 'GET').trim().toUpperCase();
-    return normalized as ScannedRouteMethod;
+    return normalized as RouteSemanticFlowMethod;
   }
 
-  public static path(path: string): ScannedRoutePath {
+  public static path(path: string): RouteSemanticFlowPath {
     const normalized = (path || '/').trim();
     const formatted = normalized.startsWith('/') ? normalized : `/${normalized}`;
-    return formatted as ScannedRoutePath;
+    return formatted as RouteSemanticFlowPath;
   }
 
-  public static name(name: string): ScannedRouteName {
-    return (name || '').trim() as ScannedRouteName;
+  public static name(name: string): RouteSemanticFlowName {
+    return (name || '').trim() as RouteSemanticFlowName;
   }
 
   public static stableHash(hash: string): ScannedStableHash {

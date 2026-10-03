@@ -1,14 +1,14 @@
-import { ParsedRoute } from '@routesync/core'
+import { RouteSemanticFlow } from '@routesync/core'
 import { classifyRoutes } from './route-classifier'
 
-export type GeneratedRoute = ParsedRoute & {
+export type GeneratedRoute = RouteSemanticFlow & {
   groupName: string
   actionName: string
   runtimePath: string
 }
 
 export function buildGeneratedRoutes(
-  routes: ParsedRoute[],
+  routes: RouteSemanticFlow[],
   groupAliases?: Record<string, string>
 ): Record<string, GeneratedRoute[]> {
   const classified = classifyRoutes(routes, groupAliases)
@@ -47,7 +47,7 @@ export function toRuntimePath(path: string): string {
   return path.replace(/{([^}/]+)}/g, ':$1')
 }
 
-function toActionName(route: ParsedRoute, restSegments: string[]): string {
+function toActionName(route: RouteSemanticFlow, restSegments: string[]): string {
   const method = route.method.toLowerCase()
   const suffix = restSegments.map(normalizeSegment).filter(Boolean).map(toTypeName).join('')
   return toIdentifier(suffix ? `${method}-${suffix}` : method)
@@ -91,7 +91,7 @@ function uniquify(baseName: string, used: Set<string>): string {
   return name
 }
 
-export function toMethodName(route: ParsedRoute): string {
+export function toMethodName(route: RouteSemanticFlow): string {
   if (route.name) {
     const parts = route.name.split('.')
     return toIdentifier(parts.join(' '))

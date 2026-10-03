@@ -1,0 +1,11 @@
+{
+  "phase": 558,
+  "frontier": "remaining-resolver-graph-model-domain-resolver",
+  "scannedFiles": 114,
+  "hostLeakCount": 0,
+  "leakingFiles": [],
+  "modelEvidence": [],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": true
+}

@@ -5,6 +5,7 @@
  */
 
 import type { Diagnostic } from './Diagnostic';
+import { selectRelation, projectRelation } from '../relational/sequence';
 
 /**
  * DiagnosticBag is an immutable collection of diagnostics.
@@ -62,24 +63,24 @@ export class DiagnosticBag {
     }
 
     /**
-     * Checks if any error-level diagnostics are recorded.
+     * Checks whether error-level diagnostics are recorded.
      */
     public hasErrors(): boolean {
-        return this.items.some(d => d.severity === 'error');
+        return selectRelation(this.items, d => d.severity === 'error').length > 0;
     }
 
     /**
      * Returns all error-level diagnostics.
      */
     public getErrors(): readonly Diagnostic[] {
-        return this.items.filter(d => d.severity === 'error');
+        return selectRelation(this.items, d => d.severity === 'error');
     }
 
     /**
      * Returns all warning-level diagnostics.
      */
     public getWarnings(): readonly Diagnostic[] {
-        return this.items.filter(d => d.severity === 'warning');
+        return selectRelation(this.items, d => d.severity === 'warning');
     }
 
     /**
@@ -90,17 +91,21 @@ export class DiagnosticBag {
     }
 
     /**
-     * Fail-fast boundary gatekeeper: Throws CompilerValidationError if any errors exist.
+     * Fail-fast boundary gatekeeper: Throws CompilerValidationError when errors exist.
      */
     public assertNoErrors(stageName: string = 'Validation'): void {
         const errors = this.getErrors();
-        if (errors.length > 0) {
-            const errorMessages = errors.map(e => `[${e.code}] ${e.message}`).join('\n');
-            throw new CompilerValidationError(
-                `[Verified Pipeline - ${stageName} Gatekeeper] Rejected ${errors.length} diagnostic error(s):\n${errorMessages}`,
-                errors
-            );
-        }
+        const outcome = Object.freeze({
+            pass: () => undefined,
+            reject: () => {
+                const errorMessages = projectRelation(errors, e => `[${e.code}] ${e.message}`).join('\n');
+                throw new CompilerValidationError(
+                    `[Verified Pipeline - ${stageName} Gatekeeper] Rejected ${errors.length} diagnostic error(s):\n${errorMessages}`,
+                    errors
+                );
+            },
+        });
+        outcome[errors.length === 0 ? 'pass' : 'reject']();
     }
 }
 

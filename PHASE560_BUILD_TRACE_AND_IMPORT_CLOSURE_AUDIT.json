@@ -1,0 +1,21 @@
+{
+  "phase": 560,
+  "kind": "build-trace-import-closure",
+  "sourceLog": "Teks yang ditempel (1)(6).txt",
+  "tracedFailures": {
+    "emptyCompilerShadowModule": true,
+    "staleSemanticKernelImports": true,
+    "stalePhpAstStatementKindsImport": true,
+    "duplicateArrayArgumentValues": true,
+    "duplicateQueryColumnSequenceHelpers": true
+  },
+  "repairs": {
+    "compilerCompatibilityBoundary": "packages/core/src/compiler.ts -> re-export packages/core/src/compiler/index",
+    "canonicalSemanticKernel": "packages/core/src/semantic/kernel",
+    "canonicalPhpAstStatementKinds": "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts",
+    "duplicateArrayArgumentValues": "collapsed-to-one",
+    "duplicateQueryColumnHelpers": "collapsed-to-one-coherent-set"
+  },
+  "fullBuildVerified": false,
+  "fullBuildVerificationBlocker": "tsup unavailable; npm ci exceeded execution transport timeout"
+}

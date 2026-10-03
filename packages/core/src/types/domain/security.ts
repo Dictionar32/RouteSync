@@ -42,7 +42,7 @@ export {
     SecuritySchemeKind,
     type RouteSecurityDescriptor,
     type ScannedRouteSecurityParams,
-    ScannedRouteSecurityDescriptor,
+    RouteSemanticFlowSecurityDescriptor,
     RouteSecurityClassifier,
     type SecuritySchemeSpecification,
     type SecuritySchemeRegistry,

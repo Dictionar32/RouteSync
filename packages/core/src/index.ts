@@ -160,12 +160,12 @@ export {
   ScannedRequestContentTypeDescriptor,
   ScannedResourceGroupGraph,
   ScannedResourceGroupTypeSignature,
-  ScannedRouteCacheInvalidationDescriptor,
-  ScannedRouteExecutionSignature,
-  ScannedRouteHookDescriptor,
-  ScannedRouteInvalidationPayload,
-  ScannedRouteRegistry,
-  ScannedRouteSecurityDescriptor,
+  RouteSemanticFlowCacheInvalidationDescriptor,
+  RouteSemanticFlowExecutionSignature,
+  RouteSemanticFlowHookDescriptor,
+  RouteSemanticFlowInvalidationPayload,
+  RouteSemanticFlowRegistry,
+  RouteSemanticFlowSecurityDescriptor,
   ScannedSdkResponseResolution,
   ScannedSingletonResourceGroupDescriptor,
   SdkResponseKind,
@@ -329,7 +329,6 @@ export type {
   EndpointContract,
   EndpointErrorResponseContract,
   EndpointProvenanceDescriptor,
-  EndpointRequestBodyContract,
   EndpointRequestContract,
   EndpointResponseContract,
   EndpointResponseVisitor,
@@ -436,7 +435,7 @@ export type {
   ParsedModel,
   ParsedRelation,
   ParsedResource,
-  ParsedRoute,
+  RouteSemanticFlow,
   PathParameterDescriptor,
   PhpAstCategory,
   PhpAstFolder,
@@ -586,9 +585,15 @@ export type {
 } from './types/route'
 
 // Semantic Kernel Types & IR
+export { SemanticValueFactory } from './types/domain/semanticValues'
+export type { ResourceAst } from './types/upstream/ast'
+export type { ServiceResult } from './types/upstream/service'
 export { SemanticResolutionKernel as SemanticKernelV2Impl } from './semantic/SemanticResolutionKernel'
 export { SemanticResolutionKernel } from './semantic/SemanticResolutionKernel'
+export type { EndpointRequestBodyContract } from './types/domain/contracts'
+export type { FieldBinding, ResolvedFieldBinding, UnresolvedFieldBinding } from './types/domain/fieldBinding'
 export type { ModelNode as SemanticModelNode, ResolverMeta, ResolutionContext, ResolverPlugin } from './semantic/types'
+export type { ModelNode } from './semantic/modelNodes'
 
 export {
   IRHintsFactory,
@@ -620,7 +625,6 @@ export type {
   JsonMemberResolution,
   JsonObjectResolution,
   ModelCastEntry,
-  ModelNode,
   ReactQueryHooks,
   RequestContract,
   ResolutionStatus,
@@ -700,9 +704,6 @@ export type {
   FieldEntryNode,
   FieldArrayKey,
   ArrayField,
-  type FieldBinding,
-  type ResolvedFieldBinding,
-  type UnresolvedFieldBinding,
   RouteDef,
   RouteDefContract,
   ResourceDef,
@@ -717,8 +718,6 @@ export type {
 export { createFieldBinding } from './types/domain/fieldBinding';
 
 export {
-  RouteDefDescriptor,
-  ResourceDefDescriptor,
   createRoutePath,
   createHttpVerb
 } from './types/field';
@@ -928,32 +927,18 @@ export {
   type StaticLaravelScannerOptions,
   ScannedRouteValidationRuleEntry,
   type ScannedRouteValidationRuleParams,
-  ScannedRouteValidationRuleSet,
+  RouteSemanticFlowValidationRuleSet,
   type RouteValidationRuleSet,
-  ScannedRouteSchemaPayload,
-  type ScannedRouteSchemaParams,
-  ScannedScalarFieldNode,
-  type ScannedScalarFieldParams,
-  ScannedObjectFieldNode,
-  type ScannedObjectFieldParams,
-  ScannedArrayFieldNode,
-  type ScannedArrayFieldParams,
   ValidationTreeBuilder,
   buildValidationTree,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteParameterDescriptor,
   ScannedRouteQueryParameterDescriptor,
-  ScannedRoutePolicyDescriptor,
-  ScannedRateLimitDescriptor,
-  ScannedHttpErrorResponseDescriptor,
-  type ScannedRouteCompleteContracts,
-  type ScannedRouteConstructorInput,
-  type ScannedRouteParams,
+  type RouteSemanticFlowCompleteContracts,
+  type RouteSemanticFlowConstructorInput,
+  type RouteSemanticFlowParams,
   type ScannedRouteParameterParams,
   type ScannedRouteQueryParameterParams,
-  type ScannedRoutePolicyParams,
-  type ScannedRateLimitParams,
-  type ScannedHttpErrorResponseParams,
   ScannedResourceFieldDescriptor,
   type ScannedResourceFieldParams,
   ScannedResourceDescriptor,
@@ -966,8 +951,6 @@ export {
   type ScannedModelCastParams,
   type ScannedModelRelationParams,
   type ScannedModelAccessorParams,
-  ScannedBroadcastChannelDescriptor,
-  type ScannedBroadcastChannelParams,
   compileBroadcastRuntimePattern,
   ScannedFormFieldDescriptor,
   type ScannedFormFieldParams,
@@ -979,10 +962,6 @@ export {
   type ScannedRequestTypeParams,
   type ControllerActionInfo,
   buildRequestTypeWithActions,
-  ScannedResourceRouteGroupDescriptor,
-  type ScannedResourceRouteGroupParams,
-  ScannedRouteManifestDescriptor,
-  type ScannedRouteManifestParams
 } from './compiler/scanner/descriptors'
 
 export {
@@ -1015,9 +994,7 @@ export {
   matchResolvedSemanticTypeIR,
   TypeIRUtils,
   createEndpointId,
-  createResourceId,
-  createRequestId,
-  createHttpHeaderName
+  
 } from './types/ir'
 export type {
   ContractIR,
@@ -1027,12 +1004,8 @@ export type {
   EndpointIR,
   TypeIR,
   PrimitiveSemanticTypeIR,
-  ResourceSemanticTypeIR,
-  ModelSemanticTypeIR,
   ObjectSemanticTypeIR,
-  ArraySemanticTypeIR,
   UnionSemanticTypeIR,
-  LiteralSemanticTypeIR,
   ResolvedSemanticType as ResolvedSemanticTypeIR,
   ResolvedSemanticTypeVisitor as ResolvedSemanticTypeIRVisitor,
   EndpointId,
@@ -1040,6 +1013,7 @@ export type {
   RequestId,
   HttpHeaderName
 } from './types/ir'
+export { createResourceId, createRequestId, createHttpHeaderName } from './types/ir/nominalVocabulary'
 export { OptimizedContractIRBuilder } from './ir/ContractIRBuilder'
 
 // Utilities & Type Guards
@@ -1094,9 +1068,22 @@ export {
   type CarrierVisitor,
   matchDomainCarrier,
   foldTypeWrapper,
-} from './types/domain'
+} from './types/domain/schemaMorphism'
 
 
 export { SemanticTypeResolver } from './compiler/domain/common/SemanticTypeResolver'
 export { toTypeScriptTypeExpression } from './compiler/domain/common/ts-lowerer/typeScriptNodeLowerer'
 export { toZodSchemaExpression } from './compiler/domain/common/ZodSchemaLowerer'
+
+// Declarative relation execution primitives used by compiler/parser boundaries.
+export {
+  relationResolve,
+  walkRelation,
+  projectRelation,
+  selectRelation,
+  expandRelation,
+  distinctRelation,
+  visitRelation,
+  accumulateRelation,
+  firstRelation,
+} from './compiler/relational/sequence';

@@ -6,7 +6,7 @@ import {
   matchResourceGroup,
   matchFineGrainedResourceGroup,
   matchUnifiedResourceGroup,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   RouteParameterType,
   ScannedFullCrudResourceGroupDescriptor,
   ScannedReadOnlyCrudResourceGroupDescriptor,
@@ -37,17 +37,17 @@ import os from "os"
 describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () => {
   it("correctly classifies Full CRUD resource group when all 5 standard operations exist", () => {
     const routes = [
-      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/products", groupName: "products", crudRole: "index" }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({ method: "GET", path: "/api/v1/products", groupName: "products", crudRole: "index" }),
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/products/{id}",
         groupName: "products",
         crudRole: "show",
         pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
       }),
-      ScannedRouteDescriptor.create({ method: "POST", path: "/api/v1/products", groupName: "products", crudRole: "create" }),
-      ScannedRouteDescriptor.create({ method: "PUT", path: "/api/v1/products/{id}", groupName: "products", crudRole: "update" }),
-      ScannedRouteDescriptor.create({ method: "DELETE", path: "/api/v1/products/{id}", groupName: "products", crudRole: "delete" })
+      RouteSemanticFlowFactory.create({ method: "POST", path: "/api/v1/products", groupName: "products", crudRole: "create" }),
+      RouteSemanticFlowFactory.create({ method: "PUT", path: "/api/v1/products/{id}", groupName: "products", crudRole: "update" }),
+      RouteSemanticFlowFactory.create({ method: "DELETE", path: "/api/v1/products/{id}", groupName: "products", crudRole: "delete" })
     ]
 
     const manifest: RouteManifest = {
@@ -99,8 +99,8 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
 
   it("correctly classifies Read-Only CRUD resource group when only index and show exist", () => {
     const routes = [
-      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/categories", groupName: "categories", crudRole: "index" }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({ method: "GET", path: "/api/v1/categories", groupName: "categories", crudRole: "index" }),
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/categories/{id}",
         groupName: "categories",
@@ -142,15 +142,15 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
 
   it("correctly classifies Flexible CRUD resource group with explicit MutationCapabilities", () => {
     const routes = [
-      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/reviews", groupName: "reviews", crudRole: "index" }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({ method: "GET", path: "/api/v1/reviews", groupName: "reviews", crudRole: "index" }),
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/reviews/{id}",
         groupName: "reviews",
         crudRole: "show",
         pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
       }),
-      ScannedRouteDescriptor.create({ method: "POST", path: "/api/v1/reviews", groupName: "reviews", crudRole: "create" })
+      RouteSemanticFlowFactory.create({ method: "POST", path: "/api/v1/reviews", groupName: "reviews", crudRole: "create" })
     ]
 
     const manifest: RouteManifest = {
@@ -169,14 +169,14 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
   })
 
   it("correctly classifies Singleton resource group without trailing item params", () => {
-    const cartGet = ScannedRouteDescriptor.create({
+    const cartGet = RouteSemanticFlowFactory.create({
       method: "GET",
       path: "/api/v1/cart",
       groupName: "cart",
       crudRole: "index"
     })
 
-    const cartCheckout = ScannedRouteDescriptor.create({
+    const cartCheckout = RouteSemanticFlowFactory.create({
       method: "POST",
       path: "/api/v1/cart/checkout",
       groupName: "cart",
@@ -211,38 +211,38 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
 
   it("guarantees QueryKeyGenerator and HookGenerator consume ClassifiedDomainGraph with 0 downstream if", async () => {
     const routes = [
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/users",
         groupName: "users",
         crudRole: "index"
       }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/users/{id}",
         groupName: "users",
         crudRole: "show",
         pathParameters: [{ name: "id", type: RouteParameterType.String, required: true }]
       }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "POST",
         path: "/api/v1/users",
         groupName: "users",
         crudRole: "create"
       }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "PUT",
         path: "/api/v1/users/{id}",
         groupName: "users",
         crudRole: "update"
       }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "DELETE",
         path: "/api/v1/users/{id}",
         groupName: "users",
         crudRole: "delete"
       }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/profile",
         groupName: "profile",
@@ -282,7 +282,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
   })
 
   it("resolves exact response, form, and error types at Origin Boundary with zero AST digging in HookGenerator", async () => {
-    const productIndex = ScannedRouteDescriptor.create({
+    const productIndex = RouteSemanticFlowFactory.create({
       method: "GET",
       path: "/api/v1/products",
       groupName: "products",
@@ -300,7 +300,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       }
     })
 
-    const productShow = ScannedRouteDescriptor.create({
+    const productShow = RouteSemanticFlowFactory.create({
       method: "GET",
       path: "/api/v1/products/{id}",
       groupName: "products",
@@ -319,7 +319,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       }
     })
 
-    const productCreate = ScannedRouteDescriptor.create({
+    const productCreate = RouteSemanticFlowFactory.create({
       method: "POST",
       path: "/api/v1/products",
       groupName: "products",
@@ -331,7 +331,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       }
     })
 
-    const productUpdate = ScannedRouteDescriptor.create({
+    const productUpdate = RouteSemanticFlowFactory.create({
       method: "PUT",
       path: "/api/v1/products/{id}",
       groupName: "products",
@@ -344,7 +344,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
       }
     })
 
-    const productDelete = ScannedRouteDescriptor.create({
+    const productDelete = RouteSemanticFlowFactory.create({
       method: "DELETE",
       path: "/api/v1/products/{id}",
       groupName: "products",
@@ -387,23 +387,23 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
 
   it("guarantees ResourceGroupVisitor ADT discrimination and HookGenerator direct domain graph consumption", async () => {
     const routes = [
-      ScannedRouteDescriptor.create({ method: "GET", path: "/api/v1/posts", groupName: "posts", crudRole: "index" }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({ method: "GET", path: "/api/v1/posts", groupName: "posts", crudRole: "index" }),
+      RouteSemanticFlowFactory.create({
         method: "GET",
         path: "/api/v1/posts/{id}",
         groupName: "posts",
         crudRole: "show",
         pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
       }),
-      ScannedRouteDescriptor.create({ method: "POST", path: "/api/v1/posts", groupName: "posts", crudRole: "create" }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({ method: "POST", path: "/api/v1/posts", groupName: "posts", crudRole: "create" }),
+      RouteSemanticFlowFactory.create({
         method: "PUT",
         path: "/api/v1/posts/{id}",
         groupName: "posts",
         crudRole: "update",
         pathParameters: [{ name: "id", type: RouteParameterType.Integer, required: true }]
       }),
-      ScannedRouteDescriptor.create({
+      RouteSemanticFlowFactory.create({
         method: "DELETE",
         path: "/api/v1/posts/{id}",
         groupName: "posts",
@@ -503,7 +503,7 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
   })
 
   it("enforces Complete Contracts with MutationCapability helper factories and ScannedCrudResourceGroupDescriptor", () => {
-    const dummyRoute = ScannedRouteDescriptor.create({
+    const dummyRoute = RouteSemanticFlowFactory.create({
       method: "POST",
       path: "/api/v1/items",
       groupName: "items",
@@ -547,19 +547,19 @@ describe("ADT Registry 33: ResourceGroupDescriptor & ClassifiedDomainGraph", () 
   })
 
   it("enforces Algebraic Trait Composition and Abstract Base Class inheritance", () => {
-    const dummyIndex = ScannedRouteDescriptor.create({
+    const dummyIndex = RouteSemanticFlowFactory.create({
       method: "GET",
       path: "/api/v1/orders",
       groupName: "orders",
       crudRole: "index"
     })
-    const dummyShow = ScannedRouteDescriptor.create({
+    const dummyShow = RouteSemanticFlowFactory.create({
       method: "GET",
       path: "/api/v1/orders/{id}",
       groupName: "orders",
       crudRole: "show"
     })
-    const dummyCreate = ScannedRouteDescriptor.create({
+    const dummyCreate = RouteSemanticFlowFactory.create({
       method: "POST",
       path: "/api/v1/orders",
       groupName: "orders",

@@ -11,7 +11,10 @@
 import {
     type SemanticType
 } from '../../types/SemanticType';
+import { relationFirst, relationOptionFold, relationRefine } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
+import type { ResourceFieldSemantic } from '../../../types/domain/resourceFieldSemantic';
 
 import {
     ResolvedUnknownType,
@@ -50,38 +53,37 @@ export interface SemanticTypeResolverParams {
     readonly customHandlers: readonly SemanticTypeHandler[];
 }
 
-export class SemanticTypeResolver implements SemanticTypeResolverLike {
-    private readonly handlers: readonly SemanticTypeHandler[];
-
-    constructor(params: SemanticTypeResolverParams);
-    constructor(params?: { readonly customHandlers?: readonly SemanticTypeHandler[] });
-    constructor({ customHandlers = EMPTY_CUSTOM_HANDLERS }: { readonly customHandlers?: readonly SemanticTypeHandler[] } = {}) {
-        this.handlers = Object.freeze([...customHandlers, ...DEFAULT_HANDLERS]);
-    }
-
-    public static default(): SemanticTypeResolver {
-        return new SemanticTypeResolver({ customHandlers: EMPTY_CUSTOM_HANDLERS });
-    }
-
-    public static withHandlers(customHandlers: readonly SemanticTypeHandler[]): SemanticTypeResolver {
-        return new SemanticTypeResolver({ customHandlers });
-    }
-
-    resolve(type: SemanticType): ResolvedSemanticType {
-        for (const handler of this.handlers) {
-            if (handler.supports(type)) {
-                return handler.resolve(type, this);
-            }
-        }
-        return new ResolvedUnknownType({
-            diagnosticMessage: `unsupported SemanticType kind '${type.kind}'`
-        });
-    }
-
-    public static resolveField(field: ResourceFieldDescriptor): SemanticType {
-        if (field.semantic.kind !== 'verified') {
-            throw new Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`);
-        }
-        return field.semantic.type;
-    }
+export interface SemanticTypeResolverInstance extends SemanticTypeResolverLike {
+    readonly handlers: readonly SemanticTypeHandler[];
 }
+
+const createResolver = (customHandlers: readonly SemanticTypeHandler[] = EMPTY_CUSTOM_HANDLERS): SemanticTypeResolverInstance => {
+    const handlers = Object.freeze([...customHandlers, ...DEFAULT_HANDLERS]);
+    return Object.freeze({
+        handlers,
+        resolve: (type: SemanticType): ResolvedSemanticType => relationOptionFold(
+            relationFirst(handlers, handler => handler.supports(type)),
+            () => ResolvedUnknownType.create({ diagnosticMessage: `unsupported SemanticType kind '${type.kind}'` }),
+            handler => handler.resolve(type, { resolve: (candidate: SemanticType) => relationOptionFold(
+                relationFirst(handlers, item => item.supports(candidate)),
+                () => ResolvedUnknownType.create({ diagnosticMessage: `unsupported SemanticType kind '${candidate.kind}'` }),
+                item => item.resolve(candidate, createResolver(customHandlers)),
+            ) }),
+        ),
+    });
+};
+
+export const SemanticTypeResolver = Object.freeze({
+    default: (): SemanticTypeResolverInstance => createResolver(),
+    withHandlers: (customHandlers: readonly SemanticTypeHandler[]): SemanticTypeResolverInstance => createResolver(customHandlers),
+    resolveField: (field: ResourceFieldDescriptor): SemanticType => {
+        type VerifiedSemantic = Extract<ResourceFieldSemantic, { readonly kind: 'verified' }>;
+        const isVerified = (semantic: ResourceFieldSemantic): semantic is VerifiedSemantic =>
+            relationEqual(semantic.kind, 'verified');
+        return relationOptionFold(
+            relationRefine(field.semantic, isVerified),
+            () => { throw Error(`Resource field semantic rejected: ${field.semantic.kind}`); },
+            semantic => semantic.type,
+        );
+    },
+});

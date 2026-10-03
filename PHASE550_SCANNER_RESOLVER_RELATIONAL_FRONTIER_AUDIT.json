@@ -1,0 +1,258 @@
+{
+  "phase": 550,
+  "frontier": "scanner-resolver-relational-frontier",
+  "scannedFiles": 388,
+  "hostLeakCount": 76,
+  "leakingFiles": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "counts": {
+        "reduceRight": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/whenLoadedRelationArgument.ts",
+      "counts": {
+        "reduce": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 1,
+        "&&": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts",
+      "counts": {
+        "map": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "counts": {
+        "if": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts",
+      "counts": {
+        "??": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 1,
+        "undefined": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "counts": {
+        "??": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 2,
+        "||": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts",
+      "counts": {
+        "!==": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "counts": {
+        "void 0": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "counts": {
+        "??": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "counts": {
+        "void 0": 5
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
+      "counts": {
+        "void 0": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/RouteScanner.ts",
+      "counts": {
+        "reduceRight": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts",
+      "counts": {
+        "if": 1,
+        "for": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/channelProducer.ts",
+      "counts": {
+        "switch": 1,
+        "ternary": 1,
+        "===": 1,
+        "reduceRight": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts",
+      "counts": {
+        "ternary": 2,
+        "===": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts",
+      "counts": {
+        "??": 1,
+        "map": 1,
+        "reduceRight": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts",
+      "counts": {
+        "if": 1,
+        "===": 1,
+        "&&": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+      "counts": {
+        "if": 1,
+        "for": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts",
+      "counts": {
+        "if": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/eloquentRelationVocabulary.ts",
+      "counts": {
+        "if": 1,
+        "===": 1,
+        "undefined": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts",
+      "counts": {
+        "ternary": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts",
+      "counts": {
+        "map": 3,
+        "reduceRight": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceExpressionOperator.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts",
+      "counts": {
+        "ternary": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/resource/resourceBindingTypes.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/upstreamManifestBuilder.ts",
+      "counts": {
+        "if": 1,
+        "===": 1
+      }
+    }
+  ],
+  "modelNullEvidence": {
+    "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts": [
+      44
+    ],
+    "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts": [
+      39
+    ],
+    "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts": [
+      16
+    ],
+    "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts": [
+      10
+    ],
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts": [
+      32,
+      62
+    ]
+  },
+  "transpileDiagnosticsClean": true,
+  "closedSurfaceClean": false,
+  "note": "NullKeyword occurrences are reported separately because PHP null is legitimate semantic/source evidence in scanner AST models; host-control leakage is audited independently."
+}

@@ -14,10 +14,12 @@ import {
 } from '../../../../types/domain/channels';
 import type { RouteParameter } from '../../../../types/upstream/route';
 import { compileBroadcastRuntimePattern } from './patternCompiler';
-import {
-  ScannedBroadcastChannelDescriptor,
-  type ScannedBroadcastChannelParams
-} from './channelDescriptorClass';
+import type { BroadcastChannelDescriptor } from '../../../../types/domain/channels';
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+
+type BroadcastChannelDescriptorParams = { readonly name: string; readonly kind: BroadcastChannelKind; readonly pattern: string; readonly runtimePattern: string; readonly parameters: readonly RouteParameter[]; readonly isPrivate: boolean; readonly isPresence: boolean };
+
+const createDescriptor = (params: BroadcastChannelDescriptorParams): BroadcastChannelDescriptor => Object.freeze({ ...params });
 
 export function createBroadcastChannel({
   name,
@@ -33,10 +35,10 @@ export function createBroadcastChannel({
   readonly parameters: readonly RouteParameter[];
   readonly isPrivate: boolean;
   readonly isPresence: boolean;
-}): ScannedBroadcastChannelDescriptor {
+}): BroadcastChannelDescriptor {
   const frozenParams = Object.freeze([...parameters]);
   const runtimePattern = compileBroadcastRuntimePattern(pattern, frozenParams);
-  return new ScannedBroadcastChannelDescriptor({
+  return createDescriptor({
     name,
     kind,
     pattern,
@@ -56,10 +58,10 @@ export function createPublicChannel({
   readonly pattern?: string;
   readonly parameters?: readonly RouteParameter[];
 }): PublicBroadcastChannelDescriptor {
-  const resolvedPattern = pattern ?? name;
+  const resolvedPattern = relationGate(Object.is(typeof pattern, 'string'), () => pattern as string, () => name);
   const frozenParams = Object.freeze([...parameters]);
   const runtimePattern = compileBroadcastRuntimePattern(resolvedPattern, frozenParams);
-  return new ScannedBroadcastChannelDescriptor({
+  return createDescriptor({
     name,
     kind: BroadcastChannelKind.Public,
     pattern: resolvedPattern,
@@ -79,10 +81,10 @@ export function createPrivateChannel({
   readonly pattern?: string;
   readonly parameters?: readonly RouteParameter[];
 }): PrivateBroadcastChannelDescriptor {
-  const resolvedPattern = pattern ?? name;
+  const resolvedPattern = relationGate(Object.is(typeof pattern, 'string'), () => pattern as string, () => name);
   const frozenParams = Object.freeze([...parameters]);
   const runtimePattern = compileBroadcastRuntimePattern(resolvedPattern, frozenParams);
-  return new ScannedBroadcastChannelDescriptor({
+  return createDescriptor({
     name,
     kind: BroadcastChannelKind.Private,
     pattern: resolvedPattern,
@@ -102,10 +104,10 @@ export function createPresenceChannel({
   readonly pattern?: string;
   readonly parameters?: readonly RouteParameter[];
 }): PresenceBroadcastChannelDescriptor {
-  const resolvedPattern = pattern ?? name;
+  const resolvedPattern = relationGate(Object.is(typeof pattern, 'string'), () => pattern as string, () => name);
   const frozenParams = Object.freeze([...parameters]);
   const runtimePattern = compileBroadcastRuntimePattern(resolvedPattern, frozenParams);
-  return new ScannedBroadcastChannelDescriptor({
+  return createDescriptor({
     name,
     kind: BroadcastChannelKind.Presence,
     pattern: resolvedPattern,
@@ -116,8 +118,8 @@ export function createPresenceChannel({
   }) as PresenceBroadcastChannelDescriptor;
 }
 
-export function createNoneChannel(): ScannedBroadcastChannelDescriptor {
-  return new ScannedBroadcastChannelDescriptor({
+export function createNoneChannel(): BroadcastChannelDescriptor {
+  return createDescriptor({
     name: 'none',
     kind: BroadcastChannelKind.Public,
     pattern: 'none',
@@ -128,8 +130,8 @@ export function createNoneChannel(): ScannedBroadcastChannelDescriptor {
   });
 }
 
-export function createEmptyChannel(name: string): ScannedBroadcastChannelDescriptor {
-  return new ScannedBroadcastChannelDescriptor({
+export function createEmptyChannel(name: string): BroadcastChannelDescriptor {
+  return createDescriptor({
     name,
     kind: BroadcastChannelKind.Public,
     pattern: name,

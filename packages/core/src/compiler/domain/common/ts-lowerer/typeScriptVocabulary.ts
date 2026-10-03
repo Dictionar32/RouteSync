@@ -7,6 +7,7 @@
  */
 
 import { PrimitiveKind } from '../../../types/SemanticType';
+import { resolveTypeScriptPrimitiveToken } from './typeScriptPrimitiveSemanticRelations';
 
 /**
  * TypeScriptTargetVersion
@@ -50,27 +51,9 @@ export class TypeScriptPrimitiveMapping {
     public static readonly FILE = 'File' as const;
     public static readonly UNKNOWN = 'unknown' as const;
 
-    /**
-     * Exhaustive compile-time guaranteed projection from PrimitiveKind to TypeScript token.
-     * Zero-allocation, total deterministic dispatch without unsafe type casts.
-     */
+    /** Semantic projection is owned by the declarative relation catalog. */
     public static forPrimitive(kind: PrimitiveKind | string): TypeScriptPrimitiveToken {
-        switch (kind) {
-            case PrimitiveKind.STRING:
-                return this.STRING;
-            case PrimitiveKind.NUMBER:
-                return this.NUMBER;
-            case PrimitiveKind.BOOLEAN:
-                return this.BOOLEAN;
-            case PrimitiveKind.DATETIME:
-                return this.DATETIME;
-            case PrimitiveKind.FILE:
-                return this.FILE;
-            case PrimitiveKind.UNKNOWN:
-            case PrimitiveKind.UNSPECIFIED:
-            default:
-                return this.UNKNOWN;
-        }
+        return resolveTypeScriptPrimitiveToken(kind);
     }
 }
 
@@ -122,12 +105,14 @@ export const TypeScriptToken = Object.freeze({
     InterfaceClose: '\n}',
     ArrayOpen: 'Array<',
     ArrayClose: '>',
+    ArraySuffix: '[]',
 
     // Keywords & Literals
     InterfaceKeyword: 'export interface ',
     TypeKeyword: 'export type ',
     Null: 'null',
     Undefined: 'undefined',
+    OptionalPropertyMarker: '?',
 
     // Documentation
     JsDocSingleOpen: '/** ',

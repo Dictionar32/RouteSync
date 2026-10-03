@@ -1,12 +1,20 @@
-/**
- * Graph and graph algorithm utilities
- */
-
+/** Stable relation-native graph facade. */
+export type {
+  DependencyGraph,
+  DependencyEdge
+} from './graph/dependencyGraph';
 export {
-  type DependencyGraph,
-  FrozenSet,
-  DependencyGraphBuilder,
-  IncrementalInvalidator,
-  TarjanSCC,
-  UnionFind
-} from './graph';
+  createDependencyGraph,
+  addDependency,
+  dependencyForward,
+  dependencyReverse,
+  dependencyNodes,
+  dependencyClosure
+} from './graph/dependencyGraph';
+export {
+  invalidateDependencies,
+  stronglyConnectedComponents,
+  type GraphUnionFind,
+  createGraphUnionFind,
+  graphUnionFindUnion
+} from './graph/graphAlgorithms';

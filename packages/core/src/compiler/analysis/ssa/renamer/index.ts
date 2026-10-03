@@ -1,13 +1,11 @@
-/**
- * index.ts
- *
- * SSA Renamer domain exports.
- *
- * @module core/compiler/analysis/ssa/renamer
- */
-
-export { VariableVersionScope } from './variableVersionScope';
+/** Explicit SSA renamer relation exports. */
+export {
+    VariableVersionScope,
+    createVariableVersionScope,
+    type VariableVersionScope as VariableVersionScopeState,
+} from './variableVersionScope';
 export {
     renameBlockInstructions,
-    updateSuccessorPhis
+    updateSuccessorPhis,
+    type RenamedBlockInstructions,
 } from './blockInstructionRenamer';

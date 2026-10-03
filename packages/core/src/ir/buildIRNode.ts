@@ -1,5 +1,8 @@
 import { createHash } from 'crypto'
-import { type SemanticIRNode, type SourceRef, type IRRawNode, type SemanticNode, type IRContext, type FieldNode, IRHintsFactory } from '../types/semantic'
+import { type SemanticIRNode, type SourceRef, type IRRawNode, type SemanticNode, type IRContext, IRHintsFactory } from '../types/semantic'
+import { relationProject } from '../semantic/kernel/semanticRelations'
+import { matchSemanticNode } from '../types/semantic/semanticTypes'
+import type { FieldNode } from '../types/field'
 import { isObject, hasProperty, isString } from '../utils/type-guards'
 
 /**
@@ -34,11 +37,16 @@ import { isObject, hasProperty, isString } from '../utils/type-guards'
 export function computeStableHash(rawCode: string, semantic: SemanticNode): string {
   const canonical = JSON.stringify({
     code: rawCode,
-    type: semantic.type,
+    kind: semantic.kind,
     status: semantic.status,
-    model: semantic.model ?? null,
-    resource: semantic.resource ?? null,
-    collection: !!semantic.collection,
+    semanticDetails: matchSemanticNode(semantic, {
+      scalar: value => ({ semanticType: value.semanticType }),
+      model: value => ({ model: value.model, cardinality: value.cardinality }),
+      resource: value => ({ resource: value.resource, cardinality: value.cardinality }),
+      object: value => ({ fields: relationProject(value.fields.entries, field => field.name) }),
+      query_projection: value => ({ fields: relationProject(value.fields.entries, field => field.name) }),
+      indeterminate: () => ({}),
+    }),
   })
   return createHash('sha256').update(canonical).digest('hex')
 }

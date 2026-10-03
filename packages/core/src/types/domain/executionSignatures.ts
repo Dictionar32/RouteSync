@@ -1,4 +1,5 @@
 import { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
+import { absent, presenceFold, type Presence } from '../upstream/presence';
 import type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 export { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
 export type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature } from '../upstream/routeExecutionVocabulary';
@@ -48,19 +49,17 @@ export function matchRouteExecutionSignature<R>(
   signature: RouteExecutionSignature,
   visitor: RouteExecutionSignatureVisitor<R>
 ): R {
-  switch (signature.payloadMode) {
-    case RoutePayloadMode.None:
-      return visitor.none(signature);
-    case RoutePayloadMode.Required:
-      return visitor.required(signature);
-    case RoutePayloadMode.Optional:
-      return visitor.optional(signature);
-  }
+  const visitors: Readonly<Record<RoutePayloadMode, (sig: RouteExecutionSignature) => R>> = {
+    [RoutePayloadMode.None]: sig => visitor.none(sig as NoPayloadExecutionSignature),
+    [RoutePayloadMode.Required]: sig => visitor.required(sig as RequiredPayloadExecutionSignature),
+    [RoutePayloadMode.Optional]: sig => visitor.optional(sig as OptionalPayloadExecutionSignature),
+  };
+  return visitors[signature.payloadMode](signature);
 }
 
 export const matchRoutePayloadMode = matchRouteExecutionSignature;
 
-export class ScannedRouteExecutionSignature {
+export class RouteSemanticFlowExecutionSignature {
   private constructor() {}
 
   public static noPayload(): NoPayloadExecutionSignature {
@@ -74,7 +73,7 @@ export class ScannedRouteExecutionSignature {
   }
 
   public static authOnly(): NoPayloadExecutionSignature {
-    return ScannedRouteExecutionSignature.noPayload();
+    return RouteSemanticFlowExecutionSignature.noPayload();
   }
 
   public static requiredPayload(typeName: string): RequiredPayloadExecutionSignature {
@@ -99,33 +98,31 @@ export class ScannedRouteExecutionSignature {
 
   public static fromMode(
     mode: RoutePayloadMode,
-    typeName?: string
+    typeName: Presence<string> = absent(),
   ): RouteExecutionSignature {
-    switch (mode) {
-      case RoutePayloadMode.None:
-        return ScannedRouteExecutionSignature.noPayload();
-      case RoutePayloadMode.Required:
-        if (typeName === undefined) {
-          throw new Error('Required payload execution signature requires a payload type.');
-        }
-        return ScannedRouteExecutionSignature.requiredPayload(typeName);
-      case RoutePayloadMode.Optional:
-        if (typeName === undefined) {
-          throw new Error('Optional payload execution signature requires a payload type.');
-        }
-        return ScannedRouteExecutionSignature.optionalPayload(typeName);
-    }
+    const builders: Readonly<Record<RoutePayloadMode, (name: Presence<string>) => RouteExecutionSignature>> = {
+      [RoutePayloadMode.None]: () => RouteSemanticFlowExecutionSignature.noPayload(),
+      [RoutePayloadMode.Required]: name => presenceFold(
+        name,
+        () => { throw new Error('Required payload execution signature requires a payload type.'); },
+        value => RouteSemanticFlowExecutionSignature.requiredPayload(value),
+      ),
+      [RoutePayloadMode.Optional]: name => presenceFold(
+        name,
+        () => { throw new Error('Optional payload execution signature requires a payload type.'); },
+        value => RouteSemanticFlowExecutionSignature.optionalPayload(value),
+      ),
+    };
+    return builders[mode](typeName);
   }
 
   public static create(
     _hookKind: RouteHookKind,
     _hasParams: boolean,
     hasPayload = false,
-    typeName?: string
+    typeName: Presence<string> = absent(),
   ): RouteExecutionSignature {
-    return ScannedRouteExecutionSignature.fromMode(
-      hasPayload ? RoutePayloadMode.Required : RoutePayloadMode.None,
-      typeName
-    );
+    const mode = ({ true: RoutePayloadMode.Required, false: RoutePayloadMode.None } as const)[String(hasPayload) as 'true' | 'false'];
+    return RouteSemanticFlowExecutionSignature.fromMode(mode, typeName);
   }
 }

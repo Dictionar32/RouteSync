@@ -1,0 +1,11 @@
+{
+  "phase": 551,
+  "scannerProductionFiles": 388,
+  "scannerHostLeakCount": 0,
+  "scannerLeakingFiles": [],
+  "scannerResolverProductionFiles": 19,
+  "scannerResolverHostLeakCount": 0,
+  "scannerResolverLeakingFiles": [],
+  "scannerTranspileDiagnostics": 0,
+  "audit": "TypeScript AST; production sources only; target-language syntax is not counted as host control"
+}

@@ -80,50 +80,15 @@ export {
     parseResponseDtoDeclaration
 };
 
-/**
- * Orchestrator class providing static entry points for PHP tokenization and AST parsing.
- */
-export class LaravelSourceLexer {
-    static tokenize(source: string): readonly TokenDescriptor[] {
-        return tokenizePhpSource(source);
-    }
-
-    static parseArray(source: string, tokens: readonly TokenDescriptor[], startIndex: number = 0): ParsedPhpArrayResult {
-        return parsePhpArray(source, tokens, startIndex);
-    }
-
-    static classifyAstValue(raw: string): PhpAstValue {
-        return classifyAstValue(raw);
-    }
-
-    static classifyAstTokens(exprTokens: readonly TokenDescriptor[]): PhpAstValue {
-        return classifyAstTokens(exprTokens);
-    }
-
-    static classifyPhpBlock(tokens: readonly TokenDescriptor[]): PhpBlock {
-        return classifyPhpBlock(tokens);
-    }
-
-    static parseRouteDeclarations(tokens: readonly TokenDescriptor[]): readonly RouteDeclarationAst[] {
-        return parseRouteDeclarations(tokens);
-    }
-
-    static parseControllerDeclaration(
-        source: string,
-        tokens: readonly TokenDescriptor[],
-        className: AstIdentifier
-    ): ControllerDeclarationAst {
-        return parseControllerDeclaration(source, tokens, className);
-    }
-
-    static parseResponseDtoDeclaration(
-        tokens: readonly TokenDescriptor[],
-        className: AstIdentifier
-    ): ResponseDtoDeclarationAst {
-        return parseResponseDtoDeclaration(tokens, className);
-    }
-
-    static matchAstValue<R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {
-        return matchPhpAstValue(ast, visitor);
-    }
-}
+/** Immutable scanner facade. Semantic authority remains in lexer relations. */
+export const LaravelSourceLexer = Object.freeze({
+    tokenize: (source: string): readonly TokenDescriptor[] => tokenizePhpSource(source),
+    parseArray: (source: string, tokens: readonly TokenDescriptor[], startIndex: number = 0): ParsedPhpArrayResult => parsePhpArray(source, tokens, startIndex),
+    classifyAstValue: (raw: string): PhpAstValue => classifyAstValue(raw),
+    classifyAstTokens: (exprTokens: readonly TokenDescriptor[]): PhpAstValue => classifyAstTokens(exprTokens),
+    classifyPhpBlock: (tokens: readonly TokenDescriptor[]): PhpBlock => classifyPhpBlock(tokens),
+    parseRouteDeclarations: (tokens: readonly TokenDescriptor[]): readonly RouteDeclarationAst[] => parseRouteDeclarations(tokens),
+    parseControllerDeclaration: (source: string, tokens: readonly TokenDescriptor[], className: AstIdentifier, filePath = '<php-source>'): ControllerDeclarationAst => parseControllerDeclaration(source, tokens, className, filePath),
+    parseResponseDtoDeclaration: (tokens: readonly TokenDescriptor[], className: AstIdentifier): ResponseDtoDeclarationAst => parseResponseDtoDeclaration(tokens, className),
+    matchAstValue: <R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R => matchPhpAstValue(ast, visitor),
+});

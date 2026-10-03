@@ -17,8 +17,8 @@ export type ResourceExpressionBindingRequirement =
   | { readonly kind: 'function_call'; readonly functionName: PhpFunctionName; readonly arguments: readonly ResourceExpressionModel[] }
   | { readonly kind: 'cast'; readonly type: CastTypeName; readonly operand: ResourceExpressionModel }
   | { readonly kind: 'computation'; readonly operator: SemanticOperator; readonly left: ResourceExpressionModel; readonly right: ResourceExpressionModel }
-  | { readonly kind: 'conditional'; readonly condition: ResourceExpressionModel; readonly truthy: ResourceExpressionModel; readonly falsy: ResourceExpressionModel }
-  | { readonly kind: 'short_conditional'; readonly condition: ResourceExpressionModel; readonly falsy: ResourceExpressionModel }
+  | { readonly kind: 'conditional'; readonly condition: ResourceExpressionModel; readonly branches: { readonly kind: 'then_else'; readonly whenTrue: ResourceExpressionModel; readonly whenFalse: ResourceExpressionModel } }
+  | { readonly kind: 'short_conditional'; readonly condition: ResourceExpressionModel; readonly whenFalse: ResourceExpressionModel }
   | { readonly kind: 'null_coalesce'; readonly left: ResourceExpressionModel; readonly right: ResourceExpressionModel }
   | { readonly kind: 'nested_object'; readonly fields: readonly ResourceExpressionFieldModel[] }
   | { readonly kind: 'nested_array'; readonly entries: readonly ResourceArrayEntry[] }
@@ -29,7 +29,7 @@ export type ResourceExpressionBindingRequirement =
   | { readonly kind: 'instance_of'; readonly expression: ResourceExpressionModel; readonly className: ClassName }
   | { readonly kind: 'closure'; readonly parameters: readonly VariableName[]; readonly captures: readonly { readonly kind: 'by_value' | 'by_reference'; readonly variable: VariableName }[]; readonly body: readonly ResourceClosureStatement[] }
   | { readonly kind: 'arrow_function'; readonly parameters: readonly VariableName[]; readonly body: ResourceExpressionModel }
-  | { readonly kind: 'statement'; readonly statementKind: string };
+  | { readonly kind: 'statement'; readonly statementKind: ResourceClosureStatement['kind'] };
 
 export type ResourceExpressionSemantic =
   | { readonly kind: 'known'; readonly type: SemanticType }

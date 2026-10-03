@@ -1,19 +1,20 @@
-/**
- * RouteSecurityResolver.ts
- *
- * First-Class Domain Model: Resolves route security, policies, and rate limits
- * from declared middleware and explicit auth flags at Origin Boundary.
- *
- * @module core/compiler/scanner/resolvers/RouteSecurityResolver
- */
+import {
+    relationAll,
+    relationAny,
+    relationEqual,
+    relationNotEqual,
+    relationGate,
+    relationNormalizeWhitespace,
+} from '../../../semantic/kernel/semanticRelations';
+import { relationProject, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
 
 import {
     RouteSecurityDescriptor,
     RouteSecurityClassifier,
     RoutePolicyDescriptor,
-    RoutePolicyKind,
-    RateLimitDescriptor
+    RoutePolicyKind
 } from "../../../types/route";
+import type { RouteRateLimit } from "../../../types/upstream/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import type { PropertyName } from "../../../types/upstream/names";
 
@@ -21,68 +22,102 @@ export interface RouteSecurityResolution {
     readonly security: RouteSecurityDescriptor;
     readonly auth: boolean;
     readonly policies: readonly RoutePolicyDescriptor[];
-    readonly rateLimit: RateLimitDescriptor | null;
+    readonly rateLimit: RouteRateLimit;
 }
 
-export class RouteSecurityResolver {
-    /**
-     * Resolves security classification, authorization status, policies, and rate limits.
-     * Evaluated once at Origin Boundary; downstream components consume guaranteed subcontracts.
-     */
-    public static resolve(middleware: readonly PropertyName[], auth: boolean = false): RouteSecurityResolution {
-        const middlewareValues = middleware.map(value => value.value.value);
-        const securityDesc = RouteSecurityClassifier.classify(middlewareValues);
-        const resolvedAuth = auth || securityDesc.isProtected;
-        const policies: RoutePolicyDescriptor[] = [];
-        let rateLimit: RateLimitDescriptor | null = null;
+type MiddlewarePolicyResult = Readonly<{
+    readonly policies: readonly RoutePolicyDescriptor[];
+    readonly rateLimit: RouteRateLimit;
+}>;
 
-        for (const m of middlewareValues) {
-            const trimmed = m.trim();
-            if (trimmed.startsWith("can:")) {
-                const parts = trimmed.slice(4).split(",");
-                const ability = parts[0].trim();
-                const modelParameter = parts[1]?.trim();
-                policies.push(modelParameter && modelParameter.length > 0
-                    ? Object.freeze({
-                        ability: SemanticValueFactory.abilityName(ability),
-                        modelParameter: SemanticValueFactory.propertyName(modelParameter),
-                        kind: RoutePolicyKind.AbilityModel
-                    })
-                    : Object.freeze({
-                        ability: SemanticValueFactory.abilityName(ability),
-                        modelParameter: { kind: 'none' as const },
-                        kind: RoutePolicyKind.Gate
-                    }));
-            } else if (trimmed.startsWith("role:")) {
-                const roles = trimmed.slice(5).split(",").map(r => r.trim()).filter(Boolean);
-                for (const role of roles) {
-                    policies.push(Object.freeze({
-                        ability: SemanticValueFactory.abilityName(`role:${role}`),
-                        modelParameter: { kind: 'none' as const },
-                        kind: RoutePolicyKind.Gate
-                    }));
-                }
-            } else if (trimmed === "admin" || trimmed === "superadmin") {
-                policies.push(Object.freeze({
-                    ability: SemanticValueFactory.abilityName(`role:${trimmed}`),
-                    modelParameter: { kind: 'none' as const },
-                    kind: RoutePolicyKind.Gate
-                }));
-            } else if (trimmed.toLowerCase().startsWith("throttle:")) {
-                const parts = trimmed.slice(9).split(",");
-                const maxAttempts = parseInt(parts[0], 10);
-                const decayMinutes = parts[1] ? parseFloat(parts[1]) : 1;
-                if (!isNaN(maxAttempts)) {
-                    rateLimit = Object.freeze({ maxAttempts, decayMinutes });
-                }
-            }
-        }
+const gatePolicy = (ability: string): RoutePolicyDescriptor => Object.freeze({
+    ability: SemanticValueFactory.abilityName(ability),
+    modelParameter: { kind: 'none' as const },
+    kind: RoutePolicyKind.Gate,
+});
+
+const abilityPolicy = (ability: string, modelParameter: string): RoutePolicyDescriptor => Object.freeze({
+    ability: SemanticValueFactory.abilityName(ability),
+    modelParameter: SemanticValueFactory.propertyName(modelParameter),
+    kind: RoutePolicyKind.AbilityModel,
+});
+
+const policyForMiddleware = (middleware: string): MiddlewarePolicyResult => {
+    const trimmed = relationNormalizeWhitespace(middleware);
+    const can = relationGate(relationEqual(relationTextStartsWith(trimmed, "can:"), true), () => relationTextSlice(trimmed, 4), () => '');
+    const role = relationGate(relationEqual(relationTextStartsWith(trimmed, "role:"), true), () => relationTextSlice(trimmed, 5), () => '');
+    const admin = relationAny([relationEqual(trimmed, "admin"), relationEqual(trimmed, "superadmin")]);
+    const throttle = relationGate(relationTextStartsWith(relationTextLower(trimmed), "throttle:"), () => relationTextSlice(trimmed, 9), () => '');
+
+    const canParts = relationTextFields(can, ",");
+    const canPart = (index: number): string =>
+        relationOptionFold(relationAt(canParts, index), () => '', value => value);
+    const ability = relationNormalizeWhitespace(canPart(0));
+    const modelParameter = relationNormalizeWhitespace(canPart(1));
+
+    const canPolicy = relationGate(
+        relationAll([can.length > 0, ability.length > 0]),
+        () => [relationGate(modelParameter.length > 0, () => abilityPolicy(ability, modelParameter), () => gatePolicy(ability))],
+        () => [],
+    );
+
+    const rolePolicies = relationGate(
+        role.length > 0,
+        () => relationProject(
+            relationProject(relationTextFields(role, ","), value => relationNormalizeWhitespace(value)),
+            value => gatePolicy(`role:${value}`),
+        ),
+        () => [],
+    );
+
+    const adminPolicy = relationGate(admin, () => [gatePolicy(`role:${trimmed}`)], () => []);
+
+    const throttleValue = relationTextFields(throttle, ",");
+    const throttlePart = (index: number, fallback: string): string =>
+        relationOptionFold(relationAt(throttleValue, index), () => fallback, value => value);
+    const maxAttempts = relationTextNumber(throttlePart(0, ''), 0);
+    const decayMinutes = relationTextNumber(throttlePart(1, '1'), 1);
+    const rateLimit = relationGate(
+        relationAll([throttle.length > 0, relationEqual(relationTextNumber(throttlePart(0, ''), -1) >= 0, true)]),
+        () => Object.freeze({ kind: 'fixed' as const, limit: Object.freeze({ kind: 'fixed' as const, maxAttempts, decayMinutes }) }),
+        () => ({ kind: 'none' as const }),
+    );
+
+    return Object.freeze({
+        policies: Object.freeze([...canPolicy, ...rolePolicies, ...adminPolicy]),
+        rateLimit,
+    });
+};
+
+const resolveMiddleware = (
+    middleware: readonly string[],
+    index = 0,
+    policies: readonly RoutePolicyDescriptor[] = [],
+    rateLimit: RouteRateLimit = { kind: 'none' },
+): MiddlewarePolicyResult =>
+    relationGate(
+        index >= middleware.length,
+        () => Object.freeze({ policies: Object.freeze(policies), rateLimit }),
+        () => {
+            const current = policyForMiddleware(middleware[index]);
+            const nextPolicies = [...policies, ...current.policies];
+            const nextRateLimit = relationGate(relationNotEqual(current.rateLimit.kind, 'none'), () => current.rateLimit, () => rateLimit);
+            return resolveMiddleware(middleware, index + 1, nextPolicies, nextRateLimit);
+        },
+    );
+
+const resolveRouteSecurity = (middleware: readonly PropertyName[], auth: boolean = false): RouteSecurityResolution => {
+        const middlewareValues = relationProject(middleware, value => value.value.value);
+        const securityDesc = RouteSecurityClassifier.classify(middlewareValues);
+        const resolved = resolveMiddleware(middlewareValues);
+        const resolvedAuth = relationAny([auth, securityDesc.isProtected]);
 
         return Object.freeze({
             security: securityDesc,
             auth: resolvedAuth,
-            policies: Object.freeze(policies),
-            rateLimit
+            policies: resolved.policies,
+            rateLimit: resolved.rateLimit,
         });
-    }
 }
+
+export const RouteSecurityResolver = Object.freeze({ resolve: resolveRouteSecurity });

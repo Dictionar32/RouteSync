@@ -1,10 +1,12 @@
 import type { RouteParameterType } from "./parameters";
-import type { PropertyName, RouteParameterName } from "../upstream/names";
+import { createPropertyName, type PropertyName, type RouteParameterName } from "../upstream/names";
 import type { Presence, Cardinality } from "../upstream/primitiveVocabulary";
 import type { Option } from "../upstream/collections";
+import type { HttpErrorSchema as UpstreamHttpErrorSchema, HttpErrorSchemaField as UpstreamHttpErrorSchemaField } from "../upstream/routeErrorVocabulary";
 import type { RequestRuntimeValue } from "./requestModels";
 import { HttpStatusCode } from "./httpVocabulary";
 import { SemanticValueFactory, type HttpErrorName, type ResponseTypeName } from "./semanticValues";
+import { relationGate } from "../../semantic/kernel/relationalSequence";
 
 export interface RouteQueryParameter {
   readonly name: RouteParameterName;
@@ -44,6 +46,9 @@ export interface LaravelServerError {
  *
  * Canonical Domain Vocabulary for HTTP Error Response Categories.
  */
+export type HttpErrorSchemaField = UpstreamHttpErrorSchemaField;
+export type HttpErrorSchema = UpstreamHttpErrorSchema;
+
 export const HttpErrorKind = Object.freeze({
   Validation: 'validation',
   Unauthorized: 'unauthorized',
@@ -122,15 +127,15 @@ export const HTTP_ERROR_KIND_REGISTRY: HttpErrorKindRegistry = Object.freeze({
 const HTTP_ERROR_MESSAGE_SCHEMA: HttpErrorSchema = Object.freeze({
   kind: 'object',
   fields: Object.freeze([
-    Object.freeze(['message', Object.freeze({ typeName: 'string', nullable: false })] as const)
+    Object.freeze([createPropertyName('message'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('string'), nullable: { kind: 'non_nullable' } })] as const)
   ])
 });
 
 const HTTP_ERROR_VALIDATION_SCHEMA: HttpErrorSchema = Object.freeze({
   kind: 'object',
   fields: Object.freeze([
-    Object.freeze(['message', Object.freeze({ typeName: 'string', nullable: false })] as const),
-    Object.freeze(['errors', Object.freeze({ typeName: 'Record<string, string[]>', nullable: false })] as const)
+    Object.freeze([createPropertyName('message'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('string'), nullable: { kind: 'non_nullable' } })] as const),
+    Object.freeze([createPropertyName('errors'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('Record<string, string[]>'), nullable: { kind: 'non_nullable' } })] as const)
   ])
 });
 
@@ -146,6 +151,14 @@ export const HTTP_ERROR_SCHEMA_REGISTRY: HttpErrorSchemaRegistry = Object.freeze
   [HttpErrorKind.ServerError]: HTTP_ERROR_MESSAGE_SCHEMA,
   [HttpErrorKind.Custom]: HTTP_ERROR_MESSAGE_SCHEMA
 });
+
+export interface HttpErrorResponseDescriptor {
+  readonly kind: HttpErrorKind;
+  readonly statusCode: HttpStatusCode;
+  readonly name: HttpErrorName;
+  readonly typeName: ResponseTypeName;
+  readonly schema: HttpErrorSchema;
+}
 
 export interface HttpErrorVisitor<R> {
   readonly validation: (desc: HttpErrorResponseDescriptor) => R;
@@ -163,34 +176,43 @@ export function matchHttpError<R>(
   error: HttpErrorResponseDescriptor | HttpErrorKind,
   visitor: HttpErrorVisitor<R>
 ): R {
-  const isKindString = typeof error === 'string';
-  const kind = isKindString ? error : (error.kind ?? HttpErrorKind.Custom);
-  const descriptor: HttpErrorResponseDescriptor = isKindString
-    ? {
-        kind,
-        statusCode: HTTP_ERROR_KIND_REGISTRY[kind].defaultStatusCode,
-        name: HTTP_ERROR_KIND_REGISTRY[kind].defaultName,
-        typeName: HTTP_ERROR_KIND_REGISTRY[kind].defaultTypeName,
-        schema: HTTP_ERROR_SCHEMA_REGISTRY[kind]
-      }
-    : error;
+  const kind = relationGate(typeof error === 'string', () => error as HttpErrorKind, () => (error as HttpErrorResponseDescriptor).kind);
+  const descriptor = relationGate(typeof error === 'string', () => httpErrorResponseFromKind(kind), () => error as HttpErrorResponseDescriptor);
   return visitor[kind](descriptor);
-}
+}export type HttpErrorResponse = HttpErrorResponseDescriptor;
 
-export interface HttpErrorSchemaField {
-  readonly typeName: string;
-  readonly nullable: boolean;
-}
+const httpErrorResponseFromKind = (kind: HttpErrorKind): HttpErrorResponseDescriptor => ({
+  kind,
+  statusCode: HTTP_ERROR_KIND_REGISTRY[kind].defaultStatusCode,
+  name: HTTP_ERROR_KIND_REGISTRY[kind].defaultName,
+  typeName: HTTP_ERROR_KIND_REGISTRY[kind].defaultTypeName,
+  schema: HTTP_ERROR_SCHEMA_REGISTRY[kind]
+});
 
-export interface HttpErrorSchema {
-  readonly kind: 'object';
-  readonly fields: readonly (readonly [string, HttpErrorSchemaField])[];
-}
+export const createHttpErrorResponse = (input: {
+  readonly kind?: HttpErrorKind;
+  readonly statusCode?: HttpStatusCode;
+  readonly name?: string;
+  readonly typeName?: string;
+  readonly schema?: HttpErrorSchema;
+} = {}): HttpErrorResponseDescriptor => {
+  const kind = relationGate(Object.prototype.hasOwnProperty.call(input, 'kind'), () => input.kind as HttpErrorKind, () => HttpErrorKind.Custom);
+  const base = httpErrorResponseFromKind(kind);
+  return Object.freeze({
+    kind,
+    statusCode: relationGate(Object.prototype.hasOwnProperty.call(input, 'statusCode'), () => input.statusCode as HttpStatusCode, () => base.statusCode),
+    name: relationGate(Object.prototype.hasOwnProperty.call(input, 'name'), () => SemanticValueFactory.httpErrorName(input.name as string), () => base.name),
+    typeName: relationGate(Object.prototype.hasOwnProperty.call(input, 'typeName'), () => SemanticValueFactory.responseTypeName(input.typeName as string), () => base.typeName),
+    schema: relationGate(Object.prototype.hasOwnProperty.call(input, 'schema'), () => input.schema as HttpErrorSchema, () => base.schema)
+  });
+};
 
-export interface HttpErrorResponseDescriptor {
-  readonly kind: HttpErrorKind;
-  readonly statusCode: HttpStatusCode;
-  readonly name: HttpErrorName;
-  readonly typeName: ResponseTypeName;
-  readonly schema: HttpErrorSchema;
-}
+export const httpErrorResponseValidation = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.Validation);
+export const httpErrorResponseUnauthorized = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.Unauthorized);
+export const httpErrorResponseForbidden = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.Forbidden);
+export const httpErrorResponseNotFound = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.NotFound);
+export const httpErrorResponseServerError = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.ServerError);
+export const httpErrorResponseBadRequest = (): HttpErrorResponseDescriptor => createHttpErrorResponse({ kind: HttpErrorKind.Custom, statusCode: HttpStatusCode.BadRequest, name: 'BadRequest', typeName: 'LaravelBadRequestError' });
+export const httpErrorResponseCustom = (statusCode: HttpStatusCode, name: string, typeName?: string, schema?: HttpErrorSchema): HttpErrorResponseDescriptor => createHttpErrorResponse({ kind: HttpErrorKind.Custom, statusCode, name, typeName, schema });
+
+

@@ -8,11 +8,23 @@ export type PhpParameterTypeAst = SharedPhpParameterTypeAst;
 
 export type ControllerParameterDefaultAst = SharedPhpParameterDefaultAst;
 
+export type ControllerParameterAttributeArgumentAst =
+    | { readonly kind: 'positional'; readonly value: PhpAstValue }
+    | { readonly kind: 'named'; readonly name: AstIdentifier; readonly value: PhpAstValue }
+    | { readonly kind: 'unpacked'; readonly value: PhpAstValue };
+
+export interface ControllerParameterAttributeAst {
+    readonly name: AstIdentifier;
+    readonly arguments: readonly ControllerParameterAttributeArgumentAst[];
+    readonly source: TokenDescriptor;
+}
+
 export type ControllerDeclaredReturnTypeAst =
     | { readonly kind: 'absent' }
     | { readonly kind: 'declared'; readonly type: PhpParameterTypeAst };
 
 export interface ControllerParameterAst {
+    readonly attributes: readonly ControllerParameterAttributeAst[];
     readonly type: PhpParameterTypeAst;
     readonly defaultValue: ControllerParameterDefaultAst;
     readonly name: AstIdentifier;
@@ -49,6 +61,7 @@ export interface ControllerMethodAst {
 }
 
 export interface ControllerDeclarationAst {
+    readonly attributes: readonly ControllerParameterAttributeAst[];
     readonly className: AstIdentifier;
     readonly methods: readonly ControllerMethodAst[];
     readonly source: TokenDescriptor;

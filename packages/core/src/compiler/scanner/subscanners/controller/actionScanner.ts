@@ -1,5 +1,8 @@
 /** Scan a controller AST into the legacy action descriptor through one semantic contract. */
-import type { ControllerMethodAst } from '../../lexer/controllerAstTypes';
+import { type RelationMembership, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
 import type { FormRequestSource } from '../../../../types/domain/request';
 import type { ControllerActionInfo } from '../../descriptors/requestDescriptors';
@@ -11,12 +14,18 @@ export function scanControllerAction(
   method: ControllerMethodAst,
   controllerName: ControllerName,
   fullPath: SourceFile,
-  formRequestMap: ReadonlyMap<string, FormRequestSource>,
-  sourceProject: SourceProjectIdentity
-): { readonly actionName: ActionName; readonly descriptor: ControllerActionInfo } {
+  formRequestIndex: RelationIndex<string, FormRequestSource>,
+  sourceProject: SourceProjectIdentity,
+  modelNames: RelationMembership<string> = Object.freeze([] as string[]),
+  constructorParameters: readonly ControllerParameterAst[] = [],
+  customContextualAttributeNames: RelationMembership<string> = Object.freeze([] as string[])
+): { readonly actionName: ActionName; readonly descriptor: ControllerActionInfo; readonly dependencies: import('../../../../types/upstream/controller').ControllerDependency[] } {
   const contract = resolveControllerActionContract(method, controllerName, fullPath, {
-    formRequestMap,
-    sourceProject
+    formRequestIndex,
+    sourceProject,
+    modelNames,
+    constructorParameters,
+    customContextualAttributeNames
   });
   const errorResponses = contract.body.errorResponses;
   const descriptor = ScannedControllerActionDescriptor.create({
@@ -27,14 +36,15 @@ export function scanControllerAction(
     semanticReturn: contract.semanticReturn,
     sourceFile: contract.sourceFile,
     sourceLine: contract.sourceLine,
-    request: contract.request.kind === 'form_request'
-      ? { kind: 'form_request', source: contract.request.source }
-      : contract.request.kind === 'framework_request'
-        ? { kind: 'framework_request', type: contract.request.type }
-        : { kind: 'no_request' },
+    request: relationGate(relationEqual(contract.request.kind, 'form_request'),
+      () => ({ kind: 'form_request' as const, source: contract.request.source }),
+      () => relationGate(relationEqual(contract.request.kind, 'framework_request'),
+        () => ({ kind: 'framework_request' as const, type: contract.request.type }),
+        () => ({ kind: 'no_request' as const }))),
     schema: contract.schema,
     dataflow: contract.dataflow,
-    errorResponses
+    errorResponses,
+    parameters: method.parameters
   });
-  return { actionName: contract.identity.actionName, descriptor };
+  return { actionName: contract.identity.actionName, descriptor, dependencies: [...contract.dependencies] };
 }

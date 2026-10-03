@@ -7,6 +7,8 @@
 
 import type { TypeIR, ManifestField, ResourceFieldIR } from '../../types/ir';
 import type { SemanticType } from '../../compiler/types/SemanticType';
+import { relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
 
 
 import {
@@ -57,13 +59,7 @@ export class FieldTypeResolver {
     }
 
     private resolveTransform(semanticType: SemanticType): TransformFunction {
-        if (semanticType.kind !== 'primitive') {
-            return 'identity';
-        }
-        if (semanticType.type === 'datetime') {
-            return 'date_iso';
-        }
-        return 'identity';
+        return relationResolve(relationEqual(semanticType.kind, 'primitive'), () => relationResolve(relationEqual((semanticType as Extract<SemanticType, { readonly kind: 'primitive' }>).type, 'datetime'), () => 'date_iso', () => 'identity'), () => 'identity');
     }
 
     public convertToLegacyFieldIR(field: OptimizedResourceFieldIR): ResourceFieldIR {

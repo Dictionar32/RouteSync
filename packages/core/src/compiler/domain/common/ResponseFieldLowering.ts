@@ -10,6 +10,7 @@
 import type { ObjectType, SemanticType, ObjectProperty } from '../../types/SemanticType';
 import type { ParsedResponseField } from '../../generators/contract-generation/ResponseFieldParser';
 import { SemanticTypeResolver } from './SemanticTypeResolver';
+import { relationProject } from '../../../semantic/kernel/relationalSequence';
 import {
     type NullableWrapperResult,
     type StageResult,
@@ -30,7 +31,7 @@ export {
     convertObjectType
 };
 
-export const defaultTypeResolver = new SemanticTypeResolver();
+export const defaultTypeResolver = SemanticTypeResolver.default();
 
 /**
  * Observable convertResponseFields via Pure Map + flatMap Partition Pipeline
@@ -39,7 +40,7 @@ export function convertResponseFields(
     fields: readonly ObjectProperty[],
     resolver: SemanticTypeResolver = defaultTypeResolver
 ): ResponseFieldConversionResult {
-    const results = fields.map(field =>
+    const results = relationProject(fields, field =>
         convertSingleResponseField(field.name.value.value, field.type, resolver)
     );
 

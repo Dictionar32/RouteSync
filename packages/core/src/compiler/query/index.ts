@@ -22,16 +22,18 @@ export {
 // Typed Cache
 export type { MemoizedQueryKey } from './TypedCache';
 export {
-    TypedCache,
+    createTypedCache,
     createMemoizedQueryKey
 } from './TypedCache';
+export type { TypedCache } from './TypedCache';
 
 // Query Database
 export type { QueryDescriptor } from './QueryDatabase';
 export {
-    QueryDatabase,
-    MemoizedQueryDatabase
+    createQueryDatabase,
+    createMemoizedQueryDatabase
 } from './QueryDatabase';
+export type { QueryDatabase, MemoizedQueryDatabase } from './QueryDatabase';
 
 // Salsa Compiler
 export type {
@@ -42,6 +44,6 @@ export type {
     
 } from './SalsaCompiler';
 export {
-    SalsaCompiler,
-    QueryCycleError
+    createSalsaCompiler,
+    type QueryCycleError
 } from './SalsaCompiler';

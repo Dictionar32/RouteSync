@@ -3,6 +3,7 @@ import type { TypeExpression } from './typeVocabulary';
 import type { Expression } from './expression';
 import type { ClassName } from './names';
 import type { HttpStatusCode } from './valueObjects';
+import type { ResponseCardinality } from './response';
 
 export type EndpointRequestBinding =
   | { readonly kind: 'form_request'; readonly request: RequestReference }
@@ -18,10 +19,6 @@ export type EndpointRequestParameter =
 export type EndpointResponseStatus =
   | { readonly kind: 'implicit_default' }
   | { readonly kind: 'explicit'; readonly status: HttpStatusCode };
-
-export type ResponseCardinality =
-  | { readonly kind: 'single' }
-  | { readonly kind: 'collection' };
 
 
 export type EndpointResponseBinding =

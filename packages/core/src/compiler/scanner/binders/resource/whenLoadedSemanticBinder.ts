@@ -1,3 +1,4 @@
+import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
 import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
@@ -58,7 +59,7 @@ function unresolvedWhenLoaded(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unresolved_relation');
     const expression = ResourceFieldExpressionFactory.unsupported('unresolved_relation');
     const descriptor = ScannedResourceFieldDescriptor.fromExpression(
-        key, expression, new ErrorType('whenLoaded relation could not be resolved'), toCamelCase(key), boundAst,
+        key, expression, scannerSemanticType.error('whenLoaded relation could not be resolved'), toCamelCase(key), boundAst,
     );
     return { descriptor, boundAst };
 }

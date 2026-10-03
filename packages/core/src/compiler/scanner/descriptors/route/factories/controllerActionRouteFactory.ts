@@ -14,9 +14,11 @@ import type {
     RouteCacheInvalidationDescriptor
 } from "../../../../../types/route";
 import type { ControllerActionInfo } from "../../requestDescriptors";
-import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { DomainTypeName, ResourceName, RoutePath, PropertyName } from "../../../../../types/upstream/names";
+import { relationGate } from "../../../../../semantic/kernel/relationalSequence";
+import { relationEqual } from "../../../../../semantic/kernel/semanticRelations";
 import type { RouteRequestBinding } from "../../../../../types/domain/request";
 
 export type ControllerActionRouteOptions = {
@@ -37,26 +39,17 @@ function bindControllerRequest(
     request: import('../../request/controllerActionContract').ControllerRequestBinding,
     resourceName: ResourceName
 ): RouteRequestBinding {
-    switch (request.kind) {
-        case 'form_request':
-            return {
-                kind: 'form_request',
-                identity: { source: request.source.identity, resource: resourceName },
-                source: request.source
-            };
-        case 'framework_request':
-            return { kind: 'framework_request', type: request.type };
-        case 'no_request':
-            return { kind: 'no_request' };
-        case 'typed':
-            return { kind: 'no_request' };
-    }
+    return relationGate(relationEqual(request.kind, 'form_request'),
+        () => ({ kind: 'form_request', identity: { source: request.source.identity, resource: resourceName }, source: request.source }),
+        () => relationGate(relationEqual(request.kind, 'framework_request'),
+            () => ({ kind: 'framework_request', type: request.type }),
+            () => ({ kind: 'no_request' })));
 }
 
 export function createRouteFromControllerAction(
-    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => RouteSemanticFlowFactory,
     options: ControllerActionRouteOptions
-): ScannedRouteDescriptor {
+): RouteSemanticFlowFactory {
     const {
         method,
         path,

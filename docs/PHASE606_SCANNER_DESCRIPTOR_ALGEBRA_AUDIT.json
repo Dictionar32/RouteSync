@@ -1,0 +1,43 @@
+{
+  "phase": 606,
+  "title": "scanner descriptor algebra",
+  "productionTypeScriptFiles": 1224,
+  "syntaxDiagnostics": 0,
+  "zeroByteProductionFiles": 0,
+  "unusedBackupArchiveResidue": 0,
+  "convertedDescriptors": [
+    "ScannedModelAccessorDescriptor",
+    "ScannedModelCastDescriptor",
+    "ScannedModelColumnDescriptor",
+    "ScannedModelRelationDescriptor",
+    "ScannedRouteQueryParameterDescriptor",
+    "ScannedRouteParameterDescriptor"
+  ],
+  "constructorConsumerOccurrences": 0,
+  "frontierConstructAudit": {
+    "if": 0,
+    "while": 0,
+    "for": 0,
+    "switch": 0,
+    ".map": 0,
+    ".filter": 0,
+    ".reduce": 0,
+    ".flatMap": 0,
+    "undefined": 0,
+    "null": 0,
+    "??": 0,
+    "===": 0,
+    "!==": 0,
+    "as unknown": 0,
+    "Set": 0,
+    "Map": 0,
+    "any": 0,
+    "new": 0,
+    "ternary": 0
+  },
+  "globalLexicalCounts": {
+    "new": 2273,
+    "Map": 274
+  },
+  "note": "Global lexical counts include source/target vocabulary, tests, infrastructure, and remaining semantic leaks; they are not interpreted as a semantic-only count."
+}

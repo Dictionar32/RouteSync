@@ -1,12 +1,8 @@
 /**
- * fieldBinder.ts
- *
- * Central dispatcher for binding an individual array entry AST value directly into Bound AST & field descriptor.
- * Pure Catamorphic Dispatcher: 0 'if', 0 'switch'.
- *
- * @module core/compiler/scanner/binders/resource/fieldBinder
+ * Relational field binder boundary.
+ * Variable receiver expansion is expressed as algebraic relation matching;
+ * binding dispatch is a closed semantic catalog, not host-language control flow.
  */
-
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { type PhpAstValue, matchPhpAstValue } from "../../lexer/PhpAst";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
@@ -17,6 +13,9 @@ import { bindPropertyPathField } from "./propertyPathBinder";
 import { matchPhpAccessMode, matchPhpPropertyPath } from "../../lexer/phpAstAlgebra";
 import { matchResourceOperationKind, resourceOperationKindForMethod } from "../../../../types/upstream/resourceVocabulary";
 import { matchLookup } from "../../../../types/upstream/collections";
+import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from "../../../../semantic/kernel/relationMembership";
+import { relationOptionFold } from "../../../../semantic/kernel/relationalSequence";
 import {
     bindResourceCollectionField,
     bindNestedArrayField,
@@ -43,84 +42,107 @@ function bindPropertyAccessWithAccess(
 
 function resolveVariableRoot(
     value: PhpAstValue,
-    definitions: ReadonlyMap<string, PhpAstValue>,
-    visited: ReadonlySet<string> = new Set()
+    definitions: RelationIndex<string, PhpAstValue>,
+    visited: RelationMembership<string> = []
 ): PhpAstValue {
-    if (value.kind === 'variable_reference') {
-        const name = value.name.value;
-        const definition = definitions.get(name);
-        if (!definition || visited.has(name)) return value;
-        return resolveVariableRoot(definition, definitions, new Set([...visited, name]));
-    }
-    return value;
+    const identity = (current: PhpAstValue): PhpAstValue => current;
+    return matchPhpAstValue(value, {
+        literal: identity,
+        interpolatedString: identity,
+        resourceSingle: identity,
+        resourceCollection: identity,
+        methodChain: identity,
+        propertyAccess: identity,
+        arrayAccess: identity,
+        functionCall: identity,
+        callableCall: identity,
+        variableReference: current => relationGate(
+            relationAll([relationEqual(relationIndexLookup(definitions, current.name).kind, 'some'), relationEqual(relationContains(visited, current.name), false)]),
+            () => relationOptionFold(relationIndexLookup(definitions, current.name), () => current, value => resolveVariableRoot(value, definitions, relationInsert(visited, current.name))),
+            () => current
+        ),
+        magicConstant: identity,
+        constantReference: identity,
+        shortTernary: identity,
+        nullCoalesce: identity,
+        binaryExpression: identity,
+        unaryExpression: identity,
+        castExpression: identity,
+        ternaryExpression: identity,
+        nestedArray: identity,
+        staticCall: identity,
+        classReference: identity,
+        classConstant: identity,
+        construct: identity,
+        assignmentExpression: identity,
+        dynamicConstruct: identity,
+        anonymousClassConstruct: identity,
+        instanceOf: identity,
+        closure: identity,
+        arrowFunction: identity,
+        matchExpression: identity,
+        unsupported: identity,
+    });
 }
 
 function resolveVariableReceivers(
     value: PhpAstValue,
-    definitions: ReadonlyMap<string, PhpAstValue>,
-    visited: ReadonlySet<string> = new Set()
+    definitions: RelationIndex<string, PhpAstValue>,
+    visited: RelationMembership<string> = []
 ): PhpAstValue {
-    switch (value.kind) {
-        case 'variable_reference':
-            return resolveVariableRoot(value, definitions, visited);
-        case 'property_access':
-            return { ...value, receiver: resolveVariableRoot(value.receiver, definitions, visited) };
-        case 'method_chain':
-            return { ...value, receiver: resolveVariableRoot(value.receiver, definitions, visited) };
-        case 'array_access':
-            return { ...value, target: resolveVariableReceivers(value.target, definitions, visited), index: resolveVariableReceivers(value.index, definitions, visited) };
-        case 'function_call':
-            return { ...value, arguments: value.arguments.map(argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) };
-        case 'resource_single':
-        case 'resource_collection':
-        case 'literal':
-        case 'class_reference':
-        case 'unsupported':
-            return value;
-        case 'ternary_expression':
-            return { ...value, condition: resolveVariableReceivers(value.condition, definitions, visited), trueBranch: resolveVariableReceivers(value.trueBranch, definitions, visited), falseBranch: resolveVariableReceivers(value.falseBranch, definitions, visited) };
-        case 'short_ternary':
-            return { ...value, condition: resolveVariableReceivers(value.condition, definitions, visited), falseBranch: resolveVariableReceivers(value.falseBranch, definitions, visited) };
-        case 'null_coalesce':
-            return { ...value, left: resolveVariableReceivers(value.left, definitions, visited), right: resolveVariableReceivers(value.right, definitions, visited) };
-        case 'binary_expression':
-            return { ...value, left: resolveVariableReceivers(value.left, definitions, visited), right: resolveVariableReceivers(value.right, definitions, visited) };
-        case 'unary_expression':
-            return { ...value, operand: resolveVariableReceivers(value.operand, definitions, visited) };
-        case 'cast_expression':
-            return { ...value, operand: resolveVariableReceivers(value.operand, definitions, visited) };
-        case 'nested_array':
-            return { ...value, entries: value.entries.map(entry => entry.kind === 'keyed'
-                ? { ...entry, value: resolveVariableReceivers(entry.value, definitions, visited), key: entry.key.kind === 'expression' ? { ...entry.key, value: resolveVariableReceivers(entry.key.value, definitions, visited) } : entry.key }
-                : { ...entry, value: resolveVariableReceivers(entry.value, definitions, visited) }) };
-        case 'static_call':
-        case 'construct':
-            return { ...value, arguments: value.arguments.map(argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) };
-        case 'instance_of':
-            return { ...value, expression: resolveVariableReceivers(value.expression, definitions, visited) };
-        case 'closure':
-        case 'arrow_function':
-        case 'match_expression':
-            return value;
-    }
+    const identity = (current: PhpAstValue): PhpAstValue => current;
+    return matchPhpAstValue(value, {
+        literal: identity,
+        interpolatedString: identity,
+        resourceSingle: identity,
+        resourceCollection: identity,
+        variableReference: current => resolveVariableRoot(current, definitions, visited),
+        magicConstant: identity,
+        constantReference: identity,
+        propertyAccess: current => ({ ...current, receiver: resolveVariableRoot(current.receiver, definitions, visited) }),
+        methodChain: current => ({ ...current, receiver: resolveVariableRoot(current.receiver, definitions, visited) }),
+        arrayAccess: current => ({ ...current, target: resolveVariableReceivers(current.target, definitions, visited), index: resolveVariableReceivers(current.index, definitions, visited) }),
+        functionCall: current => ({ ...current, arguments: relationProject(current.arguments, argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) }),
+        callableCall: current => ({ ...current, arguments: relationProject(current.arguments, argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) }),
+        shortTernary: current => ({ ...current, condition: resolveVariableReceivers(current.condition, definitions, visited), falseBranch: resolveVariableReceivers(current.falseBranch, definitions, visited) }),
+        nullCoalesce: current => ({ ...current, left: resolveVariableReceivers(current.left, definitions, visited), right: resolveVariableReceivers(current.right, definitions, visited) }),
+        binaryExpression: current => ({ ...current, left: resolveVariableReceivers(current.left, definitions, visited), right: resolveVariableReceivers(current.right, definitions, visited) }),
+        unaryExpression: current => ({ ...current, operand: resolveVariableReceivers(current.operand, definitions, visited) }),
+        castExpression: current => ({ ...current, operand: resolveVariableReceivers(current.operand, definitions, visited) }),
+        ternaryExpression: current => ({ ...current, condition: resolveVariableReceivers(current.condition, definitions, visited), trueBranch: resolveVariableReceivers(current.trueBranch, definitions, visited), falseBranch: resolveVariableReceivers(current.falseBranch, definitions, visited) }),
+        nestedArray: current => ({ ...current, entries: relationProject(current.entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => ({ ...entry, value: resolveVariableReceivers(entry.value, definitions, visited), key: relationGate(relationEqual(entry.key.kind, 'expression'), () => ({ ...entry.key, value: resolveVariableReceivers(entry.key.value, definitions, visited) }), () => entry.key) }), () => ({ ...entry, value: resolveVariableReceivers(entry.value, definitions, visited) }))) }),
+        staticCall: current => ({ ...current, arguments: relationProject(current.arguments, argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) }),
+        classReference: identity,
+        classConstant: identity,
+        construct: current => ({ ...current, arguments: relationProject(current.arguments, argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) }),
+        assignmentExpression: current => ({ ...current, target: resolveVariableReceivers(current.target, definitions, visited), value: resolveVariableReceivers(current.value, definitions, visited) }),
+        dynamicConstruct: identity,
+        anonymousClassConstruct: identity,
+        instanceOf: current => ({ ...current, expression: resolveVariableReceivers(current.expression, definitions, visited) }),
+        closure: identity,
+        arrowFunction: identity,
+        matchExpression: identity,
+        unsupported: identity,
+    });
 }
+
 
 export function bindField({
     key,
     value,
     modelSymbol,
     modelSymbolTable,
-    variableDefinitions
+    variableDefinitions = Object.freeze([]) as RelationIndex<string, PhpAstValue>,
 }: {
     readonly key: string;
     readonly value: PhpAstValue;
     readonly modelSymbol: OriginModelSymbol;
     readonly modelSymbolTable: ModelSymbolTable;
-    readonly variableDefinitions?: ReadonlyMap<string, PhpAstValue>;
+    readonly variableDefinitions?: RelationIndex<string, PhpAstValue>;
 }): BoundResourceFieldResult {
-    const semanticValue = resolveVariableReceivers(value, variableDefinitions ?? new Map());
+    const semanticValue = resolveVariableReceivers(value, variableDefinitions);
     return matchPhpAstValue(semanticValue, {
-        methodChain: (val) => matchResourceOperationKind(resourceOperationKindForMethod(val.property), {
+        methodChain: val => matchResourceOperationKind(resourceOperationKindForMethod(val.property), {
             when_loaded: () => matchLookup(readWhenLoadedRelation(val.arguments), {
                 found: relation => bindWhenLoadedField(key, relation.value, modelSymbol),
                 missing: () => bindFallbackField(key),
@@ -132,22 +154,25 @@ export function bindField({
             with: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             ordinary: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
         }),
-        propertyAccess: (val) => matchPhpPropertyPath(val.target, {
+        propertyAccess: val => matchPhpPropertyPath(val.target, {
             single: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             chain: () => bindPropertyPathField(key, val, modelSymbol, modelSymbolTable),
         }),
-        resourceSingle: (val) => bindResourceCollectionField(key, val, modelSymbol),
-        resourceCollection: (val) => bindResourceCollectionField(key, val, modelSymbol),
-        nestedArray: (val) => bindNestedArrayField(key, val, modelSymbol, modelSymbolTable, bindField),
-        literal: (val) => bindLiteralField(key, val),
-        ternaryExpression: (val) => bindTernaryField(key, val, modelSymbol, modelSymbolTable, bindField),
+        resourceSingle: val => bindResourceCollectionField(key, val, modelSymbol),
+        resourceCollection: val => bindResourceCollectionField(key, val, modelSymbol),
+        nestedArray: val => bindNestedArrayField(key, val, modelSymbol, modelSymbolTable, bindField),
+        literal: val => bindLiteralField(key, val),
+        interpolatedString: () => bindFallbackField(key),
+        ternaryExpression: val => bindTernaryField(key, val, modelSymbol, modelSymbolTable, bindField),
         arrayAccess: () => bindFallbackField(key),
         functionCall: () => bindFallbackField(key),
-        shortTernary: (val) => bindShortTernaryField(key, val, modelSymbol, modelSymbolTable, bindField),
-        nullCoalesce: (val) => bindNullCoalesceField(key, val, modelSymbol, modelSymbolTable, bindField),
-        binaryExpression: (val) => bindBinaryField(key, val, modelSymbol, modelSymbolTable, bindField),
+        callableCall: () => bindFallbackField(key),
+        shortTernary: val => bindShortTernaryField(key, val, modelSymbol, modelSymbolTable, bindField),
+        nullCoalesce: val => bindNullCoalesceField(key, val, modelSymbol, modelSymbolTable, bindField),
+        binaryExpression: val => bindBinaryField(key, val, modelSymbol, modelSymbolTable, bindField),
         unaryExpression: () => bindFallbackField(key),
-        castExpression: (val) => bindCastField(key, val, modelSymbol, modelSymbolTable, bindField),
+        castExpression: val => bindCastField(key, val, modelSymbol, modelSymbolTable, bindField),
+        assignmentExpression: () => bindFallbackField(key),
         matchExpression: () => bindFallbackField(key),
         magicConstant: () => bindFallbackField(key),
         constantReference: () => bindFallbackField(key),
@@ -155,11 +180,12 @@ export function bindField({
         staticCall: () => bindFallbackField(key),
         construct: () => bindFallbackField(key),
         dynamicConstruct: () => bindFallbackField(key),
+        anonymousClassConstruct: () => bindFallbackField(key),
         instanceOf: () => bindFallbackField(key),
         classConstant: () => bindFallbackField(key),
         classReference: () => bindFallbackField(key),
         closure: () => bindFallbackField(key),
         arrowFunction: () => bindFallbackField(key),
-        unsupported: () => bindFallbackField(key)
+        unsupported: () => bindFallbackField(key),
     });
 }

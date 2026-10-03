@@ -26,12 +26,19 @@
 // ============================================================================
 export { FIFOQueue } from './utils/Queue';
 export {
-    FrozenSet,
-    DependencyGraph,
-    DependencyGraphBuilder,
-    IncrementalInvalidator,
-    TarjanSCC,
-    UnionFind as GraphUnionFind
+    type DependencyGraph,
+    type DependencyEdge,
+    createDependencyGraph,
+    addDependency,
+    dependencyForward,
+    dependencyReverse,
+    dependencyNodes,
+    dependencyClosure,
+    invalidateDependencies,
+    stronglyConnectedComponents,
+    type GraphUnionFind,
+    createGraphUnionFind,
+    graphUnionFindUnion
 } from './utils/Graph';
 export { computeStableSymbolId, computeIRHash } from './utils/Hash';
 export {
@@ -64,8 +71,7 @@ export type {
     QueryKey,
     QueryNode,
     QueryContext,
-    QueryFrame,
-    SymbolDatabase
+    QueryFrame
 } from './query';
 export {
     createPendingCell,
@@ -73,12 +79,12 @@ export {
     isReady,
     isPending,
     addDependency,
-    TypedCache,
+    createTypedCache,
     createMemoizedQueryKey,
-    QueryDatabase,
-    MemoizedQueryDatabase,
-    SalsaCompiler,
-    QueryCycleError
+    createQueryDatabase,
+    createMemoizedQueryDatabase,
+    createSalsaCompiler,
+    createQueryCycleError
 } from './query';
 
 // ============================================================================
@@ -111,12 +117,13 @@ export {
     UseDefGraph,
     // Symbol analysis
     type SymbolNode,
-    SymbolDatabase,
+    type SymbolDatabase,
+    createSymbolDatabase,
     // Data flow framework
     type FlowState,
     DataFlowAnalysis,
     // Analysis management
-    AnalysisDependencyGraph,
+    type AnalysisDependencyGraph,
     AnalysisManager,
     // Analysis key constants
     CFGAnalysis,
@@ -199,7 +206,7 @@ export {
     PassDependency,
     CompilerPass,
     ExecutablePass,
-    TypedPassAdapter,
+    createTypedPassAdapter,
     PassGraph,
     PassManager,
     CompilationState,
@@ -273,7 +280,9 @@ export {
     TypeHasher,
     TypeInterner,
     TypeHierarchy,
-    TypeSystem
+    createTypeSystem,
+    isSubtype,
+    isAssignable
 } from './types';
 
 // ============================================================================
@@ -291,7 +300,8 @@ export {
     TypeEnvironment,
     type VariableState,
     UnionFind as ConstraintUnionFind,
-    ConstraintSolver
+    solveConstraints,
+    type ConstraintSolveResult
 } from './constraints';
 
 // ============================================================================
@@ -358,32 +368,18 @@ export {
     type StaticLaravelScannerOptions,
     ScannedRouteValidationRuleEntry,
     type ScannedRouteValidationRuleParams,
-    ScannedRouteValidationRuleSet,
+    RouteSemanticFlowValidationRuleSet,
     type RouteValidationRuleSet,
-    ScannedRouteSchemaPayload,
-    type ScannedRouteSchemaParams,
-    ScannedScalarFieldNode,
-    type ScannedScalarFieldParams,
-    ScannedObjectFieldNode,
-    type ScannedObjectFieldParams,
-    ScannedArrayFieldNode,
-    type ScannedArrayFieldParams,
     ValidationTreeBuilder,
     buildValidationTree,
-    ScannedRouteDescriptor,
+    RouteSemanticFlowFactory,
     ScannedRouteParameterDescriptor,
     ScannedRouteQueryParameterDescriptor,
-    ScannedRoutePolicyDescriptor,
-    ScannedRateLimitDescriptor,
-    ScannedHttpErrorResponseDescriptor,
-    type ScannedRouteCompleteContracts,
-    type ScannedRouteConstructorInput,
-    type ScannedRouteParams,
+    type RouteSemanticFlowCompleteContracts,
+    type RouteSemanticFlowConstructorInput,
+    type RouteSemanticFlowParams,
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams,
-    type ScannedRoutePolicyParams,
-    type ScannedRateLimitParams,
-    type ScannedHttpErrorResponseParams,
     ScannedResourceFieldDescriptor,
     type ScannedResourceFieldParams,
     ScannedResourceDescriptor,
@@ -396,8 +392,6 @@ export {
     type ScannedModelCastParams,
     type ScannedModelRelationParams,
     type ScannedModelAccessorParams,
-    ScannedBroadcastChannelDescriptor,
-    type ScannedBroadcastChannelParams,
     compileBroadcastRuntimePattern,
     ScannedFormFieldDescriptor,
     type ScannedFormFieldParams,
@@ -409,10 +403,6 @@ export {
     type ScannedRequestTypeParams,
     type ControllerActionInfo,
     buildRequestTypeWithActions,
-    ScannedResourceRouteGroupDescriptor,
-    type ScannedResourceRouteGroupParams,
-    ScannedRouteManifestDescriptor,
-    type ScannedRouteManifestParams,
     collectPhpFiles,
     ChannelScanner,
     ControllerScanner,

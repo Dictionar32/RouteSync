@@ -1,0 +1,43 @@
+{
+  "phase": 607,
+  "frontier": "scanner descriptor relational cutover",
+  "modifiedFiles": [
+    "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
+    "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
+    "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts"
+  ],
+  "forbiddenConstructCounts": {
+    "if": 0,
+    "while": 0,
+    "for": 0,
+    "switch": 0,
+    "map": 0,
+    "filter": 0,
+    "reduce": 0,
+    "flatMap": 0,
+    "undefined": 0,
+    "null": 0,
+    "??": 0,
+    "===": 0,
+    "!==": 0,
+    "as unknown": 0,
+    "Set": 0,
+    "Map": 0,
+    "any": 0,
+    "new": 0,
+    "ternary": 0
+  },
+  "zeroByteProductionFiles": 0,
+  "modifiedFileTranspileDiagnostics": 0,
+  "fullTypecheck": {
+    "status": "blocked_by_environment",
+    "diagnostics": [
+      "TS2688 Cannot find type definition file for 'node'",
+      "TS2688 Cannot find type definition file for 'vitest/globals'"
+    ]
+  },
+  "unusedFilePolicy": "No production file was emptied or deleted without consumer evidence."
+}

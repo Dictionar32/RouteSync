@@ -110,7 +110,7 @@ describe('ZodTierGenerator + normalizer: runtime behaviour behind the type fixes
           code: '{"kind":"model","model":"Invoice","collection":true,"paginated":false}',
         },
       },
-      // Hits: ParsedRoute's legacy uri/actionName/controllerName fields
+      // Hits: RouteSemanticFlow's legacy uri/actionName/controllerName fields
       // (rather than path/action) — the shape normalizer.spec.ts's fixture
       // uses, and the one the stateless normalizer pipeline must still accept.
       {

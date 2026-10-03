@@ -684,3 +684,6 @@ export interface RouteSchemaPayload {
   readonly messages: readonly RouteMessageEntry[];
   readonly attributes: readonly RouteAttributeEntry[];
 }
+
+export const emptyRouteSchemaPayload = (): RouteSchemaPayload => Object.freeze({ fields: Object.freeze([]), messages: Object.freeze([]), attributes: Object.freeze([]) });
+export const createRouteSchemaPayload = (fields: readonly RequestField[], messages: readonly RouteMessageEntry[] = [], attributes: readonly RouteAttributeEntry[] = []): RouteSchemaPayload => Object.freeze({ fields: Object.freeze([...fields]), messages: Object.freeze([...messages]), attributes: Object.freeze([...attributes]) });

@@ -1,4 +1,7 @@
 /** Closed Eloquent method vocabulary. Registry entries describe semantic transitions. */
+import type { Lookup } from '../types/upstream/collections';
+import { relationFirst, relationOptionFold } from './kernel/relationalSequence';
+import { relationEqual } from './kernel/semanticRelations';
 export type EloquentCardinality =
   | { readonly kind: 'single' }
   | { readonly kind: 'collection' }
@@ -46,8 +49,10 @@ const METHOD_ENTRIES: readonly (readonly [string, EloquentMethodRule])[] = [
   ['pluck', array({ kind: 'unresolved' })], ['toArray', array({ kind: 'model' })], ['jsonSerialize', array({ kind: 'model' })],
 ];
 
-export const ELOQUENT_METHOD_REGISTRY: ReadonlyMap<string, EloquentMethodRule> = new Map(METHOD_ENTRIES);
+export const ELOQUENT_METHOD_REGISTRY: readonly (readonly [string, EloquentMethodRule])[] = METHOD_ENTRIES;
 
-export function lookupEloquentMethod(name: string): EloquentMethodRule | undefined {
-  return ELOQUENT_METHOD_REGISTRY.get(name);
+export function lookupEloquentMethodRelation(name: string): Lookup<EloquentMethodRule> {
+  const missingLookup = (): Lookup<EloquentMethodRule> => ({ kind: 'missing' });
+  const foundLookup = (rule: EloquentMethodRule): Lookup<EloquentMethodRule> => ({ kind: 'found', value: rule });
+  return relationOptionFold(relationFirst(METHOD_ENTRIES, ([method]) => relationEqual(method, name)), missingLookup, ([, rule]) => foundLookup(rule));
 }

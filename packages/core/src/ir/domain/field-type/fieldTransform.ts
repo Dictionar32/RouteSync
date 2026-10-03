@@ -1,33 +1,24 @@
-/**
- * fieldTransform.ts
- *
- * String case transformations and form projection helpers for fields.
- *
- * @module core/ir/domain/field-type
- */
-
+/** Relation-backed field transformations and form projection helpers. */
 import type { TypeIR } from '../../../types/ir';
-import { TypeIRUtils } from '../../../types/ir';
+import { resolveFieldTransform, type FieldCaseTransform } from './fieldTransformSemanticRelations';
+import { relationOptionFold, relationFirstOption } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+
+const FIELD_TRANSFORMERS: Readonly<Record<FieldCaseTransform, (name: string) => string>> = Object.freeze({
+    camel: phpName => phpName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()),
+    pascal: phpName => phpName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()).replace(/^([a-z])/, letter => letter.toUpperCase()),
+    snake: phpName => phpName,
+    kebab: phpName => phpName.replace(/_/g, '-'),
+});
 
 export function transformFieldName(phpName: string, caseTransform: string = 'camel'): string {
-    switch (caseTransform) {
-        case 'camel':
-            return phpName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-        case 'pascal':
-            return phpName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
-                .replace(/^([a-z])/, letter => letter.toUpperCase());
-        case 'snake':
-            return phpName;
-        case 'kebab':
-            return phpName.replace(/_/g, '-');
-        default:
-            return phpName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-    }
+    return FIELD_TRANSFORMERS[resolveFieldTransform(caseTransform)](phpName);
 }
 
 export function projectForForm(type: TypeIR): TypeIR {
-    if (TypeIRUtils.isNullable(type)) {
-        return { kind: 'optional', inner: type.inner };
-    }
-    return type;
+    return relationOptionFold(
+        relationFirstOption([type], candidate => relationEqual(candidate.kind, 'nullable')),
+        () => type,
+        candidate => ({ kind: 'optional', inner: candidate.inner }),
+    );
 }

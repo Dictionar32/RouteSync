@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RouteSecurityClassifier, SecuritySchemeKind, ScannedRouteDescriptor, RouteActionKind, VoidResponseDescriptor } from '@routesync/core';
+import { RouteSecurityClassifier, SecuritySchemeKind, RouteSemanticFlowFactory, RouteActionKind, VoidResponseDescriptor } from '@routesync/core';
 
 describe('RouteSecurity Explicit Model Suite', () => {
   it('1. Classifies auth:sanctum as Sanctum security scheme', () => {
@@ -30,8 +30,8 @@ describe('RouteSecurity Explicit Model Suite', () => {
     expect(sec.guards).toHaveLength(0);
   });
 
-  it('5. Automatically resolves RouteSecurityDescriptor on ScannedRouteDescriptor', () => {
-    const route = ScannedRouteDescriptor.create({
+  it('5. Automatically resolves RouteSecurityDescriptor on RouteSemanticFlowFactory', () => {
+    const route = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/checkout',
       resourceName: 'checkout',

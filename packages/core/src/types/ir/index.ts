@@ -10,7 +10,7 @@
 export * from './nominalVocabulary';
 export * from './resolvedSemanticTypes';
 export * from './resolvedSemanticFactory';
-export * from './resolvedSemanticAlgebra';
+export { matchResolvedSemanticTypeIR } from './resolvedSemanticAlgebra';
 export * from './typeIrTypes';
 export * from './typeIrUtils';
 export * from './resourceIrTypes';

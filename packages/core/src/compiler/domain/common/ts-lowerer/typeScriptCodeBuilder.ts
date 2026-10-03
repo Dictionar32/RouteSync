@@ -20,47 +20,30 @@ import type {
     LoweredTypeDeclaration,
     TypeScriptBuildResult
 } from './typeScriptMetadata';
+import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+
 import {
-    lowerTypeExpression,
-    lowerProperty,
-    lowerObjectType,
+    lowerTypeExpression as lowerTypeExpressionNode,
+    lowerProperty as lowerPropertyNode,
+    lowerObjectType as lowerObjectTypeNode,
     compileTypeStream
 } from './builder/index';
 
-export class TypeScriptCodeBuilder {
-    public readonly targetVersion: TypeScriptTargetVersion;
-    public readonly includeJsDoc: boolean;
-
-    constructor({
-        targetVersion = TypeScriptTargetVersion.ES2022,
-        includeJsDoc = true
-    }: TypeScriptLowererOptions = {}) {
-        this.targetVersion = targetVersion;
-        this.includeJsDoc = includeJsDoc;
-        Object.freeze(this);
-    }
-
-    public readonly lowerTypeExpression = (type: SemanticType): string => {
-        return lowerTypeExpression(type);
-    };
-
-    public readonly lowerProperty = (prop: ObjectProperty): string => {
-        return lowerProperty(prop, this.includeJsDoc);
-    };
-
-    /**
-     * Single Atomic Lowering:
-     * Generates declaration code AND its metadata together in one sync pass.
-     */
-    public readonly lowerObjectType = (objType: ObjectType): LoweredTypeDeclaration => {
-        return lowerObjectType(objType, this.lowerProperty);
-    };
-
-    /**
-     * Compiles ObjectType[] AST streams into a complete build result.
-     * Single linear pass: Code and metadata collected simultaneously.
-     */
-    public readonly build = (types: readonly ObjectType[]): TypeScriptBuildResult => {
-        return compileTypeStream(types, this.lowerProperty);
-    };
+export interface TypeScriptCodeBuilder {
+    readonly targetVersion: TypeScriptTargetVersion;
+    readonly includeJsDoc: boolean;
+    readonly lowerTypeExpression: (type: SemanticType) => string;
+    readonly lowerProperty: (prop: ObjectProperty) => string;
+    readonly lowerObjectType: (objType: ObjectType) => LoweredTypeDeclaration;
+    readonly build: (types: readonly ObjectType[]) => TypeScriptBuildResult;
 }
+
+export const TypeScriptCodeBuilder = (options: TypeScriptLowererOptions = {}): TypeScriptCodeBuilder => {
+    const targetVersion = relationGate(Object.prototype.hasOwnProperty.call(options, 'targetVersion'), () => options.targetVersion as TypeScriptTargetVersion, () => TypeScriptTargetVersion.ES2022);
+    const includeJsDoc = relationGate(Object.prototype.hasOwnProperty.call(options, 'includeJsDoc'), () => options.includeJsDoc as boolean, () => true);
+    const lowerTypeExpressionValue = (type: SemanticType): string => lowerTypeExpressionNode(type);
+    const lowerPropertyValue = (prop: ObjectProperty): string => lowerPropertyNode(prop, includeJsDoc);
+    const lowerObjectType = (objType: ObjectType): LoweredTypeDeclaration => lowerObjectTypeNode(objType, lowerPropertyValue);
+    const build = (types: readonly ObjectType[]): TypeScriptBuildResult => compileTypeStream(types, lowerPropertyValue);
+    return Object.freeze({ targetVersion, includeJsDoc, lowerTypeExpression: lowerTypeExpressionValue, lowerProperty: lowerPropertyValue, lowerObjectType, build });
+};

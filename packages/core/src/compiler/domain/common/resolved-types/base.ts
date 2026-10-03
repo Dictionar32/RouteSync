@@ -1,56 +1,48 @@
 /**
- * base.ts
+ * Relation-backed resolved semantic type terminal algebra.
  *
- * Base class and primitive type representation for ResolvedSemanticType.
- *
- * @module compiler/domain/common/resolved-types/base
+ * Construction is data-oriented: no constructor authority lives in the
+ * semantic type layer. Factories below materialize immutable witnesses.
  */
-
 import type { ResolvedSemanticType } from './catamorphism';
 import type { ResolvedPrimitiveKind, ResolvedPrimitiveTypeParams } from './types';
 
-export abstract class ResolvedSemanticTypeBase {
-    abstract readonly kind: string;
-
-    formatProperty(this: ResolvedSemanticType, name: string, lower: (t: ResolvedSemanticType) => string): string {
-        return `${name}: ${lower(this)};`;
-    }
-
-    formatMapperAssignment(this: ResolvedSemanticType, name: string): string {
-        return `  ${name}: api.${name},`;
-    }
-
-    formatChildArrayMapper(this: ResolvedSemanticType, name: string): string {
-        return `  ${name}: api.${name},`;
-    }
+export interface ResolvedSemanticTypeBase {
+    readonly kind: string;
+    readonly formatProperty: (name: string, lower: (t: ResolvedSemanticType) => string) => string;
+    readonly formatMapperAssignment: (name: string) => string;
+    readonly formatChildArrayMapper: (name: string) => string;
 }
 
-export class ResolvedPrimitiveType extends ResolvedSemanticTypeBase {
-    readonly kind = 'primitive' as const;
+const formatProperty = (type: ResolvedSemanticType, name: string, lower: (t: ResolvedSemanticType) => string): string =>
+    `${name}: ${lower(type)};`;
+
+const formatMapperAssignment = (_type: ResolvedSemanticType, name: string): string =>
+    `  ${name}: api.${name},`;
+
+const formatChildArrayMapper = (_type: ResolvedSemanticType, name: string): string =>
+    `  ${name}: api.${name},`;
+
+export interface ResolvedPrimitiveType extends ResolvedSemanticTypeBase {
+    readonly kind: 'primitive';
     readonly primitiveKind: ResolvedPrimitiveKind;
-
-    constructor({ primitiveKind }: ResolvedPrimitiveTypeParams) {
-        super();
-        this.primitiveKind = primitiveKind;
-        Object.freeze(this);
-    }
-
-    public static string(): ResolvedPrimitiveType {
-        return new ResolvedPrimitiveType({ primitiveKind: 'string' });
-    }
-    public static number(): ResolvedPrimitiveType {
-        return new ResolvedPrimitiveType({ primitiveKind: 'number' });
-    }
-    public static boolean(): ResolvedPrimitiveType {
-        return new ResolvedPrimitiveType({ primitiveKind: 'boolean' });
-    }
-    public static datetime(): ResolvedPrimitiveType {
-        return new ResolvedPrimitiveType({ primitiveKind: 'datetime' });
-    }
-    public static file(): ResolvedPrimitiveType {
-        return new ResolvedPrimitiveType({ primitiveKind: 'file' });
-    }
-    public static unknown(): ResolvedPrimitiveType {
-        return new ResolvedPrimitiveType({ primitiveKind: 'unknown' });
-    }
 }
+
+export const ResolvedPrimitiveType = Object.freeze({
+    create: ({ primitiveKind }: ResolvedPrimitiveTypeParams): ResolvedPrimitiveType => {
+        const witness: ResolvedPrimitiveType = {
+            kind: 'primitive' as const,
+            primitiveKind,
+            formatProperty: (name: string, lower: (t: ResolvedSemanticType) => string) => formatProperty(witness, name, lower),
+            formatMapperAssignment: (name: string) => formatMapperAssignment(witness, name),
+            formatChildArrayMapper: (name: string) => formatChildArrayMapper(witness, name),
+        } satisfies ResolvedPrimitiveType;
+        return Object.freeze(witness);
+    },
+    string: (): ResolvedPrimitiveType => ResolvedPrimitiveType.create({ primitiveKind: 'string' }),
+    number: (): ResolvedPrimitiveType => ResolvedPrimitiveType.create({ primitiveKind: 'number' }),
+    boolean: (): ResolvedPrimitiveType => ResolvedPrimitiveType.create({ primitiveKind: 'boolean' }),
+    datetime: (): ResolvedPrimitiveType => ResolvedPrimitiveType.create({ primitiveKind: 'datetime' }),
+    file: (): ResolvedPrimitiveType => ResolvedPrimitiveType.create({ primitiveKind: 'file' }),
+    unknown: (): ResolvedPrimitiveType => ResolvedPrimitiveType.create({ primitiveKind: 'unknown' }),
+});

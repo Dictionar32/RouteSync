@@ -3,8 +3,7 @@ import path from 'path'
 import {
   BroadcastChannelDescriptor,
   BROADCAST_CHANNEL_REGISTRY,
-  ROUTE_PARAMETER_TYPE_REGISTRY,
-  RouteParameterType,
+  matchRouteParameterType,
   compileBroadcastRuntimePattern
 } from '@routesync/core'
 import { toTypeName } from './names'
@@ -34,8 +33,20 @@ export class EchoGenerator {
       const parameters = channel.parameters ?? []
       const paramArgs = parameters.length > 0
         ? parameters.map(p => {
-            const pType = (p.type && ROUTE_PARAMETER_TYPE_REGISTRY[p.type]) ? p.type : RouteParameterType.String
-            const tsType = ROUTE_PARAMETER_TYPE_REGISTRY[pType].tsType
+            const tsType = matchRouteParameterType(
+              p.type,
+              {
+                string: spec => spec.tsType,
+                integer: spec => spec.tsType,
+                number: spec => spec.tsType,
+                boolean: spec => spec.tsType,
+                uuid: spec => spec.tsType,
+                ulid: spec => spec.tsType,
+                date: spec => spec.tsType,
+                slug: spec => spec.tsType,
+                model: () => 'string'
+              }
+            )
             const propName = p.propertyName || p.name
             return `${propName}: ${tsType}`
           }).join(', ') + ', '

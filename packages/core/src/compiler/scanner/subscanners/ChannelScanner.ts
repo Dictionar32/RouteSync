@@ -1,12 +1,4 @@
 import { readSourceText } from './scannerUtils';
-/**
- * ChannelScanner.ts
- *
- * Scans routes/channels.php for Broadcast::channel declarations.
- *
- * @module core/compiler/scanner/subscanners/ChannelScanner
- */
-
 import path from "path";
 import * as fs from "node:fs";
 import { BroadcastChannelKind, type BroadcastChannelDescriptor } from '../../../types/domain/channels';
@@ -15,11 +7,12 @@ import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSou
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { RouteParameter } from '../../../types/upstream/route';
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
-import {
-    ScannedBroadcastChannelDescriptor
-} from "../descriptors/channelDescriptors";
+import type { TokenDescriptor } from '../lexer/phpAstTypes';
+import { createBroadcastChannel } from "../descriptors/channel/channelFactories";
 import { ScannedRouteParameterDescriptor } from '../descriptors/route/params/routeParameterDescriptorClass';
 import { channelProducer } from './channelProducer';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationGate, relationProject } from '../../../semantic/kernel/relationalSequence';
 
 type ScannedChannelDeclaration = {
     readonly channel: BroadcastChannelDescriptor;
@@ -33,60 +26,87 @@ const source = (file: string, token: { readonly startOffset: number; readonly en
     end: { kind: 'number_value', value: token.endOffset },
 });
 
-export class ChannelScanner {
-    private static async scanDeclarations(sourceProject: SourceProjectIdentity): Promise<readonly ScannedChannelDeclaration[]> {
-        const sourceRoot = sourceProject.root.value.value;
-        const channelsFile = path.join(sourceRoot, "routes", "channels.php");
-        if (!fs.existsSync(channelsFile)) return [];
-
-        const sourceText = await readSourceText(channelsFile);
-        const tokens = LaravelSourceLexer.tokenize(sourceText);
-        const channels: ScannedChannelDeclaration[] = [];
-
-        for (let i = 0; i < tokens.length; i++) {
-            if (tokens[i].value === "channel" && tokens[i - 1]?.value === "::" && tokens[i - 2]?.value === "Broadcast") {
-                let pIdx = i + 1;
-                if (tokens[pIdx]?.value === "(" && tokens[pIdx + 1]?.type === "STRING") {
-                    const pattern = tokens[pIdx + 1].value;
-                    const parameters = ChannelScanner.extractPathParams(pattern);
-                    const isPresence = pattern.includes("presence") || pattern.includes("chat");
-                    const isPrivate = !pattern.startsWith("public.") && !isPresence;
-                    const kind = isPresence
-                        ? BroadcastChannelKind.Presence
-                        : isPrivate
-                            ? BroadcastChannelKind.Private
-                            : BroadcastChannelKind.Public;
-
-                    channels.push({
-                        channel: ScannedBroadcastChannelDescriptor.fromPattern({
+const declarationAt = (
+    file: string,
+    tokens: readonly TokenDescriptor[],
+    index: number,
+): ScannedChannelDeclaration[] => {
+    const token = tokens[index];
+    const previous = tokens[index - 1];
+    const owner = tokens[index - 2];
+    const declaration = relationAll([
+        relationEqual(token?.value, 'channel'),
+        relationEqual(previous?.value, '::'),
+        relationEqual(owner?.value, 'Broadcast'),
+    ]);
+    return relationGate(
+        declaration,
+        () => {
+            const open = tokens[index + 1];
+            const patternToken = tokens[index + 2];
+            const valid = relationAll([relationEqual(open?.value, '('), relationEqual(patternToken?.type, 'STRING')]);
+            return relationGate(valid, () => {
+                const pattern = patternToken.value;
+                const parameters = ChannelScanner.extractPathParams(pattern);
+                const isPresence = relationAny([pattern.includes('presence'), pattern.includes('chat')]);
+                const isPrivate = relationAll([relationEqual(pattern.startsWith('public.'), false), relationEqual(isPresence, false)]);
+                const kind = relationGate(
+                    isPresence,
+                    () => BroadcastChannelKind.Presence,
+                    () => relationGate(isPrivate, () => BroadcastChannelKind.Private, () => BroadcastChannelKind.Public),
+                );
+                return [{
+                    channel: createBroadcastChannel({
                         name: pattern,
                         pattern,
                         parameters,
                         kind,
                         isPrivate,
-                        isPresence
-                        }),
-                        source: source(channelsFile, tokens[i - 2]),
-                    });
-                }
-            }
-        }
+                        isPresence,
+                    }),
+                    source: source(file, owner),
+                }];
+            }, () => []);
+        },
+        () => [],
+    );
+};
 
-        return Object.freeze(channels);
+const scanTokens = (
+    file: string,
+    tokens: readonly TokenDescriptor[],
+    index = 0,
+): readonly ScannedChannelDeclaration[] => relationGate(
+    relationEqual(index, tokens.length),
+    () => [],
+    () => [...declarationAt(file, tokens, index), ...scanTokens(file, tokens, index + 1)],
+);
+
+export class ChannelScanner {
+    private static async scanDeclarations(sourceProject: SourceProjectIdentity): Promise<readonly ScannedChannelDeclaration[]> {
+        const sourceRoot = sourceProject.root.value.value;
+        const channelsFile = path.join(sourceRoot, "routes", "channels.php");
+        return relationGate(
+            fs.existsSync(channelsFile),
+            async () => {
+                const sourceText = await readSourceText(channelsFile);
+                const tokens = LaravelSourceLexer.tokenize(sourceText);
+                return Object.freeze(scanTokens(channelsFile, tokens));
+            },
+            async () => [],
+        );
     }
 
-    /** Legacy descriptor surface retained for manifest and generator callers. */
     public static async scan(sourceProject: SourceProjectIdentity): Promise<readonly BroadcastChannelDescriptor[]> {
-        return (await ChannelScanner.scanDeclarations(sourceProject)).map(item => item.channel);
+        return relationProject(await ChannelScanner.scanDeclarations(sourceProject), item => item.channel);
     }
 
-    /** Canonical source-AST surface with declaration-level provenance. */
     public static async scanCanonicalAsts(sourceProject: SourceProjectIdentity): Promise<readonly ChannelAst[]> {
-        return (await ChannelScanner.scanDeclarations(sourceProject)).map(item => channelProducer.produce(item));
+        return relationProject(await ChannelScanner.scanDeclarations(sourceProject), item => channelProducer.produce(item));
     }
 
     public static extractPathParams(routePath: string): readonly RouteParameter[] {
-        const matches = [...routePath.matchAll(/\{([^}]+)\}/g)];
-        return matches.map(m => ScannedRouteParameterDescriptor.fromPathSegment(m[1]));
+        const matches = Array.from(routePath.matchAll(/\{([^}]+)\}/g));
+        return relationProject(matches, match => ScannedRouteParameterDescriptor.fromPathSegment(match[1]));
     }
 }

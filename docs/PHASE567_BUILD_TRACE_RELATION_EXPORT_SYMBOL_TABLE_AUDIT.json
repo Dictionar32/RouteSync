@@ -1,0 +1,17 @@
+{
+  "phase": 567,
+  "frontier": "build-trace-relation-export-symbol-table-closure",
+  "sourceBuildTrace": "build(3).log",
+  "repairs": [
+    "restore relationIsSome on relationalSequence canonical export surface",
+    "materialize ModelColumnFacts.items through relationSequenceToArray",
+    "materialize ModelSemanticSurface.properties through relationSequenceToArray before relation selection"
+  ],
+  "modifiedFiles": [
+    "packages/core/src/semantic/kernel/relationalSequence.ts",
+    "packages/core/src/semantic/SymbolTable.ts"
+  ],
+  "transpileDiagnosticsClean": true,
+  "fullBuildExecuted": false,
+  "fullBuildReason": "checkpoint has no node_modules"
+}

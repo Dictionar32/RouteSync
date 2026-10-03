@@ -1,8 +1,8 @@
-import type { InlineResponseDescriptor, ModelResponseDescriptor, ParsedRoute, ResourceResponseDescriptor } from '@routesync/core';
+import type { InlineResponseDescriptor, ModelResponseDescriptor, RouteSemanticFlow, ResourceResponseDescriptor } from '@routesync/core';
 import { matchResponse } from '@routesync/core';
 import { toTypeName } from '../names';
 
-export function resolveResponseName(route: ParsedRoute, response: ParsedRoute['binding']['response']): string {
+export function resolveResponseName(route: RouteSemanticFlow, response: RouteSemanticFlow['binding']['response']): string {
     return matchResponse(response, {
         resource: (descriptor: ResourceResponseDescriptor) => toTypeName(descriptor.resourceName.value),
         model: (descriptor: ModelResponseDescriptor) => toTypeName(descriptor.modelName.value),
@@ -11,7 +11,7 @@ export function resolveResponseName(route: ParsedRoute, response: ParsedRoute['b
     });
 }
 
-export function deriveResponseKind(response: ParsedRoute['binding']['response']): 'primitive' | 'resource' | 'model' | 'custom' {
+export function deriveResponseKind(response: RouteSemanticFlow['binding']['response']): 'primitive' | 'resource' | 'model' | 'custom' {
     return matchResponse(response, {
         resource: () => 'resource',
         model: () => 'model',

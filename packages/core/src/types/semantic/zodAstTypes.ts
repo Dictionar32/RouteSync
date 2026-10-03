@@ -9,6 +9,8 @@
 import type { Lookup } from '../upstream/collections';
 import type { PropertyName } from '../upstream/names';
 import { SemanticValueFactory } from '../domain/semanticValues';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationProject } from '../../semantic/kernel/relationalSequence';
 
 export interface ZodPropertyEntry {
   readonly key: PropertyName;
@@ -17,15 +19,10 @@ export interface ZodPropertyEntry {
 
 export class ZodObjectShape implements Iterable<ZodPropertyEntry> {
   public readonly properties: readonly ZodPropertyEntry[];
-  private readonly _lookup: ReadonlyMap<string, ZodPropertyEntry>;
+
 
   constructor(properties: readonly ZodPropertyEntry[]) {
     this.properties = Object.freeze([...properties]);
-    const map = new Map<string, ZodPropertyEntry>();
-    for (const p of properties) {
-      map.set(p.key.value.value, p);
-    }
-    this._lookup = map;
     Object.freeze(this);
   }
 
@@ -34,7 +31,7 @@ export class ZodObjectShape implements Iterable<ZodPropertyEntry> {
   }
 
   public static fromRecord(record: Readonly<{ readonly [key: string]: ZodAST }>): ZodObjectShape {
-    const properties: ZodPropertyEntry[] = Object.entries(record).map(([key, schema]) => ({ key: SemanticValueFactory.propertyName(key), schema }));
+    const properties = relationProject(Object.entries(record), ([key, schema]) => ({ key: SemanticValueFactory.propertyName(key), schema }));
     return new ZodObjectShape(properties);
   }
 
@@ -43,14 +40,17 @@ export class ZodObjectShape implements Iterable<ZodPropertyEntry> {
   }
 
   public lookup(key: PropertyName): Lookup<ZodPropertyEntry> {
-    const entry = this._lookup.get(key.value.value);
-    return entry === undefined ? { kind: 'missing' } : { kind: 'found', value: entry };
+    return relationOptionFold(
+      relationFirstOption(this.properties, entry => relationEqual(entry.key.value.value, key.value.value)),
+      () => ({ kind: 'missing' }),
+      value => ({ kind: 'found', value }),
+    );
   }
-  public has(key: PropertyName): boolean { return this._lookup.has(key.value.value); }
-  public get size(): number { return this._lookup.size; }
+  public has(key: PropertyName): boolean { return relationOptionFold(relationFirstOption(this.properties, entry => relationEqual(entry.key.value.value, key.value.value)), () => false, () => true); }
+  public get size(): number { return this.properties.length; }
   public [Symbol.iterator](): Iterator<ZodPropertyEntry> { return this.properties[Symbol.iterator](); }
   public toRecord(): { readonly [key: string]: ZodAST } {
-    return Object.fromEntries(this.properties.map(p => [p.key.value.value, p.schema]));
+    return Object.fromEntries(relationProject(this.properties, p => [p.key.value.value, p.schema] as const));
   }
 }
 

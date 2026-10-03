@@ -1,0 +1,965 @@
+{
+  "phase": 584,
+  "frontier": [
+    "scanner/lexer",
+    "resolver graph",
+    "AST/upstream mapping",
+    "analysis",
+    "semantic type lowering"
+  ],
+  "scannedFiles": 317,
+  "aggregate": {
+    "if": 89,
+    "for": 2,
+    "while": 20,
+    "switch": 3,
+    "ternary": 26,
+    "map": 38,
+    "filter": 13,
+    "reduce": 1,
+    "flatMap": 1,
+    "undefined": 17,
+    "??": 18,
+    "===": 75,
+    "!==": 15,
+    "&&": 16,
+    "||": 11,
+    "as unknown": 0,
+    "new": 225,
+    "any": 3,
+    "Set": 27,
+    "Map": 24
+  },
+  "bySurface": [
+    {
+      "root": "packages/core/src/compiler/scanner/lexer",
+      "files": 90,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 10,
+        "any": 3,
+        "Set": 0,
+        "Map": 1
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/scanner/resolvers",
+      "files": 19,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 1,
+        "any": 0,
+        "Set": 0,
+        "Map": 0
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/scanner/semantic",
+      "files": 22,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 0,
+        "any": 0,
+        "Set": 0,
+        "Map": 0
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/scanner/upstream",
+      "files": 19,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 1,
+        "any": 0,
+        "Set": 0,
+        "Map": 0
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/scanner/orchestrator",
+      "files": 4,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 2,
+        "any": 0,
+        "Set": 0,
+        "Map": 1
+      }
+    },
+    {
+      "root": "packages/core/src/graph",
+      "files": 6,
+      "counts": {
+        "if": 7,
+        "for": 0,
+        "while": 4,
+        "switch": 0,
+        "ternary": 2,
+        "map": 1,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 2,
+        "??": 1,
+        "===": 10,
+        "!==": 1,
+        "&&": 0,
+        "||": 3,
+        "as unknown": 0,
+        "new": 4,
+        "any": 0,
+        "Set": 0,
+        "Map": 4
+      }
+    },
+    {
+      "root": "packages/core/src/types/upstream",
+      "files": 58,
+      "counts": {
+        "if": 5,
+        "for": 0,
+        "while": 14,
+        "switch": 3,
+        "ternary": 11,
+        "map": 7,
+        "filter": 7,
+        "reduce": 0,
+        "flatMap": 1,
+        "undefined": 2,
+        "??": 7,
+        "===": 24,
+        "!==": 0,
+        "&&": 2,
+        "||": 0,
+        "as unknown": 0,
+        "new": 12,
+        "any": 0,
+        "Set": 5,
+        "Map": 5
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/verification",
+      "files": 11,
+      "counts": {
+        "if": 30,
+        "for": 1,
+        "while": 0,
+        "switch": 0,
+        "ternary": 2,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 11,
+        "!==": 2,
+        "&&": 3,
+        "||": 2,
+        "as unknown": 0,
+        "new": 28,
+        "any": 0,
+        "Set": 2,
+        "Map": 2
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/passes",
+      "files": 44,
+      "counts": {
+        "if": 47,
+        "for": 1,
+        "while": 2,
+        "switch": 0,
+        "ternary": 11,
+        "map": 27,
+        "filter": 6,
+        "reduce": 1,
+        "flatMap": 0,
+        "undefined": 13,
+        "??": 9,
+        "===": 29,
+        "!==": 12,
+        "&&": 11,
+        "||": 6,
+        "as unknown": 0,
+        "new": 77,
+        "any": 0,
+        "Set": 17,
+        "Map": 11
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/domain/common",
+      "files": 43,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 89,
+        "any": 0,
+        "Set": 3,
+        "Map": 0
+      }
+    },
+    {
+      "root": "packages/core/src/compiler/ir/semanticIRLoweringRelations.ts",
+      "files": 1,
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "ternary": 0,
+        "map": 1,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "??": 1,
+        "===": 1,
+        "!==": 0,
+        "&&": 0,
+        "||": 0,
+        "as unknown": 0,
+        "new": 1,
+        "any": 0,
+        "Set": 0,
+        "Map": 0
+      }
+    }
+  ],
+  "leakingFiles": [
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "counts": {
+        "new": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "counts": {
+        "new": 1,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "counts": {
+        "any": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "counts": {
+        "any": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/resolvers/RouteBoundaryAdapter.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/upstream/upstreamManifestBuilder.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
+      "counts": {
+        "new": 2,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/graph/ServiceGraphBuilder.ts",
+      "counts": {
+        "ternary": 2,
+        "undefined": 2,
+        "===": 2,
+        "new": 1,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/graph/service/graphAssembler.ts",
+      "counts": {
+        "===": 2
+      }
+    },
+    {
+      "file": "packages/core/src/graph/service/graphNodeIndex.ts",
+      "counts": {
+        "===": 1,
+        "!==": 1,
+        "new": 3,
+        "Map": 2
+      }
+    },
+    {
+      "file": "packages/core/src/graph/service/manifestGraphCompiler.ts",
+      "counts": {
+        "if": 7,
+        "while": 4,
+        "===": 5,
+        "||": 2,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/graph/service/nodeFactories.ts",
+      "counts": {
+        "map": 1,
+        "??": 1,
+        "||": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/assignment.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "counts": {
+        "if": 2,
+        "while": 13,
+        "===": 13,
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "counts": {
+        "if": 3,
+        "ternary": 3,
+        "undefined": 2,
+        "===": 6,
+        "new": 2,
+        "Map": 2
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "counts": {
+        "===": 2
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "counts": {
+        "ternary": 6,
+        "&&": 1,
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "counts": {
+        "switch": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "counts": {
+        "switch": 1,
+        "??": 1,
+        "===": 1
+      }
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "counts": {
+        "while": 1,
+        "ternary": 1,
+        "map": 7,
+        "filter": 7,
+        "flatMap": 1,
+        "??": 6,
+        "===": 1,
+        "&&": 1,
+        "new": 8,
+        "Set": 5,
+        "Map": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/verification/CFGVerifier.ts",
+      "counts": {
+        "if": 11,
+        "for": 1,
+        "===": 4,
+        "!==": 1,
+        "&&": 3,
+        "||": 2,
+        "new": 11
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/verification/SSAVerifier.ts",
+      "counts": {
+        "if": 1,
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/verification/VerifierManager.ts",
+      "counts": {
+        "if": 3,
+        "ternary": 2,
+        "map": 2,
+        "===": 1,
+        "new": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/verification/ssa/definitionCollector.ts",
+      "counts": {
+        "if": 5,
+        "===": 2,
+        "new": 5,
+        "Set": 2,
+        "Map": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/verification/ssa/dominanceChecker.ts",
+      "counts": {
+        "if": 10,
+        "===": 4,
+        "!==": 1,
+        "new": 6
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/ApiFieldGeneratorPass.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/ArtifactKeyWitness.ts",
+      "counts": {
+        "map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/CompilationContext.ts",
+      "counts": {
+        "new": 2,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/CompilationState.ts",
+      "counts": {
+        "if": 8,
+        "undefined": 6,
+        "===": 5,
+        "!==": 8,
+        "&&": 2,
+        "||": 3,
+        "new": 7
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/ContractGeneratorPass.ts",
+      "counts": {
+        "undefined": 1,
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/FormGeneratorPass.ts",
+      "counts": {
+        "if": 2,
+        "map": 4,
+        "reduce": 1,
+        "===": 2,
+        "||": 1,
+        "new": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/MapperGeneratorPass.ts",
+      "counts": {
+        "if": 1,
+        "undefined": 1,
+        "===": 1,
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/PassGraph.ts",
+      "counts": {
+        "Set": 1,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/PassManager.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/PassResult.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/ResponseAnalysisPass.ts",
+      "counts": {
+        "for": 1,
+        "new": 4,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/TypeScriptGeneratorPass.ts",
+      "counts": {
+        "ternary": 1,
+        "===": 1,
+        "new": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/TypedPassAdapter.ts",
+      "counts": {
+        "if": 3,
+        "ternary": 2,
+        "undefined": 2,
+        "!==": 1,
+        "&&": 2,
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/adapter/contractValidator.ts",
+      "counts": {
+        "new": 4,
+        "Set": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/api-field-domain.ts",
+      "counts": {
+        "ternary": 2,
+        "===": 1,
+        "new": 2,
+        "Set": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/contract-domain/contractArtifactBuilder.ts",
+      "counts": {
+        "map": 3,
+        "new": 1,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/contract-domain/contractExtraction.ts",
+      "counts": {
+        "ternary": 2,
+        "map": 6,
+        "===": 3,
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/contract-domain/dependencies.ts",
+      "counts": {
+        "new": 5
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/contract-domain/responseContractSemanticRelations.ts",
+      "counts": {
+        "map": 1,
+        "??": 2,
+        "===": 4,
+        "&&": 2,
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/graph/graphAnalyzer.ts",
+      "counts": {
+        "if": 11,
+        "??": 2,
+        "===": 2,
+        "!==": 1,
+        "&&": 2,
+        "new": 18,
+        "Set": 6,
+        "Map": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/graph/topologicalSorter.ts",
+      "counts": {
+        "if": 5,
+        "while": 2,
+        "map": 1,
+        "filter": 2,
+        "??": 4,
+        "===": 4,
+        "!==": 2,
+        "&&": 1,
+        "new": 7,
+        "Set": 3,
+        "Map": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/lowerers/readTypesLowerer.ts",
+      "counts": {
+        "if": 2,
+        "map": 2,
+        "===": 2,
+        "||": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/lowerers/requestTypesLowerers.ts",
+      "counts": {
+        "if": 2,
+        "map": 2,
+        "===": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/mapper/formFieldLineBuilder.ts",
+      "counts": {
+        "map": 2,
+        "filter": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/mapper/formMapperBuilder.ts",
+      "counts": {
+        "ternary": 1,
+        "map": 1,
+        "&&": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/mapper/mapperAssembler.ts",
+      "counts": {
+        "if": 6,
+        "ternary": 2,
+        "new": 1,
+        "Map": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/mapper/readFieldLineBuilder.ts",
+      "counts": {
+        "map": 3,
+        "filter": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/mapper/readMapperBuilder.ts",
+      "counts": {
+        "map": 1,
+        "??": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/passes/mapper/resourceRegistry.ts",
+      "counts": {
+        "if": 7,
+        "ternary": 1,
+        "undefined": 3,
+        "===": 2,
+        "&&": 1,
+        "new": 7,
+        "Set": 5
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ManifestArtifactLowerer.ts",
+      "counts": {
+        "new": 4,
+        "Set": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ResolvedObjectType.ts",
+      "counts": {
+        "new": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ResourceFieldFlattener.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ResponseFieldFlattener.ts",
+      "counts": {
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ResponseFieldLowering.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/SemanticTypeResolver.ts",
+      "counts": {
+        "new": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/TypeScriptTypeLowerer.ts",
+      "counts": {
+        "new": 2
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ZodSchemaLowerer.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/resolved-types/base.ts",
+      "counts": {
+        "new": 6
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/resolved-types/compounds.ts",
+      "counts": {
+        "new": 5
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/resolved-types/wrappers.ts",
+      "counts": {
+        "new": 5
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/response-lowering/loweringContracts.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/response-lowering/mapper/fieldConverter.ts",
+      "counts": {
+        "new": 11
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/response-lowering/mapper/responseFieldSemanticRelations.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/semantic-resolver/compoundHandlers.ts",
+      "counts": {
+        "new": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/semantic-resolver/index.ts",
+      "counts": {
+        "new": 7
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/semantic-resolver/primitiveHandlers.ts",
+      "counts": {
+        "new": 3
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ts-lowerer/typeScriptPrimitiveSemanticRelations.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/typeExpressionSemanticRelations.ts",
+      "counts": {
+        "new": 4
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/typeExpressionSemanticType.ts",
+      "counts": {
+        "new": 21
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/zodSemanticRelations.ts",
+      "counts": {
+        "new": 1
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/ir/semanticIRLoweringRelations.ts",
+      "counts": {
+        "map": 1,
+        "??": 1,
+        "===": 1,
+        "new": 1
+      }
+    }
+  ],
+  "transpileDiagnosticsClean": true,
+  "transpileDiagnostics": [],
+  "closedSurfaceClean": false
+}

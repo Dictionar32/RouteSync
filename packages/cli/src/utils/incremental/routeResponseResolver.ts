@@ -7,12 +7,12 @@
  */
 
 import type { SourceRef } from '@routesync/core';
-import type { ScannedRoute } from './incrementalTypes';
+import type { RouteSemanticFlow } from './incrementalTypes';
 import { canonicalizeCollectionDescriptor } from './collectionCanonicalizer';
 import type { FieldResolverFn } from './fieldResolver';
 
 export function resolveRouteResponse(
-  route: ScannedRoute,
+  route: RouteSemanticFlow,
   parsedAssignments: Record<string, unknown>,
   resolvedAssignments: Record<string, unknown>,
   resolveField: FieldResolverFn

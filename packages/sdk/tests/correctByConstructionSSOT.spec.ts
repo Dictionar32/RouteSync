@@ -6,7 +6,7 @@ import {
   HttpStatusCode,
   ResponseShape,
   matchCrudRole,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ScannedRouteParameterDescriptor,
   getRouteContract
 } from '@routesync/core'
@@ -16,7 +16,7 @@ import { ScannedClassifiedRouteDescriptor } from '../../cli/src/generators/route
 
 describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
   it('guarantees SDKGenerator consumes non-nullable contract.response.success directly', async () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/v1/users',
       action: 'UserController@index',
@@ -45,7 +45,7 @@ describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
 
   it('guarantees HookGenerator normalizes action keys via pure matchCrudRole catamorphism', () => {
     const updateRoute = ScannedClassifiedRouteDescriptor.fromRoute(
-      ScannedRouteDescriptor.create({ method: 'PUT', path: '/api/orders/:id' }),
+      RouteSemanticFlowFactory.create({ method: 'PUT', path: '/api/orders/:id' }),
       {
         groupName: 'orders',
         actionName: 'put',
@@ -58,7 +58,7 @@ describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
     )
 
     const deleteRoute = ScannedClassifiedRouteDescriptor.fromRoute(
-      ScannedRouteDescriptor.create({ method: 'DELETE', path: '/api/orders/:id' }),
+      RouteSemanticFlowFactory.create({ method: 'DELETE', path: '/api/orders/:id' }),
       {
         groupName: 'orders',
         actionName: 'delete',
@@ -71,7 +71,7 @@ describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
     )
 
     const showRoute = ScannedClassifiedRouteDescriptor.fromRoute(
-      ScannedRouteDescriptor.create({ method: 'GET', path: '/api/orders/:id' }),
+      RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/orders/:id' }),
       {
         groupName: 'orders',
         actionName: 'getById',
@@ -100,7 +100,7 @@ describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
   })
 
   it('guarantees ConstantsGenerator resolves path parameters from contract SSOT without regex fallback', () => {
-    const route = ScannedRouteDescriptor.create({
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/products/{id}/variants/{variantId}',
       pathParameters: [
@@ -122,7 +122,7 @@ describe('Rule 12: Correct-by-Construction Architecture SSOT', () => {
   })
 
   it('guarantees complete contract preservation without defensive null checks in downstream generators', () => {
-    const rawRoute = ScannedRouteDescriptor.create({
+    const rawRoute = RouteSemanticFlowFactory.create({
       method: 'POST',
       path: '/api/checkout',
       schema: {

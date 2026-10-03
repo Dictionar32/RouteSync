@@ -28,6 +28,7 @@ export {
 export {
     type SymbolNode,
     SymbolDatabase,
+    createSymbolDatabase,
 } from './SymbolAnalysis';
 
 export {
@@ -36,7 +37,7 @@ export {
 } from './DataFlowAnalysis';
 
 export {
-    AnalysisDependencyGraph,
+    type AnalysisDependencyGraph,
     AnalysisManager,
 } from './AnalysisManager';
 

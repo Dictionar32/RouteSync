@@ -1,0 +1,11 @@
+{
+  "phase": 575,
+  "frontier": "cli-compiler-bridge-canonical-barrel",
+  "changedFiles": [
+    "packages/cli/src/generators/bridge/index.ts"
+  ],
+  "canonicalSource": "packages/cli/src/generators/bridge/bridgeTypes.ts",
+  "compatibilityWrapperAdded": false,
+  "fullBuildExecuted": false,
+  "reason": "tsup executable is unavailable in the checkpoint dependency installation"
+}

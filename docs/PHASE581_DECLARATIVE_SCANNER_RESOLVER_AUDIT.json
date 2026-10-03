@@ -1,0 +1,49 @@
+{
+  "phase": 581,
+  "frontier": "scanner-lexer-resolver-compatibility-generic-solver-semantic-types",
+  "typescriptVersion": "5.8.3",
+  "auditedProductionFiles": 492,
+  "targetedConstructAudit": {
+    "if": 0,
+    "for": 0,
+    "while": 0,
+    "switch": 0,
+    "ternary": 0,
+    "map": 0,
+    "filter": 0,
+    "reduce": 0,
+    "flatMap": 0,
+    "SetType": 0,
+    "newSet": 0,
+    "undefinedIdentifier": 0,
+    "questionQuestion": 0,
+    "strictEquality": 0,
+    "asUnknown": 0,
+    "typescriptAnyKeyword": 0
+  },
+  "scannerProductionAudit": {
+    "controlAndCollectionLeaks": 0,
+    "typescriptAnyKeyword": 0,
+    "asUnknown": 0,
+    "SetTypeOrConstructor": 0,
+    "undefinedIdentifier": 0,
+    "questionQuestion": 0,
+    "strictEquality": 0
+  },
+  "legitimateTargetLanguageEvidence": {
+    "phpNull": "retained where it is the PHP literal/domain value; it is not used as semantic absence",
+    "laravelAnyMethod": "retained as Laravel route vocabulary; it is not TypeScript any"
+  },
+  "transpileVerification": {
+    "files": 492,
+    "diagnostics": 0
+  },
+  "fullTscVerification": {
+    "attempted": true,
+    "blockedByEnvironment": true,
+    "diagnostics": [
+      "TS2688: Cannot find type definition file for 'node'.",
+      "TS2688: Cannot find type definition file for 'vitest/globals'."
+    ]
+  }
+}

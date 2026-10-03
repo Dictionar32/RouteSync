@@ -16,7 +16,7 @@ import { TypeScriptCodeBuilder } from '../domain/common/TypeScriptTypeLowerer';
 export class ReadModelProjector {
     private readonly codeBuilder: TypeScriptCodeBuilder;
 
-    constructor(codeBuilder: TypeScriptCodeBuilder = new TypeScriptCodeBuilder()) {
+    constructor(codeBuilder: TypeScriptCodeBuilder = TypeScriptCodeBuilder()) {
         this.codeBuilder = codeBuilder;
     }
 

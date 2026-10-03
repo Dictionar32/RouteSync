@@ -7,10 +7,8 @@
  * @module core/compiler/scanner/subscanners/RequestTypeDeriver
  */
 
-import {
-    ParsedRoute,
-    ParsedResource
-} from "../../../types/route";
+import type { RouteSemanticFlow } from "../../../types/route";
+import type { ResourceAst, RequestAst } from "../../../types/upstream/ast";
 import { RequestType } from "../../artifacts/RequestTypesArtifact";
 import { TypeInterner } from "../../types/TypeInterner";
 import {
@@ -24,11 +22,12 @@ export class RequestTypeDeriver {
      * Pure Flow Declaration (Active Consumer Orchestrator).
      */
     public static derive(
-        routes: readonly ParsedRoute[] = [],
-        resources: readonly ParsedResource[] = [],
-        interner: TypeInterner = new TypeInterner()
+        routes: readonly RouteSemanticFlow[] = [],
+        resources: readonly ResourceAst[] = [],
+        requests: readonly RequestAst[] = [],
+        interner: TypeInterner = TypeInterner.create()
     ): readonly RequestType[] {
-        const ctx = createDerivationContext(resources, interner);
+        const ctx = createDerivationContext(resources, requests, interner);
         return aggregateRequestTypeGroups(routes, resources, ctx);
     }
 }
@@ -37,9 +36,10 @@ export class RequestTypeDeriver {
  * Pure Functional Lowerer: (routes, resources, interner) → RequestType[]
  */
 export function deriveRequestTypes(
-    routes: readonly ParsedRoute[] = [],
-    resources: readonly ParsedResource[] = [],
-    interner: TypeInterner = new TypeInterner()
+    routes: readonly RouteSemanticFlow[] = [],
+    resources: readonly ResourceAst[] = [],
+    requests: readonly RequestAst[] = [],
+    interner: TypeInterner = TypeInterner.create()
 ): readonly RequestType[] {
-    return RequestTypeDeriver.derive(routes, resources, interner);
+    return RequestTypeDeriver.derive(routes, resources, requests, interner);
 }

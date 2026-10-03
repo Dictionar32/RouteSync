@@ -1,6 +1,8 @@
 import type { Expression } from './expression';
 import type { ColumnName, PropertyName, RelationName, TableName } from './names';
 import type { RelationPaths, ResourceFields } from './collections';
+import { relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
 
 export type ResourceOperationValue =
   | { readonly kind: 'implicit_resource_value' }
@@ -62,7 +64,11 @@ const RESOURCE_OPERATION_KINDS: ReadonlyArray<readonly [string, ResourceOperatio
 ];
 
 export const resourceOperationKindForMethod = (name: string): ResourceOperationKind | 'ordinary' =>
-  RESOURCE_OPERATION_KINDS.find(([method]) => method === name)?.[1] ?? 'ordinary';
+  relationOptionFold(
+    relationFirstOption(RESOURCE_OPERATION_KINDS, ([method]) => relationEqual(method, name)),
+    () => 'ordinary' as const,
+    ([, kind]) => kind,
+  );
 
 export interface ResourceOperationKindVisitor<R> {
   readonly when: () => R;
@@ -87,27 +93,25 @@ export interface ResourceOperationKindVisitor<R> {
   readonly ordinary: () => R;
 }
 
-export const matchResourceOperationKind = <R>(kind: ResourceOperationKind | 'ordinary', visitor: ResourceOperationKindVisitor<R>): R => {
-  switch (kind) {
-    case 'when': return visitor.when();
-    case 'unless': return visitor.unless();
-    case 'merge_when': return visitor.merge_when();
-    case 'merge_unless': return visitor.merge_unless();
-    case 'merge': return visitor.merge();
-    case 'transform': return visitor.transform();
-    case 'attributes': return visitor.attributes();
-    case 'when_has': return visitor.when_has();
-    case 'when_null': return visitor.when_null();
-    case 'when_not_null': return visitor.when_not_null();
-    case 'when_appended': return visitor.when_appended();
-    case 'when_loaded': return visitor.when_loaded();
-    case 'when_counted': return visitor.when_counted();
-    case 'when_aggregated': return visitor.when_aggregated();
-    case 'when_exists_loaded': return visitor.when_exists_loaded();
-    case 'when_pivot_loaded': return visitor.when_pivot_loaded();
-    case 'when_pivot_loaded_as': return visitor.when_pivot_loaded_as();
-    case 'additional': return visitor.additional();
-    case 'with': return visitor.with();
-    case 'ordinary': return visitor.ordinary();
-  }
-};
+export const matchResourceOperationKind = <R>(kind: ResourceOperationKind | 'ordinary', visitor: ResourceOperationKindVisitor<R>): R => ({
+  when: visitor.when,
+  unless: visitor.unless,
+  merge_when: visitor.merge_when,
+  merge_unless: visitor.merge_unless,
+  merge: visitor.merge,
+  transform: visitor.transform,
+  attributes: visitor.attributes,
+  when_has: visitor.when_has,
+  when_null: visitor.when_null,
+  when_not_null: visitor.when_not_null,
+  when_appended: visitor.when_appended,
+  when_loaded: visitor.when_loaded,
+  when_counted: visitor.when_counted,
+  when_aggregated: visitor.when_aggregated,
+  when_exists_loaded: visitor.when_exists_loaded,
+  when_pivot_loaded: visitor.when_pivot_loaded,
+  when_pivot_loaded_as: visitor.when_pivot_loaded_as,
+  additional: visitor.additional,
+  with: visitor.with,
+  ordinary: visitor.ordinary,
+}[kind])();

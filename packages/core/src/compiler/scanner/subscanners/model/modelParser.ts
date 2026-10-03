@@ -31,6 +31,8 @@ import { resolveModelColumns } from "./columnInferrer";
 import { buildModelColumnFacts } from "./modelColumnFactsCanonical";
 import { correlateModelColumnFacts } from "./modelColumnOrigin";
 import type { SourceSpan } from '../../../../types/upstream/provenance';
+import { relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
+import { relationProject, relationFold, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 
 
 const text = (value: string): StringValue => ({ kind: 'string_value', value });
@@ -38,10 +40,16 @@ const className = (value: string): ClassName => ({ kind: 'class_name', value: te
 const methodName = (value: string): MethodName => ({ kind: 'method_name', value: text(value) });
 const constantName = (value: string): ConstantName => ({ kind: 'constant_name', value: text(value) });
 const traitName = (value: string): TraitName => ({ kind: 'trait_name', value: text(value) });
-const sequence = <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
-const typeFromPhpAst = (value: PhpAstValue): TypeExpression => value.kind === 'class_reference'
-    ? { kind: 'reference', value: { kind: 'class', name: className(value.className.value) } }
-    : { kind: 'reference', value: { kind: 'class', name: className('mixed') } };
+const sequence = <T>(items: readonly T[], index = 0): Sequence<T> => relationGate(
+    relationEqual(index, items.length),
+    () => ({ kind: 'empty' }),
+    () => ({ kind: 'cons', head: items[index], tail: sequence(items, index + 1) }),
+);
+const typeFromPhpAst = (value: PhpAstValue): TypeExpression => relationGate(
+    relationEqual(value.kind, 'class_reference'),
+    () => ({ kind: 'reference', value: { kind: 'class', name: className(value.className.value) } }),
+    () => ({ kind: 'reference', value: { kind: 'class', name: className('mixed') } }),
+);
 
 export function produceModelSourceSemantics(declaration: ModelDeclarationAst, source: SourceSpan): {
     readonly inheritance: ModelInheritance;
@@ -49,20 +57,28 @@ export function produceModelSourceSemantics(declaration: ModelDeclarationAst, so
     readonly methods: readonly ModelMethod[];
     readonly constants: readonly ModelConstant[];
 } {
-    const inheritance: ModelInheritance = declaration.inheritance.kind === 'eloquent_model'
-        ? { kind: 'eloquent_model' }
-        : declaration.inheritance.kind === 'authenticatable'
-            ? { kind: 'authenticatable' }
-            : { kind: 'class', name: className(declaration.inheritance.name.value) };
-    const methods: ModelMethod[] = declaration.methods.map(item => ({
+    const inheritance: ModelInheritance = relationGate(
+        relationEqual(declaration.inheritance.kind, 'eloquent_model'),
+        () => ({ kind: 'eloquent_model' as const }),
+        () => relationGate(
+            relationEqual(declaration.inheritance.kind, 'authenticatable'),
+            () => ({ kind: 'authenticatable' as const }),
+            () => ({ kind: 'class' as const, name: className(declaration.inheritance.name.value) }),
+        ),
+    );
+    const methods: ModelMethod[] = relationProject(declaration.methods, item => ({
         kind: 'model_method',
         name: methodName(item.name.value),
         visibility: item.visibility,
-        result: item.returnType.kind === 'absent' ? { kind: 'absent' } : { kind: 'present', type: typeFromPhpAst(item.returnType.value) },
-        body: { kind: 'source_statements', items: sequence(item.returns.map(returnValue => ({ kind: 'return' as const, expression: mapResourcePhpAstToUpstream(returnValue, source.file.value.value), source: { kind: 'source_span' as const, file: source.file, start: { kind: 'number_value' as const, value: Number(item.bodyStart.value) }, end: { kind: 'number_value' as const, value: Number(item.bodyEnd.value) } } }))) },
+        result: relationGate(
+            relationEqual(item.returnType.kind, 'absent'),
+            () => ({ kind: 'absent' as const }),
+            () => ({ kind: 'present' as const, type: typeFromPhpAst(item.returnType.value) }),
+        ),
+        body: { kind: 'source_statements', items: sequence(relationProject(item.returns, returnValue => ({ kind: 'return' as const, expression: mapResourcePhpAstToUpstream(returnValue, source.file.value.value), source: { kind: 'source_span' as const, file: source.file, start: { kind: 'number_value' as const, value: Number(item.bodyStart.value) }, end: { kind: 'number_value' as const, value: Number(item.bodyEnd.value) } } }))) },
         source: { kind: 'source_span', file: source.file, start: { kind: 'number_value', value: Number(item.startOffset.value) }, end: { kind: 'number_value', value: Number(item.endOffset.value) } }
     }));
-    const constants: ModelConstant[] = declaration.constants.map(item => ({
+    const constants: ModelConstant[] = relationProject(declaration.constants, item => ({
         kind: 'model_constant',
         name: constantName(item.name.value),
         visibility: item.visibility,
@@ -71,7 +87,7 @@ export function produceModelSourceSemantics(declaration: ModelDeclarationAst, so
     }));
     return {
         inheritance,
-        capabilities: { kind: 'model_source_capabilities', traits: { kind: 'model_traits', items: sequence(declaration.traits.map(item => traitName(item.value))) } },
+        capabilities: { kind: 'model_source_capabilities', traits: { kind: 'model_traits', items: sequence(relationProject(declaration.traits, item => traitName(item.value))) } },
         methods,
         constants
     };
@@ -89,16 +105,25 @@ const modelKeySemanticType = (keyType: ModelKeyKind): ModelKeySemanticType => {
 };
 
 function inferKeyTypeFromSchema(columns: import("../../../../types/upstream/collections").Columns, primaryKey: import("../../../../types/upstream/names").ColumnName): ModelKeyKind {
-    let items = columns.items;
-    while (items.kind === 'cons') {
-        const column: ColumnDefinition = items.head;
-        if (column.name.value.value === primaryKey.value.value) {
-            if (column.databaseType.kind === 'integer') return column.databaseType.width.kind === 'big' ? { kind: 'big_integer' } : { kind: 'integer' };
-            if (column.databaseType.kind === 'string') return { kind: 'string' };
-        }
-        items = items.tail;
-    }
-    throw new Error(`Model boundary violation: primary key schema for "${primaryKey.value.value}" was not found or has unsupported database type.`);
+    const find = (items: typeof columns.items): RelationOption<ColumnDefinition> => relationGate(
+        relationEqual(items.kind, 'cons'),
+        () => relationGate(
+            relationEqual(items.head.name.value.value, primaryKey.value.value),
+            () => relationSome(items.head),
+            () => find(items.tail),
+        ),
+        () => relationNone(),
+    );
+    const option = find(columns.items);
+    return relationOptionFold(
+        option,
+        column => relationGate(
+            relationEqual(column.databaseType.kind, 'integer'),
+            () => relationGate(relationEqual(column.databaseType.width.kind, 'big'), () => ({ kind: 'big_integer' as const }), () => ({ kind: 'integer' as const })),
+            () => relationGate(relationEqual(column.databaseType.kind, 'string'), () => ({ kind: 'string' as const }), () => { throw Error(`Model boundary violation: primary key schema at "${primaryKey.value.value}" has unsupported database type.`); }),
+        ),
+        () => { throw Error(`Model boundary violation: primary key schema at "${primaryKey.value.value}" was not found.`); },
+    );
 }
 
 /**
@@ -130,10 +155,10 @@ export function buildModelSemanticDefinitionFromAst(
         appends: [] as ReturnType<typeof createPropertyName>[]
     };
 
-    for (const property of propertyAsts) applyModelPropertyAst(property, propState);
+    relationFold(propertyAsts, propState, (state, property) => { applyModelPropertyAst(property, state); return state; });
 
     const columns = resolveModelColumns(propState.table, migrations);
-    const keyType = propState.keyType.kind === 'declared' ? propState.keyType.value : inferKeyTypeFromSchema(columns, propState.primaryKey);
+    const keyType = relationGate(relationEqual(propState.keyType.kind, 'declared'), () => propState.keyType.value, () => inferKeyTypeFromSchema(columns, propState.primaryKey));
     const span = sourceSpan;
 
     return buildModelSemanticDefinition({
@@ -150,7 +175,7 @@ export function buildModelSemanticDefinitionFromAst(
         key: {
             type: keyType,
             semanticType: modelKeySemanticType(keyType),
-            origin: propertyAsts.some(property => property.name === 'primaryKey') ? { kind: 'explicit' } : { kind: 'conventional' }
+            origin: relationGate(relationProject(propertyAsts, property => relationEqual(property.name, 'primaryKey')).includes(true), () => ({ kind: 'explicit' as const }), () => ({ kind: 'conventional' as const }))
         },
         behavior: {
             kind: 'model_behavior',

@@ -7,6 +7,8 @@
  */
 
 import type { ResolvedPrimitiveType } from './base';
+import { relationOptionFold, relationRefine } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import type {
     ResolvedReferenceType,
     ResolvedOptionalType,
@@ -142,5 +144,44 @@ export function matchResolvedSemanticType<R>(
     type: ResolvedSemanticType,
     visitor: ResolvedSemanticTypeVisitor<R>
 ): R {
-    return visitor[type.kind](type as any);
+    const primitive = relationRefine(type, (value): value is ResolvedPrimitiveType => relationEqual(value.kind, 'primitive'));
+    return relationOptionFold(primitive,
+        () => {
+            const reference = relationRefine(type, (value): value is ResolvedReferenceType => relationEqual(value.kind, 'reference'));
+            return relationOptionFold(reference,
+                () => {
+                    const optional = relationRefine(type, (value): value is ResolvedOptionalType => relationEqual(value.kind, 'optional'));
+                    return relationOptionFold(optional,
+                        () => {
+                            const nullable = relationRefine(type, (value): value is ResolvedNullableType => relationEqual(value.kind, 'nullable'));
+                            return relationOptionFold(nullable,
+                                () => {
+                                    const collection = relationRefine(type, (value): value is ResolvedCollectionType => relationEqual(value.kind, 'collection'));
+                                    return relationOptionFold(collection,
+                                        () => {
+                                            const object = relationRefine(type, (value): value is ResolvedObjectType => relationEqual(value.kind, 'object'));
+                                            return relationOptionFold(object,
+                                                () => {
+                                                    const union = relationRefine(type, (value): value is ResolvedUnionType => relationEqual(value.kind, 'union'));
+                                                    return relationOptionFold(union,
+                                                        () => {
+                                                            const intersection = relationRefine(type, (value): value is ResolvedIntersectionType => relationEqual(value.kind, 'intersection'));
+                                                            const unknown = relationRefine(type, (value): value is ResolvedUnknownType => relationEqual(value.kind, 'unknown'));
+                                                            return relationOptionFold(unknown,
+                                                                () => visitor.unknown(type),
+                                                                value => visitor.intersection(value));
+                                                        },
+                                                        value => visitor.union(value));
+                                                },
+                                                value => visitor.object(value));
+                                        },
+                                        value => visitor.collection(value));
+                                },
+                                value => visitor.nullable(value));
+                        },
+                        value => visitor.optional(value));
+                },
+                value => visitor.reference(value));
+        },
+        value => visitor.primitive(value));
 }

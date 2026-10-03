@@ -18,6 +18,7 @@ import type {
 } from '../../compiler/types/SemanticType';
 import type { TypeIR, PrimitiveTypeIR, ReferenceTypeIR, TypePropertyIR } from '../../types/ir';
 import { TypeIRUtils } from '../../types/ir';
+import { relationEqual, relationProject, relationResolve } from '../../semantic/kernel/relationalSequence';
 
 export const SemanticTypeResolvers = Object.freeze({
   primitive(type: PrimitiveType): TypeIR {
@@ -42,16 +43,16 @@ export const SemanticTypeResolvers = Object.freeze({
     const reference: ReferenceTypeIR = {
       kind: 'reference',
       target: type.emittedName as import('../../types/ir').CodeExpression,
-      module: { kind: type.namespace.length === 0 ? 'none' : 'module', value: type.namespace as import('../../types/ir').CodeExpression },
+      module: relationResolve(relationEqual(type.namespace.length, 0), () => ({ kind: 'none' as const }), () => ({ kind: 'module' as const, value: type.namespace as import('../../types/ir').CodeExpression })),
       role: type.role,
     };
     return reference;
   },
   union(type: UnionType, lower: (value: SemanticType) => TypeIR): TypeIR {
-    return { kind: 'union', types: type.members.map(lower) };
+    return { kind: 'union', types: relationProject(type.members, lower) };
   },
   intersection(type: IntersectionType, lower: (value: SemanticType) => TypeIR): TypeIR {
-    return { kind: 'intersection', types: type.members.map(lower) };
+    return { kind: 'intersection', types: relationProject(type.members, lower) };
   },
   readonlyCollection(type: ReadonlyCollectionType, lower: (value: SemanticType) => TypeIR): TypeIR {
     return TypeIRUtils.makeArray(lower(type.elementType));
@@ -63,7 +64,7 @@ export const SemanticTypeResolvers = Object.freeze({
     return {
       kind: 'generic',
       base: SemanticTypeResolvers.reference(type.base),
-      parameters: type.parameters.map(parameter => ({
+      parameters: relationProject(type.parameters, parameter => ({
         name: parameter.name.value.value,
         variance: parameter.variance,
         type: lower(parameter.type),
@@ -73,7 +74,7 @@ export const SemanticTypeResolvers = Object.freeze({
   object(type: ObjectType, lower: (value: SemanticType) => TypeIR): TypeIR {
     return {
       kind: 'inline_object',
-      properties: type.properties.map((property: ObjectProperty): TypePropertyIR => ({
+      properties: relationProject(type.properties, (property: ObjectProperty): TypePropertyIR => ({
         name: property.name,
         type: lower(property.type),
       })),

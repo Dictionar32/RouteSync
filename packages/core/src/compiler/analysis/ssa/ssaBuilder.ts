@@ -1,90 +1,140 @@
-/**
- * ssaBuilder.ts
- *
- * SSA construction via phi node placement at dominance frontiers.
- *
- * @module core/compiler/analysis/ssa/ssaBuilder
- */
+/** Relation-driven SSA phi placement. */
 
-import { ControlFlowGraph, type BasicBlock, type Instruction, type Operand } from '../../utils/ControlFlowGraph';
+import type { ControlFlowGraph, BasicBlock, Instruction, Operand } from '../../utils/ControlFlowGraph';
+import { basicBlockLookup, basicBlockReplace, createControlFlowGraph, type BasicBlockRelation } from '../../utils/ControlFlowGraph';
 import type { DominanceFrontier } from '../DominatorAnalysis';
+import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
+import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationFoundation';
+import { relationAll, relationFold } from '../../../semantic/kernel/relationalSequence';
 
-/**
- * SSA construction via phi insertion
- * 
- * Implements classic algorithm:
- * Places phi nodes at join points (dominance frontiers) for each variable.
- */
-export class SSABuilder {
-    /**
-     * Insert phi nodes for SSA construction
-     * 
-     * @param cfg - Control flow graph
-     * @param df - Dominance frontier
-     * @param variables - Variable IDs to process
-     * @returns CFG with phi nodes inserted
-     */
-    public static insertPhiNodes(
-        cfg: ControlFlowGraph,
-        df: DominanceFrontier,
-        variables: readonly number[]
-    ): ControlFlowGraph {
-        const blocks = new Map<number, BasicBlock>(cfg.blocks);
-
-        for (const varId of variables) {
-            // Find blocks that define this variable
-            const defBlocks = new Set<number>();
-
-            for (const [blockId, block] of cfg.blocks) {
-                for (const inst of block.instructions) {
-                    if (inst.kind === 'Assign' && inst.target === varId) {
-                        defBlocks.add(blockId);
-                    }
-                }
-            }
-
-            // Iteratively place phi nodes at frontiers
-            const worklist = Array.from(defBlocks);
-            const addedPhis = new Set<number>();
-
-            while (worklist.length > 0) {
-                const x = worklist.shift()!;
-
-                // For each block in dominance frontier
-                for (const y of df.getFrontier(x)) {
-                    if (!addedPhis.has(y)) {
-                        const block = blocks.get(y);
-                        if (block) {
-                            // Create phi node with incoming from each predecessor
-                            const incoming = new Map<number, Operand>();
-                            for (const pred of block.predecessors) {
-                                incoming.set(pred, { kind: 'Variable', id: varId });
-                            }
-
-                            const phiInst: Instruction = {
-                                kind: 'Phi',
-                                target: varId,
-                                incoming
-                            };
-
-                            // Insert phi at beginning of block
-                            blocks.set(y, {
-                                ...block,
-                                instructions: [phiInst, ...block.instructions]
-                            });
-
-                            addedPhis.add(y);
-
-                            // If this block wasn't already a def block, add to worklist
-                            if (!defBlocks.has(y)) {
-                                worklist.push(y);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return new ControlFlowGraph(cfg.entryBlock, cfg.exitBlock, blocks);
-    }
+export interface SSAPhiFacts {
+    readonly definition: readonly (readonly [number, number])[];
+    readonly required: readonly (readonly [number, number])[];
+    readonly incoming: readonly (readonly [number, number, Operand])[];
 }
+
+const definitionFacts = (
+    cfg: ControlFlowGraph,
+    variables: readonly number[],
+    variableIndex = 0,
+    blocks: BasicBlockRelation = cfg.blocks,
+): readonly (readonly [number, number])[] => relationResolve(
+    variableIndex >= variables.length,
+    () => [],
+    () => {
+        const variable = variables[variableIndex];
+        const facts = relationFold(
+            blocks,
+            [] as readonly (readonly [number, number])[],
+            (output, entry) => relationFold(
+                entry[1].instructions,
+                output,
+                (facts, instruction) => relationResolve(
+                    relationAll([relationEqual(instruction.kind, 'Assign'), relationEqual((instruction as Extract<Instruction, { kind: 'Assign' }>).target, variable)]),
+                    () => [...facts, [variable, entry[0]] as const],
+                    () => facts,
+                ),
+            ),
+        );
+        return [...facts, ...definitionFacts(cfg, variables, variableIndex + 1, blocks)];
+    },
+);
+
+const phiRequiredFacts = (
+    cfg: ControlFlowGraph,
+    df: DominanceFrontier,
+    definitions: readonly (readonly [number, number])[],
+    index = 0,
+    facts: readonly (readonly [number, number])[] = [],
+): readonly (readonly [number, number])[] => relationResolve(
+    index >= definitions.length,
+    () => facts,
+    () => {
+        const variable = definitions[index][0];
+        const block = definitions[index][1];
+        const frontier = df.getFrontier(block);
+        const next = relationFold(frontier, facts, (acc, join) =>
+            relationResolve(relationContains(acc, [variable, join] as const), () => acc, () => relationInsert(acc, [variable, join] as const)));
+        return phiRequiredFacts(cfg, df, definitions, index + 1, next);
+    },
+);
+
+const incomingFacts = (
+    cfg: ControlFlowGraph,
+    required: readonly (readonly [number, number])[],
+    index = 0,
+    facts: readonly (readonly [number, number, Operand])[] = [],
+): readonly (readonly [number, number, Operand])[] => relationResolve(
+    index >= required.length,
+    () => facts,
+    () => {
+        const variable = required[index][0];
+        const join = required[index][1];
+        const block = basicBlockLookup(cfg.blocks, join);
+        const next = relationOptionFold(
+            block,
+            () => facts,
+            value => relationFold(
+                value.predecessors,
+                facts,
+                (acc, predecessor) => [...acc, [variable, predecessor, { kind: 'Variable', id: variable } as Operand] as const],
+            ),
+        );
+        return incomingFacts(cfg, required, index + 1, next);
+    },
+);
+
+const phiFacts = (cfg: ControlFlowGraph, df: DominanceFrontier, variables: readonly number[]): SSAPhiFacts => {
+    const definition = definitionFacts(cfg, variables);
+    const required = phiRequiredFacts(cfg, df, definition);
+    const incoming = incomingFacts(cfg, required);
+    return Object.freeze({ definition, required, incoming });
+};
+
+const applyPhiFacts = (
+    cfg: ControlFlowGraph,
+    facts: SSAPhiFacts,
+    entries: BasicBlockRelation = cfg.blocks,
+    index = 0,
+    output: BasicBlockRelation = [],
+): BasicBlockRelation => relationResolve(
+    index >= entries.length,
+    () => Object.freeze(output),
+    () => {
+        const [blockId, block] = entries[index];
+        const variables = relationFold(
+            facts.required,
+            [] as readonly number[],
+            (acc, fact) => relationResolve(relationEqual(fact[1], blockId), () => relationInsert(acc, fact[0]), () => acc),
+        );
+        const phis = relationFold(
+            variables,
+            [] as readonly Instruction[],
+            (acc, variable) => {
+                const incoming = relationFold(
+                    facts.incoming,
+                    [] as readonly (readonly [number, Operand])[],
+                    (pairs, fact) => relationResolve(relationAll([relationEqual(fact[0], variable), relationContains(block.predecessors, fact[1])]), () => [...pairs, [fact[1], fact[2]] as const], () => pairs),
+                );
+                return [...acc, { kind: 'Phi', target: variable, incoming: Object.freeze(incoming) } as Instruction];
+            },
+        );
+        const nextBlock = relationResolve(
+            relationEqual(phis.length, 0),
+            () => block,
+            () => Object.freeze({ ...block, instructions: [...phis, ...block.instructions] }),
+        );
+        return applyPhiFacts(cfg, facts, entries, index + 1, [...output, [blockId, nextBlock] as const]);
+    },
+);
+
+export const insertPhiNodes = (
+    cfg: ControlFlowGraph,
+    df: DominanceFrontier,
+    variables: readonly number[],
+): ControlFlowGraph => {
+    const facts = phiFacts(cfg, df, variables);
+    return createControlFlowGraph(cfg.entryBlock, cfg.exitBlock, applyPhiFacts(cfg, facts));
+};
+
+export const SSABuilder = Object.freeze({ insertPhiNodes });

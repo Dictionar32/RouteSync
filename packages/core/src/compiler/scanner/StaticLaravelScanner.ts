@@ -9,18 +9,18 @@
  */
 
 import type {
-    ParsedRoute,
+    RouteSemanticFlow,
     ParsedResource,
     ResourceRouteGroup
 } from "../../types/route";
 import type { RequestType } from "../artifacts/RequestTypesArtifact";
 import type { ObjectType } from "../types/SemanticType";
-import type { ModelAst } from "../../types/upstream/ast";
+import type { ModelAst, ResourceAst, RequestAst } from "../../types/upstream/ast";
 import { TypeInterner } from "../types/TypeInterner";
 import type { StaticLaravelScannerOptions } from "./descriptors";
 import { InvalidationResolver, TypeDeriver } from "./subscanners";
 import { scanRouteSyncManifest } from "./orchestrator/index";
-import type { RouteSyncManifest } from "../../types/upstream/manifest";
+import type { ManifestAst, RouteSyncManifest } from "../../types/upstream/manifest";
 import type { SourceProjectIdentity } from "../../types/upstream/highLevelSourceModel";
 import type { SourceSpan } from "../../types/upstream/provenance";
 import type { NumberValue, StringValue } from "../../types/upstream/valueObjects";
@@ -43,75 +43,55 @@ export const createLaravelSourceProjectIdentity = (sourceRoot: string): SourcePr
     };
 };
 
-export class StaticLaravelScanner {
-    public readonly sourceProject: SourceProjectIdentity;
-    public readonly baseURL: string;
-    public readonly version: string;
-    protected readonly interner: TypeInterner;
-
-    constructor({
-        sourceProject,
-        baseURL = "http://localhost/api",
-        version = "6.0.0"
-    }: {
-        readonly sourceProject: SourceProjectIdentity;
-        readonly baseURL?: string;
-        readonly version?: string;
-    }) {
-        this.sourceProject = sourceProject;
-        this.interner = new TypeInterner();
-        this.baseURL = baseURL;
-        this.version = version;
-        Object.freeze(this);
-    }
-
-    public static create(options: {
-        readonly sourceProject: SourceProjectIdentity;
-        readonly baseURL?: string;
-        readonly version?: string;
-    }): StaticLaravelScanner {
-        return new StaticLaravelScanner(options);
-    }
-
-    static async scan(
-        sourceProject: SourceProjectIdentity,
-        options: { readonly baseURL?: string; readonly version?: string } = {}
-    ): Promise<RouteSyncManifest> {
-        return StaticLaravelScanner.create({
-            sourceProject,
-            baseURL: options.baseURL,
-            version: options.version
-        }).executeUpstream();
-    }
-
-    public static resolveRouteInvalidations(
-        routes: readonly ParsedRoute[],
-        models: readonly ModelAst[],
-        routeGroups: readonly ResourceRouteGroup[]
-    ): readonly ParsedRoute[] {
-        return InvalidationResolver.resolveRouteInvalidations(routes, models, routeGroups);
-    }
-
-    public static deriveRequestTypes(
-        routes: readonly ParsedRoute[] = [],
-        resources: readonly ParsedResource[] = [],
-        interner: TypeInterner = new TypeInterner()
-    ): readonly RequestType[] {
-        return TypeDeriver.deriveRequestTypes(routes, resources, interner);
-    }
-
-    public static deriveSemanticTypes(
-        resources: readonly ParsedResource[] = [],
-        models: readonly ModelAst[] = [],
-        interner: TypeInterner = new TypeInterner(),
-        routes: readonly ParsedRoute[] = []
-    ): readonly ObjectType[] {
-        return TypeDeriver.deriveSemanticTypes(resources, models, interner, routes);
-    }
-
-    /** Canonical upstream scan: source -> AST/ADT -> CompleteSourceAst -> RouteSyncManifest. */
-    public async executeUpstream(): Promise<RouteSyncManifest> {
-        return scanRouteSyncManifest(this.sourceProject);
-    }
-
+export interface StaticLaravelScanner {
+    readonly sourceProject: SourceProjectIdentity;
+    readonly baseURL: string;
+    readonly version: string;
+    readonly interner: TypeInterner;
+    readonly executeUpstream: () => Promise<RouteSyncManifest>;
+    readonly executeUpstreamAst: () => Promise<ManifestAst>;
 }
+
+const createScanner = ({
+    sourceProject,
+    baseURL = "http://localhost/api",
+    version = "6.0.0",
+}: {
+    readonly sourceProject: SourceProjectIdentity;
+    readonly baseURL?: string;
+    readonly version?: string;
+}): StaticLaravelScanner => {
+    const interner = TypeInterner.create();
+    const executeUpstream = (): Promise<RouteSyncManifest> => scanRouteSyncManifest(sourceProject);
+    const executeUpstreamAst = async (): Promise<ManifestAst> => {
+        const manifest = await scanRouteSyncManifest(sourceProject);
+        return Object.freeze({ kind: 'manifest_ast', definition: manifest, source: sourceProject.source });
+    };
+    return Object.freeze({ sourceProject, baseURL, version, interner, executeUpstream, executeUpstreamAst });
+};
+
+export const StaticLaravelScanner = Object.freeze({
+    create: createScanner,
+    scan: async (
+        sourceProject: SourceProjectIdentity,
+        options: { readonly baseURL?: string; readonly version?: string } = {},
+    ): Promise<RouteSyncManifest> => createScanner({ sourceProject, baseURL: options.baseURL, version: options.version }).executeUpstream(),
+    resolveRouteInvalidations: (
+        routes: readonly RouteSemanticFlow[],
+        models: readonly ModelAst[],
+        routeGroups: readonly ResourceRouteGroup[],
+    ): readonly RouteSemanticFlow[] => InvalidationResolver.resolveRouteInvalidations(routes, models, routeGroups),
+    deriveRequestTypes: (
+        routes: readonly RouteSemanticFlow[] = [],
+        resources: readonly ResourceAst[] = [],
+        requests: readonly RequestAst[] = [],
+        interner: TypeInterner = TypeInterner.create(),
+    ): readonly RequestType[] => TypeDeriver.deriveRequestTypes(routes, resources, requests, interner),
+    deriveSemanticTypes: (
+        resources: readonly ResourceAst[] = [],
+        models: readonly ModelAst[] = [],
+        interner: TypeInterner = TypeInterner.create(),
+        routes: readonly RouteSemanticFlow[] = [],
+    ): readonly ObjectType[] => TypeDeriver.deriveSemanticTypes(resources, models, interner, routes),
+});
+

@@ -191,7 +191,7 @@ export function matchRouteHookKind<R>(
 
 export const matchHookKind = matchRouteHookKind;
 
-export class ScannedRouteHookDescriptor<K extends RouteHookKind = RouteHookKind>
+export class RouteSemanticFlowHookDescriptor<K extends RouteHookKind = RouteHookKind>
   implements BaseRouteHookDescriptor<K> {
   public readonly kind: K;
   public readonly hookPrefix: HookKindSpecification<K>['hookPrefix'];
@@ -212,19 +212,19 @@ export class ScannedRouteHookDescriptor<K extends RouteHookKind = RouteHookKind>
   }
 
   public static query(): QueryHookDescriptor {
-    return new ScannedRouteHookDescriptor(RouteHookKind.Query);
+    return new RouteSemanticFlowHookDescriptor(RouteHookKind.Query);
   }
 
   public static mutation(): MutationHookDescriptor {
-    return new ScannedRouteHookDescriptor(RouteHookKind.Mutation);
+    return new RouteSemanticFlowHookDescriptor(RouteHookKind.Mutation);
   }
 
   public static infiniteQuery(): InfiniteQueryHookDescriptor {
-    return new ScannedRouteHookDescriptor(RouteHookKind.InfiniteQuery);
+    return new RouteSemanticFlowHookDescriptor(RouteHookKind.InfiniteQuery);
   }
 
-  public static fromKind<K extends RouteHookKind>(kind: K): ScannedRouteHookDescriptor<K> {
-    return new ScannedRouteHookDescriptor(kind);
+  public static fromKind<K extends RouteHookKind>(kind: K): RouteSemanticFlowHookDescriptor<K> {
+    return new RouteSemanticFlowHookDescriptor(kind);
   }
 }
 

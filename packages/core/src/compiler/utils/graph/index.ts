@@ -1,18 +1,18 @@
-/**
- * index.ts
- *
- * Sub-domain exports for graph utilities and algorithms.
- *
- * @module core/compiler/utils/graph
- */
-
-export { FrozenSet } from './frozenSet';
+/** Relation-native dependency graph surface. */
 export {
   type DependencyGraph,
-  DependencyGraphBuilder
+  type DependencyEdge,
+  createDependencyGraph,
+  addDependency,
+  dependencyForward,
+  dependencyReverse,
+  dependencyNodes,
+  dependencyClosure
 } from './dependencyGraph';
 export {
-  IncrementalInvalidator,
-  TarjanSCC,
-  UnionFind
+  invalidateDependencies,
+  stronglyConnectedComponents,
+  type GraphUnionFind,
+  createGraphUnionFind,
+  graphUnionFindUnion
 } from './graphAlgorithms';

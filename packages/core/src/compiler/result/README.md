@@ -140,11 +140,11 @@ Ini memastikan bahwa Result tidak dapat dimodifikasi setelah dibuat, menjaga con
 File ini meng-export public API dari module result.
 
 ```typescript
-export type { CompilationStatistics } from './Result';
-export { CompilationResult } from './Result';
+export type { CompilationStatistics } from './CompilationResult';
+export { CompilationResult } from './CompilationResult';
 ```
 
-**Catatan:** Terdapat inkonsistensi dalam import path. Index.ts mengimpor dari `'./Result'` tetapi file actual bernama `CompilationResult.ts`. Ini kemungkinan adalah sisa dari refactoring yang belum selesai.
+**Catatan:** Terdapat inkonsistensi dalam import path. Index.ts mengimpor dari `'./CompilationResult'` tetapi file actual bernama `CompilationResult.ts`. Ini kemungkinan adalah sisa dari refactoring yang belum selesai.
 
 **Fungsi:**
 - Menyediakan clean public API
@@ -972,10 +972,10 @@ await Promise.all([
 
 **Catatan tentang Inconsistency:**
 
-File `index.ts` mengimpor dari `'./Result'`:
+File `index.ts` mengimpor dari `'./CompilationResult'`:
 ```typescript
-export type { CompilationStatistics } from './Result';
-export { CompilationResult } from './Result';
+export type { CompilationStatistics } from './CompilationResult';
+export { CompilationResult } from './CompilationResult';
 ```
 
 Tetapi file actual bernama `CompilationResult.ts`, bukan `Result.ts`. Ini kemungkinan adalah:
@@ -1121,7 +1121,7 @@ Berdasarkan komentar dalam `CompilationResult.ts`:
 - Factory methods untuk construction
 
 **File Inconsistency:**
-- `index.ts` mengimpor dari `'./Result'`
+- `index.ts` mengimpor dari `'./CompilationResult'`
 - File actual bernama `CompilationResult.ts`
 - Perlu synchronization
 

@@ -13,11 +13,12 @@ import {
     type ResponseDescriptor,
     ResourceResponseDescriptor,
     type RouteCacheInvalidationDescriptor,
-    ScannedRouteCacheInvalidationDescriptor,
+    RouteSemanticFlowCacheInvalidationDescriptor,
     RouteHandlerKind
 } from "../../../../../types/route";
-import { ScannedRouteSchemaPayload } from "../../validationDescriptors";
-import type { ScannedRouteDescriptor } from "../ScannedRouteDescriptor";
+import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
+import { relationOptionalFold } from "../../../../../semantic/kernel/relationalSequence";
+import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { ActionName, DomainTypeName, ResourceName, RoutePath, SourceFile } from "../../../../../types/upstream/names";
 import { SemanticValueFactory as SVF } from "../../../../../types/domain/semanticValues";
@@ -38,9 +39,9 @@ export type SyntheticRouteOptions = {
 };
 
 export function createSyntheticRoute(
-    createFn: (params: RouteBoundaryOptions) => ScannedRouteDescriptor,
+    createFn: (params: RouteBoundaryOptions) => RouteSemanticFlowFactory,
     options: SyntheticRouteOptions = {}
-): ScannedRouteDescriptor {
+): RouteSemanticFlowFactory {
     const {
         method = "GET",
         path = SVF.routePath("/synthetic"),
@@ -71,16 +72,16 @@ export function createSyntheticRoute(
             actionName,
             target: SVF.className(`synthetic@${actionName.value.value}`)
         }),
-        sourceFile: sourceFile ?? SVF.sourceFilePath("<synthetic>"),
-        sourceLine: sourceLine ?? 0,
-        response: response ?? new ResourceResponseDescriptor({ resourceName: SVF.resourceName(`${resourceName.value.value}Resource`), shape: "single" }),
+        sourceFile: relationOptionalFold(sourceFile, () => SVF.sourceFilePath("<synthetic>"), value => value),
+        sourceLine: relationOptionalFold(sourceLine, () => 0, value => value),
+        response: relationOptionalFold(response, () => ResourceResponseDescriptor.single(SVF.resourceName(`${resourceName.value.value}Resource`)), value => value),
         request: { kind: 'no_request' },
         runtimeReturn: { kind: 'none' },
         semanticReturn: { kind: 'absent' },
-        schema: ScannedRouteSchemaPayload.empty(),
+        schema: emptyRouteSchemaPayload(),
         auth,
         middleware,
         parameters,
-        invalidation: invalidation ?? ScannedRouteCacheInvalidationDescriptor.none()
+        invalidation: relationOptionalFold(invalidation, () => RouteSemanticFlowCacheInvalidationDescriptor.none(), value => value)
     });
 }

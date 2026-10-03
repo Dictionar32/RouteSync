@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { StaticLaravelScanner, ScannedModelDescriptor, ScannedRouteDescriptor, ScannedRouteManifestDescriptor, inferLaravelTableName, extractClassBasename } from '@routesync/core';
+import { StaticLaravelScanner, ScannedModelDescriptor, RouteSemanticFlowFactory, ScannedRouteManifestDescriptor, inferLaravelTableName, extractClassBasename } from '@routesync/core';
 
 describe('StaticLaravelScanner Unit Test Suite', () => {
   it('1. Correctly constructs ScannedModelDescriptor with explicit model data and Laravel table inference', () => {
@@ -58,8 +58,8 @@ describe('StaticLaravelScanner Unit Test Suite', () => {
     expect(extractClassBasename('SimpleClass')).toBe('SimpleClass');
   });
 
-  it('5. Constructs ScannedRouteDescriptor and manifest descriptors cleanly', () => {
-    const route = ScannedRouteDescriptor.create({
+  it('5. Constructs RouteSemanticFlowFactory and manifest descriptors cleanly', () => {
+    const route = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/users',
       resourceName: 'User',

@@ -1,7 +1,7 @@
 /**
  * routeMethods.ts
  *
- * Direct static delegation methods for ScannedRouteDescriptor.
+ * Direct static delegation methods for RouteSemanticFlowFactory.
  * Rule 14 Compliant: Active consumer delegates for domain & security resolution.
  *
  * @module core/compiler/scanner/descriptors/route/routeMethods
@@ -15,7 +15,7 @@ import {
 import type {
     RouteSecurityDescriptor,
     RoutePolicyDescriptor,
-    RateLimitDescriptor
+    RouteRateLimit
 } from "../../../../types/route";
 import type { PropertyName, DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName } from "../../../../types/upstream/names";
 
@@ -36,7 +36,7 @@ export function resolveRouteDescriptorSecurity(
     readonly security: RouteSecurityDescriptor;
     readonly auth: boolean;
     readonly policies: readonly RoutePolicyDescriptor[];
-    readonly rateLimit: RateLimitDescriptor | null;
+    readonly rateLimit: RouteRateLimit;
 } {
     return RouteSecurityResolver.resolve(middleware, auth);
 }

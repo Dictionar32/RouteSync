@@ -4,24 +4,22 @@ import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import { BoundSemanticFactory } from '../../types/domain/boundAst';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
 import { resolveStaticMethodCall, resolveInstanceMethodCall } from './method-return';
+import { dispatchValue } from '../authority/declarativeDispatch';
+import { relationAny, relationEqual } from '../kernel/semanticRelations';
 
-export class EloquentMethodResolver implements ResolverPlugin {
-  canResolve(meta: ResolverMeta): boolean {
-    return meta.kind === 'method_call' || meta.kind === 'static_method_call';
-  }
+const canResolve = (meta: ResolverMeta): boolean => relationAny([relationEqual(meta.kind, 'method_call'), relationEqual(meta.kind, 'static_method_call')]);
 
-  resolve(meta: ResolverMeta, context: ResolutionContext): SemanticResolution {
-    switch (meta.kind) {
-      case 'static_method_call':
-        return resolveStaticMethodCall(meta, context, 'EloquentMethodResolver');
-      case 'method_call':
-        return resolveInstanceMethodCall(meta, context, 'EloquentMethodResolver');
-      default:
-        return SemanticResolutionFactory.unknown({
-          status: 'unknown', confidence: 0,
-          trace: [],
-          boundAst: BoundSemanticFactory.unsupported('unsupported_syntax'),
-        });
-    }
-  }
-}
+const resolve = (meta: ResolverMeta, context: ResolutionContext): SemanticResolution => {
+    const fallback = () => SemanticResolutionFactory.indeterminate({
+      status: 'indeterminate', confidence: 0,
+      trace: [],
+      boundAst: BoundSemanticFactory.unsupported('unsupported_syntax'),
+    });
+    const handlers: Readonly<Record<string, () => SemanticResolution>> = Object.freeze({
+      static_method_call: () => resolveStaticMethodCall(meta, context, 'EloquentMethodResolver'),
+      method_call: () => resolveInstanceMethodCall(meta, context, 'EloquentMethodResolver'),
+    });
+    return dispatchValue(handlers, meta.kind, fallback)();
+};
+
+export const EloquentMethodResolver: ResolverPlugin = Object.freeze({ canResolve, resolve });

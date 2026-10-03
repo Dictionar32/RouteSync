@@ -1,14 +1,12 @@
 /**
- * ResourceModelResolver.ts
+ * Declarative Resource -> Model semantic resolver.
  *
- * Multi-Tiered Semantic AST Dataflow & Structural Type Inference for Laravel Resources.
- * Conforms to Rule 10 (0 '?'), Rule 12 (Invariant-Preserving ADT), and Rule 14 (Active Consumer).
- *
- * @module compiler/scanner/resolvers/resource
+ * Resolution is a prioritized relation fold: controller evidence, propagated
+ * knowledge, convention evidence, structural evidence, then an explicit DTO
+ * terminal. Host-language absence is normalized into Presence/Lookup witnesses.
  */
 
-import type { ModelName, ResourceName } from "../../../../types/upstream/names";
-
+import type { ResourceName } from "../../../../types/upstream/names";
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import {
     type ResourceModelBinding,
@@ -17,84 +15,114 @@ import {
 import { matchStructuralFields } from "./structuralFieldMatcher";
 import { findControllerResourceBinding } from "../../subscanners/controller/resourceDataflowAggregator";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
+import { fromOptional, type Presence, presenceFold } from "../../../../types/upstream/presence";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
+import type { ResourceModelKnowledgeDataFlow } from "../../subscanners/resource/resourceModelKnowledgeDataFlow";
+import { relationAll, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
+import { relationFirst, relationOptionFold } from "../../../../semantic/kernel/relationalSequence";
 
 export interface ResourceModelResolutionInput {
     readonly resourceName: ResourceName;
     readonly fieldNames: readonly string[];
     readonly modelSymbolTable: ModelSymbolTable;
     readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
-    readonly relationPropagationMap?: ReadonlyMap<ResourceName, ModelName>;
+    readonly knowledgeDataFlow?: ResourceModelKnowledgeDataFlow;
 }
 
 
-function findPropagatedModel(
-    relationPropagationMap: ReadonlyMap<ResourceName, ModelName>,
-    resourceName: ResourceName
-): ModelName | undefined {
-    for (const [key, model] of relationPropagationMap) {
-        if (key.value.value === resourceName.value.value) return model;
-    }
-    return undefined;
-}
-
-export class ResourceModelResolver {
-    private static bind(
+const bind = (
         lookup: Lookup<OriginModelSymbol>,
         source: Parameters<typeof ResourceModelBindingFactory.mono>[1]
-    ): ResourceModelBinding | undefined {
+    ): Presence<ResourceModelBinding> => {
         return matchLookup(lookup, {
-            missing: () => undefined,
-            found: ({ value }) => ResourceModelBindingFactory.mono(value, source)
+            missing: () => ({ kind: 'absent' }),
+            found: ({ value }) => ({ kind: 'present', value: ResourceModelBindingFactory.mono(value, source) })
         });
-    }
+    };
 
-    /**
-     * Resolves the backing Eloquent Model through the 5-tiered hierarchy.
-     */
-    public static resolve(input: ResourceModelResolutionInput): ResourceModelBinding {
-        const {
-            resourceName,
-            fieldNames,
-            modelSymbolTable,
-            controllerDataflowMap,
-            relationPropagationMap
-        } = input;
+const controllerCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
+        const dataflow = fromOptional(input.controllerDataflowMap);
+        return presenceFold(
+            dataflow,
+            () => ({ kind: 'absent' }),
+            value => relationOptionFold(
+                findControllerResourceBinding(value, input.resourceName),
+                () => ({ kind: 'absent' }),
+                binding => bind(
+                    relationGate(
+                        relationEqual(binding.model.kind, 'table'),
+                        () => input.modelSymbolTable.findByTableName(binding.model.name),
+                        () => input.modelSymbolTable.get(binding.model.name)
+                    ),
+                    'controller_dataflow'
+                )
+            )
+        );
+    };
 
-        const controllerBinding = controllerDataflowMap
-            ? findControllerResourceBinding(controllerDataflowMap, resourceName)
-            : undefined;
-        if (controllerBinding) {
-            const lookup = controllerBinding.model.kind === 'table'
-                ? modelSymbolTable.findByTableName(controllerBinding.model.name)
-                : modelSymbolTable.get(controllerBinding.model.name);
-            const binding = this.bind(lookup, 'controller_dataflow');
-            if (binding !== undefined) return binding;
-        }
+const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
+        const knowledge = fromOptional(input.knowledgeDataFlow);
+        return presenceFold(
+            knowledge,
+            () => ({ kind: 'absent' }),
+            value => {
+                const fact = relationFirst(
+                    value.resolutions,
+                    candidate => relationAll([
+                        relationEqual(candidate.resource.value.value, input.resourceName.value.value),
+                        relationEqual(candidate.origin, 'relation_propagation')
+                    ])
+                );
+                return relationOptionFold(
+                    fact,
+                    () => ({ kind: 'absent' }),
+                    candidate => bind(
+                        input.modelSymbolTable.get(candidate.model),
+                        'relation_propagation'
+                    )
+                );
+            }
+        );
+    };
 
-        const propagatedModel = relationPropagationMap === undefined
-            ? undefined
-            : findPropagatedModel(relationPropagationMap, resourceName);
-        if (propagatedModel !== undefined) {
-            const binding = this.bind(modelSymbolTable.get(propagatedModel), 'relation_propagation');
-            if (binding !== undefined) return binding;
-        }
-
-        const conventionBinding = this.bind(
-            modelSymbolTable.findForResource(resourceName),
+const conventionCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
+        return bind(
+            input.modelSymbolTable.findForResource(input.resourceName),
             'convention'
         );
-        if (conventionBinding !== undefined) return conventionBinding;
+    };
 
-        if (fieldNames.length > 0) {
-            const structuralMatch = matchStructuralFields(fieldNames, modelSymbolTable);
-            if (structuralMatch !== undefined) {
-                return ResourceModelBindingFactory.mono(structuralMatch, 'structural');
-            }
-        }
-
-        return ResourceModelBindingFactory.unbackedDto(
-            `Resource '${resourceName}' is a DTO without a matching Eloquent model.`
+const structuralCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
+        const candidate = relationOptionFold(
+            relationFirst([input.fieldNames], fields => fields.length > 0),
+            () => ({ kind: 'absent' }),
+            fields => matchStructuralFields(fields, input.modelSymbolTable)
         );
-    }
+        return presenceFold(
+            candidate,
+            () => ({ kind: 'absent' }),
+            value => ({ kind: 'present', value: ResourceModelBindingFactory.mono(value, 'structural') })
+        );
+    };
+
+/** Resolves the backing Eloquent Model through a declarative priority relation. */
+const resolveResourceModel = (input: ResourceModelResolutionInput): ResourceModelBinding => {
+        const candidates = [
+            controllerCandidate(input),
+            propagatedCandidate(input),
+            conventionCandidate(input),
+            structuralCandidate(input),
+        ];
+
+        const first = relationOptionFold(
+            relationFirst(candidates, candidate => relationEqual(candidate.kind, 'present')),
+            () => ResourceModelBindingFactory.unbackedDto(
+                `Resource '${input.resourceName}' is a DTO without a matching Eloquent model.`
+            ),
+            candidate => candidate.value
+        );
+        return first;
 }
+
+export const ResourceModelResolver = Object.freeze({ resolve: resolveResourceModel });
+

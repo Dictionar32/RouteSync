@@ -1,0 +1,29 @@
+{
+  "phase": 629,
+  "policy": "preserve-unused-file-paths-but-empty-implementation",
+  "deleted_files": 0,
+  "newly_emptied_files": 17,
+  "all_newly_emptied_files_zero_bytes": true,
+  "active_intent_surface_preserved": true,
+  "canonical_semantic_kernel": "packages/core/src/semantic/SemanticResolutionKernel.ts",
+  "legacy_cli_resolver_production_imports_found": 0,
+  "files": [
+    "packages/cli/src/resolvers/SemanticResolutionKernel.ts",
+    "packages/cli/src/resolvers/index.ts",
+    "packages/cli/src/resolvers/types.ts",
+    "packages/cli/src/resolvers/plugins/AccessorResolver.ts",
+    "packages/cli/src/resolvers/plugins/ExpressionResolver.ts",
+    "packages/cli/src/resolvers/plugins/FrameworkRegistryResolver.ts",
+    "packages/cli/src/resolvers/plugins/MethodReturnResolver.ts",
+    "packages/cli/src/resolvers/plugins/ModelColumnResolver.ts",
+    "packages/cli/src/resolvers/plugins/PrimitiveResolver.ts",
+    "packages/cli/src/resolvers/plugins/ResourceGraphResolver.ts",
+    "packages/cli/src/resolvers/plugins/expression/index.ts",
+    "packages/cli/src/resolvers/plugins/expression/literalHandler.ts",
+    "packages/cli/src/resolvers/plugins/expression/propertyAccessHandler.ts",
+    "packages/cli/src/resolvers/plugins/expression/variableHandler.ts",
+    "packages/cli/src/resolvers/plugins/method-return/index.ts",
+    "packages/cli/src/resolvers/plugins/method-return/methodCallHandler.ts",
+    "packages/cli/src/resolvers/plugins/method-return/resolvedMethodHandler.ts"
+  ]
+}

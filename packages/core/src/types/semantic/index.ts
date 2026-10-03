@@ -17,6 +17,7 @@ export * from './serviceGraphTypes';
 export * from './kernelTypes';
 export * from './zodAstTypes';
 export * from './sdkContracts';
+export * from './semanticKnowledge';
 
 // Re-exports from contract & semanticCollections for backward compatibility
 export {

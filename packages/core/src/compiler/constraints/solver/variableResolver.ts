@@ -1,24 +1,30 @@
 /**
- * variableResolver.ts
- *
  * Variable bound joining and resolution for constraint satisfaction.
- *
- * @module compiler/constraints/solver
  */
-
 import type { SemanticType } from '../../types/SemanticType';
-import { UnionType } from '../../types/SemanticType';
-import { ImmutableSet } from '../../utils/ImmutableCollections';
+import { SemanticTypeFactory } from '../../types/SemanticType';
+import { relationResolve, relationFirstOption, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationUnique, type RelationMembership } from '../../../semantic/kernel/relationMembership';
 import type { VariableState } from '../TypeEnvironment';
 
-export function joinTypes(types: Set<SemanticType>): SemanticType | undefined {
-    if (types.size === 0) return undefined;
-    if (types.size === 1) return Array.from(types.values())[0];
-    return new UnionType(new ImmutableSet(types));
+export function joinTypes(types: RelationMembership<SemanticType>): RelationOption<SemanticType> {
+  return relationResolve(
+    relationEqual(types.length, 0),
+    () => ({ kind: 'none' }),
+    () => relationResolve(
+      relationEqual(types.length, 1),
+      () => relationFirstOption(types, () => true),
+      () => ({ kind: 'some', value: SemanticTypeFactory.union(types) }),
+    ),
+  );
 }
 
-export function resolveVariableFromBounds(state: VariableState): SemanticType | undefined {
-    const lower = joinTypes(state.lowerBounds);
-    if (lower) return lower;
-    return joinTypes(state.upperBounds);
+export function resolveVariableFromBounds(state: VariableState): RelationOption<SemanticType> {
+  const lower = joinTypes(state.lowerBounds);
+  return relationResolve(
+    relationEqual(lower.kind, 'some'),
+    () => lower,
+    () => joinTypes(state.upperBounds),
+  );
 }

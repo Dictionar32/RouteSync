@@ -7,7 +7,7 @@ import {
   DataProvenanceVisitor,
   ScannedEndpointProvenanceDescriptor,
   ScannedEndpointContract,
-  ScannedRouteDescriptor,
+  RouteSemanticFlowFactory,
   ResourceResponseDescriptor,
   getRouteContract
 } from '../../core/src'
@@ -130,7 +130,7 @@ describe('End-to-End Data Provenance SSOT', () => {
   })
 
   it('4. ScannedEndpointContract.fromRoute should auto-assemble complete provenance references', () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/v1/users/{id}',
       resourceName: 'User',
@@ -156,7 +156,7 @@ describe('End-to-End Data Provenance SSOT', () => {
   })
 
   it('5. SDKGenerator should emit @provenance and @see JSDoc tags above endpoint declarations', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders/{id}',
       resourceName: 'Order',
@@ -181,7 +181,7 @@ describe('End-to-End Data Provenance SSOT', () => {
   })
 
   it('6. HookGenerator should emit @provenance and @see JSDoc tags above exported hooks', async () => {
-    const mockRoute = ScannedRouteDescriptor.create({
+    const mockRoute = RouteSemanticFlowFactory.create({
       method: 'GET',
       path: '/api/orders/{id}',
       resourceName: 'Order',

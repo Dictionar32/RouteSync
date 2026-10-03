@@ -427,7 +427,6 @@ export type {
   ModelAccessorFact,
   ModelCastFact,
   ParsedChannel,
-  ParsedColumn,
   ModelSemanticRelation,
   RouteSemanticFlow,
   PathParameterDescriptor,

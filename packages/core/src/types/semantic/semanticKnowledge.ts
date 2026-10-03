@@ -6,7 +6,7 @@
  * do not redefine the domain knowledge.
  */
 
-import type { ExecutionLayer } from './serviceGraphTypes';
+import type { ExecutionLayer } from './modelGraphTypes';
 import { PrimitiveKind } from '../../compiler/types/SemanticType';
 
 export interface ExecutionLayerKnowledge {

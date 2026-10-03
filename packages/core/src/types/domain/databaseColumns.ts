@@ -353,11 +353,3 @@ export class DatabaseColumnTypeMapper {
     return this.COLUMN_KIND_MAP.get(cleanType) ?? DatabaseColumnKind.Unknown;
   }
 }
-
-export interface ParsedColumn {
-  readonly name: import('./semanticValues').ColumnName;
-  readonly propertyName: import('./semanticValues').PropertyName;
-  readonly type: import('./modelContracts').DatabaseColumnType;
-  readonly nullability: import('./modelContracts').Nullability;
-  readonly semanticType: TypeExpression;
-}

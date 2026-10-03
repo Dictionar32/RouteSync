@@ -5,8 +5,7 @@
  * No legacy parsed model aggregate intermediate is allowed at this boundary.
  */
 import type { ModelAst } from '../types/upstream/ast';
-import type { ParsedColumn } from '../types/domain/databaseColumns';
-import type { ModelSemanticAccessor, ModelSemanticRelation } from '../types/upstream/model';
+import type { ModelSemanticColumn, ModelSemanticAccessor, ModelSemanticRelation } from '../types/upstream/model';
 import type { SemanticResolution } from '../types/domain/semanticResolution';
 import type { FieldNode } from '../types/field';
 import type { VariableName } from '../types/domain/semanticValues';
@@ -14,8 +13,8 @@ import type { Lookup } from '../types/upstream/collections';
 import { relationFirst, relationOptionFold } from './kernel/relationalSequence';
 import { relationEqual } from './kernel/semanticRelations';
 
-export type ModelColumn = ParsedColumn;
-export type ModelColumnContract = ParsedColumn;
+export type ModelColumn = ModelSemanticColumn;
+export type ModelColumnContract = ModelSemanticColumn;
 export type ModelRelation = ModelSemanticRelation;
 export type ModelRelationContract = ModelSemanticRelation;
 export type ModelAccessor = ModelSemanticAccessor;

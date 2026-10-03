@@ -178,7 +178,10 @@
     "audit:phase722-resource-binding-import-frontier": "node scripts/audit-phase722-resource-binding-import-frontier.cjs",
     "audit:phase725-highest-resource-field-boundary": "node scripts/audit-phase725-highest-resource-field-boundary.cjs",
     "audit:phase727-model-canonical-frontier": "node scripts/audit-phase727-model-canonical-frontier.cjs",
-    "audit:phase730-response-descriptor-dts": "node scripts/audit-phase730-response-descriptor-dts.cjs"
+    "audit:phase730-response-descriptor-dts": "node scripts/audit-phase730-response-descriptor-dts.cjs",
+    "audit:phase731-type-mapper-relation-option": "node scripts/audit-phase731-type-mapper-relation-option.cjs",
+    "audit:phase732-ir-hints-option-refinement": "node scripts/audit-phase732-ir-hints-option-refinement.cjs",
+    "audit:phase733-legacy-descriptor-interface": "node scripts/audit-phase733-legacy-descriptor-interface.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

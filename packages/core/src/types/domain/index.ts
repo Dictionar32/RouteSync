@@ -147,7 +147,6 @@ export {
   type DatabaseColumnKindVisitor,
   matchDatabaseColumnKind,
   DatabaseColumnTypeMapper,
-  type ParsedColumn,
 } from './databaseColumns';
 
 export {

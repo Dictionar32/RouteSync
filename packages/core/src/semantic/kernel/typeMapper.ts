@@ -1,8 +1,8 @@
 /**
  * Declarative semantic type relation catalog.
  */
-import { relationResolve, relationFirst, relationIsSome, type RelationOption } from './relationalSequence';
-import { relationAll, relationAny, relationEqual } from './semanticRelations';
+import { relationResolve, relationFirst, relationOptionFold, type RelationOption } from './relationalSequence';
+import { relationAny, relationEqual } from './semanticRelations';
 
 type TypeRule = readonly [readonly string[], string];
 
@@ -28,19 +28,19 @@ const containsAny = (value: string, terms: readonly string[], index = 0): boolea
 
 const exact = (value: string, rules: readonly TypeRule[]): RelationOption<string> => {
   const hit = relationFirst(rules, ([terms]) => terms.includes(value));
-  return relationResolve(
-    relationIsSome(hit),
-    () => ({ kind: 'some', value: hit.value[1] }),
+  return relationOptionFold(
+    hit,
     () => ({ kind: 'none' }),
+    match => ({ kind: 'some', value: match[1] }),
   );
 };
 
 const contains = (value: string, rules: readonly TypeRule[]): RelationOption<string> => {
   const hit = relationFirst(rules, ([terms]) => containsAny(value, terms));
-  return relationResolve(
-    relationIsSome(hit),
-    () => ({ kind: 'some', value: hit.value[1] }),
+  return relationOptionFold(
+    hit,
     () => ({ kind: 'none' }),
+    match => ({ kind: 'some', value: match[1] }),
   );
 };
 
@@ -48,18 +48,18 @@ export function mapSqlTypeToTs(sqlType: string): string {
   const value = sqlType.toLowerCase();
   const exactType = exact(value, SQL_EXACT);
   const containedType = contains(value, SQL_CONTAINS);
-  return relationResolve(
-    relationAll([relationIsSome(exactType), relationEqual(exactType.value, '__identity__')]),
-    () => value,
-    () => relationResolve(
-      relationIsSome(exactType),
-      () => exactType.value,
-      () => relationResolve(relationIsSome(containedType), () => containedType.value, () => 'string'),
+  return relationOptionFold(
+    exactType,
+    () => relationOptionFold(containedType, () => 'string', mapped => mapped),
+    mapped => relationResolve(
+      relationEqual(mapped, '__identity__'),
+      () => value,
+      () => mapped,
     ),
   );
 }
 
 export function mapCastToTs(castType: string, baseType: string): string {
   const cast = contains(castType.toLowerCase(), CAST_CONTAINS);
-  return relationResolve(relationIsSome(cast), () => cast.value, () => baseType);
+  return relationOptionFold(cast, () => baseType, mapped => mapped);
 }

@@ -91,10 +91,10 @@ export class IRRawNodeDescriptor implements IRRawNode {
   }
 
   public static fromRawCode(code: string, hints?: IRHints): IRRawNodeDescriptor {
-    return relationOptionFold(relationFirstOption([hints], candidate => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default()), value => new IRRawNodeDescriptor(code, value));
+    return relationOptionFold(relationFirstOption([hints], (candidate): candidate is IRHints => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default()), value => new IRRawNodeDescriptor(code, value));
   }
 
   public static withAst(code: string, ast: FieldNode, hints?: IRHints): IRRawNodeDescriptor {
-    return relationOptionFold(relationFirstOption([hints], candidate => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default(), ast), value => new IRRawNodeDescriptor(code, value, ast));
+    return relationOptionFold(relationFirstOption([hints], (candidate): candidate is IRHints => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default(), ast), value => new IRRawNodeDescriptor(code, value, ast));
   }
 }

@@ -19,6 +19,8 @@ import {
   relationIsPresent,
   type RelationOption,
   type RelationMaybe,
+  type RelationNone,
+  type RelationSome,
 } from './relationFoundation';
 import { relationUnique, relationIndexAdd, relationIndexLookup, type RelationIndex } from './relationMembership';
 import type { Sequence } from '../../types/upstream/collections';

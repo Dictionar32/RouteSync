@@ -1,0 +1,122 @@
+{
+  "scanner_lexer": {
+    "files": 376,
+    "inventory": {
+      "if": 126,
+      "while": 4,
+      "for": 9,
+      "switch": 4,
+      "map": 29,
+      "filter": 41,
+      "reduce": 0,
+      "flatMap": 4,
+      "undefined": 5,
+      "??": 6,
+      "null": 28,
+      "===/!==": 264,
+      "as unknown": 5,
+      "any": 24,
+      "new": 102
+    }
+  },
+  "resolver_graph": {
+    "files": 2,
+    "inventory": {
+      "if": 17,
+      "while": 0,
+      "for": 3,
+      "switch": 0,
+      "map": 8,
+      "filter": 4,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 4,
+      "??": 1,
+      "null": 2,
+      "===/!==": 10,
+      "as unknown": 0,
+      "any": 3,
+      "new": 2
+    }
+  },
+  "ast_upstream": {
+    "files": 61,
+    "inventory": {
+      "if": 0,
+      "while": 0,
+      "for": 0,
+      "switch": 0,
+      "map": 0,
+      "filter": 0,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 24,
+      "??": 0,
+      "null": 1,
+      "===/!==": 0,
+      "as unknown": 0,
+      "any": 4,
+      "new": 0
+    }
+  },
+  "analysis": {
+    "files": 40,
+    "inventory": {
+      "if": 0,
+      "while": 0,
+      "for": 0,
+      "switch": 0,
+      "map": 0,
+      "filter": 0,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 0,
+      "??": 0,
+      "null": 0,
+      "===/!==": 0,
+      "as unknown": 0,
+      "any": 0,
+      "new": 0
+    }
+  },
+  "semantic_type_lowering": {
+    "files": 872,
+    "inventory": {
+      "if": 350,
+      "while": 6,
+      "for": 83,
+      "switch": 9,
+      "map": 89,
+      "filter": 48,
+      "reduce": 4,
+      "flatMap": 7,
+      "undefined": 96,
+      "??": 31,
+      "null": 87,
+      "===/!==": 1563,
+      "as unknown": 6,
+      "any": 53,
+      "new": 431
+    }
+  },
+  "diagnostic": {
+    "files": 26,
+    "inventory": {
+      "if": 0,
+      "while": 0,
+      "for": 0,
+      "switch": 0,
+      "map": 0,
+      "filter": 0,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 0,
+      "??": 4,
+      "null": 5,
+      "===/!==": 4,
+      "as unknown": 0,
+      "any": 1,
+      "new": 5
+    }
+  }
+}

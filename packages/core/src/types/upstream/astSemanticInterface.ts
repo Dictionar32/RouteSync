@@ -33,6 +33,7 @@ import {
   relationFold,
   relationProject,
   relationResolve,
+  relationVariantFold,
 } from '../../semantic/kernel/relationalSequence';
 import { relationUnique } from '../../semantic/kernel/relationMembership';
 
@@ -253,22 +254,21 @@ export const astSemanticStageTerm = (value: AstSemanticStage): AstSemanticTerm =
 export const astSemanticTextTerm = (value: string): AstSemanticTerm => ({ kind: 'text', value });
 
 const astSemanticTermFromRelation = (term: AstRelationTerm): AstSemanticTerm =>
-  relationResolve(
-    relationEqual(term.kind, 'ast_term_node'),
-    () => astSemanticNodeTerm((term as Extract<AstRelationTerm, { readonly kind: 'ast_term_node' }>).value),
-    () => relationResolve(
-      relationEqual(term.kind, 'ast_term_source'),
-      () => astSemanticSourceTerm((term as Extract<AstRelationTerm, { readonly kind: 'ast_term_source' }>).value),
-      () => relationResolve(
-        relationEqual(term.kind, 'ast_term_rule'),
-        () => astSemanticRuleTerm((term as Extract<AstRelationTerm, { readonly kind: 'ast_term_rule' }>).value),
-        () => relationResolve(
-          relationEqual(term.kind, 'ast_term_witness'),
-          () => astSemanticWitnessTerm((term as Extract<AstRelationTerm, { readonly kind: 'ast_term_witness' }>).value),
-          () => astSemanticTextTerm((term as Extract<AstRelationTerm, { readonly kind: 'ast_term_surface' }>).value.domain),
+  relationVariantFold(term, 'ast_term_node',
+    () => relationVariantFold(term, 'ast_term_source',
+      () => relationVariantFold(term, 'ast_term_rule',
+        () => relationVariantFold(term, 'ast_term_witness',
+          () => relationVariantFold(term, 'ast_term_surface',
+            () => astSemanticTextTerm('invalid_ast_relation_term'),
+            value => astSemanticTextTerm(value.value.domain),
+          ),
+          value => astSemanticWitnessTerm(value.value),
         ),
+        value => astSemanticRuleTerm(value.value),
       ),
+      value => astSemanticSourceTerm(value.value),
     ),
+    value => astSemanticNodeTerm(value.value),
   );
 
 export const astSemanticFactFromRelation = (
@@ -285,13 +285,12 @@ const astSemanticFactsFromSequence = (
   stage: AstSemanticStage,
   sequence: AstSequence<AstRelationFact>,
   output: readonly AstSemanticFact[] = [],
-): AstSemanticFacts => relationResolve(
-  relationEqual(sequence.kind, 'ast_sequence_empty'),
+): AstSemanticFacts => relationVariantFold(sequence, 'ast_sequence_empty',
   () => astSemanticFacts(output),
-  () => {
-    const current = sequence as Extract<AstSequence<AstRelationFact>, { readonly kind: 'ast_sequence_cons' }>;
-    return astSemanticFactsFromSequence(stage, current.tail, [...output, astSemanticFactFromRelation(stage, current.head)]);
-  },
+  () => relationVariantFold(sequence, 'ast_sequence_cons',
+    () => astSemanticFacts(output),
+    current => astSemanticFactsFromSequence(stage, current.tail, [...output, astSemanticFactFromRelation(stage, current.head)]),
+  ),
 );
 
 export const astSemanticFactsFromRelations = (

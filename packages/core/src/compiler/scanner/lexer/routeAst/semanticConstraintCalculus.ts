@@ -6,6 +6,7 @@
  */
 import { project, retain } from './semanticRelationalCollections';
 import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationAtom, type SemanticRelationPattern, type SemanticRelationRewrite } from './semanticRewriteEngine';
+import type { SemanticRewriteRule } from './semanticRewriteInterface';
 import { relationResolve, relationFirst, relationOptionFold, relationOptionMap, relationOptionalFold, relationRefine, relationVariant, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/kernel/semanticRelations';
 
@@ -77,5 +78,4 @@ export const solveSemanticConstraintProgram = <R extends string>(seed: readonly 
   return settle(seed, [], 0);
 };
 
-export interface SemanticRewriteRule<R extends string = string> { readonly id: string; readonly priority: number; readonly when: readonly SemanticRelationPattern<R>[]; readonly replace: readonly SemanticRelationPattern<R>[] }
 export const toSemanticRelationRewrites = <R extends string>(rules: readonly SemanticRewriteRule<R>[]): readonly SemanticRelationRewrite<R>[] => Object.freeze(project(rules, rule => Object.freeze({ id: rule.id, priority: rule.priority, when: rule.when, then: rule.replace })));

@@ -136,7 +136,7 @@ const parseArrayValue = (
                     startOffset: createSourceOffset(valueToken.startOffset),
                     endOffset: createSourceOffset(endToken.endOffset),
                 };
-                const value = { kind: 'nested_array' as const, entries: nested.entries };
+                const value = Object.freeze({ kind: 'nested_array' as const, entries: nested.entries, source: sourceRange });
                 const entry = relationOptionFold(key,
                     () => ({ kind: 'positional' as const, value, source: sourceRange }),
                     current => ({ kind: 'keyed' as const, key: current, value, source: sourceRange }));

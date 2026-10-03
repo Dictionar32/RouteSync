@@ -44,7 +44,6 @@ export * from './semanticCompilationArtifact';
 
 export * from './semanticTypedRelation';
 export * from './semanticRelationalExecutionPlan';
-export * from './syntaxRelationProgram';
 export * from './syntaxJudgmentRewriteEngine';
 export * from './semanticConstraintHandlingRules';
 export * from './routeSyntaxSemanticInterface';

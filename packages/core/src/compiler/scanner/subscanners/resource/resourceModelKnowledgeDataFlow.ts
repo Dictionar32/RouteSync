@@ -10,16 +10,22 @@ import { absent, presenceOf, present, type Presence } from '../../../../types/up
 import { relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
 import { relationFold, relationFirstOption, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
 
-export type ResourceModelResolutionOriginCode =
-    | 'controller_dataflow'
-    | 'convention'
-    | 'relation_propagation';
+export type ResourceModelResolutionOrigin =
+    | Readonly<{ readonly kind: 'controller_dataflow' }>
+    | Readonly<{ readonly kind: 'convention' }>
+    | Readonly<{ readonly kind: 'relation_propagation' }>;
+
+export const ResourceModelResolutionOrigin = Object.freeze({
+    controllerDataflow: Object.freeze({ kind: 'controller_dataflow' as const }),
+    convention: Object.freeze({ kind: 'convention' as const }),
+    relationPropagation: Object.freeze({ kind: 'relation_propagation' as const }),
+});
 
 export interface ResourceModelResolutionFact {
     readonly kind: 'resource_model_resolution';
     readonly resource: ResourceName;
     readonly model: ModelName;
-    readonly origin: ResourceModelResolutionOriginCode;
+    readonly origin: ResourceModelResolutionOrigin;
     readonly viaRelation: Presence<RelationName>;
 }
 
@@ -45,7 +51,7 @@ export const emptyResourceModelKnowledgeDataFlow = (): ResourceModelKnowledgeDat
 export const createResourceModelResolutionFact = (
     resource: ResourceName,
     model: ModelName,
-    origin: ResourceModelResolutionOriginCode,
+    origin: ResourceModelResolutionOrigin,
     viaRelation?: RelationName,
 ): ResourceModelResolutionFact => Object.freeze({
     kind: 'resource_model_resolution',

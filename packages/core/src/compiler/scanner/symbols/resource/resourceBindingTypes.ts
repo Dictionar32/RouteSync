@@ -10,12 +10,20 @@
 import { relationGate } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import type { OriginModelSymbol } from "../model/originModelSymbol";
+import type { StringValue } from '../../../../types/upstream/valueObjects';
 
 export type ResourceModelBindingSource =
-    | 'controller_dataflow'
-    | 'relation_propagation'
-    | 'convention'
-    | 'structural';
+    | Readonly<{ readonly kind: 'controller_dataflow' }>
+    | Readonly<{ readonly kind: 'relation_propagation' }>
+    | Readonly<{ readonly kind: 'convention' }>
+    | Readonly<{ readonly kind: 'structural' }>;
+
+export const ResourceModelBindingSource = Object.freeze({
+    controllerDataflow: Object.freeze({ kind: 'controller_dataflow' as const }),
+    relationPropagation: Object.freeze({ kind: 'relation_propagation' as const }),
+    convention: Object.freeze({ kind: 'convention' as const }),
+    structural: Object.freeze({ kind: 'structural' as const }),
+});
 
 export interface MonoModelBinding {
     readonly kind: 'mono';
@@ -26,12 +34,12 @@ export interface MonoModelBinding {
 export interface PolyModelBinding {
     readonly kind: 'poly';
     readonly models: readonly OriginModelSymbol[];
-    readonly source: 'controller_dataflow';
+    readonly source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }>;
 }
 
 export interface UnbackedDtoBinding {
     readonly kind: 'unbacked_dto';
-    readonly reason: string;
+    readonly reason: StringValue;
 }
 
 export type ResourceModelBinding =
@@ -61,11 +69,11 @@ export class ResourceModelBindingFactory {
         return Object.freeze({ kind: 'mono', model, source });
     }
 
-    public static poly(models: readonly OriginModelSymbol[], source: 'controller_dataflow' = 'controller_dataflow'): PolyModelBinding {
+    public static poly(models: readonly OriginModelSymbol[], source: Extract<ResourceModelBindingSource, { readonly kind: 'controller_dataflow' }> = ResourceModelBindingSource.controllerDataflow): PolyModelBinding {
         return Object.freeze({ kind: 'poly', models: Object.freeze([...models]), source });
     }
 
-    public static unbackedDto(reason: string): UnbackedDtoBinding {
+    public static unbackedDto(reason: StringValue): UnbackedDtoBinding {
         return Object.freeze({ kind: 'unbacked_dto', reason });
     }
 }

@@ -12,6 +12,7 @@ import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import {
     type ResourceModelBinding,
     ResourceModelBindingFactory,
+    ResourceModelBindingSource,
     matchResourceModelBinding
 } from "../../symbols/resource/resourceBindingTypes";
 import { matchStructuralFields } from "./structuralFieldMatcher";
@@ -19,6 +20,7 @@ import { findControllerResourceBinding } from "../../subscanners/controller/reso
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 import { absent, present, type Presence, presenceFold } from "../../../../types/upstream/presence";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
+import { stringValue } from "../../../../types/upstream/valueObjects";
 import type { ResourceModelKnowledgeDataFlow } from "../../subscanners/resource/resourceModelKnowledgeDataFlow";
 import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/kernel/relationalSequence";
@@ -53,7 +55,7 @@ const controllerCandidate = (input: ResourceModelResolutionInput): Presence<Reso
                 () => absent<ResourceModelBinding>(),
                 binding => bind(
                     input.modelSymbolTable.findForControllerOrigin(binding.model),
-                    'controller_dataflow',
+                    ResourceModelBindingSource.controllerDataflow,
                 )
             )
         );
@@ -68,7 +70,7 @@ const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<Reso
                     value.resolutions,
                     candidate => relationAll([
                         relationEqual(candidate.resource.value.value, input.resourceName.value.value),
-                        relationEqual(candidate.origin, 'relation_propagation')
+                        relationEqual(candidate.origin.kind, 'relation_propagation')
                     ])
                 );
                 return relationOptionFold(
@@ -76,7 +78,7 @@ const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<Reso
                     () => absent<ResourceModelBinding>(),
                     candidate => bind(
                         input.modelSymbolTable.get(candidate.model),
-                        'relation_propagation'
+                        ResourceModelBindingSource.relationPropagation
                     )
                 );
             }
@@ -86,7 +88,7 @@ const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<Reso
 const conventionCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
         return bind(
             input.modelSymbolTable.findForResource(input.resourceName),
-            'convention'
+            ResourceModelBindingSource.convention
         );
     };
 
@@ -97,7 +99,7 @@ const structuralCandidate = (input: ResourceModelResolutionInput): Presence<Reso
         fields => presenceFold(
             matchStructuralFields(fields, input.modelSymbolTable),
             () => absent<ResourceModelBinding>(),
-            value => present(ResourceModelBindingFactory.mono(value, 'structural')),
+            value => present(ResourceModelBindingFactory.mono(value, ResourceModelBindingSource.structural)),
         ),
     );
 
@@ -113,11 +115,11 @@ const resolveResourceModel = (input: ResourceModelResolutionInput): ResourceMode
         const first = relationOptionFold(
             relationFirst(candidates, candidate => relationEqual(candidate.kind, 'present')),
             () => ResourceModelBindingFactory.unbackedDto(
-                `Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`
+                stringValue(`Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`)
             ),
             candidate => presenceFold(candidate,
                 () => ResourceModelBindingFactory.unbackedDto(
-                    `Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`
+                    stringValue(`Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`)
                 ),
                 value => value,
             )

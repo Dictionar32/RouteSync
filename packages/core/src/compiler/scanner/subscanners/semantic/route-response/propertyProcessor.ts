@@ -76,7 +76,7 @@ function pushLeaf(
 
 function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticType {
     return relationGate(relationEqual(field.semantic.kind, 'rejected'),
-        () => { throw Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`); },
+        () => { throw Error(`Resource field semantic rejected: ${field.semantic.bound.reason.value}`); },
         () => {
             const boundAst = field.semantic.bound;
             return matchBoundSemantic(boundAst, {

@@ -5,6 +5,7 @@ import {
   createResourceRelationFact,
   deriveResourceModelResolutionIndex,
   type ResourceModelKnowledgeDataFlow,
+  ResourceModelResolutionOrigin,
 } from './resourceModelKnowledgeDataFlow';
 
 describe('Phase 209 resource model knowledge/data-flow', () => {
@@ -15,7 +16,7 @@ describe('Phase 209 resource model knowledge/data-flow', () => {
       kind: 'resource_model_knowledge_data_flow',
       relations: Object.freeze([]),
       resolutions: Object.freeze([
-        createResourceModelResolutionFact(resource, model, 'convention'),
+        createResourceModelResolutionFact(resource, model, ResourceModelResolutionOrigin.convention),
       ]),
     });
 

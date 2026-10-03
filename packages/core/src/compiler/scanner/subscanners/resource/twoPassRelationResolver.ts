@@ -10,7 +10,8 @@ import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { findControllerResourceBinding } from "../controller/resourceDataflowAggregator";
 import { matchLookup } from "../../../../types/upstream/collections";
 import type { ResourceName } from "../../../../types/upstream/names";
-import { type Presence, presenceOf, presenceFold } from "../../../../types/upstream/presence";
+import { numberValue, type NumberValue } from "../../../../types/upstream/valueObjects";
+import { absent, present, type Presence, presenceFold } from "../../../../types/upstream/presence";
 import {
     createResourceModelResolutionFact,
     createResourceRelationFact,
@@ -18,8 +19,9 @@ import {
     type ResourceModelKnowledgeDataFlow,
     type ResourceModelResolutionFact,
     type ResourceRelationKnowledgeFact,
+    ResourceModelResolutionOrigin,
 } from "./resourceModelKnowledgeDataFlow";
-import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
 import { relationFirst, relationOptionFold, relationProject, relationFold, relationLatticeFixedPoint } from "../../../../semantic/kernel/relationalSequence";
 
 export type ResourceRelationEdge = ResourceRelationKnowledgeFact;
@@ -27,37 +29,37 @@ export type ResourceRelationEdge = ResourceRelationKnowledgeFact;
 function modelForResolution(
     fact: ResourceModelResolutionFact,
     modelSymbolTable: ModelSymbolTable,
-): Presence<ReturnType<ModelSymbolTable['get']>> {
+): Presence<import("../../symbols/model/originModelSymbol").OriginModelSymbol> {
     return matchLookup(modelSymbolTable.get(fact.model), {
-        missing: () => ({ kind: 'absent' }),
-        found: ({ value }) => ({ kind: 'present', value }),
+        missing: () => absent(),
+        found: ({ value }) => present(value),
     });
 }
 
 export function resolveInitialModel(
     resourceName: ResourceName,
     modelSymbolTable: ModelSymbolTable,
-    controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow,
+    controllerDataflowMap: Presence<import("../controller/resourceDataflowAggregator").ControllerResourceDataflow>,
 ): Presence<ResourceModelResolutionFact> {
     return presenceFold(
-        presenceOf(controllerDataflowMap),
+        controllerDataflowMap,
         () => presenceFold(
             matchLookup(modelSymbolTable.findForResource(resourceName), {
-                missing: () => ({ kind: 'absent' }),
-                found: ({ value }) => ({ kind: 'present', value }),
+                missing: () => absent(),
+                found: ({ value }) => present(value),
             }),
-            () => ({ kind: 'absent' }),
-            value => ({ kind: 'present', value: createResourceModelResolutionFact(resourceName, value.identity.name, 'convention') })
+            () => absent(),
+            value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.convention))
         ),
         dataflow => relationOptionFold(
             findControllerResourceBinding(dataflow, resourceName),
             () => presenceFold(
                 matchLookup(modelSymbolTable.findForResource(resourceName), {
-                    missing: () => ({ kind: 'absent' }),
-                    found: ({ value }) => ({ kind: 'present', value }),
+                    missing: () => absent(),
+                    found: ({ value }) => present(value),
                 }),
-                () => ({ kind: 'absent' }),
-                value => ({ kind: 'present', value: createResourceModelResolutionFact(resourceName, value.identity.name, 'convention') })
+                () => absent(),
+                value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.convention))
             ),
             binding => presenceFold(
                 matchLookup(
@@ -67,12 +69,12 @@ export function resolveInitialModel(
                         () => modelSymbolTable.get(binding.model.name),
                     ),
                     {
-                        missing: () => ({ kind: 'absent' }),
-                        found: ({ value }) => ({ kind: 'present', value }),
+                        missing: () => absent(),
+                        found: ({ value }) => present(value),
                     },
                 ),
-                () => ({ kind: 'absent' }),
-                value => ({ kind: 'present', value: createResourceModelResolutionFact(resourceName, value.identity.name, 'controller_dataflow') }),
+                () => absent(),
+                value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.controllerDataflow)),
             ),
         ),
     );
@@ -82,7 +84,7 @@ export function propagateRelationEdges(
     relationEdges: readonly ResourceRelationEdge[],
     initialResolutions: readonly ResourceModelResolutionFact[],
     modelSymbolTable: ModelSymbolTable,
-    maxIterations = 5,
+    maxIterations: NumberValue = numberValue(5),
 ): ResourceModelKnowledgeDataFlow {
     const relations = Object.freeze(relationProject(
         relationEdges,
@@ -103,17 +105,17 @@ export function propagateRelationEdges(
                         const parentSymbol = modelForResolution(parentResolution, modelSymbolTable);
                         return presenceFold(parentSymbol, () => accumulator, symbol => {
                             const relation = matchLookup(symbol.relation(edge.relationKey), {
-                                missing: () => ({ kind: 'absent' }),
-                                found: ({ value }) => ({ kind: 'present', value }),
+                                missing: () => absent(),
+                                found: ({ value }) => present(value),
                             });
                             return presenceFold(relation, () => accumulator, rel => {
                                 const childSymbol = matchLookup(modelSymbolTable.get(rel.targetModel), {
-                                    missing: () => ({ kind: 'absent' }),
-                                    found: ({ value }) => ({ kind: 'present', value }),
+                                    missing: () => absent(),
+                                    found: ({ value }) => present(value),
                                 });
                                 return presenceFold(childSymbol, () => accumulator, () => [
                                     ...accumulator,
-                                    createResourceModelResolutionFact(edge.childResource, rel.targetModel, 'relation_propagation', edge.relationKey),
+                                    createResourceModelResolutionFact(edge.childResource, rel.targetModel, ResourceModelResolutionOrigin.relationPropagation, edge.relationKey),
                                 ]);
                             });
                         });
@@ -127,6 +129,6 @@ export function propagateRelationEdges(
         join: (left: State, right: State): State => Object.freeze({ resolutions: relationGate(right.resolutions.length >= left.resolutions.length, () => right.resolutions, () => left.resolutions) }),
         equal: (left: State, right: State): boolean => relationEqual(left.resolutions.length, right.resolutions.length),
     };
-    const closure = relationLatticeFixedPoint(lattice, seed, transfer, maxIterations);
+    const closure = relationLatticeFixedPoint(lattice, seed, transfer, maxIterations.value);
     return Object.freeze({ kind: 'resource_model_knowledge_data_flow', relations, resolutions: Object.freeze(closure.value.resolutions) });
 }

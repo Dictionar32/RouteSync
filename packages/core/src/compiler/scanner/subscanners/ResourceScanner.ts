@@ -1,9 +1,10 @@
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 
+import { ResourceModelResolutionOrigin } from './resource/resourceModelKnowledgeDataFlow';
 import { readSourceText } from './scannerUtils';
 import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual, relationGate, relationAll, relationAny } from '../../../semantic/kernel/semanticRelations';
-import { presenceFold } from '../../../types/upstream/presence';
+import { presenceFold, presenceOf } from '../../../types/upstream/presence';
 import { matchLookup } from '../../../types/upstream/collections';
 /**
  * ResourceScanner.ts
@@ -111,7 +112,7 @@ export class ResourceScanner {
                     requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } },
                     documentationMixins
                 };
-                const initialResolution = resolveInitialModel(resourceNameValue, modelSymbolTable, controllerDataflowMap);
+                const initialResolution = resolveInitialModel(resourceNameValue, modelSymbolTable, presenceOf(controllerDataflowMap));
                 const nextInitialResolutions = relationExpand([initialResolution], resolution =>
                     relationGate(relationEqual(resolution.kind, 'present'), () => [resolution.value], () => []),
                 );
@@ -210,7 +211,7 @@ export class ResourceScanner {
                 const parsedFile: ParsedResourceFile = { resourceName: resourceNameValue, sourceFile: SemanticValueFactory.sourceFilePath(fullPath), sourceLine, sourceLength: source.length, entries: parsedArray.entries, assignments: parseMethodAssignments(tokens, returnIndex), method, baseClass: { kind: 'class_name', value: { kind: 'string_value', value: baseClass } }, wrapping, requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } }, documentationMixins, methods, properties, preserveKeys, forceWrapping, usesRequestQueryString, includesPreviouslyLoadedRelationships, jsonAttributes, jsonRelationships, collectsResource };
                 const conventionLookup = modelSymbolTable.findForResource(resourceNameValue);
                 const resolutionFacts = relationExpand([conventionLookup], lookup =>
-                    relationGate(relationEqual(lookup.kind, 'found'), () => [{ kind: 'resource_model_resolution', resource: resourceNameValue, model: lookup.value.identity.name, origin: 'convention', viaRelation: { kind: 'absent' } }], () => []),
+                    relationGate(relationEqual(lookup.kind, 'found'), () => [{ kind: 'resource_model_resolution', resource: resourceNameValue, model: lookup.value.identity.name, origin: ResourceModelResolutionOrigin.convention, viaRelation: { kind: 'absent' } }], () => []),
                 );
                 return { parsedFiles: [...state.parsedFiles, parsedFile], resolutionFacts: [...state.resolutionFacts, ...resolutionFacts] };
             },

@@ -964,7 +964,7 @@ export { SemanticResourceBinder } from './compiler/scanner/binders/SemanticResou
 export { ResourceModelResolver } from './compiler/scanner/resolvers/resource'
 export {
   type ResourceModelBinding,
-  type ResourceModelBindingSource,
+  ResourceModelBindingSource,
   type MonoModelBinding,
   type PolyModelBinding,
   type UnbackedDtoBinding,

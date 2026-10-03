@@ -6,7 +6,7 @@
  * @module core/compiler/generators/contract-generation/response-schema/responseSchemaTypes
  */
 
-import type { ParsedResponseField } from '../ResponseFieldParser';
+import type { ResponseFieldProjection } from '../response-field';
 
 /**
  * Response type information from manifest
@@ -24,8 +24,8 @@ export interface ResponseTypeInfo {
         name: string;
         kind: 'primitive' | 'object' | 'array';
         type?: string;
-        fields?: Array<ParsedResponseField>;
-        itemType?: ParsedResponseField;
+        fields?: Array<ResponseFieldProjection>;
+        itemType?: ResponseFieldProjection;
         nullable?: boolean;
         optional?: boolean;
     }>;

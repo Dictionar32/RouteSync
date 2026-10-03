@@ -4,7 +4,7 @@
  * @module compiler/domain/common/response-lowering
  */
 
-import type { ParsedResponseField } from '../../../generators/contract-generation/ResponseFieldParser';
+import type { ResponseFieldProjection } from '../../../generators/contract-generation/response-field';
 import { ConversionResult, createConversionResult } from '../ConversionResult';
 import { relationExpand } from '../../../../semantic/kernel/relationalSequence';
 
@@ -14,7 +14,7 @@ import { relationExpand } from '../../../../semantic/kernel/relationalSequence';
 export type NullableWrapperResult =
     | {
           readonly isNullableWrapper: true;
-          readonly field: ParsedResponseField;
+          readonly field: ResponseFieldProjection;
           readonly warnings: readonly string[];
       }
     | {
@@ -22,14 +22,14 @@ export type NullableWrapperResult =
       };
 
 /**
- * Stage Result contract for ParsedResponseField collections
+ * Stage Result contract for ResponseFieldProjection collections
  */
 export type StageResult<T> = ConversionResult<T>;
 
 /**
  * Observable ResponseFieldConversionResult alias
  */
-export type ResponseFieldConversionResult = ConversionResult<ParsedResponseField>;
+export type ResponseFieldConversionResult = ConversionResult<ResponseFieldProjection>;
 
 /**
  * Pure helper to partition a collection of ConversionResults into fields and warnings

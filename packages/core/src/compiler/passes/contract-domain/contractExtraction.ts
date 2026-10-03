@@ -11,7 +11,7 @@ import type { ResponseContractField, ResponseValueContract } from '../../types/d
 import type { RequestTypesArtifact } from '../../artifacts/RequestTypesArtifact';
 import type { GeneratedContractAction } from '../../generators/contract-generation/ContractActionGenerator';
 import type { ActionResponseSchema } from '../../generators/contract-generation/ResponseActionBuilder';
-import type { ParsedResponseField } from '../../generators/contract-generation/ResponseFieldParser';
+import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
 import { partitionResults } from '../../domain/common/ResponseFieldLowering';
 import { relationProject, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
 import type {
@@ -72,7 +72,7 @@ export function extractRequestContracts(
 /** Pure deterministic schema builder for a single resource (Tuple [show, index]) */
 export function buildResourceResponseSchemas(
     resourceName: string,
-    fields: readonly ParsedResponseField[],
+    fields: readonly ResponseFieldProjection[],
     responseActionBuilder: ResponseActionBuilderLike
 ): readonly [ActionResponseSchema, ActionResponseSchema] {
     const showSchema = responseActionBuilder.buildShowSchema(resourceName, fields);
@@ -99,7 +99,7 @@ const RESPONSE_VALUE_TYPE_HANDLERS: Readonly<Record<string, (value: ResponseValu
     model_reference: value => (value as Extract<ResponseValueContract, { kind: 'model_reference' }>).model.value,
 });
 
-function responseContractFieldToParsed(field: ResponseContractField): ParsedResponseField {
+function responseContractFieldToParsed(field: ResponseContractField): ResponseFieldProjection {
     const type = responseValueToType(field.value);
     return {
         name: field.name.value,
@@ -112,7 +112,7 @@ function responseContractFieldToParsed(field: ResponseContractField): ParsedResp
 
 function lowerResponseContractFields(
     fields: readonly ResponseContractField[]
-): readonly ParsedResponseField[] {
+): readonly ResponseFieldProjection[] {
     return relationProject(fields, responseContractFieldToParsed);
 }
 

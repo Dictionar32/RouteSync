@@ -6,7 +6,7 @@
  * @module core/compiler/generators/contract-generation/response-schema
  */
 
-import type { ParsedResponseField } from '../ResponseFieldParser';
+import type { ResponseFieldProjection } from '../response-field';
 import type { NestedObjectSchemaBuilder } from '../NestedObjectSchemaBuilder';
 import type { ArraySchemaBuilder } from '../ArraySchemaBuilder';
 import type {
@@ -30,7 +30,7 @@ export function mapActionResponseToSchema(
     nestedObjectBuilder: NestedObjectSchemaBuilder,
     arraySchemaBuilder: ArraySchemaBuilder
 ): ActionResponseSchema {
-    const fields = responseType.fields as ParsedResponseField[];
+    const fields = responseType.fields as ResponseFieldProjection[];
     const isArray = action === 'index' || responseType.collection;
 
     let zodSchema: string;

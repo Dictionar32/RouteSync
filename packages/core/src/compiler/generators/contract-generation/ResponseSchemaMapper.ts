@@ -5,7 +5,7 @@
  * @module core/compiler/generators/contract-generation/ResponseSchemaMapper
  */
 
-import type { ParsedResponseField } from './ResponseFieldParser';
+import type { ResponseFieldProjection } from './response-field';
 import { NestedObjectSchemaBuilder } from './NestedObjectSchemaBuilder';
 import { ArraySchemaBuilder } from './ArraySchemaBuilder';
 import { ZodModifierBuilder } from './ZodModifierBuilder';
@@ -36,7 +36,7 @@ export class ResponseSchemaMapper {
     }
 
     public mapFieldsToZod(
-        fields: ReadonlyArray<ParsedResponseField>,
+        fields: ReadonlyArray<ResponseFieldProjection>,
         _resourceName: string,
         action: 'show' | 'index'
     ): string {

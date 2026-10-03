@@ -17,7 +17,7 @@
  */
 
 import type { ResponseSchemaMapper } from './ResponseSchemaMapper';
-import type { ParsedResponseField } from './ResponseFieldParser';
+import type { ResponseFieldProjection } from './response-field';
 import { toPascalCase } from '../../../utils/resource-naming';
 
 /**
@@ -78,7 +78,7 @@ export class ResponseActionBuilder {
      */
     buildShowSchema(
         resourceName: string,
-        responseFields: ReadonlyArray<ParsedResponseField>
+        responseFields: ReadonlyArray<ResponseFieldProjection>
     ): ActionResponseSchema {
         // Generate schema name: resourceShowSchema
         const schemaName = this.generateSchemaName(resourceName, 'show');

@@ -16,7 +16,7 @@
 
 import { NestedObjectSchemaBuilder } from './NestedObjectSchemaBuilder'
 import { ZodModifierBuilder } from './ZodModifierBuilder'
-import type { ParsedResponseField } from './ResponseFieldParser'
+import type { ResponseFieldProjection } from './response-field'
 
 /**
  * Builder for z.array() schemas with recursive item support
@@ -33,19 +33,17 @@ export class ArraySchemaBuilder {
      * @param field - Parsed field with kind='array'
      * @returns Complete z.array() schema string
      */
-    buildArraySchema(field: ParsedResponseField): string {
+    buildArraySchema(field: ResponseFieldProjection): string {
         // Validate this is an array field
         if (field.kind !== 'array') {
             throw new Error(`ArraySchemaBuilder expects kind='array', got '${field.kind}'`)
         }
 
-        // Validate itemType exists
-        if (!field.itemType) {
-            throw new Error(`Array field '${field.name}' missing itemType`)
-        }
-
-        // Build item schema based on item kind
-        const itemSchema = this.buildItemSchema(field.itemType)
+        const itemSchema = relationOptionFold(
+            field.itemType,
+            () => { throw new Error(`Array field '${field.name}' missing itemType`) },
+            item => this.buildItemSchema(item),
+        );
 
         // Wrap in z.array()
         const baseSchema = `z.array(${itemSchema})`
@@ -59,7 +57,7 @@ export class ArraySchemaBuilder {
      * 
      * Delegates to appropriate builder based on item kind
      */
-    private buildItemSchema(itemType: ParsedResponseField): string {
+    private buildItemSchema(itemType: ResponseFieldProjection): string {
         switch (itemType.kind) {
             case 'primitive':
                 return this.buildPrimitiveItemSchema(itemType)
@@ -80,7 +78,7 @@ export class ArraySchemaBuilder {
     /**
      * Build schema for primitive array items
      */
-    private buildPrimitiveItemSchema(itemType: ParsedResponseField): string {
+    private buildPrimitiveItemSchema(itemType: ResponseFieldProjection): string {
         // Map primitive types to Zod schemas
         const zodTypeMap: Record<string, string> = {
             'string': 'z.string()',
@@ -106,7 +104,7 @@ export class ArraySchemaBuilder {
      */
     private applyModifiers(
         schema: string,
-        field: ParsedResponseField
+        field: ResponseFieldProjection
     ): string {
         const modifiers = this.zodModifierBuilder.buildModifiers({
             required: !field.optional,

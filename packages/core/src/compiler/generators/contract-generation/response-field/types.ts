@@ -1,3 +1,5 @@
+import type { RelationOption } from '../../../../semantic/kernel/relationalSequence';
+
 /** Closed response-field domain model. */
 
 export type TypeWrapper<T> =
@@ -64,12 +66,12 @@ export type ResponseFieldData =
   | { readonly kind: 'variable'; readonly variableName: string; readonly resolved: ResponseFieldResolved; readonly presence: FieldPresence }
   | { readonly kind: 'property_access'; readonly targetSymbol: string; readonly propertyName: string; readonly resolved: ResponseFieldResolved; readonly presence: FieldPresence };
 
-export interface ParsedResponseField {
+export interface ResponseFieldProjection {
   readonly name: string;
   readonly kind: 'primitive' | 'object' | 'array';
   readonly type: string;
   readonly nullable: boolean;
   readonly optional: boolean;
-  readonly fields: readonly ParsedResponseField[];
-  readonly itemType?: ParsedResponseField;
+  readonly fields: readonly ResponseFieldProjection[];
+  readonly itemType: RelationOption<ResponseFieldProjection>;
 }

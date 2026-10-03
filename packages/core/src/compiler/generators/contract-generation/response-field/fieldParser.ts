@@ -1,20 +1,33 @@
-import type { ResponseFieldData, ParsedResponseField } from './types';
+import type { ResponseFieldData, ResponseFieldProjection } from './types';
 import { normalizeKind, extractType, isFieldNullable, isFieldOptional } from './typeNormalizer';
+import { relationOptionFold, relationProject, relationVariant } from '../../../../semantic/kernel/relationalSequence';
 
-export function parseResponseField(fieldName: string, fieldData: ResponseFieldData): ParsedResponseField {
-  const kind = normalizeKind(fieldData.kind);
-  const parsed: ParsedResponseField = {
+export function parseResponseField(fieldName: string, fieldData: ResponseFieldData): ResponseFieldProjection {
+  const fields = relationOptionFold(
+    relationVariant(fieldData, 'object'),
+    () => Object.freeze([]),
+    objectField => parseNestedResponseFields(objectField.fields),
+  );
+
+  const itemType = relationOptionFold(
+    relationVariant(fieldData, 'array'),
+    () => Object.freeze({ kind: 'none' as const }),
+    arrayField => Object.freeze({ kind: 'some' as const, value: parseResponseField('item', arrayField.itemType) }),
+  );
+
+  return Object.freeze({
     name: fieldName,
-    kind,
+    kind: normalizeKind(fieldData.kind),
     type: extractType(fieldData),
     nullable: isFieldNullable(fieldData),
     optional: isFieldOptional(fieldData),
-    fields: fieldData.kind === 'object' ? parseNestedResponseFields(fieldData.fields) : [],
-    itemType: fieldData.kind === 'array' ? parseResponseField('item', fieldData.itemType) : undefined
-  };
-  return parsed;
+    fields,
+    itemType,
+  });
 }
 
-export function parseNestedResponseFields(fields: readonly (readonly [string, ResponseFieldData])[]): readonly ParsedResponseField[] {
-  return fields.map(([name, data]) => parseResponseField(name, data));
+export function parseNestedResponseFields(
+  fields: readonly (readonly [string, ResponseFieldData])[],
+): readonly ResponseFieldProjection[] {
+  return relationProject(fields, ([name, data]) => parseResponseField(name, data));
 }

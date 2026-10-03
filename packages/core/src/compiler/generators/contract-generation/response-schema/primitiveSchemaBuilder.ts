@@ -6,7 +6,7 @@
  * @module core/compiler/generators/contract-generation/response-schema/primitiveSchemaBuilder
  */
 
-import type { ParsedResponseField } from '../ResponseFieldParser';
+import type { ResponseFieldProjection } from '../response-field';
 
 const ZOD_TYPE_MAP: Record<string, string> = {
     'string': 'z.string()',
@@ -20,7 +20,7 @@ export function buildPrimitiveSchema(type: string): string {
     return ZOD_TYPE_MAP[type] || 'z.unknown()';
 }
 
-export function buildModifiers(field: ParsedResponseField): string {
+export function buildModifiers(field: ResponseFieldProjection): string {
     let modifiers = '';
 
     if (field.nullable) {
@@ -34,7 +34,7 @@ export function buildModifiers(field: ParsedResponseField): string {
     return modifiers;
 }
 
-export function buildPrimitiveSchemaWithModifiers(field: ParsedResponseField): string {
+export function buildPrimitiveSchemaWithModifiers(field: ResponseFieldProjection): string {
     const baseSchema = buildPrimitiveSchema(field.type);
     const modifiers = buildModifiers(field);
     return modifiers ? `${baseSchema}${modifiers}` : baseSchema;

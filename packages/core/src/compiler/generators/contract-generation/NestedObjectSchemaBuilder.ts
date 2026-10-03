@@ -13,7 +13,7 @@
  */
 
 import { ZodModifierBuilder } from './ZodModifierBuilder'
-import type { ParsedResponseField } from './ResponseFieldParser'
+import type { ResponseFieldProjection } from './response-field'
 
 /**
  * Builder for nested z.object() schemas
@@ -30,7 +30,7 @@ export class NestedObjectSchemaBuilder {
      * @param inline If true, generate inline format for compact output
      * @returns Zod schema string
      */
-    buildObjectSchema(field: ParsedResponseField, inline = false): string {
+    buildObjectSchema(field: ResponseFieldProjection, inline = false): string {
         if (field.kind !== 'object') {
             throw new Error(`Expected object field, got ${field.kind}`)
         }
@@ -61,7 +61,7 @@ export class NestedObjectSchemaBuilder {
      * @param inline If true, generate inline format for compact output
      * @returns Zod schema string
      */
-    private buildFieldSchema(field: ParsedResponseField, inline = false): string {
+    private buildFieldSchema(field: ResponseFieldProjection, inline = false): string {
         switch (field.kind) {
             case 'primitive':
                 return this.buildPrimitiveSchema(field)
@@ -82,7 +82,7 @@ export class NestedObjectSchemaBuilder {
     /**
      * Build primitive type schema
      */
-    private buildPrimitiveSchema(field: ParsedResponseField): string {
+    private buildPrimitiveSchema(field: ResponseFieldProjection): string {
         // Map string type to Zod schema
         const zodTypeMap: Record<string, string> = {
             'string': 'z.string()',
@@ -99,14 +99,12 @@ export class NestedObjectSchemaBuilder {
     /**
      * Build basic array schema (will be enhanced in Step 4)
      */
-    private buildBasicArraySchema(field: ParsedResponseField): string {
-        if (!field.itemType) {
-            // Unknown item type - use z.unknown()
-            const baseSchema = 'z.array(z.unknown())'
-            return this.applyModifiers(baseSchema, field)
-        }
-
-        const itemSchema = this.buildFieldSchema(field.itemType)
+    private buildBasicArraySchema(field: ResponseFieldProjection): string {
+        const itemSchema = relationOptionFold(
+            field.itemType,
+            () => 'z.unknown()',
+            item => this.buildFieldSchema(item),
+        );
         const baseSchema = `z.array(${itemSchema})`
 
         return this.applyModifiers(baseSchema, field)
@@ -117,7 +115,7 @@ export class NestedObjectSchemaBuilder {
      */
     private applyModifiers(
         schema: string,
-        field: ParsedResponseField
+        field: ResponseFieldProjection
     ): string {
         const modifiers = this.zodModifierBuilder.buildModifiers({
             required: !field.optional, // Convert optional → required

@@ -6,13 +6,13 @@
  * @module core/compiler/generators/contract-generation/response-schema/fieldSchemaDispatcher
  */
 
-import type { ParsedResponseField } from '../ResponseFieldParser';
+import type { ResponseFieldProjection } from '../response-field';
 import type { NestedObjectSchemaBuilder } from '../NestedObjectSchemaBuilder';
 import type { ArraySchemaBuilder } from '../ArraySchemaBuilder';
 import { buildPrimitiveSchemaWithModifiers } from './primitiveSchemaBuilder';
 
 export function buildFieldSchema(
-    field: ParsedResponseField,
+    field: ResponseFieldProjection,
     nestedObjectBuilder: NestedObjectSchemaBuilder,
     arraySchemaBuilder: ArraySchemaBuilder
 ): string {
@@ -32,7 +32,7 @@ export function buildFieldSchema(
 }
 
 export function buildObjectFromFields(
-    fields: readonly ParsedResponseField[],
+    fields: readonly ResponseFieldProjection[],
     nestedObjectBuilder: NestedObjectSchemaBuilder,
     arraySchemaBuilder: ArraySchemaBuilder
 ): string {

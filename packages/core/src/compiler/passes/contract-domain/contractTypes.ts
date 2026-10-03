@@ -10,7 +10,7 @@ import type { FileValidationConstraints } from '../../artifacts/RequestTypesArti
 import type { GeneratedContractAction } from '../../generators/contract-generation/ContractActionGenerator';
 import type { ContractSchemaMapper } from '../../generators/contract-generation/ContractSchemaMapper';
 import type { ActionResponseSchema } from '../../generators/contract-generation/ResponseActionBuilder';
-import type { ParsedResponseField } from '../../generators/contract-generation/ResponseFieldParser';
+import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
 import type { SemanticType } from '../../types/SemanticType';
 import type { FieldCollection } from '../../domain/common/FieldCollection';
 import { ConversionResult } from '../../domain/common/ConversionResult';
@@ -39,7 +39,7 @@ export interface ContractCodeBuilderLike {
 }
 
 export interface ResponseActionBuilderLike {
-    buildShowSchema(resourceName: string, fields: readonly ParsedResponseField[]): ActionResponseSchema;
+    buildShowSchema(resourceName: string, fields: readonly ResponseFieldProjection[]): ActionResponseSchema;
     buildIndexSchema(resourceName: string, showSchemaName: string): ActionResponseSchema;
 }
 
@@ -71,10 +71,10 @@ export const EMPTY_FIELDS = ConversionResult.EMPTY_FIELDS;
 export type StageResult<T> = ConversionResult<T>;
 
 export type NullableWrapperResult =
-    | { readonly isNullableWrapper: true; readonly field: ParsedResponseField; readonly warnings: readonly string[] }
+    | { readonly isNullableWrapper: true; readonly field: ResponseFieldProjection; readonly warnings: readonly string[] }
     | { readonly isNullableWrapper: false };
 
-export type ResponseFieldConversionResult = ConversionResult<ParsedResponseField>;
+export type ResponseFieldConversionResult = ConversionResult<ResponseFieldProjection>;
 export type ResourceResponseSchemasResult = ConversionResult<ActionResponseSchema>;
 
 export interface ExtractedResponseSchemaResult {

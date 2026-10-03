@@ -63,7 +63,7 @@ export type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, HttpEr
 export { parseControllerBody } from './controllerBodyParser';
 export type { ControllerDataflowReference } from './controllerDataflowAnalyzer';
 
-export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst, PhpPropertyTypeAst } from './responseDtoAstTypes';
+export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from './responseDtoAstTypes';
 export { parseResponseDtoDeclaration } from './responseDtoDeclarationParser';
 
 export type { ModelDeclarationAst, ModelDeclarationInheritanceAst, ModelMethodAst, ModelConstantAst } from './modelAstTypes';

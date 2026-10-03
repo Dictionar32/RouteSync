@@ -6,7 +6,7 @@ import type { PropertyDefinition } from '../../../types/upstream/property';
 import type { Presence } from '../../../types/upstream/primitiveVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { DeclaredType, TypeExpression } from '../../../types/upstream/typeVocabulary';
-import type { PhpPropertyTypeAst, ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from '../lexer/responseDtoAstTypes';
+import type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from '../lexer/responseDtoAstTypes';
 
 export type DtoProducerInput = {
   readonly declaration: ResponseDtoDeclarationAst;
@@ -27,47 +27,20 @@ const sourceAtLine = (source: SourceSpan, line: number): SourceSpan => ({
   end: { kind: 'number_value', value: line },
 });
 
-const primitiveTypeNames: readonly (readonly [string, TypeExpression])[] = Object.freeze([
-  ['bool', { kind: 'primitive', value: { kind: 'boolean' } }],
-  ['string', { kind: 'primitive', value: { kind: 'string' } }],
-  ['int', { kind: 'primitive', value: { kind: 'number' } }],
-  ['float', { kind: 'primitive', value: { kind: 'number' } }],
-]);
-
-const baseTypeExpression = (type: PhpPropertyTypeAst): TypeExpression =>
-  relationGate(relationEqual(type.kind, 'primitive'),
-    () => {
-      const primitive = type as Extract<PhpPropertyTypeAst, { readonly kind: 'primitive' }>;
-      return relationOptionFold(
-        relationFirst(primitiveTypeNames, entry => relationEqual(entry[0], primitive.name)),
-        () => ({ kind: 'primitive', value: { kind: 'number' } }),
-        entry => entry[1],
-      );
-    },
-    () => relationGate(relationEqual(type.kind, 'mixed'),
-      () => ({ kind: 'mixed' }),
-      () => {
-        const named = type as Extract<PhpPropertyTypeAst, { readonly kind: 'named' }>;
-        return { kind: 'reference', value: { kind: 'class', name: createClassName(named.name) } };
-      }));
-
-const typeExpression = (type: PhpPropertyTypeAst): TypeExpression =>
-  relationGate(relationEqual(type.nullable, true),
-    () => ({ kind: 'nullable', value: baseTypeExpression(type) }),
-    () => baseTypeExpression(type));
-
-const declared = (type: PhpPropertyTypeAst): DeclaredType => ({
+const declared = (type: TypeExpression): DeclaredType => ({
   kind: 'declared_type',
-  value: typeExpression(type),
-  nullability: relationGate(relationEqual(type.nullable, true), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })),
+  value: type,
+  nullability: relationGate(relationEqual(type.kind, 'nullable'), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })),
 });
+
+const propertyType = (type: TypeExpression): TypeExpression => type;
 
 const property = (input: DtoProducerInput, item: ResponseDtoPropertyAst): DtoProperty => {
   const source = sourceAtLine(input.source, Number(item.source.line));
   const definition: PropertyDefinition = {
     kind: 'property',
     name: createPropertyName(item.name),
-    type: typeExpression(item.type),
+    type: propertyType(item.type),
     presence: { kind: 'required' } satisfies Presence,
     declaration: {
       kind: 'class_property',

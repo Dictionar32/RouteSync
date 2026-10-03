@@ -1,5 +1,5 @@
 import { createDomainAstJudgment, type ResponseAst } from '../../../types/upstream/ast';
-import type { ResponseDtoDeclarationAst, PhpPropertyTypeAst } from '../lexer/responseDtoAstTypes';
+import type { ResponseDtoDeclarationAst } from '../lexer/responseDtoAstTypes';
 import type { ControllerMethodAst } from '../lexer/controllerAstTypes';
 import { controllerReturnSemanticFromMethod } from './controller/controllerAstCanonical';
 import type { ControllerReturnSemantic } from '../../../types/upstream/controller';
@@ -25,25 +25,7 @@ export interface ResponseProducer {
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const sequence = <T>(items: readonly T[], index = items.length - 1, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> => relationGate(index < 0, () => tail, () => sequence(items, index - 1, { kind: 'cons', head: items[index], tail }));
 
-type PrimitiveName = Extract<PhpPropertyTypeAst, { readonly kind: 'primitive' }>['name'];
-const primitiveTypeCatalog: readonly (readonly [PrimitiveName, TypeExpression])[] = Object.freeze([
-  ['bool', { kind: 'primitive', value: { kind: 'boolean' } }],
-  ['int', { kind: 'primitive', value: { kind: 'number' } }],
-  ['float', { kind: 'primitive', value: { kind: 'number' } }],
-  ['string', { kind: 'primitive', value: { kind: 'string' } }],
-]);
-const primitiveType = (name: PrimitiveName): TypeExpression => relationLookup(primitiveTypeCatalog, name);
-
-type TypeResolution = (type: PhpPropertyTypeAst) => TypeExpression;
-const typeCatalog: readonly (readonly [PhpPropertyTypeAst['kind'], TypeResolution])[] = Object.freeze([
-  ['primitive', type => primitiveType(type.name)],
-  ['mixed', () => ({ kind: 'mixed' } as TypeExpression)],
-  ['named', type => ({ kind: 'reference', value: { kind: 'class', name: { kind: 'class_name', value: stringValue(type.name) } } } as TypeExpression)],
-]);
-function typeExpression(type: PhpPropertyTypeAst): TypeExpression {
-  const value = relationOptionFold(relationLookup(typeCatalog, type.kind), () => ({ kind: 'mixed' } as TypeExpression), resolver => resolver(type));
-  return relationGate(relationEqual(type.nullable, true), () => ({ kind: 'nullable', value }), () => value);
-}
+const typeExpression = (type: import('../../../types/upstream/typeVocabulary').TypeExpression): import('../../../types/upstream/typeVocabulary').TypeExpression => type;
 
 const defaultStatus: HttpStatusCode = {
   kind: 'http_status_code',

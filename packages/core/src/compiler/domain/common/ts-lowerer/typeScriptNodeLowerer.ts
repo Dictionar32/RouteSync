@@ -6,10 +6,10 @@
 import type { ResolvedSemanticType, ResolvedObjectType } from '../ResolvedSemanticType';
 import { matchResolvedSemanticType } from '../ResolvedSemanticType';
 import { TypeScriptLowererOptions } from './typeScriptVocabulary';
-import { resolveTypeScriptLoweringOperation } from './typeScriptLoweringSemanticRelations';
+import { resolveTypeScriptLoweringFromType } from './typeScriptLoweringSemanticRelations';
 import { resolveTypeScriptPrimitiveToken } from './typeScriptPrimitiveSemanticRelations';
 import type { ResolvedPrimitiveKind } from '../resolved-types';
-import { relationProject, relationResolve } from '../../../../semantic/kernel/relationalSequence';
+import { relationProject, relationResolve, relationFirstOption, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { resolveTypeScriptSurfaceToken } from './typeScriptTargetSurfaceRelations';
 import { TypeScriptSyntax } from './typeScriptSyntax';
@@ -39,8 +39,8 @@ const lowerCollection = (elementType: ResolvedSemanticType, context: LoweringCon
 };
 
 const lowerObject = (resolved: ResolvedObjectType, context: LoweringContext): string =>
-    relationResolve(
-        relationEqual(resolved.fields.length, 0),
+    relationOptionFold(
+        relationFirstOption(resolved.fields, () => true),
         () => 'object',
         () => `{ ${relationProject(resolved.fields, ({ name, type, presence }) => {
             const propertyName = relationResolve(
@@ -65,7 +65,7 @@ export function lowerTypeScriptNode(
     singleLine: boolean,
     indentLevel: number,
 ): string {
-    const operation = resolveTypeScriptLoweringOperation(resolved.kind);
+    const operation = resolveTypeScriptLoweringFromType(resolved.kind).operation;
     return matchResolvedSemanticType(resolved, {
         primitive: type => relationResolve(relationEqual(operation, 'primitive'), () => lowerPrimitive(type.primitiveKind), () => lowerUnknown()),
         reference: type => relationResolve(relationEqual(operation, 'reference'), () => lowerReference(type.name), () => lowerUnknown()),

@@ -11,7 +11,7 @@ import { knowledgeIdKey, type KnowledgeId, type SemanticBinding, type SemanticKn
 import type { ResponseReference } from '../../../../types/upstream/semanticReferences';
 import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationLookup, relationAll, relationAny } from '../../../../semantic/kernel/relationalSequence';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { solveCandidate, requirement } from '../../../../semantic/kernel/requirementSolver';
+import { solveCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 const emptySemanticKnowledgeDataFlow: SemanticKnowledgeDataFlow = Object.freeze({
     facts: Object.freeze([]),

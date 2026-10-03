@@ -1,5 +1,5 @@
 import { compileSemanticRelationExecutionPlans } from './semanticRelationalExecutionPlan';
-import { solveSemanticRelationsDetailed } from './semanticRelationSolver';
+import { solveSemanticRelationsDetailed } from './semanticRewriteEngine';
 
 const rules = [
   {

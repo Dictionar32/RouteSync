@@ -5,7 +5,7 @@ import type { DominatorTree } from '../DominatorAnalysis';
 import { createVariableVersionScope, type VariableVersionScope } from './renamer/variableVersionScope';
 import { renameBlockInstructions, updateSuccessorPhis } from './renamer';
 import { basicBlockLookup, basicBlockReplace, createControlFlowGraph } from '../../utils/ControlFlowGraph';
-import { relationFold, relationOptionFold, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationAny, relationFold, relationOptionFold, relationResolve, relationVariantValue, relationRefine } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../semantic/kernel/relationFoundation';
 
 export interface SSARenamer { readonly rename: (cfg: ControlFlowGraph, dom: DominatorTree) => ControlFlowGraph; }
@@ -13,10 +13,13 @@ export interface SSARenamer { readonly rename: (cfg: ControlFlowGraph, dom: Domi
 const relationIsDefinition = (instruction: Expression | Instruction): boolean =>
     relationResolve(relationEqual(instruction.kind, 'Assign'), () => true, () => relationEqual(instruction.kind, 'Phi'));
 
-const definitionTarget = (instruction: Instruction): number => relationResolve(
-    relationEqual(instruction.kind, 'Assign'),
-    () => (instruction as Extract<Instruction, { kind: 'Assign' }>).target,
-    () => (instruction as Extract<Instruction, { kind: 'Phi' }>).target,
+const definitionTarget = (instruction: Expression | Instruction): number => relationOptionFold(
+    relationRefine(instruction, (candidate): candidate is Extract<Instruction, { readonly kind: 'Assign' | 'Phi' }> =>
+        relationAny([relationEqual(candidate.kind, 'Assign'), relationEqual(candidate.kind, 'Phi')])),
+    () => { throw Error('SSA definition target requested for a non-definition instruction'); },
+    value => relationResolve(relationEqual(value.kind, 'Assign'),
+        () => relationVariantValue(value, 'Assign').target,
+        () => relationVariantValue(value, 'Phi').target),
 );
 
 const initializeScope = (blocks: BasicBlockRelation): VariableVersionScope => relationFold(
@@ -27,7 +30,7 @@ const initializeScope = (blocks: BasicBlockRelation): VariableVersionScope => re
         scope,
         (current, instruction) => relationResolve(
             relationEqual(instruction.kind, 'Assign'),
-            () => current.init((instruction as Extract<Instruction, { kind: 'Assign' }>).target),
+            () => current.init(relationVariantValue(instruction, 'Assign').target),
             () => current,
         ),
     ),
@@ -44,7 +47,7 @@ const popDefinitions = (
         const instruction = instructions[index];
         const next = relationResolve(
             relationIsDefinition(instruction),
-            () => scope.popVersion(definitionTarget(instruction as Instruction)),
+            () => scope.popVersion(definitionTarget(instruction)),
             () => scope,
         );
         return popDefinitions(instructions, next, index + 1);
@@ -60,7 +63,15 @@ const renameBlock = (
     basicBlockLookup(blocks, blockId),
     () => [blocks, scope] as const,
     block => {
-        const instructionFacts = relationFold(block.instructions, [] as readonly Instruction[], (facts, instruction) => relationResolve('kind' in instruction, () => [...facts, instruction as Instruction], () => facts));
+        const instructionFacts = relationFold(block.instructions, [] as readonly Instruction[], (facts, instruction) => relationOptionFold(
+            relationRefine(instruction, (candidate): candidate is Instruction => relationAny([
+                relationEqual(candidate.kind, 'Assign'), relationEqual(candidate.kind, 'Jump'), relationEqual(candidate.kind, 'Branch'),
+                relationEqual(candidate.kind, 'Call'), relationEqual(candidate.kind, 'Return'), relationEqual(candidate.kind, 'Phi'),
+                relationEqual(candidate.kind, 'LoadProperty'), relationEqual(candidate.kind, 'StoreProperty'),
+            ])),
+            () => facts,
+            value => [...facts, value],
+        ));
         const renamed = renameBlockInstructions(instructionFacts, scope);
         const withBlock = basicBlockReplace(blocks, blockId, Object.freeze({ ...block, instructions: renamed.instructions }));
         const withSuccessorPhis = updateSuccessorPhis(blockId, block.successors, withBlock, renamed.scope);

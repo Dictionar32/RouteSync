@@ -1,9 +1,9 @@
 import { PHP_STATEMENT_KINDS } from './phpAstStatementKinds';
-import type { AstIdentifier, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
+import type { AstIdentifier, PhpAstValue, PhpBlock, PhpStatement, PhpIfAlternative, TokenDescriptor } from './phpAstTypes';
 import { createSourceOffset } from './phpAstCoreTypes';
 import { PhpAstFactory } from './phpAstFactory';
 import type { ControllerDataflowAst, ControllerVariableDefinition, ControllerVariableReference, LegacyControllerDefinitionAvailability } from './controllerBodyAstTypes';
-import { relationNone, relationOptionFold, relationSome, relationProject, relationSelect, relationGate } from '../../../semantic/kernel/relationalSequence';
+import { relationNone, relationOptionFold, relationSome, relationProject, relationSelect, relationGate, relationRefine } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual, relationAny } from '../../../semantic/kernel/semanticRelations';
 import { produceSemanticKnowledgeDataFlow } from './routeAst/semanticKnowledgeDataFlowProducer';
 import { knowledgeIdKey, type KnowledgeId, type SemanticKnowledgeDataFlow, type SemanticPresence } from './routeAst/semanticKnowledgeDataFlowRelations';
@@ -79,7 +79,11 @@ function collectStatementPayloads(block: PhpBlock): readonly StatementPayload[] 
     return relationProject(visit(block), (item, index) => Object.freeze({ ...item, statementIndex: index }));
 }
 
-const alternativeBlock = (statement: Extract<PhpStatement, { kind: typeof PHP_STATEMENT_KINDS.conditional }>): RelationOption<PhpBlock> => relationGate(
+type ConditionalStatement = Readonly<{ readonly kind: typeof PHP_STATEMENT_KINDS.conditional; readonly condition: PhpAstValue; readonly thenBlock: PhpBlock; readonly alternative: PhpIfAlternative; readonly source: TokenDescriptor }>;
+
+const conditionalStatement = (statement: PhpStatement): RelationOption<ConditionalStatement> => relationRefine(statement, (candidate): candidate is ConditionalStatement => relationEqual(candidate.kind, PHP_STATEMENT_KINDS.conditional));
+
+const alternativeBlock = (statement: ConditionalStatement): RelationOption<PhpBlock> => relationGate(
     relationEqual(statement.alternative.kind, 'else_block'),
     () => relationSome(statement.alternative.block),
     () => relationGate(
@@ -101,10 +105,7 @@ const finallyBlock = (statement: PhpStatement): RelationOption<PhpBlock> => rela
 
 const nestedBlocks = (statement: PhpStatement): readonly PhpBlock[] => relationGate(
     relationEqual(statement.kind, PHP_STATEMENT_KINDS.conditional),
-    () => {
-        const conditional = statement as Extract<PhpStatement, { kind: typeof PHP_STATEMENT_KINDS.conditional }>;
-        return [conditional.thenBlock, ...relationOptionFold(alternativeBlock(conditional), () => [], value => [value])];
-    },
+    () => relationOptionFold(conditionalStatement(statement), () => [], conditional => [conditional.thenBlock, ...relationOptionFold(alternativeBlock(conditional), () => [], value => [value])]),
     () => relationGate(
         relationAny([
             relationEqual(statement.kind, PHP_STATEMENT_KINDS.preTestRecurrence),

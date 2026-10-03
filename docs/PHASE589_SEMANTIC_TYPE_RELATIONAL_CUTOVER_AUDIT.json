@@ -11,25 +11,25 @@
     "packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts",
     "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts"
   ],
-  "files": 26,
+  "files": 27,
   "aggregate": {
-    "if": 1,
-    "for": 21,
+    "if": 10,
+    "for": 22,
     "while": 0,
     "switch": 0,
-    "map": 1,
-    "filter": 0,
+    "map": 2,
+    "filter": 2,
     "reduce": 0,
     "flatMap": 0,
-    "undefined": 2,
-    "nullish": 0,
-    "null": 3,
-    "strictEqual": 0,
-    "strictNotEqual": 0,
+    "undefined": 11,
+    "nullish": 2,
+    "null": 2,
+    "strictEqual": 15,
+    "strictNotEqual": 8,
     "asUnknown": 0,
     "set": 0,
     "any": 0,
-    "new": 70
+    "new": 11
   },
   "rows": [
     {
@@ -307,9 +307,9 @@
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 1,
+        "undefined": 0,
         "nullish": 0,
-        "null": 1,
+        "null": 0,
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
@@ -345,6 +345,28 @@
       "counts": {
         "if": 0,
         "for": 1,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "nullish": 0,
+        "null": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
         "map": 0,
@@ -491,7 +513,7 @@
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 3
+        "new": 0
       }
     },
     {
@@ -513,29 +535,29 @@
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 14
+        "new": 0
       }
     },
     {
       "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
       "counts": {
-        "if": 0,
-        "for": 2,
+        "if": 9,
+        "for": 3,
         "while": 0,
         "switch": 0,
-        "map": 0,
-        "filter": 0,
+        "map": 1,
+        "filter": 2,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 0,
-        "nullish": 0,
+        "undefined": 10,
+        "nullish": 2,
         "null": 0,
-        "strictEqual": 0,
-        "strictNotEqual": 0,
+        "strictEqual": 15,
+        "strictNotEqual": 8,
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 18
+        "new": 11
       }
     },
     {
@@ -557,7 +579,7 @@
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 14
+        "new": 0
       }
     },
     {
@@ -579,7 +601,7 @@
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 11
+        "new": 0
       }
     },
     {
@@ -601,7 +623,7 @@
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 10
+        "new": 0
       }
     }
   ]

@@ -1,5 +1,5 @@
 import type { FormRequestSource, RequestField } from '../../../types/domain/request';
-import type { RequestAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type RequestAst } from '../../../types/upstream/ast';
 import type { RequestDefinition, RequestFieldTarget, RequestField as UpstreamRequestField, ValidationRule, FileValidationConstraint, FileValidationConstraints } from '../../../types/upstream/request';
 import type { RequestFields, ValidationRules, Sequence, PropertyPath } from '../../../types/upstream/collections';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -10,7 +10,7 @@ import type { NumberValue, StringValue, StringValues } from '../../../types/upst
 import type { PropertyReference } from '../../../types/upstream/semanticReferences';
 import { PrimitiveKind, type SemanticTypeVisitor } from '../../types/SemanticType';
 import type { RequestFieldMeaning, RequestFieldMeaningVisitor } from '../../../types/domain/requestFieldMeaning';
-import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice } from '../../../semantic/kernel/relationalSequence';
+import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
 import { relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
 
 const str = (value: string): StringValue => ({ kind: 'string_value', value });
@@ -49,11 +49,7 @@ function presence(field: RequestField): Presence {
 
 function fieldType(field: RequestField): TypeExpression {
     const base = semanticTypeFromMeaning(field.meaning, field.source);
-    return relationGate(
-        relationAny([relationEqual(field.presence.kind, 'required'), relationEqual(field.presence.kind, 'optional')]),
-        () => relationGate((field.presence as Extract<RequestField['presence'], { readonly kind: 'required' | 'optional' }>).nullable, () => ({ kind: 'nullable' as const, value: base }), () => base),
-        () => base,
-    );
+    return relationVariantFold(field.presence, 'required', () => relationVariantFold(field.presence, 'optional', () => base, value => relationGate(value.nullable, () => ({ kind: 'nullable' as const, value: base }), () => base)), value => relationGate(value.nullable, () => ({ kind: 'nullable' as const, value: base }), () => base));
 }
 
 function semanticTypeFromMeaning(meaning: RequestFieldMeaning, fieldSource: SourceSpan): TypeExpression {
@@ -143,64 +139,71 @@ function rules(field: RequestField): ValidationRules {
 
 type RequestValidationRule = RequestField['validation'][number];
 type ValidationRuleHandlers = {
-    [K in RequestValidationRule['kind']]: (
-        rule: Extract<RequestValidationRule, { readonly kind: K }>,
-        fieldSource: SourceSpan,
-    ) => ValidationRule;
+    readonly [K in RequestValidationRule['kind']]: (rule: RequestValidationRule, fieldSource: SourceSpan) => ValidationRule;
 };
+
+type ValidationRuleImplementation<K extends RequestValidationRule['kind']> = (
+    rule: RelationVariant<RequestValidationRule, K>,
+    fieldSource: SourceSpan,
+) => ValidationRule;
+
+const validationRuleHandler = <K extends RequestValidationRule['kind']>(
+    kind: K,
+    implementation: ValidationRuleImplementation<K>,
+): ((rule: RequestValidationRule, fieldSource: SourceSpan) => ValidationRule) =>
+    (rule, fieldSource) => implementation(relationVariantValue(rule, kind), fieldSource);
 
 const validationRuleHandlers: ValidationRuleHandlers = {
     required: () => ({ kind: 'required' }),
-    required_with: (rule) => ({ kind: 'required_with', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } }),
-    required_with_all: (rule) => ({ kind: 'required_with_all', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } }),
-    required_without: (rule) => ({ kind: 'required_without', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } }),
-    required_without_all: (rule) => ({ kind: 'required_without_all', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } }),
-    required_if: (rule) => ({ kind: 'required_if', field: path(rule.field.value), values: { kind: 'string_values', items: seq(relationProject(rule.values, value => str(value.value))) } }),
-    required_unless: (rule) => ({ kind: 'required_unless', field: path(rule.field.value), values: { kind: 'string_values', items: seq(relationProject(rule.values, value => str(value.value))) } }),
+    required_with: validationRuleHandler('required_with', rule => ({ kind: 'required_with', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } })),
+    required_with_all: validationRuleHandler('required_with_all', rule => ({ kind: 'required_with_all', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } })),
+    required_without: validationRuleHandler('required_without', rule => ({ kind: 'required_without', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } })),
+    required_without_all: validationRuleHandler('required_without_all', rule => ({ kind: 'required_without_all', fields: { kind: 'property_paths', items: seq(relationProject(rule.fields, field => path(field.value.value))) } })),
+    required_if: validationRuleHandler('required_if', rule => ({ kind: 'required_if', field: path(rule.field.value), values: { kind: 'string_values', items: seq(relationProject(rule.values, value => str(value.value))) } })),
+    required_unless: validationRuleHandler('required_unless', rule => ({ kind: 'required_unless', field: path(rule.field.value), values: { kind: 'string_values', items: seq(relationProject(rule.values, value => str(value.value))) } })),
     nullable: () => ({ kind: 'nullable' }),
     optional: () => ({ kind: 'optional' }),
     string: () => ({ kind: 'string' }),
     number: () => ({ kind: 'numeric' }),
     boolean: () => ({ kind: 'boolean' }),
-    array: (rule, fieldSource) => ({ kind: 'array', element: relationGate(relationEqual(rule.elementType.kind, 'specified'), () => semanticTypeFromDomainType((rule.elementType as Extract<typeof rule.elementType, { readonly kind: 'specified' }>).type, fieldSource), () => ({ kind: 'unspecified' })) }),
+    array: validationRuleHandler('array', (rule, fieldSource) => ({ kind: 'array', element: relationGate(relationEqual(rule.elementType.kind, 'specified'), () => semanticTypeFromDomainType(relationVariantValue(rule.elementType, 'specified').type, fieldSource), () => ({ kind: 'unspecified' })) })),
     email: () => ({ kind: 'email' }),
     url: () => ({ kind: 'url' }),
-    min: (rule) => ({ kind: 'min', value: { kind: 'number_value', value: rule.value.value } }),
-    max: (rule) => ({ kind: 'max', value: { kind: 'number_value', value: rule.value.value } }),
+    min: validationRuleHandler('min', rule => ({ kind: 'min', value: { kind: 'number_value', value: rule.value.value } })),
+    max: validationRuleHandler('max', rule => ({ kind: 'max', value: { kind: 'number_value', value: rule.value.value } })),
     uuid: () => ({ kind: 'uuid' }),
-    date: (rule) => ({ kind: 'date', format: relationGate(relationEqual(rule.format.kind, 'specified'), () => ({ kind: 'date_format', value: str((rule.format as Extract<typeof rule.format, { readonly kind: 'specified' }>).format.value) }), () => ({ kind: 'unspecified' })) }),
-    between: (rule) => ({ kind: 'between', min: { kind: 'validation_constraint_value', value: { kind: 'number_value', value: rule.min.value } }, max: { kind: 'validation_constraint_value', value: { kind: 'number_value', value: rule.max.value } } }),
-    in: (rule) => ({ kind: 'in', values: { kind: 'string_values', items: seq(relationProject(rule.values, value => str(value.value))) } }),
-    exists: (rule) => ({ kind: 'exists', table: tableName(rule.table.value.value), column: relationGate(relationEqual(rule.column.kind, 'explicit_column'), () => ({ kind: 'explicit_column', column: columnName((rule.column as Extract<typeof rule.column, { readonly kind: 'explicit_column' }>).column.value.value) }), () => ({ kind: 'default_column' })) }),
-    unique: (rule) => ({ kind: 'unique', table: tableName(rule.table.value.value), column: relationGate(relationEqual(rule.column.kind, 'explicit_column'), () => ({ kind: 'explicit_column', column: columnName((rule.column as Extract<typeof rule.column, { readonly kind: 'explicit_column' }>).column.value.value) }), () => ({ kind: 'default_column' })), target: relationGate(relationEqual(rule.target.kind, 'ignore'), () => ({ kind: 'ignore', value: { kind: 'expression', expression: (rule.target as Extract<typeof rule.target, { readonly kind: 'ignore' }>).value } }), () => ({ kind: 'all' })) }),
+    date: validationRuleHandler('date', rule => ({ kind: 'date', format: relationGate(relationEqual(rule.format.kind, 'specified'), () => ({ kind: 'date_format', value: str(relationVariantValue(rule.format, 'specified').format.value) }), () => ({ kind: 'unspecified' })) })),
+    between: validationRuleHandler('between', rule => ({ kind: 'between', min: { kind: 'validation_constraint_value', value: { kind: 'number_value', value: rule.min.value } }, max: { kind: 'validation_constraint_value', value: { kind: 'number_value', value: rule.max.value } } })),
+    in: validationRuleHandler('in', rule => ({ kind: 'in', values: { kind: 'string_values', items: seq(relationProject(rule.values, value => str(value.value))) } })),
+    exists: validationRuleHandler('exists', rule => ({ kind: 'exists', table: tableName(rule.table.value.value), column: relationGate(relationEqual(rule.column.kind, 'explicit_column'), () => ({ kind: 'explicit_column', column: columnName(relationVariantValue(rule.column, 'explicit_column').column.value.value) }), () => ({ kind: 'default_column' })) })),
+    unique: validationRuleHandler('unique', rule => ({ kind: 'unique', table: tableName(rule.table.value.value), column: relationGate(relationEqual(rule.column.kind, 'explicit_column'), () => ({ kind: 'explicit_column', column: columnName(relationVariantValue(rule.column, 'explicit_column').column.value.value) }), () => ({ kind: 'default_column' })), target: relationGate(relationEqual(rule.target.kind, 'ignore'), () => ({ kind: 'ignore', value: { kind: 'expression', expression: relationVariantValue(rule.target, 'ignore').value } }), () => ({ kind: 'all' })) })),
     file: () => ({ kind: 'file' }),
     image: () => ({ kind: 'image' }),
-    custom: (rule) => ({ kind: 'named', rule: { kind: 'validation_rule_name', value: str(rule.rule.value) }, parameters: seq(relationProject(rule.parameters, value => ({ kind: 'validation_parameter' as const, value: str(value.value) }))) }),
+    custom: validationRuleHandler('custom', rule => ({ kind: 'named', rule: { kind: 'validation_rule_name', value: str(rule.rule.value) }, parameters: seq(relationProject(rule.parameters, value => ({ kind: 'validation_parameter' as const, value: str(value.value) }))) })),
 };
 
-function mapRule<K extends RequestValidationRule['kind']>(rule: Extract<RequestValidationRule, { readonly kind: K }>, fieldSource: SourceSpan): ValidationRule {
-    const handler = validationRuleHandlers[rule.kind];
-    return handler(rule as Extract<RequestValidationRule, { readonly kind: K }>, fieldSource);
+function mapRule(rule: RequestValidationRule, fieldSource: SourceSpan): ValidationRule {
+    return validationRuleHandlers[rule.kind](rule, fieldSource);
 }
 
 const tableName = (value: string): TableName => ({ kind: 'table_name', value: str(value) });
 const columnName = (value: string): ColumnName => ({ kind: 'column_name', value: str(value) });
 
 function requirement(field: RequestField): UpstreamRequestField['requirement'] {
-    const requirementKind = field.requirement.kind;
-    const conditional = relationAny([
-        relationEqual(requirementKind, 'required_with'),
-        relationEqual(requirementKind, 'required_with_all'),
-        relationEqual(requirementKind, 'required_without'),
-        relationEqual(requirementKind, 'required_without_all'),
-    ]);
-    return relationGate<UpstreamRequestField['requirement']>(
-        relationEqual(requirementKind, 'unconditional'),
-        () => ({ kind: 'unconditional' }),
-        () => relationGate(
-            conditional,
-            () => ({ kind: requirementKind, fields: { kind: 'property_paths', items: seq(relationProject((field.requirement as Extract<RequestField['requirement'], { readonly kind: 'required_with' | 'required_with_all' | 'required_without' | 'required_without_all' }>).fields, value => propertyPath(value.value.value))) } }),
-            () => ({ kind: requirementKind, field: propertyPath((field.requirement as Extract<RequestField['requirement'], { readonly kind: 'required_if' | 'required_unless' }>).field.value), values: { kind: 'string_values', items: seq(relationProject((field.requirement as Extract<RequestField['requirement'], { readonly kind: 'required_if' | 'required_unless' }>).values, value => str(value.value))) } }),
+    const value = field.requirement;
+    const conditionalField = (kind: 'required_if' | 'required_unless', candidate: RequestField['requirement']): UpstreamRequestField['requirement'] => {
+        const refined = relationVariantValue(candidate, kind);
+        return { kind, field: propertyPath(refined.field.value), values: { kind: 'string_values', items: seq(relationProject(refined.values, item => str(item.value))) } };
+    };
+    return relationVariantFold(value, 'unconditional', () => ({ kind: 'unconditional' }), () =>
+        relationVariantFold(value, 'required_with', () => ({ kind: 'required_with', fields: { kind: 'property_paths', items: seq(relationProject(relationVariantValue(value, 'required_with').fields, item => propertyPath(item.value.value))) } }),
+            () => relationVariantFold(value, 'required_with_all', () => ({ kind: 'required_with_all', fields: { kind: 'property_paths', items: seq(relationProject(relationVariantValue(value, 'required_with_all').fields, item => propertyPath(item.value.value))) } }),
+                () => relationVariantFold(value, 'required_without', () => ({ kind: 'required_without', fields: { kind: 'property_paths', items: seq(relationProject(relationVariantValue(value, 'required_without').fields, item => propertyPath(item.value.value))) } }),
+                    () => relationVariantFold(value, 'required_without_all', () => ({ kind: 'required_without_all', fields: { kind: 'property_paths', items: seq(relationProject(relationVariantValue(value, 'required_without_all').fields, item => propertyPath(item.value.value))) } }),
+                        () => relationVariantFold(value, 'required_if', () => conditionalField('required_if', value), () => conditionalField('required_unless', value)),
+                    ),
+                ),
+            ),
         ),
     );
 }
@@ -261,7 +264,7 @@ export function requestAstFromSource(request: FormRequestSource): RequestAst {
     const sourceSpan = source(request);
     const fields: RequestFields = {
         kind: 'request_fields',
-        items: seq(relationProject(request.fields, item => buildRequestField(item)))
+        items: seq(relationProject(request.fields, item => buildRequestField(item))),
     };
     const schema = {
         kind: 'request_schema' as const,
@@ -269,14 +272,14 @@ export function requestAstFromSource(request: FormRequestSource): RequestAst {
         policy: {
             kind: 'request_validation_policy' as const,
             failure: { kind: 'continue' as const },
-            unknownFields: { kind: 'accepted' as const, origin: { kind: 'laravel_default' as const } }
+            unknownFields: { kind: 'accepted' as const, origin: { kind: 'laravel_default' as const } },
         },
         messages: { kind: 'validation_messages' as const, items: seq([]) },
-        attributes: { kind: 'validation_attributes' as const, items: seq([]) }
+        attributes: { kind: 'validation_attributes' as const, items: seq([]) },
     };
     const lifecycle = {
         kind: 'request_validation_lifecycles' as const,
-        items: seq([])
+        items: seq([]),
     };
     const authorization = relationGate<{ readonly kind: 'authorized' | 'denied'; readonly origin: { readonly kind: 'source_explicit' } }>(
         relationEqual(request.authorization.kind, 'authorized'),
@@ -291,9 +294,9 @@ export function requestAstFromSource(request: FormRequestSource): RequestAst {
         failureResponse: {
             kind: 'request_failure_response_configuration' as const,
             redirect: { kind: 'default' as const },
-            errorBag: { kind: 'default' as const }
+            errorBag: { kind: 'default' as const },
         },
-        validatedInput: seq([])
+        validatedInput: seq([]),
     };
     const http = {
         kind: 'request_http_context' as const,
@@ -304,18 +307,18 @@ export function requestAstFromSource(request: FormRequestSource): RequestAst {
         host: { kind: 'unspecified' as const },
         httpHost: { kind: 'unspecified' as const },
         schemeAndHttpHost: { kind: 'unspecified' as const },
-        inputAccesses: { kind: 'request_input_accesses' as const, items: seq([]) }
+        inputAccesses: { kind: 'request_input_accesses' as const, items: seq([]) },
     };
     const definition: RequestDefinition = {
         kind: 'request',
         identity: {
             kind: 'form_request_identity',
             request: requestName(request.identity.requestClass.value.value),
-            formType: formTypeName(request.identity.formType.value.value)
+            formType: formTypeName(request.identity.formType.value.value),
         },
         http,
         validation,
         source: sourceSpan,
     };
-    return { kind: 'request_ast', definition, source: sourceSpan };
+    return createDomainAstJudgment({ kind: 'request_ast', semantic: definition, source: sourceSpan });
 }

@@ -13,7 +13,7 @@ import {
 } from "../../../../../types/route";
 import { relationOptionalFold } from "../../../../../semantic/kernel/relationalSequence";
 import { buildRouteHandler } from "../../request/controllerActionTypes";
-import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
+import { emptyRouteSchemaPayload } from "../../../../../types/domain/validationRules";
 import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 import type { RouteBoundaryOptions } from "../../../resolvers";
 import type { PropertyName } from "../../../../../types/upstream/names";

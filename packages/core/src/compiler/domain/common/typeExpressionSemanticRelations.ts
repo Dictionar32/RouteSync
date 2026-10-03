@@ -8,7 +8,7 @@ import {
     solveSemanticRelations,
     type SemanticRelation,
     type SemanticRelationRewrite,
-} from '../../scanner/lexer/routeAst/semanticRelationSolver';
+} from '../../scanner/lexer/routeAst/semanticRewriteEngine';
 import type { PrimitiveVocabulary } from '../../../types/upstream/primitiveVocabulary';
 import type { TypeExpression } from '../../../types/upstream/typeVocabulary';
 import { relationAny, relationAll, relationEqual } from '../../../semantic/kernel/semanticRelations';

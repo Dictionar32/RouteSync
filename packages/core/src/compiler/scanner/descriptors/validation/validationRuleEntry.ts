@@ -29,7 +29,7 @@ import {
     relationRange,
     relationResolve,
 } from "../../../../semantic/kernel/relationalSequence";
-import { solveCandidate } from "../../../../semantic/kernel/requirementSolver";
+import { solveCandidate } from "../../../../semantic/kernel/semanticDecisionRewriteEngine";
 
 export interface ScannedRouteValidationRuleParams {
     readonly fieldName: PropertyName;

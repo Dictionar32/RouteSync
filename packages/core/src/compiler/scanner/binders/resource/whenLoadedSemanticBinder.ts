@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
+import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
 import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";

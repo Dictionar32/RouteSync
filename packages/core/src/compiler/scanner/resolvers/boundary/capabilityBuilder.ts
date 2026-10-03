@@ -6,7 +6,8 @@
 
 import type { RouteCapabilityContract } from "../../../../types/route";
 import { RouteSecurityResolver } from "../RouteSecurityResolver";
-import { relationOptionFold, relationSome, relationNone, relationGate } from "../../../../semantic/kernel/relationalSequence";
+import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
 import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasics";
 import type { ResolvedRouteCapability } from "./capabilityResolution";
 
@@ -15,7 +16,7 @@ export function buildRouteCapabilityContract(
     basics: IntermediateRouteBoundaryBasics,
     resolved: ResolvedRouteCapability
 ): RouteCapabilityContract {
-    const middleware = relationOptionFold(relationGate(Boolean(params.middleware), () => relationSome(params.middleware as NonNullable<RouteBoundaryOptions['middleware']>), () => relationNone()), () => [], value => value);
+    const middleware = presenceFold(presenceOf(params.middleware), () => [], value => value);
     const auth = relationEqual(params.auth, true);
     const security = RouteSecurityResolver.resolve(middleware, auth);
 

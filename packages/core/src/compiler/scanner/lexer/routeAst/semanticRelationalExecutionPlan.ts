@@ -7,7 +7,7 @@ import { relationAll, relationEqual } from '../../../../semantic/kernel/semantic
  * solver runs. The solver consumes this plan rather than interpreting the
  * rewrite declaration itself. The plan is therefore the execution authority.
  */
-import type { SemanticRelationPattern, SemanticRelationRewrite, } from './semanticRelationSolver';
+import type { SemanticRelationPattern, SemanticRelationRewrite, } from './semanticRewriteEngine';
 
 export type SemanticRelationPlanSort = 'entity' | 'predicate' | 'value' | 'effect' | 'resource' | 'state' | 'relation-target';
 export interface SemanticRelationPlanSchema<R extends string = string> {

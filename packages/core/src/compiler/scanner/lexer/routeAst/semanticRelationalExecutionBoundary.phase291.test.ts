@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 const root = resolve(__dirname);
 const targets = [
-  'semanticRelationSolver.ts',
+  'semanticRewriteEngine.ts',
   'semanticConstraintCalculus.ts',
   'semanticRewriteEngine.ts',
   'phpAstSemanticKnowledgeDataFlowAdapter.ts',

@@ -12,7 +12,7 @@ import { relationContains, relationUnique } from '../../../../semantic/kernel/re
  * can explain not only WHAT is true, but WHY it became true.
  */
 import { solveSemanticBehavior, type SemanticBehaviorClosure, type SemanticBehaviorRelation, } from './semanticRelationalBehaviorKernel';
-import type { SemanticRelation } from './semanticRelationSolver';
+import type { SemanticRelation } from './semanticRewriteEngine';
 import { project, retain, visit } from './semanticRelationalCollections';
 import { semanticTheoryFact, validateSemanticTheoryFact, type SemanticTheoryFact, type SemanticTheoryAtom } from './semanticRelationTheory';
 export interface SemanticClosureEvidence {

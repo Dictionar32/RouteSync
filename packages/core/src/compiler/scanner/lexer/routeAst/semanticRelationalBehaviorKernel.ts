@@ -11,7 +11,7 @@ import { relationOptionalFold } from '../../../../semantic/kernel/relationalSequ
  * concepts. Such constructs may be reconstructed only by a target-specific
  * lowering after semantic closure.
  */
-import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationDerivation, } from './semanticRelationSolver';
+import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationDerivation, } from './semanticRewriteEngine';
 import { solveSemanticConstraintProgram } from './semanticConstraintCalculus';
 import { semanticTheoryFact, validateSemanticTheoryFact } from './semanticRelationTheory';
 import { SEMANTIC_BEHAVIOR_RULES, SEMANTIC_BEHAVIOR_PROGRAM, SEMANTIC_BEHAVIOR_CONSTRAINT_RULES, } from './semanticRelationalBehaviorCatalog';

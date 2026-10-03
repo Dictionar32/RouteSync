@@ -2,7 +2,7 @@ import { relationAll, relationEqual, relationResolve } from '../../../relational
 import { relationFirstOption, relationOptionFold, type RelationOption, relationCatalogValueOr } from '../../../../semantic/kernel/relationalSequence';
 import type { KnowledgeId, SemanticCallable, SemanticEmission, SemanticInvocation, SemanticKnowledgeDataFlow, SemanticDataFlowFact, SemanticFact } from './semanticKnowledgeDataFlowRelations';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
-import { solveSemanticRelations, type SemanticRelationRewrite } from './semanticRelationSolver';
+import { solveSemanticRelations, type SemanticRelationRewrite } from './semanticRewriteEngine';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 
 export interface SemanticCallTarget { readonly invocation: SemanticInvocation; readonly callable: SemanticCallable; }

@@ -35,12 +35,20 @@ export {
   relationFirstOr,
   relationMapValueOr,
   relationAt,
+  relationTextEnclosedFields,
+  relationTextFind,
+  relationTextReplaceEnclosed,
+  relationTextRemoveSuffix,
+  relationTextRemovePrefix,
   relationRefine,
   relationOptionMap,
   relationRange,
   relationSlice,
   relationSequenceToArray,
   relationAdvanceIndex,
+  relationCount,
+  relationTextLength,
+  relationTextIsUpperIdentifier,
 } from './relationalSequence';
 
 import { relationAny, relationEqual, relationGate } from './relationFoundation';

@@ -19,13 +19,7 @@ import type {
 } from "../../../../types/route";
 import type { PropertyName, DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName } from "../../../../types/upstream/names";
 
-export function resolveRouteDescriptorDomain(route: {
-    readonly domain?: DomainTypeName;
-    readonly resourceName?: ResourceName;
-    readonly controllerName?: ControllerName;
-    readonly path?: RoutePath;
-    readonly actionName?: ActionName;
-}): DomainTypeName {
+export function resolveRouteDescriptorDomain(route: import("../../resolvers/RouteDomainResolver").RouteDomainResolutionContext): DomainTypeName {
     return RouteDomainResolver.resolve(route);
 }
 

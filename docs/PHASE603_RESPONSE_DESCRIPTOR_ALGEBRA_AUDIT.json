@@ -1,8 +1,8 @@
 {
   "phase": 603,
   "description": "response descriptor algebra cutover",
-  "productionFiles": 1017,
-  "zeroByteProductionFiles": 0,
+  "productionFiles": 1068,
+  "zeroByteProductionFiles": 24,
   "frontier": {
     "types/domain/responseDescriptors.ts": {
       "if": 0,
@@ -111,29 +111,29 @@
     }
   },
   "global": {
-    "if": 356,
-    "while": 6,
-    "for": 107,
-    "switch": 40,
-    "map": 144,
-    "filter": 20,
+    "if": 523,
+    "while": 9,
+    "for": 119,
+    "switch": 47,
+    "map": 197,
+    "filter": 24,
     "reduce": 6,
-    "flatMap": 3,
-    "undefined": 63,
-    "null": 14,
-    "nullish": 48,
-    "eq": 303,
-    "neq": 78,
+    "flatMap": 5,
+    "undefined": 119,
+    "null": 13,
+    "nullish": 57,
+    "eq": 476,
+    "neq": 127,
     "asUnknown": 8,
-    "Set": 24,
-    "Map": 73,
+    "Set": 30,
+    "Map": 62,
     "any": 4,
-    "new": 493,
-    "ternary": 149
+    "new": 505,
+    "ternary": 191
   },
   "constructorLeaksInResponseDescriptors": [
     {
-      "file": "/mnt/data/RouteSync-phase602-work/RouteSync-phase594-work/packages/core/src/types/domain/responseDescriptors.ts",
+      "file": "/mnt/data/RouteSync-main/packages/core/src/types/domain/responseDescriptors.ts",
       "constructors": 0
     }
   ]

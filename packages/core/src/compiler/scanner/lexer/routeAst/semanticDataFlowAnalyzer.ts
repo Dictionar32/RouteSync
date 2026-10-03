@@ -1,10 +1,13 @@
 import { relationResolve } from '../../../relational/sequence';
+import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
 import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { relationFold } from '../../../../semantic/kernel/relationalSequence';
 import type { KnowledgeId, SemanticDataFlowFact, SemanticFlowGuard, SemanticKnowledgeDataFlow, SemanticPredicatePolarity, } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 import { typedDistinct, typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
+import { astSemanticTextTerm } from '../../../../types/upstream/astSemanticInterface';
+import { createAnalysisPort, analysisFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
 /** A derived path through canonical semantic value/dependency facts. */
 export interface SemanticDataFlowPath {
     readonly source: KnowledgeId;
@@ -15,6 +18,16 @@ export interface SemanticDataFlowPath {
 export interface SemanticDataFlowAnalysis {
     readonly paths: readonly SemanticDataFlowPath[];
     readonly reachable: readonly KnowledgeId[];
+}
+
+export interface SemanticDataFlowJudgment {
+    readonly kind: 'semantic_data_flow_judgment';
+    readonly input: 'semantic_knowledge_data_flow';
+    readonly analysis: SemanticDataFlowAnalysis;
+    readonly closure: 'least_fixed_point';
+    readonly reasoning: 'declarative_relation_rewrite_fixed_point';
+    readonly derivation: 'relation_closure_saturation';
+    readonly closed: true;
 }
 const sameId = (left: KnowledgeId, right: KnowledgeId): boolean => relationEqual(knowledgeIdKey(left), knowledgeIdKey(right));
 const appendGuard = (guards: readonly SemanticFlowGuard[], guard: SemanticDataFlowFact['guard']): readonly SemanticFlowGuard[] => relationResolve(relationEqual(guard.kind, 'present'), () => [...guards, guard.value], () => guards);
@@ -35,7 +48,7 @@ const closure = (facts: readonly SemanticDataFlowFact[], paths: readonly Semanti
     const fresh = typedSelect(next, path => relationEqual(relationContains(seen, pathKey(path)), false)).tuples;
     return relationResolve(relationEqual(fresh.length, 0), () => paths, () => closure(facts, fresh, relationFold(typedProject(typedRelation(fresh), pathKey).tuples, seen, (current, key) => relationInsert(current, key))));
 };
-export const analyzeSemanticDataFlow = (model: SemanticKnowledgeDataFlow): SemanticDataFlowAnalysis => {
+const analyzeSemanticDataFlowCore = (model: SemanticKnowledgeDataFlow): SemanticDataFlowAnalysis => {
     const seeds = typedProject(typedRelation(model.dataFlow), flow => ({
         source: flow.source,
         target: flow.target,
@@ -47,4 +60,30 @@ export const analyzeSemanticDataFlow = (model: SemanticKnowledgeDataFlow): Seman
     const reachable = typedProject(typedDistinct(typedRelation(paths), path => knowledgeIdKey(path.target)), path => path.target).tuples;
     return Object.freeze({ paths: Object.freeze(paths), reachable: Object.freeze(reachable) });
 };
+
+export const analyzeSemanticDataFlowJudgment = (model: SemanticKnowledgeDataFlow): SemanticDataFlowJudgment => {
+    const analysis = analyzeSemanticDataFlowCore(model);
+    return Object.freeze({
+        kind: 'semantic_data_flow_judgment',
+        input: 'semantic_knowledge_data_flow',
+        analysis,
+        closure: 'least_fixed_point',
+        reasoning: 'declarative_relation_rewrite_fixed_point',
+        derivation: 'relation_closure_saturation',
+        closed: true,
+    });
+};
+
+export const analyzeSemanticDataFlow = (model: SemanticKnowledgeDataFlow): SemanticDataFlowAnalysis => analyzeSemanticDataFlowJudgment(model).analysis;
 export const pathSatisfiesGuard = (path: SemanticDataFlowPath, predicate: KnowledgeId, polarity: SemanticPredicatePolarity): boolean => typedSelect(typedRelation(path.guards), guard => sameGuard(guard, { predicate, polarity })).tuples.length > 0;
+
+export const semanticDataFlowAnalysisPort = (analysis: SemanticDataFlowAnalysis): AstSemanticStagePort => createAnalysisPort(
+    typedProject(typedRelation(analysis.paths), path => analysisFact(
+        'analysis_reaches',
+        astSemanticTextTerm(knowledgeIdKey(path.source)),
+        astSemanticTextTerm(knowledgeIdKey(path.target)),
+    )).tuples,
+);
+
+export const semanticDataFlowAnalysisInterface = (...args: Parameters<typeof semanticDataFlowAnalysisPort>): AstSemanticStageInterface =>
+  astSemanticStageInterfaceOf(semanticDataFlowAnalysisPort(...args));

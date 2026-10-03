@@ -78,7 +78,6 @@ export {
     createReadyCell,
     isReady,
     isPending,
-    addDependency,
     createTypedCache,
     createMemoizedQueryKey,
     createQueryDatabase,

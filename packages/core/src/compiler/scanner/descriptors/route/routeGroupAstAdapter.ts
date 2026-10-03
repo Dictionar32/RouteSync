@@ -1,7 +1,7 @@
 import type { RouteDeclarationAst } from '../../lexer/routeAst/routeDeclarationAst';
 import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 import { createControllerName, createDomainTypeName, createMiddlewareName, createRouteParameterName, stringValue } from '../../../../types/upstream/names';
-import { mapOptional } from '../../../../types/upstream/presence';
+import { mapPresenceValue } from '../../../../types/upstream/presence';
 import { projectRelation } from '../../../relational/sequence';
 export type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 
@@ -11,8 +11,8 @@ export function extractRouteGroupFactsFromAst(declaration: RouteDeclarationAst):
     prefix: Object.freeze(projectRelation(declaration.prefix, stringValue)),
     middleware: Object.freeze(projectRelation(declaration.middleware, createMiddlewareName)),
     namePrefix: Object.freeze(projectRelation(declaration.groupNamePrefix, stringValue)),
-    controller: mapOptional(declaration.groupController, createControllerName),
-    domain: mapOptional(declaration.groupDomain, createDomainTypeName),
+    controller: mapPresenceValue(declaration.groupController, createControllerName),
+    domain: mapPresenceValue(declaration.groupDomain, createDomainTypeName),
     bindingScope: declaration.groupBindingScope,
     constraints: Object.freeze(projectRelation(declaration.groupConstraints, constraint => Object.freeze({
       parameter: createRouteParameterName(constraint.parameter),

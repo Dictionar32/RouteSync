@@ -1,4 +1,4 @@
-import type { ResponseAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type ResponseAst } from '../../../types/upstream/ast';
 import type { ResponseDtoDeclarationAst, PhpPropertyTypeAst } from '../lexer/responseDtoAstTypes';
 import type { ControllerMethodAst } from '../lexer/controllerAstTypes';
 import { controllerReturnSemanticFromMethod } from './controller/controllerAstCanonical';
@@ -72,9 +72,7 @@ function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan)
     value: defaultStatus,
     origin: { kind: 'framework_default' as const },
   };
-  return {
-    kind: 'response_ast',
-    definition: {
+  const definition: ResponseAst['definition'] = {
       kind: 'response',
       typeName: createResponseTypeName(declaration.className),
       output,
@@ -88,9 +86,8 @@ function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan)
         },
       },
       source,
-    },
-    source,
-  };
+    }
+  return createDomainAstJudgment({ kind: 'response_ast', semantic: definition, source });
 }
 
 function controllerResponse(method: ControllerMethodAst, source: SourceSpan): ResponseAst {
@@ -101,9 +98,7 @@ function controllerResponse(method: ControllerMethodAst, source: SourceSpan): Re
   );
   const result = responseResultFromReturn(returned);
   const output: TypeExpression = { kind: 'mixed' };
-  return {
-    kind: 'response_ast',
-    definition: {
+  const definition: ResponseAst['definition'] = {
       kind: 'response',
       typeName: createResponseTypeName(`${String(method.name)}Response`),
       output,
@@ -112,9 +107,8 @@ function controllerResponse(method: ControllerMethodAst, source: SourceSpan): Re
         () => ({ kind: 'success', result: { kind: 'content', body: { kind: 'empty' }, status: frameworkStatus() } }),
         () => ({ kind: 'success', result: result.value })),
       source,
-    },
-    source,
-  };
+    }
+  return createDomainAstJudgment({ kind: 'response_ast', semantic: definition, source });
 }
 
 function frameworkStatus(): ResponseStatus {

@@ -1,5 +1,5 @@
 import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationOptionalFold, relationVariant } from '../../semantic/kernel/relationalSequence';
 /** Explicit presence ADT. Absence is data, never represented by a host sentinel. */
 export type Presence<T> =
   | { readonly kind: 'absent' }
@@ -43,26 +43,24 @@ export const fromBooleanFlag = (value: boolean): FlagPresence =>
 export const cardinalityOf = <T>(values: readonly T[]): Cardinality =>
   catalogValue(CARDINALITY_BY_EMPTY, String(relationEqual(values.length, 0)) as 'true' | 'false');
 
-export function fromOptional<T>(value?: T): Presence<T> {
-  return relationResolve(relationEqual(arguments.length, 0), () => absent<T>(), () => present(value as T));
-}
+export const presenceOf = <T>(value: T | void): Presence<T> =>
+  relationOptionalFold(value, () => absent<T>(), entry => present(entry));
 
-export function mapOptional<T, U>(value?: T, map?: (value: T) => U): Presence<U> {
-  const supplied = relationEqual(arguments.length, 2);
-  return relationResolve(supplied, () => present((map as (value: T) => U)(value as T)), () => absent<U>());
-}
+export const mapPresenceValue = <T, U>(value: T | void, map: (value: T) => U): Presence<U> =>
+  relationOptionalFold(value, () => absent<U>(), entry => present(map(entry)));
 
 export const presenceFold = <T, R>(
   value: Presence<T>,
   absentBranch: () => R,
   presentBranch: (item: T) => R,
-): R => ({
-  absent: absentBranch,
-  present: () => presentBranch((value as Extract<Presence<T>, { readonly kind: 'present' }>).value),
-} satisfies Record<Presence<T>['kind'], () => R>)[value.kind]();
+): R => relationOptionFold(
+  relationVariant(value, 'present'),
+  absentBranch,
+  item => presentBranch(item.value),
+);
 
 export const mapPresence = <T, U>(value: Presence<T>, map: (value: T) => U): Presence<U> =>
   presenceFold(value, () => absent<U>(), entry => present(map(entry)));
 
-export const flatMapPresence = <T, U>(value: Presence<T>, map: (value: T) => Presence<U>): Presence<U> =>
+export const bindPresence = <T, U>(value: Presence<T>, map: (value: T) => Presence<U>): Presence<U> =>
   presenceFold(value, () => absent<U>(), map);

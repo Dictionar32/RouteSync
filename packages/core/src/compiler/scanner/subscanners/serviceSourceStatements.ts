@@ -15,7 +15,7 @@ import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressi
 import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from './resource/resourceUpstreamExpressionMappings';
 import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone } from '../../../semantic/kernel/relationalSequence';
+import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, relationCount, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
 
 type Binding = { readonly variable: VariableName; readonly value: SemanticValue };
 type Environment = RelationIndex<VariableName, Binding>;
@@ -25,14 +25,14 @@ const variableName = (value: string): VariableName => ({ kind: 'variable_name', 
 const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: stringValue(value) });
 const exceptionName = (value: string): ExceptionName => ({ kind: 'exception_name', value: stringValue(value) });
 const sequence = <T>(items: readonly T[], index = 0, output: Sequence<T> = { kind: 'empty' }): Sequence<T> =>
-  relationGate(index >= items.length, () => output, () => sequence(items, index + 1, { kind: 'cons', head: items[index], tail: output }));
+  relationGate(index >= relationCount(items), () => output, () => sequence(items, index + 1, { kind: 'cons', head: items[index], tail: output }));
 const sourceSpanFromToken = (file: string, token: { readonly startOffset: number; readonly endOffset: number }): SourceSpan => ({ kind: 'source_span', file: { kind: 'source_file', value: stringValue(file) }, start: { kind: 'number_value', value: token.startOffset }, end: { kind: 'number_value', value: token.endOffset } });
 
-const isSome = <T>(value: Option<T>): value is Extract<Option<T>, { readonly kind: 'some' }> => Object.is(value.kind, 'some');
-const isNone = <T>(value: Option<T>): value is Extract<Option<T>, { readonly kind: 'none' }> => Object.is(value.kind, 'none');
-const isReference = (value: SemanticValue): value is Extract<SemanticValue, { readonly kind: 'reference' }> => Object.is(value.kind, 'reference');
-const isResolvedProperty = (value: SemanticValue): value is Extract<SemanticValue, { readonly kind: 'resolved_property_access' }> => Object.is(value.kind, 'resolved_property_access');
-const isCallableValue = (value: SemanticValue): value is Extract<SemanticValue, { readonly kind: 'method_call' | 'static_call' | 'function_call' }> => relationAny([Object.is(value.kind, 'method_call'), Object.is(value.kind, 'static_call'), Object.is(value.kind, 'function_call')]);
+const isSome = <T>(value: Option<T>): value is RelationVariant<Option<T>, 'some'> => Object.is(value.kind, 'some');
+const isNone = <T>(value: Option<T>): value is RelationVariant<Option<T>, 'none'> => Object.is(value.kind, 'none');
+const isReference = (value: SemanticValue): value is RelationVariant<SemanticValue, 'reference'> => Object.is(value.kind, 'reference');
+const isResolvedProperty = (value: SemanticValue): value is RelationVariant<SemanticValue, 'resolved_property_access'> => Object.is(value.kind, 'resolved_property_access');
+const isCallableValue = (value: SemanticValue): value is RelationVariant<SemanticValue, 'method_call' | 'static_call' | 'function_call'> => relationAny([Object.is(value.kind, 'method_call'), Object.is(value.kind, 'static_call'), Object.is(value.kind, 'function_call')]);
 
 function lookupMethodResult(index: ServiceMethodResultIndex, name: ActionName): Option<SemanticValue> {
   const entries = relationFold(index.items, [] as readonly { readonly name: ActionName; readonly result: SemanticValue }[], (output, item) => [...output, { name: item.method, result: item.result }]);
@@ -69,9 +69,9 @@ function binarySemanticValue(operator: BinaryOperator): SemanticValue {
       relationGate(numericResult, () => ({ kind: 'typed', type: { kind: 'primitive', value: { kind: 'number' } } }), () => ({ kind: 'unresolved', reason: 'external' }))));
 }
 
-function resolveMethodCallResult(expression: Extract<Expression, { readonly kind: 'method' | 'nullsafe_method' }>, methodResults: ServiceMethodResultIndex): SemanticValue {
+function resolveMethodCallResult(expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>, methodResults: ServiceMethodResultIndex): SemanticValue {
   const receiver = relationGate(Object.is(expression.receiver.kind, 'variable'), () => expression.receiver, () => RELATION_NONE as RelationNone);
-  return relationGate(!Object.is(receiver, RELATION_NONE), () => relationGate(Object.is((receiver as Extract<Expression, { readonly kind: 'variable' }>).name.value.value, '$this'), () => relationGate(Object.is(expression.operation.kind, 'domain'), () => relationOptionFold(lookupMethodResult(methodResults, expression.operation.name), () => ({ kind: 'unresolved', reason: 'missing_local_method' }), value => value), () => ({ kind: 'unresolved', reason: 'external' })), () => ({ kind: 'unresolved', reason: 'external' })), () => ({ kind: 'unresolved', reason: 'external' }));
+  return relationGate(!Object.is(receiver, RELATION_NONE), () => relationGate(Object.is((receiver as RelationVariant<Expression, 'variable'>).name.value.value, '$this'), () => relationGate(Object.is(expression.operation.kind, 'domain'), () => relationOptionFold(lookupMethodResult(methodResults, expression.operation.name), () => ({ kind: 'unresolved', reason: 'missing_local_method' }), value => value), () => ({ kind: 'unresolved', reason: 'external' })), () => ({ kind: 'unresolved', reason: 'external' })), () => ({ kind: 'unresolved', reason: 'external' }));
 }
 
 function semanticExpression(expression: Expression, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
@@ -95,7 +95,7 @@ function semanticExpression(expression: Expression, environment: Environment, mo
                               relationGate(Object.is(expression.kind, 'cast'), () => castExpression(expression), () => ({ kind: 'unresolved', reason: 'external' }))))))))))))))));
 }
 
-function propertyExpression(expression: Extract<Expression, { readonly kind: 'property' | 'nullsafe_property' }>, nullable: boolean, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+function propertyExpression(expression: RelationVariant<Expression, 'property' | 'nullsafe_property'>, nullable: boolean, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
   const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
   const model = modelNameFromReference(receiver);
   return relationGate(!Object.is(model, RELATION_NONE), () => {
@@ -107,7 +107,7 @@ function propertyExpression(expression: Extract<Expression, { readonly kind: 'pr
   }, () => ({ kind: 'property_access', receiver, property: expression.property, nullability: relationGate(nullable, () => ({ kind: 'nullable' as const }), () => ({ kind: 'non_nullable' as const })) }));
 }
 
-function relationExpression(expression: Extract<Expression, { readonly kind: 'relation' }>, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+function relationExpression(expression: RelationVariant<Expression, 'relation'>, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
   const receiver = semanticExpression(expression.receiver, environment, models, methodResults);
   const model = modelNameFromReference(receiver);
   return relationGate(!Object.is(model, RELATION_NONE), () => {
@@ -119,7 +119,7 @@ function relationExpression(expression: Extract<Expression, { readonly kind: 're
   }, () => ({ kind: 'relation_access', receiver, relation: expression.relation, nullability: { kind: 'non_nullable' } }));
 }
 
-function builtinExpression(expression: Extract<Expression, { readonly kind: 'builtin' }>): SemanticValue {
+function builtinExpression(expression: RelationVariant<Expression, 'builtin'>): SemanticValue {
   const booleanFunctions = ['is_object', 'is_array', 'empty', 'in_array', 'method_exists'] as const;
   const booleanResult = relationAny(relationProject(booleanFunctions, item => Object.is(item, expression.function.kind)));
   const dateResult = Object.is(expression.function.kind, 'now');
@@ -127,12 +127,12 @@ function builtinExpression(expression: Extract<Expression, { readonly kind: 'bui
   return { kind: 'function_call', function: { kind: 'function_name', value: stringValue(expression.function.kind) }, arguments: expression.arguments, result };
 }
 
-function conditionalExpression(expression: Extract<Expression, { readonly kind: 'conditional' }>, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
+function conditionalExpression(expression: RelationVariant<Expression, 'conditional'>, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): SemanticValue {
   const whenTrue = semanticExpression(expression.branches.whenTrue, environment, models, methodResults);
   return relationGate(Object.is(expression.branches.kind, 'then_only'), () => whenTrue, () => unionValues(whenTrue, semanticExpression(expression.branches.whenFalse, environment, models, methodResults)));
 }
 
-function castExpression(expression: Extract<Expression, { readonly kind: 'cast' }>): SemanticValue {
+function castExpression(expression: RelationVariant<Expression, 'cast'>): SemanticValue {
   const numeric = relationAny([Object.is(expression.target.kind, 'integer'), Object.is(expression.target.kind, 'float')]);
   const boolean = Object.is(expression.target.kind, 'boolean');
   const primitive = relationGate(numeric, () => ({ kind: 'number' as const }), () => relationGate(boolean, () => ({ kind: 'boolean' as const }), () => ({ kind: 'string' as const })));
@@ -169,22 +169,22 @@ function forClause(value: PhpForClause, file: string, environment: Environment, 
 }
 
 const statementResolverCatalog: readonly (readonly [string, (value: PhpStatement, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex) => StatementResult])[] = [
-  ['assignment', (value, file, environment, models, methodResults) => assignmentStatement(value as Extract<PhpStatement, { readonly kind: 'assignment' }>, file, environment, models, methodResults)],
-  ['expression_statement', (value, file, environment, models, methodResults) => expressionStatement(value as Extract<PhpStatement, { readonly kind: 'expression_statement' }>, file, environment, models, methodResults)],
-  ['return_with_value', (value, file, environment, models, methodResults) => returnStatement(value as Extract<PhpStatement, { readonly kind: 'return_with_value' }>, file, environment, models, methodResults)],
+  ['assignment', (value, file, environment, models, methodResults) => assignmentStatement(value as RelationVariant<PhpStatement, 'assignment'>, file, environment, models, methodResults)],
+  ['expression_statement', (value, file, environment, models, methodResults) => expressionStatement(value as RelationVariant<PhpStatement, 'expression_statement'>, file, environment, models, methodResults)],
+  ['return_with_value', (value, file, environment, models, methodResults) => returnStatement(value as RelationVariant<PhpStatement, 'return_with_value'>, file, environment, models, methodResults)],
   ['return_void', (value, file, environment) => ({ statement: { kind: 'return_void', source: sourceSpanFromToken(file, value.source) }, environment })],
-  [PHP_STATEMENT_KINDS.conditional, (value, file, environment, models, methodResults) => conditionalStatement(value as Extract<PhpStatement, { readonly kind: 'conditional' }>, file, environment, models, methodResults)],
-  [PHP_STATEMENT_KINDS.collectionRecurrence, (value, file, environment, models, methodResults) => recurrenceStatement(value as Extract<PhpStatement, { readonly kind: 'collection_recurrence' }>, file, environment, models, methodResults)],
-  [PHP_STATEMENT_KINDS.countedRecurrence, (value, file, environment, models, methodResults) => countedStatement(value as Extract<PhpStatement, { readonly kind: 'counted_recurrence' }>, file, environment, models, methodResults)],
-  ['try_statement', (value, file, environment, models, methodResults) => tryStatement(value as Extract<PhpStatement, { readonly kind: 'try_statement' }>, file, environment, models, methodResults)],
-  ['throw_statement', (value, file, environment, models, methodResults) => throwStatement(value as Extract<PhpStatement, { readonly kind: 'throw_statement' }>, file, environment, models, methodResults)],
+  [PHP_STATEMENT_KINDS.conditional, (value, file, environment, models, methodResults) => conditionalStatement(value as RelationVariant<PhpStatement, 'conditional'>, file, environment, models, methodResults)],
+  [PHP_STATEMENT_KINDS.collectionRecurrence, (value, file, environment, models, methodResults) => recurrenceStatement(value as RelationVariant<PhpStatement, 'collection_recurrence'>, file, environment, models, methodResults)],
+  [PHP_STATEMENT_KINDS.countedRecurrence, (value, file, environment, models, methodResults) => countedStatement(value as RelationVariant<PhpStatement, 'counted_recurrence'>, file, environment, models, methodResults)],
+  ['try_statement', (value, file, environment, models, methodResults) => tryStatement(value as RelationVariant<PhpStatement, 'try_statement'>, file, environment, models, methodResults)],
+  ['throw_statement', (value, file, environment, models, methodResults) => throwStatement(value as RelationVariant<PhpStatement, 'throw_statement'>, file, environment, models, methodResults)],
 ];
 
 function statement(value: PhpStatement, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   return relationOptionFold(relationLookup(statementResolverCatalog, value.kind), () => ({ statement: { kind: 'return_void', source: sourceSpanFromToken(file, value.source) }, environment }), resolver => resolver(value, file, environment, models, methodResults));
 }
 
-function assignmentStatement(value: Extract<PhpStatement, { readonly kind: 'assignment' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function assignmentStatement(value: RelationVariant<PhpStatement, 'assignment'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const target = assignmentTarget(value.target, file);
   const resolved = resolveExpression(value.value, file, environment, models, methodResults);
   const nextEnvironment = bindOne(target, resolved.result, environment);
@@ -193,17 +193,17 @@ function assignmentStatement(value: Extract<PhpStatement, { readonly kind: 'assi
   return { statement: { kind: 'assignment', value: assignment, source }, environment: nextEnvironment };
 }
 
-function expressionStatement(value: Extract<PhpStatement, { readonly kind: 'expression_statement' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function expressionStatement(value: RelationVariant<PhpStatement, 'expression_statement'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const resolved = resolveExpression(value.expression, file, environment, models, methodResults);
   return { statement: { kind: 'expression', value: resolved, source: resolved.expression.source }, environment };
 }
 
-function returnStatement(value: Extract<PhpStatement, { readonly kind: 'return_with_value' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function returnStatement(value: RelationVariant<PhpStatement, 'return_with_value'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const resolved = resolveExpression(value.expression, file, environment, models, methodResults);
   return { statement: { kind: 'return', expression: resolved, source: resolved.expression.source }, environment };
 }
 
-function conditionalStatement(value: Extract<PhpStatement, { readonly kind: 'conditional' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function conditionalStatement(value: RelationVariant<PhpStatement, 'conditional'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const condition = resolveExpression(value.condition, file, environment, models, methodResults);
   const branchResult = branches(value.alternative, value.thenBlock.statements, file, environment, models, methodResults);
   return { statement: { kind: 'conditional', condition, branches: branchResult.branches, source: condition.expression.source }, environment: branchResult.environment };
@@ -211,7 +211,7 @@ function conditionalStatement(value: Extract<PhpStatement, { readonly kind: 'con
 
 type BranchResult = { readonly branches: SourceConditionalBranches; readonly environment: Environment };
 
-function recurrenceStatement(value: Extract<PhpStatement, { readonly kind: 'collection_recurrence' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function recurrenceStatement(value: RelationVariant<PhpStatement, 'collection_recurrence'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const iterable = resolveExpression(value.iterable, file, environment, models, methodResults);
   const variable = variableName(relationGate(Object.is(value.target.kind, 'value'), () => value.target.variable, () => value.target.value));
   const loopEnvironment = relationIndexAdd(environment, variable, { variable, value: { kind: 'unresolved', reason: 'external' } });
@@ -219,7 +219,7 @@ function recurrenceStatement(value: Extract<PhpStatement, { readonly kind: 'coll
   return { statement: { kind: 'for_each', iterable, variable, body: body.statements }, environment };
 }
 
-function countedStatement(value: Extract<PhpStatement, { readonly kind: 'counted_recurrence' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function countedStatement(value: RelationVariant<PhpStatement, 'counted_recurrence'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const initializer = forClause(value.initializer, file, environment, models, methodResults);
   const condition = forClause(value.condition, file, initializer.environment, models, methodResults);
   const update = forClause(value.update, file, condition.environment, models, methodResults);
@@ -227,13 +227,13 @@ function countedStatement(value: Extract<PhpStatement, { readonly kind: 'counted
   return { statement: { kind: 'for_loop', initializer: initializer.clause, condition: condition.clause, update: update.clause, body: body.statements, source: sourceSpanFromToken(file, value.source) }, environment };
 }
 
-function tryStatement(value: Extract<PhpStatement, { readonly kind: 'try_statement' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function tryStatement(value: RelationVariant<PhpStatement, 'try_statement'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const body = statements(value.body.statements, file, environment, models, methodResults);
   const catches = relationProject(value.catches, item => ({ kind: 'catch_handler' as const, variable: variableName(item.variable), exception: exceptionName(item.exceptionType), body: statements(item.body.statements, file, environment, models, methodResults).statements, source: sourceSpanFromToken(file, item.source) } as SourceCatchHandler));
   return { statement: { kind: 'try', body: body.statements, catches: { kind: 'catch_handlers', items: sequence(catches) }, source: sourceSpanFromToken(file, value.source) }, environment: body.environment };
 }
 
-function throwStatement(value: Extract<PhpStatement, { readonly kind: 'throw_statement' }>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
+function throwStatement(value: RelationVariant<PhpStatement, 'throw_statement'>, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): StatementResult {
   const error = resolveExpression(value.expression, file, environment, models, methodResults);
   return { statement: { kind: 'throw', error, source: error.expression.source }, environment };
 }

@@ -7,7 +7,7 @@ import { collectPhpFiles } from './scannerUtils';
 import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
 import { resolveClosureBody } from './resource/resourceUpstreamExpressionClosure';
 import type { ClosureStatement, ExpressionArgument } from '../../../types/upstream/expression';
-import type { ProviderAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type ProviderAst } from '../../../types/upstream/ast';
 import type { ProviderDefinition, ProviderContainerOperation, ProviderContainerOperationName, ProviderContextualBinding, ProviderContainerBinding, ProviderContainerBindings, ProviderContextualGive, ProviderContainerLifecycleHook, ProviderContainerResolution, ProviderContainerAlias, ProviderContainerInvocation, ProviderContainerBoundCheck, ProviderContainerTagging, ProviderContainerTaggedResolution, ProviderContainerRegistration, ProviderSourceAst, ProviderBindingAttribute, ProviderBindingAttributes, ExpressionArgumentsOption } from '../../../types/upstream/application';
 import type { Expression, ExpressionArguments } from '../../../types/upstream/expression';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -353,7 +353,7 @@ export function buildProviderAstFromSource(sourceAst: ProviderSourceAst, fileVal
       bindingAttributes,
       source: span,
     };
-    return { kind: 'provider_ast', definition, source: span };
+    return createDomainAstJudgment({ kind: 'provider_ast', semantic: definition, source: span });
   }));
 }
 

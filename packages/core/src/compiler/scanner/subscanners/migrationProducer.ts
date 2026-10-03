@@ -1,4 +1,4 @@
-import type { MigrationAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type MigrationAst } from '../../../types/upstream/ast';
 import type { ColumnDefinition, DatabaseType, ForeignKeyAction, ForeignKey, IndexDefinition } from '../../../types/upstream/databaseVocabulary';
 import type { MigrationOperation } from '../../../types/upstream/migration';
 import type { Sequence } from '../../../types/upstream/collections';
@@ -269,15 +269,12 @@ function createOperations(tokens: readonly TokenDescriptor[], file: string, inde
 export const migrationProducer: MigrationProducer = {
     produce: (input) => {
         const operations = createOperations(input.source.tokens, input.file.value.value);
-        return {
-            kind: 'migration_ast',
-            definition: {
-                kind: 'migration_definition',
-                file: input.file,
-                operations: { kind: 'migration_operations', items: seq(operations) },
-                source: input.sourceSpan,
-            },
+        const definition: MigrationAst['definition'] = {
+            kind: 'migration_definition',
+            file: input.file,
+            operations: { kind: 'migration_operations', items: seq(operations) },
             source: input.sourceSpan,
         };
+        return createDomainAstJudgment({ kind: 'migration_ast', semantic: definition, source: input.sourceSpan });
     },
 };

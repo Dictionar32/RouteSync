@@ -14,7 +14,7 @@ import {
   solveSemanticRelations,
   type SemanticRelation,
   type SemanticRelationRewrite,
-} from '../scanner/lexer/routeAst/semanticRelationSolver';
+} from '../scanner/lexer/routeAst/semanticRewriteEngine';
 
 export type IRLoweringRelation = 'semantic_kind' | 'lowering_operation';
 type Rule = SemanticRelationRewrite<IRLoweringRelation>;

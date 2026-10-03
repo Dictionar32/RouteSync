@@ -2,7 +2,7 @@ import type { ActionName, MiddlewareName } from '../../../../types/upstream/name
 import type { RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
 import type { Presence } from '../../../../types/upstream/presence';
 import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationGate, relationProject, relationSelect } from '../../../../semantic/kernel/relationalSequence';
+import { relationGate, relationProject, relationSelect, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
 
 export const middlewareScopeApplicability = (
   scope: RouteMiddlewareScope,
@@ -16,7 +16,7 @@ export const middlewareScopeApplicability = (
   const actions = relationGate(
     relationEqual(scope.kind, 'all'),
     () => [] as readonly ActionName[],
-    () => relationProject((scope as Extract<RouteMiddlewareScope, { readonly kind: 'only' | 'except' }>).actions, item => item),
+    () => relationProject(relationVariantValue(scope, 'only').actions, item => item),
   );
   const contains = relationAny(relationProject(actions, item => relationEqual(item.value.value, actionKey)));
   return relationGate(relationEqual(scope.kind, 'all'),

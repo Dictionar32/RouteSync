@@ -31,6 +31,10 @@ import type { Expression } from './Expression';
  * };
  * ```
  */
+export type ReturnValue =
+    | { readonly kind: 'return_value'; readonly value: Operand }
+    | { readonly kind: 'return_void' };
+
 export type Instruction =
   | {
       /** Assign a value to a target */
@@ -67,8 +71,8 @@ export type Instruction =
   | {
       /** Return from current function */
       kind: 'Return';
-      /** Optional return value */
-      value?: Operand;
+      /** Closed return-value judgment */
+      value: ReturnValue;
     }
   | {
       /** Phi node for SSA form - merges values from different control flow paths */

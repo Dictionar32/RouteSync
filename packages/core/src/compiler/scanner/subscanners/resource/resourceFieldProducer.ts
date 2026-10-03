@@ -13,7 +13,7 @@ import { semanticType } from '../model/semanticTypeCanonical';
 import { sourceSpanFromRange } from './resourceUpstreamExpressionMappings';
 import { expressionAstFromPhpAst } from '../expressionAstCanonical';
 import { relationAll, relationEqual, relationGate, relationOptionFold, relationFirstOption, relationProject, relationExpand, relationOptionMap, } from '../../../../semantic/kernel/relationalSequence';
-import { solveCandidate, solveRewriteCandidate } from '../../../../semantic/kernel/requirementSolver';
+import { solveCandidate, solveRewriteCandidate } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 const str = (value: string) => ({ kind: 'string_value' as const, value });
 const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: str(value) });
@@ -49,7 +49,7 @@ function operationExpression(value: import('../../lexer/phpAstTypes').PhpAstValu
                 () => resolveAstValueToExpression(value, file).upstream,
                 statement => resolveAstValueToExpression(statement.expression, file).upstream,
             ),
-            requirements: [{ id: 'kind', satisfied: relationEqual(value.kind, 'closure') }],
+            requirements: [{ id: 'kind', satisfied: relationEqual(value.kind, 'closure') }], exclusions: [], dependencies: [],
         },
     ]), () => resolveAstValueToExpression(value, file).upstream, result => result);
 }
@@ -186,7 +186,7 @@ function directFieldMeaning(
                 {
                     id: 'column',
                     value: { kind: 'property_projection' as const, property: propertyRef(property.property.value), model: modelRef(model.name.value.value) },
-                    requirements: [{ id: 'origin', satisfied: relationEqual(property.kind, 'column') }],
+                    requirements: [{ id: 'origin', satisfied: relationEqual(property.kind, 'column') }], exclusions: [], dependencies: [],
                 },
                 {
                     id: 'relation',
@@ -195,7 +195,7 @@ function directFieldMeaning(
                         relation: propertyRef(property.property.value),
                         projection: { kind: 'value' as const, expression },
                     },
-                    requirements: [{ id: 'origin', satisfied: relationEqual(property.kind, 'relation') }],
+                    requirements: [{ id: 'origin', satisfied: relationEqual(property.kind, 'relation') }], exclusions: [], dependencies: [],
                 },
             ]),
             () => ({ kind: 'computed_projection' as const, expression }),

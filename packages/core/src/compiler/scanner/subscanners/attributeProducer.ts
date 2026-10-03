@@ -1,4 +1,4 @@
-import type { AttributeAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type AttributeAst } from '../../../types/upstream/ast';
 import type { AttributeDefinition } from '../../../types/upstream/application';
 import type { Sequence } from '../../../types/upstream/collections';
 import type { ClosureParameter, Expression } from '../../../types/upstream/expression';
@@ -115,11 +115,7 @@ export const attributeProducer: AttributeProducer = {
       source: input.source,
     };
 
-        return {
-          kind: 'attribute_ast',
-          definition,
-          source: input.source,
-        };
+        return createDomainAstJudgment({ kind: 'attribute_ast', semantic: definition, source: input.source });
       });
   },
 };

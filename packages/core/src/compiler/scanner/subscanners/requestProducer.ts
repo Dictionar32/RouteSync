@@ -1,4 +1,4 @@
-import type { RequestAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type RequestAst } from '../../../types/upstream/ast';
 import type { RequestDefinition, RequestAuthorization, RequestValidationLifecycle } from '../../../types/upstream/request';
 import type { RequestFields, Sequence } from '../../../types/upstream/collections';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -211,6 +211,6 @@ export const requestProducer: RequestProducer = {
             inputAccesses: { kind: 'request_input_accesses', items: seq([]) },
         };
         const definition: RequestDefinition = { kind: 'request', identity: { kind: 'form_request_identity', request: input.requestName, formType: input.formType }, http, validation, source: input.source };
-        return { kind: 'request_ast', definition, source: input.source };
+        return createDomainAstJudgment({ kind: 'request_ast', semantic: definition, source: input.source });
     },
 };

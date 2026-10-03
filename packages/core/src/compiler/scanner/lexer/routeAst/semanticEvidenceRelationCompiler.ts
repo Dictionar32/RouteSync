@@ -1,5 +1,6 @@
 import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 import { relationResolve } from '../../../relational/sequence';
+import { relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
 /**
  * Phase 287 — relation-native semantic evidence compiler.
  *
@@ -25,9 +26,7 @@ const factProjectionTable: Readonly<Record<SemanticFact['kind'], (fact: Semantic
     ],
     merge: fact => [semanticTheoryFact('entity', [knowledgeIdKey(fact.value.id), fact.kind])],
     match: fact => {
-        const match = fact as Extract<SemanticFact, {
-            readonly kind: 'match';
-        }>;
+        const match = relationVariantValue(fact, 'match');
         return [
             semanticTheoryFact('entity', [knowledgeIdKey(match.value.id), match.kind]),
             semanticTheoryFact('candidate', [knowledgeIdKey(match.value.id), knowledgeIdKey(match.value.candidate)]),

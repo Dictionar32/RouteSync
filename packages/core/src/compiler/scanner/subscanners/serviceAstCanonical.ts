@@ -13,7 +13,7 @@ import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressi
 import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
 import type { PhpParameterTypeAst } from '../lexer/phpMethodAstTypes';
 import { parsePhpMethodOrThrow } from '../lexer/phpMethodParser';
-import type { ServiceAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type ServiceAst } from '../../../types/upstream/ast';
 import type { ServiceDefinition, ServiceMethod, ServiceParameter, ServiceDependencyFact, ServiceMethodResultIndex, ServiceMethodResultEntry } from '../../../types/upstream/service';
 import type { ServiceDeclarationAst } from '../lexer/serviceAstTypes';
 import type { DeclaredType, TypeExpression } from '../../../types/upstream/typeVocabulary';
@@ -23,7 +23,7 @@ import type { Option, Sequence } from '../../../types/upstream/collections';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
 import { relationGate, relationFold, relationAsyncFold, relationIndexOf, relationOptionFold, relationFixedPoint, relationProject, relationExpand, relationAll, relationAny, relationAdvanceIndex, relationLookup } from '../../../semantic/kernel/relationalSequence';
-import { solveCandidate, requirement } from '../../../semantic/kernel/requirementSolver';
+import { solveCandidate, requirement } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const sequence = <T>(items: readonly T[]): Sequence<T> => relationFold([...items].reverse(), { kind: 'empty' } as Sequence<T>, (tail, head) => ({ kind: 'cons', head, tail }));
@@ -315,7 +315,7 @@ export function buildServiceAstFromSource(syntax: ServiceDeclarationAst, span: S
     kind: 'service_definition', name: { kind: 'class_name', value: stringValue(syntax.className) }, file: span.file,
     methods: { kind: 'service_methods', items: sequence(methods) }, dependencies: { kind: 'service_dependency_facts', items: sequence([...dependencyFacts, ...bodyFacts]) }, source: span,
   };
-  return { kind: 'service_ast', definition, source: span };
+  return createDomainAstJudgment({ kind: 'service_ast', semantic: definition, source: span });
 }
 
 export async function scanServiceAsts(sourceProject: SourceProjectIdentity, models: ModelSymbolTable): Promise<readonly ServiceAst[]> {

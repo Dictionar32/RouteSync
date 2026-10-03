@@ -609,5 +609,12 @@ export type ClosureStatement =
   | { readonly kind: 'foreach'; readonly iterable: Expression; readonly target: ClosureForeachTarget; readonly body: Sequence<ClosureStatement> }
   | { readonly kind: 'for'; readonly initializer: ClosureForClause; readonly condition: ClosureForClause; readonly update: ClosureForClause; readonly body: Sequence<ClosureStatement> }
   | { readonly kind: 'try'; readonly body: Sequence<ClosureStatement>; readonly catches: Sequence<ClosureCatchClause>; readonly finallyBlock: ClosureFinallyClause }
-  | { readonly kind: 'throw'; readonly expression: Expression };
+  | { readonly kind: 'throw'; readonly expression: Expression }
+  | { readonly kind: 'unsupported'; readonly reason: ClosureUnsupportedStatementReason; readonly source: SourceSpan };
+
+export type ClosureUnsupportedStatementReason =
+  | { readonly kind: 'while_statement' }
+  | { readonly kind: 'switch_statement' }
+  | { readonly kind: 'unset_statement' }
+  | { readonly kind: 'include_statement' };
 export type PropertyAccess = { readonly kind: 'property_access'; readonly path: PropertyPath; readonly source: SourceSpan };

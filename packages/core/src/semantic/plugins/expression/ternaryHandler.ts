@@ -9,7 +9,7 @@ import { resolveInScope } from '../../kernel/resolveInScope';
 import { relationOptionFold, relationRefine } from '../../kernel/relationalSequence';
 import { relationEqual, relationNotEqual } from '../../kernel/semanticRelations';
 import { relationIsSome } from '../../kernel/semanticRelations';
-import { solveCandidate, requirement, type SemanticCandidate } from '../../kernel/requirementSolver';
+import { solveCandidate, requirement, type SemanticCandidate } from '../../kernel/semanticDecisionRewriteEngine';
 
 const isTernaryMeta = (meta: ResolverMeta): meta is Extract<ResolverMeta, { kind: 'ternary' }> =>
   relationEqual(meta.kind, 'ternary');

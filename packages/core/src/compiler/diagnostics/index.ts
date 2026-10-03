@@ -20,13 +20,18 @@ export {
     matchDiagnosticCategory,
     DiagnosticFix,
     TextEdit,
+    DiagnosticLocation,
+    DiagnosticFixState,
+    createDiagnostic,
 } from './Diagnostic';
 
 export type {
     DiagnosticCategorySpecification,
     DiagnosticCategoryRegistry,
-    DiagnosticCategoryVisitor
+    DiagnosticCategoryVisitor,
+    DiagnosticInput
 } from './Diagnostic';
 
 export { DiagnosticBag, CompilerValidationError } from './DiagnosticBag';
+export type { DiagnosticGate } from './DiagnosticBag';
 

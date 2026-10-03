@@ -1,0 +1,109 @@
+{
+  "phase": 656,
+  "model": "closed AST judgment + canonical constructor + typed syntax judgment frontier",
+  "ast": {
+    "closedUnion": true,
+    "routeDeclarationPreserved": true,
+    "canonicalConstructor": true,
+    "domainConstructor": true,
+    "compatibilityProjection": true
+  },
+  "producers": {
+    "total": 15,
+    "canonicalized": 15,
+    "missing": []
+  },
+  "syntax": {
+    "typedClosedTerms": false,
+    "usesGenericSemanticRelationSolver": false,
+    "forbidden": {
+      "if": 0,
+      "while": 0,
+      "for": 0,
+      "switch": 0,
+      "map": 0,
+      "filter": 0,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 0,
+      "nullish": 0,
+      "strictEq": 0,
+      "strictNeq": 0,
+      "asUnknown": 0,
+      "set": 0,
+      "mapCtor": 0,
+      "any": 0,
+      "new": 0
+    }
+  },
+  "parserAdapter": {
+    "parsePhpMethodOrThrowRemoved": true,
+    "forbidden": {
+      "if": 0,
+      "while": 0,
+      "for": 0,
+      "switch": 0,
+      "map": 0,
+      "filter": 0,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 0,
+      "nullish": 0,
+      "strictEq": 0,
+      "strictNeq": 0,
+      "asUnknown": 0,
+      "set": 0,
+      "mapCtor": 0,
+      "any": 0,
+      "new": 0
+    }
+  },
+  "expressionAst": {
+    "usesCanonicalConstructor": true,
+    "forbidden": {
+      "if": 0,
+      "while": 0,
+      "for": 0,
+      "switch": 0,
+      "map": 0,
+      "filter": 0,
+      "reduce": 0,
+      "flatMap": 0,
+      "undefined": 0,
+      "nullish": 0,
+      "strictEq": 0,
+      "strictNeq": 0,
+      "asUnknown": 0,
+      "set": 0,
+      "mapCtor": 0,
+      "any": 0,
+      "new": 0
+    }
+  },
+  "knownVacuum": [
+    {
+      "file": "packages/core/src/types/upstream/ast.ts.bak-interface-property",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/legacyFlow.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/scannerLegacyDelegates.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts",
+      "bytes": 0
+    }
+  ],
+  "remainingHighFrontier": {
+    "genericSolver": "semanticRelationSolver.ts still serves legacy semantic-relation consumers; next cutover is closed SemanticTerm algebra + solver removal.",
+    "resourceBinding": "resourceBindingTraversalBuilder/resourceBindingOriginResolver/resourceBindingPathBuilder remain procedural compatibility surfaces.",
+    "resourceGrouping": "resourceRouteGroupDescriptor remains a procedural grouping frontier.",
+    "resolverGraph": "resolver graph requires judgment/candidate/closure interface elevation before vacuum.",
+    "typeLowering": "TypeScript target-surface relations still consume legacy generic relation solver; target tokens remain projection-only."
+  },
+  "interpretation": "AST semantic authority is now constructed through one closed SSOT constructor; legacy property names are compatibility projections of the semantic facet, not independent payloads."
+}

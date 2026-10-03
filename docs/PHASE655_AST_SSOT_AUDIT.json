@@ -1,0 +1,14 @@
+{
+  "phase": 655,
+  "model": "closed AST judgment ADT as single source of truth",
+  "interface": {
+    "requiredMembersPresent": true,
+    "missing": [],
+    "openGenericSemanticPayload": false,
+    "hostAny": false,
+    "hostUndefined": false,
+    "hostNull": false,
+    "closedJudgmentUnion": true
+  },
+  "interpretation": "AstJudgment is the closed SSOT universe; SemanticAstNode and CanonicalAstNode are narrowing projections, not independent schemas."
+}

@@ -16,7 +16,7 @@ import type {
   SemanticRelationAtom,
   SemanticRelationPattern,
   SemanticRelationVariable,
-} from './semanticRelationSolver';
+} from './semanticRewriteEngine';
 
 export type ConstraintHandlingMode = 'propagation' | 'simplification' | 'simpagation';
 

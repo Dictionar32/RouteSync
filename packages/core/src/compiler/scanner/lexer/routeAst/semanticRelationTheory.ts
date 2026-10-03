@@ -6,7 +6,7 @@
  */
 import { relationResolve } from '../../../relational/sequence';
 import { project, visit } from './semanticRelationalCollections';
-import { semanticNullAtom, type SemanticNullAtom } from './semanticRelationSolver';
+import { semanticNullAtom, type SemanticNullAtom } from './semanticRewriteEngine';
 import { relationResolve } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
 

@@ -11,7 +11,12 @@ export {
     type RouteBoundaryContract,
     type RouteBoundaryOptions,
     type IntermediateRouteBoundaryBasics,
-    resolveRouteBoundaryBasics
+    type RouteBoundaryBasicsSemanticInput,
+    type RouteBoundaryBasicsFact,
+    type RouteBoundaryBasicsJudgment,
+    resolveRouteBoundaryBasics,
+    resolveRouteBoundaryBasicsJudgment,
+    routeBoundaryBasicsInterface
 } from "./boundaryBasics";
 
 export { RouteBoundaryContractFactory } from "./boundaryContractFactory";
@@ -20,7 +25,12 @@ export { buildRouteBindingContract } from "./bindingBuilder";
 export { buildRouteCapabilityContract } from "./capabilityBuilder";
 export { buildRouteProvenanceContract } from "./provenanceBuilder";
 
-export { resolveRouteCapability } from "./capabilityResolution";
+export {
+    type RouteCapabilitySemanticInput,
+    type ResolvedRouteCapability,
+    resolveRouteCapabilityJudgment,
+    resolveRouteCapability,
+} from "./capabilityResolution";
 
 export { resolveRouteBinding } from "./bindingResolution";
 

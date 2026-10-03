@@ -39,3 +39,16 @@ export type { ChannelDefinition, ChannelKind } from './channel';
 
 export * from './query';
 export * from './eloquent';
+export * from './astSemanticInterface';
+export * from './astMappingInterface';
+export * from './astSemanticStageInterface';
+
+export * from './astSemanticStageContract';
+
+export * from './astSemanticStagePreservation';
+
+export * from './astSemanticStageProof';
+
+export * from './astSemanticStageInterfaceAlgebra';
+export * from './astSemanticAuthorityPipeline';
+export * from './astSemanticStageTransition';

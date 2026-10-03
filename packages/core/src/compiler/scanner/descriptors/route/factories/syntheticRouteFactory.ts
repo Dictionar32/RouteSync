@@ -16,7 +16,7 @@ import {
     RouteSemanticFlowCacheInvalidationDescriptor,
     RouteHandlerKind
 } from "../../../../../types/route";
-import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
+import { emptyRouteSchemaPayload } from "../../../../../types/domain/validationRules";
 import { relationOptionalFold } from "../../../../../semantic/kernel/relationalSequence";
 import type { RouteSemanticFlowFactory } from "../RouteSemanticFlowFactory";
 import type { RouteBoundaryOptions } from "../../../resolvers";

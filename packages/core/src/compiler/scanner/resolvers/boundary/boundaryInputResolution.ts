@@ -1,14 +1,16 @@
 import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
-import { resolveRouteBoundaryBasics } from "./boundaryBasics";
+import { routeBoundaryBasicsInterface } from "./boundaryBasics";
 import { resolveRouteBinding } from "./bindingResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
-import { relationGate, relationSome, relationNone, relationOptionValue } from "../../../../semantic/kernel/relationalSequence";
+import { relationOptionFold } from "../../../../semantic/kernel/relationalSequence";
+import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
 
 export function resolveRouteBoundaryInput(
     params: RouteBoundaryOptions
 ): ResolvedRouteBoundaryOptions {
-    const basics = resolveRouteBoundaryBasics(params);
+    const basicsJudgment = routeBoundaryBasicsInterface(params);
+    const basics = basicsJudgment.result;
     const binding = resolveRouteBinding(params);
     const capability = resolveRouteCapability(params, basics, basics.resolvedParameters.length);
     const provenance = buildRouteProvenanceContract(params);
@@ -29,7 +31,7 @@ export function resolveRouteBoundaryInput(
         sourceLine: provenance.sourceLine,
         handler: params.handler,
         auth: relationEqual(params.auth, true),
-        middleware: Object.freeze(relationOptionValue(relationGate(Boolean(params.middleware), () => relationSome(params.middleware as NonNullable<RouteBoundaryOptions['middleware']>), () => relationNone()), [])),
+        middleware: Object.freeze(presenceFold(presenceOf(params.middleware), () => [], value => value)),
         parameters: basics.resolvedParameters,
         pathParameters: basics.resolvedPathParameters,
         queryParameters: basics.resolvedQueryParameters,

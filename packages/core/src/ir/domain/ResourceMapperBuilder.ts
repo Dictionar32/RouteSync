@@ -6,7 +6,7 @@ import type { MapperIR, MapperFieldIR, ParsedResource } from '../../types/ir';
 import { resourceBaseName } from '../../utils/resource-naming';
 import { createResponseTypeName } from '../../types/ir/nominalVocabulary';
 import type { OptimizedResourceFieldIR } from './irTypes';
-import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../compiler/scanner/lexer/routeAst/semanticRelationSolver';
+import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../compiler/scanner/lexer/routeAst/semanticRewriteEngine';
 import type { TypeIR } from '../../types/ir';
 import { relationEqual } from '../../semantic/kernel/semanticRelations';
 import { relationContains } from '../../semantic/kernel/relationMembership';

@@ -2,11 +2,11 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { relation, union, antiJoin, fixedPoint } from './semanticRelationalAlgebra';
 import { SemanticRelationStore } from './semanticRelationStore';
-import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationRewrite } from './semanticRelationSolver';
+import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationRewrite } from './semanticRewriteEngine';
 
 const authorityFiles = [
   'phpAstSemanticKnowledgeDataFlowAdapter.ts',
-  'semanticRelationSolver.ts',
+  'semanticRewriteEngine.ts',
   'semanticConstraintCalculus.ts',
   'semanticRewriteEngine.ts',
   'semanticRelationalAlgebra.ts',

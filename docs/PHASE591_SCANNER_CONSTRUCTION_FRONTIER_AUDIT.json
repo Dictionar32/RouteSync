@@ -9,24 +9,24 @@
   ],
   "files": 17,
   "aggregate": {
-    "if": 0,
-    "for": 0,
+    "if": 9,
+    "for": 1,
     "while": 0,
     "switch": 0,
-    "map": 0,
-    "filter": 0,
+    "map": 1,
+    "filter": 2,
     "reduce": 0,
     "flatMap": 0,
-    "undefined": 0,
+    "undefined": 9,
     "null": 1,
-    "nullish": 0,
-    "strictEqual": 0,
-    "strictNotEqual": 0,
+    "nullish": 2,
+    "strictEqual": 15,
+    "strictNotEqual": 8,
     "asUnknown": 0,
     "set": 0,
     "mapType": 0,
     "any": 0,
-    "new": 0
+    "new": 11
   },
   "rows": [
     {
@@ -377,24 +377,24 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
       "counts": {
-        "if": 0,
-        "for": 0,
+        "if": 9,
+        "for": 1,
         "while": 0,
         "switch": 0,
-        "map": 0,
-        "filter": 0,
+        "map": 1,
+        "filter": 2,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 0,
+        "undefined": 9,
         "null": 0,
-        "nullish": 0,
-        "strictEqual": 0,
-        "strictNotEqual": 0,
+        "nullish": 2,
+        "strictEqual": 15,
+        "strictNotEqual": 8,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 0
+        "new": 11
       }
     },
     {

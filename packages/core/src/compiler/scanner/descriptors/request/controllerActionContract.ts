@@ -66,7 +66,7 @@ export interface ControllerActionContractResolverContext {
 
 import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { relationContains, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
-import { relationFirstOption, relationGate, relationIsNone, relationIsPresent, relationNone, relationOptionFold, relationProject, relationSelect, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationGate, relationIsNone, relationIsPresent, relationNone, relationOptionFold, relationProject, relationSelect, relationSome, relationVariantValue, type RelationOption, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
 export function resolveControllerActionContract(
     method: ControllerMethodAst,
     controllerName: ControllerName,
@@ -174,16 +174,16 @@ function resolveMethodDependencies(
 }
 
 function resolveDependencyResolution(parameter: ControllerParameterAst, customContextualAttributeNames: RelationMembership<string>): ControllerDependencyResolution {
-    return relationOptionFold(resolveContextualAttributeResolution(parameter, customContextualAttributeNames), () => ({ kind: 'container' }) as ControllerDependencyResolution, value => value);
+    return relationOptionFold(resolveContextualAttributeResolution(parameter, customContextualAttributeNames), () => ({ kind: 'container' as const }), value => value);
 }
 
 function resolveContextualAttributeResolution(
     parameter: ControllerParameterAst,
     customContextualAttributeNames: RelationMembership<string>
-): RelationOption<Extract<ControllerDependencyResolution, { readonly kind: 'contextual_attribute' }>> {
+): RelationOption<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>> {
     const candidates = relationProject(parameter.attributes, attribute => {
         const known = contextualAttributeName(attribute.name);
-        return relationOptionFold<ControllerContextualAttributeName, RelationOption<Extract<ControllerDependencyResolution, { readonly kind: 'contextual_attribute' }>>>(known,
+        return relationOptionFold<ControllerContextualAttributeName, RelationOption<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>>(known,
             () => {
                 const normalized = relationOptionFold(
                     relationFirstOption(attribute.name.split('\\').reverse(), value => value.length > 0),
@@ -194,16 +194,16 @@ function resolveContextualAttributeResolution(
                     relationContains(customContextualAttributeNames, attribute.name),
                     relationContains(customContextualAttributeNames, normalized),
                 ]);
-                return relationGate(custom, () => relationSome<Extract<ControllerDependencyResolution, { readonly kind: 'contextual_attribute' }>>({
+                return relationGate(custom, () => relationSome<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>({
                     kind: 'contextual_attribute',
                     attribute: {
                         kind: 'custom_contextual_attribute',
                         name: createClassName(attribute.name),
                         arguments: expressionArgumentsFromParameterAttribute(attribute, '<controller-parameter>'),
                     },
-                }), () => relationNone<Extract<ControllerDependencyResolution, { readonly kind: 'contextual_attribute' }>>());
+                }), () => relationNone<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>());
             },
-            name => relationSome<Extract<ControllerDependencyResolution, { readonly kind: 'contextual_attribute' }>>({
+            name => relationSome<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>({
                 kind: 'contextual_attribute',
                 attribute: {
                     kind: 'laravel_contextual_attribute',
@@ -213,7 +213,7 @@ function resolveContextualAttributeResolution(
             }),
         );
     });
-    return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => relationNone<Extract<ControllerDependencyResolution, { readonly kind: 'contextual_attribute' }>>(), candidate => candidate);
+    return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => relationNone<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>(), candidate => candidate);
 }
 
 const FRAMEWORK_REQUEST_TYPE_KNOWLEDGE: Readonly<Record<string, true>> = Object.freeze({
@@ -250,17 +250,17 @@ function contextualAttributeName(value: string): RelationOption<ControllerContex
 function expressionArgumentsFromParameterAttribute(attribute: ControllerParameterAst['attributes'][number], file: string): ExpressionArguments {
     const items: readonly ExpressionArgument[] = relationProject(attribute.arguments, argument => relationGate(
         relationEqual(argument.kind, 'positional'),
-        () => ({ kind: 'positional', value: expressionFromPhpAst(argument.value, file) } as ExpressionArgument),
+        () => ({ kind: 'positional', value: expressionFromPhpAst(argument.value, file) }),
         () => relationGate(
             relationEqual(argument.kind, 'unpacked'),
-            () => ({ kind: 'unpacked', value: expressionFromPhpAst(argument.value, file) } as ExpressionArgument),
+            () => ({ kind: 'unpacked', value: expressionFromPhpAst(argument.value, file) }),
             () => {
-                const named = argument as Extract<typeof argument, { readonly kind: 'named' }>;
+                const named = relationVariantValue(argument, 'named');
                 return {
                     kind: 'named',
                     name: { kind: 'expression_argument_name', value: { kind: 'string_value', value: named.name } },
                     value: expressionFromPhpAst(named.value, file),
-                } as ExpressionArgument;
+                };
             },
         ),
     ));
@@ -277,10 +277,10 @@ function createVariableName(value: string): VariableName {
 function namedParameterType(type: PhpParameterTypeAst): RelationOption<string> {
     return relationGate(
         relationEqual(type.kind, 'named'),
-        () => relationSome((type as Extract<PhpParameterTypeAst, { kind: 'named' }>).name),
+        () => relationSome(relationVariantValue(type, 'named').name),
         () => relationGate(
             relationEqual(type.kind, 'nullable'),
-            () => namedParameterType((type as Extract<PhpParameterTypeAst, { kind: 'nullable' }>).inner),
+            () => namedParameterType(relationVariantValue(type, 'nullable').inner),
             () => relationNone<string>(),
         ),
     );
@@ -293,7 +293,7 @@ function resolveRequest(
     const candidates = relationProject(parameters, parameter => relationGate(
         relationEqual(parameter.type.kind, 'named'),
         () => {
-            const type = parameter.type as Extract<PhpParameterTypeAst, { kind: 'named' }>;
+            const type = relationVariantValue(parameter.type, 'named');
             const source = relationIndexLookup(formRequestIndex, type.name);
             return relationGate(
                 relationEqual(source.kind, 'some'),
@@ -307,21 +307,21 @@ function resolveRequest(
         },
         () => relationNone<RequestContract>(),
     ));
-    return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => ({ kind: 'no_request' }) as RequestContract, candidate => relationOptionFold(candidate, () => ({ kind: 'no_request' }) as RequestContract, value => value));
+    return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => ({ kind: 'no_request' as const }), candidate => relationOptionFold(candidate, () => ({ kind: 'no_request' as const }), value => value));
 }
 
 function resolveResponse(method: ControllerMethodAst, sourceProject: SourceProjectIdentity, returned: ControllerReturnSet): ResponseDescriptor {
     return relationGate(
         relationEqual(method.responseAttribute.kind, 'absent'),
         () => VoidResponseDescriptor.create(),
-        () => resolveResponseAttributeAst(method.responseAttribute as Extract<ControllerMethodAst['responseAttribute'], { readonly kind: 'declared' }>, sourceProject, returned),
+        () => resolveResponseAttributeAst(relationVariantValue(method.responseAttribute, 'declared'), sourceProject, returned),
     );
 }
 
 function resolveRuntimeReturn(method: ControllerMethodAst): RuntimeReturnContract {
     return relationGate(
         relationEqual(method.returns.length, 0),
-        () => ({ kind: 'none' }) as RuntimeReturnContract,
+        () => ({ kind: 'none' as const }),
         () => ({
             kind: 'expressions',
             expressions: Object.freeze(relationProject(method.returns, item => mapResourcePhpAstToUpstream(item.expression, '<controller-action>'))),

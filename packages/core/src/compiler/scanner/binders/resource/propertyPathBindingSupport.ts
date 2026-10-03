@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
+import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
 import { ResourceFieldExpressionFactory, type ResourceFieldExpression } from "../../../../types/route";
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
 import { ErrorType } from "../../../types/SemanticType";

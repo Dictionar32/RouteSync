@@ -1,5 +1,6 @@
 import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve } from '../../../relational/sequence';
+import { relationOptionalFold, relationVariant, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve, relationFirstOption, relationOptionFold, relationProject } from '../../../relational/sequence';
 import { typedDefine, typedDistinct, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import type { SemanticClosureResult } from './semanticClosureEngine';
 /**
@@ -228,7 +229,7 @@ export const SEMANTIC_ASSIGNMENT_EFFECT_KNOWLEDGE: readonly SemanticAssignmentEf
         ] satisfies SemanticAssignmentOperatorCode[]),
     }),
 ]);
-export const semanticAssignmentEffect = (operator: SemanticAssignmentOperatorCode): SemanticPresence<SemanticAssignmentEffectDefinition> => relationResolve(SEMANTIC_ASSIGNMENT_EFFECT_KNOWLEDGE.find(effect => effect.operators.includes(operator)), effect => semanticPresent(effect), () => semanticAbsent('not_provided'));
+export const semanticAssignmentEffect = (operator: SemanticAssignmentOperatorCode): SemanticPresence<SemanticAssignmentEffectDefinition> => relationOptionFold(relationFirstOption(SEMANTIC_ASSIGNMENT_EFFECT_KNOWLEDGE, effect => relationAny(relationProject(effect.operators, candidate => relationEqual(candidate, operator)))), () => semanticAbsent('not_provided'), effect => semanticPresent(effect));
 export const SEMANTIC_ASSIGNMENT_OPERATOR_KNOWLEDGE: readonly SemanticAssignmentOperatorDefinition[] = Object.freeze(typedDefine([
     'set', 'add', 'subtract', 'multiply', 'divide', 'modulo', 'concatenate',
     'null_coalesce', 'power', 'bitwise_and', 'bitwise_or', 'bitwise_xor',
@@ -239,7 +240,7 @@ export interface SemanticAssignmentReferenceDefinition {
     readonly code: SemanticAssignmentReferenceCode;
 }
 export const SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE: readonly SemanticAssignmentReferenceDefinition[] = Object.freeze(typedDefine(['by_value', 'by_reference'] satisfies SemanticAssignmentReferenceCode[], code => Object.freeze({ code }) satisfies SemanticAssignmentReferenceDefinition));
-export const semanticAssignmentReference = (code: SemanticAssignmentReferenceCode): SemanticPresence<SemanticAssignmentReferenceDefinition> => relationResolve(SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE.find(definition => relationEqual(definition.code, code)), definition => semanticPresent(definition), () => semanticAbsent('not_provided'));
+export const semanticAssignmentReference = (code: SemanticAssignmentReferenceCode): SemanticPresence<SemanticAssignmentReferenceDefinition> => relationOptionFold(relationFirstOption(SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE, definition => relationEqual(definition.code, code)), () => semanticAbsent('not_provided'), definition => semanticPresent(definition));
 export interface SemanticAssignment {
     readonly id: KnowledgeId;
     readonly target: KnowledgeId;
@@ -645,8 +646,8 @@ export const validateSemanticKnowledgeDataFlow = (dataFlow: SemanticKnowledgeDat
     relationResolve(unknownFlowEndpoint.length > 0, () => fail(`Semantic data-flow fact references unknown knowledge: ${knowledgeIdKey(unknownFlowEndpoint[0].source)} -> ${knowledgeIdKey(unknownFlowEndpoint[0].target)}`), () => { });
     const selfReferences = typedSelect(typedRelation(dataFlow.dataFlow), flow => relationEqual(knowledgeIdKey(flow.source), knowledgeIdKey(flow.target))).tuples;
     relationResolve(selfReferences.length > 0, () => fail(`Semantic data-flow fact cannot self-reference: ${knowledgeIdKey(selfReferences[0].source)}`), () => { });
-    const unknownGuards = typedSelect(typedRelation(dataFlow.dataFlow), flow => relationAll([relationEqual(flow.guard.kind, 'present'), relationEqual(relationContains(uniqueFactKeys, knowledgeIdKey(flow.guard.value.predicate)), false)])).tuples;
-    relationResolve(unknownGuards.length > 0, () => fail(`Semantic data-flow guard references unknown predicate: ${knowledgeIdKey((unknownGuards[0].guard satisfies Extract<typeof unknownGuards[0]['guard'], { readonly kind: 'present' }>).value.predicate)}`), () => { });
+    const unknownGuards = typedSelect(typedRelation(dataFlow.dataFlow), flow => relationOptionFold(relationVariant(flow.guard, 'present'), () => false, guard => relationEqual(relationContains(uniqueFactKeys, knowledgeIdKey(guard.value.predicate)), false))).tuples;
+    relationResolve(unknownGuards.length > 0, () => fail(`Semantic data-flow guard references unknown predicate: ${knowledgeIdKey(relationVariantValue(unknownGuards[0].guard, 'present').value.predicate)}`), () => { });
     const unsupportedRelations = typedSelect(typedRelation(dataFlow.relations), edge => relationEqual(typedSelect(typedRelation(dataFlow.dataFlow), flow => relationAll([
         relationEqual(knowledgeIdKey(flow.source), knowledgeIdKey(edge.from)),
         relationEqual(knowledgeIdKey(flow.target), knowledgeIdKey(edge.to)),
@@ -664,7 +665,7 @@ export const semanticSourceSpan = (start: number, end: number): SemanticSourceSp
     start: semanticSourceOffset(start),
     end: semanticSourceOffset(end),
 });
-export const semanticSource = (filePath: string, startOffset: number, endOffset: number, evidence: SemanticEvidenceProvider = SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE.find(item => relationEqual(item.code, 'parser')) satisfies SemanticEvidenceProvider): SemanticSource => Object.freeze({ filePath: semanticText(filePath), span: semanticSourceSpan(startOffset, endOffset), evidence });
+export const semanticSource = (filePath: string, startOffset: number, endOffset: number, evidence: SemanticEvidenceProvider = relationOptionFold(relationFirstOption(SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE, item => relationEqual(item.code, 'parser')), () => SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE[0], item => item)): SemanticSource => Object.freeze({ filePath: semanticText(filePath), span: semanticSourceSpan(startOffset, endOffset), evidence });
 export const knowledgeId = (source: SemanticSource, role: SemanticKnowledgeRoleCode, slot = 'self'): KnowledgeId => Object.freeze({
     kind: 'knowledge-id',
     identity: Object.freeze({
@@ -682,20 +683,20 @@ export const knowledgeIdKey = (id: KnowledgeId): string => {
 export const semanticIdentifier = (value: string): SemanticIdentifier => Object.freeze({ kind: 'identifier', value: semanticText(value) });
 export const semanticOperation = (value: string): SemanticOperation => Object.freeze({ kind: 'operation', name: semanticText(value) });
 export const semanticFact = <T extends SemanticFact>(fact: T): T => Object.freeze(fact);
-export const semanticDataFlowRole = (code: SemanticDataFlowRoleCode): SemanticDataFlowRoleDefinition => relationResolve(SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE.find(definition => relationEqual(definition.code, code)), definition => definition, () => SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE[0]);
+export const semanticDataFlowRole = (code: SemanticDataFlowRoleCode): SemanticDataFlowRoleDefinition => relationOptionFold(relationFirstOption(SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE, definition => relationEqual(definition.code, code)), () => SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE[0], definition => definition);
 export const semanticDependency = (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard): SemanticDataFlowFact => Object.freeze({
     kind: 'dependency',
     source,
     target,
     role: semanticDataFlowRole(role),
-    guard: relationResolve(guard, () => semanticPresent<SemanticFlowGuard>(guard), () => semanticAbsent<SemanticFlowGuard>('not_provided')),
+    guard: relationOptionalFold<SemanticFlowGuard, SemanticPresence<SemanticFlowGuard>>(guard, () => semanticAbsent<SemanticFlowGuard>('not_provided'), value => semanticPresent(value)),
 });
 export const semanticValueFlow = (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard): SemanticDataFlowFact => Object.freeze({
     kind: 'value-flow',
     source,
     target,
     role: semanticDataFlowRole(role),
-    guard: relationResolve(guard, () => semanticPresent<SemanticFlowGuard>(guard), () => semanticAbsent<SemanticFlowGuard>('not_provided')),
+    guard: relationOptionalFold<SemanticFlowGuard, SemanticPresence<SemanticFlowGuard>>(guard, () => semanticAbsent<SemanticFlowGuard>('not_provided'), value => semanticPresent(value)),
 });
 export const semanticEdge = (from: KnowledgeId, to: KnowledgeId, relation: SemanticDataFlowRelationCode, role: SemanticDataFlowRoleCode): SemanticDataFlowEdge => Object.freeze({
     from,

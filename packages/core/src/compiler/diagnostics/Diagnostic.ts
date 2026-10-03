@@ -1,38 +1,25 @@
 /**
- * Diagnostic.ts
- * 
- * Defines diagnostic types for compiler errors, warnings, and code fixes.
- */
-
-/**
- * File span representing a location in source code.
+ * Closed semantic diagnostic vocabulary.
+ *
+ * Diagnostics are compiler judgments, not loosely-shaped error objects.  The
+ * absence of source evidence and the absence of a fix are represented by
+ * explicit variants so downstream passes never need host-language optional
+ * fields to interpret a diagnostic.
  */
 import { FileSpan } from "../types/FileSpan";
 
-/**
- * Text edit for code fix.
- */
 export interface TextEdit {
     readonly span: FileSpan;
     readonly newText: string;
 }
 
-/**
- * Code fix suggestion for a diagnostic.
- */
 export interface DiagnosticFix {
     readonly description: string;
     readonly edits: readonly TextEdit[];
 }
 
-/**
- * Diagnostic severity level.
- */
 export type DiagnosticSeverity = 'error' | 'warning';
 
-/**
- * Diagnostic category ADT discriminator.
- */
 export const DiagnosticCategory = Object.freeze({
     Syntax: 'syntax',
     Schema: 'schema',
@@ -96,40 +83,49 @@ export function matchDiagnosticCategory<R>(
     return visitor[category]();
 }
 
-/**
- * Compiler diagnostic.
- * 
- * Represents an error, warning, or informational message produced during
- * compilation. Optionally includes location information and code fixes.
- */
+/** Explicit source-evidence state for a diagnostic. */
+export type DiagnosticLocation =
+    | { readonly kind: 'none' }
+    | { readonly kind: 'source'; readonly span: FileSpan };
+
+/** Explicit remediation state for a diagnostic. */
+export type DiagnosticFixState =
+    | { readonly kind: 'none' }
+    | { readonly kind: 'available'; readonly fix: DiagnosticFix };
+
 export interface Diagnostic {
-    /**
-     * Diagnostic code (e.g., 'E0001', 'W0042').
-     */
     readonly code: string;
-
-    /**
-     * Severity level.
-     */
     readonly severity: DiagnosticSeverity;
-
-    /**
-     * Category classification.
-     */
-    readonly category?: DiagnosticCategory;
-
-    /**
-     * Human-readable diagnostic message.
-     */
+    readonly category: DiagnosticCategory;
     readonly message: string;
-
-    /**
-     * Optional source location.
-     */
-    readonly location?: FileSpan;
-
-    /**
-     * Optional code fix suggestion.
-     */
-    readonly fix?: DiagnosticFix;
+    readonly location: DiagnosticLocation;
+    readonly fix: DiagnosticFixState;
 }
+
+export const DiagnosticLocation = Object.freeze({
+    none: (): DiagnosticLocation => Object.freeze({ kind: 'none' as const }),
+    source: (span: FileSpan): DiagnosticLocation => Object.freeze({ kind: 'source' as const, span })
+});
+
+export const DiagnosticFixState = Object.freeze({
+    none: (): DiagnosticFixState => Object.freeze({ kind: 'none' as const }),
+    available: (fix: DiagnosticFix): DiagnosticFixState => Object.freeze({ kind: 'available' as const, fix })
+});
+
+export interface DiagnosticInput {
+    readonly code: string;
+    readonly severity: DiagnosticSeverity;
+    readonly category: DiagnosticCategory;
+    readonly message: string;
+    readonly location: DiagnosticLocation;
+    readonly fix: DiagnosticFixState;
+}
+
+export const createDiagnostic = (input: DiagnosticInput): Diagnostic => Object.freeze({
+    code: input.code,
+    severity: input.severity,
+    category: input.category,
+    message: input.message,
+    location: input.location,
+    fix: input.fix
+});

@@ -11,7 +11,8 @@ import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';
 import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/requirementSolver';
+import { tokenKindAt, tokenValueAt } from '../../lexer/tokenEvidence';
+import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 export { DetectedResourceInvocation, detectResourceInvocation };
 
@@ -23,25 +24,31 @@ const modelCollectionMethods = Object.freeze([['all', true], ['paginate', true],
 const modelSingleMethods = Object.freeze([['find', true], ['findOrFail', true], ['first', true], ['firstOrFail', true], ['create', true]] as const);
 
 export function detectModelResponse(tokens: readonly Token[], k: number): RelationOption<ResponseDescriptor> {
-  const model = tokens[relationAdvanceIndex(k, 1)];
-  const method = tokens[relationAdvanceIndex(k, 3)]?.value;
+  const modelIndex = relationAdvanceIndex(k, 1);
+  const separatorIndex = relationAdvanceIndex(k, 2);
+  const methodIndex = relationAdvanceIndex(k, 3);
+  const modelName = relationOptionFold(tokenValueAt(tokens, modelIndex), () => '', value => value);
+  const method = relationOptionFold(tokenValueAt(tokens, methodIndex), () => '', value => value);
+  const modelKind = relationOptionFold(tokenKindAt(tokens, modelIndex), () => '', value => value);
+  const separator = relationOptionFold(tokenValueAt(tokens, separatorIndex), () => '', value => value);
+  const returned = relationOptionFold(tokenValueAt(tokens, k), () => '', value => value);
   return solveRewriteCandidate([
-    { id: 'collection', rewrite: () => ModelResponseDescriptor.collection(model!.value), requirements: [requirement('return', relationEqual(tokens[k]?.value, 'return')), requirement('model', relationEqual(model?.type, 'IDENTIFIER')), requirement('separator', relationEqual(tokens[relationAdvanceIndex(k, 2)]?.value, '::')), requirement('method', relationIsSome(relationLookup(modelCollectionMethods, method)))] },
-    { id: 'single', rewrite: () => ModelResponseDescriptor.single(model!.value), requirements: [requirement('return', relationEqual(tokens[k]?.value, 'return')), requirement('model', relationEqual(model?.type, 'IDENTIFIER')), requirement('separator', relationEqual(tokens[relationAdvanceIndex(k, 2)]?.value, '::')), requirement('method', relationIsSome(relationLookup(modelSingleMethods, method)))] },
+    { id: 'collection', rewrite: () => ModelResponseDescriptor.collection(modelName), requirements: [requirement('return', relationEqual(returned, 'return')), requirement('model', relationEqual(modelKind, 'IDENTIFIER')), requirement('separator', relationEqual(separator, '::')), requirement('method', relationIsSome(relationLookup(modelCollectionMethods, method)))], exclusions: [], dependencies: [] },
+    { id: 'single', rewrite: () => ModelResponseDescriptor.single(modelName), requirements: [requirement('return', relationEqual(returned, 'return')), requirement('model', relationEqual(modelKind, 'IDENTIFIER')), requirement('separator', relationEqual(separator, '::')), requirement('method', relationIsSome(relationLookup(modelSingleMethods, method)))], exclusions: [], dependencies: [] },
   ]);
 }
 
 export function detectInlineResponse(source: string, tokens: readonly Token[], k: number, controllerName: string, actionName: string): RelationOption<ResponseDescriptor> {
   const shape = relationAll([
-    relationEqual(tokens[k]?.value, 'return'),
-    relationEqual(tokens[relationAdvanceIndex(k, 1)]?.value, 'response'),
-    relationEqual(tokens[relationAdvanceIndex(k, 2)]?.value, '('),
+    relationEqual(relationOptionFold(tokenValueAt(tokens, k), () => '', value => value), 'return'),
+    relationEqual(relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(k, 1)), () => '', value => value), 'response'),
+    relationEqual(relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(k, 2)), () => '', value => value), '('),
   ]);
   const json = relationFold(tokens, { index: k, found: false, parsed: { entries: [] } as ReturnType<typeof LaravelSourceLexer.parseArray> }, (state, token, index) =>
     relationGate(state.found, () => state, () => relationGate(relationAll([
       relationEqual(token.value, 'json'),
-      relationEqual(tokens[relationAdvanceIndex(index, 1)]?.value, '(')
-    ]), () => ({ index, found: true, parsed: LaravelSourceLexer.parseArray(source, tokens as Token[], relationAdvanceIndex(index, 1)) }), () => state))
+      relationEqual(relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(index, 1)), () => '', value => value), '(')
+    ]), () => ({ index, found: true, parsed: LaravelSourceLexer.parseArray(source, tokens, relationAdvanceIndex(index, 1)) }), () => state))
   );
   const fields: ResourceFieldDescriptor[] = relationProject(json.parsed.entries, entry => {
     const mapped = ResourceScanner.resolveAstValueToExpression(entry.value);

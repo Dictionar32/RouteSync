@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
+import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { NullableType, type SemanticType } from "../../../types/SemanticType";

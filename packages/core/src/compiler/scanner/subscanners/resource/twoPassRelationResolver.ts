@@ -10,7 +10,7 @@ import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { findControllerResourceBinding } from "../controller/resourceDataflowAggregator";
 import { matchLookup } from "../../../../types/upstream/collections";
 import type { ResourceName } from "../../../../types/upstream/names";
-import { type Presence, fromOptional, presenceFold } from "../../../../types/upstream/presence";
+import { type Presence, presenceOf, presenceFold } from "../../../../types/upstream/presence";
 import {
     createResourceModelResolutionFact,
     createResourceRelationFact,
@@ -40,7 +40,7 @@ export function resolveInitialModel(
     controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow,
 ): Presence<ResourceModelResolutionFact> {
     return presenceFold(
-        fromOptional(controllerDataflowMap),
+        presenceOf(controllerDataflowMap),
         () => presenceFold(
             matchLookup(modelSymbolTable.findForResource(resourceName), {
                 missing: () => ({ kind: 'absent' }),

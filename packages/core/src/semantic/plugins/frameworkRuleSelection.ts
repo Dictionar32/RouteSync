@@ -1,6 +1,6 @@
 import type { ResolverMeta } from '../../types';
 import { lookupGlobalFunction, lookupMethod, lookupVariableMethod, type FrameworkMethodRule } from '../FrameworkRegistry';
-import { solveCandidate, requirement } from '../kernel/requirementSolver';
+import { solveCandidate, requirement } from '../kernel/semanticDecisionRewriteEngine';
 import { relationResolve, relationIsSome, type RelationOption } from '../kernel/relationalSequence';
 import { relationAll, relationEqual } from '../kernel/semanticRelations';
 

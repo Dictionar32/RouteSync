@@ -1,4 +1,4 @@
-import type { ModelAst } from '../../../../types/upstream/ast';
+import { createDomainAstJudgment, type ModelAst } from '../../../../types/upstream/ast';
 import type { ModelDefinition, ModelKeyKind } from '../../../../types/upstream/model';
 import type { CastType } from '../../../../types/upstream/expression';
 import type { ModelSemanticDefinition } from '../../../../types/upstream/model';
@@ -147,6 +147,6 @@ export function modelAstFromSemantic(
         methods: { kind: 'model_methods', items: sequence(relationProject(model.methods, item => ({ kind: 'model_method' as const, name: item.name, visibility: item.visibility, result: item.result, body: item.body, source: item.source }))) },
         semantic: model
     };
-    return { kind: 'model_ast', definition, source: span };
+    return createDomainAstJudgment({ kind: 'model_ast', semantic: definition, source: span });
 
 }

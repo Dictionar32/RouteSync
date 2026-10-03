@@ -4,8 +4,8 @@ import type { QueryAst, QueryOperationAst, QuerySubqueryAst } from '../../../typ
 import { createModelName, createPropertyName, createRelationName } from '../../../types/upstream/names';
 import type { ModelName, PropertyName } from '../../../types/upstream/names';
 import type { Sequence, RelationPath, Option } from '../../../types/upstream/collections';
-import { RELATION_NONE, relationGate, type RelationNone, relationFirst, relationFold, relationExpand, relationProject, relationMapValueOr, relationCatalogValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSome, relationNone, type RelationOption } from '../../../semantic/kernel/relationalSequence';
-import { solveCandidate, requirement } from '../../../semantic/kernel/requirementSolver';
+import { RELATION_NONE, relationGate, type RelationNone, relationFirst, relationFold, relationExpand, relationProject, relationMapValueOr, relationCatalogValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSome, relationNone, relationVariant, relationVariantValue, type RelationOption, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
+import { solveCandidate, requirement } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
 import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/kernel/semanticRelations';
 export type QueryProducerInput = {
     readonly expressions: readonly ExpressionAst[];
@@ -22,25 +22,24 @@ const modelFromReceiver = (expression: Expression): RelationOption<ModelName> =>
     relationEqual(expression.kind, 'static_method'), relationEqual(expression.receiver.kind, 'class')
 ]), () => relationOptionFold(modelStaticOperationFromExpression(expression), () => ({ kind: 'none' }), () => ({ kind: 'some', value: createModelName(expression.receiver.name.value.value) })), () => ({ kind: 'none' })))));
 const positionalArgumentsFromItems = (items: import('../../../types/upstream/collections').ExpressionArguments['items'], output: Expression[] = []): readonly Expression[] => relationGate(relationEqual(items.kind, 'empty'), () => output, () => relationGate(relationEqual(items.head.kind, 'positional'), () => positionalArgumentsFromItems(items.tail, output.concat([items.head.value])), () => positionalArgumentsFromItems(items.tail, output)));
-const positionalArguments = (expression: Extract<Expression, {
-    readonly kind: 'method' | 'nullsafe_method';
-}>): readonly Expression[] => positionalArgumentsFromItems(expression.arguments.items);
-const propertyArgument = (expression: Expression | RelationNone): import('../../../types/upstream/names').PropertyName | RelationNone => relationGate(relationAll([
-    relationEqual(expression?.kind, 'literal'), relationEqual(expression.value.kind, 'string_literal')
-]), () => createPropertyName((expression as Extract<Expression, {
-    readonly kind: 'literal';
-}>).value.value.value), () => RELATION_NONE);
-const relationArgument = (expression: Expression | RelationNone): import('../../../types/upstream/names').RelationName | RelationNone => relationGate(relationAll([
-    relationEqual(expression?.kind, 'literal'), relationEqual(expression.value.kind, 'string_literal')
-]), () => createRelationName((expression as Extract<Expression, {
-    readonly kind: 'literal';
-}>).value.value.value), () => RELATION_NONE);
+const positionalArguments = (expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>): readonly Expression[] => positionalArgumentsFromItems(expression.arguments.items);
+const propertyArgument = (expression: Expression | RelationNone): import('../../../types/upstream/names').PropertyName | RelationNone => relationOptionFold(
+    relationVariant(expression, 'literal'),
+    () => RELATION_NONE,
+    literal => relationGate(relationEqual(literal.value.kind, 'string_literal'), () => createPropertyName(literal.value.value.value), () => RELATION_NONE),
+);
+const relationArgument = (expression: Expression | RelationNone): import('../../../types/upstream/names').RelationName | RelationNone => relationOptionFold(
+    relationVariant(expression, 'literal'),
+    () => RELATION_NONE,
+    literal => relationGate(relationEqual(literal.value.kind, 'string_literal'), () => createRelationName(literal.value.value.value), () => RELATION_NONE),
+);
 const relationSegments = (names: readonly string[], index = names.length - 1, tail: RelationPath['segments'] = { kind: 'empty' }): RelationPath['segments'] => relationGate(index < 0, () => tail, () => relationSegments(names, index - 1, { kind: 'cons', head: createRelationName(names[index]), tail }));
 const propertySegments = (columns: readonly string[], index = columns.length - 1, tail: import('../../../types/upstream/collections').PropertyNames['items'] = { kind: 'empty' }): import('../../../types/upstream/collections').PropertyNames['items'] => relationGate(index < 0, () => tail, () => propertySegments(columns, index - 1, { kind: 'cons', head: createPropertyName(columns[index]), tail }));
-const relationPathArgument = (expression: Expression | RelationNone): RelationOption<RelationPath> => relationGate(relationAll([
-    relationEqual(expression?.kind, 'literal'), relationEqual(expression?.value.kind, 'string_literal')
-]), () => {
-    const raw = (expression as Extract<Expression, { readonly kind: 'literal' }>).value.value.value;
+const relationPathArgument = (expression: Expression | RelationNone): RelationOption<RelationPath> => relationOptionFold(
+    relationVariant(expression, 'literal'),
+    () => relationNone(),
+    literal => relationGate(relationEqual(literal.value.kind, 'string_literal'), () => {
+    const raw = literal.value.value.value;
     const parts = raw.split(':');
     return relationOptionFold(relationFirst(parts, () => true), () => relationNone(), pathText => {
         const selectionText = relationLookup(relationProject(parts, (value, index) => [index, value] as const), 1);
@@ -58,15 +57,12 @@ const relationPathArgument = (expression: Expression | RelationNone): RelationOp
             })), () => relationNone());
         }, () => relationNone());
     });
-}, () => relationNone());
-const relationPathsFromArray = (items: Extract<Expression, {
-    readonly kind: 'array';
-}>['entries'], continuation: (paths: RelationPath[]) => RelationPath[], output: RelationPath[] = []): RelationPath[] => relationGate(relationEqual(items.kind, 'empty'), () => continuation(output), () => {
+    }, () => relationNone()),
+);
+const relationPathsFromArray = (items: RelationVariant<Expression, 'array'>['entries'], continuation: (paths: RelationPath[]) => RelationPath[], output: RelationPath[] = []): RelationPath[] => relationGate(relationEqual(items.kind, 'empty'), () => continuation(output), () => {
     return relationOptionFold(relationPathArgument(items.head.value), () => [], path => relationPathsFromArray(items.tail, continuation, output.concat([path])));
 });
-const relationPathsFromExpressions = (expressions: readonly Expression[], index = 0, output: RelationPath[] = []): RelationPath[] => relationGate(index >= expressions.length, () => output, () => relationGate(relationEqual(expressions[index].kind, 'array'), () => relationPathsFromArray(expressions[index] as Extract<Expression, {
-    readonly kind: 'array';
-}>, nested => relationPathsFromExpressions(expressions, relationAdvanceIndex(index, 1), nested), output), () => {
+const relationPathsFromExpressions = (expressions: readonly Expression[], index = 0, output: RelationPath[] = []): RelationPath[] => relationGate(index >= expressions.length, () => output, () => relationGate(relationEqual(expressions[index].kind, 'array'), () => relationPathsFromArray(relationVariantValue(expressions[index], 'array'), nested => relationPathsFromExpressions(expressions, relationAdvanceIndex(index, 1), nested), output), () => {
     return relationOptionFold(relationPathArgument(expressions[index]), () => [], path => relationPathsFromExpressions(expressions, relationAdvanceIndex(index, 1), output.concat([path])));
 }));
 const relationPathsArgument = (expressions: readonly Expression[]): RelationOption<readonly RelationPath[]> => {
@@ -103,9 +99,7 @@ const relationAggregateCatalog: readonly (readonly [string, import('../../../typ
     ['withExists', { kind: 'exists' }], ['loadExists', { kind: 'exists' }],
 ]);
 const relationAggregateFunction = (name: string): RelationOption<import('../../../types/upstream/expression').QueryRelationAggregateFunction> => relationLookup(relationAggregateCatalog, name);
-const relationAggregate = (name: string, expression: Extract<Expression, {
-    readonly kind: 'method' | 'nullsafe_method';
-}>): RelationOption<import('../../../types/upstream/expression').QueryRelationAggregate> => relationOptionFold(
+const relationAggregate = (name: string, expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>): RelationOption<import('../../../types/upstream/expression').QueryRelationAggregate> => relationOptionFold(
     relationAggregateFunction(name),
     () => relationNone(),
     fn => relationOptionFold(
@@ -143,22 +137,22 @@ const relationAggregate = (name: string, expression: Extract<Expression, {
 const orderingTarget = (expression: Expression | RelationNone): import('../../../types/upstream/expression').QueryOrderingTarget | RelationNone => {
     const property = propertyArgument(expression);
     return solveCandidate([
-        { id: 'property', value: { kind: 'property', property: property! }, requirements: [requirement('expression', relationNotEqual(expression, RELATION_NONE)), requirement('property', relationNotEqual(property, RELATION_NONE))] },
-        { id: 'expression', value: { kind: 'expression', expression: expression! }, requirements: [requirement('expression', relationNotEqual(expression, RELATION_NONE))] },
+        { id: 'property', value: { kind: 'property', property: relationVariantValue(property, 'some') }, requirements: [requirement('expression', relationNotEqual(expression, RELATION_NONE)), requirement('property', relationNotEqual(property, RELATION_NONE))] },
+        { id: 'expression', value: { kind: 'expression', expression: relationVariantValue(expression, 'some') }, requirements: [requirement('expression', relationNotEqual(expression, RELATION_NONE))] },
     ]);
 };
-const orderingDirection = (expression: Expression | RelationNone): import('../../../types/upstream/expression').OrderDirection => solveCandidate([
+const orderingDirection = (expression: Expression | RelationNone): import('../../../types/upstream/expression').OrderDirection => relationOptionFold(solveCandidate([
     { id: 'descending', value: { kind: 'descending' }, requirements: [requirement('descending', relationAll([
                 relationAll([
-                    relationEqual(expression?.kind, 'literal'), relationEqual(expression.value.kind, 'string_literal')
+                    relationEqual(expression.kind, 'literal'), relationEqual(relationVariantValue(expression, 'literal').value.kind, 'string_literal')
                 ]),
                 relationEqual(expression.value.value.value.toLowerCase(), 'desc')
             ]))] },
     { id: 'ascending', value: { kind: 'ascending' }, requirements: [requirement('default', true)] },
-])!;
+]), () => ({ kind: 'ascending' as const }), value => value);
 type QueryJoinMethodName = 'join' | 'leftJoin' | 'rightJoin' | 'crossJoin' | 'joinSub' | 'leftJoinSub' | 'rightJoinSub' | 'crossJoinSub' | 'joinLateral' | 'leftJoinLateral' | 'straightJoin' | 'straightJoinSub';
 const queryJoinConstraint = (expression: Expression): import('../../../semantic/kernel/relationalSequence').RelationOption<import('../../../types/upstream/expression').QueryJoinConstraint> => solveCandidate([
-    { id: 'closure', value: { kind: 'closure', expression: expression as Extract<Expression, { readonly kind: 'closure' | 'arrow_function'; }> }, requirements: [requirement('closure', relationAny([relationEqual(expression.kind, 'closure'), relationEqual(expression.kind, 'arrow_function')]))] },
+    { id: 'closure', value: { kind: 'closure', expression: relationVariantValue(expression, 'closure') }, requirements: [requirement('closure', relationAny([relationEqual(expression.kind, 'closure'), relationEqual(expression.kind, 'arrow_function')]))] },
     { id: 'expression', value: { kind: 'expression', expression }, requirements: [requirement('expression', true)] },
 ]);
 type QueryJoinDescriptor = {
@@ -193,9 +187,7 @@ const queryJoin = (name: QueryJoinMethodName, args: readonly Expression[]): impo
         return relationGate(relationAny([relationEqual(descriptor.aliasIndex.kind, 'none'), relationEqual(alias.kind, 'some')]), () => relationOptionFold(constraint, () => relationSome({ target: queryJoinTarget(descriptor, targetExpression, alias), type: { kind: descriptor.type } }), value => relationSome({ target: queryJoinTarget(descriptor, targetExpression, alias), type: { kind: descriptor.type }, constraint: value })), () => relationNone());
     }),
 );
-const queryOperationFromNamedMethod = (expression: Extract<Expression, {
-    readonly kind: 'method' | 'nullsafe_method';
-}>): import('../../../semantic/kernel/relationalSequence').RelationOption<QueryOperationAst> => relationGate(
+const queryOperationFromNamedMethod = (expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>): import('../../../semantic/kernel/relationalSequence').RelationOption<QueryOperationAst> => relationGate(
     relationEqual(expression.operation.kind, 'domain'),
     () => {
         const domain = expression.operation;
@@ -216,21 +208,13 @@ const queryOperationFromNamedMethod = (expression: Extract<Expression, {
         () => relationNone(),
     ),
 );
-const queryColumnReferencesFromSequence = (items: Extract<Expression, {
-    readonly kind: 'array';
-}>['entries'], output: import('../../../types/upstream/expression').QueryColumnReference[] = []): import('../../../types/upstream/expression').QueryColumnReference[] => relationGate(relationEqual(items.kind, 'empty'), () => output, () => queryColumnReferencesFromSequence(items.tail, output.concat([{ kind: 'query_column_reference', expression: items.head.value, source: items.head.value.source }])));
-const queryValidatedColumnReferencesFromSequence = (items: Extract<Expression, {
-    readonly kind: 'array';
-}>['entries'], output: import('../../../types/upstream/expression').QueryColumnReference[] = []): import('../../../types/upstream/expression').QueryColumnReference[] | RelationNone => relationGate(relationEqual(items.kind, 'empty'), () => relationGate(output.length > 0, () => output, () => RELATION_NONE), () => {
+const queryColumnReferencesFromSequence = (items: RelationVariant<Expression, 'array'>['entries'], output: import('../../../types/upstream/expression').QueryColumnReference[] = []): import('../../../types/upstream/expression').QueryColumnReference[] => relationGate(relationEqual(items.kind, 'empty'), () => output, () => queryColumnReferencesFromSequence(items.tail, output.concat([{ kind: 'query_column_reference', expression: items.head.value, source: items.head.value.source }])));
+const queryValidatedColumnReferencesFromSequence = (items: RelationVariant<Expression, 'array'>['entries'], output: import('../../../types/upstream/expression').QueryColumnReference[] = []): import('../../../types/upstream/expression').QueryColumnReference[] | RelationNone => relationGate(relationEqual(items.kind, 'empty'), () => relationGate(output.length > 0, () => output, () => RELATION_NONE), () => {
     const column = propertyArgument(items.head.value);
     return relationGate(relationNotEqual(column, RELATION_NONE), () => queryValidatedColumnReferencesFromSequence(items.tail, output.concat([{ kind: 'query_column_reference', expression: items.head.value, source: items.head.value.source }])), () => RELATION_NONE);
 });
-const queryColumnComparisonsFromSequence = (items: Extract<Expression, {
-    readonly kind: 'array';
-}>['entries'], output: import('../../../types/upstream/expression').QueryColumnComparison[] = []): import('../../../types/upstream/expression').QueryColumnComparison[] | RelationNone => relationGate(relationEqual(items.kind, 'empty'), () => relationGate(output.length > 0, () => output, () => RELATION_NONE), () => relationGate(relationEqual(items.head.value.kind, 'array'), () => {
-    const pair = (items.head.value as Extract<Expression, {
-        readonly kind: 'array';
-    }>).entries;
+const queryColumnComparisonsFromSequence = (items: RelationVariant<Expression, 'array'>['entries'], output: import('../../../types/upstream/expression').QueryColumnComparison[] = []): import('../../../types/upstream/expression').QueryColumnComparison[] | RelationNone => relationGate(relationEqual(items.kind, 'empty'), () => relationGate(output.length > 0, () => output, () => RELATION_NONE), () => relationGate(relationEqual(items.head.value.kind, 'array'), () => {
+    const pair = (relationVariantValue(items.head.value, 'array')).entries;
     return relationGate(relationAll([
         relationAll([
             relationEqual(pair.kind, 'cons'), relationEqual(pair.tail.kind, 'cons')
@@ -338,32 +322,32 @@ const queryNamedMethodOperationCatalog: readonly (readonly [string, QueryNamedMe
             });
         }
     }),
-    ...relationRuleEntries(['where', 'orWhere'], ({ expression, name, args, field, relation, value }) => {
-        {
-            return relationGate(relationAny([
-                relationEqual(args[0]?.kind, 'closure'),
-                relationEqual(args[0]?.kind, 'arrow_function')
-            ]), () => {
-                const condition = { kind: 'nested' as const, expression: args[0] };
-                return { kind: 'instance', operation: relationGate(relationEqual(name, 'where'), () => ({ kind: 'where', condition }), () => ({ kind: 'or_where', condition })) };
-            }, () => {
-                return relationGate(relationAny([
-                    relationEqual(field, RELATION_NONE),
-                    args.length < 2
-                ]), () => {
-                    return RELATION_NONE;
-                }, () => {
-                    const operator = relationGate(args.length >= 3, () => (comparisonOperator(args[1])), () => ({ kind: 'equal' as const }));
-                    const operand = relationGate(args.length >= 3, () => (args[2]), () => (args[1]));
-                    return relationGate(relationEqual(operand, RELATION_NONE), () => {
-                        return RELATION_NONE;
-                    }, () => {
-                        return { kind: 'instance', operation: relationGate(relationEqual(name, 'where'), () => ({ kind: 'where', condition: { kind: 'basic', field, operator, value: operand } }), () => ({ kind: 'or_where', condition: { kind: 'basic', field, operator, value: operand } })) };
-                    });
-                });
-            });
-        }
-    }),
+    ...relationRuleEntries(['where', 'orWhere'], ({ expression, name, args, field, relation, value }) => relationOptionFold(
+        relationFirst(args, () => true),
+        () => relationGate(relationAny([relationEqual(field, RELATION_NONE), args.length < 2]), () => RELATION_NONE, () => {
+            const operator = relationGate(args.length >= 3, () => comparisonOperator(args[1]), () => ({ kind: 'equal' as const }));
+            const operand = relationGate(args.length >= 3, () => args[2], () => args[1]);
+            return relationGate(relationEqual(operand, RELATION_NONE), () => RELATION_NONE, () => ({
+                kind: 'some' as const,
+                value: { kind: 'instance', operation: relationGate(relationEqual(name, 'where'), () => ({ kind: 'where', condition: { kind: 'basic', field, operator, value: operand } }), () => ({ kind: 'or_where', condition: { kind: 'basic', field, operator, value: operand } })) },
+            }));
+        }),
+        first => relationGate(
+            relationAny([relationEqual(first.kind, 'closure'), relationEqual(first.kind, 'arrow_function')]),
+            () => ({
+                kind: 'some' as const,
+                value: { kind: 'instance', operation: relationGate(relationEqual(name, 'where'), () => ({ kind: 'where', condition: { kind: 'nested', expression: first } }), () => ({ kind: 'or_where', condition: { kind: 'nested', expression: first } })) },
+            }),
+            () => relationGate(relationAny([relationEqual(field, RELATION_NONE), args.length < 2]), () => RELATION_NONE, () => {
+                const operator = relationGate(args.length >= 3, () => comparisonOperator(args[1]), () => ({ kind: 'equal' as const }));
+                const operand = relationGate(args.length >= 3, () => args[2], () => args[1]);
+                return relationGate(relationEqual(operand, RELATION_NONE), () => RELATION_NONE, () => ({
+                    kind: 'some' as const,
+                    value: { kind: 'instance', operation: relationGate(relationEqual(name, 'where'), () => ({ kind: 'where', condition: { kind: 'basic', field, operator, value: operand } }), () => ({ kind: 'or_where', condition: { kind: 'basic', field, operator, value: operand } })) },
+                }));
+            }),
+        ),
+    )),
     ...relationRuleEntries(['withCount', 'withMin', 'withMax', 'withAvg', 'withSum', 'withExists', 'loadCount', 'loadMin', 'loadMax', 'loadAvg', 'loadSum', 'loadExists'], ({ expression, name, args, field, relation, value }) => {
         {
             const aggregate = relationAggregate(name, expression);
@@ -1508,9 +1492,7 @@ const comparisonOperatorCatalog: readonly (readonly [string, import('../../../ty
 const comparisonOperator = (expression: Expression): import('../../../types/upstream/expression').ComparisonOperator => relationGate(relationAll([
     relationEqual(expression.kind, 'literal'), relationEqual(expression.value.kind, 'string_literal')
 ]), () => (relationCatalogValueOr(comparisonOperatorCatalog, expression.value.value.value, { kind: 'equal' })), () => ({ kind: 'equal' }));
-type ModelStaticOperationResolver = (expression: Extract<Expression, {
-    readonly kind: 'static_method';
-}>, positional: readonly Expression[], field: PropertyName | RelationNone, value: Expression | RelationNone) => RelationOption<QueryOperationAst>;
+type ModelStaticOperationResolver = (expression: RelationVariant<Expression, 'static_method'>, positional: readonly Expression[], field: PropertyName | RelationNone, value: Expression | RelationNone) => RelationOption<QueryOperationAst>;
 const modelStaticOperationCatalog: readonly (readonly [string, ModelStaticOperationResolver])[] = [
     ['all', () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'all' } } })],
     ['query', () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'query' } } })],
@@ -1519,31 +1501,31 @@ const modelStaticOperationCatalog: readonly (readonly [string, ModelStaticOperat
         ]), () => {
             const operator = relationGate(positional.length >= 3, () => (comparisonOperator(positional[1])), () => ({ kind: 'equal' as const }));
             const operand = relationGate(positional.length >= 3, () => (positional[2]), () => (positional[1]));
-            return { kind: 'some', value: { kind: 'model_static', operation: { kind: 'where', condition: { kind: 'basic', field: field as PropertyName, operator, value: operand as Expression } } } };
+            return relationOptionFold(relationVariant(field, 'some'), () => ({ kind: 'none' }), resolvedField =>
+                relationOptionFold(relationVariant(operand, 'some'), () => ({ kind: 'none' }), resolvedOperand =>
+                    ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'where', condition: { kind: 'basic', field: resolvedField, operator, value: resolvedOperand } } } })));
         }, () => ({ kind: 'none' }))],
-    ['whereKey', (_expression, _positional, _field, value) => relationGate(relationNotEqual(value, RELATION_NONE), () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'where_key', value: value as Expression } } }), () => ({ kind: 'none' }))],
+    ['whereKey', (_expression, _positional, _field, value) => relationOptionFold(relationVariant(value, 'some'), () => ({ kind: 'none' }), resolvedValue => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'where_key', value: resolvedValue } } }))],
     ['with', (_expression, positional) => relationOptionFold(relationPathsArgument(positional), () => ({ kind: 'none' }), paths => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'with', relations: { kind: 'relation_paths', items: sequenceFromArray(paths) } } } }))],
     ['orderBy', (_expression, positional) => relationGate(relationNotEqual(orderingTarget(positional[0]), RELATION_NONE), () => {
-            const target = orderingTarget(positional[0])!;
+            const target = relationOptionFold(relationVariant(orderingTarget(positional[0]), 'some'), () => ({ kind: 'expression', expression: positional[0] }), value => value);
             return { kind: 'some', value: { kind: 'model_static', operation: { kind: 'order_by', target, direction: orderingDirection(positional[1]) } } };
         }, () => ({ kind: 'none' }))],
     ['orderByAsc', (_expression, positional) => relationGate(relationNotEqual(orderingTarget(positional[0]), RELATION_NONE), () => {
-            const target = orderingTarget(positional[0])!;
+            const target = relationOptionFold(relationVariant(orderingTarget(positional[0]), 'some'), () => ({ kind: 'expression', expression: positional[0] }), value => value);
             return { kind: 'some', value: { kind: 'model_static', operation: { kind: 'order_by', target, direction: orderingDirection(positional[1]) } } };
         }, () => ({ kind: 'none' }))],
     ['orderByDesc', (_expression, positional) => relationGate(relationNotEqual(orderingTarget(positional[0]), RELATION_NONE), () => {
-            const target = orderingTarget(positional[0])!;
+            const target = relationOptionFold(relationVariant(orderingTarget(positional[0]), 'some'), () => ({ kind: 'expression', expression: positional[0] }), value => value);
             return { kind: 'some', value: { kind: 'model_static', operation: { kind: 'order_by', target, direction: { kind: 'descending' } } } };
         }, () => ({ kind: 'none' }))],
     ['select', expression => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'select', projection: { kind: 'columns', arguments: expression.arguments } } } })],
-    ['findOrFail', (_expression, _positional, _field, value) => relationGate(relationNotEqual(value, RELATION_NONE), () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'find_or_fail', key: value as Expression } } }), () => ({ kind: 'none' }))],
-    ['create', (_expression, _positional, _field, value) => relationGate(relationNotEqual(value, RELATION_NONE), () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'create', values: value as Expression } } }), () => ({ kind: 'none' }))],
+    ['findOrFail', (_expression, _positional, _field, value) => relationOptionFold(relationVariant(value, 'some'), () => ({ kind: 'none' }), resolvedValue => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'find_or_fail', key: resolvedValue } } }))],
+    ['create', (_expression, _positional, _field, value) => relationOptionFold(relationVariant(value, 'some'), () => ({ kind: 'none' }), resolvedValue => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'create', values: resolvedValue } } }))],
     ['updateOrCreate', (_expression, positional) => relationGate(positional.length >= 2, () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'update_or_create', lookup: positional[0], values: positional[1] } } }), () => ({ kind: 'none' }))],
     ['firstOrCreate', (_expression, positional) => relationGate(positional.length >= 2, () => ({ kind: 'some', value: { kind: 'model_static', operation: { kind: 'first_or_create', attributes: positional[0], values: positional[1] } } }), () => ({ kind: 'none' }))],
 ];
-const modelStaticOperationFromExpression = (expression: Extract<Expression, {
-    readonly kind: 'static_method';
-}>): RelationOption<QueryOperationAst> => relationGate(relationAll([
+const modelStaticOperationFromExpression = (expression: RelationVariant<Expression, 'static_method'>): RelationOption<QueryOperationAst> => relationGate(relationAll([
     relationEqual(expression.action.kind, 'domain'), relationEqual(expression.receiver.kind, 'class')
 ]), () => {
     const name = expression.action.name.value.value;
@@ -1557,14 +1539,10 @@ const modelStaticOperationFromExpression = (expression: Extract<Expression, {
     );
 }, () => ({ kind: 'none' }));
 type ExpressionArgumentRule = (expression: Expression) => readonly Expression[];
-const expressionArgumentRule = <K extends Expression['kind']>(kind: K, resolve: (expression: Extract<Expression, {
-    readonly kind: K;
-}>) => readonly Expression[]): readonly [
+const expressionArgumentRule = <K extends Expression['kind']>(kind: K, resolve: (expression: RelationVariant<Expression, K>) => readonly Expression[]): readonly [
     K,
     ExpressionArgumentRule
-] => [kind, expression => resolve(expression as Extract<Expression, {
-        readonly kind: K;
-    }>)];
+] => [kind, expression => resolve(relationVariantValue(expression, kind))];
 const expressionArgumentCatalog: readonly (readonly [Expression['kind'], ExpressionArgumentRule])[] = Object.freeze([
     expressionArgumentRule('method', expression => [expression.receiver, ...sequenceArgumentExpressions(expression.arguments)]),
     expressionArgumentRule('nullsafe_method', expression => [expression.receiver, ...sequenceArgumentExpressions(expression.arguments)]),
@@ -1593,11 +1571,7 @@ const expressionArgumentCatalog: readonly (readonly [Expression['kind'], Express
     expressionArgumentRule('assignment_expression', expression => [expression.value.expression]),
 ]);
 type OperationResolution = (expression: Expression) => RelationOption<QueryOperationAst>;
-const operationRule = <K extends Expression['kind']>(kind: K, resolve: (expression: Extract<Expression, {
-    readonly kind: K;
-}>) => RelationOption<QueryOperationAst>): readonly [K, OperationResolution] => [kind, expression => resolve(expression as Extract<Expression, {
-    readonly kind: K;
-}>)];
+const operationRule = <K extends Expression['kind']>(kind: K, resolve: (expression: RelationVariant<Expression, K>) => RelationOption<QueryOperationAst>): readonly [K, OperationResolution] => [kind, expression => relationOptionFold(relationVariant(expression, kind), () => relationNone(), resolve)];
 const operationCatalog: readonly (readonly [Expression['kind'], OperationResolution])[] = Object.freeze([
     operationRule('method', expression => queryOperationFromNamedMethod(expression)),
     operationRule('nullsafe_method', expression => queryOperationFromNamedMethod(expression)),
@@ -1679,9 +1653,7 @@ const forClauseExpressions = (clause: import('../../../types/upstream/expression
     () => [],
     resolver => resolver(clause),
 );
-const arrayArgumentExpressions = (expression: Extract<Expression, {
-    readonly kind: 'array';
-}>): readonly Expression[] => {
+const arrayArgumentExpressions = (expression: RelationVariant<Expression, 'array'>): readonly Expression[] => {
     const visit = (items: typeof expression.entries): readonly Expression[] => relationGate(relationEqual(items.kind, 'empty'), () => ([]), () => ([
         ...(relationGate(relationEqual(items.head.kind, 'keyed'), () => ([items.head.key]), () => ([]))),
         items.head.value,
@@ -1689,9 +1661,7 @@ const arrayArgumentExpressions = (expression: Extract<Expression, {
     ]));
     return visit(expression.entries);
 };
-const arrayExpressionItems = (expression: Extract<Expression, {
-    readonly kind: 'array';
-}>): Expression[] => {
+const arrayExpressionItems = (expression: RelationVariant<Expression, 'array'>): Expression[] => {
     const visit = (items: typeof expression.entries): readonly Expression[] => relationGate(relationEqual(items.kind, 'empty'), () => ([]), () => ([items.head.value, ...visit(items.tail)]));
     return [...visit(expression.entries)];
 };
@@ -1762,14 +1732,14 @@ const subqueryAlias = (parent: Expression, child: Expression): import('../../../
     const alias = relationGate(relationAll([
         aliasIndex >= 0, aliasIndex < args.length
     ]), () => (args[aliasIndex]), () => (RELATION_NONE));
-    return solveCandidate([
-        { id: 'some', value: { kind: 'some', value: alias! }, requirements: [requirement('method-domain', domain), requirement('alias-index', relationNotEqual(alias, RELATION_NONE))] },
-        { id: 'none', value: { kind: 'none' }, requirements: [requirement('fallback', true)] },
-    ])!;
+    return relationOptionFold(relationVariant(alias, 'some'),
+        () => ({ kind: 'none' }),
+        value => relationOptionFold(solveCandidate([
+            { id: 'some', value: { kind: 'some', value }, requirements: [requirement('method-domain', domain), requirement('alias-index', relationNotEqual(alias, RELATION_NONE))] },
+            { id: 'none', value: { kind: 'none' }, requirements: [requirement('fallback', true)] },
+        ]), () => ({ kind: 'none' }), candidate => candidate));
 };
-const closureCaptureSequence = (items: Extract<Expression, {
-    readonly kind: 'closure';
-}>['value']['captures']['items'], source: Expression['source'], output: Expression[] = []): readonly Expression[] => relationGate(relationEqual(items.kind, 'empty'), () => output, () => closureCaptureSequence(items.tail, source, output.concat([{ kind: 'variable', name: items.head.variable, source }])));
+const closureCaptureSequence = (items: RelationVariant<Expression, 'closure'>['value']['captures']['items'], source: Expression['source'], output: Expression[] = []): readonly Expression[] => relationGate(relationEqual(items.kind, 'empty'), () => output, () => closureCaptureSequence(items.tail, source, output.concat([{ kind: 'variable', name: items.head.variable, source }])));
 const closureCaptureExpressions = (expression: Expression): readonly Expression[] => relationGate(relationEqual(expression.kind, 'closure'), () => closureCaptureSequence(expression.value.captures.items, expression.source), () => []);
 const subqueryCorrelation = (expression: Expression): import('../../../types/upstream/query').QuerySubqueryCorrelation => {
     const references = closureCaptureExpressions(expression);
@@ -1800,10 +1770,10 @@ const nestedQueriesFromExpression = (expression: Expression, inheritedRole: impo
 });
 export const queryEvidenceProducer: QueryProducer = {
     produce: ({ expressions }) => relationExpand(expressions, expressionAst => {
-        const operation = operationFromExpression(expressionAst.expression);
+        const operation = operationFromExpression(expressionAst.semantic);
         return relationOptionFold(operation, () => [], () => {
-            const model = relationOptionFold(modelFromReceiver(expressionAst.expression), () => ({ kind: 'indeterminate' as const }), name => ({ kind: 'known' as const, name }));
-            return [{ kind: 'query_ast', operations: sequenceFromArray(queryChainOperations(expressionAst.expression)), expression: expressionAst, model, source: expressionAst.source, nestedQueries: nestedQueriesFromExpression(expressionAst.expression) }];
+            const model = relationOptionFold(modelFromReceiver(expressionAst.semantic), () => ({ kind: 'indeterminate' as const }), name => ({ kind: 'known' as const, name }));
+            return [{ kind: 'query_ast', operations: sequenceFromArray(queryChainOperations(expressionAst.semantic)), expression: expressionAst, model, source: expressionAst.provenance.source, nestedQueries: nestedQueriesFromExpression(expressionAst.semantic) }];
         });
     }),
 };

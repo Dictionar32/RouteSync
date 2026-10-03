@@ -6,7 +6,7 @@
  * syntax dispatch and no construct-shaped control ontology.
  */
 import type { SemanticConstraintRule } from './semanticConstraintCalculus';
-import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom } from './semanticRelationSolver';
+import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom } from './semanticRewriteEngine';
 import { assertSemanticRelationProgram, type SemanticRelationProgram } from './semanticRelationProgram';
 
 export type SemanticBehaviorRelation =

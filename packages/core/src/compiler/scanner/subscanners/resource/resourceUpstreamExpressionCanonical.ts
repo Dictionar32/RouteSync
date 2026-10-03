@@ -1,5 +1,5 @@
 import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
-import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/requirementSolver';
+import { solveRewriteCandidate, requirement, variantRewriteCandidate } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 import { relationGate, relationProject, relationExpand, relationLookup, relationOptionFold, relationAdvanceIndex, relationAll, relationFold } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import type { BuiltinFunction, Expression } from '../../../../types/upstream/expression';
@@ -200,32 +200,18 @@ export function mapResourcePhpAstToUpstream(value: PhpAstValue, file: string): E
 
 function mapAnonymousClassMember(member: import('../../lexer/phpAstExpressionTypes').PhpAnonymousClassMember, file: string, resolveExpression: (value: PhpAstValue, file: string) => Expression): AnonymousClassMember {
   return relationOptionFold(solveRewriteCandidate<AnonymousClassMember>([
-    {
-      id: 'property',
-      requirements: [requirement('property', relationEqual(member.kind, 'property'))],
-      rewrite: () => {
-        const property = member as Extract<typeof member, { readonly kind: 'property' }>;
-        return {
-          kind: 'property',
-          name: { kind: 'property_name', value: { kind: 'string_value', value: property.value.name } },
-          value: relationGate(relationEqual(property.value.initialization.kind, 'absent'), () => ({ kind: 'absent' }), () => ({ kind: 'present', value: resolveExpression(property.value.initialization.value, file) })),
-        };
-      },
-    },
-    {
-      id: 'method',
-      requirements: [requirement('method', relationEqual(member.kind, 'method'))],
-      rewrite: () => {
-        const methodMember = member as Extract<typeof member, { readonly kind: 'method' }>;
-        return {
-          kind: 'method',
-          name: method(methodMember.value.name),
-          parameters: { kind: 'closure_parameters', items: sequence(relationProject(methodMember.value.parameters, item => mapAnonymousClassParameter(item, resolveExpression, file))) },
-          returnType: relationGate(relationEqual(methodMember.value.declaredReturnType.kind, 'absent'), () => ({ kind: 'absent' }), () => ({ kind: 'present', value: resolveParameterTypeForClosureReturn(methodMember.value.declaredReturnType.type) })),
-          body: mapResourcePhpStatementsToSourceStatements(methodMember.value.body, file),
-        };
-      },
-    },
+    variantRewriteCandidate({ id: 'property', subject: member, variant: 'property', requirements: [requirement('property', relationEqual(member.kind, 'property'))], exclusions: [], dependencies: [], rewrite: value => ({
+      kind: 'property',
+      name: { kind: 'property_name', value: { kind: 'string_value', value: value.value.name } },
+      value: relationGate(relationEqual(value.value.initialization.kind, 'absent'), () => ({ kind: 'absent' }), () => ({ kind: 'present', value: resolveExpression(value.value.initialization.value, file) })),
+    }) }),
+    variantRewriteCandidate({ id: 'method', subject: member, variant: 'method', requirements: [requirement('method', relationEqual(member.kind, 'method'))], exclusions: [], dependencies: [], rewrite: value => ({
+      kind: 'method',
+      name: method(value.value.name),
+      parameters: { kind: 'closure_parameters', items: sequence(relationProject(value.value.parameters, item => mapAnonymousClassParameter(item, resolveExpression, file))) },
+      returnType: relationGate(relationEqual(value.value.declaredReturnType.kind, 'absent'), () => ({ kind: 'absent' }), () => ({ kind: 'present', value: resolveParameterTypeForClosureReturn(value.value.declaredReturnType.type) })),
+      body: mapResourcePhpStatementsToSourceStatements(value.value.body, file),
+    }) }),
   ]), () => { throw Error('unresolved anonymous class member'); }, value => value);
 }
 
@@ -255,84 +241,67 @@ function mapAnonymousClassStatement(value: PhpStatement, file: string, resolveEx
     end: { kind: 'number_value', value: value.source.endOffset },
   };
   const candidates = [
-    { id: 'expression', requirements: [requirement('expression_statement', relationEqual(value.kind, 'expression_statement'))], rewrite: () => ({ kind: 'expression', value: resolved((value as Extract<PhpStatement, { kind: 'expression_statement' }>).expression, file, resolveExpression), source }) },
-    { id: 'return', requirements: [requirement('return_with_value', relationEqual(value.kind, 'return_with_value'))], rewrite: () => ({ kind: 'return', expression: resolved((value as Extract<PhpStatement, { kind: 'return_with_value' }>).expression, file, resolveExpression), source }) },
-    { id: 'return_void', requirements: [requirement('return_void', relationEqual(value.kind, 'return_void'))], rewrite: () => ({ kind: 'return_void', source }) },
-    { id: 'assignment', requirements: [requirement('assignment', relationEqual(value.kind, 'assignment'))], rewrite: () => {
-      const assignment = value as Extract<PhpStatement, { kind: 'assignment' }>;
+    variantRewriteCandidate({ id: 'expression', subject: value, variant: 'expression_statement', requirements: [requirement('expression_statement', relationEqual(value.kind, 'expression_statement'))], exclusions: [], dependencies: [], rewrite: statement => ({ kind: 'expression', value: resolved(statement.expression, file, resolveExpression), source }) }),
+    variantRewriteCandidate({ id: 'return', subject: value, variant: 'return_with_value', requirements: [requirement('return_with_value', relationEqual(value.kind, 'return_with_value'))], exclusions: [], dependencies: [], rewrite: statement => ({ kind: 'return', expression: resolved(statement.expression, file, resolveExpression), source }) }),
+    variantRewriteCandidate({ id: 'return_void', subject: value, variant: 'return_void', requirements: [requirement('return_void', relationEqual(value.kind, 'return_void'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'return_void', source }) }),
+    variantRewriteCandidate({ id: 'assignment', subject: value, variant: 'assignment', requirements: [requirement('assignment', relationEqual(value.kind, 'assignment'))], exclusions: [], dependencies: [], rewrite: assignment => {
       const target = resolveAssignmentTarget(assignment.target, resolveExpression, file);
       return { kind: 'assignment', value: { kind: 'assignment', target, expression: resolveExpression(assignment.value, file), operator: resolveAssignmentOperator(assignment.operator.kind), reference: assignmentReferenceMode(assignment.reference.kind), source }, source };
-    } },
-    { id: 'conditional', requirements: [requirement('conditional', relationEqual(value.kind, PHP_STATEMENT_KINDS.conditional))], rewrite: () => {
-      const conditional = value as Extract<PhpStatement, { kind: 'if_statement' }>;
-      return { kind: 'conditional', condition: resolved(conditional.condition, file, resolveExpression), branches: mapAnonymousClassBranches(conditional.alternative, conditional.thenBlock.statements, file, mapResourcePhpAstToUpstream), source };
-    } },
-    { id: 'collection_recurrence', requirements: [requirement('collection_recurrence', relationEqual(value.kind, PHP_STATEMENT_KINDS.collectionRecurrence))], rewrite: () => {
-      const recurrence = value as Extract<PhpStatement, { kind: 'foreach_statement' }>;
-      return { kind: 'for_each', iterable: resolved(recurrence.iterable, file, resolveExpression), target: relationGate(relationEqual(recurrence.target.kind, 'value'), () => ({ kind: 'value', variable: { kind: 'variable_name', value: { kind: 'string_value', value: recurrence.target.variable } } }), () => ({ kind: 'key_value', key: { kind: 'variable_name', value: { kind: 'string_value', value: recurrence.target.key } }, value: { kind: 'variable_name', value: { kind: 'string_value', value: recurrence.target.value } } })), body: mapResourcePhpStatementsToSourceStatements(recurrence.body.statements, file), source };
-    } },
-    { id: 'counted_recurrence', requirements: [requirement('counted_recurrence', relationEqual(value.kind, PHP_STATEMENT_KINDS.countedRecurrence))], rewrite: () => {
-      const recurrence = value as Extract<PhpStatement, { kind: 'for_statement' }>;
-      return { kind: 'for_loop', initializer: mapAnonymousClassForClause(recurrence.initializer, file, mapResourcePhpAstToUpstream), condition: mapAnonymousClassForClause(recurrence.condition, file, mapResourcePhpAstToUpstream), update: mapAnonymousClassForClause(recurrence.update, file, mapResourcePhpAstToUpstream), body: mapResourcePhpStatementsToSourceStatements(recurrence.body.statements, file), source };
-    } },
-    { id: 'try', requirements: [requirement('try_statement', relationEqual(value.kind, 'try_statement'))], rewrite: () => {
-      const statement = value as Extract<PhpStatement, { kind: 'try_statement' }>;
-      return { kind: 'try', body: mapResourcePhpStatementsToSourceStatements(statement.body.statements, file), catches: { kind: 'catch_handlers', items: sequence(relationProject(statement.catches, item => ({ kind: 'catch_handler', variable: { kind: 'variable_name', value: { kind: 'string_value', value: item.variable } }, exception: { kind: 'exception_name', value: { kind: 'string_value', value: item.exceptionType } }, body: mapResourcePhpStatementsToSourceStatements(item.body.statements, file), source: sourceSpanFromToken(file, item.source) }))) }, source };
-    } },
-    { id: 'throw', requirements: [requirement('throw_statement', relationEqual(value.kind, 'throw_statement'))], rewrite: () => ({ kind: 'throw', error: resolved((value as Extract<PhpStatement, { kind: 'throw_statement' }>).expression, file, resolveExpression), source }) },
-    { id: 'unset', requirements: [requirement('unset_statement', relationEqual(value.kind, 'unset_statement'))], rewrite: () => {
-      const statement = value as Extract<PhpStatement, { kind: 'unset_statement' }>;
-      return { kind: 'unset', targets: { kind: 'source_unset_targets', items: relationExpand(statement.targets, target => mapAnonymousClassUnsetTargets(target, file, resolveExpression)) }, source };
-    } },
-    { id: 'include', requirements: [requirement('include_statement', relationEqual(value.kind, 'include_statement'))], rewrite: () => ({ kind: 'include', includeKind: (value as Extract<PhpStatement, { kind: 'include_statement' }>).includeKind, expression: resolved((value as Extract<PhpStatement, { kind: 'include_statement' }>).expression, file, resolveExpression), source }) },
+    } }),
+    variantRewriteCandidate({ id: 'conditional', subject: value, variant: 'if_statement', requirements: [requirement('conditional', relationEqual(value.kind, PHP_STATEMENT_KINDS.conditional))], exclusions: [], dependencies: [], rewrite: conditional => ({ kind: 'conditional', condition: resolved(conditional.condition, file, resolveExpression), branches: mapAnonymousClassBranches(conditional.alternative, conditional.thenBlock.statements, file, mapResourcePhpAstToUpstream), source }) }),
+    variantRewriteCandidate({ id: 'collection_recurrence', subject: value, variant: 'foreach_statement', requirements: [requirement('collection_recurrence', relationEqual(value.kind, PHP_STATEMENT_KINDS.collectionRecurrence))], exclusions: [], dependencies: [], rewrite: recurrence => ({ kind: 'for_each', iterable: resolved(recurrence.iterable, file, resolveExpression), target: relationGate(relationEqual(recurrence.target.kind, 'value'), () => ({ kind: 'value', variable: { kind: 'variable_name', value: { kind: 'string_value', value: recurrence.target.variable } } }), () => ({ kind: 'key_value', key: { kind: 'variable_name', value: { kind: 'string_value', value: recurrence.target.key } }, value: { kind: 'variable_name', value: { kind: 'string_value', value: recurrence.target.value } } })), body: mapResourcePhpStatementsToSourceStatements(recurrence.body.statements, file), source }) }),
+    variantRewriteCandidate({ id: 'counted_recurrence', subject: value, variant: 'for_statement', requirements: [requirement('counted_recurrence', relationEqual(value.kind, PHP_STATEMENT_KINDS.countedRecurrence))], exclusions: [], dependencies: [], rewrite: recurrence => ({ kind: 'for_loop', initializer: mapAnonymousClassForClause(recurrence.initializer, file, mapResourcePhpAstToUpstream), condition: mapAnonymousClassForClause(recurrence.condition, file, mapResourcePhpAstToUpstream), update: mapAnonymousClassForClause(recurrence.update, file, mapResourcePhpAstToUpstream), body: mapResourcePhpStatementsToSourceStatements(recurrence.body.statements, file), source }) }),
+    variantRewriteCandidate({ id: 'try', subject: value, variant: 'try_statement', requirements: [requirement('try_statement', relationEqual(value.kind, 'try_statement'))], exclusions: [], dependencies: [], rewrite: statement => ({ kind: 'try', body: mapResourcePhpStatementsToSourceStatements(statement.body.statements, file), catches: { kind: 'catch_handlers', items: sequence(relationProject(statement.catches, item => ({ kind: 'catch_handler', variable: { kind: 'variable_name', value: { kind: 'string_value', value: item.variable } }, exception: { kind: 'exception_name', value: { kind: 'string_value', value: item.exceptionType } }, body: mapResourcePhpStatementsToSourceStatements(item.body.statements, file), source: sourceSpanFromToken(file, item.source) }))) }, source }) }),
+    variantRewriteCandidate({ id: 'throw', subject: value, variant: 'throw_statement', requirements: [requirement('throw_statement', relationEqual(value.kind, 'throw_statement'))], exclusions: [], dependencies: [], rewrite: statement => ({ kind: 'throw', error: resolved(statement.expression, file, resolveExpression), source }) }),
+    variantRewriteCandidate({ id: 'unset', subject: value, variant: 'unset_statement', requirements: [requirement('unset_statement', relationEqual(value.kind, 'unset_statement'))], exclusions: [], dependencies: [], rewrite: statement => ({ kind: 'unset', targets: { kind: 'source_unset_targets', items: relationExpand(statement.targets, target => mapAnonymousClassUnsetTargets(target, file, resolveExpression)) }, source }) }),
+    variantRewriteCandidate({ id: 'include', subject: value, variant: 'include_statement', requirements: [requirement('include_statement', relationEqual(value.kind, 'include_statement'))], exclusions: [], dependencies: [], rewrite: statement => ({ kind: 'include', includeKind: statement.includeKind, expression: resolved(statement.expression, file, resolveExpression), source }) }),
   ];
-  return relationOptionFold(solveRewriteCandidate(candidates), () => { throw Error('unresolved source statement relation'); }, value => value);
+  return relationOptionFold(solveRewriteCandidate(candidates), () => { throw Error('unresolved source statement relation'); }, selected => selected);
 }
 
 function mapAnonymousClassBranches(alternative: PhpIfAlternative, thenValues: readonly PhpStatement[], file: string, resolveExpression: (value: PhpAstValue, file: string) => Expression) {
   return relationOptionFold(solveRewriteCandidate<import('../../../../types/upstream/sourceStatements').SourceConditionalBranches>([
-    { id: 'none', requirements: [requirement('none', relationEqual(alternative.kind, 'none'))], rewrite: () => ({ kind: 'then_only' as const, whenTrue: mapResourcePhpStatementsToSourceStatements(thenValues, file) }) },
-    { id: 'else_block', requirements: [requirement('else_block', relationEqual(alternative.kind, 'else_block'))], rewrite: () => ({ kind: 'then_else' as const, whenTrue: mapResourcePhpStatementsToSourceStatements(thenValues, file), whenFalse: mapResourcePhpStatementsToSourceStatements((alternative as Extract<PhpIfAlternative, { kind: 'else_block' }>).block.statements, file) }) },
-    { id: 'else_statement', requirements: [requirement('else_statement', relationEqual(alternative.kind, 'else_statement'))], rewrite: () => ({ kind: 'then_else' as const, whenTrue: mapResourcePhpStatementsToSourceStatements(thenValues, file), whenFalse: mapResourcePhpStatementsToSourceStatements([(alternative as Extract<PhpIfAlternative, { kind: 'else_if' }>).statement], file) }) },
+    variantRewriteCandidate({ id: 'none', subject: alternative, variant: 'none', requirements: [requirement('none', relationEqual(alternative.kind, 'none'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'then_only' as const, whenTrue: mapResourcePhpStatementsToSourceStatements(thenValues, file) }) }),
+    variantRewriteCandidate({ id: 'else_block', subject: alternative, variant: 'else_block', requirements: [requirement('else_block', relationEqual(alternative.kind, 'else_block'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'then_else' as const, whenTrue: mapResourcePhpStatementsToSourceStatements(thenValues, file), whenFalse: mapResourcePhpStatementsToSourceStatements(value.block.statements, file) }) }),
+    variantRewriteCandidate({ id: 'else_statement', subject: alternative, variant: 'else_statement', requirements: [requirement('else_statement', relationEqual(alternative.kind, 'else_statement'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'then_else' as const, whenTrue: mapResourcePhpStatementsToSourceStatements(thenValues, file), whenFalse: mapResourcePhpStatementsToSourceStatements([value.statement], file) }) }),
   ]), () => { throw Error('unresolved branch relation'); }, value => value);
 }
 
 function mapAnonymousClassForClause(clause: PhpForClause, file: string, resolveExpression: (value: PhpAstValue, file: string) => Expression) {
   return relationOptionFold(solveRewriteCandidate<import('../../../../types/upstream/sourceStatements').SourceForClause>([
-    { id: 'empty', requirements: [requirement('empty', relationEqual(clause.kind, 'empty'))], rewrite: () => ({ kind: 'empty' as const }) },
-    { id: 'expression', requirements: [requirement('expression', relationEqual(clause.kind, 'expression'))], rewrite: () => ({ kind: 'expression' as const, value: resolved((clause as Extract<PhpForClause, { kind: 'expression' }>).value, file, resolveExpression) }) },
-    { id: 'assignment', requirements: [requirement('assignment', relationEqual(clause.kind, 'assignment'))], rewrite: () => {
-      const assignment = clause as Extract<PhpForClause, { kind: 'assignment' }>;
+    variantRewriteCandidate({ id: 'empty', subject: clause, variant: 'empty', requirements: [requirement('empty', relationEqual(clause.kind, 'empty'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'empty' as const }) }),
+    variantRewriteCandidate({ id: 'expression', subject: clause, variant: 'expression', requirements: [requirement('expression', relationEqual(clause.kind, 'expression'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'expression' as const, value: resolved(value.value, file, resolveExpression) }) }),
+    variantRewriteCandidate({ id: 'assignment', subject: clause, variant: 'assignment', requirements: [requirement('assignment', relationEqual(clause.kind, 'assignment'))], exclusions: [], dependencies: [], rewrite: assignment => {
       const target = resolveAssignmentTarget(assignment.target, resolveExpression, file);
-      return { kind: 'assignment' as const, value: { kind: 'assignment' as const, target, expression: resolveExpression(assignment.value, file), operator: resolveAssignmentOperator(assignment.operator.kind), reference: assignmentReferenceMode(assignment.reference.kind), source: sourceSpanFromToken(file, assignment.source) } };
-    } },
+      return { kind: 'assignment' as const, value: { kind: 'assignment' as const, target, expression: resolveExpression(assignment.value, file), operator: resolveAssignmentOperator(assignment.operator.kind), reference: assignmentReferenceMode(assignment.reference.kind), source: sourceSpanFromToken(file, assignment.source) }};
+    } }),
   ]), () => { throw Error('unresolved recurrence clause relation'); }, value => value);
 }
 
 function mapAnonymousClassUnsetTargets(target: PhpAssignmentTarget, file: string, resolveExpression: (value: PhpAstValue, file: string) => Expression): readonly import('../../../../types/upstream/sourceStatements').SourceUnsetTarget[] {
   return relationOptionFold(solveRewriteCandidate<readonly import('../../../../types/upstream/sourceStatements').SourceUnsetTarget[]>([
-    { id: 'variables', requirements: [requirement('variables', relationEqual(target.kind, 'variables'))], rewrite: () => [{ kind: 'variables', names: { kind: 'variable_names', items: relationProject((target as Extract<PhpAssignmentTarget, { kind: 'variables' }>).names, name => ({ kind: 'variable_name', value: { kind: 'string_value', value: name } })) } }] },
-    { id: 'destructuring', requirements: [requirement('destructuring', relationEqual(target.kind, 'destructuring'))], rewrite: () => relationExpand((target as Extract<PhpAssignmentTarget, { kind: 'destructuring' }>).pattern.entries, entry => mapDestructuringUnsetTargets(entry)) },
-    { id: 'other', requirements: [requirement('other', relationAll([!relationEqual(target.kind, 'variables'), !relationEqual(target.kind, 'destructuring')]))], rewrite: () => [mapAnonymousClassUnsetTarget(target as Exclude<PhpAssignmentTarget, { kind: 'variables' } | { kind: 'destructuring' }>, file, resolveExpression)] },
+    variantRewriteCandidate({ id: 'variables', subject: target, variant: 'variables', requirements: [requirement('variables', relationEqual(target.kind, 'variables'))], exclusions: [], dependencies: [], rewrite: value => [{ kind: 'variables', names: { kind: 'variable_names', items: relationProject(value.names, name => ({ kind: 'variable_name', value: { kind: 'string_value', value: name } })) } }] }),
+    variantRewriteCandidate({ id: 'destructuring', subject: target, variant: 'destructuring', requirements: [requirement('destructuring', relationEqual(target.kind, 'destructuring'))], exclusions: [], dependencies: [], rewrite: value => relationExpand(value.pattern.entries, entry => mapDestructuringUnsetTargets(entry)) }),
+    { id: 'other', requirements: [requirement('other', relationAll([!relationEqual(target.kind, 'variables'), !relationEqual(target.kind, 'destructuring')]))], exclusions: [], dependencies: [], rewrite: () => [mapAnonymousClassUnsetTarget(target, file, resolveExpression)] },
   ]), () => { throw Error('unresolved unset target relation'); }, value => value);
 }
 
 function mapDestructuringUnsetTargets(entry: import('../../lexer/phpAstStatementTypes').PhpAssignmentDestructuringEntry): readonly import('../../../../types/upstream/sourceStatements').SourceUnsetTarget[] {
   return relationOptionFold(solveRewriteCandidate<readonly import('../../../../types/upstream/sourceStatements').SourceUnsetTarget[]>([
-    { id: 'variable', requirements: [requirement('variable', relationEqual(entry.kind, 'variable'))], rewrite: () => [{ kind: 'variable', name: { kind: 'variable_name', value: { kind: 'string_value', value: (entry as Extract<typeof entry, { kind: 'variable' }>).name } } }] },
-    { id: 'reference_variable', requirements: [requirement('reference_variable', relationEqual(entry.kind, 'reference_variable'))], rewrite: () => [{ kind: 'variable', name: { kind: 'variable_name', value: { kind: 'string_value', value: (entry as Extract<typeof entry, { kind: 'reference_variable' }>).name } } }] },
-    { id: 'keyed', requirements: [requirement('keyed', relationEqual(entry.kind, 'keyed'))], rewrite: () => mapDestructuringUnsetTargets((entry as Extract<typeof entry, { kind: 'keyed' }>).target) },
-    { id: 'nested', requirements: [requirement('nested', relationEqual(entry.kind, 'nested'))], rewrite: () => relationExpand((entry as Extract<typeof entry, { kind: 'nested' }>).pattern.entries, item => mapDestructuringUnsetTargets(item)) },
-    { id: 'skipped', requirements: [requirement('skipped', relationEqual(entry.kind, 'skipped'))], rewrite: () => [] },
+    variantRewriteCandidate({ id: 'variable', subject: entry, variant: 'variable', requirements: [requirement('variable', relationEqual(entry.kind, 'variable'))], exclusions: [], dependencies: [], rewrite: value => [{ kind: 'variable', name: { kind: 'variable_name', value: { kind: 'string_value', value: value.name } } }] }),
+    variantRewriteCandidate({ id: 'reference_variable', subject: entry, variant: 'reference_variable', requirements: [requirement('reference_variable', relationEqual(entry.kind, 'reference_variable'))], exclusions: [], dependencies: [], rewrite: value => [{ kind: 'variable', name: { kind: 'variable_name', value: { kind: 'string_value', value: value.name } } }] }),
+    variantRewriteCandidate({ id: 'keyed', subject: entry, variant: 'keyed', requirements: [requirement('keyed', relationEqual(entry.kind, 'keyed'))], exclusions: [], dependencies: [], rewrite: value => mapDestructuringUnsetTargets(value.target) }),
+    variantRewriteCandidate({ id: 'nested', subject: entry, variant: 'nested', requirements: [requirement('nested', relationEqual(entry.kind, 'nested'))], exclusions: [], dependencies: [], rewrite: value => relationExpand(value.pattern.entries, item => mapDestructuringUnsetTargets(item)) }),
+    variantRewriteCandidate({ id: 'skipped', subject: entry, variant: 'skipped', requirements: [requirement('skipped', relationEqual(entry.kind, 'skipped'))], exclusions: [], dependencies: [], rewrite: () => [] }),
   ]), () => { throw Error('unresolved destructuring relation'); }, value => value);
 }
 
-function mapAnonymousClassUnsetTarget(target: Exclude<PhpAssignmentTarget, { kind: 'variables' } | { kind: 'destructuring' }>, file: string, resolveExpression: (value: PhpAstValue, file: string) => Expression): import('../../../../types/upstream/sourceStatements').SourceUnsetTarget {
+function mapAnonymousClassUnsetTarget(target: PhpAssignmentTarget, file: string, resolveExpression: (value: PhpAstValue, file: string) => Expression): import('../../../../types/upstream/sourceStatements').SourceUnsetTarget {
   return relationOptionFold(solveRewriteCandidate<import('../../../../types/upstream/sourceStatements').SourceUnsetTarget>([
-    { id: 'variable', requirements: [requirement('variable', relationEqual(target.kind, 'variable'))], rewrite: () => ({ kind: 'variable', name: { kind: 'variable_name', value: { kind: 'string_value', value: (target as Extract<typeof target, { kind: 'variable' }>).name } } }) },
-    { id: 'property', requirements: [requirement('property', relationEqual(target.kind, 'property'))], rewrite: () => { const property = target as Extract<typeof target, { kind: 'property' }>; return { kind: 'property', receiver: resolveExpression(property.receiver, file), name: { kind: 'property_name', value: { kind: 'string_value', value: property.property } } }; } },
-    { id: 'static_property', requirements: [requirement('static_property', relationEqual(target.kind, 'static_property'))], rewrite: () => { const property = target as Extract<typeof target, { kind: 'static_property' }>; return { kind: 'static_property', owner: relationGate(relationEqual(property.owner.kind, 'named_class'), () => ({ kind: 'named_class', name: className(property.owner.name) }), () => ({ kind: property.owner.kind })), name: { kind: 'property_name', value: { kind: 'string_value', value: property.property } } }; } },
-    { id: 'array_element', requirements: [requirement('array_element', relationEqual(target.kind, 'array_element'))], rewrite: () => { const element = target as Extract<typeof target, { kind: 'array_element' }>; return { kind: 'index', receiver: resolveExpression(element.target, file), key: resolveExpression(element.index, file) }; } },
+    variantRewriteCandidate({ id: 'variable', subject: target, variant: 'variable', requirements: [requirement('variable', relationEqual(target.kind, 'variable'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'variable', name: { kind: 'variable_name', value: { kind: 'string_value', value: value.name } } }) }),
+    variantRewriteCandidate({ id: 'property', subject: target, variant: 'property', requirements: [requirement('property', relationEqual(target.kind, 'property'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'property', receiver: resolveExpression(value.receiver, file), name: { kind: 'property_name', value: { kind: 'string_value', value: value.property } } }) }),
+    variantRewriteCandidate({ id: 'static_property', subject: target, variant: 'static_property', requirements: [requirement('static_property', relationEqual(target.kind, 'static_property'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'static_property', owner: relationGate(relationEqual(value.owner.kind, 'named_class'), () => ({ kind: 'named_class', name: className(value.owner.name) }), () => ({ kind: value.owner.kind })), name: { kind: 'property_name', value: { kind: 'string_value', value: value.property } } }) }),
+    variantRewriteCandidate({ id: 'array_element', subject: target, variant: 'array_element', requirements: [requirement('array_element', relationEqual(target.kind, 'array_element'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'index', receiver: resolveExpression(value.target, file), key: resolveExpression(value.index, file) }) }),
   ]), () => { throw Error('unresolved unset target'); }, value => value);
 }
 
@@ -354,22 +323,22 @@ const sequence = <T>(items: readonly T[], index = 0): import('../../../../types/
 
 function resolveParameterTypeForClosureReturn(type: import('../../lexer/phpMethodAstTypes').PhpParameterTypeAst): TypeExpression {
   return relationOptionFold(solveRewriteCandidate<TypeExpression>([
-    { id: 'primitive', requirements: [requirement('primitive', relationEqual(type.kind, 'primitive'))], rewrite: () => relationOptionFold(solveRewriteCandidate<TypeExpression>([
-      { id: 'bool', requirements: [requirement('bool', relationEqual((type as Extract<typeof type, { kind: 'primitive' }>).name, 'bool'))], rewrite: () => ({ kind: 'primitive', value: { kind: 'boolean' } }) },
-      { id: 'string', requirements: [requirement('string', relationEqual((type as Extract<typeof type, { kind: 'primitive' }>).name, 'string'))], rewrite: () => ({ kind: 'primitive', value: { kind: 'string' } }) },
-      { id: 'number', requirements: [requirement('int', ['int', 'float'].includes((type as Extract<typeof type, { kind: 'primitive' }>).name))], rewrite: () => ({ kind: 'primitive', value: { kind: 'number' } }) },
-      { id: 'mixed', requirements: [requirement('mixed', relationEqual((type as Extract<typeof type, { kind: 'primitive' }>).name, 'mixed'))], rewrite: () => ({ kind: 'mixed' }) },
-      { id: 'array', requirements: [requirement('array', relationEqual((type as Extract<typeof type, { kind: 'primitive' }>).name, 'array'))], rewrite: () => ({ kind: 'primitive', value: { kind: 'unspecified' } }) },
-    ]), () => { throw Error('unresolved primitive type relation'); }, value => value) },
-    { id: 'named', requirements: [requirement('named', relationEqual(type.kind, 'named'))], rewrite: () => ({ kind: 'reference', value: { kind: 'class', name: className((type as Extract<typeof type, { kind: 'named' }>).name) } }) },
-    { id: 'nullable', requirements: [requirement('nullable', relationEqual(type.kind, 'nullable'))], rewrite: () => ({ kind: 'nullable', value: resolveParameterTypeForClosureReturn((type as Extract<typeof type, { kind: 'nullable' }>).inner) }) },
+    variantRewriteCandidate({ id: 'primitive', subject: type, variant: 'primitive', requirements: [requirement('primitive', relationEqual(type.kind, 'primitive'))], exclusions: [], dependencies: [], rewrite: primitive => relationOptionFold(solveRewriteCandidate<TypeExpression>([
+      { id: 'bool', requirements: [requirement('bool', relationEqual(primitive.name, 'bool'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'primitive', value: { kind: 'boolean' } }) },
+      { id: 'string', requirements: [requirement('string', relationEqual(primitive.name, 'string'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'primitive', value: { kind: 'string' } }) },
+      { id: 'number', requirements: [requirement('int_or_float', relationAny([relationEqual(primitive.name, 'int'), relationEqual(primitive.name, 'float')]))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'primitive', value: { kind: 'number' } }) },
+      { id: 'mixed', requirements: [requirement('mixed', relationEqual(primitive.name, 'mixed'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'mixed' }) },
+      { id: 'array', requirements: [requirement('array', relationEqual(primitive.name, 'array'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'primitive', value: { kind: 'unspecified' } }) },
+    ]), () => { throw Error('unresolved primitive type relation'); }, value => value) }),
+    variantRewriteCandidate({ id: 'named', subject: type, variant: 'named', requirements: [requirement('named', relationEqual(type.kind, 'named'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'reference', value: { kind: 'class', name: className(value.name) } }) }),
+    variantRewriteCandidate({ id: 'nullable', subject: type, variant: 'nullable', requirements: [requirement('nullable', relationEqual(type.kind, 'nullable'))], exclusions: [], dependencies: [], rewrite: value => ({ kind: 'nullable', value: resolveParameterTypeForClosureReturn(value.inner) }) }),
   ]), () => { throw Error('unresolved parameter type relation'); }, value => value);
 }
 
 function mapUnsupportedReason(reason: import('../../lexer/phpAstExpressionTypes').PhpUnsupportedExpressionReason): import('../../../../types/upstream/expression').UnsupportedExpressionReason {
   return relationOptionFold(solveRewriteCandidate<import('../../../../types/upstream/expression').UnsupportedExpressionReason>([
-    { id: 'unclassified_expression', requirements: [requirement('unclassified_expression', relationEqual(reason, 'unclassified_expression'))], rewrite: () => ({ kind: 'unsupported_syntax' }) },
-    { id: 'unsupported_statement', requirements: [requirement('unsupported_statement', relationEqual(reason, 'unsupported_statement'))], rewrite: () => ({ kind: 'unsupported_syntax' }) },
+    { id: 'unclassified_expression', requirements: [requirement('unclassified_expression', relationEqual(reason, 'unclassified_expression'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'unsupported_syntax' }) },
+    { id: 'unsupported_statement', requirements: [requirement('unsupported_statement', relationEqual(reason, 'unsupported_statement'))], exclusions: [], dependencies: [], rewrite: () => ({ kind: 'unsupported_syntax' }) },
   ]), () => { throw Error('unresolved unsupported reason relation'); }, value => value);
 }
 

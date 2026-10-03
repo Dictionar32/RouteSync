@@ -1,0 +1,37 @@
+{
+  "phase": 655,
+  "title": "AST SSOT closed judgment algebra",
+  "changes": [
+    {
+      "path": "packages/core/src/types/upstream/ast.ts",
+      "change": "Introduced AstJudgment as the closed discriminated union over AstSemanticSchemaKind; SemanticAstNode and CanonicalAstNode are narrowing projections over that SSOT union."
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "change": "Removed exception-based parsePhpMethodOrThrow semantic boundary; parser failure remains RelationOption."
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "change": "Anonymous-class method discovery now consumes parsePhpMethod relationally instead of throwing."
+    }
+  ],
+  "ssot": {
+    "closedJudgmentUnion": true,
+    "openSemanticPayload": false,
+    "hostAny": false,
+    "hostUndefined": false,
+    "hostNull": false,
+    "requiredFacets": ["identity","semantic","evidence","provenance","constraints","dependencies","relations","derivation","status","diagnostics"]
+  },
+  "nextFrontier": [
+    "domain AST producers and canonical constructors",
+    "resource binding path/origin/traversal judgment",
+    "resource route-group classification judgment",
+    "resolver graph relation closure",
+    "AST to upstream expression/resource mapping",
+    "analysis closure and derived CFG/SSA projections",
+    "semantic type lowering judgment",
+    "generic relation solver value algebra"
+  ],
+  "vacuumPolicy": "unused files are emptied to zero bytes and never deleted"
+}

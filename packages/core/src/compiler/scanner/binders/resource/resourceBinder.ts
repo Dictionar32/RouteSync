@@ -15,7 +15,7 @@ import { sourceSpanFromRange } from "../../subscanners/resource/resourceUpstream
 import type { ResourceDefinition, ResourceField, ResourceFieldMeaning, ResourceFieldOutput, ResourceTransformation, ResourceInheritance, ResourceDocumentation, ResourceRepresentation, ResourceFieldPresence } from "../../../../types/upstream/resource";
 import type { ParsedResource } from "../../../../types/route";
 import type { ResourceOperation, ResourceOperationValue, ResourceOperationDefault } from "../../../../types/upstream/resourceVocabulary";
-import type { ResourceAst } from "../../../../types/upstream/ast";
+import { createDomainAstJudgment, type ResourceAst } from "../../../../types/upstream/ast";
 import type { Expression, ResolvedExpression } from "../../../../types/upstream/expression";
 import type { SourceSpan } from "../../../../types/upstream/provenance";
 import type { TypeExpression } from "../../../../types/upstream/typeVocabulary";
@@ -32,8 +32,8 @@ import { semanticType } from "../../subscanners/model/semanticTypeCanonical";
 import type { ResourceName, SourceFile } from "../../../../types/upstream/names";
 import { ScannedResourceDescriptor } from "../../descriptors/resourceDescriptors";
 import { produceResourceField } from "../../subscanners/resource/resourceFieldProducer";
-import { relationAll, relationAny, relationEqual, relationGate, relationOptionFold, relationFirstOption, relationOptionMap, relationProject, relationExpand, relationSelect, relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
-import { solveCandidate } from "../../../../semantic/kernel/requirementSolver";
+import { relationAll, relationAny, relationEqual, relationGate, relationOptionFold, relationFirstOption, relationOptionMap, relationProject, relationExpand, relationSelect, relationFoldRight, relationRefine, relationResolve, relationNone, relationSome, type RelationVariant } from "../../../../semantic/kernel/relationalSequence";
+import { solveCandidate, solveRewriteCandidate } from "../../../../semantic/kernel/semanticDecisionRewriteEngine";
 
 /**
  * Binds a full Resource definition and its AST array entries to a ModelSymbol.
@@ -117,6 +117,12 @@ const variableName = (value: string) => ({ kind: 'variable_name' as const, value
 const unresolved = () => ({ kind: 'unresolved' as const, reason: 'external' as const });
 const emptyActions: ResourceActions = { kind: 'resource_actions', items: seq([]) };
 const emptyPaths: RoutePaths = { kind: 'route_paths', items: seq([]) };
+const astKind = <K extends import('../../lexer/phpAstTypes').PhpAstValue['kind']>(
+    value: import('../../lexer/phpAstTypes').PhpAstValue,
+    kind: K,
+): import('../../../../semantic/kernel/relationalSequence').RelationOption<RelationVariant<import('../../lexer/phpAstTypes').PhpAstValue, K>> =>
+    relationRefine(value, (candidate): candidate is RelationVariant<import('../../lexer/phpAstTypes').PhpAstValue, K> => relationEqual(candidate.kind, kind));
+
 
 function modelRelation(relationName: import('../../../../types/upstream/names').RelationName, model: import('../../../../compiler/scanner/symbols/model/originModelSymbol').OriginModelSymbol) {
     return model.relation(relationName);
@@ -174,10 +180,14 @@ function relationArgument(argumentsAst: readonly import('../../lexer/phpAstTypes
 }
 
 function operationForField(value: import('../../lexer/phpAstTypes').PhpAstValue, file: string): import('../../../../semantic/kernel/relationalSequence').RelationOption<ResourceFieldOutput> {
-    return relationGate(relationEqual(value.kind, 'method_chain'), () => relationOptionMap(
-        relationOperationCandidates(value.property, value.arguments, file),
-        operation => ({ kind: 'operation', operation }),
-    ), () => ({ kind: 'none' }));
+    return relationOptionFold(
+        astKind(value, 'method_chain'),
+        () => ({ kind: 'none' }),
+        method => relationOptionMap(
+            relationOperationCandidates(method.property, method.arguments, file),
+            operation => ({ kind: 'operation', operation }),
+        ),
+    );
 }
 
 function relationOperationCandidates(property: string, argumentsAst: readonly import('../../lexer/phpAstTypes').PhpArgument[], file: string) {
@@ -215,25 +225,32 @@ function fieldOutput(value: import('../../lexer/phpAstTypes').PhpAstValue, expre
 }
 
 function solveFieldOutput(value: import('../../lexer/phpAstTypes').PhpAstValue, expression: Expression, file: string, resource: string, model: import('../../symbols/model/originModelSymbol').OriginModelSymbol): ResourceFieldOutput {
-    return relationOptionFold(solveRewriteCandidate([
-        { id: 'resource_single', rewrite: () => ({ kind: 'resource', resource: resourceRef(value.resourceName), expression }), requirements: [{ id: 'kind', satisfied: relationEqual(value.kind, 'resource_single') }] },
-        { id: 'resource_collection', rewrite: () => ({ kind: 'resource_collection', resource: resourceRef(value.resourceName), expression }), requirements: [{ id: 'kind', satisfied: relationEqual(value.kind, 'resource_collection') }] },
-        { id: 'nested_array', rewrite: () => ({ kind: 'nested_object', fields: { kind: 'resource_fields', items: seq(relationExpand(value.entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => [buildResourceField(entry.key.value, entry.value, file, resource, model)], () => []), () => []))) }, dynamicEntries: { kind: 'resource_dynamic_entries', items: seq([]) } }), requirements: [{ id: 'kind', satisfied: relationEqual(value.kind, 'nested_array') }] },
-    ]), () => ({ kind: 'scalar_or_expression', expression }), result => result);
+    const single = relationOptionFold(astKind(value, 'resource_single'), () => relationNone<ResourceFieldOutput>(), node => relationSome({ kind: 'resource', resource: resourceRef(node.resourceName), expression }));
+    const collection = relationOptionFold(astKind(value, 'resource_collection'), () => relationNone<ResourceFieldOutput>(), node => relationSome({ kind: 'resource_collection', resource: resourceRef(node.resourceName), expression }));
+    const nested = relationOptionFold(astKind(value, 'nested_array'), () => relationNone<ResourceFieldOutput>(), node => relationSome({
+        kind: 'nested_object',
+        fields: {
+            kind: 'resource_fields',
+            items: seq(relationExpand(node.entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => [buildResourceField(entry.key.value, entry.value, file, resource, model)], () => []), () => []))),
+        },
+        dynamicEntries: { kind: 'resource_dynamic_entries', items: seq([]) },
+    }));
+    return relationOptionFold(single, () => relationOptionFold(collection, () => relationOptionFold(nested, () => ({ kind: 'scalar_or_expression', expression }), result => result), result => result), result => result);
 }
 
+
 function fieldPresence(value: import('../../lexer/phpAstTypes').PhpAstValue, file: string): ResourceFieldPresence {
-    return relationGate(relationEqual(value.kind, 'method_chain'), () => relationOptionFold(
+    return relationOptionFold(astKind(value, 'method_chain'), () => ({ kind: 'always_present' }), method => relationOptionFold(
         solveRewriteCandidate([
-            { id: 'when_loaded', rewrite: () => ({ kind: 'relation_loaded', relation: relationArgument(value.arguments, 0) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_loaded') }] },
-            { id: 'when_counted', rewrite: () => ({ kind: 'relation_counted', relation: relationArgument(value.arguments, 0) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_counted') }] },
-            { id: 'when_aggregated', rewrite: () => ({ kind: 'relation_aggregated', relation: relationArgument(value.arguments, 0), column: { kind: 'column_name', value: { kind: 'string_value', value: literalString(value.arguments, 1) } }, aggregate: aggregateFunction(literalString(value.arguments, 2)) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_aggregated') }] },
-            { id: 'when_exists_loaded', rewrite: () => ({ kind: 'relation_exists_loaded', relation: relationArgument(value.arguments, 0) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_exists_loaded') }] },
-            { id: 'when_has', rewrite: () => ({ kind: 'attribute_present', attribute: { kind: 'property_name', value: { kind: 'string_value', value: literalString(value.arguments, 0) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_has') }] },
-            { id: 'when_appended', rewrite: () => ({ kind: 'attribute_appended', attribute: { kind: 'property_name', value: { kind: 'string_value', value: literalString(value.arguments, 0) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_appended') }] },
-            { id: 'when_pivot_loaded', rewrite: () => ({ kind: 'pivot_loaded', table: { kind: 'table_name', value: { kind: 'string_value', value: literalString(value.arguments, 0) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_pivot_loaded') }] },
-            { id: 'when_pivot_loaded_as', rewrite: () => ({ kind: 'pivot_loaded_as', accessor: { kind: 'property_name', value: { kind: 'string_value', value: literalString(value.arguments, 0) } }, table: { kind: 'table_name', value: { kind: 'string_value', value: literalString(value.arguments, 1) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), 'when_pivot_loaded_as') }] },
-            ...relationExpand(['when_null','when_not_null','when','unless','merge_when','merge_unless'], id => [{ id, rewrite: () => ({ kind: 'conditional', condition: operationExpression(value.arguments[0].value, file) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(value.property), id) }] }]),
+            { id: 'when_loaded', rewrite: () => ({ kind: 'relation_loaded', relation: relationArgument(method.arguments, 0) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_loaded') }] },
+            { id: 'when_counted', rewrite: () => ({ kind: 'relation_counted', relation: relationArgument(method.arguments, 0) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_counted') }] },
+            { id: 'when_aggregated', rewrite: () => ({ kind: 'relation_aggregated', relation: relationArgument(method.arguments, 0), column: { kind: 'column_name', value: { kind: 'string_value', value: literalString(method.arguments, 1) } }, aggregate: aggregateFunction(literalString(method.arguments, 2)) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_aggregated') }] },
+            { id: 'when_exists_loaded', rewrite: () => ({ kind: 'relation_exists_loaded', relation: relationArgument(method.arguments, 0) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_exists_loaded') }] },
+            { id: 'when_has', rewrite: () => ({ kind: 'attribute_present', attribute: { kind: 'property_name', value: { kind: 'string_value', value: literalString(method.arguments, 0) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_has') }] },
+            { id: 'when_appended', rewrite: () => ({ kind: 'attribute_appended', attribute: { kind: 'property_name', value: { kind: 'string_value', value: literalString(method.arguments, 0) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_appended') }] },
+            { id: 'when_pivot_loaded', rewrite: () => ({ kind: 'pivot_loaded', table: { kind: 'table_name', value: { kind: 'string_value', value: literalString(method.arguments, 0) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_pivot_loaded') }] },
+            { id: 'when_pivot_loaded_as', rewrite: () => ({ kind: 'pivot_loaded_as', accessor: { kind: 'property_name', value: { kind: 'string_value', value: literalString(method.arguments, 0) } }, table: { kind: 'table_name', value: { kind: 'string_value', value: literalString(method.arguments, 1) } } }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), 'when_pivot_loaded_as') }] },
+            ...relationExpand(['when_null','when_not_null','when','unless','merge_when','merge_unless'], id => [{ id, rewrite: () => ({ kind: 'conditional', condition: operationExpression(method.arguments[0].value, file) }), requirements: [{ id: 'kind', satisfied: relationEqual(resourceOperationKindForMethod(method.property), id) }] }]),
         ]), () => ({ kind: 'always_present' }), result => result), () => ({ kind: 'always_present' }));
 }
 
@@ -243,7 +260,7 @@ function directFieldMeaning(
     resource: string,
     model: import('../../symbols/model/originModelSymbol').OriginModelSymbol
 ): ResourceFieldMeaning {
-    const binding = relationGate(relationEqual(value.kind, 'property_access'), () => relationGate(relationEqual(value.target.kind, 'variable_reference'), () => model.resolveProperty(propertyName(value.property)), () => ({ kind: 'missing' as const })), () => ({ kind: 'missing' as const }));
+    const binding = relationOptionFold(astKind(value, 'property_access'), () => ({ kind: 'missing' as const }), property => relationOptionFold(astKind(property.target, 'variable_reference'), () => ({ kind: 'missing' as const }), () => model.resolveProperty(propertyName(property.property))));
     return relationOptionFold(solveRewriteCandidate([
         { id: 'column', rewrite: () => ({ kind: 'property_projection', property: propertyRef(value.property), model: modelRef(model.name.value.value) }), requirements: [{ id: 'kind', satisfied: relationGate(relationEqual(binding.kind, 'found'), () => relationEqual(binding.value.kind, 'column'), () => false) }] },
         { id: 'relation', rewrite: () => ({ kind: 'relation_projection', relation: propertyRef(value.property), projection: { kind: 'value', expression } }), requirements: [{ id: 'kind', satisfied: relationGate(relationEqual(binding.kind, 'found'), () => relationEqual(binding.value.kind, 'relation'), () => false) }] },
@@ -254,9 +271,7 @@ function directFieldType(
     value: import('../../lexer/phpAstTypes').PhpAstValue,
     model: import('../../symbols/model/originModelSymbol').OriginModelSymbol
 ): TypeExpression {
-    const binding = relationGate(relationAll([relationEqual(value.kind, 'property_access'), relationEqual(value.target.kind, 'variable_reference')]),
-        () => model.resolveProperty(propertyName(value.property)),
-        () => ({ kind: 'missing' as const }));
+    const binding = relationOptionFold(astKind(value, 'property_access'), () => ({ kind: 'missing' as const }), property => relationOptionFold(astKind(property.target, 'variable_reference'), () => ({ kind: 'missing' as const }), () => model.resolveProperty(propertyName(property.property))));
     return relationGate(relationEqual(binding.kind, 'found'),
         () => semanticType(binding.value.semanticType),
         () => ({ kind: 'error', diagnostic: str('resource_field_type_requires_upstream_typing') }));
@@ -351,7 +366,7 @@ export function bindResourceDefinition(params: {
         framework: contract.framework,
         source,
     };
-    return { kind: 'resource_ast', definition, source };
+    return createDomainAstJudgment({ kind: 'resource_ast', semantic: definition, source });
     }, () => { throw Error(`Resource '${resourceName.value.value}' cannot cross the AST semantic boundary without one resolved Eloquent model.`); });
 }
 

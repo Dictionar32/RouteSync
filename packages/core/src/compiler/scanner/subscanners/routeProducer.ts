@@ -1,10 +1,10 @@
 import type { RouteProducer } from '../../../types/upstream/route';
-import type { RouteAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type RouteAst } from '../../../types/upstream/ast';
 
 const implementation: RouteProducer = {
   produce(input): RouteAst {
     const definition = {
-      kind: 'route',
+      kind: 'route' as const,
       identity: input.identity,
       special: input.special,
       domain: input.domain,
@@ -17,10 +17,9 @@ const implementation: RouteProducer = {
       transport: input.transport,
       provenance: input.provenance,
     };
-    return Object.freeze({
-      kind: 'route_ast' as const,
-      declaration: input.declaration,
-      definition,
+    return createDomainAstJudgment({
+      kind: 'route_ast',
+      semantic: { kind: 'route_ast_semantic', declaration: input.declaration, definition },
       source: input.source,
     });
   },

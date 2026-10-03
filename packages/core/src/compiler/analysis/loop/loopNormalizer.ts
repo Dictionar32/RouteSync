@@ -2,7 +2,7 @@
 import type { ControlFlowGraph, BasicBlock, Instruction, BasicBlockRelation } from '../../utils/ControlFlowGraph';
 import { basicBlockLookup, basicBlockReplace, basicBlockIds, createControlFlowGraph } from '../../utils/ControlFlowGraph';
 import { relationContains } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationOptionFold, relationResolve, relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationFold, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../semantic/kernel/relationFoundation';
 
 export interface LoopNormalizer {
@@ -33,9 +33,9 @@ export const createLoopNormalizer = (): LoopNormalizer => Object.freeze({
                             const nextSuccs = relationFold(pred.successors, [] as readonly number[], (output, successor) => [...output, relationResolve(relationEqual(successor, headerId), () => preHeaderId, () => successor)]);
                             const nextInsts = relationProject(pred.instructions, instruction => relationResolve(
                                 relationEqual(instruction.kind, 'Jump'),
-                                () => relationResolve(relationEqual((instruction as Extract<Instruction, { kind: 'Jump' }>).targetBlockId, headerId), () => ({ ...instruction, targetBlockId: preHeaderId }), () => instruction),
+                                () => relationResolve(relationEqual(relationVariantValue(instruction, 'Jump').targetBlockId, headerId), () => ({ ...instruction, targetBlockId: preHeaderId }), () => instruction),
                                 () => relationResolve(relationEqual(instruction.kind, 'Branch'),
-                                    () => ({ ...instruction, trueBlockId: relationResolve(relationEqual((instruction as Extract<Instruction, { kind: 'Branch' }>).trueBlockId, headerId), () => preHeaderId, () => (instruction as Extract<Instruction, { kind: 'Branch' }>).trueBlockId), falseBlockId: relationResolve(relationEqual((instruction as Extract<Instruction, { kind: 'Branch' }>).falseBlockId, headerId), () => preHeaderId, () => (instruction as Extract<Instruction, { kind: 'Branch' }>).falseBlockId) }),
+                                    () => ({ ...instruction, trueBlockId: relationResolve(relationEqual(relationVariantValue(instruction, 'Branch').trueBlockId, headerId), () => preHeaderId, () => relationVariantValue(instruction, 'Branch').trueBlockId), falseBlockId: relationResolve(relationEqual(relationVariantValue(instruction, 'Branch').falseBlockId, headerId), () => preHeaderId, () => relationVariantValue(instruction, 'Branch').falseBlockId) }),
                                     () => instruction),
                             ));
                             return basicBlockReplace(blocks, predId, { ...pred, successors: nextSuccs, instructions: nextInsts });

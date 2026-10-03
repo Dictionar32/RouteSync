@@ -9,8 +9,11 @@ import type { ControllerVariableSemantic } from '../../../types/upstream/control
 import type { RequestName } from '../../../types/upstream/names';
 import { parseControllerReturns } from './controllerReturnParser';
 import { parseControllerBody } from './controllerBodyParser';
+import { tokenAt, tokenValueEquals, tokenKindEquals } from './tokenEvidence';
+
+const tokenValueOr = (tokens: readonly TokenDescriptor[], index: number): string => relationOptionFold(tokenAt(tokens, index), () => '', evidence => evidence.token.value);
 import type {
-odAst,
+    ControllerMethodAst,
     ControllerParameterAst,
     ControllerParameterAttributeArgumentAst,
     ControllerParameterAttributeAst,
@@ -27,7 +30,7 @@ export function parseControllerMethod(
     const nameToken = tokens[relationAdvanceIndex(functionIndex, 1)];
     const bodyStart = findBodyStart(tokens, relationAdvanceIndex(functionIndex, 2));
     const bodyEnd = relationGate(bodyStart >= 0, () => findMatching(tokens, bodyStart, '{', '}'), () => -1);
-    return relationGate(relationAll([relationEqual(nameToken?.type, 'IDENTIFIER'), bodyStart >= 0, bodyEnd >= 0]), () => {
+    return relationGate(relationAll([tokenKindEquals(tokens, relationAdvanceIndex(functionIndex, 1), 'IDENTIFIER'), bodyStart >= 0, bodyEnd >= 0]), () => {
         const bodyTokens = relationRange(tokens, relationAdvanceIndex(bodyStart, 1), bodyEnd);
         const parameters = parseParameters(tokens, relationAdvanceIndex(functionIndex, 2));
         const parameterClose = findParameterClose(tokens, relationAdvanceIndex(functionIndex, 2));
@@ -52,35 +55,42 @@ export function parseControllerMethod(
 
 function parseParameters(tokens: readonly TokenDescriptor[], start: number): ControllerParameterAst[] {
     const collect = (index: number, output: readonly ControllerParameterAst[]): readonly ControllerParameterAst[] =>
-        relationGate(relationAny([index >= tokens.length, relationEqual(tokens[index]?.value, '{')]), () => output, () => {
+        relationGate(relationAny([index >= tokens.length, tokenValueEquals(tokens, index, '{')]), () => output, () => {
             const parsedAttributes = parseParameterAttributes(tokens, index);
             const cursor = parsedAttributes.endIndex;
-            const typeToken = tokens[cursor];
-            const nextToken = tokens[relationAdvanceIndex(cursor, 1)];
-            const nullable = relationGate(relationEqual(typeToken?.value, '?'), () => ({ inner: nextToken, variable: tokens[relationAdvanceIndex(cursor, 2)], next: cursor + 3 }), () => ({ inner: typeToken, variable: nextToken, next: cursor + 2 }));
-            const valid = relationAll([relationEqual(nullable.inner?.type, 'IDENTIFIER'), relationEqual(nullable.variable?.type, 'VARIABLE')]);
-            return relationGate(valid, () => {
-                const inner = nullable.inner!;
-                const variable = nullable.variable!;
-                const defaultParse = parseParameterDefault(tokens, nullable.next);
-                const parameter: ControllerParameterAst = {
-                    attributes: parsedAttributes.attributes,
-                    type: relationGate(relationEqual(typeToken?.value, '?'), () => ({ kind: 'nullable', inner: parseParameterType(inner.value) }), () => parseParameterType(inner.value)),
-                    defaultValue: defaultParse.value,
-                    name: createAstIdentifier(relationRange(variable.value, 1, variable.value.length)),
-                    semantic: parameterSemantic(inner.value),
-                    source: { ...inner, endOffset: relationGate(defaultParse.endIndex >= 0, () => tokens[defaultParse.endIndex].endOffset, () => variable.endOffset) },
-                };
-                const nextIndex = relationGate(defaultParse.endIndex >= 0, () => defaultParse.endIndex + 1, () => nullable.next);
-                return collect(nextIndex, [...output, parameter]);
-            }, () => collect(relationGate(parsedAttributes.endIndex > index, () => parsedAttributes.endIndex, () => index + 1), output));
+            return relationOptionFold(tokenAt(tokens, cursor), () => output, typeEvidence => {
+                const typeToken = typeEvidence.token;
+                const nextOption = tokenAt(tokens, relationAdvanceIndex(cursor, 1));
+                const variableOption = tokenAt(tokens, relationAdvanceIndex(cursor, 2));
+                const nullable = relationEqual(typeToken.value, '?');
+                const innerOption = relationGate(nullable, () => nextOption, () => tokenAt(tokens, cursor));
+                const variable = relationGate(nullable, () => variableOption, () => nextOption);
+                return relationOptionFold(innerOption, () => output, inner => relationOptionFold(variable, () => output, variableEvidence => {
+                    const variableToken = variableEvidence.token;
+                    const valid = relationAll([relationEqual(inner.token.type, 'IDENTIFIER'), relationEqual(variableToken.type, 'VARIABLE')]);
+                    return relationGate(valid, () => {
+                        const defaultStart = relationGate(nullable, () => cursor + 3, () => cursor + 2);
+                        const defaultParse = parseParameterDefault(tokens, defaultStart);
+                        const parameter: ControllerParameterAst = {
+                            attributes: parsedAttributes.attributes,
+                            type: nullable ? { kind: 'nullable', inner: parseParameterType(inner.token.value) } : parseParameterType(inner.token.value),
+                            defaultValue: defaultParse.value,
+                            name: createAstIdentifier(relationRange(variableToken.value, 1, variableToken.value.length)),
+                            semantic: parameterSemantic(inner.token.value),
+                            source: { ...inner.token, endOffset: relationGate(defaultParse.endIndex >= 0, () => tokens[defaultParse.endIndex].endOffset, () => variableToken.endOffset) },
+                        };
+                        const nextIndex = relationGate(defaultParse.endIndex >= 0, () => defaultParse.endIndex + 1, () => defaultStart);
+                        return collect(nextIndex, [...output, parameter]);
+                    }, () => collect(relationGate(parsedAttributes.endIndex > index, () => parsedAttributes.endIndex, () => index + 1), output));
+                }));
+            });
         });
     return [...collect(start, [])];
 }
 
 export function parseParameterAttributes(tokens: readonly TokenDescriptor[], start: number): { readonly attributes: readonly ControllerParameterAttributeAst[]; readonly endIndex: number } {
     const collect = (index: number, attributes: readonly ControllerParameterAttributeAst[]): { readonly attributes: readonly ControllerParameterAttributeAst[]; readonly endIndex: number } =>
-        relationGate(relationAll([relationEqual(tokens[index]?.value, '#'), relationEqual(tokens[relationAdvanceIndex(index, 1)]?.value, '[')]), () => {
+        relationGate(relationAll([tokenValueEquals(tokens, index, '#'), tokenValueEquals(tokens, relationAdvanceIndex(index, 1), '[')]), () => {
             const open = index + 1;
             const close = findMatching(tokens, open, '[', ']');
             return relationGate(close < 0, () => ({ attributes, endIndex: index }), () => {
@@ -103,7 +113,7 @@ function collectAttributeNameTokens(tokens: readonly TokenDescriptor[], index: n
 }
 
 function parseAttributeArguments(tokens: readonly TokenDescriptor[]): ControllerParameterAttributeArgumentAst[] {
-    return relationGate(relationAny([relationNotEqual(tokens[0]?.value, '('), relationNotEqual(tokens[tokens.length - 1]?.value, ')')]), () => [], () => {
+    return relationGate(relationAny([relationNotEqual(tokenValueOr(tokens, 0), '('), relationNotEqual(tokenValueOr(tokens, tokens.length - 1), ')')]), () => [], () => {
         const inner = relationRange(tokens, 1, relationAdvanceIndex(tokens.length, -1));
         const collect = (index: number, start: number, depth: number, output: readonly ControllerParameterAttributeArgumentAst[]): readonly ControllerParameterAttributeArgumentAst[] =>
             relationGate(index >= inner.length, () => appendAttributePart(relationRange(inner, start, index), output), () => {
@@ -120,9 +130,9 @@ function appendAttributePart(part: readonly TokenDescriptor[], output: readonly 
 }
 
 function parseAttributeArgument(tokens: readonly TokenDescriptor[]): ControllerParameterAttributeArgumentAst {
-    const unpacked = relationAll([relationEqual(tokens[0]?.value, '...'), tokens.length > 1]);
+    const unpacked = relationAll([tokenValueEquals(tokens, 0, '...'), tokens.length > 1]);
     const colonIndex = relationIndexOf(tokens, token => relationEqual(token.value, ':'));
-    const named = relationAll([relationEqual(colonIndex, 1), relationEqual(tokens[0]?.type, 'IDENTIFIER')]);
+    const named = relationAll([relationEqual(colonIndex, 1), tokenKindEquals(tokens, 0, 'IDENTIFIER')]);
     return relationGate(unpacked, () => ({ kind: 'unpacked', value: classifyAstTokens(relationRange(tokens, 1, tokens.length)) }), () =>
         relationGate(named, () => ({ kind: 'named', name: createAstIdentifier(tokens[0].value), value: classifyAstTokens(relationRange(tokens, 2, tokens.length)) }), () => ({ kind: 'positional', value: classifyAstTokens(tokens) })));
 }
@@ -152,7 +162,7 @@ function parseParameterType(value: string): PhpParameterTypeAst {
 }
 
 function parseParameterDefault(tokens: readonly TokenDescriptor[], start: number): { readonly value: ControllerParameterAst['defaultValue']; readonly endIndex: number } {
-    return relationGate(relationNotEqual(tokens[start]?.value, '='), () => ({ value: { kind: 'absent' }, endIndex: -1 }), () => {
+    return relationGate(relationNotEqual(tokenValueOr(tokens, start), '='), () => ({ value: { kind: 'absent' }, endIndex: -1 }), () => {
         const collect = (index: number, depth: number, expression: readonly TokenDescriptor[]): { readonly expression: readonly TokenDescriptor[]; readonly endIndex: number } =>
             relationGate(index >= tokens.length, () => ({ expression, endIndex: start + expression.length }), () => {
                 const token = tokens[index];
@@ -182,11 +192,12 @@ function parseDeclaredReturnType(tokens: readonly TokenDescriptor[], start: numb
     const index = relationIndexOf(relationRange(tokens, start, bodyStart), token => relationEqual(token.value, ':'));
     return relationGate(index < 0, () => ({ kind: 'absent' }), () => {
         const colon = start + index;
-        const typeToken = tokens[colon + 1];
-        return relationGate(!typeToken, () => ({ kind: 'absent' }), () => relationGate(relationEqual(typeToken.value, '?'), () => {
-            const inner = tokens[colon + 2];
-            return relationGate(!inner, () => ({ kind: 'absent' }), () => ({ kind: 'declared', type: { kind: 'nullable', inner: parseParameterType(inner.value) } }));
-        }, () => ({ kind: 'declared', type: parseParameterType(typeToken.value) })));
+        return relationOptionFold(tokenAt(tokens, colon + 1), () => ({ kind: 'absent' }), typeEvidence =>
+            relationGate(relationEqual(typeEvidence.token.value, '?'), () =>
+                relationOptionFold(tokenAt(tokens, colon + 2), () => ({ kind: 'absent' }), inner => ({ kind: 'declared', type: { kind: 'nullable', inner: parseParameterType(inner.token.value) } })),
+                () => ({ kind: 'declared', type: parseParameterType(typeEvidence.token.value) }),
+            ),
+        );
     });
 }
 
@@ -207,13 +218,13 @@ function findMatching(tokens: readonly TokenDescriptor[], start: number, open: s
 
 function parseResponseAttribute(tokens: readonly TokenDescriptor[], functionIndex: number): ResponseAttributeAst {
     const indexes = relationProject(relationRange(tokens, 2, functionIndex), (_, offset) => functionIndex - 1 - offset);
-    const candidate = relationFirst(indexes, index => relationAll([relationEqual(tokens[index]?.value, 'Response'), relationEqual(tokens[index - 1]?.value, '['), relationEqual(tokens[index - 2]?.value, '#')]));
+    const candidate = relationFirst(indexes, index => relationAll([tokenValueEquals(tokens, index, 'Response'), tokenValueEquals(tokens, index - 1, '['), tokenValueEquals(tokens, index - 2, '#')]));
     return relationGate(relationEqual(candidate.kind, 'some'), () => {
         const index = candidate.value;
         const classToken = tokens[index + 2];
         const classScope = tokens[index + 3];
         const classKeyword = tokens[index + 4];
-        const valid = relationAll([relationEqual(classToken?.type, 'IDENTIFIER'), relationEqual(classScope?.value, '::'), relationEqual(classKeyword?.value, 'class')]);
+        const valid = relationAll([tokenKindEquals(tokens, index + 2, 'IDENTIFIER'), tokenValueEquals(tokens, index + 3, '::'), tokenValueEquals(tokens, index + 4, 'class')]);
         return relationGate(valid, () => {
             const end = findAttributeEnd(tokens, index + 1, functionIndex);
             return { kind: 'declared', className: createAstIdentifier(resolveImportedClassName(tokens, classToken.value, functionIndex)), collection: relationAny(relationProject(relationRange(tokens, relationAdvanceIndex(index, 1), end), token => relationEqual(token.value, 'true'))) };

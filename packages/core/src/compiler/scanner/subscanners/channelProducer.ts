@@ -1,5 +1,5 @@
 import type { BroadcastChannelDescriptor } from '../../../types/route';
-import type { ChannelAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type ChannelAst } from '../../../types/upstream/ast';
 import type { ChannelDefinition, ChannelKind } from '../../../types/upstream/channel';
 import type { Sequence } from '../../../types/upstream/collections';
 import { createChannelName } from '../../../types/upstream/names';
@@ -43,10 +43,6 @@ export const channelProducer: ChannelProducer = {
       requiresAuthentication: requiresAuthentication(input.channel.kind),
     };
 
-    return {
-      kind: 'channel_ast',
-      definition,
-      source: input.source,
-    };
+    return createDomainAstJudgment({ kind: 'channel_ast', semantic: definition, source: input.source });
   },
 };

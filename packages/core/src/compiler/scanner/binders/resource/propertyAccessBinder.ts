@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
+import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
 /** Declarative direct model-property binding. */
 import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
 import { createPropertyName } from "../../../../types/upstream/names";

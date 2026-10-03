@@ -1,0 +1,372 @@
+{
+  "phase": 654,
+  "model": "closed proof-carrying semantic AST judgment algebra",
+  "interface": {
+    "requiredFields": [
+      "identity",
+      "semantic",
+      "evidence",
+      "provenance",
+      "constraints",
+      "dependencies",
+      "relations",
+      "derivation",
+      "status",
+      "diagnostics"
+    ],
+    "allRequiredFieldsPresent": true,
+    "closedRelationVocabulary": true,
+    "diagnosticsAreADT": true,
+    "routeSemanticPayloadIsDefinition": true,
+    "genericPayloadSchemaRemoved": true
+  },
+  "canonicalBoundary": {
+    "hasRelationFacts": true,
+    "hasDiagnostics": true,
+    "derivationCarriesPremises": true,
+    "derivationCarriesRound": true
+  },
+  "inactiveVacuum": {
+    "zeroByteFiles": [
+      "packages/cli/src/generators/TypeScriptWriter.ts",
+      "packages/cli/src/generators/legacy/RouteTypeEmitter.ts",
+      "packages/cli/src/generators/response-analysis-helper.ts",
+      "packages/cli/src/generators/semantic/FieldTypeMapper.ts",
+      "packages/cli/src/generators/semantic/context/manifestNormalizer.ts",
+      "packages/cli/src/generators/semantic/resource-field/fieldMapBuilder.ts",
+      "packages/cli/src/generators/utils/ManifestDescriptor.ts",
+      "packages/cli/src/generators/utils/RouteEndpointDescriptor.ts",
+      "packages/cli/src/generators/utils/RoutePathDescriptor.ts",
+      "packages/cli/src/parsers/OpenApiParser.ts",
+      "packages/cli/src/parsers/PHPRouteParser.ts",
+      "packages/cli/src/parsers/__tests__/legacyFieldAdapter.test.ts",
+      "packages/cli/src/parsers/php/ast/offsetCatamorphism.ts",
+      "packages/cli/src/resolvers/SemanticResolutionKernel.ts",
+      "packages/cli/src/resolvers/index.ts",
+      "packages/cli/src/resolvers/plugins/AccessorResolver.ts",
+      "packages/cli/src/resolvers/plugins/ExpressionResolver.ts",
+      "packages/cli/src/resolvers/plugins/FrameworkRegistryResolver.ts",
+      "packages/cli/src/resolvers/plugins/MethodReturnResolver.ts",
+      "packages/cli/src/resolvers/plugins/ModelColumnResolver.ts",
+      "packages/cli/src/resolvers/plugins/PrimitiveResolver.ts",
+      "packages/cli/src/resolvers/plugins/ResourceGraphResolver.ts",
+      "packages/cli/src/resolvers/plugins/expression/index.ts",
+      "packages/cli/src/resolvers/plugins/expression/literalHandler.ts",
+      "packages/cli/src/resolvers/plugins/expression/propertyAccessHandler.ts",
+      "packages/cli/src/resolvers/plugins/expression/variableHandler.ts",
+      "packages/cli/src/resolvers/plugins/method-return/index.ts",
+      "packages/cli/src/resolvers/plugins/method-return/methodCallHandler.ts",
+      "packages/cli/src/resolvers/plugins/method-return/resolvedMethodHandler.ts",
+      "packages/cli/src/resolvers/types.ts",
+      "packages/core/src/compiler/analysis/legacyFlow.ts",
+      "packages/core/src/compiler/contracts.ts",
+      "packages/core/src/compiler/domain/common/ArtifactContract.ts",
+      "packages/core/src/compiler/domain/common/ResourceFieldFlattener.ts",
+      "packages/core/src/compiler/domain/common/ResponseFieldFlattener.ts",
+      "packages/core/src/compiler/domain/common/semanticFieldType.ts",
+      "packages/core/src/compiler/emitters/typescript/TypeScriptEmitter.ts",
+      "packages/core/src/compiler/formatting/typescript/TSFormatter.ts",
+      "packages/core/src/compiler/generators/CompilerBridge.ts",
+      "packages/core/src/compiler/generators/contract-generation/ResponseStructureBuilder.ts",
+      "packages/core/src/compiler/ir/ContractIRTypeBuilder.ts",
+      "packages/core/src/compiler/ir/StructuredContractIRBuilder.ts",
+      "packages/core/src/compiler/ir/StructuredResponseIRBuilder.ts",
+      "packages/core/src/compiler/ir/__tests__/ContractIRTypeBuilder.test.ts",
+      "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+      "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts",
+      "packages/core/src/compiler/scanner/scannerLegacyDelegates.ts",
+      "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
+      "packages/core/src/compiler/scanner/subscanners/model/modelSourceFactsParser.ts",
+      "packages/core/src/compiler/scanner/subscanners/request-deriver/requestSourceMerger.ts",
+      "packages/core/src/compiler/scanner/subscanners/resource/resourceAstCanonical.ts",
+      "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingModelFactory.ts",
+      "packages/core/src/compiler/scanner/subscanners/semantic/fieldExtractors.ts",
+      "packages/core/src/compiler/scanner/subscanners/semantic/modelExtractors.ts",
+      "packages/core/src/semantic/plugins/expression/property-access/specialAccessHandler.ts",
+      "packages/core/src/semantic/plugins/expression/property-access/targetModelResolver.ts",
+      "packages/core/src/types/__archive__/legacyFieldAdapter.ts",
+      "packages/core/src/types/domain/modelEntityDescriptor.ts",
+      "packages/core/src/types/domain/resourceAggregateResolver.ts",
+      "packages/core/src/types/domain/resourceCollectionGroupModel.ts",
+      "packages/core/src/types/domain/resourceCollectionMethodSurface.ts",
+      "packages/core/src/types/domain/resourceCollectionSurfaceResolver.ts",
+      "packages/core/src/types/domain/resourceEloquentFlow.ts",
+      "packages/core/src/types/domain/resourceQueryAggregateSurface.ts",
+      "packages/core/src/types/domain/resourceRelationQuerySurface.ts",
+      "packages/core/src/types/domain/resourceResponseBinding.ts",
+      "packages/core/src/types/domain/resourceSqlExpression.ts",
+      "packages/core/src/types/domain/resourceSqlExpressionParser.ts",
+      "packages/core/src/types/domain/resourceTraversalResolution.ts",
+      "packages/core/src/types/domain/routeEntityDescriptor.ts",
+      "packages/core/src/types/domain/semanticResolutionLegacyAdapter.ts",
+      "packages/core/src/types/emitTypes.ts",
+      "packages/core/src/types/semantic/parsedAstAlgebra.ts",
+      "packages/core/src/types/semantic/parsedAstTypes.ts",
+      "packages/core/src/types/upstream/routeBinding.ts",
+      "packages/core/src/types/upstream/routeBindingResolution.ts",
+      "packages/core/src/types/upstream/routeMissing.ts",
+      "packages/core/src/types/upstream/routeResource.ts",
+      "packages/core/src/types/upstream/routeResourceMode.ts",
+      "packages/core/src/types/upstream/routeSemanticFlow.ts",
+      "packages/react/tests/type-inference/type-audit.type-spec.ts",
+      "packages/sdk/src/emitter/TSPrinter.ts",
+      "packages/sdk/src/emitter/ZodToTSEmitIR.ts",
+      "packages/sdk/src/emitter/zod-converter/astToZodCode.ts",
+      "packages/sdk/src/emitter/zod-converter/index.ts",
+      "packages/sdk/src/emitter/zod-converter/moduleConverter.ts",
+      "packages/sdk/src/emitter/zod-converter/types.ts",
+      "packages/sdk/src/generator/index.ts",
+      "packages/sdk/src/generator/reactQueryEmitter.ts",
+      "packages/sdk/src/generator/routeModuleBuilder.ts",
+      "packages/sdk/src/generator/zodEmitter.ts",
+      "packages/sdk/src/generator.ts",
+      "packages/sdk/test-resolve-reviews.ts"
+    ],
+    "directlyReferencedZeroByteFiles": [
+      {
+        "file": "packages/cli/src/generators/utils/ManifestDescriptor.ts",
+        "refs": [
+          "packages/cli/src/generators/utils/__tests__/ManifestDescriptor.spec.ts"
+        ]
+      },
+      {
+        "file": "packages/cli/src/generators/utils/RouteEndpointDescriptor.ts",
+        "refs": [
+          "packages/cli/src/generators/utils/__tests__/RouteEndpointDescriptor.spec.ts"
+        ]
+      },
+      {
+        "file": "packages/cli/src/generators/utils/RoutePathDescriptor.ts",
+        "refs": [
+          "packages/cli/src/generators/utils/__tests__/RoutePathDescriptor.spec.ts"
+        ]
+      },
+      {
+        "file": "packages/core/src/compiler/domain/common/ArtifactContract.ts",
+        "refs": [
+          "packages/core/src/compiler/domain/common/__tests__/artifact-contract-cross-flow-type.test.ts",
+          "packages/core/src/compiler/domain/common/__tests__/artifact-contract-cross-flow.test.ts",
+          "packages/core/src/compiler/domain/common/__tests__/artifact-contract-cross-flow.test.ts"
+        ]
+      },
+      {
+        "file": "packages/core/src/compiler/domain/common/ResourceFieldFlattener.ts",
+        "refs": [
+          "packages/core/src/compiler/domain/common/ManifestArtifactLowerer.ts"
+        ]
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/ResponseStructureBuilder.ts",
+        "refs": [
+          "packages/core/src/compiler/generators/contract-generation/__tests__/ResponseStructureBuilder.test.ts"
+        ]
+      },
+      {
+        "file": "packages/core/src/compiler/ir/StructuredContractIRBuilder.ts",
+        "refs": [
+          "packages/core/src/compiler/ir/__tests__/StructuredContractIRBuilder.test.ts"
+        ]
+      },
+      {
+        "file": "packages/core/src/compiler/ir/StructuredResponseIRBuilder.ts",
+        "refs": [
+          "packages/core/src/compiler/ir/__tests__/StructuredResponseIRBuilder.test.ts"
+        ]
+      }
+    ],
+    "unreferencedZeroByteFiles": [
+      "packages/cli/src/generators/TypeScriptWriter.ts",
+      "packages/cli/src/generators/legacy/RouteTypeEmitter.ts",
+      "packages/cli/src/generators/response-analysis-helper.ts",
+      "packages/cli/src/generators/semantic/FieldTypeMapper.ts",
+      "packages/cli/src/generators/semantic/context/manifestNormalizer.ts",
+      "packages/cli/src/generators/semantic/resource-field/fieldMapBuilder.ts",
+      "packages/cli/src/parsers/OpenApiParser.ts",
+      "packages/cli/src/parsers/PHPRouteParser.ts",
+      "packages/cli/src/parsers/__tests__/legacyFieldAdapter.test.ts",
+      "packages/cli/src/parsers/php/ast/offsetCatamorphism.ts",
+      "packages/cli/src/resolvers/SemanticResolutionKernel.ts",
+      "packages/cli/src/resolvers/index.ts",
+      "packages/cli/src/resolvers/plugins/AccessorResolver.ts",
+      "packages/cli/src/resolvers/plugins/ExpressionResolver.ts",
+      "packages/cli/src/resolvers/plugins/FrameworkRegistryResolver.ts",
+      "packages/cli/src/resolvers/plugins/MethodReturnResolver.ts",
+      "packages/cli/src/resolvers/plugins/ModelColumnResolver.ts",
+      "packages/cli/src/resolvers/plugins/PrimitiveResolver.ts",
+      "packages/cli/src/resolvers/plugins/ResourceGraphResolver.ts",
+      "packages/cli/src/resolvers/plugins/expression/index.ts",
+      "packages/cli/src/resolvers/plugins/expression/literalHandler.ts",
+      "packages/cli/src/resolvers/plugins/expression/propertyAccessHandler.ts",
+      "packages/cli/src/resolvers/plugins/expression/variableHandler.ts",
+      "packages/cli/src/resolvers/plugins/method-return/index.ts",
+      "packages/cli/src/resolvers/plugins/method-return/methodCallHandler.ts",
+      "packages/cli/src/resolvers/plugins/method-return/resolvedMethodHandler.ts",
+      "packages/cli/src/resolvers/types.ts",
+      "packages/core/src/compiler/analysis/legacyFlow.ts",
+      "packages/core/src/compiler/contracts.ts",
+      "packages/core/src/compiler/domain/common/ResponseFieldFlattener.ts",
+      "packages/core/src/compiler/domain/common/semanticFieldType.ts",
+      "packages/core/src/compiler/emitters/typescript/TypeScriptEmitter.ts",
+      "packages/core/src/compiler/formatting/typescript/TSFormatter.ts",
+      "packages/core/src/compiler/generators/CompilerBridge.ts",
+      "packages/core/src/compiler/ir/ContractIRTypeBuilder.ts",
+      "packages/core/src/compiler/ir/__tests__/ContractIRTypeBuilder.test.ts",
+      "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+      "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts",
+      "packages/core/src/compiler/scanner/scannerLegacyDelegates.ts",
+      "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
+      "packages/core/src/compiler/scanner/subscanners/model/modelSourceFactsParser.ts",
+      "packages/core/src/compiler/scanner/subscanners/request-deriver/requestSourceMerger.ts",
+      "packages/core/src/compiler/scanner/subscanners/resource/resourceAstCanonical.ts",
+      "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingModelFactory.ts",
+      "packages/core/src/compiler/scanner/subscanners/semantic/fieldExtractors.ts",
+      "packages/core/src/compiler/scanner/subscanners/semantic/modelExtractors.ts",
+      "packages/core/src/semantic/plugins/expression/property-access/specialAccessHandler.ts",
+      "packages/core/src/semantic/plugins/expression/property-access/targetModelResolver.ts",
+      "packages/core/src/types/__archive__/legacyFieldAdapter.ts",
+      "packages/core/src/types/domain/modelEntityDescriptor.ts",
+      "packages/core/src/types/domain/resourceAggregateResolver.ts",
+      "packages/core/src/types/domain/resourceCollectionGroupModel.ts",
+      "packages/core/src/types/domain/resourceCollectionMethodSurface.ts",
+      "packages/core/src/types/domain/resourceCollectionSurfaceResolver.ts",
+      "packages/core/src/types/domain/resourceEloquentFlow.ts",
+      "packages/core/src/types/domain/resourceQueryAggregateSurface.ts",
+      "packages/core/src/types/domain/resourceRelationQuerySurface.ts",
+      "packages/core/src/types/domain/resourceResponseBinding.ts",
+      "packages/core/src/types/domain/resourceSqlExpression.ts",
+      "packages/core/src/types/domain/resourceSqlExpressionParser.ts",
+      "packages/core/src/types/domain/resourceTraversalResolution.ts",
+      "packages/core/src/types/domain/routeEntityDescriptor.ts",
+      "packages/core/src/types/domain/semanticResolutionLegacyAdapter.ts",
+      "packages/core/src/types/emitTypes.ts",
+      "packages/core/src/types/semantic/parsedAstAlgebra.ts",
+      "packages/core/src/types/semantic/parsedAstTypes.ts",
+      "packages/core/src/types/upstream/routeBinding.ts",
+      "packages/core/src/types/upstream/routeBindingResolution.ts",
+      "packages/core/src/types/upstream/routeMissing.ts",
+      "packages/core/src/types/upstream/routeResource.ts",
+      "packages/core/src/types/upstream/routeResourceMode.ts",
+      "packages/core/src/types/upstream/routeSemanticFlow.ts",
+      "packages/react/tests/type-inference/type-audit.type-spec.ts",
+      "packages/sdk/src/emitter/TSPrinter.ts",
+      "packages/sdk/src/emitter/ZodToTSEmitIR.ts",
+      "packages/sdk/src/emitter/zod-converter/astToZodCode.ts",
+      "packages/sdk/src/emitter/zod-converter/index.ts",
+      "packages/sdk/src/emitter/zod-converter/moduleConverter.ts",
+      "packages/sdk/src/emitter/zod-converter/types.ts",
+      "packages/sdk/src/generator/index.ts",
+      "packages/sdk/src/generator/reactQueryEmitter.ts",
+      "packages/sdk/src/generator/routeModuleBuilder.ts",
+      "packages/sdk/src/generator/zodEmitter.ts",
+      "packages/sdk/src/generator.ts",
+      "packages/sdk/test-resolve-reviews.ts"
+    ]
+  },
+  "frontier": [
+    {
+      "file": "compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+      "count": 63
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts",
+      "count": 51
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts",
+      "count": 37
+    },
+    {
+      "file": "compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts",
+      "count": 32
+    },
+    {
+      "file": "compiler/scanner/subscanners/controller/controllerErrorDetector.ts",
+      "count": 26
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceBindingProvenanceBuilder.ts",
+      "count": 25
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts",
+      "count": 22
+    },
+    {
+      "file": "compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+      "count": 21
+    },
+    {
+      "file": "compiler/scanner/descriptors/route/routeSecurity.ts",
+      "count": 18
+    },
+    {
+      "file": "compiler/scanner/subscanners/form-request/fieldAssembler.ts",
+      "count": 17
+    },
+    {
+      "file": "compiler/scanner/descriptors/model/entity/modelEntityFactory.ts",
+      "count": 12
+    },
+    {
+      "file": "compiler/scanner/subscanners/validationArrayPropLowerer.ts",
+      "count": 12
+    },
+    {
+      "file": "compiler/scanner/lexer/astClassifierEvidence.ts",
+      "count": 8
+    },
+    {
+      "file": "compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "count": 8
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts",
+      "count": 8
+    },
+    {
+      "file": "compiler/scanner/descriptors/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
+      "count": 7
+    },
+    {
+      "file": "compiler/scanner/descriptors/route/error-response/errorFactories.ts",
+      "count": 7
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts",
+      "count": 7
+    },
+    {
+      "file": "compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "count": 6
+    },
+    {
+      "file": "compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+      "count": 5
+    },
+    {
+      "file": "compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "count": 5
+    },
+    {
+      "file": "compiler/scanner/subscanners/queryEvidenceProducer.ts",
+      "count": 5
+    },
+    {
+      "file": "compiler/domain/common/ts-lowerer/typeScriptVocabulary.ts",
+      "count": 5
+    },
+    {
+      "file": "compiler/scanner/descriptors/route/ScannedRouteDescriptor.ts",
+      "count": 4
+    },
+    {
+      "file": "compiler/scanner/lexer/phpControlEvidence.ts",
+      "count": 4
+    }
+  ],
+  "interpretation": "Lexical frontier is diagnostic only; source syntax evidence and target projection are not semantic-authority violations by themselves."
+}

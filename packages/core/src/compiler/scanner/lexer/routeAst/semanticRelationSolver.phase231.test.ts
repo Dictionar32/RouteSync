@@ -1,4 +1,4 @@
-import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from './semanticRelationSolver';
+import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from './semanticRewriteEngine';
 
 type Relation = 'predicate' | 'choice' | 'iteration' | 'reachable';
 const v = (variable: string) => ({ variable });

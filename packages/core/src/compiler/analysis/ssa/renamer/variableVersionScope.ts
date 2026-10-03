@@ -3,6 +3,7 @@
 import type { Operand } from '../../../utils/ControlFlowGraph';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
 import { relationOptionFold, relationResolve, relationEqual, type RelationOption } from '../../../../semantic/kernel/relationFoundation';
+import { relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
 
 export interface VariableVersionScope {
     readonly count: RelationIndex<number, number>;
@@ -44,7 +45,7 @@ const createScope = (
     };
     const renameOperand = (operand: Operand): Operand => relationResolve(
         relationEqual(operand.kind, 'Variable'),
-        () => relationOptionFold(getActiveVersion((operand as Extract<Operand, { kind: 'Variable' }>).id), () => operand, value => ({ kind: 'SSAValue' as const, id: value })),
+        () => relationOptionFold(getActiveVersion(relationVariantValue(operand, 'Variable').id), () => operand, value => ({ kind: 'SSAValue' as const, id: value })),
         () => operand,
     );
     return Object.freeze({ count, stack, init, pushVersion, popVersion, getActiveVersion, renameOperand });

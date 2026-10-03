@@ -10,6 +10,7 @@ import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey, crea
 import { classifyAstTokens } from './astClassifier';
 import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { tokenValueEquals, tokenKindEquals } from './tokenEvidence';
 
 const some = <T>(value: T): RelationOption<T> => ({ kind: 'some', value });
 const none = <T>(): RelationOption<T> => ({ kind: 'none' });
@@ -40,25 +41,25 @@ const locateArrayOpening = (
         () => none());
 
 const isArrayLiteralOpening = (tokens: readonly TokenDescriptor[], index: number): boolean =>
-    relationResolve(relationEqual(tokens[index]?.value, '['),
-        () => !isSubscriptOpening(tokens, index),
+    relationResolve(tokenValueEquals(tokens, index, '['),
+        () => relationResolve(isSubscriptOpening(tokens, index), () => false, () => true),
         () => relationAll([
-            relationEqual(tokens[index]?.value, 'array'),
-            relationEqual(tokens[index + 1]?.value, '('),
+            tokenValueEquals(tokens, index, 'array'),
+            tokenValueEquals(tokens, index + 1, '('),
         ]));
 
 const openingEnd = (tokens: readonly TokenDescriptor[], index: number): number =>
-    relationResolve(relationEqual(tokens[index]?.value, '['), () => index + 1, () => index + 2);
+    relationResolve(tokenValueEquals(tokens, index, '['), () => index + 1, () => index + 2);
 
 const isSubscriptOpening = (tokens: readonly TokenDescriptor[], index: number): boolean => {
     const previous = relationResolve(index > 0, () => tokens[index - 1], () => tokens[index]);
-    const variable = relationEqual(previous?.type, 'VARIABLE');
-    const identifier = relationResolve(relationEqual(previous?.type, 'IDENTIFIER'),
-        () => !relationResolve(relationEqual(previous?.value, 'return'), () => true, () => relationEqual(previous?.value, 'yield')),
+    const variable = relationEqual(previous.type, 'VARIABLE');
+    const identifier = relationResolve(relationEqual(previous.type, 'IDENTIFIER'),
+        () => relationResolve(relationResolve(relationEqual(previous.value, 'return'), () => true, () => relationEqual(previous.value, 'yield')), () => false, () => true),
         () => false);
-    const postfix = relationResolve(relationEqual(previous?.value, ')'), () => true, () =>
-        relationResolve(relationEqual(previous?.value, ']'), () => true, () => relationEqual(previous?.value, '}')));
-    return relationResolve(relationEqual(tokens[index]?.value, '['),
+    const postfix = relationResolve(relationEqual(previous.value, ')'), () => true, () =>
+        relationResolve(relationEqual(previous.value, ']'), () => true, () => relationEqual(previous.value, '}')));
+    return relationResolve(tokenValueEquals(tokens, index, '['),
         () => relationResolve(variable, () => true, () => relationResolve(identifier, () => true, () => postfix)),
         () => false);
 };
@@ -103,11 +104,11 @@ const parseArrayEntry = (
     index: number,
     entries: readonly PhpArrayEntry[],
 ): ParsedPhpArrayResult => {
-    const keyCandidate = relationResolve(relationEqual(tokens[index + 1]?.value, '=>'),
+    const keyCandidate = relationResolve(tokenValueEquals(tokens, index + 1, '=>'),
         () => some(tokens[index]),
         () => none<TokenDescriptor>());
     const key = relationOptionFold(keyCandidate, () => none<PhpArrayKey>(), token => some(parseArrayKey(token)));
-    const valueIndex = relationResolve(relationEqual(tokens[index + 1]?.value, '=>'), () => index + 2, () => index);
+    const valueIndex = relationResolve(tokenValueEquals(tokens, index + 1, '=>'), () => index + 2, () => index);
     return parseArrayValue(source, tokens, valueIndex, key, entries);
 };
 
@@ -146,11 +147,11 @@ const parseArrayValue = (
 };
 
 const isNestedArrayStart = (tokens: readonly TokenDescriptor[], index: number): boolean =>
-    relationResolve(relationEqual(tokens[index]?.value, '['),
+    relationResolve(tokenValueEquals(tokens, index, '['),
         () => true,
         () => relationAll([
-            relationEqual(tokens[index]?.value, 'array'),
-            relationEqual(tokens[index]?.type, 'IDENTIFIER'),
+            tokenValueEquals(tokens, index, 'array'),
+            tokenKindEquals(tokens, index, 'IDENTIFIER'),
         ]));
 
 const parseScalarValue = (

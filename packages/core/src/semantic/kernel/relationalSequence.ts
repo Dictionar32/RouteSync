@@ -330,6 +330,26 @@ export const relationSequenceToArray = <T>(
 
 export const relationAdvanceIndex = (index: number, offset: number): number => index + offset;
 
+export const relationCount = <T>(source: readonly T[]): number => relationFold(source, 0, count => count + 1);
+
+export const relationTextLength = (source: string): number => source.length;
+
+export const relationTextIsUpperIdentifier = (source: string, index = 0): boolean => relationResolve(
+  index >= source.length,
+  () => relationNotEqual(index, 0),
+  () => {
+    const code = source.charCodeAt(index);
+    const letter = relationAll([code >= 65, code <= 90]);
+    const digit = relationAll([code >= 48, code <= 57]);
+    const underscore = relationEqual(code, 95);
+    return relationResolve(
+      relationAll([relationEqual(index, 0), relationNotEqual(letter, true)]),
+      () => false,
+      () => relationResolve(relationAny([letter, digit, underscore]), () => relationTextIsUpperIdentifier(source, relationAdvanceIndex(index, 1)), () => false),
+    );
+  },
+);
+
 export const relationSlice = <T>(source: readonly T[], start: number, end = source.length, index = 0, output: readonly T[] = Object.freeze([])): readonly T[] =>
   relationGate(index >= source.length, () => output, () => relationGate(index >= end, () => output, () => relationSlice(source, start, end, relationAdvanceIndex(index, 1), relationGate(index >= start, () => [...output, source[index]], () => output))));
 
@@ -417,6 +437,59 @@ export const relationTextNumber = (source: string, fallback = 0): number => {
   return relationResolve(relationEqual(Number.isNaN(value), false), () => value, () => fallback);
 };
 
+export const relationTextEnclosedFields = (source: string, open: string, close: string, index = 0, output: readonly string[] = []): readonly string[] =>
+  relationResolve(
+    index >= source.length,
+    () => output,
+    () => relationResolve(
+      relationEqual(source.charAt(index), open),
+      () => {
+        const end = relationTextFind(source, close, relationAdvanceIndex(index, 1));
+        return relationResolve(
+          relationEqual(end, -1),
+          () => output,
+          () => relationTextEnclosedFields(source, open, close, relationAdvanceIndex(end, 1), [...output, relationTextSlice(source, relationAdvanceIndex(index, 1), end)]),
+        );
+      },
+      () => relationTextEnclosedFields(source, open, close, relationAdvanceIndex(index, 1), output),
+    ),
+  );
+
+export const relationTextFind = (source: string, needle: string, index = 0): number =>
+  relationResolve(
+    index >= source.length,
+    () => -1,
+    () => relationResolve(
+      relationTextStartsWith(relationTextSlice(source, index), needle),
+      () => index,
+      () => relationTextFind(source, needle, relationAdvanceIndex(index, 1)),
+    ),
+  );
+
+export const relationTextReplaceEnclosed = (source: string, open: string, close: string, replacementPrefix: string, index = 0, output = ''): string =>
+  relationResolve(
+    index >= source.length,
+    () => output,
+    () => relationResolve(
+      relationEqual(source.charAt(index), open),
+      () => {
+        const end = relationTextFind(source, close, relationAdvanceIndex(index, 1));
+        return relationResolve(
+          relationEqual(end, -1),
+          () => output + relationTextSlice(source, index),
+          () => relationTextReplaceEnclosed(source, open, close, replacementPrefix, relationAdvanceIndex(end, 1), output + replacementPrefix + relationTextSlice(source, relationAdvanceIndex(index, 1), end)),
+        );
+      },
+      () => relationTextReplaceEnclosed(source, open, close, replacementPrefix, relationAdvanceIndex(index, 1), output + source.charAt(index)),
+    ),
+  );
+
+export const relationTextRemoveSuffix = (source: string, suffix: string): string =>
+  relationGate(relationTextEndsWith(source, suffix), () => relationTextSlice(source, 0, relationTextFind(source, suffix)), () => source);
+
+export const relationTextRemovePrefix = (source: string, prefix: string): string =>
+  relationGate(relationTextStartsWith(source, prefix), () => relationTextSlice(source, prefix.length), () => source);
+
 export const relationTextFirstField = (source: string, delimiter: string, fallback = ''): string =>
   relationOptionFold(
     relationFirstOption(relationTextFields(source, delimiter), value => value.length > 0),
@@ -426,6 +499,31 @@ export const relationTextFirstField = (source: string, delimiter: string, fallba
 
 export const relationRefine = <T, S extends T>(value: T, predicate: (candidate: T) => candidate is S): RelationOption<S> =>
   relationFirstOption([value], predicate);
+
+export type RelationVariant<T extends { readonly kind: string }, K extends T['kind']> = T extends { readonly kind: K } ? T : never;
+
+export const relationVariant = <T extends { readonly kind: string }, K extends T['kind']>(
+  value: T,
+  kind: K,
+): RelationOption<RelationVariant<T, K>> =>
+  relationRefine(value, (candidate): candidate is RelationVariant<T, K> => relationEqual(candidate.kind, kind));
+
+export const relationVariantValue = <T extends { readonly kind: string }, K extends T['kind']>(
+  value: T,
+  kind: K,
+): RelationVariant<T, K> =>
+  relationOptionFold(
+    relationVariant(value, kind),
+    () => { throw Error(`Missing relation variant ${String(kind)}`); },
+    candidate => candidate,
+  );
+
+export const relationVariantFold = <T extends { readonly kind: string }, K extends T['kind'], R>(
+  value: T,
+  kind: K,
+  absentBranch: () => R,
+  presentBranch: (candidate: RelationVariant<T, K>) => R,
+): R => relationOptionFold(relationVariant(value, kind), absentBranch, presentBranch);
 
 
 

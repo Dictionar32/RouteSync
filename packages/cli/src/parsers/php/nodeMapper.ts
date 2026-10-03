@@ -10,11 +10,11 @@
 import type { FieldNode } from '@routesync/core';
 import { foldPhpAstNode } from '@routesync/core';
 import { sliceNodeSource } from './sourceSlice';
-import { adaptPhpAstBoundary } from './boundaryAdapter';
+import { adaptPhpAstBoundaryJudgment } from './boundaryAdapter';
 import { FIELD_NODE_ALGEBRA } from './algebra/fieldNodeAlgebra';
 
 export function mapPhpAstNode(grammarNode: unknown, source: string): FieldNode {
     const originalCode = sliceNodeSource(grammarNode, source);
-    const astNode = adaptPhpAstBoundary(grammarNode, originalCode);
+    const astNode = adaptPhpAstBoundaryJudgment(grammarNode, originalCode).ast;
     return foldPhpAstNode(astNode, FIELD_NODE_ALGEBRA);
 }

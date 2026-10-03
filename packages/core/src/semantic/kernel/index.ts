@@ -29,7 +29,7 @@ export {
   solveCandidateOption,
   solveCandidateId,
   candidateSatisfies,
-} from './requirementSolver';
+} from './semanticDecisionRewriteEngine';
 export {
   decisionCandidate,
   solveDecision,

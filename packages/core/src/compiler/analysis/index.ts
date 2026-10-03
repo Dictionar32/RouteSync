@@ -16,10 +16,22 @@ export {
 
 export {
     type SSABasicBlock,
-    SSARepresentation,
-    SSABuilder,
-    SSARenamer,
+    type SSARepresentation,
+    SSAAnalysisEngine,
+    computeSSA,
 } from './SSAAnalysis';
+
+export {
+    type SSARenamer,
+    createSSARenamer,
+    renameSSA,
+} from './ssa/ssaRenamer';
+
+export {
+    SSABuilder,
+    insertPhiNodes,
+} from './ssa/ssaBuilder';
+
 
 export {
     UseDefGraph,
@@ -60,3 +72,5 @@ export {
     type DefaultAnalysisKey,
     createAnalysisKeyFactory,
 } from '../passes/PassResult';
+export * from './astAnalysisInterface';
+export * from './ssa/ssaSemanticInterface';

@@ -1,6 +1,6 @@
 import { relationOptionFold, relationFirst } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import type { MiddlewareAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type MiddlewareAst } from '../../../types/upstream/ast';
 import type { MiddlewareDefinition } from '../../../types/upstream/application';
 import { createClassName } from '../../../types/upstream/names';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -41,10 +41,6 @@ export const middlewareProducer: MiddlewareProducer = {
       source: input.source,
     };
 
-    return {
-      kind: 'middleware_ast',
-      definition,
-      source: input.source,
-    };
+    return createDomainAstJudgment({ kind: 'middleware_ast', semantic: definition, source: input.source });
   },
 };

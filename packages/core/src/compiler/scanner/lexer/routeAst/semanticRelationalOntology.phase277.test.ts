@@ -10,7 +10,7 @@ const semanticRoots = [
   'semanticRelationalBehaviorKernel.ts',
   'semanticRelationalBehaviorCatalog.ts',
   'semanticRelationTheory.ts',
-  'semanticRelationSolver.ts',
+  'semanticRewriteEngine.ts',
   'semanticRewriteEngine.ts',
   'semanticClosureEngine.ts',
   'semanticCompilationArtifact.ts',

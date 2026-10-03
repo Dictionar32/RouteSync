@@ -8,7 +8,7 @@ export {
     type Expression,
     type SemanticValue
 } from './constants';
-export { type Operand, type Instruction } from './instructions';
+export { type Operand, type Instruction, type ReturnValue } from './instructions';
 export {
     type BasicBlock,
     type BasicBlockRelation,

@@ -32,6 +32,7 @@ export * from './semanticObjectIdentityRelations';
 
 export * from './semanticConstraintCalculus';
 export * from './semanticRewriteEngine';
+export * from './semanticRewriteInterface';
 export * from './semanticRelationalBehaviorKernel';
 export * from './semanticRelationTheory';
 
@@ -44,5 +45,6 @@ export * from './semanticCompilationArtifact';
 export * from './semanticTypedRelation';
 export * from './semanticRelationalExecutionPlan';
 export * from './syntaxRelationProgram';
-export * from './syntaxErrorRelationCore';
+export * from './syntaxJudgmentRewriteEngine';
 export * from './semanticConstraintHandlingRules';
+export * from './routeSyntaxSemanticInterface';

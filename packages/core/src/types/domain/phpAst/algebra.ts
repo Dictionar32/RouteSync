@@ -8,6 +8,8 @@
  */
 
 import type { PhpAstNode, ArrayEntryAstNode } from './nodes';
+import { relationProject, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/kernel/semanticRelations';
 import type { PhpArgument, PhpPropertyName, PhpBlock, PhpStatement, PhpReturnExpression, ArrayKey } from './astValues';
 import type { PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode, BinaryAstNode, UnaryAstNode, TypeCastAstNode, TernaryAstNode, ArrayAstNode, LiteralAstNode, StaticConstantAstNode, VariableAstNode, UnsupportedAstNode } from './nodes';
 
@@ -74,18 +76,26 @@ export type FoldedArrayKey<R> =
     | { readonly kind: 'explicit'; readonly expression: R };
 
 function foldPhpArrayKey<R>(key: ArrayKey, folder: PhpAstFolder<R>): FoldedArrayKey<R> {
-    if (key.kind === 'implicit') return { kind: 'implicit' };
-    return { kind: 'explicit', expression: foldPhpAstNode(key.expression, folder) };
+    return relationResolve(
+        relationEqual(key.kind, 'implicit'),
+        () => ({ kind: 'implicit' as const }),
+        () => ({ kind: 'explicit' as const, expression: foldPhpAstNode(key.expression, folder) }),
+    );
 }
 
+const foldPhpArgumentValue = <R>(argument: PhpArgument, folder: PhpAstFolder<R>): R =>
+    foldPhpAstNode(argument.value, folder);
+
 function foldPhpAstArgument<R>(argument: PhpArgument, folder: PhpAstFolder<R>): FoldedPhpArgument<R> {
-    if (argument.kind === 'positional') {
-        return { kind: 'positional', value: foldPhpAstNode(argument.value, folder) };
-    }
-    if (argument.kind === 'named') {
-        return { kind: 'named', name: argument.name, value: foldPhpAstNode(argument.value, folder) };
-    }
-    return { kind: 'unpacked', value: foldPhpAstNode(argument.value, folder) };
+    return relationResolve(
+        relationEqual(argument.kind, 'positional'),
+        () => ({ kind: 'positional' as const, value: foldPhpArgumentValue(argument, folder) }),
+        () => relationResolve(
+            relationEqual(argument.kind, 'named'),
+            () => ({ kind: 'named' as const, name: argument.name, value: foldPhpArgumentValue(argument, folder) }),
+            () => ({ kind: 'unpacked' as const, value: foldPhpArgumentValue(argument, folder) }),
+        ),
+    );
 }
 
 export type FoldedPhpReturnExpression<R> =
@@ -97,19 +107,23 @@ export type FoldedPhpStatement<R> =
     | { readonly kind: 'return_statement'; readonly expression: FoldedPhpReturnExpression<R> };
 
 function foldPhpReturnExpression<R>(expression: PhpReturnExpression, folder: PhpAstFolder<R>): FoldedPhpReturnExpression<R> {
-    if (expression.kind === 'void') return { kind: 'void' };
-    return { kind: 'value', value: foldPhpAstNode(expression.value, folder) };
+    return relationResolve(
+        relationEqual(expression.kind, 'void'),
+        () => ({ kind: 'void' as const }),
+        () => ({ kind: 'value' as const, value: foldPhpAstNode(expression.value, folder) }),
+    );
 }
 
 function foldPhpStatement<R>(statement: PhpStatement, folder: PhpAstFolder<R>): FoldedPhpStatement<R> {
-    if (statement.kind === 'expression_statement') {
-        return { kind: 'expression_statement', expression: foldPhpAstNode(statement.expression, folder) };
-    }
-    return { kind: 'return_statement', expression: foldPhpReturnExpression(statement.expression, folder) };
+    return relationResolve(
+        relationEqual(statement.kind, 'expression_statement'),
+        () => ({ kind: 'expression_statement' as const, expression: foldPhpAstNode(statement.expression, folder) }),
+        () => ({ kind: 'return_statement' as const, expression: foldPhpReturnExpression(statement.expression, folder) }),
+    );
 }
 
 function foldPhpBlock<R>(block: PhpBlock, folder: PhpAstFolder<R>): readonly FoldedPhpStatement<R>[] {
-    return block.statements.map(statement => foldPhpStatement(statement, folder));
+    return relationProject(block.statements, statement => foldPhpStatement(statement, folder));
 }
 
 export function foldPhpAstNode<R>(node: PhpAstNode, folder: PhpAstFolder<R>): R {
@@ -118,19 +132,19 @@ export function foldPhpAstNode<R>(node: PhpAstNode, folder: PhpAstFolder<R>): R 
         nullsafe_property_lookup: (n) => folder.nullsafePropertyLookup(n, foldPhpAstNode(n.target, folder)),
         offset_lookup: (n) => folder.offsetLookup(n, foldPhpAstNode(n.target, folder), foldPhpAstNode(n.offset, folder)),
         static_property_lookup: (n) => folder.staticPropertyLookup(n),
-        function_call: (n) => folder.functionCall(n, n.args.map(a => foldPhpAstArgument(a, folder))),
-        method_call: (n) => folder.methodCall(n, foldPhpAstNode(n.target, folder), n.args.map(a => foldPhpAstArgument(a, folder))),
-        nullsafe_method_call: (n) => folder.nullsafeMethodCall(n, foldPhpAstNode(n.target, folder), n.args.map(a => foldPhpAstArgument(a, folder))),
-        static_method_call: (n) => folder.staticMethodCall(n, n.args.map(a => foldPhpAstArgument(a, folder))),
-        variable_call: (n) => folder.variableCall(n, n.args.map(a => foldPhpAstArgument(a, folder))),
-        new_instance: (n) => folder.newInstance(n, n.args.map(a => foldPhpAstArgument(a, folder))),
+        function_call: (n) => folder.functionCall(n, relationProject(n.args, a => foldPhpAstArgument(a, folder))),
+        method_call: (n) => folder.methodCall(n, foldPhpAstNode(n.target, folder), relationProject(n.args, a => foldPhpAstArgument(a, folder))),
+        nullsafe_method_call: (n) => folder.nullsafeMethodCall(n, foldPhpAstNode(n.target, folder), relationProject(n.args, a => foldPhpAstArgument(a, folder))),
+        static_method_call: (n) => folder.staticMethodCall(n, relationProject(n.args, a => foldPhpAstArgument(a, folder))),
+        variable_call: (n) => folder.variableCall(n, relationProject(n.args, a => foldPhpAstArgument(a, folder))),
+        new_instance: (n) => folder.newInstance(n, relationProject(n.args, a => foldPhpAstArgument(a, folder))),
         closure: (n) => folder.closure(n, foldPhpBlock(n.body, folder)),
         arrow_func: (n) => folder.arrowFunc(n, foldPhpAstNode(n.body, folder)),
         binary: (n) => folder.binary(n, foldPhpAstNode(n.left, folder), foldPhpAstNode(n.right, folder)),
         unary: (n) => folder.unary(n, foldPhpAstNode(n.what, folder)),
         type_cast: (n) => folder.typeCast(n, foldPhpAstNode(n.expr, folder)),
         ternary: (n) => folder.ternary(n, foldPhpAstNode(n.condition, folder), foldPhpAstNode(n.truthy, folder), foldPhpAstNode(n.falsy, folder)),
-        array: (n) => folder.array(n, n.items.map(item => ({ key: foldPhpArrayKey(item.key, folder), value: foldPhpAstNode(item.value, folder) }))),
+        array: (n) => folder.array(n, relationProject(n.items, item => ({ key: foldPhpArrayKey(item.key, folder), value: foldPhpAstNode(item.value, folder) }))),
         literal: (n) => folder.literal(n),
         static_constant: (n) => folder.staticConstant(n),
         variable: (n) => folder.variable(n),

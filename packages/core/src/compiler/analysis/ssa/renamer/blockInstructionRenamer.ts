@@ -1,13 +1,20 @@
 /** Relation-driven instruction and phi renaming. */
 import { basicBlockLookup, basicBlockReplace, type Instruction, type Operand, type Expression, type BasicBlockRelation } from '../../../utils/ControlFlowGraph';
 import type { VariableVersionScope } from './variableVersionScope';
-import { relationOptionFold, relationResolve, relationProject, relationAll } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/relationFoundation';
 
 export interface RenamedBlockInstructions {
     readonly instructions: readonly (Expression | Instruction)[];
     readonly scope: VariableVersionScope;
 }
+
+const renamedPhi = (target: number, incoming: readonly (readonly [number, Operand])[]): Instruction => ({ kind: 'Phi', target, incoming });
+const renamedAssign = (target: number, value: Operand): Instruction => ({ kind: 'Assign', target, value });
+const renamedCall = (target: string, args: readonly Operand[]): Instruction => ({ kind: 'Call', target, args });
+const renamedReturn = (value: Operand): Instruction => ({ kind: 'Return', value: { kind: 'return_value', value } });
+const renamedSsaValue = (id: number): Operand => ({ kind: 'SSAValue', id });
+
 
 const renamePhiIncoming = (
     incoming: readonly (readonly [number, Operand])[],
@@ -22,7 +29,7 @@ const renamePhiIncoming = (
         const pair = incoming[index];
         const next = relationResolve(
             relationAll([relationEqual(pair[0], predecessor), relationEqual(pair[1].kind, 'Variable')]),
-            () => [...output, [pair[0], relationOptionFold(scope.getActiveVersion((pair[1] as Extract<Operand, { kind: 'Variable' }>).id), () => pair[1], value => ({ kind: 'SSAValue' as const, id: value }))] as const],
+            () => [...output, [pair[0], relationOptionFold(scope.getActiveVersion(relationVariantValue(pair[1], 'Variable').id), () => pair[1], value => renamedSsaValue(value))] as const],
             () => [...output, pair],
         );
         return renamePhiIncoming(incoming, predecessor, scope, index + 1, next);
@@ -42,25 +49,32 @@ export const renameBlockInstructions = (
         const renamed = relationResolve(
             relationEqual(inst.kind, 'Phi'),
             () => {
-                const [nextScope, version] = scope.pushVersion((inst as Extract<Instruction, { kind: 'Phi' }>).target);
-                return { instruction: { kind: 'Phi', target: version, incoming: (inst as Extract<Instruction, { kind: 'Phi' }>).incoming } as Instruction, scope: nextScope };
+                const [nextScope, version] = scope.pushVersion(relationVariantValue(inst, 'Phi').target);
+                return { instruction: renamedPhi(version, relationVariantValue(inst, 'Phi').incoming), scope: nextScope };
             },
             () => relationResolve(
                 relationEqual(inst.kind, 'Assign'),
                 () => {
-                    const [nextScope, version] = scope.pushVersion((inst as Extract<Instruction, { kind: 'Assign' }>).target);
-                    return { instruction: { kind: 'Assign', target: version, value: scope.renameOperand((inst as Extract<Instruction, { kind: 'Assign' }>).value) } as Instruction, scope: nextScope };
+                    const [nextScope, version] = scope.pushVersion(relationVariantValue(inst, 'Assign').target);
+                    return { instruction: renamedAssign(version, scope.renameOperand(relationVariantValue(inst, 'Assign').value)), scope: nextScope };
                 },
                 () => relationResolve(
-                    relationAll([relationEqual(inst.kind, 'Call'), Object.prototype.hasOwnProperty.call(inst, 'target')]),
-                    () => ({ instruction: { ...inst, args: relationProject((inst as Extract<Instruction, { kind: 'Call' }>).args, argument => scope.renameOperand(argument)) } as Instruction, scope }),
+                    relationEqual(inst.kind, 'Call'),
+                    () => relationOptionFold(
+                        relationRefine(inst, (candidate): candidate is Extract<Instruction, { readonly kind: 'Call' }> => candidate.kind === 'Call' && Object.hasOwn(candidate, 'target')),
+                        () => ({ instruction: inst as Instruction, scope }),
+                        call => ({ instruction: renamedCall(call.target, relationProject(call.args, argument => scope.renameOperand(argument))), scope }),
+                    ),
                     () => relationResolve(
                         relationEqual(inst.kind, 'Return'),
-                        () => relationOptionFold(
-                            relationResolve(Object.prototype.hasOwnProperty.call(inst, 'value'), () => ({ kind: 'some' as const, value: (inst as Extract<Instruction, { kind: 'Return' }>).value as Operand }), () => ({ kind: 'none' as const })),
-                            () => ({ instruction: inst, scope }),
-                            value => ({ instruction: { kind: 'Return', value: scope.renameOperand(value) } as Instruction, scope }),
-                        ),
+                        () => {
+                            const returned = relationVariantValue(inst, 'Return');
+                            return relationResolve(
+                                relationEqual(returned.value.kind, 'return_value'),
+                                () => ({ instruction: renamedReturn(scope.renameOperand(relationVariantValue(returned.value, 'return_value').value)), scope }),
+                                () => ({ instruction: inst, scope }),
+                            );
+                        },
                         () => ({ instruction: inst, scope }),
                     ),
                 ),
@@ -90,7 +104,7 @@ export const updateSuccessorPhis = (
                 ...block,
                 instructions: relationProject(block.instructions, instruction => relationResolve(
                     relationEqual(instruction.kind, 'Phi'),
-                    () => ({ ...instruction, incoming: renamePhiIncoming((instruction as Extract<Instruction, { kind: 'Phi' }>).incoming, blockId, scope) } as Instruction),
+                    () => renamedPhi(relationVariantValue(instruction, 'Phi').target, renamePhiIncoming(relationVariantValue(instruction, 'Phi').incoming, blockId, scope)),
                     () => instruction,
                 )),
             })),

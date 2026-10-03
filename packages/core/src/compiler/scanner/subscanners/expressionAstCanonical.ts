@@ -1,10 +1,11 @@
-import type { ExpressionAst, ExpressionOrigin, ExpressionSurface } from '../../../types/upstream/ast';
+import { createAstJudgment, type ExpressionAst, type ExpressionOrigin, type ExpressionSurface } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { Expression } from '../../../types/upstream/expression';
 import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
 import { createSourceFile } from '../../../types/upstream/names';
+import { stringValue } from '../../../types/upstream/names';
 import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationLookup, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import { relationGate, relationLookup, relationOptionFold, relationVariantValue } from '../../../semantic/kernel/relationalSequence';
 
 const expressionSurfaces: readonly (readonly [string, ExpressionSurface])[] = Object.freeze([
   ['literal', { kind: 'php_literal' }],
@@ -41,12 +42,12 @@ const expressionSurfaces: readonly (readonly [string, ExpressionSurface])[] = Ob
 export function expressionSurface(value: PhpAstValue): ExpressionSurface {
   return relationGate(relationEqual(value.kind, 'property_access'),
     () => {
-      const property = value as Extract<PhpAstValue, { readonly kind: 'property_access' }>;
+      const property = relationVariantValue(value, 'property_access');
       return relationGate(relationEqual(property.access.kind, 'nullsafe'), () => ({ kind: 'php_nullsafe_property_access' }), () => ({ kind: 'php_property_access' }));
     },
     () => relationGate(relationEqual(value.kind, 'method_chain'),
       () => {
-        const method = value as Extract<PhpAstValue, { readonly kind: 'method_chain' }>;
+        const method = relationVariantValue(value, 'method_chain');
         return relationGate(relationEqual(method.access.kind, 'nullsafe'), () => ({ kind: 'php_nullsafe_method_call' }), () => ({ kind: 'php_method_call' }));
       },
       () => relationOptionFold(relationLookup(expressionSurfaces, value.kind), () => ({ kind: 'php_unsupported' }), surface => surface)));
@@ -64,12 +65,14 @@ export function expressionAstFromPhpAst(
     start: { kind: 'number_value', value: value.source.startOffset },
     end: { kind: 'number_value', value: value.source.endOffset },
   };
-  return Object.freeze({
+  return createAstJudgment({
     kind: 'expression_ast',
-    expression,
-    origin,
+    semantic: expression,
     surface: expressionSurface(value),
+    origin,
     source,
+    rule: { kind: 'ast_rule', value: stringValue('php-expression-to-upstream-expression') },
+    witness: { kind: 'ast_witness', value: stringValue(value.kind) },
   });
 }
 

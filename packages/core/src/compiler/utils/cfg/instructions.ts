@@ -11,7 +11,7 @@ export type Operand =
         /** Constant value operand */
         kind: 'Constant';
         /** The constant value */
-        value: unknown;
+        value: import('./constants').ConstantValue;
     }
     | {
         /** Variable operand (mutable) */
@@ -25,6 +25,10 @@ export type Operand =
         /** SSA value ID */
         id: number;
     };
+
+export type ReturnValue =
+    | { readonly kind: 'return_value'; readonly value: Operand }
+    | { readonly kind: 'return_void' };
 
 export type Instruction =
     | {
@@ -62,8 +66,8 @@ export type Instruction =
     | {
         /** Return from current function */
         kind: 'Return';
-        /** Optional return value */
-        value?: Operand;
+        /** Closed return-value judgment */
+        value: ReturnValue;
     }
     | {
         /** Phi node for SSA form - merges values from different control flow paths */

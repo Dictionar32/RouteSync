@@ -68,3 +68,15 @@ export { parseResponseDtoDeclaration } from './responseDtoDeclarationParser';
 
 export type { ModelDeclarationAst, ModelDeclarationInheritanceAst, ModelMethodAst, ModelConstantAst } from './modelAstTypes';
 export { parseModelDeclaration } from './modelDeclarationParser';
+
+export {
+    tokenAt,
+    tokenValueAt,
+    tokenKindAt,
+    tokenValueEquals,
+    tokenKindEquals,
+    tokenEvidenceInterfaceAt,
+    type TokenEvidence,
+    type TokenEvidenceJudgment,
+    type TokenEvidenceInterface
+} from './tokenEvidence';

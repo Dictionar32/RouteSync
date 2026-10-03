@@ -12,12 +12,14 @@ function walk(dir) {
 }
 walk(root);
 const texts = new Map(files.map(f => [f, fs.readFileSync(f, 'utf8')]));
-const activeText = [...texts.values()].join('\n');
+const activeText = files.map(f => texts.get(f)).join('\n');
 const candidates = files.filter(f => {
   const rel = path.relative(root, f);
   if (tests.test(rel) || path.basename(f) === 'index.ts' || rel.includes('__archive__')) return false;
   const body = texts.get(f);
-  return body.length > 0 && !activeText.includes(path.basename(f, '.ts'));
+  const name = path.basename(f, '.ts');
+  const externalText = files.filter(other => other !== f).map(other => texts.get(other)).join('\n');
+  return body.length > 0 && !externalText.includes(name);
 });
 const nonEmpty = candidates.filter(f => fs.readFileSync(f, 'utf8').length !== 0);
 const report = {

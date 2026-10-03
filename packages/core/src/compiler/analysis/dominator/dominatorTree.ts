@@ -19,7 +19,7 @@ export interface DominatorTree {
 const processedPredecessors = (cfg: ControlFlowGraph, idoms: RelationIndex<number, number>, blockId: number): readonly number[] => relationOptionFold(
     basicBlockLookup(cfg.blocks, blockId),
     () => [],
-    block => relationFold(block.predecessors, [], (acc, predecessor) => relationOptionFold(relationIndexLookup(idoms, predecessor), () => acc, () => [...acc, predecessor])),
+    block => relationFold(block.predecessors, [] as readonly number[], (acc, predecessor) => relationOptionFold(relationIndexLookup(idoms, predecessor), () => acc, () => [...acc, predecessor])),
 );
 
 const relationIndexEqual = <K, V>(left: RelationIndex<K, V>, right: RelationIndex<K, V>, index = 0): boolean => relationResolve(

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 const ROOT = dirname(new URL(import.meta.url).pathname);
 const EXECUTION_FILES = [
   'phpAstSemanticKnowledgeDataFlowAdapter.ts',
-  'semanticRelationSolver.ts',
+  'semanticRewriteEngine.ts',
   'semanticConstraintCalculus.ts',
   'semanticRewriteEngine.ts',
   'semanticRelationalCollections.ts',

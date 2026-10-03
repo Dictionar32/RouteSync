@@ -10,7 +10,7 @@ import {
   semanticAbsent,
   semanticPresent,
 } from './semanticKnowledgeDataFlowRelations';
-import { solveSemanticRelations, type SemanticRelationRewrite } from './semanticRelationSolver';
+import { solveSemanticRelations, type SemanticRelationRewrite } from './semanticRewriteEngine';
 import { typedDistinct, typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 
 /** Phase 361 — object identity is a relational derivation, not an imperative index. */

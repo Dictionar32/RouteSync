@@ -4,6 +4,7 @@ import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import type { KnowledgeId, SemanticAssignment, SemanticDataFlowFact, SemanticFact, SemanticKnowledgeDataFlow, SemanticAccess, SemanticMerge, SemanticSource, SemanticIdentifier, } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
+import { relationVariantValue, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
 /**
  * Phase 216 — syntax-independent state/data-flow model.
  *
@@ -59,20 +60,12 @@ export interface SemanticStateDataFlow {
     readonly merges: readonly SemanticStateMerge[];
 }
 const locationKeyResolvers: Record<SemanticStateLocation['kind'], (location: SemanticStateLocation) => string> = {
-    variable: location => `variable:${knowledgeIdKey((location as Extract<SemanticStateLocation, {
-        kind: 'variable';
-    }>).variable)}`,
+    variable: location => `variable:${knowledgeIdKey(relationVariantValue(location, 'variable').variable)}`,
     member: location => {
-        const member = location as Extract<SemanticStateLocation, {
-            kind: 'member';
-        }>;
+        const member = relationVariantValue(location, 'member');
         const memberResolvers: Record<typeof member.member['kind'], (value: typeof member.member) => string> = {
-            'knowledge-id': value => `knowledge-id:${knowledgeIdKey((value as Extract<typeof member.member, {
-                kind: 'knowledge-id';
-            }>).value)}`,
-            identifier: value => `identifier:${(value as Extract<typeof member.member, {
-                kind: 'identifier';
-            }>).value.value.value}`,
+            'knowledge-id': value => `knowledge-id:${knowledgeIdKey(relationVariantValue(member.member, 'knowledge-id').value)}`,
+            identifier: value => `identifier:${relationVariantValue(member.member, 'identifier').value.value.value}`,
         };
         return `member:${knowledgeIdKey(member.receiver)}:${memberResolvers[member.member.kind](member.member)}`;
     },
@@ -85,9 +78,7 @@ const assignmentDef = (assignment: SemanticAssignment): SemanticStateDef => ({
     value: assignment.value,
     source: assignment.source,
 });
-const referenceUse = (reference: Extract<SemanticFact, {
-    kind: 'reference';
-}>): SemanticStateUse => ({
+const referenceUse = (reference: RelationVariant<SemanticFact, 'reference'>): SemanticStateUse => ({
     kind: 'state-use',
     id: reference.value.id,
     location: { kind: 'variable', variable: reference.value.variable },
@@ -103,18 +94,10 @@ const accessUse = (access: SemanticAccess): SemanticStateUse => ({
     },
     source: access.source,
 });
-const assignmentFacts = (facts: readonly SemanticFact[]): readonly SemanticStateDef[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is Extract<SemanticFact, {
-    kind: 'assignment';
-}> => relationEqual(fact.kind, 'assignment')), fact => assignmentDef(fact.value)).tuples;
-const referenceFacts = (facts: readonly SemanticFact[]): readonly SemanticStateUse[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is Extract<SemanticFact, {
-    kind: 'reference';
-}> => relationEqual(fact.kind, 'reference')), fact => referenceUse(fact)).tuples;
-const accessFacts = (facts: readonly SemanticFact[]): readonly SemanticStateUse[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is Extract<SemanticFact, {
-    kind: 'access';
-}> => relationEqual(fact.kind, 'access')), fact => accessUse(fact.value)).tuples;
-const mergeFacts = (facts: readonly SemanticFact[]): readonly SemanticStateMerge[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is Extract<SemanticFact, {
-    kind: 'merge';
-}> => relationEqual(fact.kind, 'merge')), fact => {
+const assignmentFacts = (facts: readonly SemanticFact[]): readonly SemanticStateDef[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'assignment'> => relationEqual(fact.kind, 'assignment')), fact => assignmentDef(fact.value)).tuples;
+const referenceFacts = (facts: readonly SemanticFact[]): readonly SemanticStateUse[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'reference'> => relationEqual(fact.kind, 'reference')), fact => referenceUse(fact)).tuples;
+const accessFacts = (facts: readonly SemanticFact[]): readonly SemanticStateUse[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'access'> => relationEqual(fact.kind, 'access')), fact => accessUse(fact.value)).tuples;
+const mergeFacts = (facts: readonly SemanticFact[]): readonly SemanticStateMerge[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'merge'> => relationEqual(fact.kind, 'merge')), fact => {
     const merge: SemanticMerge = fact.value;
     return {
         kind: 'state-merge' as const,

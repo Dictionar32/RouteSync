@@ -31,7 +31,7 @@ import {
   type RouteGroupStateModel,
 } from './semanticRouteSyntaxRelations';
 import { SYNTAX_KIND_GROUPS, SYNTAX_OPERATION_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
-import { fromOptional, presenceFold, type Presence } from '../../../../types/upstream/presence';
+import { absent, present, presenceOf, presenceFold, type Presence } from '../../../../types/upstream/presence';
 import { relationAll } from '../../../../semantic/kernel/semanticRelations';
 import { continueScan, syntaxScan } from './syntaxScan';
 
@@ -45,7 +45,7 @@ export function parseRouteDeclarations(tokens: readonly TokenDescriptor[]): read
   let pending: GroupState = emptyRouteGroupState();
   const scan = syntaxScan(TokenCursor.start(tokens), cursor => {
     pending = routeGroupPendingState(cursor, pending);
-    const transition = advanceRouteGroupState(cursor.current?.value, groups, pending);
+    const transition = advanceRouteGroupState(presenceFold(cursor.currentPresence, absent, token => present(token.value)), groups, pending);
     groups = Object.freeze([...transition.groups]);
     pending = transition.pending;
     return continueScan(cursor.advance(), ...presenceValues(routeDeclarationAt(cursor, groups)));
@@ -61,10 +61,10 @@ function routeDeclarationAt(cursor: TokenCursor, groups: readonly GroupState[]):
     routeInvocationMethod(cursor),
     () => ({ kind: 'absent' }),
     method => presenceFold(
-      fromOptional(findPathCursor(cursor.callArgumentCursor, method)),
+      presenceOf(findPathCursor(cursor.callArgumentCursor, method)),
       () => ({ kind: 'absent' }),
       pathCursor => presenceFold(
-        fromOptional(pathCursor.current),
+        presenceOf(pathCursor.current),
         () => ({ kind: 'absent' }),
         path => presentDeclaration(cursor, groups, method, path),
       ),
@@ -83,8 +83,8 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
   const end = findDeclarationEnd(cursor.afterNextCursor);
   const effective = mergeRouteGroupStates(groups);
   const targetMethodSet = routeTargetMethodSet(cursor.callArgumentCursor, method);
-  const source = presenceFold(fromOptional(cursor.current), () => path, value => value);
-  const terminal = presenceFold(fromOptional(end.terminal), () => path, value => value);
+  const source = presenceFold(presenceOf(cursor.current), () => path, value => value);
+  const terminal = presenceFold(presenceOf(end.terminal), () => path, value => value);
   return Object.freeze({
     method,
     targetMethods: targetMethodSet.methods,
@@ -141,7 +141,7 @@ function inRangePresence(start: TokenCursor, end: TokenCursor, predicate: (token
   return syntaxRange(start, end).findPresence(predicate);
 }
 
-const presenceBoolean = (value: Presence<unknown>): boolean => presenceFold(value, () => false, () => true);
+const presenceBoolean = (value: Presence<TokenCursor>): boolean => presenceFold(value, () => false, () => true);
 
 function hasWithTrashed(start: TokenCursor, end: TokenCursor): boolean {
   return presenceBoolean(inRangePresence(start, end, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.withTrashed)));
@@ -156,9 +156,9 @@ function readRouteConstraints(start: TokenCursor, end: TokenCursor): readonly {
 }
 
 function readRouteMiddleware(start: TokenCursor, end: TokenCursor): MiddlewareNameAst[] {
-  return expandRelation(syntaxRange(start, end).findAll((_, cursor) => tokenHasOperation(cursor.current, SYNTAX_OPERATION_GROUPS.middleware)), cursor => readMiddleware(cursor.callArgumentCursor));
+  return expandRelation(syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middleware))), cursor => readMiddleware(cursor.callArgumentCursor));
 }
 
 function hasMissingHandler(start: TokenCursor, end: TokenCursor): boolean {
-  return presenceBoolean(inRangePresence(start, end, (token, cursor) => relationAll([tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.missing), tokenHasKind(cursor.previous, SYNTAX_KIND_GROUPS.closeParens)])));
+  return presenceBoolean(inRangePresence(start, end, (token, cursor) => presenceFold(cursor.previousPresence, () => false, previous => relationAll([tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.missing), tokenHasKind(previous, SYNTAX_KIND_GROUPS.closeParens)]))));
 }

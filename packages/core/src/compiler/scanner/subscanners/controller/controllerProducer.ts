@@ -1,4 +1,4 @@
-import type { ControllerAst } from '../../../../types/upstream/ast';
+import { createDomainAstJudgment, type ControllerAst } from '../../../../types/upstream/ast';
 import type { ControllerName, SourceFile } from '../../../../types/upstream/names';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { ControllerDependency, ControllerResponse } from '../../../../types/upstream/controller';
@@ -25,14 +25,10 @@ export interface ControllerProducer {
 const sequence = <T>(items: readonly T[]): Sequence<T> => relationFoldRight(items, { kind: 'empty' } as Sequence<T>, (item, tail) => ({ kind: 'cons', head: item, tail }));
 
 const implementation: ControllerProducer = {
-    produce: (input) => ({
+    produce: (input) => createDomainAstJudgment({
         kind: 'controller_ast',
-        methods: sequence(relationProject(input.methods, ({ method, response, dependencies }) => controllerActionFromMethod(
-            method,
-            input.controller.value.value,
-            input.file.value.value,
-            response,
-            relationOptionalFold(dependencies, () => [], value => value),
+        semantic: sequence(relationProject(input.methods, ({ method, response, dependencies }) => controllerActionFromMethod(
+            method, input.controller.value.value, input.file.value.value, response, relationOptionalFold(dependencies, () => [], value => value),
         ))),
         source: input.source,
     }),

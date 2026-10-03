@@ -7,26 +7,30 @@
  */
 
 import type { ResourceName } from "../../../../types/upstream/names";
+import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import {
     type ResourceModelBinding,
-    ResourceModelBindingFactory
+    ResourceModelBindingFactory,
+    matchResourceModelBinding
 } from "../../symbols/resource/resourceBindingTypes";
 import { matchStructuralFields } from "./structuralFieldMatcher";
 import { findControllerResourceBinding } from "../../subscanners/controller/resourceDataflowAggregator";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
-import { fromOptional, type Presence, presenceFold } from "../../../../types/upstream/presence";
+import { type Presence, presenceFold } from "../../../../types/upstream/presence";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import type { ResourceModelKnowledgeDataFlow } from "../../subscanners/resource/resourceModelKnowledgeDataFlow";
 import { relationAll, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
-import { relationFirst, relationOptionFold } from "../../../../semantic/kernel/relationalSequence";
+import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/kernel/relationalSequence";
+import { astSemanticTextTerm } from "../../../../types/upstream/astSemanticInterface";
+import { createResolverGraphPort, resolverGraphFact, type AstSemanticStagePort } from "../../../../types/upstream/astSemanticStageInterface";
 
 export interface ResourceModelResolutionInput {
     readonly resourceName: ResourceName;
     readonly fieldNames: readonly string[];
     readonly modelSymbolTable: ModelSymbolTable;
-    readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
-    readonly knowledgeDataFlow?: ResourceModelKnowledgeDataFlow;
+    readonly controllerDataflowMap: Presence<import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow>;
+    readonly knowledgeDataFlow: Presence<ResourceModelKnowledgeDataFlow>;
 }
 
 
@@ -41,9 +45,8 @@ const bind = (
     };
 
 const controllerCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
-        const dataflow = fromOptional(input.controllerDataflowMap);
         return presenceFold(
-            dataflow,
+            input.controllerDataflowMap,
             () => ({ kind: 'absent' }),
             value => relationOptionFold(
                 findControllerResourceBinding(value, input.resourceName),
@@ -61,9 +64,8 @@ const controllerCandidate = (input: ResourceModelResolutionInput): Presence<Reso
     };
 
 const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
-        const knowledge = fromOptional(input.knowledgeDataFlow);
         return presenceFold(
-            knowledge,
+            input.knowledgeDataFlow,
             () => ({ kind: 'absent' }),
             value => {
                 const fact = relationFirst(
@@ -124,5 +126,17 @@ const resolveResourceModel = (input: ResourceModelResolutionInput): ResourceMode
         return first;
 }
 
-export const ResourceModelResolver = Object.freeze({ resolve: resolveResourceModel });
+export const resolveResourceModelPort = (input: ResourceModelResolutionInput): AstSemanticStagePort => {
+        const binding = resolveResourceModel(input);
+        return createResolverGraphPort(matchResourceModelBinding(binding, {
+            mono: value => [resolverGraphFact('resolver_resolves', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm(value.model.identity.name.value))],
+            poly: value => relationProject(value.models, model => resolverGraphFact('resolver_candidate', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm(model.identity.name.value))),
+            unbacked_dto: () => [resolverGraphFact('resolver_conflict', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm('unbacked_dto'))],
+        }));
+};
 
+export const ResourceModelResolver = Object.freeze({ resolve: resolveResourceModel, resolvePort: resolveResourceModelPort });
+
+
+export const resolveResourceModelInterface = (...args: Parameters<typeof resolveResourceModelPort>): AstSemanticStageInterface =>
+  astSemanticStageInterfaceOf(resolveResourceModelPort(...args));

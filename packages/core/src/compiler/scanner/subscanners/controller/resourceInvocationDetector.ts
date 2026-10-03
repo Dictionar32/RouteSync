@@ -5,13 +5,14 @@ import { ResourceResponseDescriptor } from '../../../../types/route';
 import type { ResourceName } from '../../../../types/upstream/names';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { relationAdvanceIndex, relationFold, relationGate, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { tokenKindAt, tokenValueAt } from '../../lexer/tokenEvidence';
 import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
-import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/requirementSolver';
+import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 export interface DetectedResourceInvocation {
   readonly descriptor: ResourceResponseDescriptor;
   readonly resourceName: ResourceName;
-  readonly firstArg?: PhpAstValue;
+  readonly firstArg: RelationOption<PhpAstValue>;
 }
 
 type ArgumentState = Readonly<{ readonly started: boolean; readonly complete: boolean; readonly depth: number; readonly argument: readonly Token[] }>;
@@ -35,7 +36,7 @@ const advanceArgument = (state: ArgumentState, token: Token): ArgumentState =>
 
 const extractArgumentOption = (tokens: readonly Token[], openParenIdx: number): RelationOption<PhpAstValue> => {
   const start = relationOptionFold(skipSpace(tokens, relationAdvanceIndex(openParenIdx, 1)), () => tokens.length, value => value);
-  const state = relationFold(tokens, { started: false, complete: false, depth: 0, argument: Object.freeze([]) } as ArgumentState,
+  const state = relationFold(tokens, { started: false, complete: false, depth: 0, argument: Object.freeze([]) } satisfies ArgumentState,
     (accumulator, token, index) => relationGate(index < start, () => accumulator, () => advanceArgument(accumulator, token)), 0);
   return relationGate(state.argument.length > 0, () => relationSome(classifyAstTokens(state.argument)), () => relationNone());
 };
@@ -43,14 +44,50 @@ const extractArgumentOption = (tokens: readonly Token[], openParenIdx: number): 
 type Invocation = Readonly<{ readonly kind: 'collection' | 'single'; readonly name: string; readonly firstArg: RelationOption<PhpAstValue> }>;
 
 const invocationAt = (tokens: readonly Token[], index: number, hasPaginate: boolean): RelationOption<Invocation> => {
-  const token = tokens[index];
-  const next = tokens[relationAdvanceIndex(index, 1)];
-  const nextNext = tokens[relationAdvanceIndex(index, 2)];
-  const after = tokens[relationAdvanceIndex(index, 3)];
+  const identifier = relationOptionFold(tokenValueAt(tokens, index), () => '', value => value);
+  const identifierKind = relationOptionFold(tokenKindAt(tokens, index), () => '', value => value);
+  const scope = relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(index, 1)), () => '', value => value);
+  const operation = relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(index, 2)), () => '', value => value);
+  const after = relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(index, 3)), () => '', value => value);
+  const resourceName = relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(index, 1)), () => '', value => value);
+  const newKind = relationGate(
+    relationAny([
+      relationGate(resourceName.endsWith('Collection'), () => true, () => false),
+      hasPaginate,
+    ]),
+    () => 'collection' as const,
+    () => 'single' as const,
+  );
+  const newName = resourceName;
+  const collectionArgument = relationGate(relationEqual(after, '('), () => extractArgumentOption(tokens, relationAdvanceIndex(index, 3)), () => relationNone());
+  const newArgument = relationGate(relationEqual(operation, '('), () => extractArgumentOption(tokens, relationAdvanceIndex(index, 2)), () => relationNone());
+  const resourceNameValid = relationAny([
+    resourceName.endsWith('Resource'),
+    resourceName.endsWith('Collection'),
+    relationAll([resourceName.length > 2, relationEqual(resourceName.charAt(0), resourceName.charAt(0).toUpperCase())]),
+  ]);
   return solveRewriteCandidate([
-    { id: 'collection', rewrite: () => ({ kind: 'collection', name: token.value, firstArg: relationGate(relationEqual(after?.value, '('), () => extractArgumentOption(tokens, relationAdvanceIndex(index, 3)), () => relationNone()) }), requirements: [requirement('identifier', relationEqual(token?.type, 'IDENTIFIER')), requirement('scope', relationEqual(next?.value, '::')), requirement('operation', relationEqual(nextNext?.value, 'collection'))] },
-    { id: 'make', rewrite: () => ({ kind: 'single', name: token.value, firstArg: relationGate(relationEqual(after?.value, '('), () => extractArgumentOption(tokens, relationAdvanceIndex(index, 3)), () => relationNone()) }), requirements: [requirement('identifier', relationEqual(token?.type, 'IDENTIFIER')), requirement('scope', relationEqual(next?.value, '::')), requirement('operation', relationEqual(nextNext?.value, 'make'))] },
-    { id: 'new', rewrite: () => ({ kind: relationGate(relationAny([relationGate(Object.is(typeof next?.value, 'string'), () => next.value.endsWith('Collection'), () => false), hasPaginate]), () => 'collection', () => 'single'), name: relationOptionFold(relationGate(Object.is(typeof next?.value, 'string'), () => relationSome(next.value), () => relationNone()), () => '', value => value), firstArg: relationGate(relationEqual(tokens[relationAdvanceIndex(index, 2)]?.value, '('), () => extractArgumentOption(tokens, relationAdvanceIndex(index, 2)), () => relationNone()) }), requirements: [requirement('new', relationEqual(token?.value, 'new')), requirement('identifier', relationEqual(next?.type, 'IDENTIFIER')), requirement('resource-name', relationAny([relationGate(Object.is(typeof next?.value, 'string'), () => next.value.endsWith('Resource'), () => false), relationGate(Object.is(typeof next?.value, 'string'), () => next.value.endsWith('Collection'), () => false), relationGate(Object.is(typeof next?.value, 'string'), () => relationAll([next.value.length > 2, relationEqual(next.value.charAt(0), next.value.charAt(0).toUpperCase())]), () => false)]))] },
+    {
+      id: 'collection',
+      rewrite: () => ({ kind: 'collection', name: identifier, firstArg: collectionArgument }),
+      requirements: [requirement('identifier', relationEqual(identifierKind, 'IDENTIFIER')), requirement('scope', relationEqual(scope, '::')), requirement('operation', relationEqual(operation, 'collection'))],
+      exclusions: [],
+      dependencies: [],
+    },
+    {
+      id: 'make',
+      rewrite: () => ({ kind: 'single', name: identifier, firstArg: collectionArgument }),
+      requirements: [requirement('identifier', relationEqual(identifierKind, 'IDENTIFIER')), requirement('scope', relationEqual(scope, '::')), requirement('operation', relationEqual(operation, 'make'))],
+      exclusions: [],
+      dependencies: [],
+    },
+    {
+      id: 'new',
+      rewrite: () => ({ kind: newKind, name: newName, firstArg: newArgument }),
+      requirements: [requirement('new', relationEqual(identifier, 'new')), requirement('identifier', relationEqual(relationOptionFold(tokenKindAt(tokens, relationAdvanceIndex(index, 1)), () => '', value => value), 'IDENTIFIER')), requirement('resource-name', resourceNameValid)],
+      exclusions: [],
+      dependencies: [],
+    },
   ]);
 };
 
@@ -62,9 +99,9 @@ export function detectResourceInvocation(tokens: readonly Token[], k: number) {
   const end = relationFold(tokens, tokens.length, (accumulator, token, index) => relationGate(relationAll([index > k, index < accumulator, relationEqual(token.value, ';')]), () => index, () => accumulator), k);
   const hasPaginate = relationFold(tokens, false, (accumulator, token, index) => relationGate(index < end,
     () => relationAny([accumulator, relationEqual(token.value, 'paginate'), relationEqual(token.value, 'simplePaginate')]), () => accumulator), relationAdvanceIndex(k, 1));
-  const candidate = relationGate(relationEqual(tokens[k]?.value, 'return'), () => scanInvocation(tokens, relationAdvanceIndex(k, 1), end, hasPaginate), () => relationNone());
-  return relationOptionFold(candidate, () => { return; }, value => {
+  const candidate = relationGate(relationEqual(relationOptionFold(tokenValueAt(tokens, k), () => '', value => value), 'return'), () => scanInvocation(tokens, relationAdvanceIndex(k, 1), end, hasPaginate), () => relationNone());
+  return relationOptionFold(candidate, () => relationNone<DetectedResourceInvocation>(), value => {
     const resourceName = SemanticValueFactory.resourceName(value.name);
-    return { descriptor: ResourceResponseDescriptor.create({ resourceName, shape: value.kind }), resourceName, ...relationOptionFold(value.firstArg, () => ({}), firstArg => ({ firstArg })) };
+    return relationSome({ descriptor: ResourceResponseDescriptor.create({ resourceName, shape: value.kind }), resourceName, firstArg: value.firstArg });
   });
 }

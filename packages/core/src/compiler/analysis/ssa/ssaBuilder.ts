@@ -5,6 +5,7 @@ import { basicBlockLookup, basicBlockReplace, createControlFlowGraph, type Basic
 import type { DominanceFrontier } from '../DominatorAnalysis';
 import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
 import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationFoundation';
+import { relationVariantValue } from '../../../semantic/kernel/relationalSequence';
 import { relationAll, relationFold } from '../../../semantic/kernel/relationalSequence';
 
 export interface SSAPhiFacts {
@@ -30,7 +31,7 @@ const definitionFacts = (
                 entry[1].instructions,
                 output,
                 (facts, instruction) => relationResolve(
-                    relationAll([relationEqual(instruction.kind, 'Assign'), relationEqual((instruction as Extract<Instruction, { kind: 'Assign' }>).target, variable)]),
+                    relationAll([relationEqual(instruction.kind, 'Assign'), relationEqual(relationVariantValue(instruction, 'Assign').target, variable)]),
                     () => [...facts, [variable, entry[0]] as const],
                     () => facts,
                 ),
@@ -77,7 +78,7 @@ const incomingFacts = (
             value => relationFold(
                 value.predecessors,
                 facts,
-                (acc, predecessor) => [...acc, [variable, predecessor, { kind: 'Variable', id: variable } as Operand] as const],
+                (acc, predecessor) => [...acc, [variable, predecessor, { kind: 'Variable', id: variable }] as const],
             ),
         );
         return incomingFacts(cfg, required, index + 1, next);
@@ -116,7 +117,7 @@ const applyPhiFacts = (
                     [] as readonly (readonly [number, Operand])[],
                     (pairs, fact) => relationResolve(relationAll([relationEqual(fact[0], variable), relationContains(block.predecessors, fact[1])]), () => [...pairs, [fact[1], fact[2]] as const], () => pairs),
                 );
-                return [...acc, { kind: 'Phi', target: variable, incoming: Object.freeze(incoming) } as Instruction];
+                return [...acc, { kind: 'Phi' as const, target: variable, incoming: Object.freeze(incoming) }];
             },
         );
         const nextBlock = relationResolve(

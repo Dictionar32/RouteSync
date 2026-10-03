@@ -12,7 +12,7 @@ import type {
 import type { PropertyName, RouteParameterName } from "../../../../../types/upstream/names";
 import type { ModelReference } from "../../../../../types/upstream/semanticReferences";
 import type { Presence } from "../../../../../types/upstream/primitiveVocabulary";
-import { fromOptional } from "../../../../../types/upstream/presence";
+import { presenceOf } from "../../../../../types/upstream/presence";
 import {
     relationAny,
     relationEqual,
@@ -35,7 +35,7 @@ const modelReference = (value: string): ModelReference => Object.freeze({
 });
 
 const relationValueOption = <T>(value?: T): RelationOption<T> =>
-    relationOptionFold(fromOptional(value), () => relationNone<T>(), entry => relationSome(entry));
+    relationOptionFold(presenceOf(value), () => relationNone<T>(), entry => relationSome(entry));
 
 const binding = (name: string, location: RouteParameterLocation, value?: string): RouteParameterBinding =>
     relationOptionFold(

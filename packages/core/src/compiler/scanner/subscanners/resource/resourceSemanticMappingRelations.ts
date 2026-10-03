@@ -5,12 +5,21 @@
  * the shared semantic relation solver. The registry below is only a derived
  * constructor index; it is not the semantic authority.
  */
+import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
+import { astMappingInterface, type AstMappingFact, type AstMappingInterface } from '../../../../types/upstream/astMappingInterface';
+import type { AstSemanticTerm } from '../../../../types/upstream/astSemanticInterface';
+import type { AstRuleName, AstWitnessName } from '../../../../types/upstream/ast';
+import { astSemanticStageContract } from '../../../../types/upstream/astSemanticStageInterface';
+import { stageProof, type AstSemanticProofResult } from '../../../../types/upstream/astSemanticStageProof';
 import {
   solveSemanticRelations,
   type SemanticRelation,
   type SemanticRelationRewrite,
-} from '../../lexer/routeAst/semanticRelationSolver';
-import { relationLookup, relationOptionFold, relationProject } from '../../../../semantic/kernel/relationalSequence';
+} from '../../lexer/routeAst/semanticRewriteEngine';
+import { relationLookup, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { astSemanticTextTerm } from '../../../../types/upstream/astSemanticInterface';
+import { createUpstreamMappingPort, upstreamMappingFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
 
 export type ResourceMappingRelation =
   | 'source_kind'
@@ -62,30 +71,9 @@ const semanticKind = (sourceKind: string): string => {
 
 export const resolveResourceSemanticKind = semanticKind;
 
-export const resourceMappingConstructors = Object.freeze({
-  strict_equal: () => ({ kind: 'strict_equal' as const }), equal: () => ({ kind: 'equal' as const }), strict_not_equal: () => ({ kind: 'strict_not_equal' as const }), not_equal: () => ({ kind: 'not_equal' as const }),
-  greater: () => ({ kind: 'greater' as const }), greater_equal: () => ({ kind: 'greater_equal' as const }), less: () => ({ kind: 'less' as const }), less_equal: () => ({ kind: 'less_equal' as const }),
-  add: () => ({ kind: 'add' as const }), subtract: () => ({ kind: 'subtract' as const }), multiply: () => ({ kind: 'multiply' as const }), divide: () => ({ kind: 'divide' as const }), modulo: () => ({ kind: 'modulo' as const }),
-  and: () => ({ kind: 'and' as const }), or: () => ({ kind: 'or' as const }), bitwise_or: () => ({ kind: 'bitwise_or' as const }), concat: () => ({ kind: 'concat' as const }),
-  negate: () => ({ kind: 'negate' as const }), positive: () => ({ kind: 'positive' as const }), bitwise_not: () => ({ kind: 'bitwise_not' as const }), not: () => ({ kind: 'not' as const }),
-  integer: () => ({ kind: 'integer' as const }), float: () => ({ kind: 'float' as const }), string: () => ({ kind: 'string' as const }), boolean: () => ({ kind: 'boolean' as const }), array: () => ({ kind: 'array' as const }), json: () => ({ kind: 'json' as const }),
-  set: () => ({ kind: 'set' as const }), concatenate: () => ({ kind: 'concatenate' as const }), null_coalesce: () => ({ kind: 'null_coalesce' as const }), power: () => ({ kind: 'power' as const }),
-  bitwise_and: () => ({ kind: 'bitwise_and' as const }), bitwise_xor: () => ({ kind: 'bitwise_xor' as const }), shift_left: () => ({ kind: 'shift_left' as const }), shift_right: () => ({ kind: 'shift_right' as const }),
-  by_value: () => ({ kind: 'by_value' as const }), by_reference: () => ({ kind: 'by_reference' as const }),
-});
-
-export const resolveResourceMappingConstructor = <T extends keyof typeof resourceMappingConstructors>(sourceKind: string): ReturnType<(typeof resourceMappingConstructors)[T]> => {
-  const semantic = resolveResourceSemanticKind(sourceKind) as T;
-  const constructor = relationLookup(
-    Object.entries(resourceMappingConstructors) as readonly (readonly [string, () => object])[],
-    semantic,
-  );
-  return relationOptionFold(
-    constructor,
-    () => { throw Error(`No constructor registered for semantic mapping ${semantic}`); },
-    build => build() as ReturnType<(typeof resourceMappingConstructors)[T]>,
-  );
-};
+export const resolveResourceSemanticMappingPort = (sourceKind: string): AstSemanticStagePort => createUpstreamMappingPort([
+  upstreamMappingFact('upstream_maps', astSemanticTextTerm(sourceKind), astSemanticTextTerm(semanticKind(sourceKind))),
+]);
 
 
 export const RESOURCE_STRUCTURAL_MAPPING_RULES: readonly MappingRule[] = Object.freeze([
@@ -113,3 +101,67 @@ export const RESOURCE_ALL_MAPPING_RULES: readonly MappingRule[] = Object.freeze(
   ...RESOURCE_SEMANTIC_MAPPING_RULES,
   ...RESOURCE_STRUCTURAL_MAPPING_RULES,
 ]);
+
+const mappingTerm = (value: string): AstSemanticTerm => astSemanticTextTerm(value);
+const mappingRule = (sourceKind: string): AstRuleName => ({ kind: 'ast_rule', value: { kind: 'string_value', value: `resource-semantic-map-${sourceKind}` } });
+const mappingWitness = (sourceKind: string): AstWitnessName => ({ kind: 'ast_witness', value: { kind: 'string_value', value: `resource-semantic-map-witness-${sourceKind}` } });
+
+export const resolveResourceAstMappingInterface = (sourceKind: string): AstMappingInterface => {
+  const targetKind = semanticKind(sourceKind);
+  const source = mappingTerm(sourceKind);
+  const target = mappingTerm(targetKind);
+  const fact: AstMappingFact = Object.freeze({
+    kind: 'ast_mapping_fact',
+    relation: 'maps_source_to_upstream',
+    source,
+    target,
+  });
+  const origin: AstMappingFact = Object.freeze({
+    kind: 'ast_mapping_preservation',
+    relation: 'preserves_origin',
+    source,
+    target,
+  });
+  const refinement: AstMappingFact = Object.freeze({
+    kind: 'ast_mapping_refinement',
+    relation: 'refines_semantics',
+    source,
+    target,
+  });
+  const contract = astSemanticStageContract('upstream_mapping');
+  const proofResult = stageProof('upstream_mapping', contract);
+  const proof = relationOptionFold(
+    relationRefine(proofResult, (value): value is AstSemanticProofResult & { readonly kind: 'proof' } => relationEqual(value.kind, 'proof')),
+    () => ({
+      kind: 'mapping_to_resolver_proof' as const,
+      from: 'upstream_mapping' as const,
+      to: 'resolver_graph' as const,
+      preservation: contract.preservation,
+      status: 'obligation' as const,
+    }),
+    value => value.proof,
+  );
+  const judgment = Object.freeze({
+    kind: 'ast_mapping_judgment' as const,
+    source,
+    target,
+    facts: Object.freeze([fact, origin, refinement]),
+    derivations: Object.freeze([{
+      kind: 'ast_mapping_derivation' as const,
+      rule: mappingRule(sourceKind),
+      witness: mappingWitness(sourceKind),
+      premises: Object.freeze([fact]),
+      conclusion: refinement,
+    }]),
+    preservation: contract.preservation,
+    proof,
+    closure: 'least_fixed_point' as const,
+    reasoning: 'declarative_relation_rewrite_fixed_point' as const,
+    authority: 'ast_mapping_judgment' as const,
+    closed: true as const,
+  });
+  return astMappingInterface(judgment);
+};
+
+export const resolveResourceSemanticMappingInterface = (...args: Parameters<typeof resolveResourceSemanticMappingPort>): AstSemanticStageInterface =>
+  astSemanticStageInterfaceOf(resolveResourceSemanticMappingPort(...args));

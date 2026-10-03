@@ -3,6 +3,7 @@ import { classifyAstTokens } from './astClassifier';
 import type { ReturnStatementAst } from './controllerAstTypes';
 import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
 import { relationGate, relationProject, relationSelect } from '../../../semantic/kernel/relationalSequence';
+import { tokenValueOr } from './tokenEvidence';
 
 const returnToken = (token: TokenDescriptor): boolean => relationEqual(token.value, 'return');
 
@@ -18,10 +19,10 @@ const collectExpression = (
     relationEqual(cursor, tokens.length),
     () => output,
     () => {
-      const opens = relationAny([relationEqual(token?.value, '('), relationEqual(token?.value, '['), relationEqual(token?.value, '{')]);
-      const closes = relationAny([relationEqual(token?.value, ')'), relationEqual(token?.value, ']'), relationEqual(token?.value, '}')]);
+      const opens = relationAny([relationEqual(tokenValueOr(tokens, cursor), '('), relationEqual(tokenValueOr(tokens, cursor), '['), relationEqual(tokenValueOr(tokens, cursor), '{')]);
+      const closes = relationAny([relationEqual(tokenValueOr(tokens, cursor), ')'), relationEqual(tokenValueOr(tokens, cursor), ']'), relationEqual(tokenValueOr(tokens, cursor), '}')]);
       const nextDepth = depth + Number(opens) - Number(closes);
-      const terminal = relationAll([relationEqual(token?.value, ';'), relationEqual(depth, 0)]);
+      const terminal = relationAll([relationEqual(tokenValueOr(tokens, cursor), ';'), relationEqual(depth, 0)]);
       return relationGate(
         terminal,
         () => output,

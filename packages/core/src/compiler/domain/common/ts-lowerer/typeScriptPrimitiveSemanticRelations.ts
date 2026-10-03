@@ -9,7 +9,7 @@ import {
   solveSemanticRelations,
   type SemanticRelation,
   type SemanticRelationRewrite,
-} from '../../../scanner/lexer/routeAst/semanticRelationSolver';
+} from '../../../scanner/lexer/routeAst/semanticRewriteEngine';
 
 export type TypeScriptPrimitiveSemanticRelation =
   | 'primitive_kind'

@@ -1,4 +1,4 @@
-import type { DtoAst } from '../../../types/upstream/ast';
+import { createDomainAstJudgment, type DtoAst } from '../../../types/upstream/ast';
 import type { DtoDefinition, DtoMethods, DtoProperties, DtoProperty } from '../../../types/upstream/application';
 import type { Sequence } from '../../../types/upstream/collections';
 import { createClassName, createPropertyName } from '../../../types/upstream/names';
@@ -99,6 +99,6 @@ export const dtoProducer: DtoProducer = {
       methods,
       source: input.source,
     };
-    return { kind: 'dto_ast', definition, source: input.source };
+    return createDomainAstJudgment({ kind: 'dto_ast', semantic: definition, source: input.source });
   },
 };

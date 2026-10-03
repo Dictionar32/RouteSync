@@ -1,5 +1,5 @@
 import { solveConstraintHandlingRules, type ConstraintHandlingRule } from './semanticConstraintHandlingRules';
-import type { SemanticRelationPattern } from './semanticRelationSolver';
+import type { SemanticRelationPattern } from './semanticRewriteEngine';
 
 type R = 'requires' | 'entity' | 'obsolete' | 'active' | 'resolved';
 const variable = (name: string) => ({ variable: name } as const);

@@ -11,7 +11,7 @@ import { relationContains, relationInsert, type RelationMembership } from '../..
  */
 import type { SemanticConstraintRule } from './semanticConstraintCalculus';
 import { project, retain, visit } from './semanticRelationalCollections';
-import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom, SemanticRelationVariable, } from './semanticRelationSolver';
+import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom, SemanticRelationVariable, } from './semanticRewriteEngine';
 export interface SemanticRelationSchema<R extends string = string> {
     readonly relation: R;
     readonly arity: number;

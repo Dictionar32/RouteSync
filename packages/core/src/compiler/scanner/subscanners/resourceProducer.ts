@@ -1,4 +1,4 @@
-import type { ResourceAst } from "../../../types/upstream/ast";
+import { createDomainAstJudgment, type ResourceAst } from "../../../types/upstream/ast";
 import type { ResourceDefinition, ResourceField, ResourceTransformation, ResourceInheritance, ResourceDocumentation, ResourceRepresentation, ResourceDynamicEntry, ResourceDynamicEntries } from "../../../types/upstream/resource";
 import type { Assignments, Properties, Sequence } from "../../../types/upstream/collections";
 import type { Expression } from "../../../types/upstream/expression";
@@ -180,7 +180,7 @@ export const resourceProducer: ResourceProducer = {
             actions: { kind: 'resource_actions', items: seq([]) }, endpoints: { kind: 'route_paths', items: seq([]) },
             synthetic: { kind: 'truth_value', value: false }, contract, framework, source: input.source,
         };
-        return { kind: 'resource_ast', definition, source: input.source };
+        return createDomainAstJudgment({ kind: 'resource_ast', semantic: definition, source: input.source });
     },
 };
 

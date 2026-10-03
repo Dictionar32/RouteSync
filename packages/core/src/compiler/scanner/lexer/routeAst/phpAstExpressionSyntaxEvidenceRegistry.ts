@@ -1,4 +1,4 @@
-import { relationEqual, relationNotEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationNotEqual } from "../../../../semantic/kernel/semanticRelations";
 import { relationResolve } from '../../../relational/sequence';
 /**
  * Syntax/evidence boundary for PHP expression spellings.
@@ -7,12 +7,13 @@ import { relationResolve } from '../../../relational/sequence';
  * adapter does not dispatch on source-language expression constructs; it only
  * consumes this registry's neutral KnowledgeId projection.
  */
-import type { PhpAstValue, PhpBlock } from '../phpAstTypes';
+import type { AstIdentifier, PhpAstValue, PhpBlock } from '../phpAstTypes';
+import { matchPhpAstValue, type PhpAstValueVisitor } from '../phpAstAlgebra';
 import type { PhpInterpolatedStringPart, PhpArrayEntry, PhpArrayKey, PhpClosureReturnTypeAst, PhpMatchArm } from '../phpAstExpressionTypes';
-import type { KnowledgeId, SemanticFact, SemanticLiteral, SemanticPresence, SemanticDataFlowRelationCode, SemanticDataFlowRoleCode, SemanticValueKindCode, SemanticValueKindDefinition, SemanticAccessModeCode, SemanticAccessModeDefinition, SemanticOperatorDefinition, SemanticAssignmentOperatorCode, SemanticAssignmentOperatorDefinition, SemanticAssignmentReferenceCode, SemanticAssignmentReferenceDefinition, SemanticPredicateMeaningCode, SemanticPredicateMeaningDefinition, SemanticMatchModeCode, SemanticMatchModeDefinition, SemanticOutcomeRoleCode, SemanticOutcomeRoleDefinition, SemanticCastDefinition, SemanticAbsenceReasonCode, SemanticSource, SemanticIdentifier, SemanticOperation } from './semanticKnowledgeDataFlowRelations';
+import type { KnowledgeId, SemanticFact, SemanticLiteral, SemanticPresence, SemanticDataFlowRelationCode, SemanticDataFlowRoleCode, SemanticFlowGuard, SemanticValueKindCode, SemanticValueKindDefinition, SemanticAccessModeCode, SemanticAccessModeDefinition, SemanticOperatorDefinition, SemanticAssignmentOperatorCode, SemanticAssignmentOperatorDefinition, SemanticAssignmentReferenceCode, SemanticAssignmentReferenceDefinition, SemanticPredicateMeaningCode, SemanticPredicateMeaningDefinition, SemanticMatchModeCode, SemanticMatchModeDefinition, SemanticOutcomeRoleCode, SemanticOutcomeRoleDefinition, SemanticCastDefinition, SemanticAbsenceReasonCode, SemanticSource, SemanticIdentifier, SemanticOperation } from './semanticKnowledgeDataFlowRelations';
 import { semanticText, semanticNumber, knowledgeId } from './semanticKnowledgeDataFlowRelations';
 import { projectRelation } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationVariantValue, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 type EvidenceSource = SemanticSource;
 type EvidenceCode = string;
@@ -31,7 +32,7 @@ type EvidenceCast = SemanticCastDefinition;
 export interface PhpAstExpressionEvidenceContext {
     readonly evidenceSourceOf: (value: { readonly source: { readonly startOffset: number; readonly endOffset: number } }) => EvidenceSource;
     readonly add: (fact: SemanticFact) => KnowledgeId;
-    readonly relate: (from: KnowledgeId, to: KnowledgeId, relation: EvidenceRelation, role: EvidenceRole, guard?: SemanticPresence<KnowledgeId>) => void;
+    readonly relate: (from: KnowledgeId, to: KnowledgeId, relation: EvidenceRelation, role: EvidenceRole, guard?: SemanticPresence<SemanticFlowGuard>) => void;
     readonly semanticVariable: (name: string, source: EvidenceSource) => KnowledgeId;
     readonly semanticValueKind: (code: SemanticValueKindCode) => EvidenceSemanticValue;
     readonly semanticAccessMode: (code: SemanticAccessModeCode) => EvidenceAccessMode;
@@ -50,7 +51,7 @@ export interface PhpAstExpressionEvidenceContext {
     readonly outcome: (id: KnowledgeId, role: SemanticOutcomeRoleCode, value: KnowledgeId, source: EvidenceSource) => KnowledgeId;
     readonly match: (subject: KnowledgeId, candidate: KnowledgeId, mode: SemanticMatchModeCode, source: EvidenceSource, slot: string) => KnowledgeId;
     readonly visit: (block: PhpBlock, scopeHint: string, availability?: SemanticPresence<KnowledgeId>) => KnowledgeId;
-    readonly assignmentTarget: (target: PhpAstValue, hint: string, source: EvidenceSource) => KnowledgeId;
+    readonly assignmentTarget: (target: import('../phpAstTypes').PhpAssignmentTarget, hint: string, source: EvidenceSource) => KnowledgeId;
     readonly knowledgeIdKey: (id: KnowledgeId) => string;
     readonly castKnowledge: readonly EvidenceCast[];
 }
@@ -64,13 +65,13 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
         const expressionArgument = (argument: {
             readonly value: PhpAstValue;
         }, argumentHint: string): KnowledgeId => expression(argument.value, argumentHint);
-        const expressionHandlers: Readonly<Record<string, (value: PhpAstValue) => KnowledgeId>> = Object.freeze({
+        const expressionHandlers: PhpAstValueVisitor<KnowledgeId> = Object.freeze({
             'literal': (value: Extract<PhpAstValue, {
                 readonly kind: 'literal';
             }>) => {
                 return add({ kind: 'value', value: { id: base, kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: literalValue(value), source } });
             },
-            'variable_reference': (value: Extract<PhpAstValue, {
+            'variableReference': (value: Extract<PhpAstValue, {
                 readonly kind: 'variable_reference';
             }>) => {
                 {
@@ -82,17 +83,17 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return variable;
                 }
             },
-            'magic_constant': (value: Extract<PhpAstValue, {
+            'magicConstant': (value: Extract<PhpAstValue, {
                 readonly kind: 'magic_constant';
             }>) => {
                 return add({ kind: 'magic-constant', value: { id: base, name: semanticText(value.value.kind), source } });
             },
-            'constant_reference': (value: Extract<PhpAstValue, {
+            'constantReference': (value: Extract<PhpAstValue, {
                 readonly kind: 'constant_reference';
             }>) => {
                 return add({ kind: 'value', value: { id: base, kind: semanticValueKind('constant'), name: semanticPresent(semanticIdentifier(value.name)), value: semanticAbsent('not_applicable'), source } });
             },
-            'property_access': (value: Extract<PhpAstValue, {
+            'propertyAccess': (value: Extract<PhpAstValue, {
                 readonly kind: 'property_access';
             }>) => {
                 {
@@ -102,7 +103,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'array_access': (value: Extract<PhpAstValue, {
+            'arrayAccess': (value: Extract<PhpAstValue, {
                 readonly kind: 'array_access';
             }>) => {
                 {
@@ -114,20 +115,20 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'interpolated_string': (value: Extract<PhpAstValue, {
+            'interpolatedString': (value: Extract<PhpAstValue, {
                 readonly kind: 'interpolated_string';
             }>) => {
                 {
                     const parts = projectRelation(value.parts, (part, index) => relationCase(part, current => current.kind, {
-                        expression: current => expression((current as Extract<PhpInterpolatedStringPart, { readonly kind: 'expression' | 'text' }>).value, `${base}:part:${index}`),
-                        text: current => add({ kind: 'value', value: { id: knowledgeId(source, 'value', `part:${index}`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'string', value: semanticText((current as Extract<PhpInterpolatedStringPart, { readonly kind: 'expression' | 'text' }>).value) }), source } }),
-                    }, () => add({ kind: 'value', value: { id: knowledgeId(source, 'value', `part:${index}`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'string', value: semanticText(String((part as Extract<PhpInterpolatedStringPart, { readonly kind: 'text' }>).value)) }), source } })));
+                        expression: current => expression(relationVariantValue(current, 'expression').value, `${base}:part:${index}`),
+                        text: current => add({ kind: 'value', value: { id: knowledgeId(source, 'value', `part:${index}`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'string', value: semanticText(relationVariantValue(current, 'text').value) }), source } }),
+                    }, () => add({ kind: 'value', value: { id: knowledgeId(source, 'value', `part:${index}`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'string', value: semanticText(String(relationVariantValue(part, 'text').value)) }), source } })));
                     const id = add({ kind: 'interpolated-string', value: { id: base, parts, source } });
                     projectRelation(parts, part => { relate(id, part, 'depends_on', 'part'); return part; });
                     return id;
                 }
             },
-            'resource_single': (value: Extract<PhpAstValue, {
+            'resourceSingle': (value: Extract<PhpAstValue, {
                 readonly kind: 'resource_single';
             }>) => {
                 {
@@ -137,7 +138,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'resource_collection': (value: Extract<PhpAstValue, {
+            'resourceCollection': (value: Extract<PhpAstValue, {
                 readonly kind: 'resource_collection';
             }>) => {
                 {
@@ -147,7 +148,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'cast_expression': (value: Extract<PhpAstValue, {
+            'castExpression': (value: Extract<PhpAstValue, {
                 readonly kind: 'cast_expression';
             }>) => {
                 {
@@ -163,27 +164,27 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     );
                 }
             },
-            'nested_array': (value: Extract<PhpAstValue, {
+            'nestedArray': (value: Extract<PhpAstValue, {
                 readonly kind: 'nested_array';
             }>) => {
                 {
                     const entries = projectRelation(value.entries, (entry, index) => {
                         const entryValue = expression(entry.value, `${base}:entry:${index}:value`);
-                        const key = relationCase(entry, current => current.kind, {
-                            keyed: current => relationCase((current as Extract<PhpArrayEntry, { readonly kind: 'keyed' }>).key, keyValue => keyValue.kind, {
-                                expression: keyValue => semanticPresent(expression((keyValue as Extract<PhpArrayKey, { readonly kind: 'expression' | 'string' | 'integer' }>).value, `${base}:entry:${index}:key`)),
-                                string: keyValue => semanticPresent(add({ kind: 'value', value: { id: knowledgeId(source, 'value', `entry:${index}:key`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'string', value: semanticText((keyValue as Extract<PhpArrayKey, { readonly kind: 'expression' | 'string' | 'integer' }>).value) }), source } })),
-                                number: keyValue => semanticPresent(add({ kind: 'value', value: { id: knowledgeId(source, 'value', `entry:${index}:key`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'number', value: semanticNumber((keyValue as Extract<PhpArrayKey, { readonly kind: 'expression' | 'string' | 'integer' }>).value) }), source } })),
+                        const key: SemanticPresence<KnowledgeId> = relationCase(entry, current => current.kind, {
+                            keyed: current => relationCase(relationVariantValue(current, 'keyed').key, keyValue => keyValue.kind, {
+                                expression: keyValue => semanticPresent(expression(relationVariantValue(keyValue, 'expression').value, `${base}:entry:${index}:key`)),
+                                string: keyValue => semanticPresent(add({ kind: 'value', value: { id: knowledgeId(source, 'value', `entry:${index}:key`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'string', value: semanticText(relationVariantValue(keyValue, 'string').value) }), source } })),
+                                number: keyValue => semanticPresent(add({ kind: 'value', value: { id: knowledgeId(source, 'value', `entry:${index}:key`), kind: semanticValueKind('literal'), name: semanticAbsent('not_applicable'), value: semanticPresent({ kind: 'number', value: semanticNumber(relationVariantValue(keyValue, 'integer').value) }), source } })),
                             }, () => semanticAbsent('not_applicable')),
                         }, () => semanticAbsent('not_applicable'));
                         return { key, value: entryValue };
                     });
                     const id = add({ kind: 'array', value: { id: base, entries, source } });
-                    projectRelation(entries, entry => { relate(id, entry.value, 'depends_on', 'array_value'); relationCase(entry.key, value => value.kind, { present: current => relate(id, (current as Extract<PhpInterpolatedStringPart, { readonly kind: 'expression' | 'text' }>).value, 'depends_on', 'array_key') }, () => entry); return entry; });
+                    projectRelation(entries, entry => { relate(id, entry.value, 'depends_on', 'array_value'); relationCase(entry.key, value => value.kind, { present: current => { relate(id, relationVariantValue(current, 'present').value, 'depends_on', 'array_key'); return entry; } }, () => entry); return entry; });
                     return id;
                 }
             },
-            'static_call': (value: Extract<PhpAstValue, {
+            'staticCall': (value: Extract<PhpAstValue, {
                 readonly kind: 'static_call';
             }>) => {
                 {
@@ -203,7 +204,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'dynamic_construct': (value: Extract<PhpAstValue, {
+            'dynamicConstruct': (value: Extract<PhpAstValue, {
                 readonly kind: 'dynamic_construct';
             }>) => {
                 {
@@ -215,7 +216,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'instance_of': (value: Extract<PhpAstValue, {
+            'instanceOf': (value: Extract<PhpAstValue, {
                 readonly kind: 'instance_of';
             }>) => {
                 {
@@ -225,21 +226,21 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'class_reference': (value: Extract<PhpAstValue, {
+            'classReference': (value: Extract<PhpAstValue, {
                 readonly kind: 'class_reference';
             }>) => {
                 {
                     return add({ kind: 'class-reference', value: { id: base, className: semanticIdentifier(value.className), source } });
                 }
             },
-            'class_constant': (value: Extract<PhpAstValue, {
+            'classConstant': (value: Extract<PhpAstValue, {
                 readonly kind: 'class_constant';
             }>) => {
                 {
                     return add({ kind: 'class-constant', value: { id: base, owner: semanticIdentifier(value.owner), name: semanticIdentifier(value.name), source } });
                 }
             },
-            'method_chain': (value: Extract<PhpAstValue, {
+            'methodChain': (value: Extract<PhpAstValue, {
                 readonly kind: 'method_chain';
             }>) => {
                 {
@@ -251,7 +252,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'function_call': (value: Extract<PhpAstValue, {
+            'functionCall': (value: Extract<PhpAstValue, {
                 readonly kind: 'function_call';
             }>) => {
                 {
@@ -261,7 +262,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'callable_call': (value: Extract<PhpAstValue, {
+            'callableCall': (value: Extract<PhpAstValue, {
                 readonly kind: 'callable_call';
             }>) => {
                 {
@@ -273,7 +274,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'binary_expression': (value: Extract<PhpAstValue, {
+            'binaryExpression': (value: Extract<PhpAstValue, {
                 readonly kind: 'binary_expression';
             }>) => {
                 {
@@ -292,7 +293,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     });
                 }
             },
-            'unary_expression': (value: Extract<PhpAstValue, {
+            'unaryExpression': (value: Extract<PhpAstValue, {
                 readonly kind: 'unary_expression';
             }>) => {
                 {
@@ -307,7 +308,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     });
                 }
             },
-            'assignment_expression': (value: Extract<PhpAstValue, {
+            'assignmentExpression': (value: Extract<PhpAstValue, {
                 readonly kind: 'assignment_expression';
             }>) => {
                 {
@@ -320,7 +321,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'ternary_expression': (value: Extract<PhpAstValue, {
+            'ternaryExpression': (value: Extract<PhpAstValue, {
                 readonly kind: 'ternary_expression';
             }>) => {
                 {
@@ -334,12 +335,12 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     relate(id, predicateId, 'depends_on', 'predicate');
                     relate(id, trueOutcome, 'depends_on', 'candidate');
                     relate(id, falseOutcome, 'depends_on', 'candidate');
-                    relate(trueOutcome, whenTrue, 'depends_on', 'value', { predicate: predicateId, polarity: 'satisfied' });
-                    relate(falseOutcome, whenFalse, 'depends_on', 'value', { predicate: predicateId, polarity: 'unsatisfied' });
+                    relate(trueOutcome, whenTrue, 'depends_on', 'value', semanticPresent({ predicate: predicateId, polarity: 'satisfied' }));
+                    relate(falseOutcome, whenFalse, 'depends_on', 'value', semanticPresent({ predicate: predicateId, polarity: 'unsatisfied' }));
                     return id;
                 }
             },
-            'short_ternary': (value: Extract<PhpAstValue, {
+            'shortTernary': (value: Extract<PhpAstValue, {
                 readonly kind: 'short_ternary';
             }>) => {
                 {
@@ -350,11 +351,11 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     const id = add({ kind: 'region', value: { id: base, source: evidenceSourceOf(value) } });
                     relate(id, predicateId, 'depends_on', 'predicate');
                     relate(id, falseOutcome, 'depends_on', 'candidate');
-                    relate(falseOutcome, whenFalse, 'depends_on', 'value', { predicate: predicateId, polarity: 'unsatisfied' });
+                    relate(falseOutcome, whenFalse, 'depends_on', 'value', semanticPresent({ predicate: predicateId, polarity: 'unsatisfied' }));
                     return id;
                 }
             },
-            'null_coalesce': (value: Extract<PhpAstValue, {
+            'nullCoalesce': (value: Extract<PhpAstValue, {
                 readonly kind: 'null_coalesce';
             }>) => {
                 {
@@ -367,8 +368,8 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     relate(id, nullishPredicate, 'depends_on', 'predicate');
                     relate(id, primary, 'depends_on', 'candidate');
                     relate(id, fallback, 'depends_on', 'candidate');
-                    relate(primary, left, 'depends_on', 'value', { predicate: nullishPredicate, polarity: 'unsatisfied' });
-                    relate(fallback, right, 'depends_on', 'value', { predicate: nullishPredicate, polarity: 'satisfied' });
+                    relate(primary, left, 'depends_on', 'value', semanticPresent({ predicate: nullishPredicate, polarity: 'unsatisfied' as const }));
+                    relate(fallback, right, 'depends_on', 'value', semanticPresent({ predicate: nullishPredicate, polarity: 'satisfied' as const }));
                     return id;
                 }
             },
@@ -379,13 +380,13 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     const body = visit(value.body, `${base}:body`);
                     const parameters = projectRelation(value.parameters, parameter => semanticIdentifier(parameter.variable));
                     const captures = projectRelation(value.captures, capture => semanticIdentifier(capture.variable));
-                    const returnType: SemanticPresence<import('./semanticKnowledgeDataFlowRelations').SemanticText> = relationResolve(relationEqual(value.returnType.kind, 'declared'), () => semanticPresent(semanticText(String(JSON.stringify((value.returnType as Extract<PhpClosureReturnTypeAst, { readonly kind: 'declared' }>).type)))), () => semanticAbsent('not_provided'));
+                    const returnType: SemanticPresence<import('./semanticKnowledgeDataFlowRelations').SemanticText> = relationResolve(relationEqual(value.returnType.kind, 'declared'), () => semanticPresent(semanticText(String(JSON.stringify(relationVariantValue(value.returnType, 'declared').type)))), () => semanticAbsent('not_provided'));
                     const id = add({ kind: 'closure', value: { id: base, parameters, captures, returnType, body, source } });
                     relate(id, body, 'depends_on', 'body');
                     return id;
                 }
             },
-            'arrow_function': (value: Extract<PhpAstValue, {
+            'arrowFunction': (value: Extract<PhpAstValue, {
                 readonly kind: 'arrow_function';
             }>) => {
                 {
@@ -396,12 +397,12 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                     return id;
                 }
             },
-            'anonymous_class_construct': (value: Extract<PhpAstValue, {
+            'anonymousClassConstruct': (value: Extract<PhpAstValue, {
                 readonly kind: 'anonymous_class_construct';
             }>) => {
                 {
                     const args = projectRelation(value.arguments, (argument, index) => expressionArgument(argument, `${base}:arg:${index}`));
-                    const anonymousClass = add({ kind: 'anonymous-class', value: { id: knowledgeId(source, 'anonymous-class', 'class'), extendsClass: relationCase(value.class.extendsClass, current => typeof current, { string: current => semanticPresent(semanticIdentifier((current as Extract<PhpInterpolatedStringPart, { readonly kind: 'expression' | 'text' }>).value)), object: () => semanticAbsent('not_provided') }, () => semanticAbsent('not_provided')), source } });
+                    const anonymousClass = add({ kind: 'anonymous-class', value: { id: knowledgeId(source, 'anonymous-class', 'class'), extendsClass: relationCase(value.class.extendsClass, current => typeof current, { string: current => semanticPresent(semanticIdentifier(current as AstIdentifier)), object: () => semanticAbsent('not_provided') }, () => semanticAbsent('not_provided')), source } });
                     const id = add({ kind: 'construction', value: { id: base, className: semanticAbsent('not_applicable'), classExpression: semanticPresent(anonymousClass), arguments: args, source } });
                     relate(id, anonymousClass, 'depends_on', 'class_expression');
                     projectRelation(args, argument => { relate(id, argument, 'depends_on', 'argument'); return argument; });
@@ -413,7 +414,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
             }>) => {
                 return add({ kind: 'unsupported-expression', value: { id: base, reason: semanticText(value.reason), source } });
             },
-            'match_expression': (value: Extract<PhpAstValue, {
+            'matchExpression': (value: Extract<PhpAstValue, {
                 readonly kind: 'match_expression';
             }>) => {
                 {
@@ -424,14 +425,14 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                         const armOutcome = outcome(knowledgeId(evidenceSourceOf(value), 'outcome', `arm:${index}`), relationCase(arm, current => current.kind, { conditional: () => 'matched', default: () => 'default' }, () => 'default'), armValue, evidenceSourceOf(value));
                         relate(id, armOutcome, 'depends_on', 'candidate');
                         relationCase(arm, current => current.kind, {
-                            conditional: current => projectRelation((current as Extract<PhpMatchArm, { readonly kind: 'conditional' }>).conditions, (condition: PhpAstValue, conditionIndex: number) => {
+                            conditional: current => { projectRelation(relationVariantValue(current, 'conditional').conditions, (condition: PhpAstValue, conditionIndex: number) => {
                                 const candidate = expression(condition, `${base}:arm:${index}:${conditionIndex}:candidate`);
                                 const matchId = match(subject, candidate, 'strict', evidenceSourceOf(value), `arm:${index}:${conditionIndex}`);
                                 const predicateId = predicate(matchId, evidenceSourceOf(value), 'match', `arm:${index}:${conditionIndex}`);
                                 relate(id, predicateId, 'depends_on', 'predicate');
-                                relate(armOutcome, armValue, 'depends_on', 'value', { predicate: predicateId, polarity: 'satisfied' });
+                                relate(armOutcome, armValue, 'depends_on', 'value', semanticPresent({ predicate: predicateId, polarity: 'satisfied' as const }));
                                 return predicateId;
-                            }),
+                            }); return armOutcome; },
                         }, () => armOutcome);
                         return armOutcome;
                     });
@@ -445,12 +446,16 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
                 }
             },
         });
-        const dispatchExpression = (value: PhpAstValue): KnowledgeId => relationOptionFold(
-            relationFirstOption(Object.entries(expressionHandlers), entry => relationEqual(entry[0], value.kind)),
-            () => expressionHandlers.__default__(value),
-            entry => entry[1](value),
-        );
+        const dispatchExpression = (node: PhpAstValue): KnowledgeId => matchPhpAstValue(node, expressionHandlers);
         return dispatchExpression(value);
     };
     return expression;
 };
+
+/** Closed source-language spelling vocabulary; these are evidence, not host control flow. */
+export const PHP_SYNTAX_OPERATOR_SPELLINGS = Object.freeze({
+  nullCoalesce: '??',
+  nullCoalesceAssign: '??=',
+  identical: '===',
+  notIdentical: '!==',
+});

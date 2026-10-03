@@ -1,6 +1,6 @@
 {
   "phase": 596,
-  "productionFiles": 1059,
+  "productionFiles": 1056,
   "selected": {
     "compiler/types/SemanticType.ts": {
       "if": 0,
@@ -193,27 +193,77 @@
     }
   },
   "global": {
-    "if": 400,
-    "while": 10,
-    "for": 133,
-    "switch": 43,
-    "map": 154,
-    "filter": 29,
-    "reduce": 9,
-    "flatMap": 3,
-    "undefined": 169,
-    "null": 41,
-    "??": 60,
-    "===": 337,
-    "!==": 78,
+    "if": 516,
+    "while": 9,
+    "for": 119,
+    "switch": 47,
+    "map": 194,
+    "filter": 24,
+    "reduce": 6,
+    "flatMap": 5,
+    "undefined": 197,
+    "null": 58,
+    "??": 57,
+    "===": 473,
+    "!==": 120,
     "as unknown": 8,
-    "Set": 49,
-    "Map": 90,
-    "any": 53,
-    "new": 579,
-    "ternary": 155
+    "Set": 30,
+    "Map": 62,
+    "any": 56,
+    "new": 470,
+    "ternary": 191
   },
   "top": [
+    {
+      "file": "compiler/scanner/subscanners/controller/actionVariableTracker.ts",
+      "total": 87,
+      "counts": {
+        "if": 12,
+        "while": 1,
+        "for": 2,
+        "switch": 2,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 39,
+        "null": 0,
+        "??": 0,
+        "===": 15,
+        "!==": 8,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 2,
+        "any": 0,
+        "new": 3,
+        "ternary": 3
+      }
+    },
+    {
+      "file": "compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+      "total": 64,
+      "counts": {
+        "if": 9,
+        "while": 0,
+        "for": 1,
+        "switch": 0,
+        "map": 1,
+        "filter": 2,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 10,
+        "null": 0,
+        "??": 2,
+        "===": 15,
+        "!==": 8,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 1,
+        "any": 0,
+        "new": 11,
+        "ternary": 4
+      }
+    },
     {
       "file": "types/domain/resourceGroupDescriptors.ts",
       "total": 63,
@@ -237,6 +287,81 @@
         "any": 13,
         "new": 8,
         "ternary": 4
+      }
+    },
+    {
+      "file": "compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "total": 62,
+      "counts": {
+        "if": 20,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 19,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 1,
+        "??": 0,
+        "===": 21,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 1
+      }
+    },
+    {
+      "file": "compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "total": 56,
+      "counts": {
+        "if": 14,
+        "while": 3,
+        "for": 3,
+        "switch": 0,
+        "map": 1,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 5,
+        "null": 0,
+        "??": 0,
+        "===": 11,
+        "!==": 10,
+        "as unknown": 0,
+        "Set": 2,
+        "Map": 0,
+        "any": 0,
+        "new": 2,
+        "ternary": 5
+      }
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts",
+      "total": 54,
+      "counts": {
+        "if": 17,
+        "while": 0,
+        "for": 1,
+        "switch": 1,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 7,
+        "null": 0,
+        "??": 2,
+        "===": 11,
+        "!==": 5,
+        "as unknown": 0,
+        "Set": 2,
+        "Map": 0,
+        "any": 0,
+        "new": 5,
+        "ternary": 3
       }
     },
     {
@@ -315,28 +440,28 @@
       }
     },
     {
-      "file": "compiler/utils/graph/graphAlgorithms.ts",
-      "total": 35,
+      "file": "compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts",
+      "total": 39,
       "counts": {
-        "if": 8,
-        "while": 3,
+        "if": 11,
+        "while": 0,
         "for": 3,
-        "switch": 0,
-        "map": 0,
+        "switch": 2,
+        "map": 6,
         "filter": 0,
         "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
+        "flatMap": 1,
+        "undefined": 1,
         "null": 0,
-        "??": 3,
-        "===": 2,
-        "!==": 3,
+        "??": 0,
+        "===": 12,
+        "!==": 1,
         "as unknown": 0,
-        "Set": 2,
-        "Map": 4,
+        "Set": 0,
+        "Map": 0,
         "any": 0,
-        "new": 7,
-        "ternary": 0
+        "new": 0,
+        "ternary": 2
       }
     },
     {
@@ -390,6 +515,56 @@
       }
     },
     {
+      "file": "compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts",
+      "total": 32,
+      "counts": {
+        "if": 9,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 9,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 2,
+        "new": 10,
+        "ternary": 0
+      }
+    },
+    {
+      "file": "types/domain/resourceSqlExpressionParser.ts",
+      "total": 32,
+      "counts": {
+        "if": 10,
+        "while": 1,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 1,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 7,
+        "??": 0,
+        "===": 7,
+        "!==": 2,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 4
+      }
+    },
+    {
       "file": "compiler/verification/CFGVerifier.ts",
       "total": 31,
       "counts": {
@@ -412,6 +587,81 @@
         "any": 0,
         "new": 11,
         "ternary": 0
+      }
+    },
+    {
+      "file": "types/domain/resourceRelationQuerySurface.ts",
+      "total": 31,
+      "counts": {
+        "if": 10,
+        "while": 0,
+        "for": 0,
+        "switch": 2,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 3,
+        "null": 0,
+        "??": 0,
+        "===": 7,
+        "!==": 3,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 3,
+        "ternary": 3
+      }
+    },
+    {
+      "file": "compiler/scanner/descriptors/route/routeSecurity.ts",
+      "total": 30,
+      "counts": {
+        "if": 2,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 3,
+        "null": 7,
+        "??": 0,
+        "===": 5,
+        "!==": 3,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 5,
+        "ternary": 5
+      }
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceAstCanonical.ts",
+      "total": 29,
+      "counts": {
+        "if": 3,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 1,
+        "undefined": 2,
+        "null": 0,
+        "??": 0,
+        "===": 10,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 1,
+        "any": 0,
+        "new": 4,
+        "ternary": 6
       }
     },
     {
@@ -465,56 +715,6 @@
       }
     },
     {
-      "file": "compiler/analysis/ssa/renamer/blockInstructionRenamer.ts",
-      "total": 27,
-      "counts": {
-        "if": 9,
-        "while": 0,
-        "for": 4,
-        "switch": 0,
-        "map": 2,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 1,
-        "===": 8,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 2,
-        "any": 0,
-        "new": 1,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "compiler/analysis/loop/loopNormalizer.ts",
-      "total": 26,
-      "counts": {
-        "if": 5,
-        "while": 0,
-        "for": 1,
-        "switch": 0,
-        "map": 2,
-        "filter": 2,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 0,
-        "===": 9,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 1,
-        "any": 0,
-        "new": 2,
-        "ternary": 4
-      }
-    },
-    {
       "file": "compiler/optimization/LICM.ts",
       "total": 26,
       "counts": {
@@ -536,31 +736,6 @@
         "Map": 1,
         "any": 0,
         "new": 2,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "ir/domain/ResourceMapperBuilder.ts",
-      "total": 26,
-      "counts": {
-        "if": 1,
-        "while": 0,
-        "for": 1,
-        "switch": 0,
-        "map": 3,
-        "filter": 1,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 15,
-        "null": 0,
-        "??": 0,
-        "===": 1,
-        "!==": 1,
-        "as unknown": 0,
-        "Set": 2,
-        "Map": 0,
-        "any": 0,
-        "new": 1,
         "ternary": 0
       }
     },
@@ -615,6 +790,56 @@
       }
     },
     {
+      "file": "compiler/scanner/subscanners/controller/controllerErrorDetector.ts",
+      "total": 25,
+      "counts": {
+        "if": 9,
+        "while": 1,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 2,
+        "null": 0,
+        "??": 0,
+        "===": 12,
+        "!==": 1,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 0
+      }
+    },
+    {
+      "file": "compiler/scanner/subscanners/resource/resourceBindingProvenanceBuilder.ts",
+      "total": 25,
+      "counts": {
+        "if": 11,
+        "while": 0,
+        "for": 1,
+        "switch": 0,
+        "map": 2,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 9,
+        "!==": 2,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 0
+      }
+    },
+    {
       "file": "compiler/verification/ssa/dominanceChecker.ts",
       "total": 24,
       "counts": {
@@ -640,27 +865,27 @@
       }
     },
     {
-      "file": "ir/ContractIRBuilder.ts",
+      "file": "types/domain/authAndPolicy.ts",
       "total": 24,
       "counts": {
-        "if": 0,
+        "if": 6,
         "while": 0,
-        "for": 3,
+        "for": 1,
         "switch": 0,
-        "map": 0,
-        "filter": 0,
+        "map": 3,
+        "filter": 2,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
         "null": 0,
         "??": 0,
-        "===": 0,
+        "===": 8,
         "!==": 0,
         "as unknown": 0,
         "Set": 0,
-        "Map": 10,
+        "Map": 0,
         "any": 0,
-        "new": 11,
+        "new": 4,
         "ternary": 0
       }
     },
@@ -715,52 +940,27 @@
       }
     },
     {
-      "file": "compiler/generators/contract-generation/ResponseStructureBuilder.ts",
+      "file": "ir/ContractIRBuilder.ts",
       "total": 23,
       "counts": {
-        "if": 7,
+        "if": 0,
         "while": 0,
-        "for": 4,
+        "for": 3,
         "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 2,
-        "null": 0,
-        "??": 0,
-        "===": 8,
-        "!==": 2,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 0,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "types/domain/authAndPolicy.ts",
-      "total": 23,
-      "counts": {
-        "if": 6,
-        "while": 0,
-        "for": 1,
-        "switch": 1,
-        "map": 3,
-        "filter": 2,
-        "reduce": 0,
-        "flatMap": 0,
         "undefined": 0,
         "null": 0,
         "??": 0,
-        "===": 6,
+        "===": 0,
         "!==": 0,
         "as unknown": 0,
         "Set": 0,
-        "Map": 0,
+        "Map": 10,
         "any": 0,
-        "new": 4,
+        "new": 10,
         "ternary": 0
       }
     },
@@ -815,27 +1015,27 @@
       }
     },
     {
-      "file": "compiler/analysis/ssa/ssaBuilder.ts",
-      "total": 21,
+      "file": "compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts",
+      "total": 22,
       "counts": {
-        "if": 4,
-        "while": 1,
-        "for": 5,
-        "switch": 0,
+        "if": 8,
+        "while": 0,
+        "for": 0,
+        "switch": 2,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 0,
+        "undefined": 1,
         "null": 0,
         "??": 0,
-        "===": 2,
-        "!==": 0,
+        "===": 5,
+        "!==": 4,
         "as unknown": 0,
-        "Set": 2,
-        "Map": 2,
+        "Set": 1,
+        "Map": 0,
         "any": 0,
-        "new": 5,
+        "new": 1,
         "ternary": 0
       }
     },
@@ -890,6 +1090,31 @@
       }
     },
     {
+      "file": "compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+      "total": 21,
+      "counts": {
+        "if": 4,
+        "while": 0,
+        "for": 3,
+        "switch": 0,
+        "map": 5,
+        "filter": 1,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 3,
+        "Map": 0,
+        "any": 0,
+        "new": 5,
+        "ternary": 0
+      }
+    },
+    {
       "file": "compiler/templates/TemplateEngine.ts",
       "total": 21,
       "counts": {
@@ -936,31 +1161,6 @@
         "Map": 0,
         "any": 0,
         "new": 1,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "compiler/query/salsa/queryGraphManager.ts",
-      "total": 20,
-      "counts": {
-        "if": 7,
-        "while": 1,
-        "for": 2,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 1,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 1,
-        "as unknown": 0,
-        "Set": 3,
-        "Map": 1,
-        "any": 0,
-        "new": 4,
         "ternary": 0
       }
     },
@@ -1040,56 +1240,6 @@
       }
     },
     {
-      "file": "compiler/analysis/loop/loopDetector.ts",
-      "total": 18,
-      "counts": {
-        "if": 4,
-        "while": 1,
-        "for": 5,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 1,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 3,
-        "Map": 1,
-        "any": 0,
-        "new": 3,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "compiler/utils/graph/dependencyGraph.ts",
-      "total": 18,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 2,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 4,
-        "Map": 4,
-        "any": 0,
-        "new": 8,
-        "ternary": 0
-      }
-    },
-    {
       "file": "compiler/verification/ssa/definitionCollector.ts",
       "total": 18,
       "counts": {
@@ -1140,28 +1290,28 @@
       }
     },
     {
-      "file": "compiler/query/salsa/queryExecutor.ts",
+      "file": "compiler/scanner/subscanners/form-request/fieldAssembler.ts",
       "total": 17,
       "counts": {
-        "if": 4,
+        "if": 6,
         "while": 0,
-        "for": 0,
+        "for": 2,
         "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 1,
+        "undefined": 0,
         "null": 0,
-        "??": 2,
+        "??": 0,
         "===": 0,
-        "!==": 2,
+        "!==": 0,
         "as unknown": 0,
-        "Set": 4,
+        "Set": 1,
         "Map": 0,
         "any": 0,
-        "new": 3,
-        "ternary": 1
+        "new": 8,
+        "ternary": 0
       }
     },
     {
@@ -1190,6 +1340,31 @@
       }
     },
     {
+      "file": "compiler/domain/common/ManifestArtifactLowerer.ts",
+      "total": 16,
+      "counts": {
+        "if": 2,
+        "while": 0,
+        "for": 2,
+        "switch": 0,
+        "map": 4,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 3,
+        "null": 0,
+        "??": 0,
+        "===": 0,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 1,
+        "Map": 0,
+        "any": 0,
+        "new": 3,
+        "ternary": 1
+      }
+    },
+    {
       "file": "compiler/emitters/typescript/printers/declarationPrinter.ts",
       "total": 16,
       "counts": {
@@ -1212,6 +1387,56 @@
         "any": 0,
         "new": 0,
         "ternary": 8
+      }
+    },
+    {
+      "file": "semantic/plugins/expression/property-access/specialAccessHandler.ts",
+      "total": 16,
+      "counts": {
+        "if": 3,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 3,
+        "??": 0,
+        "===": 7,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 1,
+        "ternary": 2
+      }
+    },
+    {
+      "file": "types/domain/semanticResolutionLegacyAdapter.ts",
+      "total": 16,
+      "counts": {
+        "if": 0,
+        "while": 0,
+        "for": 0,
+        "switch": 1,
+        "map": 8,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 6,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 1
       }
     },
     {
@@ -1261,56 +1486,6 @@
         "Map": 0,
         "any": 0,
         "new": 0,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "compiler/analysis/ssa/ssaRenamer.ts",
-      "total": 15,
-      "counts": {
-        "if": 3,
-        "while": 0,
-        "for": 4,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 0,
-        "===": 3,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 2,
-        "any": 0,
-        "new": 3,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "compiler/analysis/symbol/symbolGraph.ts",
-      "total": 15,
-      "counts": {
-        "if": 1,
-        "while": 0,
-        "for": 2,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 2,
-        "===": 1,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 4,
-        "Map": 1,
-        "any": 0,
-        "new": 4,
         "ternary": 0
       }
     },
@@ -1540,6 +1715,56 @@
       }
     },
     {
+      "file": "types/domain/resourceTraversalResolution.ts",
+      "total": 14,
+      "counts": {
+        "if": 5,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 6,
+        "!==": 1,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 2
+      }
+    },
+    {
+      "file": "compiler/scanner/descriptors/model/entity/modelEntityFactory.ts",
+      "total": 13,
+      "counts": {
+        "if": 0,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 1,
+        "null": 0,
+        "??": 6,
+        "===": 4,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 2
+      }
+    },
+    {
       "file": "ir/domain/request-endpoint/endpointRefs.ts",
       "total": 13,
       "counts": {
@@ -1562,31 +1787,6 @@
         "any": 0,
         "new": 0,
         "ternary": 1
-      }
-    },
-    {
-      "file": "compiler/analysis/ssa/renamer/variableVersionScope.ts",
-      "total": 12,
-      "counts": {
-        "if": 2,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 2,
-        "null": 0,
-        "??": 2,
-        "===": 1,
-        "!==": 1,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 2,
-        "any": 0,
-        "new": 2,
-        "ternary": 0
       }
     },
     {
@@ -1790,28 +1990,28 @@
       }
     },
     {
-      "file": "compiler/types/TypeIR.ts",
+      "file": "compiler/scanner/subscanners/validationArrayPropLowerer.ts",
       "total": 12,
       "counts": {
-        "if": 0,
+        "if": 4,
         "while": 0,
-        "for": 0,
+        "for": 2,
         "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 4,
+        "undefined": 0,
         "null": 0,
         "??": 0,
-        "===": 4,
+        "===": 0,
         "!==": 0,
         "as unknown": 0,
-        "Set": 0,
+        "Set": 1,
         "Map": 0,
         "any": 0,
-        "new": 0,
-        "ternary": 4
+        "new": 5,
+        "ternary": 0
       }
     },
     {
@@ -1890,31 +2090,6 @@
       }
     },
     {
-      "file": "compiler/domain/common/response-lowering/mapper/fieldConverter.ts",
-      "total": 11,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 11,
-        "ternary": 0
-      }
-    },
-    {
       "file": "compiler/formatting/typescript/ast-format/importSorter.ts",
       "total": 11,
       "counts": {
@@ -1987,56 +2162,6 @@
         "any": 0,
         "new": 1,
         "ternary": 2
-      }
-    },
-    {
-      "file": "types/domain/executionSignatures.ts",
-      "total": 11,
-      "counts": {
-        "if": 2,
-        "while": 0,
-        "for": 0,
-        "switch": 2,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 2,
-        "null": 0,
-        "??": 0,
-        "===": 2,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 2,
-        "ternary": 1
-      }
-    },
-    {
-      "file": "compiler/analysis/SymbolAnalysis.ts",
-      "total": 10,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 3,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 1,
-        "null": 0,
-        "??": 0,
-        "===": 3,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 1,
-        "any": 0,
-        "new": 2,
-        "ternary": 0
       }
     },
     {
@@ -2140,31 +2265,6 @@
       }
     },
     {
-      "file": "compiler/ir/ContractIRTypeBuilder.ts",
-      "total": 10,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 2,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 3,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 5,
-        "ternary": 0
-      }
-    },
-    {
       "file": "compiler/pipeline/engine/pipelineBuilder.ts",
       "total": 10,
       "counts": {
@@ -2187,6 +2287,31 @@
         "any": 0,
         "new": 6,
         "ternary": 0
+      }
+    },
+    {
+      "file": "compiler/scanner/subscanners/model/modelSourceFactsParser.ts",
+      "total": 10,
+      "counts": {
+        "if": 1,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 3,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 2,
+        "!==": 1,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 0,
+        "ternary": 3
       }
     },
     {
@@ -2265,56 +2390,6 @@
       }
     },
     {
-      "file": "types/domain/responseDescriptors.ts",
-      "total": 10,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 2,
-        "map": 1,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 7,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "types/emitTypes.ts",
-      "total": 10,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 10,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 0,
-        "ternary": 0
-      }
-    },
-    {
       "file": "utils/guards/assertionUtils.ts",
       "total": 10,
       "counts": {
@@ -2337,31 +2412,6 @@
         "any": 1,
         "new": 1,
         "ternary": 2
-      }
-    },
-    {
-      "file": "compiler/analysis/symbol/symbolHierarchy.ts",
-      "total": 9,
-      "counts": {
-        "if": 1,
-        "while": 1,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 3,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 1,
-        "null": 0,
-        "??": 0,
-        "===": 3,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 0,
-        "ternary": 0
       }
     },
     {
@@ -2440,31 +2490,6 @@
       }
     },
     {
-      "file": "compiler/query/TypedCache.ts",
-      "total": 9,
-      "counts": {
-        "if": 1,
-        "while": 0,
-        "for": 2,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 2,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 1,
-        "as unknown": 0,
-        "Set": 1,
-        "Map": 0,
-        "any": 0,
-        "new": 2,
-        "ternary": 0
-      }
-    },
-    {
       "file": "compiler/target/typescript/nodes/TSComment.ts",
       "total": 9,
       "counts": {
@@ -2515,31 +2540,6 @@
       }
     },
     {
-      "file": "compiler/types/resolved-php/variants.ts",
-      "total": 9,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 0,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 9,
-        "ternary": 0
-      }
-    },
-    {
       "file": "errors/ErrorHandler.ts",
       "total": 9,
       "counts": {
@@ -2562,6 +2562,31 @@
         "any": 1,
         "new": 3,
         "ternary": 0
+      }
+    },
+    {
+      "file": "types/domain/resourceAggregateResolver.ts",
+      "total": 9,
+      "counts": {
+        "if": 3,
+        "while": 0,
+        "for": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "??": 0,
+        "===": 4,
+        "!==": 0,
+        "as unknown": 0,
+        "Set": 0,
+        "Map": 0,
+        "any": 0,
+        "new": 1,
+        "ternary": 1
       }
     },
     {
@@ -2686,31 +2711,6 @@
         "Map": 0,
         "any": 0,
         "new": 2,
-        "ternary": 0
-      }
-    },
-    {
-      "file": "compiler/target/typescript/nodes/TSTypeReference.ts",
-      "total": 8,
-      "counts": {
-        "if": 0,
-        "while": 0,
-        "for": 0,
-        "switch": 0,
-        "map": 0,
-        "filter": 0,
-        "reduce": 0,
-        "flatMap": 0,
-        "undefined": 1,
-        "null": 0,
-        "??": 0,
-        "===": 0,
-        "!==": 0,
-        "as unknown": 0,
-        "Set": 0,
-        "Map": 0,
-        "any": 0,
-        "new": 7,
         "ternary": 0
       }
     }

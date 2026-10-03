@@ -30,3 +30,4 @@ export {
 export {
     RouteBoundaryAdapter
 } from "./RouteBoundaryAdapter";
+export * from './resolverGraphSemanticInterface';

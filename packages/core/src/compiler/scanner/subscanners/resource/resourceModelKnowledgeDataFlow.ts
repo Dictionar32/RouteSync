@@ -6,7 +6,7 @@
  */
 
 import type { ModelName, RelationName, ResourceName } from '../../../../types/upstream/names';
-import { absent, fromOptional, present, type Presence } from '../../../../types/upstream/presence';
+import { absent, presenceOf, present, type Presence } from '../../../../types/upstream/presence';
 import { relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
 import { relationFold, relationFirstOption, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
 
@@ -52,7 +52,7 @@ export const createResourceModelResolutionFact = (
     resource,
     model,
     origin,
-    viaRelation: fromOptional(viaRelation),
+    viaRelation: presenceOf(viaRelation),
 });
 
 export const createResourceRelationFact = (

@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 const authorityFiles = [
   'phpAstSemanticKnowledgeDataFlowAdapter.ts',
-  'semanticRelationSolver.ts',
+  'semanticRewriteEngine.ts',
   'semanticConstraintCalculus.ts',
   'semanticRewriteEngine.ts',
   'semanticRelationalCollections.ts',

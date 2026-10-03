@@ -68,14 +68,14 @@ export const ScannedModelRelationDescriptor = Object.freeze({
         readonly modelName: ModelName;
         readonly targetModel?: ModelName;
         readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
-    }): SingleRelationDescriptor => relationDescriptor(computeSingleRelationParams(params)) as SingleRelationDescriptor,
+    }): SingleRelationDescriptor => relationDescriptor(computeSingleRelationParams(params)),
     collection: (params: {
         readonly name: RelationName;
         readonly type: EloquentRelationType;
         readonly modelName: ModelName;
         readonly targetModel?: ModelName;
         readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
-    }): CollectionRelationDescriptor => relationDescriptor(computeCollectionRelationParams(params)) as CollectionRelationDescriptor,
+    }): CollectionRelationDescriptor => relationDescriptor(computeCollectionRelationParams(params)),
     none: (): ScannedModelRelationDescriptor => relationDescriptor(computeNoneRelationParams()),
     belongsTo: (params: {
         readonly name: RelationName;

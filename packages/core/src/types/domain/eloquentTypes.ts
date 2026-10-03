@@ -1,9 +1,9 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
-import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType } from "../../compiler/types/SemanticType";
+import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType, primitiveType } from "../../compiler/types/SemanticType";
 import { SemanticValueFactory, type ClassName, type ColumnName, type MethodName, type ModelName, type PropertyName, type RelationName, type CastTypeName, type SemanticOperator } from './semanticValues';
 import type { Cardinality } from '../upstream/primitiveVocabulary';
 import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationGate, relationOptionFold, relationSome } from '../../semantic/kernel/relationalSequence';
+import { relationGate, relationOptionFold, relationSome, relationRefine } from '../../semantic/kernel/relationalSequence';
 
 /**
  * EloquentCastKind
@@ -355,16 +355,28 @@ export type RelationCardinalityVisitor<R> = {
   readonly many: (relation: CollectionRelationDescriptor) => R;
 };
 
+const isSingleRelationDescriptor = (relation: RelationCardinalityDescriptor): relation is SingleRelationDescriptor =>
+  relationEqual(relation.cardinality.kind, 'one');
+
+const isCollectionRelationDescriptor = (relation: RelationCardinalityDescriptor): relation is CollectionRelationDescriptor =>
+  relationEqual(relation.cardinality.kind, 'many');
+
+const requireCollectionRelation = (relation: RelationCardinalityDescriptor): CollectionRelationDescriptor =>
+  relationOptionFold(
+    relationRefine(relation, isCollectionRelationDescriptor),
+    () => { throw Error('Relation cardinality witness is not collection'); },
+    collection => collection,
+  );
+
 export function matchRelationCardinality<R>(
   relation: RelationCardinalityDescriptor,
   visitor: RelationCardinalityVisitor<R>
 ): R {
-  switch (relation.cardinality) {
-    case 'one':
-      return visitor.one(relation);
-    case 'many':
-      return visitor.many(relation);
-  }
+  return relationOptionFold(
+    relationRefine(relation, isSingleRelationDescriptor),
+    () => visitor.many(requireCollectionRelation(relation)),
+    single => visitor.one(single),
+  );
 }
 
 export const matchRelation = matchRelationCardinality;

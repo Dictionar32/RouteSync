@@ -16,6 +16,14 @@ import type { ScannedModelRelationParams } from './types';
 import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
 import { relationGate } from '../../../../../semantic/kernel/relationalSequence';
 
+type ParametersForRelation = {
+    readonly name: RelationName;
+    readonly type: EloquentRelationType;
+    readonly modelName: ModelName;
+    readonly targetModel?: ModelName;
+    readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
+};
+
 export function computeRelationParams({
     name,
     type,
@@ -34,10 +42,10 @@ export function computeRelationParams({
     const desc = EloquentRelationClassifier.getDescriptor(type);
     const resolvedCardinality = cardinality;
     const target = ReferenceType.model('', targetModel.value.value);
-    const targetShape = relationGate(relationEqual(resolvedCardinality, 'many'),
+    const targetShape = relationGate(relationEqual(resolvedCardinality.kind, 'many'),
         () => ({ kind: 'collection' as const, model: targetModel }),
         () => ({ kind: 'single' as const, model: targetModel }));
-    const semanticType = relationGate(relationEqual(resolvedCardinality, 'many'),
+    const semanticType = relationGate(relationEqual(resolvedCardinality.kind, 'many'),
         () => ReadonlyCollectionType(CollectionKind.COLLECTION, target),
         () => target);
     return {
@@ -46,10 +54,10 @@ export function computeRelationParams({
         modelName,
         targetModel,
         cardinality: resolvedCardinality,
-        multiplicity: relationGate(relationEqual(resolvedCardinality, 'many'), () => ({ kind: 'collection' as const }), () => ({ kind: 'single' as const })),
+        multiplicity: relationGate(relationEqual(resolvedCardinality.kind, 'many'), () => ({ kind: 'collection' as const }), () => ({ kind: 'single' as const })),
         semanticType,
         targetShape,
-        traversalTarget: relationGate(relationEqual(resolvedCardinality, 'many'),
+        traversalTarget: relationGate(relationEqual(resolvedCardinality.kind, 'many'),
             () => ({ kind: 'collection' as const, model: targetModel }),
             () => ({ kind: 'model' as const, model: targetModel })),
         foreignKey
@@ -62,13 +70,7 @@ export function computeSingleRelationParams({
     modelName,
     targetModel = modelName,
     foreignKey = { kind: 'convention' as const }
-}: {
-    readonly name: RelationName;
-    readonly type: EloquentRelationType;
-    readonly modelName: ModelName;
-    readonly targetModel?: ModelName;
-    readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
-}): ScannedModelRelationParams {
+}: ParametersForRelation): ScannedModelRelationParams & { readonly cardinality: { readonly kind: 'one' } } {
     return {
         name,
         type,
@@ -89,13 +91,7 @@ export function computeCollectionRelationParams({
     modelName,
     targetModel = modelName,
     foreignKey = { kind: 'convention' as const }
-}: {
-    readonly name: RelationName;
-    readonly type: EloquentRelationType;
-    readonly modelName: ModelName;
-    readonly targetModel?: ModelName;
-    readonly foreignKey?: { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly column: ColumnName };
-}): ScannedModelRelationParams {
+}: ParametersForRelation): ScannedModelRelationParams & { readonly cardinality: { readonly kind: 'many' } } {
     return {
         name,
         type,

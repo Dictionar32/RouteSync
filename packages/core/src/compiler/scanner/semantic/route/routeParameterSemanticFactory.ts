@@ -8,11 +8,11 @@ import type {
     RouteParameterConstraint,
     RouteParameterLocation,
     RouteParameterType
-} from "../../../../../types/route";
-import type { PropertyName, RouteParameterName } from "../../../../../types/upstream/names";
-import type { ModelReference } from "../../../../../types/upstream/semanticReferences";
-import type { Presence } from "../../../../../types/upstream/primitiveVocabulary";
-import { presenceOf } from "../../../../../types/upstream/presence";
+} from "../../../../types/route";
+import type { PropertyName, RouteParameterName } from "../../../../types/upstream/names";
+import type { ModelReference } from "../../../../types/upstream/semanticReferences";
+import type { Presence } from "../../../../types/upstream/primitiveVocabulary";
+import { presenceOf } from "../../../../types/upstream/presence";
 import {
     relationAny,
     relationEqual,
@@ -22,8 +22,8 @@ import {
     relationNone,
     relationTextSlice,
     type RelationOption
-} from "../../../../../semantic/kernel/relationalSequence";
-import { toCamelCase, toPascalCase } from "../../../../../utils/resource-naming";
+} from "../../../../semantic/kernel/relationalSequence";
+import { toCamelCase, toPascalCase } from "../../../../utils/resource-naming";
 import type { RawScannedRouteParameterInput, ScannedRouteParameterParams } from "./types";
 
 const stringValue = (value: string) => Object.freeze({ kind: 'string_value' as const, value });

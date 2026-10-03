@@ -2,14 +2,7 @@ import { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
 import { absent, presenceFold, type Presence } from '../upstream/presence';
 import type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 export { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
-export type {
-  RouteExecutionSignature,
-  NoPayloadExecutionSignature,
-  RequiredPayloadExecutionSignature,
-  OptionalPayloadExecutionSignature,
-  BaseRouteExecutionSignature,
-  AnyRouteExecutionSignature
-} from '../upstream/routeExecutionVocabulary';
+export type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature } from '../upstream/routeExecutionVocabulary';
 export interface RoutePayloadModeSpecification<M extends RoutePayloadMode = RoutePayloadMode> {
   readonly mode: M;
   readonly hasPayload: NoPayloadExecutionSignature['hasPayload'] | RequiredPayloadExecutionSignature['hasPayload'];
@@ -66,47 +59,46 @@ export function matchRouteExecutionSignature<R>(
 
 export const matchRoutePayloadMode = matchRouteExecutionSignature;
 
-export class RouteSemanticFlowExecutionSignature {
-  private constructor() {}
+export interface RouteSemanticFlowExecutionSignatureFactory {
+  readonly noPayload: () => NoPayloadExecutionSignature;
+  readonly authOnly: () => NoPayloadExecutionSignature;
+  readonly requiredPayload: (typeName: string) => RequiredPayloadExecutionSignature;
+  readonly optionalPayload: (typeName: string) => OptionalPayloadExecutionSignature;
+  readonly fromMode: (mode: RoutePayloadMode, typeName?: Presence<string>) => RouteExecutionSignature;
+  readonly create: (hookKind: RouteHookKind, hasParams: boolean, hasPayload?: boolean, typeName?: Presence<string>) => RouteExecutionSignature;
+}
 
-  public static noPayload(): NoPayloadExecutionSignature {
-    return Object.freeze({
-      payloadMode: RoutePayloadMode.None,
-      parameterDeclaration: '',
-      callArgumentsExpression: '',
-      hasPayload: false,
-      isOptional: true
-    });
-  }
+export const RouteSemanticFlowExecutionSignature: RouteSemanticFlowExecutionSignatureFactory = Object.freeze({
+  noPayload: (): NoPayloadExecutionSignature => Object.freeze({
+    payloadMode: RoutePayloadMode.None,
+    parameterDeclaration: '',
+    callArgumentsExpression: '',
+    hasPayload: false,
+    isOptional: true
+  }),
 
-  public static authOnly(): NoPayloadExecutionSignature {
-    return RouteSemanticFlowExecutionSignature.noPayload();
-  }
+  authOnly: (): NoPayloadExecutionSignature => RouteSemanticFlowExecutionSignature.noPayload(),
 
-  public static requiredPayload(typeName: string): RequiredPayloadExecutionSignature {
-    return Object.freeze({
-      payloadMode: RoutePayloadMode.Required,
-      parameterDeclaration: `payload: ${typeName}`,
-      callArgumentsExpression: 'payload',
-      hasPayload: true,
-      isOptional: false
-    });
-  }
+  requiredPayload: (typeName: string): RequiredPayloadExecutionSignature => Object.freeze({
+    payloadMode: RoutePayloadMode.Required,
+    parameterDeclaration: `payload: ${typeName}`,
+    callArgumentsExpression: 'payload',
+    hasPayload: true,
+    isOptional: false
+  }),
 
-  public static optionalPayload(typeName: string): OptionalPayloadExecutionSignature {
-    return Object.freeze({
-      payloadMode: RoutePayloadMode.Optional,
-      parameterDeclaration: `payload: ${typeName} = {}`,
-      callArgumentsExpression: 'payload',
-      hasPayload: true,
-      isOptional: true
-    });
-  }
+  optionalPayload: (typeName: string): OptionalPayloadExecutionSignature => Object.freeze({
+    payloadMode: RoutePayloadMode.Optional,
+    parameterDeclaration: `payload: ${typeName} = {}`,
+    callArgumentsExpression: 'payload',
+    hasPayload: true,
+    isOptional: true
+  }),
 
-  public static fromMode(
+  fromMode: (
     mode: RoutePayloadMode,
     typeName: Presence<string> = absent(),
-  ): RouteExecutionSignature {
+  ): RouteExecutionSignature => {
     const builders: Readonly<Record<RoutePayloadMode, (name: Presence<string>) => RouteExecutionSignature>> = {
       [RoutePayloadMode.None]: () => RouteSemanticFlowExecutionSignature.noPayload(),
       [RoutePayloadMode.Required]: name => presenceFold(
@@ -121,15 +113,15 @@ export class RouteSemanticFlowExecutionSignature {
       ),
     };
     return builders[mode](typeName);
-  }
+  },
 
-  public static create(
+  create: (
     _hookKind: RouteHookKind,
     _hasParams: boolean,
     hasPayload = false,
     typeName: Presence<string> = absent(),
-  ): RouteExecutionSignature {
+  ): RouteExecutionSignature => {
     const mode = ({ true: RoutePayloadMode.Required, false: RoutePayloadMode.None } as const)[String(hasPayload) as 'true' | 'false'];
     return RouteSemanticFlowExecutionSignature.fromMode(mode, typeName);
-  }
-}
+  },
+});

@@ -1,0 +1,8 @@
+{
+  "phase": 525,
+  "rule": "non-test TypeScript file with no textual basename references anywhere in core source is an inactive-file candidate",
+  "candidates": [],
+  "remainingNonEmptyCandidates": [],
+  "allCandidatesEmpty": true,
+  "timestamp": "2026-10-03T10:37:58.732Z"
+}

@@ -635,28 +635,6 @@ export interface ResourceAssignment {
   readonly nullability: Nullability;
 }
 
-export interface ParsedResource {
-  readonly identity: {
-    readonly name: ResourceName;
-    readonly baseName: ResourceName;
-    readonly typeName: ResponseTypeName;
-  };
-  readonly binding: {
-    readonly model: ModelBinding;
-  };
-  readonly surface: {
-    readonly sanitizedName: PropertyName;
-    readonly fields: readonly ResourceFieldDescriptor[];
-    readonly assignments: readonly ResourceAssignment[];
-  };
-  readonly provenance: {
-    readonly sourceFile: SourceFilePath;
-    readonly sourceLine: SourceLineNumber;
-    readonly synthetic: boolean;
-  };
-}
-
-
 /**
  * Backward compatibility type aliases for legacy adapters.
  */

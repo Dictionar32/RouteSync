@@ -6,29 +6,22 @@
  * @module core/compiler/generators/contract-generation/response-schema/fieldSchemaDispatcher
  */
 
-import type { ResponseFieldProjection } from '../response-field';
+import { matchResponseFieldProjection, type ResponseFieldProjection } from '../response-field';
+import { relationProject } from '../../../../semantic/kernel/relationalSequence';
 import type { NestedObjectSchemaBuilder } from '../NestedObjectSchemaBuilder';
 import type { ArraySchemaBuilder } from '../ArraySchemaBuilder';
 import { buildPrimitiveSchemaWithModifiers } from './primitiveSchemaBuilder';
 
 export function buildFieldSchema(
-    field: ResponseFieldProjection,
-    nestedObjectBuilder: NestedObjectSchemaBuilder,
-    arraySchemaBuilder: ArraySchemaBuilder
+  field: ResponseFieldProjection,
+  nestedObjectBuilder: NestedObjectSchemaBuilder,
+  arraySchemaBuilder: ArraySchemaBuilder
 ): string {
-    switch (field.kind) {
-        case 'primitive':
-            return buildPrimitiveSchemaWithModifiers(field);
-
-        case 'object':
-            return nestedObjectBuilder.buildObjectSchema(field);
-
-        case 'array':
-            return arraySchemaBuilder.buildArraySchema(field);
-
-        default:
-            throw new Error(`Unknown field kind: ${(field as any).kind}`);
-    }
+  return matchResponseFieldProjection(field, {
+    primitive: value => buildPrimitiveSchemaWithModifiers(value),
+    object: value => nestedObjectBuilder.buildObjectSchema(value),
+    array: value => arraySchemaBuilder.buildArraySchema(value),
+  });
 }
 
 export function buildObjectFromFields(
@@ -36,7 +29,7 @@ export function buildObjectFromFields(
     nestedObjectBuilder: NestedObjectSchemaBuilder,
     arraySchemaBuilder: ArraySchemaBuilder
 ): string {
-    const properties = fields.map(field => {
+    const properties = relationProject(fields, field => {
         const fieldSchema = buildFieldSchema(field, nestedObjectBuilder, arraySchemaBuilder);
         return `${field.name}: ${fieldSchema}`;
     });

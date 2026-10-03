@@ -8,5 +8,5 @@
 
 export {
   ScannedResourceFieldDescriptor,
-  type ScannedResourceFieldParams,
+  type ScannedResourceFieldParams
 } from './resource';

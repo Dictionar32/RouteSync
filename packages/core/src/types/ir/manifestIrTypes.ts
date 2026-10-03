@@ -25,22 +25,6 @@ export interface ManifestAction {
   readonly validation: ParsedValidationMap;
 }
 
-export interface ParsedResource {
-  readonly name: ResourceName;
-  readonly sourceModel: ModelName;
-  readonly fields: readonly ManifestField[];
-  readonly controller: ControllerName;
-  readonly routes: readonly RouteName[];
-  readonly isSynthetic: 'synthetic' | 'source';
-}
-
-export interface ParsedRequest {
-  readonly name: string;
-  readonly sourceFile: SourceFile;
-  readonly actions: readonly ManifestAction[];
-  readonly controller: ControllerName;
-  readonly routes: readonly RouteName[];
-}
 
 type NoPagination = Extract<PaginationState, { readonly kind: 'none' }>;
 type PresentPagination = Extract<PaginationState, { readonly kind: 'present' }>;

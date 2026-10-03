@@ -1,3 +1,5 @@
+export * from './validationRules';
+
 export * from './semanticResolution';
 export * from './semanticResolutionFactory';
 
@@ -190,11 +192,9 @@ export {
 
 export {
   RoutePayloadMode,
-  type BaseRouteExecutionSignature,
   type NoPayloadExecutionSignature,
   type RequiredPayloadExecutionSignature,
   type OptionalPayloadExecutionSignature,
-  type AnyRouteExecutionSignature,
   type RouteExecutionSignature,
   type RoutePayloadModeSpecification,
   type RoutePayloadModeRegistry,
@@ -214,7 +214,6 @@ export {
   matchResourceExpression,
   ResourceFieldExpressionFactory,
   type ResourceAssignment,
-  type ParsedResource,
   type ResourceFieldKind,
 } from './expressions';
 

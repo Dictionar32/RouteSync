@@ -6,7 +6,8 @@
  * @module core/compiler/generators/contract-generation/response-field
  */
 
-export type { ResponseFieldData, ResponseFieldProjection } from './types';
+export type { ResponseFieldData, ResponseFieldProjection, ResponseFieldProjectionVisitor } from './types';
+export { matchResponseFieldProjection } from './types';
 export {
   normalizeKind,
   normalizeType,

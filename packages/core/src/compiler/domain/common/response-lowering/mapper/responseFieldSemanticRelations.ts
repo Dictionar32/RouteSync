@@ -31,5 +31,5 @@ export function resolveResponseFieldOperation(kind: ResolvedSemanticTypeKind): R
     RESPONSE_FIELD_RULES,
   );
   const fact = relationFirst(solved, entry => relationAll([Object.is(entry.relation, 'response_field_operation'), Object.is(entry.arguments[0], kind)]));
-  return relationOptionFold(fact, () => { throw new Error(`No response-field semantic rule for '${kind}'`); }, entry => entry.arguments[1] as ResponseFieldOperation);
+  return relationOptionFold(fact, () => { throw Error(`No response-field semantic rule for '${kind}'`); }, entry => entry.arguments[1] as ResponseFieldOperation);
 }

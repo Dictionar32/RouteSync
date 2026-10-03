@@ -1,4 +1,5 @@
 import type { RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationResolve } from '../../../../semantic/kernel/relationalSequence';
 
 /** Closed response-field domain model. */
 
@@ -75,3 +76,26 @@ export interface ResponseFieldProjection {
   readonly fields: readonly ResponseFieldProjection[];
   readonly itemType: RelationOption<ResponseFieldProjection>;
 }
+
+
+export interface ResponseFieldProjectionVisitor<R> {
+  readonly primitive: (field: ResponseFieldProjection) => R;
+  readonly object: (field: ResponseFieldProjection) => R;
+  readonly array: (field: ResponseFieldProjection) => R;
+}
+
+export const matchResponseFieldProjection = <R>(
+  field: ResponseFieldProjection,
+  visitor: ResponseFieldProjectionVisitor<R>,
+): R => {
+  const branches: Readonly<Record<ResponseFieldProjection['kind'], (value: ResponseFieldProjection) => R>> = {
+    primitive: visitor.primitive,
+    object: visitor.object,
+    array: visitor.array,
+  };
+  return relationResolve(
+    Object.prototype.hasOwnProperty.call(branches, field.kind),
+    () => branches[field.kind](field),
+    () => { throw Error(`Unsupported response-field kind: ${field.kind}`); },
+  );
+};

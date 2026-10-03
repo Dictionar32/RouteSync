@@ -80,7 +80,3 @@ export type RouteExecutionSignature =
   | NoPayloadExecutionSignature
   | RequiredPayloadExecutionSignature
   | OptionalPayloadExecutionSignature;
-
-/** Canonical aliases: the execution-signature ADT is the sole route signature model. */
-export type BaseRouteExecutionSignature = RouteExecutionSignature;
-export type AnyRouteExecutionSignature = RouteExecutionSignature;

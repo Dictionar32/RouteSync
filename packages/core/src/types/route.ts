@@ -1,3 +1,5 @@
+export type { ResourceAst } from "./upstream/ast";
+
 /**
  * RouteSync Domain Types & Contracts.
  * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
@@ -94,7 +96,6 @@ export {
     matchResourceExpression,
     ResourceFieldExpressionFactory,
     type ResourceAssignment,
-    type ParsedResource,
     type ResourceFieldKind,
     CrudRole,
     PageEndpointKind,
@@ -150,11 +151,9 @@ export {
     RouteSemanticFlowCacheInvalidationDescriptor,
     RouteSemanticFlowInvalidationPayload,
     RoutePayloadMode,
-    type BaseRouteExecutionSignature,
     type NoPayloadExecutionSignature,
     type RequiredPayloadExecutionSignature,
     type OptionalPayloadExecutionSignature,
-    type AnyRouteExecutionSignature,
     type RouteExecutionSignature,
     type RoutePayloadModeSpecification,
     type RoutePayloadModeRegistry,

@@ -11,3 +11,5 @@ export {
   type ScannedResourceFieldParams
 } from './resourceFieldDescriptor';
 
+export {
+} from './resourceDescriptorClass';

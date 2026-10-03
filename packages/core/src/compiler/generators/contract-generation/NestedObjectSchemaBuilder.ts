@@ -1,127 +1,63 @@
-/**
- * NestedObjectSchemaBuilder - Build recursive z.object() schemas
- * 
- * Part of Response Contract Generation (Step 3 - Layer 2)
- * 
- * Responsibilities:
- * - Build z.object() schemas for nested objects
- * - Handle recursive nesting (objects within objects)
- * - Apply nullable/optional modifiers
- * 
- * SOC: Only object schema building, no arrays
- * SOT: Uses ZodModifierBuilder for modifiers
- */
+/** Closed semantic lowering for nested object response fields. */
 
-import { ZodModifierBuilder } from './ZodModifierBuilder'
-import type { ResponseFieldProjection } from './response-field'
+import { relationOptionFold, relationProject, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { matchResponseFieldProjection, type ResponseFieldProjection } from './response-field';
+import { ZodModifierBuilder } from './ZodModifierBuilder';
 
-/**
- * Builder for nested z.object() schemas
- */
 export class NestedObjectSchemaBuilder {
-    constructor(
-        private zodModifierBuilder: ZodModifierBuilder
-    ) { }
+    constructor(private readonly zodModifierBuilder: ZodModifierBuilder) {}
 
-    /**
-     * Build z.object() schema recursively
-     * 
-     * @param field Parsed response field with kind: 'object'
-     * @param inline If true, generate inline format for compact output
-     * @returns Zod schema string
-     */
     buildObjectSchema(field: ResponseFieldProjection, inline = false): string {
-        if (field.kind !== 'object') {
-            throw new Error(`Expected object field, got ${field.kind}`)
-        }
-
-        if (!field.fields || field.fields.length === 0) {
-            // Empty object
-            const baseSchema = 'z.object({})'
-            return this.applyModifiers(baseSchema, field)
-        }
-
-        // Build properties for z.object({ ... })
-        const properties = field.fields.map(childField => {
-            const propertySchema = this.buildFieldSchema(childField, inline)
-            return `${childField.name}: ${propertySchema}`
-        })
-
-        const baseSchema = inline
-            ? `z.object({ ${properties.join(', ')} })`
-            : `z.object({\n  ${properties.join(',\n  ')}\n})`
-
-        return this.applyModifiers(baseSchema, field)
+        const baseSchema = relationResolve(
+            field.fields.length > 0,
+            () => {
+                const properties = relationProject(field.fields, childField => `${childField.name}: ${this.buildFieldSchema(childField, inline)}`);
+                return inline
+                    ? `z.object({ ${properties.join(', ')} })`
+                    : `z.object({\n  ${properties.join(',\n  ')}\n})`;
+            },
+            () => 'z.object({})',
+        );
+        return this.applyModifiers(baseSchema, field);
     }
 
-    /**
-     * Build schema for any field type (primitive, object, array)
-     * 
-     * @param field Field to build schema for
-     * @param inline If true, generate inline format for compact output
-     * @returns Zod schema string
-     */
     private buildFieldSchema(field: ResponseFieldProjection, inline = false): string {
-        switch (field.kind) {
-            case 'primitive':
-                return this.buildPrimitiveSchema(field)
-
-            case 'object':
-                return this.buildObjectSchema(field, inline) // Recursive call with inline flag
-
-            case 'array':
-                // Arrays will be handled by ArraySchemaBuilder in Step 4
-                // For now, just build basic array schema
-                return this.buildBasicArraySchema(field)
-
-            default:
-                throw new Error(`Unknown field kind: ${(field).kind}`)
-        }
+        return matchResponseFieldProjection(field, {
+            primitive: value => this.buildPrimitiveSchema(value),
+            object: value => this.buildObjectSchema(value, inline),
+            array: value => this.buildBasicArraySchema(value),
+        });
     }
 
-    /**
-     * Build primitive type schema
-     */
     private buildPrimitiveSchema(field: ResponseFieldProjection): string {
-        // Map string type to Zod schema
-        const zodTypeMap: Record<string, string> = {
-            'string': 'z.string()',
-            'number': 'z.number()',
-            'boolean': 'z.boolean()',
-            'datetime': 'z.string().datetime()',
-            'unknown': 'z.unknown()'
-        }
-
-        const zodType = zodTypeMap[field.type] || 'z.unknown()'
-        return this.applyModifiers(zodType, field)
+        const zodTypeMap: Readonly<Record<string, string>> = Object.freeze({
+            string: 'z.string()',
+            number: 'z.number()',
+            boolean: 'z.boolean()',
+            datetime: 'z.string().datetime()',
+            unknown: 'z.unknown()'
+        });
+        const zodType = relationResolve(
+            Object.prototype.hasOwnProperty.call(zodTypeMap, field.type),
+            () => zodTypeMap[field.type],
+            () => 'z.unknown()',
+        );
+        return this.applyModifiers(zodType, field);
     }
 
-    /**
-     * Build basic array schema (will be enhanced in Step 4)
-     */
     private buildBasicArraySchema(field: ResponseFieldProjection): string {
         const itemSchema = relationOptionFold(
             field.itemType,
             () => 'z.unknown()',
             item => this.buildFieldSchema(item),
         );
-        const baseSchema = `z.array(${itemSchema})`
-
-        return this.applyModifiers(baseSchema, field)
+        return this.applyModifiers(`z.array(${itemSchema})`, field);
     }
 
-    /**
-     * Apply nullable/optional modifiers to schema
-     */
-    private applyModifiers(
-        schema: string,
-        field: ResponseFieldProjection
-    ): string {
-        const modifiers = this.zodModifierBuilder.buildModifiers({
-            required: !field.optional, // Convert optional → required
+    private applyModifiers(schema: string, field: ResponseFieldProjection): string {
+        return schema + this.zodModifierBuilder.buildModifiers({
+            required: !field.optional,
             nullable: field.nullable
-        })
-
-        return schema + modifiers
+        });
     }
 }

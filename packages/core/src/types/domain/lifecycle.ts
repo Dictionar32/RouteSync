@@ -63,11 +63,9 @@ export {
 
 export {
     RoutePayloadMode,
-    type BaseRouteExecutionSignature,
     type NoPayloadExecutionSignature,
     type RequiredPayloadExecutionSignature,
     type OptionalPayloadExecutionSignature,
-    type AnyRouteExecutionSignature,
     type RouteExecutionSignature,
     type RoutePayloadModeSpecification,
     type RoutePayloadModeRegistry,

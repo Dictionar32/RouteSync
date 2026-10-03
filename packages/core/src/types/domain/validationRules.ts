@@ -4,6 +4,8 @@ import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, Vali
 import type { RequestField } from "./request";
 import type { SourceSpan } from '../upstream/provenance';
 import { SemanticValueFactory } from './semanticValues';
+import { relationAnyMatch, relationFirst, relationFold, relationOptionFold, relationProject, relationResolve, relationRefine } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
 
 /**
  * ValidationRuleKind
@@ -165,6 +167,11 @@ export interface CustomValidationRuleNode extends BaseValidationRuleNode<'custom
 export type ValidationRuleNode =
   | RequiredValidationRuleNode
   | RequiredWithValidationRuleNode
+  | RequiredWithAllValidationRuleNode
+  | RequiredWithoutValidationRuleNode
+  | RequiredWithoutAllValidationRuleNode
+  | RequiredIfValidationRuleNode
+  | RequiredUnlessValidationRuleNode
   | NullableValidationRuleNode
   | OptionalValidationRuleNode
   | StringValidationRuleNode
@@ -216,31 +223,11 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
     category: 'modifier',
     description: 'Field is required when one or more other fields are present'
   },
-  [ValidationRuleKind.RequiredWithAll]: {
-    kind: ValidationRuleKind.RequiredWithAll,
-    category: 'modifier',
-    description: 'Field is required when all referenced fields are present'
-  },
-  [ValidationRuleKind.RequiredWithout]: {
-    kind: ValidationRuleKind.RequiredWithout,
-    category: 'modifier',
-    description: 'Field is required when one or more referenced fields are absent'
-  },
-  [ValidationRuleKind.RequiredWithoutAll]: {
-    kind: ValidationRuleKind.RequiredWithoutAll,
-    category: 'modifier',
-    description: 'Field is required when all referenced fields are absent'
-  },
-  [ValidationRuleKind.RequiredIf]: {
-    kind: ValidationRuleKind.RequiredIf,
-    category: 'modifier',
-    description: 'Field is required when a referenced field has a matching value'
-  },
-  [ValidationRuleKind.RequiredUnless]: {
-    kind: ValidationRuleKind.RequiredUnless,
-    category: 'modifier',
-    description: 'Field is required unless a referenced field has a matching value'
-  },
+  [ValidationRuleKind.RequiredWithAll]: { kind: ValidationRuleKind.RequiredWithAll, category: 'modifier', description: 'Field is required when all referenced fields are present' },
+  [ValidationRuleKind.RequiredWithout]: { kind: ValidationRuleKind.RequiredWithout, category: 'modifier', description: 'Field is required when one or more referenced fields are absent' },
+  [ValidationRuleKind.RequiredWithoutAll]: { kind: ValidationRuleKind.RequiredWithoutAll, category: 'modifier', description: 'Field is required when all referenced fields are absent' },
+  [ValidationRuleKind.RequiredIf]: { kind: ValidationRuleKind.RequiredIf, category: 'modifier', description: 'Field is required when a referenced field has one of the supplied values' },
+  [ValidationRuleKind.RequiredUnless]: { kind: ValidationRuleKind.RequiredUnless, category: 'modifier', description: 'Field is required unless a referenced field has one of the supplied values' },
   [ValidationRuleKind.Nullable]: {
     kind: ValidationRuleKind.Nullable,
     category: 'modifier',
@@ -374,7 +361,45 @@ export function matchValidationRule<R>(
   rule: ValidationRuleNode,
   visitor: ValidationRuleVisitor<R>
 ): R {
-  return visitor[rule.kind](rule as any);
+  const apply = <K extends ValidationRuleKind>(kind: K, handler: (node: ExtractRule<K>) => R) => (candidate: ValidationRuleNode): R =>
+    relationOptionFold(
+      relationRefine(candidate, (value): value is ExtractRule<K> => relationEqual(value.kind, kind)),
+      () => { throw Error(`Validation rule dispatch mismatch for '${kind}'`); },
+      handler,
+    );
+  const dispatch: Readonly<Record<ValidationRuleKind, (candidate: ValidationRuleNode) => R>> = Object.freeze({
+    required: apply(ValidationRuleKind.Required, visitor.required),
+    required_with: apply(ValidationRuleKind.RequiredWith, visitor.required_with),
+    required_with_all: apply(ValidationRuleKind.RequiredWithAll, visitor.required_with_all),
+    required_without: apply(ValidationRuleKind.RequiredWithout, visitor.required_without),
+    required_without_all: apply(ValidationRuleKind.RequiredWithoutAll, visitor.required_without_all),
+    required_if: apply(ValidationRuleKind.RequiredIf, visitor.required_if),
+    required_unless: apply(ValidationRuleKind.RequiredUnless, visitor.required_unless),
+    nullable: apply(ValidationRuleKind.Nullable, visitor.nullable),
+    optional: apply(ValidationRuleKind.Optional, visitor.optional),
+    string: apply(ValidationRuleKind.String, visitor.string),
+    number: apply(ValidationRuleKind.Number, visitor.number),
+    boolean: apply(ValidationRuleKind.Boolean, visitor.boolean),
+    array: apply(ValidationRuleKind.Array, visitor.array),
+    email: apply(ValidationRuleKind.Email, visitor.email),
+    url: apply(ValidationRuleKind.Url, visitor.url),
+    uuid: apply(ValidationRuleKind.Uuid, visitor.uuid),
+    date: apply(ValidationRuleKind.Date, visitor.date),
+    min: apply(ValidationRuleKind.Min, visitor.min),
+    max: apply(ValidationRuleKind.Max, visitor.max),
+    between: apply(ValidationRuleKind.Between, visitor.between),
+    in: apply(ValidationRuleKind.In, visitor.in),
+    exists: apply(ValidationRuleKind.Exists, visitor.exists),
+    unique: apply(ValidationRuleKind.Unique, visitor.unique),
+    file: apply(ValidationRuleKind.File, visitor.file),
+    image: apply(ValidationRuleKind.Image, visitor.image),
+    custom: apply(ValidationRuleKind.Custom, visitor.custom),
+  });
+  return relationResolve(
+    Object.prototype.hasOwnProperty.call(dispatch, rule.kind),
+    () => dispatch[rule.kind](rule),
+    () => { throw Error(`Unsupported validation rule kind: ${rule.kind}`); },
+  );
 }
 
 export const matchRule = matchValidationRule;
@@ -430,111 +455,115 @@ function dateFormat(value: string): DateFormat { return Object.freeze({ kind: 'd
 
 export class ValidationRuleParser {
   public static parse(ruleStr: string): ValidationRuleNode {
-    const trimmed = (ruleStr || '').trim();
+    const trimmed = ruleStr.trim();
     const colonIdx = trimmed.indexOf(':');
-    const name = (colonIdx === -1 ? trimmed : trimmed.slice(0, colonIdx)).toLowerCase();
-    const paramStr = colonIdx === -1 ? '' : trimmed.slice(colonIdx + 1);
-    const params = paramStr ? paramStr.split(',').map(s => s.trim()) : [];
-
-    switch (name) {
-      case 'required':
-        return ValidationRuleNodeFactory.required();
-      case 'required_with': return ValidationRuleNodeFactory.requiredWith(params.map(value => SemanticValueFactory.propertyName(value)));
-      case 'required_with_all': return ValidationRuleNodeFactory.requiredWithAll(params.map(value => SemanticValueFactory.propertyName(value)));
-      case 'required_without': return ValidationRuleNodeFactory.requiredWithout(params.map(value => SemanticValueFactory.propertyName(value)));
-      case 'required_without_all': return ValidationRuleNodeFactory.requiredWithoutAll(params.map(value => SemanticValueFactory.propertyName(value)));
-      case 'required_if': return params.length > 0 ? ValidationRuleNodeFactory.requiredIf(SemanticValueFactory.propertyName(params[0]), params.slice(1).map(validationParameter)) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'required_unless': return params.length > 0 ? ValidationRuleNodeFactory.requiredUnless(SemanticValueFactory.propertyName(params[0]), params.slice(1).map(validationParameter)) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'nullable':
-        return ValidationRuleNodeFactory.nullable();
-      case 'sometimes':
-      case 'optional':
-        return ValidationRuleNodeFactory.optional();
-      case 'string':
-        return ValidationRuleNodeFactory.string();
-      case 'integer':
-      case 'int':
-      case 'numeric':
-      case 'digits':
-        return ValidationRuleNodeFactory.number();
-      case 'boolean':
-      case 'bool':
-        return ValidationRuleNodeFactory.boolean();
-      case 'array':
-        return ValidationRuleNodeFactory.array();
-      case 'email':
-        return ValidationRuleNodeFactory.email();
-      case 'url':
-        return ValidationRuleNodeFactory.url();
-      case 'uuid':
-        return ValidationRuleNodeFactory.uuid();
-      case 'date':
-      case 'datetime':
-      case 'timestamp':
-        return params.length > 0 ? ValidationRuleNodeFactory.date({ kind: 'specified', format: dateFormat(params[0]) }) : ValidationRuleNodeFactory.date();
-      case 'min':
-        return params.length > 0 && Number.isFinite(Number(params[0])) ? ValidationRuleNodeFactory.min(validationConstraintValue(params[0])) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'max':
-        return params.length > 0 && Number.isFinite(Number(params[0])) ? ValidationRuleNodeFactory.max(validationConstraintValue(params[0])) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'between':
-        return params.length > 1 && Number.isFinite(Number(params[0])) && Number.isFinite(Number(params[1])) ? ValidationRuleNodeFactory.between(validationConstraintValue(params[0]), validationConstraintValue(params[1])) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'in':
-        return ValidationRuleNodeFactory.in(params.map(validationParameter));
-      case 'exists':
-        return params.length > 0 ? ValidationRuleNodeFactory.exists(tableName(params[0]), params.length > 1 ? { kind: 'explicit_column', column: columnName(params[1]) } : { kind: 'default_column' }) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'unique':
-        return params.length > 0 ? ValidationRuleNodeFactory.unique(tableName(params[0]), params.length > 1 ? { kind: 'explicit_column', column: columnName(params[1]) } : { kind: 'default_column' }) : ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      case 'file':
-        return ValidationRuleNodeFactory.file();
-      case 'image':
-        return ValidationRuleNodeFactory.image();
-      default: {
-        // Fluent Laravel Rules: Rule::in([...]), Rule::unique('table', 'col'), Rule::exists('table', 'col')
-        if (trimmed.includes('Rule::in') || trimmed.startsWith('in(')) {
-          const match = trimmed.match(/(?:Rule::in|in)\s*\(\s*\[?([^\]\)]*)\]?\s*\)/);
-          if (match && match[1]) {
-            const values = match[1].split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-            return ValidationRuleNodeFactory.in(values.map(validationParameter));
-          }
-        }
-        if (trimmed.includes('Rule::unique') || trimmed.startsWith('unique(')) {
-          const match = trimmed.match(/(?:Rule::unique|unique)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
-          if (match && match[1]) {
-            return ValidationRuleNodeFactory.unique(tableName(match[1]), match[2] ? { kind: 'explicit_column', column: columnName(match[2]) } : { kind: 'default_column' });
-          }
-        }
-        if (trimmed.includes('Rule::exists') || trimmed.startsWith('exists(')) {
-          const match = trimmed.match(/(?:Rule::exists|exists)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
-          if (match && match[1]) {
-            return ValidationRuleNodeFactory.exists(tableName(match[1]), match[2] ? { kind: 'explicit_column', column: columnName(match[2]) } : { kind: 'default_column' });
-          }
-        }
-        return ValidationRuleNodeFactory.custom(validationRuleName(name), params.map(validationParameter));
-      }
-    }
-  }
-
-  public static parseAll(rules: readonly (string | ValidationRuleNode)[]): readonly ValidationRuleNode[] {
-    return Object.freeze(
-      rules.map(r => typeof r === 'string' ? this.parse(r) : r)
+    const name = relationResolve(relationEqual(colonIdx, -1), () => trimmed, () => trimmed.slice(0, colonIdx)).toLowerCase();
+    const paramStr = relationResolve(relationEqual(colonIdx, -1), () => '', () => trimmed.slice(colonIdx + 1));
+    const params = relationResolve(paramStr.length > 0, () => relationProject(paramStr.split(','), value => value.trim()), () => [] as string[]);
+    const parser = VALIDATION_RULE_PARSERS[name];
+    return relationResolve(
+      Object.prototype.hasOwnProperty.call(VALIDATION_RULE_PARSERS, name),
+      () => parser(params),
+      () => parseFluentValidationRule(trimmed, name, params),
     );
   }
 
-  /**
-   * Directly lowers ValidationRuleNode AST to Zod schema string expression.
-   * Pure deterministic compiler method (0 regex, 0 string matching, 0 if).
-   */
+  public static parseAll(rules: readonly string[]): readonly ValidationRuleNode[] {
+    return Object.freeze(relationProject(rules, rule => this.parse(rule)));
+  }
+
   public static toZodExpression(rules: readonly ValidationRuleNode[]): string {
-    const isRequired = rules.some(r => r.kind === ValidationRuleKind.Required);
-    const hasOptional = rules.some(r => r.kind === ValidationRuleKind.Optional);
+    const isRequired = relationAnyMatch(rules, rule => relationEqual(rule.kind, ValidationRuleKind.Required));
+    const hasOptional = relationAnyMatch(rules, rule => relationEqual(rule.kind, ValidationRuleKind.Optional));
     const initialNode: ZodNode = { expression: 'z.string()' };
-    let finalNode = ZodSchemaReducer.reduceConstraints(initialNode, rules);
-    if (!isRequired && !hasOptional) {
-      finalNode = { expression: `${finalNode.expression}.optional()` };
-    }
-    return finalNode.expression;
+    const finalNode = ZodSchemaReducer.reduceConstraints(initialNode, rules);
+    return relationResolve(
+      relationAnyMatch([isRequired, hasOptional], value => relationEqual(value, false)),
+      () => `${finalNode.expression}.optional()`,
+      () => finalNode.expression,
+    );
   }
 }
+
+const VALIDATION_RULE_PARSERS: Readonly<Record<string, (params: readonly string[]) => ValidationRuleNode>> = Object.freeze({
+  required: () => ValidationRuleNodeFactory.required(),
+  required_with: params => ValidationRuleNodeFactory.requiredWith(relationProject(params, value => SemanticValueFactory.propertyName(value))),
+  required_with_all: params => ValidationRuleNodeFactory.requiredWithAll(relationProject(params, value => SemanticValueFactory.propertyName(value))),
+  required_without: params => ValidationRuleNodeFactory.requiredWithout(relationProject(params, value => SemanticValueFactory.propertyName(value))),
+  required_without_all: params => ValidationRuleNodeFactory.requiredWithoutAll(relationProject(params, value => SemanticValueFactory.propertyName(value))),
+  required_if: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.requiredIf(SemanticValueFactory.propertyName(params[0]), relationProject(params.slice(1), validationParameter)), () => ValidationRuleNodeFactory.custom(validationRuleName('required_if'), relationProject(params, validationParameter))),
+  required_unless: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.requiredUnless(SemanticValueFactory.propertyName(params[0]), relationProject(params.slice(1), validationParameter)), () => ValidationRuleNodeFactory.custom(validationRuleName('required_unless'), relationProject(params, validationParameter))),
+  nullable: () => ValidationRuleNodeFactory.nullable(),
+  sometimes: () => ValidationRuleNodeFactory.optional(),
+  optional: () => ValidationRuleNodeFactory.optional(),
+  string: () => ValidationRuleNodeFactory.string(),
+  integer: () => ValidationRuleNodeFactory.number(),
+  int: () => ValidationRuleNodeFactory.number(),
+  numeric: () => ValidationRuleNodeFactory.number(),
+  digits: () => ValidationRuleNodeFactory.number(),
+  boolean: () => ValidationRuleNodeFactory.boolean(),
+  bool: () => ValidationRuleNodeFactory.boolean(),
+  array: () => ValidationRuleNodeFactory.array(),
+  email: () => ValidationRuleNodeFactory.email(),
+  url: () => ValidationRuleNodeFactory.url(),
+  uuid: () => ValidationRuleNodeFactory.uuid(),
+  date: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.date({ kind: 'specified', format: dateFormat(params[0]) }), () => ValidationRuleNodeFactory.date()),
+  datetime: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.date({ kind: 'specified', format: dateFormat(params[0]) }), () => ValidationRuleNodeFactory.date()),
+  timestamp: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.date({ kind: 'specified', format: dateFormat(params[0]) }), () => ValidationRuleNodeFactory.date()),
+  min: params => relationResolve(params.length > 0 && Number.isFinite(Number(params[0])), () => ValidationRuleNodeFactory.min(validationConstraintValue(params[0])), () => ValidationRuleNodeFactory.custom(validationRuleName('min'), relationProject(params, validationParameter))),
+  max: params => relationResolve(params.length > 0 && Number.isFinite(Number(params[0])), () => ValidationRuleNodeFactory.max(validationConstraintValue(params[0])), () => ValidationRuleNodeFactory.custom(validationRuleName('max'), relationProject(params, validationParameter))),
+  between: params => relationResolve(params.length > 1 && Number.isFinite(Number(params[0])) && Number.isFinite(Number(params[1])), () => ValidationRuleNodeFactory.between(validationConstraintValue(params[0]), validationConstraintValue(params[1])), () => ValidationRuleNodeFactory.custom(validationRuleName('between'), relationProject(params, validationParameter))),
+  in: params => ValidationRuleNodeFactory.in(relationProject(params, validationParameter)),
+  exists: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.exists(tableName(params[0]), relationResolve(params.length > 1, () => ({ kind: 'explicit_column', column: columnName(params[1]) } as const), () => ({ kind: 'default_column' } as const))), () => ValidationRuleNodeFactory.custom(validationRuleName('exists'), relationProject(params, validationParameter))),
+  unique: params => relationResolve(params.length > 0, () => ValidationRuleNodeFactory.unique(tableName(params[0]), relationResolve(params.length > 1, () => ({ kind: 'explicit_column', column: columnName(params[1]) } as const), () => ({ kind: 'default_column' } as const))), () => ValidationRuleNodeFactory.custom(validationRuleName('unique'), relationProject(params, validationParameter))),
+  file: () => ValidationRuleNodeFactory.file(),
+  image: () => ValidationRuleNodeFactory.image(),
+});
+
+const parseFluentValidationRule = (trimmed: string, name: string, params: readonly string[]): ValidationRuleNode => {
+  const fluentRules: readonly { readonly matches: boolean; readonly parse: () => ValidationRuleNode }[] = [
+    {
+      matches: trimmed.includes('Rule::in') || trimmed.startsWith('in('),
+      parse: () => {
+        const match = trimmed.match(/(?:Rule::in|in)\s*\(\s*\[?([^\]\)]*)\]?\s*\)/);
+        return relationOptionFold(
+          relationRefine(match, (value): value is RegExpMatchArray => Boolean(value && value[1])),
+          () => ValidationRuleNodeFactory.custom(validationRuleName(name), relationProject(params, validationParameter)),
+          value => ValidationRuleNodeFactory.in(relationProject(value[1].split(','), item => validationParameter(item.trim().replace(/^['"]|['"]$/g, '')))),
+        );
+      },
+    },
+    { matches: trimmed.includes('Rule::unique') || trimmed.startsWith('unique('), parse: () => parseFluentDatabaseRule(trimmed, name, params, 'unique') },
+    { matches: trimmed.includes('Rule::exists') || trimmed.startsWith('exists('), parse: () => parseFluentDatabaseRule(trimmed, name, params, 'exists') },
+  ];
+  return relationOptionFold(
+    relationFirst(fluentRules, rule => rule.matches),
+    () => ValidationRuleNodeFactory.custom(validationRuleName(name), relationProject(params, validationParameter)),
+    rule => rule.parse(),
+  );
+};
+
+const FLUENT_DATABASE_PATTERNS: Readonly<Record<'unique' | 'exists', RegExp>> = Object.freeze({
+  unique: /(?:Rule::unique|unique)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/,
+  exists: /(?:Rule::exists|exists)\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/,
+});
+
+const FLUENT_DATABASE_FACTORIES: Readonly<Record<'unique' | 'exists', (table: TableName, column: ValidationDatabaseColumn) => ValidationRuleNode>> = Object.freeze({
+  unique: (table, column) => ValidationRuleNodeFactory.unique(table, column),
+  exists: (table, column) => ValidationRuleNodeFactory.exists(table, column),
+});
+
+const parseFluentDatabaseRule = (trimmed: string, name: string, params: readonly string[], kind: 'unique' | 'exists'): ValidationRuleNode => {
+  const match = trimmed.match(FLUENT_DATABASE_PATTERNS[kind]);
+  return relationOptionFold(
+    relationRefine(match, (value): value is RegExpMatchArray => Boolean(value && value[1])),
+    () => ValidationRuleNodeFactory.custom(validationRuleName(name), relationProject(params, validationParameter)),
+    value => FLUENT_DATABASE_FACTORIES[kind](
+      tableName(value[1]),
+      relationResolve(Boolean(value[2]), () => ({ kind: 'explicit_column', column: columnName(value[2]) } as const), () => ({ kind: 'default_column' } as const)),
+    ),
+  );
+};
 
 export interface ZodNode {
   readonly expression: string;
@@ -571,7 +600,7 @@ export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
     expression: `${base.expression}.max(${c.value})`
   }),
   [ValidationRuleKind.In]: (base, c) => ({
-    expression: `z.enum([${c.values.map(v => JSON.stringify(v)).join(', ')}])`
+    expression: `z.enum([${relationProject(c.values, v => JSON.stringify(v)).join(', ')}])`
   }),
   [ValidationRuleKind.Between]: (base, c) => ({
     expression: `${base.expression}.min(${c.min}).max(${c.max})`
@@ -585,12 +614,6 @@ export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
   [ValidationRuleKind.Uuid]: (base) => ({
     expression: `${base.expression}.uuid()`
   }),
-  [ValidationRuleKind.RequiredWith]: (base) => base,
-  [ValidationRuleKind.RequiredWithAll]: (base) => base,
-  [ValidationRuleKind.RequiredWithout]: (base) => base,
-  [ValidationRuleKind.RequiredWithoutAll]: (base) => base,
-  [ValidationRuleKind.RequiredIf]: (base) => base,
-  [ValidationRuleKind.RequiredUnless]: (base) => base,
   [ValidationRuleKind.Nullable]: (base) => ({
     expression: `${base.expression}.nullable()`
   }),
@@ -619,6 +642,12 @@ export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
     expression: 'z.instanceof(File)'
   }),
   [ValidationRuleKind.Required]: (base) => base,
+  [ValidationRuleKind.RequiredWith]: (base) => base,
+  [ValidationRuleKind.RequiredWithAll]: (base) => base,
+  [ValidationRuleKind.RequiredWithout]: (base) => base,
+  [ValidationRuleKind.RequiredWithoutAll]: (base) => base,
+  [ValidationRuleKind.RequiredIf]: (base) => base,
+  [ValidationRuleKind.RequiredUnless]: (base) => base,
   [ValidationRuleKind.Exists]: (base) => base,
   [ValidationRuleKind.Unique]: (base) => base,
   [ValidationRuleKind.Custom]: (base) => base
@@ -629,13 +658,36 @@ export class ZodSchemaReducer {
     initialNode: ZodNode,
     constraints: readonly ValidationRuleNode[]
   ): ZodNode {
-    return constraints.reduce<ZodNode>((base, constraint) => {
-      const handler = ZOD_CONSTRAINT_REGISTRY[constraint.kind] as (
-        b: ZodNode,
-        c: ValidationRuleNode
-      ) => ZodNode;
-      return handler(base, constraint);
-    }, initialNode);
+    return relationFold(constraints, initialNode, (base, constraint) =>
+      matchValidationRule(constraint, {
+        required: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Required](base, node),
+        required_with: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.RequiredWith](base, node),
+        required_with_all: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.RequiredWithAll](base, node),
+        required_without: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.RequiredWithout](base, node),
+        required_without_all: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.RequiredWithoutAll](base, node),
+        required_if: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.RequiredIf](base, node),
+        required_unless: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.RequiredUnless](base, node),
+        nullable: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Nullable](base, node),
+        optional: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Optional](base, node),
+        string: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.String](base, node),
+        number: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Number](base, node),
+        boolean: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Boolean](base, node),
+        array: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Array](base, node),
+        email: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Email](base, node),
+        url: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Url](base, node),
+        uuid: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Uuid](base, node),
+        date: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Date](base, node),
+        min: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Min](base, node),
+        max: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Max](base, node),
+        between: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Between](base, node),
+        in: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.In](base, node),
+        exists: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Exists](base, node),
+        unique: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Unique](base, node),
+        file: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.File](base, node),
+        image: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Image](base, node),
+        custom: node => ZOD_CONSTRAINT_REGISTRY[ValidationRuleKind.Custom](base, node),
+      })
+    );
   }
 }
 

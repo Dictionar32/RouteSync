@@ -1,0 +1,561 @@
+{
+  "phase": 695,
+  "kind": "semantic-compiler-frontier",
+  "executionSignatureAliases": {
+    "base": false,
+    "any": false
+  },
+  "legacyRequestAndResourceDescriptors": {
+    "productionReferences": [],
+    "empty": true
+  },
+  "retiredLegacyFiles": [
+    {
+      "file": "packages/core/src/ir/domain/ContractMetadataBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/ir/domain/FieldTypeResolver.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/ir/domain/RequestEndpointBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/ir/domain/ResourceIRBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/ir/domain/ResourceMapperBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "file": "packages/core/src/ir/domain/request-endpoint/requestValidator.ts",
+      "bytes": 0
+    }
+  ],
+  "hostSyntaxAst": {
+    "totals": {
+      "if": 102,
+      "while": 1,
+      "for": 40,
+      "switch": 28,
+      "map": 40,
+      "filter": 8,
+      "reduce": 2,
+      "flatMap": 3,
+      "undefined": 13,
+      "null": 8,
+      "nullishCoalesce": 18,
+      "strictEquality": 116,
+      "unknownAssertion": 7,
+      "setConstruction": 6,
+      "mapConstruction": 18,
+      "anyType": 24,
+      "newExpression": 158
+    },
+    "byFile": [
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/ContractCodeBuilder.ts",
+        "entries": {
+          "if": 11,
+          "filter": 1,
+          "strictEquality": 7,
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/ContractSchemaMapper.ts",
+        "entries": {
+          "map": 2,
+          "reduce": 1,
+          "flatMap": 3,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/PrimitiveTypeRegistry.ts",
+        "entries": {
+          "if": 1,
+          "undefined": 1,
+          "strictEquality": 1,
+          "mapConstruction": 1,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/ResponseSchemaMapper.ts",
+        "entries": {
+          "if": 2,
+          "for": 1,
+          "null": 1,
+          "strictEquality": 2,
+          "newExpression": 3
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/ZodModifierBuilder.ts",
+        "entries": {
+          "if": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/builder/exportsSectionBuilder.ts",
+        "entries": {
+          "if": 4,
+          "for": 1,
+          "nullishCoalesce": 1,
+          "strictEquality": 2,
+          "mapConstruction": 1,
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/builder/requestSectionBuilder.ts",
+        "entries": {
+          "if": 2,
+          "strictEquality": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/builder/responseSectionBuilder.ts",
+        "entries": {
+          "if": 7,
+          "for": 6,
+          "nullishCoalesce": 3,
+          "strictEquality": 6,
+          "mapConstruction": 3,
+          "newExpression": 3
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/response-field/typeNormalizer.ts",
+        "entries": {
+          "nullishCoalesce": 2,
+          "strictEquality": 4,
+          "mapConstruction": 1,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/response-schema/actionResponseMapper.ts",
+        "entries": {
+          "if": 2,
+          "strictEquality": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/contract-generation/response-schema/primitiveSchemaBuilder.ts",
+        "entries": {
+          "if": 2,
+          "map": 1,
+          "strictEquality": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/form-generation/FormActionGenerator.ts",
+        "entries": {
+          "if": 1,
+          "for": 1,
+          "map": 3,
+          "strictEquality": 2,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/form-generation/FormCodeBuilder.ts",
+        "entries": {
+          "for": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/form-generation/field-mapper/ruleMapper.ts",
+        "entries": {
+          "map": 2,
+          "reduce": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/ImportCollector.ts",
+        "entries": {
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/TypeScriptGenerator.ts",
+        "entries": {
+          "setConstruction": 1,
+          "newExpression": 5
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/domain/CompositeTypeConverter.ts",
+        "entries": {
+          "if": 7,
+          "switch": 1,
+          "map": 2,
+          "strictEquality": 9,
+          "newExpression": 13
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/domain/ImportTracker.ts",
+        "entries": {
+          "if": 3,
+          "for": 3,
+          "switch": 1,
+          "map": 1,
+          "setConstruction": 1,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/domain/InterfaceBuilder.ts",
+        "entries": {
+          "if": 6,
+          "for": 4,
+          "map": 2,
+          "undefined": 4,
+          "strictEquality": 4,
+          "newExpression": 8
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/domain/TypeConverter.ts",
+        "entries": {
+          "if": 4,
+          "for": 4,
+          "undefined": 1,
+          "strictEquality": 2,
+          "newExpression": 13
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/domain/generatorErrors.ts",
+        "entries": {
+          "if": 4
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/import-collector/importSpec.ts",
+        "entries": {
+          "setConstruction": 1,
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/generators/typescript/import-collector/importStorage.ts",
+        "entries": {
+          "if": 3,
+          "for": 2,
+          "setConstruction": 3,
+          "mapConstruction": 1,
+          "newExpression": 4
+        }
+      },
+      {
+        "file": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+        "entries": {
+          "null": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/authAndPolicy.ts",
+        "entries": {
+          "if": 6,
+          "for": 1,
+          "map": 3,
+          "filter": 2,
+          "strictEquality": 8,
+          "newExpression": 4
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/boundAst.ts",
+        "entries": {
+          "switch": 3
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/cacheInvalidation.ts",
+        "entries": {
+          "map": 1,
+          "anyType": 1,
+          "newExpression": 6
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/channels.ts",
+        "entries": {
+          "anyType": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/contracts.ts",
+        "entries": {
+          "while": 1,
+          "for": 1,
+          "map": 2,
+          "strictEquality": 1,
+          "mapConstruction": 1,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/crudRoles.ts",
+        "entries": {
+          "if": 1,
+          "switch": 3,
+          "strictEquality": 1,
+          "unknownAssertion": 6,
+          "newExpression": 12
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/databaseColumns.ts",
+        "entries": {
+          "if": 1,
+          "nullishCoalesce": 3,
+          "strictEquality": 1,
+          "mapConstruction": 2,
+          "anyType": 1,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/domainGraph.ts",
+        "entries": {
+          "for": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/eloquentTypes.ts",
+        "entries": {
+          "if": 1,
+          "switch": 2,
+          "undefined": 1,
+          "strictEquality": 4,
+          "mapConstruction": 2,
+          "newExpression": 3
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/expressions.ts",
+        "entries": {
+          "switch": 2,
+          "map": 1,
+          "null": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/fieldBinding.ts",
+        "entries": {
+          "strictEquality": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/fieldCatamorphism.ts",
+        "entries": {
+          "switch": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/httpErrors.ts",
+        "entries": {
+          "strictEquality": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/httpVocabulary.ts",
+        "entries": {
+          "if": 5,
+          "nullishCoalesce": 1,
+          "strictEquality": 6,
+          "anyType": 5,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/mappingIntent.ts",
+        "entries": {
+          "map": 1,
+          "strictEquality": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/operationGraph.ts",
+        "entries": {
+          "map": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/provenance/dataProvenanceKind.ts",
+        "entries": {
+          "strictEquality": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/provenance/endpointProvenance.ts",
+        "entries": {
+          "if": 3,
+          "strictEquality": 6,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/queryProjectionResolution.ts",
+        "entries": {
+          "for": 2,
+          "undefined": 2,
+          "strictEquality": 2,
+          "mapConstruction": 2,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/requestFieldMeaning.ts",
+        "entries": {
+          "map": 4,
+          "newExpression": 13
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/requestFieldPresence.ts",
+        "entries": {
+          "newExpression": 3
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/requestModels.ts",
+        "entries": {
+          "for": 4,
+          "map": 2,
+          "undefined": 4,
+          "strictEquality": 7,
+          "mapConstruction": 4,
+          "newExpression": 15
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/resourceFieldSemantic.ts",
+        "entries": {
+          "if": 2,
+          "strictEquality": 2,
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/resourceGroupDescriptors.ts",
+        "entries": {
+          "if": 15,
+          "for": 7,
+          "null": 4,
+          "nullishCoalesce": 2,
+          "strictEquality": 8,
+          "unknownAssertion": 1,
+          "anyType": 13,
+          "newExpression": 8
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/resourceModelMethodMeaning.ts",
+        "entries": {
+          "switch": 2,
+          "filter": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/resourceModelMethodSurface.ts",
+        "entries": {
+          "map": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/resourceQueryOperation.ts",
+        "entries": {
+          "if": 3,
+          "switch": 8,
+          "map": 2,
+          "filter": 4,
+          "strictEquality": 16
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/responseShapes.ts",
+        "entries": {
+          "switch": 3,
+          "map": 6,
+          "nullishCoalesce": 6,
+          "strictEquality": 1,
+          "newExpression": 9
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/routeEntityDefinition.ts",
+        "entries": {
+          "if": 1,
+          "switch": 1,
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/routeHandlers.ts",
+        "entries": {
+          "if": 2,
+          "strictEquality": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/routes.ts",
+        "entries": {
+          "switch": 1,
+          "map": 2,
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/schemaMorphism/algebra.ts",
+        "entries": {
+          "anyType": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/sdkResponses.ts",
+        "entries": {
+          "anyType": 1,
+          "newExpression": 5
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/semanticResolutionFactory.ts",
+        "entries": {
+          "newExpression": 2
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/semanticValues.ts",
+        "entries": {
+          "if": 1,
+          "newExpression": 1
+        }
+      },
+      {
+        "file": "packages/core/src/types/domain/validationFields.ts",
+        "entries": {
+          "map": 1,
+          "strictEquality": 3
+        }
+      }
+    ]
+  },
+  "inactiveVacuum": {
+    "phase": 525,
+    "rule": "non-test TypeScript file with no textual basename references anywhere in core source is an inactive-file candidate",
+    "candidates": [],
+    "remainingNonEmptyCandidates": [],
+    "allCandidatesEmpty": true,
+    "timestamp": "2026-10-03T10:37:55.737Z"
+  },
+  "status": "PASS"
+}

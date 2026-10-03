@@ -9,12 +9,12 @@
 
 import type { ModelSymbolTable, OriginModelSymbol } from "../symbols/ModelSymbolTable";
 import type { PhpAstValue, PhpArrayEntry } from "../lexer/PhpAst";
+import type { ResourceFieldDescriptor } from "../../../types/route";
 import type { BoundSemanticNode } from "../../../types/domain/boundAst";
 import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { ModelName, ResourceName, SourceFile } from "../../../types/upstream/names";
 import type { ResourceAst } from "../../../types/upstream/ast";
 import {
-    bindResource,
     bindField,
     bindWhenLoadedField,
     bindPropertyAccessField,
@@ -35,7 +35,6 @@ export interface BoundResourceFieldResult {
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)
 export {
-    bindResource,
     bindField,
     bindWhenLoadedField,
     bindPropertyAccessField,
@@ -53,9 +52,6 @@ export {
  * Orchestrator class providing static entry points for resource and field binding.
  */
 export class SemanticResourceBinder {
-    /**
-     * Binds a full Resource definition and its AST array entries to a ModelSymbol.
-     */
     /** Canonical AST producer: binds source semantics directly into ResourceAst. */
     public static bindResourceAst(params: Parameters<typeof bindResourceDefinition>[0]): ResourceAst {
         return bindResourceDefinition(params);

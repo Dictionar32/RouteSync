@@ -14,6 +14,10 @@
 
 export {
     Diagnostic,
+    DiagnosticTraceNode,
+    DiagnosticTrace,
+    DiagnosticSuggestion,
+    DiagnosticSuggestions,
     DiagnosticSeverity,
     DiagnosticCategory,
     DIAGNOSTIC_CATEGORY_REGISTRY,

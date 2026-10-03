@@ -18,6 +18,25 @@ export interface DiagnosticFix {
     readonly edits: readonly TextEdit[];
 }
 
+/** Closed derivation breadcrumb emitted with every diagnostic. */
+export type DiagnosticTraceNode =
+    | { readonly kind: 'stage'; readonly name: string }
+    | { readonly kind: 'relation'; readonly name: string; readonly fact: string }
+    | { readonly kind: 'rewrite'; readonly name: string; readonly rule: string };
+
+export type DiagnosticTrace =
+    | { readonly kind: 'empty' }
+    | { readonly kind: 'path'; readonly nodes: readonly DiagnosticTraceNode[] };
+
+/** Closed suggestion state: absence is semantic, never an optional field. */
+export type DiagnosticSuggestion =
+    | { readonly kind: 'none' }
+    | { readonly kind: 'available'; readonly description: string; readonly fix: DiagnosticFix };
+
+export type DiagnosticSuggestions =
+    | { readonly kind: 'none' }
+    | { readonly kind: 'many'; readonly items: readonly DiagnosticSuggestion[] };
+
 export type DiagnosticSeverity = 'error' | 'warning';
 
 export const DiagnosticCategory = Object.freeze({
@@ -100,6 +119,8 @@ export interface Diagnostic {
     readonly message: string;
     readonly location: DiagnosticLocation;
     readonly fix: DiagnosticFixState;
+    readonly trace: DiagnosticTrace;
+    readonly suggestions: DiagnosticSuggestions;
 }
 
 export const DiagnosticLocation = Object.freeze({
@@ -119,6 +140,8 @@ export interface DiagnosticInput {
     readonly message: string;
     readonly location: DiagnosticLocation;
     readonly fix: DiagnosticFixState;
+    readonly trace: DiagnosticTrace;
+    readonly suggestions: DiagnosticSuggestions;
 }
 
 export const createDiagnostic = (input: DiagnosticInput): Diagnostic => Object.freeze({
@@ -127,5 +150,7 @@ export const createDiagnostic = (input: DiagnosticInput): Diagnostic => Object.f
     category: input.category,
     message: input.message,
     location: input.location,
-    fix: input.fix
+    fix: input.fix,
+    trace: input.trace,
+    suggestions: input.suggestions
 });

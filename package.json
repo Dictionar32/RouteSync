@@ -157,7 +157,10 @@
     "audit:semantic:phase691": "node scripts/audit-phase691-ir-semantic-frontier.cjs",
     "audit:semantic:phase692": "node scripts/audit-phase692-semantic-compiler-frontier.cjs",
     "audit:phase700-semantic-model-interface": "node scripts/audit-phase700-semantic-model-interface.cjs",
-    "audit:phase706:compiler-semantic-frontier": "node scripts/audit-phase706-compiler-semantic-frontier.cjs"
+    "audit:phase706:compiler-semantic-frontier": "node scripts/audit-phase706-compiler-semantic-frontier.cjs",
+    "audit:phase707:resource-type-adt": "node scripts/audit-phase707-resource-type-adt.cjs",
+    "audit:phase708:model-type-diagnostic-frontier": "node scripts/audit-phase708-model-type-diagnostic-frontier.cjs",
+    "audit:phase709:diagnostic-trace-suggestion": "node scripts/audit-phase709-diagnostic-trace-suggestion.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

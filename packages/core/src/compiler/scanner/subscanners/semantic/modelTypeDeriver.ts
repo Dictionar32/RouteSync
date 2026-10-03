@@ -1,86 +1,91 @@
 /**
- * modelTypeDeriver.ts
+ * Canonical model semantic-type lowering.
  *
- * Derives canonical ObjectType instances for scanned Eloquent Models.
- *
- * @module core/compiler/scanner/subscanners/semantic
+ * ModelSemanticProperty is the authority at this stage. The upstream
+ * legacy property descriptor is deliberately not consulted: the scanner
+ * has already established the closed semantic property judgment.
  */
 
-import {
-    ObjectType,
-    type ObjectProperty,
-    ScannedObjectProperty
-} from '../../../types/SemanticType';
-import {
-    toPascalCase
-} from '../../../../utils/resource-naming';
+import { ObjectType, ScannedObjectProperty, type ObjectProperty, type SemanticType } from '../../../types/SemanticType';
+import { toPascalCase } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
-import {
-    relationEqual,
-    relationFold,
-    relationGate,
-    relationProject
-} from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationFold, relationGate, relationProject, relationSequenceToArray } from '../../../../semantic/kernel/relationalSequence';
 import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
+import type { ModelSemanticProperty } from '../../../../types/upstream/model';
 
-function sequenceToArray<T>(items: import('../../../../types/upstream/collections').Sequence<T>): T[] {
-    const collect = (current: import('../../../../types/upstream/collections').Sequence<T>, result: T[]): T[] =>
-        relationGate(
-            relationEqual(current.kind, 'cons'),
-            () => collect(current.tail, [...result, current.head]),
-            () => result
-        );
-    return collect(items, []);
-}
+type ModelName = SemanticDerivationContext['models'][number]['definition']['identity']['name'];
+
+type ModelTypeDerivationState = Readonly<{
+    readonly types: readonly ObjectType[];
+    readonly seenNames: RelationMembership<string>;
+}>;
+
+const semanticPropertyType = (property: ModelSemanticProperty): SemanticType =>
+    typeExpressionToSemanticType(property.traversal.semanticType);
+
+const semanticPropertyOrigin = (property: ModelSemanticProperty, model: ModelName): ObjectProperty['origin'] =>
+    relationGate(
+        relationEqual(property.kind, 'column'),
+        () => ({ kind: 'model_column' as const, model, property: property.property }),
+        () => relationGate(
+            relationEqual(property.kind, 'accessor'),
+            () => ({ kind: 'model_accessor' as const, model, property: property.property }),
+            () => ({ kind: 'model_relation' as const, model, property: property.property }),
+        ),
+    );
+
+const deriveProperty = (property: ModelSemanticProperty, model: ModelName): ObjectProperty =>
+    ScannedObjectProperty.create({
+        name: property.property,
+        type: semanticPropertyType(property),
+        description: '',
+        origin: semanticPropertyOrigin(property, model),
+    });
+
+const emptyState = (seenNames: RelationMembership<string>): ModelTypeDerivationState =>
+    Object.freeze({ types: Object.freeze([]), seenNames });
+
+const deriveModel = (
+    state: ModelTypeDerivationState,
+    model: SemanticDerivationContext['models'][number],
+    context: SemanticDerivationContext,
+): ModelTypeDerivationState => {
+    const modelTypeName = `${toPascalCase(model.definition.identity.name.value.value)}Transformed`;
+    const modelBaseName = toPascalCase(model.definition.identity.name.value.value);
+    const modelName = model.definition.identity.name;
+    return relationGate(
+        relationEqual(relationContains(state.seenNames, modelTypeName), false),
+        () => {
+            const semanticProperties = relationSequenceToArray(model.definition.semanticProperties);
+            const properties = relationProject(semanticProperties, property => deriveProperty(property, modelName));
+            const semanticType = ObjectType({
+                name: modelTypeName,
+                baseName: modelBaseName,
+                properties,
+                role: 'model',
+            });
+            const nextTypes = Object.freeze([
+                ...state.types,
+                context.interner.intern(semanticType) as ObjectType,
+            ]);
+            return Object.freeze({
+                types: nextTypes,
+                seenNames: relationInsert(state.seenNames, modelTypeName),
+            });
+        },
+        () => state,
+    );
+};
 
 export function deriveModelTypes(
     context: SemanticDerivationContext,
-    seenNames: RelationMembership<string>
+    seenNames: RelationMembership<string>,
 ): readonly ObjectType[] {
-    const interner = context.interner;
-    return relationFold(
+    const state = relationFold(
         context.models,
-        Object.freeze([]) as readonly ObjectType[],
-        (types, model) => {
-            const modelTypeName = `${toPascalCase(model.definition.identity.name.value.value)}Transformed`;
-            const modelBaseName = toPascalCase(model.definition.identity.name.value.value);
-            return relationGate(
-                relationEqual(relationContains(seenNames, modelTypeName), false),
-                () => {
-                    seenNames = relationInsert(seenNames, modelTypeName);
-                    const sourceProperties = sequenceToArray(model.definition.surface.properties.items);
-                    const properties = relationProject(
-                        sourceProperties,
-                        property => {
-                            const origin = relationGate(
-                                relationEqual(property.origin.kind, 'column'),
-                                () => ({ kind: 'model_column' as const, model: model.definition.identity.name, property: property.name }),
-                                () => relationGate(
-                                    relationEqual(property.origin.kind, 'computed'),
-                                    () => ({ kind: 'model_accessor' as const, model: model.definition.identity.name, property: property.name }),
-                                    () => ({ kind: 'model_relation' as const, model: model.definition.identity.name, property: property.name })
-                                )
-                            );
-                            return ScannedObjectProperty.create({
-                                name: { kind: 'property_name', value: property.name.value.value },
-                                type: interner.intern(property.type),
-                                description: '',
-                                origin
-                            });
-                        }
-                    );
-                    return Object.freeze([
-                        ...types,
-                        interner.intern(ObjectType({
-                            name: modelTypeName,
-                            baseName: modelBaseName,
-                            properties,
-                            role: 'model'
-                        })) as ObjectType
-                    ]);
-                },
-                () => types
-            );
-        }
+        emptyState(seenNames),
+        (current, model) => deriveModel(current, model, context),
     );
+    return state.types;
 }

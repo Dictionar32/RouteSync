@@ -3,15 +3,17 @@ import { readSourceTextSync } from '../scannerUtils';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import type { ResourceFieldDescriptor } from '../../../../types/route';
 import { ScannedResourceFieldDescriptor } from '../../descriptors/resourceDescriptors';
-import { JsonValueType, NullableType, PrimitiveKind, PrimitiveType, ReferenceType, type SemanticType } from '../../../types/SemanticType';
+import { type SemanticType } from '../../../types/SemanticType';
+import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
 import { createAstIdentifier } from '../../lexer/phpAstTypes';
-import type { PhpPropertyTypeAst } from '../../lexer/responseDtoAstTypes';
+import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';
+import type { PrimitiveVocabulary } from '../../../../types/upstream/primitiveVocabulary';
 import type { ResponseDtoDeclarationAst } from '../../lexer/responseDtoAstTypes';
 
 import type { ResponseContractField, ResponseNullability, ResponseValueContract } from '../../../../types/domain/responseContracts';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { createResponseFieldName, createResponseTypeName } from '../../../../types/domain/semanticValueFactories';
-import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 
 export interface ResponseDtoAnalysis {
     readonly fields: readonly ResourceFieldDescriptor[];
@@ -40,72 +42,63 @@ function parse(file: string): ResponseDtoDeclarationAst {
 
 function toField(property: ResponseDtoDeclarationAst['properties'][number]): ResourceFieldDescriptor {
     const resolvedType = resolveSemanticType(property.type);
-    const expression = relationGate(
-        relationEqual(property.type.kind, 'primitive'),
-        () => ({ kind: 'primitive' as const, type: toPrimitiveKind(property.type as Extract<PhpPropertyTypeAst, { kind: 'primitive' }>) }),
-        () => ({ kind: 'unsupported' as const, reason: 'unsupported_syntax' as const }),
-    );
+    const expression = toFieldExpression(property.type);
 
     return ScannedResourceFieldDescriptor.fromExpression(
         property.name, expression, resolvedType, property.name, BoundSemanticFactory.unsupported('parser_gap')
     );
 }
 
-function resolveSemanticType(type: PhpPropertyTypeAst): SemanticType {
-    const base = relationGate(
-        relationEqual(type.kind, 'primitive'),
-        () => primitiveType(toPrimitiveKind(type as Extract<PhpPropertyTypeAst, { kind: 'primitive' }>)),
-        () => relationGate(
-            relationEqual(type.kind, 'named'),
-            () => ReferenceType.response('response', (type as Extract<PhpPropertyTypeAst, { kind: 'named' }>).name),
-            () => JsonValueType(),
-        ),
-    );
-    return relationGate(type.nullable, () => NullableType(base), () => base);
+function resolveSemanticType(type: TypeExpression): SemanticType {
+    return typeExpressionToSemanticType(type);
 }
 
 function toContractField(property: ResponseDtoDeclarationAst['properties'][number]): ResponseContractField {
     return Object.freeze({
         name: createResponseFieldName(property.name),
         value: toResponseValueContract(property.type),
-        nullability: toNullability(property.type.nullable),
+        nullability: toNullability(property.type),
         evidence: { kind: 'declared' }
     });
 }
 
-const toNullability = (nullable: boolean): ResponseNullability => relationGate(
-    nullable,
-    () => ({ kind: 'nullable' }),
+const toNullability = (type: TypeExpression): ResponseNullability => relationVariantFold(
+    type,
+    'nullable',
     () => ({ kind: 'required' }),
+    () => ({ kind: 'nullable' }),
 );
 
-function toResponseValueContract(type: PhpPropertyTypeAst): ResponseValueContract {
-    return relationGate(
-        relationEqual(type.kind, 'primitive'),
-        () => toPrimitiveResponseValue(type as Extract<PhpPropertyTypeAst, { kind: 'primitive' }>),
-        () => relationGate(
-            relationEqual(type.kind, 'named'),
-            () => ({ kind: 'named_type', name: createResponseTypeName((type as Extract<PhpPropertyTypeAst, { kind: 'named' }>).name) }),
-            () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+function toResponseValueContract(type: TypeExpression): ResponseValueContract {
+    return relationVariantFold(
+        type,
+        'nullable',
+        () => relationVariantFold(
+            type,
+            'primitive',
+            () => relationVariantFold(
+                type,
+                'reference',
+                () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+                reference => ({ kind: 'named_type', name: createResponseTypeName(reference.value.name.value.value) }),
+            ),
+            primitive => toPrimitiveResponseValue(primitive),
         ),
+        nullable => toResponseValueContract(nullable.value),
     );
 }
 
-function toPrimitiveResponseValue(type: Extract<PhpPropertyTypeAst, { kind: 'primitive' }>): ResponseValueContract {
+function toPrimitiveResponseValue(type: Extract<TypeExpression, { readonly kind: 'primitive' }>): ResponseValueContract {
     return relationGate(
-        relationEqual(type.name, 'string'),
+        relationEqual(type.value.kind, 'string'),
         () => ({ kind: 'scalar', value: { kind: 'textual' } }),
         () => relationGate(
-            relationEqual(type.name, 'int'),
+            relationEqual(type.value.kind, 'number'),
             () => ({ kind: 'scalar', value: { kind: 'whole_number' } }),
             () => relationGate(
-                relationEqual(type.name, 'float'),
-                () => ({ kind: 'scalar', value: { kind: 'decimal_number' } }),
-                () => relationGate(
-                    relationEqual(type.name, 'bool'),
-                    () => ({ kind: 'scalar', value: { kind: 'boolean_flag' } }),
-                    () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
-                ),
+                relationEqual(type.value.kind, 'boolean'),
+                () => ({ kind: 'scalar', value: { kind: 'boolean_flag' } }),
+                () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
             ),
         ),
     );
@@ -128,18 +121,33 @@ function findClassName(tokens: readonly { readonly value: string }[]) {
     return relationOptionFold(find(0), () => { throw Error('Response DTO class declaration not found'); }, value => createAstIdentifier(value));
 }
 
-function toPrimitiveKind(type: Extract<PhpPropertyTypeAst, { kind: 'primitive' }>): PrimitiveKind {
+function toFieldExpression(type: TypeExpression): ResourceFieldDescriptor['expression'] {
+    return relationVariantFold(
+        type,
+        'nullable',
+        () => relationVariantFold(
+            type,
+            'primitive',
+            () => ({ kind: 'unsupported', reason: 'unsupported_syntax' }),
+            primitive => ({ kind: 'primitive', type: primitiveKind(primitive.value.kind) }),
+        ),
+        nullable => toFieldExpression(nullable.value),
+    );
+}
+
+function primitiveKind(kind: PrimitiveVocabulary['kind']): PrimitiveKind {
     return relationGate(
-        relationEqual(type.name, 'string'),
+        relationEqual(kind, 'string'),
         () => PrimitiveKind.STRING,
         () => relationGate(
-            relationEqual(type.name, 'bool'),
+            relationEqual(kind, 'boolean'),
             () => PrimitiveKind.BOOLEAN,
             () => relationGate(
-                relationEqual(type.name, 'int'),
+                relationEqual(kind, 'number'),
                 () => PrimitiveKind.NUMBER,
-                () => relationGate(relationEqual(type.name, 'float'), () => PrimitiveKind.NUMBER, () => PrimitiveKind.INDETERMINATE),
+                () => PrimitiveKind.INDETERMINATE,
             ),
         ),
     );
 }
+

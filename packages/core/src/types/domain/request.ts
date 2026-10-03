@@ -10,6 +10,7 @@ import type { ObjectProperty } from "../../compiler/types/SemanticType";
 import type { RequestFieldMeaning } from './requestFieldMeaning';
 import type { RequestFieldPresence } from './requestFieldPresence';
 import type { ValidationRuleNode } from "./validationRules";
+import type { ValidationParameter } from './semanticValues';
 import type { ClassName, FormTypeName, PropertyName, RequestFieldName, ResourceName } from "./semanticValues";
 import type { ResponseContract } from "./responseContracts";
 

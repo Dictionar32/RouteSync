@@ -45,5 +45,6 @@ export type {
 } from './SalsaCompiler';
 export {
     createSalsaCompiler,
-    type QueryCycleError
+    type QueryCycleError,
+    createQueryCycleError
 } from './SalsaCompiler';

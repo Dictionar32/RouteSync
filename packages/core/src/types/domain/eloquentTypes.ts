@@ -1,10 +1,11 @@
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType, primitiveType } from "../../compiler/types/SemanticType";
-import { SemanticValueFactory, type ClassName, type ColumnName, type MethodName, type ModelName, type PropertyName, type RelationName, type CastTypeName, type SemanticOperator } from './semanticValues';
+import { SemanticValueFactory, type ClassName, type ColumnName, type ModelName, type PropertyName, type CastTypeName, type SemanticOperator } from './semanticValues';
 import type { Cardinality } from '../upstream/primitiveVocabulary';
-import type { ModelAccessorComputation } from '../upstream/modelVocabulary';
+import type { ModelAccessorFact, ModelCastFact } from '../upstream/modelSourceFacts';
+import type { ModelSemanticRelation } from '../upstream/model';
 import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationGate, relationOptionFold, relationSome, relationRefine } from '../../semantic/kernel/relationalSequence';
+import { relationGate, relationOptionFold, relationSome, relationRefine, relationResolve } from '../../semantic/kernel/relationalSequence';
 
 /**
  * EloquentCastKind
@@ -171,181 +172,26 @@ export type EloquentCastTarget =
   | { readonly kind: 'builtin'; readonly castKind: EloquentCastKind }
   | { readonly kind: 'custom'; readonly className: ClassName };
 
-/** First-class Eloquent attribute cast contract. */
-export interface ModelCastDescriptor {
-  readonly column: ColumnName;
-  readonly target: EloquentCastTarget;
-  readonly castKind: EloquentCastKind;
-  readonly targetType: CastTypeName;
-  readonly valueType: EloquentCastValueType;
-}
+/** Canonical scanner fact for an Eloquent cast. */
+export type { ModelCastFact };
 
-/** First-class Eloquent computed/accessor contract. */
-export type { ModelAccessorComputation } from '../upstream/modelVocabulary';
-export interface ModelAccessorDescriptor {
-  readonly name: MethodName;
-  readonly propertyName: PropertyName;
-  readonly computation: ModelAccessorComputation;
-}
+/** Canonical scanner fact for an Eloquent accessor. */
+export type { ModelAccessorFact };
 
-/**
- * EloquentRelationType
- *
- * Canonical Domain Vocabulary for Eloquent ORM Relationships.
- */
-export const EloquentRelationType = Object.freeze({
-  HasOne: 'hasOne',
-  HasMany: 'hasMany',
-  BelongsTo: 'belongsTo',
-  BelongsToMany: 'belongsToMany',
-  HasOneThrough: 'hasOneThrough',
-  HasManyThrough: 'hasManyThrough',
-  MorphTo: 'morphTo',
-  MorphOne: 'morphOne',
-  MorphMany: 'morphMany',
-  MorphToMany: 'morphToMany',
-  MorphedByMany: 'morphedByMany'
-} as const);
+/** Canonical Eloquent relation vocabulary is owned by the upstream semantic model. */
+export type {
+  EloquentRelationType,
+  EloquentRelationCardinality,
+  EloquentRelationDescriptor,
+  EloquentRelationMultiplicity,
+  RelationForeignKey,
+} from '../upstream/modelVocabulary';
 
-export type EloquentRelationType = typeof EloquentRelationType[keyof typeof EloquentRelationType];
-
-export type EloquentRelationCardinality = Cardinality;
-
-export type EloquentRelationPolymorphism =
-  | { readonly kind: 'non_polymorphic' }
-  | { readonly kind: 'polymorphic' };
-
-export interface EloquentRelationDescriptor<T extends EloquentRelationType = EloquentRelationType> {
-  readonly type: T;
-  readonly cardinality: EloquentRelationCardinality;
-  readonly polymorphism: EloquentRelationPolymorphism;
-}
-
-/**
- * Mapped Type Exhaustive: Wajib mendefinisikan SEMUA key EloquentRelationType (0 string key).
- */
-export type EloquentRelationRegistry = {
-  readonly [K in EloquentRelationType]: EloquentRelationDescriptor<K>;
-};
-
-export const ELOQUENT_RELATION_REGISTRY: EloquentRelationRegistry = Object.freeze({
-  [EloquentRelationType.HasOne]: {
-    type: EloquentRelationType.HasOne,
-    cardinality: { kind: 'one' },
-    polymorphism: { kind: 'non_polymorphic' }
-  },
-  [EloquentRelationType.HasMany]: {
-    type: EloquentRelationType.HasMany,
-    cardinality: { kind: 'many' },
-    polymorphism: { kind: 'non_polymorphic' }
-  },
-  [EloquentRelationType.BelongsTo]: {
-    type: EloquentRelationType.BelongsTo,
-    cardinality: { kind: 'one' },
-    polymorphism: { kind: 'non_polymorphic' }
-  },
-  [EloquentRelationType.BelongsToMany]: {
-    type: EloquentRelationType.BelongsToMany,
-    cardinality: { kind: 'many' },
-    polymorphism: { kind: 'non_polymorphic' }
-  },
-  [EloquentRelationType.HasOneThrough]: {
-    type: EloquentRelationType.HasOneThrough,
-    cardinality: { kind: 'one' },
-    polymorphism: { kind: 'non_polymorphic' }
-  },
-  [EloquentRelationType.HasManyThrough]: {
-    type: EloquentRelationType.HasManyThrough,
-    cardinality: { kind: 'many' },
-    polymorphism: { kind: 'non_polymorphic' }
-  },
-  [EloquentRelationType.MorphTo]: {
-    type: EloquentRelationType.MorphTo,
-    cardinality: { kind: 'one' },
-    polymorphism: { kind: 'polymorphic' }
-  },
-  [EloquentRelationType.MorphOne]: {
-    type: EloquentRelationType.MorphOne,
-    cardinality: { kind: 'one' },
-    polymorphism: { kind: 'polymorphic' }
-  },
-  [EloquentRelationType.MorphMany]: {
-    type: EloquentRelationType.MorphMany,
-    cardinality: { kind: 'many' },
-    polymorphism: { kind: 'polymorphic' }
-  },
-  [EloquentRelationType.MorphToMany]: {
-    type: EloquentRelationType.MorphToMany,
-    cardinality: { kind: 'many' },
-    polymorphism: { kind: 'polymorphic' }
-  },
-  [EloquentRelationType.MorphedByMany]: {
-    type: EloquentRelationType.MorphedByMany,
-    cardinality: { kind: 'many' },
-    polymorphism: { kind: 'polymorphic' }
-  }
-});
-
-/**
- * EloquentRelationClassifier
- *
- * Canonical Classifier for Eloquent ORM Relationships.
- * Strict Type Guard & Mapped Lookup (0 Record<string, ...>).
- */
-export class EloquentRelationClassifier {
-  public static isRelationMethod(name: string): name is EloquentRelationType {
-    return Object.prototype.hasOwnProperty.call(ELOQUENT_RELATION_REGISTRY, name);
-  }
-
-  public static getDescriptor<K extends EloquentRelationType>(type: K): EloquentRelationDescriptor<K> {
-    return ELOQUENT_RELATION_REGISTRY[type];
-  }
-
-  public static isCollection(type: EloquentRelationType): boolean {
-    return ELOQUENT_RELATION_REGISTRY[type].cardinality.kind === 'many';
-  }
-
-  public static isPolymorphic(type: EloquentRelationType): boolean {
-    return ELOQUENT_RELATION_REGISTRY[type].polymorphism.kind === 'polymorphic';
-  }
-}
-
-/**
- * First-Class Eloquent Model Relationship Definition (Ordered & Complete Contract).
- */
-export type RelationForeignKey =
-  | { readonly kind: 'convention' }
-  | { readonly kind: 'explicit'; readonly column: ColumnName };
-
-export type RelationTargetShape =
-  | { readonly kind: 'single'; readonly model: ModelName }
-  | { readonly kind: 'collection'; readonly model: ModelName };
-
-export interface ModelRelationDescriptor {
-  readonly name: RelationName;
-  readonly type: EloquentRelationType;
-  readonly sourceModel: ModelName;
-  readonly targetModel: ModelName;
-  readonly cardinality: EloquentRelationCardinality;
-  readonly multiplicity: { readonly kind: 'single' } | { readonly kind: 'collection' };
-  /** Complete semantic value already resolved at the scanner boundary. */
-  readonly semanticType: SemanticType;
-  readonly targetShape: RelationTargetShape;
-  readonly traversalTarget: { readonly kind: 'model'; readonly model: ModelName } | { readonly kind: 'collection'; readonly model: ModelName };
-  readonly foreignKey: RelationForeignKey;
-}
-
-export interface SingleRelationDescriptor extends ModelRelationDescriptor {
-  readonly cardinality: { readonly kind: 'one' };
-}
-
-export interface CollectionRelationDescriptor extends ModelRelationDescriptor {
-  readonly cardinality: { readonly kind: 'many' };
-}
-
-export type RelationCardinalityDescriptor =
-  | SingleRelationDescriptor
-  | CollectionRelationDescriptor;
+/** Canonical semantic relation is the sole relationship descriptor vocabulary. */
+export type { ModelSemanticRelation };
+export type SingleRelationDescriptor = Extract<ModelSemanticRelation, { readonly cardinality: { readonly kind: 'one' } }>;
+export type CollectionRelationDescriptor = Extract<ModelSemanticRelation, { readonly cardinality: { readonly kind: 'many' } }>;
+export type RelationCardinalityDescriptor = SingleRelationDescriptor | CollectionRelationDescriptor;
 
 export type RelationCardinalityVisitor<R> = {
   readonly one: (relation: SingleRelationDescriptor) => R;
@@ -367,7 +213,7 @@ const requireCollectionRelation = (relation: RelationCardinalityDescriptor): Col
 
 export function matchRelationCardinality<R>(
   relation: RelationCardinalityDescriptor,
-  visitor: RelationCardinalityVisitor<R>
+  visitor: RelationCardinalityVisitor<R>,
 ): R {
   return relationOptionFold(
     relationRefine(relation, isSingleRelationDescriptor),
@@ -379,27 +225,47 @@ export function matchRelationCardinality<R>(
 export const matchRelation = matchRelationCardinality;
 
 export interface EloquentRelationTypeVisitor<R> {
-  readonly hasOne: (rel: ModelRelationDescriptor) => R;
-  readonly hasMany: (rel: ModelRelationDescriptor) => R;
-  readonly belongsTo: (rel: ModelRelationDescriptor) => R;
-  readonly belongsToMany: (rel: ModelRelationDescriptor) => R;
-  readonly hasOneThrough: (rel: ModelRelationDescriptor) => R;
-  readonly hasManyThrough: (rel: ModelRelationDescriptor) => R;
-  readonly morphTo: (rel: ModelRelationDescriptor) => R;
-  readonly morphOne: (rel: ModelRelationDescriptor) => R;
-  readonly morphMany: (rel: ModelRelationDescriptor) => R;
-  readonly morphToMany: (rel: ModelRelationDescriptor) => R;
-  readonly morphedByMany: (rel: ModelRelationDescriptor) => R;
+  readonly hasOne: (rel: ModelSemanticRelation) => R;
+  readonly hasMany: (rel: ModelSemanticRelation) => R;
+  readonly belongsTo: (rel: ModelSemanticRelation) => R;
+  readonly belongsToMany: (rel: ModelSemanticRelation) => R;
+  readonly hasOneThrough: (rel: ModelSemanticRelation) => R;
+  readonly hasManyThrough: (rel: ModelSemanticRelation) => R;
+  readonly morphTo: (rel: ModelSemanticRelation) => R;
+  readonly morphOne: (rel: ModelSemanticRelation) => R;
+  readonly morphMany: (rel: ModelSemanticRelation) => R;
+  readonly morphToMany: (rel: ModelSemanticRelation) => R;
+  readonly morphedByMany: (rel: ModelSemanticRelation) => R;
 }
 
-/**
- * 0 `if` Catamorphism: Mengeksekusi logic spesifik tipe relasi Eloquent
- */
+/** Relation dispatch over the canonical semantic relation ADT. */
 export function matchRelationType<R>(
-  relation: ModelRelationDescriptor,
-  visitor: EloquentRelationTypeVisitor<R>
+  relation: ModelSemanticRelation,
+  visitor: EloquentRelationTypeVisitor<R>,
 ): R {
-  return visitor[relation.type](relation);
+  const kind = relation.eloquentType.kind;
+  return relationResolve(
+    relationEqual(kind, 'has_one'), () => visitor.hasOne(relation),
+    () => relationResolve(relationEqual(kind, 'has_many'), () => visitor.hasMany(relation),
+      () => relationResolve(relationEqual(kind, 'belongs_to'), () => visitor.belongsTo(relation),
+        () => relationResolve(relationEqual(kind, 'belongs_to_many'), () => visitor.belongsToMany(relation),
+          () => relationResolve(relationEqual(kind, 'has_one_through'), () => visitor.hasOneThrough(relation),
+            () => relationResolve(relationEqual(kind, 'has_many_through'), () => visitor.hasManyThrough(relation),
+              () => relationResolve(relationEqual(kind, 'morph_to'), () => visitor.morphTo(relation),
+                () => relationResolve(relationEqual(kind, 'morph_one'), () => visitor.morphOne(relation),
+                  () => relationResolve(relationEqual(kind, 'morph_many'), () => visitor.morphMany(relation),
+                    () => relationResolve(relationEqual(kind, 'morph_to_many'), () => visitor.morphToMany(relation),
+                      () => visitor.morphedByMany(relation),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /**

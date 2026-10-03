@@ -1,5 +1,5 @@
 import type { ParsedColumn } from './databaseColumns';
-import type { EloquentRelationType, RelationForeignKey, ModelAccessorComputation } from './eloquentTypes';
+import type { EloquentRelationType, RelationForeignKey } from './eloquentTypes';
 import type { ModelKeySemanticType, ModelKeyType } from './modelContracts';
 import type { ColumnName, ModelName, PropertyName, RelationName, TableName } from './semanticValues';
 import type { DatabaseColumnType, Nullability } from './modelContracts';
@@ -29,6 +29,6 @@ export interface ParsedModel {
   readonly source: {
     readonly columns: readonly ParsedColumn[];
     readonly columnFacts: readonly import('../upstream/modelSourceFacts').ModelColumnFact[];
-    readonly casts: readonly import('./eloquentTypes').ModelCastDescriptor[];
+    readonly casts: readonly import('../upstream/modelSourceFacts').ModelCastFact[];
   };
 }

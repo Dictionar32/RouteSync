@@ -48,9 +48,7 @@ export {
     type ASTNodeData
 } from './utils/Arena';
 export { ControlFlowGraph } from './utils/ControlFlowGraph';
-export { SourceLocation } from './utils/SourceLocation';
 export {
-    ImmutableList,
     ImmutableMap as ImmutableMapUtil,
     ImmutableSet as ImmutableSetUtil
 } from './utils/ImmutableCollections';
@@ -82,8 +80,7 @@ export {
     createMemoizedQueryKey,
     createQueryDatabase,
     createMemoizedQueryDatabase,
-    createSalsaCompiler,
-    createQueryCycleError
+    createSalsaCompiler
 } from './query';
 
 // ============================================================================
@@ -211,8 +208,6 @@ export {
     CompilationState,
     CompilationContext,
     CompilerOptions,
-    FileSnapshot,
-    VirtualFileSystem,
     ArtifactKeyWitness,
     ResolveArtifacts,
     readArtifacts,
@@ -229,7 +224,6 @@ export {
     DiagnosticSeverity,
     DiagnosticFix,
     TextEdit,
-    FileSpan,
     DiagnosticBag
 } from './diagnostics';
 

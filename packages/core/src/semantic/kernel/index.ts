@@ -6,11 +6,7 @@
  */
 
 export { mapSqlTypeToTs, mapCastToTs } from './typeMapper';
-export {
-    isFieldNodeRecord,
-    isSemanticResolutionRecord,
-    buildResolutionContext
-} from './contextBuilder';
+export { buildResolutionContext } from './contextBuilder';
 export { createDefaultPlugins } from './defaultPlugins';
 export {
   relationResolve,

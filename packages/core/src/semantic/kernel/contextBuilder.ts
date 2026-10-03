@@ -1,7 +1,10 @@
 /**
  * contextBuilder.ts
  *
- * Context assembly and type guards for SemanticResolutionKernel.
+ * Context assembly for SemanticResolutionKernel.
+ *
+ * Canonical semantic records own their discriminated ADTs; this module only
+ * assembles the resolution context and does not publish parallel record guards.
  *
  * @module core/semantic/kernel
  */

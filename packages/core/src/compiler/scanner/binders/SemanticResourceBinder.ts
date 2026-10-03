@@ -9,7 +9,6 @@
 
 import type { ModelSymbolTable, OriginModelSymbol } from "../symbols/ModelSymbolTable";
 import type { PhpAstValue, PhpArrayEntry } from "../lexer/PhpAst";
-import type { ResourceFieldDescriptor, ParsedResource } from "../../../types/route";
 import type { BoundSemanticNode } from "../../../types/domain/boundAst";
 import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { ModelName, ResourceName, SourceFile } from "../../../types/upstream/names";
@@ -57,20 +56,7 @@ export class SemanticResourceBinder {
     /**
      * Binds a full Resource definition and its AST array entries to a ModelSymbol.
      */
-    public static bindResource(params: {
-        readonly resourceName: ResourceName;
-        readonly entries: readonly PhpArrayEntry[];
-        readonly sourceFile: SourceFile;
-        readonly sourceLine: number;
-        readonly modelSymbolTable: ModelSymbolTable;
-        readonly controllerDataflowMap?: import("../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
-        readonly knowledgeDataFlow?: import('../subscanners/resource/resourceModelKnowledgeDataFlow').ResourceModelKnowledgeDataFlow;
-        readonly assignments?: readonly PhpStatement[];
-    }): ParsedResource {
-        return bindResource(params);
-    }
-
-    /** Canonical AST producer: binds source semantics directly into ResourceAst without ParsedResource. */
+    /** Canonical AST producer: binds source semantics directly into ResourceAst. */
     public static bindResourceAst(params: Parameters<typeof bindResourceDefinition>[0]): ResourceAst {
         return bindResourceDefinition(params);
     }

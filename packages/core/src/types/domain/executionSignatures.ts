@@ -2,7 +2,14 @@ import { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
 import { absent, presenceFold, type Presence } from '../upstream/presence';
 import type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 export { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
-export type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature } from '../upstream/routeExecutionVocabulary';
+export type {
+  RouteExecutionSignature,
+  NoPayloadExecutionSignature,
+  RequiredPayloadExecutionSignature,
+  OptionalPayloadExecutionSignature,
+  BaseRouteExecutionSignature,
+  AnyRouteExecutionSignature
+} from '../upstream/routeExecutionVocabulary';
 export interface RoutePayloadModeSpecification<M extends RoutePayloadMode = RoutePayloadMode> {
   readonly mode: M;
   readonly hasPayload: NoPayloadExecutionSignature['hasPayload'] | RequiredPayloadExecutionSignature['hasPayload'];
@@ -104,12 +111,12 @@ export class RouteSemanticFlowExecutionSignature {
       [RoutePayloadMode.None]: () => RouteSemanticFlowExecutionSignature.noPayload(),
       [RoutePayloadMode.Required]: name => presenceFold(
         name,
-        () => { throw new Error('Required payload execution signature requires a payload type.'); },
+        () => { throw Error('Required payload execution signature requires a payload type.'); },
         value => RouteSemanticFlowExecutionSignature.requiredPayload(value),
       ),
       [RoutePayloadMode.Optional]: name => presenceFold(
         name,
-        () => { throw new Error('Optional payload execution signature requires a payload type.'); },
+        () => { throw Error('Optional payload execution signature requires a payload type.'); },
         value => RouteSemanticFlowExecutionSignature.optionalPayload(value),
       ),
     };

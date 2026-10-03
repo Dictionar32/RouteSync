@@ -37,8 +37,6 @@ export {
 export {
     ScannedResourceFieldDescriptor,
     type ScannedResourceFieldParams,
-    ScannedResourceDescriptor,
-    type ScannedResourceParams
 } from "./resourceDescriptors";
 
 export {

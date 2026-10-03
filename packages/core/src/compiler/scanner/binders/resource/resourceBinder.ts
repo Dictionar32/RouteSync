@@ -13,7 +13,6 @@ import { resolveAstValueToExpression } from "../../subscanners/resource/resource
 import type { PhpArrayEntry } from "../../lexer/PhpAst";
 import { sourceSpanFromRange } from "../../subscanners/resource/resourceUpstreamExpressionMappings";
 import type { ResourceDefinition, ResourceField, ResourceFieldMeaning, ResourceFieldOutput, ResourceTransformation, ResourceInheritance, ResourceDocumentation, ResourceRepresentation, ResourceFieldPresence } from "../../../../types/upstream/resource";
-import type { ParsedResource } from "../../../../types/route";
 import type { ResourceOperation, ResourceOperationValue, ResourceOperationDefault } from "../../../../types/upstream/resourceVocabulary";
 import { createDomainAstJudgment, type ResourceAst } from "../../../../types/upstream/ast";
 import type { Expression, ResolvedExpression } from "../../../../types/upstream/expression";
@@ -30,7 +29,6 @@ import type { StringValue, TruthValue } from "../../../../types/upstream/valueOb
 import type { Sequence, Properties, Assignments, ResourceActions, RoutePaths } from "../../../../types/upstream/collections";
 import { semanticType } from "../../subscanners/model/semanticTypeCanonical";
 import type { ResourceName, SourceFile } from "../../../../types/upstream/names";
-import { ScannedResourceDescriptor } from "../../descriptors/resourceDescriptors";
 import { produceResourceField } from "../../subscanners/resource/resourceFieldProducer";
 import { relationAll, relationAny, relationEqual, relationGate, relationOptionFold, relationFirstOption, relationOptionMap, relationProject, relationExpand, relationSelect, relationFoldRight, relationRefine, relationResolve, relationNone, relationSome, type RelationVariant } from "../../../../semantic/kernel/relationalSequence";
 import { solveCandidate, solveRewriteCandidate } from "../../../../semantic/kernel/semanticDecisionRewriteEngine";
@@ -38,69 +36,6 @@ import { solveCandidate, solveRewriteCandidate } from "../../../../semantic/kern
 /**
  * Binds a full Resource definition and its AST array entries to a ModelSymbol.
  */
-export function bindResource({
-    resourceName,
-    entries,
-    sourceFile,
-    sourceLine,
-    modelSymbolTable,
-    controllerDataflowMap,
-    knowledgeDataFlow,
-    assignments = []
-}: {
-    readonly resourceName: ResourceName;
-    readonly entries: readonly PhpArrayEntry[];
-    readonly sourceFile: SourceFile;
-    readonly sourceLine: number;
-    readonly modelSymbolTable: ModelSymbolTable;
-    readonly controllerDataflowMap?: import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow;
-    readonly knowledgeDataFlow?: import('../../subscanners/resource/resourceModelKnowledgeDataFlow').ResourceModelKnowledgeDataFlow;
-    readonly assignments?: readonly PhpStatement[];
-}): ParsedResource {
-    const fieldNames = relationExpand(entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => [entry.key.value], () => []), () => []));
-    const binding = ResourceModelResolver.resolve({
-        resourceName,
-        fieldNames,
-        modelSymbolTable,
-        controllerDataflowMap,
-        knowledgeDataFlow
-    });
-
-    const fields = matchResourceModelBinding(binding, {
-        mono: (resolved) => relationExpand(entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => [bindField({
-            key: requireStringArrayKey(entry.key),
-            value: entry.value,
-            modelSymbol: resolved.model,
-            modelSymbolTable
-        }).descriptor], () => [])),
-        poly: () => {
-            throw Error(`Resource '${resourceName.value.value}' cannot cross the semantic boundary with multiple Eloquent models.`);
-        },
-        unbacked_dto: (resolved) => {
-            throw Error(`Resource '${resourceName.value.value}' cannot cross the semantic boundary: ${resolved.reason}`);
-        }
-    });
-
-    return ScannedResourceDescriptor.create({
-        name: resourceName,
-        fields,
-        sourceFile,
-        sourceLine,
-        assignments: relationProject(relationSelect(assignments, statement => relationGate(relationEqual(statement.kind, 'assignment'), () => relationEqual(statement.target.kind, 'variable'), () => false)), statement => {
-            const mapped = resolveAstValueToExpression(statement.value, sourceFile.value.value);
-            return {
-                name: SemanticValueFactory.propertyName(requireVariableTargetName(statement.target)),
-                expression: mapped.expression,
-                upstream: mapped.upstream,
-                nullability: { kind: 'non_nullable' as const }
-            };
-        }),
-        modelName: matchResourceModelBinding(binding, { mono: resolved => resolved.model.name, poly: () => { throw Error(`Resource '${resourceName.value.value}' cannot use multiple models.`); }, unbacked_dto: () => { throw Error(`Resource '${resourceName.value.value}' has no Eloquent model.`); } }),
-        isSynthetic: false
-    });
-}
-
-
 const str = (value: string): StringValue => ({ kind: 'string_value', value });
 const truth = (value: boolean): TruthValue => ({ kind: 'truth_value', value });
 const seq = <T>(items: readonly T[]): Sequence<T> => relationFoldRight(items, { kind: 'empty' } as Sequence<T>, (head, tail) => ({ kind: 'cons', head, tail }));

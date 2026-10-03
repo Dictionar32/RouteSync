@@ -10,7 +10,6 @@
 
 import type {
     RouteSemanticFlow,
-    ParsedResource,
     ResourceRouteGroup
 } from "../../types/route";
 import type { RequestType } from "../artifacts/RequestTypesArtifact";

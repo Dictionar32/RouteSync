@@ -16,7 +16,6 @@ import { matchLookup } from '../../../types/upstream/collections';
 
 import path from "path";
 import * as fs from "node:fs";
-import { ParsedResource, ResourceFieldExpression } from "../../../types/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import { LaravelSourceLexer, PhpAstValue, PhpArrayEntry } from "../LaravelSourceLexer";
 import { classifyPhpBlock } from "../lexer/astClassifier";
@@ -41,7 +40,7 @@ import type { ResourceAst } from "../../../types/upstream/ast";
 import type { ResourceExpressionModel } from "../../../types/domain/resourceExpressionModel";
 import type { ResourceName, SourceFile } from "../../../types/upstream/names";
 
-interface ParsedResourceFile {
+interface ResourceSourceEvidence {
     readonly resourceName: ResourceName;
     readonly sourceFile: SourceFile;
     readonly sourceLine: number;
@@ -64,8 +63,8 @@ interface ParsedResourceFile {
 }
 
 interface BoundResourceFile {
-    readonly resource: ParsedResource;
-    readonly file: ParsedResourceFile;
+    readonly resource: ResourceAst;
+    readonly file: ResourceSourceEvidence;
 }
 
 export class ResourceScanner {
@@ -80,7 +79,7 @@ export class ResourceScanner {
 
         const state = await relationAsyncFold(
             files,
-            { parsedFiles: [] as ParsedResourceFile[], relationEdges: [] as ResourceRelationEdge[], initialResolutions: [] as ResourceModelResolutionFact[] },
+            { parsedFiles: [] as ResourceSourceEvidence[], relationEdges: [] as ResourceRelationEdge[], initialResolutions: [] as ResourceModelResolutionFact[] },
             async (state, fullPath) => {
                 const source = await readSourceText(fullPath);
                 const tokens = LaravelSourceLexer.tokenize(source);
@@ -98,7 +97,7 @@ export class ResourceScanner {
                     parameter => parameter.name,
                 );
                 const documentationMixins = parseResourceDocumentationMixins(source);
-                const parsedFile: ParsedResourceFile = {
+                const parsedFile: ResourceSourceEvidence = {
                     resourceName: resourceNameValue,
                     sourceFile: SemanticValueFactory.sourceFilePath(fullPath),
                     sourceLine,
@@ -136,15 +135,23 @@ export class ResourceScanner {
         const knowledgeDataFlow = propagateRelationEdges(relationEdges, initialResolutions, modelSymbolTable);
         return relationProject(parsedFiles, file => ({
             file,
-            resource: SemanticResourceBinder.bindResource({
+            resource: SemanticResourceBinder.bindResourceAst({
                 resourceName: file.resourceName,
                 entries: file.entries,
-                sourceFile: file.sourceFile,
-                sourceLine: file.sourceLine,
+                source: {
+                    kind: 'source_span',
+                    file: file.sourceFile,
+                    start: { kind: 'number_value', value: 0 },
+                    end: { kind: 'number_value', value: file.sourceLength }
+                },
                 modelSymbolTable,
-                controllerDataflowMap,
                 knowledgeDataFlow,
-                assignments: file.assignments
+                assignments: file.assignments,
+                method: file.method,
+                baseClass: file.baseClass,
+                wrapping: file.wrapping,
+                requestParameter: file.requestParameter,
+                documentationMixins: file.documentationMixins
             })
         }));
     }
@@ -153,7 +160,7 @@ export class ResourceScanner {
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
         controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
-    ): Promise<readonly ParsedResource[]> {
+    ): Promise<readonly ResourceAst[]> {
         const files = await ResourceScanner.scanResourceFiles(sourceProject, modelSymbolTable, controllerDataflowMap);
         return relationProject(files, item => item.resource);
     }
@@ -162,75 +169,18 @@ export class ResourceScanner {
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
         controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
-    ): Promise<readonly ParsedResource[]> {
+    ): Promise<readonly ResourceAst[]> {
         return ResourceScanner.scanResources(sourceProject, modelSymbolTable, controllerDataflowMap);
     }
 
     /** Canonical upstream boundary: the same parsed source entries used for semantic binding construct ResourceAst. */
+    /** Canonical AST scan alias: one scanner path, one semantic output model. */
     public static async scanAsts(
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
+        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
     ): Promise<readonly ResourceAst[]> {
-        const sourceRoot = sourceProject.root.value.value;
-        const resDir = path.join(sourceRoot, 'app', 'Http', 'Resources');
-        const files = await collectPhpFiles(resDir);
-        const state = await relationAsyncFold(
-            files,
-            { parsedFiles: [] as ParsedResourceFile[], resolutionFacts: [] as ResourceModelResolutionFact[] },
-            async (state, fullPath) => {
-                const source = await readSourceText(fullPath);
-                const tokens = LaravelSourceLexer.tokenize(source);
-                const resourceName = path.basename(fullPath, '.php');
-                const resourceNameValue = SemanticValueFactory.resourceName(resourceName);
-                const returnIndex = this.findReturnIndex(tokens);
-                const parsedArray = LaravelSourceLexer.parseArray(source, tokens, returnIndex);
-                const sourceLine = tokens[returnIndex].line;
-                const method = parseToArrayMethod(tokens);
-                const baseClass = parseResourceBaseClass(tokens);
-                const wrapping = parseResourceWrapping(tokens);
-                const requestParameter = relationOptionFold(relationFirstOption(method.parameters, parameter => relationEqual(parameter.name, 'request')), () => 'request', parameter => parameter.name);
-                const documentationMixins = parseResourceDocumentationMixins(source);
-                const methods = parseResourceMethods(tokens);
-                const properties = parseModelPropertyAsts(tokens);
-                const jsonAttributes = parseClassArrayProperty(source, tokens, 'attributes');
-                const jsonRelationships = parseClassArrayProperty(source, tokens, 'relationships');
-                const preserveKeys = parseBooleanProperty(tokens, 'preserveKeys');
-                const forceWrapping = parseBooleanProperty(tokens, 'forceWrapping');
-                const usesRequestQueryString = parseBooleanProperty(tokens, 'usesRequestQueryString');
-                const includesPreviouslyLoadedRelationships = parseBooleanProperty(tokens, 'includesPreviouslyLoadedRelationships');
-                const collectsResource = parseCollectsResource(tokens);
-                const parsedFile: ParsedResourceFile = { resourceName: resourceNameValue, sourceFile: SemanticValueFactory.sourceFilePath(fullPath), sourceLine, sourceLength: source.length, entries: parsedArray.entries, assignments: parseMethodAssignments(tokens, returnIndex), method, baseClass: { kind: 'class_name', value: { kind: 'string_value', value: baseClass } }, wrapping, requestParameter: { kind: 'variable_name', value: { kind: 'string_value', value: requestParameter } }, documentationMixins, methods, properties, preserveKeys, forceWrapping, usesRequestQueryString, includesPreviouslyLoadedRelationships, jsonAttributes, jsonRelationships, collectsResource };
-                const conventionLookup = modelSymbolTable.findForResource(resourceNameValue);
-                const resolutionFacts = relationExpand([conventionLookup], lookup =>
-                    relationGate(relationEqual(lookup.kind, 'found'), () => [{ kind: 'resource_model_resolution', resource: resourceNameValue, model: lookup.value.identity.name, origin: 'convention', viaRelation: { kind: 'absent' } }], () => []),
-                );
-                return { parsedFiles: [...state.parsedFiles, parsedFile], resolutionFacts: [...state.resolutionFacts, ...resolutionFacts] };
-            },
-        );
-        const parsedFiles = state.parsedFiles;
-        const resolutionFacts = state.resolutionFacts;
-        return relationProject(parsedFiles, file => {
-            const resolution = resourceModelResolutionFor({
-                kind: 'resource_model_knowledge_data_flow',
-                relations: [],
-                resolutions: resolutionFacts,
-            }, file.resourceName);
-            return presenceFold(resolution,
-                () => { throw Error(`Resource '${file.resourceName.value.value}' has no model from upstream model producer.`); },
-                resolved => {
-                    const modelLookup = modelSymbolTable.get(resolved.model);
-                    matchLookup(modelLookup, {
-                        missing: () => { throw Error(`Resource '${file.resourceName.value.value}' resolved to an unknown model.`); },
-                        found: ({ value: model }) => resourceProducer.produce({
-                            resourceName: file.resourceName, entries: file.entries,
-                            source: { kind: 'source_span', file: file.sourceFile, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: file.sourceLength } },
-                            model, assignments: file.assignments, method: file.method, baseClass: file.baseClass, wrapping: file.wrapping, requestParameter: file.requestParameter, documentationMixins: file.documentationMixins, methods: file.methods, properties: file.properties, preserveKeys: file.preserveKeys, forceWrapping: file.forceWrapping, usesRequestQueryString: file.usesRequestQueryString, includesPreviouslyLoadedRelationships: file.includesPreviouslyLoadedRelationships, jsonAttributes: file.jsonAttributes, jsonRelationships: file.jsonRelationships, collectsResource: file.collectsResource,
-                        }),
-                    });
-                },
-            );
-
-        });
+        return ResourceScanner.scan(sourceProject, modelSymbolTable, controllerDataflowMap);
     }
 
     public static resolveAstValueToExpression(

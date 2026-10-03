@@ -941,8 +941,6 @@ export {
   type ScannedRouteQueryParameterParams,
   ScannedResourceFieldDescriptor,
   type ScannedResourceFieldParams,
-  ScannedResourceDescriptor,
-  type ScannedResourceParams,
   ScannedModelColumnDescriptor,
   ScannedModelCastDescriptor,
   ScannedModelRelationDescriptor,

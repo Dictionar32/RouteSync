@@ -216,6 +216,31 @@ export const VALIDATION_RULE_REGISTRY: ValidationRuleRegistry = Object.freeze({
     category: 'modifier',
     description: 'Field is required when one or more other fields are present'
   },
+  [ValidationRuleKind.RequiredWithAll]: {
+    kind: ValidationRuleKind.RequiredWithAll,
+    category: 'modifier',
+    description: 'Field is required when all referenced fields are present'
+  },
+  [ValidationRuleKind.RequiredWithout]: {
+    kind: ValidationRuleKind.RequiredWithout,
+    category: 'modifier',
+    description: 'Field is required when one or more referenced fields are absent'
+  },
+  [ValidationRuleKind.RequiredWithoutAll]: {
+    kind: ValidationRuleKind.RequiredWithoutAll,
+    category: 'modifier',
+    description: 'Field is required when all referenced fields are absent'
+  },
+  [ValidationRuleKind.RequiredIf]: {
+    kind: ValidationRuleKind.RequiredIf,
+    category: 'modifier',
+    description: 'Field is required when a referenced field has a matching value'
+  },
+  [ValidationRuleKind.RequiredUnless]: {
+    kind: ValidationRuleKind.RequiredUnless,
+    category: 'modifier',
+    description: 'Field is required unless a referenced field has a matching value'
+  },
   [ValidationRuleKind.Nullable]: {
     kind: ValidationRuleKind.Nullable,
     category: 'modifier',
@@ -560,6 +585,12 @@ export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
   [ValidationRuleKind.Uuid]: (base) => ({
     expression: `${base.expression}.uuid()`
   }),
+  [ValidationRuleKind.RequiredWith]: (base) => base,
+  [ValidationRuleKind.RequiredWithAll]: (base) => base,
+  [ValidationRuleKind.RequiredWithout]: (base) => base,
+  [ValidationRuleKind.RequiredWithoutAll]: (base) => base,
+  [ValidationRuleKind.RequiredIf]: (base) => base,
+  [ValidationRuleKind.RequiredUnless]: (base) => base,
   [ValidationRuleKind.Nullable]: (base) => ({
     expression: `${base.expression}.nullable()`
   }),
@@ -588,7 +619,6 @@ export const ZOD_CONSTRAINT_REGISTRY: ConstraintRegistry = Object.freeze({
     expression: 'z.instanceof(File)'
   }),
   [ValidationRuleKind.Required]: (base) => base,
-  [ValidationRuleKind.RequiredWith]: (base) => base,
   [ValidationRuleKind.Exists]: (base) => base,
   [ValidationRuleKind.Unique]: (base) => base,
   [ValidationRuleKind.Custom]: (base) => base

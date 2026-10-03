@@ -3,7 +3,7 @@ import { classifyAstTokens } from './astClassifier';
 import { createAstIdentifier } from './phpAstTypes';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationAdvanceIndex, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationTextSlice, relationAdvanceIndex, relationSome, relationNone, type RelationOption } from '../../../semantic/kernel/relationalSequence';
 import { relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 import type { RequestName } from '../../../types/upstream/names';
@@ -12,6 +12,7 @@ import { parseControllerBody } from './controllerBodyParser';
 import { tokenAt, tokenValueEquals, tokenKindEquals } from './tokenEvidence';
 
 const tokenValueOr = (tokens: readonly TokenDescriptor[], index: number): string => relationOptionFold(tokenAt(tokens, index), () => '', evidence => evidence.token.value);
+const parameterSemanticEntry = (parameter: ControllerParameterAst): readonly [ControllerParameterAst['name'], ControllerVariableSemantic] => [parameter.name, parameter.semantic];
 import type {
     ControllerMethodAst,
     ControllerParameterAst,
@@ -35,7 +36,7 @@ export function parseControllerMethod(
         const parameters = parseParameters(tokens, relationAdvanceIndex(functionIndex, 2));
         const parameterClose = findParameterClose(tokens, relationAdvanceIndex(functionIndex, 2));
         const declaredReturnType = parseDeclaredReturnType(tokens, relationAdvanceIndex(parameterClose, 1), bodyStart);
-        return Object.freeze({
+        return relationSome(Object.freeze({
             name: createAstIdentifier(nameToken.value),
             parameters: Object.freeze(parameters),
             responseAttribute: parseResponseAttribute(tokens, functionIndex),
@@ -45,12 +46,12 @@ export function parseControllerMethod(
                 source,
                 bodyTokens,
                 relationProject(parameters, parameter => parameter.name),
-                relationProject(parameters, parameter => [parameter.name, parameter.semantic] as const),
+                relationProject(parameters, parameterSemanticEntry),
                 filePath
             ),
             source: tokens[functionIndex],
-        });
-    }, () => ({ kind: 'none' }));
+        }));
+    }, () => relationNone());
 }
 
 function parseParameters(tokens: readonly TokenDescriptor[], start: number): ControllerParameterAst[] {
@@ -75,7 +76,7 @@ function parseParameters(tokens: readonly TokenDescriptor[], start: number): Con
                             attributes: parsedAttributes.attributes,
                             type: nullable ? { kind: 'nullable', inner: parseParameterType(inner.token.value) } : parseParameterType(inner.token.value),
                             defaultValue: defaultParse.value,
-                            name: createAstIdentifier(relationRange(variableToken.value, 1, variableToken.value.length)),
+                            name: createAstIdentifier(relationTextSlice(variableToken.value, 1)),
                             semantic: parameterSemantic(inner.token.value),
                             source: { ...inner.token, endOffset: relationGate(defaultParse.endIndex >= 0, () => tokens[defaultParse.endIndex].endOffset, () => variableToken.endOffset) },
                         };
@@ -219,17 +220,14 @@ function findMatching(tokens: readonly TokenDescriptor[], start: number, open: s
 function parseResponseAttribute(tokens: readonly TokenDescriptor[], functionIndex: number): ResponseAttributeAst {
     const indexes = relationProject(relationRange(tokens, 2, functionIndex), (_, offset) => functionIndex - 1 - offset);
     const candidate = relationFirst(indexes, index => relationAll([tokenValueEquals(tokens, index, 'Response'), tokenValueEquals(tokens, index - 1, '['), tokenValueEquals(tokens, index - 2, '#')]));
-    return relationGate(relationEqual(candidate.kind, 'some'), () => {
-        const index = candidate.value;
+    return relationOptionFold(candidate, () => ({ kind: 'absent' }), index => {
         const classToken = tokens[index + 2];
-        const classScope = tokens[index + 3];
-        const classKeyword = tokens[index + 4];
         const valid = relationAll([tokenKindEquals(tokens, index + 2, 'IDENTIFIER'), tokenValueEquals(tokens, index + 3, '::'), tokenValueEquals(tokens, index + 4, 'class')]);
         return relationGate(valid, () => {
             const end = findAttributeEnd(tokens, index + 1, functionIndex);
             return { kind: 'declared', className: createAstIdentifier(resolveImportedClassName(tokens, classToken.value, functionIndex)), collection: relationAny(relationProject(relationRange(tokens, relationAdvanceIndex(index, 1), end), token => relationEqual(token.value, 'true'))) };
         }, () => ({ kind: 'absent' }));
-    }, () => ({ kind: 'absent' }));
+    });
 }
 
 function resolveImportedClassName(tokens: readonly TokenDescriptor[], shortName: string, limit: number): string {

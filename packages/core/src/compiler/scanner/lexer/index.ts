@@ -59,9 +59,8 @@ export type {
 } from './controllerAstTypes';
 
 export { parseControllerDeclaration } from './controllerDeclarationParser';
-export type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, HttpErrorStatusAst, ValidationRuleLiteralAst, ControllerDataflowAst, ControllerVariableDefinition, ControllerVariableDefinitionOrigin, ControllerVariableReference, ControllerVariableOrigin, LegacyControllerDefinitionAvailability } from './controllerBodyAstTypes';
+export type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, HttpErrorStatusAst, ValidationRuleLiteralAst, ControllerDataflowAst } from './controllerBodyAstTypes';
 export { parseControllerBody } from './controllerBodyParser';
-export type { ControllerDataflowReference } from './controllerDataflowAnalyzer';
 
 export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from './responseDtoAstTypes';
 export { parseResponseDtoDeclaration } from './responseDtoDeclarationParser';

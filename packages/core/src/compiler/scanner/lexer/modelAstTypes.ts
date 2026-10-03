@@ -2,7 +2,7 @@ import type { AstIdentifier, SourceLineNumber, SourceOffset } from './phpAstCore
 import type { PhpAstValue } from './phpAstExpressionTypes';
 import type { PhpClassPropertyAst, PhpDocAst } from './phpAstDeclarationTypes';
 import type { PhpBlock } from './phpAstStatementTypes';
-import type { PhpParameter } from './phpAstExpressionTypes';
+import type { PhpParameterAst as PhpParameter } from './phpMethodAstTypes';
 
 export type ModelDeclarationInheritanceAst =
   | { readonly kind: 'eloquent_model' }
@@ -26,6 +26,7 @@ export type ModelMethodAst = {
   readonly returnType: ModelMethodReturnTypeAst;
   readonly parameters: readonly PhpParameter[];
   readonly body: PhpBlock;
+  readonly returns: readonly PhpAstValue[];
   readonly bodyStart: SourceOffset;
   readonly bodyEnd: SourceOffset;
   readonly startOffset: SourceOffset;

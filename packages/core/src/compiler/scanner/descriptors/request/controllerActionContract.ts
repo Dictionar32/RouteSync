@@ -89,7 +89,7 @@ export function resolveControllerActionContract(
         () => ({ kind: 'present', response: { kind: 'response_reference', name: response.responseTypeName() } }),
         () => ({ kind: 'absent' }) as ControllerResourceResponseEvidence,
     );
-    const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned, resourceResponse);
+    const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned, resourceResponse, sourceFile.value.value);
     const request = resolveRequest(method.parameters, context.formRequestIndex);
     const constructorParameters = relationOptionFold(
         relationFirstOption([context.constructorParameters], (candidate): candidate is readonly ControllerParameterAst[] => Object.is(typeof candidate, 'object')),

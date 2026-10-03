@@ -186,7 +186,11 @@
     "audit:phase735-relation-option-fold-foundation": "node scripts/audit-phase735-relation-option-fold-foundation.cjs",
     "audit:phase736-scanner-ast-interface": "node scripts/audit-phase736-scanner-ast-interface.cjs",
     "audit:phase737-scanner-presence-frontier": "node scripts/audit-phase737-scanner-presence-frontier.cjs",
-    "audit:phase738-upstream-access-adt": "node scripts/audit-phase738-upstream-access-adt.cjs"
+    "audit:phase738-upstream-access-adt": "node scripts/audit-phase738-upstream-access-adt.cjs",
+    "audit:phase739-controller-dataflow-upstream": "node scripts/audit-phase739-controller-dataflow-upstream.cjs",
+    "audit:phase740-scanner-adt-frontier": "node scripts/audit-phase740-scanner-adt-frontier.cjs",
+    "audit:phase741-controller-semantic-authority": "node scripts/audit-phase741-controller-semantic-authority.cjs",
+    "audit:phase742-controller-dataflow-legacy-removal": "node scripts/audit-phase742-controller-dataflow-legacy-removal.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

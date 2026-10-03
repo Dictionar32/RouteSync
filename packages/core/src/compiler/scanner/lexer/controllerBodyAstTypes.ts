@@ -1,6 +1,6 @@
 /** Typed AST for controller-body facts consumed by semantic resolution. */
 import type { AstIdentifier, TokenDescriptor, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
-import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
+import type { ControllerVariableSemantic, ControllerSemanticVariableFlow } from '../../../types/upstream/controller';
 import type { SemanticKnowledgeDataFlow } from './routeAst/semanticKnowledgeDataFlowRelations';
 import { relationAll, relationGate } from '../../../semantic/kernel/semanticRelations';
 
@@ -19,43 +19,9 @@ export interface ControllerErrorAst {
     readonly source: TokenDescriptor;
 }
 
-export type ControllerVariableDefinitionOrigin =
-    | { readonly kind: 'assignment' }
-    | { readonly kind: 'foreach'; readonly statementIndex: number }
-    | { readonly kind: 'catch'; readonly statementIndex: number };
-
-export type LegacyControllerDefinitionAvailability =
-    | { readonly kind: 'definite' }
-    | { readonly kind: 'branch_conditional'; readonly branchPath: readonly number[] }
-    | { readonly kind: 'loop_conditional'; readonly branchPath: readonly number[] }
-    | { readonly kind: 'catch_conditional'; readonly branchPath: readonly number[] };
-
-export interface ControllerVariableDefinition {
-    readonly name: AstIdentifier;
-    readonly statementIndex: number;
-    readonly origin: ControllerVariableDefinitionOrigin;
-    readonly value: PhpAstValue;
-    /** Semantic fact produced at the scanner boundary; consumers must not infer model/resource meaning again. */
-    readonly semantic: ControllerVariableSemantic;
-    readonly availability: LegacyControllerDefinitionAvailability;
-}
-
-export type ControllerVariableOrigin =
-    | { readonly kind: 'parameter' }
-    | { readonly kind: 'local_assignment'; readonly statementIndex: number }
-    | { readonly kind: 'foreach_binding'; readonly statementIndex: number }
-    | { readonly kind: 'catch_binding'; readonly statementIndex: number }
-    | { readonly kind: 'external' };
-
-export interface ControllerVariableReference {
-    readonly name: AstIdentifier;
-    readonly statementIndex: number;
-    readonly origin: ControllerVariableOrigin;
-}
-
 export interface ControllerDataflowAst {
-    readonly definitions: readonly ControllerVariableDefinition[];
-    readonly references: readonly ControllerVariableReference[];
+    /** Canonical upstream semantic variable flow; PHP AST remains evidence only. */
+    readonly semanticVariables: ControllerSemanticVariableFlow;
     readonly semanticKnowledgeDataFlow: SemanticKnowledgeDataFlow;
 }
 

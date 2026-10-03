@@ -1,4 +1,5 @@
 import type { TokenDescriptor } from './PhpAst';
+import { parsePhpMethod } from './phpMethodParser';
 import { createAstIdentifier, createSourceOffset, createSourceLineNumber } from './phpAstTypes';
 import { classifyAstTokens } from './astClassifier';
 import type { ModelDeclarationAst, ModelMethodAst, ModelConstantAst } from './modelAstTypes';
@@ -12,8 +13,10 @@ import {
   relationFold,
   relationIndexOf,
   relationOptionFold,
+  relationVariantFold,
   relationProject,
   relationRange,
+  relationSlice,
   relationResolve,
   type RelationOption,
 } from '../../../semantic/kernel/relationalSequence';
@@ -42,7 +45,13 @@ const matching = (tokens: readonly TokenDescriptor[], start: number): number => 
 };
 
 const offset = (value: TokenDescriptor): ReturnType<typeof createSourceOffset> => createSourceOffset(Number(value.startOffset));
-const line = (value: TokenDescriptor): ReturnType<typeof createSourceLineNumber> => createSourceLineNumber(Number(value.startLine));
+const line = (value: TokenDescriptor): ReturnType<typeof createSourceLineNumber> => createSourceLineNumber(Number(value.line));
+
+const visibilityKind = (value: string): ModelMethodAst['visibility'] => relationGate(
+  relationEqual(value, 'public'),
+  () => ({ kind: 'public' }),
+  () => relationGate(relationEqual(value, 'protected'), () => ({ kind: 'protected' }), () => ({ kind: 'private' })),
+);
 
 const visibility = (tokens: readonly TokenDescriptor[], index: number): ModelMethodAst['visibility'] => {
   const start = Math.max(0, index - 6);
@@ -54,8 +63,8 @@ const visibility = (tokens: readonly TokenDescriptor[], index: number): ModelMet
     () => ({ kind: 'public' }),
     entry => relationOptionFold(
       barrier,
-      () => ({ kind: entry.item.value as 'public' | 'protected' | 'private' }),
-      boundary => relationGate(entry.index > boundary.index, () => ({ kind: entry.item.value as 'public' | 'protected' | 'private' }), () => ({ kind: 'public' })),
+      () => visibilityKind(entry.item.value),
+      boundary => relationGate(entry.index > boundary.index, () => visibilityKind(entry.item.value), () => ({ kind: 'public' })),
     ),
   );
 };
@@ -98,8 +107,12 @@ const returnExpressions = (tokens: readonly TokenDescriptor[], start: number, en
   return scan(start, 0, start, 0, []);
 };
 
-const scanClassMembers = (tokens: readonly TokenDescriptor[], start: number, close: number) => {
-  const visit = (index: number, traits: readonly ReturnType<typeof createAstIdentifier>[], methods: readonly ModelMethodAst[], constants: readonly ModelConstantAst[]) =>
+type ModelMethodCandidate = { readonly kind: 'none' } | { readonly kind: 'some'; readonly value: ModelMethodAst; readonly skip: number };
+type ModelConstantCandidate = { readonly kind: 'none' } | { readonly kind: 'some'; readonly value: ModelConstantAst; readonly skip: number };
+type ModelMembers = { readonly traits: readonly ReturnType<typeof createAstIdentifier>[]; readonly methods: readonly ModelMethodAst[]; readonly constants: readonly ModelConstantAst[] };
+
+const scanClassMembers = (tokens: readonly TokenDescriptor[], start: number, close: number): ModelMembers => {
+  const visit = (index: number, traits: readonly ReturnType<typeof createAstIdentifier>[], methods: readonly ModelMethodAst[], constants: readonly ModelConstantAst[]): ModelMembers =>
     relationResolve(
       index >= close,
       () => ({ traits, methods, constants }),
@@ -111,24 +124,31 @@ const scanClassMembers = (tokens: readonly TokenDescriptor[], start: number, clo
         const methodName = token(tokens, index + 1);
         const bodyStart = relationIndexOf(tokens, (value, cursor) => relationAll([cursor > index, relationEqual(value.value, '{')]));
         const bodyEnd = relationGate(bodyStart >= 0, () => matching(tokens, bodyStart), () => index);
-        const method = relationOptionFold(
+        const method: ModelMethodCandidate = relationOptionFold(
           methodName,
           () => ({ kind: 'none' as const }),
           name => relationGate(
             relationEqual(item.value, 'function'),
-            () => {
-              const colon = relationIndexOf(tokens, (value, cursor) => relationAll([cursor > index + 1, cursor < bodyStart, relationEqual(value.value, ':')]));
-              const returnTokens = relationGate(colon >= 0, () => relationRange(tokens, colon + 1, bodyStart), () => []);
-              const returnType = relationGate(returnTokens.length > 0, () => ({ kind: 'present' as const, value: classifyAstTokens(returnTokens) }), () => ({ kind: 'absent' as const }));
-              const endToken = relationOptionFold(token(tokens, bodyEnd), () => item, value => value);
-              const bodyToken = relationOptionFold(token(tokens, bodyStart), () => item, value => value);
-              return {
-                kind: 'some' as const,
+            () => relationOptionFold(
+              parsePhpMethod('', tokens, index),
+              () => ({ kind: 'none' as const }),
+              parsed => {
+                const endToken = relationOptionFold(token(tokens, bodyEnd), () => item, value => value);
+                const bodyToken = relationOptionFold(token(tokens, bodyStart), () => item, value => value);
+                return {
+                kind: 'some',
                 value: {
                   kind: 'model_method',
                   name: createAstIdentifier(name.value),
+                  documentation: { kind: 'absent' },
                   visibility: visibility(tokens, index),
-                  returnType,
+                  returnType: relationGate(
+                    relationEqual(parsed.declaredReturnType.kind, 'absent'),
+                    () => ({ kind: 'absent' as const }),
+                    () => ({ kind: 'present' as const, value: classifyAstTokens(relationSlice(tokens, index + 1, bodyStart)) }),
+                  ),
+                  parameters: parsed.parameters,
+                  body: { kind: 'block', statements: Object.freeze(parsed.body) },
                   returns: returnExpressions(tokens, bodyStart + 1, bodyEnd),
                   bodyStart: offset(bodyToken),
                   bodyEnd: offset(endToken),
@@ -139,20 +159,22 @@ const scanClassMembers = (tokens: readonly TokenDescriptor[], start: number, clo
                 },
                 skip: Math.max(bodyEnd, index),
               };
-            },
+              },
+            ),
             () => ({ kind: 'none' as const }),
           ),
         );
         const constName = token(tokens, index + 1);
         const equals = relationIndexOf(tokens, (value, cursor) => relationAll([cursor > index, cursor < close, relationEqual(value.value, '=')]));
         const semi = relationIndexOf(tokens, (value, cursor) => relationAll([cursor > index, cursor < close, relationEqual(value.value, ';')]));
-        const constant = relationOptionFold(
+        const constant: ModelConstantCandidate = relationOptionFold(
           constName,
           () => ({ kind: 'none' as const }),
           name => relationGate(relationAll([relationEqual(item.value, 'const'), equals >= 0, semi >= 0]), () => ({
             kind: 'some' as const,
             value: {
               kind: 'model_constant',
+              documentation: { kind: 'absent' },
               visibility: visibility(tokens, index),
               name: createAstIdentifier(name.value),
               value: classifyAstTokens(relationRange(tokens, equals + 1, semi)),
@@ -164,10 +186,10 @@ const scanClassMembers = (tokens: readonly TokenDescriptor[], start: number, clo
             skip: semi,
           }), () => ({ kind: 'none' as const })),
         );
-        const nextMethods = relationOptionFold(method, () => methods, value => [...methods, value.value]);
-        const nextConstants = relationOptionFold(constant, () => constants, value => [...constants, value.value]);
-        const skip = relationOptionFold(method, () => index, value => value.skip);
-        const constantSkip = relationOptionFold(constant, () => skip, value => Math.max(skip, value.skip));
+        const nextMethods = relationVariantFold(method, 'some', () => methods, value => [...methods, value.value]);
+        const nextConstants = relationVariantFold(constant, 'some', () => constants, value => [...constants, value.value]);
+        const skip = relationVariantFold(method, 'some', () => index, value => value.skip);
+        const constantSkip = relationVariantFold(constant, 'some', () => skip, value => Math.max(skip, value.skip));
         return visit(constantSkip + 1, nextTraits, nextMethods, nextConstants);
       },
     );
@@ -180,29 +202,27 @@ export function parseModelDeclaration(tokens: readonly TokenDescriptor[]): Model
   const nameToken = token(tokens, classIndex + 1);
   const open = relationIndexOf(tokens, (item, index) => relationAll([index > classIndex, relationEqual(item.value, '{')]));
   const close = relationGate(open >= 0, () => matching(tokens, open), () => Math.max(tokens.length - 1, 0));
-  const result = relationOptionFold(
+  return relationOptionFold(
     classToken,
-    () => ({ kind: 'error' as const, message: 'Model class declaration not found' }),
+    () => { throw Error('Model class declaration not found'); },
     classValue => relationOptionFold(
       nameToken,
-      () => ({ kind: 'error' as const, message: 'Model class name not found' }),
+      () => { throw Error('Model class name not found'); },
       nameValue => {
         const members = scanClassMembers(tokens, Math.max(open + 1, 0), close);
         return {
-          kind: 'ok' as const,
-          value: {
-            kind: 'model_declaration',
-            name: createAstIdentifier(nameValue.value),
-            inheritance: inheritanceOf(tokens, classIndex),
-            traits: members.traits,
-            methods: members.methods,
-            constants: members.constants,
-            startOffset: offset(classValue),
-            endOffset: offset(relationOptionFold(token(tokens, close), () => nameValue, value => value)),
-          },
+          kind: 'model_declaration' as const,
+          name: createAstIdentifier(nameValue.value),
+          inheritance: inheritanceOf(tokens, classIndex),
+          documentation: { kind: 'absent' as const },
+          properties: Object.freeze([]),
+          traits: members.traits,
+          methods: members.methods,
+          constants: members.constants,
+          startOffset: offset(classValue),
+          endOffset: offset(relationOptionFold(token(tokens, close), () => nameValue, value => value)),
         };
       },
     ),
   );
-  return relationOptionFold(result, () => { throw Error('Model declaration relation unresolved'); }, value => value.value);
 }

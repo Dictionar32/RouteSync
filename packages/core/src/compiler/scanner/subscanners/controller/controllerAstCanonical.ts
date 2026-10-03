@@ -15,7 +15,7 @@ import type { SemanticValue } from '../../../../types/upstream/primitiveVocabula
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
 import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from '../resource/resourceUpstreamExpressionMappings';
 import { createControllerDataflowContract, createControllerReturnSet, type ControllerResourceResponseEvidence } from './controllerDataflowContract';
-import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import { relationAll, relationAny } from '../../../../semantic/kernel/semanticRelations';
 
 const relationCase = <T, R>(value: T, key: (value: T) => string, cases: Readonly<Record<string, (value: T) => R>>, fallback: (value: T) => R): R => relationOptionFold(relationFirstOption(Object.entries(cases), ([candidate]) => relationEqual(candidate, key(value))), () => fallback(value), ([, branch]) => branch(value));
@@ -50,8 +50,17 @@ function assignmentTarget(target: PhpAssignmentTarget, file: string): Assignment
 
 export type StatementExpressionResolver = (value: PhpAstValue, file: string, statementIndex: number) => ResolvedExpression;
 
+function sequenceToArray<T>(value: import('../../../../types/upstream/collections').Sequence<T>, output: readonly T[] = []): readonly T[] {
+  return relationOptionFold(
+    relationRefine(value, (candidate): candidate is Extract<typeof value, { readonly kind: 'cons' }> => relationEqual(candidate.kind, 'cons')),
+    () => output,
+    current => sequenceToArray(current.tail, [...output, current.head]),
+  );
+}
+
 export function resolvedExpression(value: PhpAstValue, method: ControllerMethodAst, file: string, statementIndex: number): ResolvedExpression {
-  const semantic = relationOptionMap(relationFirstOption(method.body.dataflow.definitions, definition => relationEqual(definition.value, value)), definition => definition.semantic);
+  const definitions = relationExpand(sequenceToArray(method.body.dataflow.semanticVariables.variables), binding => sequenceToArray(binding.definitions));
+  const semantic = relationOptionMap(relationFirstOption(definitions, definition => relationEqual(definition.expression, expression(value, file))), definition => definition.semantic);
   const result: SemanticValue = semanticValue(semantic);
   return { kind: 'resolved_expression', expression: expression(value, file), result };
 }
@@ -162,19 +171,11 @@ function semantic(method: ControllerMethodAst, file: string, response: Controlle
     method.body.dataflow,
     method.parameters,
     createControllerReturnSet(relationProject(method.returns, item => item.expression)),
-    relationGate(relationEqual(response.kind, 'response_present'), () => ({ kind: 'present', response: response.response } satisfies ControllerResourceResponseEvidence), () => ({ kind: 'absent' } satisfies ControllerResourceResponseEvidence))
+    relationGate(relationEqual(response.kind, 'response_present'), () => ({ kind: 'present', response: response.response } satisfies ControllerResourceResponseEvidence), () => ({ kind: 'absent' } satisfies ControllerResourceResponseEvidence)),
+    file,
   );
 
-  const variables = relationProject(contract.semantic.variables, binding => ({
-    variable: variableName(binding.variable),
-    definitions: sequence(relationProject(binding.definitions, definition => ({
-      variable: variableName(definition.variable),
-      origin: definition.origin,
-      expression: expression(definition.value, file),
-      semantic: definition.semantic,
-      source: tokenSpan(file, definition.expression.source),
-    }))) 
-  }));
+  const variables = contract.semantic.variables;
 
   const resources = relationProject(contract.resourceBindings, binding => ({
     resource: { kind: 'resource_reference' as const, name: { kind: 'resource_name' as const, value: binding.resourceName.value } },
@@ -188,7 +189,7 @@ function semantic(method: ControllerMethodAst, file: string, response: Controlle
     () => returnSetSemantic(relationProject(method.returns, item => item.expression), file, contract.resourceBindings),
   );
 
-  return { variables: sequence(variables), resources: sequence(resources), returned };
+  return { variables, resources: sequence(resources), returned };
 }
 
 

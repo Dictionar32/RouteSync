@@ -10,7 +10,7 @@ import { createAstIdentifier, createSourceOffset } from './phpAstTypes';
 import { tokenizePhpSource } from './tokenizer';
 import { parsePhpMethod } from './phpMethodParser';
 import { relationEqual, relationAny, relationAll } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationFirst, relationSelect, relationProject, relationFold, relationOptionMap, relationIndexOf, relationLastIndexOf, relationEvery, relationMapValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSlice, relationCount, relationTextLength, relationTextIsUpperIdentifier, relationTextSlice, relationSome, relationNone, relationIsNone, relationIsPresent, relationVariantValue, relationVariant, relationVariantFold, relationOptionalFold, RELATION_NONE, type RelationOption, type RelationNone, type RelationMaybe } from '../../../semantic/kernel/relationalSequence';
+import { relationGate, relationFirst, relationSelect, relationProject, relationFold, relationOptionMap, relationIndexOf, relationLastIndexOf, relationEvery, relationMapValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSlice, relationCount, relationTextLength, relationTextIsUpperIdentifier, relationTextSlice, relationSome, relationNone, relationIsNone, relationIsPresent, relationVariantValue, relationVariant, relationVariantFold, relationOptionalFold, type RelationOption, type RelationNone, type RelationMaybe } from '../../../semantic/kernel/relationalSequence';
 import { solveCandidate, solveOptionalCandidate, requirement, type OptionalSemanticCandidate } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
 import type { AstNodeIdentity } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -29,14 +29,12 @@ interface AstClassificationRule {
     readonly id: string;
     readonly resolve: (tokens: readonly TokenDescriptor[]) => RelationOption<PhpAstValueNode>;
 }
-const resolveClassification = (resolve: (tokens: readonly TokenDescriptor[]) => PhpAstValueNode | RelationNone): ((tokens: readonly TokenDescriptor[]) => RelationOption<PhpAstValueNode>) => tokens => {
-    const value = resolve(tokens);
-    return relationGate(relationIsNone(value), () => relationNone(), () => relationSome(value));
-};
+const nodeClassification = (resolve: (tokens: readonly TokenDescriptor[]) => RelationOption<PhpAstValue>): ((tokens: readonly TokenDescriptor[]) => RelationOption<PhpAstValueNode>) => tokens => relationOptionMap(resolve(tokens), value => value);
+
 const astClassificationRules: readonly AstClassificationRule[] = Object.freeze([
     { id: 'match', resolve: classifyMatch },
-    { id: 'closure', resolve: resolveClassification(classifyClosure) },
-    { id: 'arrow', resolve: resolveClassification(classifyArrowFunction) },
+    { id: 'closure', resolve: nodeClassification(classifyClosure) },
+    { id: 'arrow', resolve: nodeClassification(classifyArrowFunction) },
     { id: 'instanceof', resolve: classifyInstanceOf },
     { id: 'cast', resolve: classifyCast },
     { id: 'parenthesized', resolve: classifyParenthesized },
@@ -47,9 +45,9 @@ const astClassificationRules: readonly AstClassificationRule[] = Object.freeze([
     { id: 'class-constant', resolve: classifyClassConstant },
     { id: 'class-reference', resolve: classifyClassReference },
     { id: 'new', resolve: classifyNewExpression },
-    { id: 'static-call', resolve: resolveClassification(classifyStaticCall) },
-    { id: 'member', resolve: resolveClassification(classifyMember) },
-    { id: 'ternary', resolve: resolveClassification(classifyTernary) },
+    { id: 'static-call', resolve: nodeClassification(classifyStaticCall) },
+    { id: 'member', resolve: nodeClassification(classifyMember) },
+    { id: 'ternary', resolve: nodeClassification(classifyTernary) },
 ]);
 export function classifyAstTokens(tokens: readonly TokenDescriptor[]): PhpAstValue {
     const candidates = relationProject(astClassificationRules, rule => ({ rule, result: rule.resolve(tokens) }));
@@ -567,6 +565,7 @@ function parseCaptures(tokens: readonly TokenDescriptor[], useIndex: number): re
 function parseBlock(tokens: readonly TokenDescriptor[]): PhpBlock {
     return Object.freeze({ kind: 'block', statements: Object.freeze(parseStatements(tokens)) });
 }
+type ParsedStatement = { readonly statement: PhpStatement; readonly nextIndex: number };
 function parseStatements(tokens: readonly TokenDescriptor[], index = 0, result: readonly PhpStatement[] = []): PhpStatement[] {
     return relationGate(index < relationCount(tokens), () => {
         const token = tokens[index];
@@ -575,60 +574,33 @@ function parseStatements(tokens: readonly TokenDescriptor[], index = 0, result: 
             relationEqual(token.value, ';')
         ]), () => parseStatements(tokens, relationAdvanceIndex(index, 1), result), () => {
             const parsed = parseStructuredStatement(tokens, index);
-            return relationGate(relationIsPresent(parsed), () => parseStatements(tokens, parsed.nextIndex, [...result, parsed.statement]), () => {
+            return relationOptionFold(parsed, () => {
                 const end = findStatementEnd(tokens, index);
                 const part = relationSlice(tokens, index, end);
                 const next = relationGate(end < relationCount(tokens), () => relationAdvanceIndex(end, 1), () => end);
                 return relationGate(relationCount(part) > 0, () => parseStatements(tokens, next, [...result, parseSimpleStatement(part)]), () => parseStatements(tokens, next, result));
-            });
+            }, resolved => parseStatements(tokens, resolved.nextIndex, [...result, resolved.statement]));
         });
     }, () => [...result]);
 }
-function parseStructuredStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parseStructuredStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const control = relationOptionFold(tokenAt(tokens, start), () => { throw Error('control statement token relation missing'); }, token => phpControlEvidence(token.token));
     const end = findStatementEnd(tokens, start);
     const nextIndex = relationGate(end < relationCount(tokens), () => relationAdvanceIndex(end, 1), () => end);
-    const parsed = (kind: PhpControlEvidence): {
-        readonly statement: PhpStatement;
-        readonly nextIndex: number;
-    } | RelationNone => {
+    const parsed = (kind: PhpControlEvidence): RelationOption<ParsedStatement> => {
         const admissible = relationOptionFold(control, () => false, value => relationEqual(value, kind));
-        const selected = solveCandidate<() => {
-            readonly statement: PhpStatement;
-            readonly nextIndex: number;
-        }>([
-            { id: 'conditional', value: () => parseConditionalStatement(tokens, start) as {
-                    readonly statement: PhpStatement;
-                    readonly nextIndex: number;
-                }, requirements: [requirement('control', admissible)] },
-            { id: 'collection-iteration', value: () => parseCollectionIterationStatement(tokens, start) as {
-                    readonly statement: PhpStatement;
-                    readonly nextIndex: number;
-                }, requirements: [requirement('control', admissible)] },
-            { id: 'counted-iteration', value: () => parseCountedIterationStatement(tokens, start) as {
-                    readonly statement: PhpStatement;
-                    readonly nextIndex: number;
-                }, requirements: [requirement('control', admissible)] },
-            { id: 'pretest-iteration', value: () => parsePretestIterationStatement(tokens, start) as {
-                    readonly statement: PhpStatement;
-                    readonly nextIndex: number;
-                }, requirements: [requirement('control', admissible)] },
-            { id: 'selection-dispatch', value: () => parseSelectionDispatchStatement(tokens, start) as {
-                    readonly statement: PhpStatement;
-                    readonly nextIndex: number;
-                }, requirements: [requirement('control', admissible)] },
-            { id: 'exception-guard', value: () => parseTryStatement(tokens, start) as {
-                    readonly statement: PhpStatement;
-                    readonly nextIndex: number;
-                }, requirements: [requirement('control', admissible)] },
-            { id: 'exception-raise', value: () => ({ statement: PhpAstFactory.throwStatement(classifyAstTokens(relationSlice(tokens, relationAdvanceIndex(start, 1), end)), tokens[start]), nextIndex }), requirements: [requirement('control', admissible)] },
+        const selected = solveOptionalCandidate<ParsedStatement>([
+            { id: 'conditional', value: parseConditionalStatement(tokens, start), requirements: [requirement('control', admissible)] },
+            { id: 'collection-iteration', value: parseCollectionIterationStatement(tokens, start), requirements: [requirement('control', admissible)] },
+            { id: 'counted-iteration', value: parseCountedIterationStatement(tokens, start), requirements: [requirement('control', admissible)] },
+            { id: 'pretest-iteration', value: parsePretestIterationStatement(tokens, start), requirements: [requirement('control', admissible)] },
+            { id: 'selection-dispatch', value: parseSelectionDispatchStatement(tokens, start), requirements: [requirement('control', admissible)] },
+            { id: 'exception-guard', value: parseTryStatement(tokens, start), requirements: [requirement('control', admissible)] },
+            { id: 'exception-raise', value: relationSome({ statement: PhpAstFactory.throwStatement(classifyAstTokens(relationSlice(tokens, relationAdvanceIndex(start, 1), end)), tokens[start]), nextIndex }), requirements: [requirement('control', admissible)] },
         ]);
-        return relationOptionFold(selected, () => RELATION_NONE, evaluate => evaluate());
+        return selected;
     };
-    return relationOptionFold(control, () => RELATION_NONE, value => parsed(value));
+    return relationOptionFold(control, () => relationNone<ParsedStatement>(), value => parsed(value));
 }
 function parseSimpleStatement(part: readonly TokenDescriptor[]): PhpStatement {
     const first = relationOptionFold(tokenAt(part, 0), () => { throw Error('empty simple statement relation'); }, evidence => evidence.token);
@@ -652,41 +624,39 @@ function findStatementEnd(tokens: readonly TokenDescriptor[], start: number, ind
         return relationGate(relationAll([relationEqual(value, ';'), relationEqual(paren, 0), relationEqual(bracket, 0), relationEqual(brace, 0)]), () => index, () => findStatementEnd(tokens, start, relationAdvanceIndex(index, 1), nextParen, nextBracket, nextBrace));
     }, () => relationCount(tokens));
 }
-function parseConditionalStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parseConditionalStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const open = indexOf(tokens, '(', relationAdvanceIndex(start, 1));
     return relationGate(open < 0, () => {
-        return RELATION_NONE;
+        return relationNone();
     }, () => {
         const close = matchingClose(tokens, open);
         const bodyOpen = indexOf(tokens, '{', relationAdvanceIndex(close, 1));
         return relationGate(bodyOpen < 0, () => {
-            return RELATION_NONE;
+            return relationNone();
         }, () => {
             const bodyClose = matchingBrace(tokens, bodyOpen);
             return relationGate(bodyClose >= relationCount(tokens), () => {
-                return RELATION_NONE;
+                return relationNone();
             }, () => {
                 const condition = classifyAstTokens(relationSlice(tokens, relationAdvanceIndex(open, 1), close));
                 const thenBlock = parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose));
                 let next = relationAdvanceIndex(bodyClose, 1);
                 return relationGate(relationNotEqual(tokenValueOr(tokens, next), 'else'), () => {
-                    return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'none' }, tokens[start]), nextIndex: next };
+                    return relationSome({ statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'none' }, tokens[start]), nextIndex: next });
                 }, () => {
                     return relationGate(relationEqual(tokenValueOr(tokens, relationAdvanceIndex(next, 1)), 'if'), () => {
                         const nested = parseConditionalStatement(tokens, relationAdvanceIndex(next, 1));
-                        return relationGate(nested, () => {
-                            return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_if', statement: relationVariantValue(nested.statement, PHP_STATEMENT_KINDS.conditional) }, tokens[start]), nextIndex: nested.nextIndex };
-                        }, () => RELATION_NONE);
+                        return relationOptionFold(nested, () => relationNone<ParsedStatement>(), resolved => relationSome({
+                            statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_if', statement: relationVariantValue(resolved.statement, PHP_STATEMENT_KINDS.conditional) }, tokens[start]),
+                            nextIndex: resolved.nextIndex,
+                        }));
                     }, () => {
                         const elseOpen = relationGate(relationEqual(tokenValueOr(tokens, relationAdvanceIndex(next, 1)), '{'), () => relationAdvanceIndex(next, 1), () => -1);
                         return relationGate(elseOpen < 0, () => {
-                            return RELATION_NONE;
+                            return relationNone<ParsedStatement>();
                         }, () => {
                             const elseClose = matchingBrace(tokens, elseOpen);
-                            return { statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_block', block: parseBlock(relationSlice(tokens, elseOpen + 1, elseClose)) }, tokens[start]), nextIndex: relationAdvanceIndex(elseClose, 1) };
+                            return relationSome({ statement: PhpAstFactory.ifStatement(condition, thenBlock, { kind: 'else_block', block: parseBlock(relationSlice(tokens, elseOpen + 1, elseClose)) }, tokens[start]), nextIndex: relationAdvanceIndex(elseClose, 1) });
                         });
                     });
                 });
@@ -694,18 +664,15 @@ function parseConditionalStatement(tokens: readonly TokenDescriptor[], start: nu
         });
     });
 }
-function parseCollectionIterationStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parseCollectionIterationStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const open = indexOf(tokens, '(', relationAdvanceIndex(start, 1));
     return relationGate(open < 0, () => {
-        return RELATION_NONE;
+        return relationNone();
     }, () => {
         const close = matchingClose(tokens, open);
         const asIndex = findTopLevelOperator(relationSlice(tokens, relationAdvanceIndex(open, 1), close), 'as');
         return relationGate(asIndex < 0, () => {
-            return RELATION_NONE;
+            return relationNone();
         }, () => {
             const inner = relationSlice(tokens, relationAdvanceIndex(open, 1), close);
             const iterable = classifyAstTokens(relationSlice(inner, 0, asIndex));
@@ -714,7 +681,7 @@ function parseCollectionIterationStatement(tokens: readonly TokenDescriptor[], s
             const variableTokens = relationGate(arrow >= 0, () => relationSlice(targetTokens, relationAdvanceIndex(arrow, 1)), () => targetTokens);
             const variables = relationSelect(variableTokens, token => relationEqual(token.type, 'VARIABLE'));
             return relationGate(relationEqual(relationCount(variables), 0), () => {
-                return RELATION_NONE;
+                return relationNone();
             }, () => {
                 const target = relationGate(
                     relationAll([arrow >= 0, relationCount(variables) >= 2]),
@@ -723,47 +690,44 @@ function parseCollectionIterationStatement(tokens: readonly TokenDescriptor[], s
                 );
                 const bodyOpen = indexOf(tokens, '{', relationAdvanceIndex(close, 1));
                 return relationGate(bodyOpen < 0, () => {
-                    return RELATION_NONE;
+                    return relationNone();
                 }, () => {
                     const bodyClose = matchingBrace(tokens, bodyOpen);
-                    return { statement: PhpAstFactory.foreachStatement(iterable, target, parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), tokens[start]), nextIndex: relationAdvanceIndex(bodyClose, 1) };
+                    return relationSome({ statement: PhpAstFactory.foreachStatement(iterable, target, parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), tokens[start]), nextIndex: relationAdvanceIndex(bodyClose, 1) });
                 });
             });
         });
     });
 }
-function parsePretestIterationStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parsePretestIterationStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const open = indexOf(tokens, '(', relationAdvanceIndex(start, 1));
     return relationGate(open < 0, () => {
-        return RELATION_NONE;
+        return relationNone();
     }, () => {
         const close = matchingClose(tokens, open);
         const bodyOpen = indexOf(tokens, '{', relationAdvanceIndex(close, 1));
         return relationGate(bodyOpen < 0, () => {
-            return RELATION_NONE;
+            return relationNone();
         }, () => {
             const bodyClose = matchingBrace(tokens, bodyOpen);
             return relationGate(bodyClose >= relationCount(tokens), () => {
-                return RELATION_NONE;
+                return relationNone<ParsedStatement>();
             }, () => {
-                return {
+                return relationSome({
                     statement: PhpAstFactory.whileStatement(classifyAstTokens(relationSlice(tokens, relationAdvanceIndex(open, 1), close)), parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), tokens[start]),
                     nextIndex: relationAdvanceIndex(bodyClose, 1),
-                };
+                });
             });
         });
     });
 }
-function parseSwitchCases(inner: readonly TokenDescriptor[], tokens: readonly TokenDescriptor[], start: number, cursor = 0, activeKind: 'case' | 'default' | RelationNone = RELATION_NONE, activeLabels: readonly import('./phpAstTypes').PhpAstValue[] = [], activeStart = 0, cases: readonly import('./phpAstTypes').PhpSwitchCase[] = []): RelationOption<readonly import('./phpAstTypes').PhpSwitchCase[]> {
-    const flush = (end: number, currentCases: readonly import('./phpAstTypes').PhpSwitchCase[]): readonly import('./phpAstTypes').PhpSwitchCase[] => relationGate(relationIsNone(activeKind), () => currentCases, () => {
+function parseSwitchCases(inner: readonly TokenDescriptor[], tokens: readonly TokenDescriptor[], start: number, cursor = 0, activeKind: RelationOption<'case' | 'default'> = relationNone(), activeLabels: readonly import('./phpAstTypes').PhpAstValue[] = [], activeStart = 0, cases: readonly import('./phpAstTypes').PhpSwitchCase[] = []): RelationOption<readonly import('./phpAstTypes').PhpSwitchCase[]> {
+    const flush = (end: number, currentCases: readonly import('./phpAstTypes').PhpSwitchCase[]): readonly import('./phpAstTypes').PhpSwitchCase[] => relationOptionFold(activeKind, () => currentCases, kind => {
         const bodyTokens = relationSlice(inner, activeStart, end);
         const body = parseBlock(bodyTokens);
         const hasBreak = relationAny(relationProject(bodyTokens, token => relationEqual(token.value, 'break')));
         const source = relationGate(relationAll([activeStart >= 0, activeStart < relationCount(inner)]), () => inner[activeStart], () => tokens[start]);
-        const nextCase = relationGate(relationEqual(activeKind, 'default'), () => ({ kind: 'default' as const, body, fallThrough: !hasBreak, source }), () => ({ kind: 'case' as const, labels: Object.freeze([...activeLabels]), body, fallThrough: !hasBreak, source }));
+        const nextCase = relationGate(relationEqual(kind, 'default'), () => ({ kind: 'default' as const, body, fallThrough: !hasBreak, source }), () => ({ kind: 'case' as const, labels: Object.freeze([...activeLabels]), body, fallThrough: !hasBreak, source }));
         return [...currentCases, nextCase];
     });
     return relationGate(cursor < relationCount(inner), () => {
@@ -774,26 +738,23 @@ function parseSwitchCases(inner: readonly TokenDescriptor[], tokens: readonly To
         ]), () => {
             const flushed = flush(cursor, cases);
             const nextKind = relationGate(relationEqual(value, 'default'), () => 'default' as const, () => 'case' as const);
-            return relationGate(relationEqual(nextKind, 'default'), () => parseSwitchCases(inner, tokens, start, cursor + 1, nextKind, [], cursor + 1, flushed), () => {
+            return relationGate(relationEqual(nextKind, 'default'), () => parseSwitchCases(inner, tokens, start, cursor + 1, relationSome(nextKind), [], cursor + 1, flushed), () => {
                 const colon = relationIndexOf(inner, token => relationEqual(token.value, ':'), cursor + 1);
-                return relationGate(colon < 0, () => relationNone(), () => parseSwitchCases(inner, tokens, start, relationAdvanceIndex(colon, 1), nextKind, [classifyAstTokens(relationSlice(inner, cursor + 1, colon))], relationAdvanceIndex(colon, 1), flushed));
+                return relationGate(colon < 0, () => relationNone(), () => parseSwitchCases(inner, tokens, start, relationAdvanceIndex(colon, 1), relationSome(nextKind), [classifyAstTokens(relationSlice(inner, cursor + 1, colon))], relationAdvanceIndex(colon, 1), flushed));
             });
         }, () => parseSwitchCases(inner, tokens, start, cursor + 1, activeKind, activeLabels, activeStart, cases));
     }, () => relationSome(flush(relationCount(inner), cases)));
 }
-function parseSelectionDispatchStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parseSelectionDispatchStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const open = indexOf(tokens, '(', relationAdvanceIndex(start, 1));
-    return relationGate(open < 0, () => RELATION_NONE, () => {
+    return relationGate(open < 0, () => relationNone<ParsedStatement>(), () => {
         const close = matchingClose(tokens, open);
         const bodyOpen = indexOf(tokens, '{', relationAdvanceIndex(close, 1));
-        return relationGate(bodyOpen < 0, () => RELATION_NONE, () => {
+        return relationGate(bodyOpen < 0, () => relationNone<ParsedStatement>(), () => {
             const bodyClose = matchingBrace(tokens, bodyOpen);
-            return relationGate(bodyClose >= relationCount(tokens), () => RELATION_NONE, () => {
+            return relationGate(bodyClose >= relationCount(tokens), () => relationNone<ParsedStatement>(), () => {
                 const cases = parseSwitchCases(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose), tokens, start);
-                return relationOptionFold(cases, () => RELATION_NONE, resolvedCases => ({
+                return relationOptionFold(cases, () => relationNone<ParsedStatement>(), resolvedCases => relationSome({
                     statement: PhpAstFactory.switchStatement(classifyAstTokens(relationSlice(tokens, relationAdvanceIndex(open, 1), close)), resolvedCases, tokens[start]),
                     nextIndex: relationAdvanceIndex(bodyClose, 1),
                 }));
@@ -801,25 +762,22 @@ function parseSelectionDispatchStatement(tokens: readonly TokenDescriptor[], sta
         });
     });
 }
-function parseCountedIterationStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parseCountedIterationStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const open = indexOf(tokens, '(', relationAdvanceIndex(start, 1));
     return relationGate(open < 0, () => {
-        return RELATION_NONE;
+        return relationNone();
     }, () => {
         const close = matchingClose(tokens, open);
         const clauses = splitTopLevel(relationSlice(tokens, relationAdvanceIndex(open, 1), close), ';');
         return relationGate(relationNotEqual(relationCount(clauses), 3), () => {
-            return RELATION_NONE;
+            return relationNone();
         }, () => {
             const bodyOpen = indexOf(tokens, '{', relationAdvanceIndex(close, 1));
             return relationGate(bodyOpen < 0, () => {
-                return RELATION_NONE;
+                return relationNone();
             }, () => {
                 const bodyClose = matchingBrace(tokens, bodyOpen);
-                return { statement: PhpAstFactory.forStatement(toForClause(clauses[0]), toForClause(clauses[1]), toForClause(clauses[2]), parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), tokens[start]), nextIndex: relationAdvanceIndex(bodyClose, 1) };
+                return relationSome({ statement: PhpAstFactory.forStatement(toForClause(clauses[0]), toForClause(clauses[1]), toForClause(clauses[2]), parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), tokens[start]), nextIndex: relationAdvanceIndex(bodyClose, 1) });
             });
         });
     });
@@ -841,13 +799,11 @@ function toForClause(tokens: readonly TokenDescriptor[]): import('./phpAstTypes'
         });
     });
 }
-function parseTryCatches(tokens: readonly TokenDescriptor[], index: number, catches: readonly import('./phpAstTypes').PhpCatchClause[] = []): {
-    readonly index: number;
-    readonly catches: readonly import('./phpAstTypes').PhpCatchClause[];
-} | RelationNone {
+type ParsedTryCatches = { readonly index: number; readonly catches: readonly import('./phpAstTypes').PhpCatchClause[] };
+function parseTryCatches(tokens: readonly TokenDescriptor[], index: number, catches: readonly import('./phpAstTypes').PhpCatchClause[] = []): RelationOption<ParsedTryCatches> {
     return relationGate(relationEqual(tokenValueOr(tokens, index), 'catch'), () => {
         const open = indexOf(tokens, '(', relationAdvanceIndex(index, 1));
-        return relationGate(open < 0, () => RELATION_NONE, () => {
+        return relationGate(open < 0, () => relationNone<ParsedTryCatches>(), () => {
             const close = matchingClose(tokens, open);
             const vars = relationSelect(relationSlice(tokens, relationAdvanceIndex(open, 1), close), token => relationAny([
                 relationEqual(token.type, 'IDENTIFIER'),
@@ -859,7 +815,7 @@ function parseTryCatches(tokens: readonly TokenDescriptor[], index: number, catc
             return relationGate(relationAny([
                 relationEqual(exceptionType.kind, 'none'), relationEqual(variable.kind, 'none'),
                 catchOpen < 0
-            ]), () => RELATION_NONE, () => {
+            ]), () => relationNone<ParsedTryCatches>(), () => {
                 const catchClose = matchingBrace(tokens, catchOpen);
                 return parseTryCatches(tokens, catchClose + 1, [...catches, {
                         exceptionType: relationOptionFold(exceptionType, () => { throw Error('catch exception type witness missing'); }, value => createAstIdentifier(value.value)),
@@ -869,28 +825,25 @@ function parseTryCatches(tokens: readonly TokenDescriptor[], index: number, catc
                     }]);
             });
         });
-    }, () => ({ index, catches }));
+    }, () => relationSome({ index, catches }));
 }
-function parseTryStatement(tokens: readonly TokenDescriptor[], start: number): {
-    readonly statement: PhpStatement;
-    readonly nextIndex: number;
-} | RelationNone {
+function parseTryStatement(tokens: readonly TokenDescriptor[], start: number): RelationOption<ParsedStatement> {
     const bodyOpen = indexOf(tokens, '{', relationAdvanceIndex(start, 1));
-    return relationGate(bodyOpen < 0, () => RELATION_NONE, () => {
+    return relationGate(bodyOpen < 0, () => relationNone<ParsedStatement>(), () => {
         const bodyClose = matchingBrace(tokens, bodyOpen);
         const parsedCatches = parseTryCatches(tokens, relationAdvanceIndex(bodyClose, 1));
-        return relationOptionalFold(parsedCatches, () => RELATION_NONE, parsed => {
+        return relationOptionFold(parsedCatches, () => relationNone<ParsedStatement>(), parsed => {
             const finallyIndex = parsed.index;
             return relationGate(relationEqual(tokenValueOr(tokens, finallyIndex), 'finally'), () => {
                 const open = indexOf(tokens, '{', relationAdvanceIndex(finallyIndex, 1));
-                return relationGate(open < 0, () => RELATION_NONE, () => {
+                return relationGate(open < 0, () => relationNone<ParsedStatement>(), () => {
                     const close = matchingBrace(tokens, open);
-                    return {
+                    return relationSome({
                         statement: PhpAstFactory.tryStatement(parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), parsed.catches, { kind: 'present', block: parseBlock(relationSlice(tokens, relationAdvanceIndex(open, 1), close)) }, tokens[start]),
                         nextIndex: relationAdvanceIndex(close, 1),
-                    };
+                    });
                 });
-            }, () => ({
+            }, () => relationSome({
                 statement: PhpAstFactory.tryStatement(parseBlock(relationSlice(tokens, relationAdvanceIndex(bodyOpen, 1), bodyClose)), parsed.catches, { kind: 'absent' }, tokens[start]),
                 nextIndex: finallyIndex,
             }));

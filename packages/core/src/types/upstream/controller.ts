@@ -146,6 +146,11 @@ export interface ControllerVariableBinding {
   readonly definitions: Sequence<ControllerVariableDefinition>;
 }
 
+/** Canonical scanner boundary for controller variable semantics; PHP AST descriptors remain evidence only. */
+export interface ControllerSemanticVariableFlow {
+  readonly variables: Sequence<ControllerVariableBinding>;
+}
+
 export interface ControllerResourceBinding {
   readonly resource: ResourceReference;
   readonly model: ControllerModelOrigin;

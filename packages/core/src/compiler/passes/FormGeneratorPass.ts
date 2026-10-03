@@ -14,7 +14,7 @@ import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
 import type { GeneratedFormArtifact } from '../artifacts/GeneratedFormArtifact';
 import { FormActionGenerator } from '../generators/form-generation/FormActionGenerator';
 import { FormCodeBuilder, type FormTypeDefinition } from '../generators/form-generation/FormCodeBuilder';
-import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
+import { type SemanticTypeResolverLike } from '../domain/common/semantic-resolver';
 import { defaultTypeResolver } from '../domain/common/ResponseFieldLowering';
 import { RouteManifest } from '../../types/domain';
 
@@ -23,7 +23,7 @@ export interface FormGeneratorPassDependencies {
     readonly includeJsDoc?: boolean;
     readonly actionGenerator?: FormActionGenerator;
     readonly codeBuilder?: FormCodeBuilder;
-    readonly resolver?: SemanticTypeResolver;
+    readonly resolver?: SemanticTypeResolverLike;
 }
 
 export class FormGeneratorPass implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedForm']> {
@@ -46,7 +46,7 @@ export class FormGeneratorPass implements CompilerPass<readonly ['RequestTypes']
     public readonly includeJsDoc: boolean;
     private readonly actionGenerator: FormActionGenerator;
     private readonly codeBuilder: FormCodeBuilder;
-    private readonly resolver: SemanticTypeResolver;
+    private readonly resolver: SemanticTypeResolverLike;
 
     constructor({
         indentSize = 2,

@@ -1,14 +1,14 @@
 /**
  * fieldConverter.ts
  *
- * Convert Target-Agnostic ResolvedSemanticType to ParsedResponseField ConversionResult.
+ * Convert Target-Agnostic ResolvedSemanticType to ResponseFieldProjection ConversionResult.
  *
  * @module compiler/domain/common/response-lowering/mapper
  */
 
-import type { ParsedResponseField } from '../../../../generators/contract-generation/ResponseFieldParser';
+import type { ResponseFieldProjection } from '../../../../generators/contract-generation/response-field';
 import { ConversionResult, createConversionResult } from '../../ConversionResult';
-import type { SemanticTypeResolverInstance } from '../../SemanticTypeResolver';
+import type { SemanticTypeResolverLike } from '../../semantic-resolver';
 import type {
     ResolvedSemanticType
 } from '../../ResolvedSemanticType';
@@ -23,8 +23,8 @@ import { relationEqual } from '../../../../../semantic/kernel/semanticRelations'
 export function convertResolvedTypeToResponseField(
     fieldName: string,
     resolved: ResolvedSemanticType,
-    resolver: SemanticTypeResolverInstance
-): StageResult<ParsedResponseField> {
+    resolver: SemanticTypeResolverLike
+): StageResult<ResponseFieldProjection> {
     const operation = resolveResponseFieldOperation(resolved.kind);
     return RESPONSE_FIELD_CONVERTERS[operation](fieldName, resolved, resolver);
 }
@@ -33,8 +33,8 @@ type ResponseFieldConverterRegistry = {
     readonly [K in ResponseFieldOperation]: (
         fieldName: string,
         resolved: ResolvedSemanticType,
-        resolver: SemanticTypeResolverInstance,
-    ) => StageResult<ParsedResponseField>;
+        resolver: SemanticTypeResolverLike,
+    ) => StageResult<ResponseFieldProjection>;
 };
 
 const RESPONSE_FIELD_CONVERTERS: ResponseFieldConverterRegistry = Object.freeze({

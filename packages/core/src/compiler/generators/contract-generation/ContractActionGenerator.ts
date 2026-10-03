@@ -9,13 +9,13 @@
 
 import type { SemanticType } from '../../types/SemanticType';
 import type { FileValidationConstraints } from '../../../types/domain/request';
-import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
+import { type SemanticTypeResolverLike } from '../../domain/common/semantic-resolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { ResolvedObjectType } from '../../domain/common/ResolvedSemanticType';
 import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
 import { toPascalCase } from '../../../utils/resource-naming';
 import { createPropertyName } from '../../../types/upstream/names';
-import { relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationProject, relationResolve } from '../../../semantic/kernel/relationalSequence';
 
 export interface ActionField {
     readonly name: string;
@@ -33,11 +33,11 @@ export interface GeneratedContractAction {
 }
 
 export interface ContractActionGeneratorDependencies {
-    readonly resolver?: SemanticTypeResolver;
+    readonly resolver?: SemanticTypeResolverLike;
 }
 
 export class ContractActionGenerator {
-    private readonly resolver: SemanticTypeResolver;
+    private readonly resolver: SemanticTypeResolverLike;
 
     constructor({ resolver = defaultTypeResolver }: ContractActionGeneratorDependencies = {}) {
         this.resolver = resolver;
@@ -48,7 +48,7 @@ export class ContractActionGenerator {
         fields: readonly ActionField[],
         contractSchemaName: string = ''
     ): GeneratedContractAction {
-        const resolvedFields = fields.map(f => {
+        const resolvedFields = relationProject(fields, f => {
             return {
                 name: createPropertyName(f.name),
                 type: this.resolver.resolve(f.type),

@@ -2,8 +2,8 @@
  * Relation-driven nullable wrapper resolver.
  */
 import type { ObjectType } from '../../../../types/SemanticType';
-import type { ParsedResponseField } from '../../../../generators/contract-generation/ResponseFieldParser';
-import type { SemanticTypeResolverInstance } from '../../SemanticTypeResolver';
+import type { ResponseFieldProjection } from '../../../../generators/contract-generation/response-field';
+import type { SemanticTypeResolverLike } from '../../semantic-resolver';
 import type { NullableWrapperResult, StageResult } from '../loweringContracts';
 import { convertResolvedTypeToResponseField } from './fieldConverter';
 import { NULLABLE_WRAPPER_RULES, resolveLoweringOperation } from '../../../../ir/semanticIRLoweringRelations';
@@ -14,7 +14,7 @@ import type { ResolvedSemanticType } from '../../ResolvedSemanticType';
 export function resolveNullableWrapper(
     fieldName: string,
     objectType: ObjectType,
-    resolver: SemanticTypeResolverInstance,
+    resolver: SemanticTypeResolverLike,
 ): NullableWrapperResult {
     const resolved = resolver.resolve(objectType);
     const operation = resolveLoweringOperation(resolved.kind, NULLABLE_WRAPPER_RULES);
@@ -52,8 +52,8 @@ export function resolveNullableWrapper(
 export function convertObjectType(
     fieldName: string,
     objectType: ObjectType,
-    resolver: SemanticTypeResolverInstance,
-): StageResult<ParsedResponseField> {
+    resolver: SemanticTypeResolverLike,
+): StageResult<ResponseFieldProjection> {
     const resolved = resolver.resolve(objectType);
     return convertResolvedTypeToResponseField(fieldName, resolved, resolver);
 }

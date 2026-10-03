@@ -90,7 +90,7 @@ const ROUTE_DECLARATION_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, Route
 });
 export const routeDeclarationSemanticKind = (method: LaravelRouteMethod): RouteDeclarationSemanticKind => ROUTE_DECLARATION_SEMANTIC_KIND[method];
 
-export type RouteMethodSemanticKind = 'any' | 'match' | 'standard';
+export type RouteMethodSemanticKind = 'all_methods' | 'match' | 'standard';
 const ROUTE_METHOD_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, RouteMethodSemanticKind>> = Object.freeze({
     apiResource: 'standard',
     get: 'standard',
@@ -101,7 +101,7 @@ const ROUTE_METHOD_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, RouteMetho
     options: 'standard',
     head: 'standard',
     match: 'match',
-    any: 'any',
+    any: 'all_methods',
 });
 export const routeMethodSemanticKind = (method: LaravelRouteMethod): RouteMethodSemanticKind => ROUTE_METHOD_SEMANTIC_KIND[method];
 

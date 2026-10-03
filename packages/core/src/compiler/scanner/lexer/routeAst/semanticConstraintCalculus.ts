@@ -12,7 +12,7 @@ import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, 
 export type { SemanticRelation } from './semanticRewriteEngine';
 export type SemanticConstraintTerm = SemanticRelationAtom | Readonly<{ readonly variable: string }>;
 export type SemanticConstraint = Readonly<{ readonly kind: 'equals'; readonly left: SemanticConstraintTerm; readonly right: SemanticConstraintTerm }> | Readonly<{ readonly kind: 'not-equals'; readonly left: SemanticConstraintTerm; readonly right: SemanticConstraintTerm }> | Readonly<{ readonly kind: 'truth'; readonly value: SemanticConstraintTerm }>;
-export interface SemanticConstraintRule<R extends string = string> { readonly id: string; readonly priority: number; readonly when: readonly SemanticRelationPattern<R>[]; readonly constraints?: readonly SemanticConstraint[]; readonly then: readonly SemanticRelationPattern<R>[] }
+export interface SemanticConstraintRule<R extends string = string> { readonly id: string; readonly priority: number; readonly when: readonly SemanticRelationPattern<R>[]; readonly constraints: readonly SemanticConstraint[]; readonly then: readonly SemanticRelationPattern<R>[] }
 export interface SemanticConstraintProgram<R extends string = string> { readonly rules: readonly SemanticConstraintRule<R>[] }
 export interface SemanticConstraintSolveResult<R extends string = string> { readonly facts: readonly SemanticRelation<R>[]; readonly derivations: readonly { readonly fact: SemanticRelation<R>; readonly ruleId: string }[]; readonly rounds: number; readonly saturated: boolean }
 
@@ -46,7 +46,7 @@ const constraintsHold = (constraints: readonly SemanticConstraint[], bindings: B
 );
 
 const constraintItems = <R extends string>(rule: SemanticConstraintRule<R>): readonly SemanticConstraint[] =>
-  Object.freeze(relationGate(rule.constraints === undefined, () => [], () => project(rule.constraints as readonly SemanticConstraint[], item => Object.freeze({ ...item }))));
+  Object.freeze(project(rule.constraints, item => Object.freeze({ ...item })));
 
 const relationKey = <R extends string>(fact: SemanticRelation<R>): string => `${fact.relation}(${project(fact.arguments, value => JSON.stringify(value)).join(',')})`;
 

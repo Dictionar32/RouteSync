@@ -1,15 +1,15 @@
 /**
  * ResponseFieldLowering.ts
  *
- * Dedicated Domain Lowering Module for Transforming SemanticType ASTs into ParsedResponseFields.
+ * Dedicated Domain Lowering Module for Transforming SemanticType ASTs into ResponseFieldProjections.
  * Conforms to Rule 14: Active Consumer Orchestrator, 0 wildcard re-exports.
  *
  * @module compiler/domain/common
  */
 
 import type { ObjectType, SemanticType, ObjectProperty } from '../../types/SemanticType';
-import type { ParsedResponseField } from '../../generators/contract-generation/ResponseFieldParser';
-import { SemanticTypeResolver } from './SemanticTypeResolver';
+import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
+import { SemanticTypeResolver, type SemanticTypeResolverLike } from './SemanticTypeResolver';
 import { relationProject } from '../../../semantic/kernel/relationalSequence';
 import {
     type NullableWrapperResult,
@@ -38,7 +38,7 @@ export const defaultTypeResolver = SemanticTypeResolver.default();
  */
 export function convertResponseFields(
     fields: readonly ObjectProperty[],
-    resolver: SemanticTypeResolver = defaultTypeResolver
+    resolver: SemanticTypeResolverLike = defaultTypeResolver
 ): ResponseFieldConversionResult {
     const results = relationProject(fields, field =>
         convertSingleResponseField(field.name.value.value, field.type, resolver)
@@ -48,13 +48,13 @@ export function convertResponseFields(
 }
 
 /**
- * Pure Pattern Matching Stage-2 Converter for individual SemanticType -> ConversionResult<ParsedResponseField>
+ * Pure Pattern Matching Stage-2 Converter for individual SemanticType -> ConversionResult<ResponseFieldProjection>
  */
 export function convertSingleResponseField(
     fieldName: string,
     semanticType: SemanticType,
-    resolver: SemanticTypeResolver = defaultTypeResolver
-): StageResult<ParsedResponseField> {
+    resolver: SemanticTypeResolverLike = defaultTypeResolver
+): StageResult<ResponseFieldProjection> {
     const resolved = resolver.resolve(semanticType);
     return convertResolvedTypeToResponseField(fieldName, resolved, resolver);
 }

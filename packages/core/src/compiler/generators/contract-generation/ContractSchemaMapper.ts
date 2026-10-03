@@ -9,7 +9,7 @@
 
 import type { SemanticType } from '../../types/SemanticType';
 import type { FileValidationConstraints, FileValidationConstraintVisitor } from '../../artifacts/RequestTypesArtifact';
-import { SemanticTypeResolver } from '../../domain/common/SemanticTypeResolver';
+import { type SemanticTypeResolverLike } from '../../domain/common/semantic-resolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';
 import { toZodSchemaExpression, UNKNOWN_REFERENCE_STRATEGY } from '../../domain/common/ZodSchemaLowerer';
 import { matchResolvedSemanticType, type ResolvedSemanticType } from '../../domain/common/ResolvedSemanticType';
@@ -39,7 +39,7 @@ export class ContractSchemaMapper {
     constructor(
         private readonly primitiveRegistry: PrimitiveTypeRegistry = new PrimitiveTypeRegistry(),
         private readonly modifierBuilder: ZodModifierBuilder = new ZodModifierBuilder(),
-        private readonly resolver: SemanticTypeResolver = defaultTypeResolver
+        private readonly resolver: SemanticTypeResolverLike = defaultTypeResolver
     ) { }
 
     /**

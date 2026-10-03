@@ -69,6 +69,7 @@ export const SEMANTIC_BEHAVIOR_RULES: readonly SemanticRelationRewrite<SemanticB
   Object.freeze({
     id: 'condition-permits-candidate',
     priority: 300,
+    constraints: Object.freeze([]),
     when: Object.freeze([
       pattern('condition', variable('condition'), variable('predicate')),
       pattern('candidate', variable('condition'), variable('candidate')),
@@ -79,6 +80,7 @@ export const SEMANTIC_BEHAVIOR_RULES: readonly SemanticRelationRewrite<SemanticB
   Object.freeze({
     id: 'requires-excludes-conflict',
     priority: 290,
+    constraints: Object.freeze([]),
     when: Object.freeze([
       pattern('requires', variable('left'), variable('predicate')),
       pattern('excludes', variable('right'), variable('predicate')),
@@ -88,6 +90,7 @@ export const SEMANTIC_BEHAVIOR_RULES: readonly SemanticRelationRewrite<SemanticB
   Object.freeze({
     id: 'dependency-precedes-production',
     priority: 280,
+    constraints: Object.freeze([]),
     when: Object.freeze([
       pattern('depends', variable('consumer'), variable('producer')),
       pattern('produces', variable('producer'), variable('value')),
@@ -98,6 +101,7 @@ export const SEMANTIC_BEHAVIOR_RULES: readonly SemanticRelationRewrite<SemanticB
   Object.freeze({
     id: 'dependency-cycle-reachability',
     priority: 275,
+    constraints: Object.freeze([]),
     when: Object.freeze([
       pattern('depends', variable('left'), variable('right')),
       pattern('depends', variable('right'), variable('left')),
@@ -110,6 +114,7 @@ export const SEMANTIC_BEHAVIOR_RULES: readonly SemanticRelationRewrite<SemanticB
   Object.freeze({
     id: 'precedence-reachability',
     priority: 270,
+    constraints: Object.freeze([]),
     when: Object.freeze([
       pattern('precedes', variable('left'), variable('middle')),
       pattern('precedes', variable('middle'), variable('right')),
@@ -119,12 +124,14 @@ export const SEMANTIC_BEHAVIOR_RULES: readonly SemanticRelationRewrite<SemanticB
   Object.freeze({
     id: 'recurrent-reachability',
     priority: 260,
+    constraints: Object.freeze([]),
     when: Object.freeze([pattern('reaches', variable('entity'), variable('entity'))]),
     then: Object.freeze([pattern('recurs', variable('entity'), variable('entity'))]),
   }),
   Object.freeze({
     id: 'fixed-point-convergence',
     priority: 255,
+    constraints: Object.freeze([]),
     when: Object.freeze([pattern('reaches', variable('entity'), variable('entity'))]),
     then: Object.freeze([pattern('converges', variable('entity'), variable('entity'), variable('entity'))]),
   }),

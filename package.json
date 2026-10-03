@@ -173,7 +173,8 @@
     "audit:phase718-resource-evidence-interface": "node scripts/audit-phase718-resource-evidence-interface.cjs",
     "audit:phase720-php-ast-request-projector": "node scripts/audit-phase720-php-ast-request-projector.cjs",
     "audit:phase721-resource-field-semantic-boundary": "node scripts/audit-phase721-resource-field-semantic-boundary.cjs",
-    "audit:phase722-resource-binding-import-frontier": "node scripts/audit-phase722-resource-binding-import-frontier.cjs"
+    "audit:phase722-resource-binding-import-frontier": "node scripts/audit-phase722-resource-binding-import-frontier.cjs",
+    "audit:phase725-highest-resource-field-boundary": "node scripts/audit-phase725-highest-resource-field-boundary.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

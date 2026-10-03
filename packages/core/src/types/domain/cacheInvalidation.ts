@@ -1,4 +1,5 @@
 import type { ResourceName } from '../upstream/names';
+import { SemanticValueFactory } from './semanticValues';
 import type { StringValue } from '../upstream/valueObjects';
 export const InvalidationTargetKind = Object.freeze({
   SelfList: 'self_list',
@@ -49,28 +50,28 @@ export type InvalidationTargetRegistry = {
   readonly [K in InvalidationTargetKind]: InvalidationTargetSpecification<K>;
 };
 
-export const INVALIDATION_TARGET_REGISTRY: InvalidationTargetRegistry = Object.freeze({
+export const INVALIDATION_TARGET_REGISTRY = Object.freeze({
   [InvalidationTargetKind.SelfList]: {
     kind: InvalidationTargetKind.SelfList,
     queryKeySuffix: 'all',
-    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.all` }),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.all`),
   },
   [InvalidationTargetKind.ParentList]: {
     kind: InvalidationTargetKind.ParentList,
     queryKeySuffix: 'lists',
-    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.lists` }),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.lists`),
   },
   [InvalidationTargetKind.ParentDetail]: {
     kind: InvalidationTargetKind.ParentDetail,
     queryKeySuffix: 'detail',
-    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.detail` }),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.detail`),
   },
   [InvalidationTargetKind.AuthResource]: {
     kind: InvalidationTargetKind.AuthResource,
     queryKeySuffix: 'all',
-    computeQueryKey: (groupName: ResourceName) => ({ kind: 'string_value', value: `QueryKey.${groupName.value.value}.all` }),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.all`),
   },
-});
+} satisfies InvalidationTargetRegistry);
 
 export interface InvalidationTargetVisitor<R> {
   readonly self_list: (target: SelfListInvalidationTarget) => R;

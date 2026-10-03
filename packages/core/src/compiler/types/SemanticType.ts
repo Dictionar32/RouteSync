@@ -6,7 +6,7 @@
  * witness whose kind and payload are the semantic facts.
  */
 import { TypeScriptSyntax } from '../domain/common/TypeScriptTypeLowerer';
-import type { ResourceFieldDescriptor } from '../../types/route';
+import type { ResourceFieldSemanticBinding } from '../../types/domain/resourceFieldSemanticBinding';
 import { toCamelCase } from '../../utils/resource-naming';
 import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrigin';
 import { SemanticValueFactory, type PropertyName, type VariableName } from '../../types/domain/semanticValues';
@@ -185,7 +185,7 @@ export function ScannedObjectProperty(params: ScannedObjectPropertyParams): Scan
 export namespace ScannedObjectProperty { export const create = (params: ScannedObjectPropertyParams): ScannedObjectProperty => ScannedObjectProperty(params); }
 
 export const ObjectProperty = Object.freeze({
-    fromResourceField(field: ResourceFieldDescriptor): ObjectProperty {
+    fromResourceField(field: ResourceFieldSemanticBinding): ObjectProperty {
         const type = SemanticTypeResolver.resolveField(field);
         return ScannedObjectProperty({ name: SemanticValueFactory.propertyName(toCamelCase(field.name.value)), type, description: '', origin: { kind: 'bound_expression', bound: field.semantic.bound } });
     }

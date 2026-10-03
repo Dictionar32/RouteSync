@@ -4,7 +4,7 @@ import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ModelSemanticRelation } from "../../../../types/upstream/model";
-import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import { ErrorType } from "../../../types/SemanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";

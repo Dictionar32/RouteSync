@@ -5,7 +5,7 @@ import { ErrorType } from "../../../types/SemanticType";
 import type { ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import type { ModelName } from "../../../../types/domain/semanticValues";
-import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import { relationFold, relationProject, relationResolve } from "../../../../semantic/kernel/relationalSequence";

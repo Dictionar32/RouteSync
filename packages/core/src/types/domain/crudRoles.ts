@@ -1,7 +1,6 @@
 import { CrudRole, RouteHookKind, RouteActionKind, HttpMethod } from '../upstream/routeExecutionVocabulary';
 import type { RoutePath, PropertyName, RouteParameterName } from '../upstream/names';
 export { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
-export type { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 /**
  * PageEndpointKind
  *

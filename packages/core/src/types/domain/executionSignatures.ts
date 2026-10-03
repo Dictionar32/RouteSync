@@ -1,4 +1,5 @@
 import { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
+import { SemanticValueFactory } from './semanticValues';
 import { absent, presenceFold, type Presence } from '../upstream/presence';
 import type { RouteExecutionSignature, NoPayloadExecutionSignature, RequiredPayloadExecutionSignature, OptionalPayloadExecutionSignature, RouteHookKind } from '../upstream/routeExecutionVocabulary';
 export { RoutePayloadMode } from '../upstream/routeExecutionVocabulary';
@@ -81,16 +82,16 @@ export const RouteSemanticFlowExecutionSignature: RouteSemanticFlowExecutionSign
 
   requiredPayload: (typeName: string): RequiredPayloadExecutionSignature => Object.freeze({
     payloadMode: RoutePayloadMode.Required,
-    parameterDeclaration: `payload: ${typeName}`,
-    callArgumentsExpression: 'payload',
+    parameterDeclaration: SemanticValueFactory.stringValue(`payload: ${typeName}`),
+    callArgumentsExpression: SemanticValueFactory.stringValue('payload'),
     hasPayload: true,
     isOptional: false
   }),
 
   optionalPayload: (typeName: string): OptionalPayloadExecutionSignature => Object.freeze({
     payloadMode: RoutePayloadMode.Optional,
-    parameterDeclaration: `payload: ${typeName} = {}`,
-    callArgumentsExpression: 'payload',
+    parameterDeclaration: SemanticValueFactory.stringValue(`payload: ${typeName} = {}`),
+    callArgumentsExpression: SemanticValueFactory.stringValue('payload'),
     hasPayload: true,
     isOptional: true
   }),

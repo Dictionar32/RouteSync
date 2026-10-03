@@ -39,7 +39,7 @@ export {
     buildRequestTypeWithActions,
 } from "./descriptors";
 
-export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from "./semantic/resourceFieldSemanticBinding";
+export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from "../../types/domain/resourceFieldSemanticBinding";
 
 export {
     collectPhpFiles,

@@ -189,8 +189,8 @@ export type {
 
 /** Canonical semantic relation is the sole relationship descriptor vocabulary. */
 export type { ModelSemanticRelation };
-export type SingleRelationDescriptor = Extract<ModelSemanticRelation, { readonly cardinality: { readonly kind: 'one' } }>;
-export type CollectionRelationDescriptor = Extract<ModelSemanticRelation, { readonly cardinality: { readonly kind: 'many' } }>;
+export type SingleRelationDescriptor = ModelSemanticRelation & { readonly cardinality: Extract<ModelSemanticRelation['cardinality'], { readonly kind: 'one' }> };
+export type CollectionRelationDescriptor = ModelSemanticRelation & { readonly cardinality: Extract<ModelSemanticRelation['cardinality'], { readonly kind: 'many' }> };
 export type RelationCardinalityDescriptor = SingleRelationDescriptor | CollectionRelationDescriptor;
 
 export type RelationCardinalityVisitor<R> = {

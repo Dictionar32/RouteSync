@@ -10,12 +10,12 @@ import { scannerSemanticType } from '../../../semanticTypeConstructionRelations'
 import type { OriginModelSymbol, ModelSymbolTable } from "../../../symbols/ModelSymbolTable";
 import type { PhpAstValue } from "../../../lexer/PhpAst";
 import {
-    type ResourceFieldDescriptor,
+    type ResourceFieldSemanticBinding,
     ResourceFieldExpressionFactory
 } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
-import { ResourceFieldSemanticBinding } from "../../../semantic/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
@@ -78,7 +78,7 @@ export function bindNestedArrayField(
         readonly modelSymbolTable: ModelSymbolTable;
     }) => BoundResourceFieldResult
 ): BoundResourceFieldResult {
-    const childFields = relationFold(value.entries, Object.freeze([]) as readonly ResourceFieldDescriptor[], (fields, childEntry, index) => {
+    const childFields = relationFold(value.entries, Object.freeze([]) as readonly ResourceFieldSemanticBinding[], (fields, childEntry, index) => {
         const childKey = relationGate(relationEqual(childEntry.kind, 'keyed'),
             () => relationGate(relationEqual(childEntry.key.kind, 'string'), () => childEntry.key.value, () => String(index)),
             () => String(index));

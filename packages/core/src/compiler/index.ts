@@ -401,5 +401,5 @@ export {
     TypeDeriver
 } from './scanner/StaticLaravelScanner';
 
-export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from './scanner/semantic/resourceFieldSemanticBinding';
+export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from '../types/domain/resourceFieldSemanticBinding';
 

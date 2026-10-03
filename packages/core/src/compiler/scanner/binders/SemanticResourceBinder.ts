@@ -9,7 +9,7 @@
 
 import type { ModelSymbolTable, OriginModelSymbol } from "../symbols/ModelSymbolTable";
 import type { PhpAstValue, PhpArrayEntry } from "../lexer/PhpAst";
-import type { ResourceFieldSemanticBinding } from "../semantic/resourceFieldSemanticBinding";
+import type { ResourceFieldSemanticBinding } from "../../../types/domain/resourceFieldSemanticBinding";
 import type { BoundSemanticNode } from "../../../types/domain/boundAst";
 import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { ModelName, ResourceName, SourceFile } from "../../../types/upstream/names";

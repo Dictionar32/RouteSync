@@ -4,7 +4,7 @@
  * produced this (v1 -> v3, approved) for the reasoning behind every choice
  * here. Short version:
  *
- *   - Collapses 3 previously-parallel unions (ResourceFieldKind,
+ *   - Collapses 3 previously-parallel unions (legacy field variants,
  *     ResponseMetadata) into one, FieldNode.
  *   - Parser produces framework-agnostic AST only (no `resource`,
  *     no forced `model` on static calls). Laravel-specific facts
@@ -19,7 +19,7 @@
  *   2. migrate PhpCodeParser.ts / incremental.ts / SemanticResolutionKernel
  *      to use FieldNode internally; verify routesync.ir.json output is
  *      unchanged (or changed only as expected). NOT STARTED.
- *   3. delete ResourceFieldKind, ResponseMetadata and the
+ *   3. delete the legacy response metadata layer and the
  *      Scanned-vs-Parsed split once every consumer has moved. IN PROGRESS.
  * Retired ParsedASTNode types are archived and are no longer part of the active public AST contract.
  */

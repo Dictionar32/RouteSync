@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SemanticTypeResolver } from '../../../compiler/domain/common/SemanticTypeResolver';
 import { BoundSemanticFactory } from '../boundAst';
-import { ResourceFieldSemanticBinding } from '../../../compiler/scanner/semantic/resourceFieldSemanticBinding';
+import { ResourceFieldSemanticBinding } from '../resourceFieldSemanticBinding';
 import { ResourceFieldExpressionFactory } from '../../route';
 import { SemanticValueFactory } from '../semanticValues';
 import { PrimitiveType } from '../../../compiler/types/SemanticType';

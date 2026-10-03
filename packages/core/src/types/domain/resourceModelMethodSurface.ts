@@ -1,12 +1,10 @@
 import type { SemanticType } from '../../compiler/types/SemanticType';
-import type { ResourceTraversalCardinality } from './resourceTraversalModel';
 import { SemanticValueFactory } from './semanticValues';
 import type { ResourceResolvedQueryOperation } from './resourceQueryOperation';
-import type { MethodName, ModelName, PropertyName } from './semanticValues';
+import type { MethodName, PropertyName } from './semanticValues';
 import type { ModelSemanticDefinition, ModelSemanticProperty } from './models';
 import type { ResourceModelMethodMeaning, ResourceMethodMeaningDescriptor } from './resourceModelMethodMeaning';
 import { knownMethodNames, meaningFor, resolveResourceMethodInvocation, resolveResourceModelMethod, resolveResourceQueryProjection } from './resourceModelMethodResolver';
-import type { SemanticType } from '../../compiler/types/SemanticType';
 import type { ResourceTraversalTarget, ResourceTraversalCardinality } from './resourceTraversalModel';
 
 export type ResourceQueryState =

@@ -3,7 +3,7 @@ import type { ObjectProperty } from "../../compiler/types/SemanticType";
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import { relationProject } from '../../semantic/kernel/relationalSequence';
 import type { ResponseContract } from "./responseContracts";
-import type { ResourceFieldDescriptor } from "./expressions";
+import type { ResourceFieldSemanticBinding } from "./resourceFieldSemanticBinding";
 import { requireResourceFieldType } from './resourceFieldSemantic';
 import { SemanticValueFactory } from "./semanticValues";
 import type { ClassName, DomainName, ModelName, ResourceName, ResponseFieldName, ResponseTypeName, RouteName, SourceFilePath } from "./semanticValues";
@@ -147,7 +147,7 @@ export interface InlineResponseDescriptorParams {
   readonly domain: DomainName;
   readonly baseName: ResourceName;
   readonly typeName: ResponseTypeName;
-  readonly fields: readonly ResourceFieldDescriptor[];
+  readonly fields: readonly ResourceFieldSemanticBinding[];
   readonly shape: ResponseShape;
   readonly origin: ResponseDescriptorOrigin;
   readonly semanticContract: ResponseSemanticContract;
@@ -158,7 +158,7 @@ export interface InlineResponseDescriptor extends ResponseDescriptorBase {
   readonly domain: DomainName;
   readonly baseName: ResourceName;
   readonly typeName: ResponseTypeName;
-  readonly fields: readonly ResourceFieldDescriptor[];
+  readonly fields: readonly ResourceFieldSemanticBinding[];
   readonly origin: ResponseDescriptorOrigin;
   readonly semanticContract: ResponseSemanticContract;
 }
@@ -202,7 +202,7 @@ export const InlineResponseDescriptor = Object.freeze({
     readonly domain: DomainName;
     readonly baseName?: ResourceName;
     readonly typeName?: ResponseTypeName;
-    readonly fields: readonly ResourceFieldDescriptor[];
+    readonly fields: readonly ResourceFieldSemanticBinding[];
     readonly shape?: ResponseShape;
     readonly origin: ResponseDescriptorOrigin;
     readonly semanticContract: ResponseSemanticContract;

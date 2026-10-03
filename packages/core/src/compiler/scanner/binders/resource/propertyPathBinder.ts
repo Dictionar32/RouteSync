@@ -1,6 +1,6 @@
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
-import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import type { ResourcePropertyPathResult } from "../../../../types/domain/resourcePropertyPathModel";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";

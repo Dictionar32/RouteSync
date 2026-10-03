@@ -123,7 +123,8 @@ export {
   ROUTE_POLICY_REGISTRY,
   RequestContentType,
   ResourceExpressionKind,
-  ResourceFieldDescriptor,
+  ResourceFieldSemanticBinding,
+  type ResourceFieldSemanticBindingInput,
   ResourceFieldExpressionFactory,
   PHP_AST_KIND_REGISTRY,
   PhpAstKind,
@@ -467,7 +468,6 @@ export type {
   ResourceExpressionSpecification,
   ResourceFieldExpression,
   ResourceFieldExpressionVisitor,
-  ResourceFieldKind,
   ResourceGroupDescriptor,
   ResourceGroupGraph,
   ResourceGroupIdentityTrait,
@@ -946,7 +946,6 @@ export {
   buildRequestTypeWithActions,
 } from './compiler/scanner/descriptors'
 
-export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from './compiler/scanner/semantic/resourceFieldSemanticBinding'
 
 export {
   type RouteDomainResolutionContext,

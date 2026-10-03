@@ -8,7 +8,7 @@ import {
     ScannedObjectProperty,
     type SemanticType
 } from '../../../../types/SemanticType';
-import type { ResourceFieldDescriptor } from '../../../../../types/domain/expressions';
+import type { ResourceFieldSemanticBinding } from '../../../../../types/domain/resourceFieldSemanticBinding';
 import { matchResourceFieldExpression } from '../../../../../types/domain/expressions';
 import { toCamelCase } from '../../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from '../SemanticDerivationContext';
@@ -17,7 +17,7 @@ import { relationEqual } from '../../../../../semantic/kernel/semanticRelations'
 import { relationFold, relationGate, relationSlice } from '../../../../../semantic/kernel/relationalSequence';
 
 export function processResponseProperties(
-    fields: readonly ResourceFieldDescriptor[],
+    fields: readonly ResourceFieldSemanticBinding[],
     context: SemanticDerivationContext,
     prefix = ''
 ): ObjectProperty[] {
@@ -29,7 +29,7 @@ export function processResponseProperties(
 }
 
 function processField(
-    field: ResourceFieldDescriptor,
+    field: ResourceFieldSemanticBinding,
     context: SemanticDerivationContext,
     prefix: string,
     properties: ObjectProperty[]
@@ -67,14 +67,14 @@ function processField(
 }
 
 function pushLeaf(
-    field: ResourceFieldDescriptor,
+    field: ResourceFieldSemanticBinding,
     name: string,
     properties: ObjectProperty[]
 ): void {
     properties.push(property(name, semanticTypeFromBoundField(field)));
 }
 
-function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticType {
+function semanticTypeFromBoundField(field: ResourceFieldSemanticBinding): SemanticType {
     return relationGate(relationEqual(field.semantic.kind, 'rejected'),
         () => { throw Error(`Resource field semantic rejected: ${field.semantic.bound.reason.value}`); },
         () => {

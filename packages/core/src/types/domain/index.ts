@@ -203,7 +203,6 @@ export {
 } from './executionSignatures';
 
 export {
-  ResourceFieldDescriptor,
   type ResourceFieldExpression,
   type AnyResourceFieldExpression,
   type ResourceFieldExpressionVisitor,
@@ -211,8 +210,12 @@ export {
   matchResourceExpression,
   ResourceFieldExpressionFactory,
   type ResourceAssignment,
-  type ResourceFieldKind,
 } from './expressions';
+
+export {
+  ResourceFieldSemanticBinding,
+  type ResourceFieldSemanticBindingInput,
+} from './resourceFieldSemanticBinding';
 
 export {
   matchFieldNode,

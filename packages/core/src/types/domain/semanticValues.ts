@@ -160,6 +160,7 @@ export type BoundTargetModel =
 const stringValue = (value: string): StringValue => Object.freeze({ kind: 'string_value', value });
 
 export const SemanticValueFactory = Object.freeze({
+  stringValue,
   modelName(value: string): ModelName { return Object.freeze({ kind: 'model_name', value: stringValue(value) }); },
   tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value: stringValue(value) }); },
   routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue(value) }); },

@@ -13,7 +13,7 @@ import {
 } from '../../types/SemanticType';
 import { relationFirst, relationOptionFold, relationRefine } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import type { ResourceFieldDescriptor } from '../../../types/domain/expressions';
+import type { ResourceFieldSemanticBinding } from '../../../types/domain/resourceFieldSemanticBinding';
 import type { ResourceFieldSemantic } from '../../../types/domain/resourceFieldSemantic';
 
 import {
@@ -76,7 +76,7 @@ const createResolver = (customHandlers: readonly SemanticTypeHandler[] = EMPTY_C
 export const SemanticTypeResolver = Object.freeze({
     default: (): SemanticTypeResolverInstance => createResolver(),
     withHandlers: (customHandlers: readonly SemanticTypeHandler[]): SemanticTypeResolverInstance => createResolver(customHandlers),
-    resolveField: (field: ResourceFieldDescriptor): SemanticType => {
+    resolveField: (field: ResourceFieldSemanticBinding): SemanticType => {
         type VerifiedSemantic = Extract<ResourceFieldSemantic, { readonly kind: 'verified' }>;
         const isVerified = (semantic: ResourceFieldSemantic): semantic is VerifiedSemantic =>
             relationEqual(semantic.kind, 'verified');

@@ -1,9 +1,9 @@
 /**
  * Extracts the canonical response shape from a typed route descriptor.
- * The scanner owns normalization; downstream receives ResourceFieldDescriptor[] only.
+ * The scanner owns normalization; downstream receives ResourceFieldSemanticBinding[] only.
  */
 
-import type { ResourceFieldDescriptor } from '../../../../../types/domain/expressions';
+import type { ResourceFieldSemanticBinding } from '../../../../../types/domain/resourceFieldSemanticBinding';
 import type { RouteSemanticFlow } from '../../../../../types/route';
 import { ReferenceType } from '../../../../types/SemanticType';
 import { ResourceFieldExpressionFactory } from '../../../../../types/domain/expressions';
@@ -16,7 +16,7 @@ import type { RelationOption } from '../../../../../semantic/kernel/relationalSe
 export interface RouteResponseShape {
     readonly typeName: ResponseTypeName;
     readonly baseName: ResourceName | ModelName;
-    readonly fields: readonly ResourceFieldDescriptor[];
+    readonly fields: readonly ResourceFieldSemanticBinding[];
 }
 
 type InlineResponse = Extract<RouteSemanticFlow['response'], { readonly kind: 'inline' }>;
@@ -59,7 +59,7 @@ function createWrappedShape(response: WrappedResponse): RouteResponseShape {
 function createWrappedDataField(
     response: WrappedResponse,
     transformedName: ResponseTypeName
-): ResourceFieldDescriptor {
+): ResourceFieldSemanticBinding {
     const name = SemanticValueFactory.responseFieldName('data');
     const propertyName = SemanticValueFactory.propertyName('data');
     const reference = ReferenceType.resource('', transformedName.value.value);

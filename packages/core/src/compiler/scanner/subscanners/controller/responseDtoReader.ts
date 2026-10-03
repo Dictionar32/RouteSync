@@ -1,8 +1,7 @@
 import { readSourceTextSync } from '../scannerUtils';
 /** Reads Laravel response DTOs into a verified contract boundary. */
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
-import type { ResourceFieldDescriptor } from '../../../../types/route';
-import { ResourceFieldSemanticBinding } from '../../semantic/resourceFieldSemanticBinding';
+import { ResourceFieldSemanticBinding } from '../../../../types/domain/resourceFieldSemanticBinding';
 import { type SemanticType } from '../../../types/SemanticType';
 import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
 import { createAstIdentifier } from '../../lexer/phpAstTypes';
@@ -16,7 +15,7 @@ import { createResponseFieldName, createResponseTypeName } from '../../../../typ
 import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 
 export interface ResponseDtoAnalysis {
-    readonly fields: readonly ResourceFieldDescriptor[];
+    readonly fields: readonly ResourceFieldSemanticBinding[];
     readonly contractFields: readonly ResponseContractField[];
 }
 
@@ -30,7 +29,7 @@ export function readResponseDtoAnalysis(file: string): ResponseDtoAnalysis {
     });
 }
 
-export function readResponseDtoFields(file: string): readonly ResourceFieldDescriptor[] {
+export function readResponseDtoFields(file: string): readonly ResourceFieldSemanticBinding[] {
     return readResponseDtoAnalysis(file).fields;
 }
 
@@ -40,7 +39,7 @@ function parse(file: string): ResponseDtoDeclarationAst {
     return LaravelSourceLexer.parseResponseDtoDeclaration(tokens, findClassName(tokens));
 }
 
-function toField(property: ResponseDtoDeclarationAst['properties'][number]): ResourceFieldDescriptor {
+function toField(property: ResponseDtoDeclarationAst['properties'][number]): ResourceFieldSemanticBinding {
     const resolvedType = resolveSemanticType(property.type);
     const expression = toFieldExpression(property.type);
 
@@ -121,7 +120,7 @@ function findClassName(tokens: readonly { readonly value: string }[]) {
     return relationOptionFold(find(0), () => { throw Error('Response DTO class declaration not found'); }, value => createAstIdentifier(value));
 }
 
-function toFieldExpression(type: TypeExpression): ResourceFieldDescriptor['expression'] {
+function toFieldExpression(type: TypeExpression): ResourceFieldSemanticBinding['expression'] {
     return relationVariantFold(
         type,
         'nullable',

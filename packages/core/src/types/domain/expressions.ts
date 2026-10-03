@@ -10,13 +10,6 @@ import type { Assignment, AssignmentDestructuringPattern, AssignmentOperator, As
 import type { SourceSpan } from '../upstream/provenance';
 import type { ExceptionName } from '../upstream/names';
 
-export interface ResourceFieldDescriptor {
-  readonly name: ResponseFieldName;
-  readonly propertyName: PropertyName;
-  readonly expression: ResourceFieldExpression;
-  readonly semantic: ResourceFieldSemantic;
-}
-
 /**
  * 
  * ResourceExpressionKind
@@ -638,4 +631,3 @@ export interface ResourceAssignment {
 /**
  * Backward compatibility type aliases for legacy adapters.
  */
-export type ResourceFieldKind = ResourceFieldDescriptor;

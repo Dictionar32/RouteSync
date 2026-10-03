@@ -6,7 +6,7 @@ import { toCamelCase } from "../../../../utils/resource-naming";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
-import { ResourceFieldSemanticBinding } from "../../semantic/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import { ErrorType, NullableType, type SemanticType } from "../../../types/SemanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";

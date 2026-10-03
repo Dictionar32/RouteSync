@@ -14,5 +14,6 @@ export {
 } from './originModelSymbol';
 
 export {
-    ModelSymbolTable
+    ModelSymbolTable,
+    createModelSymbolTable
 } from './modelSymbolTableClass';

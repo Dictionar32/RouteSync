@@ -7,13 +7,13 @@ import type {
     PhpArgument, PhpAstNode, PhpBlock, PhpClosureCapture, PhpParameter,
     PhpBinaryOperator, PhpCastType, PhpUnaryOperator, PhpPropertyName,
     PhpClassName, PhpConstantName, PhpFunctionName, PhpMethodName,
-    PhpVariableName, ArrayKey, PhpStatement
+    PhpVariableName, ArrayKey, PhpStatement, PhpReturnExpression, BoundLiteralValue
 } from '@routesync/core';
 import type { PhpGrammarNode, GrammarStatement } from './ast/grammar';
 import { matchPhpGrammar, type PhpGrammarVisitor } from './ast/grammarCatamorphism';
 import { matchCallee, createCalleeAstVisitor } from './ast/calleeCatamorphism';
 import { phpAstBoundaryJudgment, type PhpAstBoundaryJudgment } from './astBoundarySemanticInterface';
-import { relationResolve, relationOptionFold, relationOptionalFold, relationFirst, relationEqual, relationNotEqual, relationNone, relationSome, relationAll, projectRelation } from '@routesync/core';
+import { relationResolve, relationOptionFold, relationOptionalFold, relationFirst, relationFirstOption, relationEqual, relationNotEqual, relationNone, relationSome, relationAll, relationVariant, projectRelation } from '@routesync/core';
 const propertyName = (value: string): PhpPropertyName => ({ kind: 'property_name', value });
 const className = (value: string): PhpClassName => ({ kind: 'class_name', value });
 const methodName = (value: string): PhpMethodName => ({ kind: 'method_name', value });
@@ -22,31 +22,43 @@ const variableName = (value: string): PhpVariableName => ({ kind: 'variable_name
 const constantName = (value: string): PhpConstantName => ({ kind: 'constant_name', value });
 const source = { kind: 'absent' } as const;
 
-const fail = (message: string): never => { throw new Error(message); };
-const requireNode = <T>(value: T | void, label: string): T =>
-    relationOptionalFold(value, () => fail(`PHP AST boundary: missing ${label}`), value => value);
+const fail = (message: string): never => { throw Error(message); };
+type GrammarBoundaryNode = PhpGrammarNode | GrammarStatement;
 
-const memberReaders = Object.freeze({
-    identifier: (node: Extract<PhpGrammarNode, { readonly kind: 'identifier' }>) => node.name,
-    name: (node: Extract<PhpGrammarNode, { readonly kind: 'name' }>) => node.name,
-});
-const memberName = (node: PhpGrammarNode, label: string): string =>
+const grammarVariant = <K extends GrammarBoundaryNode['kind']>(
+    node: GrammarBoundaryNode,
+    kind: K,
+): Extract<GrammarBoundaryNode, { readonly kind: K }> | void =>
     relationOptionFold(
-        relationFirst(Object.entries(memberReaders), entry => relationEqual(entry[0], node.kind)),
-        () => fail(`PHP AST boundary: invalid ${label} node ${node.kind}`),
-        entry => entry[1](node as never),
+        relationVariant(node, kind),
+        () => void 0,
+        value => value,
     );
 
-const classReaders = Object.freeze({
-    name: (node: Extract<PhpGrammarNode, { readonly kind: 'name' }>) => node.name,
-    selfreference: (node: Extract<PhpGrammarNode, { readonly kind: 'selfreference' }>) => node.raw,
-    staticreference: (node: Extract<PhpGrammarNode, { readonly kind: 'staticreference' }>) => node.raw,
-});
+const memberName = (node: PhpGrammarNode, label: string): string =>
+    relationOptionalFold(
+        grammarVariant(node, 'identifier'),
+        () => relationOptionalFold(
+            grammarVariant(node, 'name'),
+            () => fail(`PHP AST boundary: invalid ${label} node ${node.kind}`),
+            value => value.name,
+        ),
+        value => value.name,
+    );
+
 const classReference = (node: PhpGrammarNode): string =>
-    relationOptionFold(
-        relationFirst(Object.entries(classReaders), entry => relationEqual(entry[0], node.kind)),
-        () => fail(`PHP AST boundary: invalid class reference node ${node.kind}`),
-        entry => entry[1](node as never),
+    relationOptionalFold(
+        grammarVariant(node, 'name'),
+        () => relationOptionalFold(
+            grammarVariant(node, 'selfreference'),
+            () => relationOptionalFold(
+                grammarVariant(node, 'staticreference'),
+                () => fail(`PHP AST boundary: invalid class reference node ${node.kind}`),
+                value => value.raw,
+            ),
+            value => value.raw,
+        ),
+        value => value.name,
     );
 
 const binaryOperator = (value: string): PhpBinaryOperator => {
@@ -75,24 +87,25 @@ const castType = (value: string): PhpCastType => {
 
 function staticLookup(node: import('./ast/grammar').GrammarStaticLookup, code: string): PhpAstNode {
     const classNameValue = classReference(node.what);
-    const readers: Readonly<Record<string, () => PhpAstNode>> = Object.freeze({
-        variable: () => ({
-            kind: 'static_property_lookup', originalCode: code, source,
-            className: className(classNameValue), property: propertyName((node.offset as { readonly name: string }).name),
-        }),
-        identifier: () => ({
-            kind: 'static_constant', originalCode: code, source,
-            className: className(classNameValue), constantName: constantName((node.offset as { readonly name: string }).name),
-        }),
-        name: () => ({
-            kind: 'static_constant', originalCode: code, source,
-            className: className(classNameValue), constantName: constantName((node.offset as { readonly name: string }).name),
-        }),
+    const constant = (name: string): PhpAstNode => ({
+        kind: 'static_constant', originalCode: code, source,
+        className: className(classNameValue), constantName: constantName(name),
     });
-    return relationOptionFold(
-        relationFirst(Object.entries(readers), entry => relationEqual(entry[0], node.offset.kind)),
-        () => fail(`PHP AST boundary: unsupported static member offset ${node.offset.kind}`),
-        entry => entry[1](),
+    return relationOptionalFold<Extract<GrammarBoundaryNode, { readonly kind: 'variable' }>, PhpAstNode>(
+        grammarVariant(node.offset, 'variable'),
+        () => relationOptionalFold<Extract<GrammarBoundaryNode, { readonly kind: 'identifier' }>, PhpAstNode>(
+            grammarVariant(node.offset, 'identifier'),
+            () => relationOptionalFold<Extract<GrammarBoundaryNode, { readonly kind: 'name' }>, PhpAstNode>(
+                grammarVariant(node.offset, 'name'),
+                () => fail(`PHP AST boundary: unsupported static member offset ${node.offset.kind}`),
+                value => constant(value.name),
+            ),
+            value => constant(value.name),
+        ),
+        value => ({
+            kind: 'static_property_lookup', originalCode: code, source,
+            className: className(classNameValue), property: propertyName(value.name),
+        }),
     );
 }
 
@@ -102,53 +115,41 @@ const capture = (node: { readonly variable: { readonly name: string }; readonly 
         () => ({ kind: 'by_reference', variable: variableName(node.variable.name) }),
         () => ({ kind: 'by_value', variable: variableName(node.variable.name) }));
 
-const statement = (node: GrammarStatement, adapt: (node: PhpGrammarNode) => PhpAstNode): PhpStatement => {
-    const expressionNode = node as Extract<GrammarStatement, { readonly kind: 'expressionstatement' }>;
-    const returnNode = node as Extract<GrammarStatement, { readonly kind: 'return' }>;
-    const readers: Readonly<Record<string, () => PhpStatement>> = Object.freeze({
-        expressionstatement: () => ({ kind: 'expression_statement', expression: adapt(expressionNode.expression) }),
-        return: () => ({
-            kind: 'return_statement',
-            expression: relationOptionalFold(returnNode.expr,
-                () => ({ kind: 'void' as const }),
-                value => ({ kind: 'value' as const, value: adapt(value) })),
-        }),
-    });
-    return relationOptionFold(
-        relationFirst(Object.entries(readers), entry => relationEqual(entry[0], node.kind)),
-        () => fail(`PHP AST boundary: unsupported statement ${node.kind}`),
-        entry => entry[1](),
+const statement = (node: GrammarStatement, adapt: (node: PhpGrammarNode) => PhpAstNode): PhpStatement =>
+    relationOptionalFold<Extract<GrammarBoundaryNode, { readonly kind: 'expressionstatement' }>, PhpStatement>(
+        grammarVariant(node, 'expressionstatement'),
+        () => relationOptionalFold<Extract<GrammarBoundaryNode, { readonly kind: 'return' }>, PhpStatement>(
+            grammarVariant(node, 'return'),
+            () => fail(`PHP AST boundary: unsupported statement ${node.kind}`),
+            value => ({ kind: 'return_statement', expression: relationOptionalFold<PhpGrammarNode, PhpReturnExpression>(
+                value.expr,
+                () => ({ kind: 'void' }),
+                expression => ({ kind: 'value', value: adapt(expression) }),
+            ) }),
+        ),
+        value => ({ kind: 'expression_statement', expression: adapt(value.expression) }),
     );
-};
 
-const block = (node: { readonly children?: readonly GrammarStatement[] }, adapt: (node: PhpGrammarNode) => PhpAstNode): PhpBlock => ({
-    kind: 'block', statements: projectRelation(requireNode(node.children, 'closure block statements'), item => statement(item, adapt)),
+const block = (node: { readonly children: readonly GrammarStatement[] }, adapt: (node: PhpGrammarNode) => PhpAstNode): PhpBlock => ({
+    kind: 'block', statements: projectRelation(node.children, item => statement(item, adapt)),
 });
 
+const isGrammarNodeKey = (candidate: PhpGrammarNode | null): candidate is PhpGrammarNode =>
+    relationNotEqual<PhpGrammarNode | null>(candidate, null);
+
 const arrayKey = (key: PhpGrammarNode | null, adapt: (node: PhpGrammarNode) => PhpAstNode): ArrayKey =>
-    relationResolve(
-        relationEqual(key, null),
+    relationOptionFold(
+        relationFirstOption([key], isGrammarNodeKey),
         () => ({ kind: 'implicit' as const }),
-        () => ({ kind: 'explicit' as const, expression: adapt(key as PhpGrammarNode) }),
+        value => ({ kind: 'explicit' as const, expression: adapt(value) }),
     );
 
-const requireGrammarNode = (node: unknown): PhpGrammarNode => {
-    const candidate = node as Record<string, unknown> | void;
-    const valid = relationResolve(
-        relationAll([Object.is(typeof candidate, 'object'), relationNotEqual(candidate, null), 'kind' in candidate]),
-        () => candidate as PhpGrammarNode,
-        () => void 0,
-    );
-    return requireNode(valid, 'grammar node');
-};
-
-export function adaptPhpAstBoundaryJudgment(node: unknown, code: string): PhpAstBoundaryJudgment {
-    const grammar = requireGrammarNode(node);
-    const ast = adaptGrammarNode(grammar, code, true);
-    return phpAstBoundaryJudgment(grammar, ast, relationEqual(ast.originalCode, code));
+export function adaptPhpAstBoundaryJudgment(node: PhpGrammarNode, code: string): PhpAstBoundaryJudgment {
+    const ast = adaptGrammarNode(node, code, true);
+    return phpAstBoundaryJudgment(node, ast, relationEqual(ast.originalCode, code));
 }
 
-export function adaptPhpAstBoundary(node: unknown, code: string): PhpAstNode {
+export function adaptPhpAstBoundary(node: PhpGrammarNode, code: string): PhpAstNode {
     return adaptPhpAstBoundaryJudgment(node, code).ast;
 }
 
@@ -171,12 +172,12 @@ function adaptGrammarNode(node: PhpGrammarNode, sourceText: string, root: boolea
         unary: n => ({ kind: 'unary', originalCode: code, source, operator: unaryOperator(n.type), what: adaptChild(n.what) }),
         cast: n => ({ kind: 'type_cast', originalCode: code, source, castType: castType(n.type), expr: adaptChild(n.expr) }),
         retif: n => ({ kind: 'ternary', originalCode: code, source, condition: adaptChild(n.test), truthy: adaptChild(n.trueExpr), falsy: adaptChild(n.falseExpr) }),
-        array: n => ({ kind: 'array', originalCode: code, source, items: projectRelation(requireNode(n.items, 'array items'), item => ({ key: arrayKey(item.key, adaptChild), value: adaptChild(item.value) })) }),
-        string: n => ({ kind: 'literal', originalCode: code, source, value: n.value }),
-        number: n => ({ kind: 'literal', originalCode: code, source, value: Number(n.value) }),
-        boolean: n => ({ kind: 'literal', originalCode: code, source, value: n.value }),
-        nullkeyword: () => ({ kind: 'literal', originalCode: code, source, value: null }),
-        encapsed: () => ({ kind: 'literal', originalCode: code, source, value: code }),
+        array: n => ({ kind: 'array', originalCode: code, source, items: projectRelation(n.items, item => ({ key: arrayKey(item.key, adaptChild), value: adaptChild(item.value) })) }),
+        string: n => ({ kind: 'literal', originalCode: code, source, value: { kind: 'string', value: n.value } satisfies BoundLiteralValue }),
+        number: n => ({ kind: 'literal', originalCode: code, source, value: { kind: 'number', value: Number(n.value) } satisfies BoundLiteralValue }),
+        boolean: n => ({ kind: 'literal', originalCode: code, source, value: { kind: 'boolean', value: n.value } satisfies BoundLiteralValue }),
+        nullkeyword: () => ({ kind: 'literal', originalCode: code, source, value: { kind: 'null' } satisfies BoundLiteralValue }),
+        encapsed: () => ({ kind: 'literal', originalCode: code, source, value: { kind: 'string', value: code } satisfies BoundLiteralValue }),
         variable: n => ({ kind: 'variable', originalCode: code, source, name: variableName(n.name) }),
         unknown: () => ({ kind: 'unsupported', originalCode: code, source, reason: { kind: 'parser_gap' } }),
     };
@@ -185,7 +186,7 @@ function adaptGrammarNode(node: PhpGrammarNode, sourceText: string, root: boolea
 
 function requireNodeSource(node: PhpGrammarNode, sourceText: string): string {
     const loc = node.loc;
-    return relationOptionalFold(
+    return relationOptionalFold<import('./ast/grammar').GrammarLocation, string>(
         loc,
         () => fail(`PHP AST boundary: missing location for child node ${node.kind}`),
         value => sourceText.slice(value.start.offset, value.end.offset),

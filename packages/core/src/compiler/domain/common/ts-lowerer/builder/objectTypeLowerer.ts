@@ -90,7 +90,7 @@ const aliasesFor = (
         { key: `${objType.baseName}Show`, value: TypeScriptSyntax.formatResourceAlias(objType.baseName, ControllerActionToAlias.show, objType.name) },
         { key: `${objType.baseName}Index`, value: TypeScriptSyntax.formatResourceAlias(objType.baseName, ControllerActionToAlias.index, TypeScriptSyntax.array(objType.name)) },
     ],
-    { state, values: Object.freeze([]) },
+    { state, values: Object.freeze([] as readonly string[]) },
     (current, entry) => relationResolve(
         contains(current.state.aliasNames, entry.key),
         () => current,

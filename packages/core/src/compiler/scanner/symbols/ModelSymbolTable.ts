@@ -10,5 +10,6 @@
 export {
     type ResolvedPropertyBinding,
     OriginModelSymbol,
-    ModelSymbolTable
+    ModelSymbolTable,
+    createModelSymbolTable
 } from './model';

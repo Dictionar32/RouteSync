@@ -644,7 +644,28 @@ export {
   type StaticConstantAstNode,
   type VariableAstNode,
   type PhpAstNode,
+  type PhpArgument,
+  type PhpBlock,
+  type PhpStatement,
 } from './phpAst/nodes';
+
+export {
+  type PhpPropertyName,
+  type PhpClassName,
+  type PhpMethodName,
+  type PhpFunctionName,
+  type PhpVariableName,
+  type PhpConstantName,
+  type PhpBinaryOperator,
+  type PhpUnaryOperator,
+  type PhpCastType,
+  type ArrayKey,
+  type PhpAstSource,
+  type PhpParameter,
+  type PhpClosureCapture,
+} from './phpAst/astValues';
+
+export type { BoundLiteralValue } from './semanticValues';
 
 export {
   DataProvenanceKind,

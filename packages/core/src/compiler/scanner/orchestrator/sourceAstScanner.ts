@@ -24,13 +24,14 @@ import type { AssignmentAst } from "../../../types/upstream/assignment";
 import path from "node:path";
 import { collectPhpFiles, readSourceText } from "../subscanners/scannerUtils";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
-import { parsePhpMethodOrThrow } from "../lexer/phpMethodParser";
+import { parsePhpMethod } from "../lexer/phpMethodParser";
 import { schemaProducer } from "../subscanners/schemaProducer";
 import { queryProducer } from "../subscanners/queryProducer";
-import { relationAsyncFold, relationExpand, relationFirstOption, relationOptionFold, relationIndexOf, relationAdvanceIndex, relationGate, relationProject, relationSelect, relationRefine, relationSome, relationNone, relationFold, relationRange, type RelationOption } from "../../../semantic/kernel/relationalSequence";
+import { relationAsyncFold, relationExpand, relationFirstOption, relationOptionFold, relationIndexOf, relationAdvanceIndex, relationGate, relationProject, relationSelect, relationRefine, relationVariant, relationSome, relationNone, relationFold, relationRange, type RelationOption } from "../../../semantic/kernel/relationalSequence";
 import { relationEqual, relationAll, relationAny } from "../../../semantic/kernel/semanticRelations";
 import type { ExpressionAst, ExpressionOrigin } from "../../../types/upstream/ast";
 import type { PhpStatement, PhpBlock, PhpForClause, PhpIfAlternative, PhpFinallyClause } from "../lexer/phpAstStatementTypes";
+import type { PhpMethodAst } from "../lexer/phpMethodAstTypes";
 import type { PhpAstValue, PhpArrayEntry, PhpArrayKey } from "../lexer/phpAstExpressionTypes";
 
 const sequence = <T>(items: readonly T[], index = items.length - 1, tail: Sequence<T> = { kind: "empty" }): Sequence<T> =>
@@ -79,11 +80,11 @@ const statementExpressionRules: readonly ((statement: PhpStatement) => RelationO
     statement => relationOptionFold(relationRefine(statement, statementIs(PHP_STATEMENT_KINDS.conditional)), () => relationNone(), value => relationSome([
         value.condition,
         ...blockExpressions(value.thenBlock),
-        ...relationOptionFold(relationRefine(value.alternative, alternativeIs("none")),
+        ...relationOptionFold(relationRefine(value.alternative, alternativeIs("else_if")),
             () => relationOptionFold(relationRefine(value.alternative, alternativeIs("else_block")),
-                () => statementExpressions(value.alternative.statement),
+                () => [],
                 alternative => blockExpressions(alternative.block)),
-            () => []),
+            alternative => statementExpressions(alternative.statement)),
     ])),
     statement => relationOptionFold(relationRefine(statement, statementIs(PHP_STATEMENT_KINDS.collectionRecurrence)), () => relationNone(), value => relationSome([value.iterable, ...blockExpressions(value.body)])),
     statement => relationOptionFold(relationRefine(statement, statementIs("throw_statement")), () => relationNone(), value => relationSome([value.expression])),
@@ -97,7 +98,7 @@ const statementExpressionRules: readonly ((statement: PhpStatement) => RelationO
     statement => relationOptionFold(relationRefine(statement, statementIs("try_statement")), () => relationNone(), value => relationSome([
         ...blockExpressions(value.body),
         ...relationExpand(value.catches, catchClause => blockExpressions(catchClause.body)),
-        ...relationOptionFold(relationRefine(value.finallyBlock, finallyIs("absent")), () => blockExpressions(value.finallyBlock.block), () => []),
+        ...relationOptionFold(relationRefine(value.finallyBlock, finallyIs("present")), () => [], finallyClause => blockExpressions(finallyClause.block)),
     ])),
 ];
 
@@ -117,25 +118,28 @@ const blockExpressions = (block: PhpBlock): readonly PhpAstValue[] =>
 const statementAssignmentRules: readonly ((statement: PhpStatement, file: string) => RelationOption<readonly AssignmentAst[]>)[] = [
     (statement, file) => relationOptionFold(relationRefine(statement, statementIs("assignment")), () => relationNone(), value => relationSome([assignmentProducer.produce({ statement: value, source: sourceSpan(file, value.source.startOffset, value.source.endOffset) })])),
     (statement, file) => relationOptionFold(relationRefine(statement, statementIs(PHP_STATEMENT_KINDS.conditional)), () => relationNone(), value => relationSome([
-        ...statementAssignments(value.thenBlock, file),
-        ...relationOptionFold(relationRefine(value.alternative, alternativeIs("none")),
+        ...blockAssignments(value.thenBlock, file),
+        ...relationOptionFold(relationRefine(value.alternative, alternativeIs("else_if")),
             () => relationOptionFold(relationRefine(value.alternative, alternativeIs("else_block")),
-                () => statementAssignments(value.alternative.statement, file),
-                alternative => statementAssignments(alternative.block, file)),
-            () => []),
+                () => [],
+                alternative => blockAssignments(alternative.block, file)),
+            alternative => statementAssignments(alternative.statement, file)),
     ])),
-    (statement, file) => relationOptionFold(relationRefine(statement, statementIs(PHP_STATEMENT_KINDS.collectionRecurrence)), () => relationNone(), value => relationSome(statementAssignments(value.body, file))),
+    (statement, file) => relationOptionFold(relationRefine(statement, statementIs(PHP_STATEMENT_KINDS.collectionRecurrence)), () => relationNone(), value => relationSome(blockAssignments(value.body, file))),
     (statement, file) => relationOptionFold(relationRefine(statement, statementIs(PHP_STATEMENT_KINDS.countedRecurrence)), () => relationNone(), value => relationSome([
         ...relationOptionFold(relationRefine(value.initializer, clauseIs("assignment")), () => [], clause => [assignmentProducer.produce({ statement: { kind: "assignment", target: clause.target, operator: clause.operator, reference: clause.reference, value: clause.value, source: clause.source }, source: sourceSpan(file, clause.source.startOffset, clause.source.endOffset) })]),
         ...relationOptionFold(relationRefine(value.update, clauseIs("assignment")), () => [], clause => [assignmentProducer.produce({ statement: { kind: "assignment", target: clause.target, operator: clause.operator, reference: clause.reference, value: clause.value, source: clause.source }, source: sourceSpan(file, clause.source.startOffset, clause.source.endOffset) })]),
-        ...statementAssignments(value.body, file),
+        ...blockAssignments(value.body, file),
     ])),
     (statement, file) => relationOptionFold(relationRefine(statement, statementIs("try_statement")), () => relationNone(), value => relationSome([
-        ...statementAssignments(value.body, file),
-        ...relationExpand(value.catches, catchClause => statementAssignments(catchClause.body, file)),
-        ...relationOptionFold(relationRefine(value.finallyBlock, finallyIs("absent")), () => statementAssignments(value.finallyBlock.block, file), () => []),
+        ...blockAssignments(value.body, file),
+        ...relationExpand(value.catches, catchClause => blockAssignments(catchClause.body, file)),
+        ...relationOptionFold(relationRefine(value.finallyBlock, finallyIs("present")), () => [], finallyClause => blockAssignments(finallyClause.block, file)),
     ])),
 ];
+
+const blockAssignments = (block: PhpBlock, file: string): readonly AssignmentAst[] =>
+    relationExpand(block.statements, statement => statementAssignments(statement, file));
 
 const statementAssignments = (statement: PhpStatement, file: string): readonly AssignmentAst[] =>
     relationOptionFold(
@@ -147,11 +151,14 @@ const statementAssignments = (statement: PhpStatement, file: string): readonly A
 type ResourceFieldEvidence = { readonly syntax: PhpAstValue; readonly field: string };
 const valueIsNestedArray = (value: PhpAstValue): value is Extract<PhpAstValue, { readonly kind: "nested_array" }> => relationEqual(value.kind, "nested_array");
 type KeyedStringEntry = Extract<PhpArrayEntry, { readonly kind: "keyed" }> & { readonly key: Extract<PhpArrayKey, { readonly kind: "string" }> };
+const entryIsKeyed = (entry: PhpArrayEntry): entry is Extract<PhpArrayEntry, { readonly kind: "keyed" }> => relationEqual(entry.kind, "keyed");
 const entryIsKeyedString = (entry: PhpArrayEntry): entry is KeyedStringEntry =>
-    relationAll([relationEqual(entry.kind, "keyed"), relationEqual(entry.key.kind, "string")]);
+    relationOptionFold(relationRefine(entry, entryIsKeyed),
+        () => false,
+        candidate => relationEqual(candidate.key.kind, "string"));
 const statementIsReturn = statementIs("return_with_value");
 
-const resourceFieldEvidence = (parsed: ReturnType<typeof parsePhpMethodOrThrow>): readonly ResourceFieldEvidence[] =>
+const resourceFieldEvidence = (parsed: PhpMethodAst): readonly ResourceFieldEvidence[] =>
     relationFold(parsed.body, [] as ResourceFieldEvidence[], (fields, statement) =>
         relationOptionFold(relationRefine(statement, statementIsReturn), () => fields, value =>
             relationOptionFold(relationRefine(value.expression, valueIsNestedArray), () => fields, array => [
@@ -179,7 +186,7 @@ const expressionAstsFromMethod = (
     owner: string,
     method: string,
     directoryKind: "model" | "resource" | "controller" | "service",
-    parsed: ReturnType<typeof parsePhpMethodOrThrow>,
+    parsed: PhpMethodAst,
 ): readonly ExpressionAst[] => {
     const resourceEvidence = relationGate(relationEqual(directoryKind, "resource"), () => resourceFieldEvidence(parsed), () => [] as ResourceFieldEvidence[]);
     const resourceExpressions = relationProject(resourceEvidence, evidence => expressionProducer.produce({
@@ -235,16 +242,15 @@ const scanSourceExpressionAndAssignmentAsts = async (sourceProject: SourceProjec
                 () => path.basename(file, ".php"),
                 token => token.value,
             );
-            const methods = relationExpand(
+            const methods: readonly { readonly expression: readonly ExpressionAst[]; readonly assignments: readonly AssignmentAst[] }[] = relationExpand(
                 tokens,
                 (token, index) => relationGate(relationEqual(token.value, "function"), () => {
-                    const method = parsePhpMethodOrThrow(source, tokens, index);
+                    return relationOptionFold(parsePhpMethod(source, tokens, index), () => [], method => {
                     const accepted = relationGate(relationEqual(kind, "model"), () => {
                         const legacy = relationAll([valueStartsWith(method.name, "get"), valueEndsWith(method.name, "Attribute")]);
                         const modern = relationAll([
-                            relationEqual(method.declaredReturnType.kind, "declared"),
-                            relationEqual(method.declaredReturnType.type.kind, "named"),
-                            relationEqual(method.declaredReturnType.type.name, "Attribute"),
+                            relationOptionFold(relationVariant(method.declaredReturnType, "declared"), () => false, declared =>
+                                relationOptionFold(relationVariant(declared.type, "named"), () => false, named => relationEqual(named.name, "Attribute"))),
                         ]);
                         return relationAny([legacy, modern]);
                     }, () => true);
@@ -252,9 +258,10 @@ const scanSourceExpressionAndAssignmentAsts = async (sourceProject: SourceProjec
                         expression: expressionAstsFromMethod(file, owner, method.name, kind, method),
                         assignments: relationExpand(method.body, statement => statementAssignments(statement, file)),
                     }], () => []);
+                    });
                 }, () => []),
             );
-            const flattened = relationExpand(methods, value => value);
+            const flattened = methods;
             const expressions = relationExpand(flattened, value => value.expression);
             const assignments = relationExpand(flattened, value => value.assignments);
             return {

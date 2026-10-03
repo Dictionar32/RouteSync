@@ -3,7 +3,7 @@ import type { PrimitiveVocabulary } from '../../../types/upstream/primitiveVocab
 import { resolvePrimitiveProjection, resolveTypeExpressionProjection, type TypeExpressionProjection } from './typeExpressionSemanticRelations';
 import { relationResolve, relationSequenceToArray, relationProject } from '../../../semantic/kernel/relationalSequence';
 import {
-    CollectionKind, ErrorType, GenericType, JsonValueType, NeverType, NullableType, OptionalType,
+    CollectionKind, ErrorType, GenericType, JsonValueType, NeverType, NullableType, OptionalType, primitiveType,
     ObjectType, PrimitiveKind, PrimitiveType, ReadonlyCollectionType, ReferenceType, UnionType, IntersectionType,
     type GenericParameter, type SemanticType, ScannedObjectProperty
 } from '../../types/SemanticType';

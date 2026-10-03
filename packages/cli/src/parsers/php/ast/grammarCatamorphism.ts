@@ -55,9 +55,8 @@ export interface PhpGrammarVisitor<R> {
 type GrammarKind = PhpGrammarNode['kind'];
 type GrammarDispatch<R> = Readonly<Record<GrammarKind, (node: PhpGrammarNode) => R>>;
 
-const unsupportedGrammarNode = <R>(node: PhpGrammarNode): R => {
-  throw new Error(`PHP AST grammar matcher: ${node.kind} is not an expression node`);
-};
+const unsupportedGrammarNode = <R>(): ((node: PhpGrammarNode) => R) =>
+  node => { throw Error(`PHP AST grammar matcher: ${node.kind} is not an expression node`); };
 
 const dispatch = <R>(visitor: PhpGrammarVisitor<R>): GrammarDispatch<R> => Object.freeze({
   propertylookup: node => visitor.propertylookup(node as GrammarPropertyLookup),
@@ -80,11 +79,11 @@ const dispatch = <R>(visitor: PhpGrammarVisitor<R>): GrammarDispatch<R> => Objec
   encapsed: node => visitor.encapsed(node as GrammarEncapsed),
   variable: node => visitor.variable(node as GrammarVariable),
   unknown: node => visitor.unknown(node as GrammarUnknown),
-  identifier: unsupportedGrammarNode,
-  name: unsupportedGrammarNode,
-  selfreference: unsupportedGrammarNode,
-  staticreference: unsupportedGrammarNode,
-  entry: unsupportedGrammarNode,
+  identifier: unsupportedGrammarNode<R>(),
+  name: unsupportedGrammarNode<R>(),
+  selfreference: unsupportedGrammarNode<R>(),
+  staticreference: unsupportedGrammarNode<R>(),
+  entry: unsupportedGrammarNode<R>(),
 });
 
 export function matchPhpGrammar<R>(node: PhpGrammarNode, visitor: PhpGrammarVisitor<R>): R {

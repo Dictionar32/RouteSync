@@ -1071,6 +1071,13 @@ export {
 } from './types/domain/schemaMorphism'
 
 
+export type {
+  PhpArgument, PhpBlock, PhpStatement, PhpReturnExpression, PhpParameter, PhpClosureCapture,
+  PhpPropertyName, PhpClassName, PhpMethodName, PhpFunctionName, PhpVariableName, PhpConstantName,
+  PhpBinaryOperator, PhpUnaryOperator, PhpCastType, ArrayKey, PhpAstSource,
+} from './types/domain/phpAst';
+export type { BoundLiteralValue } from './types/domain/semanticValues';
+
 export { SemanticTypeResolver } from './compiler/domain/common/SemanticTypeResolver'
 export { toTypeScriptTypeExpression } from './compiler/domain/common/ts-lowerer/typeScriptNodeLowerer'
 export { toZodSchemaExpression } from './compiler/domain/common/ZodSchemaLowerer'
@@ -1078,6 +1085,24 @@ export { toZodSchemaExpression } from './compiler/domain/common/ZodSchemaLowerer
 // Declarative relation execution primitives used by compiler/parser boundaries.
 export {
   relationResolve,
+  relationOptionFold,
+  relationOptionalFold,
+  relationFirstOption,
+  relationFirst,
+  relationProject,
+  relationSelect,
+  relationAll,
+  relationAny,
+  relationEqual,
+  relationNotEqual,
+  relationIsSome,
+  relationIsNone,
+  relationFixedPoint,
+  relationNone,
+  relationSome,
+  relationVariant,
+  relationVariantFold,
+  relationVariantValue,
   walkRelation,
   projectRelation,
   selectRelation,

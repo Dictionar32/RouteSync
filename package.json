@@ -147,7 +147,11 @@
     "audit:phase673:ast-interface-transition-closure": "node scripts/audit-phase673-ast-interface-transition-closure.cjs",
     "audit:phase674:ast-interface-authority-frontier": "node scripts/audit-phase674-ast-interface-authority-frontier.cjs",
     "audit:phase678:ast-interface-highest-frontier": "node scripts/audit-phase678-ast-interface-highest-frontier.cjs",
-    "audit:diagnostic:phase683": "node scripts/audit-phase683-diagnostic-interface.cjs"
+    "audit:diagnostic:phase683": "node scripts/audit-phase683-diagnostic-interface.cjs",
+    "audit:scanner-ast:phase684": "node scripts/audit-phase684-scanner-ast-boundary.cjs",
+    "audit:php-boundary:phase685": "node scripts/audit-phase685-php-boundary-diagnostic.cjs",
+    "audit:build:phase686": "node scripts/audit-phase686-build-diagnostic.cjs",
+    "audit:semantic:phase688": "node scripts/audit-phase688-semantic-build-frontier.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

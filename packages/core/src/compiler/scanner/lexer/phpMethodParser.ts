@@ -29,6 +29,19 @@ export function parsePhpMethod(source: string, tokens: readonly TokenDescriptor[
   );
 }
 
+/**
+ * Compatibility boundary for legacy scanners. The canonical parser result remains
+ * RelationOption<PhpMethodAst>; this adapter collapses the accepted judgment at
+ * the legacy consumer boundary until those consumers migrate to the judgment.
+ */
+export function parsePhpMethodOrThrow(source: string, tokens: readonly TokenDescriptor[], functionIndex: number): PhpMethodAst {
+  return relationOptionFold(
+    parsePhpMethod(source, tokens, functionIndex),
+    () => { throw Error('PHP method parse rejected at semantic AST boundary'); },
+    value => value,
+  );
+}
+
 function parseParameters(tokens: readonly TokenDescriptor[], index: number, result: readonly PhpParameterAst[]): readonly PhpParameterAst[] {
   return relationOptionFold(tokenAt(tokens, index), () => result, token =>
     relationGate(relationNotEqual(token.token.value, '{'), () => {

@@ -49,7 +49,6 @@ export {
 } from './nodes';
 
 export {
-    type PhpReturnExpression,
     type PhpAstVisitor,
     matchPhpAstNode,
     type PhpAstFolder,
@@ -58,3 +57,21 @@ export {
     type FoldedPhpStatement,
     foldPhpAstNode
 } from './algebra';
+
+
+export {
+    type PhpPropertyName,
+    type PhpClassName,
+    type PhpMethodName,
+    type PhpFunctionName,
+    type PhpVariableName,
+    type PhpConstantName,
+    type PhpBinaryOperator,
+    type PhpUnaryOperator,
+    type PhpCastType,
+    type ArrayKey,
+    type PhpAstSource,
+    type PhpReturnExpression,
+    type PhpParameter,
+    type PhpClosureCapture
+} from './astValues';

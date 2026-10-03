@@ -12,7 +12,6 @@ import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrig
 import { SemanticValueFactory, type PropertyName, type VariableName } from '../../types/domain/semanticValues';
 import type { StringValue } from '../../types/upstream/valueObjects';
 import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
-import { expandRelation } from '../../semantic/kernel/relationalSequence';
 import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
 
 export enum PrimitiveKind {
@@ -92,32 +91,37 @@ const baseWitness = <K extends SemanticTypeKind>(kind: K, accept: SemanticTypeBa
 });
 
 export function primitiveType(type: PrimitiveKind): PrimitiveType {
-    const witness = {
+    let witness: PrimitiveType;
+    witness = Object.freeze({
         ...baseWitness('primitive', visitor => visitor.primitive(witness)), type,
         formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)),
-    } satisfies PrimitiveType;
-    return Object.freeze(witness);
+    } satisfies PrimitiveType);
+    return witness;
 }
 
 export function JsonValueType(): JsonValueType {
-    const witness = { ...baseWitness('json_value', visitor => visitor.jsonValue(witness)), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies JsonValueType;
-    return Object.freeze(witness);
+    let witness: JsonValueType;
+    witness = Object.freeze({ ...baseWitness('json_value', visitor => visitor.jsonValue(witness)), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies JsonValueType);
+    return witness;
 }
 
 export function NeverType(): NeverType {
-    const witness = { ...baseWitness('never', visitor => visitor.never(witness)), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies NeverType;
-    return Object.freeze(witness);
+    let witness: NeverType;
+    witness = Object.freeze({ ...baseWitness('never', visitor => visitor.never(witness)), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies NeverType);
+    return witness;
 }
 
 export function ErrorType(diagnosticMessage: string): ErrorType {
-    const witness = { ...baseWitness('error', visitor => visitor.error(witness)), diagnosticMessage: Object.freeze({ kind: 'string_value', value: diagnosticMessage }) as StringValue, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies ErrorType;
-    return Object.freeze(witness);
+    let witness: ErrorType;
+    witness = Object.freeze({ ...baseWitness('error', visitor => visitor.error(witness)), diagnosticMessage: Object.freeze({ kind: 'string_value', value: diagnosticMessage }) as StringValue, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies ErrorType);
+    return witness;
 }
 
 const reference = (namespace: string, name: string, role: ObjectTypeRole): ReferenceType => {
     const emittedName = relationResolve(relationEqual(role, 'resource'), () => relationResolve(name.endsWith('Transformed'), () => name, () => `${name}Transformed`), () => name);
-    const witness = { ...baseWitness('reference', visitor => visitor.reference(witness)), namespace, name, role, emittedName, formatProperty: (property: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(property, lower(witness)) } satisfies ReferenceType;
-    return Object.freeze(witness);
+    let witness: ReferenceType;
+    witness = Object.freeze({ ...baseWitness('reference', visitor => visitor.reference(witness)), namespace, name, role, emittedName, formatProperty: (property: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(property, lower(witness)) } satisfies ReferenceType);
+    return witness;
 };
 
 export function ReferenceType(namespace: string, name: string, role: ObjectTypeRole = 'plain'): ReferenceType { return reference(namespace, name, role); }
@@ -128,34 +132,53 @@ export namespace ReferenceType {
     export const plain = (namespace: string, name: string): ReferenceType => reference(namespace, name, 'plain');
 }
 
-const compound = (kind: 'union' | 'intersection', members: readonly SemanticType[]): SemanticType => {
-    const witness = { ...baseWitness(kind, visitor => relationResolve(relationEqual(kind, 'union'), () => visitor.union(witness as UnionType), () => visitor.intersection(witness as IntersectionType))), members: Object.freeze([...members]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness as SemanticType)) };
-    return Object.freeze(witness);
+const unionType = (members: readonly SemanticType[]): UnionType => {
+    let witness: UnionType;
+    witness = Object.freeze({
+        ...baseWitness('union', visitor => visitor.union(witness)),
+        members: Object.freeze([...members]),
+        formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)),
+    });
+    return witness;
 };
-export function UnionType(members: readonly SemanticType[]): UnionType { return compound('union', members) as UnionType; }
-export namespace UnionType { export const of = (...members: readonly (SemanticType | readonly SemanticType[])[]): UnionType => UnionType(expandRelation(members)); }
-export function IntersectionType(members: readonly SemanticType[]): IntersectionType { return compound('intersection', members) as IntersectionType; }
-export namespace IntersectionType { export const of = (...members: readonly (SemanticType | readonly SemanticType[])[]): IntersectionType => IntersectionType(expandRelation(members)); }
+const intersectionType = (members: readonly SemanticType[]): IntersectionType => {
+    let witness: IntersectionType;
+    witness = Object.freeze({
+        ...baseWitness('intersection', visitor => visitor.intersection(witness)),
+        members: Object.freeze([...members]),
+        formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)),
+    });
+    return witness;
+};
+export function UnionType(members: readonly SemanticType[]): UnionType { return unionType(members); }
+export namespace UnionType { export const of = (...members: readonly SemanticType[]): UnionType => unionType(members); }
+export function IntersectionType(members: readonly SemanticType[]): IntersectionType { return intersectionType(members); }
+export namespace IntersectionType { export const of = (...members: readonly SemanticType[]): IntersectionType => intersectionType(members); }
 
 export function ReadonlyCollectionType(collectionKind: CollectionKind, elementType: SemanticType): ReadonlyCollectionType {
-    const witness = { ...baseWitness('readonly_collection', visitor => visitor.readonlyCollection(witness)), collectionKind, elementType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies ReadonlyCollectionType;
-    return Object.freeze(witness);
+    let witness: ReadonlyCollectionType;
+    witness = Object.freeze({ ...baseWitness('readonly_collection', visitor => visitor.readonlyCollection(witness)), collectionKind, elementType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies ReadonlyCollectionType);
+    return witness;
 }
 export function MutableCollectionType(collectionKind: CollectionKind, elementType: SemanticType): MutableCollectionType {
-    const witness = { ...baseWitness('mutable_collection', visitor => visitor.mutableCollection(witness)), collectionKind, elementType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies MutableCollectionType;
-    return Object.freeze(witness);
+    let witness: MutableCollectionType;
+    witness = Object.freeze({ ...baseWitness('mutable_collection', visitor => visitor.mutableCollection(witness)), collectionKind, elementType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies MutableCollectionType);
+    return witness;
 }
 export function GenericType(base: ReferenceType, parameters: readonly GenericParameter[]): GenericType {
-    const witness = { ...baseWitness('generic', visitor => visitor.generic(witness)), base, parameters: Object.freeze([...parameters]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies GenericType;
-    return Object.freeze(witness);
+    let witness: GenericType;
+    witness = Object.freeze({ ...baseWitness('generic', visitor => visitor.generic(witness)), base, parameters: Object.freeze([...parameters]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies GenericType);
+    return witness;
 }
 export function OptionalType(innerType: SemanticType): OptionalType {
-    const witness = { ...baseWitness('optional', visitor => visitor.optional(witness), false, true), innerType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatOptionalProperty(name, lower(innerType)) } satisfies OptionalType;
-    return Object.freeze(witness);
+    let witness: OptionalType;
+    witness = Object.freeze({ ...baseWitness('optional', visitor => visitor.optional(witness), false, true), innerType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatOptionalProperty(name, lower(innerType)) } satisfies OptionalType);
+    return witness;
 }
 export function NullableType(innerType: SemanticType): NullableType {
-    const witness = { ...baseWitness('nullable', visitor => visitor.nullable(witness), true, false), innerType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies NullableType;
-    return Object.freeze(witness);
+    let witness: NullableType;
+    witness = Object.freeze({ ...baseWitness('nullable', visitor => visitor.nullable(witness), true, false), innerType, formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness)) } satisfies NullableType);
+    return witness;
 }
 
 export function ScannedObjectProperty(params: ScannedObjectPropertyParams): ScannedObjectProperty { return Object.freeze({ ...params }); }
@@ -170,12 +193,13 @@ export const ObjectProperty = Object.freeze({
 
 export function ObjectType(params: ObjectTypeDescriptorParams): ObjectType {
     const interfaces = relationResolve(Object.prototype.hasOwnProperty.call(params, 'interfaces'), () => params.interfaces as readonly ReferenceType[], () => []);
-    const witness = {
+    let witness: ObjectType;
+    witness = Object.freeze({
         ...baseWitness('object', visitor => visitor.object(witness)), name: params.name, baseName: params.baseName,
         properties: Object.freeze([...params.properties]), role: params.role, baseObject: params.baseObject,
         interfaces: Object.freeze([...interfaces]), formatProperty: (name: string, lower: (t: SemanticType) => string) => TypeScriptSyntax.formatProperty(name, lower(witness))
-    } satisfies ObjectType;
-    return Object.freeze(witness);
+    } satisfies ObjectType);
+    return witness;
 }
 export namespace ObjectType {
     export const create = (params: ObjectTypeDescriptorParams): ObjectType => ObjectType(params);

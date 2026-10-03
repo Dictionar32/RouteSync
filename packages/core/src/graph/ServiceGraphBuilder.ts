@@ -17,6 +17,7 @@ import { GraphNodeIndex } from './service/graphNodeIndex';
 import type { GraphNodeReference } from './service/graphNodeIndex';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/kernel/relationMembership';
 import { relationNone, relationSome } from '../semantic/kernel/relationFoundation';
+import { relationOptionFold } from '../semantic/kernel/relationalSequence';
 import {
   detectExecutionLayer,
   buildServiceNode,
@@ -47,9 +48,6 @@ export class ServiceGraphBuilder {
     return detectExecutionLayer(filePath, code);
   }
 
-  public extractMethods(_classAST: unknown): string[] {
-    return [];
-  }
 
   public buildServiceNode(
     name: ServiceNodeName,

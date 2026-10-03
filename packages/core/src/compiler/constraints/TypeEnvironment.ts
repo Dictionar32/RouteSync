@@ -20,8 +20,8 @@ export interface TypeEnvironment {
 
 const createEnvironment = (bindings: RelationIndex<number, SemanticType>): TypeEnvironment => Object.freeze({
   bindings,
-  bind: (id, type) => createEnvironment(relationIndexAdd(bindings, id, type)),
-  resolve: variable => relationIndexLookup(bindings, variable),
+  bind: (id: number, type: SemanticType) => createEnvironment(relationIndexAdd(bindings, id, type)),
+  resolve: (variable: number) => relationIndexLookup(bindings, variable),
 });
 
 export const createTypeEnvironment = (): TypeEnvironment => createEnvironment(Object.freeze([]));

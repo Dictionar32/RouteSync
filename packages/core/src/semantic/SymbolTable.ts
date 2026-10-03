@@ -4,10 +4,13 @@ import type { ModelColumnFact } from '../types/upstream/modelSourceFacts';
 import type { ModelSemanticAccessor, ModelSemanticRelation } from '../types/upstream/model';
 import type { Lookup } from '../types/upstream/collections';
 import { relationEqual } from './kernel/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject, relationSelect } from './kernel/relationalSequence';
+import { relationFirst, relationOptionFold, relationProject, relationSelect, relationSequenceToArray } from './kernel/relationalSequence';
 
 const found = <T>(value: T): Lookup<T> => ({ kind: 'found', value });
 const missing = <T>(): Lookup<T> => ({ kind: 'missing' });
+
+const sequenceToRelation = <T>(sequence: import('../types/upstream/collections').Sequence<T>): readonly T[] =>
+    relationSequenceToArray(sequence);
 
 export interface ModelSymbol {
     readonly node: ModelNode;
@@ -19,16 +22,16 @@ export interface ModelSymbol {
 
 export const createModelSymbol = (node: ModelNode): ModelSymbol => {
     const name = node.definition.semantic.identity.name.value.value;
-    const columnFacts = relationProject(node.definition.semantic.columnFacts.items, fact => fact);
-    const properties = relationProject(node.definition.semantic.surface.properties, property => property);
+    const columnFacts: readonly ModelColumnFact[] = sequenceToRelation(node.definition.semantic.columnFacts.items);
+    const properties: readonly import('../types/upstream/model').ModelSemanticProperty[] = sequenceToRelation(node.definition.semantic.surface.properties);
     const relations = relationSelect(properties, (property): property is ModelSemanticRelation => relationEqual(property.kind, 'relation'));
     const accessors = relationSelect(properties, (property): property is ModelSemanticAccessor => relationEqual(property.kind, 'accessor'));
     return Object.freeze({
         node,
         name,
-        columnFact: (column: string) => relationOptionFold(relationFirst(columnFacts, fact => relationEqual(fact.column.value.value, column)), missing, found),
-        accessor: (property: string) => relationOptionFold(relationFirst(accessors, accessorValue => relationEqual(accessorValue.property.value.value, property)), missing, found),
-        relation: (relationName: string) => relationOptionFold(relationFirst(relations, relationValue => relationEqual(relationValue.relation.value.value, relationName)), missing, found),
+        columnFact: (column: string): Lookup<ModelColumnFact> => relationOptionFold(relationFirst<ModelColumnFact>(columnFacts, fact => relationEqual(fact.column.value.value, column)), missing<ModelColumnFact>, found<ModelColumnFact>),
+        accessor: (property: string): Lookup<ModelSemanticAccessor> => relationOptionFold(relationFirst<ModelSemanticAccessor>(accessors, accessorValue => relationEqual(accessorValue.property.value.value, property)), missing<ModelSemanticAccessor>, found<ModelSemanticAccessor>),
+        relation: (relationName: string): Lookup<ModelSemanticRelation> => relationOptionFold(relationFirst<ModelSemanticRelation>(relations, relationValue => relationEqual(relationValue.relation.value.value, relationName)), missing<ModelSemanticRelation>, found<ModelSemanticRelation>),
     });
 };
 
@@ -41,11 +44,11 @@ export interface SymbolTable {
 export const createSymbolTable = (models: readonly ModelNode[]): SymbolTable => {
     const symbols = Object.freeze(relationProject(models, createModelSymbol));
     return Object.freeze({
-        lookup: name => relationOptionFold(relationFirst(symbols, symbol => relationEqual(symbol.name, name)), missing, found),
-        lookupCaseInsensitive: name => {
+        lookup: (name: string): Lookup<ModelSymbol> => relationOptionFold(relationFirst<ModelSymbol>(symbols, symbol => relationEqual(symbol.name, name)), missing<ModelSymbol>, found<ModelSymbol>),
+        lookupCaseInsensitive: (name: string): Lookup<ModelSymbol> => {
             const normalized = name.toLowerCase();
-            return relationOptionFold(relationFirst(symbols, symbol => relationEqual(symbol.name.toLowerCase(), normalized)), missing, found);
+            return relationOptionFold(relationFirst<ModelSymbol>(symbols, symbol => relationEqual(symbol.name.toLowerCase(), normalized)), missing<ModelSymbol>, found<ModelSymbol>);
         },
-        findFirst: predicate => relationOptionFold(relationFirst(symbols, symbol => predicate(symbol.node)), missing, found),
+        findFirst: (predicate: (node: ModelNode) => boolean): Lookup<ModelSymbol> => relationOptionFold(relationFirst<ModelSymbol>(symbols, symbol => predicate(symbol.node)), missing<ModelSymbol>, found<ModelSymbol>),
     });
 };

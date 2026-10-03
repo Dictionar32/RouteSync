@@ -1,3 +1,5 @@
+import { relationFirstOption, relationOptionFold, relationEqual } from '../../semantic/kernel/relationalSequence';
+
 /** Immutable relational sequence primitives used by compiler infrastructure. */
 export type RelationStep<T> =
   | { readonly kind: 'emit'; readonly value: T }
@@ -46,17 +48,23 @@ export function selectRelation<T>(source: readonly T[], predicate: (value: T, in
   return walkRelation(source, (value, index) => relationResolve<RelationStep<T>>(predicate(value, index), () => ({ kind: 'emit', value }), () => ({ kind: 'skip' })));
 }
 
-export const expandRelation = <T, R>(source: readonly T[], expand: (value: T, index: number) => readonly R[], index = 0, output: readonly R[] = Object.freeze([])): readonly R[] =>
-  relationResolve(index >= source.length, () => output, () => expandRelation(source, expand, index + 1, Object.freeze([...output, ...expand(source[index] as T, index)])));
-
 export const distinctRelation = <T>(source: readonly T[], key: (value: T) => string): readonly T[] => {
-  const seen = new Set<string>();
-  return walkRelation(source, value => {
-    const identifier = key(value);
-    const fresh = !seen.has(identifier);
-    seen.add(identifier);
-    return relationResolve<RelationStep<T>>(fresh, () => ({ kind: 'emit', value }), () => ({ kind: 'skip' }));
-  });
+  const step = (index: number, seen: readonly string[], output: readonly T[]): readonly T[] =>
+    relationResolve(
+      index >= source.length,
+      () => output,
+      () => {
+        const value = source[index] as T;
+        const identifier = key(value);
+        const duplicate = relationFirstOption(seen, candidate => relationEqual(candidate, identifier));
+        return relationOptionFold(
+          duplicate,
+          () => step(index + 1, Object.freeze([...seen, identifier]), Object.freeze([...output, value])),
+          () => step(index + 1, seen, output),
+        );
+      },
+    );
+  return step(0, Object.freeze([]), Object.freeze([]));
 };
 
 export const visitRelation = <T>(source: readonly T[], visit: (value: T, index: number, source: readonly T[]) => void): void => {
@@ -86,6 +94,6 @@ export const firstRelation = <T>(source: readonly T[], predicate: (value: T, ind
   });
 
 export {
-  relationOptionFold, relationFirstOption, relationProject, relationSelect, relationAll, relationAny,
-  relationEqual, relationNotEqual, relationIsSome, relationIsNone, relationFixedPoint, relationResolve as semanticRelationResolve,
+  relationOptionFold, relationOptionalFold, relationFirstOption, relationFirst, relationProject, relationSelect, relationAll, relationAny,
+  relationEqual, relationNotEqual, relationIsSome, relationIsNone, relationFixedPoint, relationNone, relationSome, relationVariant, relationVariantFold, relationVariantValue, relationUnique, relationIndexAdd, relationIndexLookup, expandRelation, relationResolve as semanticRelationResolve,
 } from '../../semantic/kernel/relationalSequence';

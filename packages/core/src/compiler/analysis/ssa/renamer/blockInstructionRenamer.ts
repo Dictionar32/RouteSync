@@ -61,8 +61,8 @@ export const renameBlockInstructions = (
                 () => relationResolve(
                     relationEqual(inst.kind, 'Call'),
                     () => relationOptionFold(
-                        relationRefine(inst, (candidate): candidate is Extract<Instruction, { readonly kind: 'Call' }> => candidate.kind === 'Call' && Object.hasOwn(candidate, 'target')),
-                        () => ({ instruction: inst as Instruction, scope }),
+                        relationRefine(inst, (candidate): candidate is Extract<Instruction, { readonly kind: 'Call' }> => relationAll([relationEqual(candidate.kind, 'Call'), Object.hasOwn(candidate, 'target')])),
+                        () => ({ instruction: inst, scope }),
                         call => ({ instruction: renamedCall(call.target, relationProject(call.args, argument => scope.renameOperand(argument))), scope }),
                     ),
                     () => relationResolve(

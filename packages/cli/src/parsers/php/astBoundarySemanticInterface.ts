@@ -5,7 +5,7 @@
  * are the semantic authority exposed to the rest of RouteSync.
  */
 import type { PhpAstNode } from '@routesync/core';
-import { relationResolve, relationEqual } from '@routesync/core';
+import { relationOptionFold, relationVariant } from '@routesync/core';
 import type { PhpGrammarNode } from './ast/grammar';
 
 export type PhpAstBoundaryRelation =
@@ -52,10 +52,10 @@ export const phpAstBoundaryJudgment = (
         phpAstBoundaryFact('grammar_observed', grammar.kind),
         phpAstBoundaryFact('ast_adapted', ast.kind),
         phpAstBoundaryFact('source_preserved', String(sourcePreserved)),
-        ...relationResolve(
-            relationEqual(ast.kind, 'unsupported'),
-            () => [phpAstBoundaryFact('parser_gap', ast.reason.kind)],
+        ...relationOptionFold(
+            relationVariant(ast, 'unsupported'),
             () => [],
+            value => [phpAstBoundaryFact('parser_gap', value.reason.kind)],
         ),
     ]),
     closure: 'closed',

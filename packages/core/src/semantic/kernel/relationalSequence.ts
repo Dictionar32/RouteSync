@@ -20,12 +20,14 @@ import {
   type RelationOption,
   type RelationMaybe,
 } from './relationFoundation';
+import { relationUnique, relationIndexAdd, relationIndexLookup, type RelationIndex } from './relationMembership';
 
 export {
   RELATION_NONE, relationAny, relationEqual, relationGate, relationResolve,
   relationNone, relationSome, relationOptionFold, relationIsSome, relationIsNone, relationIsPresent, relationNotEqual,
+  relationUnique, relationIndexAdd, relationIndexLookup,
 };
-export type { RelationOption, RelationMaybe, RelationNone, RelationSome };
+export type { RelationOption, RelationMaybe, RelationNone, RelationSome, RelationIndex };
 
 export type RelationPredicate<T> = (value: T, index: number) => boolean;
 export type RelationRefinement<T, U extends T> = (value: T, index: number) => value is U;
@@ -95,6 +97,8 @@ export const relationExpand = <T, U>(
     () => relationExpand(source, expansion, relationAdvanceIndex(index, 1), [...output, ...expansion(source[index], index)]),
     () => output,
   );
+
+export const expandRelation = relationExpand;
 
 export const relationFoldRight = <T, A>(
   source: readonly T[],

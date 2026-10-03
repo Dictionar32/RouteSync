@@ -21,6 +21,7 @@ import type {
     ResolvedIntersectionType,
     ResolvedUnknownType
 } from './compounds';
+import { ResolvedUnknownType as createResolvedUnknownType } from './compounds';
 
 export type ResolvedSemanticType =
     | ResolvedPrimitiveType
@@ -166,10 +167,12 @@ export function matchResolvedSemanticType<R>(
                                                     return relationOptionFold(union,
                                                         () => {
                                                             const intersection = relationRefine(type, (value): value is ResolvedIntersectionType => relationEqual(value.kind, 'intersection'));
-                                                            const unknown = relationRefine(type, (value): value is ResolvedUnknownType => relationEqual(value.kind, 'unknown'));
-                                                            return relationOptionFold(unknown,
-                                                                () => visitor.unknown(type),
-                                                                value => visitor.intersection(value));
+                                                            return relationOptionFold(intersection,
+                                                                () => {
+                                                                    const unknown = relationRefine(type, (value): value is ResolvedUnknownType => relationEqual(value.kind, 'unknown'));
+                                                                    return relationOptionFold(unknown, () => visitor.unknown(createResolvedUnknownType.withMessage('unclassified_resolved_semantic_type')), visitor.unknown);
+                                                                },
+                                                                visitor.intersection);
                                                         },
                                                         value => visitor.union(value));
                                                 },

@@ -4,7 +4,7 @@ import {
   SemanticResourceBinder,
   BoundSemanticNode,
   BoundSemanticFactory,
-  matchBoundSemanticNode,
+  matchBoundSemantic,
   BoundSemanticVisitor,
   ParsedModel,
   PrimitiveKind
@@ -179,15 +179,15 @@ describe('Direct Semantic Binding at Origin Boundary & Bound AST SSOT', () => {
     expect(categoryField?.nullable).toBe(true)
   })
 
-  it('pure catamorphism matchBoundSemanticNode folds AST variants with 0 if/switch', () => {
+  it('pure catamorphism matchBoundSemantic folds AST variants with 0 if/switch', () => {
     const visitor: BoundSemanticVisitor<string> = {
       bound_primitive: (n) => `primitive(${n.semanticType})`,
       bound_model_column: (n) => `column(${n.model}.${n.column}:${n.semanticType})`,
       bound_relation: (n) => `relation(${n.sourceModel}->${n.relationName}:${n.targetModel})`,
       bound_property_chain: (n) => `chain(${n.rootModel}.${n.steps.map(s => s.property).join('.')})`,
-      bound_conditional: (n) => `conditional(${n.wrapper}:${matchBoundSemanticNode(n.target, visitor)})`,
-      bound_binary: (n) => `binary(${matchBoundSemanticNode(n.left, visitor)} ${n.operator} ${matchBoundSemanticNode(n.right, visitor)})`,
-      bound_ternary: (n) => `ternary(? ${matchBoundSemanticNode(n.truthy, visitor)} : ${matchBoundSemanticNode(n.falsy, visitor)})`,
+      bound_conditional: (n) => `conditional(${n.wrapper}:${matchBoundSemantic(n.target, visitor)})`,
+      bound_binary: (n) => `binary(${matchBoundSemantic(n.left, visitor)} ${n.operator} ${matchBoundSemantic(n.right, visitor)})`,
+      bound_ternary: (n) => `ternary(? ${matchBoundSemantic(n.truthy, visitor)} : ${matchBoundSemantic(n.falsy, visitor)})`,
       bound_method_call: (n) => `method(${n.targetModel}.${n.methodName})`,
       bound_unknown: (n) => `unknown(${n.rawExpression})`
     }
@@ -209,7 +209,7 @@ describe('Direct Semantic Binding at Origin Boundary & Bound AST SSOT', () => {
       isOptional: true
     })
 
-    const formatted = matchBoundSemanticNode(conditionalNode, visitor)
+    const formatted = matchBoundSemantic(conditionalNode, visitor)
     expect(formatted).toBe('conditional(whenLoaded:column(Product.price:number))')
   })
 })

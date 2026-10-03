@@ -6,7 +6,7 @@
  * terminal. Host-language absence is normalized into Presence/Lookup witnesses.
  */
 
-import type { ResourceName } from "../../../../types/upstream/names";
+import type { PropertyName, ResourceName } from "../../../../types/upstream/names";
 import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import {
@@ -17,17 +17,17 @@ import {
 import { matchStructuralFields } from "./structuralFieldMatcher";
 import { findControllerResourceBinding } from "../../subscanners/controller/resourceDataflowAggregator";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
-import { type Presence, presenceFold } from "../../../../types/upstream/presence";
+import { absent, present, type Presence, presenceFold } from "../../../../types/upstream/presence";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import type { ResourceModelKnowledgeDataFlow } from "../../subscanners/resource/resourceModelKnowledgeDataFlow";
-import { relationAll, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
+import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/kernel/relationalSequence";
 import { astSemanticTextTerm } from "../../../../types/upstream/astSemanticInterface";
 import { createResolverGraphPort, resolverGraphFact, type AstSemanticStagePort } from "../../../../types/upstream/astSemanticStageInterface";
 
 export interface ResourceModelResolutionInput {
     readonly resourceName: ResourceName;
-    readonly fieldNames: readonly string[];
+    readonly fieldNames: readonly PropertyName[];
     readonly modelSymbolTable: ModelSymbolTable;
     readonly controllerDataflowMap: Presence<import("../../subscanners/controller/resourceDataflowAggregator").ControllerResourceDataflow>;
     readonly knowledgeDataFlow: Presence<ResourceModelKnowledgeDataFlow>;
@@ -39,25 +39,21 @@ const bind = (
         source: Parameters<typeof ResourceModelBindingFactory.mono>[1]
     ): Presence<ResourceModelBinding> => {
         return matchLookup(lookup, {
-            missing: () => ({ kind: 'absent' }),
-            found: ({ value }) => ({ kind: 'present', value: ResourceModelBindingFactory.mono(value, source) })
+            missing: () => absent<ResourceModelBinding>(),
+            found: ({ value }) => present(ResourceModelBindingFactory.mono(value, source))
         });
     };
 
 const controllerCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
         return presenceFold(
             input.controllerDataflowMap,
-            () => ({ kind: 'absent' }),
+            () => absent<ResourceModelBinding>(),
             value => relationOptionFold(
                 findControllerResourceBinding(value, input.resourceName),
-                () => ({ kind: 'absent' }),
+                () => absent<ResourceModelBinding>(),
                 binding => bind(
-                    relationGate(
-                        relationEqual(binding.model.kind, 'table'),
-                        () => input.modelSymbolTable.findByTableName(binding.model.name),
-                        () => input.modelSymbolTable.get(binding.model.name)
-                    ),
-                    'controller_dataflow'
+                    input.modelSymbolTable.findForControllerOrigin(binding.model),
+                    'controller_dataflow',
                 )
             )
         );
@@ -66,7 +62,7 @@ const controllerCandidate = (input: ResourceModelResolutionInput): Presence<Reso
 const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
         return presenceFold(
             input.knowledgeDataFlow,
-            () => ({ kind: 'absent' }),
+            () => absent<ResourceModelBinding>(),
             value => {
                 const fact = relationFirst(
                     value.resolutions,
@@ -77,7 +73,7 @@ const propagatedCandidate = (input: ResourceModelResolutionInput): Presence<Reso
                 );
                 return relationOptionFold(
                     fact,
-                    () => ({ kind: 'absent' }),
+                    () => absent<ResourceModelBinding>(),
                     candidate => bind(
                         input.modelSymbolTable.get(candidate.model),
                         'relation_propagation'
@@ -94,34 +90,37 @@ const conventionCandidate = (input: ResourceModelResolutionInput): Presence<Reso
         );
     };
 
-const structuralCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> => {
-        const candidate = relationOptionFold(
-            relationFirst([input.fieldNames], fields => fields.length > 0),
-            () => ({ kind: 'absent' }),
-            fields => matchStructuralFields(fields, input.modelSymbolTable)
-        );
-        return presenceFold(
-            candidate,
-            () => ({ kind: 'absent' }),
-            value => ({ kind: 'present', value: ResourceModelBindingFactory.mono(value, 'structural') })
-        );
-    };
+const structuralCandidate = (input: ResourceModelResolutionInput): Presence<ResourceModelBinding> =>
+    relationOptionFold(
+        relationFirst([input.fieldNames], fields => fields.length > 0),
+        () => absent<ResourceModelBinding>(),
+        fields => presenceFold(
+            matchStructuralFields(fields, input.modelSymbolTable),
+            () => absent<ResourceModelBinding>(),
+            value => present(ResourceModelBindingFactory.mono(value, 'structural')),
+        ),
+    );
 
 /** Resolves the backing Eloquent Model through a declarative priority relation. */
 const resolveResourceModel = (input: ResourceModelResolutionInput): ResourceModelBinding => {
-        const candidates = [
+        const candidates: readonly Presence<ResourceModelBinding>[] = Object.freeze([
             controllerCandidate(input),
             propagatedCandidate(input),
             conventionCandidate(input),
             structuralCandidate(input),
-        ];
+        ]);
 
         const first = relationOptionFold(
             relationFirst(candidates, candidate => relationEqual(candidate.kind, 'present')),
             () => ResourceModelBindingFactory.unbackedDto(
-                `Resource '${input.resourceName}' is a DTO without a matching Eloquent model.`
+                `Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`
             ),
-            candidate => candidate.value
+            candidate => presenceFold(candidate,
+                () => ResourceModelBindingFactory.unbackedDto(
+                    `Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`
+                ),
+                value => value,
+            )
         );
         return first;
 }
@@ -129,8 +128,8 @@ const resolveResourceModel = (input: ResourceModelResolutionInput): ResourceMode
 export const resolveResourceModelPort = (input: ResourceModelResolutionInput): AstSemanticStagePort => {
         const binding = resolveResourceModel(input);
         return createResolverGraphPort(matchResourceModelBinding(binding, {
-            mono: value => [resolverGraphFact('resolver_resolves', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm(value.model.identity.name.value))],
-            poly: value => relationProject(value.models, model => resolverGraphFact('resolver_candidate', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm(model.identity.name.value))),
+            mono: value => [resolverGraphFact('resolver_resolves', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm(value.model.name.value.value))],
+            poly: value => relationProject(value.models, model => resolverGraphFact('resolver_candidate', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm(model.name.value.value))),
             unbacked_dto: () => [resolverGraphFact('resolver_conflict', astSemanticTextTerm(input.resourceName.value.value), astSemanticTextTerm('unbacked_dto'))],
         }));
 };

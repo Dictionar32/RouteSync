@@ -1,3 +1,4 @@
+import { createPropertyName } from '../../../../types/upstream/names';
 /**
  * resourceBinder.ts
  *
@@ -239,7 +240,7 @@ export function bindResourceDefinition(params: {
 }): ResourceAst {
     const { resourceName, entries, source, modelSymbolTable, knowledgeDataFlow, assignments = [], method, baseClass, wrapping, requestParameter, documentationMixins } = params;
     const sourceFile: SourceFile = source.file;
-    const fieldNames = relationExpand(entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => [entry.key.value], () => []), () => []));
+    const fieldNames = relationExpand(entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => relationGate(relationEqual(entry.key.kind, 'string'), () => [createPropertyName(entry.key.value)], () => []), () => []));
     const binding = ResourceModelResolver.resolve({ resourceName, fieldNames, modelSymbolTable, knowledgeDataFlow });
     return relationGate(relationEqual(binding.kind, 'mono'), () => {
     const model = binding.model;

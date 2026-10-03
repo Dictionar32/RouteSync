@@ -163,7 +163,11 @@
     "audit:phase709:diagnostic-trace-suggestion": "node scripts/audit-phase709-diagnostic-trace-suggestion.cjs",
     "audit:request-domain:phase710": "node scripts/audit-phase710-request-domain-ast-frontier.cjs",
     "audit:phase711-route-security-number-adt": "node scripts/audit-phase711-route-security-number-adt.cjs",
-    "audit:phase712-resolver-graph-interface": "node scripts/audit-phase712-resolver-graph-interface.cjs"
+    "audit:phase712-resolver-graph-interface": "node scripts/audit-phase712-resolver-graph-interface.cjs",
+    "audit:phase713-bound-ast-semantic-interface": "node scripts/audit-phase713-bound-ast-semantic-interface.cjs",
+    "audit:phase714-bound-ast-canonical-relation": "node scripts/audit-phase714-bound-ast-canonical-relation.cjs",
+    "audit:phase714-semantic-frontier": "node scripts/audit-phase714-semantic-frontier.cjs",
+    "audit:phase715-resource-model-highest-interface": "node scripts/audit-phase715-resource-model-highest-interface.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

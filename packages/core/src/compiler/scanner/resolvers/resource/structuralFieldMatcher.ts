@@ -7,7 +7,7 @@
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { matchLookup } from "../../../../types/upstream/collections";
-import { createPropertyName } from "../../../../types/upstream/names";
+import { createPropertyName, type PropertyName } from "../../../../types/upstream/names";
 import { present, absent, type Presence } from "../../../../types/upstream/presence";
 import { relationEqual, relationAny } from "../../../../semantic/kernel/semanticRelations";
 import { relationResolve, relationFold } from "../../../../semantic/kernel/relationalSequence";
@@ -33,13 +33,13 @@ type State = Readonly<{
 const emptyState = (): State => ({ best: absent(), runnerUp: 0 });
 
 export function matchStructuralFields(
-    fieldNames: readonly string[],
+    fieldNames: readonly PropertyName[],
     modelSymbolTable: ModelSymbolTable,
 ): Presence<OriginModelSymbol> {
     const state = relationFold(modelSymbolTable.all(), emptyState(), (current, model) => {
         const candidate = relationFold(fieldNames, { model, score: 0, matchedCount: 0, distinctiveScore: 0 }, (score, field) => {
-            const lowerField = field.toLowerCase();
-            const column = matchLookup(model.column(createPropertyName(field)), {
+            const lowerField = field.value.value.toLowerCase();
+            const column = matchLookup(model.column(field), {
                 missing: () => model.column(createPropertyName(lowerField)),
                 found: lookup => lookup,
             });

@@ -12,7 +12,7 @@ import type { ResourceFieldDescriptor } from '../../../../../types/domain/expres
 import { matchResourceFieldExpression } from '../../../../../types/domain/expressions';
 import { toCamelCase } from '../../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from '../SemanticDerivationContext';
-import { matchBoundSemanticNode } from '../../../../../types/domain/boundAst';
+import { matchBoundSemantic } from '../../../../../types/domain/boundAst';
 import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
 import { relationFold, relationGate, relationSlice } from '../../../../../semantic/kernel/relationalSequence';
 
@@ -79,7 +79,7 @@ function semanticTypeFromBoundField(field: ResourceFieldDescriptor): SemanticTyp
         () => { throw Error(`Resource field semantic rejected: ${field.semantic.bound.reason}`); },
         () => {
             const boundAst = field.semantic.bound;
-            return matchBoundSemanticNode(boundAst, {
+            return matchBoundSemantic(boundAst, {
         bound_model_reference: node => field.semantic.type,
         bound_resource_reference: node => field.semantic.type,
         bound_primitive: node => node.semanticType,

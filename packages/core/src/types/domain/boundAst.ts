@@ -26,6 +26,7 @@ import type {
 } from './semanticValues';
 import type { EloquentRelationType } from './eloquentTypes';
 import type { QueryProjectionSurface } from './semanticResolution';
+import { relationEqual, relationOptionFold, relationRefine } from '../../semantic/kernel/semanticRelations';
 
 export type BoundSemanticKind =
   | 'bound_primitive'
@@ -50,19 +51,6 @@ export type BoundCardinality =
 export type BoundNullability =
   | { readonly kind: 'non_nullable' }
   | { readonly kind: 'nullable' };
-
-export type BoundRelationKind =
-  | 'belongs_to'
-  | 'has_one'
-  | 'has_many'
-  | 'belongs_to_many'
-  | 'has_one_through'
-  | 'has_many_through'
-  | 'morph_to'
-  | 'morph_one'
-  | 'morph_many'
-  | 'morph_to_many'
-  | 'morphed_by_many';
 
 export type BoundUnsupportedReason =
   | 'parser_gap'
@@ -102,7 +90,7 @@ export interface BoundRelationNode {
   readonly kind: 'bound_relation';
   readonly sourceModel: ModelName;
   readonly relationName: RelationName;
-  readonly relationType: BoundRelationKind;
+  readonly relationType: EloquentRelationType;
   readonly targetModel: ModelName;
   readonly cardinality: BoundCardinality;
   readonly nullability: BoundNullability;
@@ -120,15 +108,28 @@ export interface BoundConditionalAvailabilityVisitor<R> {
   readonly present_when_condition: (availability: Extract<BoundConditionalAvailability, { readonly kind: 'present_when_condition' }>) => R;
 }
 
+const isAlwaysPresent = (availability: BoundConditionalAvailability): availability is Extract<BoundConditionalAvailability, { readonly kind: 'always_present' }> =>
+  relationEqual(availability.kind, 'always_present');
+
+const isPresentWhenLoaded = (availability: BoundConditionalAvailability): availability is Extract<BoundConditionalAvailability, { readonly kind: 'present_when_loaded' }> =>
+  relationEqual(availability.kind, 'present_when_loaded');
+
+const isPresentWhenCondition = (availability: BoundConditionalAvailability): availability is Extract<BoundConditionalAvailability, { readonly kind: 'present_when_condition' }> =>
+  relationEqual(availability.kind, 'present_when_condition');
+
 export function matchBoundConditionalAvailability<R>(
   availability: BoundConditionalAvailability,
   visitor: BoundConditionalAvailabilityVisitor<R>,
 ): R {
-  switch (availability.kind) {
-    case 'always_present': return visitor.always_present(availability);
-    case 'present_when_loaded': return visitor.present_when_loaded(availability);
-    case 'present_when_condition': return visitor.present_when_condition(availability);
-  }
+  return relationOptionFold(
+    relationRefine(availability, isAlwaysPresent),
+    () => relationOptionFold(
+      relationRefine(availability, isPresentWhenLoaded),
+      () => visitor.present_when_condition(relationOptionFold(relationRefine(availability, isPresentWhenCondition), () => { throw Error('Conditional availability witness is not condition'); }, condition => condition)),
+      loaded => visitor.present_when_loaded(loaded),
+    ),
+    always => visitor.always_present(always),
+  );
 }
 
 export type BoundPropertyStepKind =
@@ -251,48 +252,67 @@ export interface BoundSemanticVisitor<R> {
   readonly bound_unsupported: (node: BoundUnsupportedNode) => R;
 }
 
+const isBoundUnsupported = (node: BoundSemanticNode): node is BoundUnsupportedNode =>
+  relationEqual(node.kind, 'bound_unsupported');
+
+const boundSemanticPredicates = Object.freeze({
+  primitive: (node: BoundSemanticNode): node is BoundPrimitiveNode => relationEqual(node.kind, 'bound_primitive'),
+  modelReference: (node: BoundSemanticNode): node is BoundModelReferenceNode => relationEqual(node.kind, 'bound_model_reference'),
+  resourceReference: (node: BoundSemanticNode): node is BoundResourceReferenceNode => relationEqual(node.kind, 'bound_resource_reference'),
+  modelColumn: (node: BoundSemanticNode): node is BoundModelColumnNode => relationEqual(node.kind, 'bound_model_column'),
+  relation: (node: BoundSemanticNode): node is BoundRelationNode => relationEqual(node.kind, 'bound_relation'),
+  propertyChain: (node: BoundSemanticNode): node is BoundPropertyChainNode => relationEqual(node.kind, 'bound_property_chain'),
+  conditional: (node: BoundSemanticNode): node is BoundConditionalNode => relationEqual(node.kind, 'bound_conditional'),
+  binary: (node: BoundSemanticNode): node is BoundBinaryNode => relationEqual(node.kind, 'bound_binary'),
+  ternary: (node: BoundSemanticNode): node is BoundTernaryNode => relationEqual(node.kind, 'bound_ternary'),
+  methodCall: (node: BoundSemanticNode): node is BoundMethodCallNode => relationEqual(node.kind, 'bound_method_call'),
+  queryProjection: (node: BoundSemanticNode): node is BoundQueryProjectionNode => relationEqual(node.kind, 'bound_query_projection'),
+  projectionField: (node: BoundSemanticNode): node is BoundProjectionFieldNode => relationEqual(node.kind, 'bound_projection_field'),
+});
+
 export const matchBoundSemantic = <R>(
   node: BoundSemanticNode,
   visitor: BoundSemanticVisitor<R>,
-): R => {
-  switch (node.kind) {
-    case 'bound_primitive': return visitor.bound_primitive(node);
-    case 'bound_model_reference': return visitor.bound_model_reference(node);
-    case 'bound_resource_reference': return visitor.bound_resource_reference(node);
-    case 'bound_model_column': return visitor.bound_model_column(node);
-    case 'bound_relation': return visitor.bound_relation(node);
-    case 'bound_property_chain': return visitor.bound_property_chain(node);
-    case 'bound_conditional': return visitor.bound_conditional(node);
-    case 'bound_binary': return visitor.bound_binary(node);
-    case 'bound_ternary': return visitor.bound_ternary(node);
-    case 'bound_method_call': return visitor.bound_method_call(node);
-    case 'bound_query_projection': return visitor.bound_query_projection(node);
-    case 'bound_projection_field': return visitor.bound_projection_field(node);
-    case 'bound_unsupported': return visitor.bound_unsupported(node);
-  }
-};
+): R =>
+  relationOptionFold(relationRefine(node, boundSemanticPredicates.primitive), () =>
+    relationOptionFold(relationRefine(node, boundSemanticPredicates.modelReference), () =>
+      relationOptionFold(relationRefine(node, boundSemanticPredicates.resourceReference), () =>
+        relationOptionFold(relationRefine(node, boundSemanticPredicates.modelColumn), () =>
+          relationOptionFold(relationRefine(node, boundSemanticPredicates.relation), () =>
+            relationOptionFold(relationRefine(node, boundSemanticPredicates.propertyChain), () =>
+              relationOptionFold(relationRefine(node, boundSemanticPredicates.conditional), () =>
+                relationOptionFold(relationRefine(node, boundSemanticPredicates.binary), () =>
+                  relationOptionFold(relationRefine(node, boundSemanticPredicates.ternary), () =>
+                    relationOptionFold(relationRefine(node, boundSemanticPredicates.methodCall), () =>
+                      relationOptionFold(relationRefine(node, boundSemanticPredicates.queryProjection), () =>
+                        relationOptionFold(relationRefine(node, boundSemanticPredicates.projectionField), () =>
+                          visitor.bound_unsupported(relationOptionFold(relationRefine(node, isBoundUnsupported), () => { throw Error('Bound semantic witness is not unsupported'); }, unsupported => unsupported)),
+                          visitor.bound_projection_field,
+                        ),
+                        visitor.bound_query_projection,
+                      ),
+                      visitor.bound_method_call,
+                    ),
+                    visitor.bound_ternary,
+                  ),
+                  visitor.bound_binary,
+                ),
+                visitor.bound_conditional,
+              ),
+              visitor.bound_property_chain,
+            ),
+            visitor.bound_relation,
+          ),
+          visitor.bound_model_column,
+        ),
+        visitor.bound_resource_reference,
+      ),
+      visitor.bound_model_reference,
+    ),
+    visitor.bound_primitive,
+  );
 
-/** Compatibility alias kept at the public domain boundary during migration. */
-export const matchBoundSemanticNode = matchBoundSemantic;
 
-/** Legacy export name retained as a type alias; the canonical node is BoundUnsupportedNode. */
-export type BoundUnknownNode = BoundUnsupportedNode;
-
-function toBoundRelationKind(type: EloquentRelationType): BoundRelationKind {
-  switch (type) {
-    case 'belongsTo': return 'belongs_to';
-    case 'hasOne': return 'has_one';
-    case 'hasMany': return 'has_many';
-    case 'belongsToMany': return 'belongs_to_many';
-    case 'hasOneThrough': return 'has_one_through';
-    case 'hasManyThrough': return 'has_many_through';
-    case 'morphTo': return 'morph_to';
-    case 'morphOne': return 'morph_one';
-    case 'morphMany': return 'morph_many';
-    case 'morphToMany': return 'morph_to_many';
-    case 'morphedByMany': return 'morphed_by_many';
-  }
-}
 
 export const BoundSemanticFactory = Object.freeze({
   modelReference(model: ModelName): BoundModelReferenceNode {
@@ -344,7 +364,7 @@ export const BoundSemanticFactory = Object.freeze({
       kind: 'bound_relation' as const,
       sourceModel: params.sourceModel,
       relationName: params.relationName,
-      relationType: toBoundRelationKind(params.relationType),
+      relationType: params.relationType,
       targetModel: params.targetModel,
       cardinality: params.cardinality,
       nullability: params.nullability,

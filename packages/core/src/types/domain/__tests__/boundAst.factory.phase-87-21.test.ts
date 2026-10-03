@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BoundSemanticFactory,
-  matchBoundSemanticNode,
+  matchBoundSemantic,
   type BoundSemanticNode,
 } from '../boundAst';
 import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
@@ -22,7 +22,7 @@ describe('BoundSemanticFactory contract phase 87.24', () => {
     const node = BoundSemanticFactory.relation({
       sourceModel: 'Product',
       relationName: 'reviews',
-      relationType: 'hasMany',
+      relationType: { kind: 'has_many' },
       targetModel: 'ProductReview',
       cardinality: { kind: 'collection' },
       nullable: false,
@@ -35,7 +35,7 @@ describe('BoundSemanticFactory contract phase 87.24', () => {
 
   it('keeps the public matcher alias pointed at the exhaustive matcher', () => {
     const node: BoundSemanticNode = BoundSemanticFactory.unsupported('unresolved_property');
-    const result = matchBoundSemanticNode(node, {
+    const result = matchBoundSemantic(node, {
       bound_primitive: () => 'primitive',
       bound_model_column: () => 'column',
       bound_relation: () => 'relation',

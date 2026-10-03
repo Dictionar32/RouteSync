@@ -6,7 +6,8 @@ import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { ResourceExpressionModel } from '../../../../types/domain/resourceExpressionModel';
 import { resolveAstValueToExpression } from '../resource/resourceAstExpressionMapper';
 import type { Lookup } from '../../../../types/upstream/collections';
-import type { ControllerVariableSemantic } from '../../../../types/upstream/controller';
+import type { ControllerModelOrigin, ControllerVariableSemantic } from '../../../../types/upstream/controller';
+export type { ControllerModelOrigin } from '../../../../types/upstream/controller';
 import { knowledgeIdKey, type KnowledgeId, type SemanticBinding, type SemanticKnowledgeDataFlow, type SemanticPresence } from '../../lexer/routeAst/semanticKnowledgeDataFlowRelations';
 import type { ResponseReference } from '../../../../types/upstream/semanticReferences';
 import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationLookup, relationAll, relationAny } from '../../../../semantic/kernel/relationalSequence';
@@ -19,11 +20,6 @@ const emptySemanticKnowledgeDataFlow: SemanticKnowledgeDataFlow = Object.freeze(
     relations: Object.freeze([]),
 });
 
-type ModelOriginCandidate =
-    | { readonly kind: 'model_class'; readonly name: ModelName }
-    | { readonly kind: 'table'; readonly name: TableName };
-
-export type ControllerModelOrigin = ModelOriginCandidate;
 export type ControllerReturnExpression =
     | { readonly kind: 'absent' }
     | { readonly kind: 'present'; readonly value: PhpAstValue };

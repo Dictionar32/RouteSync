@@ -11,7 +11,7 @@
 import type { MigrationAst } from "../../../../types/upstream/ast";
 import type { ColumnDefinition } from "../../../../types/upstream/databaseVocabulary";
 import { inferLaravelTableName } from "../../../../utils/resource-naming";
-import { buildModelSemanticDefinition } from "../../descriptors/modelDescriptors";
+import { buildModelSemanticDefinition } from "../../descriptors/model/modelEntityDescriptor";
 import type { ModelKeyKind, ModelKeySemanticType } from "../../../../types/upstream/model";
 import { createColumnName, createModelName, createPropertyName, createTableName } from "../../../../types/upstream/names";
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';

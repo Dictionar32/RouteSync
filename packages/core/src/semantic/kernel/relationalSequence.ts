@@ -21,6 +21,7 @@ import {
   type RelationMaybe,
 } from './relationFoundation';
 import { relationUnique, relationIndexAdd, relationIndexLookup, type RelationIndex } from './relationMembership';
+import type { Sequence } from '../../types/upstream/collections';
 
 export {
   RELATION_NONE, relationAny, relationEqual, relationGate, relationResolve,
@@ -60,19 +61,24 @@ export function relationSelect<T>(
 export function relationSelect<T>(
   source: readonly T[],
   predicate: RelationPredicate<T>,
-  index = 0,
-  output: readonly T[] = [],
 ): readonly T[] {
-  return relationResolve(
-    index < source.length,
-    () => {
-      const value = source[index];
-      const next = relationResolve(predicate(value, index), () => [...output, value], () => output);
-      return relationSelect(source, predicate, relationAdvanceIndex(index, 1), next);
-    },
-    () => output,
-  );
+  return relationSelectClosure(source, predicate, 0, []);
 }
+
+const relationSelectClosure = <T>(
+  source: readonly T[],
+  predicate: RelationPredicate<T>,
+  index: number,
+  output: readonly T[],
+): readonly T[] => relationResolve(
+  index < source.length,
+  () => {
+    const value = source[index];
+    const next = relationResolve(predicate(value, index), () => [...output, value], () => output);
+    return relationSelectClosure(source, predicate, relationAdvanceIndex(index, 1), next);
+  },
+  () => output,
+);
 
 export const relationProject = <T, U>(
   source: readonly T[],
@@ -267,21 +273,26 @@ export function relationFirstOption<T>(
 export function relationFirstOption<T>(
   source: readonly T[],
   predicate: RelationPredicate<T>,
-  index = 0,
 ): RelationOption<T> {
-  return relationResolve(
-    index < source.length,
-    () => relationResolve(
-      predicate(source[index], index),
-      () => relationSome(source[index]),
-      () => relationFirstOption(source, predicate, relationAdvanceIndex(index, 1)),
-    ),
-    () => relationNone(),
-  );
+  return relationFirstOptionClosure(source, predicate, 0);
 }
 
+const relationFirstOptionClosure = <T>(
+  source: readonly T[],
+  predicate: RelationPredicate<T>,
+  index: number,
+): RelationOption<T> => relationResolve(
+  index < source.length,
+  () => relationResolve(
+    predicate(source[index], index),
+    () => relationSome(source[index]),
+    () => relationFirstOptionClosure(source, predicate, relationAdvanceIndex(index, 1)),
+  ),
+  () => relationNone(),
+);
+
 export const relationOptionValue = <T>(option: RelationOption<T>, fallback: T): T =>
-  relationResolve(relationEqual(option.kind, 'some'), () => option.value, () => fallback);
+  relationOptionFold(option, () => fallback, value => value);
 
 export const relationFirst = <T>(
   source: readonly T[],
@@ -323,14 +334,18 @@ export const relationCatalogValueOr = <K, V>(
 
 
 export const relationSequenceToArray = <T>(
-  source: import('../../types/upstream/collections').Sequence<T>,
+  source: Sequence<T>,
   output: readonly T[] = [],
-): readonly T[] =>
-  relationResolve(
-    relationEqual(source.kind, 'cons'),
-    () => relationSequenceToArray(source.tail, [...output, source.head]),
-    () => output,
-  );
+): readonly T[] => relationGate(
+  relationEqual(source.kind, 'cons'),
+  () => relationSequenceConsToArray(source as Extract<Sequence<T>, { readonly kind: 'cons' }>, output),
+  () => output,
+);
+
+const relationSequenceConsToArray = <T>(
+  source: Extract<Sequence<T>, { readonly kind: 'cons' }>,
+  output: readonly T[],
+): readonly T[] => relationSequenceToArray(source.tail, [...output, source.head]);
 
 export const relationAdvanceIndex = (index: number, offset: number): number => index + offset;
 
@@ -537,9 +552,8 @@ export const relationOptionalFold = <T, R>(value: T | void, absentBranch: () => 
 export const relationOptionMap = <T, U>(
   option: RelationOption<T>,
   projection: (value: T) => U,
-): RelationOption<U> =>
-  relationResolve(
-    relationEqual(option.kind, 'some'),
-    () => relationSome(projection(option.value)),
-    () => relationNone(),
-  );
+): RelationOption<U> => relationOptionFold(
+  option,
+  () => relationNone(),
+  value => relationSome(projection(value)),
+);

@@ -6,7 +6,7 @@
  * algebraic shape as the compiler's other relation stores.
  */
 import type { Diagnostic } from './Diagnostic';
-import { relationNotEqual, relationEqual, relationGate, projectRelation, selectRelation } from '../relational/sequence';
+import { relationNotEqual, relationEqual, relationGate, relationProject, relationSelect } from '../../semantic/kernel/relationalSequence';
 
 export type DiagnosticGate =
     | { readonly kind: 'accepted'; readonly stageName: string; readonly diagnostics: readonly Diagnostic[] }
@@ -29,8 +29,8 @@ const createDiagnosticBag = (items: readonly Diagnostic[]): DiagnosticBag => {
     const frozenItems = Object.freeze([...items]);
     const report = (diagnostic: Diagnostic): DiagnosticBag => createDiagnosticBag([...frozenItems, diagnostic]);
     const getDiagnostics = (): readonly Diagnostic[] => frozenItems;
-    const getErrors = (): readonly Diagnostic[] => Object.freeze(selectRelation(frozenItems, diagnostic => relationEqual(diagnostic.severity, 'error')));
-    const getWarnings = (): readonly Diagnostic[] => Object.freeze(selectRelation(frozenItems, diagnostic => relationEqual(diagnostic.severity, 'warning')));
+    const getErrors = (): readonly Diagnostic[] => Object.freeze(relationSelect(frozenItems, diagnostic => relationEqual(diagnostic.severity, 'error')));
+    const getWarnings = (): readonly Diagnostic[] => Object.freeze(relationSelect(frozenItems, diagnostic => relationEqual(diagnostic.severity, 'warning')));
     const hasErrors = (): boolean => relationNotEqual(getErrors().length, 0);
     const merge = (other: DiagnosticBag): DiagnosticBag => createDiagnosticBag([...frozenItems, ...other.items]);
     const evaluateGate = (stageName: string): DiagnosticGate => {
@@ -48,7 +48,7 @@ const createDiagnosticBag = (items: readonly Diagnostic[]): DiagnosticBag => {
             () => {},
             () => {
                 const diagnostics = getErrors();
-                const errorMessages = projectRelation(diagnostics, error => `[${error.code}] ${error.message}`).join('\n');
+                const errorMessages = relationProject(diagnostics, error => `[${error.code}] ${error.message}`).join('\n');
                 throw createCompilerValidationError(
                     `[Verified Pipeline - ${stageName} Gatekeeper] Rejected ${diagnostics.length} diagnostic error(s):\n${errorMessages}`,
                     diagnostics,

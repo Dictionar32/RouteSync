@@ -39,12 +39,6 @@ export {
 } from "./resourceDescriptors";
 
 export {
-    ScannedModelColumnDescriptor,
-    ScannedModelCastDescriptor,
-    ScannedModelRelationDescriptor,
-    type ScannedModelColumnParams,
-    type ScannedModelCastParams,
-    type ScannedModelRelationParams,
 } from "./modelDescriptors";
 
 export {

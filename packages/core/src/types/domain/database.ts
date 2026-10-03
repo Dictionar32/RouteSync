@@ -46,4 +46,3 @@ export {
     ModelKeyTypeMapper
 } from "./eloquentTypes";
 
-export { type ParsedModel } from "./models";

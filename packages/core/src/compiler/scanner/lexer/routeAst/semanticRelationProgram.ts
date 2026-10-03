@@ -1,6 +1,6 @@
 import { relationResolve } from '../../../relational/sequence';
-import { relationFirst, relationOptionFold, relationSome, relationNone, relationGate } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirst, relationOptionFold, relationSome, relationNone, relationGate, relationRefine } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
 import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 /**
  * Declarative relation-program validation.
@@ -27,38 +27,30 @@ export interface SemanticRelationProgramDiagnostic {
     readonly message: string;
 }
 const isVariable = (term: SemanticRelationAtom | SemanticRelationVariable): term is SemanticRelationVariable =>
-    relationGate(
-        Object.is(typeof term, 'object'),
-        () => Object.hasOwn(term as object, 'variable'),
-        () => false,
-    );
+    relationGate(Object.is(typeof term, 'object'), () => Object.hasOwn(term as object, 'variable'), () => false);
 export const validateSemanticRelationProgram = <R extends string>(program: SemanticRelationProgram<R>): readonly SemanticRelationProgramDiagnostic[] => {
     const schemaEntries = project(program.schemas, schema => [schema.relation, schema] as const);
     const diagnostics: SemanticRelationProgramDiagnostic[] = [];
     const validatePattern = (rule: SemanticRelationRewrite<R>, pattern: SemanticRelationPattern<R>, boundVariables: RelationMembership<string>, output: boolean): void => {
-        const schema = relationOptionFold(
-            relationFirst(schemaEntries, ([relation]) => relationEqual(relation, pattern.relation)),
-            () => relationNone(),
-            entry => relationSome(entry[1]),
-        );
+        const schema = relationFirst(schemaEntries, ([relation]) => relationEqual(relation, pattern.relation));
         relationOptionFold(schema,
             () => diagnostics.push({
                 ruleId: rule.id,
                 code: 'unknown-relation',
                 message: `Unknown relation "${pattern.relation}".`,
             }),
-            descriptor => relationResolve(relationNotEqual(descriptor.arity, pattern.arguments.length),
+            descriptor => relationResolve(relationNotEqual(descriptor[1].arity, pattern.arguments.length),
                 () => diagnostics.push({
                     ruleId: rule.id,
                     code: 'arity-mismatch',
-                    message: `Relation "${pattern.relation}" expects ${descriptor.arity} arguments but received ${pattern.arguments.length}.`,
+                    message: `Relation "${pattern.relation}" expects ${descriptor[1].arity} arguments but received ${pattern.arguments.length}.`,
                 }),
                 () => {}),
         );
         visit(pattern.arguments, term => {
             relationResolve(isVariable(term),
                 () => {
-                    const variable = (term as SemanticRelationVariable).variable;
+                    const variable = relationOptionFold(relationRefine(term, isVariable), () => '', (candidate: SemanticRelationVariable) => candidate.variable);
                     relationResolve(relationAll([output, relationEqual(relationContains(boundVariables, variable), false)]),
                         () => diagnostics.push({
                             ruleId: rule.id,
@@ -72,7 +64,7 @@ export const validateSemanticRelationProgram = <R extends string>(program: Seman
                                 message: `Negative relation variable "${variable}" must be bound by an earlier positive premise.`,
                             }),
                             () => relationResolve(relationAll([relationEqual(output, false), relationNotEqual(pattern.polarity, 'negative')]),
-                                () => relationInsert(boundVariables, variable),
+                                () => { boundVariables = relationInsert(boundVariables, variable); },
                                 () => {}),
                         ),
                     );

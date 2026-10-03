@@ -1,4 +1,3 @@
-import type { ParsedModel } from './models';
 import type { ModelSemanticDefinition, ModelSemanticProperty, ModelPropertyMultiplicity, EloquentRelationCardinality, BoundCardinality, RelationKind, RelationKey } from '../upstream/model';
 import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
 import { eloquentRelationMultiplicity } from '../upstream/modelVocabulary';
@@ -71,52 +70,4 @@ export function createResourceModelSemanticSurface(model: ModelSemanticDefinitio
     );
   };
   return Object.freeze({ model: model.identity.name, members, methods: createResourceModelMethodSurface(model), resolveProperty, resolveRelation });
-}
-
-export function createResourceModelSurface(model: ParsedModel): ResourceModelSurface {
-  const surface = model.semantic.surface;
-  const members = Object.freeze(relationProject(surface.properties, property => Object.freeze({ kind: 'property' as const, property })));
-
-  const resolveProperty = (property: PropertyName): ResourceModelPropertyLookup => {
-    const member = surface.byName.lookup(property);
-    return relationResolve(relationEqual(member.kind, 'missing'), () => Object.freeze({ kind: 'missing', property }), () => Object.freeze({
-      kind: 'found',
-      resolution: Object.freeze({
-        kind: 'property',
-        property: member.value.property,
-        semantic: member.value,
-        semanticType: member.value.semanticType
-      })
-    }));
-  };
-
-  const resolveRelation = (relation: RelationName): ResourceModelRelationLookup => {
-    const member = surface.relationsByName.lookup(relation);
-    return relationResolve(relationEqual(member.kind, 'missing'), () => Object.freeze({ kind: 'missing', relation }), () => { const semantic = member.value; return Object.freeze({
-      kind: 'found',
-      resolution: Object.freeze({
-        relation: semantic.relation,
-        semantic,
-        sourceModel: semantic.sourceModel,
-        type: semantic.type,
-        targetModel: semantic.targetModel,
-        semanticType: semantic.semanticType,
-        cardinality: semantic.cardinality,
-        multiplicity: eloquentRelationMultiplicity(semantic.cardinality),
-        targetShape: semantic.targetShape,
-        traversalTarget: semantic.traversalTarget,
-        boundCardinality: semantic.boundCardinality,
-        resourceCardinality: semantic.resourceCardinality,
-        foreignKey: semantic.foreignKey
-      })
-    }); });
-  };
-
-  return Object.freeze({
-    model: model.semantic.identity.name,
-    members,
-    methods: createResourceModelMethodSurface(model.semantic),
-    resolveProperty,
-    resolveRelation
-  });
 }

@@ -2,7 +2,7 @@
  * High-model semantic boundary.
  *
  * Laravel source enters the semantic kernel as the canonical ModelAst.
- * No ParsedModel intermediate is allowed at this boundary.
+ * No legacy parsed model aggregate intermediate is allowed at this boundary.
  */
 import type { ModelAst } from '../types/upstream/ast';
 import type { ParsedColumn } from '../types/domain/databaseColumns';

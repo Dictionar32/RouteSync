@@ -7,7 +7,7 @@
  * @module cli/generators/classifier
  */
 
-import type { ResourceGroupDescriptor, ParsedModel } from '@routesync/core';
+import type { ResourceGroupDescriptor, ModelAst } from '@routesync/core';
 import type { ClassifiedRoute, ResourceCrudMap } from './classifierTypes';
 import {
   partitionGroupSubRoutes,

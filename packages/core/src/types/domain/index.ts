@@ -279,10 +279,6 @@ export {
 } from './httpVocabulary';
 
 export {
-  type ParsedModel,
-} from './models';
-
-export {
   RouteParameterLocation,
   RouteParameterType,
   type RouteParameterTypeSpecification,

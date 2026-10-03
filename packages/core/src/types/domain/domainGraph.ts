@@ -1,6 +1,6 @@
 import type { RouteManifest } from "./base";
 import type { EndpointContract } from "./contracts";
-import type { ParsedModel } from "./database";
+import type { ModelSemanticDefinition } from "../upstream/model";
 import type { RouteSemanticFlow } from "./routes";
 import type { DomainOperationGraph } from './operationGraph';
 import { createDomainOperationGraph } from './operationGraph';
@@ -89,7 +89,7 @@ export interface ClassifiedDomainGraph<TRoute = RouteSemanticFlow> {
   readonly resourceGroups: readonly ResourceGroupDescriptor<TRoute>[];
   readonly resourceGroupMap: ReadonlyMap<string, ResourceGroupDescriptor<TRoute>>;
   readonly resourceGroupGraph: ResourceGroupGraph<TRoute>;
-  readonly models: readonly ParsedModel[];
+  readonly models: readonly ModelSemanticDefinition[];
   readonly operations: DomainOperationGraph;
 }
 

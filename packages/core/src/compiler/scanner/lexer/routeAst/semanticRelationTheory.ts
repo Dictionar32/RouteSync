@@ -4,11 +4,10 @@
  * The semantic authority is a validated relation theory. Source syntax is
  * evidence only; semantic consumers receive canonical facts and witnesses.
  */
-import { relationResolve } from '../../../relational/sequence';
 import { project, visit } from './semanticRelationalCollections';
 import { semanticNullAtom, type SemanticNullAtom } from './semanticRewriteEngine';
-import { relationResolve } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationResolve, relationFirstOption, relationOptionFold, relationOptionalFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
 
 export type SemanticTheoryAtom = string | number | boolean | SemanticNullAtom;
 export type SemanticTheorySort = 'entity' | 'predicate' | 'value' | 'effect' | 'resource' | 'state' | 'relation-target';
@@ -35,19 +34,15 @@ export const SEMANTIC_THEORY_SIGNATURES: readonly SemanticTheorySignature[] = Ob
 ]);
 export interface SemanticTheoryFact { readonly relation: SemanticTheoryRelation; readonly arguments: readonly SemanticTheoryAtom[]; readonly terms?: readonly SemanticTheoryTerm[]; readonly provenance?: readonly string[] }
 
-const signatureOf = (relation: SemanticTheoryRelation, index = 0): SemanticTheorySignature =>
-  relationResolve(relationEqual(SEMANTIC_THEORY_SIGNATURES[index]?.relation, relation), () => SEMANTIC_THEORY_SIGNATURES[index], () => signatureOf(relation, index + 1));
+const signatureOf = (relation: SemanticTheoryRelation): SemanticTheorySignature => {
+  const found = relationFirstOption(SEMANTIC_THEORY_SIGNATURES, signature => relationEqual(signature.relation, relation));
+  return relationOptionFold(found, () => { throw Error(`Unknown semantic theory relation '${relation}'.`); }, signature => signature);
+};
 
 const validateTerm = (fact: SemanticTheoryFact, signature: SemanticTheorySignature, term: SemanticTheoryTerm, index: number): void => {
-  relationResolve(
-    relationNotEqual(term.sort, signature.arguments[index]),
-    () => { throw Error(`Invalid relation sort ${fact.relation}[${index}]: expected ${signature.arguments[index]}, received ${term.sort}`); },
-    () => relationResolve(
-      relationNotEqual(JSON.stringify(term.value), JSON.stringify(fact.arguments[index])),
-      () => { throw Error(`Term/value mismatch: ${fact.relation}[${index}]`); },
-      () => true,
-    ),
-  );
+  relationResolve(relationNotEqual(term.sort, signature.arguments[index]), () => { throw Error(`Invalid relation sort ${fact.relation}[${index}]: expected ${signature.arguments[index]}, received ${term.sort}`); }, () => {
+    relationResolve(relationNotEqual(JSON.stringify(term.value), JSON.stringify(fact.arguments[index])), () => { throw Error(`Term/value mismatch: ${fact.relation}[${index}]`); }, () => {});
+  });
 };
 
 export const validateSemanticTheoryFact = (fact: SemanticTheoryFact): void => {
@@ -55,25 +50,18 @@ export const validateSemanticTheoryFact = (fact: SemanticTheoryFact): void => {
   relationResolve(
     relationNotEqual(fact.arguments.length, signature.arguments.length),
     () => { throw Error(`Invalid relation arity ${fact.relation}: expected ${signature.arguments.length}, received ${fact.arguments.length}`); },
-    () => relationResolve(
-      relationAll([Boolean(fact.terms), relationNotEqual(fact.terms?.length, signature.arguments.length)]),
-      () => { throw Error(`Invalid relation term count ${fact.relation}`); },
-      () => relationResolve(
-        Boolean(fact.terms),
-        () => {
-          const terms = relationResolve(Array.isArray(fact.terms), () => fact.terms, () => []);
-          return visit(terms, (term, index) => validateTerm(fact, signature, term, index));
-        },
-        () => true,
-      ),
-    ),
+    () => relationOptionalFold<readonly SemanticTheoryTerm[], void>(fact.terms, () => {}, (terms: readonly SemanticTheoryTerm[]) => {
+      relationResolve(relationNotEqual(terms.length, signature.arguments.length), () => { throw Error(`Invalid relation term count ${fact.relation}`); }, () => {
+        visit(terms, (term, index) => validateTerm(fact, signature, term, index));
+      });
+    }),
   );
 };
 
 export const assertCanonicalSemanticRelationName = (relation: string): asserts relation is SemanticTheoryRelation =>
   relationResolve(
     SEMANTIC_THEORY_SIGNATURES.some(signature => relationEqual(signature.relation, relation)),
-    () => true,
+    () => {},
     () => { throw Error(`Non-canonical semantic relation '${relation}'. Project source/control evidence into the relational theory first.`); },
   );
 

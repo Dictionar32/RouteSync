@@ -428,7 +428,6 @@ export type {
   ModelCastFact,
   ParsedChannel,
   ParsedColumn,
-  ParsedModel,
   ModelSemanticRelation,
   RouteSemanticFlow,
   PathParameterDescriptor,
@@ -1094,3 +1093,8 @@ export {
   accumulateRelation,
   firstRelation,
 } from './compiler/relational/sequence';
+
+// Canonical upstream AST/semantic lowering boundary.
+export type { ModelAst } from './types/upstream/ast';
+export type { ResourceField } from './types/upstream/resource';
+export { typeExpressionToSemanticType } from './compiler/domain/common/typeExpressionSemanticType';

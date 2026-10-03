@@ -48,6 +48,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "tsup --clean",
+    "audit:phase728-type-expression-variant-boundary": "node scripts/audit-phase728-type-expression-variant-boundary.cjs",
+    "audit:phase729-semantic-relation-calculus-frontier": "node scripts/audit-phase729-semantic-relation-calculus-frontier.cjs",
     "audit:relational-authority": "node scripts/audit-relational-authority-strict.cjs",
     "audit:semantic-calculus": "node scripts/audit-relational-authority-strict.cjs",
     "audit:semantic-authority": "node scripts/audit-semantic-authority-phase337.cjs",
@@ -174,7 +176,9 @@
     "audit:phase720-php-ast-request-projector": "node scripts/audit-phase720-php-ast-request-projector.cjs",
     "audit:phase721-resource-field-semantic-boundary": "node scripts/audit-phase721-resource-field-semantic-boundary.cjs",
     "audit:phase722-resource-binding-import-frontier": "node scripts/audit-phase722-resource-binding-import-frontier.cjs",
-    "audit:phase725-highest-resource-field-boundary": "node scripts/audit-phase725-highest-resource-field-boundary.cjs"
+    "audit:phase725-highest-resource-field-boundary": "node scripts/audit-phase725-highest-resource-field-boundary.cjs",
+    "audit:phase727-model-canonical-frontier": "node scripts/audit-phase727-model-canonical-frontier.cjs",
+    "audit:phase730-response-descriptor-dts": "node scripts/audit-phase730-response-descriptor-dts.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

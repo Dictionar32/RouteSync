@@ -1,12 +1,9 @@
-import type { ParsedColumn } from './databaseColumns';
-import type { EloquentRelationType, RelationForeignKey } from './eloquentTypes';
-import type { ModelKeySemanticType, ModelKeyType } from './modelContracts';
-import type { ColumnName, ModelName, PropertyName, RelationName, TableName } from './semanticValues';
-import type { DatabaseColumnType, Nullability } from './modelContracts';
-import type { MethodName } from './semanticValues';
-import type { SemanticType } from '../../compiler/types/SemanticType';
-import type { Lookup } from '../upstream/collections';
-
+/**
+ * Canonical model semantic surface.
+ *
+ * The former legacy parsed model aggregate aggregate is retired. Model AST construction remains
+ * upstream; semantic consumers receive ModelSemanticDefinition directly.
+ */
 export type {
   ModelPropertyMultiplicity,
   ModelPropertyTraversalMeaning,
@@ -16,19 +13,15 @@ export type {
   ModelSemanticRelation,
   ModelSemanticSurface,
   ModelSemanticDefinition,
-  ModelPropertyAccessFact
-} from '../upstream/model';
-export {
-  ModelSemanticPropertyIndex,
-  ModelSemanticRelationIndex
+  ModelPropertyAccessFact,
 } from '../upstream/model';
 
-/** Canonical model aggregate. Semantic meaning is the domain SSOT; scanner facts stay behind source. */
-export interface ParsedModel {
-  readonly semantic: ModelSemanticDefinition;
-  readonly source: {
-    readonly columns: readonly ParsedColumn[];
-    readonly columnFacts: readonly import('../upstream/modelSourceFacts').ModelColumnFact[];
-    readonly casts: readonly import('../upstream/modelSourceFacts').ModelCastFact[];
-  };
-}
+export {
+  ModelSemanticPropertyIndex,
+  ModelSemanticRelationIndex,
+  modelSemanticPropertyIndexFrom,
+  modelSemanticPropertyLookup,
+  modelSemanticPropertyHas,
+  modelSemanticRelationIndexFrom,
+  modelSemanticRelationLookup,
+} from '../upstream/model';

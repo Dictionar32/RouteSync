@@ -12,9 +12,11 @@ import {
   relationOptionValue,
 } from '../../../../semantic/kernel/relationalSequence';
 import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationContains as membershipContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 
-export type RelationNoneAtom = Readonly<{ readonly kind: 'relation_none' }>;
-export const RELATION_NONE_ATOM: RelationNoneAtom = Object.freeze({ kind: 'relation_none' });
+export type RelationNoneAtom = Readonly<{ readonly kind: 'semantic_null' }>;
+export const RELATION_NONE_ATOM: RelationNoneAtom = Object.freeze({ kind: 'semantic_null' });
+export const semanticNullAtom: RelationNoneAtom = RELATION_NONE_ATOM;
 export type RelationAtom = string | number | boolean | RelationNoneAtom;
 export type RelationTuple<A extends RelationAtom = RelationAtom> = readonly A[];
 export type Relation<A extends RelationAtom = RelationAtom> = Readonly<{
@@ -69,7 +71,7 @@ const uniqueRecursive = <A extends RelationAtom>(
       const tuple = tuples[index];
       const key = relationKey(tuple);
       return relationResolve(
-        relationContains(seen, key),
+        membershipContains(seen, key),
         () => uniqueRecursive(tuples, index + 1, seen, output),
         () => uniqueRecursive(tuples, index + 1, relationInsert(seen, key), [...output, Object.freeze([...tuple])]),
       );
@@ -144,7 +146,7 @@ export const antiJoin = <A extends RelationAtom, B extends RelationAtom>(
       () => {
         const tuple = source.tuples[index];
         return relationResolve(
-          relationContains(blocked, sourceKey(tuple)),
+          membershipContains(blocked, sourceKey(tuple)),
           () => retainAt(index + 1, output),
           () => retainAt(index + 1, [...output, tuple]),
         );

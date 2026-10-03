@@ -78,7 +78,6 @@ export {
     type ModelKeyTypeVisitor,
     matchModelKeyType,
     ModelKeyTypeMapper,
-    type ParsedModel,
     ResourceFieldSemanticBinding,
     type ResourceFieldSemanticBindingInput,
     type ResourceFieldSemantic,

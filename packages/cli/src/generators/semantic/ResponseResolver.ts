@@ -3,7 +3,7 @@ import type {
     InlineResponseDescriptor,
     ModelResponseDescriptor,
     RouteSemanticFlow,
-    ResourceFieldDescriptor,
+    ResourceFieldSemanticBinding,
     ResourceResponseDescriptor,
 } from '@routesync/core';
 import { matchResponse } from '@routesync/core';
@@ -61,7 +61,7 @@ export class ResponseResolver {
                 if (!model) throw new Error(`Model ${descriptor.modelName.value} is absent from manifest`);
                 return ResourceFieldResolver.buildModelFields(model);
             },
-            inline: (descriptor: InlineResponseDescriptor) => new Map(descriptor.fields.map((field: ResourceFieldDescriptor) => [field.name, ResourceFieldResolver.resolve(field)] as const)),
+            inline: (descriptor: InlineResponseDescriptor) => new Map(descriptor.fields.map((field: ResourceFieldSemanticBinding) => [field.name, ResourceFieldResolver.resolve(field)] as const)),
             void: () => new Map(),
         });
         const cardinality = resolveResponseCardinality(response);

@@ -6,7 +6,7 @@
  */
 import { project, retain } from './semanticRelationalCollections';
 import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationAtom, type SemanticRelationPattern, type SemanticRelationRewrite } from './semanticRewriteEngine';
-import type { SemanticRewriteRule } from './semanticRewriteInterface';
+import type { SemanticRewriteRule, SemanticRewritePatternTerm, SemanticRewriteTerm } from './semanticRewriteInterface';
 import { relationResolve, relationFirst, relationOptionFold, relationOptionMap, relationOptionalFold, relationRefine, relationVariant, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/kernel/semanticRelations';
 
@@ -78,4 +78,21 @@ export const solveSemanticConstraintProgram = <R extends string>(seed: readonly 
   return settle(seed, [], 0);
 };
 
-export const toSemanticRelationRewrites = <R extends string>(rules: readonly SemanticRewriteRule<R>[]): readonly SemanticRelationRewrite<R>[] => Object.freeze(project(rules, rule => Object.freeze({ id: rule.id, priority: rule.priority, when: rule.when, then: rule.replace })));
+type VariableRewriteTerm = Extract<SemanticRewritePatternTerm, { readonly kind: 'variable_term' }>;
+type TextRewriteTerm = Extract<SemanticRewriteTerm, { readonly kind: 'text_term' }>;
+type OrdinalRewriteTerm = Extract<SemanticRewriteTerm, { readonly kind: 'ordinal_term' }>;
+type TruthRewriteTerm = Extract<SemanticRewriteTerm, { readonly kind: 'truth_term' }>;
+const isVariableRewriteTerm = (term: SemanticRewritePatternTerm): term is VariableRewriteTerm => Object.is(term.kind, 'variable_term');
+const isTextRewriteTerm = (term: SemanticRewritePatternTerm): term is TextRewriteTerm => Object.is(term.kind, 'text_term');
+const isOrdinalRewriteTerm = (term: SemanticRewritePatternTerm): term is OrdinalRewriteTerm => Object.is(term.kind, 'ordinal_term');
+const isTruthRewriteTerm = (term: SemanticRewritePatternTerm): term is TruthRewriteTerm => Object.is(term.kind, 'truth_term');
+const rewriteTerm = (term: SemanticRewritePatternTerm): SemanticRelationAtom | Readonly<{ readonly variable: string }> =>
+  relationOptionFold(relationRefine(term, isVariableRewriteTerm), () =>
+    relationOptionFold(relationRefine(term, isTextRewriteTerm), () =>
+      relationOptionFold(relationRefine(term, isOrdinalRewriteTerm), () =>
+        relationOptionFold(relationRefine(term, isTruthRewriteTerm), () => ({ kind: 'semantic_null' as const }), value => relationEqual(value.value, 'true')),
+        value => value.value),
+      value => value.value),
+    value => ({ variable: value.name }));
+const rewritePattern = <R extends string>(pattern: SemanticRewriteRule<R>['when'][number]): SemanticRelationPattern<R> => Object.freeze({ relation: pattern.relation, polarity: pattern.polarity, arguments: Object.freeze(project(pattern.arguments, rewriteTerm)) });
+export const toSemanticRelationRewrites = <R extends string>(rules: readonly SemanticRewriteRule<R>[]): readonly SemanticRelationRewrite<R>[] => Object.freeze(project(rules, rule => Object.freeze({ id: rule.id, priority: rule.priority, when: Object.freeze(project(rule.when, rewritePattern)), then: Object.freeze(project(rule.then, rewritePattern)) })));

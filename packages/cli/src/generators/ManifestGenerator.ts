@@ -2,8 +2,8 @@ import {
   RouteSemanticFlow,
   RouteManifest,
   ParsedChannel,
-  ParsedResource,
-  ParsedModel,
+  ResourceAst,
+  ModelAst,
   ResourceRouteGroup,
   FrontendConfig,
   PageConfig
@@ -17,8 +17,8 @@ export interface ManifestGeneratorOptions {
   readonly routes: readonly RouteSemanticFlow[];
   readonly baseURL: string;
   readonly channels: readonly ParsedChannel[];
-  readonly resources: readonly ParsedResource[];
-  readonly models: readonly ParsedModel[];
+  readonly resources: readonly ResourceAst[];
+  readonly models: readonly ModelAst[];
   readonly routeGroups: readonly ResourceRouteGroup[];
   readonly requestTypes: readonly RequestType[];
   readonly semanticTypes: readonly ObjectType[];
@@ -36,8 +36,8 @@ export class ManifestGenerator {
     routes: readonly RouteSemanticFlow[],
     baseURL: string,
     channels: readonly ParsedChannel[] = [],
-    resources: readonly ParsedResource[] = [],
-    models: readonly ParsedModel[] = [],
+    resources: readonly ResourceAst[] = [],
+    models: readonly ModelAst[] = [],
     routeGroups: readonly ResourceRouteGroup[] = [],
     requestTypes: readonly RequestType[] = [],
     semanticTypes: readonly ObjectType[] = [],

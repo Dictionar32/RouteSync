@@ -29,11 +29,11 @@ export function typeExpressionToSemanticType(type: TypeExpression): SemanticType
 }
 
 function lowerTypeExpression(type: TypeExpression): SemanticType {
-    return relationVariantFold(type, 'primitive', () => lowerNonPrimitiveType(type), lowerPrimitive);
+    return relationVariantFold(type, 'primitive', lowerNonPrimitiveType, lowerPrimitive);
 }
 
 function lowerNonPrimitiveType(type: Exclude<TypeExpression, { readonly kind: 'primitive' }>): SemanticType {
-    return relationVariantFold(type, 'reference', () => lowerArray(type), lowerReference);
+    return relationVariantFold(type, 'reference', lowerArray, lowerReference);
 }
 
 function lowerReference(type: Extract<TypeExpression, { readonly kind: 'reference' }>): SemanticType {
@@ -41,55 +41,55 @@ function lowerReference(type: Extract<TypeExpression, { readonly kind: 'referenc
 }
 
 function lowerArray(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' }>): SemanticType {
-    return relationVariantFold(type, 'array', () => lowerArrayMap(type), value =>
+    return relationVariantFold(type, 'array', lowerArrayMap, value =>
         ReadonlyCollectionType(CollectionKind.ARRAY, typeExpressionToSemanticType(value.element)),
     );
 }
 
 function lowerArrayMap(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' }>): SemanticType {
-    return relationVariantFold(type, 'array_map', () => lowerMixed(type), value =>
+    return relationVariantFold(type, 'array_map', lowerMixed, value =>
         ReadonlyCollectionType(CollectionKind.ARRAY, typeExpressionToSemanticType(value.value)),
     );
 }
 
 function lowerMixed(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' }>): SemanticType {
-    return relationVariantFold(type, 'mixed', () => lowerUnion(type), () => JsonValueType());
+    return relationVariantFold(type, 'mixed', lowerUnion, () => JsonValueType());
 }
 
 function lowerUnion(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' }>): SemanticType {
-    return relationVariantFold(type, 'union', () => lowerIntersection(type), value =>
+    return relationVariantFold(type, 'union', lowerIntersection, value =>
         UnionType(relationProject(relationSequenceToArray(value.members.items), typeExpressionToSemanticType)),
     );
 }
 
 function lowerIntersection(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' }>): SemanticType {
-    return relationVariantFold(type, 'intersection', () => lowerNullable(type), value =>
+    return relationVariantFold(type, 'intersection', lowerNullable, value =>
         IntersectionType(relationProject(relationSequenceToArray(value.members.items), typeExpressionToSemanticType)),
     );
 }
 
 function lowerNullable(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' | 'intersection' }>): SemanticType {
-    return relationVariantFold(type, 'nullable', () => lowerOptional(type), value =>
+    return relationVariantFold(type, 'nullable', lowerOptional, value =>
         NullableType(typeExpressionToSemanticType(value.value)),
     );
 }
 
 function lowerOptional(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' | 'intersection' | 'nullable' }>): SemanticType {
-    return relationVariantFold(type, 'optional', () => lowerUninhabited(type), value =>
+    return relationVariantFold(type, 'optional', lowerUninhabited, value =>
         OptionalType(typeExpressionToSemanticType(value.value)),
     );
 }
 
 function lowerUninhabited(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' | 'intersection' | 'nullable' | 'optional' }>): SemanticType {
-    return relationVariantFold(type, 'uninhabited', () => lowerError(type), () => NeverType());
+    return relationVariantFold(type, 'uninhabited', lowerError, () => NeverType());
 }
 
 function lowerError(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' | 'intersection' | 'nullable' | 'optional' | 'uninhabited' }>): SemanticType {
-    return relationVariantFold(type, 'error', () => lowerObject(type), value => ErrorType(value.diagnostic.value));
+    return relationVariantFold(type, 'error', lowerObject, value => ErrorType(value.diagnostic.value));
 }
 
 function lowerObject(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' | 'intersection' | 'nullable' | 'optional' | 'uninhabited' | 'error' }>): SemanticType {
-    return relationVariantFold(type, 'object', () => lowerGeneric(type), value =>
+    return relationVariantFold(type, 'object', lowerGeneric, value =>
         ObjectType({
             name: 'AnonymousResourceObject',
             baseName: 'AnonymousResourceObject',
@@ -105,7 +105,7 @@ function lowerObject(type: Exclude<TypeExpression, { readonly kind: 'primitive' 
 }
 
 function lowerGeneric(type: Exclude<TypeExpression, { readonly kind: 'primitive' | 'reference' | 'array' | 'array_map' | 'mixed' | 'union' | 'intersection' | 'nullable' | 'optional' | 'uninhabited' | 'error' | 'object' }>): SemanticType {
-    return relationVariantFold(type, 'generic', () => lowerCallable(type), value =>
+    return relationVariantFold(type, 'generic', lowerCallable, value =>
         GenericType(
             ReferenceType(referenceNamespace(value.base.kind), value.base.name.value.value),
             relationProject(relationSequenceToArray(value.parameters.items), (parameter): GenericParameter => ({

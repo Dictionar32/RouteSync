@@ -16,7 +16,7 @@ import {
   ScannedFlexibleCrudResourceGroupDescriptor,
   ScannedResourceGroupTypeSignature,
   MutationCapability,
-  type ParsedModel
+  type ModelAst
 } from '@routesync/core';
 import type { ClassifiedRoute, ResourceCrudMap } from '../classifierTypes';
 import {
@@ -34,7 +34,7 @@ export function buildCrudGroupDescriptor(
   res: ResourceCrudMap,
   errorRes: ErrorResolutionResult,
   standardKeys: readonly string[],
-  models?: readonly ParsedModel[]
+  models?: readonly ModelAst[]
 ): ResourceGroupDescriptor<ClassifiedRoute> {
   const primaryKeyType = resolveItemPrimaryKeyType(res.show!, models, titleName);
   const listRes = resolveRouteResponseType(res.index);

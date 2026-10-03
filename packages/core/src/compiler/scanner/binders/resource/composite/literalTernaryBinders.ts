@@ -15,7 +15,7 @@ import type { PhpAstValue } from "../../../lexer/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
-import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../../types/domain/resourceFieldSemanticBinding";
 import { PrimitiveKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";

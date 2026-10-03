@@ -7,7 +7,7 @@
  * @module cli/generators/semantic/SemanticResolutionContext
  */
 
-import type { ParsedModel, ParsedResource, RouteSemanticFlow, RouteManifest } from '@routesync/core';
+import type { ModelSemanticDefinition, ResourceAst, RouteSemanticFlow, RouteManifest } from '@routesync/core';
 import type { ActionType } from '../canonical-names';
 import {
     resolveCanonicalAction,
@@ -30,17 +30,17 @@ export {
  */
 export class SemanticResolutionContext {
     public readonly routes: readonly RouteSemanticFlow[];
-    public readonly models: readonly ParsedModel[];
-    public readonly resources: readonly ParsedResource[];
-    public readonly modelsByName: ReadonlyMap<string, ParsedModel>;
-    public readonly resourcesByName: ReadonlyMap<string, ParsedResource>;
+    public readonly models: readonly ModelSemanticDefinition[];
+    public readonly resources: readonly ResourceAst[];
+    public readonly modelsByName: ReadonlyMap<string, ModelSemanticDefinition>;
+    public readonly resourcesByName: ReadonlyMap<string, ResourceAst>;
 
     constructor(
         routes: readonly RouteSemanticFlow[],
-        models: readonly ParsedModel[],
-        resources: readonly ParsedResource[],
-        modelsByName: ReadonlyMap<string, ParsedModel>,
-        resourcesByName: ReadonlyMap<string, ParsedResource>
+        models: readonly ModelSemanticDefinition[],
+        resources: readonly ResourceAst[],
+        modelsByName: ReadonlyMap<string, ModelSemanticDefinition>,
+        resourcesByName: ReadonlyMap<string, ResourceAst>
     ) {
         this.routes = Object.freeze(routes);
         this.models = Object.freeze(models);
@@ -52,11 +52,11 @@ export class SemanticResolutionContext {
 
     public static fromManifest(manifest: RouteManifest): SemanticResolutionContext {
         const routes = manifest.routes;
-        const models = manifest.models;
+        const models = manifest.models.map(model => model.definition.semantic);
         const resources = manifest.resources;
 
-        const modelsByName = new Map<string, ParsedModel>(models.map((model: ParsedModel) => [model.name.value, model] as const));
-        const resourcesByName = new Map<string, ParsedResource>(resources.map((resource: ParsedResource) => [resource.name.value, resource] as const));
+        const modelsByName = new Map<string, ModelSemanticDefinition>(models.map(model => [model.identity.name.value.value, model] as const));
+        const resourcesByName = new Map<string, ResourceAst>(resources.map(resource => [resource.definition.name.value.value, resource] as const));
 
         return new SemanticResolutionContext(routes, models, resources, modelsByName, resourcesByName);
     }

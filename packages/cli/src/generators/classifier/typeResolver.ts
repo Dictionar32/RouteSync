@@ -11,7 +11,7 @@ import {
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
   ROUTE_PARAMETER_TYPE_REGISTRY,
-  type ParsedModel
+  type ModelAst
 } from '@routesync/core'
 import { toTypeName } from '../names'
 import { CANONICAL_ACTION_MAP } from '../canonical-names'
@@ -19,7 +19,7 @@ import type { ClassifiedRoute, ResolvedTypeInfo, ResourceCrudMap } from './class
 
 export function resolveItemPrimaryKeyType(
   targetRoute: ClassifiedRoute,
-  models?: readonly ParsedModel[],
+  models?: readonly ModelAst[],
   titleName?: string
 ): string {
   const primaryParam = targetRoute.contract.request.pathParameters[0];
@@ -27,16 +27,17 @@ export function resolveItemPrimaryKeyType(
 
   const matchedModel = (models && titleName)
     ? models.find(m => {
-        const mTitle = toTypeName(m.name);
-        const mShort = toTypeName(m.shortName || '');
+        const semantic = m.definition.semantic;
+        const mTitle = toTypeName(semantic.identity.name.value.value);
+        const mShort = toTypeName(semantic.identity.shortName.value.value);
         return mTitle === titleName || mShort === titleName
           || mTitle + 's' === titleName || mShort + 's' === titleName
           || titleName + 's' === mTitle || titleName.replace(/s$/, '') === mTitle.replace(/s$/, '');
       })
     : undefined;
 
-  const modelKeyType = (matchedModel?.keySemanticType === 'number' || matchedModel?.keySemanticType === 'string')
-    ? matchedModel.keySemanticType
+  const modelKeyType = matchedModel?.definition.semantic.key.semanticType.kind === 'number' || matchedModel?.definition.semantic.key.semanticType.kind === 'string'
+    ? matchedModel.definition.semantic.key.semanticType.kind
     : undefined;
 
   return paramTsType ?? modelKeyType ?? RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType;

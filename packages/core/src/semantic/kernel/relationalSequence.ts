@@ -539,12 +539,28 @@ export const relationVariantValue = <T extends { readonly kind: string }, K exte
     candidate => candidate,
   );
 
+export type RelationVariantRest<T extends { readonly kind: string }, K extends T['kind']> = Exclude<T, { readonly kind: K }>;
+
+export const relationVariantRest = <T extends { readonly kind: string }, K extends T['kind']>(
+  value: T,
+  kind: K,
+): RelationOption<RelationVariantRest<T, K>> =>
+  relationRefine(value, (candidate): candidate is RelationVariantRest<T, K> => !Object.is(candidate.kind, kind));
+
 export const relationVariantFold = <T extends { readonly kind: string }, K extends T['kind'], R>(
   value: T,
   kind: K,
-  absentBranch: () => R,
+  absentBranch: (candidate: RelationVariantRest<T, K>) => R,
   presentBranch: (candidate: RelationVariant<T, K>) => R,
-): R => relationOptionFold(relationVariant(value, kind), absentBranch, presentBranch);
+): R => relationOptionFold(
+  relationVariant(value, kind),
+  () => relationOptionFold(
+    relationVariantRest(value, kind),
+    () => { throw Error(`Missing relation variant rest ${String(kind)}`); },
+    absentBranch,
+  ),
+  presentBranch,
+);
 
 
 

@@ -1,15 +1,15 @@
 import { project, retain, expand, accumulate, visit } from './semanticRelationalCollections';
 import { compileSemanticRelationExecutionPlans, type SemanticRelationExecutionPlan, type SemanticRelationPlanStep } from './semanticRelationalExecutionPlan';
-import { SemanticRelationStore } from './semanticRelationStore';
-import { relationResolve, relationFirst, relationOptionMap, relationCatalogValueOr, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationIsSome, relationIsNone, relationNone, relationSome, relationNotEqual, relationAll } from '../../../../semantic/kernel/semanticRelations';
-import { relationEvery, relationSome as relationAny } from '../../../../semantic/kernel/relationalSequence';
+import { relationResolve, relationFirst, relationOptionMap, relationOptionFold, relationCatalogValueOr, relationRefine, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationAny, relationEqual, relationIsSome, relationIsNone, relationNone, relationSome, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationAll, relationEvery, relationAnyMatch } from '../../../../semantic/kernel/relationalSequence';
 import { relationContains, relationInsert, relationUnique, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 
 /** Canonical semantic relation execution substrate. Absence is a relation witness. */
-export interface SemanticNullAtom { readonly kind: 'semantic_null' }
-export const semanticNullAtom: SemanticNullAtom = Object.freeze({ kind: 'semantic_null' });
-export type SemanticRelationAtom = string | number | boolean | SemanticNullAtom;
+import { semanticNullAtom, type RelationAtom } from './semanticRelationalAlgebra';
+export type SemanticNullAtom = Extract<RelationAtom, { readonly kind: 'semantic_null' }>;
+export { semanticNullAtom };
+export type SemanticRelationAtom = RelationAtom;
 export interface SemanticRelation<R extends string = string> { readonly relation: R; readonly arguments: readonly SemanticRelationAtom[] }
 export interface SemanticRelationVariable { readonly variable: string }
 export type SemanticRelationPattern<R extends string = string> = Readonly<{
@@ -29,21 +29,19 @@ export interface SemanticRelationSolveResult<R extends string = string> { readon
 
 type Bindings = Readonly<Record<string, SemanticRelationAtom>>;
 type Match = RelationOption<Bindings>;
-type FactIndex<R extends string> = SemanticRelationStore<R>;
+type FactIndex<R extends string> = Readonly<{ readonly facts: readonly SemanticRelation<R>[] }>;
 type DeltaMatch<R extends string> = { readonly bindings: Bindings; readonly premises: readonly SemanticRelation<R>[] };
 type VariableTerm = SemanticRelationVariable;
 
-const isVariable = (value: SemanticRelationAtom | VariableTerm): value is VariableTerm => relationAll([Object.is(typeof value, 'object'), 'variable' in value]);
+const isVariable = (value: SemanticRelationAtom | VariableTerm): value is VariableTerm => relationResolve(Object.is(typeof value, 'object'), () => Object.hasOwn(value as object, 'variable'), () => false);
+const variableOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<VariableTerm> => relationRefine(term, isVariable);
+const atomOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<SemanticRelationAtom> => relationRefine(term, (candidate): candidate is SemanticRelationAtom => !isVariable(candidate));
 const lookupBinding = (bindings: Bindings, variable: string): RelationOption<SemanticRelationAtom> =>
     relationOptionMap(relationFirst(Object.entries(bindings), ([name]) => relationEqual(name, variable)), entry => entry[1]);
 
 const bind = (bindings: Bindings, variable: string, value: SemanticRelationAtom): Match => {
     const existing = lookupBinding(bindings, variable);
-    return relationResolve(
-        relationIsSome(existing),
-        () => relationResolve(relationEqual(existing.value, value), () => relationSome(bindings), () => relationNone()),
-        () => relationSome(Object.freeze({ ...bindings, [variable]: value })),
-    );
+    return relationOptionFold(existing, () => relationSome(Object.freeze({ ...bindings, [variable]: value })), existingValue => relationResolve(relationEqual(existingValue, value), () => relationSome(bindings), () => relationNone()));
 };
 
 const matchTerms = <R extends string>(fact: SemanticRelation<R>, pattern: SemanticRelationPattern<R>, bindings: Bindings, index = 0): Match =>
@@ -53,14 +51,7 @@ const matchTerms = <R extends string>(fact: SemanticRelation<R>, pattern: Semant
         () => {
             const term = pattern.arguments[index];
             const value = fact.arguments[index];
-            return relationResolve(
-                isVariable(term),
-                () => {
-                    const next = bind(bindings, term.variable, value);
-                    return relationResolve(relationIsSome(next), () => matchTerms(fact, pattern, next.value, index + 1), () => relationNone());
-                },
-                () => relationResolve(relationEqual(term, value), () => matchTerms(fact, pattern, bindings, index + 1), () => relationNone()),
-            );
+            return relationOptionFold<VariableTerm, Match, Match>(variableOption(term), () => relationResolve(relationEqual(term, value), () => matchTerms(fact, pattern, bindings, index + 1), () => relationNone()), (variable: VariableTerm) => relationOptionFold(bind(bindings, variable.variable, value), () => relationNone(), (next: Bindings) => matchTerms(fact, pattern, next, index + 1)));
         },
     );
 
@@ -76,9 +67,9 @@ const patternIndexKey = <R extends string>(pattern: SemanticRelationPattern<R>):
 const factIndexKey = <R extends string>(fact: SemanticRelation<R>): string => `${fact.relation}/${fact.arguments.length}`;
 
 const instantiate = <R extends string>(pattern: SemanticRelationPattern<R>, bindings: Bindings): RelationOption<SemanticRelation<R>> => {
-    const resolved = project(pattern.arguments, term => relationResolve(isVariable(term), () => lookupBinding(bindings, term.variable), () => relationSome(term)));
-    const values = project(resolved, option => relationResolve(relationIsSome(option), () => option.value, () => semanticNullAtom));
-    const complete = relationEvery(resolved, relationIsSome);
+    const resolved = project(pattern.arguments, term => relationOptionFold(variableOption(term), () => relationOptionFold(atomOption(term), () => relationNone<SemanticRelationAtom>(), atom => relationSome(atom)), variable => lookupBinding(bindings, variable.variable)));
+    const values = project(resolved, option => relationOptionFold(option, () => semanticNullAtom, value => value));
+    const complete = relationEvery(resolved, option => relationIsSome(option));
     return relationResolve(
         relationAny([relationEqual(pattern.polarity, 'negative'), relationNotEqual(complete, true)]),
         () => relationNone(),
@@ -86,40 +77,36 @@ const instantiate = <R extends string>(pattern: SemanticRelationPattern<R>, bind
     );
 };
 
-const buildIndex = <R extends string>(facts: readonly SemanticRelation<R>[]): FactIndex<R> => SemanticRelationStore.from(facts);
+const buildIndex = <R extends string>(facts: readonly SemanticRelation<R>[]): FactIndex<R> => Object.freeze({ facts: Object.freeze([...facts]) });
 const patternIsNegative = <R extends string>(pattern: SemanticRelationPattern<R>): boolean => relationEqual(pattern.polarity, 'negative');
 const patternMatchesAnyFact = <R extends string>(index: FactIndex<R>, pattern: SemanticRelationPattern<R>, bindings: Bindings): boolean =>
-    relationAny(index.bucket(pattern.relation, pattern.arguments.length), candidate => relationIsSome(matchPattern(candidate, pattern, bindings)));
+    relationAnyMatch(retain(index.facts, fact => relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)])), candidate => relationIsSome(matchPattern(candidate, pattern, bindings)));
 
 const extendPositiveState = <R extends string>(index: FactIndex<R>, pattern: SemanticRelationPattern<R>, states: readonly DeltaMatch<R>[]): readonly DeltaMatch<R>[] => {
-    const candidates = index.bucket(pattern.relation, pattern.arguments.length);
+    const candidates = retain(index.facts, fact => relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)]));
     return expand(states, state => expand(candidates, candidate => {
         const bindings = matchPattern(candidate, pattern, state.bindings);
-        return relationResolve(relationIsSome(bindings), () => [{ bindings: bindings.value, premises: [...state.premises, candidate] }], () => []);
+        return relationOptionFold(bindings, () => [], value => [{ bindings: value, premises: [...state.premises, candidate] }]);
     }));
 };
 
 const applyPattern = <R extends string>(index: FactIndex<R>, anchor: SemanticRelationPattern<R>, states: readonly DeltaMatch<R>[], patterns: readonly SemanticRelationPattern<R>[], position = 0): readonly DeltaMatch<R>[] => {
     const pattern = relationFirst(patterns, (_entry, index) => relationEqual(index, position));
-    return relationResolve(
-        relationIsNone(pattern),
-        () => states,
+    return relationOptionFold(pattern, () => states, candidate => relationResolve(
+        relationEqual(candidate, anchor),
+        () => applyPattern(index, anchor, states, patterns, position + 1),
         () => relationResolve(
-            relationEqual(pattern.value, anchor),
-            () => applyPattern(index, anchor, states, patterns, position + 1),
-            () => relationResolve(
-                patternIsNegative(pattern.value),
-                () => applyPattern(index, anchor, retain(states, state => relationNotEqual(patternMatchesAnyFact(index, pattern.value, state.bindings), true)), patterns, position + 1),
-                () => applyPattern(index, anchor, extendPositiveState(index, pattern.value, states), patterns, position + 1),
-            ),
+            patternIsNegative(candidate),
+            () => applyPattern(index, anchor, retain(states, state => relationNotEqual(patternMatchesAnyFact(index, candidate, state.bindings), true)), patterns, position + 1),
+            () => applyPattern(index, anchor, extendPositiveState(index, candidate, states), patterns, position + 1),
         ),
-    );
+    ));
 };
 
 const enumerateAnchorMatches = <R extends string>(index: FactIndex<R>, anchor: SemanticRelationPattern<R>, patterns: readonly SemanticRelationPattern<R>[], delta: readonly SemanticRelation<R>[]): readonly DeltaMatch<R>[] =>
     expand(retain(delta, fact => relationEqual(factIndexKey(fact), patternIndexKey(anchor))), fact => {
         const bindings = matchPattern(fact, anchor, Object.freeze({}));
-        return relationResolve(relationIsSome(bindings), () => applyPattern(index, anchor, [{ bindings: bindings.value, premises: [fact] }], patterns), () => []);
+        return relationOptionFold(bindings, () => [], value => applyPattern(index, anchor, [{ bindings: value, premises: [fact] }], patterns));
     });
 
 const uniqueMatches = <R extends string>(matches: readonly DeltaMatch<R>[]): readonly DeltaMatch<R>[] => {
@@ -153,14 +140,16 @@ const dependencyRequired = <R extends string>(plan: SemanticRelationExecutionPla
 };
 const seedStrata = <R extends string>(plans: readonly SemanticRelationExecutionPlan<R>[]): RelationStrata<R> =>
     relationUnique(project(expand(plans, headRelations), relation => [relation, 0] as const));
-const advanceStrata = <R extends string>(plans: readonly SemanticRelationExecutionPlan<R>[], strata: RelationStrata<R>): { readonly changed: boolean; readonly strata: RelationStrata<R> } =>
-    accumulate(plans, (state, plan) => accumulate(headRelations(plan), (inner, head) => {
-        const required = dependencyRequired(plan, state.strata);
-        const current = relationCatalogValueOr(state.strata, head, 0);
+const advanceStrata = <R extends string>(plans: readonly SemanticRelationExecutionPlan<R>[], strata: RelationStrata<R>): { readonly changed: boolean; readonly strata: RelationStrata<R> } => {
+    const initialState: { readonly changed: boolean; readonly strata: RelationStrata<R> } = { changed: false, strata };
+    return accumulate(plans, (state, plan) => accumulate(headRelations(plan), (inner: { readonly changed: boolean; readonly strata: RelationStrata<R> }, head: R) => {
+        const required = dependencyRequired(plan, inner.strata);
+        const current = relationCatalogValueOr(inner.strata, head, 0);
         return relationResolve(required > current,
-            () => ({ changed: true, strata: [...retain(state.strata, ([key]) => relationNotEqual(key, head)), [head, required] as const] }),
-            () => ({ changed: inner.changed, strata: inner.strata }));
-    }, { changed: false, strata }));
+            () => ({ changed: true, strata: [...retain(inner.strata, ([key]) => relationNotEqual(key, head)), [head, required] as const] }),
+            () => inner);
+    }, state), initialState);
+};
 const settleStrata = <R extends string>(plans: readonly SemanticRelationExecutionPlan<R>[], strata: RelationStrata<R>, rounds: number, limit: number): RelationStrata<R> => {
     const state = advanceStrata(plans, strata);
     return relationResolve(!state.changed, () => state.strata, () => relationResolve(rounds >= limit,
@@ -171,7 +160,7 @@ const ruleDependencies = <R extends string>(plans: readonly SemanticRelationExec
 const addPlanIndex = <R extends string>(planIndex: PlanIndex<R>, plan: SemanticRelationExecutionPlan<R>): PlanIndex<R> => {
     const anchor = relationFirst(plan.premises, step => relationEqual(step.kind, 'scan'));
     return relationResolve(relationIsSome(anchor), () => {
-        const key = patternIndexKey(anchor.value.pattern);
+        const key = relationOptionFold(anchor, () => '', value => patternIndexKey(value.pattern));
         const bucket = relationCatalogValueOr(planIndex, key, []);
         const nextBucket = [...bucket, plan];
         return [...retain(planIndex, ([candidate]) => relationNotEqual(candidate, key)), [key, Object.freeze(nextBucket)] as const];
@@ -181,7 +170,7 @@ const buildPlanIndex = <R extends string>(plans: readonly SemanticRelationExecut
 const collectApplicablePlans = <R extends string>(delta: readonly SemanticRelation<R>[], planIndex: PlanIndex<R>): readonly SemanticRelationExecutionPlan<R>[] => relationUnique(expand(delta, fact => relationCatalogValueOr(planIndex, factIndexKey(fact), [])));
 const deriveFromPlan = <R extends string>(plan: SemanticRelationExecutionPlan<R>, matches: readonly DeltaMatch<R>[]): readonly SemanticRelationDerivation<R>[] => expand(matches, match => expand(plan.emissions, step => {
     const fact = instantiate(step.pattern, match.bindings);
-    return relationResolve(relationIsSome(fact), () => [{ fact: fact.value, ruleId: plan.ruleId, premises: match.premises, bindings: match.bindings }], () => []);
+    return relationOptionFold(fact, () => [], value => [{ fact: value, ruleId: plan.ruleId, premises: match.premises, bindings: match.bindings }]);
 }));
 const deduplicateDerivations = <R extends string>(derivations: readonly SemanticRelationDerivation<R>[], seen: RelationMembership<string>): readonly SemanticRelationDerivation<R>[] => {
     const keys = relationUnique(project(derivations, derivation => relationKey(derivation.fact)));
@@ -189,18 +178,20 @@ const deduplicateDerivations = <R extends string>(derivations: readonly Semantic
 };
 const planPatterns = <R extends string>(plan: SemanticRelationExecutionPlan<R>, index = 0, output: readonly SemanticRelationPattern<R>[] = []): readonly SemanticRelationPattern<R>[] => {
     const step = relationFirst(plan.premises, (_entry, current) => relationEqual(current, index));
-    return relationResolve(relationIsSome(step), () => planPatterns(plan, index + 1, [...output, step.value.pattern]), () => output);
+    return relationOptionFold(step, () => output, value => planPatterns(plan, index + 1, [...output, value.pattern]));
 };
 const consumePlans = <R extends string>(ordered: readonly SemanticRelationExecutionPlan<R>[], applicable: readonly SemanticRelationExecutionPlan<R>[], index: FactIndex<R>, delta: readonly SemanticRelation<R>[]): readonly SemanticRelationDerivation<R>[] => expand(retain(ordered, plan => relationContains(applicable, plan)), plan => deriveFromPlan(plan, enumerateDeltaMatches(index, planPatterns(plan), delta)));
 
-type PositiveState<R extends string> = { readonly facts: SemanticRelation<R>[]; readonly seen: RelationMembership<string>; readonly index: SemanticRelationStore<R>; readonly agenda: SemanticRelation<R>[]; readonly derivations: SemanticRelationDerivation<R>[]; readonly rounds: number };
+type PositiveState<R extends string> = { readonly facts: SemanticRelation<R>[]; readonly seen: RelationMembership<string>; readonly index: FactIndex<R>; readonly agenda: SemanticRelation<R>[]; readonly derivations: SemanticRelationDerivation<R>[]; readonly rounds: number };
 const saturatePositive = <R extends string>(state: PositiveState<R>, ordered: readonly SemanticRelationExecutionPlan<R>[], planIndex: PlanIndex<R>, maxRounds: number): PositiveState<R> => relationResolve(relationAny([relationEqual(state.agenda.length, 0), state.rounds >= maxRounds]), () => state, () => {
-    const delta = state.agenda.splice(0, state.agenda.length);
+    const delta = Object.freeze([...state.agenda]);
     const applicable = collectApplicablePlans(delta, planIndex);
     const derivations = deduplicateDerivations(consumePlans(ordered, applicable, state.index, delta), state.seen);
-    visit(derivations, derivation => { state.facts.push(derivation.fact); state.agenda.push(derivation.fact); state.index.add(derivation.fact); });
-    state.derivations.push(...derivations);
-    return saturatePositive({ ...state, rounds: state.rounds + 1 }, ordered, planIndex, maxRounds);
+    const nextFacts = Object.freeze([...state.facts, ...project(derivations, derivation => derivation.fact)]);
+    const nextAgenda = Object.freeze(project(derivations, derivation => derivation.fact));
+    const nextIndex = buildIndex(nextFacts);
+    const nextDerivations = Object.freeze([...state.derivations, ...derivations]);
+    return saturatePositive({ facts: nextFacts as SemanticRelation<R>[], seen: state.seen, index: nextIndex, agenda: nextAgenda as SemanticRelation<R>[], derivations: nextDerivations as SemanticRelationDerivation<R>[], rounds: state.rounds + 1 }, ordered, planIndex, maxRounds);
 });
 const solvePositiveStratum = <R extends string>(seed: readonly SemanticRelation<R>[], plans: readonly SemanticRelationExecutionPlan<R>[], maxRounds: number): SemanticRelationSolveResult<R> => {
     const state: PositiveState<R> = { facts: [...seed], seen: relationUnique(project(seed, relationKey)), index: buildIndex(seed), agenda: [...seed], derivations: [], rounds: 0 };
@@ -208,7 +199,7 @@ const solvePositiveStratum = <R extends string>(seed: readonly SemanticRelation<
     return Object.freeze({ facts: Object.freeze(settled.facts), derivations: Object.freeze(settled.derivations), rounds: settled.rounds, saturated: relationEqual(settled.agenda.length, 0) });
 };
 const solveStrata = <R extends string>(seed: readonly SemanticRelation<R>[], plans: readonly SemanticRelationExecutionPlan<R>[], strata: RelationStrata<R>, maxStratum: number, maxRounds: number, stratum = 0, facts: readonly SemanticRelation<R>[] = seed, derivations: readonly SemanticRelationDerivation<R>[] = [], totalRounds = 0, saturated = true): SemanticRelationSolveResult<R> => {
-    const stratumPlans = retain(plans, plan => relationAny(headRelations(plan), relation => relationEqual(relationCatalogValueOr(strata, relation, 0), stratum)));
+    const stratumPlans = retain(plans, plan => relationAnyMatch(headRelations(plan), relation => relationEqual(relationCatalogValueOr(strata, relation, 0), stratum)));
     const result = relationResolve(relationEqual(stratumPlans.length, 0), () => ({ facts, derivations: [], rounds: 0, saturated: true }), () => solvePositiveStratum(facts, stratumPlans, maxRounds));
     const next = stratum + 1;
     return relationResolve(next > maxStratum, () => Object.freeze({ facts: Object.freeze(result.facts), derivations: Object.freeze([...derivations, ...result.derivations]), rounds: totalRounds + result.rounds, saturated: relationAll([saturated, result.saturated]) }), () => solveStrata(seed, plans, strata, maxStratum, maxRounds, next, result.facts, [...derivations, ...result.derivations], totalRounds + result.rounds, relationAll([saturated, result.saturated])));
@@ -216,7 +207,7 @@ const solveStrata = <R extends string>(seed: readonly SemanticRelation<R>[], pla
 export const solveSemanticRelationsDetailed = <R extends string>(seed: readonly SemanticRelation<R>[], rules: readonly SemanticRelationRewrite<R>[], maxRounds = 1024): SemanticRelationSolveResult<R> => {
     const plans = compileSemanticRelationExecutionPlans(rules);
     const strata = ruleDependencies(plans);
-    const maxStratum = Math.max(0, ...strata.values());
+    const maxStratum = Math.max(0, ...project(strata, ([, value]) => value));
     return solveStrata(seed, plans, strata, maxStratum, maxRounds);
 };
 export const solveSemanticRelations = <R extends string>(seed: readonly SemanticRelation<R>[], rules: readonly SemanticRelationRewrite<R>[], maxRounds = 1024): readonly SemanticRelation<R>[] => solveSemanticRelationsDetailed(seed, rules, maxRounds).facts;

@@ -1,6 +1,6 @@
 import type { RouteParameterType } from "./parameters";
 import { createPropertyName, type PropertyName, type RouteParameterName } from "../upstream/names";
-import type { Presence, Cardinality } from "../upstream/primitiveVocabulary";
+import type { Presence, Cardinality, Nullability } from "../upstream/primitiveVocabulary";
 import type { Option } from "../upstream/collections";
 import type { HttpErrorSchema as UpstreamHttpErrorSchema, HttpErrorSchemaField as UpstreamHttpErrorSchemaField } from "../upstream/routeErrorVocabulary";
 import type { RequestRuntimeValue } from "./requestModels";
@@ -48,6 +48,8 @@ export interface LaravelServerError {
  */
 export type HttpErrorSchemaField = UpstreamHttpErrorSchemaField;
 export type HttpErrorSchema = UpstreamHttpErrorSchema;
+
+const NON_NULLABLE: Nullability = Object.freeze({ kind: 'non_nullable' });
 
 export const HttpErrorKind = Object.freeze({
   Validation: 'validation',
@@ -127,15 +129,15 @@ export const HTTP_ERROR_KIND_REGISTRY: HttpErrorKindRegistry = Object.freeze({
 const HTTP_ERROR_MESSAGE_SCHEMA: HttpErrorSchema = Object.freeze({
   kind: 'object',
   fields: Object.freeze([
-    Object.freeze([createPropertyName('message'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('string'), nullable: { kind: 'non_nullable' } })] as const)
+    Object.freeze([createPropertyName('message'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('string'), nullable: NON_NULLABLE })] as const)
   ])
 });
 
 const HTTP_ERROR_VALIDATION_SCHEMA: HttpErrorSchema = Object.freeze({
   kind: 'object',
   fields: Object.freeze([
-    Object.freeze([createPropertyName('message'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('string'), nullable: { kind: 'non_nullable' } })] as const),
-    Object.freeze([createPropertyName('errors'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('Record<string, string[]>'), nullable: { kind: 'non_nullable' } })] as const)
+    Object.freeze([createPropertyName('message'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('string'), nullable: NON_NULLABLE })] as const),
+    Object.freeze([createPropertyName('errors'), Object.freeze({ typeName: SemanticValueFactory.responseTypeName('Record<string, string[]>'), nullable: NON_NULLABLE })] as const)
   ])
 });
 

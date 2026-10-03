@@ -9,13 +9,11 @@ import { scannerSemanticType } from '../../../semanticTypeConstructionRelations'
 
 import type { OriginModelSymbol, ModelSymbolTable } from "../../../symbols/ModelSymbolTable";
 import type { PhpAstValue } from "../../../lexer/PhpAst";
-import {
-    type ResourceFieldSemanticBinding,
-    ResourceFieldExpressionFactory
-} from "../../../../../types/route";
+import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
-import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
+import { ResourceFieldSemanticBinding } from "../../../../../types/domain/resourceFieldSemanticBinding";
+import type { ResourceFieldSemanticBinding as ResourceFieldSemanticBindingType } from "../../../../../types/domain/resourceFieldSemanticBinding";
 import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../types/SemanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
@@ -66,6 +64,8 @@ export function bindResourceCollectionField(
     return { descriptor, boundAst };
 }
 
+const EMPTY_RESOURCE_FIELD_BINDINGS: readonly ResourceFieldSemanticBindingType[] = Object.freeze([]);
+
 export function bindNestedArrayField(
     key: string,
     value: Extract<PhpAstValue, { kind: 'nested_array' }>,
@@ -78,7 +78,7 @@ export function bindNestedArrayField(
         readonly modelSymbolTable: ModelSymbolTable;
     }) => BoundResourceFieldResult
 ): BoundResourceFieldResult {
-    const childFields = relationFold(value.entries, Object.freeze([]) as readonly ResourceFieldSemanticBinding[], (fields, childEntry, index) => {
+    const childFields = relationFold(value.entries, EMPTY_RESOURCE_FIELD_BINDINGS, (fields, childEntry, index) => {
         const childKey = relationGate(relationEqual(childEntry.kind, 'keyed'),
             () => relationGate(relationEqual(childEntry.key.kind, 'string'), () => childEntry.key.value, () => String(index)),
             () => String(index));

@@ -1,93 +1,40 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { RouteManifest, ParsedModel, camelCase, PrimitiveKind, DatabaseColumnKind, DATABASE_COLUMN_KIND_REGISTRY, matchRelation } from '@routesync/core'
+import {
+  RouteManifest,
+  SemanticTypeResolver,
+  toTypeScriptTypeExpression,
+  typeExpressionToSemanticType,
+  type ModelSemanticProperty,
+  type ModelAst,
+} from '@routesync/core'
 
-const PRIMITIVE_KIND_MAP: Record<string, string> = {
-  [PrimitiveKind.NUMBER]: 'number',
-  [PrimitiveKind.BOOLEAN]: 'boolean',
-  [PrimitiveKind.STRING]: 'string',
-  [PrimitiveKind.ANY]: 'unknown',
-  [PrimitiveKind.NULL]: 'null',
-  [PrimitiveKind.UNDEFINED]: 'undefined'
+const resolver = SemanticTypeResolver.default()
+
+const sequenceToArray = <T>(sequence: { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: typeof sequence }, output: readonly T[] = []): readonly T[] =>
+  sequence.kind === 'empty' ? output : sequenceToArray(sequence.tail, [...output, sequence.head])
+
+const semanticPropertyType = (property: ModelSemanticProperty): string =>
+  toTypeScriptTypeExpression(resolver.resolve(typeExpressionToSemanticType(property.semanticType)))
+
+const semanticPropertyName = (property: ModelSemanticProperty): string => property.property.value.value
+
+const modelLines = (model: ModelAst): readonly string[] => {
+  const semantic = model.definition.semantic
+  const properties = sequenceToArray(semantic.surface.properties)
+  return [
+    `export interface ${semantic.identity.shortName.value.value} {`,
+    ...properties.map(property => `  ${semanticPropertyName(property)}: ${semanticPropertyType(property)}`),
+    `}`,
+    ``,
+  ]
 }
 
 export class ModelGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
-    if (!manifest.models || manifest.models.length === 0) return
-
     const coreDir = path.join(outputDir, 'core')
     await fs.ensureDir(coreDir)
-
-    const lines: string[] = []
-    lines.push(`// Auto-generated TypeScript Eloquent Models. Do not edit manually.`)
-    lines.push(``)
-
-    for (const model of manifest.models) {
-      const interfaceName = model.shortName
-      lines.push(`export interface ${interfaceName} {`)
-
-      const hidden = Array.isArray(model.hidden) ? model.hidden : []
-
-      // 1. Database Columns (SSOT: propertyName & semanticType)
-      for (const col of model.columns) {
-        const rawName = col.propertyName || col.name
-        if (!rawName) continue
-        const isHidden = col.name ? hidden.includes(col.name) : false
-        const isOptional = isHidden ? '?' : ''
-        const propName = col.propertyName || camelCase(rawName)
-
-        let tsType = 'string'
-        if (col.enumValues && col.enumValues.length > 0) {
-          tsType = col.enumValues.map(v => `'${v}'`).join(' | ')
-        } else if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
-          tsType = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType
-        } else if (col.semanticType) {
-          tsType = PRIMITIVE_KIND_MAP[col.semanticType] ?? 'string'
-        } else {
-          tsType = this.mapColumnKindToTs(col.columnKind)
-        }
-
-        const nullable = col.nullable ? ' | null' : ''
-        lines.push(`  ${propName}${isOptional}: ${tsType}${nullable}`)
-      }
-
-      // 2. Appended Accessor Attributes (SSOT: accessors)
-      if (model.accessors && model.accessors.length > 0) {
-        for (const acc of model.accessors) {
-          const rawName = acc.propertyName || acc.name
-          if (!rawName) continue
-          const propName = acc.propertyName || camelCase(rawName)
-          const tsType = acc.semanticType ? (PRIMITIVE_KIND_MAP[acc.semanticType] ?? 'string') : 'string'
-          const nullable = acc.nullable ? ' | null' : ''
-          lines.push(`  ${propName}?: ${tsType}${nullable}`)
-        }
-      } else {
-        const appends = Array.isArray(model.appends) ? model.appends : []
-        for (const append of appends) {
-          if (!append) continue
-          lines.push(`  ${camelCase(append)}?: unknown`)
-        }
-      }
-
-      // 3. Eloquent Relations (SSOT: relations)
-      if (model.relations && model.relations.length > 0) {
-        for (const rel of model.relations) {
-          const relType = matchRelation(rel, {
-            one: (r) => r.modelName,
-            many: (r) => `${r.modelName}[]`
-          })
-          lines.push(`  ${rel.name}?: ${relType}`)
-        }
-      }
-
-      lines.push(`}`)
-      lines.push(``)
-    }
-
-    await fs.writeFile(path.join(coreDir, 'models.ts'), lines.join('\n'))
-  }
-
-  public static mapColumnKindToTs(kind: DatabaseColumnKind): string {
-    return DATABASE_COLUMN_KIND_REGISTRY[kind]?.tsType ?? 'unknown'
+    const lines = manifest.models.flatMap(modelLines)
+    await fs.writeFile(path.join(coreDir, 'models.ts'), ['// Auto-generated TypeScript Eloquent Models. Do not edit manually.', '', ...lines].join('\n'))
   }
 }

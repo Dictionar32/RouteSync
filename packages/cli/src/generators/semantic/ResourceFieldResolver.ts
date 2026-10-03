@@ -1,78 +1,60 @@
-/** Resource/model field lowering from verified manifest descriptors. */
-import { NullableType, SemanticTypeResolver, camelCase } from '@routesync/core';
+import { SemanticTypeResolver, camelCase, typeExpressionToSemanticType, type ResourceAst, type ResourceField, type ResourceFieldSemanticBinding, type ModelSemanticDefinition } from '@routesync/core';
 import { toTypeScriptTypeExpression } from '@routesync/core';
 import { toZodSchemaExpression } from '@routesync/core';
-import type { ParsedModel, ParsedResource, ResourceFieldDescriptor } from '@routesync/core';
 import type { CompilerIR, ResolvedField } from './semanticTypes';
 import type { SemanticResolutionContext } from './SemanticResolutionContext';
-import { resolveSingleResourceField } from './resource-field';
+import { resolveSingleResourceField, resolveBoundResourceField } from './resource-field';
 
 const resolver = SemanticTypeResolver.default();
 
+const sequenceToArray = <T>(sequence: { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: typeof sequence }, output: readonly T[] = []): readonly T[] =>
+    sequence.kind === 'empty' ? output : sequenceToArray(sequence.tail, [...output, sequence.head]);
+
 export class ResourceFieldResolver {
     public static resolveFieldMappings(context: SemanticResolutionContext, ir: CompilerIR): void {
-        for (const model of context.models) {
-            this.resolveModelFields(model, ir);
-        }
-        for (const resource of context.resources) {
-            this.resolveResourceFieldsRecursive(resource.fields, ir.fieldMappings, resource.name);
-        }
+        context.models.forEach(model => this.resolveModelFields(model, ir));
+        context.resources.forEach(resource => this.resolveResourceFieldsRecursive(resource.definition.fields.items, ir.fieldMappings, resource.definition.name.value.value));
     }
 
-    public static buildResponseFields(resource: ParsedResource): Map<string, ResolvedField> {
+    public static buildResponseFields(resource: ResourceAst): Map<string, ResolvedField> {
         const fields = new Map<string, ResolvedField>();
-        this.resolveResourceFieldsRecursive(resource.fields, fields, resource.name);
+        this.resolveResourceFieldsRecursive(resource.definition.fields.items, fields, resource.definition.name.value.value);
         return fields;
     }
 
-    public static buildModelFields(model: ParsedModel): Map<string, ResolvedField> {
-        const fields = new Map<string, ResolvedField>();
-        for (const column of model.columns) {
-            fields.set(column.name, this.resolveModelField(column));
-        }
-        return fields;
+    public static resolve(field: ResourceFieldSemanticBinding): ResolvedField {
+        return resolveBoundResourceField(field);
     }
 
-    public static resolve(field: ResourceFieldDescriptor): ResolvedField {
-        return resolveSingleResourceField(field);
-    }
-
-    private static resolveModelFields(model: ParsedModel, ir: CompilerIR): void {
-        for (const column of model.columns) {
-            const key = `${model.name}.${column.name}`;
-            if (ir.fieldMappings.has(key)) continue;
-            ir.fieldMappings.set(key, this.resolveModelField(column));
-        }
-    }
-
-    private static resolveModelField(column: ParsedModel['columns'][number]): ResolvedField {
-        const semanticType = column.nullability.kind === 'nullable'
-            ? new NullableType(column.semanticType)
-            : column.semanticType;
-        const resolved = resolver.resolve(semanticType);
-        return Object.freeze({
-            name: camelCase(column.name),
-            sourceName: column.name,
-            semanticType: resolved,
-            zodType: toZodSchemaExpression(resolved),
-            tsType: toTypeScriptTypeExpression(resolved),
-            origin: { kind: 'model_column', columnName: column.name } as const,
+    private static resolveModelFields(model: ModelSemanticDefinition, ir: CompilerIR): void {
+        sequenceToArray(model.surface.properties).forEach(property => {
+            const key = `${model.identity.name.value.value}.${property.property.value.value}`;
+            if (ir.fieldMappings.has(key)) return;
+            const semanticType = typeExpressionToSemanticType(property.semanticType);
+            const resolved = resolver.resolve(semanticType);
+            ir.fieldMappings.set(key, Object.freeze({
+                name: camelCase(property.property.value.value),
+                sourceName: property.property.value.value,
+                semanticType: resolved,
+                zodType: toZodSchemaExpression(resolved),
+                tsType: toTypeScriptTypeExpression(resolved),
+                origin: { kind: 'model_column', columnName: property.property.value.value },
+            }));
         });
     }
 
     private static resolveResourceFieldsRecursive(
-        fields: readonly ResourceFieldDescriptor[],
+        fields: ResourceAst['definition']['fields']['items'],
         fieldMappings: Map<string, ResolvedField>,
         pathPrefix: string,
     ): void {
-        for (const field of fields) {
-            const fieldPath = `${pathPrefix}.${field.name}`;
-            if (field.expression.kind === 'object') {
-                this.resolveResourceFieldsRecursive(field.expression.fields, fieldMappings, fieldPath);
-                continue;
+        sequenceToArray(fields).forEach(field => {
+            const fieldPath = `${pathPrefix}.${field.name.value.value}`;
+            if (field.output.kind === 'nested_object') {
+                this.resolveResourceFieldsRecursive(field.output.fields.items, fieldMappings, fieldPath);
             }
-            if (fieldMappings.has(fieldPath)) continue;
+            if (fieldMappings.has(fieldPath)) return;
             fieldMappings.set(fieldPath, resolveSingleResourceField(field));
-        }
+        });
     }
 }

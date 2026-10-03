@@ -1,2 +1,1 @@
-/** Resource field lowering boundary. */
-export { resolveSingleResourceField } from './singleFieldResolver';
+export { resolveSingleResourceField, resolveBoundResourceField } from './singleFieldResolver';

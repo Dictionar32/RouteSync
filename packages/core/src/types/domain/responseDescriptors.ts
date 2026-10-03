@@ -1,4 +1,4 @@
-import type { ResponseBody } from "../../compiler/ir/ResponseArtifact";
+import type { PrimitiveBody, ResponseBody } from "../../compiler/ir/ResponseArtifact";
 import type { ObjectProperty } from "../../compiler/types/SemanticType";
 import type { SemanticType } from "../../compiler/types/SemanticType";
 import { relationProject } from '../../semantic/kernel/relationalSequence';
@@ -118,14 +118,17 @@ export interface VoidResponseDescriptor extends ResponseDescriptorBase {
   readonly kind: 'void';
 }
 
-const voidDescriptor = (): VoidResponseDescriptor => Object.freeze({
-  kind: 'void' as const,
-  shape: 'single' as const,
-  responseTypeName: () => SemanticValueFactory.responseTypeName('void'),
-  toSuccessStatusCode: () => 204,
-  toAnalysis: (routeName) => ({ routeName, kind: 'void' as const, shape: 'single' as const }),
-  toResponseBody: () => ({ type: 'primitive' as const, primitiveType: 'void', shape: 'single' as const }),
-});
+const voidDescriptor = (): VoidResponseDescriptor => {
+  const descriptor: VoidResponseDescriptor = {
+    kind: 'void',
+    shape: 'single',
+    responseTypeName: () => SemanticValueFactory.responseTypeName('void'),
+    toSuccessStatusCode: () => 204,
+    toAnalysis: (routeName: RouteName): VoidRouteResponseAnalysis => ({ routeName, kind: 'void', shape: 'single' }),
+    toResponseBody: (): PrimitiveBody => ({ type: 'primitive', primitiveType: 'void', shape: 'single' }),
+  };
+  return Object.freeze(descriptor);
+};
 
 export const VoidResponseDescriptor = Object.freeze({ create: voidDescriptor });
 

@@ -5,7 +5,7 @@
  * semantic route contract is complete enough for pure downstream lowering.
  */
 
-import type { ParsedModel, ParsedResource, RouteManifest } from '@routesync/core'
+import type { ModelAst, ResourceAst, RouteManifest } from '@routesync/core'
 
 function requireValue(value: unknown, label: string): void {
   if (value === undefined || value === null) {
@@ -13,17 +13,17 @@ function requireValue(value: unknown, label: string): void {
   }
 }
 
-function validateResponse(route: RouteManifest['routes'][number], models: readonly ParsedModel[], resources: readonly ParsedResource[]): void {
+function validateResponse(route: RouteManifest['routes'][number], models: readonly ModelAst[], resources: readonly ResourceAst[]): void {
   const response = route.response
   requireValue(response, `${route.name}.response`)
 
   if (response.kind === 'model') {
-    const exists = models.some(model => model.name === response.modelName)
+    const exists = models.some(model => model.definition.name === response.modelName)
     if (!exists) throw new Error(`Manifest invariant failed: ${route.name} references unknown model ${response.modelName}`)
   }
 
   if (response.kind === 'resource') {
-    const exists = resources.some(resource => resource.name === response.resourceName)
+    const exists = resources.some(resource => resource.definition.name === response.resourceName)
     if (!exists) throw new Error(`Manifest invariant failed: ${route.name} references unknown resource ${response.resourceName}`)
   }
 

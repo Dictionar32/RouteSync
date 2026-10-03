@@ -30,7 +30,7 @@ export interface SemanticBehaviorClosure {
  */
 export const solveSemanticBehavior = (seed: readonly SemanticRelation<SemanticBehaviorRelation>[], maxRounds = 64): SemanticBehaviorClosure => {
     visitRelation(seed, fact => validateSemanticTheoryFact(semanticTheoryFact(fact.relation, fact.arguments)));
-    const constraintClosure = solveSemanticConstraintProgram(seed, { rules: relationOptionalFold(SEMANTIC_BEHAVIOR_PROGRAM.constraints, () => [], value => value) }, maxRounds);
+    const constraintClosure = solveSemanticConstraintProgram(seed, { rules: SEMANTIC_BEHAVIOR_CONSTRAINT_RULES }, maxRounds);
     const relationClosure = solveSemanticRelationsDetailed(constraintClosure.facts, SEMANTIC_BEHAVIOR_PROGRAM.rules, maxRounds);
     return Object.freeze({
         facts: relationClosure.facts,

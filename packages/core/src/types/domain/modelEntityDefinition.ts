@@ -1,8 +1,8 @@
 /**
  * Canonical model semantic contracts.
  *
- * Scanner facts stay in ParsedModel. Downstream receives only the semantic
- * model surface, so it does not need to reconstruct Eloquent meaning.
+ * Scanner facts stay in the upstream ModelAst. Downstream receives only the
+ * canonical semantic model surface, so it does not reconstruct Eloquent meaning.
  */
 import type { ModelPropertyMultiplicity, ModelSemanticDefinition } from './models';
 import type { ModelName, PropertyName } from '../upstream/names';

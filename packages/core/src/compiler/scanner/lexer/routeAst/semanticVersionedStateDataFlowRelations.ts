@@ -1,5 +1,5 @@
 import { relationEqual, relationNotEqual, relationResolve } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import type { KnowledgeId, SemanticKnowledgeDataFlow, SemanticSource } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeId, knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { analyzeSemanticStateDataFlow, semanticStateLocationKey, type SemanticStateDef, type SemanticStateLocation, type SemanticStateMerge, type SemanticStateUse } from './semanticStateDataFlow';
@@ -45,9 +45,10 @@ const versionFromMerge = (merge: SemanticStateMerge): SemanticStateVersion => ({
     kind: 'state-version', id: versionId(merge.id), versionKind: 'merge',
     location: merge.location, source: merge.source, origin: merge.id,
 });
+const keyed = <K, V>(key: K, value: V): readonly [K, V] => [key, value];
 
-const entryAt = <K, V>(entries: readonly (readonly [K, V])[], key: K): import('../../../../semantic/kernel/relationalSequence').RelationOption<V> =>
-    relationFirstOption(entries, entry => relationEqual(entry[0], key));
+const entryAt = <K, V>(entries: readonly (readonly [K, V])[], key: K): RelationOption<V> =>
+    relationOptionMap(relationFirstOption(entries, entry => relationEqual(entry[0], key)), entry => entry[1]);
 
 const byLocation = (versions: readonly SemanticStateVersion[]): readonly (readonly [string, readonly SemanticStateVersion[]])[] => {
     let index: readonly (readonly [string, readonly SemanticStateVersion[]])[] = [];
@@ -57,7 +58,7 @@ const byLocation = (versions: readonly SemanticStateVersion[]): readonly (readon
             const version = versions[position];
             const key = semanticStateLocationKey(version.location);
             const prior: readonly SemanticStateVersion[] = relationOptionFold(entryAt(index, key), () => [], value => value);
-            index = [...retain(index, ([candidate]) => relationNotEqual(candidate, key)), [key, [...prior, version]] as const];
+            index = [...retain(index, ([candidate]) => relationNotEqual(candidate, key)), keyed(key, [...prior, version])];
             return add(position + 1);
         },
         () => {},
@@ -72,7 +73,7 @@ const byOrigin = (versions: readonly SemanticStateVersion[]): readonly (readonly
         position < versions.length,
         () => {
             const version = versions[position];
-            index = [...retain(index, ([candidate]) => relationNotEqual(candidate, knowledgeIdKey(version.origin))), [knowledgeIdKey(version.origin), version] as const];
+            index = [...retain(index, ([candidate]) => relationNotEqual(candidate, knowledgeIdKey(version.origin))), keyed(knowledgeIdKey(version.origin), version)];
             return add(position + 1);
         },
         () => {},

@@ -191,7 +191,8 @@
     "audit:phase740-scanner-adt-frontier": "node scripts/audit-phase740-scanner-adt-frontier.cjs",
     "audit:phase741-controller-semantic-authority": "node scripts/audit-phase741-controller-semantic-authority.cjs",
     "audit:phase742-controller-dataflow-legacy-removal": "node scripts/audit-phase742-controller-dataflow-legacy-removal.cjs",
-    "audit:phase743-diagnostic-semantic-state-authority": "node scripts/audit-phase743-diagnostic-semantic-state-authority.cjs"
+    "audit:phase743-diagnostic-semantic-state-authority": "node scripts/audit-phase743-diagnostic-semantic-state-authority.cjs",
+    "audit:phase744-interprocedural-versioned-diagnostic": "node scripts/audit-phase744-interprocedural-versioned-diagnostic.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

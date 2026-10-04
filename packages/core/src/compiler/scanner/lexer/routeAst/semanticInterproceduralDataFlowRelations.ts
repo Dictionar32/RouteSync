@@ -1,6 +1,8 @@
 import { relationAll, relationEqual, relationResolve } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, type RelationOption, relationCatalogValueOr } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import type { KnowledgeId, SemanticCallable, SemanticEmission, SemanticInvocation, SemanticKnowledgeDataFlow, SemanticDataFlowFact, SemanticFact } from './semanticKnowledgeDataFlowRelations';
+import type { RelationVariant } from '../../../../semantic/kernel/relationalSequence';
+import type { SemanticRelation } from './semanticRewriteEngine';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import { solveSemanticRelations, type SemanticRelationRewrite } from './semanticRewriteEngine';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
@@ -26,26 +28,30 @@ export interface SemanticInterproceduralDataFlow {
     readonly exceptionFlows: readonly SemanticCallEmissionFlow[];
 }
 
-type FactOfKind<K extends SemanticFact['kind']> = Extract<SemanticFact, { readonly kind: K }>['value'];
-const factsByKind = <K extends SemanticFact['kind']>(model: SemanticKnowledgeDataFlow, kind: K): readonly FactOfKind<K>[] =>
-    typedProject(
-        typedSelect(typedRelation(model.facts), (fact): fact is Extract<SemanticFact, { readonly kind: K }> => relationEqual(fact.kind, kind)),
-        fact => fact.value,
-    ).tuples;
-const invocationFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticInvocation[] => factsByKind(model, 'invocation');
-const callableFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticCallable[] => factsByKind(model, 'callable');
-const emissionFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticEmission[] => factsByKind(model, 'emission');
+const invocationFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticInvocation[] => typedProject(
+    typedSelect(typedRelation(model.facts), (fact): fact is RelationVariant<SemanticFact, 'invocation'> => relationEqual(fact.kind, 'invocation')),
+    fact => fact.value,
+).tuples;
+const callableFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticCallable[] => typedProject(
+    typedSelect(typedRelation(model.facts), (fact): fact is RelationVariant<SemanticFact, 'callable'> => relationEqual(fact.kind, 'callable')),
+    fact => fact.value,
+).tuples;
+const emissionFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticEmission[] => typedProject(
+    typedSelect(typedRelation(model.facts), (fact): fact is RelationVariant<SemanticFact, 'emission'> => relationEqual(fact.kind, 'emission')),
+    fact => fact.value,
+).tuples;
 type InterproceduralRelation = 'data-flow' | 'call-target';
+type SemanticRelationOfCallTarget = SemanticRelation<'call-target'>;
 const pair = <A, B>(left: A, right: B): readonly [A, B] => [left, right];
-const mapOption = <V>(index: readonly (readonly [string, V])[], key: string): RelationOption<V> => relationFirstOption(index, entry => relationEqual(entry[0], key));
+const mapOption = <V>(index: readonly (readonly [string, V])[], key: string): RelationOption<V> => relationOptionMap(relationFirstOption(index, entry => relationEqual(entry[0], key)), entry => entry[1]);
 
-const CALLABLE_BOUNDARY_REWRITES: readonly SemanticRelationRewrite<InterproceduralRelation>[] = Object.freeze([
-    Object.freeze({
+const CALLABLE_BOUNDARY_REWRITES: readonly SemanticRelationRewrite<InterproceduralRelation>[] = [
+    {
         id: 'data-flow-boundary:callable', priority: 0,
-        when: Object.freeze([{ relation: 'data-flow', arguments: [{ variable: 'source' }, { variable: 'target' }, 'callable'] }]),
-        then: Object.freeze([{ relation: 'call-target', arguments: [{ variable: 'source' }, { variable: 'target' }] }]),
-    }),
-]);
+        when: [{ relation: 'data-flow', arguments: [{ variable: 'source' }, { variable: 'target' }, 'callable'] }],
+        then: [{ relation: 'call-target', arguments: [{ variable: 'source' }, { variable: 'target' }] }],
+    },
+];
 
 const targetRelations = (model: SemanticKnowledgeDataFlow, invocations: readonly SemanticInvocation[], callables: readonly SemanticCallable[]): readonly SemanticCallTarget[] => {
     const invocationKeys = typedProject(typedRelation(invocations), invocation => pair(knowledgeIdKey(invocation.id), invocation)).tuples;
@@ -55,18 +61,20 @@ const targetRelations = (model: SemanticKnowledgeDataFlow, invocations: readonly
         arguments: [knowledgeIdKey(flow.source), knowledgeIdKey(flow.target), flow.role.code],
     })).tuples;
     const solved = solveSemanticRelations<InterproceduralRelation>(seed, CALLABLE_BOUNDARY_REWRITES);
-    return typedProject(
+    return typedExpand(
         typedSelect(
-            typedProject(
-                typedSelect(typedRelation(solved), fact => relationAll([relationEqual(fact.relation, 'call-target'), relationEqual(fact.arguments.length, 2)])),
-                fact => pair(
-                    relationOptionFold(mapOption(invocationKeys, String(fact.arguments[0])), () => ({ kind: 'absent' }), value => ({ kind: 'present', value })),
-                    relationOptionFold(mapOption(callableKeys, String(fact.arguments[1])), () => ({ kind: 'absent' }), value => ({ kind: 'present', value })),
-                ),
-            ),
-            entry => relationAll([relationEqual(entry[0].kind, 'present'), relationEqual(entry[1].kind, 'present')]),
+            typedRelation(solved),
+            (fact): fact is SemanticRelationOfCallTarget => relationAll([relationEqual(fact.relation, 'call-target'), relationEqual(fact.arguments.length, 2)]),
         ),
-        entry => ({ invocation: entry[0].value, callable: entry[1].value }),
+        fact => relationOptionFold(
+            mapOption(invocationKeys, String(fact.arguments[0])),
+            () => typedRelation<SemanticCallTarget>([]),
+            invocation => relationOptionFold(
+                mapOption(callableKeys, String(fact.arguments[1])),
+                () => typedRelation<SemanticCallTarget>([]),
+                callable => typedRelation([{ invocation, callable }]),
+            ),
+        ),
     ).tuples;
 };
 

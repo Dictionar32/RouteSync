@@ -91,7 +91,7 @@ export function scanSimpleOperator(stream: SourceStream, tokenMark: CursorMark, 
     ['&&', '', action(2, 'LOGICAL_AND')],
     ['||', '', action(2, 'LOGICAL_OR')],
   ];
-  const direct = relationOptionFold(
+  const direct: TokenDescriptor['type'] = relationOptionFold(
     relationFirstOption(simpleOperators, entry => relationAny([
       relationEqual(entry[0], `${char}:`),
       relationEqual(entry[0], char),

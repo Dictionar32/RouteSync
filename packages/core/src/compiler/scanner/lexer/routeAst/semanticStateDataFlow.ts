@@ -1,5 +1,5 @@
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import type { KnowledgeId, SemanticAssignment, SemanticDataFlowFact, SemanticFact, SemanticKnowledgeDataFlow, SemanticAccess, SemanticMerge, SemanticSource, } from './semanticKnowledgeDataFlowRelations';
+import type { KnowledgeId, SemanticAssignment, SemanticFact, SemanticKnowledgeDataFlow, SemanticAccess, SemanticAccessMember, SemanticMerge, SemanticPresence, SemanticSource, } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import { relationVariantValue, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
@@ -89,17 +89,15 @@ const accessUse = (access: SemanticAccess): SemanticStateUse => ({
 const assignmentFacts = (facts: readonly SemanticFact[]): readonly SemanticStateDef[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'assignment'> => relationEqual(fact.kind, 'assignment')), fact => assignmentDef(fact.value)).tuples;
 const referenceFacts = (facts: readonly SemanticFact[]): readonly SemanticStateUse[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'reference'> => relationEqual(fact.kind, 'reference')), fact => referenceUse(fact)).tuples;
 const accessFacts = (facts: readonly SemanticFact[]): readonly SemanticStateUse[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'access'> => relationEqual(fact.kind, 'access')), fact => accessUse(fact.value)).tuples;
-const mergeFacts = (facts: readonly SemanticFact[]): readonly SemanticStateMerge[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'merge'> => relationEqual(fact.kind, 'merge')), fact => {
-    const merge: SemanticMerge = fact.value;
-    return {
-        kind: 'state-merge' as const,
-        id: merge.id,
-        location: { kind: 'variable' as const, variable: merge.id },
-        incoming: merge.values,
-        selector: merge.selector,
-        source: merge.source,
-    };
-}).tuples;
+const mergeState = (merge: SemanticMerge): SemanticStateMerge => ({
+    kind: 'state-merge',
+    id: merge.id,
+    location: { kind: 'variable', variable: merge.id },
+    incoming: merge.values,
+    selector: merge.selector,
+    source: merge.source,
+});
+const mergeFacts = (facts: readonly SemanticFact[]): readonly SemanticStateMerge[] => typedProject(typedSelect(typedRelation(facts), (fact): fact is RelationVariant<SemanticFact, 'merge'> => relationEqual(fact.kind, 'merge')), fact => mergeState(fact.value)).tuples;
 /**
  * Derives state accesses from canonical semantic facts and resolves possible
  * def-use relationships by semantic location. The Maps/Sets here are only

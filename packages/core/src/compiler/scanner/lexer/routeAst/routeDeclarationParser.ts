@@ -1,5 +1,6 @@
 import { projectRelation, selectRelation, expandRelation } from '../../../relational/sequence';
 import type { TokenDescriptor } from '../phpAstTypes';
+import type { RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';
 import {
   createMiddlewareNameAst,
   createRoutePathLiteral,
@@ -137,14 +138,18 @@ function findDeclarationEnd(start: TokenCursor): TokenCursor {
 }
 
 
-function groupConstraintArgumentAst(argument: import('../../../../types/upstream/routeConstraints').RouteConstraintArgument): RouteConstraintArgumentAst {
-  return relationVariantFold<import('../../../../types/upstream/routeConstraints').RouteConstraintArgument, 'pattern', RouteConstraintArgumentAst>(argument, 'pattern',
-    () => Object.freeze({ kind: 'none' }),
-    rest => relationVariantFold<Exclude<import('../../../../types/upstream/routeConstraints').RouteConstraintArgument, { readonly kind: 'pattern' }>, 'values', RouteConstraintArgumentAst>(rest, 'values',
-      () => Object.freeze({ kind: 'none' }),
-      values => Object.freeze({ kind: 'values', values: projectRelation(values.values, value => createRouteConstraintValueAst(value.value)) }),
-      () => Object.freeze({ kind: 'none' })),
-    pattern => Object.freeze({ kind: 'pattern', value: createRouteConstraintValueAst(pattern.value.value) }));
+function groupConstraintArgumentAst(argument: RouteConstraintArgument): RouteConstraintArgumentAst {
+  return relationVariantFold<RouteConstraintArgument, 'pattern', RouteConstraintArgumentAst>(argument, 'pattern',
+    rest => relationVariantFold<Exclude<RouteConstraintArgument, { readonly kind: 'pattern' }>, 'values', RouteConstraintArgumentAst>(rest, 'values',
+      () => Object.freeze({ kind: 'none' as const }),
+      values => Object.freeze({
+        kind: 'values' as const,
+        values: projectRelation(values.values, value => createRouteConstraintValueAst(value.value)),
+      })),
+    pattern => Object.freeze({
+      kind: 'pattern' as const,
+      value: createRouteConstraintValueAst(pattern.value.value),
+    }));
 }
 
 function constraintArgumentAst(item: RouteConstraintSyntaxFact): RouteConstraintArgumentAst {

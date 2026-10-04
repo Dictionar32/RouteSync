@@ -739,6 +739,8 @@ export interface RouteValidationRuleEntry {
   readonly presence: import('./requestFieldPresence').RequestFieldPresence;
   /** Original parsed rules retained as constraint/provenance data only. */
   readonly validation: readonly ValidationRuleNode[];
+  /** Canonical source provenance for the complete validation fact. */
+  readonly source: SourceSpan;
 }
 
 /**

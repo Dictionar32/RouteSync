@@ -6,7 +6,7 @@
  * never class instances.
  */
 
-import { relationGate } from "../../../../semantic/kernel/relationalSequence";
+import { relationOptionFold, relationRefine } from "../../../../semantic/kernel/relationalSequence";
 import type {
     RouteCacheInvalidationDescriptor,
     RouteIdentityContract,
@@ -42,22 +42,22 @@ export type RouteSemanticFlowFactory = RouteSemanticFlowFields & {
 
 const isCompleteRouteContracts = (
     params: RouteSemanticFlowCompleteContracts | RouteSubcontracts
-): params is RouteSemanticFlowCompleteContracts => "contract" in params;
+): params is RouteSemanticFlowCompleteContracts => Object.prototype.hasOwnProperty.call(params, 'contract');
 
 const projectRoute = (params: RouteSemanticFlowConstructorInput): RouteSemanticFlowFactory => Object.freeze({
     ...createRouteSemanticFlowFields(params),
     projectToHookSource: function* () {
         yield* projectRouteToHookSource(createRouteSemanticFlowFields(params));
     },
-    withInvalidation: invalidation => withRouteInvalidation(createRouteSemanticFlowFields(params), invalidation, createRouteSemanticFlow)
+    withInvalidation: (invalidation: RouteCapabilityContract["invalidation"]) => withRouteInvalidation(createRouteSemanticFlowFields(params), invalidation, createRouteSemanticFlow)
 });
 
 export const createRouteSemanticFlow = (
     params: RouteSemanticFlowCompleteContracts | RouteSubcontracts
-): RouteSemanticFlowFactory => relationGate(
-    isCompleteRouteContracts(params),
-    () => projectRoute(params),
-    () => createRouteFromSubcontracts(createRouteSemanticFlow, params)
+): RouteSemanticFlowFactory => relationOptionFold(
+    relationRefine(params, isCompleteRouteContracts),
+    () => createRouteFromSubcontracts(createRouteSemanticFlow, params),
+    complete => projectRoute(complete),
 );
 
 export const RouteSemanticFlowFactory = Object.freeze({

@@ -23,8 +23,8 @@ import type { PhpArgument, PhpArrayEntry, PhpAstValue, PhpLiteralValue } from '.
 import type { TypeInterner } from '../../../types/TypeInterner';
 import type { RouteValidationRuleEntry } from '../../../../types/domain/validationRules';
 import { CanonicalRouteValidationRuleEntry } from './canonicalValidationRuleEntry';
-import type { CanonicalValidationRuleSet } from './validationFieldAssembler';
-import { assembleCanonicalValidationFields } from './validationFieldAssembler';
+import type { RouteValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
+import { RouteSemanticFlowValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
@@ -50,9 +50,9 @@ export function partitionValidationRules(
   entries: readonly PhpArrayEntry[],
   interner: TypeInterner,
   sourceFile = '<validation>'
-): CanonicalValidationRuleSet {
+): RouteValidationRuleSet {
   const validationEntries = parseCanonicalValidationRuleEntries(entries, sourceFile);
-  return assembleCanonicalValidationFields(validationEntries, interner);
+  return RouteSemanticFlowValidationRuleSet.create(validationEntries, interner);
 }
 
 export function parseValidationRules(rules: readonly string[]): readonly ValidationRuleNode[] {

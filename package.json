@@ -202,7 +202,8 @@
     "audit:phase751-highest-ast-authority": "node scripts/audit-phase751-highest-ast-authority.cjs",
     "audit:phase752-highest-mapper-semantic-boundary": "node scripts/audit-phase752-highest-mapper-semantic-boundary.cjs",
     "audit:phase753-form-request-semantic-authority": "node scripts/audit-phase753-form-request-semantic-authority.cjs",
-    "audit:phase754-resource-registry-semantic-authority": "node scripts/audit-phase754-resource-registry-semantic-authority.cjs"
+    "audit:phase754-resource-registry-semantic-authority": "node scripts/audit-phase754-resource-registry-semantic-authority.cjs",
+    "audit:phase755-highest-validation-ast-authority": "node scripts/audit-phase755-highest-validation-ast-authority.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

@@ -8,7 +8,7 @@ import type { PhpAstValue, PhpMethodAst } from '../lexer/phpMethodAstTypes';
 import type { PhpClassPropertyAst } from '../lexer/phpAstDeclarationTypes';
 import type { TypeInterner } from '../../types/TypeInterner';
 import { parseCanonicalValidationRuleEntries } from './form-request';
-import { assembleCanonicalValidationFields } from './form-request/validationFieldAssembler';
+import { RouteSemanticFlowValidationRuleSet } from '../descriptors/validation/validationRuleSet';
 import { requestFieldFromSource } from './requestAstCanonical';
 import { mapResourcePhpStatementsToSourceStatements } from './resource/resourceUpstreamExpressionCanonical';
 import { expressionFromPhpAst } from './expressionProducer';
@@ -187,7 +187,7 @@ function failureResponse(properties: readonly PhpClassPropertyAst[]): import('..
 export const requestProducer: RequestProducer = {
     produce(input): RequestAst {
         const validationEntries = parseCanonicalValidationRuleEntries(input.rules, input.sourceFile);
-        const sourceFields = assembleCanonicalValidationFields(validationEntries, input.interner).fields;
+        const sourceFields = RouteSemanticFlowValidationRuleSet.create(validationEntries, input.interner).fields;
         const fields: RequestFields = { kind: 'request_fields', items: seq(relationProject(sourceFields, requestFieldFromSource)) };
         const messagesMethod = relationOptionFold(relationFirst(input.methods, method => relationEqual(method.name.value, 'messages')), () => relationNone<PhpMethodAst>(), relationSome);
         const attributesMethod = relationOptionFold(relationFirst(input.methods, method => relationEqual(method.name.value, 'attributes')), () => relationNone<PhpMethodAst>(), relationSome);

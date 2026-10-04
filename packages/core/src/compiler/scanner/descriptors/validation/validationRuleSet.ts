@@ -16,16 +16,15 @@ import { createScalarValidationFieldNode, createObjectValidationFieldNode, creat
 import {
     relationFold,
     relationFirstOption,
-    relationIndexOf,
     relationOptionFold,
-    relationOptionMap,
     relationProject,
-    relationResolve,
+    relationVariantFold,
     relationGate,
 } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import type { PropertyName } from '../../../../types/upstream/names';
 import type { RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { relationIndexAdd } from '../../../../semantic/kernel/relationMembership';
+import { relationIndexAdd, relationIndexLookup } from '../../../../semantic/kernel/relationMembership';
 
 export interface RouteValidationRuleSet {
     readonly entries: readonly RouteValidationRuleEntry[];
@@ -44,7 +43,7 @@ export const RouteSemanticFlowValidationRuleSet = Object.freeze({
 });
 
 interface RootValidationField {
-    readonly name: import("../../../../types/upstream/names").PropertyName;
+    readonly name: PropertyName;
     readonly semanticType: SemanticType;
     readonly presence: RouteValidationRuleEntry['presence'];
     readonly requirement: RequestFieldRequirement;
@@ -54,23 +53,32 @@ interface RootValidationField {
     readonly properties: readonly ValidationFieldProperty[];
 }
 
-type RootEntry = readonly [string, RootValidationField];
 
-function rootEntry(entries: RelationIndex<string, RootValidationField>, key: string): import('../../../../semantic/kernel/relationalSequence').RelationOption<RootValidationField> {
-    return relationOptionMap(
-        relationFirstOption(entries as readonly RootEntry[], entry => relationEqual(entry[0], key)),
-        entry => entry[1],
-    );
+function rootEntry(entries: RelationIndex<PropertyName, RootValidationField>, key: PropertyName) {
+    return relationIndexLookup(entries, key);
 }
 
-function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationIndex<string, RootValidationField> {
-    const roots: RelationIndex<string, RootValidationField> = [];
-    return relationFold(entries, roots, (store, entry) => {
+function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationIndex<PropertyName, RootValidationField> {
+    return relationFold(entries, [], (store, entry) => {
         const rootName = relationGateRootName(entry);
         const rootPropertyName = relationGateRootProperty(entry);
         const existing = rootEntry(store, rootName);
-        const next = relationGate(
-            relationEqual(entry.location.kind, 'root'),
+        const next = relationVariantFold(
+            entry.location,
+            'root',
+            location => ({
+                name: rootPropertyName,
+                semanticType: entry.semanticType,
+                presence: relationOptionFold(existing, () => entry.presence, value => value.presence),
+                requirement: relationOptionFold(existing, () => requirementFromValidation(entry.validation), value => value.requirement),
+                validation: relationOptionFold(existing, () => entry.validation, value => value.validation),
+                source: relationOptionFold(existing, () => entry.source, value => value.source),
+                shape: relationOptionFold(existing, () => entry.shape, value => value.shape),
+                properties: mergeProperty(
+                    relationOptionFold(existing, () => [], value => value.properties),
+                    leafProperty(entry),
+                ),
+            }),
             () => ({
                 name: rootPropertyName,
                 semanticType: entry.semanticType,
@@ -81,103 +89,122 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationInd
                 shape: entry.shape,
                 properties: relationOptionFold(existing, () => [], value => value.properties),
             }),
-            () => {
-                const property = leafProperty(entry);
-                return {
-                    name: rootPropertyName,
-                    semanticType: entry.semanticType,
-                    presence: relationOptionFold(existing, () => entry.presence, value => value.presence),
-                    requirement: relationOptionFold(existing, () => requirementFromValidation(entry.validation), value => value.requirement),
-                    validation: relationOptionFold(existing, () => [], value => value.validation),
-                    source: relationOptionFold(existing, () => entry.source, value => value.source),
-                    shape: relationOptionFold(existing, () => entry.shape, value => value.shape),
-                    properties: mergeProperty(relationOptionFold(existing, () => [], value => value.properties), property),
-                };
-            },
         );
         return relationIndexAdd(store, rootName, next);
     });
 }
 
-function relationGateRootName(entry: RouteValidationRuleEntry): string {
-    return relationGate(
-        relationEqual(entry.location.kind, 'root'),
-        () => entry.fieldName.value.value,
-        () => entry.location.collection.value.value,
+function relationGateRootName(entry: RouteValidationRuleEntry): PropertyName {
+    return relationVariantFold(
+        entry.location,
+        'root',
+        location => location.collection,
+        () => entry.fieldName,
     );
 }
 
-function relationGateRootProperty(entry: RouteValidationRuleEntry): RootValidationField['name'] {
-    return relationGate(
-        relationEqual(entry.location.kind, 'root'),
+function relationGateRootProperty(entry: RouteValidationRuleEntry): PropertyName {
+    return relationVariantFold(
+        entry.location,
+        'root',
+        location => location.collection,
         () => entry.fieldName,
-        () => entry.location.collection,
     );
 }
 
 function leafProperty(entry: RouteValidationRuleEntry): ValidationFieldProperty {
-    const shape = entry.shape;
-    return relationGate(
-        relationAll([
-            relationEqual(shape.kind, 'collection'),
-            relationEqual(shape.element.kind, 'object'),
-            shape.element.fields.length > 0,
-        ]),
-        () => shape.element.fields[0],
-        () => ({
-            name: entry.fieldName,
-            semanticType: entry.semanticType,
-            presence: entry.presence,
-            validation: entry.validation,
-            shape: relationGate(relationEqual(shape.kind, 'collection'), () => shape.element, () => shape),
-        }),
+    return relationVariantFold(
+        entry.shape,
+        'collection',
+        shape => entryProperty(entry, shape),
+        shape => relationVariantFold(
+            shape.element,
+            'object',
+            scalar => entryProperty(entry, shape.element),
+            object => relationOptionFold(
+                relationFirstOption(object.fields, () => true),
+                () => entryProperty(entry, shape.element),
+                field => field,
+            ),
+        ),
     );
+}
+
+function entryProperty(entry: RouteValidationRuleEntry, shape: ValidationFieldShape): ValidationFieldProperty {
+    return {
+        name: entry.fieldName,
+        semanticType: entry.semanticType,
+        presence: entry.presence,
+        validation: entry.validation,
+        shape: relationVariantFold(shape, 'collection', collection => collection.element, nested => nested),
+        source: entry.source,
+    };
 }
 
 function mergeProperty(properties: readonly ValidationFieldProperty[], property: ValidationFieldProperty): readonly ValidationFieldProperty[] {
-    const existingIndex = relationIndexOf(properties, candidate => relationEqual(candidate.name.value, property.name.value));
-    return relationGate(
-        relationEqual(existingIndex, -1),
+    const existingIndex = relationFirstOption(
+        properties,
+        candidate => relationEqual(candidate.name.value.value, property.name.value.value),
+    );
+    return relationOptionFold(
+        existingIndex,
         () => Object.freeze([...properties, property]),
-        () => {
-            const existing = properties[existingIndex];
-            const merged = mergePropertyShape(existing, property);
-            return Object.freeze(relationProject(properties, (candidate, index) => relationGate(relationEqual(index, existingIndex), () => merged, () => candidate)));
-        },
+        existing => Object.freeze(relationProject(
+            properties,
+            candidate => relationGate(
+                relationEqual(candidate.name.value.value, existing.name.value.value),
+                () => mergePropertyShape(candidate, property),
+                () => candidate,
+            ),
+        )),
     );
 }
 
-function mergePropertyShape(
-    existing: ValidationFieldProperty,
-    incoming: ValidationFieldProperty
-): ValidationFieldProperty {
-    return relationGate(
-        relationAll([relationEqual(existing.shape.kind, 'object'), relationEqual(incoming.shape.kind, 'object')]),
-        () => {
-            const fields = relationFold(
-                incoming.shape.fields,
-                existing.shape.fields,
-                (accumulator, field) => mergeProperty(accumulator, field),
-            );
-            const shape: ValidationFieldShape = { kind: 'object', fields };
-            return {
-                name: existing.name,
-                semanticType: objectType(existing.name.value.value, fields),
-                presence: existing.presence,
-                validation: existing.validation,
-                source: existing.source,
-                shape,
-            };
-        },
-        () => incoming,
+function mergePropertyShape(existing: ValidationFieldProperty, incoming: ValidationFieldProperty): ValidationFieldProperty {
+    return relationVariantFold(
+        existing.shape,
+        'object',
+        existingRest => incoming,
+        existingObject => relationVariantFold(
+            incoming.shape,
+            'object',
+            incomingRest => incoming,
+            incomingObject => {
+                const fields = relationFold(
+                    incomingObject.fields,
+                    existingObject.fields,
+                    (accumulator, field) => mergeProperty(accumulator, field),
+                );
+                const shape: ValidationFieldShape = { kind: 'object', fields };
+                return {
+                    name: existing.name,
+                    semanticType: objectType(existing.name, fields),
+                    presence: existing.presence,
+                    validation: existing.validation,
+                    source: existing.source,
+                    shape,
+                };
+            },
+        ),
     );
 }
 
 function requirementFromValidation(validation: readonly ValidationRuleNode[]): RequestFieldRequirement {
     return relationOptionFold(
-        relationFirstOption(validation, item => relationEqual(item.kind, 'required_with')),
+        relationFirstOption(validation, item => relationAny([
+            relationEqual(item.kind, 'required_with'),
+            relationEqual(item.kind, 'required_with_all'),
+            relationEqual(item.kind, 'required_without'),
+            relationEqual(item.kind, 'required_without_all'),
+            relationEqual(item.kind, 'required_if'),
+            relationEqual(item.kind, 'required_unless'),
+        ])),
         () => ({ kind: 'unconditional' }),
-        rule => ({ kind: 'required_with', fields: Object.freeze([...rule.fields]) }),
+        item => relationVariantFold(
+            item,
+            'required_with',
+            rest => relationVariantFold(rest, 'required_with_all', restAll => relationVariantFold(restAll, 'required_without', restWithout => relationVariantFold(restWithout, 'required_without_all', restWithoutAll => relationVariantFold(restWithoutAll, 'required_if', restIf => relationVariantFold(restIf, 'required_unless', absentUnless => ({ kind: 'unconditional' }), presentUnless => ({ kind: 'required_unless', field: presentUnless.field, values: presentUnless.values })), presentIf => ({ kind: 'required_if', field: presentIf.field, values: presentIf.values })), presentWithoutAll => ({ kind: 'required_without_all', fields: presentWithoutAll.fields })), presentWithout => ({ kind: 'required_without', fields: presentWithout.fields })), presentAll => ({ kind: 'required_with_all', fields: presentAll.fields })), presentWith => ({ kind: 'required_with', fields: presentWith.fields }),
+        ),
     );
 }
 
@@ -199,13 +226,13 @@ function toRequestField(root: RootValidationField, interner: TypeInterner): Requ
     };
 }
 
-function objectType(name: import("../../../../types/upstream/names").PropertyName, properties: readonly ValidationFieldProperty[]): ObjectType {
-    const objectProperties: ObjectProperty[] = relationProject(properties, property => ({
+function objectType(name: PropertyName, properties: readonly ValidationFieldProperty[]): ObjectType {
+    const objectProperties: ObjectProperty[] = [...relationProject(properties, property => ({
         name: property.name,
         type: property.semanticType,
         description: '',
         origin: { kind: 'validation_field', field: property.name.value.value },
-    }));
+    }))];
     return ObjectType({ name: name.value.value, baseName: name.value.value, properties: objectProperties, role: 'plain' });
 }
 
@@ -227,47 +254,65 @@ function toTreeNode(root: RootValidationField): ValidationFieldNode {
                 root.validation,
             );
         },
-        () => relationGate(
-            relationAny([relationEqual(root.semanticType.kind, 'readonly_collection'), relationEqual(root.semanticType.kind, 'mutable_collection')]),
-            () => createArrayValidationFieldNode(
+        () => relationVariantFold(
+            root.semanticType,
+            'readonly_collection',
+            rest => relationVariantFold(
+                rest,
+                'mutable_collection',
+                scalar => createScalarValidationFieldNode(root.name, root.semanticType, root.presence, root.validation),
+                collection => createArrayValidationFieldNode(
+                    root.name,
+                    root.semanticType,
+                    root.presence,
+                    createScalarValidationFieldNode(
+                        createPropertyName(`${root.name.value.value}.*`),
+                        collection.elementType,
+                        root.presence,
+                    ),
+                    root.validation,
+                ),
+            ),
+            collection => createArrayValidationFieldNode(
                 root.name,
                 root.semanticType,
                 root.presence,
                 createScalarValidationFieldNode(
                     createPropertyName(`${root.name.value.value}.*`),
-                    root.semanticType.elementType,
+                    collection.elementType,
                     root.presence,
                 ),
                 root.validation,
             ),
-            () => createScalarValidationFieldNode(root.name, root.semanticType, root.presence, root.validation),
         ),
     );
 }
 
 function propertyToTreeNode(property: ValidationFieldProperty): ValidationFieldNode {
-    return relationGate(
-        relationEqual(property.shape.kind, 'object'),
-        () => createObjectValidationFieldNode(
-            property.name,
-            property.semanticType,
-            property.presence,
-            relationProject(property.shape.fields, propertyToTreeNode),
-        ),
-        () => relationGate(
-            relationEqual(property.shape.kind, 'collection'),
-            () => createArrayValidationFieldNode(
+    return relationVariantFold(
+        property.shape,
+        'object',
+        rest => relationVariantFold(
+            rest,
+            'collection',
+            scalar => createScalarValidationFieldNode(property.name, property.semanticType, property.presence, property.validation),
+            collection => createArrayValidationFieldNode(
                 property.name,
                 property.semanticType,
                 property.presence,
                 createScalarValidationFieldNode(
                     createPropertyName(`${property.name.value.value}.*`),
-                    property.shape.elementType,
+                    collection.elementType,
                     property.presence,
                 ),
                 property.validation,
             ),
-            () => createScalarValidationFieldNode(property.name, property.semanticType, property.presence, property.validation),
+        ),
+        object => createObjectValidationFieldNode(
+            property.name,
+            property.semanticType,
+            property.presence,
+            relationProject(object.fields, propertyToTreeNode),
         ),
     );
 }

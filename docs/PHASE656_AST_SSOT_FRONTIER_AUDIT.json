@@ -37,11 +37,11 @@
     }
   },
   "parserAdapter": {
-    "parsePhpMethodOrThrowRemoved": true,
+    "parsePhpMethodOrThrowRemoved": false,
     "forbidden": {
       "if": 0,
       "while": 0,
-      "for": 0,
+      "for": 1,
       "switch": 0,
       "map": 0,
       "filter": 0,

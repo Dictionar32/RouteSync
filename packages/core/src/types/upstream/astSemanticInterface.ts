@@ -47,14 +47,13 @@ export type AstSemanticStage =
 
 export type AstSemanticRelationName =
   | AstRelationName
-  | 'ast_candidate'
-  | 'ast_resolves'
-  | 'ast_conflicts'
-  | 'ast_proves'
-  | 'ast_analyzes'
-  | 'ast_types'
-  | 'ast_lowers'
-  | 'ast_projects';
+  | 'scanner_observes' | 'scanner_tokens' | 'scanner_syntax' | 'scanner_diagnostic'
+  | 'upstream_maps' | 'upstream_identity' | 'upstream_origin' | 'upstream_provenance'
+  | 'resolver_candidate' | 'resolver_resolves' | 'resolver_conflict' | 'resolver_edge'
+  | 'analysis_depends' | 'analysis_reaches' | 'analysis_dominates' | 'analysis_proves'
+  | 'type_infers' | 'type_refines' | 'type_lowers' | 'type_compatible'
+  | 'target_projects' | 'target_emits' | 'target_preserves' | 'target_requires'
+  | 'ast_candidate' | 'ast_resolves' | 'ast_conflicts' | 'ast_proves' | 'ast_analyzes' | 'ast_types' | 'ast_lowers' | 'ast_projects';
 
 export type AstSemanticTerm =
   | { readonly kind: 'node'; readonly value: AstNodeIdentity }

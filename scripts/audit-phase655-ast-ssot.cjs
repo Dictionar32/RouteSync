@@ -5,9 +5,10 @@ const astPath = path.join(root, 'packages/core/src/types/upstream/ast.ts');
 const ast = fs.readFileSync(astPath, 'utf8');
 const required = [
   'export type AstJudgmentBase<Kind extends AstSemanticSchemaKind>',
-  'export type AstJudgment = {',
-  'export type SemanticAstNode<Kind extends AstSemanticSchemaKind> = Extract<AstJudgment',
-  'export type CanonicalAstNode<Kind extends AstSemanticSchemaKind> = Extract<AstJudgment',
+  'export type AstJudgmentRegistry = {',
+  'export type AstJudgment = AstJudgmentRegistry[AstSemanticSchemaKind]',
+  'export type SemanticAstNode<Kind extends AstSemanticSchemaKind> = AstJudgmentContract<Kind>',
+  'export type CanonicalAstNode<Kind extends AstSemanticSchemaKind> = AstJudgmentContract<Kind>',
   'export type ExpressionAst = Extract<AstJudgment',
   'readonly identity:', 'readonly semantic:', 'readonly evidence:', 'readonly provenance:',
   'readonly constraints:', 'readonly dependencies:', 'readonly relations:', 'readonly derivation:',
@@ -28,7 +29,7 @@ const report = {
     hostAny: rawAny,
     hostUndefined: hostUndefined,
     hostNull: hostNull,
-    closedJudgmentUnion: /export type AstJudgment = \{[\s\S]*\}\[AstSemanticSchemaKind\];/.test(ast),
+    closedJudgmentUnion: /export type AstJudgmentRegistry = \{[\s\S]*?\};[\s\S]*export type AstJudgment = AstJudgmentRegistry\[AstSemanticSchemaKind\];/.test(ast),
   },
   interpretation: 'AstJudgment is the closed SSOT universe; SemanticAstNode and CanonicalAstNode are narrowing projections, not independent schemas.'
 };

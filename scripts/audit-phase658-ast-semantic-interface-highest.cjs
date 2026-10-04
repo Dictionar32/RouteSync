@@ -55,9 +55,8 @@ const result = {
     genericPayload: !interfaceSource.includes('Record<string, any>'),
   },
   resourceBindingBoundary: {
-    judgmentAdapter: resourceSource.includes('createResourceBindingAstJudgment'),
-    resolverStage: resourceSource.includes("'resolver_graph'"),
-    traversalFacts: resourceSource.includes('traversalFacts'),
+    legacyBoundaryEmpty: resourceSource.trim().length === 0,
+    noProductionReferences: !resourceSource.includes('createResourceBindingAstJudgment'),
   },
   targetBoundary: {
     closedFact: targetSource.includes('TypeScriptSurfaceFact'),

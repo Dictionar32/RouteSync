@@ -384,10 +384,13 @@ export type AstJudgmentBase<Kind extends AstSemanticSchemaKind> = {
   readonly diagnostics: AstDiagnostics;
 } & AstCompatibilityProjection<Kind>;
 
-/** Closed canonical AST judgment ADT. This union is RouteSync AST SSOT. */
-export type AstJudgment = {
+/** Closed canonical AST judgment registry. This registry is RouteSync AST SSOT. */
+export type AstJudgmentRegistry = {
   [Kind in AstSemanticSchemaKind]: AstJudgmentContract<Kind>;
-}[AstSemanticSchemaKind];
+};
+
+/** Closed canonical AST judgment ADT. This union is RouteSync AST SSOT. */
+export type AstJudgment = AstJudgmentRegistry[AstSemanticSchemaKind];
 
 export type AstJudgmentVisitor<R> = {
   readonly [Kind in AstSemanticSchemaKind]: (judgment: SemanticAstNode<Kind>) => R;

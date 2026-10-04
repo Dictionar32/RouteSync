@@ -7,7 +7,7 @@ import type {
     PhpArgument, PhpAstNode, PhpBlock, PhpClosureCapture, PhpParameter,
     PhpBinaryOperator, PhpCastType, PhpUnaryOperator, PhpPropertyName,
     PhpClassName, PhpConstantName, PhpFunctionName, PhpMethodName,
-    PhpVariableName, ArrayKey, PhpStatement, PhpReturnExpression, BoundLiteralValue
+    PhpVariableName, ArrayKey, PhpStatement, PhpReturnExpression, BoundLiteralValue, PhpAstSource
 } from '@routesync/core';
 import type { PhpGrammarNode, GrammarStatement } from './ast/grammar';
 import { matchPhpGrammar, type PhpGrammarVisitor } from './ast/grammarCatamorphism';
@@ -20,7 +20,7 @@ const methodName = (value: string): PhpMethodName => ({ kind: 'method_name', val
 const functionName = (value: string): PhpFunctionName => ({ kind: 'function_name', value });
 const variableName = (value: string): PhpVariableName => ({ kind: 'variable_name', value });
 const constantName = (value: string): PhpConstantName => ({ kind: 'constant_name', value });
-const source = { kind: 'absent' } as const;
+const source: PhpAstSource = { kind: 'absent' };
 
 const fail = (message: string): never => { throw Error(message); };
 type GrammarBoundaryNode = PhpGrammarNode | GrammarStatement;
@@ -140,8 +140,8 @@ const isGrammarNodeKey = (candidate: PhpGrammarNode | null): candidate is PhpGra
 const arrayKey = (key: PhpGrammarNode | null, adapt: (node: PhpGrammarNode) => PhpAstNode): ArrayKey =>
     relationOptionFold(
         relationFirstOption([key], isGrammarNodeKey),
-        () => ({ kind: 'implicit' as const }),
-        value => ({ kind: 'explicit' as const, expression: adapt(value) }),
+        () => ({ kind: 'implicit' }),
+        value => ({ kind: 'explicit', expression: adapt(value) }),
     );
 
 export function adaptPhpAstBoundaryJudgment(node: PhpGrammarNode, code: string): PhpAstBoundaryJudgment {

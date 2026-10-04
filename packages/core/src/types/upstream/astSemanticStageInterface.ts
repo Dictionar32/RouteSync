@@ -17,13 +17,15 @@ import {
   type AstSemanticFact,
   type AstSemanticFacts,
   type AstSemanticJudgment,
-  type AstSemanticStage,
   type AstSemanticTerm,
 } from './astSemanticInterface';
 import { relationFold, relationProject, relationResolve, relationLookup, relationOptionFold } from '../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../semantic/kernel/semanticRelations';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
 import { stageProofObligations } from './astSemanticStageProof';
+
+/** Closed stage vocabulary is re-exported here so stage-specific ports have one authority. */
+export type AstSemanticStage = import('./astSemanticInterface').AstSemanticStage;
 
 export type ScannerEvidenceRelation =
   | 'scanner_observes'
@@ -119,39 +121,39 @@ export type AstSemanticStageContract = ScannerEvidenceContract | UpstreamMapping
 
 const SCANNER_EVIDENCE_CONTRACT: ScannerEvidenceContract = Object.freeze({
   kind: 'scanner_evidence_contract', stage: 'scanner_evidence', input: 'source_syntax', output: 'scanner_evidence',
-  relations: Object.freeze(['scanner_observes', 'scanner_tokens', 'scanner_syntax', 'scanner_diagnostic']),
+  relations: Object.freeze(['scanner_observes', 'scanner_tokens', 'scanner_syntax', 'scanner_diagnostic'] as readonly ScannerEvidenceRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
-  preservation: Object.freeze(['preserves_identity', 'preserves_origin']), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
+  preservation: Object.freeze(['preserves_identity', 'preserves_origin'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
 const UPSTREAM_MAPPING_CONTRACT: UpstreamMappingContract = Object.freeze({
   kind: 'upstream_mapping_contract', stage: 'upstream_mapping', input: 'scanner_evidence', output: 'upstream_mapping',
-  relations: Object.freeze(['upstream_maps', 'upstream_identity', 'upstream_origin', 'upstream_provenance']),
+  relations: Object.freeze(['upstream_maps', 'upstream_identity', 'upstream_origin', 'upstream_provenance'] as readonly UpstreamMappingRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
-  preservation: Object.freeze(['preserves_identity', 'preserves_origin']), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
+  preservation: Object.freeze(['preserves_identity', 'preserves_origin'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
 const RESOLVER_GRAPH_CONTRACT: ResolverGraphContract = Object.freeze({
   kind: 'resolver_graph_contract', stage: 'resolver_graph', input: 'upstream_mapping', output: 'resolver_graph',
-  relations: Object.freeze(['resolver_candidate', 'resolver_resolves', 'resolver_conflict', 'resolver_edge']),
+  relations: Object.freeze(['resolver_candidate', 'resolver_resolves', 'resolver_conflict', 'resolver_edge'] as readonly ResolverGraphRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
-  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution']), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
+  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
 const ANALYSIS_CONTRACT: AnalysisContract = Object.freeze({
   kind: 'analysis_contract', stage: 'analysis', input: 'resolver_graph', output: 'analysis',
-  relations: Object.freeze(['analysis_depends', 'analysis_reaches', 'analysis_dominates', 'analysis_proves']),
+  relations: Object.freeze(['analysis_depends', 'analysis_reaches', 'analysis_dominates', 'analysis_proves'] as readonly AnalysisRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
-  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control']), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
+  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
 const SEMANTIC_TYPE_LOWERING_CONTRACT: SemanticTypeLoweringContract = Object.freeze({
   kind: 'semantic_type_lowering_contract', stage: 'semantic_type_lowering', input: 'analysis', output: 'semantic_type_lowering',
-  relations: Object.freeze(['type_infers', 'type_refines', 'type_lowers', 'type_compatible']),
+  relations: Object.freeze(['type_infers', 'type_refines', 'type_lowers', 'type_compatible'] as readonly SemanticTypeLoweringRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
-  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control', 'preserves_type']), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
+  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control', 'preserves_type'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
 const TARGET_PROJECTION_CONTRACT: TargetProjectionContract = Object.freeze({
   kind: 'target_projection_contract', stage: 'target_projection', input: 'semantic_type_lowering', output: 'target_projection',
-  relations: Object.freeze(['target_projects', 'target_emits', 'target_preserves', 'target_requires']),
+  relations: Object.freeze(['target_projects', 'target_emits', 'target_preserves', 'target_requires'] as readonly TargetProjectionRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
-  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control', 'preserves_type', 'preserves_target_semantics']), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
+  preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control', 'preserves_type', 'preserves_target_semantics'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
 
 export const astSemanticStageContract = (stage: AstSemanticStage): AstSemanticStageContract => relationResolve(
@@ -208,8 +210,15 @@ export type AstSemanticBoundary = Readonly<{
   readonly derivation: AstDerivation;
 }>;
 
+const scannerEvidenceFact = (relation: ScannerEvidenceRelation, subject: AstSemanticTerm, object: AstSemanticTerm): ScannerEvidenceFact => Object.freeze({ kind: 'scanner_evidence_fact', stage: 'scanner_evidence', relation, subject, object });
+const upstreamMappingFact = (relation: UpstreamMappingRelation, subject: AstSemanticTerm, object: AstSemanticTerm): UpstreamMappingFact => Object.freeze({ kind: 'upstream_mapping_fact', stage: 'upstream_mapping', relation, subject, object });
+const resolverGraphFact = (relation: ResolverGraphRelation, subject: AstSemanticTerm, object: AstSemanticTerm): ResolverGraphFact => Object.freeze({ kind: 'resolver_graph_fact', stage: 'resolver_graph', relation, subject, object });
+const analysisFact = (relation: AnalysisRelation, subject: AstSemanticTerm, object: AstSemanticTerm): AnalysisFact => Object.freeze({ kind: 'analysis_fact', stage: 'analysis', relation, subject, object });
+const semanticTypeLoweringFact = (relation: SemanticTypeLoweringRelation, subject: AstSemanticTerm, object: AstSemanticTerm): SemanticTypeLoweringFact => Object.freeze({ kind: 'semantic_type_lowering_fact', stage: 'semantic_type_lowering', relation, subject, object });
+const targetProjectionFact = (relation: TargetProjectionRelation, subject: AstSemanticTerm, object: AstSemanticTerm): TargetProjectionFact => Object.freeze({ kind: 'target_projection_fact', stage: 'target_projection', relation, subject, object });
+
 const scannerRelation = (relation: AstSemanticFact['relation']): ScannerEvidenceRelation => relationOptionFold(
-  relationLookup([
+  relationLookup<AstSemanticFact['relation'], ScannerEvidenceRelation>([
     ['scanner_observes', 'scanner_observes'], ['scanner_tokens', 'scanner_tokens'],
     ['scanner_syntax', 'scanner_syntax'], ['scanner_diagnostic', 'scanner_diagnostic'],
   ], relation),
@@ -217,7 +226,7 @@ const scannerRelation = (relation: AstSemanticFact['relation']): ScannerEvidence
   value => value,
 );
 const mappingRelation = (relation: AstSemanticFact['relation']): UpstreamMappingRelation => relationOptionFold(
-  relationLookup([
+  relationLookup<AstSemanticFact['relation'], UpstreamMappingRelation>([
     ['upstream_maps', 'upstream_maps'], ['upstream_identity', 'upstream_identity'],
     ['upstream_origin', 'upstream_origin'], ['upstream_provenance', 'upstream_provenance'],
   ], relation),
@@ -225,7 +234,7 @@ const mappingRelation = (relation: AstSemanticFact['relation']): UpstreamMapping
   value => value,
 );
 const resolverRelation = (relation: AstSemanticFact['relation']): ResolverGraphRelation => relationOptionFold(
-  relationLookup([
+  relationLookup<AstSemanticFact['relation'], ResolverGraphRelation>([
     ['resolver_candidate', 'resolver_candidate'], ['resolver_resolves', 'resolver_resolves'],
     ['resolver_conflict', 'resolver_conflict'], ['resolver_edge', 'resolver_edge'],
   ], relation),
@@ -233,7 +242,7 @@ const resolverRelation = (relation: AstSemanticFact['relation']): ResolverGraphR
   value => value,
 );
 const analysisRelation = (relation: AstSemanticFact['relation']): AnalysisRelation => relationOptionFold(
-  relationLookup([
+  relationLookup<AstSemanticFact['relation'], AnalysisRelation>([
     ['analysis_depends', 'analysis_depends'], ['analysis_reaches', 'analysis_reaches'],
     ['analysis_dominates', 'analysis_dominates'], ['analysis_proves', 'analysis_proves'],
   ], relation),
@@ -241,7 +250,7 @@ const analysisRelation = (relation: AstSemanticFact['relation']): AnalysisRelati
   value => value,
 );
 const loweringRelation = (relation: AstSemanticFact['relation']): SemanticTypeLoweringRelation => relationOptionFold(
-  relationLookup([
+  relationLookup<AstSemanticFact['relation'], SemanticTypeLoweringRelation>([
     ['type_infers', 'type_infers'], ['type_refines', 'type_refines'],
     ['type_lowers', 'type_lowers'], ['type_compatible', 'type_compatible'],
   ], relation),
@@ -249,7 +258,7 @@ const loweringRelation = (relation: AstSemanticFact['relation']): SemanticTypeLo
   value => value,
 );
 const targetRelation = (relation: AstSemanticFact['relation']): TargetProjectionRelation => relationOptionFold(
-  relationLookup([
+  relationLookup<AstSemanticFact['relation'], TargetProjectionRelation>([
     ['target_projects', 'target_projects'], ['target_emits', 'target_emits'],
     ['target_preserves', 'target_preserves'], ['target_requires', 'target_requires'],
   ], relation),
@@ -304,7 +313,7 @@ const targetStageFact = (relation: TargetProjectionRelation, subject: AstSemanti
 const scannerFacts = (facts: AstSemanticFacts): ScannerEvidenceFacts => relationProject(
   facts.items,
   fact => relationOptionFold(
-    relationLookup([
+    relationLookup<AstSemanticFact['relation'], ScannerEvidenceRelation>([
       ['scanner_observes', 'scanner_observes'], ['scanner_tokens', 'scanner_tokens'],
       ['scanner_syntax', 'scanner_syntax'], ['scanner_diagnostic', 'scanner_diagnostic'],
     ], fact.relation),
@@ -315,7 +324,7 @@ const scannerFacts = (facts: AstSemanticFacts): ScannerEvidenceFacts => relation
 const mappingFacts = (facts: AstSemanticFacts): UpstreamMappingFacts => relationProject(
   facts.items,
   fact => relationOptionFold(
-    relationLookup([
+    relationLookup<AstSemanticFact['relation'], UpstreamMappingRelation>([
       ['upstream_maps', 'upstream_maps'], ['upstream_identity', 'upstream_identity'],
       ['upstream_origin', 'upstream_origin'], ['upstream_provenance', 'upstream_provenance'],
     ], fact.relation),
@@ -326,7 +335,7 @@ const mappingFacts = (facts: AstSemanticFacts): UpstreamMappingFacts => relation
 const resolverFacts = (facts: AstSemanticFacts): ResolverGraphFacts => relationProject(
   facts.items,
   fact => relationOptionFold(
-    relationLookup([
+    relationLookup<AstSemanticFact['relation'], ResolverGraphRelation>([
       ['resolver_candidate', 'resolver_candidate'], ['resolver_resolves', 'resolver_resolves'],
       ['resolver_conflict', 'resolver_conflict'], ['resolver_edge', 'resolver_edge'],
     ], fact.relation),
@@ -337,7 +346,7 @@ const resolverFacts = (facts: AstSemanticFacts): ResolverGraphFacts => relationP
 const analysisFacts = (facts: AstSemanticFacts): AnalysisFacts => relationProject(
   facts.items,
   fact => relationOptionFold(
-    relationLookup([
+    relationLookup<AstSemanticFact['relation'], AnalysisRelation>([
       ['analysis_depends', 'analysis_depends'], ['analysis_reaches', 'analysis_reaches'],
       ['analysis_dominates', 'analysis_dominates'], ['analysis_proves', 'analysis_proves'],
     ], fact.relation),
@@ -348,7 +357,7 @@ const analysisFacts = (facts: AstSemanticFacts): AnalysisFacts => relationProjec
 const loweringFacts = (facts: AstSemanticFacts): SemanticTypeLoweringFacts => relationProject(
   facts.items,
   fact => relationOptionFold(
-    relationLookup([
+    relationLookup<AstSemanticFact['relation'], SemanticTypeLoweringRelation>([
       ['type_infers', 'type_infers'], ['type_refines', 'type_refines'],
       ['type_lowers', 'type_lowers'], ['type_compatible', 'type_compatible'],
     ], fact.relation),
@@ -359,7 +368,7 @@ const loweringFacts = (facts: AstSemanticFacts): SemanticTypeLoweringFacts => re
 const targetFacts = (facts: AstSemanticFacts): TargetProjectionFacts => relationProject(
   facts.items,
   fact => relationOptionFold(
-    relationLookup([
+    relationLookup<AstSemanticFact['relation'], TargetProjectionRelation>([
       ['target_projects', 'target_projects'], ['target_emits', 'target_emits'],
       ['target_preserves', 'target_preserves'], ['target_requires', 'target_requires'],
     ], fact.relation),

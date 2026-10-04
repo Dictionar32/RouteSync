@@ -1,4 +1,4 @@
-import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ReferenceType, ErrorType, type SemanticType } from '../../compiler/types/SemanticType';
+import { PrimitiveKind, primitiveType, ReadonlyCollectionType, CollectionKind, ReferenceType, ErrorType, type SemanticType } from '../../compiler/types/SemanticType';
 import type { ResourceExpressionModel } from './resourceExpressionModel';
 import { SemanticValueFactory, type MethodName, type PropertyName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';

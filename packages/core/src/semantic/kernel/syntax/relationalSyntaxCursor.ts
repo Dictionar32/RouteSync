@@ -1,43 +1,39 @@
 /** Canonical syntax navigation: relations, presence witnesses, and recursive closure. */
 import type { TokenDescriptor } from '../../../compiler/scanner/lexer/phpAstTypes';
-import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenSyntaxFact } from '../../../compiler/scanner/lexer/routeAst/syntaxValue';
+import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenSyntaxFact, type SyntaxTokenFact } from '../../../compiler/scanner/lexer/routeAst/syntaxValue';
 import {
   closesCurrentDelimiter,
   delimiterTransition,
   isTopLevelDelimiter,
   emptyDelimiterState,
 } from '../../../compiler/scanner/lexer/routeAst/delimiterNavigation';
-import { relationGate, relationFirstOption, relationOptionFold, relationSelect, relationResolve, relationRange, type RelationOption } from '../relationalSequence';
-import { presenceOf } from '../../../types/upstream/presence';
+import { relationGate, relationFirstOption, relationOptionFold, relationSelect, relationResolve, relationRange, relationNone, relationSome, type RelationOption } from '../relationalSequence';
+import { presenceOf, presenceFold, type Presence } from '../../../types/upstream/presence';
 import { relationAll, relationAny } from '../semanticRelations';
 
-export type CursorPresence<T> =
-  | { readonly kind: 'absent' }
-  | { readonly kind: 'present'; readonly value: T };
-
-type Present<T> = { readonly kind: 'present'; readonly value: T };
+export type CursorPresence<T> = Presence<T>;
 
 const absent = <T>(): CursorPresence<T> => ({ kind: 'absent' });
 const present = <T>(value: T): CursorPresence<T> => ({ kind: 'present', value });
 
-const fromCursorValue = <T>(value: T | void): CursorPresence<T> =>
-  relationOptionFold(
-    relationFirstOption([value], (entry): entry is T => Boolean(entry)),
-    absent,
-    present,
-  );
-
-const optionToPresence = <T>(option: RelationOption<T>): CursorPresence<T> =>
-  relationOptionFold(option, absent, present);
+const fromCursorValue = <T>(value: T | void): CursorPresence<T> => presenceOf(value);
 
 const presenceValue = <T, R>(presence: CursorPresence<T>, absentBranch: () => R, presentBranch: (value: T) => R): R =>
-  relationOptionFold(
-    relationFirstOption([presence], (entry): entry is Present<T> => Object.is(entry.kind, 'present')),
-    absentBranch,
-    entry => presentBranch(entry.value),
-  );
+  presenceFold(presence, absentBranch, presentBranch);
 
 const tokenAt = (tokens: readonly TokenDescriptor[], position: number): TokenDescriptor | void => tokens[position];
+const delimiterInput = (value: TokenDescriptor | void): RelationOption<string> =>
+  presenceValue(fromCursorValue(value), () => relationNone<string>(), token => relationSome(token.value));
+
+const tokenHasKindAt = (value: TokenDescriptor | void, kinds: readonly SyntaxTokenFact['kind'][]): boolean =>
+  presenceValue(fromCursorValue(value), () => false, token => tokenHasKind(token, kinds));
+
+const tokenSyntaxFactAt = (value: TokenDescriptor | void): RelationOption<SyntaxTokenFact> =>
+  presenceValue(fromCursorValue(value), () => relationNone<SyntaxTokenFact>(), token => tokenSyntaxFact(token));
+
+const predicateAt = (value: TokenDescriptor | void, cursor: TokenCursor, predicate: (token: TokenDescriptor, cursor: TokenCursor) => boolean): boolean =>
+  presenceValue(fromCursorValue(value), () => false, token => predicate(token, cursor));
+
 
 const tokenPresence = (tokens: readonly TokenDescriptor[], position: number): CursorPresence<TokenDescriptor> =>
   fromCursorValue(tokenAt(tokens, position));
@@ -115,9 +111,9 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
   const secondCallArgumentCursor = (): TokenCursor | void => {
     const visit = (cursor: TokenCursor, state: ReturnType<typeof emptyDelimiterState>): TokenCursor | void => {
       const value = cursor.current;
-      const close = relationAll([closesCurrentDelimiter(state, presenceOf(value)), tokenHasKind(value, SYNTAX_KIND_GROUPS.closeParens)]);
-      const comma = relationAll([tokenHasKind(value, SYNTAX_KIND_GROUPS.commas), isTopLevelDelimiter(state)]);
-      return relationGate(cursor.atEnd, () => {}, () => relationGate(close, () => cursor, () => relationGate(comma, () => cursor.advance(), () => visit(cursor.advance(), delimiterTransition(state, presenceOf(value))))));
+      const close = relationAll([closesCurrentDelimiter(state, delimiterInput(value)), tokenHasKindAt(value, SYNTAX_KIND_GROUPS.closeParens)]);
+      const comma = relationAll([tokenHasKindAt(value, SYNTAX_KIND_GROUPS.commas), isTopLevelDelimiter(state)]);
+      return relationGate(cursor.atEnd, () => {}, () => relationGate(close, () => cursor, () => relationGate(comma, () => cursor.advance(), () => visit(cursor.advance(), delimiterTransition(state, delimiterInput(value))))));
     };
     return visit(callArgumentCursor(), emptyDelimiterState());
   };
@@ -126,10 +122,10 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
     const open = callOpen();
     const visit = (cursor: TokenCursor, state: ReturnType<typeof emptyDelimiterState>): CursorPresence<TokenCursor> => {
       const value = cursor.current;
-      const close = relationAll([closesCurrentDelimiter(state, presenceOf(value)), tokenHasKind(value, SYNTAX_KIND_GROUPS.closeParens)]);
-      return relationGate(cursor.atEnd, absent, () => relationGate(close, () => present(cursor), () => visit(cursor.advance(), delimiterTransition(state, presenceOf(value)))));
+      const close = relationAll([closesCurrentDelimiter(state, delimiterInput(value)), tokenHasKindAt(value, SYNTAX_KIND_GROUPS.closeParens)]);
+      return relationGate(cursor.atEnd, () => absent<TokenCursor>(), () => relationGate(close, () => present(cursor), () => visit(cursor.advance(), delimiterTransition(state, delimiterInput(value)))));
     };
-    return relationGate(relationOptionFold(fromCursorValue(open), () => true, () => false), absent, () => visit(nextCursor(), emptyDelimiterState()));
+    return presenceValue(fromCursorValue(open), () => absent<TokenCursor>(), () => visit(nextCursor(), emptyDelimiterState()));
   };
   const callCloseCursor = (): TokenCursor | void => presenceValue(callClosePresence(), () => {}, value => value);
   const afterCallPresence = (): CursorPresence<TokenCursor> => presenceValue(callClosePresence(), absent<TokenCursor>, value => present(value.advance()));
@@ -139,10 +135,10 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
     const visit = (cursor: TokenCursor, start: TokenCursor, state: ReturnType<typeof emptyDelimiterState>, output: readonly RelationalTokenSpan[]): readonly RelationalTokenSpan[] => {
       const terminal = !cursor.isBefore(end);
       const value = cursor.current;
-      const comma = relationAll([tokenHasKind(value, SYNTAX_KIND_GROUPS.commas), isTopLevelDelimiter(state)]);
+      const comma = relationAll([tokenHasKindAt(value, SYNTAX_KIND_GROUPS.commas), isTopLevelDelimiter(state)]);
       const nextOutput = relationGate(relationAll([comma, start.isBefore(cursor)]), () => Object.freeze([...output, Object.freeze({ start, end: cursor })]), () => output);
       const nextStart = relationGate(comma, () => cursor.advance(), () => start);
-      const nextState = delimiterTransition(state, presenceOf(value));
+      const nextState = delimiterTransition(state, delimiterInput(value));
       return relationGate(terminal, () => relationGate(start.isBefore(end), () => Object.freeze([...nextOutput, Object.freeze({ start, end })]), () => nextOutput), () => visit(cursor.advance(), nextStart, nextState, nextOutput));
     };
     return Object.freeze(visit(callArgumentCursor(), callArgumentCursor(), emptyDelimiterState(), Object.freeze([])));
@@ -156,23 +152,23 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
   const statementEndCursor = (): TokenCursor => {
     const visit = (cursor: TokenCursor, state: ReturnType<typeof emptyDelimiterState>): TokenCursor => {
       const value = cursor.current;
-      const boundary = relationAll([tokenHasKind(value, SYNTAX_KIND_GROUPS.statementEnds), isTopLevelDelimiter(state)]);
-      return relationGate(relationAny([cursor.atEnd, boundary]), () => cursor, () => visit(cursor.advance(), delimiterTransition(state, presenceOf(value))));
+      const boundary = relationAll([tokenHasKindAt(value, SYNTAX_KIND_GROUPS.statementEnds), isTopLevelDelimiter(state)]);
+      return relationGate(relationAny([cursor.atEnd, boundary]), () => cursor, () => visit(cursor.advance(), delimiterTransition(state, delimiterInput(value))));
     };
     return visit(cursor, emptyDelimiterState());
   };
   const statementContinuationCursor = (): TokenCursor => relationGate(statementEndCursor().atEnd, () => statementEndCursor(), () => statementEndCursor().advance());
   const delimitedElementSpans = (): readonly RelationalTokenSpan[] => {
-    const opening = tokenSyntaxFact(current());
+    const opening = tokenSyntaxFactAt(current());
     const closingKind = relationOptionFold(relationFirstOption([opening], entry => relationAny([Object.is(entry.kind, 'open_bracket'), Object.is(entry.kind, 'open_brace')])), () => '', entry => relationResolve(Object.is(entry.kind, 'open_bracket'), () => ']', () => '}'));
     const visit = (cursor: TokenCursor, start: TokenCursor, state: ReturnType<typeof emptyDelimiterState>, output: readonly RelationalTokenSpan[]): readonly RelationalTokenSpan[] => {
       const value = cursor.current;
-      const closing = tokenSyntaxFact(value);
-      const boundary = relationAll([relationOptionFold(fromCursorValue(closing), () => false, () => true), Object.is(closing.value, closingKind), isTopLevelDelimiter(state)]);
-      const comma = relationAll([tokenHasKind(value, SYNTAX_KIND_GROUPS.commas), isTopLevelDelimiter(state)]);
+      const closing = tokenSyntaxFactAt(value);
+      const boundary = relationAll([relationOptionFold(closing, () => false, fact => Object.is(fact.value, closingKind)), isTopLevelDelimiter(state)]);
+      const comma = relationAll([tokenHasKindAt(value, SYNTAX_KIND_GROUPS.commas), isTopLevelDelimiter(state)]);
       const completed = relationGate(relationAll([comma, start.isBefore(cursor)]), () => Object.freeze([...output, Object.freeze({ start, end: cursor })]), () => output);
       const nextStart = relationGate(comma, () => cursor.advance(), () => start);
-      const nextState = delimiterTransition(state, presenceOf(value));
+      const nextState = delimiterTransition(state, delimiterInput(value));
       return relationGate(relationAny([cursor.atEnd, boundary]), () => relationGate(boundary, () => completed, () => relationGate(start.isBefore(cursor), () => Object.freeze([...completed, Object.freeze({ start, end: cursor })]), () => completed)), () => visit(cursor.advance(), nextStart, nextState, completed));
     };
     return relationGate(Object.is(closingKind.length, 0), () => Object.freeze([]), () => Object.freeze(visit(advance(), advance(), emptyDelimiterState(), Object.freeze([]))));
@@ -197,16 +193,16 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
   const tokensUntil = (end: TokenCursor): readonly TokenDescriptor[] => {
     const collect = (entryCursor: TokenCursor, output: readonly TokenDescriptor[]): readonly TokenDescriptor[] => {
       const value = entryCursor.current;
-      const terminal = relationAny([!entryCursor.isBefore(end), relationOptionFold(fromCursorValue(value), () => true, () => false)]);
+      const terminal = relationAny([!entryCursor.isBefore(end), presenceValue(fromCursorValue(value), () => true, () => false)]);
       return relationGate(terminal, () => output, () => collect(entryCursor.advance(), Object.freeze([...output, cursorValue(value)])));
     };
     return Object.freeze(collect(cursor, Object.freeze([])));
   };
-  const classReference = (): boolean => relationAll([tokenHasKind(next(), SYNTAX_KIND_GROUPS.separators), tokenHasKind(afterNext(), SYNTAX_KIND_GROUPS.classKeywords)]);
+  const classReference = (): boolean => relationAll([tokenHasKindAt(next(), SYNTAX_KIND_GROUPS.separators), tokenHasKindAt(afterNext(), SYNTAX_KIND_GROUPS.classKeywords)]);
   const find = (predicate: (token: TokenDescriptor, cursor: TokenCursor) => boolean): TokenCursor | void => {
     const visit = (entryCursor: TokenCursor): TokenCursor | void => {
       const value = entryCursor.current;
-      return relationGate(entryCursor.atEnd, () => {}, () => relationGate(relationOptionFold(fromCursorValue(value), () => true, () => false), () => visit(entryCursor.advance()), () => relationGate(predicate(value, entryCursor), () => entryCursor, () => visit(entryCursor.advance()))));
+      return relationGate(entryCursor.atEnd, () => {}, () => relationGate(presenceValue(fromCursorValue(value), () => true, () => false), () => visit(entryCursor.advance()), () => relationGate(predicateAt(value, entryCursor, predicate), () => entryCursor, () => visit(entryCursor.advance()))));
     };
     return visit(cursor);
   };
@@ -214,7 +210,7 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
   const until = (predicate: (token: TokenDescriptor, cursor: TokenCursor) => boolean): readonly TokenDescriptor[] => {
     const collect = (entryCursor: TokenCursor, output: readonly TokenDescriptor[]): readonly TokenDescriptor[] => {
       const value = entryCursor.current;
-      const terminal = relationAny([entryCursor.atEnd, relationOptionFold(fromCursorValue(value), () => true, () => false), predicate(cursorValue(value), entryCursor)]);
+      const terminal = relationAny([entryCursor.atEnd, presenceValue(fromCursorValue(value), () => true, () => false), predicate(cursorValue(value), entryCursor)]);
       return relationGate(terminal, () => output, () => collect(entryCursor.advance(), Object.freeze([...output, cursorValue(value)])));
     };
     return Object.freeze(collect(cursor, Object.freeze([])));

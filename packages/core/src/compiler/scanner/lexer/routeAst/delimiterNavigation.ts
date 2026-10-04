@@ -10,8 +10,9 @@ type DelimiterRelation =
   | { readonly kind: 'opening'; readonly token: OpeningDelimiter; readonly close: ClosingDelimiter }
   | { readonly kind: 'closing'; readonly token: ClosingDelimiter; readonly open: OpeningDelimiter }
   | { readonly kind: 'other' };
+type MappedDelimiterRelation = Exclude<DelimiterRelation, { readonly kind: 'other' }>;
 
-const DELIMITER_RELATIONS: readonly DelimiterRelation[] = Object.freeze([
+const DELIMITER_RELATIONS: readonly MappedDelimiterRelation[] = Object.freeze([
   { kind: 'opening', token: '(', close: ')' },
   { kind: 'opening', token: '[', close: ']' },
   { kind: 'opening', token: '{', close: '}' },

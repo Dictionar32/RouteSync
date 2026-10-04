@@ -13,6 +13,7 @@ import { RouteDomainResolver } from './RouteDomainResolver';
 import { RouteSecurityResolver } from './RouteSecurityResolver';
 import { RouteCrudClassifier } from './RouteCrudClassifier';
 import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { truthValue } from '../../../types/upstream/valueObjects';
 import { relationProject } from '../../../semantic/kernel/relationalSequence';
 import { solveClosedSemanticRelations, semanticTextTerm, type SemanticRewriteFact, type SemanticRewritePattern, type SemanticRewritePatternTerm, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
 
@@ -107,7 +108,7 @@ const relation = <R extends ResolverGraphRelation>(name: R, route: string): Sema
 export const resolveResolverGraphJudgment = (input: ResolverGraphInput): ResolverGraphSemanticJudgment => {
   const route = 'route';
   const domain = RouteDomainResolver.resolveJudgment(input.domain);
-  const security = RouteSecurityResolver.resolve(input.middleware, input.auth);
+  const security = RouteSecurityResolver.resolve(input.middleware, truthValue(input.auth));
   const crudRole = RouteCrudClassifier.classify(input.method, input.path.value.value);
   const mapping = input.mapping.judgment;
   const seeds: readonly SemanticRewriteFact<ResolverGraphRelation>[] = Object.freeze([

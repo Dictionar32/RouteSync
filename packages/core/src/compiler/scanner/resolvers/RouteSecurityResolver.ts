@@ -16,12 +16,13 @@ import {
 } from "../../../types/route";
 import type { RouteRateLimit } from "../../../types/upstream/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
+import type { TruthValue } from "../../../types/upstream/valueObjects";
 import type { PropertyName } from "../../../types/upstream/names";
-import { numberValue } from "../../../types/upstream/valueObjects";
+import { numberValue, truthValue } from "../../../types/upstream/valueObjects";
 
 export interface RouteSecurityResolution {
     readonly security: RouteSecurityDescriptor;
-    readonly auth: boolean;
+    readonly auth: TruthValue;
     readonly policies: readonly RoutePolicyDescriptor[];
     readonly rateLimit: RouteRateLimit;
 }
@@ -107,11 +108,11 @@ const resolveMiddleware = (
         },
     );
 
-const resolveRouteSecurity = (middleware: readonly PropertyName[], auth: boolean = false): RouteSecurityResolution => {
+const resolveRouteSecurity = (middleware: readonly PropertyName[], auth: TruthValue = truthValue(false)): RouteSecurityResolution => {
         const middlewareValues = relationProject(middleware, value => value.value.value);
         const securityDesc = RouteSecurityClassifier.classify(middlewareValues);
         const resolved = resolveMiddleware(middlewareValues);
-        const resolvedAuth = relationAny([auth, securityDesc.isProtected]);
+        const resolvedAuth = truthValue(relationAny([auth.value, securityDesc.isProtected]));
 
         return Object.freeze({
             security: securityDesc,

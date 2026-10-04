@@ -18,6 +18,7 @@ import type {
     RouteRateLimit
 } from "../../../../types/route";
 import type { PropertyName, DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName } from "../../../../types/upstream/names";
+import { truthValue } from "../../../../types/upstream/valueObjects";
 
 export function resolveRouteDescriptorDomain(route: import("../../resolvers/RouteDomainResolver").RouteDomainResolutionContext): DomainTypeName {
     return RouteDomainResolver.resolve(route);
@@ -28,9 +29,9 @@ export function resolveRouteDescriptorSecurity(
     auth: boolean
 ): {
     readonly security: RouteSecurityDescriptor;
-    readonly auth: boolean;
+    readonly auth: import("../../../../types/upstream/valueObjects").TruthValue;
     readonly policies: readonly RoutePolicyDescriptor[];
     readonly rateLimit: RouteRateLimit;
 } {
-    return RouteSecurityResolver.resolve(middleware, auth);
+    return RouteSecurityResolver.resolve(middleware, truthValue(auth));
 }

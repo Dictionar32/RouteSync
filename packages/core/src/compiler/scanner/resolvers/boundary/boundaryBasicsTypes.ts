@@ -120,7 +120,7 @@ export interface ResolvedRouteBoundaryOptions {
     readonly isMutating: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
-    readonly auth: boolean;
+    readonly auth: import('../../../../types/upstream/valueObjects').TruthValue;
     readonly middleware: readonly PropertyName[];
     readonly parameters: readonly RouteParameter[];
     readonly pathParameters: readonly RouteParameter[];

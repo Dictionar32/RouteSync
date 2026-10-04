@@ -26,6 +26,7 @@ import type { BaseValidationRuleNode } from "../../../../types/domain/validation
 import { relationAny, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
 import { relationProject, relationTextSlice } from "../../../../semantic/kernel/relationalSequence";
 import { present, presenceFold, presenceOf, type Presence } from "../../../../types/upstream/presence";
+import { truthValue, type TruthValue } from "../../../../types/upstream/valueObjects";
 
 export interface ResolvedRouteCapability {
     readonly hookKind: RouteHookKindType;
@@ -44,7 +45,7 @@ export type RouteCapabilitySemanticInput = Readonly<{
     readonly errorResponses: Presence<readonly HttpErrorResponseDescriptor[]>;
     readonly invalidation: Presence<ReturnType<typeof RouteSemanticFlowCacheInvalidationDescriptor.none>>;
     readonly schema: Presence<RouteSchemaPayload>;
-    readonly auth: Presence<boolean>;
+    readonly auth: Presence<TruthValue>;
 }>;
 
 export function resolveRouteCapabilityJudgment(
@@ -82,15 +83,16 @@ export function resolveRouteCapabilityJudgment(
 }
 
 type RouteCapabilityResolutionInput = Pick<RouteBoundaryOptions,
-    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth"
+    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema"
 > | Pick<ResolvedRouteBoundaryOptions,
-    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth"
+    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema"
 >;
 
 export function resolveRouteCapability(
     params: RouteCapabilityResolutionInput,
     basics: IntermediateRouteBoundaryBasics,
     parameterCount: number,
+    auth: TruthValue,
     request: RouteBoundaryOptions["request"],
 ): ResolvedRouteCapability {
     return resolveRouteCapabilityJudgment(
@@ -102,7 +104,7 @@ export function resolveRouteCapability(
             errorResponses: presenceOf(params.errorResponses),
             invalidation: presenceOf(params.invalidation),
             schema: presenceOf(params.schema),
-            auth: presenceOf(params.auth),
+            auth: presenceOf(auth),
         }),
         basics,
         parameterCount,
@@ -135,10 +137,10 @@ function resolvePayloadTypeName(
 function defaultErrors(
     isMutating: boolean,
     hasValidationRules: boolean,
-    auth: Presence<boolean>,
+    auth: Presence<TruthValue>,
 ): readonly HttpErrorResponseDescriptor[] {
     const validation = relationGate(relationAny([isMutating, hasValidationRules]), () => [httpErrorResponseValidation()], () => []);
-    const unauthorized = presenceFold(auth, () => [], value => relationGate(value, () => [httpErrorResponseUnauthorized()], () => []));
+    const unauthorized = presenceFold(auth, () => [], value => relationGate(value.value, () => [httpErrorResponseUnauthorized()], () => []));
     return Object.freeze([...validation, ...unauthorized]);
 }
 

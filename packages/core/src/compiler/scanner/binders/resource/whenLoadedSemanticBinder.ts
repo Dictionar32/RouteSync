@@ -33,7 +33,7 @@ function bindResolvedWhenLoaded(key: string, relation: ModelSemanticRelation): B
     const target = BoundSemanticFactory.relation({
         sourceModel: relation.sourceModel,
         relationName: relation.relation,
-        relationType: relation.type,
+        relationType: relation.eloquentType,
         targetModel: relation.targetModel,
         cardinality: relation.boundCardinality,
         nullability: { kind: 'nullable' },

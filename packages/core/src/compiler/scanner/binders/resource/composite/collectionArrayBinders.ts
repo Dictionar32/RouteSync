@@ -40,7 +40,7 @@ export function bindResourceCollectionField(
         relation => BoundSemanticFactory.relation({
             sourceModel: SemanticValueFactory.modelName(modelSymbol.name.value.value),
             relationName: SemanticValueFactory.relationName(key),
-            relationType: relation.type,
+            relationType: relation.eloquentType,
             targetModel: relation.targetModel,
             cardinality,
             nullability: { kind: 'non_nullable' },

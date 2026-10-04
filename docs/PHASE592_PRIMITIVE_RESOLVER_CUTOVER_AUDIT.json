@@ -99,16 +99,8 @@
     }
   },
   "global": {
-    "productionFileCount": 1056,
-    "primitiveConstructorFiles": [
-      "packages/core/src/compiler/scanner/subscanners/form-request/fieldAssembler.ts",
-      "packages/core/src/compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts",
-      "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts",
-      "packages/core/src/compiler/scanner/subscanners/validationArrayPropLowerer.ts",
-      "packages/core/src/semantic/plugins/expression/property-access/specialAccessHandler.ts",
-      "packages/core/src/types/domain/resourceAggregateResolver.ts",
-      "packages/core/src/types/domain/resourceRelationQuerySurface.ts"
-    ],
+    "productionFileCount": 1080,
+    "primitiveConstructorFiles": [],
     "primitiveInstanceCheckFiles": [],
     "primitiveClassDeclarationFiles": []
   }

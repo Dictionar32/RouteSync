@@ -47,7 +47,7 @@ const resolveColumn = (symbol: ModelSymbol, name: string, fact: ModelColumnFact)
   const boundAst = BoundSemanticFactory.modelColumn({
     model: SemanticValueFactory.modelName(symbol.name),
     column: SemanticValueFactory.columnName(name),
-    dbType: SemanticValueFactory.databaseTypeName(fact.databaseType.kind),
+    dbType: fact.databaseType,
     castType,
     semanticType: semantic,
   });

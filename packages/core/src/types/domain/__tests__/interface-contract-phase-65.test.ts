@@ -13,19 +13,19 @@ import type {
   CastTypeName,
   ColumnName,
   ConditionExpression,
-  DatabaseTypeName,
   MethodName,
   ModelName,
   PropertyName,
   RelationName,
   SemanticOperator,
 } from '../semanticValues';
+import type { DatabaseType } from '../../upstream/databaseVocabulary';
 
 describe('Phase 65 semantic value contracts', () => {
   it('does not expose free primitive identity fields in bound model data', () => {
     expectTypeOf<BoundModelColumnNode['model']>().toEqualTypeOf<ModelName>();
     expectTypeOf<BoundModelColumnNode['column']>().toEqualTypeOf<ColumnName>();
-    expectTypeOf<BoundModelColumnNode['dbType']>().toEqualTypeOf<DatabaseTypeName>();
+    expectTypeOf<BoundModelColumnNode['dbType']>().toEqualTypeOf<DatabaseType>();
     expectTypeOf<BoundModelColumnNode['castType']>().toEqualTypeOf<CastTypeName | null>();
   });
 

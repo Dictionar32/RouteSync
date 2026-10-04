@@ -15,7 +15,7 @@ import { matchResourceOperationKind, resourceOperationKindForMethod } from "../.
 import { matchLookup } from "../../../../types/upstream/collections";
 import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from "../../../../semantic/kernel/relationMembership";
-import { relationOptionFold } from "../../../../semantic/kernel/relationalSequence";
+import { relationOptionFold, relationRefine } from "../../../../semantic/kernel/relationalSequence";
 import {
     bindResourceCollectionField,
     bindNestedArrayField,
@@ -27,6 +27,18 @@ import {
     bindCastField,
     bindFallbackField
 } from "./compositeBinders";
+
+type KeyedPhpArrayEntry = Extract<import('../../lexer/phpAstTypes').PhpArrayEntry, { readonly kind: 'keyed' }>;
+const keyedEntry = (entry: import('../../lexer/phpAstTypes').PhpArrayEntry) =>
+    relationRefine(entry, (candidate): candidate is KeyedPhpArrayEntry => relationEqual(candidate.kind, 'keyed'));
+const expressionKey = (key: import('../../lexer/phpAstTypes').PhpArrayKey) =>
+    relationRefine(key, (candidate): candidate is Extract<import('../../lexer/phpAstTypes').PhpArrayKey, { readonly kind: 'expression' }> => relationEqual(candidate.kind, 'expression'));
+
+const resolvedNestedEntry = (entry: import('../../lexer/phpAstTypes').PhpArrayEntry, definitions: RelationIndex<string, PhpAstValue>, visited: RelationMembership<string>) =>
+    relationOptionFold(keyedEntry(entry),
+        () => ({ ...entry, value: resolveVariableReceivers(entry.value, definitions, visited) }),
+        keyed => ({ ...keyed, value: resolveVariableReceivers(keyed.value, definitions, visited), key: relationOptionFold(expressionKey(keyed.key), () => keyed.key, key => ({ ...key, value: resolveVariableReceivers(key.value, definitions, visited) })) }),
+    );
 
 function bindPropertyAccessWithAccess(
     key: string,
@@ -110,12 +122,12 @@ function resolveVariableReceivers(
         unaryExpression: current => ({ ...current, operand: resolveVariableReceivers(current.operand, definitions, visited) }),
         castExpression: current => ({ ...current, operand: resolveVariableReceivers(current.operand, definitions, visited) }),
         ternaryExpression: current => ({ ...current, condition: resolveVariableReceivers(current.condition, definitions, visited), trueBranch: resolveVariableReceivers(current.trueBranch, definitions, visited), falseBranch: resolveVariableReceivers(current.falseBranch, definitions, visited) }),
-        nestedArray: current => ({ ...current, entries: relationProject(current.entries, entry => relationGate(relationEqual(entry.kind, 'keyed'), () => ({ ...entry, value: resolveVariableReceivers(entry.value, definitions, visited), key: relationGate(relationEqual(entry.key.kind, 'expression'), () => ({ ...entry.key, value: resolveVariableReceivers(entry.key.value, definitions, visited) }), () => entry.key) }), () => ({ ...entry, value: resolveVariableReceivers(entry.value, definitions, visited) }))) }),
+        nestedArray: current => ({ ...current, entries: relationProject(current.entries, entry => resolvedNestedEntry(entry, definitions, visited)) }),
         staticCall: current => ({ ...current, arguments: relationProject(current.arguments, argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) }),
         classReference: identity,
         classConstant: identity,
         construct: current => ({ ...current, arguments: relationProject(current.arguments, argument => ({ ...argument, value: resolveVariableReceivers(argument.value, definitions, visited) })) }),
-        assignmentExpression: current => ({ ...current, target: resolveVariableReceivers(current.target, definitions, visited), value: resolveVariableReceivers(current.value, definitions, visited) }),
+        assignmentExpression: current => ({ ...current, value: resolveVariableReceivers(current.value, definitions, visited) }),
         dynamicConstruct: identity,
         anonymousClassConstruct: identity,
         instanceOf: current => ({ ...current, expression: resolveVariableReceivers(current.expression, definitions, visited) }),
@@ -132,7 +144,7 @@ export function bindField({
     value,
     modelSymbol,
     modelSymbolTable,
-    variableDefinitions = Object.freeze([]) as RelationIndex<string, PhpAstValue>,
+    variableDefinitions = Object.freeze([]),
 }: {
     readonly key: string;
     readonly value: PhpAstValue;
@@ -143,13 +155,26 @@ export function bindField({
     const semanticValue = resolveVariableReceivers(value, variableDefinitions);
     return matchPhpAstValue(semanticValue, {
         methodChain: val => matchResourceOperationKind(resourceOperationKindForMethod(val.property), {
+            when: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            unless: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            merge_when: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            merge_unless: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            merge: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            transform: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            attributes: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_has: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_null: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_not_null: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_appended: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             when_loaded: () => matchLookup(readWhenLoadedRelation(val.arguments), {
                 found: relation => bindWhenLoadedField(key, relation.value, modelSymbol),
                 missing: () => bindFallbackField(key),
             }),
-            when_not_null: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
-            merge_when: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
-            merge: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_counted: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_aggregated: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_exists_loaded: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_pivot_loaded: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
+            when_pivot_loaded_as: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             additional: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             with: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
             ordinary: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),

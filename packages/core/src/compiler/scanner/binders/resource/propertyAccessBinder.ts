@@ -9,6 +9,7 @@ import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import type { SemanticType } from "../../../types/SemanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
+import type { ResourceFieldExpression } from "../../../../types/domain/expressions";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import type { PhpAccessMode } from "../../lexer/phpAstExpressionTypes";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
@@ -73,7 +74,7 @@ function bindColumn(
         semanticType,
     });
     const target = ResourceFieldExpressionFactory.model(model.name);
-    const expression = matchPhpAccessMode(access, {
+    const expression = matchPhpAccessMode<ResourceFieldExpression>(access, {
         direct: () => ResourceFieldExpressionFactory.propertyAccess(target, value.source.property),
         nullsafe: () => ResourceFieldExpressionFactory.nullsafePropertyAccess(target, value.source.property),
     });
@@ -96,7 +97,7 @@ function bindAccessor(
         nullability: toNullability(semanticType),
     });
     const target = ResourceFieldExpressionFactory.model(model.name);
-    const expression = matchPhpAccessMode(access, {
+    const expression = matchPhpAccessMode<ResourceFieldExpression>(access, {
         direct: () => ResourceFieldExpressionFactory.methodCall(target, value.source.method),
         nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target, value.source.method),
     });
@@ -114,7 +115,7 @@ function bindRelation(
     const boundAst = BoundSemanticFactory.relation({
         sourceModel: model.name,
         relationName: value.source.relation,
-        relationType: value.source.type,
+        relationType: value.source.eloquentType,
         targetModel: value.source.targetModel,
         cardinality: value.source.boundCardinality,
         nullability: toNullability(semanticType),

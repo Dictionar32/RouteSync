@@ -13,23 +13,23 @@
   ],
   "files": 27,
   "aggregate": {
-    "if": 10,
-    "for": 22,
+    "if": 1,
+    "for": 20,
     "while": 0,
     "switch": 0,
-    "map": 2,
-    "filter": 2,
+    "map": 1,
+    "filter": 0,
     "reduce": 0,
     "flatMap": 0,
-    "undefined": 11,
-    "nullish": 2,
+    "undefined": 1,
+    "nullish": 0,
     "null": 2,
-    "strictEqual": 15,
-    "strictNotEqual": 8,
+    "strictEqual": 0,
+    "strictNotEqual": 0,
     "asUnknown": 0,
     "set": 0,
     "any": 0,
-    "new": 11
+    "new": 0
   },
   "rows": [
     {
@@ -256,7 +256,7 @@
       "file": "packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts",
       "counts": {
         "if": 0,
-        "for": 3,
+        "for": 4,
         "while": 0,
         "switch": 0,
         "map": 0,
@@ -541,23 +541,23 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
       "counts": {
-        "if": 9,
-        "for": 3,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 1,
-        "filter": 2,
+        "map": 0,
+        "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 10,
-        "nullish": 2,
+        "undefined": 0,
+        "nullish": 0,
         "null": 0,
-        "strictEqual": 15,
-        "strictNotEqual": 8,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "any": 0,
-        "new": 11
+        "new": 0
       }
     },
     {

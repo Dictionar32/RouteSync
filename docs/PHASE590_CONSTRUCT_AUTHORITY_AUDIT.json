@@ -7,26 +7,26 @@
     "packages/core/src/compiler/types",
     "packages/core/src/compiler/passes"
   ],
-  "files": 430,
+  "files": 439,
   "aggregate": {
-    "if": 154,
-    "for": 26,
-    "while": 5,
-    "switch": 7,
-    "map": 63,
-    "filter": 7,
+    "if": 7,
+    "for": 4,
+    "while": 0,
+    "switch": 0,
+    "map": 10,
+    "filter": 0,
     "reduce": 1,
-    "flatMap": 2,
-    "undefined": 63,
-    "null": 13,
-    "nullish": 20,
-    "strictEqual": 155,
-    "strictNotEqual": 44,
+    "flatMap": 0,
+    "undefined": 2,
+    "null": 1,
+    "nullish": 2,
+    "strictEqual": 13,
+    "strictNotEqual": 0,
     "asUnknown": 0,
-    "set": 13,
-    "mapType": 2,
-    "any": 7,
-    "new": 110
+    "set": 1,
+    "mapType": 0,
+    "any": 4,
+    "new": 28
   },
   "rows": [
     {
@@ -584,24 +584,24 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
       "counts": {
-        "if": 9,
-        "for": 1,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 1,
-        "filter": 2,
+        "map": 0,
+        "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 9,
+        "undefined": 0,
         "null": 0,
-        "nullish": 2,
-        "strictEqual": 15,
-        "strictNotEqual": 8,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 11
+        "new": 0
       }
     },
     {
@@ -624,7 +624,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 4
+        "new": 0
       }
     },
     {
@@ -676,12 +676,12 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
       "counts": {
-        "if": 4,
-        "for": 3,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 5,
-        "filter": 1,
+        "map": 0,
+        "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
@@ -690,10 +690,10 @@
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 3,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 5
+        "new": 0
       }
     },
     {
@@ -707,10 +707,10 @@
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 1,
+        "undefined": 0,
         "null": 0,
-        "nullish": 6,
-        "strictEqual": 4,
+        "nullish": 0,
+        "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
@@ -1067,18 +1067,18 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
       "counts": {
-        "if": 20,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 19,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
-        "null": 1,
+        "null": 0,
         "nullish": 0,
-        "strictEqual": 21,
+        "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
@@ -1343,7 +1343,7 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/route/ScannedRouteDescriptor.ts",
       "counts": {
-        "if": 1,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
@@ -1360,7 +1360,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 2
+        "new": 0
       }
     },
     {
@@ -1383,7 +1383,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 7
+        "new": 0
       }
     },
     {
@@ -1399,7 +1399,7 @@
         "flatMap": 0,
         "undefined": 0,
         "null": 0,
-        "nullish": 7,
+        "nullish": 0,
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
@@ -1957,7 +1957,7 @@
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
-        "any": 1,
+        "any": 0,
         "new": 0
       }
     },
@@ -1987,7 +1987,7 @@
     {
       "file": "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts",
       "counts": {
-        "if": 2,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
@@ -1995,16 +1995,16 @@
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 3,
-        "null": 7,
+        "undefined": 0,
+        "null": 0,
         "nullish": 0,
-        "strictEqual": 5,
-        "strictNotEqual": 3,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 5
+        "new": 0
       }
     },
     {
@@ -2096,7 +2096,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 3
+        "new": 0
       }
     },
     {
@@ -2142,7 +2142,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 2
+        "new": 0
       }
     },
     {
@@ -3114,28 +3114,51 @@
     {
       "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
       "counts": {
-        "if": 14,
-        "for": 3,
-        "while": 3,
+        "if": 0,
+        "for": 0,
+        "while": 0,
         "switch": 0,
-        "map": 1,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 3,
+        "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 11,
-        "strictNotEqual": 10,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 2,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 2
+        "new": 0
       }
     },
     {
       "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3664,6 +3687,29 @@
       }
     },
     {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
       "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
       "counts": {
         "if": 0,
@@ -3779,6 +3825,29 @@
       }
     },
     {
+      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
       "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
       "counts": {
         "if": 0,
@@ -3872,6 +3941,29 @@
     },
     {
       "file": "packages/core/src/compiler/scanner/lexer/serviceAstTypes.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/lexer/tokenEvidence.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -4446,6 +4538,29 @@
       }
     },
     {
+      "file": "packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
       "file": "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
       "counts": {
         "if": 0,
@@ -4555,13 +4670,82 @@
         "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
-        "mapType": 2,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/resourceFieldSemanticBinding.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
         "any": 0,
         "new": 0
       }
     },
     {
       "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeParameterSemanticFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -5000,24 +5184,24 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
       "counts": {
-        "if": 12,
-        "for": 2,
-        "while": 1,
-        "switch": 2,
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 35,
+        "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 15,
-        "strictNotEqual": 8,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 3
+        "new": 0
       }
     },
     {
@@ -5092,19 +5276,19 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerErrorDetector.ts",
       "counts": {
-        "if": 9,
+        "if": 0,
         "for": 0,
-        "while": 1,
+        "while": 0,
         "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 1,
+        "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 12,
-        "strictNotEqual": 1,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
@@ -5391,8 +5575,8 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/form-request/fieldAssembler.ts",
       "counts": {
-        "if": 6,
-        "for": 2,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
         "map": 0,
@@ -5405,10 +5589,10 @@
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 1,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 8
+        "new": 0
       }
     },
     {
@@ -5921,7 +6105,7 @@
       "file": "packages/core/src/compiler/scanner/subscanners/model/modelMemberParser.ts",
       "counts": {
         "if": 0,
-        "for": 2,
+        "for": 0,
         "while": 0,
         "switch": 0,
         "map": 0,
@@ -5989,19 +6173,19 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/model/modelSourceFactsParser.ts",
       "counts": {
-        "if": 1,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 3,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 2,
-        "strictNotEqual": 1,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
@@ -6265,24 +6449,24 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts",
       "counts": {
-        "if": 9,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 2,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 9,
+        "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
-        "any": 2,
-        "new": 10
+        "any": 0,
+        "new": 0
       }
     },
     {
@@ -6380,24 +6564,24 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceAstCanonical.ts",
       "counts": {
-        "if": 3,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 2,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
-        "flatMap": 1,
-        "undefined": 2,
+        "flatMap": 0,
+        "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 10,
+        "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 4
+        "new": 0
       }
     },
     {
@@ -6426,7 +6610,7 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingModelFactory.ts",
       "counts": {
-        "if": 1,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
@@ -6437,7 +6621,7 @@
         "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 1,
+        "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
@@ -6449,19 +6633,19 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts",
       "counts": {
-        "if": 11,
-        "for": 3,
+        "if": 0,
+        "for": 0,
         "while": 0,
-        "switch": 2,
-        "map": 6,
+        "switch": 0,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
-        "flatMap": 1,
+        "flatMap": 0,
         "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 12,
-        "strictNotEqual": 1,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
@@ -6472,10 +6656,10 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts",
       "counts": {
-        "if": 8,
+        "if": 0,
         "for": 0,
         "while": 0,
-        "switch": 2,
+        "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
@@ -6483,31 +6667,54 @@
         "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 5,
-        "strictNotEqual": 4,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 1,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 1
+        "new": 0
       }
     },
     {
       "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingProvenanceBuilder.ts",
       "counts": {
-        "if": 11,
-        "for": 1,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 2,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
         "null": 0,
         "nullish": 0,
-        "strictEqual": 9,
-        "strictNotEqual": 2,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
+        "asUnknown": 0,
+        "set": 0,
+        "mapType": 0,
+        "any": 0,
+        "new": 0
+      }
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingSemanticInterface.ts",
+      "counts": {
+        "if": 0,
+        "for": 0,
+        "while": 0,
+        "switch": 0,
+        "map": 0,
+        "filter": 0,
+        "reduce": 0,
+        "flatMap": 0,
+        "undefined": 0,
+        "null": 0,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
@@ -6518,24 +6725,24 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts",
       "counts": {
-        "if": 17,
-        "for": 1,
+        "if": 0,
+        "for": 0,
         "while": 0,
-        "switch": 1,
+        "switch": 0,
         "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 4,
+        "undefined": 0,
         "null": 0,
-        "nullish": 2,
-        "strictEqual": 11,
-        "strictNotEqual": 5,
+        "nullish": 0,
+        "strictEqual": 0,
+        "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 2,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 5
+        "new": 0
       }
     },
     {
@@ -7005,7 +7212,7 @@
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 1,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
@@ -7254,8 +7461,8 @@
     {
       "file": "packages/core/src/compiler/scanner/subscanners/validationArrayPropLowerer.ts",
       "counts": {
-        "if": 4,
-        "for": 2,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
         "map": 0,
@@ -7268,16 +7475,16 @@
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 2,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 5
+        "new": 0
       }
     },
     {
       "file": "packages/core/src/compiler/scanner/subscanners/validationRuleChecker.ts",
       "counts": {
-        "if": 2,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
@@ -7289,7 +7496,7 @@
         "null": 0,
         "nullish": 0,
         "strictEqual": 0,
-        "strictNotEqual": 1,
+        "strictNotEqual": 0,
         "asUnknown": 0,
         "set": 0,
         "mapType": 0,
@@ -7576,24 +7783,24 @@
     {
       "file": "packages/core/src/compiler/domain/common/ManifestArtifactLowerer.ts",
       "counts": {
-        "if": 2,
-        "for": 2,
+        "if": 0,
+        "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 4,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
-        "undefined": 3,
+        "undefined": 0,
         "null": 0,
         "nullish": 0,
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,
-        "set": 1,
+        "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 3
+        "new": 0
       }
     },
     {
@@ -8053,7 +8260,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 1
+        "new": 0
       }
     },
     {
@@ -8174,7 +8381,7 @@
     {
       "file": "packages/core/src/compiler/domain/common/semanticFieldType.ts",
       "counts": {
-        "if": 1,
+        "if": 0,
         "for": 0,
         "while": 0,
         "switch": 0,
@@ -8513,7 +8720,7 @@
         "set": 0,
         "mapType": 0,
         "any": 0,
-        "new": 1
+        "new": 0
       }
     },
     {
@@ -9742,8 +9949,8 @@
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 2,
-        "filter": 2,
+        "map": 0,
+        "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
@@ -9765,7 +9972,7 @@
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 1,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
@@ -9834,12 +10041,12 @@
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 3,
-        "filter": 2,
+        "map": 0,
+        "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
-        "null": 4,
+        "null": 0,
         "nullish": 0,
         "strictEqual": 0,
         "strictNotEqual": 0,
@@ -9857,13 +10064,13 @@
         "for": 0,
         "while": 0,
         "switch": 0,
-        "map": 1,
+        "map": 0,
         "filter": 0,
         "reduce": 0,
         "flatMap": 0,
         "undefined": 0,
         "null": 0,
-        "nullish": 1,
+        "nullish": 0,
         "strictEqual": 0,
         "strictNotEqual": 0,
         "asUnknown": 0,

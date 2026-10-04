@@ -4,7 +4,20 @@
  * Immutable semantic relation projections for route descriptors.
  */
 
-import { ScannedEndpointContract, type RouteCapabilityContract } from "../../../../types/route";
+import { ScannedEndpointContract, type RouteCacheInvalidation, type RouteCapabilityContract } from "../../../../types/route";
+import type { RouteCacheInvalidationDescriptor } from "../../../../types/domain/cacheInvalidation";
+import type { Sequence } from "../../../../types/upstream/collections";
+import { relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
+
+const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
+
+const sequenceFromArray = <T>(items: readonly T[]): Sequence<T> =>
+    relationFoldRight(items, emptySequence<T>(), (head, tail) => ({ kind: 'cons', head, tail }));
+
+const canonicalInvalidation = (descriptor: RouteCacheInvalidationDescriptor): RouteCacheInvalidation => Object.freeze({
+    targets: sequenceFromArray(descriptor.targets),
+    queryKeyExpressions: sequenceFromArray(descriptor.queryKeyExpressions),
+});
 import type { RouteSemanticFlowFactory } from "./RouteSemanticFlowFactory";
 import type { RouteSemanticFlowConstructorInput } from "./routeContracts";
 import type { RouteSemanticFlowFields } from "./routeDeclarations";
@@ -13,12 +26,12 @@ type RouteSemanticFlowCreator = (params: RouteSemanticFlowConstructorInput) => R
 
 export function withRouteInvalidation(
     route: RouteSemanticFlowFields,
-    invalidation: RouteCapabilityContract["invalidation"],
+    invalidation: RouteCacheInvalidationDescriptor,
     create: RouteSemanticFlowCreator
 ): RouteSemanticFlowFactory {
     const updatedCapability: RouteCapabilityContract = Object.freeze({
         ...route.capability,
-        invalidation
+        invalidation: canonicalInvalidation(invalidation)
     });
     const updatedContract = ScannedEndpointContract.fromSubcontracts({
         identity: route.identity,

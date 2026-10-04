@@ -49,7 +49,7 @@ const projectRoute = (params: RouteSemanticFlowConstructorInput): RouteSemanticF
     projectToHookSource: function* () {
         yield* projectRouteToHookSource(createRouteSemanticFlowFields(params));
     },
-    withInvalidation: (invalidation: RouteCapabilityContract["invalidation"]) => withRouteInvalidation(createRouteSemanticFlowFields(params), invalidation, createRouteSemanticFlow)
+    withInvalidation: (invalidation: RouteCacheInvalidationDescriptor) => withRouteInvalidation(createRouteSemanticFlowFields(params), invalidation, createRouteSemanticFlow)
 });
 
 export const createRouteSemanticFlow = (

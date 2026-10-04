@@ -32,6 +32,8 @@ export interface RouteValidationRuleSet {
     readonly tree: readonly ValidationFieldNode[];
 }
 
+const EMPTY_ROOT_INDEX: RelationIndex<PropertyName, RootValidationField> = Object.freeze([]);
+
 export const RouteSemanticFlowValidationRuleSet = Object.freeze({
     create: (entries: readonly RouteValidationRuleEntry[], interner: TypeInterner): RouteValidationRuleSet => {
         const roots = collectRoots(entries);
@@ -59,7 +61,7 @@ function rootEntry(entries: RelationIndex<PropertyName, RootValidationField>, ke
 }
 
 function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationIndex<PropertyName, RootValidationField> {
-    return relationFold(entries, [], (store, entry) => {
+    return relationFold(entries, EMPTY_ROOT_INDEX, (store, entry) => {
         const rootName = relationGateRootName(entry);
         const rootPropertyName = relationGateRootProperty(entry);
         const existing = rootEntry(store, rootName);
@@ -120,7 +122,7 @@ function leafProperty(entry: RouteValidationRuleEntry): ValidationFieldProperty 
         shape => relationVariantFold(
             shape.element,
             'object',
-            scalar => entryProperty(entry, shape.element),
+            rest => entryProperty(entry, rest),
             object => relationOptionFold(
                 relationFirstOption(object.fields, () => true),
                 () => entryProperty(entry, shape.element),
@@ -136,7 +138,7 @@ function entryProperty(entry: RouteValidationRuleEntry, shape: ValidationFieldSh
         semanticType: entry.semanticType,
         presence: entry.presence,
         validation: entry.validation,
-        shape: relationVariantFold(shape, 'collection', collection => collection.element, nested => nested),
+        shape: relationVariantFold(shape, 'collection', nested => nested, collection => collection.element),
         source: entry.source,
     };
 }
@@ -200,7 +202,7 @@ function requirementFromValidation(validation: readonly ValidationRuleNode[]): R
             relationEqual(item.kind, 'required_unless'),
         ])),
         () => ({ kind: 'unconditional' }),
-        item => relationVariantFold(
+        item => relationVariantFold<ValidationRuleNode, 'required_with', RequestFieldRequirement>(
             item,
             'required_with',
             rest => relationVariantFold(rest, 'required_with_all', restAll => relationVariantFold(restAll, 'required_without', restWithout => relationVariantFold(restWithout, 'required_without_all', restWithoutAll => relationVariantFold(restWithoutAll, 'required_if', restIf => relationVariantFold(restIf, 'required_unless', absentUnless => ({ kind: 'unconditional' }), presentUnless => ({ kind: 'required_unless', field: presentUnless.field, values: presentUnless.values })), presentIf => ({ kind: 'required_if', field: presentIf.field, values: presentIf.values })), presentWithoutAll => ({ kind: 'required_without_all', fields: presentWithoutAll.fields })), presentWithout => ({ kind: 'required_without', fields: presentWithout.fields })), presentAll => ({ kind: 'required_with_all', fields: presentAll.fields })), presentWith => ({ kind: 'required_with', fields: presentWith.fields }),
@@ -226,12 +228,16 @@ function toRequestField(root: RootValidationField, interner: TypeInterner): Requ
     };
 }
 
+function validationFieldOrigin(field: string): ObjectProperty['origin'] {
+    return { kind: 'validation_field', field };
+}
+
 function objectType(name: PropertyName, properties: readonly ValidationFieldProperty[]): ObjectType {
     const objectProperties: ObjectProperty[] = [...relationProject(properties, property => ({
         name: property.name,
         type: property.semanticType,
         description: '',
-        origin: { kind: 'validation_field', field: property.name.value.value },
+        origin: validationFieldOrigin(property.name.value.value),
     }))];
     return ObjectType({ name: name.value.value, baseName: name.value.value, properties: objectProperties, role: 'plain' });
 }

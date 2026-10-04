@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createModelName, createRelationName, createResourceName } from '../../../../types/upstream/names';
+import { absent } from '../../../../types/upstream/presence';
 import {
   createResourceModelResolutionFact,
   createResourceRelationFact,
@@ -16,7 +17,7 @@ describe('Phase 209 resource model knowledge/data-flow', () => {
       kind: 'resource_model_knowledge_data_flow',
       relations: Object.freeze([]),
       resolutions: Object.freeze([
-        createResourceModelResolutionFact(resource, model, ResourceModelResolutionOrigin.convention),
+        createResourceModelResolutionFact(resource, model, ResourceModelResolutionOrigin.convention, absent()),
       ]),
     });
 

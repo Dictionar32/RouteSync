@@ -49,7 +49,7 @@ export function resolveInitialModel(
                 found: ({ value }) => present(value),
             }),
             () => absent(),
-            value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.convention))
+            value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.convention, absent()))
         ),
         dataflow => relationOptionFold(
             findControllerResourceBinding(dataflow, resourceName),
@@ -59,7 +59,7 @@ export function resolveInitialModel(
                     found: ({ value }) => present(value),
                 }),
                 () => absent(),
-                value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.convention))
+                value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.convention, absent()))
             ),
             binding => presenceFold(
                 matchLookup(
@@ -74,7 +74,7 @@ export function resolveInitialModel(
                     },
                 ),
                 () => absent(),
-                value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.controllerDataflow)),
+                value => present(createResourceModelResolutionFact(resourceName, value.identity.name, ResourceModelResolutionOrigin.controllerDataflow, absent())),
             ),
         ),
     );
@@ -115,7 +115,7 @@ export function propagateRelationEdges(
                                 });
                                 return presenceFold(childSymbol, () => accumulator, () => [
                                     ...accumulator,
-                                    createResourceModelResolutionFact(edge.childResource, rel.targetModel, ResourceModelResolutionOrigin.relationPropagation, edge.relationKey),
+                                    createResourceModelResolutionFact(edge.childResource, rel.targetModel, ResourceModelResolutionOrigin.relationPropagation, present(edge.relationKey)),
                                 ]);
                             });
                         });

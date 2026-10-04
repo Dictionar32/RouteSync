@@ -9,13 +9,13 @@ import { ErrorType } from "../../../types/SemanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
-import { createRelationName } from "../../../../types/upstream/names";
+import type { RelationName } from "../../../../types/upstream/names";
 
 export function resolveWhenLoadedRelation(
     modelSymbol: OriginModelSymbol,
-    relationName: string,
+    relationName: RelationName,
 ): Lookup<ModelSemanticRelation> {
-    return modelSymbol.relation(createRelationName(relationName));
+    return modelSymbol.relation(relationName);
 }
 
 export function bindWhenLoadedResolution(

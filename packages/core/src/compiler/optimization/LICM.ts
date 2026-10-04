@@ -6,8 +6,10 @@
  */
 
 import type { ControlFlowGraph, BasicBlock } from '../utils/ControlFlowGraph';
-import type { Instruction } from '../ir/Instruction';
-import type { Expression } from '../ir/Expression';
+import { basicBlockLookup, basicBlockReplace, createControlFlowGraph, type BasicBlockRelation } from '../utils/ControlFlowGraph';
+import type { Instruction } from '../utils/cfg/instructions';
+import type { Expression } from '../utils/cfg/constants';
+import { relationIsSome, relationGate } from '../../semantic/kernel/relationFoundation';
 import type { UseDefGraph } from '../analysis/UseDefAnalysis';
 import { isSpeculatable } from './InstructionEffect';
 import { LoopNormalizer } from '../analysis/LoopAnalysis';
@@ -53,16 +55,18 @@ export class LICMOptimizer {
         preHeaderId: number,
         useDef: UseDefGraph
     ): ControlFlowGraph {
-        const blocks = new Map<number, BasicBlock>(cfg.blocks);
-        const preHeader = blocks.get(preHeaderId);
-        if (!preHeader) return cfg;
+        let blocks: BasicBlockRelation = cfg.blocks;
+        const preHeaderOption = basicBlockLookup(blocks, preHeaderId);
+        if (!relationIsSome(preHeaderOption)) return cfg;
+        const preHeader = preHeaderOption.value;
 
         const hoisted: Instruction[] = [];
 
         // Scan loop blocks for hoistable instructions
         for (const blockId of loopBlocks) {
-            const block = blocks.get(blockId);
-            if (!block) continue;
+            const blockOption = basicBlockLookup(blocks, blockId);
+            if (!relationIsSome(blockOption)) continue;
+            const block = blockOption.value;
 
             const remaining: (Expression | Instruction)[] = [];
 
@@ -72,15 +76,19 @@ export class LICMOptimizer {
 
                     // Check if operands are defined outside loop
                     if (inst.value.kind === 'SSAValue') {
-                        const defBlock = useDef.getDefinition(inst.value.id);
-                        if (defBlock !== undefined && loopBlocks.has(defBlock)) {
-                            isInvariant = false;
-                        }
+                        const definitionIsInsideLoop = relationOptionFold(
+                            useDef.getDefinition(inst.value.id),
+                            () => false,
+                            value => loopBlocks.has(value),
+                        );
+                        if (definitionIsInsideLoop) isInvariant = false;
                     } else if (inst.value.kind === 'Variable') {
-                        const defBlock = useDef.getDefinition(inst.value.id);
-                        if (defBlock !== undefined && loopBlocks.has(defBlock)) {
-                            isInvariant = false;
-                        }
+                        const definitionIsInsideLoop = relationOptionFold(
+                            useDef.getDefinition(inst.value.id),
+                            () => false,
+                            value => loopBlocks.has(value),
+                        );
+                        if (definitionIsInsideLoop) isInvariant = false;
                     }
 
                     if (isInvariant) {
@@ -93,7 +101,7 @@ export class LICMOptimizer {
                 remaining.push(inst);
             }
 
-            blocks.set(blockId, { ...block, instructions: remaining });
+            blocks = basicBlockReplace(blocks, blockId, { ...block, instructions: remaining });
         }
 
         // Insert hoisted instructions into preheader (before terminator)
@@ -109,10 +117,10 @@ export class LICMOptimizer {
                 nextInsts.splice(terminatorIndex, 0, ...hoisted);
             }
 
-            blocks.set(preHeaderId, { ...preHeader, instructions: nextInsts });
+            blocks = basicBlockReplace(blocks, preHeaderId, { ...preHeader, instructions: nextInsts });
         }
 
-        return new ControlFlowGraph(cfg.entryBlock, cfg.exitBlock, blocks);
+        return createControlFlowGraph(cfg.entryBlock, cfg.exitBlock, blocks);
     }
 }
 

@@ -70,7 +70,7 @@ export class SSAOptimizer {
                 if (effect !== 'Pure') return true;
 
                 // Keep instructions that are used
-                return useDef.getUses(inst.target).size > 0;
+                return useDef.isUsed(inst.target);
             }
 
             // Keep all non-assign instructions

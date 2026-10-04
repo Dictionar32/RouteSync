@@ -43,23 +43,28 @@ const emissionFacts = (model: SemanticKnowledgeDataFlow): readonly SemanticEmiss
 type InterproceduralRelation = 'data-flow' | 'call-target';
 type SemanticRelationOfCallTarget = SemanticRelation<'call-target'>;
 const pair = <A, B>(left: A, right: B): readonly [A, B] => [left, right];
+const dataFlowRelation = (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowFact['role']['code']): SemanticRelation<'data-flow'> => Object.freeze({ relation: 'data-flow', arguments: [knowledgeIdKey(source), knowledgeIdKey(target), role] });
 const mapOption = <V>(index: readonly (readonly [string, V])[], key: string): RelationOption<V> => relationOptionMap(relationFirstOption(index, entry => relationEqual(entry[0], key)), entry => entry[1]);
 
-const CALLABLE_BOUNDARY_REWRITES: readonly SemanticRelationRewrite<InterproceduralRelation>[] = [
-    {
-        id: 'data-flow-boundary:callable', priority: 0,
-        when: [{ relation: 'data-flow', arguments: [{ variable: 'source' }, { variable: 'target' }, 'callable'] }],
-        then: [{ relation: 'call-target', arguments: [{ variable: 'source' }, { variable: 'target' }] }],
-    },
-];
+type InterproceduralRewriteId = 'data-flow-boundary:callable';
+const interproceduralRewrite = (
+    id: InterproceduralRewriteId,
+    when: readonly import('./semanticRewriteEngine').SemanticRelationPattern<InterproceduralRelation>[],
+    then: readonly import('./semanticRewriteEngine').SemanticRelationPattern<InterproceduralRelation>[],
+): SemanticRelationRewrite<InterproceduralRelation> => Object.freeze({ id, priority: 0, when: Object.freeze(when), then: Object.freeze(then) });
+
+const CALLABLE_BOUNDARY_REWRITES: readonly SemanticRelationRewrite<InterproceduralRelation>[] = Object.freeze([
+    interproceduralRewrite('data-flow-boundary:callable', [
+        { relation: 'data-flow', arguments: [{ variable: 'source' }, { variable: 'target' }, 'callable'] },
+    ], [
+        { relation: 'call-target', arguments: [{ variable: 'source' }, { variable: 'target' }] },
+    ]),
+]);
 
 const targetRelations = (model: SemanticKnowledgeDataFlow, invocations: readonly SemanticInvocation[], callables: readonly SemanticCallable[]): readonly SemanticCallTarget[] => {
-    const invocationKeys = typedProject(typedRelation(invocations), invocation => pair(knowledgeIdKey(invocation.id), invocation)).tuples;
-    const callableKeys = typedProject(typedRelation(callables), callable => pair(knowledgeIdKey(callable.id), callable)).tuples;
-    const seed = typedProject(typedRelation(model.dataFlow), (flow: SemanticDataFlowFact) => ({
-        relation: 'data-flow',
-        arguments: [knowledgeIdKey(flow.source), knowledgeIdKey(flow.target), flow.role.code],
-    })).tuples;
+    const invocationKeys: readonly (readonly [string, SemanticInvocation])[] = typedProject(typedRelation(invocations), invocation => pair(knowledgeIdKey(invocation.id), invocation)).tuples;
+    const callableKeys: readonly (readonly [string, SemanticCallable])[] = typedProject(typedRelation(callables), callable => pair(knowledgeIdKey(callable.id), callable)).tuples;
+    const seed: readonly SemanticRelation<InterproceduralRelation>[] = typedProject(typedRelation(model.dataFlow), flow => dataFlowRelation(flow.source, flow.target, flow.role.code)).tuples;
     const solved = solveSemanticRelations<InterproceduralRelation>(seed, CALLABLE_BOUNDARY_REWRITES);
     return typedExpand(
         typedSelect(

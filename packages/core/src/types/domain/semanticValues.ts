@@ -1,8 +1,9 @@
 import type {
   ModelName, ResourceName, PropertyName, VariableName, ClassName, ColumnName,
   RelationName, RouteName, RoutePath, RouteParameterName, ControllerName, ActionName, MethodName,
-  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName
+  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName, HttpErrorName
 } from '../upstream/names';
+import { createHttpErrorName } from '../upstream/names';
 import type { NumberValue, StringValue } from '../upstream/valueObjects';
 import type { PhpFunctionName as UpstreamPhpFunctionName } from '../upstream/modelVocabulary';
 
@@ -18,7 +19,7 @@ import type { PhpFunctionName as UpstreamPhpFunctionName } from '../upstream/mod
 export type {
   ModelName, ResourceName, PropertyName, VariableName, ClassName, ColumnName,
   RelationName, RouteName, RoutePath, RouteParameterName, ControllerName, ActionName, MethodName,
-  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName
+  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName, HttpErrorName
 };
 
 export type DomainName = DomainTypeName;
@@ -30,11 +31,6 @@ export interface RequestFieldName {
 }
 
 export type SourceFilePath = SourceFile;
-
-export interface HttpErrorName {
-  readonly kind: 'http_error_name';
-  readonly value: string;
-}
 
 export interface ResponseFieldName {
   readonly kind: 'response_field_name';
@@ -160,7 +156,7 @@ export const SemanticValueFactory = Object.freeze({
   tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value: stringValue(value) }); },
   routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue(value) }); },
   responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value: stringValue(value) }); },
-  httpErrorName(value: string): HttpErrorName { return Object.freeze({ kind: 'http_error_name', value }); },
+  httpErrorName(value: string): HttpErrorName { return createHttpErrorName(value); },
   abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value: stringValue(value) }); },
   className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value: stringValue(value) }); },
   domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_type_name', value: stringValue(value) }); },

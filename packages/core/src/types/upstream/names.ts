@@ -71,4 +71,5 @@ export const createDomainTypeName = (value: string): DomainTypeName => Object.fr
 export interface AbilityName { readonly kind: 'ability_name'; readonly value: StringValue }
 export const createAbilityName = (value: string): AbilityName => Object.freeze({ kind: 'ability_name', value: stringValue(value) });
 export interface HttpErrorName { readonly kind: 'http_error_name'; readonly value: StringValue }
+export const createHttpErrorName = (value: string): HttpErrorName => Object.freeze({ kind: 'http_error_name' as const, value: stringValue(value) });
 export interface GuardName { readonly kind: 'guard_name'; readonly value: StringValue }

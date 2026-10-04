@@ -30,7 +30,7 @@ const cachedSourceText = (file: string) =>
 
 const phpEntry = (dir: string, entry: fs.Dirent): string => path.join(dir, entry.name);
 
-export async function collectPhpFiles(dir: string): Promise<string[]> {
+export async function collectPhpFiles(dir: string): Promise<readonly string[]> {
     return relationGate(
         fs.existsSync(dir),
         () => fs.promises.readdir(dir, { withFileTypes: true }).then(entries =>

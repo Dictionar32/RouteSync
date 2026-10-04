@@ -1,129 +1,92 @@
 import type { CrudRole } from "./lifecycle";
 import { SemanticValueFactory } from "./semanticValues";
-import { relationGate } from "../../semantic/kernel/relationalSequence";
+import { relationGate, relationFold, relationFoldRight, relationVariantFold, relationTextFind, relationTextFields, relationTextLower, relationTextSlice, relationTextStartsWith } from "../../semantic/kernel/relationalSequence";
+import { relationAny, relationEqual, relationNormalizeWhitespace } from "../../semantic/kernel/semanticRelations";
 import type { TruthValue } from "../upstream/valueObjects";
-import { truthValue } from "../upstream/valueObjects";
-/**
- * Canonical route security vocabulary is owned by the upstream semantic algebra.
- * This module retains only compatibility constructors while all semantic values
- * cross the boundary as closed ADTs.
- */
-export { SecuritySchemeKind, RoutePolicyKind } from "../upstream/route";
+import { truthValue, stringValue } from "../upstream/valueObjects";
+import {
+  SecuritySchemeKind,
+  RoutePolicyKind,
+  createRouteSecurityDescriptor,
+  type RouteSecurityDescriptor,
+  type RoutePolicyDescriptor,
+} from "../upstream/route";
+import type { Sequence } from "../upstream/collections";
+import { createAbilityName, type GuardName, type AbilityName } from "../upstream/names";
+
+export { SecuritySchemeKind, RoutePolicyKind, createRouteSecurityDescriptor } from "../upstream/route";
 export type { RouteSecurityDescriptor, RoutePolicyDescriptor } from "../upstream/route";
 
-import { SecuritySchemeKind, RoutePolicyKind, type RouteSecurityDescriptor, type RoutePolicyDescriptor } from "../upstream/route";
-import type { Sequence } from "../upstream/collections";
-import type { GuardName, AbilityName } from "../upstream/names";
-import { stringValue } from "../upstream/valueObjects";
+const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
 
-const sequenceFromArray = <T>(items: readonly T[], index = 0): Sequence<T> =>
-  relationGate(index >= items.length, () => ({ kind: 'empty' }), () => ({ kind: 'cons', head: items[index], tail: sequenceFromArray(items, index + 1) }));
+const sequenceMap = <T, U>(items: readonly T[], project: (item: T) => U): Sequence<U> =>
+  relationFoldRight(items, emptySequence<U>(), (item, tail) => ({ kind: 'cons', head: project(item), tail }));
+
+const sequenceAppend = <T>(sequence: Sequence<T>, item: T): Sequence<T> =>
+  relationVariantFold(sequence, 'cons', () => ({ kind: 'cons', head: item, tail: emptySequence<T>() }), candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceAppend(candidate.tail, item) }));
 
 const guardName = (value: string): GuardName => Object.freeze({ kind: 'guard_name', value: stringValue(value) });
-const abilityName = (value: string): AbilityName => SemanticValueFactory.abilityName(value);
+const abilityName = (value: string): AbilityName => createAbilityName(value);
 
-/**
- * Compatibility constructor over the canonical upstream security judgment.
- */
-export interface ScannedRouteSecurityParams {
+interface SecurityClassificationState {
   readonly isProtected: TruthValue;
   readonly scheme: SecuritySchemeKind;
   readonly guards: Sequence<GuardName>;
   readonly abilities: Sequence<AbilityName>;
 }
 
-export class RouteSemanticFlowSecurityDescriptor implements RouteSecurityDescriptor {
-  public readonly isProtected: TruthValue;
-  public readonly scheme: SecuritySchemeKind;
-  public readonly guards: Sequence<GuardName>;
-  public readonly abilities: Sequence<AbilityName>;
+const initialSecurityClassificationState: SecurityClassificationState = Object.freeze({
+  isProtected: truthValue(false),
+  scheme: SecuritySchemeKind.Public,
+  guards: emptySequence<GuardName>(),
+  abilities: emptySequence<AbilityName>(),
+});
 
-  constructor(params: ScannedRouteSecurityParams) {
-    this.isProtected = params.isProtected;
-    this.scheme = params.scheme;
-    this.guards = params.guards;
-    this.abilities = params.abilities;
-    Object.freeze(this);
-  }
+const middlewareSecurityState = (state: SecurityClassificationState, middleware: string): SecurityClassificationState => {
+  const trimmed = relationNormalizeWhitespace(middleware);
+  const lower = relationTextLower(trimmed);
+  const authSanctum = relationEqual(lower, 'auth:sanctum');
+  const authBearer = relationAny([relationEqual(lower, 'auth:api'), relationEqual(lower, 'auth:bearer')]);
+  const authCookie = relationAny([relationEqual(lower, 'auth'), relationTextStartsWith(lower, 'auth:')]);
+  const abilityPrefix = relationAny([relationTextStartsWith(lower, 'ability:'), relationTextStartsWith(lower, 'abilities:')]);
+  const rolePrefix = relationAny([relationTextStartsWith(lower, 'role:'), relationTextStartsWith(lower, 'roles:')]);
+  const admin = relationAny([relationEqual(lower, 'admin'), relationEqual(lower, 'superadmin')]);
+  const colon = relationTextFind(trimmed, ':');
+  const payload = relationGate(relationEqual(colon, -1), () => trimmed, () => relationTextSlice(trimmed, colon + 1));
+  const abilityItems = relationTextFields(payload, ',');
+  const normalizedAbilities = sequenceMap(abilityItems, item => abilityName(relationNormalizeWhitespace(item)));
+  const normalizedRoles = sequenceMap(abilityItems, item => abilityName(`role:${relationNormalizeWhitespace(item)}`));
+  const authState = relationGate(
+    authSanctum,
+    () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Sanctum, guards: sequenceAppend(state.guards, guardName('sanctum')) }),
+    () => relationGate(
+      authBearer,
+      () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Bearer, guards: sequenceAppend(state.guards, guardName('api')) }),
+      () => relationGate(
+        authCookie,
+        () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Cookie, guards: sequenceAppend(state.guards, guardName('web')) }),
+        () => relationGate(
+          abilityPrefix,
+          () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedAbilities) }),
+          () => relationGate(
+            rolePrefix,
+            () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedRoles) }),
+            () => relationGate(admin, () => Object.freeze({ ...state, abilities: sequenceAppend(state.abilities, abilityName(`role:${lower}`)) }), () => state),
+          ),
+        ),
+      ),
+    ),
+  );
+  return authState;
+};
 
-  public static create({
-    isProtected = truthValue(false),
-    scheme = SecuritySchemeKind.Public,
-    guards = { kind: 'empty' },
-    abilities = { kind: 'empty' }
-  }: {
-    readonly isProtected?: TruthValue;
-    readonly scheme?: SecuritySchemeKind;
-    readonly guards?: Sequence<GuardName>;
-    readonly abilities?: Sequence<AbilityName>;
-  } = {}): RouteSemanticFlowSecurityDescriptor {
-    return new RouteSemanticFlowSecurityDescriptor({ isProtected, scheme, guards, abilities });
-  }
-
-  public static public(): RouteSemanticFlowSecurityDescriptor {
-    return new RouteSemanticFlowSecurityDescriptor({
-      isProtected: truthValue(false),
-      scheme: SecuritySchemeKind.Public,
-      guards: { kind: 'empty' },
-      abilities: { kind: 'empty' }
-    });
-  }
-
-  public static protected(
-    scheme: SecuritySchemeKind = SecuritySchemeKind.Bearer,
-    guards: Sequence<GuardName> = { kind: 'empty' },
-    abilities: Sequence<AbilityName> = { kind: 'empty' }
-  ): RouteSemanticFlowSecurityDescriptor {
-    return new RouteSemanticFlowSecurityDescriptor({
-      isProtected: truthValue(true),
-      scheme,
-      guards,
-      abilities
-    });
-  }
-}
+const sequenceConcat = <T>(left: Sequence<T>, right: Sequence<T>): Sequence<T> =>
+  relationVariantFold(left, 'cons', () => right, candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceConcat(candidate.tail, right) }));
 
 export class RouteSecurityClassifier {
-  public static classify(middleware: readonly string[]): CanonicalRouteSecurityDescriptor {
-    const guards: string[] = [];
-    const abilities: string[] = [];
-    let isProtected = false;
-    let scheme: SecuritySchemeKind = SecuritySchemeKind.Public;
-
-    for (const m of middleware) {
-      const trimmed = m.trim();
-      const lower = trimmed.toLowerCase();
-      if (lower === 'auth:sanctum') {
-        isProtected = true;
-        scheme = SecuritySchemeKind.Sanctum;
-        guards.push('sanctum');
-      } else if (lower === 'auth:api' || lower === 'auth:bearer') {
-        isProtected = true;
-        scheme = SecuritySchemeKind.Bearer;
-        guards.push('api');
-      } else if (lower === 'auth' || lower.startsWith('auth:')) {
-        isProtected = true;
-        scheme = SecuritySchemeKind.Cookie;
-        guards.push('web');
-      } else if (lower.startsWith('ability:') || lower.startsWith('abilities:')) {
-        const colonIdx = trimmed.indexOf(':');
-        const items = trimmed.slice(colonIdx + 1).split(',').map(s => s.trim()).filter(Boolean);
-        abilities.push(...items);
-      } else if (lower.startsWith('role:') || lower.startsWith('roles:')) {
-        const colonIdx = trimmed.indexOf(':');
-        const items = trimmed.slice(colonIdx + 1).split(',').map(s => s.trim()).filter(Boolean);
-        abilities.push(...items.map(r => `role:${r}`));
-      } else if (lower === 'admin' || lower === 'superadmin') {
-        abilities.push(`role:${lower}`);
-      }
-    }
-
-    return new RouteSemanticFlowSecurityDescriptor({
-      isProtected: truthValue(isProtected),
-      scheme,
-      guards: sequenceFromArray(guards.map(guardName)),
-      abilities: sequenceFromArray(abilities.map(abilityName))
-    });
+  public static classify(middleware: readonly string[]): RouteSecurityDescriptor {
+    const state = relationFold(middleware, initialSecurityClassificationState, (current, item) => middlewareSecurityState(current, item));
+    return createRouteSecurityDescriptor(state.isProtected, state.scheme, state.guards, state.abilities);
   }
 }
 
@@ -232,11 +195,11 @@ export const ROUTE_POLICY_REGISTRY: RoutePolicyKindRegistry = Object.freeze({
   }
 });
 
-export const createRoutePolicyAbilityModel = (ability: string, modelParameter: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.AbilityModel, ability: SemanticValueFactory.abilityName(ability), modelParameter: SemanticValueFactory.propertyName(modelParameter) });
-export const createRoutePolicyGate = (ability: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.Gate, ability: SemanticValueFactory.abilityName(ability), modelParameter: { kind: 'none' as const } });
+export const createRoutePolicyAbilityModel = (ability: string, modelParameter: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.AbilityModel, ability: createAbilityName(ability), modelParameter: SemanticValueFactory.propertyName(modelParameter) });
+export const createRoutePolicyGate = (ability: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.Gate, ability: createAbilityName(ability), modelParameter: { kind: 'none' as const } });
 export const createRoutePolicyCustom = (ability: string, modelParameter?: string): RoutePolicyDescriptor => {
   const model = relationGate(typeof modelParameter === 'string', () => ({ kind: 'parameter' as const, name: SemanticValueFactory.propertyName(modelParameter as string) }), () => ({ kind: 'none' as const }));
-  return Object.freeze({ kind: RoutePolicyKind.Custom, ability: SemanticValueFactory.abilityName(ability), modelParameter: model });
+  return Object.freeze({ kind: RoutePolicyKind.Custom, ability: createAbilityName(ability), modelParameter: model });
 };
 export const createRoutePolicy = (input: { readonly ability: string; readonly modelParameter?: string; readonly kind?: RoutePolicyKind }): RoutePolicyDescriptor => {
   const kind = relationGate(Object.prototype.hasOwnProperty.call(input, 'kind'), () => input.kind as RoutePolicyKind, () => RoutePolicyKind.Gate);

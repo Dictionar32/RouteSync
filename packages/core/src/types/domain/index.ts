@@ -25,8 +25,7 @@ export * from './resourceModelMethodSurface';
 export {
   SecuritySchemeKind,
   type RouteSecurityDescriptor,
-  type ScannedRouteSecurityParams,
-  RouteSemanticFlowSecurityDescriptor,
+  createRouteSecurityDescriptor,
   RouteSecurityClassifier,
   type SecuritySchemeSpecification,
   type SecuritySchemeRegistry,

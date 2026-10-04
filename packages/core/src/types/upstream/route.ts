@@ -289,6 +289,13 @@ export interface RouteSecurityDescriptor {
   readonly abilities: Sequence<import('./names').AbilityName>;
 }
 
+export const createRouteSecurityDescriptor = (
+  isProtected: TruthValue,
+  scheme: SecuritySchemeKind,
+  guards: Sequence<import('./names').GuardName>,
+  abilities: Sequence<import('./names').AbilityName>,
+): RouteSecurityDescriptor => Object.freeze({ isProtected, scheme, guards, abilities });
+
 export type RouteRateLimit =
   | { readonly kind: 'none' }
   | { readonly kind: 'fixed'; readonly limit: RateLimitDescriptor }

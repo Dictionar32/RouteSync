@@ -1,88 +1,81 @@
 import type { CrudRole } from "./lifecycle";
 import { SemanticValueFactory } from "./semanticValues";
 import { relationGate } from "../../semantic/kernel/relationalSequence";
+import type { TruthValue } from "../upstream/valueObjects";
+import { truthValue } from "../upstream/valueObjects";
 /**
- * Canonical Domain Vocabulary for Route Authentication Schemes.
+ * Canonical route security vocabulary is owned by the upstream semantic algebra.
+ * This module retains only compatibility constructors while all semantic values
+ * cross the boundary as closed ADTs.
  */
-export const SecuritySchemeKind = Object.freeze({
-  Sanctum: 'sanctum',
-  Bearer: 'bearer',
-  Cookie: 'cookie',
-  Public: 'public'
-} as const);
+export { SecuritySchemeKind } from "../upstream/route";
+export type { RouteSecurityDescriptor } from "../upstream/route";
 
-export type SecuritySchemeKind = typeof SecuritySchemeKind[keyof typeof SecuritySchemeKind];
+import { SecuritySchemeKind, type RouteSecurityDescriptor as CanonicalRouteSecurityDescriptor } from "../upstream/route";
+import type { Sequence } from "../upstream/collections";
+import type { GuardName, AbilityName } from "../upstream/names";
+import { stringValue } from "../upstream/valueObjects";
+
+const sequenceFromArray = <T>(items: readonly T[], index = 0): Sequence<T> =>
+  relationGate(index >= items.length, () => ({ kind: 'empty' }), () => ({ kind: 'cons', head: items[index], tail: sequenceFromArray(items, index + 1) }));
+
+const guardName = (value: string): GuardName => Object.freeze({ kind: 'guard_name', value: stringValue(value) });
+const abilityName = (value: string): AbilityName => SemanticValueFactory.abilityName(value);
 
 /**
- * First-Class Route Security & Authentication Descriptor (Guaranteed Complete Model).
- * Eliminates downstream middleware.some(m => m.startsWith('auth')).
+ * Compatibility constructor over the canonical upstream security judgment.
  */
-export interface RouteSecurityDescriptor {
-  readonly isProtected: boolean;
-  readonly scheme: SecuritySchemeKind;
-  readonly guards: readonly string[];
-  readonly abilities: readonly string[]; // ✅ Dedicated Sanctum/Passport Abilities SSOT
-}
-
 export interface ScannedRouteSecurityParams {
-  readonly isProtected: boolean;
+  readonly isProtected: TruthValue;
   readonly scheme: SecuritySchemeKind;
-  readonly guards: readonly string[];
-  readonly abilities: readonly string[];
+  readonly guards: Sequence<GuardName>;
+  readonly abilities: Sequence<AbilityName>;
 }
 
-/**
- * Reusable Constructor: Scanned Route Security Descriptor.
- */
-export class RouteSemanticFlowSecurityDescriptor implements RouteSecurityDescriptor {
-  public readonly isProtected: boolean;
+export class RouteSemanticFlowSecurityDescriptor implements CanonicalRouteSecurityDescriptor {
+  public readonly isProtected: TruthValue;
   public readonly scheme: SecuritySchemeKind;
-  public readonly guards: readonly string[];
-  public readonly abilities: readonly string[];
+  public readonly guards: Sequence<GuardName>;
+  public readonly abilities: Sequence<AbilityName>;
 
   constructor(params: ScannedRouteSecurityParams) {
     this.isProtected = params.isProtected;
     this.scheme = params.scheme;
-    this.guards = Object.freeze([...params.guards]);
-    this.abilities = Object.freeze([...params.abilities]);
+    this.guards = params.guards;
+    this.abilities = params.abilities;
     Object.freeze(this);
   }
 
   public static create({
-    isProtected = false,
+    isProtected = truthValue(false),
     scheme = SecuritySchemeKind.Public,
-    guards = [],
-    abilities = []
+    guards = { kind: 'empty' },
+    abilities = { kind: 'empty' }
   }: {
-    readonly isProtected?: boolean;
+    readonly isProtected?: TruthValue;
     readonly scheme?: SecuritySchemeKind;
-    readonly guards?: readonly string[];
-    readonly abilities?: readonly string[];
+    readonly guards?: Sequence<GuardName>;
+    readonly abilities?: Sequence<AbilityName>;
   } = {}): RouteSemanticFlowSecurityDescriptor {
-    return new RouteSemanticFlowSecurityDescriptor({
-      isProtected,
-      scheme,
-      guards,
-      abilities
-    });
+    return new RouteSemanticFlowSecurityDescriptor({ isProtected, scheme, guards, abilities });
   }
 
   public static public(): RouteSemanticFlowSecurityDescriptor {
     return new RouteSemanticFlowSecurityDescriptor({
-      isProtected: false,
+      isProtected: truthValue(false),
       scheme: SecuritySchemeKind.Public,
-      guards: [],
-      abilities: []
+      guards: { kind: 'empty' },
+      abilities: { kind: 'empty' }
     });
   }
 
   public static protected(
     scheme: SecuritySchemeKind = SecuritySchemeKind.Bearer,
-    guards: readonly string[] = [],
-    abilities: readonly string[] = []
+    guards: Sequence<GuardName> = { kind: 'empty' },
+    abilities: Sequence<AbilityName> = { kind: 'empty' }
   ): RouteSemanticFlowSecurityDescriptor {
     return new RouteSemanticFlowSecurityDescriptor({
-      isProtected: true,
+      isProtected: truthValue(true),
       scheme,
       guards,
       abilities
@@ -91,7 +84,7 @@ export class RouteSemanticFlowSecurityDescriptor implements RouteSecurityDescrip
 }
 
 export class RouteSecurityClassifier {
-  public static classify(middleware: readonly string[]): RouteSecurityDescriptor {
+  public static classify(middleware: readonly string[]): CanonicalRouteSecurityDescriptor {
     const guards: string[] = [];
     const abilities: string[] = [];
     let isProtected = false;
@@ -126,10 +119,10 @@ export class RouteSecurityClassifier {
     }
 
     return new RouteSemanticFlowSecurityDescriptor({
-      isProtected,
+      isProtected: truthValue(isProtected),
       scheme,
-      guards,
-      abilities
+      guards: sequenceFromArray(guards.map(guardName)),
+      abilities: sequenceFromArray(abilities.map(abilityName))
     });
   }
 }

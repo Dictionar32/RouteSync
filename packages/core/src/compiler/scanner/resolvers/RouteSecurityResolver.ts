@@ -112,7 +112,7 @@ const resolveRouteSecurity = (middleware: readonly PropertyName[], auth: TruthVa
         const middlewareValues = relationProject(middleware, value => value.value.value);
         const securityDesc = RouteSecurityClassifier.classify(middlewareValues);
         const resolved = resolveMiddleware(middlewareValues);
-        const resolvedAuth = truthValue(relationAny([auth.value, securityDesc.isProtected]));
+        const resolvedAuth = truthValue(relationAny([auth.value, securityDesc.isProtected.value]));
 
         return Object.freeze({
             security: securityDesc,

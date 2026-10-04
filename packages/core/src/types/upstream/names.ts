@@ -19,6 +19,7 @@ export interface ActionName { readonly kind: 'action_name'; readonly value: Stri
 export interface ConstantName { readonly kind: 'constant_name'; readonly value: StringValue }
 export interface IndexName { readonly kind: 'index_name'; readonly value: StringValue }
 export interface ExceptionName { readonly kind: 'exception_name'; readonly value: StringValue }
+export const createExceptionName = (value: string): ExceptionName => Object.freeze({ kind: 'exception_name' as const, value: stringValue(value) });
 export interface MethodName { readonly kind: 'method_name'; readonly value: StringValue }
 export interface FunctionName { readonly kind: 'function_name'; readonly value: StringValue }
 export interface ResponseTypeName { readonly kind: 'response_type_name'; readonly value: StringValue }

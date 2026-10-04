@@ -53,3 +53,5 @@ export * from './astSemanticStageInterfaceAlgebra';
 export * from './astSemanticAuthorityPipeline';
 export * from './astSemanticStageTransition';
 export * from './astDataflowInterface';
+
+export * from './compilerPassFailure';

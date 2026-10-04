@@ -13,6 +13,7 @@ import { readArtifacts } from './ArtifactKeyWitness';
 import type { ResolveArtifacts } from './ArtifactKeyWitness';
 import { validatePassContract, applyPassOutputs, createPassCacheDescriptor } from './adapter';
 import { relationOptionFold, relationResolve, relationSome, relationNone, relationEqual } from '../../semantic/kernel/relationalSequence';
+import { compilerPassFailureMessage, compilerPassFailureOf } from '../../types/upstream/compilerPassFailure';
 
 export type TypedPassAdapter<
     I extends readonly ArtifactKey[],
@@ -69,7 +70,8 @@ const runPass = async <I extends readonly ArtifactKey[], O extends readonly Arti
         const outputs = await pass.run(inputs, context);
         return applyPassOutputs(state, pass.outputKeys, outputs);
     } catch (error) {
-        const message = relationResolve(error instanceof Error, () => error.message, () => String(error));
+        const failure = compilerPassFailureOf(error);
+        const message = compilerPassFailureMessage(failure);
         throw Error(`Compiler pass ${pass.name} failed: ${message}`);
     }
 };
@@ -87,7 +89,8 @@ const runPassWithCache = async <I extends readonly ArtifactKey[], O extends read
         cache.set<ResolveArtifacts<O>>(descriptor, outputs);
         return applyPassOutputs(state, pass.outputKeys, outputs);
     } catch (error) {
-        const message = relationResolve(error instanceof Error, () => error.message, () => String(error));
+        const failure = compilerPassFailureOf(error);
+        const message = compilerPassFailureMessage(failure);
         throw Error(`Compiler pass ${pass.name} failed: ${message}`);
     }
 };

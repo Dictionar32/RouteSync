@@ -1,0 +1,12 @@
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const matcher = fs.readFileSync(path.join(root, 'packages/core/src/compiler/types/resolved-php/matcher.ts'), 'utf8');
+const hierarchy = fs.readFileSync(path.join(root, 'packages/core/src/compiler/types/TypeHierarchy.ts'), 'utf8');
+const forbiddenMatcherCast = /type\s+as\s+(PrimitivePhpType|EloquentModelPhpType|ResourceWrapperPhpType|VoidPhpType|UnknownPhpType)/.test(matcher);
+const variantAuthority = matcher.includes('relationVariantFold');
+const noLegacyDescriptor = !fs.readFileSync(path.join(root, 'packages/core/src/compiler/types/ResolvedSemanticType.ts'), 'utf8').includes('Parsed');
+const noHierarchyOptionalContract = hierarchy.includes('Presence<SemanticType>') && !/SemanticType\s*\|\s*undefined/.test(hierarchy);
+const allPass = variantAuthority && !forbiddenMatcherCast && noLegacyDescriptor && noHierarchyOptionalContract;
+for (const [k,v] of Object.entries({variantAuthority, noForbiddenPhpVariantCast: !forbiddenMatcherCast, noParsedDescriptorBoundary: noLegacyDescriptor, explicitHierarchyPresence: noHierarchyOptionalContract, allPass})) console.log(`${k}: ${v}`);
+process.exit(allPass ? 0 : 1);

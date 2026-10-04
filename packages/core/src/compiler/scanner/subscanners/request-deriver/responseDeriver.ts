@@ -22,6 +22,7 @@ import {
     relationOptionFold,
     relationOptionMap,
     relationProject,
+    relationVariantFold,
     relationSome,
     relationNone,
     type RelationOption,
@@ -50,27 +51,37 @@ const toPrimitiveResponseValue = (type: Extract<SemanticType, { kind: 'primitive
     );
 
 function toResponseValue(type: SemanticType): ResponseValueContract {
-    return relationGate(
-        relationEqual(type.kind, 'primitive'),
-        () => toPrimitiveResponseValue(type as Extract<SemanticType, { kind: 'primitive' }>),
-        () => relationGate(
-            relationEqual(type.kind, 'reference'),
-            () => ({ kind: 'named_type', name: createResponseTypeName((type as Extract<SemanticType, { kind: 'reference' }>).name) }),
-            () => relationGate(
-                relationAny([relationEqual(type.kind, 'readonly_collection'), relationEqual(type.kind, 'mutable_collection')]),
-                () => ({ kind: 'collection', element: toResponseValue((type as Extract<SemanticType, { kind: 'readonly_collection' | 'mutable_collection' }>).elementType) }),
-                () => relationGate(
-                    relationAny([relationEqual(type.kind, 'object')]),
-                    () => ({ kind: 'named_type', name: createResponseTypeName((type as Extract<SemanticType, { kind: 'object' }>).name) }),
-                    () => relationGate(
-                        relationAny([relationEqual(type.kind, 'nullable'), relationEqual(type.kind, 'optional')]),
-                        () => toResponseValue((type as Extract<SemanticType, { kind: 'nullable' | 'optional' }>).innerType),
-                        () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+    return relationVariantFold(type, 'primitive', () => relationVariantFold(
+        type,
+        'reference',
+        () => relationVariantFold(
+            type,
+            'readonly_collection',
+            () => relationVariantFold(
+                type,
+                'mutable_collection',
+                () => relationVariantFold(
+                    type,
+                    'object',
+                    () => relationVariantFold(
+                        type,
+                        'nullable',
+                        () => relationVariantFold(
+                            type,
+                            'optional',
+                            () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+                            optional => toResponseValue(optional.innerType),
+                        ),
+                        nullable => toResponseValue(nullable.innerType),
                     ),
+                    object => ({ kind: 'named_type', name: createResponseTypeName(object.name) }),
                 ),
+                mutableCollection => ({ kind: 'collection', element: toResponseValue(mutableCollection.elementType) }),
             ),
+            readonlyCollection => ({ kind: 'collection', element: toResponseValue(readonlyCollection.elementType) }),
         ),
-    );
+        reference => ({ kind: 'named_type', name: createResponseTypeName(reference.name) }),
+    ), primitive => toPrimitiveResponseValue(primitive));
 }
 
 function toContractField(field: ScannedObjectProperty): ResponseContractField {

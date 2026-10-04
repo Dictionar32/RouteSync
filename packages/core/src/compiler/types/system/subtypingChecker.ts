@@ -13,7 +13,7 @@ import type { TypeHierarchy } from '../TypeHierarchy';
 import { presenceFold, type Presence } from '../../../types/upstream/presence';
 import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
 import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/kernel/semanticRelations';
-import { relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import { relationOptionFold, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
 
 const sameReference = (
   source: Extract<SemanticType, { kind: 'reference' }>,
@@ -45,11 +45,7 @@ const referenceClosure = (
       () => presenceFold(
         parent,
         () => false,
-        value => relationResolve(
-          relationEqual(value.kind, 'reference'),
-          () => referenceClosure(value as Extract<SemanticType, { kind: 'reference' }>, target, hierarchy, nextSeen),
-          () => false,
-        ),
+        value => relationVariantFold(value, 'reference', () => false, reference => referenceClosure(reference, target, hierarchy, nextSeen)),
       ),
     ),
   );
@@ -106,36 +102,73 @@ export function checkSubtype(
   isAssignable: (s: SemanticType, t: SemanticType) => boolean,
   ctx: HashContext = TypeHasher.createContext(),
 ): boolean {
+  const indeterminateTarget = relationVariantFold(
+    target,
+    'primitive',
+    () => false,
+    primitive => relationEqual(primitive.type, PrimitiveKind.INDETERMINATE),
+  );
   return relationResolve(
-    relationAll([relationEqual(target.kind, 'primitive'), relationEqual((target as Extract<SemanticType, { kind: 'primitive' }>).type, PrimitiveKind.INDETERMINATE)]),
+    indeterminateTarget,
     () => true,
-    () => relationResolve(
-      relationEqual(source.kind, 'union'),
-      () => unionSubtype((source as Extract<SemanticType, { kind: 'union' }>).members, target, isAssignable),
-      () => relationResolve(
-        relationAll([relationEqual(source.kind, 'primitive'), relationEqual(target.kind, 'primitive')]),
-        () => relationEqual((source as Extract<SemanticType, { kind: 'primitive' }>).type, (target as Extract<SemanticType, { kind: 'primitive' }>).type),
-        () => relationResolve(
-          relationAll([relationEqual(source.kind, 'reference'), relationEqual(target.kind, 'reference')]),
-          () => referenceClosure(source as Extract<SemanticType, { kind: 'reference' }>, target as Extract<SemanticType, { kind: 'reference' }>, hierarchy, []),
-          () => relationResolve(
-            relationAll([relationEqual(source.kind, 'readonly_collection'), relationEqual(target.kind, 'readonly_collection')]),
-            () => checkSubtype((source as Extract<SemanticType, { kind: 'readonly_collection' }>).elementType, (target as Extract<SemanticType, { kind: 'readonly_collection' }>).elementType, hierarchy, isAssignable, ctx),
-            () => relationResolve(
-              relationAll([relationEqual(source.kind, 'mutable_collection'), relationEqual(target.kind, 'mutable_collection')]),
-              () => sameHash((source as Extract<SemanticType, { kind: 'mutable_collection' }>).elementType, (target as Extract<SemanticType, { kind: 'mutable_collection' }>).elementType, ctx),
-              () => relationResolve(
-                relationAll([relationEqual(source.kind, 'generic'), relationEqual(target.kind, 'generic')]),
-                () => relationAll([
-                  checkSubtype((source as Extract<SemanticType, { kind: 'generic' }>).base, (target as Extract<SemanticType, { kind: 'generic' }>).base, hierarchy, isAssignable, ctx),
-                  genericParametersSubtype((source as Extract<SemanticType, { kind: 'generic' }>).parameters, (target as Extract<SemanticType, { kind: 'generic' }>).parameters, hierarchy, isAssignable, ctx),
-                ]),
+    () => relationVariantFold(
+      source,
+      'union',
+      () => relationVariantFold(
+        source,
+        'primitive',
+        () => relationVariantFold(
+          source,
+          'reference',
+          () => relationVariantFold(
+            source,
+            'readonly_collection',
+            () => relationVariantFold(
+              source,
+              'mutable_collection',
+              () => relationVariantFold(
+                source,
+                'generic',
                 () => false,
+                genericSource => relationVariantFold(
+                  target,
+                  'generic',
+                  () => false,
+                  genericTarget => relationAll([
+                    checkSubtype(genericSource.base, genericTarget.base, hierarchy, isAssignable, ctx),
+                    genericParametersSubtype(genericSource.parameters, genericTarget.parameters, hierarchy, isAssignable, ctx),
+                  ]),
+                ),
+              ),
+              mutableSource => relationVariantFold(
+                target,
+                'mutable_collection',
+                () => false,
+                mutableTarget => sameHash(mutableSource.elementType, mutableTarget.elementType, ctx),
               ),
             ),
+            readonlySource => relationVariantFold(
+              target,
+              'readonly_collection',
+              () => false,
+              readonlyTarget => checkSubtype(readonlySource.elementType, readonlyTarget.elementType, hierarchy, isAssignable, ctx),
+            ),
+          ),
+          referenceSource => relationVariantFold(
+            target,
+            'reference',
+            () => false,
+            referenceTarget => referenceClosure(referenceSource, referenceTarget, hierarchy, []),
           ),
         ),
+        primitiveSource => relationVariantFold(
+          target,
+          'primitive',
+          () => false,
+          primitiveTarget => relationEqual(primitiveSource.type, primitiveTarget.type),
+        ),
       ),
+      unionSource => unionSubtype(unionSource.members, target, isAssignable),
     ),
   );
 }

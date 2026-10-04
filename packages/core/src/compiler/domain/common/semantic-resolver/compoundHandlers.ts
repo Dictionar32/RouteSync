@@ -7,9 +7,6 @@
  */
 
 import {
-    ObjectType,
-    UnionType,
-    IntersectionType,
     type SemanticType
 } from '../../../types/SemanticType';
 import {
@@ -23,13 +20,13 @@ import {
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationProject, relationSelect, relationResolve } from '../../../../semantic/kernel/relationalSequence';
+import { relationProject, relationSelect, relationResolve, relationVariantFold } from '../../../../semantic/kernel/relationalSequence';
 
 export const NullableWrapperHandler: SemanticTypeHandler = Object.freeze({
     supports: (type: SemanticType): boolean => relationEqual(type.kind, 'nullable'),
     resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => relationResolve(
         relationEqual(type.kind, 'nullable'),
-        () => ResolvedNullableType.create({ innerType: resolver.resolve((type as Extract<SemanticType, { kind: 'nullable' }>).innerType) }),
+        () => relationVariantFold(type, 'nullable', () => resolver.resolve(type), nullable => ResolvedNullableType.create({ innerType: resolver.resolve(nullable.innerType) })),
         () => resolver.resolve(type),
     ),
 });
@@ -38,8 +35,7 @@ export const DefaultObjectHandler: SemanticTypeHandler = Object.freeze({
     supports: (type: SemanticType): boolean => relationEqual(type.kind, 'object'),
     resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => relationResolve(
         relationEqual(type.kind, 'object'),
-        () => {
-            const object = type as Extract<SemanticType, { kind: 'object' }>;
+        () => relationVariantFold(type, 'object', () => resolver.resolve(type), object => {
             const visibleProperties = relationSelect(
                 object.properties,
                 property => relationEqual(property.name.value.value.startsWith('__'), false),
@@ -63,25 +59,21 @@ export const DefaultObjectHandler: SemanticTypeHandler = Object.freeze({
                 ),
             );
             return ResolvedObjectType.create({ fields, identity });
-        },
+        }),
         () => resolver.resolve(type),
     ),
 });
 
 export const UnionTypeHandler: SemanticTypeHandler = Object.freeze({
     supports: (type: SemanticType): boolean => relationEqual(type.kind, 'union'),
-    resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => {
-        const u = type as UnionType;
-        const members = relationProject(Array.from(u.members.values()), (member: SemanticType) => resolver.resolve(member));
-        return ResolvedUnionType.create({ members });
-    },
+    resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => relationVariantFold(
+        type, 'union', () => resolver.resolve(type), union => ResolvedUnionType.create({ members: relationProject(union.members, member => resolver.resolve(member)) }),
+    ),
 });
 
 export const IntersectionTypeHandler: SemanticTypeHandler = Object.freeze({
     supports: (type: SemanticType): boolean => relationEqual(type.kind, 'intersection'),
-    resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => {
-        const i = type as IntersectionType;
-        const members = relationProject(Array.from(i.members.values()), (member: SemanticType) => resolver.resolve(member));
-        return ResolvedIntersectionType.create({ members });
-    },
+    resolve: (type: SemanticType, resolver: SemanticTypeResolverLike): ResolvedSemanticType => relationVariantFold(
+        type, 'intersection', () => resolver.resolve(type), intersection => ResolvedIntersectionType.create({ members: relationProject(intersection.members, member => resolver.resolve(member)) }),
+    ),
 });

@@ -1,7 +1,6 @@
 /** Catamorphic pattern matcher for the resolved PHP type algebra. */
 
-import { relationEqual, relationResolve } from '../../../semantic/kernel/semanticRelations';
-import { relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import { relationVariantFold } from '../../../semantic/kernel/relationalSequence';
 import { PrimitivePhpType, EloquentModelPhpType, ResourceWrapperPhpType, VoidPhpType, UnknownPhpType } from './variants';
 
 export interface ResolvedPhpTypeVisitor<R> {
@@ -15,14 +14,25 @@ export interface ResolvedPhpTypeVisitor<R> {
 export type ResolvedPhpType = PrimitivePhpType | EloquentModelPhpType | ResourceWrapperPhpType | VoidPhpType | UnknownPhpType;
 
 export function matchResolvedPhpType<R>(type: ResolvedPhpType, visitor: ResolvedPhpTypeVisitor<R>): R {
-    const kind = type.kind;
-    return relationResolve(relationEqual(kind, 'primitive'), () => visitor.primitive(type as PrimitivePhpType), () => relationResolve(
-        relationEqual(kind, 'model'),
-        () => visitor.model(type as EloquentModelPhpType),
-        () => relationResolve(
-            relationEqual(kind, 'resource'),
-            () => visitor.resource(type as ResourceWrapperPhpType),
-            () => relationResolve(relationEqual(kind, 'void'), () => visitor.void(type as VoidPhpType), () => visitor.unknown(type as UnknownPhpType)),
+    return relationVariantFold(
+        type,
+        'primitive',
+        () => relationVariantFold(
+            type,
+            'model',
+            () => relationVariantFold(
+                type,
+                'resource',
+                () => relationVariantFold(
+                    type,
+                    'void',
+                    () => relationVariantFold(type, 'unknown', () => { throw Error('Unreachable resolved PHP type variant'); }, visitor.unknown),
+                    visitor.void,
+                ),
+                visitor.resource,
+            ),
+            visitor.model,
         ),
-    ));
+        visitor.primitive,
+    );
 }

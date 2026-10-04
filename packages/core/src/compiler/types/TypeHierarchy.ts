@@ -18,11 +18,8 @@ import type { Presence } from '../../types/upstream/presence';
  * @example
  * ```typescript
  * class ModelHierarchy implements TypeHierarchy {
- *   getParent(type: SemanticType): SemanticType | undefined {
- *     if (type.kind === 'reference' && type.name === 'Admin') {
- *       return ReferenceType('App\\Models', 'User');
- *     }
- *     return undefined;
+ *   getParent(type: SemanticType): Presence<SemanticType> {
+ *     return relation-driven hierarchy evidence;
  *   }
  * }
  * ```
@@ -35,7 +32,7 @@ export interface TypeHierarchy {
      * Used for subtyping checks in TypeSystem.
      * 
      * @param type - Type to query
-     * @returns Parent type or undefined
+     * @returns Parent relation as an explicit `present` or `absent` witness
      */
     getParent(type: SemanticType): Presence<SemanticType>;
 }

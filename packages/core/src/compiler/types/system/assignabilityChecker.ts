@@ -2,7 +2,7 @@
 
 import { SemanticType } from '../SemanticType';
 import { relationResolve, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationAnyMatch } from '../../../semantic/kernel/relationalSequence';
+import { relationAnyMatch, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
 
 export function checkAssignable(
   source: SemanticType,
@@ -14,7 +14,7 @@ export function checkAssignable(
     () => true,
     () => relationResolve(
       relationEqual(target.kind, 'union'),
-      () => relationAnyMatch((target as Extract<SemanticType, { kind: 'union' }>).members, member => checkAssignable(source, member, isSubtype)),
+      () => relationVariantFold(target, 'union', () => false, union => relationAnyMatch(union.members, member => checkAssignable(source, member, isSubtype))),
       () => false,
     ),
   );

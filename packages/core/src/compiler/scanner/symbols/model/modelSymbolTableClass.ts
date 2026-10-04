@@ -4,9 +4,10 @@ import type { ControllerModelOrigin } from '../../../../types/upstream/controlle
 import { createOriginModelSymbol, type OriginModelSymbol } from './originModelSymbol';
 import { ResourceNamingConvention } from '../../../../utils/resource-naming';
 import type { Lookup, Option } from '../../../../types/upstream/collections';
+import { matchLookup } from '../../../../types/upstream/collections';
 import type { ModelName, TableName, ResourceName } from '../../../../types/upstream/names';
 import { createModelName } from '../../../../types/upstream/names';
-import { relationFold, relationOptionFold, relationLookup, relationGate, relationSome, relationNone, relationProject, relationVariant } from '../../../../semantic/kernel/relationalSequence';
+import { relationFold, relationOptionFold, relationLookup, relationVariantFold, relationProject } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { relationIndexAdd, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
 
@@ -20,21 +21,29 @@ export interface ModelSymbolTable {
     readonly findForControllerOrigin: (origin: ControllerModelOrigin) => Lookup<OriginModelSymbol>;
 }
 
-export const createModelSymbolTable = (models: readonly ModelAst[] = []): ModelSymbolTable => {
+const emptySymbols: readonly OriginModelSymbol[] = Object.freeze([]);
+const emptyModels: readonly ModelAst[] = Object.freeze([]);
+const emptyIndex: RelationIndex<string, Option<OriginModelSymbol>> = Object.freeze([]);
+
+export const createModelSymbolTable = (models: readonly ModelAst[] = emptyModels): ModelSymbolTable => {
     const state = relationFold(models, {
-        list: [] as OriginModelSymbol[],
-        byName: [] as RelationIndex<string, Option<OriginModelSymbol>>,
-        byShortName: [] as RelationIndex<string, Option<OriginModelSymbol>>,
-        byLower: [] as RelationIndex<string, Option<OriginModelSymbol>>,
-        byTableName: [] as RelationIndex<string, Option<OriginModelSymbol>>,
+        list: emptySymbols,
+        byName: emptyIndex,
+        byShortName: emptyIndex,
+        byLower: emptyIndex,
+        byTableName: emptyIndex,
     }, (current, model) => {
         const symbol = createOriginModelSymbol(model);
         return {
-            list: [...current.list, symbol],
+            list: Object.freeze([...current.list, symbol]),
             byName: relationIndexAdd(current.byName, symbol.name.value.value, { kind: 'some', value: symbol }),
             byShortName: relationIndexAdd(current.byShortName, symbol.shortName.value.value, { kind: 'some', value: symbol }),
-            byLower: relationIndexAdd(relationIndexAdd(current.byLower, symbol.name.value.value.toLowerCase(), { kind: 'some', value: symbol }), symbol.shortName.value.value.toLowerCase(), { kind: 'some', value: symbol }),
-            byTableName: relationIndexAdd(current.byTableName, model.definition.identity.table.value.value.toLowerCase(), { kind: 'some', value: symbol }),
+            byLower: relationIndexAdd(
+                relationIndexAdd(current.byLower, symbol.name.value.value.toLowerCase(), { kind: 'some', value: symbol }),
+                symbol.shortName.value.value.toLowerCase(),
+                { kind: 'some', value: symbol },
+            ),
+            byTableName: relationIndexAdd(current.byTableName, model.definition.identity.table.name.value.value.toLowerCase(), { kind: 'some', value: symbol }),
         };
     });
     const get = (name: ModelName): Lookup<OriginModelSymbol> => relationOptionFold(
@@ -52,17 +61,21 @@ export const createModelSymbolTable = (models: readonly ModelAst[] = []): ModelS
     const tableModels = (): readonly ModelAst[] => relationProject(state.list, symbol => symbol.node);
     const findForResource = (resourceName: ResourceName): Lookup<OriginModelSymbol> => {
         const primary = get(createModelName(ResourceNamingConvention.stripSuffix(resourceName.value.value)));
-        return relationOptionFold(relationGate(relationEqual(primary.kind, 'found'), () => relationSome(primary.value), () => relationNone()), () => get(createModelName(resourceName.value.value)), value => ({ kind: 'found', value }));
+        return matchLookup(primary, {
+            missing: () => get(createModelName(resourceName.value.value)),
+            found: ({ value }) => ({ kind: 'found', value }),
+        });
     };
-    const findForControllerOrigin = (origin: ControllerModelOrigin): Lookup<OriginModelSymbol> =>
-        relationOptionFold(
-            relationVariant(origin, 'table'),
-            () => relationOptionFold(
-                relationVariant(origin, 'model_class'),
-                () => ({ kind: 'missing' }),
-                value => get(value.name),
-            ),
-            value => findByTableName(value.name),
-        );
+    const findForControllerOrigin = (origin: ControllerModelOrigin): Lookup<OriginModelSymbol> => relationVariantFold(
+        origin,
+        'table',
+        rest => relationVariantFold(
+            rest,
+            'model_class',
+            () => ({ kind: 'missing' }),
+            value => get(value.name),
+        ),
+        value => findByTableName(value.name),
+    );
     return Object.freeze({ get, findByTableName, has, all, models: tableModels, findForResource, findForControllerOrigin });
 };

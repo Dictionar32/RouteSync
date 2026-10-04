@@ -4,8 +4,15 @@ import type { ModelSemanticProperty, ModelSemanticRelation } from '../../../../t
 import type { ModelName, PropertyName, RelationName } from '../../../../types/upstream/names';
 import type { ResolvedPropertyBinding } from './types';
 import type { Lookup } from '../../../../types/upstream/collections';
-import { relationFirst, relationOptionFold, relationProject } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
+import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
+import {
+    relationFirstOption,
+    relationOptionFold,
+    relationSequenceToArray,
+    relationVariantFold,
+    type RelationOption,
+} from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 
 export interface OriginModelSymbol {
     readonly name: ModelName;
@@ -17,32 +24,64 @@ export interface OriginModelSymbol {
     readonly resolveProperty: (prop: PropertyName) => Lookup<ResolvedPropertyBinding>;
 }
 
+const lookupFromOption = <T>(option: RelationOption<T>): Lookup<T> => relationOptionFold(
+    option,
+    () => ({ kind: 'missing' }),
+    value => ({ kind: 'found', value }),
+);
+
 export const createOriginModelSymbol = (node: ModelAst): OriginModelSymbol => {
-    const properties = Object.freeze(relationProject(node.definition.semanticProperties, property => property));
-    const property = (name: PropertyName): Lookup<ModelSemanticProperty> => relationOptionFold(
-        relationFirst(properties, item => relationEqual(item.property.value.value, name.value.value)),
-        () => ({ kind: 'missing' }),
-        value => ({ kind: 'found', value }),
+    const properties = relationSequenceToArray(node.definition.semanticProperties);
+    const property = (name: PropertyName): Lookup<ModelSemanticProperty> => lookupFromOption(
+        relationFirstOption(properties, item => relationEqual(item.property.value.value, name.value.value)),
     );
     const column = (name: PropertyName): Lookup<ModelSemanticProperty> => relationOptionFold(
-        relationOptionFold(property(name), () => ({ kind: 'none' as const }), value => relationGate(relationEqual(value.origin.kind, 'column'), () => ({ kind: 'some' as const, value }), () => ({ kind: 'none' as const }))),
+        relationFirstOption(
+            properties,
+            (item): item is Extract<ModelSemanticProperty, { readonly kind: 'column' }> =>
+                relationEqual(item.kind, 'column') && relationEqual(item.property.value.value, name.value.value),
+        ),
         () => ({ kind: 'missing' }),
         value => ({ kind: 'found', value }),
     );
     const relation = (name: RelationName): Lookup<ModelSemanticRelation> => relationOptionFold(
-        relationFirst(properties, item => relationAll([relationEqual(item.property.value.value, name.value.value), relationEqual(item.kind, 'relation')])),
+        relationFirstOption(
+            properties,
+            (item): item is ModelSemanticRelation =>
+                relationEqual(item.kind, 'relation') && relationEqual(item.property.value.value, name.value.value),
+        ),
         () => ({ kind: 'missing' }),
-        value => ({ kind: 'found', value: value as ModelSemanticRelation }),
+        value => ({ kind: 'found', value }),
     );
     const resolveProperty = (prop: PropertyName): Lookup<ResolvedPropertyBinding> => relationOptionFold(
-        property(prop),
+        relationFirstOption(properties, item => relationEqual(item.property.value.value, prop.value.value)),
         () => ({ kind: 'missing' }),
-        value => ({ kind: 'found', value: {
-            kind: value.kind,
-            propertyName: value.property.value,
-            source: value,
-            semanticType: value.semanticType,
-        } as ResolvedPropertyBinding }),
+        value => relationVariantFold<ModelSemanticProperty, 'column', Lookup<ResolvedPropertyBinding>>(
+            value,
+            'column',
+            rest => relationVariantFold<Exclude<ModelSemanticProperty, { readonly kind: 'column' }>, 'accessor', Lookup<ResolvedPropertyBinding>>(
+                rest,
+                'accessor',
+                relation => ({ kind: 'found', value: {
+                    kind: 'relation',
+                    propertyName: relation.property,
+                    source: relation,
+                    semanticType: typeExpressionToSemanticType(relation.semanticType),
+                } }),
+                accessor => ({ kind: 'found', value: {
+                    kind: 'accessor',
+                    propertyName: accessor.property,
+                    source: accessor,
+                    semanticType: typeExpressionToSemanticType(accessor.traversal.semanticType),
+                } }),
+            ),
+            column => ({ kind: 'found', value: {
+                kind: 'column',
+                propertyName: column.property,
+                source: column,
+                semanticType: typeExpressionToSemanticType(column.semanticType),
+            } }),
+        ),
     );
     return Object.freeze({ name: node.definition.identity.name, shortName: node.definition.identity.shortName, node, property, column, relation, resolveProperty });
 };

@@ -232,7 +232,7 @@ export type QueryProjection =
   | { readonly kind: 'raw_expression'; readonly expression: Expression }
   | { readonly kind: 'subquery'; readonly query: Expression; readonly alias: Expression }
   | { readonly kind: 'expression'; readonly expression: Expression; readonly alias: Expression }
-  | { readonly kind: 'vector_distance'; readonly column: Expression; readonly vector: Expression; readonly alias: Expression | undefined };
+  | { readonly kind: 'vector_distance'; readonly column: Expression; readonly vector: Expression; readonly alias: Option<Expression> };
 export type QueryIndexHint =
   | { readonly kind: 'use'; readonly index: Expression }
   | { readonly kind: 'force'; readonly index: Expression }
@@ -241,16 +241,16 @@ export type QueryChunkById = {
   readonly kind: 'query_chunk_by_id';
   readonly count: Expression;
   readonly callback: Expression;
-  readonly column: PropertyName | undefined;
-  readonly alias: PropertyName | undefined;
+  readonly column: Option<PropertyName>;
+  readonly alias: Option<PropertyName>;
   readonly direction: OrderDirection;
 };
 
 export type QueryLazyById = {
   readonly kind: 'query_lazy_by_id';
-  readonly chunkSize: Expression | undefined;
-  readonly column: PropertyName | undefined;
-  readonly alias: PropertyName | undefined;
+  readonly chunkSize: Option<Expression>;
+  readonly column: Option<PropertyName>;
+  readonly alias: Option<PropertyName>;
   readonly direction: OrderDirection;
 };
 
@@ -260,11 +260,11 @@ export type QueryIterationDirection =
   | { readonly kind: 'dynamic'; readonly expression: Expression };
 
 export type QueryIteration =
-  | { readonly kind: 'chunk_map'; readonly callback: Expression; readonly count: Expression | undefined }
-  | { readonly kind: 'each'; readonly callback: Expression; readonly count: Expression | undefined }
-  | { readonly kind: 'each_by_id'; readonly callback: Expression; readonly count: Expression | undefined; readonly column: PropertyName | undefined; readonly alias: PropertyName | undefined; readonly direction: QueryIterationDirection }
-  | { readonly kind: 'ordered_chunk_by_id'; readonly count: Expression; readonly callback: Expression; readonly column: PropertyName | undefined; readonly alias: PropertyName | undefined; readonly direction: QueryIterationDirection }
-  | { readonly kind: 'ordered_lazy_by_id'; readonly chunkSize: Expression | undefined; readonly column: PropertyName | undefined; readonly alias: PropertyName | undefined; readonly direction: QueryIterationDirection };
+  | { readonly kind: 'chunk_map'; readonly callback: Expression; readonly count: Option<Expression> }
+  | { readonly kind: 'each'; readonly callback: Expression; readonly count: Option<Expression> }
+  | { readonly kind: 'each_by_id'; readonly callback: Expression; readonly count: Option<Expression>; readonly column: Option<PropertyName>; readonly alias: Option<PropertyName>; readonly direction: QueryIterationDirection }
+  | { readonly kind: 'ordered_chunk_by_id'; readonly count: Expression; readonly callback: Expression; readonly column: Option<PropertyName>; readonly alias: Option<PropertyName>; readonly direction: QueryIterationDirection }
+  | { readonly kind: 'ordered_lazy_by_id'; readonly chunkSize: Option<Expression>; readonly column: Option<PropertyName>; readonly alias: Option<PropertyName>; readonly direction: QueryIterationDirection };
 
 export type QueryReturning = { readonly columns: Expression; readonly uniqueBy: Option<Expression> };
 export type QueryMutation =
@@ -277,8 +277,8 @@ export type QueryMutation =
   | { readonly kind: 'truncate' };
 
 export type QueryPipeline =
-  | { readonly kind: 'when'; readonly condition: Expression; readonly callback: Expression; readonly defaultCallback: Expression | undefined }
-  | { readonly kind: 'unless'; readonly condition: Expression; readonly callback: Expression; readonly defaultCallback: Expression | undefined }
+  | { readonly kind: 'when'; readonly condition: Expression; readonly callback: Expression; readonly defaultCallback: Option<Expression> }
+  | { readonly kind: 'unless'; readonly condition: Expression; readonly callback: Expression; readonly defaultCallback: Option<Expression> }
   | { readonly kind: 'tap'; readonly callback: Expression }
   | { readonly kind: 'pipe'; readonly callback: Expression };
 
@@ -329,7 +329,7 @@ export type QueryOperation =
   | { readonly kind: 'execution_hook'; readonly hook: QueryExecutionHook }
   | { readonly kind: 'execution_configuration'; readonly configuration: QueryExecutionConfiguration }
   | { readonly kind: 'terminal'; readonly terminal: QueryTerminal }
-  | { readonly kind: 'lazy'; readonly chunkSize: Expression | undefined }
+  | { readonly kind: 'lazy'; readonly chunkSize: Option<Expression> }
   | { readonly kind: 'lazy_by_id'; readonly value: QueryLazyById }
   | { readonly kind: 'insert'; readonly values: Expression }
   | { readonly kind: 'insert_get_id'; readonly values: Expression; readonly sequence: Option<Expression> }
@@ -342,7 +342,7 @@ export type QueryOperation =
   | { readonly kind: 'where'; readonly condition: QueryCondition }
   | { readonly kind: 'or_where'; readonly condition: QueryCondition }
   | { readonly kind: 'where_raw'; readonly condition: Extract<QueryCondition, { readonly kind: 'raw' }> }
-  | { readonly kind: 'reorder'; readonly target: QueryOrderingTarget | undefined; readonly direction: OrderDirection | undefined } | { readonly kind: 'group_limit'; readonly value: Expression; readonly column: QueryOrderingTarget } | { readonly kind: 'in_order_of'; readonly column: PropertyName; readonly values: Expression }
+  | { readonly kind: 'reorder'; readonly target: Option<QueryOrderingTarget>; readonly direction: Option<OrderDirection> } | { readonly kind: 'group_limit'; readonly value: Expression; readonly column: QueryOrderingTarget } | { readonly kind: 'in_order_of'; readonly column: PropertyName; readonly values: Expression }
   | { readonly kind: 'chunk_by_id'; readonly value: QueryChunkById }
   | { readonly kind: 'from_raw'; readonly expression: Expression; readonly bindings: Option<Expression> }
   | { readonly kind: 'lazy_by_id'; readonly value: QueryLazyById }
@@ -351,7 +351,7 @@ export type QueryOperation =
   | { readonly kind: 'relation_aggregate'; readonly aggregate: QueryRelationAggregate }
   | { readonly kind: 'where_has'; readonly condition: Extract<QueryCondition, { readonly kind: 'relation' }> } | { readonly kind: 'where_key'; readonly value: Expression }
   | { readonly kind: 'with'; readonly relations: RelationPaths }
-  | { readonly kind: 'latest'; readonly target: QueryOrderingTarget | undefined } | { readonly kind: 'oldest'; readonly target: QueryOrderingTarget | undefined } | { readonly kind: 'order_by'; readonly target: QueryOrderingTarget; readonly direction: OrderDirection } | { readonly kind: 'order_by_raw'; readonly target: Extract<QueryOrderingTarget, { readonly kind: 'raw' }> }
+  | { readonly kind: 'latest'; readonly target: Option<QueryOrderingTarget> } | { readonly kind: 'oldest'; readonly target: Option<QueryOrderingTarget> } | { readonly kind: 'order_by'; readonly target: QueryOrderingTarget; readonly direction: OrderDirection } | { readonly kind: 'order_by_raw'; readonly target: Extract<QueryOrderingTarget, { readonly kind: 'raw' }> }
   | { readonly kind: 'limit'; readonly value: Expression }
   | { readonly kind: 'first' } | { readonly kind: 'first_or_fail' } | { readonly kind: 'find'; readonly key: Expression } | { readonly kind: 'get' } | { readonly kind: 'get_with_columns'; readonly columns: Expression } | { readonly kind: 'find_or_fail'; readonly key: Expression }
   | { readonly kind: 'paginate'; readonly perPage: Expression; readonly columns: Option<Expression>; readonly pageName: Option<Expression>; readonly page: Option<Expression> }
@@ -374,7 +374,7 @@ export type QueryJoinConstraint =
 export type QueryJoin = {
   readonly target: QueryJoinTarget;
   readonly type: JoinType;
-  readonly constraint: QueryJoinConstraint | undefined;
+  readonly constraint: Option<QueryJoinConstraint>;
 };
 export type JoinType = { readonly kind: 'inner' } | { readonly kind: 'left' } | { readonly kind: 'right' } | { readonly kind: 'cross' } | { readonly kind: 'straight' };
 export type AggregateOperand = { readonly kind: 'property'; readonly name: PropertyName } | { readonly kind: 'sql'; readonly expression: SqlExpression };

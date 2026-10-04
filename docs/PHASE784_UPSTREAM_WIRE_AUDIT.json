@@ -1,0 +1,30 @@
+{
+  "phase": 784,
+  "model": "wire existing upstream closed ADTs into semantic consumers; no parallel descriptor model",
+  "upstreamAuthorities": {
+    "optionADT": true,
+    "astSemanticInterface": true,
+    "astDataflowInterface": true,
+    "astMappingInterface": true
+  },
+  "expressionAbsence": {
+    "optionImported": true,
+    "noFreeUndefined": true,
+    "optionalFieldsUseOption": true
+  },
+  "highLevelWire": {
+    "relationVariantFoldImported": true,
+    "noExtractCasts": true,
+    "requestTargetUsesFold": true,
+    "endpointRequestUsesFold": true,
+    "endpointResponseUsesFold": true,
+    "routeTargetUsesFold": true,
+    "sequenceUsesFold": true
+  },
+  "legacyVacuum": {
+    "packages/core/src/types/upstream/ast.ts.bak-interface-property": 0,
+    "packages/core/src/types/upstream/property.ts.bak-interface-property": 0,
+    "packages/core/src/types/upstream/response.ts.before-interface-response": 0
+  },
+  "allPass": true
+}

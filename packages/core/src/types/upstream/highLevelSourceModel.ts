@@ -14,7 +14,7 @@ import type { ModelHighLevelContract, ProviderHighLevelContract, ResourceHighLev
 import type { RequestFieldTarget } from './request';
 import type { EndpointResponseBinding, EndpointRequestBinding } from './endpointBindings';
 import type { RouteTarget } from './route';
-import { relationEqual, relationExpand, relationFirstOption, relationFoldRight, relationOptionFold, relationProject, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationExpand, relationFirstOption, relationFoldRight, relationOptionFold, relationProject, relationResolve, relationVariantFold } from '../../semantic/kernel/relationalSequence';
 
 type RequestPropertyRelation = Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'request_property' }>;
 type RouteResponseRelation = Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'route_response' }>;
@@ -26,24 +26,21 @@ type RouteControllerRelation = Extract<import('./semanticReferences').SemanticRe
  */
 const REQUEST_PROPERTY_RELATION_MODEL: Readonly<Record<RequestFieldTarget['kind'], (request: RequestReference, target: RequestFieldTarget) => readonly RequestPropertyRelation[]>> = Object.freeze({
   input_property: (request, target) => [{ kind: 'request_property', request, property: target.property }],
-  input_collection: (request, target) => {
-    const value = target as Extract<RequestFieldTarget, { readonly kind: 'input_collection' }>;
-    return [
-      { kind: 'request_property', request, property: value.property },
-      { kind: 'request_property', request, property: value.element },
-    ];
-  },
+  input_collection: (request, target) => relationVariantFold(target, 'input_collection', () => [], value => [
+    { kind: 'request_property', request, property: value.property },
+    { kind: 'request_property', request, property: value.element },
+  ]),
 });
 
 const ROUTE_REQUEST_RELATION_MODEL: Readonly<Record<EndpointRequestBinding['kind'], (route: RouteReference, request: EndpointRequestBinding) => ReadonlyArray<Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'route_request' }>>>> = Object.freeze({
-  form_request: (route, request) => [{ kind: 'route_request', route, request: (request as Extract<EndpointRequestBinding, { readonly kind: 'form_request' }>).request }],
+  form_request: (route, request) => relationVariantFold(request, 'form_request', () => [], value => [{ kind: 'route_request', route, request: value.request }]),
   framework_request: () => [],
   inline_input: () => [],
   no_input: () => [],
 });
 
 const ROUTE_RESPONSE_RELATION_MODEL: Readonly<Record<EndpointResponseBinding['kind'], (route: RouteReference, response: EndpointResponseBinding) => readonly RouteResponseRelation[]>> = Object.freeze({
-  declared_response: (route, response) => [{ kind: 'route_response', route, response: (response as Extract<EndpointResponseBinding, { readonly kind: 'declared_response' }>).response }],
+  declared_response: (route, response) => relationVariantFold(response, 'declared_response', () => [], value => [{ kind: 'route_response', route, response: value.response }]),
   inline_response: () => [],
   redirect_response: () => [],
   file_response: () => [],
@@ -51,8 +48,8 @@ const ROUTE_RESPONSE_RELATION_MODEL: Readonly<Record<EndpointResponseBinding['ki
 });
 
 const ROUTE_TARGET_RELATION_MODEL: Readonly<Record<RouteTarget['kind'], (route: RouteReference, target: RouteTarget) => readonly RouteControllerRelation[]>> = Object.freeze({
-  controller_action: (route, target) => [{ kind: 'route_controller', route, controller: (target as Extract<RouteTarget, { readonly kind: 'controller_action' }>).controller }],
-  controller_invokable: (route, target) => [{ kind: 'route_controller', route, controller: (target as Extract<RouteTarget, { readonly kind: 'controller_invokable' }>).controller }],
+  controller_action: (route, target) => relationVariantFold(target, 'controller_action', () => [], value => [{ kind: 'route_controller', route, controller: value.controller }]),
+  controller_invokable: (route, target) => relationVariantFold(target, 'controller_invokable', () => [], value => [{ kind: 'route_controller', route, controller: value.controller }]),
   closure: () => [],
   redirect: () => [],
   view: () => [],
@@ -143,13 +140,12 @@ const serviceNodeFromAst = (ast: ServiceAst): ServiceSemanticNode => ({
 const CONTROLLER_METHOD_NODE_MODEL: Readonly<Record<ControllerMethod['kind'], (method: ControllerMethod) => readonly ControllerSemanticNode[]>> = Object.freeze({
   controller_helper: () => [],
   controller_action: method => {
-    const value = method as Extract<ControllerMethod, { readonly kind: 'controller_action' }>;
-    return [{
+    return relationVariantFold(method, 'controller_action', () => [], value => [{
       kind: 'controller_semantic_node',
       identity: { kind: 'controller_reference', name: value.controller, action: value.action },
       action: value,
       source: value.source,
-    }];
+    }]);
   },
 });
 
@@ -223,21 +219,21 @@ const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): read
   relationResolve(
     relationEqual(items.kind, 'empty'),
     () => output,
-    () => { const item = items as Extract<Sequence<T>, { readonly kind: 'cons' }>; return sequenceToArray(item.tail, Object.freeze([...output, item.head])); },
+    () => relationVariantFold(items, 'cons', () => output, item => sequenceToArray(item.tail, Object.freeze([...output, item.head]))),
   );
 
 const sequenceProject = <T, R>(items: Sequence<T>, project: (item: T) => R, output: readonly R[] = []): readonly R[] =>
   relationResolve(
     relationEqual(items.kind, 'empty'),
     () => output,
-    () => { const item = items as Extract<Sequence<T>, { readonly kind: 'cons' }>; return sequenceProject(item.tail, project, Object.freeze([...output, project(item.head)])); },
+    () => relationVariantFold(items, 'cons', () => output, item => sequenceProject(item.tail, project, Object.freeze([...output, project(item.head)])),)
   );
 
 const sequenceExpand = <T, R>(items: Sequence<T>, expand: (item: T) => readonly R[], output: readonly R[] = []): readonly R[] =>
   relationResolve(
     relationEqual(items.kind, 'empty'),
     () => output,
-    () => { const item = items as Extract<Sequence<T>, { readonly kind: 'cons' }>; return sequenceExpand(item.tail, expand, Object.freeze([...output, ...expand(item.head)])); },
+    () => relationVariantFold(items, 'cons', () => output, item => sequenceExpand(item.tail, expand, Object.freeze([...output, ...expand(item.head)])),)
   );
 
 const sequenceFromArray = <T>(items: readonly T[], index = 0): Sequence<T> =>

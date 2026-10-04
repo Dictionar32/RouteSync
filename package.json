@@ -204,7 +204,8 @@
     "audit:phase753-form-request-semantic-authority": "node scripts/audit-phase753-form-request-semantic-authority.cjs",
     "audit:phase754-resource-registry-semantic-authority": "node scripts/audit-phase754-resource-registry-semantic-authority.cjs",
     "audit:phase755-highest-validation-ast-authority": "node scripts/audit-phase755-highest-validation-ast-authority.cjs",
-    "audit:phase756-highest-ast-diagnostic": "node scripts/audit-phase756-highest-ast-diagnostic.cjs"
+    "audit:phase756-highest-ast-diagnostic": "node scripts/audit-phase756-highest-ast-diagnostic.cjs",
+    "audit:phase789-phi-adt-contract-frontier": "node scripts/audit-phase789-phi-adt-and-contract-frontier.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

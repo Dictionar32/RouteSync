@@ -9,7 +9,7 @@ import type { ControlFlowGraph, BasicBlock } from '../utils/ControlFlowGraph';
 import { basicBlockLookup, basicBlockReplace, createControlFlowGraph, type BasicBlockRelation } from '../utils/ControlFlowGraph';
 import type { Instruction } from '../utils/cfg/instructions';
 import type { Expression } from '../utils/cfg/constants';
-import { relationIsSome, relationGate } from '../../semantic/kernel/relationFoundation';
+import { relationIsSome, relationGate, relationOptionFold } from '../../semantic/kernel/relationFoundation';
 import type { UseDefGraph } from '../analysis/UseDefAnalysis';
 import { isSpeculatable } from './InstructionEffect';
 import { LoopNormalizer } from '../analysis/LoopAnalysis';

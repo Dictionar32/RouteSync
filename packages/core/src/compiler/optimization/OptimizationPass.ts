@@ -5,7 +5,7 @@
  * including analysis requirements and preservation guarantees.
  */
 
-import type { AnalysisKey } from '../passes/PassResult';
+import type { DefaultAnalysisKey } from '../passes/PassResult';
 
 /**
  * Optimization pass interface
@@ -41,7 +41,7 @@ export interface OptimizationPass {
      * The pass manager will ensure these analyses are computed and
      * available before running this pass.
      */
-    readonly requires: ReadonlySet<AnalysisKey<unknown>>;
+    readonly requires: ReadonlySet<DefaultAnalysisKey>;
 
     /**
      * Set of analyses preserved by this pass
@@ -49,7 +49,7 @@ export interface OptimizationPass {
      * These analyses remain valid after the pass runs and do not
      * need to be recomputed.
      */
-    readonly preserves: ReadonlySet<AnalysisKey<unknown>>;
+    readonly preserves: ReadonlySet<DefaultAnalysisKey>;
 
     /**
      * Set of analyses invalidated by this pass
@@ -57,5 +57,5 @@ export interface OptimizationPass {
      * These analyses are no longer valid after the pass runs and
      * must be recomputed if needed again.
      */
-    readonly invalidates: ReadonlySet<AnalysisKey<unknown>>;
+    readonly invalidates: ReadonlySet<DefaultAnalysisKey>;
 }

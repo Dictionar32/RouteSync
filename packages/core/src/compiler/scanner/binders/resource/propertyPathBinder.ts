@@ -17,7 +17,7 @@ export function bindPropertyPathField(key: string, value: Member, rootModel: Ori
     const resultingType = resolved.type;
     const boundAst = BoundSemanticFactory.propertyChain({ rootModel: resolved.rootModel.identity.name, steps, resultingType, nullability: relationResolve(resultingType.isNullable(), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' })) });
     const expression = expressionForPath(resolved.rootModel.identity.name, resolved.steps);
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
   }, () => unresolved(key, (semanticPath as Exclude<ResourcePropertyPathResult, { kind: 'resolved' }>).reason));
 }

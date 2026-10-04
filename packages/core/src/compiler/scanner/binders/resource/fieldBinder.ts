@@ -35,8 +35,8 @@ function bindPropertyAccessWithAccess(
     modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
     return matchPhpAccessMode(access, {
-        direct: () => bindPropertyAccessField(key, property, false, modelSymbol),
-        nullsafe: () => bindPropertyAccessField(key, property, true, modelSymbol),
+        direct: mode => bindPropertyAccessField(key, property, mode, modelSymbol),
+        nullsafe: mode => bindPropertyAccessField(key, property, mode, modelSymbol),
     });
 }
 

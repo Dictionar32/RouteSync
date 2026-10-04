@@ -72,14 +72,14 @@ export function bindLiteralField(
     const primitive = scannerSemanticType.primitive(primKind);
     const boundAst = BoundSemanticFactory.primitive(primitive, literalBoundValue(value));
     const expression = ResourceFieldExpressionFactory.literal(literalValue(value));
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(
+    const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
         primitive,
         toCamelCase(key),
         boundAst,
     );
-    return { descriptor, boundAst };
+    return { binding, boundAst };
 }
 
 const verifiedType = (result: BoundResourceFieldResult, fallback: () => ErrorType) =>
@@ -119,8 +119,8 @@ export function bindShortTernaryField(
         resultingType: semanticType,
     });
     const expression = ResourceFieldExpressionFactory.shortTernary(condition.binding.expression, falsy.binding.expression);
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
 }
 
 const CAST_KIND: Readonly<Record<string, PrimitiveKind>> = Object.freeze({
@@ -149,8 +149,8 @@ export function bindCastField(
         operand.binding.expression,
     );
     const boundAst = operand.boundAst;
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
 }
 
 export function bindTernaryField(
@@ -168,14 +168,14 @@ export function bindTernaryField(
         branches: { kind: 'then_else', whenTrue: trueBranch.boundAst, whenFalse: falseBranch.boundAst },
         resultingType: semanticType,
     });
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(
+    const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         trueBranch.binding.expression,
         semanticType,
         toCamelCase(key),
         boundAst,
     );
-    return { descriptor, boundAst };
+    return { binding, boundAst };
 }
 
 const BINARY_OPERATOR: Readonly<Record<string, string>> = Object.freeze({
@@ -220,8 +220,8 @@ export function bindBinaryField(
             );
             const expression = ResourceFieldExpressionFactory.binary(operator, left.binding.expression, right.binding.expression);
             const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
-            const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
-            return { descriptor, boundAst };
+            const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
+            return { binding, boundAst };
         },
         () => bindFallbackField(key),
     );
@@ -251,8 +251,8 @@ export function bindNullCoalesceField(
             );
             const expression = ResourceFieldExpressionFactory.binary(operator, left.binding.expression, right.binding.expression);
             const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
-            const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
-            return { descriptor, boundAst };
+            const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, resultingType, toCamelCase(key), boundAst);
+            return { binding, boundAst };
         },
         () => bindFallbackField(key),
     );
@@ -261,12 +261,12 @@ export function bindNullCoalesceField(
 export function bindFallbackField(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unsupported_syntax');
     const expression = ResourceFieldExpressionFactory.unsupported('unsupported_syntax');
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(
+    const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
         scannerSemanticType.error('Resource expression requires semantic binding before a type can be assigned'),
         toCamelCase(key),
         boundAst,
     );
-    return { descriptor, boundAst };
+    return { binding, boundAst };
 }

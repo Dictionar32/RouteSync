@@ -51,15 +51,15 @@ function bindResolvedWhenLoaded(key: string, relation: ModelSemanticRelation): B
         { kind: 'resource_name', value: relation.targetModel.value },
         relation.resourceCardinality,
     );
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
 }
 
 function unresolvedWhenLoaded(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unresolved_relation');
     const expression = ResourceFieldExpressionFactory.unsupported('unresolved_relation');
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(
+    const binding = ResourceFieldSemanticBinding.fromExpression(
         key, expression, scannerSemanticType.error('whenLoaded relation could not be resolved'), toCamelCase(key), boundAst,
     );
-    return { descriptor, boundAst };
+    return { binding, boundAst };
 }

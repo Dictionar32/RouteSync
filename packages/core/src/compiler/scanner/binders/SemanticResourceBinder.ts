@@ -58,7 +58,7 @@ export class SemanticResourceBinder {
     }
 
     /**
-     * Binds an individual array entry AST value directly into a complete Bound AST node & field descriptor.
+     * Binds an individual array entry AST value directly into a complete Bound AST node & canonical field binding.
      */
     public static bindField(params: {
         readonly key: string;

@@ -7,54 +7,136 @@ import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
-import { ErrorType, NullableType, type SemanticType } from "../../../types/SemanticType";
+import type { SemanticType } from "../../../types/SemanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
+import type { PhpAccessMode } from "../../lexer/phpAstExpressionTypes";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
+import { matchLookup } from "../../../../types/upstream/collections";
+import { relationVariantFold } from "../../../../semantic/kernel/relationalSequence";
 import { relationResolve } from "../../../../semantic/kernel/relationalSequence";
+import type { ResolvedPropertyBinding } from "../../symbols/model/types";
 
-export function bindPropertyAccessField(key: string, prop: string, isNullsafe: boolean, modelSymbol: OriginModelSymbol): BoundResourceFieldResult {
-    const binding = modelSymbol.resolveProperty(createPropertyName(prop));
-    return relationResolve(Object.is(binding.kind, 'missing'), () => unresolved(key), () => bindResolved(key, prop, isNullsafe, modelSymbol, binding.value));
+export function bindPropertyAccessField(
+    key: string,
+    prop: string,
+    access: PhpAccessMode,
+    modelSymbol: OriginModelSymbol,
+): BoundResourceFieldResult {
+    const propertyName = createPropertyName(prop);
+    return matchLookup(modelSymbol.resolveProperty(propertyName), {
+        missing: () => unresolved(key),
+        found: lookup => bindResolved(key, access, modelSymbol, lookup.value),
+    });
 }
 
-const bindResolved = (key: string, prop: string, isNullsafe: boolean, modelSymbol: OriginModelSymbol, binding: Exclude<ReturnType<OriginModelSymbol['resolveProperty']>, { kind: 'missing' }>): BoundResourceFieldResult =>
-    relationResolve(Object.is(binding.value.kind, 'column'), () => bindColumn(key, isNullsafe, modelSymbol, binding.value), () =>
-        relationResolve(Object.is(binding.value.kind, 'accessor'), () => bindAccessor(key, isNullsafe, modelSymbol, binding.value), () => bindRelation(key, modelSymbol, binding.value)));
+const bindResolved = (
+    key: string,
+    access: PhpAccessMode,
+    modelSymbol: OriginModelSymbol,
+    binding: ResolvedPropertyBinding,
+): BoundResourceFieldResult => relationVariantFold(
+    binding,
+    'column',
+    rest => relationVariantFold(
+        rest,
+        'accessor',
+        relation => bindRelation(key, modelSymbol, relation, access),
+        accessor => bindAccessor(key, modelSymbol, accessor, access),
+    ),
+    column => bindColumn(key, modelSymbol, column, access),
+);
 
-const applyNullsafe = (type: SemanticType, nullsafe: boolean): SemanticType => relationResolve(relationResolve(nullsafe, () => !type.isNullable(), () => false), () => scannerSemanticType.nullable(type), () => type);
-const toNullability = (type: SemanticType): BoundNullability => relationResolve(type.isNullable(), () => ({ kind: 'nullable' }), () => ({ kind: 'non_nullable' }));
-const accessExpression = (target: ReturnType<typeof ResourceFieldExpressionFactory.model>, isNullsafe: boolean, direct: (t: typeof target) => ReturnType<typeof ResourceFieldExpressionFactory.propertyAccess>, safe: (t: typeof target) => ReturnType<typeof ResourceFieldExpressionFactory.nullsafePropertyAccess>) => matchPhpAccessMode(relationResolve(isNullsafe, () => ({ kind: 'nullsafe' as const }), () => ({ kind: 'direct' as const })), { direct, nullsafe: safe });
+const applyNullsafe = (type: SemanticType, access: PhpAccessMode): SemanticType => matchPhpAccessMode(access, {
+    direct: () => type,
+    nullsafe: () => relationResolve(!type.isNullable(), () => scannerSemanticType.nullable(type), () => type),
+});
 
-function bindColumn(key: string, isNullsafe: boolean, model: OriginModelSymbol, value: Extract<ReturnType<OriginModelSymbol['resolveProperty']>, { kind: 'resolved' }>['value'] & { kind: 'column' }): BoundResourceFieldResult {
-    const semanticType = applyNullsafe(value.semanticType, isNullsafe);
-    const boundAst = BoundSemanticFactory.modelColumn({ model: model.name, column: value.source.column, dbType: value.source.databaseType, castType: { kind: 'no_cast' }, semanticType });
+const toNullability = (type: SemanticType): BoundNullability => relationResolve(
+    type.isNullable(),
+    () => ({ kind: 'nullable' }),
+    () => ({ kind: 'non_nullable' }),
+);
+
+function bindColumn(
+    key: string,
+    model: OriginModelSymbol,
+    value: Extract<ResolvedPropertyBinding, { kind: 'column' }>,
+    access: PhpAccessMode,
+): BoundResourceFieldResult {
+    const semanticType = applyNullsafe(value.semanticType, access);
+    const boundAst = BoundSemanticFactory.modelColumn({
+        model: model.name,
+        column: value.source.column,
+        dbType: value.source.databaseType,
+        castType: { kind: 'no_cast' },
+        semanticType,
+    });
     const target = ResourceFieldExpressionFactory.model(model.name);
-    const expression = accessExpression(target, isNullsafe, t => ResourceFieldExpressionFactory.propertyAccess(t, value.source.property), t => ResourceFieldExpressionFactory.nullsafePropertyAccess(t, value.source.property));
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const expression = matchPhpAccessMode(access, {
+        direct: () => ResourceFieldExpressionFactory.propertyAccess(target, value.source.property),
+        nullsafe: () => ResourceFieldExpressionFactory.nullsafePropertyAccess(target, value.source.property),
+    });
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
 }
 
-function bindAccessor(key: string, isNullsafe: boolean, model: OriginModelSymbol, value: Extract<ReturnType<OriginModelSymbol['resolveProperty']>, { kind: 'resolved' }>['value'] & { kind: 'accessor' }): BoundResourceFieldResult {
-    const semanticType = applyNullsafe(value.semanticType, isNullsafe);
-    const boundAst = BoundSemanticFactory.methodCall({ targetModel: { kind: 'model', name: model.name }, methodName: value.source.method, returnType: semanticType, cardinality: { kind: 'single' }, nullability: toNullability(semanticType) });
+function bindAccessor(
+    key: string,
+    model: OriginModelSymbol,
+    value: Extract<ResolvedPropertyBinding, { kind: 'accessor' }>,
+    access: PhpAccessMode,
+): BoundResourceFieldResult {
+    const semanticType = applyNullsafe(value.semanticType, access);
+    const boundAst = BoundSemanticFactory.methodCall({
+        targetModel: { kind: 'model', name: model.name },
+        methodName: value.source.method,
+        returnType: semanticType,
+        cardinality: { kind: 'single' },
+        nullability: toNullability(semanticType),
+    });
     const target = ResourceFieldExpressionFactory.model(model.name);
-    const expression = matchPhpAccessMode(relationResolve(isNullsafe, () => ({ kind: 'nullsafe' as const }), () => ({ kind: 'direct' as const })), { direct: () => ResourceFieldExpressionFactory.methodCall(target, value.source.method), nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target, value.source.method) });
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const expression = matchPhpAccessMode(access, {
+        direct: () => ResourceFieldExpressionFactory.methodCall(target, value.source.method),
+        nullsafe: () => ResourceFieldExpressionFactory.nullsafeMethodCall(target, value.source.method),
+    });
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
 }
 
-function bindRelation(key: string, model: OriginModelSymbol, value: Extract<ReturnType<OriginModelSymbol['resolveProperty']>, { kind: 'resolved' }>['value'] & { kind: 'relation' }): BoundResourceFieldResult {
-    const semanticType = value.semanticType;
-    const boundAst = BoundSemanticFactory.relation({ sourceModel: model.name, relationName: value.source.relation, relationType: value.source.type, targetModel: value.source.targetModel, cardinality: value.source.boundCardinality, nullability: toNullability(semanticType), semanticType });
-    const expression = ResourceFieldExpressionFactory.resource(SemanticValueFactory.resourceName(value.source.targetModel.value.value), value.source.resourceCardinality);
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+function bindRelation(
+    key: string,
+    model: OriginModelSymbol,
+    value: Extract<ResolvedPropertyBinding, { kind: 'relation' }>,
+    access: PhpAccessMode,
+): BoundResourceFieldResult {
+    const semanticType = applyNullsafe(value.semanticType, access);
+    const boundAst = BoundSemanticFactory.relation({
+        sourceModel: model.name,
+        relationName: value.source.relation,
+        relationType: value.source.type,
+        targetModel: value.source.targetModel,
+        cardinality: value.source.boundCardinality,
+        nullability: toNullability(semanticType),
+        semanticType,
+    });
+    const expression = ResourceFieldExpressionFactory.resource(
+        SemanticValueFactory.resourceName(value.source.targetModel.value.value),
+        value.source.resourceCardinality,
+    );
+    const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
+    return { binding, boundAst };
 }
 
 function unresolved(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unresolved_property');
     const expression = ResourceFieldExpressionFactory.unsupported('unresolved_property');
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(key, expression, scannerSemanticType.error('Model property could not be resolved'), toCamelCase(key), boundAst);
-    return { descriptor, boundAst };
+    const binding = ResourceFieldSemanticBinding.fromExpression(
+        key,
+        expression,
+        scannerSemanticType.error('Model property could not be resolved'),
+        toCamelCase(key),
+        boundAst,
+    );
+    return { binding, boundAst };
 }

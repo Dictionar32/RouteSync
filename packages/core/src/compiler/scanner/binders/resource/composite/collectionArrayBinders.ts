@@ -51,7 +51,7 @@ export function bindResourceCollectionField(
         SemanticValueFactory.resourceName(value.resourceName),
         cardinality
     );
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(
+    const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
         relationGate(isCollection,
@@ -61,7 +61,7 @@ export function bindResourceCollectionField(
         boundAst
     );
 
-    return { descriptor, boundAst };
+    return { binding, boundAst };
 }
 
 const EMPTY_RESOURCE_FIELD_BINDINGS: readonly ResourceFieldSemanticBindingType[] = Object.freeze([]);
@@ -111,7 +111,7 @@ export function bindNestedArrayField(
         const type = requireResourceFieldType(field.semantic);
         return { name: field.propertyName, type, description: "", origin: { kind: 'derived' as const, reason: 'nested_object' as const } };
     });
-    const descriptor = ResourceFieldSemanticBinding.fromExpression(
+    const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
         scannerSemanticType.object({ name: "InlineObject", baseName: "InlineObject", properties: objectProperties, role: "plain" }),
@@ -119,5 +119,5 @@ export function bindNestedArrayField(
         boundAst
     );
 
-    return { descriptor, boundAst };
+    return { binding, boundAst };
 }

@@ -34,6 +34,9 @@ export class ControllerScanner {
         modelNames: RelationMembership<string> = Object.freeze([] as string[]),
         customContextualAttributeNames: RelationMembership<string> = Object.freeze([] as string[])
     ): Promise<{ readonly asts: readonly ControllerAst[]; readonly controllerIndex: RelationIndex<string, RelationIndex<string, ControllerActionInfo>> }> {
+        const sourceRoot = sourceProject.root.value.value;
+        const controllerDirectory = path.join(sourceRoot, 'app', 'Http', 'Controllers');
+        const files = await collectPhpFiles(controllerDirectory);
         const initial = { asts: [] as ControllerAst[], controllerIndex: [] as RelationIndex<string, RelationIndex<string, ControllerActionInfo>> };
         const result = await relationAsyncFold(files, initial, async (state, fullPath) => {
             const controllerName = path.basename(fullPath, '.php');
@@ -45,11 +48,13 @@ export class ControllerScanner {
                 createAstIdentifier(controllerName),
                 fullPath
             );
-            let actionIndex: RelationIndex<string, ControllerActionInfo> = [];
             const constructor = relationFirst(declaration.methods, method => relationEqual(method.name, '__construct'));
             const actionMethods = relationSelect(declaration.methods, method => relationNotEqual(method.name, '__construct'));
             const constructorParameters = relationOptionFold(constructor, () => [], method => method.parameters);
-            const controllerMethods = relationFold(actionMethods, [] as { readonly method: typeof declaration.methods[number]; readonly response: ControllerResponse; readonly dependencies: readonly import('../../../types/upstream/controller').ControllerDependency[] }[], method => {
+            const controllerScan = relationFold(actionMethods, {
+                methods: [] as readonly { readonly method: typeof declaration.methods[number]; readonly response: ControllerResponse; readonly dependencies: readonly import('../../../types/upstream/controller').ControllerDependency[] }[],
+                index: [] as RelationIndex<string, ControllerActionInfo>,
+            }, (state, method) => {
                 const result = scanControllerAction(
                     method,
                     createControllerName(controllerName),
@@ -67,9 +72,13 @@ export class ControllerScanner {
                         name: result.descriptor.response.responseTypeName()
                     }
                 };
-                actionIndex = relationIndexAdd(actionIndex, result.actionName.value.value, result.descriptor);
-                return [...controllerMethods, { method, response, dependencies: result.dependencies }];
+                return {
+                    methods: [...state.methods, { method, response, dependencies: result.dependencies }],
+                    index: relationIndexAdd(state.index, result.actionName.value.value, result.descriptor),
+                };
             });
+            const controllerMethods = controllerScan.methods;
+            const actionIndex = controllerScan.index;
             const nextAsts = relationOptionFold(
                 relationGate(relationNotEqual(controllerMethods.length, 0), () => ({ kind: 'some' as const, value: controllerMethods }), () => ({ kind: 'none' as const })),
                 () => state.asts,

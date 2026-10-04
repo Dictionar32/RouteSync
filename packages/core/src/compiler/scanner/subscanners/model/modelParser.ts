@@ -189,7 +189,7 @@ export function buildModelSemanticDefinitionFromAst(
             hidden: propState.hidden,
             appends: propState.appends
         },
-        columnFacts: buildModelColumnFacts(correlateModelColumnFacts(columns, casts, span), span),
+        columnFacts: buildModelColumnFacts(correlateModelColumnFacts(columns, casts, span)),
         casts: [...casts],
         accessors: [...accessors],
         relations: [...relations]

@@ -29,6 +29,7 @@ import {
   routeGroupPendingState,
   advanceRouteGroupState,
   type RouteGroupStateModel,
+  type RouteConstraintSyntaxFact,
 } from './semanticRouteSyntaxRelations';
 import { SYNTAX_KIND_GROUPS, SYNTAX_OPERATION_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
 import { absent, present, presenceOf, presenceFold, type Presence } from '../../../../types/upstream/presence';
@@ -133,7 +134,7 @@ function findDeclarationEnd(start: TokenCursor): TokenCursor {
   return presenceFold(start.callClosePresence, () => start.statementEndCursor, value => value);
 }
 
-function constraintArgumentAst(item: { readonly argument: { readonly kind: 'pattern'; readonly value: string } | { readonly kind: 'values'; readonly values: readonly string[] } | { readonly kind: 'none' } }): RouteConstraintArgumentAst {
+function constraintArgumentAst(item: RouteConstraintSyntaxFact): RouteConstraintArgumentAst {
   return routeConstraintArgumentAst(item.argument);
 }
 
@@ -147,11 +148,7 @@ function hasWithTrashed(start: TokenCursor, end: TokenCursor): boolean {
   return presenceBoolean(inRangePresence(start, end, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.withTrashed)));
 }
 
-function readRouteConstraints(start: TokenCursor, end: TokenCursor): readonly {
-  method: ConstraintMethod;
-  parameter: string;
-  argument: { readonly kind: 'pattern'; readonly value: string } | { readonly kind: 'values'; readonly values: readonly string[] } | { readonly kind: 'none' };
-}[] {
+function readRouteConstraints(start: TokenCursor, end: TokenCursor): readonly RouteConstraintSyntaxFact[] {
   return expandRelation(syntaxRange(start, end).project((_, cursor) => routeConstraintFact(cursor)), presenceValues);
 }
 

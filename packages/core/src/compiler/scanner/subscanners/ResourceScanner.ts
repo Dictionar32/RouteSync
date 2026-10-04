@@ -5,7 +5,7 @@ import { createResourceRelationFact, createResourceModelResolutionFact } from '.
 import { readSourceText } from './scannerUtils';
 import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual, relationGate, relationAll, relationAny } from '../../../semantic/kernel/semanticRelations';
-import { presenceFold, presenceOf } from '../../../types/upstream/presence';
+import { presenceFold, type Presence } from '../../../types/upstream/presence';
 import { matchLookup } from '../../../types/upstream/collections';
 /**
  * ResourceScanner.ts
@@ -83,8 +83,8 @@ interface BoundResourceFile {
 export class ResourceScanner {
     private static async scanResourceFiles(
         sourceProject: SourceProjectIdentity,
-        modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
-        controllerDataflowMap?: import("./controller/resourceDataflowAggregator").ControllerResourceDataflow
+        modelSymbolTable: ModelSymbolTable,
+        controllerDataflowMap: Presence<import("./controller/resourceDataflowAggregator").ControllerResourceDataflow>
     ): Promise<readonly BoundResourceFile[]> {
         const sourceRoot = sourceProject.root.value.value;
         const resDir = path.join(sourceRoot, 'app', 'Http', 'Resources');
@@ -139,25 +139,25 @@ export class ResourceScanner {
                         collectsResource: parseCollectsResource(tokens),
                     },
                 };
-                const initialResolution = resolveInitialModel(resourceNameValue, modelSymbolTable, presenceOf(controllerDataflowMap));
+                const initialResolution = resolveInitialModel(resourceNameValue, modelSymbolTable, controllerDataflowMap);
                 const nextInitialResolutions = relationExpand([initialResolution], resolution =>
                     presenceFold(resolution, () => [], value => [value]),
                 );
                 const nextEdges = relationExpand(parsedArray.entries, entry =>
-                    relationVariantFold(entry.value, 'resource_single',
-                        single => [createResourceRelationFact(
-                            resourceNameValue,
-                            SemanticValueFactory.resourceName(single.resourceName),
-                            SemanticValueFactory.relationName(requireStringArrayKey(entry)),
-                        )],
-                        rest => relationVariantFold(rest, 'resource_collection',
+                    relationVariantFold<PhpAstValue, 'resource_single', readonly ResourceRelationEdge[]>(entry.value, 'resource_single',
+                        rest => relationVariantFold<Exclude<PhpAstValue, { readonly kind: 'resource_single' }>, 'resource_collection', readonly ResourceRelationEdge[]>(rest, 'resource_collection',
+                            () => [],
                             collection => [createResourceRelationFact(
                                 resourceNameValue,
                                 SemanticValueFactory.resourceName(collection.resourceName),
                                 SemanticValueFactory.relationName(requireStringArrayKey(entry)),
                             )],
-                            () => [],
                         ),
+                        single => [createResourceRelationFact(
+                            resourceNameValue,
+                            SemanticValueFactory.resourceName(single.resourceName),
+                            SemanticValueFactory.relationName(requireStringArrayKey(entry)),
+                        )],
                     ),
                 );
                 return {
@@ -195,8 +195,8 @@ export class ResourceScanner {
 
     private static async scanResources(
         sourceProject: SourceProjectIdentity,
-        modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
-        controllerDataflowMap?: import("./controller/resourceDataflowAggregator").ControllerResourceDataflow
+        modelSymbolTable: ModelSymbolTable,
+        controllerDataflowMap: Presence<import("./controller/resourceDataflowAggregator").ControllerResourceDataflow>
     ): Promise<readonly ResourceAst[]> {
         const files = await ResourceScanner.scanResourceFiles(sourceProject, modelSymbolTable, controllerDataflowMap);
         return relationProject(files, item => item.resource);
@@ -204,8 +204,8 @@ export class ResourceScanner {
 
     public static async scan(
         sourceProject: SourceProjectIdentity,
-        modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
-        controllerDataflowMap?: import("./controller/resourceDataflowAggregator").ControllerResourceDataflow
+        modelSymbolTable: ModelSymbolTable,
+        controllerDataflowMap: Presence<import("./controller/resourceDataflowAggregator").ControllerResourceDataflow>
     ): Promise<readonly ResourceAst[]> {
         return ResourceScanner.scanResources(sourceProject, modelSymbolTable, controllerDataflowMap);
     }
@@ -254,7 +254,7 @@ export class ResourceScanner {
                         missing: () => [],
                         found: ({ value }) => [createResourceModelResolutionFact(
                             resourceNameValue,
-                            value.identity.name,
+                            value.name,
                             ResourceModelResolutionOrigin.convention,
                             { kind: 'absent' },
                         )],
@@ -392,8 +392,11 @@ function parseMethodAssignments(tokens: readonly import('../lexer/PhpAst').Token
 
 
 function requireStringArrayKey(entry: PhpArrayEntry): string {
-    return relationVariantFold(entry, 'keyed',
-        keyed => relationVariantFold(keyed.key, 'string', key => key.value, () => { throw Error('Expected a static string PHP array key at this semantic boundary'); }),
+    return relationVariantFold<PhpArrayEntry, 'keyed', string>(entry, 'keyed',
         () => { throw Error('Expected a keyed PHP array entry at this semantic boundary'); },
+        keyed => relationVariantFold(keyed.key, 'string',
+            () => { throw Error('Expected a static string PHP array key at this semantic boundary'); },
+            key => key.value,
+        ),
     );
 }

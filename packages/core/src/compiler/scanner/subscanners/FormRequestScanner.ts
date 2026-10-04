@@ -10,6 +10,7 @@ import { readSourceText, collectPhpFiles } from './scannerUtils';
 import path from "path";
 import type { FormRequestSource } from "../../../types/domain/request";
 import type { RequestAst } from "../../../types/upstream/ast";
+import { createRequestName } from "../../../types/upstream/names";
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import type { RequestAsts, Sequence } from "../../../types/upstream/collections";
 import type { SourceSpan } from "../../../types/upstream/provenance";
@@ -52,7 +53,7 @@ export class FormRequestScanner {
                 const parsedArray = LaravelSourceLexer.parseArray(source, tokens, rulesIndex);
                 const methods = parseRequestMethods(tokens);
                 const authorize = relationOptionFold(
-                    relationFirstOption(methods, method => relationEqual(method.name.value, 'authorize')),
+                    relationFirstOption(methods, method => relationEqual(method.name, 'authorize')),
                     () => { throw Error(`FormRequest ${reqName} must declare authorize()`); },
                     method => method,
                 );
@@ -89,38 +90,34 @@ export class FormRequestScanner {
             [] as readonly RequestAst[],
             async (accumulator, source) => {
                 const sourceName = source.identity.requestClass.value.value;
-                const sourceText = readSourceForProducer(source.sourceFile.value);
+                const sourceText = readSourceForProducer(source.sourceFile.value.value);
                 const tokens = LaravelSourceLexer.tokenize(sourceText);
                 const methods = parseRequestMethods(tokens);
-                const rulesMethod = relationFirstOption(methods, method => relationEqual(method.name.value, 'rules'));
-                const authorizeMethod = relationFirstOption(methods, method => relationEqual(method.name.value, 'authorize'));
+                const rulesMethod = relationFirstOption(methods, method => relationEqual(method.name, 'rules'));
+                const authorizeMethod = relationFirstOption(methods, method => relationEqual(method.name, 'authorize'));
                 return relationOptionFold(
-                    relationOptionFold(
-                        rulesMethod,
-                        () => { throw Error(`FormRequest ${sourceName} is missing rules()/authorize()`); },
-                        rules => relationOptionFold(
-                            authorizeMethod,
-                            () => { throw Error(`FormRequest ${sourceName} is missing rules()/authorize()`); },
-                            authorize => {
-                                const rulesIndex = resolveRulesReturnIndex(tokens, rules.name.value);
-                                const rulesEntries = LaravelSourceLexer.parseArray(sourceText, tokens, rulesIndex).entries;
-                                const ast = requestProducer.produce({
-                                    requestName: { kind: 'request_name', value: { kind: 'string_value', value: sourceName } },
-                                    formType: source.identity.formType,
-                                    source: source.source,
-                                    rules: rulesEntries,
-                                    authorize,
-                                    methods,
-                                    properties: parseModelPropertyAsts(tokens),
-                                    sourceFile: source.sourceFile.value,
-                                    interner
-                                });
-                                return [...accumulator, ast];
-                            },
-                        ),
-                    ),
+                    rulesMethod,
                     () => accumulator,
-                    next => next,
+                    rules => relationOptionFold(
+                        authorizeMethod,
+                        () => { throw Error(`FormRequest ${sourceName} is missing rules()/authorize()`); },
+                        authorize => {
+                            const rulesIndex = resolveRulesReturnIndex(tokens, rules.name);
+                            const rulesEntries = LaravelSourceLexer.parseArray(sourceText, tokens, rulesIndex).entries;
+                            const ast = requestProducer.produce({
+                                requestName: createRequestName(sourceName),
+                                formType: source.identity.formType,
+                                source: source.source,
+                                rules: rulesEntries,
+                                authorize,
+                                methods,
+                                properties: parseModelPropertyAsts(tokens),
+                                sourceFile: source.sourceFile.value.value,
+                                interner
+                            });
+                            return [...accumulator, ast];
+                        },
+                    ),
                 );
             },
         );
@@ -160,7 +157,7 @@ export class FormRequestScanner {
     }
 }
 
-type LexerToken = import('../lexer/LaravelSourceLexer').TokenDescriptor;
+type LexerToken = import('../LaravelSourceLexer').TokenDescriptor;
 type PhpToken = import('../lexer/PhpAst').TokenDescriptor;
 type PhpMethod = import('../lexer/phpMethodAstTypes').PhpMethodAst;
 

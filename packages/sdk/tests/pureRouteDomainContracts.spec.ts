@@ -78,8 +78,8 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
     expect(route.identity.parameters.query.length).toBe(0);
 
     // 3. Binding Contract Verification
-    expect(route.binding.actionName).toBe("show");
-    expect(route.binding.handler.kind).toBe(RouteHandlerKind.Closure);
+    expect(route.binding.operation.name).toBe("show");
+    expect(route.binding.operation.handler.kind).toBe(RouteHandlerKind.Closure);
     expect(route.binding.response).toBeDefined();
     expect(route.binding.responseTypeName).toBe("OrdersResponse");
     expect(Array.isArray(route.binding.formRequests)).toBe(true);
@@ -108,7 +108,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
     expect(route.method).toBe(route.identity.method);
     expect(route.domain).toBe(route.identity.domain);
     expect(route.resourceName).toBe(route.identity.resourceName);
-    expect(route.actionName).toBe(route.binding.actionName);
+    expect(route.actionName).toBe(route.binding.operation.name);
     expect(route.crudRole).toBe(route.capability.crudRole);
     expect(route.hookKind).toBe(route.capability.hookKind);
     expect(route.auth).toBe(route.capability.auth);
@@ -132,19 +132,21 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
     });
 
     const binding: RouteBindingContract = Object.freeze({
-      handler: Object.freeze({
-        kind: RouteHandlerKind.ControllerAction,
+      operation: Object.freeze({
         controllerName: "ProductController",
-        actionName: "index",
-        target: "ProductController@index"
+        name: "index",
+        handler: Object.freeze({
+          kind: RouteHandlerKind.ControllerAction,
+          controllerName: "ProductController",
+          actionName: "index",
+          target: "ProductController@index"
+        })
       }),
-      action: "ProductController@index",
-      actionName: "index",
-      controllerName: "ProductController",
       schema: { rules: [], messages: [], attributes: [] },
       response: new ResourceResponseDescriptor({ resourceName: "ProductResource", shape: "collection" }),
-      responseTypeName: "ProductResource",
-      formRequests: [],
+      request: Object.freeze({ kind: "no_request" }),
+      runtimeReturn: Object.freeze({ kind: "none" }),
+      semanticReturn: Object.freeze({ kind: "absent" }),
       assignments: []
     });
 

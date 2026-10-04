@@ -44,7 +44,7 @@ export function validateManifestContract(manifest: RouteManifest): void {
     requireValue(route.capability, `${route.name}.capability`)
     requireValue(route.provenance, `${route.name}.provenance`)
     requireValue(route.identity.parameters, `${route.name}.identity.parameters`)
-    requireValue(route.binding.handler, `${route.name}.binding.handler`)
+    requireValue(route.binding.operation.handler, `${route.name}.binding.handler`)
     requireValue(route.binding.response, `${route.name}.binding.response`)
     requireValue(route.capability.security, `${route.name}.capability.security`)
     requireValue(route.capability.executionSignature, `${route.name}.capability.executionSignature`)

@@ -20,13 +20,10 @@ export function buildRouteBindingContract(
     const request = resolved.request;
 
     return Object.freeze({
-        handler: params.handler,
-        action: basics.resolvedAction,
-        actionName: basics.resolvedActionName,
-        controllerName: basics.resolvedControllerName,
         schema: params.schema,
         response: params.response,
         responseTypeName,
+        operation: resolved.operation,
         request,
         runtimeReturn: params.runtimeReturn,
         semanticReturn: params.semanticReturn,

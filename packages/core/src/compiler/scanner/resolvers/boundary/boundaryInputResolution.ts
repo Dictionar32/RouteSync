@@ -12,7 +12,11 @@ export function resolveRouteBoundaryInput(
 ): ResolvedRouteBoundaryOptions {
     const basicsJudgment = routeBoundaryBasicsInterface(params);
     const basics = basicsJudgment.result;
-    const binding = resolveRouteBinding(params);
+    const binding = resolveRouteBinding({
+        controllerName: basics.resolvedControllerName,
+        action: basics.resolvedAction,
+        request: params.request
+    });
     const capability = resolveRouteCapability(params, basics, basics.resolvedParameters.length);
     const provenance = buildRouteProvenanceContract({
         sourceFile: params.sourceFile,
@@ -34,7 +38,6 @@ export function resolveRouteBoundaryInput(
         isMutating: basics.resolvedIsMutating,
         sourceFile: provenance.sourceFile,
         sourceLine: provenance.sourceLine,
-        handler: params.handler,
         auth: relationEqual(params.auth, true),
         middleware: Object.freeze(presenceFold(presenceOf(params.middleware), () => [], value => value)),
         parameters: basics.resolvedParameters,
@@ -51,7 +54,7 @@ export function resolveRouteBoundaryInput(
         runtimePath: basics.resolvedRuntimePath,
         groupName: basics.resolvedGroupName,
         schema: params.schema,
-        request: binding.request,
+        binding,
         runtimeReturn: params.runtimeReturn,
         semanticReturn: params.semanticReturn
     });

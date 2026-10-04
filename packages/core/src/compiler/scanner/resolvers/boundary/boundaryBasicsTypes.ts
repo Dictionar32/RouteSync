@@ -16,6 +16,7 @@ import type {
 
 import type { RouteSemanticFlowCompleteContracts } from "../../descriptors/route/routeContracts";
 import type { RouteRequestBinding } from "../../../../types/domain/request";
+import type { ResolvedRouteBinding } from "./bindingResolution";
 import type { ControllerRuntimeReturn } from "../../../../types/domain/controllerExpression";
 import type { ControllerReturnSemantic } from "../../../../types/upstream/controller";
 import type {
@@ -45,7 +46,7 @@ export interface RouteBoundaryCommonOptions {
     readonly runtimePath?: RoutePath;
     readonly groupName?: DomainTypeName;
     readonly schema: RouteSchemaPayload;
-    readonly request: RouteRequestBinding;
+    readonly binding: ResolvedRouteBinding;
     readonly runtimeReturn: ControllerRuntimeReturn;
     readonly semanticReturn: ControllerReturnSemantic;
 }
@@ -60,7 +61,6 @@ export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOpti
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
-    readonly handler: RouteHandlerDescriptor;
 }
 
 export interface ControllerReferenceBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -73,7 +73,6 @@ export interface ControllerReferenceBoundaryOptions extends RouteBoundaryCommonO
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
-    readonly handler: RouteHandlerDescriptor;
 }
 
 export interface ClosureBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -86,7 +85,6 @@ export interface ClosureBoundaryOptions extends RouteBoundaryCommonOptions {
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
-    readonly handler: RouteHandlerDescriptor;
 }
 
 export interface SyntheticBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -99,7 +97,6 @@ export interface SyntheticBoundaryOptions extends RouteBoundaryCommonOptions {
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
-    readonly handler: RouteHandlerDescriptor;
 }
 
 export type RouteBoundaryOptions =
@@ -123,7 +120,6 @@ export interface ResolvedRouteBoundaryOptions {
     readonly isMutating: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
-    readonly handler: RouteHandlerDescriptor;
     readonly auth: boolean;
     readonly middleware: readonly PropertyName[];
     readonly parameters: readonly RouteParameter[];
@@ -140,7 +136,7 @@ export interface ResolvedRouteBoundaryOptions {
     readonly runtimePath: RoutePath;
     readonly groupName: DomainTypeName;
     readonly schema: RouteSchemaPayload;
-    readonly request: RouteRequestBinding;
+    readonly binding: ResolvedRouteBinding;
     readonly runtimeReturn: ControllerRuntimeReturn;
     readonly semanticReturn: ControllerReturnSemantic;
 }

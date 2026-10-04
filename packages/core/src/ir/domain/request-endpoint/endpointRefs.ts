@@ -71,7 +71,7 @@ export function buildRequestReference(
   const method = route.identity.method;
   if (!hasRequestBody(method)) return { type: 'none' };
 
-  const requestName = `${route.binding.controllerName.value.value}${route.binding.action.value.value}Request`;
+  const requestName = `${route.binding.operation.controllerName.value.value}${route.binding.operation.name.value.value}Request`;
   const request = requests.get(requestName);
 
   return request === undefined

@@ -36,8 +36,8 @@ describe('Route Boundary Contract & Factories SSOT Suite', () => {
 
         // Guaranteed Binding Sub-Contract
         expect(subcontracts.binding).toBeDefined();
-        expect(subcontracts.binding.actionName).toBe('query');
-        expect(subcontracts.binding.controllerName).toBe('');
+        expect(subcontracts.binding.operation.name).toBe('query');
+        expect(subcontracts.binding.operation.controllerName).toBe('');
         expect(subcontracts.binding.responseTypeName).toBe('ArticlesResponse');
         expect(Object.isFrozen(subcontracts.binding)).toBe(true);
 

@@ -15,7 +15,6 @@ import { buildRouteCapabilityContract } from "./capabilityBuilder";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { resolveRouteBoundaryInput } from "./boundaryInputResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
-import { resolveRouteBinding } from "./bindingResolution";
 import { ScannedEndpointContract } from "../../../../types/route";
 import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
 
@@ -41,8 +40,7 @@ export class RouteBoundaryContractFactory {
             resolvedRouteName: resolved.name
         };
         const identity = buildRouteIdentityContract(resolved, basics);
-        const resolvedBinding = resolveRouteBinding(resolved);
-        const binding = buildRouteBindingContract(resolved, basics, resolvedBinding);
+        const binding = buildRouteBindingContract(resolved, basics, resolved.binding);
         const resolvedCapability = resolveRouteCapability(resolved, basics, identity.parameters.all.length);
         const capability = buildRouteCapabilityContract(resolved, basics, resolvedCapability);
         const provenance = buildRouteProvenanceContract(resolved);

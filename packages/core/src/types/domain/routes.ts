@@ -20,7 +20,7 @@ import type {
 } from "./security";
 import type { RouteSchemaPayload } from "./validation";
 import type { RouteHandlerDescriptor } from "./routeHandlers";
-import type { ActionName, DomainName, ResourceName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName } from "./semanticValues";
+import type { ActionName, DomainName, ResourceName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName, ControllerName } from "./semanticValues";
 import type { RouteRequestBinding } from "./request";
 import type { RouteCapabilityContract } from "../upstream/route";
 
@@ -59,6 +59,7 @@ export interface RouteIdentityContract {
 }
 
 export interface RouteOperationBinding {
+  readonly controllerName: ControllerName;
   readonly name: ActionName;
   readonly handler: RouteHandlerDescriptor;
 }

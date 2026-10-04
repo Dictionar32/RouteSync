@@ -74,8 +74,8 @@ export function normalizeRoutes(manifest: RouteManifest, kernel: SemanticResolut
 
     const routeId = route.identity ? route.identity.name : (route.name || route.uri);
     const routeUri = route.identity ? route.identity.path : (route.uri || route.path);
-    const actionName = route.binding ? route.binding.actionName : (route.actionName || 'index');
-    const controllerName = route.binding ? route.binding.controllerName : (route.controllerName || '');
+    const actionName = route.binding ? route.binding.operation.name : (route.actionName || 'index');
+    const controllerName = route.binding ? route.binding.operation.controllerName : (route.controllerName || '');
     const upperMethod = (route.identity ? route.identity.method : route.method).toUpperCase();
     const method = (["GET", "POST", "PUT", "DELETE", "PATCH"].includes(upperMethod)
       ? upperMethod

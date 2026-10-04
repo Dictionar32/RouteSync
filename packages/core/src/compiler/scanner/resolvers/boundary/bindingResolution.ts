@@ -5,14 +5,14 @@
  */
 
 import type { RouteRequestBinding } from "../../../../types/domain/request";
-import type { RouteBoundaryOptions } from "./boundaryBasicsTypes";
+
 
 export interface ResolvedRouteBinding {
     readonly request: RouteRequestBinding;
 }
 
 export function resolveRouteBinding(
-    params: RouteBoundaryOptions
+    params: Readonly<{ readonly request: RouteRequestBinding }>
 ): ResolvedRouteBinding {
     return Object.freeze({
         request: params.request

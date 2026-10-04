@@ -17,6 +17,7 @@ import { resolveRouteBoundaryInput } from "./boundaryInputResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { resolveRouteBinding } from "./bindingResolution";
 import { ScannedEndpointContract } from "../../../../types/route";
+import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
 
 export class RouteBoundaryContractFactory {
     public static create(options: RouteBoundaryOptions): RouteBoundaryContract {

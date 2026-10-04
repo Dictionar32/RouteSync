@@ -52,3 +52,4 @@ export * from './astSemanticStageProof';
 export * from './astSemanticStageInterfaceAlgebra';
 export * from './astSemanticAuthorityPipeline';
 export * from './astSemanticStageTransition';
+export * from './astDataflowInterface';

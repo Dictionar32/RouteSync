@@ -46,6 +46,8 @@ export function resolveRouteBoundaryInput(
         runtimePath: basics.resolvedRuntimePath,
         groupName: basics.resolvedGroupName,
         schema: params.schema,
-        request: binding.request
+        request: binding.request,
+        runtimeReturn: params.runtimeReturn,
+        semanticReturn: params.semanticReturn
     });
 }

@@ -9,6 +9,7 @@ import type { AstSemanticPreservationRelation } from '../../types/upstream/astSe
 import type { AstSemanticStageProof } from '../../types/upstream/astSemanticStageProof';
 import type { ResolverGraphSemanticJudgment } from '../scanner/resolvers/resolverGraphSemanticInterface';
 import type { ResolvedSemanticTypeKind } from '../domain/common/ResolvedSemanticType';
+import type { AstDataflowJudgment, AstDataflowFact } from '../../types/upstream/astDataflowInterface';
 
 export type AstAnalysisDataflowRelation =
   | 'reads'
@@ -27,7 +28,8 @@ export type AstAnalysisFact =
   | { readonly kind: 'resolver_security'; readonly value: ResolverGraphSemanticJudgment['security']['security'] }
   | { readonly kind: 'resolver_crud'; readonly value: ResolverGraphSemanticJudgment['crudRole'] }
   | { readonly kind: 'mapping_refinement'; readonly value: ResolverGraphSemanticJudgment['mapping'] }
-  | { readonly kind: 'semantic_type'; readonly value: ResolvedSemanticTypeKind };
+  | { readonly kind: 'semantic_type'; readonly value: ResolvedSemanticTypeKind }
+  | { readonly kind: 'dataflow_closure'; readonly value: readonly AstDataflowFact[] };
 
 export type AstAnalysisDerivation = Readonly<{
   readonly kind: 'ast_analysis_derivation';
@@ -39,6 +41,7 @@ export type AstAnalysisDerivation = Readonly<{
 export type AstAnalysisJudgment = Readonly<{
   readonly kind: 'ast_analysis_judgment';
   readonly resolver: ResolverGraphSemanticJudgment;
+  readonly dataflow: AstDataflowJudgment;
   readonly facts: readonly AstAnalysisFact[];
   readonly derivations: readonly AstAnalysisDerivation[];
   readonly preservation: readonly AstSemanticPreservationRelation[];
@@ -73,6 +76,7 @@ export type AstAnalysisInput = Readonly<{
   readonly kind: 'ast_analysis_input';
   readonly resolver: ResolverGraphSemanticJudgment;
   readonly semanticType: ResolvedSemanticTypeKind;
+  readonly dataflow: AstDataflowJudgment;
   readonly proof: AstSemanticStageProof;
 }>;
 
@@ -84,10 +88,12 @@ export const astAnalysisJudgment = (input: AstAnalysisInput): AstAnalysisJudgmen
     Object.freeze({ kind: 'resolver_crud' as const, value: resolver.crudRole }),
     Object.freeze({ kind: 'mapping_refinement' as const, value: resolver.mapping }),
     Object.freeze({ kind: 'semantic_type' as const, value: input.semanticType }),
+    Object.freeze({ kind: 'dataflow_closure' as const, value: input.dataflow.closure }),
   ]);
   return Object.freeze({
     kind: 'ast_analysis_judgment',
     resolver,
+    dataflow: input.dataflow,
     facts,
     derivations: Object.freeze([]),
     preservation: Object.freeze(input.proof.preservation),

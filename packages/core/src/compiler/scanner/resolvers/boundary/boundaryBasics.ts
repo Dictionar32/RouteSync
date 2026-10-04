@@ -62,20 +62,20 @@ const boundaryPresence = <T>(value: Presence<T>): RelationOption<T> =>
 
 const semanticInputFromAuthoring = (params: RouteBoundaryOptions): RouteBoundaryBasicsSemanticInput => Object.freeze({
     path: params.path,
-    controllerName: presenceOf(params.controllerName),
-    actionName: presenceOf(params.actionName),
-    action: presenceOf(params.action),
-    actionKind: presenceOf(params.actionKind),
+    controllerName: presenceOf<ControllerName>(params.controllerName),
+    actionName: presenceOf<ActionName>(params.actionName),
+    action: presenceOf<ActionName>(params.action),
+    actionKind: presenceOf<RouteActionKind>(params.actionKind),
     method: params.method,
-    domain: presenceOf(params.domain),
-    resourceName: presenceOf(params.resourceName),
-    parameters: presenceOf(params.parameters),
-    pathParameters: presenceOf(params.pathParameters),
-    queryParameters: presenceOf(params.queryParameters),
-    groupName: presenceOf(params.groupName),
-    runtimePath: presenceOf(params.runtimePath),
-    constantKey: presenceOf(params.constantKey),
-    name: presenceOf(params.name),
+    domain: presenceOf<DomainTypeName>(params.domain),
+    resourceName: presenceOf<ResourceName>(params.resourceName),
+    parameters: presenceOf<readonly RouteParameter[]>(params.parameters),
+    pathParameters: presenceOf<readonly RouteParameter[]>(params.pathParameters),
+    queryParameters: presenceOf<readonly RouteQueryParameter[]>(params.queryParameters),
+    groupName: presenceOf<DomainTypeName>(params.groupName),
+    runtimePath: presenceOf<RoutePath>(params.runtimePath),
+    constantKey: presenceOf<PropertyName>(params.constantKey),
+    name: presenceOf<RouteName>(params.name),
 });
 
 export const resolveRouteBoundaryBasicsJudgment = (input: RouteBoundaryBasicsSemanticInput): RouteBoundaryBasicsJudgment => {

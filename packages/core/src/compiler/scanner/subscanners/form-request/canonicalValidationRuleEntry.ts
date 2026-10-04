@@ -9,6 +9,7 @@ import type {
 import {
     PrimitiveKind,
     PrimitiveType,
+    primitiveType,
     ReadonlyCollectionType,
     CollectionKind,
     type SemanticType,
@@ -26,6 +27,7 @@ import {
     relationOptionFold,
     relationAnyMatch,
     relationRange,
+    relationVariantFold,
 } from "../../../../semantic/kernel/relationalSequence";
 
 export interface ScannedRouteValidationRuleParams {
@@ -77,7 +79,12 @@ export const CanonicalRouteValidationRuleEntry = Object.freeze({
 });
 
 function canonicalFieldName(fieldName: string, location: ValidationFieldLocation): PropertyName {
-    return relationGate(Object.is(location.kind, 'root'), () => SemanticValueFactory.propertyName(fieldName), () => location.collection);
+    return relationVariantFold<ValidationFieldLocation, 'root', PropertyName>(
+        location,
+        'root',
+        collection => collection.collection,
+        () => SemanticValueFactory.propertyName(fieldName),
+    );
 }
 
 function resolveLocation(fieldName: string): ValidationFieldLocation {
@@ -97,8 +104,8 @@ function resolveShape(fieldName: string, semanticType: SemanticType, validation:
     const wildcardIndex = relationIndexOf(parts, part => Object.is(part, '*'));
     return relationGate(Object.is(wildcardIndex, -1),
         () => relationGate(isCollection(semanticType),
-            () => ({ kind: 'collection' as const, elementType: collectionElementType(semanticType), element: { kind: 'scalar' as const } }),
-            () => ({ kind: 'scalar' as const })),
+            () => ({ kind: 'collection' as const, elementType: collectionElementType(semanticType), element: { kind: 'scalar' as const, semanticType: collectionElementType(semanticType) } }),
+            () => ({ kind: 'scalar' as const, semanticType })),
         () => {
             const tail = relationProject(relationRange(parts, wildcardIndex + 1, parts.length), SemanticValueFactory.propertyName);
             const element = buildNestedObjectShape(tail, semanticType, validation, source);
@@ -117,12 +124,12 @@ function buildNestedObjectShape(
     source: SourceSpan
 ): ValidationFieldShape {
     return relationGate(Object.is(path.length, 0),
-        () => ({ kind: 'scalar' as const }),
+        () => ({ kind: 'scalar' as const, semanticType: leafType }),
         () => {
             const head = path[0];
             const tail = relationRange(path, 1, path.length);
             const childShape = relationGate(Object.is(tail.length, 0),
-                () => ({ kind: 'scalar' as const }),
+                () => ({ kind: 'scalar' as const, semanticType: leafType }),
                 () => buildNestedObjectShape(tail, leafType, validation, source));
             const childType = relationGate(Object.is(tail.length, 0),
                 () => leafType,
@@ -148,11 +155,14 @@ function buildNestedObjectShape(
 }
 
 function objectTypeForShape(name: string, shape: ValidationFieldShape): ObjectType {
-    return relationGate(Object.is(shape.kind, 'object'),
-        () => ObjectType({
+    return relationVariantFold<ValidationFieldShape, 'object', ObjectType>(
+        shape,
+        'object',
+        () => ObjectType({ name, baseName: name, properties: [], role: 'plain' }),
+        object => ObjectType({
             name,
             baseName: name,
-            properties: relationProject(shape.fields, field => ({
+            properties: relationProject(object.fields, field => ({
                 name: field.name,
                 type: field.semanticType,
                 description: '',
@@ -160,7 +170,7 @@ function objectTypeForShape(name: string, shape: ValidationFieldShape): ObjectTy
             })),
             role: 'plain'
         }),
-        () => ObjectType({ name, baseName: name, properties: [], role: 'plain' }));
+    );
 }
 
 function isCollection(type: SemanticType): boolean {
@@ -168,9 +178,17 @@ function isCollection(type: SemanticType): boolean {
 }
 
 function collectionElementType(type: SemanticType): SemanticType {
-    return relationGate(isCollection(type),
-        () => (type as ReadonlyCollectionType).elementType,
-        () => primitiveType(PrimitiveKind.UNSPECIFIED));
+    return relationVariantFold<SemanticType, 'readonly_collection', SemanticType>(
+        type,
+        'readonly_collection',
+        rest => relationVariantFold<SemanticType, 'mutable_collection', SemanticType>(
+            rest,
+            'mutable_collection',
+            () => primitiveType(PrimitiveKind.UNSPECIFIED),
+            collection => collection.elementType,
+        ),
+        collection => collection.elementType,
+    );
 }
 
 function resolveSemanticType(validation: readonly ValidationRuleNode[]): SemanticType {
@@ -189,11 +207,16 @@ function resolveSemanticType(validation: readonly ValidationRuleNode[]): Semanti
                     () => relationGate(relationAnyMatch(['file', 'image'], kind => Object.is(kind, rule.kind)),
                         () => primitiveType(PrimitiveKind.FILE),
                         () => relationGate(Object.is(rule.kind, 'array'),
-                            () => {
-                                const element = rule.elementType;
-                                return ReadonlyCollectionType(CollectionKind.ARRAY,
-                                    relationGate(Object.is(element.kind, 'specified'), () => element.type, () => primitiveType(PrimitiveKind.UNSPECIFIED)));
-                            },
+                            () => relationVariantFold<ValidationRuleNode, 'array', SemanticType>(
+                                rule,
+                                'array',
+                                () => primitiveType(PrimitiveKind.UNSPECIFIED),
+                                arrayRule => ReadonlyCollectionType(CollectionKind.ARRAY,
+                                    relationVariantFold(arrayRule.elementType, 'specified',
+                                        () => primitiveType(PrimitiveKind.UNSPECIFIED),
+                                        specified => specified.type,
+                                    )),
+                            ),
                             () => primitiveType(PrimitiveKind.STRING)))))));
 }
 

@@ -7,15 +7,13 @@
  */
 
 import type { RouteIdentityContract } from "../../../../types/route";
-import {
-    RouteBoundaryOptions,
-    IntermediateRouteBoundaryBasics
-} from "./boundaryBasics";
+import type { ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
+import type { IntermediateRouteBoundaryBasics } from "./boundaryBasics";
 
 export { deriveRouteConstantKey } from "./boundaryBasics";
 
 export function buildRouteIdentityContract(
-    params: RouteBoundaryOptions,
+    params: ResolvedRouteBoundaryOptions,
     basics: IntermediateRouteBoundaryBasics
 ): RouteIdentityContract {
     const resolvedParameters = basics.resolvedParameters;

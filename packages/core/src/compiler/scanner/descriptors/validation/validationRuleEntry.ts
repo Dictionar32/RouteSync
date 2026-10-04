@@ -28,6 +28,7 @@ import {
     relationProject,
     relationRange,
     relationResolve,
+    relationVariantFold,
 } from "../../../../semantic/kernel/relationalSequence";
 import { solveCandidate } from "../../../../semantic/kernel/semanticDecisionRewriteEngine";
 
@@ -69,10 +70,11 @@ export const ScannedRouteValidationRuleEntry = Object.freeze({
 });
 
 function canonicalFieldName(fieldName: string, location: ValidationFieldLocation): PropertyName {
-    return relationGate(
-        relationEqual(location.kind, 'root'),
+    return relationVariantFold<ValidationFieldLocation, 'root', PropertyName>(
+        location,
+        'root',
+        collection => collection.collection,
         () => SemanticValueFactory.propertyName(fieldName),
-        () => location.collection,
     );
 }
 
@@ -111,9 +113,9 @@ function resolveShape(
             () => ({
                 kind: 'collection' as const,
                 elementType: collectionElementType(semanticType),
-                element: { kind: 'scalar' as const }
+                element: { kind: 'scalar' as const, semanticType: collectionElementType(semanticType) }
             }),
-            () => ({ kind: 'scalar' as const }),
+            () => ({ kind: 'scalar' as const, semanticType }),
         ),
         () => {
             const tail = relationProject(
@@ -140,7 +142,7 @@ function buildNestedObjectShape(
 ): ValidationFieldShape {
     return relationGate(
         relationEqual(path.length, 0),
-        () => ({ kind: 'scalar' as const }),
+        () => ({ kind: 'scalar' as const, semanticType: leafType }),
         () => {
             const head = path[0];
             const tail = relationRange(path, 1, path.length);
@@ -176,12 +178,14 @@ function buildNestedObjectShape(
 }
 
 function objectTypeForShape(name: string, shape: ValidationFieldShape): ObjectType {
-    return relationGate(
-        relationEqual(shape.kind, 'object'),
-        () => scannerSemanticType.object({
+    return relationVariantFold<ValidationFieldShape, 'object', ObjectType>(
+        shape,
+        'object',
+        () => ObjectType({ name, baseName: name, properties: [], role: 'plain' }),
+        object => ObjectType({
             name,
             baseName: name,
-            properties: relationProject(shape.fields, field => ({
+            properties: relationProject(object.fields, field => ({
                 name: field.name,
                 type: field.semanticType,
                 description: '',
@@ -189,7 +193,6 @@ function objectTypeForShape(name: string, shape: ValidationFieldShape): ObjectTy
             })),
             role: 'plain'
         }),
-        () => scannerSemanticType.object({ name, baseName: name, properties: [], role: 'plain' }),
     );
 }
 
@@ -198,10 +201,16 @@ function isCollection(type: SemanticType): boolean {
 }
 
 function collectionElementType(type: SemanticType): SemanticType {
-    return relationGate(
-        relationGate(relationEqual(type.kind, 'readonly_collection'), () => true, () => relationEqual(type.kind, 'mutable_collection')),
-        () => type.elementType,
-        () => scannerSemanticType.unspecified(),
+    return relationVariantFold<SemanticType, 'readonly_collection', SemanticType>(
+        type,
+        'readonly_collection',
+        rest => relationVariantFold<SemanticType, 'mutable_collection', SemanticType>(
+            rest,
+            'mutable_collection',
+            () => scannerSemanticType.unspecified(),
+            collection => collection.elementType,
+        ),
+        collection => collection.elementType,
     );
 }
 
@@ -221,12 +230,16 @@ function resolveSemanticType(validation: readonly ValidationRuleNode[]): Semanti
                 { id: 'file', value: scannerSemanticType.file(), requirements: [{ id: 'kind', satisfied: relationGate(relationEqual(rule.kind, 'file'), () => true, () => relationEqual(rule.kind, 'image')) }] },
                 { id: 'array', value: relationGate(
                     relationEqual(rule.kind, 'array'),
-                    () => scannerSemanticType.collection(
-                        CollectionKind.ARRAY,
-                        relationGate(
-                            relationEqual(rule.elementType.kind, 'specified'),
-                            () => rule.elementType.type,
-                            () => scannerSemanticType.unspecified(),
+                    () => relationVariantFold<ValidationRuleNode, 'array', SemanticType>(
+                        rule,
+                        'array',
+                        () => scannerSemanticType.unspecified(),
+                        arrayRule => scannerSemanticType.collection(
+                            CollectionKind.ARRAY,
+                            relationVariantFold(arrayRule.elementType, 'specified',
+                                () => scannerSemanticType.unspecified(),
+                                specified => specified.type,
+                            ),
                         ),
                     ),
                     () => scannerSemanticType.string(),

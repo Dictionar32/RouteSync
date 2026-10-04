@@ -8,11 +8,11 @@ import type { RouteCapabilityContract } from "../../../../types/route";
 import { RouteSecurityResolver } from "../RouteSecurityResolver";
 import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
-import { RouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasics";
+import type { ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
 import type { ResolvedRouteCapability } from "./capabilityResolution";
 
 export function buildRouteCapabilityContract(
-    params: RouteBoundaryOptions,
+    params: ResolvedRouteBoundaryOptions,
     basics: IntermediateRouteBoundaryBasics,
     resolved: ResolvedRouteCapability
 ): RouteCapabilityContract {

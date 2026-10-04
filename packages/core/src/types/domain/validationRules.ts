@@ -704,7 +704,7 @@ export type ValidationFieldLocation =
     };
 
 export type ValidationFieldShape =
-  | { readonly kind: 'scalar' }
+  | { readonly kind: 'scalar'; readonly semanticType: SemanticType }
   | {
       readonly kind: 'object';
       readonly fields: readonly ValidationFieldProperty[];

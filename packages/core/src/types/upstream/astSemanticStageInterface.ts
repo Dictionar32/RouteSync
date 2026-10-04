@@ -49,7 +49,10 @@ export type AnalysisRelation =
   | 'analysis_depends'
   | 'analysis_reaches'
   | 'analysis_dominates'
-  | 'analysis_proves';
+  | 'analysis_proves'
+  | 'analysis_dataflow_dependency'
+  | 'analysis_dataflow_value_flow'
+  | 'analysis_dataflow_reaches';
 
 export type SemanticTypeLoweringRelation =
   | 'type_infers'
@@ -139,7 +142,7 @@ const RESOLVER_GRAPH_CONTRACT: ResolverGraphContract = Object.freeze({
 });
 const ANALYSIS_CONTRACT: AnalysisContract = Object.freeze({
   kind: 'analysis_contract', stage: 'analysis', input: 'resolver_graph', output: 'analysis',
-  relations: Object.freeze(['analysis_depends', 'analysis_reaches', 'analysis_dominates', 'analysis_proves'] as readonly AnalysisRelation[]),
+  relations: Object.freeze(['analysis_depends', 'analysis_reaches', 'analysis_dominates', 'analysis_proves', 'analysis_dataflow_dependency', 'analysis_dataflow_value_flow', 'analysis_dataflow_reaches'] as readonly AnalysisRelation[]),
   closure: 'least_fixed_point', rewriteEngine: 'semantic_rewrite_engine', authority: 'ast_semantic_judgment',
   preservation: Object.freeze(['preserves_identity', 'preserves_origin', 'preserves_resolution', 'preserves_control'] as readonly AstSemanticPreservationRelation[]), reasoning: 'declarative_relation_rewrite_fixed_point', closed: true,
 });
@@ -245,6 +248,8 @@ const analysisRelation = (relation: AstSemanticFact['relation']): AnalysisRelati
   relationLookup<AstSemanticFact['relation'], AnalysisRelation>([
     ['analysis_depends', 'analysis_depends'], ['analysis_reaches', 'analysis_reaches'],
     ['analysis_dominates', 'analysis_dominates'], ['analysis_proves', 'analysis_proves'],
+    ['analysis_dataflow_dependency', 'analysis_dataflow_dependency'], ['analysis_dataflow_value_flow', 'analysis_dataflow_value_flow'],
+    ['analysis_dataflow_reaches', 'analysis_dataflow_reaches'],
   ], relation),
   () => { throw Error(`Relation '${relation}' is not legal at analysis.`); },
   value => value,
@@ -349,6 +354,8 @@ const analysisFacts = (facts: AstSemanticFacts): AnalysisFacts => relationProjec
     relationLookup<AstSemanticFact['relation'], AnalysisRelation>([
       ['analysis_depends', 'analysis_depends'], ['analysis_reaches', 'analysis_reaches'],
       ['analysis_dominates', 'analysis_dominates'], ['analysis_proves', 'analysis_proves'],
+      ['analysis_dataflow_dependency', 'analysis_dataflow_dependency'], ['analysis_dataflow_value_flow', 'analysis_dataflow_value_flow'],
+      ['analysis_dataflow_reaches', 'analysis_dataflow_reaches'],
     ], fact.relation),
     () => analysisStageFact(analysisRelation(fact.relation), fact.subject, fact.object),
     relation => analysisStageFact(relation, fact.subject, fact.object),
@@ -407,7 +414,7 @@ const stageJudgment = (
     stage,
     contract,
     facts,
-    derivations: stageDerivations(stageFactsForJudgment(stage, facts)),
+    derivations: stageDerivations(astSemanticStageFacts(stage, facts)),
     preservation: contract.preservation,
     proofObligations: stageProofObligations(stage, contract),
     reasoning: contract.reasoning,
@@ -415,7 +422,7 @@ const stageJudgment = (
   });
 };
 
-const stageFactsForJudgment = (stage: AstSemanticStage, facts: AstSemanticFacts): readonly AstSemanticStageFact[] => relationProject(
+export const astSemanticStageFacts = (stage: AstSemanticStage, facts: AstSemanticFacts): readonly AstSemanticStageFact[] => relationProject(
   facts.items,
   fact => stageFact(stage, fact.relation, fact.subject, fact.object),
 );

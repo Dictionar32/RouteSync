@@ -141,6 +141,8 @@ export interface ResolvedRouteBoundaryOptions {
     readonly groupName: DomainTypeName;
     readonly schema: RouteSchemaPayload;
     readonly request: RouteRequestBinding;
+    readonly runtimeReturn: ControllerRuntimeReturn;
+    readonly semanticReturn: ControllerReturnSemantic;
 }
 
 export interface IntermediateRouteBoundaryBasics {

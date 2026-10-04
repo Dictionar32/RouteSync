@@ -13,6 +13,7 @@ import type {
   AstSemanticPipeline,
   AstSemanticStageFact,
 } from './astSemanticStageInterface';
+import { astSemanticStageFacts } from './astSemanticStageInterface';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
 import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
 import { relationGate, relationNone, relationSome, type RelationOption } from '../../semantic/kernel/relationalSequence';
@@ -36,7 +37,7 @@ export const astSemanticStageInterface = (judgment: AstSemanticStageJudgment): A
   output: judgment.contract.output,
   authority: 'ast_semantic_judgment',
   judgment,
-  facts: Object.freeze(judgment.facts.items),
+  facts: Object.freeze(astSemanticStageFacts(judgment.stage, judgment.facts)),
   proofs: Object.freeze(judgment.proofObligations),
   closed: true,
 });

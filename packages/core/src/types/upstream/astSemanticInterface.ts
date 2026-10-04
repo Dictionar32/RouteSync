@@ -50,7 +50,7 @@ export type AstSemanticRelationName =
   | 'scanner_observes' | 'scanner_tokens' | 'scanner_syntax' | 'scanner_diagnostic'
   | 'upstream_maps' | 'upstream_identity' | 'upstream_origin' | 'upstream_provenance'
   | 'resolver_candidate' | 'resolver_resolves' | 'resolver_conflict' | 'resolver_edge'
-  | 'analysis_depends' | 'analysis_reaches' | 'analysis_dominates' | 'analysis_proves'
+  | 'analysis_depends' | 'analysis_reaches' | 'analysis_dominates' | 'analysis_proves' | 'analysis_dataflow_dependency' | 'analysis_dataflow_value_flow' | 'analysis_dataflow_reaches'
   | 'type_infers' | 'type_refines' | 'type_lowers' | 'type_compatible'
   | 'target_projects' | 'target_emits' | 'target_preserves' | 'target_requires'
   | 'ast_candidate' | 'ast_resolves' | 'ast_conflicts' | 'ast_proves' | 'ast_analyzes' | 'ast_types' | 'ast_lowers' | 'ast_projects';

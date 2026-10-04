@@ -69,7 +69,7 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationInd
             entry.location,
             'root',
             location => ({
-                name: rootPropertyName,
+                name: location.collection,
                 semanticType: entry.semanticType,
                 presence: relationOptionFold(existing, () => entry.presence, value => value.presence),
                 requirement: relationOptionFold(existing, () => requirementFromValidation(entry.validation), value => value.requirement),
@@ -163,31 +163,95 @@ function mergeProperty(properties: readonly ValidationFieldProperty[], property:
 }
 
 function mergePropertyShape(existing: ValidationFieldProperty, incoming: ValidationFieldProperty): ValidationFieldProperty {
-    return relationVariantFold(
-        existing.shape,
+    const shape = mergeValidationFieldShape(existing.shape, incoming.shape);
+    return {
+        name: existing.name,
+        semanticType: mergedSemanticType(existing.name, shape),
+        presence: existing.presence,
+        validation: existing.validation,
+        source: existing.source,
+        shape,
+    };
+}
+
+function mergeValidationFieldShape(existing: ValidationFieldShape, incoming: ValidationFieldShape): ValidationFieldShape {
+    return relationVariantFold<ValidationFieldShape, 'object', ValidationFieldShape>(
+        existing,
         'object',
-        existingRest => incoming,
-        existingObject => relationVariantFold(
-            incoming.shape,
+        existingRest => relationVariantFold<ValidationFieldShape, 'object', ValidationFieldShape>(
+            incoming,
             'object',
-            incomingRest => incoming,
-            incomingObject => {
-                const fields = relationFold(
+            incomingRest => mergeNonObjectShapes(existingRest, incomingRest),
+            incomingObject => incomingObject,
+        ),
+        existingObject => relationVariantFold<ValidationFieldShape, 'object', ValidationFieldShape>(
+            incoming,
+            'object',
+            incomingRest => mergeObjectWithNonObject(existingObject, incomingRest),
+            incomingObject => ({
+                kind: 'object',
+                fields: relationFold(
                     incomingObject.fields,
                     existingObject.fields,
                     (accumulator, field) => mergeProperty(accumulator, field),
-                );
-                const shape: ValidationFieldShape = { kind: 'object', fields };
-                return {
-                    name: existing.name,
-                    semanticType: objectType(existing.name, fields),
-                    presence: existing.presence,
-                    validation: existing.validation,
-                    source: existing.source,
-                    shape,
-                };
-            },
+                ),
+            }),
         ),
+    );
+}
+
+function mergeNonObjectShapes(
+    existing: Exclude<ValidationFieldShape, { readonly kind: 'object' }>,
+    incoming: Exclude<ValidationFieldShape, { readonly kind: 'object' }>,
+): ValidationFieldShape {
+    return relationVariantFold<Exclude<ValidationFieldShape, { readonly kind: 'object' }>, 'collection', ValidationFieldShape>(
+        existing,
+        'collection',
+        existingScalar => relationVariantFold<Exclude<ValidationFieldShape, { readonly kind: 'object' }>, 'collection', ValidationFieldShape>(
+            incoming,
+            'collection',
+            incomingScalar => ({ kind: 'scalar', semanticType: incomingScalar.semanticType }),
+            incomingCollection => incomingCollection,
+        ),
+        existingCollection => relationVariantFold<Exclude<ValidationFieldShape, { readonly kind: 'object' }>, 'collection', ValidationFieldShape>(
+            incoming,
+            'collection',
+            incomingScalar => existingCollection,
+            incomingCollection => ({
+                kind: 'collection',
+                elementType: incomingCollection.elementType,
+                element: mergeValidationFieldShape(existingCollection.element, incomingCollection.element),
+            }),
+        ),
+    );
+}
+
+function mergeObjectWithNonObject(
+    existing: Extract<ValidationFieldShape, { readonly kind: 'object' }>,
+    incoming: Exclude<ValidationFieldShape, { readonly kind: 'object' }>,
+): ValidationFieldShape {
+    return relationVariantFold<Exclude<ValidationFieldShape, { readonly kind: 'object' }>, 'collection', ValidationFieldShape>(
+        incoming,
+        'collection',
+        incomingScalar => ({ kind: 'object', fields: existing.fields }),
+        incomingCollection => ({
+            kind: 'object',
+            fields: existing.fields,
+        }),
+    );
+}
+
+function mergedSemanticType(name: PropertyName, shape: ValidationFieldShape): SemanticType {
+    return relationVariantFold<ValidationFieldShape, 'scalar', SemanticType>(
+        shape,
+        'scalar',
+        rest => relationVariantFold<Exclude<ValidationFieldShape, { readonly kind: 'scalar' }>, 'collection', SemanticType>(
+            rest,
+            'collection',
+            object => objectType(name, object.fields),
+            collection => collection.elementType,
+        ),
+        scalar => scalar.semanticType,
     );
 }
 
@@ -205,7 +269,33 @@ function requirementFromValidation(validation: readonly ValidationRuleNode[]): R
         item => relationVariantFold<ValidationRuleNode, 'required_with', RequestFieldRequirement>(
             item,
             'required_with',
-            rest => relationVariantFold(rest, 'required_with_all', restAll => relationVariantFold(restAll, 'required_without', restWithout => relationVariantFold(restWithout, 'required_without_all', restWithoutAll => relationVariantFold(restWithoutAll, 'required_if', restIf => relationVariantFold(restIf, 'required_unless', absentUnless => ({ kind: 'unconditional' }), presentUnless => ({ kind: 'required_unless', field: presentUnless.field, values: presentUnless.values })), presentIf => ({ kind: 'required_if', field: presentIf.field, values: presentIf.values })), presentWithoutAll => ({ kind: 'required_without_all', fields: presentWithoutAll.fields })), presentWithout => ({ kind: 'required_without', fields: presentWithout.fields })), presentAll => ({ kind: 'required_with_all', fields: presentAll.fields })), presentWith => ({ kind: 'required_with', fields: presentWith.fields }),
+            rest => relationVariantFold<ValidationRuleNode, 'required_with_all', RequestFieldRequirement>(
+                rest,
+                'required_with_all',
+                restAll => relationVariantFold<ValidationRuleNode, 'required_without', RequestFieldRequirement>(
+                    restAll,
+                    'required_without',
+                    restWithout => relationVariantFold<ValidationRuleNode, 'required_without_all', RequestFieldRequirement>(
+                        restWithout,
+                        'required_without_all',
+                        restWithoutAll => relationVariantFold<ValidationRuleNode, 'required_if', RequestFieldRequirement>(
+                            restWithoutAll,
+                            'required_if',
+                            restIf => relationVariantFold<ValidationRuleNode, 'required_unless', RequestFieldRequirement>(
+                                restIf,
+                                'required_unless',
+                                () => ({ kind: 'unconditional' }),
+                                presentUnless => ({ kind: 'required_unless', field: presentUnless.field, values: presentUnless.values }),
+                            ),
+                            presentIf => ({ kind: 'required_if', field: presentIf.field, values: presentIf.values }),
+                        ),
+                        presentWithoutAll => ({ kind: 'required_without_all', fields: presentWithoutAll.fields }),
+                    ),
+                    presentWithout => ({ kind: 'required_without', fields: presentWithout.fields }),
+                ),
+                presentAll => ({ kind: 'required_with_all', fields: presentAll.fields }),
+            ),
+            presentWith => ({ kind: 'required_with', fields: presentWith.fields }),
         ),
     );
 }
@@ -260,13 +350,13 @@ function toTreeNode(root: RootValidationField): ValidationFieldNode {
                 root.validation,
             );
         },
-        () => relationVariantFold(
+        () => relationVariantFold<SemanticType, 'readonly_collection', ValidationFieldNode>(
             root.semanticType,
             'readonly_collection',
-            rest => relationVariantFold(
+            rest => relationVariantFold<SemanticType, 'mutable_collection', ValidationFieldNode>(
                 rest,
                 'mutable_collection',
-                scalar => createScalarValidationFieldNode(root.name, root.semanticType, root.presence, root.validation),
+                scalar => createScalarValidationFieldNode(root.name, scalar, root.presence, root.validation),
                 collection => createArrayValidationFieldNode(
                     root.name,
                     root.semanticType,
@@ -295,13 +385,18 @@ function toTreeNode(root: RootValidationField): ValidationFieldNode {
 }
 
 function propertyToTreeNode(property: ValidationFieldProperty): ValidationFieldNode {
-    return relationVariantFold(
+    return relationVariantFold<ValidationFieldShape, 'scalar', ValidationFieldNode>(
         property.shape,
-        'object',
-        rest => relationVariantFold(
+        'scalar',
+        rest => relationVariantFold<Exclude<ValidationFieldShape, { readonly kind: 'scalar' }>, 'collection', ValidationFieldNode>(
             rest,
             'collection',
-            scalar => createScalarValidationFieldNode(property.name, property.semanticType, property.presence, property.validation),
+            object => createObjectValidationFieldNode(
+                property.name,
+                property.semanticType,
+                property.presence,
+                relationProject(object.fields, propertyToTreeNode),
+            ),
             collection => createArrayValidationFieldNode(
                 property.name,
                 property.semanticType,
@@ -314,11 +409,6 @@ function propertyToTreeNode(property: ValidationFieldProperty): ValidationFieldN
                 property.validation,
             ),
         ),
-        object => createObjectValidationFieldNode(
-            property.name,
-            property.semanticType,
-            property.presence,
-            relationProject(object.fields, propertyToTreeNode),
-        ),
+        scalar => createScalarValidationFieldNode(property.name, scalar.semanticType, property.presence, property.validation),
     );
 }

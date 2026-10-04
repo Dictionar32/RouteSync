@@ -81,8 +81,14 @@ export function resolveRouteCapabilityJudgment(
     });
 }
 
+type RouteCapabilityResolutionInput = Pick<RouteBoundaryOptions,
+    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth" | "request"
+> | Pick<ResolvedRouteBoundaryOptions,
+    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth" | "request"
+>;
+
 export function resolveRouteCapability(
-    params: RouteBoundaryOptions,
+    params: RouteCapabilityResolutionInput,
     basics: IntermediateRouteBoundaryBasics,
     parameterCount: number,
 ): ResolvedRouteCapability {

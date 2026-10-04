@@ -7,9 +7,13 @@
  */
 
 import { RouteProvenanceContract } from "../../../../types/route";
-import { RouteBoundaryOptions } from "./boundaryBasics";
+type RouteProvenanceInput = Readonly<{
+    readonly sourceFile: RouteProvenanceContract["sourceFile"];
+    readonly sourceLine: RouteProvenanceContract["sourceLine"];
+    readonly path: RouteProvenanceContract["uri"];
+}>;
 
-export function buildRouteProvenanceContract(params: RouteBoundaryOptions): RouteProvenanceContract {
+export function buildRouteProvenanceContract(params: RouteProvenanceInput): RouteProvenanceContract {
     return Object.freeze({
         sourceFile: params.sourceFile,
         sourceLine: params.sourceLine,

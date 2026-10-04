@@ -6,6 +6,8 @@ import {
   ObjectType
 } from '../../compiler/types/SemanticType';
 import { SemanticValueFactory, type PropertyName, type ResourceName } from './semanticValues';
+import { relationProject, relationVariantFold } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/relationalSequence';
 
 export interface MappingIntentField {
   readonly name: PropertyName;
@@ -63,7 +65,7 @@ function resolve(type: SemanticType): MappingIntent {
 }
 
 const fieldsOf = (properties: readonly ObjectProperty[]): readonly MappingIntentField[] =>
-  Object.freeze(properties.map(field => Object.freeze({
+  Object.freeze(relationProject(properties, field => Object.freeze({
     name: field.name,
     intent: resolve(field.type)
   })));
@@ -83,36 +85,45 @@ const VISITOR: SemanticTypeVisitor<MappingIntent> = {
   readonlyCollection: type => collection(type.elementType),
   mutableCollection: type => collection(type.elementType),
   generic: () => direct,
-  object: type => type.role === 'resource'
+  object: type => relationEqual(type.role, 'resource')
     ? Object.freeze({ kind: 'resource', resourceName: resourceNameOf(type), fields: fieldsOf(type.properties) })
     : Object.freeze({ kind: 'object', fields: fieldsOf(type.properties) })
 };
 
+const wrapCollection = (intent: MappingIntent): MappingIntent =>
+  Object.freeze({ kind: 'collection', element: intent });
+
 function collection(element: SemanticType): MappingIntent {
   const intent = resolve(element);
-  return COLLECTION_FACTORIES[intent.kind](intent);
+  const collectionIntent: MappingIntent = relationVariantFold(intent, 'resource',
+    rest => relationVariantFold(rest, 'resource_collection',
+      restCollection => relationVariantFold(restCollection, 'collection',
+        restNested => relationVariantFold(restNested, 'object',
+          restObject => relationVariantFold(restObject, 'direct',
+            candidate => wrapCollection(candidate),
+            candidate => wrapCollection(candidate),
+          ),
+          object => wrapCollection(object),
+        ),
+        nested => wrapCollection(nested),
+      ),
+      nestedResourceCollection => wrapCollection(nestedResourceCollection),
+    ),
+    resource => Object.freeze({ kind: 'resource_collection', resourceName: resource.resourceName, fields: resource.fields }),
+  );
+  return collectionIntent;
 }
-
-const COLLECTION_FACTORIES: {
-  readonly [K in MappingIntent['kind']]: (intent: Extract<MappingIntent, { kind: K }>) => MappingIntent;
-} = {
-  direct: () => Object.freeze({ kind: 'collection', element: direct }),
-  object: intent => Object.freeze({ kind: 'collection', element: intent }),
-  resource: intent => Object.freeze({ kind: 'resource_collection', resourceName: intent.resourceName, fields: intent.fields }),
-  collection: intent => Object.freeze({ kind: 'collection', element: intent }),
-  resource_collection: intent => Object.freeze({ kind: 'collection', element: intent })
-};
 
 export function resolveMappingIntent(type: SemanticType): MappingIntent {
   return resolve(type);
 }
 
 export function createResourceMappingIntentGraph(
-  resourceName: string,
+  resourceName: ResourceName,
   fields: readonly ObjectProperty[]
 ): ResourceMappingIntentGraph {
   return Object.freeze({
-    resourceName: SemanticValueFactory.resourceName(resourceName),
+    resourceName,
     fields: fieldsOf(fields)
   });
 }

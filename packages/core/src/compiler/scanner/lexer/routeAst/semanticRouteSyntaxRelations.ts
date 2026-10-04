@@ -5,6 +5,9 @@ import { relationFirst, relationOptionMap, relationOptionFold, relationVariantFo
 import { projectRelation, selectRelation, expandRelation, accumulateRelation } from '../../../relational/sequence';
 import { relationFirstOr } from '../../../../semantic/kernel/relationalSequence';
 import { createRouteConstraintValueAst, createRouteConstraintParameterAst, type LaravelRouteMethod, type RouteConstraintMethodAst, type RouteTargetAst, type RouteConstraintArgumentAst, type RouteConstraintValueAst, type RouteConstraintParameterAst, } from './routeDeclarationAst';
+import { createRouteParameterName, stringValue } from '../../../../types/upstream/names';
+import type { RouteGroupConstraintFact } from '../../../../types/upstream/routeGroupFacts';
+import type { RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';
 import type { RouteResourceMethodAst } from './routeResourceDeclarationAst';
 import type { TokenDescriptor } from '../phpAstTypes';
 import { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
@@ -191,11 +194,6 @@ export const isGroupWhere = (cursor: TokenCursor): boolean => {
     return presenceFold(presenceOf(marker), () => false, (value: TokenCursor) => presenceFold(value.currentPresence, () => false, (token: TokenDescriptor) => tokenHasKind(token, SYNTAX_KIND_GROUPS.groups)));
 };
 export type RouteGroupBindingScope = 'default' | 'scoped' | 'without_scoped';
-export interface RouteGroupConstraintFact {
-    readonly method: RouteConstraintMethodAst;
-    readonly parameter: string;
-    readonly argument: RouteConstraintSyntaxArgument;
-}
 export interface RouteGroupStateModel {
     readonly prefix: Presence<string>;
     readonly middleware: readonly string[];
@@ -216,7 +214,20 @@ const GROUP_PROPERTIES: Catalog<'prefix' | 'middleware' | 'namePrefix' | 'contro
 ]);
 export const routeGroupBindingScope = (method: Presence<string>): Presence<RouteGroupBindingScope> => catalogValue(GROUP_BINDING_SCOPE, method);
 export const routeGroupProperty = (method: Presence<string>): Presence<'prefix' | 'middleware' | 'namePrefix' | 'controller' | 'domain'> => catalogValue(GROUP_PROPERTIES, method);
-const groupConstraintFact = (fact: RouteConstraintSyntaxFact): RouteGroupConstraintFact => Object.freeze({ method: fact.method, parameter: fact.parameter, argument: fact.argument });
+const groupConstraintArgument = (argument: RouteConstraintSyntaxArgument): RouteConstraintArgument =>
+    relationVariantFold<RouteConstraintSyntaxArgument, 'pattern', RouteConstraintArgument>(argument, 'pattern',
+        () => Object.freeze({ kind: 'none' }),
+        rest => relationVariantFold<Exclude<RouteConstraintSyntaxArgument, { readonly kind: 'pattern' }>, 'values', RouteConstraintArgument>(rest, 'values',
+            () => Object.freeze({ kind: 'none' }),
+            values => Object.freeze({ kind: 'values', values: projectRelation(values.values, stringValue) }),
+            none => Object.freeze({ kind: 'none' })),
+        pattern => Object.freeze({ kind: 'pattern', value: stringValue(pattern.value) }));
+const groupConstraintFact = (fact: RouteConstraintSyntaxFact): RouteGroupConstraintFact => Object.freeze({
+    method: fact.method,
+    parameter: createRouteParameterName(fact.parameter),
+    argument: groupConstraintArgument(fact.argument),
+    source: Object.freeze({ kind: 'group' }),
+});
 export const routeGroupConstraint = (cursor: TokenCursor): Presence<RouteGroupConstraintFact> => presenceFold(routeConstraintFact(cursor), () => absent<RouteGroupConstraintFact>(), fact => present(groupConstraintFact(fact)));
 export interface RouteGroupTransitionModel {
     readonly groups: readonly RouteGroupStateModel[];

@@ -5,7 +5,7 @@ import type { Sequence } from '../../../../types/upstream/collections';
 import { createRoutePath } from '../../../../types/upstream/names';
 import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteMiddlewareMutation } from '../../../../types/upstream/route';
-import { relationAdvanceIndex, relationGate, relationProject } from '../../../../semantic/kernel/relationalSequence';
+import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/kernel/relationalSequence';
 import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
 
 export interface RouteGroupResolutionJudgment {
@@ -28,11 +28,7 @@ export const resolveRouteGroupFactsJudgment = (facts: RouteGroupFact): RouteGrou
   const middlewareMutations: Sequence<RouteMiddlewareMutation> = sequenceFromValues(middlewareItems);
 
   const constraints: Sequence<RouteConstraint> = sequenceFromValues(
-    relationProject(facts.constraints, constraint => ({
-      kind: 'pattern',
-      parameter: constraint.parameter,
-      value: constraint.value,
-    })),
+    relationProject(facts.constraints, constraint => routeConstraintFromArgument(constraint.parameter, constraint.argument)),
   );
 
   const namePrefix = resolveNamePrefix(facts.namePrefix);
@@ -63,6 +59,16 @@ export function resolveRouteGroupFacts(facts: RouteGroupFact): RouteGroupContext
   return resolveRouteGroupFactsJudgment(facts).context;
 }
 
+
+function routeConstraintFromArgument(parameter: RouteGroupFact['constraints'][number]['parameter'], argument: RouteGroupFact['constraints'][number]['argument']): RouteConstraint {
+  return relationVariantFold(argument, 'pattern',
+    () => Object.freeze({ kind: 'unconstrained' }),
+    rest => relationVariantFold(rest, 'values',
+      () => Object.freeze({ kind: 'unconstrained' }),
+      values => Object.freeze({ kind: 'set', parameter, values: sequenceFromValues(values.values) }),
+      () => Object.freeze({ kind: 'unconstrained' })),
+    pattern => Object.freeze({ kind: 'pattern', parameter, value: pattern.value }));
+}
 
 function resolvePrefix(values: RouteGroupFact['prefix']): RouteGroupContext['prefix'] {
   return relationGate(

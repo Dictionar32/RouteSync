@@ -1,13 +1,15 @@
-import type { StringValue } from './valueObjects';
 import type { ControllerName, DomainTypeName, MiddlewareName, RouteParameterName } from './names';
 import type { Presence } from './presence';
-import type { RouteConstraintArgument } from './routeConstraints';
+import type { RouteConstraintArgument, RouteConstraintSyntaxMethod } from './routeConstraints';
+import type { StringValue } from './valueObjects';
 
-/** Syntax facts extracted from route-group AAT/AST. Values are typed facts, not free strings. */
-export interface RouteGroupConstraintFact {
+/** Group constraint evidence is the canonical upstream route-constraint fact with group provenance. */
+export type RouteGroupConstraintFact = {
   readonly parameter: RouteParameterName;
+  readonly method: RouteConstraintSyntaxMethod;
   readonly argument: RouteConstraintArgument;
-}
+  readonly source: { readonly kind: 'group' };
+};
 
 export type RouteGroupBindingScopeFact = 'default' | 'scoped' | 'without_scoped';
 

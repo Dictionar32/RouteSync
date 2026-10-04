@@ -8,6 +8,7 @@ import {
   createRouteControllerAst,
   createRouteDomainAst,
   createRouteConstraintParameterAst,
+  createRouteConstraintValueAst,
   type RouteDeclarationAst,
   type MiddlewareNameAst,
   type LaravelRouteMethod,
@@ -34,6 +35,7 @@ import {
 import { SYNTAX_KIND_GROUPS, SYNTAX_OPERATION_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
 import { absent, present, presenceOf, presenceFold, type Presence } from '../../../../types/upstream/presence';
 import { relationAll } from '../../../../semantic/kernel/semanticRelations';
+import { relationVariantFold } from '../../../../semantic/kernel/relationalSequence';
 import { continueScan, syntaxScan } from './syntaxScan';
 
 type GroupState = RouteGroupStateModel;
@@ -108,8 +110,8 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
     }))),
     groupConstraints: Object.freeze(projectRelation(effective.constraints, item => ({
       method: item.method,
-      parameter: createRouteConstraintParameterAst(item.parameter),
-      argument: constraintArgumentAst(item),
+      parameter: createRouteConstraintParameterAst(item.parameter.value.value),
+      argument: groupConstraintArgumentAst(item.argument),
     }))),
     source,
     end: terminal,
@@ -132,6 +134,17 @@ function targetAt(route: TokenCursor, method: LaravelRouteMethod): RouteTargetAs
 
 function findDeclarationEnd(start: TokenCursor): TokenCursor {
   return presenceFold(start.callClosePresence, () => start.statementEndCursor, value => value);
+}
+
+
+function groupConstraintArgumentAst(argument: import('../../../../types/upstream/routeConstraints').RouteConstraintArgument): RouteConstraintArgumentAst {
+  return relationVariantFold<import('../../../../types/upstream/routeConstraints').RouteConstraintArgument, 'pattern', RouteConstraintArgumentAst>(argument, 'pattern',
+    () => Object.freeze({ kind: 'none' }),
+    rest => relationVariantFold<Exclude<import('../../../../types/upstream/routeConstraints').RouteConstraintArgument, { readonly kind: 'pattern' }>, 'values', RouteConstraintArgumentAst>(rest, 'values',
+      () => Object.freeze({ kind: 'none' }),
+      values => Object.freeze({ kind: 'values', values: projectRelation(values.values, value => createRouteConstraintValueAst(value.value)) }),
+      () => Object.freeze({ kind: 'none' })),
+    pattern => Object.freeze({ kind: 'pattern', value: createRouteConstraintValueAst(pattern.value.value) }));
 }
 
 function constraintArgumentAst(item: RouteConstraintSyntaxFact): RouteConstraintArgumentAst {

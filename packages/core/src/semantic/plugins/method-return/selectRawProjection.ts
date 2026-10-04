@@ -3,7 +3,7 @@
  * This is an upstream query-expression boundary: downstream accessors never
  * parse SQL or infer fields from the base model.
  */
-import type { MethodCallField, FieldArgument, FieldNode, LiteralField } from '../../../types/field';
+import type { MethodCallAstNode, PhpArgument, PhpAstNode, LiteralAstNode } from '../../../types/domain/phpAst';
 import type { SemanticResolution } from '../../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
@@ -11,7 +11,7 @@ import type { ModelName } from '../../../types/domain/semanticValues';
 import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 import type { SemanticTraceNode } from '../../../types/domain/semanticResolution';
 import { parseSelectRawFields } from './selectRawProjectionParser';
-import { relationOptionFold, relationProject, relationResolve, relationRefine } from '../../kernel/relationalSequence';
+import { relationOptionFold, relationProject, relationResolve, relationRefine, relationVariantFold } from '../../kernel/relationalSequence';
 import { relationEqual } from '../../kernel/semanticRelations';
 
 type LiteralOption = { readonly kind: 'none' } | { readonly kind: 'some'; readonly value: string };
@@ -20,7 +20,7 @@ const someLiteral = (value: string): LiteralOption => ({ kind: 'some', value });
 
 
 export function resolveSelectRawProjection(
-  meta: MethodCallField,
+  meta: MethodCallAstNode,
   sourceModel: ModelName,
   sourceDefinition: ModelSemanticDefinition,
   sourceTrace: readonly SemanticTraceNode[],
@@ -56,19 +56,20 @@ export function resolveSelectRawProjection(
   );
 }
 
-function firstLiteral(meta: MethodCallField): LiteralOption {
-  const isPositional = (value: FieldArgument): value is Extract<FieldArgument, { kind: 'positional' }> => relationEqual(value.kind, 'positional');
-  const isLiteral = (value: FieldNode): value is LiteralField => relationEqual(value.kind, 'literal');
+function firstLiteral(meta: MethodCallAstNode): LiteralOption {
+  const isPositional = (value: PhpArgument): value is Extract<PhpArgument, { kind: 'positional' }> => relationEqual(value.kind, 'positional');
+  const isLiteral = (value: PhpAstNode): value is LiteralAstNode => relationEqual(value.kind, 'literal');
   return relationOptionFold(
     relationRefine(meta.args[0], isPositional),
     noneLiteral,
     positional => relationOptionFold(
       relationRefine(positional.value, isLiteral),
       noneLiteral,
-      literal => relationOptionFold(
-        relationRefine(literal.value, (value): value is string => Object.is(typeof value, 'string')),
-        noneLiteral,
-        someLiteral,
+      literal => relationVariantFold(
+        literal.value,
+        'string',
+        () => noneLiteral(),
+        value => someLiteral(value.value),
       ),
     ),
   );

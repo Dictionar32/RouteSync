@@ -4,7 +4,7 @@
  * only semantic values and explicit collections.
  */
 
-import type { FieldNode } from '../field';
+import type { PhpAstNode } from './phpAst';
 import {
   SemanticValueFactory,
   type RouteName,
@@ -14,6 +14,9 @@ import {
   type SourceLineNumber,
 } from './semanticValues';
 import type { HttpMethod } from './httpVocabulary';
+import { relationGate, relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationTextStartsWith } from '../../semantic/kernel/relationalSequence';
 
 export type { RouteName, RoutePath, PropertyName, SourceFilePath, SourceLineNumber };
 
@@ -28,13 +31,13 @@ export interface RouteMiddlewareName {
 export interface RouteSchemaEntry {
   readonly kind: 'route_schema_entry';
   readonly name: PropertyName;
-  readonly value: FieldNode;
+  readonly value: PhpAstNode;
 }
 
 export interface RouteAssignmentEntry {
   readonly kind: 'route_assignment_entry';
   readonly name: PropertyName;
-  readonly value: FieldNode;
+  readonly value: PhpAstNode;
 }
 
 export interface StableRouteHash {
@@ -42,11 +45,22 @@ export interface StableRouteHash {
   readonly value: string;
 }
 
+const HTTP_VERB_CATALOG: readonly HttpVerb[] = Object.freeze([
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'OPTIONS',
+  'HEAD',
+]);
+
 export function createRoutePath(path: string): RoutePath {
-  if (!path.startsWith('/')) {
-    throw new Error(`Route path must start with '/': ${path}`);
-  }
-  return SemanticValueFactory.routePath(path);
+  return relationGate(
+    relationTextStartsWith(path, '/'),
+    () => SemanticValueFactory.routePath(path),
+    () => { throw Error(`Route path must start with '/': ${path}`); },
+  );
 }
 
 export function createRouteName(name: string): RouteName {
@@ -55,18 +69,11 @@ export function createRouteName(name: string): RouteName {
 
 export function createHttpVerb(verb: string): HttpVerb {
   const normalized = verb.toUpperCase();
-  switch (normalized) {
-    case 'GET':
-    case 'POST':
-    case 'PUT':
-    case 'PATCH':
-    case 'DELETE':
-    case 'OPTIONS':
-    case 'HEAD':
-      return normalized;
-    default:
-      throw new Error(`Unsupported HTTP method: ${verb}`);
-  }
+  return relationOptionFold(
+    relationFirstOption(HTTP_VERB_CATALOG, candidate => relationEqual(candidate, normalized)),
+    () => { throw Error(`Unsupported HTTP method: ${verb}`); },
+    value => value,
+  );
 }
 
 export interface RouteEntityIdentityContract {
@@ -82,7 +89,7 @@ export interface RouteSecurityContract {
 
 export interface RoutePayloadContract {
   readonly schemaEntries: readonly RouteSchemaEntry[];
-  readonly response: FieldNode;
+  readonly response: PhpAstNode;
   readonly assignments: readonly RouteAssignmentEntry[];
 }
 
@@ -110,7 +117,7 @@ export interface RawRouteDefInput {
   readonly auth: boolean;
   readonly middleware: readonly string[];
   readonly schema: readonly RouteSchemaEntry[];
-  readonly response: FieldNode;
+  readonly response: PhpAstNode;
   readonly assignments: readonly RouteAssignmentEntry[];
   readonly stableHash: string;
   readonly sourceFile: SourceFilePath;

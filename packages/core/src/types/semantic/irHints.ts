@@ -6,7 +6,7 @@
  * @module core/types/semantic
  */
 
-import type { FieldNode } from '../field';
+import type { PhpAstNode } from '../domain/phpAst';
 import { relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
 
 export type IRKind =
@@ -74,16 +74,16 @@ export interface IRRawNode {
   readonly kind: "raw_code";
   readonly code: string;
   readonly hints: IRHints;
-  readonly parsed_ast?: FieldNode;
+  readonly parsed_ast?: PhpAstNode;
 }
 
 export class IRRawNodeDescriptor implements IRRawNode {
   public readonly kind = "raw_code" as const;
   public readonly code: string;
   public readonly hints: IRHints;
-  public readonly parsed_ast?: FieldNode;
+  public readonly parsed_ast?: PhpAstNode;
 
-  constructor(code: string, hints: IRHints, parsedAst?: FieldNode) {
+  constructor(code: string, hints: IRHints, parsedAst?: PhpAstNode) {
     this.code = code;
     this.hints = hints;
     this.parsed_ast = parsedAst;
@@ -94,7 +94,7 @@ export class IRRawNodeDescriptor implements IRRawNode {
     return relationOptionFold(relationFirstOption([hints], (candidate): candidate is IRHints => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default()), value => new IRRawNodeDescriptor(code, value));
   }
 
-  public static withAst(code: string, ast: FieldNode, hints?: IRHints): IRRawNodeDescriptor {
+  public static withAst(code: string, ast: PhpAstNode, hints?: IRHints): IRRawNodeDescriptor {
     return relationOptionFold(relationFirstOption([hints], (candidate): candidate is IRHints => Object.is(typeof candidate, 'object')), () => new IRRawNodeDescriptor(code, IRHintsFactory.default(), ast), value => new IRRawNodeDescriptor(code, value, ast));
   }
 }

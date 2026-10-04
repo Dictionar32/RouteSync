@@ -7,7 +7,7 @@
 import type { ModelAst } from '../types/upstream/ast';
 import type { ModelSemanticColumn, ModelSemanticAccessor, ModelSemanticRelation } from '../types/upstream/model';
 import type { SemanticResolution } from '../types/domain/semanticResolution';
-import type { FieldNode } from '../types/field';
+import type { PhpAstNode } from '../types/domain/phpAst';
 import type { VariableName } from '../types/domain/semanticValues';
 import type { Lookup } from '../types/upstream/collections';
 import { relationFirst, relationOptionFold } from './kernel/relationalSequence';
@@ -22,7 +22,7 @@ export type ModelAccessorContract = ModelSemanticAccessor;
 
 /** Complete semantic value produced for a local assignment at the model boundary. */
 export interface ModelAssignmentValue {
-    readonly syntax: FieldNode;
+    readonly syntax: PhpAstNode;
     readonly semantic: SemanticResolution;
 }
 

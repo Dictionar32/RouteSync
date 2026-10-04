@@ -6,17 +6,16 @@
  * values; saturation is recursive fixed-point closure.
  */
 import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
-import { relationResolve } from '../../../relational/sequence';
 import { accumulate, expand, project, retain } from './semanticRelationalCollections';
-import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
 import { relationResolve, relationFirst, relationOptionFold, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
 import { relationAll, relationAny, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/kernel/semanticRelations';
 import type {
   SemanticRelation,
   SemanticRelationAtom,
   SemanticRelationPattern,
-  SemanticRelationVariable,
+  SemanticRelationBindings,
 } from './semanticRewriteEngine';
+import { matchSemanticRelationPattern, instantiateSemanticRelationPattern } from './semanticRewriteEngine';
 
 export type ConstraintHandlingMode = 'propagation' | 'simplification' | 'simpagation';
 
@@ -36,7 +35,7 @@ export interface ConstraintHandlingResult<R extends string = string> {
   readonly saturated: boolean;
 }
 
-type Bindings = Readonly<Record<string, SemanticRelationAtom>>;
+type Bindings = SemanticRelationBindings;
 type Match<R extends string> = Readonly<{
   readonly bindings: Bindings;
   readonly facts: readonly SemanticRelation<R>[];
@@ -44,80 +43,16 @@ type Match<R extends string> = Readonly<{
 type BindingWitness = RelationOption<Bindings>;
 type FactWitness<R extends string> = RelationOption<SemanticRelation<R>>;
 
-const isVariable = (
-  term: SemanticRelationAtom | SemanticRelationVariable,
-): term is SemanticRelationVariable => relationAll([relationEqual(typeof term, 'object'), Object.prototype.hasOwnProperty.call(term, 'variable')]);
-
-const binding = (bindings: Bindings, variable: string): RelationOption<SemanticRelationAtom> =>
-  relationOptionFold(
-    relationFirst(Object.entries(bindings), ([name]) => relationEqual(name, variable)),
-    () => relationNone(),
-    ([, value]) => relationSome(value),
-  );
-
-const matchTerm = (
-  term: SemanticRelationAtom | SemanticRelationVariable,
-  value: SemanticRelationAtom,
-  bindings: Bindings,
-): BindingWitness => {
-  const existing = relationResolve(
-    isVariable(term),
-    () => binding(bindings, term.variable),
-    () => relationSome(term),
-  );
-  return relationOptionFold(
-    existing,
-    () => relationResolve(isVariable(term), () => relationSome(Object.freeze({ ...bindings, [term.variable]: value })), () => relationNone()),
-    candidate => relationResolve(relationEqual(candidate, value), () => relationSome(bindings), () => relationNone()),
-  );
-};
-
 const matchPattern = <R extends string>(
   fact: SemanticRelation<R>,
   pattern: SemanticRelationPattern<R>,
-  bindings: Bindings,
-  index = 0,
-): BindingWitness => relationResolve(
-  index >= pattern.arguments.length,
-  () => relationSome(bindings),
-  () => relationResolve(
-    relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)]),
-    () => relationOptionFold(
-      matchTerm(pattern.arguments[index], fact.arguments[index], bindings),
-      () => relationNone(),
-      next => matchPattern(fact, pattern, next, index + 1),
-    ),
-    () => relationNone(),
-  ),
-);
+  bindings: SemanticRelationBindings,
+): BindingWitness => matchSemanticRelationPattern(fact, pattern, bindings);
 
 const instantiate = <R extends string>(
   pattern: SemanticRelationPattern<R>,
-  bindings: Bindings,
-): FactWitness<R> => {
-  const values = relationOptionFold(
-    project(pattern.arguments, term => relationResolve(
-      isVariable(term),
-      () => binding(bindings, term.variable),
-      () => relationSome(term),
-    )),
-    () => relationNone<readonly SemanticRelationAtom[]>(),
-    options => relationResolve(
-      options.every(relationIsSome),
-      () => relationSome(project(options, option => option.value)),
-      () => relationNone<readonly SemanticRelationAtom[]>(),
-    ),
-  );
-  return relationResolve(
-    relationEqual(pattern.polarity, 'negative'),
-    () => relationNone(),
-    () => relationOptionFold(
-      values,
-      () => relationNone(),
-      arguments_ => relationSome(Object.freeze({ relation: pattern.relation, arguments: Object.freeze(arguments_) })),
-    ),
-  );
-};
+  bindings: SemanticRelationBindings,
+): FactWitness<R> => instantiateSemanticRelationPattern(pattern, bindings);
 
 const matchGroup = <R extends string>(
   facts: readonly SemanticRelation<R>[],

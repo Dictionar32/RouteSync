@@ -9,7 +9,6 @@ import type { ArtifactKeyWitness } from './ArtifactKeyWitness';
 import {
     relationEqual,
     relationIndexAdd,
-    relationIndexEntries,
     relationIndexLookup,
     relationOptionFold,
     relationProject,

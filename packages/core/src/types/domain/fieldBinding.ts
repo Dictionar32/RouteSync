@@ -1,26 +1,29 @@
-/** Semantic binding produced after FieldNode parsing. */
+/** Semantic binding produced after PhpAstNode parsing. */
 import type { SemanticResolution } from './semanticResolution';
-import type { FieldNode } from '../field';
+import type { PhpAstNode } from './phpAst';
+import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
 
 export interface ResolvedFieldBinding {
   readonly kind: 'resolved';
-  readonly syntax: FieldNode;
+  readonly syntax: PhpAstNode;
   readonly semantic: SemanticResolution;
 }
 
 export interface UnresolvedFieldBinding {
   readonly kind: 'unresolved';
-  readonly syntax: FieldNode;
+  readonly syntax: PhpAstNode;
   readonly semantic: SemanticResolution;
 }
 
 export type FieldBinding = ResolvedFieldBinding | UnresolvedFieldBinding;
 
 export function createFieldBinding(
-  syntax: FieldNode,
+  syntax: PhpAstNode,
   semantic: SemanticResolution
 ): FieldBinding {
-  return semantic.status === 'resolved'
-    ? Object.freeze({ kind: 'resolved', syntax, semantic })
-    : Object.freeze({ kind: 'unresolved', syntax, semantic });
+  return relationResolve(
+    relationEqual(semantic.status, 'resolved'),
+    () => Object.freeze({ kind: 'resolved', syntax, semantic }),
+    () => Object.freeze({ kind: 'unresolved', syntax, semantic }),
+  );
 }

@@ -12,7 +12,7 @@ import type {
 } from '../domain/semanticCollections';
 import type { SourceRef } from './sourceProvenance';
 import type { IRRawNode } from './irHints';
-import type { FieldNode } from '../field';
+import type { PhpAstNode } from '../domain/phpAst';
 import type { SemanticNode, SemanticType } from './semanticTypes';
 import type { SemanticRelation } from './semanticRelations';
 import type { ExecutionLayer, ServiceModelNode } from './modelGraphTypes';
@@ -53,7 +53,7 @@ export interface IRContext {
 
 export interface SemanticKernelV2 {
   resolve(
-    node: FieldNode,
+    node: PhpAstNode,
     context: IRContext
   ): SemanticNode;
 }

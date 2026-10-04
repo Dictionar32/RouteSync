@@ -1,6 +1,6 @@
 import type { SemanticResolution } from '../types/domain/semanticResolution';
 import type { ModelName, ColumnName } from '../types/domain/semanticValues';
-import { FieldNode } from '../types/field';
+import type { PhpAstNode } from '../types/domain/phpAst';
 import type { SourceRef } from '../types/semantic';
 import type { SymbolTable } from './SymbolTable';
 import type { ResolutionScope } from './resolutionScope';
@@ -35,7 +35,7 @@ export type InternalResolverQuery =
   | { readonly kind: 'model_column'; readonly model: ModelName; readonly column: ColumnName }
   | { readonly kind: 'model_accessor'; readonly model: ModelName; readonly column: ColumnName };
 
-export type ResolverMeta = FieldNode | InternalResolverQuery;
+export type ResolverMeta = PhpAstNode | InternalResolverQuery;
 
 export interface SemanticResolutionKernelContract {
   resolve(meta: ResolverMeta, scope: ResolutionScope): SemanticResolution;

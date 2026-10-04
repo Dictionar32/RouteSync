@@ -2,7 +2,7 @@ import { createHash } from 'crypto'
 import { type SemanticIRNode, type SourceRef, type IRRawNode, type SemanticNode, type IRContext, IRHintsFactory } from '../types/semantic'
 import { relationProject } from '../semantic/kernel/semanticRelations'
 import { matchSemanticNode } from '../types/semantic/semanticTypes'
-import type { FieldNode } from '../types/field'
+import type { PhpAstNode } from '../types/domain/phpAst'
 import { isObject, hasProperty, isString } from '../utils/type-guards'
 
 /**
@@ -56,7 +56,7 @@ export interface BuildIRNodeInput {
   id: string
   source: SourceRef
   rawCode: string
-  parsedAst?: FieldNode
+  parsedAst?: PhpAstNode
   hints?: IRRawNode['hints']
   semantic: SemanticNode
   /** ids of ancestor nodes, root-first, not including this node's own id */

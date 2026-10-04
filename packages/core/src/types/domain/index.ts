@@ -217,11 +217,6 @@ export {
 } from './resourceFieldSemanticBinding';
 
 export {
-  matchFieldNode,
-  type FieldNodeVisitor,
-} from './fieldCatamorphism';
-
-export {
   type RouteQueryParameter,
   type LaravelValidationError,
   type LaravelUnauthorizedError,

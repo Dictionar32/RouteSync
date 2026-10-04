@@ -202,7 +202,6 @@ export {
   matchModelKeyType,
   matchPageEndpoint,
   foldPhpAstNode,
-  matchFieldNode,
   matchPaginatedEnvelope,
   matchPaginationKind,
   matchPhpAstKind,
@@ -436,7 +435,6 @@ export type {
   PhpAstKindSpecification,
   PhpAstNode,
   PhpAstVisitor,
-  FieldNodeVisitor,
   PolymorphicRelationDescriptor,
   PolymorphicRelationRegistry,
   PolymorphicRelationSpecification,
@@ -665,54 +663,13 @@ export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'
 export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
 export type { BuildIRNodeInput } from './ir/buildIRNode'
 
-// Unified FieldNode model (compiler/CompilerBacklog.md H1/H3 follow-up) — phase 1 of 3
-export type {
-  BaseField,
-  ParsedField,
-  UnknownField,
-  LiteralField,
-  VariableField,
-  PropertyAccessField,
-  ArrayAccessField,
-  FunctionCallField,
-  MethodCallField,
-  NullsafeMethodCallField,
-  VariableCallField,
-  StaticMethodCallField,
-  StaticPropertyAccessField,
-  StaticConstantField,
-  UnaryExpressionField,
-  BinaryExpressionField,
-  TypeCastField,
-  TernaryField,
-  NullsafePropertyAccessField,
-  NewInstanceField,
-  ClosureField,
-  ArrowFunctionField,
-  FieldArgument,
-  FieldReturnExpression,
-  FieldStatement,
-  FieldNode,
-  FieldEntryNode,
-  FieldArrayKey,
-  ArrayField,
-  RouteDef,
-  RouteDefContract,
-  ResourceDef,
-  ResourceDefContract,
-  RoutePath,
-  HttpVerb,
-  ColumnDefinitionContract,
-  ModelRelationDefinitionContract,
-  ModelSemanticDefinitionContract,
-  ModelSemanticDefinition
-} from './types/field';
+// Canonical PHP AST is the sole syntax-node contract; legacy FieldNode/ParsedField exports were removed.
 export { createFieldBinding } from './types/domain/fieldBinding';
 
 export {
   createRoutePath,
   createHttpVerb
-} from './types/field';
+} from './types/domain/routeEntityDefinition';
 
 export type {
   ResponseDescriptorContract,

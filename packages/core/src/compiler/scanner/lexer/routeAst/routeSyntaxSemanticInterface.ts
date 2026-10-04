@@ -13,8 +13,8 @@ import {
     type RouteSyntaxSemanticFact,
     type RouteSyntaxSemanticJudgment,
 } from './semanticRouteSyntaxRelations';
-import { relationEqual, relationResolve } from '../../../../semantic/kernel/semanticRelations';
-import { relationOptionFold, relationProject, relationUnique } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject, relationUnique } from '../../../../semantic/kernel/relationalSequence';
 
 export type RouteSyntaxSemanticRelation =
     | 'syntax_observes_path'
@@ -49,31 +49,36 @@ export type RouteSyntaxSemanticInterface = Readonly<{
     readonly closed: true;
 }>;
 
-const CONTRACT: RouteSyntaxSemanticContract = Object.freeze({
-    kind: 'route_syntax_semantic_contract',
-    source: 'laravel_route_syntax',
-    authority: 'route_syntax_semantic_judgment',
-    relations: Object.freeze([
+const ROUTE_SYNTAX_RELATIONS: readonly RouteSyntaxSemanticRelation[] = Object.freeze([
         'syntax_observes_path',
         'syntax_observes_constraint',
         'syntax_observes_target',
         'syntax_observes_invocation',
-    ]),
+]);
+
+const CONTRACT: RouteSyntaxSemanticContract = Object.freeze({
+    kind: 'route_syntax_semantic_contract',
+    source: 'laravel_route_syntax',
+    authority: 'route_syntax_semantic_judgment',
+    relations: ROUTE_SYNTAX_RELATIONS,
     closure: 'least_fixed_point',
     rewriteEngine: 'semantic_rewrite_engine',
     reasoning: 'declarative_relation_rewrite_fixed_point',
     closed: true,
 });
 
-const proofRelation = (fact: RouteSyntaxSemanticFact): RouteSyntaxSemanticRelation => {
-    const relation = relationProject([
-        ['route_path', 'syntax_observes_path'],
-        ['route_constraint', 'syntax_observes_constraint'],
-        ['route_target', 'syntax_observes_target'],
-        ['route_invocation', 'syntax_observes_invocation'],
-    ] as const, ([kind, value]) => relationResolve(relationEqual(fact.kind, kind), () => value, () => 'syntax_observes_invocation'));
-    return relationOptionFold(relationProject(relation, value => value), () => 'syntax_observes_invocation', value => value);
-};
+const ROUTE_SYNTAX_PROOF_RELATIONS: readonly (readonly [RouteSyntaxSemanticFact['kind'], RouteSyntaxSemanticRelation])[] = Object.freeze([
+    ['route_path', 'syntax_observes_path'],
+    ['route_constraint', 'syntax_observes_constraint'],
+    ['route_target', 'syntax_observes_target'],
+    ['route_invocation', 'syntax_observes_invocation'],
+]);
+
+const proofRelation = (fact: RouteSyntaxSemanticFact): RouteSyntaxSemanticRelation => relationOptionFold(
+    relationFirst(ROUTE_SYNTAX_PROOF_RELATIONS, ([kind]) => relationEqual(fact.kind, kind)),
+    () => 'syntax_observes_invocation',
+    ([, relation]) => relation,
+);
 
 const proofs = (facts: readonly RouteSyntaxSemanticFact[]): readonly RouteSyntaxSemanticProof[] => Object.freeze(
     relationUnique(relationProject(facts, fact => Object.freeze({

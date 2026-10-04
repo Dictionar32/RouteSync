@@ -10,7 +10,7 @@ import type { ModelRelationTargetShape } from '../upstream/model';
 import type { SourceFilePath, SourceLineNumber } from './semanticValues';
 import type { EloquentRelationCardinality, EloquentRelationType, RelationForeignKey } from './eloquentTypes';
 import type { SemanticType } from '../../compiler/types/SemanticType';
-import type { FieldNode } from '../field';
+import type { PhpAstNode } from './phpAst';
 import type { TypeExpression } from '../upstream/typeVocabulary';
 
 
@@ -53,7 +53,7 @@ export type ModelDef = ModelSemanticDefinitionContract;
 export interface ResourceDefContract {
   readonly name: ModelName;
   readonly model: ModelName;
-  readonly fields: readonly (readonly [PropertyName, FieldNode])[];
+  readonly fields: readonly (readonly [PropertyName, PhpAstNode])[];
   readonly assignments: readonly (readonly [PropertyName, TypeExpression])[];
   readonly sourceFile: SourceFilePath;
   readonly sourceLine: SourceLineNumber;

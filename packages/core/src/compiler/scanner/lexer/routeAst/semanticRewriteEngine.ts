@@ -27,35 +27,35 @@ export interface SemanticRelationRewriteResult<R extends string = string> { read
 export interface SemanticRelationDerivation<R extends string = string> { readonly fact: SemanticRelation<R>; readonly ruleId: string; readonly premises: readonly SemanticRelation<R>[]; readonly bindings: Readonly<Record<string, SemanticRelationAtom>> }
 export interface SemanticRelationSolveResult<R extends string = string> { readonly facts: readonly SemanticRelation<R>[]; readonly derivations: readonly SemanticRelationDerivation<R>[]; readonly rounds: number; readonly saturated: boolean }
 
-type Bindings = Readonly<Record<string, SemanticRelationAtom>>;
-type Match = RelationOption<Bindings>;
+export type SemanticRelationBindings = Readonly<Record<string, SemanticRelationAtom>>;
+type Match = RelationOption<SemanticRelationBindings>;
 type FactIndex<R extends string> = Readonly<{ readonly facts: readonly SemanticRelation<R>[] }>;
-type DeltaMatch<R extends string> = { readonly bindings: Bindings; readonly premises: readonly SemanticRelation<R>[] };
+type DeltaMatch<R extends string> = { readonly bindings: SemanticRelationBindings; readonly premises: readonly SemanticRelation<R>[] };
 type VariableTerm = SemanticRelationVariable;
 
 const isVariable = (value: SemanticRelationAtom | VariableTerm): value is VariableTerm => relationResolve(Object.is(typeof value, 'object'), () => Object.prototype.hasOwnProperty.call(value, 'variable'), () => false);
-const variableOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<VariableTerm> => relationRefine(term, isVariable);
-const atomOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<SemanticRelationAtom> => relationRefine(term, (candidate): candidate is SemanticRelationAtom => !isVariable(candidate));
-const lookupBinding = (bindings: Bindings, variable: string): RelationOption<SemanticRelationAtom> =>
+export const semanticRelationVariableOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<VariableTerm> => relationRefine(term, isVariable);
+export const semanticRelationAtomOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<SemanticRelationAtom> => relationRefine(term, (candidate): candidate is SemanticRelationAtom => !isVariable(candidate));
+const lookupBinding = (bindings: SemanticRelationBindings, variable: string): RelationOption<SemanticRelationAtom> =>
     relationOptionMap(relationFirst(Object.entries(bindings), ([name]) => relationEqual(name, variable)), entry => entry[1]);
 
-const bind = (bindings: Bindings, variable: string, value: SemanticRelationAtom): Match => {
+const bind = (bindings: SemanticRelationBindings, variable: string, value: SemanticRelationAtom): Match => {
     const existing = lookupBinding(bindings, variable);
     return relationOptionFold(existing, () => relationSome(Object.freeze({ ...bindings, [variable]: value })), existingValue => relationResolve(relationEqual(existingValue, value), () => relationSome(bindings), () => relationNone()));
 };
 
-const matchTerms = <R extends string>(fact: SemanticRelation<R>, pattern: SemanticRelationPattern<R>, bindings: Bindings, index = 0): Match =>
+const matchTerms = <R extends string>(fact: SemanticRelation<R>, pattern: SemanticRelationPattern<R>, bindings: SemanticRelationBindings, index = 0): Match =>
     relationResolve(
         index >= pattern.arguments.length,
         () => relationSome(bindings),
         () => {
             const term = pattern.arguments[index];
             const value = fact.arguments[index];
-            return relationOptionFold<VariableTerm, Match, Match>(variableOption(term), () => relationResolve(relationEqual(term, value), () => matchTerms(fact, pattern, bindings, index + 1), () => relationNone()), (variable: VariableTerm) => relationOptionFold(bind(bindings, variable.variable, value), () => relationNone(), (next: Bindings) => matchTerms(fact, pattern, next, index + 1)));
+            return relationOptionFold<VariableTerm, Match, Match>(semanticRelationVariableOption(term), () => relationResolve(relationEqual(term, value), () => matchTerms(fact, pattern, bindings, index + 1), () => relationNone()), (variable: VariableTerm) => relationOptionFold(bind(bindings, variable.variable, value), () => relationNone(), (next: SemanticRelationBindings) => matchTerms(fact, pattern, next, index + 1)));
         },
     );
 
-const matchPattern = <R extends string>(fact: SemanticRelation<R>, pattern: SemanticRelationPattern<R>, bindings: Bindings): Match =>
+export const matchSemanticRelationPattern = <R extends string>(fact: SemanticRelation<R>, pattern: SemanticRelationPattern<R>, bindings: SemanticRelationBindings): Match =>
     relationResolve(
         relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)]),
         () => matchTerms(fact, pattern, bindings),
@@ -66,8 +66,8 @@ const relationKey = <R extends string>(fact: SemanticRelation<R>): string => `${
 const patternIndexKey = <R extends string>(pattern: SemanticRelationPattern<R>): string => `${pattern.relation}/${pattern.arguments.length}`;
 const factIndexKey = <R extends string>(fact: SemanticRelation<R>): string => `${fact.relation}/${fact.arguments.length}`;
 
-const instantiate = <R extends string>(pattern: SemanticRelationPattern<R>, bindings: Bindings): RelationOption<SemanticRelation<R>> => {
-    const resolved = project(pattern.arguments, term => relationOptionFold(variableOption(term), () => relationOptionFold(atomOption(term), () => relationNone<SemanticRelationAtom>(), atom => relationSome(atom)), variable => lookupBinding(bindings, variable.variable)));
+export const instantiateSemanticRelationPattern = <R extends string>(pattern: SemanticRelationPattern<R>, bindings: SemanticRelationBindings): RelationOption<SemanticRelation<R>> => {
+    const resolved = project(pattern.arguments, term => relationOptionFold(semanticRelationVariableOption(term), () => relationOptionFold(semanticRelationAtomOption(term), () => relationNone<SemanticRelationAtom>(), atom => relationSome(atom)), variable => lookupBinding(bindings, variable.variable)));
     const values = project(resolved, option => relationOptionFold(option, () => semanticNullAtom, value => value));
     const complete = relationEvery(resolved, option => relationIsSome(option));
     return relationResolve(
@@ -79,13 +79,13 @@ const instantiate = <R extends string>(pattern: SemanticRelationPattern<R>, bind
 
 const buildIndex = <R extends string>(facts: readonly SemanticRelation<R>[]): FactIndex<R> => Object.freeze({ facts: Object.freeze([...facts]) });
 const patternIsNegative = <R extends string>(pattern: SemanticRelationPattern<R>): boolean => relationEqual(pattern.polarity, 'negative');
-const patternMatchesAnyFact = <R extends string>(index: FactIndex<R>, pattern: SemanticRelationPattern<R>, bindings: Bindings): boolean =>
-    relationAnyMatch(retain(index.facts, fact => relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)])), candidate => relationIsSome(matchPattern(candidate, pattern, bindings)));
+const patternMatchesAnyFact = <R extends string>(index: FactIndex<R>, pattern: SemanticRelationPattern<R>, bindings: SemanticRelationBindings): boolean =>
+    relationAnyMatch(retain(index.facts, fact => relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)])), candidate => relationIsSome(matchSemanticRelationPattern(candidate, pattern, bindings)));
 
 const extendPositiveState = <R extends string>(index: FactIndex<R>, pattern: SemanticRelationPattern<R>, states: readonly DeltaMatch<R>[]): readonly DeltaMatch<R>[] => {
     const candidates = retain(index.facts, fact => relationAll([relationEqual(fact.relation, pattern.relation), relationEqual(fact.arguments.length, pattern.arguments.length)]));
     return expand(states, state => expand(candidates, candidate => {
-        const bindings = matchPattern(candidate, pattern, state.bindings);
+        const bindings = matchSemanticRelationPattern(candidate, pattern, state.bindings);
         return relationOptionFold(bindings, () => [], value => [{ bindings: value, premises: [...state.premises, candidate] }]);
     }));
 };
@@ -105,7 +105,7 @@ const applyPattern = <R extends string>(index: FactIndex<R>, anchor: SemanticRel
 
 const enumerateAnchorMatches = <R extends string>(index: FactIndex<R>, anchor: SemanticRelationPattern<R>, patterns: readonly SemanticRelationPattern<R>[], delta: readonly SemanticRelation<R>[]): readonly DeltaMatch<R>[] =>
     expand(retain(delta, fact => relationEqual(factIndexKey(fact), patternIndexKey(anchor))), fact => {
-        const bindings = matchPattern(fact, anchor, Object.freeze({}));
+        const bindings = matchSemanticRelationPattern(fact, anchor, Object.freeze({}));
         return relationOptionFold(bindings, () => [], value => applyPattern(index, anchor, [{ bindings: value, premises: [fact] }], patterns));
     });
 
@@ -169,7 +169,7 @@ const addPlanIndex = <R extends string>(planIndex: PlanIndex<R>, plan: SemanticR
 const buildPlanIndex = <R extends string>(plans: readonly SemanticRelationExecutionPlan<R>[]): PlanIndex<R> => accumulate(plans, (index, plan) => addPlanIndex(index, plan), [] as PlanIndex<R>);
 const collectApplicablePlans = <R extends string>(delta: readonly SemanticRelation<R>[], planIndex: PlanIndex<R>): readonly SemanticRelationExecutionPlan<R>[] => relationUnique(expand(delta, fact => relationCatalogValueOr(planIndex, factIndexKey(fact), [])));
 const deriveFromPlan = <R extends string>(plan: SemanticRelationExecutionPlan<R>, matches: readonly DeltaMatch<R>[]): readonly SemanticRelationDerivation<R>[] => expand(matches, match => expand(plan.emissions, step => {
-    const fact = instantiate(step.pattern, match.bindings);
+    const fact = instantiateSemanticRelationPattern(step.pattern, match.bindings);
     return relationOptionFold(fact, () => [], value => [{ fact: value, ruleId: plan.ruleId, premises: match.premises, bindings: match.bindings }]);
 }));
 const deduplicateDerivations = <R extends string>(derivations: readonly SemanticRelationDerivation<R>[], seen: RelationMembership<string>): readonly SemanticRelationDerivation<R>[] => {

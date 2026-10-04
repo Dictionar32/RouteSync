@@ -92,4 +92,3 @@ export const relationIndexAdd = <K, V>(
   [key, value] as const,
 ]);
 
-export const relationIndexEntries = <K, V>(entries: RelationIndex<K, V>): RelationIndex<K, V> => entries;

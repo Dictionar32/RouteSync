@@ -556,8 +556,6 @@ export {
     matchPhpAstNode,
     type PhpAstFolder,
     foldPhpAstNode,
-    matchFieldNode,
-    type FieldNodeVisitor
 } from "./domain";
 
 

@@ -1,8 +1,9 @@
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 
 import { ResourceModelResolutionOrigin } from './resource/resourceModelKnowledgeDataFlow';
+import { createResourceRelationFact, createResourceModelResolutionFact } from './resource/resourceModelKnowledgeDataFlow';
 import { readSourceText } from './scannerUtils';
-import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone } from '../../../semantic/kernel/relationalSequence';
+import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
 import { relationEqual, relationGate, relationAll, relationAny } from '../../../semantic/kernel/semanticRelations';
 import { presenceFold, presenceOf } from '../../../types/upstream/presence';
 import { matchLookup } from '../../../types/upstream/collections';
@@ -16,8 +17,6 @@ import { matchLookup } from '../../../types/upstream/collections';
  */
 
 import path from "path";
-import * as fs from "node:fs";
-import { ResourceFieldExpression } from "../../../types/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import { LaravelSourceLexer, PhpAstValue, PhpArrayEntry } from "../LaravelSourceLexer";
 import { classifyPhpBlock } from "../lexer/astClassifier";
@@ -85,7 +84,7 @@ export class ResourceScanner {
     private static async scanResourceFiles(
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
-        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
+        controllerDataflowMap?: import("./controller/resourceDataflowAggregator").ControllerResourceDataflow
     ): Promise<readonly BoundResourceFile[]> {
         const sourceRoot = sourceProject.root.value.value;
         const resDir = path.join(sourceRoot, 'app', 'Http', 'Resources');
@@ -142,17 +141,25 @@ export class ResourceScanner {
                 };
                 const initialResolution = resolveInitialModel(resourceNameValue, modelSymbolTable, presenceOf(controllerDataflowMap));
                 const nextInitialResolutions = relationExpand([initialResolution], resolution =>
-                    relationGate(relationEqual(resolution.kind, 'present'), () => [resolution.value], () => []),
+                    presenceFold(resolution, () => [], value => [value]),
                 );
-                const nextEdges = relationExpand(parsedArray.entries, entry => relationGate(
-                    relationAny([relationEqual(entry.value.kind, 'resource_single'), relationEqual(entry.value.kind, 'resource_collection')]),
-                    () => [{
-                        parentResource: resourceNameValue,
-                        childResource: SemanticValueFactory.resourceName(entry.value.resourceName),
-                        relationKey: SemanticValueFactory.relationName(requireStringArrayKey(relationGate(relationEqual(entry.kind, 'keyed'), () => entry.key, () => ({ kind: 'expression', value: entry.value })))),
-                    }],
-                    () => [],
-                ));
+                const nextEdges = relationExpand(parsedArray.entries, entry =>
+                    relationVariantFold(entry.value, 'resource_single',
+                        single => [createResourceRelationFact(
+                            resourceNameValue,
+                            SemanticValueFactory.resourceName(single.resourceName),
+                            SemanticValueFactory.relationName(requireStringArrayKey(entry)),
+                        )],
+                        rest => relationVariantFold(rest, 'resource_collection',
+                            collection => [createResourceRelationFact(
+                                resourceNameValue,
+                                SemanticValueFactory.resourceName(collection.resourceName),
+                                SemanticValueFactory.relationName(requireStringArrayKey(entry)),
+                            )],
+                            () => [],
+                        ),
+                    ),
+                );
                 return {
                     parsedFiles: [...state.parsedFiles, parsedFile],
                     relationEdges: [...state.relationEdges, ...nextEdges],
@@ -164,7 +171,7 @@ export class ResourceScanner {
         const { parsedFiles, relationEdges, initialResolutions } = state;
         const knowledgeDataFlow = propagateRelationEdges(relationEdges, initialResolutions, modelSymbolTable);
         return relationProject(parsedFiles, file => ({
-            file,
+            evidence: file,
             resource: SemanticResourceBinder.bindResourceAst({
                 resourceName: file.identity.resourceName,
                 entries: file.syntax.entries,
@@ -189,7 +196,7 @@ export class ResourceScanner {
     private static async scanResources(
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
-        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
+        controllerDataflowMap?: import("./controller/resourceDataflowAggregator").ControllerResourceDataflow
     ): Promise<readonly ResourceAst[]> {
         const files = await ResourceScanner.scanResourceFiles(sourceProject, modelSymbolTable, controllerDataflowMap);
         return relationProject(files, item => item.resource);
@@ -198,7 +205,7 @@ export class ResourceScanner {
     public static async scan(
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
-        controllerDataflowMap?: import("../controller/resourceDataflowAggregator").ControllerResourceDataflow
+        controllerDataflowMap?: import("./controller/resourceDataflowAggregator").ControllerResourceDataflow
     ): Promise<readonly ResourceAst[]> {
         return ResourceScanner.scanResources(sourceProject, modelSymbolTable, controllerDataflowMap);
     }
@@ -243,7 +250,15 @@ export class ResourceScanner {
                 };
                 const conventionLookup = modelSymbolTable.findForResource(resourceNameValue);
                 const resolutionFacts = relationExpand([conventionLookup], lookup =>
-                    relationGate(relationEqual(lookup.kind, 'found'), () => [{ kind: 'resource_model_resolution', resource: resourceNameValue, model: lookup.value.identity.name, origin: ResourceModelResolutionOrigin.convention, viaRelation: { kind: 'absent' } }], () => []),
+                    matchLookup(lookup, {
+                        missing: () => [],
+                        found: ({ value }) => [createResourceModelResolutionFact(
+                            resourceNameValue,
+                            value.identity.name,
+                            ResourceModelResolutionOrigin.convention,
+                            { kind: 'absent' },
+                        )],
+                    }),
                 );
                 return { parsedFiles: [...state.parsedFiles, parsedFile], resolutionFacts: [...state.resolutionFacts, ...resolutionFacts] };
             },
@@ -256,11 +271,11 @@ export class ResourceScanner {
                 relations: [],
                 resolutions: resolutionFacts,
             }, file.identity.resourceName);
-            return presenceFold(resolution,
+            return presenceFold<ResourceModelResolutionFact, ResourceAst>(resolution,
                 () => { throw Error(`Resource '${file.identity.resourceName.value.value}' has no model from upstream model producer.`); },
                 resolved => {
                     const modelLookup = modelSymbolTable.get(resolved.model);
-                    matchLookup(modelLookup, {
+                    return matchLookup(modelLookup, {
                         missing: () => { throw Error(`Resource '${file.identity.resourceName.value.value}' resolved to an unknown model.`); },
                         found: ({ value: model }) => resourceProducer.produce({
                             resourceName: file.identity.resourceName, entries: file.syntax.entries,
@@ -376,6 +391,9 @@ function parseMethodAssignments(tokens: readonly import('../lexer/PhpAst').Token
 }
 
 
-function requireStringArrayKey(key: import('../lexer/phpAstTypes').PhpArrayKey): string {
-    return relationGate(relationEqual(key.kind, 'string'), () => key.value, () => { throw Error('Expected a static string PHP array key at this semantic boundary'); });
+function requireStringArrayKey(entry: PhpArrayEntry): string {
+    return relationVariantFold(entry, 'keyed',
+        keyed => relationVariantFold(keyed.key, 'string', key => key.value, () => { throw Error('Expected a static string PHP array key at this semantic boundary'); }),
+        () => { throw Error('Expected a keyed PHP array entry at this semantic boundary'); },
+    );
 }

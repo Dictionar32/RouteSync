@@ -5,11 +5,12 @@ import { relationFirst, relationOptionMap, relationOptionFold, relationVariantFo
 import { projectRelation, selectRelation, expandRelation, accumulateRelation } from '../../../relational/sequence';
 import { relationFirstOr } from '../../../../semantic/kernel/relationalSequence';
 import { createRouteConstraintValueAst, createRouteConstraintParameterAst, type LaravelRouteMethod, type RouteConstraintMethodAst, type RouteTargetAst, type RouteConstraintArgumentAst, type RouteConstraintValueAst, type RouteConstraintParameterAst, } from './routeDeclarationAst';
-import { createRouteParameterName, stringValue } from '../../../../types/upstream/names';
+import { createRouteParameterName, stringValue as semanticStringValue } from '../../../../types/upstream/names';
 import type { RouteGroupConstraintFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';
 import type { RouteResourceMethodAst } from './routeResourceDeclarationAst';
-import type { TokenDescriptor } from '../phpAstTypes';
+import type { AstIdentifier, TokenDescriptor } from '../phpAstTypes';
+import { createAstIdentifier } from '../phpAstCoreTypes';
 import { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
 import { absent, present, mapPresenceValue, presenceFold, presenceOf, isPresent, type Presence } from '../../../../types/upstream/presence';
 import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenHasOperation, tokenRouteMethod, tokenRouteConstraintMethod, tokenResourceMethod, tokenSyntaxFact } from './syntaxValue';
@@ -139,7 +140,7 @@ export interface RouteConstraintSyntaxFact {
     readonly parameter: RouteConstraintParameterAst;
     readonly argument: RouteConstraintSyntaxArgument;
 }
-const stringValue = (cursor: TokenCursor): Presence<string> => presenceFold(cursor.currentPresence, () => absent<string>(), token => relationOptionFold(tokenSyntaxFact(token), () => absent<string>(), fact => relationVariantFold(fact, 'string', () => absent<string>(), entry => present(entry.value))));
+const tokenStringValue = (cursor: TokenCursor): Presence<string> => presenceFold(cursor.currentPresence, () => absent<string>(), token => relationOptionFold(tokenSyntaxFact(token), () => absent<string>(), fact => relationVariantFold(fact, 'string', () => absent<string>(), entry => present(entry.value))));
 const arrayArgumentValues = (cursor: TokenCursor): readonly RouteConstraintValueAst[] => {
     const values = projectRelation(cursor.delimitedElementSpans, (span: { readonly start: TokenCursor; readonly end: TokenCursor }): RouteConstraintValueAst => createRouteConstraintValueAst(
         relationNormalizeWhitespace(projectRelation(span.start.tokensUntil(span.end), (token: TokenDescriptor) => token.value).join(''))
@@ -153,7 +154,7 @@ const plainConstraint: ConstraintStrategy = (parameter: RouteConstraintParameter
 );
 const stringConstraint: ConstraintStrategy = (parameter: RouteConstraintParameterAst, second: Presence<TokenCursor>, method: RouteConstraintMethodAst): Presence<RouteConstraintSyntaxFact> => presenceFold(second,
     () => absent<RouteConstraintSyntaxFact>(),
-    cursor => presenceFold(stringValue(cursor), () => absent<RouteConstraintSyntaxFact>(), value => present(Object.freeze({
+    cursor => presenceFold(tokenStringValue(cursor), () => absent<RouteConstraintSyntaxFact>(), value => present(Object.freeze({
         method, parameter, argument: Object.freeze({ kind: 'pattern', value: createRouteConstraintValueAst(value) }),
     }))),
 );
@@ -171,7 +172,7 @@ const ROUTE_CONSTRAINT_STRATEGIES: Catalog<ConstraintStrategy> = Object.freeze([
 /** Converts a Laravel constraint call into a typed syntax fact; meaning is selected by a declarative strategy catalog. */
 export const routeConstraintFact = (cursor: TokenCursor): Presence<RouteConstraintSyntaxFact> => {
     const method = presenceFold(cursor.currentPresence, () => absent<RouteConstraintMethodAst>(), token => relationOptionFold(tokenRouteConstraintMethod(token), () => absent<RouteConstraintMethodAst>(), value => present(value)));
-    const parameter = presenceFold(stringValue(cursor.callArgumentCursor), () => absent<RouteConstraintParameterAst>(), value => present(createRouteConstraintParameterAst(value)));
+    const parameter = presenceFold(tokenStringValue(cursor.callArgumentCursor), () => absent<RouteConstraintParameterAst>(), value => present(createRouteConstraintParameterAst(value)));
     const second = cursor.secondCallArgumentPresence;
     const strategy = catalogLookup(ROUTE_CONSTRAINT_STRATEGIES, presenceFold(method, () => absent<string>(), value => present(value)));
     return presenceFold(method, () => absent<RouteConstraintSyntaxFact>(), methodValue =>
@@ -216,12 +217,10 @@ export const routeGroupBindingScope = (method: Presence<string>): Presence<Route
 export const routeGroupProperty = (method: Presence<string>): Presence<'prefix' | 'middleware' | 'namePrefix' | 'controller' | 'domain'> => catalogValue(GROUP_PROPERTIES, method);
 const groupConstraintArgument = (argument: RouteConstraintSyntaxArgument): RouteConstraintArgument =>
     relationVariantFold<RouteConstraintSyntaxArgument, 'pattern', RouteConstraintArgument>(argument, 'pattern',
-        () => Object.freeze({ kind: 'none' }),
         rest => relationVariantFold<Exclude<RouteConstraintSyntaxArgument, { readonly kind: 'pattern' }>, 'values', RouteConstraintArgument>(rest, 'values',
             () => Object.freeze({ kind: 'none' }),
-            values => Object.freeze({ kind: 'values', values: projectRelation(values.values, stringValue) }),
-            none => Object.freeze({ kind: 'none' })),
-        pattern => Object.freeze({ kind: 'pattern', value: stringValue(pattern.value) }));
+            values => Object.freeze({ kind: 'values', values: projectRelation(values.values, value => semanticStringValue(value)) })),
+        pattern => Object.freeze({ kind: 'pattern', value: semanticStringValue(pattern.value) }));
 const groupConstraintFact = (fact: RouteConstraintSyntaxFact): RouteGroupConstraintFact => Object.freeze({
     method: fact.method,
     parameter: createRouteParameterName(fact.parameter),
@@ -260,15 +259,14 @@ const GROUP_PENDING_FACTS: Catalog<(cursor: TokenCursor) => RouteGroupStateModel
     ['constraints', cursor => ({ ...emptyGroupDelta(), constraints: presenceFold(routeGroupConstraint(cursor), () => Object.freeze([]), value => Object.freeze([value])) })],
 ]);
 const groupPendingFact = (cursor: TokenCursor): RouteGroupStateModel => {
-    type GroupPendingKey = 'prefix' | 'middleware' | 'namePrefix' | 'controller' | 'domain' | 'constraints';
-    type PresentGroupPendingKey = { readonly kind: 'present'; readonly value: GroupPendingKey };
+    type GroupPendingKey = 'prefix' | 'middleware' | 'namePrefix' | 'controller' | 'domain' | 'bindingScope' | 'constraints';
     const propertyReader = routeGroupProperty(presenceFold(cursor.currentPresence, () => absent<string>(), token => present(token.value)));
-    const bindingReader = routeGroupBindingScope(presenceFold(cursor.currentPresence, () => absent<string>(), token => present(token.value)));
+    const bindingReader: Presence<GroupPendingKey> = presenceFold(routeGroupBindingScope(presenceFold(cursor.currentPresence, () => absent<string>(), token => present(token.value))), () => absent<GroupPendingKey>(), () => present('bindingScope'));
     const candidates: readonly Presence<GroupPendingKey>[] = [propertyReader, bindingReader, present('constraints')];
     const selected = relationOptionFold(
-        relationFirst(candidates, (value): value is PresentGroupPendingKey => isPresent(value)),
+        relationFirst(candidates, isPresent),
         () => absent<GroupPendingKey>(),
-        value => present(value.value),
+        value => presenceFold(value, () => absent<GroupPendingKey>(), key => present(key)),
     );
     return presenceFold(selected, () => emptyGroupDelta(), key => catalogRequired(GROUP_PENDING_FACTS, present(key))(cursor));
 };
@@ -286,16 +284,15 @@ export const routeGroupPendingState = (cursor: TokenCursor, pending: RouteGroupS
 };
 type RouteTargetDescription = {
     readonly kind: 'closure';
-    readonly action: string;
-    readonly returns: readonly [
-    ];
+    readonly action: AstIdentifier;
+    readonly returns: readonly [];
 } | {
     readonly kind: 'controller_invokable';
-    readonly controller: string;
+    readonly controller: AstIdentifier;
 } | {
     readonly kind: 'controller_action';
-    readonly controller: string;
-    readonly action: string;
+    readonly controller: AstIdentifier;
+    readonly action: AstIdentifier;
 } | {
     readonly kind: 'unsupported';
     readonly reason: string;
@@ -306,7 +303,7 @@ const targetDescriptionCandidates = (route: TokenCursor): readonly RouteTargetDe
     const argument = route.secondCallArgumentPresence;
     const invokable = presenceFold(argument, noTargetCandidates, value => presenceFold(value.currentPresence, noTargetCandidates, (target: TokenDescriptor) =>
         relationResolve(relationAll([tokenHasKind(target, SYNTAX_KIND_GROUPS.identifiers), value.classReference]),
-            () => targetCandidate({ kind: 'controller_invokable', controller: target.value }),
+            () => targetCandidate({ kind: 'controller_invokable', controller: targetIdentifier(target.value) }),
             noTargetCandidates)));
     const arrayAction = presenceFold(argument, noTargetCandidates, value =>
         presenceFold(presenceOf(value.firstDelimitedElementCursor), noTargetCandidates, (controllerCursor: TokenCursor) =>
@@ -314,10 +311,11 @@ const targetDescriptionCandidates = (route: TokenCursor): readonly RouteTargetDe
                 presenceFold(controllerCursor.currentPresence, noTargetCandidates, (controller: TokenDescriptor) =>
                     presenceFold(actionCursor.currentPresence, noTargetCandidates, (action: TokenDescriptor) =>
                         relationResolve(relationAll([tokenHasKind(controller, SYNTAX_KIND_GROUPS.identifiers), value.classReference, tokenHasKind(action, SYNTAX_KIND_GROUPS.strings)]),
-                            () => targetCandidate({ kind: 'controller_action', controller: controller.value, action: action.value }),
+                            () => targetCandidate({ kind: 'controller_action', controller: targetIdentifier(controller.value), action: targetIdentifier(action.value) }),
                             noTargetCandidates))))));
     return Object.freeze([...invokable, ...arrayAction]);
 };
+const targetIdentifier = (value: string): AstIdentifier => createAstIdentifier(value);
 const targetDescriptionFallback = (method: LaravelRouteMethod): RouteTargetDescription => Object.freeze({ kind: 'unsupported', reason: `unsupported route target syntax: ${method}` });
 export const routeTargetDescription = (route: TokenCursor, method: LaravelRouteMethod): RouteTargetDescription => relationFirstOr(targetDescriptionCandidates(route), candidate => relationAny([
     relationEqual(candidate.kind, 'controller_invokable'),
@@ -331,9 +329,9 @@ export const routeTargetAst = (route: TokenCursor, method: LaravelRouteMethod): 
                 unsupported => relationVariantFold<Extract<RouteTargetDescription, { readonly kind: 'unsupported' }>, 'unsupported', RouteTargetAst>(unsupported, 'unsupported',
                     () => ({ kind: 'unsupported', reason: 'unsupported route target' }),
                     value => ({ kind: 'unsupported', reason: value.reason })),
-                value => ({ kind: 'controller_action', controller: { kind: 'identifier', value: value.controller }, action: { kind: 'identifier', value: value.action } })),
-            value => ({ kind: 'controller_invokable', controller: { kind: 'identifier', value: value.controller } })),
-        value => ({ kind: 'closure', action: { kind: 'identifier', value: value.action }, returns: [] }));
+                value => ({ kind: 'controller_action', controller: value.controller, action: value.action })),
+            value => ({ kind: 'controller_invokable', controller: value.controller })),
+        value => ({ kind: 'closure', action: value.action, returns: [] }));
 };
 export interface MergedRouteGroupStateModel {
     readonly prefixes: readonly string[];

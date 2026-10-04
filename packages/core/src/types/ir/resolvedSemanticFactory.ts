@@ -31,5 +31,5 @@ export const ResolvedSemanticTypeFactory = Object.freeze({
   }),
   nullable: (innerType: SemanticType): NullableType => NullableType(innerType),
   array: (items: SemanticType): ReadonlyCollectionType => ReadonlyCollectionType(CollectionKind.ARRAY, items),
-  union: (types: readonly SemanticType[]): UnionType => UnionType.of(types),
+  union: (types: readonly SemanticType[]): UnionType => UnionType(types),
 });

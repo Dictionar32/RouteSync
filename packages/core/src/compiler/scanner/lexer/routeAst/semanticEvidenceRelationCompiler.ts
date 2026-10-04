@@ -1,6 +1,8 @@
 import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 import { relationResolve } from '../../../relational/sequence';
+import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
 import { relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { semanticPresenceFold } from './semanticKnowledgeDataFlowRelations';
 /**
  * Phase 287 — relation-native semantic evidence compiler.
  *
@@ -71,7 +73,7 @@ const flowProjectionTable: Readonly<Record<SemanticDataFlowFact['kind'], (flow: 
 const projectFlow = (flow: SemanticDataFlowFact): readonly SemanticTheoryFact[] => {
     const source = knowledgeIdKey(flow.source);
     const target = knowledgeIdKey(flow.target);
-    const guarded = relationResolve(relationEqual(flow.guard.kind, 'present'), () => [relationResolve(relationEqual(flow.guard.value.polarity, 'satisfied'), () => semanticTheoryFact('requires', [source, knowledgeIdKey(flow.guard.value.predicate)]), () => semanticTheoryFact('excludes', [source, knowledgeIdKey(flow.guard.value.predicate)]))], () => []);
+    const guarded = semanticPresenceFold(flow.guard, () => [], guard => [relationResolve(relationEqual(guard.polarity, 'satisfied'), () => semanticTheoryFact('requires', [source, knowledgeIdKey(guard.predicate)]), () => semanticTheoryFact('excludes', [source, knowledgeIdKey(guard.predicate)]))]);
     const role = relationResolve(relationEqual(flow.role.code, 'predicate'), () => [semanticTheoryFact('condition', [source, target]), semanticTheoryFact('requires', [source, target])], () => relationResolve(relationAny([relationEqual(flow.role.code, 'candidate'), relationEqual(flow.role.code, 'body')]), () => [semanticTheoryFact('candidate', [source, target])], () => []));
     return [semanticTheoryFact('depends', [source, target]), ...guarded, ...role];
 };

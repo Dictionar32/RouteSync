@@ -5,6 +5,7 @@
  * Collection operations are semantic relation operators, never host-language
  * collection combinators or absence sentinels.
  */
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 import {
   relationResolve,
   relationFirstOption,

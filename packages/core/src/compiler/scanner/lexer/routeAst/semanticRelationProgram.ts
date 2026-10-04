@@ -27,7 +27,7 @@ export interface SemanticRelationProgramDiagnostic {
     readonly message: string;
 }
 const isVariable = (term: SemanticRelationAtom | SemanticRelationVariable): term is SemanticRelationVariable =>
-    relationGate(Object.is(typeof term, 'object'), () => Object.hasOwn(term as object, 'variable'), () => false);
+    relationGate(Object.is(typeof term, 'object'), () => Object.prototype.hasOwnProperty.call(term, 'variable'), () => false);
 export const validateSemanticRelationProgram = <R extends string>(program: SemanticRelationProgram<R>): readonly SemanticRelationProgramDiagnostic[] => {
     const schemaEntries = project(program.schemas, schema => [schema.relation, schema] as const);
     const diagnostics: SemanticRelationProgramDiagnostic[] = [];

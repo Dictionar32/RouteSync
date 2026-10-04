@@ -34,9 +34,6 @@ export {
 } from "./routeDescriptors";
 
 export {
-} from "./modelDescriptors";
-
-export {
     compileBroadcastRuntimePattern
 } from "./channelDescriptors";
 

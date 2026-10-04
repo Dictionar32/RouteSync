@@ -6,10 +6,10 @@ import { relationAll, relationEvery, relationAnyMatch } from '../../../../semant
 import { relationContains, relationInsert, relationUnique, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
 
 /** Canonical semantic relation execution substrate. Absence is a relation witness. */
-import { semanticNullAtom, type RelationAtom } from './semanticRelationalAlgebra';
+import { semanticNullAtom, type RelationAtom, type SemanticRelationAtom } from './semanticRelationalAlgebra';
 export type SemanticNullAtom = Extract<RelationAtom, { readonly kind: 'semantic_null' }>;
 export { semanticNullAtom };
-export type SemanticRelationAtom = RelationAtom;
+export type { SemanticRelationAtom } from './semanticRelationalAlgebra';
 export interface SemanticRelation<R extends string = string> { readonly relation: R; readonly arguments: readonly SemanticRelationAtom[] }
 export interface SemanticRelationVariable { readonly variable: string }
 export type SemanticRelationPattern<R extends string = string> = Readonly<{
@@ -33,7 +33,7 @@ type FactIndex<R extends string> = Readonly<{ readonly facts: readonly SemanticR
 type DeltaMatch<R extends string> = { readonly bindings: Bindings; readonly premises: readonly SemanticRelation<R>[] };
 type VariableTerm = SemanticRelationVariable;
 
-const isVariable = (value: SemanticRelationAtom | VariableTerm): value is VariableTerm => relationResolve(Object.is(typeof value, 'object'), () => Object.hasOwn(value as object, 'variable'), () => false);
+const isVariable = (value: SemanticRelationAtom | VariableTerm): value is VariableTerm => relationResolve(Object.is(typeof value, 'object'), () => Object.prototype.hasOwnProperty.call(value, 'variable'), () => false);
 const variableOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<VariableTerm> => relationRefine(term, isVariable);
 const atomOption = (term: SemanticRelationAtom | VariableTerm): RelationOption<SemanticRelationAtom> => relationRefine(term, (candidate): candidate is SemanticRelationAtom => !isVariable(candidate));
 const lookupBinding = (bindings: Bindings, variable: string): RelationOption<SemanticRelationAtom> =>

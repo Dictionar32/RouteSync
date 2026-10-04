@@ -18,6 +18,8 @@ export type RelationNoneAtom = Readonly<{ readonly kind: 'semantic_null' }>;
 export const RELATION_NONE_ATOM: RelationNoneAtom = Object.freeze({ kind: 'semantic_null' });
 export const semanticNullAtom: RelationNoneAtom = RELATION_NONE_ATOM;
 export type RelationAtom = string | number | boolean | RelationNoneAtom;
+/** Canonical atom authority consumed by the semantic relation/rewrite layers. */
+export type SemanticRelationAtom = RelationAtom;
 export type RelationTuple<A extends RelationAtom = RelationAtom> = readonly A[];
 export type Relation<A extends RelationAtom = RelationAtom> = Readonly<{
   readonly tuples: readonly RelationTuple<A>[];

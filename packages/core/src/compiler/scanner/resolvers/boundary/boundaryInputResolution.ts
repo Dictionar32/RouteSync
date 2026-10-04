@@ -3,8 +3,9 @@ import { routeBoundaryBasicsInterface } from "./boundaryBasics";
 import { resolveRouteBinding } from "./bindingResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
-import { relationOptionFold } from "../../../../semantic/kernel/relationalSequence";
+import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
+import { numberValue } from "../../../../types/upstream/valueObjects";
 
 export function resolveRouteBoundaryInput(
     params: RouteBoundaryOptions
@@ -13,7 +14,11 @@ export function resolveRouteBoundaryInput(
     const basics = basicsJudgment.result;
     const binding = resolveRouteBinding(params);
     const capability = resolveRouteCapability(params, basics, basics.resolvedParameters.length);
-    const provenance = buildRouteProvenanceContract(params);
+    const provenance = buildRouteProvenanceContract({
+        sourceFile: params.sourceFile,
+        sourceLine: numberValue(params.sourceLine),
+        path: params.path
+    });
 
     return Object.freeze({
         origin: params.origin,

@@ -59,7 +59,7 @@ export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOpti
     readonly actionKind?: RouteActionKind;
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
-    readonly sourceLine: number;
+    readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
     readonly handler: RouteHandlerDescriptor;
 }
 
@@ -72,7 +72,7 @@ export interface ControllerReferenceBoundaryOptions extends RouteBoundaryCommonO
     readonly actionKind?: RouteActionKind;
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
-    readonly sourceLine: number;
+    readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
     readonly handler: RouteHandlerDescriptor;
 }
 
@@ -85,7 +85,7 @@ export interface ClosureBoundaryOptions extends RouteBoundaryCommonOptions {
     readonly actionKind?: RouteActionKind;
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
-    readonly sourceLine: number;
+    readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
     readonly handler: RouteHandlerDescriptor;
 }
 
@@ -98,7 +98,7 @@ export interface SyntheticBoundaryOptions extends RouteBoundaryCommonOptions {
     readonly actionKind?: RouteActionKind;
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
-    readonly sourceLine: number;
+    readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
     readonly handler: RouteHandlerDescriptor;
 }
 
@@ -122,7 +122,7 @@ export interface ResolvedRouteBoundaryOptions {
     readonly actionKind: RouteActionKind;
     readonly isMutating: boolean;
     readonly sourceFile: SourceFile;
-    readonly sourceLine: number;
+    readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
     readonly handler: RouteHandlerDescriptor;
     readonly auth: boolean;
     readonly middleware: readonly PropertyName[];

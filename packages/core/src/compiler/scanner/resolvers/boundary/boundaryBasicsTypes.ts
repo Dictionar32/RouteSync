@@ -30,8 +30,8 @@ export interface RouteBoundaryCommonOptions {
     readonly path: RoutePath;
     readonly resourceName?: ResourceName;
     readonly domain?: DomainTypeName;
-    readonly auth?: boolean;
-    readonly middleware?: readonly PropertyName[];
+    readonly auth: boolean;
+    readonly middleware: readonly PropertyName[];
     readonly parameters?: readonly RouteParameter[];
     readonly pathParameters?: readonly RouteParameter[];
     readonly queryParameters?: readonly RouteQueryParameter[];
@@ -121,7 +121,7 @@ export interface ResolvedRouteBoundaryOptions {
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
     readonly auth: import('../../../../types/upstream/valueObjects').TruthValue;
-    readonly middleware: readonly PropertyName[];
+    readonly middleware: import("../../../../types/upstream/collections").RouteMiddlewares;
     readonly parameters: readonly RouteParameter[];
     readonly pathParameters: readonly RouteParameter[];
     readonly queryParameters: readonly RouteQueryParameter[];

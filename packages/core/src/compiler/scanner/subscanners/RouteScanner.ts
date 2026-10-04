@@ -35,7 +35,7 @@ import type { ResponseCardinality } from "../../../types/upstream/response";
 import { matchRouteHandler } from "../../../types/domain/routeHandlers";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import { routeProducer } from "./routeProducer";
-import { createActionName, createControllerName, createMiddlewareName, createPropertyName, createRequestName, createRoutePath, type RoutePath } from "../../../types/upstream/names";
+import { createActionName, createControllerName, createPropertyName, createRequestName, createRoutePath, type RoutePath } from "../../../types/upstream/names";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { routeDeclarationSemanticKind, routeMethodSemanticKind, routeSourceFileContextKnowledge } from "../lexer/routeAst/routeDataFlow";
 import { readSourceText } from './scannerUtils';
@@ -144,7 +144,7 @@ export class RouteScanner {
                         );
                         const unresolvedResponse = VoidResponseDescriptor.create();
                         const middlewares = declaration.middleware;
-                        const authorization = routeAuthorizationKnowledge(relationProject(middlewares, value => createMiddlewareName(value)));
+                        const authorization = routeAuthorizationKnowledge(relationProject(middlewares, value => createPropertyName(value)));
                         const isAuth = relationEqual(authorization.kind, 'authorized');
                         const declarationKind = routeDeclarationSemanticKind(declaration.method);
                         const emittedRoutes = relationGate(

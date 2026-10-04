@@ -63,8 +63,8 @@ export type ResolverGraphSemanticInterface = Readonly<{
 
 export type ResolverGraphInput = Readonly<{
   readonly domain: RouteDomainResolutionContext;
-  readonly middleware: readonly PropertyName[];
-  readonly auth: boolean;
+  readonly middleware: import("../../../types/upstream/collections").RouteMiddlewares;
+  readonly auth: import("../../../types/upstream/valueObjects").TruthValue;
   readonly method: HttpMethod;
   readonly path: RoutePath;
   readonly mapping: AstMappingInterface;
@@ -108,7 +108,7 @@ const relation = <R extends ResolverGraphRelation>(name: R, route: string): Sema
 export const resolveResolverGraphJudgment = (input: ResolverGraphInput): ResolverGraphSemanticJudgment => {
   const route = 'route';
   const domain = RouteDomainResolver.resolveJudgment(input.domain);
-  const security = RouteSecurityResolver.resolve(input.middleware, truthValue(input.auth));
+  const security = RouteSecurityResolver.resolve(input.middleware, input.auth);
   const crudRole = RouteCrudClassifier.classify(input.method, input.path.value.value);
   const mapping = input.mapping.judgment;
   const seeds: readonly SemanticRewriteFact<ResolverGraphRelation>[] = Object.freeze([

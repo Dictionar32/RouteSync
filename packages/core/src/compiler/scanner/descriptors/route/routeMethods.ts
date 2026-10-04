@@ -14,11 +14,15 @@ import {
 } from "../../resolvers";
 import type {
     RouteSecurityDescriptor,
-    RoutePolicyDescriptor,
-    RouteRateLimit
+    RoutePolicyDescriptor
 } from "../../../../types/route";
+import type { RouteRateLimit } from "../../../../types/upstream/route";
 import type { PropertyName, DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName } from "../../../../types/upstream/names";
 import { truthValue } from "../../../../types/upstream/valueObjects";
+import type { RouteMiddleware } from "../../../../types/upstream/route";
+import type { RouteMiddlewares, Sequence } from "../../../../types/upstream/collections";
+import { createMiddlewareName } from "../../../../types/upstream/names";
+import { relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
 
 export function resolveRouteDescriptorDomain(route: import("../../resolvers/RouteDomainResolver").RouteDomainResolutionContext): DomainTypeName {
     return RouteDomainResolver.resolve(route);
@@ -27,11 +31,8 @@ export function resolveRouteDescriptorDomain(route: import("../../resolvers/Rout
 export function resolveRouteDescriptorSecurity(
     middleware: readonly PropertyName[],
     auth: boolean
-): {
-    readonly security: RouteSecurityDescriptor;
-    readonly auth: import("../../../../types/upstream/valueObjects").TruthValue;
-    readonly policies: readonly RoutePolicyDescriptor[];
-    readonly rateLimit: RouteRateLimit;
-} {
-    return RouteSecurityResolver.resolve(middleware, truthValue(auth));
+): import("../../resolvers/RouteSecurityResolver").RouteSecurityResolution {
+    const empty: Sequence<RouteMiddleware> = { kind: "empty" };
+    const items: Sequence<RouteMiddleware> = relationFoldRight<PropertyName, Sequence<RouteMiddleware>>(middleware, empty, (item, tail) => ({ kind: "cons", head: Object.freeze({ kind: "direct", name: createMiddlewareName(item.value.value) }), tail }));
+    return RouteSecurityResolver.resolve(Object.freeze({ kind: "route_middlewares", items }), truthValue(auth));
 }

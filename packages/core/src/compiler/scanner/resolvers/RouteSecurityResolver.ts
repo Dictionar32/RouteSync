@@ -6,7 +6,7 @@ import {
     relationGate,
     relationNormalizeWhitespace,
 } from '../../../semantic/kernel/semanticRelations';
-import { relationProject, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import { relationProject, relationVariantFold, relationFoldRight, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
 
 import {
     RouteSecurityDescriptor,
@@ -17,24 +17,32 @@ import {
 import type { RouteRateLimit } from "../../../types/upstream/route";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import type { TruthValue } from "../../../types/upstream/valueObjects";
-import type { PropertyName } from "../../../types/upstream/names";
+import type { RouteMiddleware } from "../../../types/upstream/route";
+import type { RouteMiddlewares, Sequence } from "../../../types/upstream/collections";
 import { numberValue, truthValue } from "../../../types/upstream/valueObjects";
 
 export interface RouteSecurityResolution {
     readonly security: RouteSecurityDescriptor;
     readonly auth: TruthValue;
-    readonly policies: readonly RoutePolicyDescriptor[];
+    readonly policies: Sequence<RoutePolicyDescriptor>;
     readonly rateLimit: RouteRateLimit;
 }
 
 type MiddlewarePolicyResult = Readonly<{
-    readonly policies: readonly RoutePolicyDescriptor[];
+    readonly policies: Sequence<RoutePolicyDescriptor>;
     readonly rateLimit: RouteRateLimit;
 }>;
 
+const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
+const sequenceSingleton = <T>(value: T): Sequence<T> => ({ kind: 'cons', head: value, tail: emptySequence<T>() });
+const sequenceConcat = <T>(left: Sequence<T>, right: Sequence<T>): Sequence<T> =>
+    relationVariantFold(left, 'cons', () => right, candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceConcat(candidate.tail, right) }));
+const sequenceFromArray = <T>(items: readonly T[]): Sequence<T> =>
+    relationFoldRight(items, emptySequence<T>(), (item, tail) => ({ kind: 'cons', head: item, tail }));
+
 const gatePolicy = (ability: string): RoutePolicyDescriptor => Object.freeze({
     ability: SemanticValueFactory.abilityName(ability),
-    modelParameter: { kind: 'none' as const },
+    modelParameter: Object.freeze({ kind: 'none' }),
     kind: RoutePolicyKind.Gate,
 });
 
@@ -59,20 +67,20 @@ const policyForMiddleware = (middleware: string): MiddlewarePolicyResult => {
 
     const canPolicy = relationGate(
         relationAll([can.length > 0, ability.length > 0]),
-        () => [relationGate(modelParameter.length > 0, () => abilityPolicy(ability, modelParameter), () => gatePolicy(ability))],
-        () => [],
+        () => sequenceSingleton(relationGate(modelParameter.length > 0, () => abilityPolicy(ability, modelParameter), () => gatePolicy(ability))),
+        () => emptySequence<RoutePolicyDescriptor>(),
     );
 
     const rolePolicies = relationGate(
         role.length > 0,
-        () => relationProject(
+        () => sequenceFromArray(relationProject(
             relationProject(relationTextFields(role, ","), value => relationNormalizeWhitespace(value)),
             value => gatePolicy(`role:${value}`),
-        ),
-        () => [],
+        )),
+        () => emptySequence<RoutePolicyDescriptor>(),
     );
 
-    const adminPolicy = relationGate(admin, () => [gatePolicy(`role:${trimmed}`)], () => []);
+    const adminPolicy = relationGate(admin, () => sequenceSingleton(gatePolicy(`role:${trimmed}`)), () => emptySequence<RoutePolicyDescriptor>());
 
     const throttleValue = relationTextFields(throttle, ",");
     const throttlePart = (index: number, fallback: string): string =>
@@ -86,7 +94,7 @@ const policyForMiddleware = (middleware: string): MiddlewarePolicyResult => {
     );
 
     return Object.freeze({
-        policies: Object.freeze([...canPolicy, ...rolePolicies, ...adminPolicy]),
+        policies: sequenceConcat(sequenceConcat(canPolicy, rolePolicies), adminPolicy),
         rateLimit,
     });
 };
@@ -94,24 +102,32 @@ const policyForMiddleware = (middleware: string): MiddlewarePolicyResult => {
 const resolveMiddleware = (
     middleware: readonly string[],
     index = 0,
-    policies: readonly RoutePolicyDescriptor[] = [],
+    policies: Sequence<RoutePolicyDescriptor> = emptySequence<RoutePolicyDescriptor>(),
     rateLimit: RouteRateLimit = { kind: 'none' },
 ): MiddlewarePolicyResult =>
     relationGate(
         index >= middleware.length,
-        () => Object.freeze({ policies: Object.freeze(policies), rateLimit }),
+        () => Object.freeze({ policies, rateLimit }),
         () => {
             const current = policyForMiddleware(middleware[index]);
-            const nextPolicies = [...policies, ...current.policies];
+            const nextPolicies = sequenceConcat(policies, current.policies);
             const nextRateLimit = relationGate(relationNotEqual(current.rateLimit.kind, 'none'), () => current.rateLimit, () => rateLimit);
             return resolveMiddleware(middleware, index + 1, nextPolicies, nextRateLimit);
         },
     );
 
-const resolveRouteSecurity = (middleware: readonly PropertyName[], auth: TruthValue = truthValue(false)): RouteSecurityResolution => {
-        const middlewareValues = relationProject(middleware, value => value.value.value);
-        const securityDesc = RouteSecurityClassifier.classify(middlewareValues);
-        const resolved = resolveMiddleware(middlewareValues);
+const middlewareValues = (items: Sequence<RouteMiddleware>, output: readonly string[] = []): readonly string[] =>
+    relationVariantFold(
+        items,
+        'cons',
+        () => output,
+        candidate => middlewareValues(candidate.tail, [...output, candidate.head.name.value.value]),
+    );
+
+const resolveRouteSecurity = (middleware: RouteMiddlewares, auth: TruthValue = truthValue(false)): RouteSecurityResolution => {
+        const middlewareValuesResult = middlewareValues(middleware.items);
+        const securityDesc = RouteSecurityClassifier.classify(middleware);
+        const resolved = resolveMiddleware(middlewareValuesResult);
         const resolvedAuth = truthValue(relationAny([auth.value, securityDesc.isProtected.value]));
 
         return Object.freeze({

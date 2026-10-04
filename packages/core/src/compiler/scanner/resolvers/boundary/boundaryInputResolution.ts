@@ -4,7 +4,24 @@ import { resolveRouteCapability } from "./capabilityResolution";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
 import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
-import { numberValue, truthValue } from "../../../../types/upstream/valueObjects";
+import { truthValue } from "../../../../types/upstream/valueObjects";
+import type { RouteMiddleware } from "../../../../types/upstream/route";
+import { createMiddlewareName, type PropertyName } from "../../../../types/upstream/names";
+import type { RouteMiddlewares, Sequence } from "../../../../types/upstream/collections";
+import { relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
+
+
+const sequenceCons = <T>(head: T, tail: Sequence<T>): Sequence<T> => ({ kind: "cons", head, tail });
+
+const routeMiddlewares = (items: readonly PropertyName[]): RouteMiddlewares => {
+    const empty: Sequence<RouteMiddleware> = { kind: "empty" };
+    const sequence: Sequence<RouteMiddleware> = relationFoldRight<PropertyName, Sequence<RouteMiddleware>>(
+        items,
+        empty,
+        (item, tail) => sequenceCons(Object.freeze({ kind: "direct", name: createMiddlewareName(item.value.value) }), tail),
+    );
+    return Object.freeze({ kind: "route_middlewares", items: sequence });
+};
 
 export function resolveRouteBoundaryInput(
     params: RouteBoundaryOptions
@@ -12,10 +29,21 @@ export function resolveRouteBoundaryInput(
     const basicsJudgment = routeBoundaryBasicsInterface(params);
     const basics = basicsJudgment.result;
     const binding = params.binding;
-    const capability = resolveRouteCapability(params, basics, basics.resolvedParameters.length, truthValue(params.auth), binding.request);
+    const authInput = params.auth;
+    const capabilityInput = Object.freeze({
+        hookKind: params.hookKind,
+        executionSignature: params.executionSignature,
+        requestContentType: params.requestContentType,
+        crudRole: params.crudRole,
+        errorResponses: params.errorResponses,
+        invalidation: params.invalidation,
+        schema: params.schema,
+    });
+    const capability = resolveRouteCapability(capabilityInput, basics, basics.resolvedParameters.length, truthValue(authInput), params.method, params.path, binding.request);
+    const middlewareInput: readonly PropertyName[] = params.middleware;
     const provenance = buildRouteProvenanceContract({
         sourceFile: params.sourceFile,
-        sourceLine: numberValue(params.sourceLine),
+        sourceLine: params.sourceLine,
         path: params.path
     });
 
@@ -34,7 +62,7 @@ export function resolveRouteBoundaryInput(
         sourceFile: provenance.sourceFile,
         sourceLine: provenance.sourceLine,
         auth: truthValue(relationEqual(params.auth, true)),
-        middleware: Object.freeze(presenceFold(presenceOf(params.middleware), () => [], value => value)),
+        middleware: routeMiddlewares(middlewareInput),
         parameters: basics.resolvedParameters,
         pathParameters: basics.resolvedPathParameters,
         queryParameters: basics.resolvedQueryParameters,

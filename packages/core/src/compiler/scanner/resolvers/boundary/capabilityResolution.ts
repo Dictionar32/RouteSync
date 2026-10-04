@@ -21,10 +21,11 @@ import type { RequestContentType as RequestContentTypeType, RouteHookKind as Rou
 import { httpErrorResponseValidation, httpErrorResponseUnauthorized } from "../../../../types/domain/httpErrors";
 import { RouteCrudClassifier } from "../RouteCrudClassifier";
 import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
-import type { RouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
+import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
+import type { RouteRequestBinding } from "../../../../types/domain/request";
 import type { BaseValidationRuleNode } from "../../../../types/domain/validationRules";
 import { relationAny, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
-import { relationProject, relationTextSlice } from "../../../../semantic/kernel/relationalSequence";
+import { relationProject, relationVariantFold, relationTextSlice } from "../../../../semantic/kernel/relationalSequence";
 import { present, presenceFold, presenceOf, type Presence } from "../../../../types/upstream/presence";
 import { truthValue, type TruthValue } from "../../../../types/upstream/valueObjects";
 
@@ -52,7 +53,9 @@ export function resolveRouteCapabilityJudgment(
     input: RouteCapabilitySemanticInput,
     basics: IntermediateRouteBoundaryBasics,
     parameterCount: number,
-    request: RouteBoundaryOptions['request'],
+    method: HttpMethod,
+    path: import("../../../../types/upstream/names").RoutePath,
+    request: RouteRequestBinding,
 ): ResolvedRouteCapability {
     const hookKind = presenceFold(input.hookKind, () => relationGate(basics.resolvedIsMutating, () => RouteHookKind.Mutation, () => RouteHookKind.Query), value => value);
     const hasValidationRules = hasRules(input.schema);
@@ -63,9 +66,9 @@ export function resolveRouteCapabilityJudgment(
         () => RouteSemanticFlowExecutionSignature.create(hookKind, parameterCount > 0, hasPayload, present(payloadTypeName)),
         value => value,
     );
-    const method = methodFromBoundary(basics, request.method);
-    const requestContentType = presenceFold(input.requestContentType, () => detectContentType(method, input.schema), value => value);
-    const crudRole = presenceFold(input.crudRole, () => RouteCrudClassifier.classify(method, request.path), value => value);
+    const resolvedMethod = methodFromBoundary(basics, method);
+    const requestContentType = presenceFold(input.requestContentType, () => detectContentType(resolvedMethod, input.schema), value => value);
+    const crudRole = presenceFold(input.crudRole, () => RouteCrudClassifier.classify(resolvedMethod, path.value.value), value => value);
     const errorResponses = presenceFold(
         input.errorResponses,
         () => defaultErrors(ROUTE_ACTION_KIND_REGISTRY[basics.resolvedActionKind].isMutating, hasValidationRules, input.auth),
@@ -82,18 +85,24 @@ export function resolveRouteCapabilityJudgment(
     });
 }
 
-type RouteCapabilityResolutionInput = Pick<RouteBoundaryOptions,
-    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema"
-> | Pick<ResolvedRouteBoundaryOptions,
-    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema"
->;
+type RouteCapabilityResolutionInput = Readonly<{
+    readonly hookKind: RouteHookKindType | void;
+    readonly executionSignature: RouteExecutionSignature | void;
+    readonly requestContentType: RequestContentTypeType | void;
+    readonly crudRole: CrudRole | void;
+    readonly errorResponses: readonly HttpErrorResponseDescriptor[] | void;
+    readonly invalidation: ReturnType<typeof RouteSemanticFlowCacheInvalidationDescriptor.none> | void;
+    readonly schema: RouteSchemaPayload;
+}>;
 
 export function resolveRouteCapability(
     params: RouteCapabilityResolutionInput,
     basics: IntermediateRouteBoundaryBasics,
     parameterCount: number,
     auth: TruthValue,
-    request: RouteBoundaryOptions["request"],
+    method: HttpMethod,
+    path: import("../../../../types/upstream/names").RoutePath,
+    request: RouteRequestBinding,
 ): ResolvedRouteCapability {
     return resolveRouteCapabilityJudgment(
         Object.freeze({
@@ -108,6 +117,8 @@ export function resolveRouteCapability(
         }),
         basics,
         parameterCount,
+        method,
+        path,
         request,
     );
 }
@@ -121,16 +132,17 @@ function hasRules(schema: Presence<RouteSchemaPayload>): boolean {
 }
 
 function resolvePayloadTypeName(
-    request: RouteBoundaryOptions['request'],
+    request: RouteRequestBinding,
     basics: IntermediateRouteBoundaryBasics,
 ): string {
-    return relationGate(
-        relationEqual(request.kind, 'form_request'),
-        () => request.source.identity.requestClass.value,
+    return relationVariantFold(
+        request,
+        'form_request',
         () => {
             const action = basics.resolvedActionKind;
             return `${basics.resolvedDomain.value.value}${action.charAt(0).toUpperCase()}${relationTextSlice(action, 1)}Payload`;
         },
+        value => value.identity.source.requestClass.value.value,
     );
 }
 

@@ -1,6 +1,6 @@
 import type { CrudRole } from "./lifecycle";
 import { SemanticValueFactory } from "./semanticValues";
-import { relationGate, relationFold, relationFoldRight, relationVariantFold, relationTextFind, relationTextFields, relationTextLower, relationTextSlice, relationTextStartsWith } from "../../semantic/kernel/relationalSequence";
+import { relationGate, relationFoldRight, relationVariantFold, relationTextFind, relationTextFields, relationTextLower, relationTextSlice, relationTextStartsWith } from "../../semantic/kernel/relationalSequence";
 import { relationAny, relationEqual, relationNormalizeWhitespace } from "../../semantic/kernel/semanticRelations";
 import type { TruthValue } from "../upstream/valueObjects";
 import { truthValue, stringValue } from "../upstream/valueObjects";
@@ -11,7 +11,8 @@ import {
   type RouteSecurityDescriptor,
   type RoutePolicyDescriptor,
 } from "../upstream/route";
-import type { Sequence } from "../upstream/collections";
+import type { RouteMiddlewares, Sequence } from "../upstream/collections";
+import type { RouteMiddleware } from "../upstream/route";
 import { createAbilityName, type GuardName, type AbilityName } from "../upstream/names";
 
 export { SecuritySchemeKind, RoutePolicyKind, createRouteSecurityDescriptor } from "../upstream/route";
@@ -19,11 +20,13 @@ export type { RouteSecurityDescriptor, RoutePolicyDescriptor } from "../upstream
 
 const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
 
-const sequenceMap = <T, U>(items: readonly T[], project: (item: T) => U): Sequence<U> =>
-  relationFoldRight(items, emptySequence<U>(), (item, tail) => ({ kind: 'cons', head: project(item), tail }));
 
 const sequenceAppend = <T>(sequence: Sequence<T>, item: T): Sequence<T> =>
   relationVariantFold(sequence, 'cons', () => ({ kind: 'cons', head: item, tail: emptySequence<T>() }), candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceAppend(candidate.tail, item) }));
+
+
+const sequenceMapText = <U>(items: readonly string[], project: (item: string) => U): Sequence<U> =>
+  relationFoldRight(items, emptySequence<U>(), (item, tail) => ({ kind: 'cons', head: project(item), tail }));
 
 const guardName = (value: string): GuardName => Object.freeze({ kind: 'guard_name', value: stringValue(value) });
 const abilityName = (value: string): AbilityName => createAbilityName(value);
@@ -42,8 +45,8 @@ const initialSecurityClassificationState: SecurityClassificationState = Object.f
   abilities: emptySequence<AbilityName>(),
 });
 
-const middlewareSecurityState = (state: SecurityClassificationState, middleware: string): SecurityClassificationState => {
-  const trimmed = relationNormalizeWhitespace(middleware);
+const middlewareSecurityState = (state: SecurityClassificationState, middleware: RouteMiddleware): SecurityClassificationState => {
+  const trimmed = relationNormalizeWhitespace(middleware.name.value.value);
   const lower = relationTextLower(trimmed);
   const authSanctum = relationEqual(lower, 'auth:sanctum');
   const authBearer = relationAny([relationEqual(lower, 'auth:api'), relationEqual(lower, 'auth:bearer')]);
@@ -54,8 +57,8 @@ const middlewareSecurityState = (state: SecurityClassificationState, middleware:
   const colon = relationTextFind(trimmed, ':');
   const payload = relationGate(relationEqual(colon, -1), () => trimmed, () => relationTextSlice(trimmed, colon + 1));
   const abilityItems = relationTextFields(payload, ',');
-  const normalizedAbilities = sequenceMap(abilityItems, item => abilityName(relationNormalizeWhitespace(item)));
-  const normalizedRoles = sequenceMap(abilityItems, item => abilityName(`role:${relationNormalizeWhitespace(item)}`));
+  const normalizedAbilities = sequenceMapText(abilityItems, item => abilityName(relationNormalizeWhitespace(item)));
+  const normalizedRoles = sequenceMapText(abilityItems, item => abilityName(`role:${relationNormalizeWhitespace(item)}`));
   const authState = relationGate(
     authSanctum,
     () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Sanctum, guards: sequenceAppend(state.guards, guardName('sanctum')) }),
@@ -84,8 +87,10 @@ const sequenceConcat = <T>(left: Sequence<T>, right: Sequence<T>): Sequence<T> =
   relationVariantFold(left, 'cons', () => right, candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceConcat(candidate.tail, right) }));
 
 export class RouteSecurityClassifier {
-  public static classify(middleware: readonly string[]): RouteSecurityDescriptor {
-    const state = relationFold(middleware, initialSecurityClassificationState, (current, item) => middlewareSecurityState(current, item));
+  public static classify(middleware: RouteMiddlewares): RouteSecurityDescriptor {
+    const classifySequence = (items: Sequence<RouteMiddleware>, state: SecurityClassificationState): SecurityClassificationState =>
+      relationVariantFold(items, 'cons', () => state, candidate => classifySequence(candidate.tail, middlewareSecurityState(state, candidate.head)));
+    const state = classifySequence(middleware.items, initialSecurityClassificationState);
     return createRouteSecurityDescriptor(state.isProtected, state.scheme, state.guards, state.abilities);
   }
 }

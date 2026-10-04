@@ -181,7 +181,15 @@ export function matchHttpError<R>(
   const kind = relationGate(typeof error === 'string', () => error as HttpErrorKind, () => (error as HttpErrorResponseDescriptor).kind);
   const descriptor = relationGate(typeof error === 'string', () => httpErrorResponseFromKind(kind), () => error as HttpErrorResponseDescriptor);
   return visitor[kind](descriptor);
-}export type HttpErrorResponse = HttpErrorResponseDescriptor;
+}export const toUpstreamHttpErrorResponse = (descriptor: HttpErrorResponseDescriptor): import('../upstream/routeErrorVocabulary').HttpErrorResponse => Object.freeze({
+  kind: descriptor.kind,
+  statusCode: Object.freeze({ kind: 'http_status_code', value: Object.freeze({ kind: 'number_value', value: descriptor.statusCode }) }),
+  name: descriptor.name,
+  typeName: descriptor.typeName,
+  schema: descriptor.schema,
+});
+
+export type HttpErrorResponse = HttpErrorResponseDescriptor;
 
 const httpErrorResponseFromKind = (kind: HttpErrorKind): HttpErrorResponseDescriptor => ({
   kind,

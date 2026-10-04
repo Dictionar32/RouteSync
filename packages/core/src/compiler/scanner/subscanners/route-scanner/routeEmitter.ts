@@ -22,7 +22,7 @@ import type { ControllerReturnSemantic } from "../../../../types/upstream/contro
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { RelationIndex } from '../../../../semantic/kernel/relationMembership';
 import { relationIndexLookup } from '../../../../semantic/kernel/relationMembership';
-import { relationGate, relationEqual, relationFirstOption, relationOptionFold, relationProject, type RelationOption, relationNone, relationSome } from "../../../../semantic/kernel/relationalSequence";
+import { relationGate, relationEqual, relationFirstOption, relationOptionFold, relationProject, relationVariantFold, type RelationOption, relationNone, relationSome } from "../../../../semantic/kernel/relationalSequence";
 
 export function mapMethodDetails(method: HttpMethod): {
     method: HttpMethod;
@@ -136,46 +136,49 @@ export function emitStandardRoutes(
 ): readonly RouteSemanticFlowFactory[] {
     return relationProject(targetMethods, method => {
         const { method: canonicalMethod } = mapMethodDetails(method);
-        return relationGate(
-            relationEqual(target.kind, "controller_action"),
-            () => RouteSemanticFlowFactory.fromControllerAction({
-                method: canonicalMethod,
-                path: resolvedPath.path,
-                resourceName,
-                action: target.action,
-                auth: isAuth,
-                middleware: currentMiddlewares,
-                parameters: resolvedPath.parameters,
-            }),
-            () => relationGate(
-                relationEqual(target.kind, "controller_reference"),
-                () => RouteSemanticFlowFactory.fromControllerReference({
+        return relationVariantFold(
+            target,
+            'controller_action',
+            residual => relationVariantFold(
+                residual,
+                'controller_reference',
+                value => RouteSemanticFlowFactory.fromClosure({
                     method: canonicalMethod,
                     path: resolvedPath.path,
                     resourceName,
-                    actionName: target.actionName,
-                    controllerName: target.controllerName,
-                    sourceFile: SemanticValueFactory.sourceFilePath(routesFile.value.value),
+                    actionName: value.actionName,
+                    sourceFile: routesFile,
                     sourceLine,
-                    response: target.response,
+                    response: value.response,
+                    semanticReturn: value.semanticReturn,
                     auth: isAuth,
                     middleware: currentMiddlewares,
                     parameters: resolvedPath.parameters,
                 }),
-                () => RouteSemanticFlowFactory.fromClosure({
+                value => RouteSemanticFlowFactory.fromControllerReference({
                     method: canonicalMethod,
                     path: resolvedPath.path,
                     resourceName,
-                    actionName: target.actionName,
-                    sourceFile: routesFile,
+                    actionName: value.actionName,
+                    controllerName: value.controllerName,
+                    sourceFile: SemanticValueFactory.sourceFilePath(routesFile.value.value),
                     sourceLine,
-                    response: target.response,
-                    semanticReturn: target.semanticReturn,
+                    response: value.response,
                     auth: isAuth,
                     middleware: currentMiddlewares,
                     parameters: resolvedPath.parameters,
                 }),
             ),
+            value => RouteSemanticFlowFactory.fromControllerAction({
+                method: canonicalMethod,
+                path: resolvedPath.path,
+                resourceName,
+                action: value.action,
+                auth: isAuth,
+                middleware: currentMiddlewares,
+                parameters: resolvedPath.parameters,
+            }),
         );
     });
 }
+

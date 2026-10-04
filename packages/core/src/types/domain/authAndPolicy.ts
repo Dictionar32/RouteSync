@@ -8,10 +8,10 @@ import { truthValue } from "../upstream/valueObjects";
  * This module retains only compatibility constructors while all semantic values
  * cross the boundary as closed ADTs.
  */
-export { SecuritySchemeKind } from "../upstream/route";
-export type { RouteSecurityDescriptor } from "../upstream/route";
+export { SecuritySchemeKind, RoutePolicyKind } from "../upstream/route";
+export type { RouteSecurityDescriptor, RoutePolicyDescriptor } from "../upstream/route";
 
-import { SecuritySchemeKind, type RouteSecurityDescriptor as CanonicalRouteSecurityDescriptor } from "../upstream/route";
+import { SecuritySchemeKind, RoutePolicyKind, type RouteSecurityDescriptor, type RoutePolicyDescriptor } from "../upstream/route";
 import type { Sequence } from "../upstream/collections";
 import type { GuardName, AbilityName } from "../upstream/names";
 import { stringValue } from "../upstream/valueObjects";
@@ -32,7 +32,7 @@ export interface ScannedRouteSecurityParams {
   readonly abilities: Sequence<AbilityName>;
 }
 
-export class RouteSemanticFlowSecurityDescriptor implements CanonicalRouteSecurityDescriptor {
+export class RouteSemanticFlowSecurityDescriptor implements RouteSecurityDescriptor {
   public readonly isProtected: TruthValue;
   public readonly scheme: SecuritySchemeKind;
   public readonly guards: Sequence<GuardName>;
@@ -202,22 +202,12 @@ export interface RateLimitDescriptor {
 
 
 /**
- * RoutePolicyKind
- *
- * Canonical ADT discriminator for Laravel route authorization policies.
+ * Route policy registry is metadata over the canonical upstream policy ADT.
  */
-export const RoutePolicyKind = Object.freeze({
-  AbilityModel: 'ability_model',
-  Gate: 'gate',
-  Custom: 'custom'
-} as const);
-
-export type RoutePolicyKind = typeof RoutePolicyKind[keyof typeof RoutePolicyKind];
-
 export interface RoutePolicyKindSpecification<K extends RoutePolicyKind = RoutePolicyKind> {
   readonly kind: K;
-  readonly requiresModel: boolean;
-  readonly description: string;
+  readonly requiresModel: TruthValue;
+  readonly description: import("../upstream/valueObjects").StringValue;
 }
 
 export type RoutePolicyKindRegistry = {
@@ -227,38 +217,20 @@ export type RoutePolicyKindRegistry = {
 export const ROUTE_POLICY_REGISTRY: RoutePolicyKindRegistry = Object.freeze({
   [RoutePolicyKind.AbilityModel]: {
     kind: RoutePolicyKind.AbilityModel,
-    requiresModel: true,
-    description: 'Laravel Model Policy checking ability against a model parameter'
+    requiresModel: truthValue(true),
+    description: stringValue('Laravel Model Policy checking ability against a model parameter')
   },
   [RoutePolicyKind.Gate]: {
     kind: RoutePolicyKind.Gate,
-    requiresModel: false,
-    description: 'Laravel Gate authorization checking ability without model parameter'
+    requiresModel: truthValue(false),
+    description: stringValue('Laravel Gate authorization checking ability without model parameter')
   },
   [RoutePolicyKind.Custom]: {
     kind: RoutePolicyKind.Custom,
-    requiresModel: false,
-    description: 'Custom authorization policy or middleware rule'
+    requiresModel: truthValue(false),
+    description: stringValue('Custom authorization policy or middleware rule')
   }
 });
-
-export type RoutePolicyDescriptor =
-  | {
-      readonly kind: typeof RoutePolicyKind.AbilityModel;
-      readonly ability: import('./semanticValues').AbilityName;
-      readonly modelParameter: import('./semanticValues').PropertyName;
-    }
-  | {
-      readonly kind: typeof RoutePolicyKind.Gate;
-      readonly ability: import('./semanticValues').AbilityName;
-      readonly modelParameter: { readonly kind: 'none' };
-    }
-  | {
-      readonly kind: typeof RoutePolicyKind.Custom;
-      readonly ability: import('./semanticValues').AbilityName;
-      readonly modelParameter: { readonly kind: 'none' } | { readonly kind: 'parameter'; readonly name: import('./semanticValues').PropertyName };
-    };
-
 
 export const createRoutePolicyAbilityModel = (ability: string, modelParameter: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.AbilityModel, ability: SemanticValueFactory.abilityName(ability), modelParameter: SemanticValueFactory.propertyName(modelParameter) });
 export const createRoutePolicyGate = (ability: string): RoutePolicyDescriptor => Object.freeze({ kind: RoutePolicyKind.Gate, ability: SemanticValueFactory.abilityName(ability), modelParameter: { kind: 'none' as const } });

@@ -1,7 +1,7 @@
 import type {
   ModelName, ResourceName, PropertyName, VariableName, ClassName, ColumnName,
   RelationName, RouteName, RoutePath, RouteParameterName, ControllerName, ActionName, MethodName,
-  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName
+  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName
 } from '../upstream/names';
 import type { NumberValue, StringValue } from '../upstream/valueObjects';
 import type { PhpFunctionName as UpstreamPhpFunctionName } from '../upstream/modelVocabulary';
@@ -18,7 +18,7 @@ import type { PhpFunctionName as UpstreamPhpFunctionName } from '../upstream/mod
 export type {
   ModelName, ResourceName, PropertyName, VariableName, ClassName, ColumnName,
   RelationName, RouteName, RoutePath, RouteParameterName, ControllerName, ActionName, MethodName,
-  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName
+  ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName
 };
 
 export type DomainName = DomainTypeName;
@@ -33,11 +33,6 @@ export type SourceFilePath = SourceFile;
 
 export interface HttpErrorName {
   readonly kind: 'http_error_name';
-  readonly value: string;
-}
-
-export interface AbilityName {
-  readonly kind: 'ability_name';
   readonly value: string;
 }
 
@@ -166,7 +161,7 @@ export const SemanticValueFactory = Object.freeze({
   routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue(value) }); },
   responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value: stringValue(value) }); },
   httpErrorName(value: string): HttpErrorName { return Object.freeze({ kind: 'http_error_name', value }); },
-  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value }); },
+  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value: stringValue(value) }); },
   className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value: stringValue(value) }); },
   domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_type_name', value: stringValue(value) }); },
   resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value: stringValue(value) }); },

@@ -16,7 +16,7 @@ import type {
 
 import type { RouteSemanticFlowCompleteContracts } from "../../descriptors/route/routeContracts";
 import type { RouteRequestBinding } from "../../../../types/domain/request";
-import type { ResolvedRouteBinding } from "./bindingResolution";
+import type { ResolvedRouteBinding } from "../../../../types/domain/routes";
 import type { ControllerRuntimeReturn } from "../../../../types/domain/controllerExpression";
 import type { ControllerReturnSemantic } from "../../../../types/upstream/controller";
 import type {

@@ -32,6 +32,5 @@ export {
     resolveRouteCapability,
 } from "./capabilityResolution";
 
-export { resolveRouteBinding } from "./bindingResolution";
 
 export { resolveRouteBoundaryInput } from "./boundaryInputResolution";

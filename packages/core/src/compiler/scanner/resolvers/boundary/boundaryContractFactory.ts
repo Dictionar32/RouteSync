@@ -41,7 +41,7 @@ export class RouteBoundaryContractFactory {
         };
         const identity = buildRouteIdentityContract(resolved, basics);
         const binding = buildRouteBindingContract(resolved, basics, resolved.binding);
-        const resolvedCapability = resolveRouteCapability(resolved, basics, identity.parameters.all.length);
+        const resolvedCapability = resolveRouteCapability(resolved, basics, identity.parameters.all.length, resolved.binding.request);
         const capability = buildRouteCapabilityContract(resolved, basics, resolvedCapability);
         const provenance = buildRouteProvenanceContract(resolved);
         const contract = ScannedEndpointContract.fromSubcontracts({

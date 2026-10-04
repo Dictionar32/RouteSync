@@ -1,6 +1,5 @@
 import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
 import { routeBoundaryBasicsInterface } from "./boundaryBasics";
-import { resolveRouteBinding } from "./bindingResolution";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
@@ -12,12 +11,8 @@ export function resolveRouteBoundaryInput(
 ): ResolvedRouteBoundaryOptions {
     const basicsJudgment = routeBoundaryBasicsInterface(params);
     const basics = basicsJudgment.result;
-    const binding = resolveRouteBinding({
-        controllerName: basics.resolvedControllerName,
-        action: basics.resolvedAction,
-        request: params.request
-    });
-    const capability = resolveRouteCapability(params, basics, basics.resolvedParameters.length);
+    const binding = params.binding;
+    const capability = resolveRouteCapability(params, basics, basics.resolvedParameters.length, binding.request);
     const provenance = buildRouteProvenanceContract({
         sourceFile: params.sourceFile,
         sourceLine: numberValue(params.sourceLine),

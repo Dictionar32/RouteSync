@@ -8,7 +8,7 @@
 
 import type { RouteBindingContract } from "../../../../types/route";
 import type { ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
-import type { ResolvedRouteBinding } from "./bindingResolution";
+import type { ResolvedRouteBinding } from "../../../../types/domain/routes";
 
 export function buildRouteBindingContract(
     params: ResolvedRouteBoundaryOptions,

@@ -64,6 +64,12 @@ export interface RouteOperationBinding {
   readonly handler: RouteHandlerDescriptor;
 }
 
+/** Closed semantic judgment for route operation + request binding. */
+export interface ResolvedRouteBinding {
+  readonly operation: RouteOperationBinding;
+  readonly request: RouteRequestBinding;
+}
+
 /**
  * Route binding contains relationships, not scalar projections of those relationships.
  */

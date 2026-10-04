@@ -82,15 +82,16 @@ export function resolveRouteCapabilityJudgment(
 }
 
 type RouteCapabilityResolutionInput = Pick<RouteBoundaryOptions,
-    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth" | "request"
+    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth"
 > | Pick<ResolvedRouteBoundaryOptions,
-    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth" | "request"
+    "hookKind" | "executionSignature" | "requestContentType" | "crudRole" | "errorResponses" | "invalidation" | "schema" | "auth"
 >;
 
 export function resolveRouteCapability(
     params: RouteCapabilityResolutionInput,
     basics: IntermediateRouteBoundaryBasics,
     parameterCount: number,
+    request: RouteBoundaryOptions["request"],
 ): ResolvedRouteCapability {
     return resolveRouteCapabilityJudgment(
         Object.freeze({
@@ -105,7 +106,7 @@ export function resolveRouteCapability(
         }),
         basics,
         parameterCount,
-        params.request,
+        request,
     );
 }
 

@@ -4,16 +4,16 @@
  * Resource mapper facts are accumulated as immutable relations. Recursive
  * resource discovery is a least fixed-point over child-resource intents.
  */
-import { toPascalCase } from '../../../utils/resource-naming';
+import { toPascalResourceName, toPascalResponseTypeName } from '../../../utils/resource-naming';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
+import type { ResourceName } from '../../../types/upstream/names';
 import type { ObjectProperty } from '../../types/SemanticType';
 import type { MappingIntent, MappingIntentField, ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
 import { buildReadMapperFromFields } from './readMapperBuilder';
 import { buildFormMapper } from './formMapperBuilder';
 import { createResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
-import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
+import { relationFold, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
 
 export interface CollectedMapperParts {
     readonly readMapperBlocks: readonly string[];
@@ -34,13 +34,15 @@ type MapperAccumulator = Readonly<{
     readonly hasApiField: boolean;
 }>;
 
+const emptyTextRelation = (): readonly string[] => Object.freeze([]);
+
 const emptyAccumulator = (): MapperAccumulator => Object.freeze({
-    readMapperBlocks: Object.freeze([]),
-    formMapperBlocks: Object.freeze([]),
-    contractImports: Object.freeze([]),
-    formTypeImports: Object.freeze([]),
-    readTypeImports: Object.freeze([]),
-    processedResources: Object.freeze([]),
+    readMapperBlocks: emptyTextRelation(),
+    formMapperBlocks: emptyTextRelation(),
+    contractImports: emptyTextRelation(),
+    formTypeImports: emptyTextRelation(),
+    readTypeImports: emptyTextRelation(),
+    processedResources: emptyTextRelation(),
     hasApiField: false,
 });
 
@@ -48,26 +50,29 @@ const addFact = (facts: readonly string[], value: string): readonly string[] => 
 
 const availableContractTypes = (requestTypes: readonly RequestType[]): readonly string[] => relationFold(
     requestTypes,
-    Object.freeze([]),
-    (facts, requestType) => relationResolve(
-        relationEqual(requestType.response.kind, 'data'),
-        () => addFact(facts, `${toPascalCase(requestType.response.value.contract.name.value)}ApiResponse`),
+    emptyTextRelation(),
+    (facts, requestType) => relationVariantFold(
+        requestType.response,
+        'data',
         () => facts,
+        response => addFact(facts, `${toPascalResponseTypeName(response.value.contract.name)}ApiResponse`),
     ),
 );
 
 const resourceChildren = (
     intent: MappingIntent,
-    register: (resourceName: string, fields: readonly MappingIntentField[]) => MapperAccumulator,
+    register: (resourceName: ResourceName, fields: readonly MappingIntentField[]) => MapperAccumulator,
     state: MapperAccumulator,
-): MapperAccumulator => relationResolve(
-    relationEqual(intent.kind, 'resource'),
-    () => register(intent.resourceName.value, intent.fields),
-    () => relationResolve(
-        relationEqual(intent.kind, 'resource_collection'),
-        () => register(intent.resourceName.value, intent.fields),
+): MapperAccumulator => relationVariantFold(
+    intent,
+    'resource',
+    () => relationVariantFold(
+        intent,
+        'resource_collection',
         () => state,
+        resource => register(resource.resourceName, resource.fields),
     ),
+    resource => register(resource.resourceName, resource.fields),
 );
 
 const registerIntentGraph = (
@@ -76,10 +81,10 @@ const registerIntentGraph = (
     availableContracts: readonly string[],
     state: MapperAccumulator,
 ): MapperAccumulator => relationResolve(
-    relationContains(state.processedResources, toPascalCase(intentGraph.resourceName.value)),
+    relationContains(state.processedResources, toPascalResourceName(intentGraph.resourceName)),
     () => state,
     () => {
-        const resource = toPascalCase(intentGraph.resourceName.value);
+        const resource = toPascalResourceName(intentGraph.resourceName);
         const seeded = relationResolve(
             relationContains(availableContracts, apiResponseType),
             () => Object.freeze({
@@ -98,10 +103,10 @@ const registerIntentGraph = (
                 field.intent,
                 (resourceName, fields) => registerIntentGraph(
                     Object.freeze({
-                        resourceName: SemanticValueFactory.resourceName(toPascalCase(resourceName)),
+                        resourceName,
                         fields,
                     }),
-                    `${toPascalCase(resourceName)}ApiResponse`,
+                    `${toPascalResourceName(resourceName)}ApiResponse`,
                     availableContracts,
                     current,
                 ),
@@ -112,15 +117,14 @@ const registerIntentGraph = (
 );
 
 const registerResource = (
-    resourceName: string,
+    resourceName: ResourceName,
     fields: readonly ObjectProperty[],
+    apiResponseType: string,
     availableContracts: readonly string[],
     state: MapperAccumulator,
 ): MapperAccumulator => {
-    const resource = toPascalCase(resourceName);
-    const apiResponseType = `${resource}ApiResponse`;
     return registerIntentGraph(
-        createResourceMappingIntentGraph(resource, fields),
+        createResourceMappingIntentGraph(resourceName, fields),
         apiResponseType,
         availableContracts,
         state,
@@ -133,15 +137,17 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
         requestTypes,
         emptyAccumulator(),
         (current, requestType) => {
-            const responseState = relationResolve(
-                relationEqual(requestType.response.kind, 'data'),
-                () => registerResource(
-                    requestType.response.value.contract.name.value,
-                    requestType.response.value.fields,
+            const responseState = relationVariantFold(
+                requestType.response,
+                'data',
+                () => current,
+                response => registerResource(
+                    requestType.identity.resource,
+                    response.value.fields,
+                    `${toPascalResponseTypeName(response.value.contract.name)}ApiResponse`,
                     availableContracts,
                     current,
                 ),
-                () => current,
             );
             return relationFold(
                 requestType.actions,
@@ -152,12 +158,8 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
                         () => actionState.hasApiField,
                         () => true,
                     );
-                    const computedFormType = relationResolve(
-                        relationEqual(requestType.formTypeName?.endsWith('Form'), true),
-                        () => requestType.formTypeName as string,
-                        () => `${toPascalCase(requestType.resourceName)}Form`,
-                    );
-                    const contractTypeName = `${toPascalCase(requestType.resourceName)}Contract`;
+                    const computedFormType = requestType.identity.source.formType.value.value;
+                    const contractTypeName = `${toPascalResourceName(requestType.identity.resource)}Contract`;
                     return Object.freeze({
                         ...actionState,
                         hasApiField,
@@ -165,7 +167,7 @@ export function collectMapperParts(requestTypes: readonly RequestType[]): Collec
                         contractImports: addFact(actionState.contractImports, contractTypeName),
                         formMapperBlocks: Object.freeze([
                             ...actionState.formMapperBlocks,
-                            buildFormMapper(requestType, action, contractTypeName),
+                            buildFormMapper(requestType, action),
                         ]),
                     });
                 },

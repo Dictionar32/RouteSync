@@ -1,4 +1,5 @@
-import { toCamelCase } from '../../../utils/resource-naming';
+import { toCamelPropertyName, propertyNameText } from '../../../utils/resource-naming';
+import { relationProject, relationSelect } from '../../../semantic/kernel/relationalSequence';
 import type { RequestField } from '../../types/domain/request';
 import type { RequestFieldMeaningVisitor, ObjectRequestMeaning, ResourceRequestMeaning, CollectionRequestMeaning, ResourceCollectionRequestMeaning } from '../../../types/domain/requestFieldMeaning';
 import { indent } from './readMapperBuilder';
@@ -8,10 +9,8 @@ const direct = (field: RequestField): string =>
   `  [ApiApiField.${toApiFieldKey(field.sourceName)}]: form.${field.name},`;
 
 const object = (field: RequestField, meaning: ObjectRequestMeaning | ResourceRequestMeaning): string => {
-  const innerLines = meaning.fields
-    .filter(item => !item.name.value.startsWith('__'))
-    .map(item => `  [ApiApiField.${toApiFieldKey(item.name.value)}]: form.${field.name}?.${toCamelCase(item.name.value)}`)
-    .join(',\n');
+  const visibleFields = relationSelect(meaning.fields, item => !propertyNameText(item.name).startsWith('__'));
+  const innerLines = relationProject(visibleFields, item => `  [ApiApiField.${toApiFieldKey(item.name)}]: form.${field.name}?.${toCamelPropertyName(item.name)}`).join(',\n');
   return `  [ApiApiField.${toApiFieldKey(field.sourceName)}]: form.${field.name} ? {\n${indent(innerLines)}\n  } : undefined,`;
 };
 
@@ -19,10 +18,8 @@ const collection = (field: RequestField, meaning: CollectionRequestMeaning): str
   meaning.element.accept(COLLECTION_RENDERERS(field));
 
 const collectionObject = (field: RequestField, fields: ObjectRequestMeaning | ResourceRequestMeaning): string => {
-  const innerLines = fields.fields
-    .filter(item => !item.name.value.startsWith('__'))
-    .map(item => `  [ApiApiField.${toApiFieldKey(item.name.value)}]: item.${toCamelCase(item.name.value)}`)
-    .join(',\n');
+  const visibleFields = relationSelect(fields.fields, item => !propertyNameText(item.name).startsWith('__'));
+  const innerLines = relationProject(visibleFields, item => `  [ApiApiField.${toApiFieldKey(item.name)}]: item.${toCamelPropertyName(item.name)}`).join(',\n');
   return `  [ApiApiField.${toApiFieldKey(field.sourceName)}]: form.${field.name}?.map(item => ({\n${indent(innerLines)}\n  })),`;
 };
 
@@ -58,6 +55,3 @@ export function buildFormFieldLine(field: RequestField): string {
   return field.meaning.accept(visitor(field));
 }
 
-export function extractObjectPropertyNames(_target: unknown): readonly string[] {
-  return [];
-}

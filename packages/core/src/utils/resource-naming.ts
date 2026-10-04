@@ -8,6 +8,8 @@
  * @module core/utils/resource-naming
  */
 
+import type { PropertyName, ResourceName, ResponseTypeName } from '../types/upstream/names';
+
 import {
     CharKind,
     LexerState,
@@ -33,4 +35,10 @@ export {
 // Canonical Aliases for System-wide Integration (Active Consumption)
 export const toPascalCase = (str: string): string => IdentifierCase.toPascal(str);
 export const toCamelCase = (str: string): string => IdentifierCase.toCamel(str);
+
+/** Canonical semantic-name projections used at the code-emission boundary. */
+export const toPascalResourceName = (name: ResourceName): string => IdentifierCase.toPascal(name.value.value);
+export const toPascalResponseTypeName = (name: ResponseTypeName): string => IdentifierCase.toPascal(name.value.value);
+export const toCamelPropertyName = (name: PropertyName): string => IdentifierCase.toCamel(name.value.value);
+export const propertyNameText = (name: PropertyName): string => name.value.value;
 export const toSnakeCase = (str: string): string => IdentifierCase.toSnake(str);

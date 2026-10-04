@@ -7,15 +7,16 @@
  * @module compiler/passes/mapper/formMapperBuilder
  */
 
-import { toPascalCase } from '../../../utils/resource-naming';
+import { toPascalResourceName, propertyNameText, toPascalCase } from '../../../utils/resource-naming';
+import { relationProject } from '../../../semantic/kernel/relationalSequence';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
+import type { PropertyName } from '../../../types/upstream/names';
 import { buildFormFieldLine } from './formFieldLineBuilder';
 
 export { buildFormFieldLine };
-export { extractObjectPropertyNames } from './formFieldLineBuilder';
 
-export function toApiFieldKey(originalName: string): string {
-    return originalName.toUpperCase().replace(/[^A-Z0-9]/g, '');
+export function toApiFieldKey(originalName: PropertyName): string {
+    return propertyNameText(originalName).toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
 /**
@@ -23,18 +24,14 @@ export function toApiFieldKey(originalName: string): string {
  */
 export function buildFormMapper(
     requestType: RequestType,
-    action: RequestType['actions'][number],
-    contractTypeName: string
+    action: RequestType['actions'][number]
 ): string {
-    const resource = toPascalCase(requestType.resourceName);
+    const resource = toPascalResourceName(requestType.identity.resource);
     const actionName = toPascalCase(action.name);
-    const formTypeName = requestType.formTypeName && requestType.formTypeName.endsWith('Form')
-        ? requestType.formTypeName
-        : resource + 'Form';
+    const formTypeName = requestType.identity.source.formType.value.value;
+    const contractTypeName = `${resource}Contract`;
 
-    const fieldLines = action.fields
-        .map(field => buildFormFieldLine(field))
-        .join('\n');
+    const fieldLines = relationProject(action.fields, field => buildFormFieldLine(field)).join('\n');
 
     return (
         `export const toApi${resource}${actionName} = (form: ${formTypeName}['${actionName}']): ${contractTypeName}['${actionName}'] => ({\n` +

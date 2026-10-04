@@ -7,30 +7,31 @@
  * @module compiler/passes/mapper/readMapperBuilder
  */
 
-import { toPascalCase } from '../../../utils/resource-naming';
+import { toPascalResourceName, propertyNameText } from '../../../utils/resource-naming';
+import { relationProject } from '../../../semantic/kernel/semanticRelations';
 import type { ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
 import {
     indent,
-    buildFieldMappingLine,
-    resolveResourceBaseName
+    buildFieldMappingLine
 } from './readFieldLineBuilder';
 
-export { indent, buildFieldMappingLine, resolveResourceBaseName };
+export { indent, buildFieldMappingLine };
 
 /**
  * Builds toXRead and toXReadList mappers from a set of semantic fields.
  */
 export function buildReadMapperFromFields(
     graph: ResourceMappingIntentGraph,
-    paramType?: string
+    apiResponseType: string
 ): string {
-    const resource = toPascalCase(graph.resourceName);
+    const resource = toPascalResourceName(graph.resourceName);
     const returnType = `${resource}Transformed`;
-    const apiType = paramType ?? `${resource}ApiResponse`;
+    const apiType = apiResponseType;
 
-    const fieldLines = graph.fields
-        .map(field => buildFieldMappingLine(field.name, field.intent, `api.${field.name}`))
-        .join('\n');
+    const fieldLines = relationProject(
+        graph.fields,
+        field => buildFieldMappingLine(field.name, field.intent, `api.${propertyNameText(field.name)}`),
+    ).join('\n');
 
     const readFn =
         `export const to${resource}Read = (api: ${apiType}): ${returnType} => ({\n` +

@@ -1,4 +1,6 @@
-import { toCamelCase } from '../../../utils/resource-naming';
+import { toCamelPropertyName, propertyNameText } from '../../../utils/resource-naming';
+import { relationProject, relationSelect } from '../../../semantic/kernel/semanticRelations';
+import type { PropertyName } from '../../../types/domain/semanticValues';
 import type {
   MappingIntent,
   ObjectMappingIntent,
@@ -8,45 +10,45 @@ import type {
 } from '../../../types/domain/mappingIntent';
 
 export function indent(block: string): string {
-  return block.split('\n').map(line => `  ${line}`).join('\n');
+  return relationProject(block.split('\n'), line => `  ${line}`).join('\n');
 }
 
-const direct = (target: string, path: string): string => `  ${toCamelCase(target)}: ${path},`;
+const direct = (target: PropertyName, path: string): string => `  ${toCamelPropertyName(target)}: ${path},`;
 
-const object = (target: string, path: string, intent: ObjectMappingIntent | ResourceMappingIntent): string =>
-  intent.fields
-    .filter(field => !field.name.value.startsWith('__'))
-    .map(field => buildFieldMappingLine(field.name.value, field.intent, `${path}.${field.name.value}`))
-    .join('\n');
+const object = (target: PropertyName, path: string, intent: ObjectMappingIntent | ResourceMappingIntent): string =>
+  relationProject(
+    relationSelect(intent.fields, field => !field.name.value.value.startsWith('__')),
+    field => buildFieldMappingLine(field.name, field.intent, `${path}.${propertyNameText(field.name)}`),
+  ).join('\n');
 
-const collection = (target: string, path: string, intent: CollectionMappingIntent | ResourceCollectionMappingIntent): string => {
+const collection = (target: PropertyName, path: string, intent: CollectionMappingIntent | ResourceCollectionMappingIntent): string => {
   const renderer = COLLECTION_RENDERERS[intent.kind];
   return renderer(target, path, intent);
 };
 
 const collectionObject = (
-  target: string,
+  target: PropertyName,
   path: string,
   fields: ObjectMappingIntent | ResourceMappingIntent
 ): string => {
-  const body = fields.fields
-    .filter(field => !field.name.value.startsWith('__'))
-    .map(field => buildFieldMappingLine(field.name.value, field.intent, `item.${field.name.value}`))
-    .join('\n');
-  return `  ${toCamelCase(target)}: ${path}?.map(item => ({\n${indent(body)}\n  })),`;
+  const body = relationProject(
+    relationSelect(fields.fields, field => !field.name.value.value.startsWith('__')),
+    field => buildFieldMappingLine(field.name, field.intent, `item.${propertyNameText(field.name)}`),
+  ).join('\n');
+  return `  ${toCamelPropertyName(target)}: ${path}?.map(item => ({\n${indent(body)}\n  })),`;
 };
 
 const COLLECTION_RENDERERS: {
-  readonly collection: (target: string, path: string, intent: CollectionMappingIntent) => string;
-  readonly resource_collection: (target: string, path: string, intent: ResourceCollectionMappingIntent) => string;
+  readonly collection: (target: PropertyName, path: string, intent: CollectionMappingIntent) => string;
+  readonly resource_collection: (target: PropertyName, path: string, intent: ResourceCollectionMappingIntent) => string;
 } = {
   collection: (target, path, intent) => COLLECTION_ELEMENT_RENDERERS[intent.element.kind](target, path, intent.element),
   resource_collection: (target, path, intent) =>
-    `  ${toCamelCase(target)}: ${path}.map(to${intent.resourceName.value}Read),`
+    `  ${toCamelPropertyName(target)}: ${path}.map(to${intent.resourceName.value.value}Read),`
 };
 
 const COLLECTION_ELEMENT_RENDERERS: {
-  readonly [K in MappingIntent['kind']]: (target: string, path: string, intent: Extract<MappingIntent, { kind: K }>) => string;
+  readonly [K in MappingIntent['kind']]: (target: PropertyName, path: string, intent: Extract<MappingIntent, { kind: K }>) => string;
 } = {
   direct: (target, path) => direct(target, path),
   object: (target, path, intent) => collectionObject(target, path, intent),
@@ -56,7 +58,7 @@ const COLLECTION_ELEMENT_RENDERERS: {
 };
 
 const RENDERERS: {
-  readonly [K in MappingIntent['kind']]: (target: string, path: string, intent: Extract<MappingIntent, { kind: K }>) => string;
+  readonly [K in MappingIntent['kind']]: (target: PropertyName, path: string, intent: Extract<MappingIntent, { kind: K }>) => string;
 } = {
   direct: (target, path) => direct(target, path),
   object: object,
@@ -65,20 +67,7 @@ const RENDERERS: {
   resource_collection: collection
 };
 
-export function buildFieldMappingLine(targetPropKey: string, intent: MappingIntent, jsonPath: string): string {
+export function buildFieldMappingLine(targetPropKey: PropertyName, intent: MappingIntent, jsonPath: string): string {
   return RENDERERS[intent.kind](targetPropKey, jsonPath, intent);
 }
 
-export function resolveResourceBaseName(intent: MappingIntent): string | null {
-  return RESOURCE_NAMES[intent.kind](intent);
-}
-
-const RESOURCE_NAMES: {
-  readonly [K in MappingIntent['kind']]: (intent: Extract<MappingIntent, { kind: K }>) => string | null;
-} = {
-  direct: () => null,
-  object: () => null,
-  resource: intent => intent.resourceName.value,
-  collection: intent => RESOURCE_NAMES[intent.element.kind](intent.element),
-  resource_collection: intent => intent.resourceName.value
-};

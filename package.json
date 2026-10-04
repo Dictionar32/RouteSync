@@ -199,7 +199,10 @@
     "audit:phase748:highest-semantic-frontier": "node scripts/audit-phase748-highest-semantic-frontier.cjs",
     "audit:phase748-highest-semantic-frontier": "node scripts/audit-phase748-highest-semantic-frontier.cjs",
     "audit:phase750-route-syntax-semantic-interface": "node scripts/audit-phase750-route-syntax-semantic-interface.cjs",
-    "audit:phase751-highest-ast-authority": "node scripts/audit-phase751-highest-ast-authority.cjs"
+    "audit:phase751-highest-ast-authority": "node scripts/audit-phase751-highest-ast-authority.cjs",
+    "audit:phase752-highest-mapper-semantic-boundary": "node scripts/audit-phase752-highest-mapper-semantic-boundary.cjs",
+    "audit:phase753-form-request-semantic-authority": "node scripts/audit-phase753-form-request-semantic-authority.cjs",
+    "audit:phase754-resource-registry-semantic-authority": "node scripts/audit-phase754-resource-registry-semantic-authority.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

@@ -13,4 +13,6 @@ export type { NodeId, ContractBaseNode, ContractNode, ContractVisitor } from './
 export { EntityNode, SchemaNode, RelationNode, ContractGraph, ContractGraphBuilder } from './ContractGraph';
 
 export type { Operand } from './Operand';
-export type { Instruction, BasicBlock } from './Instruction';
+export type { Instruction } from './Instruction';
+export type { BasicBlock, BasicBlockRelation, ControlFlowGraph } from '../utils/cfg/basicBlock';
+export { createBasicBlockRelation, basicBlockLookup, basicBlockReplace, basicBlockEntries, basicBlockIds, createControlFlowGraph } from '../utils/cfg/basicBlock';
